@@ -5,5 +5,6 @@ namespace HiddenWallet.DataRepository
 {
     internal class Main
     {
+
     }
 }
