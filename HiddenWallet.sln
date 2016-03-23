@@ -5,6 +5,12 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiddenWallet", "HiddenWallet\HiddenWallet.csproj", "{574945FC-D8E4-4E9B-9293-27FB921A3216}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{ACC06678-5262-4464-B2CA-024D2B914820}"
+	ProjectSection(SolutionItems) = preProject
+		Main.txt = Main.txt
+		SolutionStructure.txt = SolutionStructure.txt
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

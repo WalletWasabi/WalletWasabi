@@ -1,0 +1,3 @@
+For large projects there are certain documents that need to be kept with
+it. For this I actually create a separate project or folder within the
+solution to hold them.
