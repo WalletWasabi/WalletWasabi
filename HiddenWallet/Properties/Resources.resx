@@ -123,4 +123,10 @@
   <data name="InputDialog_Show__Ok" xml:space="preserve">
     <value>Ok</value>
   </data>
+  <data name="Incorrect_password" xml:space="preserve">
+    <value>Incorrect password</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
 </root>

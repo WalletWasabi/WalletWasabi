@@ -1,10 +1,12 @@
-﻿// Not HD wallet, because of the following privacy reasons:
-// This way if it is hacked, the transaction history will not leak out
-// The structure is simple: every private key gets encrypted separately and goes to a new line
+﻿// Every private key can be derived from the seed private key and an id.
+// Every public key can be derived from the seed public key and an id.
+// Structure:
+//   File 1: seed private key in encrypted form
+//   File 2: count of generated keys
 
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using HiddenWallet.Helpers;
 using NBitcoin;
 
@@ -12,66 +14,95 @@ namespace HiddenWallet.DataClasses
 {
     internal class Wallet
     {
-        private readonly Dictionary<string, string> _encryptedPrivateKeysByAddresses = new Dictionary<string, string>();
         private readonly Network _network;
+        private readonly string _pathKeyCountFile;
+        private readonly string _pathWalletDirectory;
+        private readonly string _pathWalletFile;
+        private ExtPubKey _seedPublicKey;
 
-        internal Wallet(string path, Network network, string password)
+        internal Wallet(string pathWalletFile, Network network, string password)
         {
             _network = network;
+            _pathWalletFile = pathWalletFile;
+            _pathWalletDirectory = Path.GetDirectoryName(_pathWalletFile);
+            if (_pathWalletDirectory == null)
+                throw new Exception("_pathWalletDirectoryIsNull");
+            _pathKeyCountFile = Path.Combine(_pathWalletDirectory, @"KeyCount.txt");
 
-            if (File.Exists(path))
-                Load(path, password);
-            else
-                Create(path, password);
+            if (!File.Exists(_pathWalletFile))
+                Create(password);
+
+            Load(password);
         }
 
-        /// <summary>
-        /// Creates the wallet with one encrypted private key. It also loads it.
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="password"></param>
-        private void Create(string path, string password)
+        public int KeyCount
         {
-            if (File.Exists(path)) throw new Exception("WalletAlreadyExists");
-
-            var pathDirectory = Path.GetDirectoryName(path);
-            if (pathDirectory != null)
-                Directory.CreateDirectory(pathDirectory);
-            else
-                throw new Exception("WrongWalletPath");
-
-            var encryptedPrivateKey = StringCipher.Encrypt(GeneratePrivateKey(), password);
-
-            File.WriteAllText(path, encryptedPrivateKey);
-
-            Load(path, password);
-        }
-
-        /// <summary>
-        /// Loads the wallet from specified wallet path.
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="password"></param>
-        private void Load(string path, string password)
-        {
-            if (!File.Exists(path)) throw new Exception("WalletDontExists");
-
-            foreach (var encryptedPrivateKey in File.ReadAllLines(path))
+            get
             {
-                var privateKey = new BitcoinSecret(StringCipher.Decrypt(encryptedPrivateKey, password));
-                var address = privateKey.GetAddress();
-                _encryptedPrivateKeysByAddresses.Add(encryptedPrivateKey, address.ToString());
+                if (!File.Exists(_pathKeyCountFile))
+                    throw new Exception("_pathKeyCountFileDontExists");
+                try
+                {
+                    var keyCount = File.ReadAllText(_pathKeyCountFile);
+                    return int.Parse(keyCount);
+                }
+                catch (Exception)
+                {
+                    throw new Exception("WrongKeyCountFileFormat");
+                }
+            }
+            private set
+            {
+                if (value != 0 && !File.Exists(_pathKeyCountFile))
+                    throw new Exception("_pathKeyCountFileDontExists");
+
+                File.WriteAllText(_pathKeyCountFile, value.ToString());
             }
         }
 
         /// <summary>
+        ///     Creates new wallet file with one encrypted wif seed.
         /// </summary>
-        /// <returns>Private key</returns>
-        private string GeneratePrivateKey()
+        /// <param name="password"></param>
+        private void Create(string password)
         {
-            var key = new Key();
-            var privateKey = key.GetBitcoinSecret(_network);
-            return privateKey.ToString();
+            var seedPrivateKey = new ExtKey();
+            var seedWif = seedPrivateKey.GetWif(_network);
+            var encryptedSeedWif = StringCipher.Encrypt(seedWif.ToString(), password);
+
+            Directory.CreateDirectory(_pathWalletDirectory);
+            File.WriteAllText(_pathWalletFile, encryptedSeedWif);
+
+            if (File.Exists(_pathKeyCountFile))
+                throw new Exception("_pathKeyCountFileExists");
+            KeyCount = 0;
+        }
+
+        /// <summary>
+        ///     Loads the wallet.
+        /// </summary>
+        /// <param name="password"></param>
+        private void Load(string password)
+        {
+            if (!File.Exists(_pathWalletFile))
+                throw new Exception("_pathWalletFileDontExists");
+
+            try
+            {
+                var encryptedSeedWif = File.ReadAllText(_pathWalletFile);
+                var seedWifString = StringCipher.Decrypt(encryptedSeedWif, password);
+                var bitcoinSeedPrivateKey = new BitcoinExtKey(seedWifString);
+                var seedPrivateKey = bitcoinSeedPrivateKey.ExtKey;
+                _seedPublicKey = seedPrivateKey.Neuter();
+            }
+            catch (CryptographicException)
+            {
+                throw new Exception("WrongPassword");
+            }
+            catch (Exception)
+            {
+                throw new Exception("WrongWalletFileFormat");
+            }
         }
     }
 }

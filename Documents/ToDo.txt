@@ -1,0 +1,1 @@
+- In DataClasses Wallet check for 100 more keys, than keycount and set it if find activity on those addresses
