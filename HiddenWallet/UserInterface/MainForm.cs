@@ -31,7 +31,15 @@ namespace HiddenWallet.UserInterface
                 {
                     var password = "";
                     InputDialog.Show(ref password);
+
+                    var createWallet = !Main.WalletExists();
                     Main.CreateWallet(password);
+                    if (createWallet)
+                        MessageBox.Show(this,
+                            Resources.Please_backup_your_wallet_file + Environment.NewLine +
+                            Main.GetPathWalletFile(),
+                            Resources.Wallet_created, MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
 
                     noGo = false;
                 }
@@ -39,7 +47,8 @@ namespace HiddenWallet.UserInterface
                 {
                     if (exception.Message == "WrongPassword")
                     {
-                        var result = MessageBox.Show(this, Resources.Incorrect_password, "", MessageBoxButtons.RetryCancel,
+                        var result = MessageBox.Show(this, Resources.Incorrect_password, "",
+                            MessageBoxButtons.RetryCancel,
                             MessageBoxIcon.Exclamation);
                         if (result == DialogResult.Retry)
                             noGo = true;
@@ -47,7 +56,8 @@ namespace HiddenWallet.UserInterface
                     }
                     else
                     {
-                        var result = MessageBox.Show(this, exception.ToString(), Resources.Error, MessageBoxButtons.RetryCancel,
+                        var result = MessageBox.Show(this, exception.ToString(), Resources.Error,
+                            MessageBoxButtons.RetryCancel,
                             MessageBoxIcon.Error);
                         if (result == DialogResult.Retry)
                             noGo = true;

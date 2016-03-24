@@ -8,7 +8,7 @@ namespace HiddenWallet.DataRepository
 {
     internal static class Main
     {
-        internal const string WalletPath = @"Wallet\Wallet.hid";
+        internal const string PathWalletFile = @"Wallet\Wallet.hid";
         internal static readonly Network Network = Network.TestNet;
         internal static Wallet Wallet;
     }

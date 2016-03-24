@@ -129,4 +129,13 @@
   <data name="Error" xml:space="preserve">
     <value>Error</value>
   </data>
+  <data name="Wallet_file_not_found" xml:space="preserve">
+    <value>Wallet file not found</value>
+  </data>
+  <data name="Please_backup_your_wallet_file" xml:space="preserve">
+    <value>Please backup your wallet file</value>
+  </data>
+  <data name="Wallet_created" xml:space="preserve">
+    <value>Wallet created</value>
+  </data>
 </root>

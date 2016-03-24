@@ -3,7 +3,7 @@
 
 namespace HiddenWallet.Business
 {
-    internal class Main
+    internal static class Main
     {
     }
 }
