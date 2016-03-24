@@ -4,7 +4,7 @@
 
 namespace HiddenWallet.Helpers
 {
-    internal class Main
+    internal static class Main
     {
     }
 }
