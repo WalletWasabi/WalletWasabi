@@ -17,11 +17,6 @@ namespace HiddenWallet.UserInterface
             InitializeComponent();
         }
 
-        private void MainForm_Shown(object sender, EventArgs e)
-        {
-            AskPassword();
-        }
-
         private void AskPassword()
         {
             var noGo = true;
@@ -65,6 +60,17 @@ namespace HiddenWallet.UserInterface
                     }
                 }
             }
+        }
+
+        private void addressesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+        }
+
+        private void MainForm_Shown(object sender, EventArgs e)
+        {
+            Enabled = false;
+            AskPassword();
+            Enabled = true;
         }
     }
 }
