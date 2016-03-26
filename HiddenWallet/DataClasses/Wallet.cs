@@ -5,9 +5,12 @@
 //   File 2: count of generated keys
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Security.Cryptography;
 using HiddenWallet.Helpers;
+using HiddenWallet.Helpers.Wrappers;
 using NBitcoin;
 
 namespace HiddenWallet.DataClasses
@@ -19,6 +22,7 @@ namespace HiddenWallet.DataClasses
         private readonly string _pathWalletDirectory;
         private readonly string _pathWalletFile;
         private ExtPubKey _seedPublicKey;
+        internal BindingList<StringValue> NotUsedAddresses = new BindingList<StringValue>();
 
         internal Wallet(string pathWalletFile, Network network, string password)
         {
@@ -35,7 +39,7 @@ namespace HiddenWallet.DataClasses
             Load(password);
         }
 
-        public int KeyCount
+        internal uint KeyCount
         {
             get
             {
@@ -44,7 +48,7 @@ namespace HiddenWallet.DataClasses
                 try
                 {
                     var keyCount = File.ReadAllText(_pathKeyCountFile);
-                    return int.Parse(keyCount);
+                    return UInt32.Parse(keyCount);
                 }
                 catch (Exception)
                 {
@@ -57,6 +61,20 @@ namespace HiddenWallet.DataClasses
                     throw new Exception("_pathKeyCountFileDontExists");
 
                 File.WriteAllText(_pathKeyCountFile, value.ToString());
+            }
+        }
+
+        internal HashSet<BitcoinAddress> Addresses
+        {
+            get
+            {
+                var addresses = new HashSet<BitcoinAddress>();
+
+                for (uint i = 0; i <= KeyCount; i++)
+                {
+                    addresses.Add(_seedPublicKey.Derive(i).PubKey.GetAddress(_network));
+                }
+                return addresses;
             }
         }
 
@@ -103,6 +121,23 @@ namespace HiddenWallet.DataClasses
             {
                 throw new Exception("WrongWalletFileFormat");
             }
+
+            foreach (var address in Addresses)
+            {
+                // TODO if address is never used
+                NotUsedAddresses.Add(new StringValue(address.ToString()));
+            }
+        }
+
+        internal string GenerateKey()
+        {
+            KeyCount++;
+
+            var address = _seedPublicKey.Derive(KeyCount).PubKey.GetAddress(_network).ToString();
+
+            NotUsedAddresses.Add(new StringValue(address));
+
+            return address;
         }
     }
 }

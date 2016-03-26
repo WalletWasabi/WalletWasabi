@@ -1,1 +1,5 @@
-- In DataClasses Wallet check for 100 more keys, than keycount and set it if find activity on those addresses
+- In DataClasses Wallet check for 100 more keys, than keycount and set it if find activity on those addresses (or find a way how to backup and reload properly)
+- change wif encryption to nbitcoin's encryption // http://www.codeproject.com/Articles/775226/NBitcoin-Cryptography-Part
+- when ready review project organization structure
+- color the first and last characters of btc address receive - security feature
+- change the name of wallet file to something that doesnt have wallet in it? - security feature

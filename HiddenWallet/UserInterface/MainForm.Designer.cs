@@ -33,7 +33,7 @@
             this.labelBalance = new System.Windows.Forms.Label();
             this.menuStripMain = new System.Windows.Forms.MenuStrip();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.addressesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.receiveAddressesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControlMain = new System.Windows.Forms.TabControl();
             this.tabPageReceive = new System.Windows.Forms.TabPage();
             this.buttonGenerateNewAddress = new System.Windows.Forms.Button();
@@ -99,17 +99,17 @@
             // viewToolStripMenuItem
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.addressesToolStripMenuItem});
+            this.receiveAddressesToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
             // 
-            // addressesToolStripMenuItem
+            // receiveAddressesToolStripMenuItem
             // 
-            this.addressesToolStripMenuItem.Name = "addressesToolStripMenuItem";
-            this.addressesToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
-            this.addressesToolStripMenuItem.Text = "Addresses";
-            this.addressesToolStripMenuItem.Click += new System.EventHandler(this.addressesToolStripMenuItem_Click);
+            this.receiveAddressesToolStripMenuItem.Name = "receiveAddressesToolStripMenuItem";
+            this.receiveAddressesToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
+            this.receiveAddressesToolStripMenuItem.Text = "Receive addresses";
+            this.receiveAddressesToolStripMenuItem.Click += new System.EventHandler(this.receiveAddressesToolStripMenuItem_Click);
             // 
             // tabControlMain
             // 
@@ -146,6 +146,7 @@
             this.buttonGenerateNewAddress.TabIndex = 1;
             this.buttonGenerateNewAddress.Text = "GENERATE NEW ADDRESS";
             this.buttonGenerateNewAddress.UseVisualStyleBackColor = true;
+            this.buttonGenerateNewAddress.Click += new System.EventHandler(this.buttonGenerateNewAddress_Click);
             // 
             // textBoxRecieveAddress
             // 
@@ -154,7 +155,7 @@
             this.textBoxRecieveAddress.ReadOnly = true;
             this.textBoxRecieveAddress.Size = new System.Drawing.Size(390, 20);
             this.textBoxRecieveAddress.TabIndex = 0;
-            this.textBoxRecieveAddress.Text = "1WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW";
+            this.textBoxRecieveAddress.Text = "1E6aG3JAwwvJAUvAUGLF987TVbrCYS1oKa";
             this.textBoxRecieveAddress.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // tabPageSend
@@ -227,7 +228,7 @@
             this.textBoxSendAddress.Name = "textBoxSendAddress";
             this.textBoxSendAddress.Size = new System.Drawing.Size(390, 20);
             this.textBoxSendAddress.TabIndex = 4;
-            this.textBoxSendAddress.Text = "1WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW";
+            this.textBoxSendAddress.Text = "1E6aG3JAwwvJAUvAUGLF987TVbrCYS1oKa";
             this.textBoxSendAddress.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // buttonSend
@@ -243,9 +244,9 @@
             // progressBarMain
             // 
             this.progressBarMain.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.progressBarMain.Location = new System.Drawing.Point(0, 225);
+            this.progressBarMain.Location = new System.Drawing.Point(0, 223);
             this.progressBarMain.Name = "progressBarMain";
-            this.progressBarMain.Size = new System.Drawing.Size(413, 55);
+            this.progressBarMain.Size = new System.Drawing.Size(413, 38);
             this.progressBarMain.TabIndex = 5;
             // 
             // MainForm
@@ -253,7 +254,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(413, 280);
+            this.ClientSize = new System.Drawing.Size(413, 261);
             this.Controls.Add(this.splitContainerMain);
             this.Controls.Add(this.progressBarMain);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -285,7 +286,7 @@
         private System.Windows.Forms.SplitContainer splitContainerMain;
         private System.Windows.Forms.MenuStrip menuStripMain;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem addressesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem receiveAddressesToolStripMenuItem;
         private System.Windows.Forms.TabControl tabControlMain;
         private System.Windows.Forms.TabPage tabPageReceive;
         private System.Windows.Forms.TabPage tabPageSend;

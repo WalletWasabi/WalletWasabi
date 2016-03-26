@@ -27,12 +27,12 @@ namespace HiddenWallet.UserInterface
                     var password = "";
                     InputDialog.Show(ref password);
 
-                    var createWallet = !Main.WalletExists();
-                    Main.CreateWallet(password);
+                    var createWallet = !WalletServices.WalletExists();
+                    WalletServices.CreateWallet(password);
                     if (createWallet)
                         MessageBox.Show(this,
                             Resources.Please_backup_your_wallet_file + Environment.NewLine +
-                            Main.GetPathWalletFile(),
+                            WalletServices.GetPathWalletFile(),
                             Resources.Wallet_created, MessageBoxButtons.OK,
                             MessageBoxIcon.Information);
 
@@ -62,8 +62,10 @@ namespace HiddenWallet.UserInterface
             }
         }
 
-        private void addressesToolStripMenuItem_Click(object sender, EventArgs e)
+        private void receiveAddressesToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            var form = new FormReceiveAddresses();
+            form.Show();
         }
 
         private void MainForm_Shown(object sender, EventArgs e)
@@ -71,6 +73,13 @@ namespace HiddenWallet.UserInterface
             Enabled = false;
             AskPassword();
             Enabled = true;
+
+            textBoxRecieveAddress.Text = "";
+        }
+
+        private void buttonGenerateNewAddress_Click(object sender, EventArgs e)
+        {
+            textBoxRecieveAddress.Text = WalletServices.GenerateKey();
         }
     }
 }

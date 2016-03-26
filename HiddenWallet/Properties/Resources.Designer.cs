@@ -95,5 +95,32 @@ namespace HiddenWallet.Properties {
                 return ResourceManager.GetString("InputDialog_Show_Password", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please backup your wallet file.
+        /// </summary>
+        internal static string Please_backup_your_wallet_file {
+            get {
+                return ResourceManager.GetString("Please_backup_your_wallet_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wallet created.
+        /// </summary>
+        internal static string Wallet_created {
+            get {
+                return ResourceManager.GetString("Wallet_created", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wallet file not found.
+        /// </summary>
+        internal static string Wallet_file_not_found {
+            get {
+                return ResourceManager.GetString("Wallet_file_not_found", resourceCulture);
+            }
+        }
     }
 }
