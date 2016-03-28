@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Security;
 using HiddenWallet.DataClasses;
 using HiddenWallet.Properties;
 
@@ -42,6 +43,11 @@ namespace HiddenWallet.Services
             }
 
             return addresses;
+        }
+
+        internal static decimal GetBalance()
+        {
+            return DataRepository.Main.Wallet.Balance;
         }
     }
 }

@@ -3,6 +3,7 @@
 // additional folder for shard forms and one for custom controls.
 
 using System;
+using System.Globalization;
 using System.Windows.Forms;
 using HiddenWallet.Properties;
 using HiddenWallet.Services;
@@ -75,6 +76,7 @@ namespace HiddenWallet.UserInterface
             Enabled = true;
 
             textBoxRecieveAddress.Text = "";
+            textBoxBalance.Text = WalletServices.GetBalance().ToString(CultureInfo.InvariantCulture) + @" BTC";
         }
 
         private void buttonGenerateNewAddress_Click(object sender, EventArgs e)

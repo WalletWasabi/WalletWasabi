@@ -79,9 +79,9 @@
             this.Controls.Add(this.dataGridViewReceiveAddresses);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximumSize = new System.Drawing.Size(429, 9999);
-            this.MinimumSize = new System.Drawing.Size(429, 0);
+            this.MinimumSize = new System.Drawing.Size(429, 38);
             this.Name = "FormReceiveAddresses";
-            this.Text = "Receive addresses";
+            this.Text = "Unused addresses";
             this.Load += new System.EventHandler(this.FormAddresses_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewReceiveAddresses)).EndInit();
             this.contextMenuStrip.ResumeLayout(false);

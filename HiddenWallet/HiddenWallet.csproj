@@ -66,9 +66,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Business\Main.cs" />
+    <Compile Include="DataClasses\AddressInfo.cs" />
     <Compile Include="DataClasses\Main.cs" />
     <Compile Include="DataClasses\Wallet.cs" />
     <Compile Include="DataRepository\Main.cs" />
+    <Compile Include="Helpers\BlockrApi.cs" />
     <Compile Include="Helpers\StringCipher.cs" />
     <Compile Include="Helpers\Wrappers\StringValue.cs" />
     <Compile Include="Services\Main.cs" />

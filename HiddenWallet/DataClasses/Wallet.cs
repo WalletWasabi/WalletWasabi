@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using HiddenWallet.Helpers;
 using HiddenWallet.Helpers.Wrappers;
@@ -22,7 +23,11 @@ namespace HiddenWallet.DataClasses
         private readonly string _pathWalletDirectory;
         private readonly string _pathWalletFile;
         private ExtPubKey _seedPublicKey;
+
+        #region UpdateableMembers
         internal BindingList<StringValue> NotUsedAddresses = new BindingList<StringValue>();
+        internal decimal Balance;
+        #endregion
 
         internal Wallet(string pathWalletFile, Network network, string password)
         {
@@ -122,11 +127,39 @@ namespace HiddenWallet.DataClasses
                 throw new Exception("WrongWalletFileFormat");
             }
 
-            foreach (var address in Addresses)
+            Update();
+        }
+
+        internal void Update()
+        {
+            decimal balance = 0;
+            const int maxQueryable = 20;
+            var addressesArray = Addresses.ToArray();
+
+            for (var i = 0; i <= Addresses.Count/maxQueryable; i++)
             {
-                // TODO if address is never used
-                NotUsedAddresses.Add(new StringValue(address.ToString()));
+                var addressesChunk = new HashSet<string>();
+                for (var j = 0; j < maxQueryable; j++)
+                {
+                    var currentIndex = i*maxQueryable + j;
+                    if (currentIndex >= Addresses.Count) break;
+                    addressesChunk.Add(addressesArray[currentIndex].ToString());
+                }
+
+                var addressesResult = BlockrApi.GetAddressInfosSync(addressesChunk);
+
+                foreach (var addressInfo in addressesResult)
+                {
+                    balance += addressInfo.TotalBalance;
+
+                    if (addressInfo.TransactionCount == 0)
+                    {
+                        NotUsedAddresses.Add(new StringValue(addressInfo.Address));
+                    }
+                }
             }
+
+            Balance = balance;
         }
 
         internal string GenerateKey()

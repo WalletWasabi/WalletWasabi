@@ -1,4 +1,6 @@
-﻿namespace HiddenWallet.UserInterface
+﻿using System.Windows.Forms;
+
+namespace HiddenWallet.UserInterface
 {
     partial class MainForm
     {
@@ -30,7 +32,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
-            this.labelBalance = new System.Windows.Forms.Label();
+            this.textBoxBalance = new System.Windows.Forms.TextBox();
             this.menuStripMain = new System.Windows.Forms.MenuStrip();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.receiveAddressesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -39,10 +41,8 @@
             this.buttonGenerateNewAddress = new System.Windows.Forms.Button();
             this.textBoxRecieveAddress = new System.Windows.Forms.TextBox();
             this.tabPageSend = new System.Windows.Forms.TabPage();
-            this.labelUsd = new System.Windows.Forms.Label();
             this.labelBtc = new System.Windows.Forms.Label();
-            this.textBoxUsd = new System.Windows.Forms.TextBox();
-            this.buttonMax = new System.Windows.Forms.Button();
+            this.buttonAll = new System.Windows.Forms.Button();
             this.textBoxBtc = new System.Windows.Forms.TextBox();
             this.textBoxSendAddress = new System.Windows.Forms.TextBox();
             this.buttonSend = new System.Windows.Forms.Button();
@@ -65,7 +65,7 @@
             // 
             // splitContainerMain.Panel1
             // 
-            this.splitContainerMain.Panel1.Controls.Add(this.labelBalance);
+            this.splitContainerMain.Panel1.Controls.Add(this.textBoxBalance);
             this.splitContainerMain.Panel1.Controls.Add(this.menuStripMain);
             // 
             // splitContainerMain.Panel2
@@ -75,16 +75,17 @@
             this.splitContainerMain.SplitterDistance = 77;
             this.splitContainerMain.TabIndex = 0;
             // 
-            // labelBalance
+            // textBoxBalance
             // 
-            this.labelBalance.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.labelBalance.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Bold);
-            this.labelBalance.Location = new System.Drawing.Point(0, 24);
-            this.labelBalance.Name = "labelBalance";
-            this.labelBalance.Size = new System.Drawing.Size(417, 53);
-            this.labelBalance.TabIndex = 1;
-            this.labelBalance.Text = "567.1234 BTC";
-            this.labelBalance.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.textBoxBalance.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.textBoxBalance.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Bold);
+            this.textBoxBalance.Location = new System.Drawing.Point(0, 24);
+            this.textBoxBalance.Name = "textBoxBalance";
+            this.textBoxBalance.ReadOnly = true;
+            this.textBoxBalance.Size = new System.Drawing.Size(417, 49);
+            this.textBoxBalance.TabIndex = 1;
+            this.textBoxBalance.Text = "567.1234 BTC";
+            this.textBoxBalance.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // menuStripMain
             // 
@@ -108,7 +109,7 @@
             // 
             this.receiveAddressesToolStripMenuItem.Name = "receiveAddressesToolStripMenuItem";
             this.receiveAddressesToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
-            this.receiveAddressesToolStripMenuItem.Text = "Receive addresses";
+            this.receiveAddressesToolStripMenuItem.Text = "Unused addresses";
             this.receiveAddressesToolStripMenuItem.Click += new System.EventHandler(this.receiveAddressesToolStripMenuItem_Click);
             // 
             // tabControlMain
@@ -160,10 +161,8 @@
             // 
             // tabPageSend
             // 
-            this.tabPageSend.Controls.Add(this.labelUsd);
             this.tabPageSend.Controls.Add(this.labelBtc);
-            this.tabPageSend.Controls.Add(this.textBoxUsd);
-            this.tabPageSend.Controls.Add(this.buttonMax);
+            this.tabPageSend.Controls.Add(this.buttonAll);
             this.tabPageSend.Controls.Add(this.textBoxBtc);
             this.tabPageSend.Controls.Add(this.textBoxSendAddress);
             this.tabPageSend.Controls.Add(this.buttonSend);
@@ -175,43 +174,24 @@
             this.tabPageSend.Text = "Send";
             this.tabPageSend.UseVisualStyleBackColor = true;
             // 
-            // labelUsd
-            // 
-            this.labelUsd.AutoSize = true;
-            this.labelUsd.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.labelUsd.Location = new System.Drawing.Point(293, 32);
-            this.labelUsd.Name = "labelUsd";
-            this.labelUsd.Size = new System.Drawing.Size(44, 20);
-            this.labelUsd.TabIndex = 11;
-            this.labelUsd.Text = "USD";
-            // 
             // labelBtc
             // 
             this.labelBtc.AutoSize = true;
             this.labelBtc.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.labelBtc.Location = new System.Drawing.Point(144, 32);
             this.labelBtc.Name = "labelBtc";
-            this.labelBtc.Size = new System.Drawing.Size(53, 20);
+            this.labelBtc.Size = new System.Drawing.Size(40, 20);
             this.labelBtc.TabIndex = 10;
-            this.labelBtc.Text = "BTC =";
+            this.labelBtc.Text = "BTC";
             // 
-            // textBoxUsd
+            // buttonAll
             // 
-            this.textBoxUsd.Location = new System.Drawing.Point(208, 32);
-            this.textBoxUsd.Name = "textBoxUsd";
-            this.textBoxUsd.Size = new System.Drawing.Size(85, 20);
-            this.textBoxUsd.TabIndex = 9;
-            this.textBoxUsd.Text = "200";
-            this.textBoxUsd.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            // 
-            // buttonMax
-            // 
-            this.buttonMax.Location = new System.Drawing.Point(9, 32);
-            this.buttonMax.Name = "buttonMax";
-            this.buttonMax.Size = new System.Drawing.Size(44, 23);
-            this.buttonMax.TabIndex = 6;
-            this.buttonMax.Text = "MAX";
-            this.buttonMax.UseVisualStyleBackColor = true;
+            this.buttonAll.Location = new System.Drawing.Point(9, 32);
+            this.buttonAll.Name = "buttonAll";
+            this.buttonAll.Size = new System.Drawing.Size(44, 23);
+            this.buttonAll.TabIndex = 6;
+            this.buttonAll.Text = "ALL";
+            this.buttonAll.UseVisualStyleBackColor = true;
             // 
             // textBoxBtc
             // 
@@ -290,17 +270,15 @@
         private System.Windows.Forms.TabControl tabControlMain;
         private System.Windows.Forms.TabPage tabPageReceive;
         private System.Windows.Forms.TabPage tabPageSend;
-        private System.Windows.Forms.Label labelBalance;
+        private System.Windows.Forms.TextBox textBoxBalance;
         private System.Windows.Forms.Button buttonGenerateNewAddress;
         private System.Windows.Forms.TextBox textBoxRecieveAddress;
         private System.Windows.Forms.TextBox textBoxSendAddress;
         private System.Windows.Forms.Button buttonSend;
         private System.Windows.Forms.ProgressBar progressBarMain;
-        private System.Windows.Forms.TextBox textBoxUsd;
-        private System.Windows.Forms.Button buttonMax;
+        private System.Windows.Forms.Button buttonAll;
         private System.Windows.Forms.TextBox textBoxBtc;
         private System.Windows.Forms.Label labelBtc;
-        private System.Windows.Forms.Label labelUsd;
     }
 }
 

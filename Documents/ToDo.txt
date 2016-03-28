@@ -3,3 +3,8 @@
 - when ready review project organization structure
 - color the first and last characters of btc address receive - security feature
 - change the name of wallet file to something that doesnt have wallet in it? - security feature
+- introduce the use of SecureString for password
+- create an effect when password is asked, mask it with random chinese characters
+- handle uncomfirmed transactions
+- color balance check (every 3 character grouped together in one color)
+- color addresses (every 3 character colored together, except the first one)
