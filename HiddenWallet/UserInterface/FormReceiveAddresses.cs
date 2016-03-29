@@ -2,7 +2,6 @@
 using System.Drawing;
 using System.Windows.Forms;
 using HiddenWallet.DataRepository;
-using NBitcoin.SPV;
 
 // ReSharper disable UnusedMember.Local
 
@@ -17,7 +16,7 @@ namespace HiddenWallet.UserInterface
 
         private void FormAddresses_Load(object sender, EventArgs e)
         {
-            Main.Wallet.Update();
+            Main.Wallet.Sync();
             dataGridViewReceiveAddresses.DataSource = new BindingSource(Main.Wallet.NotUsedAddresses, null);
         }
 

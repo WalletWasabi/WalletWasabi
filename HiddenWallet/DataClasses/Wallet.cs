@@ -24,11 +24,6 @@ namespace HiddenWallet.DataClasses
         private readonly string _pathWalletFile;
         private ExtPubKey _seedPublicKey;
 
-        #region UpdateableMembers
-        internal BindingList<StringValue> NotUsedAddresses = new BindingList<StringValue>();
-        internal decimal Balance;
-        #endregion
-
         internal Wallet(string pathWalletFile, Network network, string password)
         {
             _network = network;
@@ -127,14 +122,15 @@ namespace HiddenWallet.DataClasses
                 throw new Exception("WrongWalletFileFormat");
             }
 
-            Update();
+            Sync();
         }
 
-        internal void Update()
+        internal void Sync()
         {
             decimal balance = 0;
             const int maxQueryable = 20;
             var addressesArray = Addresses.ToArray();
+            var notUsedAddressesHashSet = new HashSet<BindingAddress>();
 
             for (var i = 0; i <= Addresses.Count/maxQueryable; i++)
             {
@@ -154,9 +150,14 @@ namespace HiddenWallet.DataClasses
 
                     if (addressInfo.TransactionCount == 0)
                     {
-                        NotUsedAddresses.Add(new StringValue(addressInfo.Address));
+                        notUsedAddressesHashSet.Add(new BindingAddress(addressInfo.Address));
                     }
                 }
+            }
+            NotUsedAddresses.Clear();
+            foreach (var bindingAddress in notUsedAddressesHashSet)
+            {
+                NotUsedAddresses.Add(bindingAddress);
             }
 
             Balance = balance;
@@ -168,9 +169,34 @@ namespace HiddenWallet.DataClasses
 
             var address = _seedPublicKey.Derive(KeyCount).PubKey.GetAddress(_network).ToString();
 
-            NotUsedAddresses.Add(new StringValue(address));
+            NotUsedAddresses.Add(new BindingAddress(address));
 
             return address;
         }
+
+        #region MembersToSync
+
+        internal BindingList<BindingAddress> NotUsedAddresses = new BindingList<BindingAddress>();
+
+        internal delegate void EventHandler(object sender, EventArgs args);
+        internal event EventHandler ThrowEvent = delegate { };
+
+        private decimal _balance;
+        internal decimal Balance
+        {
+            get { return _balance; }
+            set
+            {
+                if (value == _balance) return;
+                _balance = value;
+                BalanceChanged();
+            }
+        }
+        internal void BalanceChanged()
+        {
+            ThrowEvent(this, new EventArgs());
+        }
+
+        #endregion
     }
 }

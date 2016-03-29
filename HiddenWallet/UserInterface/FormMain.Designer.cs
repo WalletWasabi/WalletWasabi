@@ -2,7 +2,7 @@
 
 namespace HiddenWallet.UserInterface
 {
-    partial class MainForm
+    internal partial class FormMain
     {
         /// <summary>
         /// Required designer variable.
@@ -30,7 +30,7 @@ namespace HiddenWallet.UserInterface
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
             this.textBoxBalance = new System.Windows.Forms.TextBox();
             this.menuStripMain = new System.Windows.Forms.MenuStrip();
@@ -47,6 +47,7 @@ namespace HiddenWallet.UserInterface
             this.textBoxSendAddress = new System.Windows.Forms.TextBox();
             this.buttonSend = new System.Windows.Forms.Button();
             this.progressBarMain = new System.Windows.Forms.ProgressBar();
+            this.backgroundWorkerSyncWallet = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).BeginInit();
             this.splitContainerMain.Panel1.SuspendLayout();
             this.splitContainerMain.Panel2.SuspendLayout();
@@ -86,6 +87,7 @@ namespace HiddenWallet.UserInterface
             this.textBoxBalance.TabIndex = 1;
             this.textBoxBalance.Text = "567.1234 BTC";
             this.textBoxBalance.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.textBoxBalance.TextChanged += new System.EventHandler(this.textBoxBalance_TextChanged);
             // 
             // menuStripMain
             // 
@@ -109,7 +111,7 @@ namespace HiddenWallet.UserInterface
             // 
             this.receiveAddressesToolStripMenuItem.Name = "receiveAddressesToolStripMenuItem";
             this.receiveAddressesToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
-            this.receiveAddressesToolStripMenuItem.Text = "Unused addresses";
+            this.receiveAddressesToolStripMenuItem.Text = "Receive addresses";
             this.receiveAddressesToolStripMenuItem.Click += new System.EventHandler(this.receiveAddressesToolStripMenuItem_Click);
             // 
             // tabControlMain
@@ -158,6 +160,8 @@ namespace HiddenWallet.UserInterface
             this.textBoxRecieveAddress.TabIndex = 0;
             this.textBoxRecieveAddress.Text = "1E6aG3JAwwvJAUvAUGLF987TVbrCYS1oKa";
             this.textBoxRecieveAddress.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.textBoxRecieveAddress.TextChanged += new System.EventHandler(this.textBoxRecieveAddress_TextChanged);
+            this.textBoxRecieveAddress.Enter += new System.EventHandler(this.textBoxRecieveAddress_Enter);
             // 
             // tabPageSend
             // 
@@ -229,7 +233,7 @@ namespace HiddenWallet.UserInterface
             this.progressBarMain.Size = new System.Drawing.Size(413, 38);
             this.progressBarMain.TabIndex = 5;
             // 
-            // MainForm
+            // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -241,9 +245,10 @@ namespace HiddenWallet.UserInterface
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStripMain;
             this.MaximizeBox = false;
-            this.Name = "MainForm";
+            this.Name = "FormMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Hidden Wallet";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.Shown += new System.EventHandler(this.MainForm_Shown);
             this.splitContainerMain.Panel1.ResumeLayout(false);
             this.splitContainerMain.Panel1.PerformLayout();
@@ -279,6 +284,7 @@ namespace HiddenWallet.UserInterface
         private System.Windows.Forms.Button buttonAll;
         private System.Windows.Forms.TextBox textBoxBtc;
         private System.Windows.Forms.Label labelBtc;
+        private System.ComponentModel.BackgroundWorker backgroundWorkerSyncWallet;
     }
 }
 

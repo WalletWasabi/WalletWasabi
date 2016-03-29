@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using HiddenWallet.DataClasses;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
@@ -12,11 +11,13 @@ namespace HiddenWallet.Helpers
     internal static class BlockrApi
     {
         internal static Network Network = DataRepository.Main.Network;
-        private static string BlockrAddress => string.Format("http://{0}btc.blockr.io/api/v1/", (Network == Network.Main ? "" : "t"));
+
+        private static string BlockrAddress
+            => string.Format("http://{0}btc.blockr.io/api/v1/", (Network == Network.Main ? "" : "t"));
 
         internal static AddressInfo GetAddressInfoSync(string address)
         {
-            return GetAddressInfosAsync(new HashSet<string> { address }).Result.FirstOrDefault();
+            return GetAddressInfosAsync(new HashSet<string> {address}).Result.FirstOrDefault();
         }
 
         internal static HashSet<AddressInfo> GetAddressInfosSync(HashSet<string> addresses)
@@ -34,7 +35,7 @@ namespace HiddenWallet.Helpers
 
                     var request = string.Format("{0}address/info/{1}", BlockrAddress, addressesQueryString);
                     var response = await client.GetAsync(request).ConfigureAwait(false);
-                    
+
                     var result = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     var json = JObject.Parse(result);
                     var status = json["status"];
@@ -61,13 +62,15 @@ namespace HiddenWallet.Helpers
                     }
                     else
                     {
-                        foreach (var addressInfo in json["data"].Select(element => new AddressInfo(element.Value<string>("address"))
-                        {
-                            Balance = element.Value<decimal>("balance"),
-                            BalanceMultisig = element.Value<decimal>("balance_multisig"),
-                            TotalReceived = element.Value<decimal>("totalreceived"),
-                            TransactionCount = element.Value<uint>("nb_txs")
-                        }))
+                        foreach (
+                            var addressInfo in
+                                json["data"].Select(element => new AddressInfo(element.Value<string>("address"))
+                                {
+                                    Balance = element.Value<decimal>("balance"),
+                                    BalanceMultisig = element.Value<decimal>("balance_multisig"),
+                                    TotalReceived = element.Value<decimal>("totalreceived"),
+                                    TransactionCount = element.Value<uint>("nb_txs")
+                                }))
                         {
                             addressInfos.Add(addressInfo);
                         }

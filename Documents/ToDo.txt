@@ -8,3 +8,14 @@
 - handle uncomfirmed transactions
 - color balance check (every 3 character grouped together in one color)
 - color addresses (every 3 character colored together, except the first one)
+- give the option to use seed to backup wallet (either the wallet or the seed)
+- clicking on the btc balance it changes to usd
+
+
+
+
+
+
+- Sync:
+1. when open view received addresses: don't sync with blockr.io
+2. find a way to sync with blockr.io (manually plus periodically?)

@@ -72,7 +72,7 @@
     <Compile Include="DataRepository\Main.cs" />
     <Compile Include="Helpers\BlockrApi.cs" />
     <Compile Include="Helpers\StringCipher.cs" />
-    <Compile Include="Helpers\Wrappers\StringValue.cs" />
+    <Compile Include="Helpers\Wrappers\BindingAddress.cs" />
     <Compile Include="Services\Main.cs" />
     <Compile Include="UserInterface\Controls\InputDialog.cs" />
     <Compile Include="UserInterface\FormReceiveAddresses.cs">
@@ -81,11 +81,11 @@
     <Compile Include="UserInterface\FormReceiveAddresses.Designer.cs">
       <DependentUpon>FormReceiveAddresses.cs</DependentUpon>
     </Compile>
-    <Compile Include="UserInterface\MainForm.cs">
+    <Compile Include="UserInterface\FormMain.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UserInterface\MainForm.Designer.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
+    <Compile Include="UserInterface\FormMain.Designer.cs">
+      <DependentUpon>FormMain.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\Main.cs" />
     <Compile Include="Program.cs" />
@@ -104,8 +104,8 @@
     <EmbeddedResource Include="UserInterface\FormReceiveAddresses.resx">
       <DependentUpon>FormReceiveAddresses.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UserInterface\MainForm.resx">
-      <DependentUpon>MainForm.cs</DependentUpon>
+    <EmbeddedResource Include="UserInterface\FormMain.resx">
+      <DependentUpon>FormMain.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">

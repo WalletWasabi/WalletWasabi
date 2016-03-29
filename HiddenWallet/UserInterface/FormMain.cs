@@ -8,12 +8,16 @@ using System.Windows.Forms;
 using HiddenWallet.Properties;
 using HiddenWallet.Services;
 using HiddenWallet.UserInterface.Controls;
+using System.Runtime.InteropServices;
 
 namespace HiddenWallet.UserInterface
 {
-    public partial class MainForm : Form
+    internal partial class FormMain : Form
     {
-        public MainForm()
+        [DllImport("user32.dll")]
+        static extern bool HideCaret(IntPtr hWnd);
+
+        internal FormMain()
         {
             InitializeComponent();
         }
@@ -69,19 +73,49 @@ namespace HiddenWallet.UserInterface
             form.Show();
         }
 
+        private void buttonGenerateNewAddress_Click(object sender, EventArgs e)
+        {
+            textBoxRecieveAddress.Text = WalletServices.GenerateKey();
+        }
+
         private void MainForm_Shown(object sender, EventArgs e)
         {
             Enabled = false;
             AskPassword();
             Enabled = true;
 
-            textBoxRecieveAddress.Text = "";
-            textBoxBalance.Text = WalletServices.GetBalance().ToString(CultureInfo.InvariantCulture) + @" BTC";
+            RefreshBalance();
+            DataRepository.Main.Wallet.ThrowEvent += (sender2, args) => { RefreshBalance(); };
         }
 
-        private void buttonGenerateNewAddress_Click(object sender, EventArgs e)
+        private void MainForm_Load(object sender, EventArgs e)
         {
-            textBoxRecieveAddress.Text = WalletServices.GenerateKey();
+            textBoxRecieveAddress.Text = "";
+            textBoxBalance.Text = "";
+        }
+
+        private void RefreshBalance()
+        {
+            textBoxBalance.Text = DataRepository.Main.Wallet.Balance.ToString(CultureInfo.InvariantCulture) + @" BTC";
+        }
+
+        private void textBoxBalance_TextChanged(object sender, EventArgs e)
+        {
+            HideCaret(textBoxBalance.Handle);
+        }
+
+        private void textBoxRecieveAddress_TextChanged(object sender, EventArgs e)
+        {
+            HideCaret(textBoxRecieveAddress.Handle);
+        }
+
+        private void textBoxRecieveAddress_Enter(object sender, EventArgs e)
+        {
+            // Kick off SelectAll asyncronously so that it occurs after Click
+            BeginInvoke((Action)delegate
+            {
+                textBoxRecieveAddress.SelectAll();
+            });
         }
     }
 }
