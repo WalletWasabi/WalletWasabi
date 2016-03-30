@@ -138,4 +138,10 @@
   <data name="Wallet_created" xml:space="preserve">
     <value>Wallet created</value>
   </data>
+  <data name="FormMain_SetProgressBar_Syncing_wallet___" xml:space="preserve">
+    <value>Syncing...</value>
+  </data>
+  <data name="FormMain_backgroundWorkerSyncWallet_RunWorkerCompleted_Wallet_is_synced" xml:space="preserve">
+    <value>Synced</value>
+  </data>
 </root>

@@ -70,6 +70,24 @@ namespace HiddenWallet.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Synced.
+        /// </summary>
+        internal static string FormMain_backgroundWorkerSyncWallet_RunWorkerCompleted_Wallet_is_synced {
+            get {
+                return ResourceManager.GetString("FormMain_backgroundWorkerSyncWallet_RunWorkerCompleted_Wallet_is_synced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncing....
+        /// </summary>
+        internal static string FormMain_SetProgressBar_Syncing_wallet___ {
+            get {
+                return ResourceManager.GetString("FormMain_SetProgressBar_Syncing_wallet___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Incorrect password.
         /// </summary>
         internal static string Incorrect_password {
