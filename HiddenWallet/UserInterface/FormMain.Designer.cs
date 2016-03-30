@@ -35,7 +35,7 @@ namespace HiddenWallet.UserInterface
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
             this.textBoxBalance = new System.Windows.Forms.TextBox();
             this.contextMenuStripBalance = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.syncWalletToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.syncWalletToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStripMain = new System.Windows.Forms.MenuStrip();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.receiveAddressesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -101,16 +101,16 @@ namespace HiddenWallet.UserInterface
             // contextMenuStripBalance
             // 
             this.contextMenuStripBalance.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.syncWalletToolStripMenuItem});
+            this.syncWalletToolStripMenuItem2});
             this.contextMenuStripBalance.Name = "contextMenuStripBalance";
             this.contextMenuStripBalance.Size = new System.Drawing.Size(134, 26);
             // 
-            // syncWalletToolStripMenuItem
+            // syncWalletToolStripMenuItem2
             // 
-            this.syncWalletToolStripMenuItem.Name = "syncWalletToolStripMenuItem";
-            this.syncWalletToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
-            this.syncWalletToolStripMenuItem.Text = "Sync wallet";
-            this.syncWalletToolStripMenuItem.Click += new System.EventHandler(this.syncWalletToolStripMenuItem_Click);
+            this.syncWalletToolStripMenuItem2.Name = "syncWalletToolStripMenuItem2";
+            this.syncWalletToolStripMenuItem2.Size = new System.Drawing.Size(133, 22);
+            this.syncWalletToolStripMenuItem2.Text = "Sync wallet";
+            this.syncWalletToolStripMenuItem2.Click += new System.EventHandler(this.syncWalletToolStripMenuItem_Click);
             // 
             // menuStripMain
             // 
@@ -201,7 +201,6 @@ namespace HiddenWallet.UserInterface
             this.textBoxRecieveAddress.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.textBoxRecieveAddress.Click += new System.EventHandler(this.textBoxRecieveAddress_Click);
             this.textBoxRecieveAddress.TextChanged += new System.EventHandler(this.textBoxRecieveAddress_TextChanged);
-            this.textBoxRecieveAddress.Enter += new System.EventHandler(this.textBoxRecieveAddress_Enter);
             // 
             // tabPageSend
             // 
@@ -337,7 +336,7 @@ namespace HiddenWallet.UserInterface
         private ToolStripMenuItem actionsToolStripMenuItem;
         private ToolStripMenuItem syncWalletToolStripMenuItem1;
         private ContextMenuStrip contextMenuStripBalance;
-        private ToolStripMenuItem syncWalletToolStripMenuItem;
+        private ToolStripMenuItem syncWalletToolStripMenuItem2;
         private StatusStrip statusStrip;
         private ToolStripStatusLabel toolStripStatusLabel;
     }

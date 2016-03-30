@@ -85,8 +85,8 @@ namespace HiddenWallet.UserInterface
 
             RefreshBalance();
             DataRepository.Main.Wallet.ThrowEvent += (sender2, args) => { RefreshBalance(); };
-            HideCaret(textBoxBalance);
-            HideCaret(textBoxRecieveAddress);
+            HideCaretClearSelection(textBoxBalance);
+            HideCaretClearSelection(textBoxRecieveAddress);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -99,35 +99,23 @@ namespace HiddenWallet.UserInterface
         {
             var balance = DataRepository.Main.Wallet.Balance.ToString(CultureInfo.InvariantCulture);
             textBoxBalance.Text = string.Format("{0} BTC", balance);
-            HideCaret(textBoxBalance);
+            HideCaretClearSelection(textBoxBalance);
         }
 
         private void textBoxBalance_TextChanged(object sender, EventArgs e)
         {
-            HideCaret(((TextBox)sender));
+            HideCaretClearSelection(((TextBox)sender));
         }
 
         private void textBoxRecieveAddress_TextChanged(object sender, EventArgs e)
         {
-            HideCaret(((TextBox)sender));
-        }
-
-        private void textBoxRecieveAddress_Enter(object sender, EventArgs e)
-        {
-            HideCaret(((TextBox)sender));
-            // Kick off SelectAll asyncronously so that it occurs after Click
-            if (((TextBox)sender).Text != "")
-            {
-                BeginInvoke((Action) delegate
-                {
-                    textBoxRecieveAddress.SelectAll();
-                });
-            }
+            HideCaretClearSelection(((TextBox)sender));
         }
 
         private void syncWalletToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SyncWallet();
+            HideCaretClearSelection(textBoxBalance);
         }
 
         private void syncWalletToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -146,13 +134,20 @@ namespace HiddenWallet.UserInterface
         }
         private void textBoxBalance_Click(object sender, EventArgs e)
         {
-            ((TextBox) sender).SelectionLength = 0;
-            HideCaret(((TextBox)sender));
+            HideCaret(((TextBox)sender).Handle);
         }
 
         private void textBoxRecieveAddress_Click(object sender, EventArgs e)
         {
-            HideCaret(((TextBox)sender));
+            HideCaretClearSelection(((TextBox)sender));
+            // Kick off SelectAll asyncronously so that it occurs after Click
+            if (((TextBox)sender).Text != "")
+            {
+                BeginInvoke((Action)delegate
+                {
+                    textBoxRecieveAddress.SelectAll();
+                });
+            }
         }
 
         private void UpdateStatus(string message)
@@ -161,7 +156,7 @@ namespace HiddenWallet.UserInterface
             statusStrip.Refresh();
         }
 
-        private static void HideCaret(TextBoxBase tb)
+        private static void HideCaretClearSelection(TextBoxBase tb)
         {
             tb.SelectionLength = 0;
             HideCaret(tb.Handle);
