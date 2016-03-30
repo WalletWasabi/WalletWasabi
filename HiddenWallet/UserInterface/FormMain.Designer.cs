@@ -247,12 +247,14 @@ namespace HiddenWallet.UserInterface
             // 
             // textBoxSendAddress
             // 
+            this.textBoxSendAddress.BackColor = System.Drawing.SystemColors.Window;
             this.textBoxSendAddress.Location = new System.Drawing.Point(9, 6);
             this.textBoxSendAddress.Name = "textBoxSendAddress";
             this.textBoxSendAddress.Size = new System.Drawing.Size(390, 20);
             this.textBoxSendAddress.TabIndex = 4;
             this.textBoxSendAddress.Text = "1E6aG3JAwwvJAUvAUGLF987TVbrCYS1oKa";
             this.textBoxSendAddress.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.textBoxSendAddress.TextChanged += new System.EventHandler(this.textBoxSendAddress_TextChanged);
             // 
             // buttonSend
             // 
@@ -294,7 +296,6 @@ namespace HiddenWallet.UserInterface
             this.Name = "FormMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Hidden Wallet";
-            this.Load += new System.EventHandler(this.MainForm_Load);
             this.Shown += new System.EventHandler(this.MainForm_Shown);
             this.splitContainerMain.Panel1.ResumeLayout(false);
             this.splitContainerMain.Panel1.PerformLayout();

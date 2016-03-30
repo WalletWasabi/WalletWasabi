@@ -3,17 +3,20 @@
 // additional folder for shard forms and one for custom controls.
 
 using System;
-using System.Globalization;
+using System.Drawing;
 using System.Windows.Forms;
 using HiddenWallet.Properties;
 using HiddenWallet.Services;
 using HiddenWallet.UserInterface.Controls;
 using System.Runtime.InteropServices;
+using NBitcoin;
 
 namespace HiddenWallet.UserInterface
 {
     internal partial class FormMain : Form
     {
+        private string _bitcoinAddressSend;
+
         [DllImport("user32.dll")]
         static extern bool HideCaret(IntPtr hWnd);
 
@@ -81,18 +84,19 @@ namespace HiddenWallet.UserInterface
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
+            textBoxRecieveAddress.Text = "";
+            textBoxBalance.Text = "";
+            textBoxSendAddress.Text = "";
+
             AskPassword();
+            
+            buttonSend.Enabled = false;
 
             RefreshBalance();
             DataRepository.Main.Wallet.ThrowEvent += (sender2, args) => { RefreshBalance(); };
+
             HideCaretClearSelection(textBoxBalance);
             HideCaretClearSelection(textBoxRecieveAddress);
-        }
-
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-            textBoxRecieveAddress.Text = "";
-            textBoxBalance.Text = "";
         }
 
         private void RefreshBalance()
@@ -160,6 +164,35 @@ namespace HiddenWallet.UserInterface
         {
             tb.SelectionLength = 0;
             HideCaret(tb.Handle);
+        }
+
+        private void textBoxSendAddress_TextChanged(object sender, EventArgs e)
+        {
+            ValidateAddressTextBox((TextBox)sender);
+        }
+
+        private void ValidateAddressTextBox(Control textBoxBase)
+        {
+            var address = textBoxBase.Text.Trim();
+
+            if (address == "")
+            {
+                textBoxBase.BackColor = SystemColors.Window;
+                buttonSend.Enabled = false;
+                return;
+            }
+
+            try
+            {
+                _bitcoinAddressSend = new BitcoinPubKeyAddress(address, DataRepository.Main.Network).ToString();
+                textBoxBase.BackColor = Color.PaleGreen;
+                buttonSend.Enabled = true;
+            }
+            catch
+            {
+                textBoxBase.BackColor = Color.PaleVioletRed;
+                buttonSend.Enabled = false;
+            }
         }
     }
 }
