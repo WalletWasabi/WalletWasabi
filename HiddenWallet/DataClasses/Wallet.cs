@@ -36,7 +36,7 @@ namespace HiddenWallet.DataClasses
             if (!File.Exists(_pathWalletFile))
                 Create(password);
 
-            Load(password);
+            LoadNoSync(password);
         }
 
         internal uint KeyCount
@@ -97,10 +97,10 @@ namespace HiddenWallet.DataClasses
         }
 
         /// <summary>
-        ///     Loads the wallet.
+        ///     Loads the wallet, but does not sync it.
         /// </summary>
         /// <param name="password"></param>
-        private void Load(string password)
+        private void LoadNoSync(string password)
         {
             if (!File.Exists(_pathWalletFile))
                 throw new Exception("_pathWalletFileDontExists");
@@ -121,8 +121,6 @@ namespace HiddenWallet.DataClasses
             {
                 throw new Exception("WrongWalletFileFormat");
             }
-
-            Sync();
         }
 
         internal void Sync()
@@ -132,7 +130,7 @@ namespace HiddenWallet.DataClasses
             var addressesArray = Addresses.ToArray();
             var notUsedAddressesHashSet = new HashSet<BindingAddress>();
 
-            for (var i = 0; i <= Addresses.Count/maxQueryable; i++)
+            for (var i = 0; i <= Addresses.Count / maxQueryable; i++)
             {
                 var addressesChunk = new HashSet<string>();
                 for (var j = 0; j < maxQueryable; j++)
@@ -187,7 +185,6 @@ namespace HiddenWallet.DataClasses
             get { return _balance; }
             set
             {
-                if (value == _balance) return;
                 _balance = value;
                 BalanceChanged();
             }
