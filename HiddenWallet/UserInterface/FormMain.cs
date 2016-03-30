@@ -97,8 +97,8 @@ namespace HiddenWallet.UserInterface
 
         private void RefreshBalance()
         {
-            var balance = DataRepository.Main.Wallet.Balance.ToString(CultureInfo.InvariantCulture);
-            textBoxBalance.Text = string.Format("{0} BTC", balance);
+            var balance = DataRepository.Main.Wallet.Balance;
+            textBoxBalance.Text = string.Format("{0:0.####} BTC", balance);
             HideCaretClearSelection(textBoxBalance);
         }
 
