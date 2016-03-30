@@ -16,7 +16,6 @@ namespace HiddenWallet.UserInterface
 
         private void FormAddresses_Load(object sender, EventArgs e)
         {
-            Main.Wallet.Sync();
             dataGridViewReceiveAddresses.DataSource = new BindingSource(Main.Wallet.NotUsedAddresses, null);
         }
 

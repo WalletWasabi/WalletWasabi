@@ -34,6 +34,7 @@ namespace HiddenWallet.UserInterface
 
                     var createWallet = !WalletServices.WalletExists();
                     WalletServices.CreateWallet(password);
+                    SyncWallet();
                     if (createWallet)
                         MessageBox.Show(this,
                             Resources.Please_backup_your_wallet_file + Environment.NewLine +
@@ -80,12 +81,12 @@ namespace HiddenWallet.UserInterface
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
-            Enabled = false;
             AskPassword();
-            Enabled = true;
 
             RefreshBalance();
             DataRepository.Main.Wallet.ThrowEvent += (sender2, args) => { RefreshBalance(); };
+            HideCaret(textBoxBalance);
+            HideCaret(textBoxRecieveAddress);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -96,26 +97,74 @@ namespace HiddenWallet.UserInterface
 
         private void RefreshBalance()
         {
-            textBoxBalance.Text = DataRepository.Main.Wallet.Balance.ToString(CultureInfo.InvariantCulture) + @" BTC";
+            var balance = DataRepository.Main.Wallet.Balance.ToString(CultureInfo.InvariantCulture);
+            textBoxBalance.Text = string.Format("{0} BTC", balance);
+            HideCaret(textBoxBalance);
         }
 
         private void textBoxBalance_TextChanged(object sender, EventArgs e)
         {
-            HideCaret(textBoxBalance.Handle);
+            HideCaret(((TextBox)sender));
         }
 
         private void textBoxRecieveAddress_TextChanged(object sender, EventArgs e)
         {
-            HideCaret(textBoxRecieveAddress.Handle);
+            HideCaret(((TextBox)sender));
         }
 
         private void textBoxRecieveAddress_Enter(object sender, EventArgs e)
         {
+            HideCaret(((TextBox)sender));
             // Kick off SelectAll asyncronously so that it occurs after Click
-            BeginInvoke((Action)delegate
+            if (((TextBox)sender).Text != "")
             {
-                textBoxRecieveAddress.SelectAll();
-            });
+                BeginInvoke((Action) delegate
+                {
+                    textBoxRecieveAddress.SelectAll();
+                });
+            }
+        }
+
+        private void syncWalletToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SyncWallet();
+        }
+
+        private void syncWalletToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            SyncWallet();
+        }
+
+        private void SyncWallet()
+        {
+            Enabled = false;
+            UpdateStatus(Resources.FormMain_SetProgressBar_Syncing_wallet___);
+            DataRepository.Main.Wallet.Sync();
+            RefreshBalance();
+            UpdateStatus(Resources.FormMain_backgroundWorkerSyncWallet_RunWorkerCompleted_Wallet_is_synced);
+            Enabled = true;
+        }
+        private void textBoxBalance_Click(object sender, EventArgs e)
+        {
+            ((TextBox) sender).SelectionLength = 0;
+            HideCaret(((TextBox)sender));
+        }
+
+        private void textBoxRecieveAddress_Click(object sender, EventArgs e)
+        {
+            HideCaret(((TextBox)sender));
+        }
+
+        private void UpdateStatus(string message)
+        {
+            toolStripStatusLabel.Text = message;
+            statusStrip.Refresh();
+        }
+
+        private static void HideCaret(TextBoxBase tb)
+        {
+            tb.SelectionLength = 0;
+            HideCaret(tb.Handle);
         }
     }
 }

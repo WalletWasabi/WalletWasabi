@@ -30,12 +30,17 @@ namespace HiddenWallet.UserInterface
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
             this.textBoxBalance = new System.Windows.Forms.TextBox();
+            this.contextMenuStripBalance = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.syncWalletToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStripMain = new System.Windows.Forms.MenuStrip();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.receiveAddressesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.actionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.syncWalletToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControlMain = new System.Windows.Forms.TabControl();
             this.tabPageReceive = new System.Windows.Forms.TabPage();
             this.buttonGenerateNewAddress = new System.Windows.Forms.Button();
@@ -46,16 +51,18 @@ namespace HiddenWallet.UserInterface
             this.textBoxBtc = new System.Windows.Forms.TextBox();
             this.textBoxSendAddress = new System.Windows.Forms.TextBox();
             this.buttonSend = new System.Windows.Forms.Button();
-            this.progressBarMain = new System.Windows.Forms.ProgressBar();
-            this.backgroundWorkerSyncWallet = new System.ComponentModel.BackgroundWorker();
+            this.statusStrip = new System.Windows.Forms.StatusStrip();
+            this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).BeginInit();
             this.splitContainerMain.Panel1.SuspendLayout();
             this.splitContainerMain.Panel2.SuspendLayout();
             this.splitContainerMain.SuspendLayout();
+            this.contextMenuStripBalance.SuspendLayout();
             this.menuStripMain.SuspendLayout();
             this.tabControlMain.SuspendLayout();
             this.tabPageReceive.SuspendLayout();
             this.tabPageSend.SuspendLayout();
+            this.statusStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitContainerMain
@@ -78,6 +85,7 @@ namespace HiddenWallet.UserInterface
             // 
             // textBoxBalance
             // 
+            this.textBoxBalance.ContextMenuStrip = this.contextMenuStripBalance;
             this.textBoxBalance.Dock = System.Windows.Forms.DockStyle.Fill;
             this.textBoxBalance.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Bold);
             this.textBoxBalance.Location = new System.Drawing.Point(0, 24);
@@ -87,12 +95,28 @@ namespace HiddenWallet.UserInterface
             this.textBoxBalance.TabIndex = 1;
             this.textBoxBalance.Text = "567.1234 BTC";
             this.textBoxBalance.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.textBoxBalance.Click += new System.EventHandler(this.textBoxBalance_Click);
             this.textBoxBalance.TextChanged += new System.EventHandler(this.textBoxBalance_TextChanged);
+            // 
+            // contextMenuStripBalance
+            // 
+            this.contextMenuStripBalance.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.syncWalletToolStripMenuItem});
+            this.contextMenuStripBalance.Name = "contextMenuStripBalance";
+            this.contextMenuStripBalance.Size = new System.Drawing.Size(134, 26);
+            // 
+            // syncWalletToolStripMenuItem
+            // 
+            this.syncWalletToolStripMenuItem.Name = "syncWalletToolStripMenuItem";
+            this.syncWalletToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
+            this.syncWalletToolStripMenuItem.Text = "Sync wallet";
+            this.syncWalletToolStripMenuItem.Click += new System.EventHandler(this.syncWalletToolStripMenuItem_Click);
             // 
             // menuStripMain
             // 
             this.menuStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.viewToolStripMenuItem});
+            this.viewToolStripMenuItem,
+            this.actionsToolStripMenuItem});
             this.menuStripMain.Location = new System.Drawing.Point(0, 0);
             this.menuStripMain.Name = "menuStripMain";
             this.menuStripMain.Size = new System.Drawing.Size(417, 24);
@@ -113,6 +137,21 @@ namespace HiddenWallet.UserInterface
             this.receiveAddressesToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
             this.receiveAddressesToolStripMenuItem.Text = "Receive addresses";
             this.receiveAddressesToolStripMenuItem.Click += new System.EventHandler(this.receiveAddressesToolStripMenuItem_Click);
+            // 
+            // actionsToolStripMenuItem
+            // 
+            this.actionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.syncWalletToolStripMenuItem1});
+            this.actionsToolStripMenuItem.Name = "actionsToolStripMenuItem";
+            this.actionsToolStripMenuItem.Size = new System.Drawing.Size(59, 20);
+            this.actionsToolStripMenuItem.Text = "Actions";
+            // 
+            // syncWalletToolStripMenuItem1
+            // 
+            this.syncWalletToolStripMenuItem1.Name = "syncWalletToolStripMenuItem1";
+            this.syncWalletToolStripMenuItem1.Size = new System.Drawing.Size(133, 22);
+            this.syncWalletToolStripMenuItem1.Text = "Sync wallet";
+            this.syncWalletToolStripMenuItem1.Click += new System.EventHandler(this.syncWalletToolStripMenuItem1_Click);
             // 
             // tabControlMain
             // 
@@ -160,6 +199,7 @@ namespace HiddenWallet.UserInterface
             this.textBoxRecieveAddress.TabIndex = 0;
             this.textBoxRecieveAddress.Text = "1E6aG3JAwwvJAUvAUGLF987TVbrCYS1oKa";
             this.textBoxRecieveAddress.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.textBoxRecieveAddress.Click += new System.EventHandler(this.textBoxRecieveAddress_Click);
             this.textBoxRecieveAddress.TextChanged += new System.EventHandler(this.textBoxRecieveAddress_TextChanged);
             this.textBoxRecieveAddress.Enter += new System.EventHandler(this.textBoxRecieveAddress_Enter);
             // 
@@ -225,22 +265,29 @@ namespace HiddenWallet.UserInterface
             this.buttonSend.Text = "SEND";
             this.buttonSend.UseVisualStyleBackColor = true;
             // 
-            // progressBarMain
+            // statusStrip
             // 
-            this.progressBarMain.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.progressBarMain.Location = new System.Drawing.Point(0, 223);
-            this.progressBarMain.Name = "progressBarMain";
-            this.progressBarMain.Size = new System.Drawing.Size(413, 38);
-            this.progressBarMain.TabIndex = 5;
+            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel});
+            this.statusStrip.Location = new System.Drawing.Point(0, 222);
+            this.statusStrip.Name = "statusStrip";
+            this.statusStrip.Size = new System.Drawing.Size(413, 22);
+            this.statusStrip.TabIndex = 1;
+            // 
+            // toolStripStatusLabel
+            // 
+            this.toolStripStatusLabel.Name = "toolStripStatusLabel";
+            this.toolStripStatusLabel.Size = new System.Drawing.Size(39, 17);
+            this.toolStripStatusLabel.Text = "Status";
             // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(413, 261);
+            this.ClientSize = new System.Drawing.Size(413, 244);
+            this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.splitContainerMain);
-            this.Controls.Add(this.progressBarMain);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStripMain;
@@ -255,6 +302,7 @@ namespace HiddenWallet.UserInterface
             this.splitContainerMain.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).EndInit();
             this.splitContainerMain.ResumeLayout(false);
+            this.contextMenuStripBalance.ResumeLayout(false);
             this.menuStripMain.ResumeLayout(false);
             this.menuStripMain.PerformLayout();
             this.tabControlMain.ResumeLayout(false);
@@ -262,7 +310,10 @@ namespace HiddenWallet.UserInterface
             this.tabPageReceive.PerformLayout();
             this.tabPageSend.ResumeLayout(false);
             this.tabPageSend.PerformLayout();
+            this.statusStrip.ResumeLayout(false);
+            this.statusStrip.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -280,11 +331,15 @@ namespace HiddenWallet.UserInterface
         private System.Windows.Forms.TextBox textBoxRecieveAddress;
         private System.Windows.Forms.TextBox textBoxSendAddress;
         private System.Windows.Forms.Button buttonSend;
-        private System.Windows.Forms.ProgressBar progressBarMain;
         private System.Windows.Forms.Button buttonAll;
         private System.Windows.Forms.TextBox textBoxBtc;
         private System.Windows.Forms.Label labelBtc;
-        private System.ComponentModel.BackgroundWorker backgroundWorkerSyncWallet;
+        private ToolStripMenuItem actionsToolStripMenuItem;
+        private ToolStripMenuItem syncWalletToolStripMenuItem1;
+        private ContextMenuStrip contextMenuStripBalance;
+        private ToolStripMenuItem syncWalletToolStripMenuItem;
+        private StatusStrip statusStrip;
+        private ToolStripStatusLabel toolStripStatusLabel;
     }
 }
 
