@@ -45,6 +45,9 @@ namespace HiddenWallet.UserInterface
             this.tabPageReceive = new System.Windows.Forms.TabPage();
             this.buttonGenerateNewAddress = new System.Windows.Forms.Button();
             this.textBoxRecieveAddress = new System.Windows.Forms.TextBox();
+            this.contextMenuStripAddress = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewOnBlockchainToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabPageSend = new System.Windows.Forms.TabPage();
             this.labelBtc = new System.Windows.Forms.Label();
             this.buttonAll = new System.Windows.Forms.Button();
@@ -61,6 +64,7 @@ namespace HiddenWallet.UserInterface
             this.menuStripMain.SuspendLayout();
             this.tabControlMain.SuspendLayout();
             this.tabPageReceive.SuspendLayout();
+            this.contextMenuStripAddress.SuspendLayout();
             this.tabPageSend.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.SuspendLayout();
@@ -192,6 +196,7 @@ namespace HiddenWallet.UserInterface
             // 
             // textBoxRecieveAddress
             // 
+            this.textBoxRecieveAddress.ContextMenuStrip = this.contextMenuStripAddress;
             this.textBoxRecieveAddress.Location = new System.Drawing.Point(9, 6);
             this.textBoxRecieveAddress.Name = "textBoxRecieveAddress";
             this.textBoxRecieveAddress.ReadOnly = true;
@@ -201,6 +206,28 @@ namespace HiddenWallet.UserInterface
             this.textBoxRecieveAddress.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.textBoxRecieveAddress.Click += new System.EventHandler(this.textBoxRecieveAddress_Click);
             this.textBoxRecieveAddress.TextChanged += new System.EventHandler(this.textBoxRecieveAddress_TextChanged);
+            // 
+            // contextMenuStripAddress
+            // 
+            this.contextMenuStripAddress.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.copyToolStripMenuItem,
+            this.viewOnBlockchainToolStripMenuItem});
+            this.contextMenuStripAddress.Name = "contextMenuStripAddress";
+            this.contextMenuStripAddress.Size = new System.Drawing.Size(178, 48);
+            // 
+            // copyToolStripMenuItem
+            // 
+            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.copyToolStripMenuItem.Text = "Copy";
+            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
+            // 
+            // viewOnBlockchainToolStripMenuItem
+            // 
+            this.viewOnBlockchainToolStripMenuItem.Name = "viewOnBlockchainToolStripMenuItem";
+            this.viewOnBlockchainToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.viewOnBlockchainToolStripMenuItem.Text = "View on blockchain";
+            this.viewOnBlockchainToolStripMenuItem.Click += new System.EventHandler(this.viewOnBlockchainToolStripMenuItem_Click);
             // 
             // tabPageSend
             // 
@@ -308,6 +335,7 @@ namespace HiddenWallet.UserInterface
             this.tabControlMain.ResumeLayout(false);
             this.tabPageReceive.ResumeLayout(false);
             this.tabPageReceive.PerformLayout();
+            this.contextMenuStripAddress.ResumeLayout(false);
             this.tabPageSend.ResumeLayout(false);
             this.tabPageSend.PerformLayout();
             this.statusStrip.ResumeLayout(false);
@@ -340,6 +368,9 @@ namespace HiddenWallet.UserInterface
         private ToolStripMenuItem syncWalletToolStripMenuItem2;
         private StatusStrip statusStrip;
         private ToolStripStatusLabel toolStripStatusLabel;
+        private ContextMenuStrip contextMenuStripAddress;
+        private ToolStripMenuItem copyToolStripMenuItem;
+        private ToolStripMenuItem viewOnBlockchainToolStripMenuItem;
     }
 }
 

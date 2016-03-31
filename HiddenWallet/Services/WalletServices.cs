@@ -7,15 +7,12 @@ namespace HiddenWallet.Services
 {
     internal static class WalletServices
     {
-        private static Wallet _wallet;
-
         internal static void CreateWallet(string password)
         {
             DataRepository.Main.Wallet = new Wallet(
                 DataRepository.Main.PathWalletFile,
                 DataRepository.Main.Network,
                 password);
-            _wallet = DataRepository.Main.Wallet;
         }
 
         internal static bool WalletExists()
@@ -32,14 +29,14 @@ namespace HiddenWallet.Services
 
         internal static string GenerateKey()
         {
-            return _wallet.GenerateKey();
+            return DataRepository.Main.Wallet.GenerateKey();
         }
 
         internal static HashSet<string> GetAddresses()
         {
             var addresses = new HashSet<string>();
 
-            foreach (var address in _wallet.Addresses)
+            foreach (var address in DataRepository.Main.Wallet.Addresses)
             {
                 addresses.Add(address.ToString());
             }
@@ -49,12 +46,12 @@ namespace HiddenWallet.Services
 
         internal static decimal GetBalance()
         {
-            return _wallet.Balance;
+            return DataRepository.Main.Wallet.Balance;
         }
 
         internal static void Sync()
         {
-            _wallet.Sync();
+            DataRepository.Main.Wallet.Sync();
         }
     }
 }

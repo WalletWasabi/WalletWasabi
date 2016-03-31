@@ -3,6 +3,7 @@
 // additional folder for shard forms and one for custom controls.
 
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 using HiddenWallet.Properties;
@@ -79,11 +80,14 @@ namespace HiddenWallet.UserInterface
 
         private void buttonGenerateNewAddress_Click(object sender, EventArgs e)
         {
+            contextMenuStripAddress.Enabled = true;
             textBoxRecieveAddress.Text = WalletServices.GenerateKey();
         }
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
+            contextMenuStripAddress.Enabled = false;
+
             textBoxRecieveAddress.Text = "";
             textBoxBalance.Text = "";
             textBoxSendAddress.Text = "";
@@ -193,6 +197,16 @@ namespace HiddenWallet.UserInterface
                 textBoxBase.BackColor = Color.PaleVioletRed;
                 buttonSend.Enabled = false;
             }
+        }
+
+        private void viewOnBlockchainToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start(DataRepository.Main.Network == NBitcoin.Network.Main ? "https://blockchain.info/address/" : "http://tbtc.blockr.io/address/info/" + textBoxRecieveAddress.Text);
+        }
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(textBoxRecieveAddress.Text);
         }
     }
 }
