@@ -5,18 +5,21 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.Windows.Forms;
 using HiddenWallet.Properties;
 using HiddenWallet.Services;
 using HiddenWallet.UserInterface.Controls;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using NBitcoin;
 
 namespace HiddenWallet.UserInterface
 {
     internal partial class FormMain : Form
     {
-        private string _bitcoinAddressSend;
+        private string _bitcoinSendAddress;
+        private decimal _amountBtc;
 
         [DllImport("user32.dll")]
         static extern bool HideCaret(IntPtr hWnd);
@@ -86,6 +89,11 @@ namespace HiddenWallet.UserInterface
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
+            textBoxSendAddress.Text = "";
+            SetCueToTextBoxSendAddress();
+            textBoxBtc.Text = "";
+            SetCueToTextBoxBtc();
+
             contextMenuStripAddress.Enabled = false;
 
             textBoxRecieveAddress.Text = "";
@@ -103,10 +111,27 @@ namespace HiddenWallet.UserInterface
             HideCaretClearSelection(textBoxRecieveAddress);
         }
 
+        private void SetCueToTextBoxSendAddress()
+        {
+            textBoxSendAddress.Cue = @"1E6aG3JAwwvJAUvAUGLF987TVbrCYS1oKa";
+        }
+        private void ClearCueToTextBoxSendAddress()
+        {
+            textBoxSendAddress.Cue = @"";
+        }
+        private void SetCueToTextBoxBtc()
+        {
+            textBoxBtc.Cue = @"21.1";
+        }
+        private void ClearCueToTextBoxBtc()
+        {
+            textBoxBtc.Cue = @"";
+        }
+
         private void RefreshBalance()
         {
             var balance = DataRepository.Main.Wallet.Balance;
-            textBoxBalance.Text = string.Format("{0:0.####} BTC", balance);
+            textBoxBalance.Text = string.Format(CultureInfo.InvariantCulture, "{0:0.####} BTC", balance);
             HideCaretClearSelection(textBoxBalance);
         }
 
@@ -172,10 +197,10 @@ namespace HiddenWallet.UserInterface
 
         private void textBoxSendAddress_TextChanged(object sender, EventArgs e)
         {
-            ValidateAddressTextBox((TextBox)sender);
+            ValidateTextBoxSendAddress((TextBox)sender);
         }
 
-        private void ValidateAddressTextBox(Control textBoxBase)
+        private void ValidateTextBoxSendAddress(Control textBoxBase)
         {
             var address = textBoxBase.Text.Trim();
 
@@ -188,7 +213,7 @@ namespace HiddenWallet.UserInterface
 
             try
             {
-                _bitcoinAddressSend = new BitcoinPubKeyAddress(address, DataRepository.Main.Network).ToString();
+                _bitcoinSendAddress = new BitcoinPubKeyAddress(address, DataRepository.Main.Network).ToString();
                 textBoxBase.BackColor = Color.PaleGreen;
                 buttonSend.Enabled = true;
             }
@@ -199,14 +224,95 @@ namespace HiddenWallet.UserInterface
             }
         }
 
+        private void ValidateBtcTextBox(Control textBoxBase)
+        {
+            var btcAmountString = textBoxBase.Text.Trim();
+
+            if (btcAmountString == "")
+            {
+                textBoxBase.BackColor = SystemColors.Window;
+                buttonSend.Enabled = false;
+                return;
+            }
+
+            try
+            {
+                btcAmountString = btcAmountString.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator);
+                var btcAmount = decimal.Parse(btcAmountString, NumberStyles.Any, CultureInfo.InvariantCulture);
+
+                if (btcAmount <= DataRepository.Main.Wallet.Balance && btcAmount > 0)
+                {
+                    _amountBtc = btcAmount;
+                    textBoxBase.BackColor = Color.PaleGreen;
+                    buttonSend.Enabled = true;
+                    return;
+                }
+                throw new Exception("NotEnoughFunds");
+            }
+            catch
+            {
+                textBoxBase.BackColor = Color.PaleVioletRed;
+                buttonSend.Enabled = false;
+            }
+        }
+
         private void viewOnBlockchainToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Process.Start(DataRepository.Main.Network == NBitcoin.Network.Main ? "https://blockchain.info/address/" : "http://tbtc.blockr.io/address/info/" + textBoxRecieveAddress.Text);
+            Process.Start(DataRepository.Main.Network == Network.Main ? "https://blockchain.info/address/" : "http://tbtc.blockr.io/address/info/" + textBoxRecieveAddress.Text);
         }
 
         private void copyToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Clipboard.SetText(textBoxRecieveAddress.Text);
+        }
+
+        private void viewReceiveAddressesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var form = new FormReceiveAddresses();
+            form.Show();
+        }
+
+        private void textBoxSendAddress_Enter(object sender, EventArgs e)
+        {
+            ClearCueToTextBoxSendAddress();
+        }
+
+        private void textBoxSendAddress_Leave(object sender, EventArgs e)
+        {
+            SetCueToTextBoxSendAddress();
+        }
+
+        private void textBoxBtc_Leave(object sender, EventArgs e)
+        {
+            SetCueToTextBoxBtc();
+        }
+
+        private void textBoxBtc_Enter(object sender, EventArgs e)
+        {
+            ClearCueToTextBoxBtc();
+        }
+
+        private void buttonAll_Click(object sender, EventArgs e)
+        {
+            var balance = DataRepository.Main.Wallet.Balance;
+            textBoxBtc.Text = string.Format(CultureInfo.InvariantCulture, "{0}", balance);
+        }
+
+        private void textBoxBtc_TextChanged(object sender, EventArgs e)
+        {
+            ValidateBtcTextBox((TextBox)sender);
+        }
+
+        private void buttonSend_EnabledChanged(object sender, EventArgs e)
+        {
+            if(textBoxBtc.BackColor == Color.PaleGreen && textBoxSendAddress.BackColor == Color.PaleGreen)
+            {
+                buttonSend.Enabled = true;
+            }
+            else
+            {
+                buttonSend.Enabled = false;
+            }
         }
     }
 }

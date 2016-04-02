@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 using HiddenWallet.DataRepository;
@@ -41,19 +42,26 @@ namespace HiddenWallet.UserInterface
         {
             if (e.Button == MouseButtons.Right)
             {
-                // Add this
-                dataGridViewReceiveAddresses.CurrentCell =
-                    dataGridViewReceiveAddresses.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                // Can leave these here - doesn't hurt
-                dataGridViewReceiveAddresses.Rows[e.RowIndex].Selected = true;
-                dataGridViewReceiveAddresses.Focus();
+                if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+                {
+                    // Add this
+                    dataGridViewReceiveAddresses.CurrentCell =
+                        dataGridViewReceiveAddresses.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    // Can leave these here - doesn't hurt
+                    dataGridViewReceiveAddresses.Rows[e.RowIndex].Selected = true;
+                    dataGridViewReceiveAddresses.Focus();
+
+                    contextMenuStrip.Show(Cursor.Position);
+                }
             }
         }
 
         private void copyToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText(dataGridViewReceiveAddresses.SelectedCells[0].Value.ToString());
+            Clipboard.SetText(SelectedAddress);
         }
+
+        private string SelectedAddress => dataGridViewReceiveAddresses.SelectedCells[0].Value.ToString();
 
         // http://stackoverflow.com/a/2140908/2061103
         protected override void WndProc(ref Message m)
@@ -89,6 +97,11 @@ namespace HiddenWallet.UserInterface
             BottomLeft = 16,
             BottomRight = 17,
             Border = 18
+        }
+
+        private void viewOnBlockchainToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start(DataRepository.Main.Network == NBitcoin.Network.Main?"https://blockchain.info/address/": "http://tbtc.blockr.io/address/info/" + SelectedAddress);
         }
     }
 }

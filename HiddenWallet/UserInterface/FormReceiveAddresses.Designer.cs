@@ -33,6 +33,7 @@
             this.dataGridViewReceiveAddresses = new System.Windows.Forms.DataGridView();
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewOnBlockchainToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewReceiveAddresses)).BeginInit();
             this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
@@ -45,7 +46,6 @@
             this.dataGridViewReceiveAddresses.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.dataGridViewReceiveAddresses.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             this.dataGridViewReceiveAddresses.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridViewReceiveAddresses.ContextMenuStrip = this.contextMenuStrip;
             this.dataGridViewReceiveAddresses.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewReceiveAddresses.Location = new System.Drawing.Point(0, 0);
             this.dataGridViewReceiveAddresses.MultiSelect = false;
@@ -60,16 +60,24 @@
             // contextMenuStrip
             // 
             this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.copyToolStripMenuItem});
+            this.copyToolStripMenuItem,
+            this.viewOnBlockchainToolStripMenuItem});
             this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(103, 26);
+            this.contextMenuStrip.Size = new System.Drawing.Size(178, 48);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
             this.copyToolStripMenuItem.Text = "Copy";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
+            // 
+            // viewOnBlockchainToolStripMenuItem
+            // 
+            this.viewOnBlockchainToolStripMenuItem.Name = "viewOnBlockchainToolStripMenuItem";
+            this.viewOnBlockchainToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.viewOnBlockchainToolStripMenuItem.Text = "View on blockchain";
+            this.viewOnBlockchainToolStripMenuItem.Click += new System.EventHandler(this.viewOnBlockchainToolStripMenuItem_Click);
             // 
             // FormReceiveAddresses
             // 
@@ -94,5 +102,6 @@
         private System.Windows.Forms.DataGridView dataGridViewReceiveAddresses;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem viewOnBlockchainToolStripMenuItem;
     }
 }

@@ -74,6 +74,9 @@
     <Compile Include="Helpers\StringCipher.cs" />
     <Compile Include="Helpers\Wrappers\BindingAddress.cs" />
     <Compile Include="Services\Main.cs" />
+    <Compile Include="UserInterface\Controls\CueTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UserInterface\Controls\InputDialog.cs" />
     <Compile Include="UserInterface\FormReceiveAddresses.cs">
       <SubType>Form</SubType>

@@ -1,4 +1,5 @@
 ﻿using System.Windows.Forms;
+using HiddenWallet.UserInterface.Controls;
 
 namespace HiddenWallet.UserInterface
 {
@@ -48,11 +49,12 @@ namespace HiddenWallet.UserInterface
             this.contextMenuStripAddress = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewOnBlockchainToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewReceiveAddressesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabPageSend = new System.Windows.Forms.TabPage();
             this.labelBtc = new System.Windows.Forms.Label();
             this.buttonAll = new System.Windows.Forms.Button();
-            this.textBoxBtc = new System.Windows.Forms.TextBox();
-            this.textBoxSendAddress = new System.Windows.Forms.TextBox();
+            this.textBoxBtc = new HiddenWallet.UserInterface.Controls.CueTextBox();
+            this.textBoxSendAddress = new HiddenWallet.UserInterface.Controls.CueTextBox();
             this.buttonSend = new System.Windows.Forms.Button();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
@@ -211,23 +213,31 @@ namespace HiddenWallet.UserInterface
             // 
             this.contextMenuStripAddress.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.copyToolStripMenuItem,
-            this.viewOnBlockchainToolStripMenuItem});
+            this.viewOnBlockchainToolStripMenuItem,
+            this.viewReceiveAddressesToolStripMenuItem});
             this.contextMenuStripAddress.Name = "contextMenuStripAddress";
-            this.contextMenuStripAddress.Size = new System.Drawing.Size(178, 48);
+            this.contextMenuStripAddress.Size = new System.Drawing.Size(194, 70);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
             this.copyToolStripMenuItem.Text = "Copy";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
             // viewOnBlockchainToolStripMenuItem
             // 
             this.viewOnBlockchainToolStripMenuItem.Name = "viewOnBlockchainToolStripMenuItem";
-            this.viewOnBlockchainToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.viewOnBlockchainToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
             this.viewOnBlockchainToolStripMenuItem.Text = "View on blockchain";
             this.viewOnBlockchainToolStripMenuItem.Click += new System.EventHandler(this.viewOnBlockchainToolStripMenuItem_Click);
+            // 
+            // viewReceiveAddressesToolStripMenuItem
+            // 
+            this.viewReceiveAddressesToolStripMenuItem.Name = "viewReceiveAddressesToolStripMenuItem";
+            this.viewReceiveAddressesToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.viewReceiveAddressesToolStripMenuItem.Text = "View receive addresses";
+            this.viewReceiveAddressesToolStripMenuItem.Click += new System.EventHandler(this.viewReceiveAddressesToolStripMenuItem_Click);
             // 
             // tabPageSend
             // 
@@ -262,6 +272,7 @@ namespace HiddenWallet.UserInterface
             this.buttonAll.TabIndex = 6;
             this.buttonAll.Text = "ALL";
             this.buttonAll.UseVisualStyleBackColor = true;
+            this.buttonAll.Click += new System.EventHandler(this.buttonAll_Click);
             // 
             // textBoxBtc
             // 
@@ -271,6 +282,9 @@ namespace HiddenWallet.UserInterface
             this.textBoxBtc.TabIndex = 5;
             this.textBoxBtc.Text = "1.2345";
             this.textBoxBtc.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.textBoxBtc.TextChanged += new System.EventHandler(this.textBoxBtc_TextChanged);
+            this.textBoxBtc.Enter += new System.EventHandler(this.textBoxBtc_Enter);
+            this.textBoxBtc.Leave += new System.EventHandler(this.textBoxBtc_Leave);
             // 
             // textBoxSendAddress
             // 
@@ -282,6 +296,8 @@ namespace HiddenWallet.UserInterface
             this.textBoxSendAddress.Text = "1E6aG3JAwwvJAUvAUGLF987TVbrCYS1oKa";
             this.textBoxSendAddress.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.textBoxSendAddress.TextChanged += new System.EventHandler(this.textBoxSendAddress_TextChanged);
+            this.textBoxSendAddress.Enter += new System.EventHandler(this.textBoxSendAddress_Enter);
+            this.textBoxSendAddress.Leave += new System.EventHandler(this.textBoxSendAddress_Leave);
             // 
             // buttonSend
             // 
@@ -292,6 +308,7 @@ namespace HiddenWallet.UserInterface
             this.buttonSend.TabIndex = 3;
             this.buttonSend.Text = "SEND";
             this.buttonSend.UseVisualStyleBackColor = true;
+            this.buttonSend.EnabledChanged += new System.EventHandler(this.buttonSend_EnabledChanged);
             // 
             // statusStrip
             // 
@@ -357,10 +374,10 @@ namespace HiddenWallet.UserInterface
         private System.Windows.Forms.TextBox textBoxBalance;
         private System.Windows.Forms.Button buttonGenerateNewAddress;
         private System.Windows.Forms.TextBox textBoxRecieveAddress;
-        private System.Windows.Forms.TextBox textBoxSendAddress;
+        private CueTextBox textBoxSendAddress;
         private System.Windows.Forms.Button buttonSend;
         private System.Windows.Forms.Button buttonAll;
-        private System.Windows.Forms.TextBox textBoxBtc;
+        private CueTextBox textBoxBtc;
         private System.Windows.Forms.Label labelBtc;
         private ToolStripMenuItem actionsToolStripMenuItem;
         private ToolStripMenuItem syncWalletToolStripMenuItem1;
@@ -371,6 +388,7 @@ namespace HiddenWallet.UserInterface
         private ContextMenuStrip contextMenuStripAddress;
         private ToolStripMenuItem copyToolStripMenuItem;
         private ToolStripMenuItem viewOnBlockchainToolStripMenuItem;
+        private ToolStripMenuItem viewReceiveAddressesToolStripMenuItem;
     }
 }
 
