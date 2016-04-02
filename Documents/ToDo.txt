@@ -12,3 +12,8 @@
 - make the wallet in json format (like joinmarket's)
 - FormReceiveAddress right click menu should only appear when the mouse in cell
 - first time login (create your password window, decrypt your wallet window)
+- Add View / Ongoing transactions
+	Unconfirmed transactions should not be added to the balance
+	Unconfirmed transaction addresses should not appear in Receive addresses
+	When there is any unconfirmed transaction this menu must be red
+	Should be the same as the Receive addresses form with an additional column where transaction amount is shown

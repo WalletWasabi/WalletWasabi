@@ -33,7 +33,7 @@ namespace HiddenWallet.Helpers
                 {
                     var addressesQueryString = addresses.Aggregate((i, j) => i + "," + j);
 
-                    var request = string.Format("{0}address/info/{1}?confirmations=0", BlockrAddress, addressesQueryString);
+                    var request = string.Format("{0}address/info/{1}", BlockrAddress, addressesQueryString);
                     var response = await client.GetAsync(request).ConfigureAwait(false);
 
                     var result = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
