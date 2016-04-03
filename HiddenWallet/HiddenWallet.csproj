@@ -68,6 +68,7 @@
     <Compile Include="Business\Main.cs" />
     <Compile Include="DataClasses\AddressInfo.cs" />
     <Compile Include="DataClasses\Main.cs" />
+    <Compile Include="DataClasses\TransactionInfo.cs" />
     <Compile Include="DataClasses\Wallet.cs" />
     <Compile Include="DataRepository\Main.cs" />
     <Compile Include="Helpers\BlockrApi.cs" />

@@ -23,6 +23,7 @@ namespace HiddenWallet.DataClasses
         private readonly string _pathWalletDirectory;
         private readonly string _pathWalletFile;
         private ExtPubKey _seedPublicKey;
+        private ExtKey _seedPrivateKey;
 
         internal Wallet(string pathWalletFile, Network network, string password)
         {
@@ -110,8 +111,8 @@ namespace HiddenWallet.DataClasses
                 var encryptedSeedWif = File.ReadAllText(_pathWalletFile);
                 var seedWifString = StringCipher.Decrypt(encryptedSeedWif, password);
                 var bitcoinSeedPrivateKey = new BitcoinExtKey(seedWifString);
-                var seedPrivateKey = bitcoinSeedPrivateKey.ExtKey;
-                _seedPublicKey = seedPrivateKey.Neuter();
+                _seedPrivateKey = bitcoinSeedPrivateKey.ExtKey;
+                _seedPublicKey = _seedPrivateKey.Neuter();
             }
             catch (CryptographicException)
             {
@@ -129,8 +130,9 @@ namespace HiddenWallet.DataClasses
             const int maxQueryable = 20;
             var addressesArray = Addresses.ToArray();
             var notUsedAddressesHashSet = new HashSet<BindingAddress>();
+            var unspentTransactions = new HashSet<TransactionInfo>();
 
-            for (var i = 0; i <= Addresses.Count / maxQueryable; i++)
+            for (var i = 0; i <= Addresses.Count/maxQueryable; i++)
             {
                 var addressesChunk = new HashSet<string>();
                 for (var j = 0; j < maxQueryable; j++)
@@ -150,6 +152,14 @@ namespace HiddenWallet.DataClasses
                     {
                         notUsedAddressesHashSet.Add(new BindingAddress(addressInfo.Address));
                     }
+
+                    if (addressInfo.UnspentTransactions.Count > 0)
+                    {
+                        foreach (var transaction in addressInfo.UnspentTransactions)
+                        {
+                            unspentTransactions.Add(transaction);
+                        }
+                    }
                 }
             }
             NotUsedAddresses.Clear();
@@ -158,9 +168,19 @@ namespace HiddenWallet.DataClasses
                 NotUsedAddresses.Add(bindingAddress);
             }
 
+            UnspentTransactions.Clear();
+            foreach (var transaction in unspentTransactions)
+            {
+                UnspentTransactions.Add(transaction);
+            }
+
             Balance = balance;
         }
 
+        /// <summary>
+        /// Generate new Key and returns it's Bitcoin address.
+        /// </summary>
+        /// <returns></returns>
         internal string GenerateKey()
         {
             KeyCount++;
@@ -175,11 +195,14 @@ namespace HiddenWallet.DataClasses
         #region MembersToSync
 
         internal BindingList<BindingAddress> NotUsedAddresses = new BindingList<BindingAddress>();
+        internal HashSet<TransactionInfo> UnspentTransactions = new HashSet<TransactionInfo>();
 
         internal delegate void EventHandler(object sender, EventArgs args);
+
         internal event EventHandler ThrowEvent = delegate { };
 
         private decimal _balance;
+
         internal decimal Balance
         {
             get { return _balance; }
@@ -189,11 +212,105 @@ namespace HiddenWallet.DataClasses
                 BalanceChanged();
             }
         }
+
         internal void BalanceChanged()
         {
             ThrowEvent(this, new EventArgs());
         }
 
         #endregion
+
+        internal void Send(string address, decimal amount)
+        {
+            if (UnspentTransactions.Count == 0)
+                throw new Exception("NoUnspentTransactions");
+
+            if (amount > Balance)
+                throw new Exception("NotEnoughFunds");
+
+            var blockr = new BlockrTransactionRepository(_network);
+            var fundingTransactionCandidates = new Dictionary<Transaction, TransactionInfo>();
+            foreach (var transactionInfo in UnspentTransactions)
+            {
+                var transaction = blockr.Get(transactionInfo.Hash);
+                fundingTransactionCandidates.Add(transaction, transactionInfo);
+            }
+
+            var fee = CalculateFee();
+            var fundingTransactions = new HashSet<Transaction>();
+            var fundingTransactionInfos = new HashSet<TransactionInfo>();
+
+            decimal transactionSum = 0;
+            transactionSum -= fee;
+
+            foreach (var candidate in fundingTransactionCandidates)
+            {
+                fundingTransactions.Add(candidate.Key);
+                fundingTransactionInfos.Add(candidate.Value);
+
+                transactionSum += candidate.Value.Amount;
+
+                if (transactionSum >= amount)
+                    break;
+            }
+
+            var payment = new Transaction();
+
+            foreach (var fundingTransaction in fundingTransactions)
+            {
+                payment.Inputs.Add(new TxIn
+                {
+                    PrevOut = new OutPoint(fundingTransaction.GetHash(), 1),
+                    ScriptSig = fundingTransaction.Outputs[1].ScriptPubKey // TODO: Figure out why outputs[1]
+                });
+            }
+
+            var paymentAddress = new BitcoinPubKeyAddress(address);
+            payment.Outputs.Add(new TxOut
+            {
+                Value = Money.Coins(amount),
+                ScriptPubKey = paymentAddress.ScriptPubKey
+            });
+
+            var changeAddress = new BitcoinPubKeyAddress(GenerateKey());
+            payment.Outputs.Add(new TxOut
+            {
+                Value = Money.Coins(transactionSum - amount),
+                ScriptPubKey = changeAddress.ScriptPubKey
+            });
+
+            foreach (var fundingTransactionInfo in fundingTransactionInfos)
+            {
+                foreach (var secret in Secrets)
+                {
+                    if (secret.PubKey.GetAddress(_network).ToString() == fundingTransactionInfo.Address)
+                    {
+                        payment.Sign(secret, false);
+                    }
+                }
+            }
+
+            BlockrApi.PushTransactionSync(payment.GetHash().ToString());
+        }
+
+        internal HashSet<BitcoinSecret> Secrets
+        {
+            get
+            {
+                var secrets = new HashSet<BitcoinSecret>();
+
+                for (uint i = 0; i <= KeyCount; i++)
+                {
+                    secrets.Add(_seedPrivateKey.Derive(i).PrivateKey.GetBitcoinSecret(_network));
+                }
+                return secrets;
+            }
+        }
+
+
+        internal decimal CalculateFee()
+        {
+            return 0; //throw new NotImplementedException();
+        }
     }
 }

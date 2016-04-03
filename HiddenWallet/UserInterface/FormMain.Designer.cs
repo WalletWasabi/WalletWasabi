@@ -309,6 +309,7 @@ namespace HiddenWallet.UserInterface
             this.buttonSend.Text = "SEND";
             this.buttonSend.UseVisualStyleBackColor = true;
             this.buttonSend.EnabledChanged += new System.EventHandler(this.buttonSend_EnabledChanged);
+            this.buttonSend.Click += new System.EventHandler(this.buttonSend_Click);
             // 
             // statusStrip
             // 

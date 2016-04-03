@@ -11,7 +11,6 @@ using HiddenWallet.Properties;
 using HiddenWallet.Services;
 using HiddenWallet.UserInterface.Controls;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using NBitcoin;
 
 namespace HiddenWallet.UserInterface
@@ -29,14 +28,15 @@ namespace HiddenWallet.UserInterface
             InitializeComponent();
         }
 
-        private void AskPassword()
+        private string AskPassword()
         {
+            var password = "";
             var noGo = true;
             while (noGo)
             {
                 try
                 {
-                    var password = "";
+                    password = "";
                     InputDialog.Show(ref password);
 
                     var createWallet = !WalletServices.WalletExists();
@@ -73,6 +73,8 @@ namespace HiddenWallet.UserInterface
                     }
                 }
             }
+
+            return password;
         }
 
         private void receiveAddressesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -313,6 +315,11 @@ namespace HiddenWallet.UserInterface
             {
                 buttonSend.Enabled = false;
             }
+        }
+
+        private void buttonSend_Click(object sender, EventArgs e)
+        {
+            DataRepository.Main.Wallet.Send(_bitcoinSendAddress, _amountBtc);
         }
     }
 }

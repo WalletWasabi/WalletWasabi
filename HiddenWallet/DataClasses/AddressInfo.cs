@@ -1,4 +1,6 @@
-﻿namespace HiddenWallet.DataClasses
+﻿using System.Collections.Generic;
+
+namespace HiddenWallet.DataClasses
 {
     internal class AddressInfo
     {
@@ -7,6 +9,8 @@
         internal decimal BalanceMultisig;
         internal decimal TotalReceived;
         internal uint TransactionCount;
+
+        internal HashSet<TransactionInfo> UnspentTransactions;
 
         internal AddressInfo(string address)
         {
