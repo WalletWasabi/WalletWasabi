@@ -70,6 +70,33 @@ namespace HiddenWallet.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Choose a password:.
+        /// </summary>
+        internal static string FormMain_AskPassword_Choose_a_password {
+            get {
+                return ResourceManager.GetString("FormMain_AskPassword_Choose_a_password", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create your wallet.
+        /// </summary>
+        internal static string FormMain_AskPassword_Create_your_wallet {
+            get {
+                return ResourceManager.GetString("FormMain_AskPassword_Create_your_wallet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open your wallet.
+        /// </summary>
+        internal static string FormMain_AskPassword_Open_your_wallet {
+            get {
+                return ResourceManager.GetString("FormMain_AskPassword_Open_your_wallet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Synced.
         /// </summary>
         internal static string FormMain_backgroundWorkerSyncWallet_RunWorkerCompleted_Wallet_is_synced {
@@ -106,7 +133,7 @@ namespace HiddenWallet.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enter your password.
+        ///   Looks up a localized string similar to Enter your password:.
         /// </summary>
         internal static string InputDialog_Show_Password {
             get {

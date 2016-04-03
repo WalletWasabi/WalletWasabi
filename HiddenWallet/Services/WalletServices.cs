@@ -15,6 +15,11 @@ namespace HiddenWallet.Services
                 password);
         }
 
+        internal static void LoadWallet(string password)
+        {
+            CreateWallet(password);
+        }
+
         internal static bool WalletExists()
         {
             return File.Exists(DataRepository.Main.PathWalletFile);

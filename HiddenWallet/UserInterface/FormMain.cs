@@ -37,18 +37,22 @@ namespace HiddenWallet.UserInterface
                 try
                 {
                     password = "";
-                    InputDialog.Show(ref password);
-
                     var createWallet = !WalletServices.WalletExists();
-                    WalletServices.CreateWallet(password);
-                    SyncWallet();
                     if (createWallet)
+                    {
+                        InputDialog.Show(ref password, Resources.FormMain_AskPassword_Create_your_wallet,
+                            Resources.FormMain_AskPassword_Choose_a_password);
+                        WalletServices.CreateWallet(password);
                         MessageBox.Show(this,
                             Resources.Please_backup_your_wallet_file + Environment.NewLine +
                             WalletServices.GetPathWalletFile(),
                             Resources.Wallet_created, MessageBoxButtons.OK,
                             MessageBoxIcon.Information);
-
+                    }
+                    InputDialog.Show(ref password, Resources.FormMain_AskPassword_Open_your_wallet,
+                        Resources.InputDialog_Show_Password);
+                    WalletServices.LoadWallet(password);
+                    SyncWallet();
                     noGo = false;
                 }
                 catch (Exception exception)

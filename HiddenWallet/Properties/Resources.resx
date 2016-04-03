@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="InputDialog_Show_Password" xml:space="preserve">
-    <value>Enter your password</value>
+    <value>Enter your password:</value>
   </data>
   <data name="InputDialog_Show__Ok" xml:space="preserve">
     <value>Ok</value>
@@ -143,5 +143,14 @@
   </data>
   <data name="FormMain_backgroundWorkerSyncWallet_RunWorkerCompleted_Wallet_is_synced" xml:space="preserve">
     <value>Synced</value>
+  </data>
+  <data name="FormMain_AskPassword_Create_your_wallet" xml:space="preserve">
+    <value>Create your wallet</value>
+  </data>
+  <data name="FormMain_AskPassword_Choose_a_password" xml:space="preserve">
+    <value>Choose a password:</value>
+  </data>
+  <data name="FormMain_AskPassword_Open_your_wallet" xml:space="preserve">
+    <value>Open your wallet</value>
   </data>
 </root>

@@ -7,28 +7,41 @@ namespace HiddenWallet.UserInterface.Controls
     internal static class InputDialog
     {
         // http://stackoverflow.com/a/17546909/2061103
-        internal static DialogResult Show(ref string input)
+        internal static DialogResult Show(ref string input,string caption, string message)
         {
-            var size = new Size(300, 70);
+            var size = new Size(300, 100);
             var inputBox = new Form
             {
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 ClientSize = size,
-                Text = Resources.InputDialog_Show_Password,
+                Text = caption,
                 StartPosition = FormStartPosition.CenterParent,
                 MaximizeBox = false,
                 MinimizeBox = false,
                 ControlBox = false
             };
+            var flp = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(0,10,0,0)
+            };
+            inputBox.Controls.Add(flp);
+
+            var label = new Label
+            {
+                Text = message,
+                Size = new Size(size.Width - 10, 23)
+            };
+            flp.Controls.Add(label);
 
             var textBox = new CustomMaskedTextBox
             {
                 Size = new Size(size.Width - 10, 23),
-                Location = new Point(5, 10),
                 Text = input,
-                MaskCharacters = "阪熊奈岡鹿梨阜埼茨栃"
+                MaskCharacters = "阪熊奈岡鹿梨阜埼茨栃",
+                Anchor = AnchorStyles.None
             };
-            inputBox.Controls.Add(textBox);
+            flp.Controls.Add(textBox);
 
             var okButton = new Button
             {
@@ -36,9 +49,9 @@ namespace HiddenWallet.UserInterface.Controls
                 Name = "okButton",
                 Size = new Size(75, 23),
                 Text = Resources.InputDialog_Show__Ok,
-                Location = new Point(size.Width/2 - 75/2, 40)
+                Anchor = AnchorStyles.None
             };
-            inputBox.Controls.Add(okButton);
+            flp.Controls.Add(okButton);
 
             inputBox.AcceptButton = okButton;
 
