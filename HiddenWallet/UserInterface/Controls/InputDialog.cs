@@ -9,7 +9,7 @@ namespace HiddenWallet.UserInterface.Controls
         // http://stackoverflow.com/a/17546909/2061103
         internal static DialogResult Show(ref string input)
         {
-            var size = new Size(200, 70);
+            var size = new Size(300, 70);
             var inputBox = new Form
             {
                 FormBorderStyle = FormBorderStyle.FixedDialog,
@@ -21,12 +21,12 @@ namespace HiddenWallet.UserInterface.Controls
                 ControlBox = false
             };
 
-            var textBox = new TextBox
+            var textBox = new CustomMaskedTextBox
             {
                 Size = new Size(size.Width - 10, 23),
                 Location = new Point(5, 10),
                 Text = input,
-                UseSystemPasswordChar = true
+                MaskCharacters = "阪熊奈岡鹿梨阜埼茨栃"
             };
             inputBox.Controls.Add(textBox);
 
@@ -36,14 +36,14 @@ namespace HiddenWallet.UserInterface.Controls
                 Name = "okButton",
                 Size = new Size(75, 23),
                 Text = Resources.InputDialog_Show__Ok,
-                Location = new Point(size.Width - 60 - 80, 40)
+                Location = new Point(size.Width/2 - 75/2, 40)
             };
             inputBox.Controls.Add(okButton);
 
             inputBox.AcceptButton = okButton;
 
             var result = inputBox.ShowDialog();
-            input = textBox.Text;
+            input = textBox.UserText;
             return result;
         }
     }

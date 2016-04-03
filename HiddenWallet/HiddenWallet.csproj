@@ -44,8 +44,8 @@
       <HintPath>..\packages\NBitcoin.3.0.0.23\lib\net45\NBitcoin.BouncyCastle.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -74,6 +74,12 @@
     <Compile Include="UserInterface\Controls\CueTextBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="UserInterface\Controls\CustomMaskedTextBox.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserInterface\Controls\CustomMaskedTextBox.Designer.cs">
+      <DependentUpon>CustomMaskedTextBox.cs</DependentUpon>
+    </Compile>
     <Compile Include="UserInterface\Controls\InputDialog.cs" />
     <Compile Include="UserInterface\FormReceiveAddresses.cs">
       <SubType>Form</SubType>
@@ -101,6 +107,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="UserInterface\Controls\CustomMaskedTextBox.resx">
+      <DependentUpon>CustomMaskedTextBox.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UserInterface\FormReceiveAddresses.resx">
       <DependentUpon>FormReceiveAddresses.cs</DependentUpon>
     </EmbeddedResource>
