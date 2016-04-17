@@ -1,12 +1,11 @@
 # Hidden Wallet
-Bringing privacy to my grandma
 
 ## For developers
 C#, Visual Studio, Clone -> Build -> Run
 
 ## Philosophy/ Design principles
 
-There is rough consensus among economists about the properties of good money, which are rarity, durability, un-consumability, divisibility, fungibility and portability.  
+There is a rough consensus among economists about the properties of good money, which are rarity, durability, un-consumability, divisibility, fungibility and portability.  
 The Bitcoin core takes care of the first four, wallets has to take care of fungibility and portability.  
 Of course there are overlaps, for example centralized services are able to affect the rarity of bitcoins, just like MtGox, what has lead to its collapse.  
 An other example would be the pseudonimity of the Bitcoin network or the coming Confidental transactions, what are core level fungibility features. 
