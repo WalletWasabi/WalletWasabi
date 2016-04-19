@@ -22,8 +22,8 @@ namespace HiddenWallet.DataClasses
         private readonly string _pathKeyCountFile;
         private readonly string _pathWalletDirectory;
         private readonly string _pathWalletFile;
-        private ExtPubKey _seedPublicKey;
         private ExtKey _seedPrivateKey;
+        private ExtPubKey _seedPublicKey;
 
         internal Wallet(string pathWalletFile, Network network, string password)
         {
@@ -76,6 +76,20 @@ namespace HiddenWallet.DataClasses
                     addresses.Add(_seedPublicKey.Derive(i).PubKey.GetAddress(_network));
                 }
                 return addresses;
+            }
+        }
+
+        internal HashSet<BitcoinSecret> Secrets
+        {
+            get
+            {
+                var secrets = new HashSet<BitcoinSecret>();
+
+                for (uint i = 0; i <= KeyCount; i++)
+                {
+                    secrets.Add(_seedPrivateKey.Derive(i).PrivateKey.GetBitcoinSecret(_network));
+                }
+                return secrets;
             }
         }
 
@@ -178,7 +192,7 @@ namespace HiddenWallet.DataClasses
         }
 
         /// <summary>
-        /// Generate new Key and returns it's Bitcoin address.
+        ///     Generate new Key and returns it's Bitcoin address.
         /// </summary>
         /// <returns></returns>
         internal string GenerateKey()
@@ -191,34 +205,6 @@ namespace HiddenWallet.DataClasses
 
             return address;
         }
-
-        #region MembersToSync
-
-        internal BindingList<BindingAddress> NotUsedAddresses = new BindingList<BindingAddress>();
-        internal HashSet<TransactionInfo> UnspentTransactions = new HashSet<TransactionInfo>();
-
-        internal delegate void EventHandler(object sender, EventArgs args);
-
-        internal event EventHandler ThrowEvent = delegate { };
-
-        private decimal _balance;
-
-        internal decimal Balance
-        {
-            get { return _balance; }
-            set
-            {
-                _balance = value;
-                BalanceChanged();
-            }
-        }
-
-        internal void BalanceChanged()
-        {
-            ThrowEvent(this, new EventArgs());
-        }
-
-        #endregion
 
         internal void Send(string address, decimal amount)
         {
@@ -293,24 +279,37 @@ namespace HiddenWallet.DataClasses
             BlockrApi.PushTransactionSync(payment.GetHash().ToString());
         }
 
-        internal HashSet<BitcoinSecret> Secrets
-        {
-            get
-            {
-                var secrets = new HashSet<BitcoinSecret>();
-
-                for (uint i = 0; i <= KeyCount; i++)
-                {
-                    secrets.Add(_seedPrivateKey.Derive(i).PrivateKey.GetBitcoinSecret(_network));
-                }
-                return secrets;
-            }
-        }
-
-
         internal decimal CalculateFee()
         {
             return 0; //throw new NotImplementedException();
         }
+
+        #region MembersToSync
+
+        internal BindingList<BindingAddress> NotUsedAddresses = new BindingList<BindingAddress>();
+        internal HashSet<TransactionInfo> UnspentTransactions = new HashSet<TransactionInfo>();
+
+        internal delegate void EventHandler(object sender, EventArgs args);
+
+        internal event EventHandler ThrowEvent = delegate { };
+
+        private decimal _balance;
+
+        internal decimal Balance
+        {
+            get { return _balance; }
+            set
+            {
+                _balance = value;
+                BalanceChanged();
+            }
+        }
+
+        internal void BalanceChanged()
+        {
+            ThrowEvent(this, new EventArgs());
+        }
+
+        #endregion
     }
 }

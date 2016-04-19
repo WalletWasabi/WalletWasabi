@@ -42,6 +42,8 @@ namespace HiddenWallet.UserInterface
             this.receiveAddressesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.actionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.syncWalletToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabControlMain = new System.Windows.Forms.TabControl();
             this.tabPageReceive = new System.Windows.Forms.TabPage();
             this.buttonGenerateNewAddress = new System.Windows.Forms.Button();
@@ -49,13 +51,12 @@ namespace HiddenWallet.UserInterface
             this.contextMenuStripAddress = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewOnBlockchainToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.viewReceiveAddressesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabPageSend = new System.Windows.Forms.TabPage();
             this.labelBtc = new System.Windows.Forms.Label();
             this.buttonAll = new System.Windows.Forms.Button();
+            this.buttonSend = new System.Windows.Forms.Button();
             this.textBoxBtc = new HiddenWallet.UserInterface.Controls.CueTextBox();
             this.textBoxSendAddress = new HiddenWallet.UserInterface.Controls.CueTextBox();
-            this.buttonSend = new System.Windows.Forms.Button();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).BeginInit();
@@ -122,7 +123,8 @@ namespace HiddenWallet.UserInterface
             // 
             this.menuStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.viewToolStripMenuItem,
-            this.actionsToolStripMenuItem});
+            this.actionsToolStripMenuItem,
+            this.toolsToolStripMenuItem});
             this.menuStripMain.Location = new System.Drawing.Point(0, 0);
             this.menuStripMain.Name = "menuStripMain";
             this.menuStripMain.Size = new System.Drawing.Size(417, 24);
@@ -158,6 +160,21 @@ namespace HiddenWallet.UserInterface
             this.syncWalletToolStripMenuItem1.Size = new System.Drawing.Size(133, 22);
             this.syncWalletToolStripMenuItem1.Text = "Sync wallet";
             this.syncWalletToolStripMenuItem1.Click += new System.EventHandler(this.syncWalletToolStripMenuItem1_Click);
+            // 
+            // toolsToolStripMenuItem
+            // 
+            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.settingsToolStripMenuItem});
+            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
+            this.toolsToolStripMenuItem.Text = "Tools";
+            // 
+            // settingsToolStripMenuItem
+            // 
+            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+            this.settingsToolStripMenuItem.Text = "Settings";
+            this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
             // 
             // tabControlMain
             // 
@@ -213,39 +230,31 @@ namespace HiddenWallet.UserInterface
             // 
             this.contextMenuStripAddress.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.copyToolStripMenuItem,
-            this.viewOnBlockchainToolStripMenuItem,
-            this.viewReceiveAddressesToolStripMenuItem});
+            this.viewOnBlockchainToolStripMenuItem});
             this.contextMenuStripAddress.Name = "contextMenuStripAddress";
-            this.contextMenuStripAddress.Size = new System.Drawing.Size(194, 70);
+            this.contextMenuStripAddress.Size = new System.Drawing.Size(178, 48);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
             this.copyToolStripMenuItem.Text = "Copy";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
             // viewOnBlockchainToolStripMenuItem
             // 
             this.viewOnBlockchainToolStripMenuItem.Name = "viewOnBlockchainToolStripMenuItem";
-            this.viewOnBlockchainToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.viewOnBlockchainToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
             this.viewOnBlockchainToolStripMenuItem.Text = "View on blockchain";
             this.viewOnBlockchainToolStripMenuItem.Click += new System.EventHandler(this.viewOnBlockchainToolStripMenuItem_Click);
-            // 
-            // viewReceiveAddressesToolStripMenuItem
-            // 
-            this.viewReceiveAddressesToolStripMenuItem.Name = "viewReceiveAddressesToolStripMenuItem";
-            this.viewReceiveAddressesToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
-            this.viewReceiveAddressesToolStripMenuItem.Text = "View receive addresses";
-            this.viewReceiveAddressesToolStripMenuItem.Click += new System.EventHandler(this.viewReceiveAddressesToolStripMenuItem_Click);
             // 
             // tabPageSend
             // 
             this.tabPageSend.Controls.Add(this.labelBtc);
             this.tabPageSend.Controls.Add(this.buttonAll);
+            this.tabPageSend.Controls.Add(this.buttonSend);
             this.tabPageSend.Controls.Add(this.textBoxBtc);
             this.tabPageSend.Controls.Add(this.textBoxSendAddress);
-            this.tabPageSend.Controls.Add(this.buttonSend);
             this.tabPageSend.Location = new System.Drawing.Point(4, 22);
             this.tabPageSend.Name = "tabPageSend";
             this.tabPageSend.Padding = new System.Windows.Forms.Padding(3);
@@ -274,6 +283,18 @@ namespace HiddenWallet.UserInterface
             this.buttonAll.UseVisualStyleBackColor = true;
             this.buttonAll.Click += new System.EventHandler(this.buttonAll_Click);
             // 
+            // buttonSend
+            // 
+            this.buttonSend.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.buttonSend.Location = new System.Drawing.Point(8, 60);
+            this.buttonSend.Name = "buttonSend";
+            this.buttonSend.Size = new System.Drawing.Size(390, 50);
+            this.buttonSend.TabIndex = 3;
+            this.buttonSend.Text = "SEND";
+            this.buttonSend.UseVisualStyleBackColor = true;
+            this.buttonSend.EnabledChanged += new System.EventHandler(this.buttonSend_EnabledChanged);
+            this.buttonSend.Click += new System.EventHandler(this.buttonSend_Click);
+            // 
             // textBoxBtc
             // 
             this.textBoxBtc.Location = new System.Drawing.Point(59, 32);
@@ -298,18 +319,6 @@ namespace HiddenWallet.UserInterface
             this.textBoxSendAddress.TextChanged += new System.EventHandler(this.textBoxSendAddress_TextChanged);
             this.textBoxSendAddress.Enter += new System.EventHandler(this.textBoxSendAddress_Enter);
             this.textBoxSendAddress.Leave += new System.EventHandler(this.textBoxSendAddress_Leave);
-            // 
-            // buttonSend
-            // 
-            this.buttonSend.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.buttonSend.Location = new System.Drawing.Point(8, 60);
-            this.buttonSend.Name = "buttonSend";
-            this.buttonSend.Size = new System.Drawing.Size(390, 50);
-            this.buttonSend.TabIndex = 3;
-            this.buttonSend.Text = "SEND";
-            this.buttonSend.UseVisualStyleBackColor = true;
-            this.buttonSend.EnabledChanged += new System.EventHandler(this.buttonSend_EnabledChanged);
-            this.buttonSend.Click += new System.EventHandler(this.buttonSend_Click);
             // 
             // statusStrip
             // 
@@ -389,7 +398,8 @@ namespace HiddenWallet.UserInterface
         private ContextMenuStrip contextMenuStripAddress;
         private ToolStripMenuItem copyToolStripMenuItem;
         private ToolStripMenuItem viewOnBlockchainToolStripMenuItem;
-        private ToolStripMenuItem viewReceiveAddressesToolStripMenuItem;
+        private ToolStripMenuItem toolsToolStripMenuItem;
+        private ToolStripMenuItem settingsToolStripMenuItem;
     }
 }
 

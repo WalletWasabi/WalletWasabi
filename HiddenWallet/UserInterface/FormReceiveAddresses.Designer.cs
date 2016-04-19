@@ -89,7 +89,7 @@
             this.MaximumSize = new System.Drawing.Size(429, 9999);
             this.MinimumSize = new System.Drawing.Size(429, 38);
             this.Name = "FormReceiveAddresses";
-            this.Text = "Receive addresses";
+            this.Text = "HiddenWallet: Receive addresses";
             this.Load += new System.EventHandler(this.FormAddresses_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewReceiveAddresses)).EndInit();
             this.contextMenuStrip.ResumeLayout(false);

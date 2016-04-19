@@ -12,6 +12,8 @@ namespace HiddenWallet
         [STAThread]
         private static void Main()
         {
+            Services.Main.LoadSettings(false);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FormMain());

@@ -6,27 +6,28 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using HiddenWallet.Properties;
 using HiddenWallet.Services;
 using HiddenWallet.UserInterface.Controls;
-using System.Runtime.InteropServices;
 using NBitcoin;
+using Main = HiddenWallet.DataRepository.Main;
 
 namespace HiddenWallet.UserInterface
 {
     internal partial class FormMain : Form
     {
-        private string _bitcoinSendAddress;
         private decimal _amountBtc;
-
-        [DllImport("user32.dll")]
-        static extern bool HideCaret(IntPtr hWnd);
+        private string _bitcoinSendAddress;
 
         internal FormMain()
         {
             InitializeComponent();
         }
+
+        [DllImport("user32.dll")]
+        private static extern bool HideCaret(IntPtr hWnd);
 
         private string AskPassword()
         {
@@ -107,11 +108,11 @@ namespace HiddenWallet.UserInterface
             textBoxSendAddress.Text = "";
 
             AskPassword();
-            
+
             buttonSend.Enabled = false;
 
             RefreshBalance();
-            DataRepository.Main.Wallet.ThrowEvent += (sender2, args) => { RefreshBalance(); };
+            Main.Wallet.ThrowEvent += (sender2, args) => { RefreshBalance(); };
 
             HideCaretClearSelection(textBoxBalance);
             HideCaretClearSelection(textBoxRecieveAddress);
@@ -121,14 +122,17 @@ namespace HiddenWallet.UserInterface
         {
             textBoxSendAddress.Cue = @"1E6aG3JAwwvJAUvAUGLF987TVbrCYS1oKa";
         }
+
         private void ClearCueToTextBoxSendAddress()
         {
             textBoxSendAddress.Cue = @"";
         }
+
         private void SetCueToTextBoxBtc()
         {
             textBoxBtc.Cue = @"21.1";
         }
+
         private void ClearCueToTextBoxBtc()
         {
             textBoxBtc.Cue = @"";
@@ -136,19 +140,19 @@ namespace HiddenWallet.UserInterface
 
         private void RefreshBalance()
         {
-            var balance = DataRepository.Main.Wallet.Balance;
+            var balance = Main.Wallet.Balance;
             textBoxBalance.Text = string.Format(CultureInfo.InvariantCulture, "{0:0.####} BTC", balance);
             HideCaretClearSelection(textBoxBalance);
         }
 
         private void textBoxBalance_TextChanged(object sender, EventArgs e)
         {
-            HideCaretClearSelection(((TextBox)sender));
+            HideCaretClearSelection(((TextBox) sender));
         }
 
         private void textBoxRecieveAddress_TextChanged(object sender, EventArgs e)
         {
-            HideCaretClearSelection(((TextBox)sender));
+            HideCaretClearSelection(((TextBox) sender));
         }
 
         private void syncWalletToolStripMenuItem_Click(object sender, EventArgs e)
@@ -166,26 +170,24 @@ namespace HiddenWallet.UserInterface
         {
             Enabled = false;
             UpdateStatus(Resources.FormMain_SetProgressBar_Syncing_wallet___);
-            DataRepository.Main.Wallet.Sync();
+            Main.Wallet.Sync();
             RefreshBalance();
             UpdateStatus(Resources.FormMain_backgroundWorkerSyncWallet_RunWorkerCompleted_Wallet_is_synced);
             Enabled = true;
         }
+
         private void textBoxBalance_Click(object sender, EventArgs e)
         {
-            HideCaret(((TextBox)sender).Handle);
+            HideCaret(((TextBox) sender).Handle);
         }
 
         private void textBoxRecieveAddress_Click(object sender, EventArgs e)
         {
-            HideCaretClearSelection(((TextBox)sender));
+            HideCaretClearSelection(((TextBox) sender));
             // Kick off SelectAll asyncronously so that it occurs after Click
-            if (((TextBox)sender).Text != "")
+            if (((TextBox) sender).Text != "")
             {
-                BeginInvoke((Action)delegate
-                {
-                    textBoxRecieveAddress.SelectAll();
-                });
+                BeginInvoke((Action) delegate { textBoxRecieveAddress.SelectAll(); });
             }
         }
 
@@ -203,7 +205,7 @@ namespace HiddenWallet.UserInterface
 
         private void textBoxSendAddress_TextChanged(object sender, EventArgs e)
         {
-            ValidateTextBoxSendAddress((TextBox)sender);
+            ValidateTextBoxSendAddress((TextBox) sender);
         }
 
         private void ValidateTextBoxSendAddress(Control textBoxBase)
@@ -219,7 +221,7 @@ namespace HiddenWallet.UserInterface
 
             try
             {
-                _bitcoinSendAddress = new BitcoinPubKeyAddress(address, DataRepository.Main.Network).ToString();
+                _bitcoinSendAddress = new BitcoinPubKeyAddress(address, Main.Network).ToString();
                 textBoxBase.BackColor = Color.PaleGreen;
                 buttonSend.Enabled = true;
             }
@@ -243,10 +245,11 @@ namespace HiddenWallet.UserInterface
 
             try
             {
-                btcAmountString = btcAmountString.Replace(",", CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator);
+                btcAmountString = btcAmountString.Replace(",",
+                    CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator);
                 var btcAmount = decimal.Parse(btcAmountString, NumberStyles.Any, CultureInfo.InvariantCulture);
 
-                if (btcAmount <= DataRepository.Main.Wallet.Balance && btcAmount > 0)
+                if (btcAmount <= Main.Wallet.Balance && btcAmount > 0)
                 {
                     _amountBtc = btcAmount;
                     textBoxBase.BackColor = Color.PaleGreen;
@@ -264,7 +267,9 @@ namespace HiddenWallet.UserInterface
 
         private void viewOnBlockchainToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Process.Start(DataRepository.Main.Network == Network.Main ? "https://blockchain.info/address/" : "http://tbtc.blockr.io/address/info/" + textBoxRecieveAddress.Text);
+            Process.Start(Main.Network == Network.Main
+                ? "https://blockchain.info/address/"
+                : "http://tbtc.blockr.io/address/info/" + textBoxRecieveAddress.Text);
         }
 
         private void copyToolStripMenuItem_Click(object sender, EventArgs e)
@@ -300,18 +305,18 @@ namespace HiddenWallet.UserInterface
 
         private void buttonAll_Click(object sender, EventArgs e)
         {
-            var balance = DataRepository.Main.Wallet.Balance;
+            var balance = Main.Wallet.Balance;
             textBoxBtc.Text = string.Format(CultureInfo.InvariantCulture, "{0}", balance);
         }
 
         private void textBoxBtc_TextChanged(object sender, EventArgs e)
         {
-            ValidateBtcTextBox((TextBox)sender);
+            ValidateBtcTextBox((TextBox) sender);
         }
 
         private void buttonSend_EnabledChanged(object sender, EventArgs e)
         {
-            if(textBoxBtc.BackColor == Color.PaleGreen && textBoxSendAddress.BackColor == Color.PaleGreen)
+            if (textBoxBtc.BackColor == Color.PaleGreen && textBoxSendAddress.BackColor == Color.PaleGreen)
             {
                 buttonSend.Enabled = true;
             }
@@ -323,7 +328,13 @@ namespace HiddenWallet.UserInterface
 
         private void buttonSend_Click(object sender, EventArgs e)
         {
-            DataRepository.Main.Wallet.Send(_bitcoinSendAddress, _amountBtc);
+            Main.Wallet.Send(_bitcoinSendAddress, _amountBtc);
+        }
+
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var form = new FormSettings();
+            form.ShowDialog(this);
         }
     }
 }

@@ -7,7 +7,7 @@ namespace HiddenWallet.UserInterface.Controls
     internal static class InputDialog
     {
         // http://stackoverflow.com/a/17546909/2061103
-        internal static DialogResult Show(ref string input,string caption, string message)
+        internal static DialogResult Show(ref string input, string caption, string message)
         {
             var size = new Size(300, 100);
             var inputBox = new Form
@@ -23,7 +23,7 @@ namespace HiddenWallet.UserInterface.Controls
             var flp = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(0,10,0,0)
+                Padding = new Padding(0, 10, 0, 0)
             };
             inputBox.Controls.Add(flp);
 

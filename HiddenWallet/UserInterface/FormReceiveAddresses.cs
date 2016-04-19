@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 using HiddenWallet.DataRepository;
+using NBitcoin;
 
 // ReSharper disable UnusedMember.Local
 
@@ -14,6 +15,8 @@ namespace HiddenWallet.UserInterface
         {
             InitializeComponent();
         }
+
+        private string SelectedAddress => dataGridViewReceiveAddresses.SelectedCells[0].Value.ToString();
 
         private void FormAddresses_Load(object sender, EventArgs e)
         {
@@ -61,8 +64,6 @@ namespace HiddenWallet.UserInterface
             Clipboard.SetText(SelectedAddress);
         }
 
-        private string SelectedAddress => dataGridViewReceiveAddresses.SelectedCells[0].Value.ToString();
-
         // http://stackoverflow.com/a/2140908/2061103
         protected override void WndProc(ref Message m)
         {
@@ -82,6 +83,13 @@ namespace HiddenWallet.UserInterface
             }
         }
 
+        private void viewOnBlockchainToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start(Main.Network == Network.Main
+                ? "https://blockchain.info/address/"
+                : "http://tbtc.blockr.io/address/info/" + SelectedAddress);
+        }
+
         private enum HitTest
         {
             Caption = 2,
@@ -97,11 +105,6 @@ namespace HiddenWallet.UserInterface
             BottomLeft = 16,
             BottomRight = 17,
             Border = 18
-        }
-
-        private void viewOnBlockchainToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Process.Start(DataRepository.Main.Network == NBitcoin.Network.Main?"https://blockchain.info/address/": "http://tbtc.blockr.io/address/info/" + SelectedAddress);
         }
     }
 }

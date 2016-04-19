@@ -34,13 +34,15 @@ namespace HiddenWallet.Helpers
                     var addressesQueryString = addresses.Aggregate((i, j) => i + "," + j);
 
                     var requestAddressInfo = string.Format("{0}address/info/{1}", BlockrAddress, addressesQueryString);
-                    var requestAddressUnspent = string.Format("{0}address/unspent/{1}", BlockrAddress, addressesQueryString);
+                    var requestAddressUnspent = string.Format("{0}address/unspent/{1}", BlockrAddress,
+                        addressesQueryString);
 
                     var responseAddressInfo = await client.GetAsync(requestAddressInfo).ConfigureAwait(false);
                     var responseAddressUnspent = await client.GetAsync(requestAddressUnspent).ConfigureAwait(false);
 
                     var resultAddressInfo = await responseAddressInfo.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    var resultAddressUnspent = await responseAddressUnspent.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    var resultAddressUnspent =
+                        await responseAddressUnspent.Content.ReadAsStringAsync().ConfigureAwait(false);
 
                     var jsonAddressInfo = JObject.Parse(resultAddressInfo);
                     var jsonAddressUnspent = JObject.Parse(resultAddressUnspent);
@@ -140,11 +142,11 @@ namespace HiddenWallet.Helpers
                 using (var client = new HttpClient())
                 {
                     var request = string.Format("{0}tx/push", BlockrAddress);
-                    
+
                     var content = new FormUrlEncodedContent(new[]
-                        {
-                            new KeyValuePair<string, string>("hex", transactionHash)
-                        });
+                    {
+                        new KeyValuePair<string, string>("hex", transactionHash)
+                    });
 
                     var response = await client.PostAsync(request, content).ConfigureAwait(false);
 

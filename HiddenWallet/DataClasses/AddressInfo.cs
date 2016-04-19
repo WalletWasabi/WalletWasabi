@@ -9,7 +9,6 @@ namespace HiddenWallet.DataClasses
         internal decimal BalanceMultisig;
         internal decimal TotalReceived;
         internal uint TransactionCount;
-
         internal HashSet<TransactionInfo> UnspentTransactions;
 
         internal AddressInfo(string address)
