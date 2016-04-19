@@ -2,6 +2,7 @@
 
 ## For developers
 C#, Visual Studio, Clone -> Build -> Run
+Tools/ Settings/ Network -> Test
 
 ## Philosophy/ Design principles
 
