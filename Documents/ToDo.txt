@@ -2,16 +2,12 @@
 - change wif encryption to nbitcoin's encryption // http://www.codeproject.com/Articles/775226/NBitcoin-Cryptography-Part
 - when ready review project organization structure
 - color the first and last characters of btc address receive - security feature
-- change the name of wallet file to something that doesnt have wallet in it? - security feature
 - introduce the use of SecureString for password
-- create an effect when password is asked, mask it with random chinese characters
 - color balance check (every 3 character grouped together in one color)
 - color addresses (every 3 character colored together, except the first one)
 - give the option to use seed to backup wallet (either the wallet or the seed)
 - clicking on the btc balance it changes to usd
 - make the wallet in json format (like joinmarket's)
-- FormReceiveAddress right click menu should only appear when the mouse in cell
-- first time login (create your password window, decrypt your wallet window)
 - Add View / Ongoing transactions
 	Unconfirmed transactions should not be added to the balance
 	Unconfirmed transaction addresses should not appear in Receive addresses
