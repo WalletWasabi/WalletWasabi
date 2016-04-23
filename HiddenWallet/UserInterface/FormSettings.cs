@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using HiddenWallet.DataClasses;
 using HiddenWallet.Properties;
 
 namespace HiddenWallet.UserInterface
 {
     public partial class FormSettings : Form
     {
-        private string _unchangedWalletFilePath;
-        private string _unchangedNetwork;
         private string _unchangedAddressCount;
+        private string _unchangedNetwork;
+        private string _unchangedWalletFilePath;
 
         public FormSettings()
         {
@@ -25,7 +27,7 @@ namespace HiddenWallet.UserInterface
                 Settings.Default.WalletFilePath = value;
                 textBoxWalletFilePath.Text = value;
 
-                var walletContent = new DataClasses.Main.WalletFileStructure(value);
+                var walletContent = new Main.WalletFileStructure(value);
                 var network = walletContent.Network;
                 comboBoxNetwork.SelectedIndex = comboBoxNetwork.Items.IndexOf(network);
                 if (comboBoxNetwork.SelectedIndex == -1)
@@ -79,8 +81,9 @@ namespace HiddenWallet.UserInterface
             comboBoxNetwork.Items.Add("TestNet");
             comboBoxNetwork.Items.Add("MainNet");
 
-            WalletFilePath = WalletFilePath; // To fire the set events of the property (should be done an other way, it's ugly)
-            var walletContent = new DataClasses.Main.WalletFileStructure(WalletFilePath);
+            WalletFilePath = WalletFilePath;
+                // To fire the set events of the property (should be done an other way, it's ugly)
+            var walletContent = new Main.WalletFileStructure(WalletFilePath);
             _unchangedNetwork = walletContent.Network;
             _unchangedAddressCount = walletContent.KeyCount;
             _unchangedWalletFilePath = WalletFilePath;
@@ -132,6 +135,20 @@ namespace HiddenWallet.UserInterface
         private void textBoxAddressCount_TextChanged(object sender, EventArgs e)
         {
             ValidateApply();
+            ValidateTextBoxAddressCount((TextBox) sender);
+        }
+
+        private static void ValidateTextBoxAddressCount(Control textBoxBase)
+        {
+            try
+            {
+                var count = int.Parse(textBoxBase.Text);
+                textBoxBase.BackColor = count < 0 ? Color.PaleVioletRed : Color.PaleGreen;
+            }
+            catch (Exception)
+            {
+                textBoxBase.BackColor = Color.PaleVioletRed;
+            }
         }
 
         private void ValidateApply()
@@ -139,8 +156,8 @@ namespace HiddenWallet.UserInterface
             if (textBoxAddressCount.Text == "")
                 return;
             buttonApply.Enabled = _unchangedAddressCount != textBoxAddressCount.Text ||
-                _unchangedNetwork != comboBoxNetwork.SelectedItem.ToString() ||
-                _unchangedWalletFilePath != WalletFilePath;
+                                  _unchangedNetwork != comboBoxNetwork.SelectedItem.ToString() ||
+                                  _unchangedWalletFilePath != WalletFilePath;
         }
     }
 }

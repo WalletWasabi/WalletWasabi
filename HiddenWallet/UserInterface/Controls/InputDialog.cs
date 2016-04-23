@@ -34,7 +34,7 @@ namespace HiddenWallet.UserInterface.Controls
             };
             flp.Controls.Add(label);
 
-            var textBox = new TextBox()
+            var textBox = new TextBox
             {
                 Size = new Size(size.Width - 10, 23),
                 Text = input,

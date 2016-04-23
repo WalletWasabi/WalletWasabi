@@ -14,7 +14,8 @@ namespace HiddenWallet.Services
 
             if (WalletServices.WalletExists())
             {
-                DataRepository.Main.WalletFileContent = new DataClasses.Main.WalletFileStructure(WalletServices.GetPathWalletFile());
+                DataRepository.Main.WalletFileContent =
+                    new DataClasses.Main.WalletFileStructure(WalletServices.GetPathWalletFile());
                 network = DataRepository.Main.WalletFileContent.Network;
             }
             switch (network)

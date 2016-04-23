@@ -375,7 +375,8 @@ namespace HiddenWallet.UserInterface
             Debug.Assert(pathApplicationDirectory != null, "pathApplicationDirectory != null");
             var pathApplicationDirectoryWithSeparator = pathApplicationDirectory + Path.DirectorySeparatorChar;
 
-            Settings.Default.WalletFilePath = openFileDialogWalletFile.FileName.Replace(pathApplicationDirectoryWithSeparator, "");
+            Settings.Default.WalletFilePath =
+                openFileDialogWalletFile.FileName.Replace(pathApplicationDirectoryWithSeparator, "");
             Settings.Default.Save();
             Services.Main.LoadSettings(true);
         }

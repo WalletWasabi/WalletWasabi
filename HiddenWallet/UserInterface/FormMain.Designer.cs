@@ -148,28 +148,28 @@ namespace HiddenWallet.UserInterface
             // syncWalletToolStripMenuItem1
             // 
             this.syncWalletToolStripMenuItem1.Name = "syncWalletToolStripMenuItem1";
-            this.syncWalletToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.syncWalletToolStripMenuItem1.Size = new System.Drawing.Size(116, 22);
             this.syncWalletToolStripMenuItem1.Text = "Sync";
             this.syncWalletToolStripMenuItem1.Click += new System.EventHandler(this.syncWalletToolStripMenuItem1_Click);
             // 
             // createToolStripMenuItem
             // 
             this.createToolStripMenuItem.Name = "createToolStripMenuItem";
-            this.createToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.createToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.createToolStripMenuItem.Text = "Create";
             this.createToolStripMenuItem.Click += new System.EventHandler(this.createToolStripMenuItem_Click);
             // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.loadToolStripMenuItem.Text = "Load";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
             // recoverToolStripMenuItem
             // 
             this.recoverToolStripMenuItem.Name = "recoverToolStripMenuItem";
-            this.recoverToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.recoverToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.recoverToolStripMenuItem.Text = "Recover";
             // 
             // viewToolStripMenuItem

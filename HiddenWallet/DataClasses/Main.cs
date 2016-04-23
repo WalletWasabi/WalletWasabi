@@ -27,6 +27,10 @@ namespace HiddenWallet.DataClasses
                 Load(path);
             }
 
+            public string Seed { get; set; }
+            public string KeyCount { get; set; }
+            public string Network { get; set; }
+
             internal void Save(string path)
             {
                 var walletContentString = JsonConvert.SerializeObject(this);
@@ -42,10 +46,6 @@ namespace HiddenWallet.DataClasses
                 KeyCount = walletContent.KeyCount;
                 Network = walletContent.Network;
             }
-
-            public string Seed { get; set; }
-            public string KeyCount { get; set; }
-            public string Network { get; set; }
         }
     }
 }

@@ -48,7 +48,8 @@ namespace HiddenWallet.DataClasses
                 try
                 {
                     var walletContentString = File.ReadAllText(_pathWalletFile);
-                    DataRepository.Main.WalletFileContent = JsonConvert.DeserializeObject<Main.WalletFileStructure>(walletContentString);
+                    DataRepository.Main.WalletFileContent =
+                        JsonConvert.DeserializeObject<Main.WalletFileStructure>(walletContentString);
                     var keyCount = DataRepository.Main.WalletFileContent.KeyCount;
                     return UInt32.Parse(keyCount);
                 }
@@ -108,7 +109,8 @@ namespace HiddenWallet.DataClasses
             Directory.CreateDirectory(_pathWalletDirectory);
 
             const int keyCount = 0;
-            DataRepository.Main.WalletFileContent = new Main.WalletFileStructure(encryptedSeedWif, keyCount.ToString(), _network == Network.Main ? "MainNet" : "TestNet");
+            DataRepository.Main.WalletFileContent = new Main.WalletFileStructure(encryptedSeedWif, keyCount.ToString(),
+                _network == Network.Main ? "MainNet" : "TestNet");
 
             DataRepository.Main.WalletFileContent.Save(_pathWalletFile);
 
