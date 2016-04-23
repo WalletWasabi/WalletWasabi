@@ -1,21 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
-using System.Linq;
+using System.Diagnostics;
+using System.IO;
 using System.Windows.Forms;
 using HiddenWallet.Properties;
-using HiddenWallet.Services;
 
 namespace HiddenWallet.UserInterface
 {
     public partial class FormSettings : Form
     {
-        private readonly List<object> _unchangedSettings = new List<object>();
+        private string _unchangedWalletFilePath;
+        private string _unchangedNetwork;
+        private string _unchangedAddressCount;
 
         public FormSettings()
         {
             InitializeComponent();
+        }
+
+        internal string WalletFilePath
+        {
+            get { return Settings.Default.WalletFilePath; }
+            set
+            {
+                Settings.Default.WalletFilePath = value;
+                textBoxWalletFilePath.Text = value;
+
+                var walletContent = new DataClasses.Main.WalletFileStructure(value);
+                var network = walletContent.Network;
+                comboBoxNetwork.SelectedIndex = comboBoxNetwork.Items.IndexOf(network);
+                if (comboBoxNetwork.SelectedIndex == -1)
+                    throw new Exception("WrongNetworkSetting");
+                textBoxAddressCount.Text = walletContent.KeyCount;
+            }
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
@@ -44,7 +60,12 @@ namespace HiddenWallet.UserInterface
         {
             Settings.Default.Save();
 
-            Main.LoadSettings(true);
+            DataRepository.Main.WalletFileContent.Network = comboBoxNetwork.SelectedItem.ToString();
+            DataRepository.Main.WalletFileContent.KeyCount = textBoxAddressCount.Text;
+
+            DataRepository.Main.WalletFileContent.Save(WalletFilePath);
+
+            Services.Main.LoadSettings(true);
         }
 
         private void Cancel()
@@ -53,50 +74,73 @@ namespace HiddenWallet.UserInterface
             Close();
         }
 
-        private void FormSettings_Shown(object sender, EventArgs e)
+        private void FormSettings_Load(object sender, EventArgs e)
         {
-            comboBoxNetwork.Items.Add("Test");
-            comboBoxNetwork.Items.Add("Main");
+            comboBoxNetwork.Items.Add("TestNet");
+            comboBoxNetwork.Items.Add("MainNet");
 
-            var network = Settings.Default.Network;
-            comboBoxNetwork.SelectedIndex = comboBoxNetwork.Items.IndexOf(network);
-            if (comboBoxNetwork.SelectedIndex == -1)
-                throw new Exception("WrongNetworkSetting");
+            WalletFilePath = WalletFilePath; // To fire the set events of the property (should be done an other way, it's ugly)
+            var walletContent = new DataClasses.Main.WalletFileStructure(WalletFilePath);
+            _unchangedNetwork = walletContent.Network;
+            _unchangedAddressCount = walletContent.KeyCount;
+            _unchangedWalletFilePath = WalletFilePath;
 
-            Settings.Default.PropertyChanged += SettingChanged;
+            ControlBox = false;
+            ValidateApply();
 
-            foreach (
-                var propVal in
-                    from SettingsPropertyValue value in Settings.Default.PropertyValues select value.PropertyValue)
+            var toolTipDepth = new ToolTip
             {
-                _unchangedSettings.Add(propVal);
-            }
+                AutoPopDelay = 10000,
+                InitialDelay = 100,
+                ReshowDelay = 100,
+                ShowAlways = true
+            };
+            const string toolTipDepthMessage = "The total number of generated addresses.";
+            toolTipDepth.SetToolTip(labelAddressCount, toolTipDepthMessage);
+            toolTipDepth.SetToolTip(textBoxAddressCount, toolTipDepthMessage);
         }
 
-        private void SettingChanged(object sender, PropertyChangedEventArgs e)
+        private void buttonWalletFileBrowse_Click(object sender, EventArgs e)
         {
-            var changed = false;
+            openFileDialogWalletFile.FileName = WalletFilePath;
+            var fullWalletPath = Path.GetFullPath(WalletFilePath);
+            openFileDialogWalletFile.InitialDirectory = Path.GetDirectoryName(fullWalletPath);
+            openFileDialogWalletFile.Filter = @"Wallet files | *.hid";
 
-            var i = 0;
-            foreach (SettingsPropertyValue value in Settings.Default.PropertyValues)
-            {
-                if (value.PropertyValue != _unchangedSettings[i])
-                    changed = true;
-                i++;
-            }
+            var result = openFileDialogWalletFile.ShowDialog();
+            if (result != DialogResult.OK) return;
 
-            buttonApply.Enabled = changed;
+            var pathApplicationDirectory = Path.GetDirectoryName(Application.ExecutablePath);
+            Debug.Assert(pathApplicationDirectory != null, "pathApplicationDirectory != null");
+            var pathApplicationDirectoryWithSeparator = pathApplicationDirectory + Path.DirectorySeparatorChar;
+            WalletFilePath = openFileDialogWalletFile.FileName.Replace(pathApplicationDirectoryWithSeparator, "");
+        }
+
+        private void textBoxWalletFilePath_TextChanged(object sender, EventArgs e)
+        {
+            textBoxWalletFilePath.SelectionStart = textBoxWalletFilePath.TextLength;
+            textBoxWalletFilePath.ScrollToCaret();
+
+            ValidateApply();
         }
 
         private void comboBoxNetwork_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Settings.Default.Network = comboBoxNetwork.SelectedItem.ToString();
+            ValidateApply();
         }
 
-        private void FormSettings_Load(object sender, EventArgs e)
+        private void textBoxAddressCount_TextChanged(object sender, EventArgs e)
         {
-            ControlBox = false;
-            buttonApply.Enabled = false;
+            ValidateApply();
+        }
+
+        private void ValidateApply()
+        {
+            if (textBoxAddressCount.Text == "")
+                return;
+            buttonApply.Enabled = _unchangedAddressCount != textBoxAddressCount.Text ||
+                _unchangedNetwork != comboBoxNetwork.SelectedItem.ToString() ||
+                _unchangedWalletFilePath != WalletFilePath;
         }
     }
 }

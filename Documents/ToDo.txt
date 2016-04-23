@@ -13,3 +13,10 @@
 	Unconfirmed transaction addresses should not appear in Receive addresses
 	When there is any unconfirmed transaction this menu must be red
 	Should be the same as the Receive addresses form with an additional column where transaction amount is shown
+
+:) 1. Rename Wallet folder to Wallets
+:) 2. Bring together KeyCount.txt and Wallet.hid into a json file, called DefaultWallet.hid, plus testnet or mainnet wallet
+:) 3. Add wallet path setting to Tools/Settings
+4. By selecting wallet network setting should automatically change if necessary.
+5. By selecting network setting wallet path should automatically change if necessary to the default wallet with the corresponding address
+6. Visualize the change

@@ -2,7 +2,6 @@
 // repository can be changed out with no need to rewrite any higher level code.
 
 using System.Windows.Forms;
-using HiddenWallet.Properties;
 using NBitcoin;
 
 namespace HiddenWallet.Services
@@ -11,17 +10,22 @@ namespace HiddenWallet.Services
     {
         internal static void LoadSettings(bool restart)
         {
-            switch (Settings.Default.Network)
+            var network = "MainNet";
+
+            if (WalletServices.WalletExists())
             {
-                case "Test":
+                DataRepository.Main.WalletFileContent = new DataClasses.Main.WalletFileStructure(WalletServices.GetPathWalletFile());
+                network = DataRepository.Main.WalletFileContent.Network;
+            }
+            switch (network)
+            {
+                case "TestNet":
                     DataRepository.Main.Network = Network.TestNet;
                     break;
                 default:
                     DataRepository.Main.Network = Network.Main;
                     break;
             }
-
-
             if (restart)
                 Application.Restart();
         }

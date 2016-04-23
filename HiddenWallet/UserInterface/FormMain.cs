@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using HiddenWallet.Properties;
@@ -41,7 +42,7 @@ namespace HiddenWallet.UserInterface
                     var createWallet = !WalletServices.WalletExists();
                     if (createWallet)
                     {
-                        InputDialog.Show(ref password, Resources.FormMain_AskPassword_Create_your_wallet,
+                        InputPasswordDialog.Show(ref password, Resources.FormMain_AskPassword_Create_your_wallet,
                             Resources.FormMain_AskPassword_Choose_a_password);
                         WalletServices.CreateWallet(password);
                         MessageBox.Show(this,
@@ -50,7 +51,7 @@ namespace HiddenWallet.UserInterface
                             Resources.Wallet_created, MessageBoxButtons.OK,
                             MessageBoxIcon.Information);
                     }
-                    InputDialog.Show(ref password, Resources.FormMain_AskPassword_Open_your_wallet,
+                    InputPasswordDialog.Show(ref password, Resources.FormMain_AskPassword_Open_your_wallet,
                         Resources.InputDialog_Show_Password);
                     WalletServices.LoadWallet(password);
                     SyncWallet();
@@ -335,6 +336,48 @@ namespace HiddenWallet.UserInterface
         {
             var form = new FormSettings();
             form.ShowDialog(this);
+        }
+
+        private void createToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var saveFileDialogWalletFile = new SaveFileDialog();
+            var fullWalletPath = Path.GetFullPath(Settings.Default.WalletFilePath);
+            saveFileDialogWalletFile.InitialDirectory = Path.GetDirectoryName(fullWalletPath);
+            saveFileDialogWalletFile.Filter = @"Wallet files | *.hid";
+
+            var result = saveFileDialogWalletFile.ShowDialog();
+            if (result != DialogResult.OK) return;
+
+            var fileName = saveFileDialogWalletFile.FileName.EndsWith(".hid")
+                ? saveFileDialogWalletFile.FileName
+                : saveFileDialogWalletFile.FileName + ".hid";
+
+            var pathApplicationDirectory = Path.GetDirectoryName(Application.ExecutablePath);
+            Debug.Assert(pathApplicationDirectory != null, "pathApplicationDirectory != null");
+            var pathApplicationDirectoryWithSeparator = pathApplicationDirectory + Path.DirectorySeparatorChar;
+
+            Settings.Default.WalletFilePath = fileName.Replace(pathApplicationDirectoryWithSeparator, "");
+            Settings.Default.Save();
+            Services.Main.LoadSettings(true);
+        }
+
+        private void loadToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var openFileDialogWalletFile = new OpenFileDialog();
+            var fullWalletPath = Path.GetFullPath(Settings.Default.WalletFilePath);
+            openFileDialogWalletFile.InitialDirectory = Path.GetDirectoryName(fullWalletPath);
+            openFileDialogWalletFile.Filter = @"Wallet files | *.hid";
+
+            var result = openFileDialogWalletFile.ShowDialog();
+            if (result != DialogResult.OK) return;
+
+            var pathApplicationDirectory = Path.GetDirectoryName(Application.ExecutablePath);
+            Debug.Assert(pathApplicationDirectory != null, "pathApplicationDirectory != null");
+            var pathApplicationDirectoryWithSeparator = pathApplicationDirectory + Path.DirectorySeparatorChar;
+
+            Settings.Default.WalletFilePath = openFileDialogWalletFile.FileName.Replace(pathApplicationDirectoryWithSeparator, "");
+            Settings.Default.Save();
+            Services.Main.LoadSettings(true);
         }
     }
 }

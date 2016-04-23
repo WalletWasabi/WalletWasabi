@@ -4,7 +4,7 @@ using HiddenWallet.Properties;
 
 namespace HiddenWallet.UserInterface.Controls
 {
-    internal static class InputDialog
+    internal static class InputPasswordDialog
     {
         // http://stackoverflow.com/a/17546909/2061103
         internal static DialogResult Show(ref string input, string caption, string message)
@@ -34,10 +34,11 @@ namespace HiddenWallet.UserInterface.Controls
             };
             flp.Controls.Add(label);
 
-            var textBox = new TextBox()
+            var textBox = new CustomMaskedTextBox
             {
                 Size = new Size(size.Width - 10, 23),
                 Text = input,
+                MaskCharacters = "阪熊奈岡鹿梨阜埼茨栃",
                 Anchor = AnchorStyles.None
             };
             flp.Controls.Add(textBox);
@@ -55,7 +56,7 @@ namespace HiddenWallet.UserInterface.Controls
             inputBox.AcceptButton = okButton;
 
             var result = inputBox.ShowDialog();
-            input = textBox.Text;
+            input = textBox.UserText;
             return result;
         }
     }

@@ -10,7 +10,7 @@ namespace HiddenWallet.Services
         internal static void CreateWallet(string password)
         {
             DataRepository.Main.Wallet = new Wallet(
-                DataRepository.Main.PathWalletFile,
+                Settings.Default.WalletFilePath,
                 DataRepository.Main.Network,
                 password);
         }
@@ -22,14 +22,14 @@ namespace HiddenWallet.Services
 
         internal static bool WalletExists()
         {
-            return File.Exists(DataRepository.Main.PathWalletFile);
+            return File.Exists(Settings.Default.WalletFilePath);
         }
 
         internal static string GetPathWalletFile()
         {
             return !WalletExists()
                 ? Resources.Wallet_file_not_found
-                : Path.GetFullPath(DataRepository.Main.PathWalletFile);
+                : Path.GetFullPath(Settings.Default.WalletFilePath);
         }
 
         internal static string GenerateKey()

@@ -81,6 +81,7 @@
       <DependentUpon>CustomMaskedTextBox.cs</DependentUpon>
     </Compile>
     <Compile Include="UserInterface\Controls\InputDialog.cs" />
+    <Compile Include="UserInterface\Controls\InputPasswordDialog.cs" />
     <Compile Include="UserInterface\FormReceiveAddresses.cs">
       <SubType>Form</SubType>
     </Compile>

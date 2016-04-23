@@ -25,13 +25,13 @@ namespace HiddenWallet.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Main")]
-        public string Network {
+        [global::System.Configuration.DefaultSettingValueAttribute("Wallets\\DefaultWallet.hid")]
+        public string WalletFilePath {
             get {
-                return ((string)(this["Network"]));
+                return ((string)(this["WalletFilePath"]));
             }
             set {
-                this["Network"] = value;
+                this["WalletFilePath"] = value;
             }
         }
     }

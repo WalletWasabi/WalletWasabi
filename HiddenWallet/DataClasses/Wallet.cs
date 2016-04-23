@@ -13,13 +13,13 @@ using System.Security.Cryptography;
 using HiddenWallet.Helpers;
 using HiddenWallet.Helpers.Wrappers;
 using NBitcoin;
+using Newtonsoft.Json;
 
 namespace HiddenWallet.DataClasses
 {
     internal class Wallet
     {
         private readonly Network _network;
-        private readonly string _pathKeyCountFile;
         private readonly string _pathWalletDirectory;
         private readonly string _pathWalletFile;
         private ExtKey _seedPrivateKey;
@@ -32,7 +32,6 @@ namespace HiddenWallet.DataClasses
             _pathWalletDirectory = Path.GetDirectoryName(_pathWalletFile);
             if (_pathWalletDirectory == null)
                 throw new Exception("_pathWalletDirectoryIsNull");
-            _pathKeyCountFile = Path.Combine(_pathWalletDirectory, @"KeyCount.txt");
 
             if (!File.Exists(_pathWalletFile))
                 Create(password);
@@ -44,11 +43,13 @@ namespace HiddenWallet.DataClasses
         {
             get
             {
-                if (!File.Exists(_pathKeyCountFile))
-                    throw new Exception("_pathKeyCountFileDontExists");
+                if (!File.Exists(_pathWalletFile))
+                    throw new Exception("_pathWalletFileDontExists");
                 try
                 {
-                    var keyCount = File.ReadAllText(_pathKeyCountFile);
+                    var walletContentString = File.ReadAllText(_pathWalletFile);
+                    DataRepository.Main.WalletFileContent = JsonConvert.DeserializeObject<Main.WalletFileStructure>(walletContentString);
+                    var keyCount = DataRepository.Main.WalletFileContent.KeyCount;
                     return UInt32.Parse(keyCount);
                 }
                 catch (Exception)
@@ -58,10 +59,11 @@ namespace HiddenWallet.DataClasses
             }
             private set
             {
-                if (value != 0 && !File.Exists(_pathKeyCountFile))
-                    throw new Exception("_pathKeyCountFileDontExists");
+                if (value != 0 && !File.Exists(_pathWalletFile))
+                    throw new Exception("_pathWalletFileDontExists");
 
-                File.WriteAllText(_pathKeyCountFile, value.ToString());
+                DataRepository.Main.WalletFileContent.KeyCount = value.ToString();
+                File.WriteAllText(_pathWalletFile, JsonConvert.SerializeObject(DataRepository.Main.WalletFileContent));
             }
         }
 
@@ -104,11 +106,13 @@ namespace HiddenWallet.DataClasses
             var encryptedSeedWif = StringCipher.Encrypt(seedWif.ToString(), password);
 
             Directory.CreateDirectory(_pathWalletDirectory);
-            File.WriteAllText(_pathWalletFile, encryptedSeedWif);
 
-            if (File.Exists(_pathKeyCountFile))
-                throw new Exception("_pathKeyCountFileExists");
-            KeyCount = 0;
+            const int keyCount = 0;
+            DataRepository.Main.WalletFileContent = new Main.WalletFileStructure(encryptedSeedWif, keyCount.ToString(), _network == Network.Main ? "MainNet" : "TestNet");
+
+            DataRepository.Main.WalletFileContent.Save(_pathWalletFile);
+
+            KeyCount = keyCount;
         }
 
         /// <summary>
@@ -122,7 +126,8 @@ namespace HiddenWallet.DataClasses
 
             try
             {
-                var encryptedSeedWif = File.ReadAllText(_pathWalletFile);
+                DataRepository.Main.WalletFileContent = new Main.WalletFileStructure(_pathWalletFile);
+                var encryptedSeedWif = DataRepository.Main.WalletFileContent.Seed;
                 var seedWifString = StringCipher.Decrypt(encryptedSeedWif, password);
                 var bitcoinSeedPrivateKey = new BitcoinExtKey(seedWifString);
                 _seedPrivateKey = bitcoinSeedPrivateKey.ExtKey;
