@@ -24,3 +24,4 @@ Either first or second has to be chosen.
 - Implement PGP login option instead of password
 - Fix initial KeyCount 0 bug
 - Implement NBitcoin encryption: https://github.com/MetacoSA/NBitcoin/issues/155, https://github.com/MetacoSA/NBitcoin/issues/58
+- Is there anything can be gained from Stealth payments?
