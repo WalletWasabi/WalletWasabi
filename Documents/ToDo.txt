@@ -20,4 +20,5 @@
 	-joinmarket send
 Either first or second has to be chosen.
 
--Make NBitcoin debugable
+- Make NBitcoin debugable
+- Implement PGP login option instead of password
