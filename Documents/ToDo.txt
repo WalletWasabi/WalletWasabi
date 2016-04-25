@@ -19,3 +19,5 @@
 	-hiddenwallet ad message built in blockchain
 	-joinmarket send
 Either first or second has to be chosen.
+
+-Make NBitcoin debugable
