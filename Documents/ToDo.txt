@@ -22,3 +22,4 @@ Either first or second has to be chosen.
 
 - Make NBitcoin debugable
 - Implement PGP login option instead of password
+- Fix initial KeyCount 0 bug
