@@ -58,10 +58,11 @@ namespace HiddenWallet.UserInterface
             this.labelBtc = new System.Windows.Forms.Label();
             this.buttonAll = new System.Windows.Forms.Button();
             this.buttonSend = new System.Windows.Forms.Button();
-            this.textBoxBtc = new HiddenWallet.UserInterface.Controls.CueTextBox();
-            this.textBoxSendAddress = new HiddenWallet.UserInterface.Controls.CueTextBox();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.changePasswordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.textBoxBtc = new HiddenWallet.UserInterface.Controls.CueTextBox();
+            this.textBoxSendAddress = new HiddenWallet.UserInterface.Controls.CueTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).BeginInit();
             this.splitContainerMain.Panel1.SuspendLayout();
             this.splitContainerMain.Panel2.SuspendLayout();
@@ -138,6 +139,7 @@ namespace HiddenWallet.UserInterface
             // 
             this.actionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.syncWalletToolStripMenuItem1,
+            this.changePasswordToolStripMenuItem,
             this.createToolStripMenuItem,
             this.loadToolStripMenuItem,
             this.recoverToolStripMenuItem});
@@ -148,28 +150,28 @@ namespace HiddenWallet.UserInterface
             // syncWalletToolStripMenuItem1
             // 
             this.syncWalletToolStripMenuItem1.Name = "syncWalletToolStripMenuItem1";
-            this.syncWalletToolStripMenuItem1.Size = new System.Drawing.Size(116, 22);
+            this.syncWalletToolStripMenuItem1.Size = new System.Drawing.Size(168, 22);
             this.syncWalletToolStripMenuItem1.Text = "Sync";
             this.syncWalletToolStripMenuItem1.Click += new System.EventHandler(this.syncWalletToolStripMenuItem1_Click);
             // 
             // createToolStripMenuItem
             // 
             this.createToolStripMenuItem.Name = "createToolStripMenuItem";
-            this.createToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+            this.createToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
             this.createToolStripMenuItem.Text = "Create";
             this.createToolStripMenuItem.Click += new System.EventHandler(this.createToolStripMenuItem_Click);
             // 
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
             this.loadToolStripMenuItem.Text = "Load";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click);
             // 
             // recoverToolStripMenuItem
             // 
             this.recoverToolStripMenuItem.Name = "recoverToolStripMenuItem";
-            this.recoverToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
+            this.recoverToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
             this.recoverToolStripMenuItem.Text = "Recover";
             // 
             // viewToolStripMenuItem
@@ -183,8 +185,8 @@ namespace HiddenWallet.UserInterface
             // receiveAddressesToolStripMenuItem
             // 
             this.receiveAddressesToolStripMenuItem.Name = "receiveAddressesToolStripMenuItem";
-            this.receiveAddressesToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
-            this.receiveAddressesToolStripMenuItem.Text = "Receive addresses";
+            this.receiveAddressesToolStripMenuItem.Size = new System.Drawing.Size(170, 22);
+            this.receiveAddressesToolStripMenuItem.Text = "Receive Addresses";
             this.receiveAddressesToolStripMenuItem.Click += new System.EventHandler(this.receiveAddressesToolStripMenuItem_Click);
             // 
             // toolsToolStripMenuItem
@@ -321,6 +323,28 @@ namespace HiddenWallet.UserInterface
             this.buttonSend.EnabledChanged += new System.EventHandler(this.buttonSend_EnabledChanged);
             this.buttonSend.Click += new System.EventHandler(this.buttonSend_Click);
             // 
+            // statusStrip
+            // 
+            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripStatusLabel});
+            this.statusStrip.Location = new System.Drawing.Point(0, 222);
+            this.statusStrip.Name = "statusStrip";
+            this.statusStrip.Size = new System.Drawing.Size(413, 22);
+            this.statusStrip.TabIndex = 1;
+            // 
+            // toolStripStatusLabel
+            // 
+            this.toolStripStatusLabel.Name = "toolStripStatusLabel";
+            this.toolStripStatusLabel.Size = new System.Drawing.Size(39, 17);
+            this.toolStripStatusLabel.Text = "Status";
+            // 
+            // changePasswordToolStripMenuItem
+            // 
+            this.changePasswordToolStripMenuItem.Name = "changePasswordToolStripMenuItem";
+            this.changePasswordToolStripMenuItem.Size = new System.Drawing.Size(168, 22);
+            this.changePasswordToolStripMenuItem.Text = "Change Password";
+            this.changePasswordToolStripMenuItem.Click += new System.EventHandler(this.changePasswordToolStripMenuItem_Click);
+            // 
             // textBoxBtc
             // 
             this.textBoxBtc.Location = new System.Drawing.Point(59, 32);
@@ -345,21 +369,6 @@ namespace HiddenWallet.UserInterface
             this.textBoxSendAddress.TextChanged += new System.EventHandler(this.textBoxSendAddress_TextChanged);
             this.textBoxSendAddress.Enter += new System.EventHandler(this.textBoxSendAddress_Enter);
             this.textBoxSendAddress.Leave += new System.EventHandler(this.textBoxSendAddress_Leave);
-            // 
-            // statusStrip
-            // 
-            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel});
-            this.statusStrip.Location = new System.Drawing.Point(0, 222);
-            this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Size = new System.Drawing.Size(413, 22);
-            this.statusStrip.TabIndex = 1;
-            // 
-            // toolStripStatusLabel
-            // 
-            this.toolStripStatusLabel.Name = "toolStripStatusLabel";
-            this.toolStripStatusLabel.Size = new System.Drawing.Size(39, 17);
-            this.toolStripStatusLabel.Text = "Status";
             // 
             // FormMain
             // 
@@ -429,6 +438,7 @@ namespace HiddenWallet.UserInterface
         private ToolStripMenuItem createToolStripMenuItem;
         private ToolStripMenuItem loadToolStripMenuItem;
         private ToolStripMenuItem recoverToolStripMenuItem;
+        private ToolStripMenuItem changePasswordToolStripMenuItem;
     }
 }
 

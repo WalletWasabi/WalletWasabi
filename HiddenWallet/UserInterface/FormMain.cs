@@ -380,5 +380,10 @@ namespace HiddenWallet.UserInterface
             Settings.Default.Save();
             Services.Main.LoadSettings(true);
         }
+
+        private void changePasswordToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
