@@ -126,7 +126,7 @@ namespace HiddenWallet.DataClasses
                 var mnemonicString = StringCipher.Decrypt(DataRepository.Main.WalletFileContent.Seed, password);
                 var mnemonic = new Mnemonic(mnemonicString);
 
-                _seedPrivateKey = mnemonic.DeriveExtKey();
+                _seedPrivateKey = mnemonic.DeriveExtKey(password);
                 _seedPublicKey = _seedPrivateKey.Neuter();
             }
             catch (CryptographicException)
