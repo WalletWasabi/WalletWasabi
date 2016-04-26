@@ -5,34 +5,12 @@ Easy-to-use, instant, anonymous Bitcoin wallet. (At least that's the goal.)
 C#, Visual Studio, Clone -> Build -> Run  
 Tools/ Settings/ Network -> Test
 
-### How to achieve the vision?
+## Design decisions
 Development decisions shall be made by balancing **usability** and **privacy**.  
   
-The wallet aims to give you a feel of an instant, anonymous Bitcoin wallet, but it has its costs, what are expected to be gradually eliminated as the Bitcoin space is evolving.  
-Let's examine some design decisions:
+The wallet aims to give the user a feel of an instant, anonymous Bitcoin wallet, but it has its costs, what are expected to be gradually eliminated as the Bitcoin space is evolving.  
 
-#### HD wallet structure
-In a HD wallet every private key can be derived from a seed, this simplifies the backup process, compared to a wallet, like Bitcoin QT, that's just a bunch of keys and it has to be backuped periodically.  
-However this design choice have **privacy** costs. If the wallet gets compromised, the whole transaction history will be visible to the attacker.  
-In this case the design decision was **usability** > **privacy**, or put it an other way: don't get hacked! If you do, you are fucked anyway. Probably your funds are more important to you (and to your attacker) than your transaction history. Oh well, let's move on.
-
-#### No address reuse
-The wallet forces the user to generate a new address for every incoming transaction by simply not showing already used addresses.  
-There are situations when an address has been used multiple times such as for donations, so the wallet has to keep checking the already used addresses, cannot completly throw them away (not like it would be possible with a HD wallet anyway).  
-Furthermore every outgoing transaction generates a new address for the change.  
-In this case the design decision was **privacy** > **usability**. How easy would everything be if we would only use one address forever, wouldn't it?
-
-#### REST API, SPV, Bitcoin node with pruning, Bitcoin node without pruning
-Working with a Bitcoin or SPV node is cumbersome, slow from an end user viewpoint, but for privacy reasons they should be implemented as an option and the user should be educated about their importance.  
-REST API is the default for usability reasons, therefore tunneling through TOR and making the web traffic innocent looking with obfsproxy should be implemented. They do not decrease the **usability** of the software (hopefully).
-
-#### Dynamic tx fee calculation
-Fees should be hidden from the user (until they are reasonably low) -> **usability**.
-
-#### JoinMarket should be implemented
-I find JoinMarket as the most advanced privacy solution out there, so it makes sense to implement it.
-
-## Philosophy/ Design principles
+## Philosophy
 
 There is a rough consensus among economists about the properties of good money, which are rarity, durability, un-consumability, divisibility, fungibility and portability.  
 The Bitcoin core takes care of the first four, wallets has to take care of fungibility and portability.  
@@ -66,3 +44,24 @@ The simplicity of the software can be compromised if privacy is in stake.
 
 Desktop clients are the most reliable and Windows is the most popular desktop client.  
 Although web and mobile platforms are more convenient for end users, on desktops way more stable codebase can be achieved in a shorter timeframe.
+
+#### HD wallet structure
+In a HD wallet every private key can be derived from a seed, this simplifies the backup process, compared to a wallet, like Bitcoin QT, that's just a bunch of keys and it has to be backuped periodically.  
+However this design choice have **privacy** costs. If the wallet gets compromised, the whole transaction history will be visible to the attacker.  
+In this case the design decision was **usability** > **privacy**, or put it an other way: don't get hacked! If you do, you are fucked anyway. Probably your funds are more important to you (and to your attacker) than your transaction history. Oh well, let's move on.
+
+#### No address reuse
+The wallet forces the user to generate a new address for every incoming transaction by simply not showing already used addresses.  
+There are situations when an address has been used multiple times such as for donations, so the wallet has to keep checking the already used addresses, cannot completly throw them away (not like it would be possible with a HD wallet anyway).  
+Furthermore every outgoing transaction generates a new address for the change.  
+In this case the design decision was **privacy** > **usability**. How easy would everything be if we would only use one address forever, wouldn't it?
+
+#### REST API, SPV, Bitcoin node with pruning, Bitcoin node without pruning
+Working with a Bitcoin or SPV node is cumbersome, slow from an end user viewpoint, but for privacy reasons they should be implemented as an option and the user should be educated about their importance.  
+REST API is the default for usability reasons, therefore tunneling through TOR and making the web traffic innocent looking with obfsproxy should be implemented. They do not decrease the **usability** of the software (hopefully).
+
+#### Dynamic tx fee calculation
+Fees should be hidden from the user (until they are reasonably low) -> **usability**.
+
+#### JoinMarket should be implemented
+I find JoinMarket as the most advanced privacy solution out there, so it makes sense to implement it.
