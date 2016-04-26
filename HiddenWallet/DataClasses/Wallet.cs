@@ -1,10 +1,4 @@
-﻿// Every private key can be derived from the seed private key and an id.
-// Every public key can be derived from the seed public key and an id.
-// Structure:
-//   File 1: seed private key in encrypted form
-//   File 2: count of generated keys
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -102,9 +96,9 @@ namespace HiddenWallet.DataClasses
         /// <param name="password"></param>
         private void Create(string password)
         {
-            var seedPrivateKey = new ExtKey();
-            var seedWif = seedPrivateKey.GetWif(_network);
-            var encryptedSeedWif = StringCipher.Encrypt(seedWif.ToString(), password);
+            var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
+
+            var encryptedSeedWif = StringCipher.Encrypt(mnemonic.ToString(), password);
 
             Directory.CreateDirectory(_pathWalletDirectory);
 
@@ -129,10 +123,10 @@ namespace HiddenWallet.DataClasses
             try
             {
                 DataRepository.Main.WalletFileContent = new Main.WalletFileStructure(_pathWalletFile);
-                var encryptedSeedWif = DataRepository.Main.WalletFileContent.Seed;
-                var seedWifString = StringCipher.Decrypt(encryptedSeedWif, password);
-                var bitcoinSeedPrivateKey = new BitcoinExtKey(seedWifString);
-                _seedPrivateKey = bitcoinSeedPrivateKey.ExtKey;
+                var mnemonicString = StringCipher.Decrypt(DataRepository.Main.WalletFileContent.Seed, password);
+                var mnemonic = new Mnemonic(mnemonicString);
+
+                _seedPrivateKey = mnemonic.DeriveExtKey();
                 _seedPublicKey = _seedPrivateKey.Neuter();
             }
             catch (CryptographicException)
