@@ -1,3 +1,5 @@
+ATTENTION: The code is half cooked, the wallet is half implemented.
+
 # Hidden Wallet
 Easy-to-use, instant, anonymous Bitcoin wallet. (At least that's the goal.)
 
@@ -27,13 +29,12 @@ Some fungibility provider have other issues: mixers, exchanges, casinos are cent
 ### How Hidden Wallet tackles fungibility and portability?
 
 The main goal of HiddenWallet is to create the most convenient privacy oriented wallet out there.  
-In order to reach it I have set up the following principles:
 
-#### Simplicity, Clarity, Usability/ Coolness
+#### Usability
 
 Most of today's Bitcoin wallets suck from an end user perspective.  
 This software's target customer is my grandma. Therefore every GUI design decision shall be made by keeping that in mind.  
-Exception can only be made if the modification is cool, extremely funny or causes a programmer boner.
+Exception can only be made if the modification is really cool, extremely funny or causes a programmer boner.
 
 #### Privacy
 
@@ -43,10 +44,10 @@ The simplicity of the software can be compromised if privacy is in stake.
 #### Windows first, other platforms later
 
 Desktop clients are the most reliable and Windows is the most popular desktop client.  
-Although web and mobile platforms are more convenient for end users, on desktops way more stable codebase can be achieved in a shorter timeframe.
+Although web and mobile platforms are more convenient for end users, on desktops way more stable codebase can be achieved in a shorter timeframe. Mobile and web clients are expected to be built in the future.
 
 #### HD wallet structure
-In a HD wallet every private key can be derived from a seed, this simplifies the backup process, compared to a wallet, like Bitcoin QT, that's just a bunch of keys and it has to be backuped periodically.  
+In a HD wallet every private key can be derived from a seed, this simplifies the backup process, compared to a wallet, like Bitcoin QT, that's "just a bunch of keys" and that has to be backuped periodically.  
 However this design choice have **privacy** costs. If the wallet gets compromised, the whole transaction history will be visible to the attacker.  
 In this case the design decision was **usability** > **privacy**, or put it an other way: don't get hacked! If you do, you are fucked anyway. Probably your funds are more important to you (and to your attacker) than your transaction history. Oh well, let's move on.
 
@@ -63,5 +64,5 @@ REST API is the default for usability reasons, therefore tunneling through TOR a
 #### Dynamic tx fee calculation
 Fees should be hidden from the user (until they are reasonably low) -> **usability**.
 
-#### JoinMarket should be implemented
-I find JoinMarket as the most advanced privacy solution out there, so it makes sense to implement it.
+#### JoinMarket
+I find JoinMarket as the most advanced privacy solution out there and it should be implemented.
