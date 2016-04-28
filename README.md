@@ -7,6 +7,8 @@ Easy-to-use, instant, anonymous Bitcoin wallet. (At least that's the goal.)
 C#, Visual Studio, Clone -> Build -> Run  
 Tools/ Settings/ Network -> Test
 
+http://www.codeproject.com/Articles/1096320/HiddenBitcoin-High-level-Csharp-Bitcoin-wallet-lib
+
 ## Design decisions
 Development decisions shall be made by balancing **usability** and **privacy**.  
   
