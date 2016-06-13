@@ -1,4 +1,4 @@
-ATTENTION: The code is half cooked, the wallet is half implemented.
+ATTENTION: The code is half cooked, the wallet is half implemented. HiddenBitcoin is not integrated to it yet.  
 
 # Hidden Wallet
 Easy-to-use, instant, anonymous Bitcoin wallet. (At least that's the goal.)
