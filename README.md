@@ -1,70 +1,204 @@
-ATTENTION: The code is half cooked, the wallet is half implemented. HiddenBitcoin is not integrated to it yet.  
-
-# Hidden Wallet
-Easy-to-use, instant, anonymous Bitcoin wallet. (At least that's the goal.)
-
-## For developers
-C#, Visual Studio, Clone -> Build -> Run  
-Tools/ Settings/ Network -> Test
-
-http://www.codeproject.com/Articles/1096320/HiddenBitcoin-High-level-Csharp-Bitcoin-wallet-lib
-
-## Design decisions
-Development decisions shall be made by balancing **usability** and **privacy**.  
+The code is proof of concept. Use it with caution.  
   
-The wallet aims to give the user a feel of an instant, anonymous Bitcoin wallet, but it has its costs, what are expected to be gradually eliminated as the Bitcoin space is evolving.  
+# Hidden Wallet
+Easy-to-use, instant, anonymous Bitcoin wallet. (None of them are true at this point, but that's the goal.)
 
-## Philosophy
-
-There is a rough consensus among economists about the properties of good money, which are rarity, durability, un-consumability, divisibility, fungibility and portability.  
-The Bitcoin core takes care of the first four, wallets has to take care of fungibility and portability.  
-Of course there are overlaps, for example centralized services are able to affect the rarity of bitcoins, just like MtGox, what has lead to its collapse.  
-An other example would be the pseudonimity of the Bitcoin network or the coming Confidental transactions, what are core level fungibility features. 
-But let me not get lost in details and settle at the mental model above.
-
-### How other wallets tackle fungibility and portability?
-
-Most wallets dismiss fungibility, completely relying on the Bitcoin network's pseudonymity, or even worse they implement AML/ KYC regulations, HiddenWallet is none of those.  
-Wallets, concentrating on fungibility are doing it for the expense of portability (meaning: they are not convenient to use, e.g. JoinMarket, which is fine, it's a matter of where you try to find the balance).  
-Some fungibility provider have other issues: mixers, exchanges, casinos are centralized, blockchain.info doesn't work properly over TOR and DarkWallet is a dead project.  
-
-### How Hidden Wallet tackles fungibility and portability?
-
-The main goal of HiddenWallet is to create the most convenient privacy oriented wallet out there.  
-
-#### Usability
-
-Most of today's Bitcoin wallets suck from an end user perspective.  
-This software's target customer is my grandma. Therefore every GUI design decision shall be made by keeping that in mind.  
-Exception can only be made if the modification is really cool, extremely funny or causes a programmer boner.
-
-#### Privacy
+## Privacy
 
 The software should gravitate towards complete anonymity keeping up and build on the newest technological developments rapidly happening in the space.  
-The simplicity of the software can be compromised if privacy is in stake.
 
-#### Windows first, other platforms later
+## Intro
 
-Desktop clients are the most reliable and Windows is the most popular desktop client.  
-Although web and mobile platforms are more convenient for end users, on desktops way more stable codebase can be achieved in a shorter timeframe. Mobile and web clients are expected to be built in the future.
+The core of this software is a sample Bitcoin wallet, I wrote: [DotNetWallet](https://github.com/nopara73/DotNetWallet/) - a cross platform Bitcoin wallet implementation in .NET Core for a CodeProject tutorial: [Build a Bitcoin wallet in C#](https://www.codeproject.com/script/Articles/ArticleVersion.aspx?waid=214550&aid=1115639)  
+  
+The wallet might also will turn out to be the first iteration of a dedicated wallet for a Bitcoin privacy improvement technique, called [TumbleBit](https://github.com/BUSEC/TumbleBit). TumbleBit will be integrated through [NTumbleBit](https://github.com/NTumbleBit/NTumbleBit).  
+  
+The wallet can communicate with the network through HTTP API and paved the way for a full node integration.  
+It has a Command Line Interface.
+  
+##How to use it
+The app is cross-platform, you can try it in any OS. You only need to get [dotnet core](https://www.microsoft.com/net/core).  
+After you acquired dotnet core build the software:  
 
-#### HD wallet structure
-In a HD wallet every private key can be derived from a seed, this simplifies the backup process, compared to a wallet, like Bitcoin QT, that's "just a bunch of keys" and that has to be backuped periodically.  
-However this design choice have **privacy** costs. If the wallet gets compromised, the whole transaction history will be visible to the attacker.  
-In this case the design decision was **usability** > **privacy**, or put it an other way: don't get hacked! If you do, you are fucked anyway. Probably your funds are more important to you (and to your attacker) than your transaction history. Oh well, let's move on.
+```
+git clone https://github.com/nopara73/DotNetWallet/    
+cd DotNetWallet/src/DotNetWallet/  
+dotnet restore  
+dotnet build  
+```  
 
-#### No address reuse
-The wallet forces the user to generate a new address for every incoming transaction by simply not showing already used addresses.  
-There are situations when an address has been used multiple times such as for donations, so the wallet has to keep checking the already used addresses, cannot completly throw them away (not like it would be possible with a HD wallet anyway).  
-Furthermore every outgoing transaction generates a new address for the change.  
-In this case the design decision was **privacy** > **usability**. How easy would everything be if we would only use one address forever, wouldn't it?
+Run the app once, it will generate your configuration file, called `Config.json`, then open it:  
 
-#### REST API, SPV, Bitcoin node with pruning, Bitcoin node without pruning
-Working with a Bitcoin or SPV node is cumbersome, slow from an end user viewpoint, but for privacy reasons they should be implemented as an option and the user should be educated about their importance.  
-REST API is the default for usability reasons, therefore tunneling through TOR and making the web traffic innocent looking with obfsproxy should be implemented. They do not decrease the **usability** of the software (hopefully).
+```
+dotnet run  
+gedit Config.json  
+```
 
-#### Dynamic tx fee calculation
-Fees should be hidden from the user (until they are reasonably low) -> **usability**.
+Default config looks like this:
 
-#### JoinMarket
-I find JoinMarket as the most advanced privacy solution out there and it should be implemented.
+```
+{
+  "DefaultWalletFileName": "Wallet.json",  
+  "Network": "Main",  
+  "ConnectionType": "Http",  
+  "CanSpendUnconfirmed": "False"  
+}
+```
+
+**"Network"** can be `"Main"` or `"TestNet"`. Change to testnet for the shake of practice.  
+**"ConnectionType"** can be `"Http"` or `"FullNode"`. Full node mode is not implemented.  
+**"CanSpendUnconfirmed"** can be `"False"` or `"True"`. Change to "True", so you can play around with it without waiting for confirmations.  
+
+###Walkthrough  
+  
+Generate a wallet with `dotnet run generate-wallet`.  
+**Output:**
+```
+Choose a password:
+***
+Confirm password:
+***
+
+Wallet is successfully created.
+Wallet file: Wallets/Wallet.json
+
+Write down the following mnemonic words.
+With the mnemonic words AND your password you can recover this wallet by using the recover-wallet command.
+
+-------
+virus into smooth shock eternal task guitar bus glide taste glow barrel
+-------
+```
+Recover your wallet to an other wallet file:  `dotnet run recover-wallet wallet-file=recovered.json`  
+**Output:**
+```
+Your software is configured using the Bitcoin TestNet network.
+Provide your mnemonic words, separated by spaces:
+virus into smooth shock eternal task guitar bus glide taste glow barrel
+Provide your password. Please note the wallet cannot check if your password is correct or not. If you provide a wrong password a wallet will be recovered with your provided mnemonic AND password pair:
+***
+
+Wallet is successfully recovered.
+Wallet file: Wallets/recovered.json
+```
+[Get some testnet bitcoins](http://tpfaucet.appspot.com/) to the wallet. You can get unused addresses with:  `dotnet run receive`  
+**Output:**
+```
+Type your password:
+***
+Wallets/Wallet.json wallet is decrypted.
+7 Normal keys are processed.
+
+---------------------------------------------------------------------------
+Unused Receive Addresses
+---------------------------------------------------------------------------
+mzz63n3n89KVeHQXRqJEVsQX8MZj5zeqCw
+mhm1pFe2hH7yqkdQhwbBQ8qLnMZqfL6jXb
+mmRzqMDBrfNxMfryQSYec3rfPHXURNapBA
+my2ELDBqLGVz1ER7CMynDqG4BUpV2pwfR5
+mmwccp4GefhPn4P6Mui6DGLGzHTVyQ12tD
+miTedyDXJAz6GYMRasiJk9M3ibnGnb99M1
+mrsb39MmPceSPfKAURTH23hYgLRH1M1Uhg
+```
+Check out your balances:  `dotnet run show-balances`  
+**Output:**
+```
+Type your password:
+***
+Wallets/Wallet.json wallet is decrypted.
+7 Normal keys are processed.
+14 Normal keys are processed.
+7 Change keys are processed.
+
+---------------------------------------------------------------------------
+Address					Confirmed	Unconfirmed
+---------------------------------------------------------------------------
+mhm1pFe2hH7yqkdQhwbBQ8qLnMZqfL6jXb	0.00000000	0.00880000
+mmwccp4GefhPn4P6Mui6DGLGzHTVyQ12tD	0.00000000	0.02710000
+
+---------------------------------------------------------------------------
+Confirmed Wallet Balance: 0.00000000
+Unconfirmed Wallet Balance: 0.03590000
+---------------------------------------------------------------------------
+```
+Check out your wallet history: `dotnet run show-history`
+```
+Type your password:
+***
+Wallets/Wallet.json wallet is decrypted.
+7 Normal keys are processed.
+14 Normal keys are processed.
+7 Change keys are processed.
+
+---------------------------------------------------------------------------
+Date			Amount		Confirmed	Transaction Id
+---------------------------------------------------------------------------
+12/1/16 11:18:33 PM	0.00880000	False		fe9fe4b8ea249097eccb0e4efa7395e4a8ef3c5f084c6264ccb73d1dc634e954
+12/1/16 11:19:17 PM	0.00870000	False		704599df454ac0d3e4c1d5ad9f0debd848493dc1f7695e9b455eca934106e4a9
+12/1/16 11:19:23 PM	0.00870000	False		c5881cc2ce2386fb320ad60d46762027a2c977532b2773795e613238e29c8bcc
+12/1/16 11:19:43 PM	0.00870000	False		986fe7630d66978cfa888df6b47303e97051a0cbf4145a9787b493fbe18b2d42
+12/1/16 11:20:41 PM	0.00100000	False		ffb04388d228c52135d4e2212245c91c116b6f3a228418831715065ffcb056d9
+```
+Send some money to a random address: `dotnet run send address=mxYpuqcSRbdFBgUkeErYSCT14Em72ZUTQn btc=0.016`
+```
+Type your password:
+***
+Wallets/Wallet.json wallet is decrypted.
+7 Normal keys are processed.
+14 Normal keys are processed.
+7 Change keys are processed.
+Finding not empty private keys...
+Select change address...
+1 Change keys are processed.
+Gathering unspent coins...
+Calculating transaction fee...
+Fee: 0.000275btc
+
+The transaction fee is 2% of your transaction amount.
+Sending:	 0.016btc
+Fee:		 0.000275btc
+Are you sure you want to proceed? (y/n)
+y
+Selecting coins...
+Signing transaction...
+Transaction Id: 3069a436113022d1977b9a9c1a9f233d3aa77b8cd9b6876c8c7dfa0f909ada5e
+Broadcasting transaction...
+
+Transaction is successfully propagated on the network.
+```
+Finally send all your money from the address to somewhere: `dotnet run send address=miasyhU2EhANWVGAoD9PicPACCUhUzdDN4 btc=0.01`
+
+```
+Type your password:
+
+Wallets/test wallet is decrypted.
+7 Receive keys are processed.
+14 Receive keys are processed.
+7 Change keys are processed.
+14 Change keys are processed.
+Finding not empty private keys...
+Select change address...
+1 Change keys are processed.
+2 Change keys are processed.
+3 Change keys are processed.
+4 Change keys are processed.
+5 Change keys are processed.
+6 Change keys are processed.
+Gathering unspent coins...
+Calculating transaction fee...
+Fee: 0.00025btc
+
+The transaction fee is 2% of your transaction amount.
+Sending:	 0.01btc
+Fee:		 0.00025btc
+Are you sure you want to proceed? (y/n)
+y
+Selecting coins...
+Signing transaction...
+Transaction Id: ad29443fee2e22460586ed0855799e32d6a3804d2df059c102877cc8cf1df2ad
+Try broadcasting transaction... (1)
+
+Transaction is successfully propagated on the network.
+```  
+  
+You can specify an optional `wallet-file=` argument to any command if you wish not to use the default wallet file, like `wallet-file=testwallet.json`.  
