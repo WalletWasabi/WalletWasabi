@@ -478,7 +478,7 @@ namespace HiddenWallet
 					WriteLine($"Transaction Id: {tx.GetHash()}");
 
 					var qBitClient = new QBitNinjaClient(Config.Network);
-
+					
 					// QBit's success response is buggy so let's check manually, too		
 					BroadcastResponse broadcastResponse;
 					var success = false;
