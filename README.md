@@ -21,8 +21,8 @@ The app is cross-platform, you can try it in any OS. You only need to get [dotne
 After you acquired dotnet core build the software:  
 
 ```
-git clone https://github.com/nopara73/DotNetWallet/    
-cd DotNetWallet/src/DotNetWallet/  
+git clone https://github.com/nopara73/HiddenWallet    
+cd HiddenWallet/src/HiddenWallet/  
 dotnet restore  
 dotnet build  
 ```  
