@@ -11,11 +11,7 @@ namespace HiddenWallet.KeyManagement
     {
 		private Network _network;
 		public Network Network => _network;
-		private ExtKey _seedPrivateKey
-		{
-			get { return new BitcoinExtKey("tprv8ZgxMBicQKsPdZyjkQYLRgdtYGetbzAYMobwjKBCdmWata29MrF4QQxVEwixqvnJd8w6sgqebxCh3HGPdLKLRFkX3YwwsUXoxmbQfxUtXZY", Network.TestNet).ExtKey; }
-			set { }
-		}
+		private ExtKey _seedPrivateKey;
 		public BitcoinExtPubKey SeedPublicKey => _seedPrivateKey.Neuter().GetWif(Network);
 		public BitcoinAddress GetAddress(int index, HdPathType hdPathType = HdPathType.Receive)
 		{
