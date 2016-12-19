@@ -18,13 +18,13 @@ It has a Command Line Interface.
   
 ##How to use it
 The app is cross-platform, you can try it in any OS. You only need to get [dotnet core](https://www.microsoft.com/net/core).  
-After you acquired dotnet core build the software:  
+After you acquired dotnet core, get and initialize HiddenWallet:  
 
 ```
 git clone https://github.com/nopara73/HiddenWallet    
 cd HiddenWallet/src/HiddenWallet/  
 dotnet restore  
-dotnet build  
+dotnet run  
 ```  
 
 Run the app once, it will generate your configuration file, called `Config.json`, then open it:  
