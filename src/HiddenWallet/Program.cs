@@ -345,30 +345,7 @@ namespace HiddenWallet
 					WriteLine("Gathering unspent coins...");
 					Dictionary<Coin, bool> unspentCoins = GetUnspentCoins(operationsPerNotEmptyPrivateKeys.Keys);
 
-					// 4. Get the fee
-					WriteLine("Calculating transaction fee...");
-					Money fee;
-					try
-					{
-						var txSizeInBytes = 250;
-						using (var client = new HttpClient())
-						{
-
-							const string request = @"https://bitcoinfees.21.co/api/v1/fees/recommended";
-							var result = client.GetAsync(request, HttpCompletionOption.ResponseContentRead).Result;
-							var json = JObject.Parse(result.Content.ReadAsStringAsync().Result);
-							var fastestSatoshiPerByteFee = json.Value<decimal>("fastestFee");
-							fee = new Money(fastestSatoshiPerByteFee * txSizeInBytes, MoneyUnit.Satoshi);
-						}
-					}
-					catch
-					{
-						Exit("Couldn't calculate transaction fee, try it again later.");
-						throw new Exception("Can't get tx fee");
-					}
-					WriteLine($"Fee: {fee.ToDecimal(MoneyUnit.BTC).ToString("0.#############################")}btc");
-
-					// 5. How much money we can spend?
+					// 4. How much money we can spend?
 					Money availableAmount = Money.Zero;
 					Money unconfirmedAvailableAmount = Money.Zero;
 					foreach (var elem in unspentCoins)
@@ -390,9 +367,30 @@ namespace HiddenWallet
 						}
 					}
 
+					// 5. Get and calculate fee					
+					WriteLine("Calculating dynamic transaction fee...");
+					Money feePerBytes = QueryFeePerBytes();
+
+					int inNum;
+
+					string amountString = GetArgumentValue(args, argName: "btc", required: true);
+					if (string.Equals(amountString, "all", StringComparison.OrdinalIgnoreCase))
+					{
+						inNum = unspentCoins.Count;
+					}
+					else
+					{
+						var expectedMinTxSize = 1 * 148 + 2 * 34 + 10 - 1;
+						inNum = SelectCoinsToSpend(unspentCoins, ParseBtcString(amountString) + feePerBytes* expectedMinTxSize).Count;
+					}
+					int outNum = 2; // 1 address to send + 1 for change
+					int estimatedTxSize = inNum * 148 + outNum * 34 + 10 + inNum; // http://bitcoin.stackexchange.com/questions/1195/how-to-calculate-transaction-size-before-sending
+					WriteLine($"Estimated tx size: {estimatedTxSize} bytes");
+					Money fee = feePerBytes * estimatedTxSize;
+					WriteLine($"Fee: {fee.ToDecimal(MoneyUnit.BTC).ToString("0.#############################")}btc");
+
 					// 6. How much to spend?
 					Money amountToSend = null;
-					string amountString = GetArgumentValue(args, argName: "btc", required: true);
 					if (string.Equals(amountString, "all", StringComparison.OrdinalIgnoreCase))
 					{
 						amountToSend = availableAmount;
@@ -437,18 +435,7 @@ namespace HiddenWallet
 
 					// 8. Select coins
 					WriteLine("Selecting coins...");
-					var coinsToSpend = new HashSet<Coin>();
-					var unspentConfirmedCoins = new List<Coin>();
-					var unspentUnconfirmedCoins = new List<Coin>();
-					foreach (var elem in unspentCoins)
-						if (elem.Value) unspentConfirmedCoins.Add(elem.Key);
-						else unspentUnconfirmedCoins.Add(elem.Key);
-
-					bool haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentConfirmedCoins);
-					if (!haveEnough)
-						haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
-					if (!haveEnough)
-						throw new Exception("Not enough funds.");
+					HashSet<Coin> coinsToSpend = SelectCoinsToSpend(unspentCoins, totalOutAmount);
 
 					// 9. Get signing keys
 					var signingKeys = new HashSet<ISecret>();
@@ -478,7 +465,7 @@ namespace HiddenWallet
 					WriteLine($"Transaction Id: {tx.GetHash()}");
 
 					var qBitClient = new QBitNinjaClient(Config.Network);
-					
+
 					// QBit's success response is buggy so let's check manually, too		
 					BroadcastResponse broadcastResponse;
 					var success = false;
@@ -497,6 +484,7 @@ namespace HiddenWallet
 						}
 						else
 						{
+							WriteLine($"Tx size: {getTxResp.Transaction.GetVirtualSize()} bytes");
 							success = true;
 							break;
 						}
@@ -523,6 +511,47 @@ namespace HiddenWallet
 			#endregion
 
 			Exit(color: ConsoleColor.Green);
+		}
+
+		private static HashSet<Coin> SelectCoinsToSpend(Dictionary<Coin, bool> unspentCoins, Money totalOutAmount)
+		{
+			var coinsToSpend = new HashSet<Coin>();
+			var unspentConfirmedCoins = new List<Coin>();
+			var unspentUnconfirmedCoins = new List<Coin>();
+			foreach (var elem in unspentCoins)
+				if (elem.Value) unspentConfirmedCoins.Add(elem.Key);
+				else unspentUnconfirmedCoins.Add(elem.Key);
+
+			bool haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentConfirmedCoins);
+			if (!haveEnough)
+				haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
+			if (!haveEnough)
+				throw new Exception("Not enough funds.");
+			return coinsToSpend;
+		}
+
+		private static Money QueryFeePerBytes()
+		{
+			Money feePerBytes;
+			try
+			{
+				using (var client = new HttpClient())
+				{
+
+					const string request = @"https://bitcoinfees.21.co/api/v1/fees/recommended";
+					var result = client.GetAsync(request, HttpCompletionOption.ResponseContentRead).Result;
+					var json = JObject.Parse(result.Content.ReadAsStringAsync().Result);
+					var fastestSatoshiPerByteFee = json.Value<decimal>("fastestFee");
+					feePerBytes = new Money(fastestSatoshiPerByteFee, MoneyUnit.Satoshi);
+				}
+			}
+			catch
+			{
+				Exit("Couldn't calculate transaction fee, try it again later.");
+				throw new Exception("Can't get tx fee");
+			}
+
+			return feePerBytes;
 		}
 
 		#region Assertions
