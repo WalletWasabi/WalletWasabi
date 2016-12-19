@@ -27,10 +27,9 @@ dotnet restore
 dotnet run  
 ```  
 
-Run the app once, it will generate your configuration file, called `Config.json`, then open it:  
+It will generate your configuration file, called `Config.json`, then open it:  
 
 ```
-dotnet run  
 gedit Config.json  
 ```
 
