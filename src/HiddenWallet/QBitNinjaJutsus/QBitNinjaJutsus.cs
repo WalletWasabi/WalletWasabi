@@ -100,11 +100,14 @@ namespace HiddenWallet.QBitNinjaJutsus
 			{
 				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = QueryOperationsPerSafeAddresses(safe, 7, HdPathType.Receive);
 				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = QueryOperationsPerSafeAddresses(safe, 7, HdPathType.Change);
+				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerNonHardenedAddresses = QueryOperationsPerSafeAddresses(safe, 7, HdPathType.NonHardened);
 
 				var operationsPerAllAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
 				foreach (var elem in operationsPerReceiveAddresses)
 					operationsPerAllAddresses.Add(elem.Key, elem.Value);
 				foreach (var elem in operationsPerChangeAddresses)
+					operationsPerAllAddresses.Add(elem.Key, elem.Value);
+				foreach (var elem in operationsPerNonHardenedAddresses)
 					operationsPerAllAddresses.Add(elem.Key, elem.Value);
 				return operationsPerAllAddresses;
 			}

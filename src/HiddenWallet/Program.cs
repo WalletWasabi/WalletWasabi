@@ -28,6 +28,7 @@ namespace HiddenWallet
 			"recover-wallet",
 			"show-balances",
 			"show-history",
+			"show-extpubkey",
 			"receive",
 			"send"
 		};
@@ -264,6 +265,16 @@ namespace HiddenWallet
 				{
 					Exit("Invalid connection type.");
 				}
+			}
+			#endregion
+			#region ShowExtPubKey
+			if (command == "show-extpubkey")
+			{
+				AssertArgumentsLenght(args.Length, 1, 2);
+				var walletFilePath = GetWalletFilePath(args);
+				Safe safe = DecryptWalletByAskingForPassword(walletFilePath);
+
+				WriteLine(safe.SeedPublicKey);
 			}
 			#endregion
 			#region ReceiveCommand

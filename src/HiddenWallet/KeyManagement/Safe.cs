@@ -11,7 +11,11 @@ namespace HiddenWallet.KeyManagement
     {
 		private Network _network;
 		public Network Network => _network;
-		private ExtKey _seedPrivateKey;
+		private ExtKey _seedPrivateKey
+		{
+			get { return new BitcoinExtKey("tprv8ZgxMBicQKsPdZyjkQYLRgdtYGetbzAYMobwjKBCdmWata29MrF4QQxVEwixqvnJd8w6sgqebxCh3HGPdLKLRFkX3YwwsUXoxmbQfxUtXZY", Network.TestNet).ExtKey; }
+			set { }
+		}
 		public BitcoinExtPubKey SeedPublicKey => _seedPrivateKey.Neuter().GetWif(Network);
 		public BitcoinAddress GetAddress(int index, HdPathType hdPathType = HdPathType.Receive)
 		{
@@ -146,11 +150,13 @@ namespace HiddenWallet.KeyManagement
 		private const string StealthPath = "0'";
 		private const string ReceiveHdPath = "1'";
 		private const string ChangeHdPath = "2'";
-		
+		private const string NonHardenedHdPath = "3'";
+
 		public enum HdPathType
 		{
 			Receive,
-			Change
+			Change,
+			NonHardened
 		}
 		#endregion
 
@@ -162,23 +168,28 @@ namespace HiddenWallet.KeyManagement
 					return GetPrivateKey(i, HdPathType.Receive);
 				if (GetAddress(i, HdPathType.Change) == address)
 					return GetPrivateKey(i, HdPathType.Change);
+				if (GetAddress(i, HdPathType.NonHardened) == address)
+					return GetPrivateKey(i, HdPathType.NonHardened);
 			}
 			throw new Exception("Bitcoin address not found.");
 		}
 		internal BitcoinExtKey GetPrivateKey(int index, HdPathType hdPathType = HdPathType.Receive)
 		{
-			string startPath;
+			KeyPath keyPath;
 			if (hdPathType == HdPathType.Receive)
 			{
-				startPath = ReceiveHdPath;
+				keyPath = new KeyPath($"{ReceiveHdPath}/{index}'");
 			}
 			else if (hdPathType == HdPathType.Change)
 			{
-				startPath = ChangeHdPath;
+				keyPath = new KeyPath($"{ChangeHdPath}/{index}'");
+			}
+			else if (hdPathType == HdPathType.NonHardened)
+			{
+				keyPath = new KeyPath($"{NonHardenedHdPath}/{index}");
 			}
 			else throw new Exception("HdPathType not exists");
-
-			var keyPath = new KeyPath(startPath + "/" + index + "'");
+			
 			return _seedPrivateKey.Derive(keyPath).GetWif(_network);
 		}
 	}
