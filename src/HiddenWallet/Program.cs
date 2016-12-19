@@ -484,7 +484,6 @@ namespace HiddenWallet
 						}
 						else
 						{
-							WriteLine($"Tx size: {getTxResp.Transaction.GetVirtualSize()} bytes");
 							success = true;
 							break;
 						}
