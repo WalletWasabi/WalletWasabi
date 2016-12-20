@@ -548,10 +548,10 @@ namespace HiddenWallet
 				using (var client = new HttpClient())
 				{
 
-					const string request = @"https://bitcoinfees.21.co/api/v1/fees/recommended";
+					const string request = @"http://api.blockcypher.com/v1/btc/main";
 					var result = client.GetAsync(request, HttpCompletionOption.ResponseContentRead).Result;
 					var json = JObject.Parse(result.Content.ReadAsStringAsync().Result);
-					var fastestSatoshiPerByteFee = json.Value<decimal>("fastestFee");
+					var fastestSatoshiPerByteFee = (int)(json.Value<decimal>("high_fee_per_kb") / 1024);
 					feePerBytes = new Money(fastestSatoshiPerByteFee, MoneyUnit.Satoshi);
 				}
 			}
