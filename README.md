@@ -201,3 +201,7 @@ Transaction is successfully propagated on the network.
 ```  
   
 You can specify an optional `wallet-file=` argument to any command if you wish not to use the default wallet file, like `wallet-file=testwallet.json`.  
+  
+You can get the extkey and the extpubkey with the following commands:  
+`dotnet run show-extkey`
+`dotnet run show-extpubkey`
