@@ -253,7 +253,7 @@ namespace HiddenWallet
 					{
 						// Item2 is the Amount
 						if (record.Item2 > 0) ForegroundColor = ConsoleColor.Green;
-						else if (record.Item2 < 0) ForegroundColor = ConsoleColor.Red;
+						else if (record.Item2 < 0) ForegroundColor = ConsoleColor.DarkGreen;
 						WriteLine($"{record.Item1.DateTime}\t{record.Item2}\t{record.Item3 > 0}\t\t{record.Item4}");
 						ResetColor();
 					}
