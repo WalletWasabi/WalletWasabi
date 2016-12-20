@@ -29,6 +29,7 @@ namespace HiddenWallet
 			"recover-wallet",
 			"show-balances",
 			"show-history",
+			"show-extkey",
 			"show-extpubkey",
 			"receive",
 			"send"
@@ -268,7 +269,16 @@ namespace HiddenWallet
 				}
 			}
 			#endregion
-			#region ShowExtPubKey
+			#region ShowExtKeys
+			if (command == "show-extkey")
+			{
+				AssertArgumentsLenght(args.Length, 1, 2);
+				var walletFilePath = GetWalletFilePath(args);
+				Safe safe = DecryptWalletByAskingForPassword(walletFilePath);
+
+				WriteLine($"ExtKey: {safe.BitcoinExtKey}");
+				WriteLine($"Network: {safe.Network}");
+			}
 			if (command == "show-extpubkey")
 			{
 				AssertArgumentsLenght(args.Length, 1, 2);
@@ -276,7 +286,8 @@ namespace HiddenWallet
 				Safe safe = DecryptWalletByAskingForPassword(walletFilePath);
 
 				WriteLine($"ExtPubKey: {safe.BitcoinExtPubKey}");
-			}
+				WriteLine($"Network: {safe.Network}");
+			}			
 			#endregion
 			#region ReceiveCommand
 			if (command == "receive")
