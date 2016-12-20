@@ -15,6 +15,7 @@ using static HiddenWallet.QBitNinjaJutsus.QBitNinjaJutsus;
 using static HiddenWallet.KeyManagement.Safe;
 using static System.Console;
 using HiddenWallet.QBitNinjaJutsus;
+using DotNetTor;
 
 namespace HiddenWallet
 {
@@ -45,7 +46,7 @@ namespace HiddenWallet
 			//args = new string[] { "show-balances", "wallet-file=test5.json" };
 			//args = new string[] { "receive", "wallet-file=test4.json" };
 			//args = new string[] { "show-history", "wallet-file=test.json" };
-			//args = new string[] { "send", "btc=0.001", "address=mq6fK8fkFyCy9p53m4Gf4fiX2XCHvcwgi1", "wallet-file=test.json" };
+			//args = new string[] { "send", "btc=0.001", "address=mq6fK8fkFyCy9p53m4Gf4fiX2XCHvcwgi1" };
 			//args = new string[] { "send", "btc=all", "address=mzz63n3n89KVeHQXRqJEVsQX8MZj5zeqCw", "wallet-file=test4.json" };
 
 			// Load config file
@@ -380,7 +381,16 @@ namespace HiddenWallet
 
 					// 5. Get and calculate fee					
 					WriteLine("Calculating dynamic transaction fee...");
-					Money feePerBytes = QueryFeePerBytes();
+					Money feePerBytes = null;
+					try
+					{
+						 feePerBytes = QueryFeePerBytes();
+					}
+					catch (Exception ex)
+					{
+						WriteLine(ex.Message);
+						Exit("Couldn't calculate transaction fee, try it again later.");
+					}
 
 					int inNum;
 
@@ -542,26 +552,42 @@ namespace HiddenWallet
 
 		private static Money QueryFeePerBytes()
 		{
-			Money feePerBytes;
 			try
 			{
-				using (var client = new HttpClient())
+				HttpResponseMessage response;
+				var requestUri = @"http://api.blockcypher.com/v1/btc/main";
+				if (Config.UseTor)
 				{
-
-					const string request = @"http://api.blockcypher.com/v1/btc/main";
-					var result = client.GetAsync(request, HttpCompletionOption.ResponseContentRead).Result;
-					var json = JObject.Parse(result.Content.ReadAsStringAsync().Result);
-					var fastestSatoshiPerByteFee = (int)(json.Value<decimal>("high_fee_per_kb") / 1024);
-					feePerBytes = new Money(fastestSatoshiPerByteFee, MoneyUnit.Satoshi);
+					using (var socksPortClient = new DotNetTor.SocksPort.Client(Config.TorHost, Config.TorSocksPort))
+					{
+						var handler = socksPortClient.GetHandlerFromRequestUri(requestUri);
+						using (var client = new HttpClient(handler))
+						{
+							response = client.GetAsync(requestUri, HttpCompletionOption.ResponseContentRead).Result;
+						}
+					}
 				}
-			}
-			catch
-			{
-				Exit("Couldn't calculate transaction fee, try it again later.");
-				throw new Exception("Can't get tx fee");
-			}
+				else
+				{
+					using (var client = new HttpClient())
+					{
+						response = client.GetAsync(requestUri, HttpCompletionOption.ResponseContentRead).Result;
+					}
+				}
 
-			return feePerBytes;
+				var json = JObject.Parse(response.Content.ReadAsStringAsync().Result);
+				var fastestSatoshiPerByteFee = (int)(json.Value<decimal>("high_fee_per_kb") / 1024);
+				var feePerBytes = new Money(fastestSatoshiPerByteFee, MoneyUnit.Satoshi);
+
+				return feePerBytes;
+			}
+			catch (TorException ex)
+			{
+				string message = ex.Message + Environment.NewLine +
+					"You are not running TOR or your TOR settings are misconfigured." + Environment.NewLine +
+					$"Please review your 'torrc' and '{ConfigFileSerializer.ConfigFilePath}' files.";
+				throw new Exception(message, ex);
+			}
 		}
 
 		#region Assertions
@@ -654,6 +680,10 @@ namespace HiddenWallet
 				{
 					WriteLine("Invalid password, try again, (or press ctrl+c to exit):");
 					correctPw = false;
+				}
+				catch (Exception ex) when (ex.Message == "WalletFileDoesNotExists")
+				{
+					Exit($"Wallet file does not exists at {walletFilePath}");
 				}
 			} while (!correctPw);
 
