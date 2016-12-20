@@ -275,7 +275,7 @@ namespace HiddenWallet
 				var walletFilePath = GetWalletFilePath(args);
 				Safe safe = DecryptWalletByAskingForPassword(walletFilePath);
 
-				WriteLine(safe.SeedPublicKey);
+				WriteLine($"ExtPubKey: {safe.SeedPublicKey}");
 			}
 			#endregion
 			#region ReceiveCommand

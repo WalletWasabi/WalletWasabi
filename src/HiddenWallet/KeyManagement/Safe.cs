@@ -146,7 +146,7 @@ namespace HiddenWallet.KeyManagement
 		private const string StealthPath = "0'";
 		private const string ReceiveHdPath = "1'";
 		private const string ChangeHdPath = "2'";
-		private const string NonHardenedHdPath = "3'";
+		private const string NonHardenedHdPath = "3";
 
 		public enum HdPathType
 		{
