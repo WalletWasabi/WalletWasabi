@@ -11,8 +11,10 @@ namespace HiddenWallet.KeyManagement
     {
 		private Network _network;
 		public Network Network => _network;
-		private ExtKey _seedPrivateKey;
-		public BitcoinExtPubKey SeedPublicKey => _seedPrivateKey.Neuter().GetWif(Network);
+		private ExtKey _extKey;
+		public ExtKey ExtKey => _extKey;
+		public BitcoinExtPubKey BitcoinExtPubKey => ExtKey.Neuter().GetWif(Network);
+		public BitcoinExtKey BitcoinExtKey => ExtKey.GetWif(Network);
 		public BitcoinAddress GetAddress(int index, HdPathType hdPathType = HdPathType.Receive)
 		{
 			return GetPrivateKey(index, hdPathType).ScriptPubKey.GetDestinationAddress(Network);
@@ -33,9 +35,9 @@ namespace HiddenWallet.KeyManagement
 		// Let's get the pubkey, so the chaincode is lost
 		// Let's get the address, you can't directly access it from the safe
 		// Also nobody would ever use this address for anything
-		public string UniqueId => SeedPublicKey.ExtPubKey.PubKey.GetAddress(Network).ToWif();		
+		public string UniqueId => BitcoinExtPubKey.ExtPubKey.PubKey.GetAddress(Network).ToWif();		
 
-		public string WalletFilePath { get; }
+		public string WalletFilePath { get; }		
 
 		protected Safe(string password, string walletFilePath, Network network, string mnemonicString = null)
 		{
@@ -50,8 +52,8 @@ namespace HiddenWallet.KeyManagement
 		}
 		public Safe(Safe safe)
 		{
-			_network = safe._network;
-			_seedPrivateKey = safe._seedPrivateKey;
+			_network = safe.Network;
+			_extKey = safe.ExtKey;
 			WalletFilePath = safe.WalletFilePath;
 		}
 		/// <summary>
@@ -85,13 +87,13 @@ namespace HiddenWallet.KeyManagement
 					? new Mnemonic(Wordlist.English, WordCount.Twelve)
 					: new Mnemonic(mnemonicString);
 
-			_seedPrivateKey = mnemonic.DeriveExtKey(password);
+			_extKey = mnemonic.DeriveExtKey(password);
 
 			return mnemonic;
 		}
 		private void SetSeed(ExtKey seedExtKey)
 		{
-			_seedPrivateKey = seedExtKey;
+			_extKey = seedExtKey;
 		}
 		private void Save(string password, string walletFilePath, Network network)
 		{
@@ -101,10 +103,10 @@ namespace HiddenWallet.KeyManagement
 			var directoryPath = Path.GetDirectoryName(Path.GetFullPath(walletFilePath));
 			if (directoryPath != null) Directory.CreateDirectory(directoryPath);
 
-			var privateKey = _seedPrivateKey.PrivateKey;
-			var chainCode = _seedPrivateKey.ChainCode;
+			var privateKey = ExtKey.PrivateKey;
+			var chainCode = ExtKey.ChainCode;
 
-			var encryptedBitcoinPrivateKeyString = privateKey.GetEncryptedBitcoinSecret(password, _network).ToWif();
+			var encryptedBitcoinPrivateKeyString = privateKey.GetEncryptedBitcoinSecret(password, Network).ToWif();
 			var chainCodeString = Convert.ToBase64String(chainCode);
 
 			var networkString = network.ToString();
@@ -136,7 +138,7 @@ namespace HiddenWallet.KeyManagement
 
 			var safe = new Safe(password, walletFilePath, network);
 
-			var privateKey = Key.Parse(encryptedBitcoinPrivateKeyString, password, safe._network);
+			var privateKey = Key.Parse(encryptedBitcoinPrivateKeyString, password, safe.Network);
 			var seedExtKey = new ExtKey(privateKey, chainCode);
 			safe.SetSeed(seedExtKey);
 
@@ -186,7 +188,7 @@ namespace HiddenWallet.KeyManagement
 			}
 			else throw new Exception("HdPathType not exists");
 			
-			return _seedPrivateKey.Derive(keyPath).GetWif(_network);
+			return ExtKey.Derive(keyPath).GetWif(Network);
 		}
 	}
 }
