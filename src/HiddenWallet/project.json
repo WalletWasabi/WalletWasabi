@@ -10,8 +10,8 @@
       "type": "platform",
       "version": "1.1.0"
     },
-    "NBitcoin": "3.0.0.87",
-    "QBitNinja.Client": "1.0.3.33"
+    "NBitcoin": "3.0.0.88",
+    "QBitNinja.Client": "1.0.3.34"
   },
 
   "frameworks": {

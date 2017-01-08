@@ -1,4 +1,5 @@
-﻿using HiddenWallet.KeyManagement;
+﻿using DotNetTor;
+using HiddenWallet.KeyManagement;
 using NBitcoin;
 using QBitNinja.Client;
 using QBitNinja.Client.Models;
@@ -51,12 +52,42 @@ namespace HiddenWallet.QBitNinjaJutsus
 		/// <returns>dictionary with coins and if confirmed</returns>
 		public static Dictionary<Coin, bool> GetUnspentCoins(IEnumerable<ISecret> secrets)
 		{
+			try
+			{
+				var client = new QBitNinjaClient(Config.Network);
+				Dictionary<Coin, bool> unspentCoins;
+				if (Config.UseTor)
+				{
+					using (var socksPortClient = new DotNetTor.SocksPort.Client(Config.TorHost, Config.TorSocksPort))
+					{
+						var handler = socksPortClient.GetHandlerFromRequestUri(client.BaseAddress.AbsoluteUri);
+						client.SetHttpMessageHandler(handler);
+						unspentCoins = GetUnspentCoins(secrets, client);
+					}
+				}
+				else
+				{
+					unspentCoins = GetUnspentCoins(secrets, client);
+				}
+
+				return unspentCoins;
+			}
+			catch (TorException ex)
+			{
+				string message = ex.Message + Environment.NewLine +
+					"You are not running TOR or your TOR settings are misconfigured." + Environment.NewLine +
+					$"Please review your 'torrc' and '{ConfigFileSerializer.ConfigFilePath}' files.";
+				throw new Exception(message, ex);
+			}
+		}
+
+		private static Dictionary<Coin, bool> GetUnspentCoins(IEnumerable<ISecret> secrets, QBitNinjaClient client)
+		{
 			var unspentCoins = new Dictionary<Coin, bool>();
 			foreach (var secret in secrets)
 			{
 				var destination = secret.PrivateKey.ScriptPubKey.GetDestinationAddress(Config.Network);
 
-				var client = new QBitNinjaClient(Config.Network);
 				var balanceModel = client.GetBalance(destination, unspentOnly: true).Result;
 				foreach (var operation in balanceModel.Operations)
 				{
@@ -146,14 +177,40 @@ namespace HiddenWallet.QBitNinjaJutsus
 		}
 		public static Dictionary<BitcoinAddress, List<BalanceOperation>> QueryOperationsPerAddresses(HashSet<BitcoinAddress> addresses)
 		{
-			var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
-			var client = new QBitNinjaClient(Config.Network);
-			foreach (var addr in addresses)
+			try
 			{
-				var operations = client.GetBalance(addr, unspentOnly: false).Result.Operations;
-				operationsPerAddresses.Add(addr, operations);
+				var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>(); ;
+				var client = new QBitNinjaClient(Config.Network);
+
+				foreach (var addr in addresses)
+				{
+					if (Config.UseTor)
+					{
+						using (var socksPortClient = new DotNetTor.SocksPort.Client(Config.TorHost, Config.TorSocksPort))
+						{
+							var handler = socksPortClient.GetHandlerFromRequestUri(client.BaseAddress.AbsoluteUri);
+							client.SetHttpMessageHandler(handler);
+
+							var operations = client.GetBalance(addr, unspentOnly: false).Result.Operations;
+							operationsPerAddresses.Add(addr, operations);
+						}
+					}
+					else
+					{
+						var operations = client.GetBalance(addr, unspentOnly: false).Result.Operations;
+						operationsPerAddresses.Add(addr, operations);
+					}
+				}
+
+				return operationsPerAddresses;
 			}
-			return operationsPerAddresses;
+			catch (TorException ex)
+			{
+				string message = ex.Message + Environment.NewLine +
+					"You are not running TOR or your TOR settings are misconfigured." + Environment.NewLine +
+					$"Please review your 'torrc' and '{ConfigFileSerializer.ConfigFilePath}' files.";
+				throw new Exception(message, ex);
+			}
 		}
 	}
 }
