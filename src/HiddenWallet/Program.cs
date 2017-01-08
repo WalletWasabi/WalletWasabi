@@ -16,6 +16,7 @@ using static HiddenWallet.KeyManagement.Safe;
 using static System.Console;
 using HiddenWallet.QBitNinjaJutsus;
 using DotNetTor;
+using System.Text;
 
 namespace HiddenWallet
 {
@@ -519,12 +520,32 @@ namespace HiddenWallet
 							success = true;
 							break;
 						}
-					} while (tried <= maxTry);
+					} while (tried < maxTry);
 					if (!success)
 					{
 						if (broadcastResponse.Error != null)
 						{
-							WriteLine($"Error code: {broadcastResponse.Error.ErrorCode} Reason: {broadcastResponse.Error.Reason}");
+							// Try broadcasting with smartbit if QBit fails (QBit bug)
+							if(broadcastResponse.Error.ErrorCode == NBitcoin.Protocol.RejectCode.INVALID && broadcastResponse.Error.Reason == "Unknown")
+							{
+								WriteLine($"Try broadcasting transaction with smartbit...");
+								using (var httpClient = new HttpClient())
+								{
+									var post = "https://testnet-api.smartbit.com.au/v1/blockchain/pushtx";
+									if (Config.Network == Network.Main)
+										post = "https://api.smartbit.com.au/v1/blockchain/pushtx";
+									
+									var content = new StringContent(new JObject(new JProperty("hex", tx.ToHex())).ToString(), Encoding.UTF8, "application/json");
+									var resp = httpClient.PostAsync(post, content).Result;
+									var json = JObject.Parse(resp.Content.ReadAsStringAsync().Result);
+									if (json.Value<bool>("success"))
+										Exit("Transaction is successfully propagated on the network.", ConsoleColor.Green);
+									else
+										WriteLine($"Error code: {json["error"].Value<string>("code")} Reason: {json["error"].Value<string>("message")}");
+								}
+							}
+							else
+								WriteLine($"Error code: {broadcastResponse.Error.ErrorCode} Reason: {broadcastResponse.Error.Reason}");
 						}
 						Exit($"The transaction might not have been successfully broadcasted. Please check the Transaction ID in a block explorer.", ConsoleColor.Blue);
 					}
