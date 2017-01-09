@@ -46,7 +46,7 @@ namespace HiddenWallet
 			////no password
 			//args = new string[] { "recover-wallet", "wallet-file=test5.json" };
 			//args = new string[] { "show-balances"};
-			//args = new string[] { "receive", "wallet-file=test4.json" };
+			args = new string[] { "receive" };
 			//args = new string[] { "send","btc=1", "address=mqjVoPiXtLdBdxdqQzWvFSMSBv93swPUUH", "wallet-file=MoliWallet.json" };
 			//args = new string[] { "send", "btc=0.1", "address=mkpC5HFC8QHbJbuwajYLDkwPoqcftMU1ga" };
 			//args = new string[] { "send", "btc=all", "address=mzz63n3n89KVeHQXRqJEVsQX8MZj5zeqCw", "wallet-file=test4.json" };
@@ -151,6 +151,7 @@ namespace HiddenWallet
 
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
+					AssertCorrectQBitBlockHeight();
 					// 0. Query all operations, grouped by addresses
 					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = QueryOperationsPerSafeAddresses(safe, 7);
 
@@ -219,6 +220,7 @@ namespace HiddenWallet
 
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
+					AssertCorrectQBitBlockHeight();
 					// 0. Query all operations, grouped our used safe addresses
 					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = QueryOperationsPerSafeAddresses(safe);
 
@@ -299,6 +301,7 @@ namespace HiddenWallet
 
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
+					AssertCorrectQBitBlockHeight();
 					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = QueryOperationsPerSafeAddresses(safe, 7, HdPathType.Receive);
 
 					WriteLine("---------------------------------------------------------------------------");
@@ -321,6 +324,7 @@ namespace HiddenWallet
 			#region SendCommand
 			if (command == "send")
 			{
+				AssertCorrectQBitBlockHeight();
 				AssertArgumentsLenght(args.Length, 3, 4);
 				var walletFilePath = GetWalletFilePath(args);
 				BitcoinAddress addressToSend;
@@ -650,6 +654,50 @@ namespace HiddenWallet
 			catch (NotSupportedException) { }
 
 			Exit("Incorrect mnemonic format.");
+		}
+		public static void AssertCorrectQBitBlockHeight()
+		{
+			// Check if QBitNinja up-to-date
+			using (var httpClient = new HttpClient())
+			{
+				var get = "https://testnet-api.smartbit.com.au/v1/blockchain/totals";
+				if (Config.Network == Network.Main)
+					get = "https://api.smartbit.com.au/v1/blockchain/totals";
+
+				HttpResponseMessage resp;
+				try
+				{
+					resp = httpClient.GetAsync(get).Result;
+				}
+				catch
+				{
+					return; // skip check, chances are qbit and smartbit won't be down the same time
+				}
+				if (resp == null) return; // skip check, chances are qbit and smartbit won't be down the same time
+
+				var json = JObject.Parse(resp.Content.ReadAsStringAsync().Result);
+				if (!json.Value<bool>("success"))
+					return; // skip check, chances are qbit and smartbit won't be down the same time
+				else
+				{
+					var lastSmartBitHeight = json["totals"].Value<int>("block_count") - 1;
+
+					var client = new QBitNinjaClient(Config.Network);
+					var lastBlock = client.GetBlock(new BlockFeature(SpecialFeature.Last), headerOnly: true).Result;
+					var lastQBitHeight = lastBlock.AdditionalInformation.Height;
+
+					if (lastSmartBitHeight <= lastQBitHeight) return;
+					else
+					{
+						Thread.Sleep(10000);
+						lastBlock = client.GetBlock(new BlockFeature(SpecialFeature.Last), headerOnly: true).Result;
+						lastQBitHeight = lastBlock.AdditionalInformation.Height;
+
+						if (lastSmartBitHeight <= lastQBitHeight) return;
+						else Exit($"The height of QBitNinja HTTP API is not accurate. Try later. QBit height: {lastQBitHeight} SmartBit height: QBit height: {lastQBitHeight}");
+					}
+				}
+			}
 		}
 		// Inclusive
 		public static void AssertArgumentsLenght(int length, int min, int max)
