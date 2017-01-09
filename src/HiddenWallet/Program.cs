@@ -46,7 +46,7 @@ namespace HiddenWallet
 			////no password
 			//args = new string[] { "recover-wallet", "wallet-file=test5.json" };
 			//args = new string[] { "show-balances"};
-			args = new string[] { "receive" };
+			//args = new string[] { "receive" };
 			//args = new string[] { "send","btc=1", "address=mqjVoPiXtLdBdxdqQzWvFSMSBv93swPUUH", "wallet-file=MoliWallet.json" };
 			//args = new string[] { "send", "btc=0.1", "address=mkpC5HFC8QHbJbuwajYLDkwPoqcftMU1ga" };
 			//args = new string[] { "send", "btc=all", "address=mzz63n3n89KVeHQXRqJEVsQX8MZj5zeqCw", "wallet-file=test4.json" };
