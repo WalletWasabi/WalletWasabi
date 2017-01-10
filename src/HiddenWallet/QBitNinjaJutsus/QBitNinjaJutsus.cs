@@ -84,11 +84,15 @@ namespace HiddenWallet.QBitNinjaJutsus
 		private static Dictionary<Coin, bool> GetUnspentCoins(IEnumerable<ISecret> secrets, QBitNinjaClient client)
 		{
 			var unspentCoins = new Dictionary<Coin, bool>();
-			foreach (var secret in secrets)
-			{
-				var destination = secret.PrivateKey.ScriptPubKey.GetDestinationAddress(Config.Network);
 
-				var balanceModel = client.GetBalance(destination, unspentOnly: true).Result;
+			var addresses = new HashSet<BitcoinAddress>();
+			foreach(var secret in secrets)
+			{
+				addresses.Add(secret.PrivateKey.ScriptPubKey.GetDestinationAddress(Config.Network));
+			}
+
+			foreach (var balanceModel in GetBalancesAsync(client, addresses, unspentOnly: true).Result)
+			{
 				foreach (var operation in balanceModel.Operations)
 				{
 					foreach (var elem in operation.ReceivedCoins.Select(coin => coin as Coin))
@@ -129,9 +133,9 @@ namespace HiddenWallet.QBitNinjaJutsus
 		{
 			if (hdPathType == null)
 			{
-				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = QueryOperationsPerSafeAddresses(safe, 7, HdPathType.Receive);
-				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = QueryOperationsPerSafeAddresses(safe, 7, HdPathType.Change);
-				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerNonHardenedAddresses = QueryOperationsPerSafeAddresses(safe, 7, HdPathType.NonHardened);
+				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = QueryOperationsPerSafeAddresses(safe, minUnusedKeys, HdPathType.Receive);
+				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = QueryOperationsPerSafeAddresses(safe, minUnusedKeys, HdPathType.Change);
+				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerNonHardenedAddresses = QueryOperationsPerSafeAddresses(safe, minUnusedKeys, HdPathType.NonHardened);
 
 				var operationsPerAllAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
 				foreach (var elem in operationsPerReceiveAddresses)
@@ -177,40 +181,38 @@ namespace HiddenWallet.QBitNinjaJutsus
 		}
 		public static Dictionary<BitcoinAddress, List<BalanceOperation>> QueryOperationsPerAddresses(HashSet<BitcoinAddress> addresses)
 		{
-			try
+			var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>(); ;
+			var client = new QBitNinjaClient(Config.Network);
+
+			var addressList = addresses.ToList();
+			var balanceModelList = new List<BalanceModel>();
+
+			foreach(var balance in GetBalancesAsync(client, addressList, unspentOnly: false).Result)
 			{
-				var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>(); ;
-				var client = new QBitNinjaClient(Config.Network);
-
-				foreach (var addr in addresses)
-				{
-					if (Config.UseTor)
-					{
-						using (var socksPortClient = new DotNetTor.SocksPort.Client(Config.TorHost, Config.TorSocksPort))
-						{
-							var handler = socksPortClient.GetHandlerFromRequestUri(client.BaseAddress.AbsoluteUri);
-							client.SetHttpMessageHandler(handler);
-
-							var operations = client.GetBalance(addr, unspentOnly: false).Result.Operations;
-							operationsPerAddresses.Add(addr, operations);
-						}
-					}
-					else
-					{
-						var operations = client.GetBalance(addr, unspentOnly: false).Result.Operations;
-						operationsPerAddresses.Add(addr, operations);
-					}
-				}
-
-				return operationsPerAddresses;
+				balanceModelList.Add(balance);
 			}
-			catch (TorException ex)
+
+			for(var i = 0; i < balanceModelList.Count; i++)
 			{
-				string message = ex.Message + Environment.NewLine +
-					"You are not running TOR or your TOR settings are misconfigured." + Environment.NewLine +
-					$"Please review your 'torrc' and '{ConfigFileSerializer.ConfigFilePath}' files.";
-				throw new Exception(message, ex);
+				operationsPerAddresses.Add(addressList[i], balanceModelList[i].Operations);
 			}
+
+			return operationsPerAddresses;
+		}
+		private async static Task<IEnumerable<BalanceModel>> GetBalancesAsync(QBitNinjaClient client, IEnumerable<BitcoinAddress> addresses, bool unspentOnly)
+		{
+			var tasks = new HashSet<Task<BalanceModel>>();
+			foreach(var dest in addresses)
+			{
+				var task = client.GetBalance(dest, unspentOnly: false);
+				tasks.Add(task);
+			}
+			await Task.WhenAll(tasks);
+
+			var results = new HashSet<BalanceModel>();
+			foreach (var task in tasks)
+				results.Add(task.Result);
+			return results;
 		}
 	}
 }

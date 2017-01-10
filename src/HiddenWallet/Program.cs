@@ -22,6 +22,9 @@ namespace HiddenWallet
 {
 	public class Program
 	{
+		// The minimum number of unused keys those are queried on the blockchain from the HD path.
+		public const int minUnusedKeyNum = 21;
+
 		#region Commands
 		public static HashSet<string> Commands = new HashSet<string>()
 		{
@@ -153,7 +156,7 @@ namespace HiddenWallet
 				{
 					AssertCorrectQBitBlockHeight();
 					// 0. Query all operations, grouped by addresses
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = QueryOperationsPerSafeAddresses(safe, 7);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = QueryOperationsPerSafeAddresses(safe, minUnusedKeyNum);
 
 					// 1. Get all address history record with a wrapper class
 					var addressHistoryRecords = new List<AddressHistoryRecord>();
@@ -222,7 +225,7 @@ namespace HiddenWallet
 				{
 					AssertCorrectQBitBlockHeight();
 					// 0. Query all operations, grouped our used safe addresses
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = QueryOperationsPerSafeAddresses(safe);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = QueryOperationsPerSafeAddresses(safe, minUnusedKeyNum);
 
 					WriteLine();
 					WriteLine("---------------------------------------------------------------------------");
@@ -341,7 +344,7 @@ namespace HiddenWallet
 
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = QueryOperationsPerSafeAddresses(safe, 7);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = QueryOperationsPerSafeAddresses(safe, minUnusedKeyNum);
 
 					// 1. Gather all the not empty private keys
 					WriteLine("Finding not empty private keys...");
