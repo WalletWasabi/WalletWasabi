@@ -17,6 +17,7 @@ using static System.Console;
 using HiddenWallet.QBitNinjaJutsus;
 using DotNetTor;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace HiddenWallet
 {
@@ -40,7 +41,19 @@ namespace HiddenWallet
 		};
 		#endregion
 
-		public static void Main(string[] args)
+		static void Main(string[] args)
+		{
+			try
+			{
+				MainAsync(args).GetAwaiter().GetResult();
+			}
+			catch (Exception ex)
+			{
+				Error.WriteLine(ex);
+			}
+		}
+
+		static async Task MainAsync(string[] args)
 		{
 			//args = new string[] { "help" };
 			//args = new string[] { "generate-wallet" };
@@ -154,9 +167,9 @@ namespace HiddenWallet
 
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
-					AssertCorrectQBitBlockHeight();
+					await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
 					// 0. Query all operations, grouped by addresses
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = QueryOperationsPerSafeAddresses(safe, minUnusedKeyNum);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(safe, minUnusedKeyNum).ConfigureAwait(false);
 
 					// 1. Get all address history record with a wrapper class
 					var addressHistoryRecords = new List<AddressHistoryRecord>();
@@ -223,9 +236,9 @@ namespace HiddenWallet
 
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
-					AssertCorrectQBitBlockHeight();
+					await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
 					// 0. Query all operations, grouped our used safe addresses
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = QueryOperationsPerSafeAddresses(safe, minUnusedKeyNum);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(safe, minUnusedKeyNum).ConfigureAwait(false);
 
 					WriteLine();
 					WriteLine("---------------------------------------------------------------------------");
@@ -304,8 +317,8 @@ namespace HiddenWallet
 
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
-					AssertCorrectQBitBlockHeight();
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = QueryOperationsPerSafeAddresses(safe, 7, HdPathType.Receive);
+					await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await QueryOperationsPerSafeAddressesAsync(safe, 7, HdPathType.Receive).ConfigureAwait(false);
 
 					WriteLine("---------------------------------------------------------------------------");
 					WriteLine("Unused Receive Addresses");
@@ -327,7 +340,7 @@ namespace HiddenWallet
 			#region SendCommand
 			if (command == "send")
 			{
-				AssertCorrectQBitBlockHeight();
+				await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
 				AssertArgumentsLenght(args.Length, 3, 4);
 				var walletFilePath = GetWalletFilePath(args);
 				BitcoinAddress addressToSend;
@@ -344,7 +357,7 @@ namespace HiddenWallet
 
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = QueryOperationsPerSafeAddresses(safe, minUnusedKeyNum);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(safe, minUnusedKeyNum).ConfigureAwait(false);
 
 					// 1. Gather all the not empty private keys
 					WriteLine("Finding not empty private keys...");
@@ -363,7 +376,7 @@ namespace HiddenWallet
 					// 2. Get the script pubkey of the change.
 					WriteLine("Select change address...");
 					Script changeScriptPubKey = null;
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = QueryOperationsPerSafeAddresses(safe, minUnusedKeys: 1, hdPathType: HdPathType.Change);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await QueryOperationsPerSafeAddressesAsync(safe, minUnusedKeys: 1, hdPathType: HdPathType.Change).ConfigureAwait(false);
 					foreach (var elem in operationsPerChangeAddresses)
 					{
 						if (elem.Value.Count == 0)
@@ -374,7 +387,7 @@ namespace HiddenWallet
 
 					// 3. Gather coins can be spend
 					WriteLine("Gathering unspent coins...");
-					Dictionary<Coin, bool> unspentCoins = GetUnspentCoins(operationsPerNotEmptyPrivateKeys.Keys);
+					Dictionary<Coin, bool> unspentCoins = await GetUnspentCoinsAsync(operationsPerNotEmptyPrivateKeys.Keys).ConfigureAwait(false);
 
 					// 4. How much money we can spend?
 					Money availableAmount = Money.Zero;
@@ -403,7 +416,7 @@ namespace HiddenWallet
 					Money feePerBytes = null;
 					try
 					{
-						 feePerBytes = QueryFeePerBytes();
+						 feePerBytes = await QueryFeePerBytesAsync().ConfigureAwait(false);
 					}
 					catch (Exception ex)
 					{
@@ -515,11 +528,11 @@ namespace HiddenWallet
 					{
 						tried++;
 						WriteLine($"Try broadcasting transaction... ({tried})");
-						broadcastResponse = qBitClient.Broadcast(tx).Result;
-						var getTxResp = qBitClient.GetTransaction(tx.GetHash()).Result;
+						broadcastResponse = await qBitClient.Broadcast(tx).ConfigureAwait(false);
+						var getTxResp = await qBitClient.GetTransaction(tx.GetHash()).ConfigureAwait(false);
 						if (getTxResp == null)
 						{
-							Thread.Sleep(3000);
+							await Task.Delay(3000).ConfigureAwait(false);
 							continue;
 						}
 						else
@@ -543,8 +556,8 @@ namespace HiddenWallet
 										post = "https://api.smartbit.com.au/v1/blockchain/pushtx";
 									
 									var content = new StringContent(new JObject(new JProperty("hex", tx.ToHex())).ToString(), Encoding.UTF8, "application/json");
-									var resp = httpClient.PostAsync(post, content).Result;
-									var json = JObject.Parse(resp.Content.ReadAsStringAsync().Result);
+									var resp = await httpClient.PostAsync(post, content).ConfigureAwait(false);
+									var json = JObject.Parse(await resp.Content.ReadAsStringAsync().ConfigureAwait(false));
 									if (json.Value<bool>("success"))
 										Exit("Transaction is successfully propagated on the network.", ConsoleColor.Green);
 									else
@@ -589,7 +602,7 @@ namespace HiddenWallet
 			return coinsToSpend;
 		}
 
-		private static Money QueryFeePerBytes()
+		private static async Task<Money> QueryFeePerBytesAsync()
 		{
 			try
 			{
@@ -602,7 +615,7 @@ namespace HiddenWallet
 						var handler = socksPortClient.GetHandlerFromRequestUri(requestUri);
 						using (var client = new HttpClient(handler))
 						{
-							response = client.GetAsync(requestUri, HttpCompletionOption.ResponseContentRead).Result;
+							response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
 						}
 					}
 				}
@@ -610,11 +623,11 @@ namespace HiddenWallet
 				{
 					using (var client = new HttpClient())
 					{
-						response = client.GetAsync(requestUri, HttpCompletionOption.ResponseContentRead).Result;
+						response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
 					}
 				}
 
-				var json = JObject.Parse(response.Content.ReadAsStringAsync().Result);
+				var json = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
 				var fastestSatoshiPerByteFee = (int)(json.Value<decimal>("high_fee_per_kb") / 1024);
 				var feePerBytes = new Money(fastestSatoshiPerByteFee, MoneyUnit.Satoshi);
 
@@ -658,7 +671,7 @@ namespace HiddenWallet
 
 			Exit("Incorrect mnemonic format.");
 		}
-		public static void AssertCorrectQBitBlockHeight()
+		public static async Task AssertCorrectQBitBlockHeightAsync()
 		{
 			// Check if QBitNinja up-to-date
 			using (var httpClient = new HttpClient())
@@ -670,7 +683,7 @@ namespace HiddenWallet
 				HttpResponseMessage resp;
 				try
 				{
-					resp = httpClient.GetAsync(get).Result;
+					resp = await httpClient.GetAsync(get).ConfigureAwait(false);
 				}
 				catch
 				{
@@ -678,7 +691,7 @@ namespace HiddenWallet
 				}
 				if (resp == null) return; // skip check, chances are qbit and smartbit won't be down the same time
 
-				var json = JObject.Parse(resp.Content.ReadAsStringAsync().Result);
+				var json = JObject.Parse(await resp.Content.ReadAsStringAsync().ConfigureAwait(false));
 				if (!json.Value<bool>("success"))
 					return; // skip check, chances are qbit and smartbit won't be down the same time
 				else
@@ -686,14 +699,14 @@ namespace HiddenWallet
 					var lastSmartBitHeight = json["totals"].Value<int>("block_count") - 1;
 
 					var client = new QBitNinjaClient(Config.Network);
-					var lastBlock = client.GetBlock(new BlockFeature(SpecialFeature.Last), headerOnly: true).Result;
+					var lastBlock = await client.GetBlock(new BlockFeature(SpecialFeature.Last), headerOnly: true).ConfigureAwait(false);
 					var lastQBitHeight = lastBlock.AdditionalInformation.Height;
 
 					if (lastSmartBitHeight <= lastQBitHeight) return;
 					else
 					{
-						Thread.Sleep(10000);
-						lastBlock = client.GetBlock(new BlockFeature(SpecialFeature.Last), headerOnly: true).Result;
+						await Task.Delay(10000).ConfigureAwait(false);
+						lastBlock = await client.GetBlock(new BlockFeature(SpecialFeature.Last), headerOnly: true).ConfigureAwait(false);
 						lastQBitHeight = lastBlock.AdditionalInformation.Height;
 
 						if (lastSmartBitHeight <= lastQBitHeight) return;
