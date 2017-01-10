@@ -207,7 +207,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 				var task = client.GetBalance(dest, unspentOnly: false);
 				tasks.Add(task);
 			}
-			await Task.WhenAll(tasks);
+			await Task.WhenAll(tasks).ConfigureAwait(false);
 
 			var results = new HashSet<BalanceModel>();
 			foreach (var task in tasks)
