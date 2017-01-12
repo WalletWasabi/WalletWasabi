@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace HiddenWallet.KeyManagement
 {
@@ -19,6 +16,7 @@ namespace HiddenWallet.KeyManagement
 
 		// KEEP THEM PUBLIC OTHERWISE IT WILL NOT SERIALIZE!
 		public string EncryptedSeed { get; set; }
+
 		public string ChainCode { get; set; }
 		public string Network { get; set; }
 

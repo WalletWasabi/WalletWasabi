@@ -1,9 +1,5 @@
-﻿using HiddenWallet.KeyManagement;
-using NBitcoin;
-using System;
+﻿using NBitcoin;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace HiddenWallet
 {
@@ -12,6 +8,7 @@ namespace HiddenWallet
 		public static class FakeSafe
 		{
 			private static List<BitcoinAddress> fakeSafeAddresses = new List<BitcoinAddress>();
+
 			static FakeSafe()
 			{
 				var addresses = new List<string>
@@ -61,11 +58,14 @@ namespace HiddenWallet
 				foreach (var addr in uniqueAddresses)
 					fakeSafeAddresses.Add(BitcoinAddress.Create(addr));
 			}
+
 			public static Network Network => Network.Main;
+
 			public static BitcoinAddress GetAddress(int index)
 			{
 				return fakeSafeAddresses[index];
 			}
+
 			public static HashSet<BitcoinAddress> GetFirstNAddresses(int addressCount)
 			{
 				var addresses = new HashSet<BitcoinAddress>();

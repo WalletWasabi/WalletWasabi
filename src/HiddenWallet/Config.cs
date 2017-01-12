@@ -1,8 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using NBitcoin;
 using Newtonsoft.Json;
-using NBitcoin;
-using System.Net;
+using System;
+using System.IO;
 
 namespace HiddenWallet
 {
@@ -11,10 +10,12 @@ namespace HiddenWallet
 		FullNode,
 		Http
 	}
+
 	public static class Config
 	{
 		// Initialized with default attributes
 		public static string DefaultWalletFileName = @"Wallet.json";
+
 		public static Network Network = Network.Main;
 		public static ConnectionType ConnectionType = ConnectionType.Http;
 		public static bool CanSpendUnconfirmed = false;
@@ -33,6 +34,7 @@ namespace HiddenWallet
 			}
 			Load();
 		}
+
 		public static void Save()
 		{
 			ConfigFileSerializer.Serialize(
@@ -47,6 +49,7 @@ namespace HiddenWallet
 				TorControlPortPassword);
 			Load();
 		}
+
 		public static void Load()
 		{
 			var rawContent = ConfigFileSerializer.Deserialize();
@@ -70,7 +73,6 @@ namespace HiddenWallet
 				throw new Exception($"ConnectionType is missing from {ConfigFileSerializer.ConfigFilePath}");
 			else
 				throw new Exception($"Wrong ConnectionType is specified in {ConfigFileSerializer.ConfigFilePath}");
-
 
 			try
 			{
@@ -112,11 +114,14 @@ namespace HiddenWallet
 			TorControlPortPassword = rawContent.TorControlPortPassword;
 		}
 	}
-    public class ConfigFileSerializer
+
+	public class ConfigFileSerializer
 	{
 		public static string ConfigFilePath = "Config.json";
+
 		// KEEP THEM PUBLIC OTHERWISE IT WILL NOT SERIALIZE!
 		public string DefaultWalletFileName { get; set; }
+
 		public string Network { get; set; }
 		public string ConnectionType { get; set; }
 		public string CanSpendUnconfirmed { get; set; }
@@ -128,10 +133,10 @@ namespace HiddenWallet
 
 		[JsonConstructor]
 		private ConfigFileSerializer(
-			string walletFileName, 
-			string network, 
-			string connectionType, 
-			string canSpendUnconfirmed, 
+			string walletFileName,
+			string network,
+			string connectionType,
+			string canSpendUnconfirmed,
 			string useTor,
 			string torHost,
 			string torSocksPort,
@@ -150,9 +155,9 @@ namespace HiddenWallet
 		}
 
 		internal static void Serialize(
-			string walletFileName, 
-			string network, 
-			string connectionType, 
+			string walletFileName,
+			string network,
+			string connectionType,
 			string canSpendUnconfirmed,
 			string useTor,
 			string torHost,
@@ -163,9 +168,9 @@ namespace HiddenWallet
 			var content =
 				JsonConvert.SerializeObject(
 					new ConfigFileSerializer(
-						walletFileName, 
-						network, 
-						connectionType, 
+						walletFileName,
+						network,
+						connectionType,
 						canSpendUnconfirmed,
 						useTor,
 						torHost,
@@ -185,9 +190,9 @@ namespace HiddenWallet
 			var configFileSerializer = JsonConvert.DeserializeObject<ConfigFileSerializer>(contentString);
 
 			return new ConfigFileSerializer(
-				configFileSerializer.DefaultWalletFileName, 
-				configFileSerializer.Network, 
-				configFileSerializer.ConnectionType, 
+				configFileSerializer.DefaultWalletFileName,
+				configFileSerializer.Network,
+				configFileSerializer.ConnectionType,
 				configFileSerializer.CanSpendUnconfirmed,
 				configFileSerializer.UseTor,
 				configFileSerializer.TorHost,

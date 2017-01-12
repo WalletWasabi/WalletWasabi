@@ -12,8 +12,8 @@ using static System.Console;
 
 namespace HiddenWallet.QBitNinjaJutsus
 {
-    public static class QBitNinjaJutsus
-    {
+	public static class QBitNinjaJutsus
+	{
 		public static void GetBalances(IEnumerable<AddressHistoryRecord> addressHistoryRecords, out Money confirmedBalance, out Money unconfirmedBalance)
 		{
 			confirmedBalance = Money.Zero;
@@ -28,6 +28,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 				}
 			}
 		}
+
 		public static bool SelectCoins(ref HashSet<Coin> coinsToSpend, Money totalOutAmount, List<Coin> unspentCoins)
 		{
 			var haveEnough = false;
@@ -45,8 +46,9 @@ namespace HiddenWallet.QBitNinjaJutsus
 
 			return haveEnough;
 		}
+
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="secrets"></param>
 		/// <returns>dictionary with coins and if confirmed</returns>
@@ -86,7 +88,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 			var unspentCoins = new Dictionary<Coin, bool>();
 
 			var addresses = new HashSet<BitcoinAddress>();
-			foreach(var secret in secrets)
+			foreach (var secret in secrets)
 			{
 				addresses.Add(secret.PrivateKey.ScriptPubKey.GetDestinationAddress(Config.Network));
 			}
@@ -104,6 +106,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 
 			return unspentCoins;
 		}
+
 		public static Dictionary<uint256, List<BalanceOperation>> GetOperationsPerTransactions(Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses)
 		{
 			// 1. Get all the unique operations
@@ -129,6 +132,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 
 			return operationsPerTransactions;
 		}
+
 		public static async Task<Dictionary<BitcoinAddress, List<BalanceOperation>>> QueryOperationsPerSafeAddressesAsync(Safe safe, int minUnusedKeys = 7, HdPathType? hdPathType = null)
 		{
 			if (hdPathType == null)
@@ -179,6 +183,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 
 			return operationsPerAddresses;
 		}
+
 		public static async Task<Dictionary<BitcoinAddress, List<BalanceOperation>>> QueryOperationsPerAddressesAsync(HashSet<BitcoinAddress> addresses)
 		{
 			var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>(); ;
@@ -187,22 +192,23 @@ namespace HiddenWallet.QBitNinjaJutsus
 			var addressList = addresses.ToList();
 			var balanceModelList = new List<BalanceModel>();
 
-			foreach(var balance in await GetBalancesAsync(client, addressList, unspentOnly: false).ConfigureAwait(false))
+			foreach (var balance in await GetBalancesAsync(client, addressList, unspentOnly: false).ConfigureAwait(false))
 			{
 				balanceModelList.Add(balance);
 			}
 
-			for(var i = 0; i < balanceModelList.Count; i++)
+			for (var i = 0; i < balanceModelList.Count; i++)
 			{
 				operationsPerAddresses.Add(addressList[i], balanceModelList[i].Operations);
 			}
 
 			return operationsPerAddresses;
 		}
+
 		private async static Task<IEnumerable<BalanceModel>> GetBalancesAsync(QBitNinjaClient client, IEnumerable<BitcoinAddress> addresses, bool unspentOnly)
 		{
 			var tasks = new HashSet<Task<BalanceModel>>();
-			foreach(var dest in addresses)
+			foreach (var dest in addresses)
 			{
 				var task = client.GetBalance(dest, unspentOnly: false);
 				tasks.Add(task);

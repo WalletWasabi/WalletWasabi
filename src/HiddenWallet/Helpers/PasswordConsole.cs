@@ -4,7 +4,7 @@ using System.Text;
 namespace HiddenWallet.Helpers
 {
 	public class PasswordConsole
-    {
+	{
 		/// <summary>
 		/// Gets the console password.
 		/// </summary>

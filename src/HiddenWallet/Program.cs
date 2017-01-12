@@ -1,5 +1,7 @@
-﻿using HiddenWallet.Helpers;
+﻿using DotNetTor;
+using HiddenWallet.Helpers;
 using HiddenWallet.KeyManagement;
+using HiddenWallet.QBitNinjaJutsus;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
 using QBitNinja.Client;
@@ -10,14 +12,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Threading;
-using static HiddenWallet.QBitNinjaJutsus.QBitNinjaJutsus;
-using static HiddenWallet.KeyManagement.Safe;
-using static System.Console;
-using HiddenWallet.QBitNinjaJutsus;
-using DotNetTor;
 using System.Text;
 using System.Threading.Tasks;
+using static HiddenWallet.KeyManagement.Safe;
+using static HiddenWallet.QBitNinjaJutsus.QBitNinjaJutsus;
+using static System.Console;
 
 namespace HiddenWallet
 {
@@ -27,6 +26,7 @@ namespace HiddenWallet
 		public const int minUnusedKeyNum = 21;
 
 		#region Commands
+
 		public static HashSet<string> Commands = new HashSet<string>()
 		{
 			"help",
@@ -39,9 +39,10 @@ namespace HiddenWallet
 			"receive",
 			"send"
 		};
-		#endregion
 
-		static void Main(string[] args)
+		#endregion Commands
+
+		private static void Main(string[] args)
 		{
 			try
 			{
@@ -53,7 +54,7 @@ namespace HiddenWallet
 			}
 		}
 
-		static async Task MainAsync(string[] args)
+		private static async Task MainAsync(string[] args)
 		{
 			//args = new string[] { "help" };
 			//args = new string[] { "generate-wallet" };
@@ -91,13 +92,17 @@ namespace HiddenWallet
 			}
 
 			#region HelpCommand
+
 			if (command == "help")
 			{
 				AssertArgumentsLenght(args.Length, 1, 1);
 				DisplayHelp();
 			}
-			#endregion
+
+			#endregion HelpCommand
+
 			#region GenerateWalletCommand
+
 			if (command == "generate-wallet")
 			{
 				AssertArgumentsLenght(args.Length, 1, 2);
@@ -135,8 +140,11 @@ namespace HiddenWallet
 				WriteLine(mnemonic);
 				WriteLine("-------");
 			}
-			#endregion
+
+			#endregion GenerateWalletCommand
+
 			#region RecoverWalletCommand
+
 			if (command == "recover-wallet")
 			{
 				AssertArgumentsLenght(args.Length, 1, 2);
@@ -157,8 +165,11 @@ namespace HiddenWallet
 				WriteLine("Wallet is successfully recovered.");
 				WriteLine($"Wallet file: {walletFilePath}");
 			}
-			#endregion
+
+			#endregion RecoverWalletCommand
+
 			#region ShowBalancesCommand
+
 			if (command == "show-balances")
 			{
 				AssertArgumentsLenght(args.Length, 1, 2);
@@ -191,7 +202,7 @@ namespace HiddenWallet
 					foreach (var address in operationsPerAddresses.Keys)
 					{
 						var recs = new HashSet<AddressHistoryRecord>();
-						foreach(var record in addressHistoryRecords)
+						foreach (var record in addressHistoryRecords)
 						{
 							if (record.Address == address)
 								recs.Add(record);
@@ -226,8 +237,11 @@ namespace HiddenWallet
 					Exit("Invalid connection type.");
 				}
 			}
-			#endregion
+
+			#endregion ShowBalancesCommand
+
 			#region ShowHistoryCommand
+
 			if (command == "show-history")
 			{
 				AssertArgumentsLenght(args.Length, 1, 2);
@@ -287,8 +301,11 @@ namespace HiddenWallet
 					Exit("Invalid connection type.");
 				}
 			}
-			#endregion
+
+			#endregion ShowHistoryCommand
+
 			#region ShowExtKeys
+
 			if (command == "show-extkey")
 			{
 				AssertArgumentsLenght(args.Length, 1, 2);
@@ -306,9 +323,12 @@ namespace HiddenWallet
 
 				WriteLine($"ExtPubKey: {safe.BitcoinExtPubKey}");
 				WriteLine($"Network: {safe.Network}");
-			}			
-			#endregion
+			}
+
+			#endregion ShowExtKeys
+
 			#region ReceiveCommand
+
 			if (command == "receive")
 			{
 				AssertArgumentsLenght(args.Length, 1, 2);
@@ -336,8 +356,11 @@ namespace HiddenWallet
 					Exit("Invalid connection type.");
 				}
 			}
-			#endregion
+
+			#endregion ReceiveCommand
+
 			#region SendCommand
+
 			if (command == "send")
 			{
 				await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
@@ -411,12 +434,12 @@ namespace HiddenWallet
 						}
 					}
 
-					// 5. Get and calculate fee					
+					// 5. Get and calculate fee
 					WriteLine("Calculating dynamic transaction fee...");
 					Money feePerBytes = null;
 					try
 					{
-						 feePerBytes = await QueryFeePerBytesAsync().ConfigureAwait(false);
+						feePerBytes = await QueryFeePerBytesAsync().ConfigureAwait(false);
 					}
 					catch (Exception ex)
 					{
@@ -434,7 +457,7 @@ namespace HiddenWallet
 					else
 					{
 						var expectedMinTxSize = 1 * 148 + 2 * 34 + 10 - 1;
-						inNum = SelectCoinsToSpend(unspentCoins, ParseBtcString(amountString) + feePerBytes* expectedMinTxSize).Count;
+						inNum = SelectCoinsToSpend(unspentCoins, ParseBtcString(amountString) + feePerBytes * expectedMinTxSize).Count;
 					}
 					int outNum = 2; // 1 address to send + 1 for change
 					int estimatedTxSize = inNum * 148 + outNum * 34 + 10 + inNum; // http://bitcoin.stackexchange.com/questions/1195/how-to-calculate-transaction-size-before-sending
@@ -516,10 +539,10 @@ namespace HiddenWallet
 						Exit("Couldn't build the transaction.");
 
 					WriteLine($"Transaction Id: {tx.GetHash()}");
-					
+
 					var qBitClient = new QBitNinjaClient(Config.Network);
 
-					// QBit's success response is buggy so let's check manually, too		
+					// QBit's success response is buggy so let's check manually, too
 					BroadcastResponse broadcastResponse;
 					var success = false;
 					var tried = 0;
@@ -546,7 +569,7 @@ namespace HiddenWallet
 						if (broadcastResponse.Error != null)
 						{
 							// Try broadcasting with smartbit if QBit fails (QBit bug)
-							if(broadcastResponse.Error.ErrorCode == NBitcoin.Protocol.RejectCode.INVALID && broadcastResponse.Error.Reason == "Unknown")
+							if (broadcastResponse.Error.ErrorCode == NBitcoin.Protocol.RejectCode.INVALID && broadcastResponse.Error.Reason == "Unknown")
 							{
 								WriteLine($"Try broadcasting transaction with smartbit...");
 								using (var httpClient = new HttpClient())
@@ -554,7 +577,7 @@ namespace HiddenWallet
 									var post = "https://testnet-api.smartbit.com.au/v1/blockchain/pushtx";
 									if (Config.Network == Network.Main)
 										post = "https://api.smartbit.com.au/v1/blockchain/pushtx";
-									
+
 									var content = new StringContent(new JObject(new JProperty("hex", tx.ToHex())).ToString(), Encoding.UTF8, "application/json");
 									var resp = await httpClient.PostAsync(post, content).ConfigureAwait(false);
 									var json = JObject.Parse(await resp.Content.ReadAsStringAsync().ConfigureAwait(false));
@@ -580,7 +603,8 @@ namespace HiddenWallet
 					Exit("Invalid connection type.");
 				}
 			}
-			#endregion
+
+			#endregion SendCommand
 
 			Exit(color: ConsoleColor.Green);
 		}
@@ -643,6 +667,7 @@ namespace HiddenWallet
 		}
 
 		#region Assertions
+
 		public static void AssertWalletNotExists(string walletFilePath)
 		{
 			if (File.Exists(walletFilePath))
@@ -650,6 +675,7 @@ namespace HiddenWallet
 				Exit($"A wallet, named {walletFilePath} already exists.");
 			}
 		}
+
 		public static void AssertCorrectNetwork(Network network)
 		{
 			if (network != Config.Network)
@@ -659,6 +685,7 @@ namespace HiddenWallet
 				Exit();
 			}
 		}
+
 		public static void AssertCorrectMnemonicFormat(string mnemonic)
 		{
 			try
@@ -671,6 +698,7 @@ namespace HiddenWallet
 
 			Exit("Incorrect mnemonic format.");
 		}
+
 		public static async Task AssertCorrectQBitBlockHeightAsync()
 		{
 			// Check if QBitNinja up-to-date
@@ -715,6 +743,7 @@ namespace HiddenWallet
 				}
 			}
 		}
+
 		// Inclusive
 		public static void AssertArgumentsLenght(int length, int min, int max)
 		{
@@ -727,8 +756,11 @@ namespace HiddenWallet
 				Exit($"Too many arguments are specified, maximum: {max}");
 			}
 		}
-		#endregion
+
+		#endregion Assertions
+
 		#region CommandLineArgumentStuff
+
 		private static string GetArgumentValue(string[] args, string argName, bool required = true)
 		{
 			string argValue = "";
@@ -746,6 +778,7 @@ namespace HiddenWallet
 			}
 			return argValue;
 		}
+
 		private static string GetWalletFilePath(string[] args)
 		{
 			string walletFileName = GetArgumentValue(args, "wallet-file", required: false);
@@ -755,8 +788,11 @@ namespace HiddenWallet
 			Directory.CreateDirectory(walletDirName);
 			return Path.Combine(walletDirName, walletFileName);
 		}
-		#endregion
+
+		#endregion CommandLineArgumentStuff
+
 		#region CommandLineInterface
+
 		private static Safe DecryptWalletByAskingForPassword(string walletFilePath)
 		{
 			Safe safe = null;
@@ -788,6 +824,7 @@ namespace HiddenWallet
 			WriteLine($"{walletFilePath} wallet is decrypted.");
 			return safe;
 		}
+
 		private static ConsoleKey GetYesNoAnswerFromUser()
 		{
 			ConsoleKey response;
@@ -800,11 +837,13 @@ namespace HiddenWallet
 			} while (response != ConsoleKey.Y && response != ConsoleKey.N);
 			return response;
 		}
+
 		public static void DisplayHelp()
 		{
 			WriteLine("Possible commands are:");
 			foreach (var cmd in Commands) WriteLine($"\t{cmd}");
 		}
+
 		public static void Exit(string reason = "", ConsoleColor color = ConsoleColor.Red)
 		{
 			ForegroundColor = color;
@@ -818,8 +857,11 @@ namespace HiddenWallet
 			ReadKey();
 			Environment.Exit(0);
 		}
-		#endregion
+
+		#endregion CommandLineInterface
+
 		#region Helpers
+
 		private static Money ParseBtcString(string value)
 		{
 			decimal amount;
@@ -832,9 +874,9 @@ namespace HiddenWallet
 				Exit("Wrong btc amount format.");
 			}
 
-
 			return new Money(amount, MoneyUnit.BTC);
 		}
-		#endregion
+
+		#endregion Helpers
 	}
 }
