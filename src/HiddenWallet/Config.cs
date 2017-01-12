@@ -117,7 +117,7 @@ namespace HiddenWallet
 
 	public class ConfigFileSerializer
 	{
-		public static string ConfigFilePath = "Config.json";
+		public static readonly string ConfigFilePath = "Config.json";
 
 		// KEEP THEM PUBLIC OTHERWISE IT WILL NOT SERIALIZE!
 		public string DefaultWalletFileName { get; set; }

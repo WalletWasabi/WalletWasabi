@@ -2,7 +2,7 @@
   "version": "1.0.0-*",
   "buildOptions": {
     "emitEntryPoint": true,
-    "nowarn": [ "RECS0083", "RECS0012", "RECS0091", "AD0001" ]
+    "nowarn": [ "CC0019", "CC0001", "CC0105" ]
   },
 
   "dependencies": {

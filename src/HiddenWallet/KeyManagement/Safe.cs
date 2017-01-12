@@ -7,7 +7,7 @@ namespace HiddenWallet.KeyManagement
 {
 	public class Safe
 	{
-		private Network _network;
+		private readonly Network _network;
 		public Network Network => _network;
 		private ExtKey _extKey;
 		public ExtKey ExtKey => _extKey;

@@ -11,7 +11,7 @@ namespace HiddenWallet.Helpers
 		/// <returns></returns>
 		internal static string ReadPassword()
 		{
-			StringBuilder sb = new StringBuilder();
+			var sb = new StringBuilder();
 			while (true)
 			{
 				ConsoleKeyInfo cki = Console.ReadKey(true);

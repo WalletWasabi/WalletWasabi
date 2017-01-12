@@ -27,7 +27,7 @@ namespace HiddenWallet
 
 		#region Commands
 
-		public static HashSet<string> Commands = new HashSet<string>
+		public static readonly HashSet<string> Commands = new HashSet<string>
 		{
 			"help",
 			"generate-wallet",
@@ -374,7 +374,7 @@ namespace HiddenWallet
 				catch (Exception ex)
 				{
 					Exit(ex.ToString());
-					throw ex;
+					throw;
 				}
 				Safe safe = DecryptWalletByAskingForPassword(walletFilePath);
 
@@ -413,8 +413,8 @@ namespace HiddenWallet
 					Dictionary<Coin, bool> unspentCoins = await GetUnspentCoinsAsync(operationsPerNotEmptyPrivateKeys.Keys).ConfigureAwait(false);
 
 					// 4. How much money we can spend?
-					Money availableAmount = Money.Zero;
-					Money unconfirmedAvailableAmount = Money.Zero;
+					var availableAmount = Money.Zero;
+					var unconfirmedAvailableAmount = Money.Zero;
 					foreach (var elem in unspentCoins)
 					{
 						// If can spend unconfirmed add all
@@ -456,11 +456,11 @@ namespace HiddenWallet
 					}
 					else
 					{
-						var expectedMinTxSize = 1 * 148 + 2 * 34 + 10 - 1;
+						const int expectedMinTxSize = 1 * 148 + 2 * 34 + 10 - 1;
 						inNum = SelectCoinsToSpend(unspentCoins, ParseBtcString(amountString) + feePerBytes * expectedMinTxSize).Count;
 					}
-					int outNum = 2; // 1 address to send + 1 for change
-					int estimatedTxSize = inNum * 148 + outNum * 34 + 10 + inNum; // http://bitcoin.stackexchange.com/questions/1195/how-to-calculate-transaction-size-before-sending
+					const int outNum = 2; // 1 address to send + 1 for change
+					var estimatedTxSize = inNum * 148 + outNum * 34 + 10 + inNum; // http://bitcoin.stackexchange.com/questions/1195/how-to-calculate-transaction-size-before-sending
 					WriteLine($"Estimated tx size: {estimatedTxSize} bytes");
 					Money fee = feePerBytes * estimatedTxSize;
 					WriteLine($"Fee: {fee.ToDecimal(MoneyUnit.BTC).ToString("0.#############################")}btc");
@@ -546,7 +546,7 @@ namespace HiddenWallet
 					BroadcastResponse broadcastResponse;
 					var success = false;
 					var tried = 0;
-					var maxTry = 7;
+					const int maxTry = 7;
 					do
 					{
 						tried++;
@@ -631,7 +631,7 @@ namespace HiddenWallet
 			try
 			{
 				HttpResponseMessage response;
-				var requestUri = @"http://api.blockcypher.com/v1/btc/main";
+				const string requestUri = @"http://api.blockcypher.com/v1/btc/main";
 				if (Config.UseTor)
 				{
 					using (var socksPortClient = new DotNetTor.SocksPort.Client(Config.TorHost, Config.TorSocksPort))
@@ -659,7 +659,7 @@ namespace HiddenWallet
 			}
 			catch (TorException ex)
 			{
-				string message = ex.Message + Environment.NewLine +
+				var message = ex.Message + Environment.NewLine +
 					"You are not running TOR or your TOR settings are misconfigured." + Environment.NewLine +
 					$"Please review your 'torrc' and '{ConfigFileSerializer.ConfigFilePath}' files.";
 				throw new Exception(message, ex);
@@ -763,7 +763,7 @@ namespace HiddenWallet
 
 		private static string GetArgumentValue(string[] args, string argName, bool required = true)
 		{
-			string argValue = "";
+			var argValue = "";
 			foreach (var arg in args)
 			{
 				if (arg.StartsWith($"{argName}=", StringComparison.OrdinalIgnoreCase))
@@ -784,7 +784,7 @@ namespace HiddenWallet
 			string walletFileName = GetArgumentValue(args, "wallet-file", required: false);
 			if (walletFileName == "") walletFileName = Config.DefaultWalletFileName;
 
-			var walletDirName = "Wallets";
+			const string walletDirName = "Wallets";
 			Directory.CreateDirectory(walletDirName);
 			return Path.Combine(walletDirName, walletFileName);
 		}
@@ -797,7 +797,7 @@ namespace HiddenWallet
 		{
 			Safe safe = null;
 			string pw;
-			bool correctPw = false;
+			var correctPw = false;
 			WriteLine("Type your password:");
 			do
 			{

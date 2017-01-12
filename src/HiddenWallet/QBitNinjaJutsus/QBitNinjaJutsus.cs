@@ -76,7 +76,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 			}
 			catch (TorException ex)
 			{
-				string message = ex.Message + Environment.NewLine +
+				var message = ex.Message + Environment.NewLine +
 					"You are not running TOR or your TOR settings are misconfigured." + Environment.NewLine +
 					$"Please review your 'torrc' and '{ConfigFileSerializer.ConfigFilePath}' files.";
 				throw new Exception(message, ex);

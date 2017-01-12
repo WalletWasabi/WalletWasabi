@@ -7,7 +7,7 @@ namespace HiddenWallet
 	{
 		public static class FakeSafe
 		{
-			private static List<BitcoinAddress> fakeSafeAddresses = new List<BitcoinAddress>();
+			private static readonly List<BitcoinAddress> fakeSafeAddresses = new List<BitcoinAddress>();
 
 			static FakeSafe()
 			{
@@ -52,7 +52,7 @@ namespace HiddenWallet
 					new Key().PubKey.GetAddress(Network).ToWif(),
 					new Key().PubKey.GetAddress(Network).ToWif()
 				};
-				HashSet<string> uniqueAddresses = new HashSet<string>();
+				var uniqueAddresses = new HashSet<string>();
 				foreach (var addr in addresses)
 					uniqueAddresses.Add(addr);
 				foreach (var addr in uniqueAddresses)
