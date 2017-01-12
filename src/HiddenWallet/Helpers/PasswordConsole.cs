@@ -3,7 +3,7 @@ using System.Text;
 
 namespace HiddenWallet.Helpers
 {
-	public class PasswordConsole
+	public static class PasswordConsole
 	{
 		/// <summary>
 		/// Gets the console password.

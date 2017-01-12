@@ -18,8 +18,8 @@ namespace HiddenWallet
 
 		public static Network Network = Network.Main;
 		public static ConnectionType ConnectionType = ConnectionType.Http;
-		public static bool CanSpendUnconfirmed = false;
-		public static bool UseTor = false;
+		public static bool CanSpendUnconfirmed;
+		public static bool UseTor;
 		public static string TorHost = "127.0.0.1";
 		public static int TorSocksPort = 9050;
 		public static int TorControlPort = 9051;
