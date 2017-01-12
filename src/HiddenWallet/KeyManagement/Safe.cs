@@ -7,8 +7,8 @@ namespace HiddenWallet.KeyManagement
 {
 	public class Safe
 	{
-		private readonly Network _network;
-		public Network Network => _network;
+		public Network Network { get; }
+
 		private ExtKey _extKey;
 		public ExtKey ExtKey => _extKey;
 		public BitcoinExtPubKey BitcoinExtPubKey => ExtKey.Neuter().GetWif(Network);
@@ -41,7 +41,7 @@ namespace HiddenWallet.KeyManagement
 
 		protected Safe(string password, string walletFilePath, Network network, string mnemonicString = null)
 		{
-			_network = network;
+			Network = network;
 
 			if (mnemonicString != null)
 			{
@@ -53,7 +53,7 @@ namespace HiddenWallet.KeyManagement
 
 		public Safe(Safe safe)
 		{
-			_network = safe.Network;
+			Network = safe.Network;
 			_extKey = safe.ExtKey;
 			WalletFilePath = safe.WalletFilePath;
 		}
@@ -133,7 +133,7 @@ namespace HiddenWallet.KeyManagement
 			var encryptedBitcoinPrivateKeyString = walletFileRawContent.EncryptedSeed;
 			var chainCodeString = walletFileRawContent.ChainCode;
 
-			var chainCode = System.Convert.FromBase64String(chainCodeString);
+			var chainCode = Convert.FromBase64String(chainCodeString);
 
 			Network network;
 			var networkString = walletFileRawContent.Network;

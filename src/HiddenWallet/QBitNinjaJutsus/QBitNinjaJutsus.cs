@@ -37,13 +37,10 @@ namespace HiddenWallet.QBitNinjaJutsus
 				coinsToSpend.Add(coin);
 				// if doesn't reach amount, continue adding next coin
 				if (coinsToSpend.Sum(x => x.Amount) < totalOutAmount) continue;
-				else
-				{
-					haveEnough = true;
-					break;
-				}
+				haveEnough = true;
+				break;
 			}
-
+			
 			return haveEnough;
 		}
 
@@ -114,7 +111,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 			foreach (var elem in operationsPerAddresses)
 				foreach (var op in elem.Value)
 					opSet.Add(op);
-			if (opSet.Count() == 0) Program.Exit("Wallet has no history yet.");
+			if (!opSet.Any()) Program.Exit("Wallet has no history yet.");
 
 			// 2. Get all operations, grouped by transactions
 			var operationsPerTransactions = new Dictionary<uint256, List<BalanceOperation>>();
@@ -204,7 +201,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 			return operationsPerAddresses;
 		}
 
-		private async static Task<IEnumerable<BalanceModel>> GetBalancesAsync(QBitNinjaClient client, IEnumerable<BitcoinAddress> addresses, bool unspentOnly)
+		private static async Task<IEnumerable<BalanceModel>> GetBalancesAsync(QBitNinjaClient client, IEnumerable<BitcoinAddress> addresses, bool unspentOnly)
 		{
 			var tasks = new HashSet<Task<BalanceModel>>();
 			foreach (var dest in addresses)

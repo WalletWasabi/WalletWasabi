@@ -14,7 +14,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using static HiddenWallet.KeyManagement.Safe;
 using static HiddenWallet.QBitNinjaJutsus.QBitNinjaJutsus;
 using static System.Console;
 
@@ -23,11 +22,11 @@ namespace HiddenWallet
 	public class Program
 	{
 		// The minimum number of unused keys those are queried on the blockchain from the HD path.
-		public const int minUnusedKeyNum = 21;
+		private const int MinUnusedKeyNum = 21;
 
 		#region Commands
 
-		public static readonly HashSet<string> Commands = new HashSet<string>
+		private static readonly HashSet<string> Commands = new HashSet<string>
 		{
 			"help",
 			"generate-wallet",
@@ -125,7 +124,7 @@ namespace HiddenWallet
 
 				// 3. Create wallet
 				string mnemonic;
-				Safe safe = Safe.Create(out mnemonic, pw, walletFilePath, Config.Network);
+				Safe.Create(out mnemonic, pw, walletFilePath, Config.Network);
 				// If no exception thrown the wallet is successfully created.
 				WriteLine();
 				WriteLine("Wallet is successfully created.");
@@ -159,7 +158,7 @@ namespace HiddenWallet
 				WriteLine("Provide your password. Please note the wallet cannot check if your password is correct or not. If you provide a wrong password a wallet will be recovered with your provided mnemonic AND password pair:");
 				var password = PasswordConsole.ReadPassword();
 
-				Safe safe = Safe.Recover(mnemonic, password, walletFilePath, Config.Network);
+				Safe.Recover(mnemonic, password, walletFilePath, Config.Network);
 				// If no exception thrown the wallet is successfully recovered.
 				WriteLine();
 				WriteLine("Wallet is successfully recovered.");
@@ -180,13 +179,13 @@ namespace HiddenWallet
 				{
 					await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
 					// 0. Query all operations, grouped by addresses
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(safe, minUnusedKeyNum).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(safe, MinUnusedKeyNum).ConfigureAwait(false);
 
 					// 1. Get all address history record with a wrapper class
 					var addressHistoryRecords = new List<AddressHistoryRecord>();
 					foreach (var elem in operationsPerAddresses)
 					{
-						foreach (var op in elem.Value)
+						foreach (BalanceOperation op in elem.Value)
 						{
 							addressHistoryRecords.Add(new AddressHistoryRecord(elem.Key, op));
 						}
@@ -199,10 +198,10 @@ namespace HiddenWallet
 
 					// 3. Group all address history records by addresses
 					var addressHistoryRecordsPerAddresses = new Dictionary<BitcoinAddress, HashSet<AddressHistoryRecord>>();
-					foreach (var address in operationsPerAddresses.Keys)
+					foreach (BitcoinAddress address in operationsPerAddresses.Keys)
 					{
 						var recs = new HashSet<AddressHistoryRecord>();
-						foreach (var record in addressHistoryRecords)
+						foreach (AddressHistoryRecord record in addressHistoryRecords)
 						{
 							if (record.Address == address)
 								recs.Add(record);
@@ -213,7 +212,7 @@ namespace HiddenWallet
 					// 4. Calculate address balances
 					WriteLine();
 					WriteLine("---------------------------------------------------------------------------");
-					WriteLine("Address\t\t\t\t\tConfirmed\tUnconfirmed");
+					WriteLine(@"Address					Confirmed	Unconfirmed");
 					WriteLine("---------------------------------------------------------------------------");
 					foreach (var elem in addressHistoryRecordsPerAddresses)
 					{
@@ -221,11 +220,11 @@ namespace HiddenWallet
 						Money unconfirmedBalance;
 						GetBalances(elem.Value, out confirmedBalance, out unconfirmedBalance);
 						if (confirmedBalance != Money.Zero || unconfirmedBalance != Money.Zero)
-							WriteLine($"{elem.Key.ToWif()}\t{confirmedBalance.ToDecimal(MoneyUnit.BTC).ToString("0.#############################")}\t\t{unconfirmedBalance.ToDecimal(MoneyUnit.BTC).ToString("0.#############################")}");
+							WriteLine($@"{elem.Key.ToWif()}	{confirmedBalance.ToDecimal(MoneyUnit.BTC):0.#############################}		{unconfirmedBalance.ToDecimal(MoneyUnit.BTC):0.#############################}");
 					}
 					WriteLine("---------------------------------------------------------------------------");
-					WriteLine($"Confirmed Wallet Balance: {confirmedWalletBalance.ToDecimal(MoneyUnit.BTC).ToString("0.#############################")}btc");
-					WriteLine($"Unconfirmed Wallet Balance: {unconfirmedWalletBalance.ToDecimal(MoneyUnit.BTC).ToString("0.#############################")}btc");
+					WriteLine($"Confirmed Wallet Balance: {confirmedWalletBalance.ToDecimal(MoneyUnit.BTC):0.#############################}btc");
+					WriteLine($"Unconfirmed Wallet Balance: {unconfirmedWalletBalance.ToDecimal(MoneyUnit.BTC):0.#############################}btc");
 					WriteLine("---------------------------------------------------------------------------");
 				}
 				else if (Config.ConnectionType == ConnectionType.FullNode)
@@ -252,11 +251,11 @@ namespace HiddenWallet
 				{
 					await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
 					// 0. Query all operations, grouped our used safe addresses
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(safe, minUnusedKeyNum).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(safe, MinUnusedKeyNum).ConfigureAwait(false);
 
 					WriteLine();
 					WriteLine("---------------------------------------------------------------------------");
-					WriteLine("Date\t\t\tAmount\t\tConfirmed\tTransaction Id");
+					WriteLine(@"Date			Amount		Confirmed	Transaction Id");
 					WriteLine("---------------------------------------------------------------------------");
 
 					Dictionary<uint256, List<BalanceOperation>> operationsPerTransactions = GetOperationsPerTransactions(operationsPerAddresses);
@@ -279,7 +278,7 @@ namespace HiddenWallet
 								elem.Key));
 					}
 
-					// 4. Order the records by confirmations and time (Simply time does not work, because of a QBitNinja bug)
+					// 4. Order the records by confirmations and time (Simply time does not work, because of a QBitNinja issue)
 					var orderedTxHistoryRecords = txHistoryRecords
 						.OrderByDescending(x => x.Item3) // Confirmations
 						.ThenBy(x => x.Item1); // FirstSeen
@@ -288,7 +287,7 @@ namespace HiddenWallet
 						// Item2 is the Amount
 						if (record.Item2 > 0) ForegroundColor = ConsoleColor.Green;
 						else if (record.Item2 < 0) ForegroundColor = ConsoleColor.DarkGreen;
-						WriteLine($"{record.Item1.DateTime}\t{record.Item2}\t{record.Item3 > 0}\t\t{record.Item4}");
+						WriteLine($@"{record.Item1.DateTime}	{record.Item2}	{record.Item3 > 0}		{record.Item4}");
 						ResetColor();
 					}
 				}
@@ -338,7 +337,7 @@ namespace HiddenWallet
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
 					await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await QueryOperationsPerSafeAddressesAsync(safe, 7, HdPathType.Receive).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await QueryOperationsPerSafeAddressesAsync(safe, 7, Safe.HdPathType.Receive).ConfigureAwait(false);
 
 					WriteLine("---------------------------------------------------------------------------");
 					WriteLine("Unused Receive Addresses");
@@ -380,7 +379,7 @@ namespace HiddenWallet
 
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(safe, minUnusedKeyNum).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(safe, MinUnusedKeyNum).ConfigureAwait(false);
 
 					// 1. Gather all the not empty private keys
 					WriteLine("Finding not empty private keys...");
@@ -399,7 +398,7 @@ namespace HiddenWallet
 					// 2. Get the script pubkey of the change.
 					WriteLine("Select change address...");
 					Script changeScriptPubKey = null;
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await QueryOperationsPerSafeAddressesAsync(safe, minUnusedKeys: 1, hdPathType: HdPathType.Change).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await QueryOperationsPerSafeAddressesAsync(safe, minUnusedKeys: 1, hdPathType: Safe.HdPathType.Change).ConfigureAwait(false);
 					foreach (var elem in operationsPerChangeAddresses)
 					{
 						if (elem.Value.Count == 0)
@@ -463,7 +462,7 @@ namespace HiddenWallet
 					var estimatedTxSize = inNum * 148 + outNum * 34 + 10 + inNum; // http://bitcoin.stackexchange.com/questions/1195/how-to-calculate-transaction-size-before-sending
 					WriteLine($"Estimated tx size: {estimatedTxSize} bytes");
 					Money fee = feePerBytes * estimatedTxSize;
-					WriteLine($"Fee: {fee.ToDecimal(MoneyUnit.BTC).ToString("0.#############################")}btc");
+					WriteLine($"Fee: {fee.ToDecimal(MoneyUnit.BTC):0.#############################}btc");
 
 					// 6. How much to spend?
 					Money amountToSend = null;
@@ -485,9 +484,9 @@ namespace HiddenWallet
 					if (feePc > 1)
 					{
 						WriteLine();
-						WriteLine($"The transaction fee is {feePc.ToString("0.#")}% of your transaction amount.");
-						WriteLine($"Sending:\t {amountToSend.ToDecimal(MoneyUnit.BTC).ToString("0.#############################")}btc");
-						WriteLine($"Fee:\t\t {fee.ToDecimal(MoneyUnit.BTC).ToString("0.#############################")}btc");
+						WriteLine($"The transaction fee is {feePc:0.#}% of your transaction amount.");
+						WriteLine($"Sending:\t {amountToSend.ToDecimal(MoneyUnit.BTC):0.#############################}btc");
+						WriteLine($"Fee:\t\t {fee.ToDecimal(MoneyUnit.BTC):0.#############################}btc");
 						ConsoleKey response = GetYesNoAnswerFromUser();
 						if (response == ConsoleKey.N)
 						{
@@ -501,7 +500,7 @@ namespace HiddenWallet
 					{
 						var unconfirmedToSend = totalOutAmount - confirmedAvailableAmount;
 						WriteLine();
-						WriteLine($"In order to complete this transaction you have to spend {unconfirmedToSend.ToDecimal(MoneyUnit.BTC).ToString("0.#############################")} unconfirmed btc.");
+						WriteLine($"In order to complete this transaction you have to spend {unconfirmedToSend.ToDecimal(MoneyUnit.BTC):0.#############################} unconfirmed btc.");
 						ConsoleKey response = GetYesNoAnswerFromUser();
 						if (response == ConsoleKey.N)
 						{
@@ -553,25 +552,24 @@ namespace HiddenWallet
 						WriteLine($"Try broadcasting transaction... ({tried})");
 						broadcastResponse = await qBitClient.Broadcast(tx).ConfigureAwait(false);
 						var getTxResp = await qBitClient.GetTransaction(tx.GetHash()).ConfigureAwait(false);
-						if (getTxResp == null)
-						{
-							await Task.Delay(3000).ConfigureAwait(false);
-							continue;
-						}
-						else
+						if (getTxResp != null)
 						{
 							success = true;
 							break;
+						}
+						else
+						{
+							await Task.Delay(3000).ConfigureAwait(false);
 						}
 					} while (tried < maxTry);
 					if (!success)
 					{
 						if (broadcastResponse.Error != null)
 						{
-							// Try broadcasting with smartbit if QBit fails (QBit bug)
+							// Try broadcasting with smartbit if QBit fails (QBit issue)
 							if (broadcastResponse.Error.ErrorCode == NBitcoin.Protocol.RejectCode.INVALID && broadcastResponse.Error.Reason == "Unknown")
 							{
-								WriteLine($"Try broadcasting transaction with smartbit...");
+								WriteLine("Try broadcasting transaction with smartbit...");
 								using (var httpClient = new HttpClient())
 								{
 									var post = "https://testnet-api.smartbit.com.au/v1/blockchain/pushtx";
@@ -590,7 +588,7 @@ namespace HiddenWallet
 							else
 								WriteLine($"Error code: {broadcastResponse.Error.ErrorCode} Reason: {broadcastResponse.Error.Reason}");
 						}
-						Exit($"The transaction might not have been successfully broadcasted. Please check the Transaction ID in a block explorer.", ConsoleColor.Blue);
+						Exit("The transaction might not have been successfully broadcasted. Please check the Transaction ID in a block explorer.", ConsoleColor.Blue);
 					}
 					Exit("Transaction is successfully propagated on the network.", ConsoleColor.Green);
 				}
@@ -659,7 +657,7 @@ namespace HiddenWallet
 			}
 			catch (TorException ex)
 			{
-				var message = ex.Message + Environment.NewLine +
+				string message = ex.Message + Environment.NewLine +
 					"You are not running TOR or your TOR settings are misconfigured." + Environment.NewLine +
 					$"Please review your 'torrc' and '{ConfigFileSerializer.ConfigFilePath}' files.";
 				throw new Exception(message, ex);
@@ -668,7 +666,7 @@ namespace HiddenWallet
 
 		#region Assertions
 
-		public static void AssertWalletNotExists(string walletFilePath)
+		private static void AssertWalletNotExists(string walletFilePath)
 		{
 			if (File.Exists(walletFilePath))
 			{
@@ -676,7 +674,7 @@ namespace HiddenWallet
 			}
 		}
 
-		public static void AssertCorrectNetwork(Network network)
+		private static void AssertCorrectNetwork(Network network)
 		{
 			if (network != Config.Network)
 			{
@@ -686,7 +684,7 @@ namespace HiddenWallet
 			}
 		}
 
-		public static void AssertCorrectMnemonicFormat(string mnemonic)
+		private static void AssertCorrectMnemonicFormat(string mnemonic)
 		{
 			try
 			{
@@ -699,7 +697,7 @@ namespace HiddenWallet
 			Exit("Incorrect mnemonic format.");
 		}
 
-		public static async Task AssertCorrectQBitBlockHeightAsync()
+		private static async Task AssertCorrectQBitBlockHeightAsync()
 		{
 			// Check if QBitNinja up-to-date
 			using (var httpClient = new HttpClient())
@@ -724,11 +722,11 @@ namespace HiddenWallet
 					return; // skip check, chances are qbit and smartbit won't be down the same time
 				else
 				{
-					var lastSmartBitHeight = json["totals"].Value<int>("block_count") - 1;
+					int lastSmartBitHeight = json["totals"].Value<int>("block_count") - 1;
 
 					var client = new QBitNinjaClient(Config.Network);
 					var lastBlock = await client.GetBlock(new BlockFeature(SpecialFeature.Last), headerOnly: true).ConfigureAwait(false);
-					var lastQBitHeight = lastBlock.AdditionalInformation.Height;
+					int lastQBitHeight = lastBlock.AdditionalInformation.Height;
 
 					if (lastSmartBitHeight <= lastQBitHeight) return;
 					else
@@ -745,7 +743,7 @@ namespace HiddenWallet
 		}
 
 		// Inclusive
-		public static void AssertArgumentsLenght(int length, int min, int max)
+		private static void AssertArgumentsLenght(int length, int min, int max)
 		{
 			if (length < min)
 			{
@@ -761,10 +759,10 @@ namespace HiddenWallet
 
 		#region CommandLineArgumentStuff
 
-		private static string GetArgumentValue(string[] args, string argName, bool required = true)
+		private static string GetArgumentValue(IEnumerable<string> args, string argName, bool required = true)
 		{
 			var argValue = "";
-			foreach (var arg in args)
+			foreach (string arg in args)
 			{
 				if (arg.StartsWith($"{argName}=", StringComparison.OrdinalIgnoreCase))
 				{
@@ -779,7 +777,7 @@ namespace HiddenWallet
 			return argValue;
 		}
 
-		private static string GetWalletFilePath(string[] args)
+		private static string GetWalletFilePath(IEnumerable<string> args)
 		{
 			string walletFileName = GetArgumentValue(args, "wallet-file", required: false);
 			if (walletFileName == "") walletFileName = Config.DefaultWalletFileName;
@@ -796,12 +794,11 @@ namespace HiddenWallet
 		private static Safe DecryptWalletByAskingForPassword(string walletFilePath)
 		{
 			Safe safe = null;
-			string pw;
 			var correctPw = false;
 			WriteLine("Type your password:");
 			do
 			{
-				pw = PasswordConsole.ReadPassword();
+				string pw = PasswordConsole.ReadPassword();
 				try
 				{
 					safe = Safe.Load(pw, walletFilePath);
@@ -830,7 +827,7 @@ namespace HiddenWallet
 			ConsoleKey response;
 			do
 			{
-				WriteLine($"Are you sure you want to proceed? (y/n)");
+				WriteLine("Are you sure you want to proceed? (y/n)");
 				response = ReadKey(false).Key;   // true is intercept key (dont show), false is show
 				if (response != ConsoleKey.Enter)
 					WriteLine();
@@ -838,10 +835,10 @@ namespace HiddenWallet
 			return response;
 		}
 
-		public static void DisplayHelp()
+		private static void DisplayHelp()
 		{
 			WriteLine("Possible commands are:");
-			foreach (var cmd in Commands) WriteLine($"\t{cmd}");
+			foreach (string cmd in Commands) WriteLine($"\t{cmd}");
 		}
 
 		public static void Exit(string reason = "", ConsoleColor color = ConsoleColor.Red)
