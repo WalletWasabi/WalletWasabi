@@ -27,7 +27,7 @@ namespace HiddenWallet
 
 		#region Commands
 
-		public static HashSet<string> Commands = new HashSet<string>()
+		public static HashSet<string> Commands = new HashSet<string>
 		{
 			"help",
 			"generate-wallet",
@@ -768,7 +768,7 @@ namespace HiddenWallet
 			{
 				if (arg.StartsWith($"{argName}=", StringComparison.OrdinalIgnoreCase))
 				{
-					argValue = arg.Substring(arg.IndexOf("=") + 1);
+					argValue = arg.Substring(arg.IndexOf("=", StringComparison.Ordinal) + 1);
 					break;
 				}
 			}
