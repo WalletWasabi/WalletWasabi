@@ -50,37 +50,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 		/// <param name="client"></param>
 		/// <param name="secrets"></param>
 		///  <returns>dictionary with coins and if confirmed</returns>
-		public static async Task<Dictionary<Coin, bool>> GetUnspentCoinsAsync(QBitNinjaClient client, IEnumerable<ISecret> secrets)
-		{
-			try
-			{
-				Dictionary<Coin, bool> unspentCoins;
-				if (Config.UseTor)
-				{
-					using (var socksPortClient = new DotNetTor.SocksPort.Client(Config.TorHost, Config.TorSocksPort))
-					{
-						var handler = socksPortClient.GetHandlerFromRequestUri(client.BaseAddress.AbsoluteUri);
-						client.SetHttpMessageHandler(handler);
-						unspentCoins = await GetUnspentCoinsAsync(secrets, client).ConfigureAwait(false);
-					}
-				}
-				else
-				{
-					unspentCoins = await GetUnspentCoinsAsync(secrets, client).ConfigureAwait(false);
-				}
-
-				return unspentCoins;
-			}
-			catch (TorException ex)
-			{
-				var message = ex.Message + Environment.NewLine +
-					"You are not running TOR or your TOR settings are misconfigured." + Environment.NewLine +
-					$"Please review your 'torrc' and '{ConfigFileSerializer.ConfigFilePath}' files.";
-				throw new Exception(message, ex);
-			}
-		}
-
-		private static async Task<Dictionary<Coin, bool>> GetUnspentCoinsAsync(IEnumerable<ISecret> secrets, QBitNinjaClient client)
+		public static async Task<Dictionary<Coin, bool>> GetUnspentCoinsAsync(IEnumerable<ISecret> secrets, QBitNinjaClient client)
 		{
 			var unspentCoins = new Dictionary<Coin, bool>();
 
@@ -134,9 +104,15 @@ namespace HiddenWallet.QBitNinjaJutsus
 		{
 			if (hdPathType == null)
 			{
-				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.Receive).ConfigureAwait(false);
-				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.Change).ConfigureAwait(false);
-				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerNonHardenedAddresses = await QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.NonHardened).ConfigureAwait(false);
+				var t1 = QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.Receive);
+				var t2 = QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.Change);
+				var t3 = QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.NonHardened);
+
+				await Task.WhenAll(t1, t2, t3).ConfigureAwait(false);
+
+				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await t1.ConfigureAwait(false);
+				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await t2.ConfigureAwait(false);
+				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerNonHardenedAddresses = await t3.ConfigureAwait(false);
 
 				var operationsPerAllAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
 				foreach (var elem in operationsPerReceiveAddresses)

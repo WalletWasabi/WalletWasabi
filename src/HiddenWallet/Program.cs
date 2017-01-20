@@ -14,6 +14,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using DotNetTor.SocksPort;
 using static HiddenWallet.QBitNinjaJutsus.QBitNinjaJutsus;
 using static System.Console;
 
@@ -76,9 +77,7 @@ namespace HiddenWallet
 			QBitClient = new QBitNinjaClient(Config.Network);
 			if (Config.UseTor)
 			{
-				var socksPortClient = new DotNetTor.SocksPort.Client(Config.TorHost, Config.TorSocksPort);
-				var handler = socksPortClient.GetHandlerFromRequestUri(QBitClient.BaseAddress.AbsoluteUri);
-				QBitClient.SetHttpMessageHandler(handler);
+				QBitClient.SetHttpMessageHandler(new SocksPortHandler(Config.TorHost, Config.TorSocksPort));
 			}
 
 			if (args.Count == 0)
@@ -419,7 +418,7 @@ namespace HiddenWallet
 
 					// 3. Gather coins can be spend
 					WriteLine("Gathering unspent coins...");
-					Dictionary<Coin, bool> unspentCoins = await GetUnspentCoinsAsync(QBitClient, operationsPerNotEmptyPrivateKeys.Keys).ConfigureAwait(false);
+					Dictionary<Coin, bool> unspentCoins = await GetUnspentCoinsAsync(operationsPerNotEmptyPrivateKeys.Keys, QBitClient).ConfigureAwait(false);
 
 					// 4. How much money we can spend?
 					var availableAmount = Money.Zero;
@@ -578,14 +577,19 @@ namespace HiddenWallet
 							if (broadcastResponse.Error.ErrorCode == NBitcoin.Protocol.RejectCode.INVALID && broadcastResponse.Error.Reason == "Unknown")
 							{
 								WriteLine("Try broadcasting transaction with smartbit...");
-								using (var httpClient = new HttpClient())
+								HttpClient client;
+								if (Config.UseTor)
+									client = new HttpClient(new SocksPortHandler(Config.TorHost, Config.TorSocksPort));
+								else
+									client = new HttpClient();
+								using (client)
 								{
 									var post = "https://testnet-api.smartbit.com.au/v1/blockchain/pushtx";
 									if (Config.Network == Network.Main)
 										post = "https://api.smartbit.com.au/v1/blockchain/pushtx";
 
 									var content = new StringContent(new JObject(new JProperty("hex", tx.ToHex())).ToString(), Encoding.UTF8, "application/json");
-									var resp = await httpClient.PostAsync(post, content).ConfigureAwait(false);
+									var resp = await client.PostAsync(post, content).ConfigureAwait(false);
 									var json = JObject.Parse(await resp.Content.ReadAsStringAsync().ConfigureAwait(false));
 									if (json.Value<bool>("success"))
 										Exit("Transaction is successfully propagated on the network.", ConsoleColor.Green);
@@ -636,39 +640,29 @@ namespace HiddenWallet
 		{
 			try
 			{
-				HttpResponseMessage response;
-				const string requestUri = @"http://api.blockcypher.com/v1/btc/main";
+				HttpClient client;
 				if (Config.UseTor)
-				{
-					using (var socksPortClient = new DotNetTor.SocksPort.Client(Config.TorHost, Config.TorSocksPort))
-					{
-						var handler = socksPortClient.GetHandlerFromRequestUri(requestUri);
-						using (var client = new HttpClient(handler))
-						{
-							response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
-						}
-					}
-				}
+					client = new HttpClient(new SocksPortHandler(Config.TorHost, Config.TorSocksPort));
 				else
+					client = new HttpClient();
+
+				using (client)
 				{
-					using (var client = new HttpClient())
-					{
-						response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
-					}
+					HttpResponseMessage response =
+						await client.GetAsync(@"http://api.blockcypher.com/v1/btc/main", HttpCompletionOption.ResponseContentRead)
+							.ConfigureAwait(false);
+
+					var json = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+					var fastestSatoshiPerByteFee = (int) (json.Value<decimal>("high_fee_per_kb") / 1024);
+					var feePerBytes = new Money(fastestSatoshiPerByteFee, MoneyUnit.Satoshi);
+
+					return feePerBytes;
 				}
-
-				var json = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-				var fastestSatoshiPerByteFee = (int)(json.Value<decimal>("high_fee_per_kb") / 1024);
-				var feePerBytes = new Money(fastestSatoshiPerByteFee, MoneyUnit.Satoshi);
-
-				return feePerBytes;
 			}
-			catch (TorException ex)
+			catch (Exception ex)
 			{
-				string message = ex.Message + Environment.NewLine +
-					"You are not running TOR or your TOR settings are misconfigured." + Environment.NewLine +
-					$"Please review your 'torrc' and '{ConfigFileSerializer.ConfigFilePath}' files.";
-				throw new Exception(message, ex);
+				Exit(ex.Message);
+				return Money.Zero;
 			}
 		}
 

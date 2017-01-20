@@ -2,16 +2,16 @@
   "version": "1.0.0-*",
   "buildOptions": {
     "emitEntryPoint": true,
-    "nowarn": [ "CC0019", "CC0001", "CC0105" ]
+    "nowarn": []
   },
 
   "dependencies": {
-    "DotNetTor": "1.0.0",
+    "DotNetTor": "2.0.1",
     "Microsoft.NETCore.App": {
       "type": "platform",
       "version": "1.1.0"
     },
-    "NBitcoin": "3.0.1.4",
+    "NBitcoin": "3.0.1.6",
     "QBitNinja.Client": "1.0.3.34"
   },
 
