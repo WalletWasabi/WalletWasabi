@@ -82,6 +82,7 @@ namespace HiddenWallet
 			{
 				throw new Exception($"Wrong CanSpendUnconfirmed value in {ConfigFileSerializer.ConfigFilePath}", ex);
 			}
+
 			try
 			{
 				UseTor = bool.Parse(rawContent.UseTor.Trim());

@@ -179,6 +179,7 @@ namespace HiddenWallet.KeyManagement
 				if (GetAddress(i, HdPathType.NonHardened) == address)
 					return GetPrivateKey(i, HdPathType.NonHardened);
 			}
+
 			throw new Exception("Bitcoin address not found.");
 		}
 

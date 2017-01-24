@@ -73,6 +73,7 @@ namespace HiddenWallet
 				{
 					addresses.Add(GetAddress(i));
 				}
+
 				return addresses;
 			}
 		}

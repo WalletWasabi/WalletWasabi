@@ -1,9 +1,7 @@
-﻿using DotNetTor;
-using HiddenWallet.KeyManagement;
+﻿using HiddenWallet.KeyManagement;
 using NBitcoin;
 using QBitNinja.Client;
 using QBitNinja.Client.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,18 +27,19 @@ namespace HiddenWallet.QBitNinjaJutsus
 			}
 		}
 
-		public static bool SelectCoins(ref HashSet<Coin> coinsToSpend, Money totalOutAmount, List<Coin> unspentCoins)
+		public static bool SelectCoins(ref HashSet<Coin> coinsToSpend, Money totalOutAmount, IEnumerable<Coin> unspentCoins)
 		{
 			var haveEnough = false;
-			foreach (var coin in unspentCoins.OrderByDescending(x => x.Amount))
+			foreach (Coin coin in unspentCoins.OrderByDescending(x => x.Amount))
 			{
 				coinsToSpend.Add(coin);
 				// if doesn't reach amount, continue adding next coin
 				if (coinsToSpend.Sum(x => x.Amount) < totalOutAmount) continue;
+
 				haveEnough = true;
 				break;
 			}
-			
+
 			return haveEnough;
 		}
 
@@ -81,6 +80,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 			foreach (var elem in operationsPerAddresses)
 				foreach (var op in elem.Value)
 					opSet.Add(op);
+
 			if (!opSet.Any()) Program.Exit("Wallet has no history yet.");
 
 			// 2. Get all operations, grouped by transactions
@@ -121,6 +121,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 					operationsPerAllAddresses.Add(elem.Key, elem.Value);
 				foreach (var elem in operationsPerNonHardenedAddresses)
 					operationsPerAllAddresses.Add(elem.Key, elem.Value);
+
 				return operationsPerAllAddresses;
 			}
 
@@ -134,6 +135,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 				operationsPerAddresses.Add(elem.Key, elem.Value);
 				if (elem.Value.Count == 0) unusedKeyCount++;
 			}
+
 			WriteLine($"{operationsPerAddresses.Count} {hdPathType} keys are processed.");
 
 			var startIndex = minUnusedKeys;
@@ -150,6 +152,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 					operationsPerAddresses.Add(elem.Key, elem.Value);
 					if (elem.Value.Count == 0) unusedKeyCount++;
 				}
+
 				WriteLine($"{operationsPerAddresses.Count} {hdPathType} keys are processed.");
 				startIndex += minUnusedKeys;
 			}
@@ -185,11 +188,13 @@ namespace HiddenWallet.QBitNinjaJutsus
 				var task = client.GetBalance(dest, unspentOnly);
 				tasks.Add(task);
 			}
+
 			await Task.WhenAll(tasks).ConfigureAwait(false);
 
 			var results = new HashSet<BalanceModel>();
 			foreach (var task in tasks)
 				results.Add(await task.ConfigureAwait(false));
+
 			return results;
 		}
 	}

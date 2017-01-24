@@ -1,5 +1,4 @@
-﻿using DotNetTor;
-using HiddenWallet.Helpers;
+﻿using HiddenWallet.Helpers;
 using HiddenWallet.KeyManagement;
 using HiddenWallet.QBitNinjaJutsus;
 using NBitcoin;
@@ -24,7 +23,8 @@ namespace HiddenWallet
 	{
 		// The minimum number of unused keys those are queried on the blockchain from the HD path.
 		private const int MinUnusedKeyNum = 21;
-		private static QBitNinjaClient QBitClient;
+		private static QBitNinjaClient _qBitClient;
+		private static HttpClient _httpClient;
 
 		#region Commands
 
@@ -74,10 +74,13 @@ namespace HiddenWallet
 			Config.Load();
 
 			// Configure QBitNinjaClient
-			QBitClient = new QBitNinjaClient(Config.Network);
+			_qBitClient = new QBitNinjaClient(Config.Network);
+			_httpClient = new HttpClient();
 			if (Config.UseTor)
 			{
-				QBitClient.SetHttpMessageHandler(new SocksPortHandler(Config.TorHost, Config.TorSocksPort));
+				var torHandler = new SocksPortHandler(Config.TorHost, Config.TorSocksPort);
+				_qBitClient.SetHttpMessageHandler(torHandler);
+				_httpClient = new HttpClient(torHandler);
 			}
 
 			if (args.Count == 0)
@@ -91,12 +94,9 @@ namespace HiddenWallet
 				WriteLine("Wrong command is specified.");
 				DisplayHelp();
 			}
-			foreach (var arg in args.Skip(1))
+			foreach (var arg in args.Skip(1).Where(arg => !arg.Contains('=')))
 			{
-				if (!arg.Contains('='))
-				{
-					Exit($"Wrong argument format specified: {arg}");
-				}
+				Exit($"Wrong argument format specified: {arg}");
 			}
 
 			#region HelpCommand
@@ -188,7 +188,7 @@ namespace HiddenWallet
 				{
 					await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
 					// 0. Query all operations, grouped by addresses
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(QBitClient, safe, MinUnusedKeyNum).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(_qBitClient, safe, MinUnusedKeyNum).ConfigureAwait(false);
 
 					// 1. Get all address history record with a wrapper class
 					var addressHistoryRecords = new List<AddressHistoryRecord>();
@@ -215,6 +215,7 @@ namespace HiddenWallet
 							if (record.Address == address)
 								recs.Add(record);
 						}
+
 						addressHistoryRecordsPerAddresses.Add(address, recs);
 					}
 
@@ -231,6 +232,7 @@ namespace HiddenWallet
 						if (confirmedBalance != Money.Zero || unconfirmedBalance != Money.Zero)
 							WriteLine($@"{elem.Key.ToWif()}	{confirmedBalance.ToDecimal(MoneyUnit.BTC):0.#############################}		{unconfirmedBalance.ToDecimal(MoneyUnit.BTC):0.#############################}");
 					}
+
 					WriteLine("---------------------------------------------------------------------------");
 					WriteLine($"Confirmed Wallet Balance: {confirmedWalletBalance.ToDecimal(MoneyUnit.BTC):0.#############################}btc");
 					WriteLine($"Unconfirmed Wallet Balance: {unconfirmedWalletBalance.ToDecimal(MoneyUnit.BTC):0.#############################}btc");
@@ -260,7 +262,7 @@ namespace HiddenWallet
 				{
 					await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
 					// 0. Query all operations, grouped our used safe addresses
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(QBitClient, safe, MinUnusedKeyNum).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(_qBitClient, safe, MinUnusedKeyNum).ConfigureAwait(false);
 
 					WriteLine();
 					WriteLine("---------------------------------------------------------------------------");
@@ -277,6 +279,7 @@ namespace HiddenWallet
 						var amount = Money.Zero;
 						foreach (var op in elem.Value)
 							amount += op.Amount;
+
 						var firstOp = elem.Value.First();
 
 						txHistoryRecords
@@ -346,7 +349,7 @@ namespace HiddenWallet
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
 					await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await QueryOperationsPerSafeAddressesAsync(QBitClient, safe, 7, Safe.HdPathType.Receive).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await QueryOperationsPerSafeAddressesAsync(_qBitClient, safe, 7, Safe.HdPathType.Receive).ConfigureAwait(false);
 
 					WriteLine("---------------------------------------------------------------------------");
 					WriteLine("Unused Receive Addresses");
@@ -384,11 +387,12 @@ namespace HiddenWallet
 					Exit(ex.ToString());
 					throw;
 				}
+
 				Safe safe = DecryptWalletByAskingForPassword(walletFilePath);
 
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(QBitClient, safe, MinUnusedKeyNum).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await QueryOperationsPerSafeAddressesAsync(_qBitClient, safe, MinUnusedKeyNum).ConfigureAwait(false);
 
 					// 1. Gather all the not empty private keys
 					WriteLine("Finding not empty private keys...");
@@ -397,6 +401,7 @@ namespace HiddenWallet
 					{
 						var balance = Money.Zero;
 						foreach (var op in elem.Value) balance += op.Amount;
+
 						if (balance > Money.Zero)
 						{
 							var secret = safe.FindPrivateKey(elem.Key);
@@ -407,18 +412,19 @@ namespace HiddenWallet
 					// 2. Get the script pubkey of the change.
 					WriteLine("Select change address...");
 					Script changeScriptPubKey = null;
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await QueryOperationsPerSafeAddressesAsync(QBitClient, safe, minUnusedKeys: 1, hdPathType: Safe.HdPathType.Change).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await QueryOperationsPerSafeAddressesAsync(_qBitClient, safe, minUnusedKeys: 1, hdPathType: Safe.HdPathType.Change).ConfigureAwait(false);
 					foreach (var elem in operationsPerChangeAddresses)
 					{
 						if (elem.Value.Count == 0)
 							changeScriptPubKey = safe.FindPrivateKey(elem.Key).ScriptPubKey;
 					}
+
 					if (changeScriptPubKey == null)
 						throw new ArgumentNullException();
 
 					// 3. Gather coins can be spend
 					WriteLine("Gathering unspent coins...");
-					Dictionary<Coin, bool> unspentCoins = await GetUnspentCoinsAsync(operationsPerNotEmptyPrivateKeys.Keys, QBitClient).ConfigureAwait(false);
+					Dictionary<Coin, bool> unspentCoins = await GetUnspentCoinsAsync(operationsPerNotEmptyPrivateKeys.Keys, _qBitClient).ConfigureAwait(false);
 
 					// 4. How much money we can spend?
 					var availableAmount = Money.Zero;
@@ -547,7 +553,7 @@ namespace HiddenWallet
 						Exit("Couldn't build the transaction.");
 
 					WriteLine($"Transaction Id: {tx.GetHash()}");
-					
+
 					// QBit's success response is buggy so let's check manually, too
 					BroadcastResponse broadcastResponse;
 					var success = false;
@@ -557,8 +563,8 @@ namespace HiddenWallet
 					{
 						tried++;
 						WriteLine($"Try broadcasting transaction... ({tried})");
-						broadcastResponse = await QBitClient.Broadcast(tx).ConfigureAwait(false);
-						var getTxResp = await QBitClient.GetTransaction(tx.GetHash()).ConfigureAwait(false);
+						broadcastResponse = await _qBitClient.Broadcast(tx).ConfigureAwait(false);
+						var getTxResp = await _qBitClient.GetTransaction(tx.GetHash()).ConfigureAwait(false);
 						if (getTxResp != null)
 						{
 							success = true;
@@ -569,6 +575,7 @@ namespace HiddenWallet
 							await Task.Delay(3000).ConfigureAwait(false);
 						}
 					} while (tried < maxTry);
+
 					if (!success)
 					{
 						if (broadcastResponse.Error != null)
@@ -577,25 +584,18 @@ namespace HiddenWallet
 							if (broadcastResponse.Error.ErrorCode == NBitcoin.Protocol.RejectCode.INVALID && broadcastResponse.Error.Reason == "Unknown")
 							{
 								WriteLine("Try broadcasting transaction with smartbit...");
-								HttpClient client;
-								if (Config.UseTor)
-									client = new HttpClient(new SocksPortHandler(Config.TorHost, Config.TorSocksPort));
-								else
-									client = new HttpClient();
-								using (client)
-								{
-									var post = "https://testnet-api.smartbit.com.au/v1/blockchain/pushtx";
-									if (Config.Network == Network.Main)
-										post = "https://api.smartbit.com.au/v1/blockchain/pushtx";
 
-									var content = new StringContent(new JObject(new JProperty("hex", tx.ToHex())).ToString(), Encoding.UTF8, "application/json");
-									var resp = await client.PostAsync(post, content).ConfigureAwait(false);
-									var json = JObject.Parse(await resp.Content.ReadAsStringAsync().ConfigureAwait(false));
-									if (json.Value<bool>("success"))
-										Exit("Transaction is successfully propagated on the network.", ConsoleColor.Green);
-									else
-										WriteLine($"Error code: {json["error"].Value<string>("code")} Reason: {json["error"].Value<string>("message")}");
-								}
+								var post = "https://testnet-api.smartbit.com.au/v1/blockchain/pushtx";
+								if (Config.Network == Network.Main)
+									post = "https://api.smartbit.com.au/v1/blockchain/pushtx";
+
+								var content = new StringContent(new JObject(new JProperty("hex", tx.ToHex())).ToString(), Encoding.UTF8, "application/json");
+								var resp = await _httpClient.PostAsync(post, content).ConfigureAwait(false);
+								var json = JObject.Parse(await resp.Content.ReadAsStringAsync().ConfigureAwait(false));
+								if (json.Value<bool>("success"))
+									Exit("Transaction is successfully propagated on the network.", ConsoleColor.Green);
+								else
+									WriteLine($"Error code: {json["error"].Value<string>("code")} Reason: {json["error"].Value<string>("message")}");
 							}
 							else
 								WriteLine($"Error code: {broadcastResponse.Error.ErrorCode} Reason: {broadcastResponse.Error.Reason}");
@@ -633,6 +633,7 @@ namespace HiddenWallet
 				haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
 			if (!haveEnough)
 				throw new Exception("Not enough funds.");
+
 			return coinsToSpend;
 		}
 
@@ -640,24 +641,15 @@ namespace HiddenWallet
 		{
 			try
 			{
-				HttpClient client;
-				if (Config.UseTor)
-					client = new HttpClient(new SocksPortHandler(Config.TorHost, Config.TorSocksPort));
-				else
-					client = new HttpClient();
+				HttpResponseMessage response =
+					await _httpClient.GetAsync(@"http://api.blockcypher.com/v1/btc/main", HttpCompletionOption.ResponseContentRead)
+						.ConfigureAwait(false);
 
-				using (client)
-				{
-					HttpResponseMessage response =
-						await client.GetAsync(@"http://api.blockcypher.com/v1/btc/main", HttpCompletionOption.ResponseContentRead)
-							.ConfigureAwait(false);
+				var json = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+				var fastestSatoshiPerByteFee = (int) (json.Value<decimal>("high_fee_per_kb") / 1024);
+				var feePerBytes = new Money(fastestSatoshiPerByteFee, MoneyUnit.Satoshi);
 
-					var json = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-					var fastestSatoshiPerByteFee = (int) (json.Value<decimal>("high_fee_per_kb") / 1024);
-					var feePerBytes = new Money(fastestSatoshiPerByteFee, MoneyUnit.Satoshi);
-
-					return feePerBytes;
-				}
+				return feePerBytes;
 			}
 			catch (Exception ex)
 			{
@@ -701,44 +693,46 @@ namespace HiddenWallet
 
 		private static async Task AssertCorrectQBitBlockHeightAsync()
 		{
-			// Check if QBitNinja up-to-date
-			using (var httpClient = new HttpClient())
+			var get = "https://testnet-api.smartbit.com.au/v1/blockchain/totals";
+			if (Config.Network == Network.Main)
+				get = "https://api.smartbit.com.au/v1/blockchain/totals";
+
+			HttpResponseMessage resp;
+			try
 			{
-				var get = "https://testnet-api.smartbit.com.au/v1/blockchain/totals";
-				if (Config.Network == Network.Main)
-					get = "https://api.smartbit.com.au/v1/blockchain/totals";
+				resp = await _httpClient.GetAsync(get).ConfigureAwait(false);
+			}
+			catch
+			{
+				return; // skip check, chances are qbit and smartbit won't be down the same time
+			}
 
-				HttpResponseMessage resp;
-				try
-				{
-					resp = await httpClient.GetAsync(get).ConfigureAwait(false);
-				}
-				catch
-				{
-					return; // skip check, chances are qbit and smartbit won't be down the same time
-				}
-				if (resp == null) return; // skip check, chances are qbit and smartbit won't be down the same time
+			if (resp == null) return; // skip check, chances are qbit and smartbit won't be down the same time
 
-				var json = JObject.Parse(await resp.Content.ReadAsStringAsync().ConfigureAwait(false));
-				if (!json.Value<bool>("success"))
-					return; // skip check, chances are qbit and smartbit won't be down the same time
+			var json = JObject.Parse(await resp.Content.ReadAsStringAsync().ConfigureAwait(false));
+			if (!json.Value<bool>("success"))
+				return; // skip check, chances are qbit and smartbit won't be down the same time
+			else
+			{
+				int lastSmartBitHeight = json["totals"].Value<int>("block_count") - 1;
+
+				var lastBlock =
+					await _qBitClient.GetBlock(new BlockFeature(SpecialFeature.Last), headerOnly: true).ConfigureAwait(false);
+				int lastQBitHeight = lastBlock.AdditionalInformation.Height;
+
+				if (lastSmartBitHeight <= lastQBitHeight) return;
 				else
 				{
-					int lastSmartBitHeight = json["totals"].Value<int>("block_count") - 1;
-					
-					var lastBlock = await QBitClient.GetBlock(new BlockFeature(SpecialFeature.Last), headerOnly: true).ConfigureAwait(false);
-					int lastQBitHeight = lastBlock.AdditionalInformation.Height;
+					await Task.Delay(10000).ConfigureAwait(false);
+					lastBlock = await _qBitClient.GetBlock(new BlockFeature(SpecialFeature.Last), headerOnly: true)
+						.ConfigureAwait(false);
+					lastQBitHeight = lastBlock.AdditionalInformation.Height;
 
 					if (lastSmartBitHeight <= lastQBitHeight) return;
 					else
-					{
-						await Task.Delay(10000).ConfigureAwait(false);
-						lastBlock = await QBitClient.GetBlock(new BlockFeature(SpecialFeature.Last), headerOnly: true).ConfigureAwait(false);
-						lastQBitHeight = lastBlock.AdditionalInformation.Height;
+						Exit(
+							$"The height of QBitNinja HTTP API is not accurate. Try later. QBit height: {lastQBitHeight} SmartBit height: QBit height: {lastQBitHeight}");
 
-						if (lastSmartBitHeight <= lastQBitHeight) return;
-						else Exit($"The height of QBitNinja HTTP API is not accurate. Try later. QBit height: {lastQBitHeight} SmartBit height: QBit height: {lastQBitHeight}");
-					}
 				}
 			}
 		}
@@ -771,6 +765,7 @@ namespace HiddenWallet
 					break;
 				}
 			}
+
 			if (required && argValue == "")
 			{
 				Exit($@"'{argName}=' is not specified.");
@@ -819,6 +814,7 @@ namespace HiddenWallet
 
 			if (safe == null)
 				throw new Exception("Wallet could not be decrypted.");
+
 			WriteLine($"{walletFilePath} wallet is decrypted.");
 			return safe;
 		}
@@ -833,6 +829,7 @@ namespace HiddenWallet
 				if (response != ConsoleKey.Enter)
 					WriteLine();
 			} while (response != ConsoleKey.Y && response != ConsoleKey.N);
+
 			return response;
 		}
 
