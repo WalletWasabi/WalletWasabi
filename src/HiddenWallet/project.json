@@ -6,7 +6,7 @@
   },
 
   "dependencies": {
-    "DotNetTor": "2.1.0",
+    "DotNetTor": "2.1.1",
     "Microsoft.NETCore.App": {
       "type": "platform",
       "version": "1.1.0"

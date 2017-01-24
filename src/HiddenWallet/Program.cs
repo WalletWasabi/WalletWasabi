@@ -22,7 +22,7 @@ namespace HiddenWallet
 	public class Program
 	{
 		// The minimum number of unused keys those are queried on the blockchain from the HD path.
-		private const int MinUnusedKeyNum = 21;
+		private const int MinUnusedKeyNum = 7;
 		private static QBitNinjaClient _qBitClient;
 		private static HttpClient _httpClient;
 
