@@ -186,6 +186,10 @@ namespace HiddenWallet.QBitNinjaJutsus
 			foreach (var dest in addresses)
 			{
 				var task = client.GetBalance(dest, unspentOnly);
+
+				if (Config.UseTor)
+					task.Wait(); // Avoid dotnettor problem on linux
+
 				tasks.Add(task);
 			}
 
