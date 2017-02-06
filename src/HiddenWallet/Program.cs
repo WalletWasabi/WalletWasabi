@@ -78,7 +78,7 @@ namespace HiddenWallet
 			_httpClient = new HttpClient();
 			if (Config.UseTor)
 			{
-				var torHandler = new SocksPortHandler(Config.TorHost, Config.TorSocksPort);
+				var torHandler = new SocksPortHandler(Config.TorHost, Config.TorSocksPort, ignoreSslCertification: true); // ignoreSslCertification needed for linux, until QBit or DotNetTor fixes its issues
 				_qBitClient.SetHttpMessageHandler(torHandler);
 				_httpClient = new HttpClient(torHandler);
 			}
