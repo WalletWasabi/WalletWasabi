@@ -1,0 +1,30 @@
+{
+  "version": "0.3.0",
+  "title": "HiddenWallet",
+  "copyright": "MIT",
+  "description": "Privacy focused Bitcoin wallet.",
+  "authors": [ "nopara73" ],
+  "packOptions": {
+    "tags": [ "bitcoin" ],
+    "requireLicenseAcceptance": false,
+    "projectUrl": "https://github.com/nopara73/HiddenWallet"
+  },
+  "buildOptions": {
+    "emitEntryPoint": true,
+    "nowarn": []
+  },
+
+  "dependencies": {
+    "DevZH.UI": "1.0.0-nopara73",
+    "Microsoft.NETCore.App": {
+      "type": "platform",
+      "version": "1.1.0"
+    }
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": "dnxcore50"
+    }
+  }
+}

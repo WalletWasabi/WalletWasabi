@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0-nopara73",
+  "description": ".NET Core bindings for libui",
+  "authors": [ "???" ],
+  "buildOptions": {
+    "allowUnsafe": true
+  },
+  "packOptions": {
+    "repository": {
+      "type": "git",
+      "url": "git://github.com/noliar/DevZH.UI"
+    },
+    "licenseUrl": "https://raw.githubusercontent.com/noliar/DevZH.UI/master/LICENSE-2.0.txt",
+    "projectUrl": "https://github.com/noliar/DevZH.UI",
+    "tags": [
+      "libui",
+      "netcore"
+    ]
+  },
+  "dependencies": {
+    "DevZH.LibUI": "1.0.0-alpha-2685",
+    "NETStandard.Library": "1.6.1",
+    "System.ComponentModel": "4.3.0",
+    "System.Drawing.Primitives": "4.3.0",
+    "System.Text.Encoding.CodePages": "4.3.0"
+  },
+  "frameworks": {
+    "netstandard1.6": {
+      "imports": "dnxcore50"
+    }
+  }
+}
