@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DevZH.UI;
@@ -17,10 +18,11 @@ namespace HiddenWallet.UI
 		private Button _buttonGenerateWallet;
 		private Button _buttonRecoverWallet;
 
-		private Button _advancedOptions;
+		private Button _buttonConfig;
 
-		public WindowGenerateWallet(string title = "HiddenWallet", int width = 300, int height = 100) : base(title, width, height, hasMenubar: false)
+		public WindowGenerateWallet(string title = "HiddenWallet", int width = 320, int height = 240) : base(title, width, height, hasMenubar: false)
 		{
+			//Do not center, it won't work on linux! https://github.com/andlabs/libui/issues/183
 			//StartPosition = WindowStartPosition.CenterScreen;
 			AllowMargins = true;
 
@@ -47,14 +49,12 @@ namespace HiddenWallet.UI
 			_buttonRecoverWallet = new Button("Recover another wallet...");
 			_verticalBoxGenerateWallet.Children.Add(_buttonRecoverWallet);
 
-			_advancedOptions = new Button("Advanced options");
-			_verticalBoxGenerateWallet.Children.Add(_advancedOptions);
-			_advancedOptions.Click += _advancedOptions_Click;
-		}
-
-		private void _advancedOptions_Click(object sender, EventArgs e)
-		{
-			new WindowConfig().Show();
+			_buttonConfig = new Button("Configuration...");
+			_verticalBoxGenerateWallet.Children.Add(_buttonConfig);
+			_buttonConfig.Click += delegate
+			{
+				new WindowConfig().Show(); ;
+			};
 		}
 
 		private void _buttonGenerateWalletClick(object sender, EventArgs e)

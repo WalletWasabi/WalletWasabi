@@ -1,0 +1,10 @@
+{
+  "DefaultWalletFileName": "Wallet.json",
+  "Network": "Main",
+  "CanSpendUnconfirmed": "False",
+  "UseTor": "False",
+  "TorHost": "127.0.0.1",
+  "TorSocksPort": "9050",
+  "TorControlPort": "9051",
+  "TorControlPortPassword": "ILoveBitcoin21"
+}
