@@ -7,18 +7,19 @@ using DevZH.UI;
 namespace HiddenWallet.UI
 {
     public class WindowGenerateWallet : Window
-	{
+    {
 		private Form _formPassword;
 		private PasswordEntry _passwordEntry;
 		private PasswordEntry _passwordEntryConfirm;
 
 		private VerticalBox _verticalBoxGenerateWallet;
 
-		private HorizontalBox _horizontalBoxButtons;
 		private Button _buttonGenerateWallet;
 		private Button _buttonRecoverWallet;
 
-		public WindowGenerateWallet(string title = "Generate a wallet", int width = 300, int height = 100, bool hasMenubar = false) : base(title, width, height, hasMenubar)
+		private Button _advancedOptions;
+
+		public WindowGenerateWallet(string title = "HiddenWallet", int width = 300, int height = 100) : base(title, width, height, hasMenubar: false)
 		{
 			StartPosition = WindowStartPosition.CenterScreen;
 			AllowMargins = true;
@@ -39,15 +40,21 @@ namespace HiddenWallet.UI
 			_passwordEntryConfirm = new PasswordEntry();
 			_formPassword.Children.Add("Confirm password:", _passwordEntryConfirm);
 
-			_horizontalBoxButtons = new HorizontalBox {AllowPadding = true};
-			_verticalBoxGenerateWallet.Children.Add(_horizontalBoxButtons);
-
-			_buttonGenerateWallet = new Button("Generate the wallet");
+			_buttonGenerateWallet = new Button("Generate new wallet");
 			_buttonGenerateWallet.Click += _buttonGenerateWalletClick;
-			_horizontalBoxButtons.Children.Add(_buttonGenerateWallet);
+			_verticalBoxGenerateWallet.Children.Add(_buttonGenerateWallet);
 
 			_buttonRecoverWallet = new Button("Recover another wallet...");
-			_horizontalBoxButtons.Children.Add(_buttonRecoverWallet);
+			_verticalBoxGenerateWallet.Children.Add(_buttonRecoverWallet);
+
+			_advancedOptions = new Button("Advanced options");
+			_verticalBoxGenerateWallet.Children.Add(_advancedOptions);
+			_advancedOptions.Click += _advancedOptions_Click;
+		}
+
+		private void _advancedOptions_Click(object sender, EventArgs e)
+		{
+			new WindowConfig().Show();
 		}
 
 		private void _buttonGenerateWalletClick(object sender, EventArgs e)
