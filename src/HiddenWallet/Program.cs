@@ -11,9 +11,9 @@ namespace HiddenWallet
 	{
 		public static void Main(string[] args)
 		{
-			using (var app = new Application(hiddenConsole: true))
+			var app = new Application(hiddenConsole: true);
+			var askPassword = new WindowGenerateWallet();
 			{
-				var askPassword = new WindowAskPassword();
 				app.Run(askPassword);
 			}
 		}

@@ -14,7 +14,7 @@ namespace DevZH.UI
     public class Application : IDisposable
     {
         private static Application _instance;
-        internal static Window MainWindow { get; private set; }
+	    internal static Window MainWindow { get; private set; }
         private static object _lock = new object();
         private static bool _appCreated;
 
@@ -136,7 +136,8 @@ namespace DevZH.UI
 
         public void Dispose()
         {
-            NativeMethods.UnInit();
+	        MainWindow?.Dispose();
+	        NativeMethods.UnInit();
         }
 
         public void Exit()
