@@ -45,8 +45,8 @@ namespace HiddenWallet.UI
 			File.WriteAllLines(
 				ConfigFileSerializer.ConfigFilePath,
 				_multilineEntryConfig.Text.Split(new string[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries));
-
 			Close();
+            Config.Load();
 		}
 	}
 }
