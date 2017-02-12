@@ -21,7 +21,7 @@ namespace HiddenWallet.UI
 
 		public WindowGenerateWallet(string title = "HiddenWallet", int width = 300, int height = 100) : base(title, width, height, hasMenubar: false)
 		{
-			StartPosition = WindowStartPosition.CenterScreen;
+			//StartPosition = WindowStartPosition.CenterScreen;
 			AllowMargins = true;
 
 			InitializeComponent();
