@@ -96,7 +96,7 @@ namespace DevZH.UI
         public int Run(Window window)
         {
             MainWindow = window;
-            return Run(() => { window.Show(); });
+            return Run(window.Show);
             //window.Show();
             //NativeMethods.Main();
             //return 0;
@@ -109,22 +109,18 @@ namespace DevZH.UI
                 QueueMain(action);
                 NativeMethods.Main();
             }
-            catch (Exception)
+#pragma warning disable CS0168 // ReSharper disable once UnusedVariable
+			catch (Exception ex)
+#pragma warning restore CS0168 // Variable is declared but never used
             {
                 return -1;
             }
             return 0;
         }
 
-        public void QueueMain(Action action)
-        {
-            NativeMethods.QueueMain(data =>
-            {
-                action?.Invoke();
-            }, IntPtr.Zero);
-        }
+        public void QueueMain(Action action) => NativeMethods.QueueMain(data => action?.Invoke(), IntPtr.Zero);
 
-        private void Steps()
+	    private void Steps()
         {
             NativeMethods.MainSteps();
         }

@@ -9,10 +9,20 @@ namespace HiddenWallet
 	public static class Config
 	{
 		public static readonly string MainInfo = 
-			$"HiddenWallet {PlatformServices.Default.Application.ApplicationVersion} (Experimental)";
+			$"HiddenWallet {PlatformServices.Default.Application.ApplicationVersion}-nopara73";
 
 		// Initialized with default attributes
-		public static string DefaultWalletFileName = @"Wallet.json";
+		public static string WalletFileName = @"Wallet.json";
+
+		public static string WalletFileRelativePath
+		{
+			get
+			{
+				const string walletDirName = "Wallets";
+				Directory.CreateDirectory(walletDirName);
+				return Path.Combine(walletDirName, WalletFileName);
+			}
+		}
 
 		public static Network Network = Network.Main;
 		public static bool CanSpendUnconfirmed;
@@ -35,7 +45,7 @@ namespace HiddenWallet
 		public static void Save()
 		{
 			ConfigFileSerializer.Serialize(
-				DefaultWalletFileName,
+				WalletFileName,
 				Network.ToString(),
 				CanSpendUnconfirmed.ToString(),
 				UseTor.ToString(),
@@ -50,7 +60,7 @@ namespace HiddenWallet
 		{
 			var rawContent = ConfigFileSerializer.Deserialize();
 
-			DefaultWalletFileName = rawContent.DefaultWalletFileName;
+			WalletFileName = rawContent.WalletFileName;
 
 			if (rawContent.Network == Network.Main.ToString())
 				Network = Network.Main;
@@ -108,7 +118,7 @@ namespace HiddenWallet
 		public static readonly string ConfigFilePath = Path.Combine("Config.json");
 
 		// KEEP THEM PUBLIC OTHERWISE IT WILL NOT SERIALIZE!
-		public string DefaultWalletFileName { get; set; }
+		public string WalletFileName { get; set; }
 
 		public string Network { get; set; }
 		public string CanSpendUnconfirmed { get; set; }
@@ -129,7 +139,7 @@ namespace HiddenWallet
 			string torControlPort,
 			string torControlPortPassword)
 		{
-			DefaultWalletFileName = walletFileName;
+			WalletFileName = walletFileName;
 			Network = network;
 			CanSpendUnconfirmed = canSpendUnconfirmed;
 			UseTor = useTor;
@@ -173,7 +183,7 @@ namespace HiddenWallet
 			var configFileSerializer = JsonConvert.DeserializeObject<ConfigFileSerializer>(contentString);
 
 			return new ConfigFileSerializer(
-				configFileSerializer.DefaultWalletFileName,
+				configFileSerializer.WalletFileName,
 				configFileSerializer.Network,
 				configFileSerializer.CanSpendUnconfirmed,
 				configFileSerializer.UseTor,

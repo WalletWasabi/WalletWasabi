@@ -177,11 +177,11 @@ namespace DevZH.UI
         public void Close()
         {
             var intptr = this.handle;
-            base.Destroy();
+            Destroy();
             Windows.Remove(intptr);
         }
 
-        public void CenterToScreen()
+		public void CenterToScreen()
         {
             NativeMethods.WindowCenter(handle);
         }

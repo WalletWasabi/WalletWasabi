@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace HiddenWallet.HiddenBitcoin.KeyManagement
 {
@@ -212,6 +213,11 @@ namespace HiddenWallet.HiddenBitcoin.KeyManagement
 			else throw new Exception("HdPathType not exists");
 
 			return ExtKey.Derive(keyPath).GetWif(Network);
+		}
+
+		public string GetCreationTimeString()
+		{
+			return CreationTime.ToString("s", System.Globalization.CultureInfo.InvariantCulture);
 		}
 	}
 }

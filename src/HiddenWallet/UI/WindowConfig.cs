@@ -9,7 +9,7 @@ namespace HiddenWallet.UI
 {
 	public class WindowConfig : Window
 	{
-		private VerticalBox _verticalBoxConfig;
+		private VerticalBox _verticalBoxMain;
 
 		private MultilineEntry _multilineEntryConfig;
 		private Button _buttonSave;
@@ -24,10 +24,10 @@ namespace HiddenWallet.UI
 
 		private void InitializeComponent()
 		{
-			_verticalBoxConfig = new VerticalBox {AllowPadding = true};
-			Child = _verticalBoxConfig;
+			_verticalBoxMain = new VerticalBox {AllowPadding = true};
+			Child = _verticalBoxMain;
 
-			_multilineEntryConfig = new MultilineEntry();
+			_multilineEntryConfig = new MultilineEntry(false);
 			foreach(var line in File.ReadAllLines(ConfigFileSerializer.ConfigFilePath))
 			{
 				_multilineEntryConfig.Append(line + Environment.NewLine);
@@ -36,15 +36,17 @@ namespace HiddenWallet.UI
 			_buttonSave = new Button("Save");
 			_buttonSave.Click += _buttonSave_Click;
 
-			_verticalBoxConfig.Children.Add(_multilineEntryConfig, stretchy: true);
-			_verticalBoxConfig.Children.Add(_buttonSave);
+			_verticalBoxMain.Children.Add(_multilineEntryConfig, stretchy: true);
+			_verticalBoxMain.Children.Add(_buttonSave);
 		}
 
 		private void _buttonSave_Click(object sender, EventArgs e)
 		{
 			File.WriteAllLines(
 				ConfigFileSerializer.ConfigFilePath,
-				_multilineEntryConfig.Text.Split(new string[] {Environment.NewLine}, StringSplitOptions.None));
+				_multilineEntryConfig.Text.Split(new string[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries));
+
+			Close();
 		}
 	}
 }
