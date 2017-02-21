@@ -1,5 +1,4 @@
 ﻿using HiddenWallet.Helpers;
-using HiddenWallet.KeyManagement;
 using HiddenWallet.QBitNinjaJutsus;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
@@ -16,6 +15,7 @@ using System.Threading.Tasks;
 using DotNetTor.SocksPort;
 using static HiddenWallet.QBitNinjaJutsus.QBitNinjaJutsus;
 using static System.Console;
+using HBitcoin.KeyManagement;
 
 namespace HiddenWallet
 {
@@ -132,7 +132,7 @@ namespace HiddenWallet
 				} while (pw != pwConf);
 
 				// 3. Create wallet
-				string mnemonic;
+				Mnemonic mnemonic;
 				Safe.Create(out mnemonic, pw, walletFilePath, Config.Network);
 				// If no exception thrown the wallet is successfully created.
 				WriteLine();
@@ -161,8 +161,9 @@ namespace HiddenWallet
 
 				WriteLine($"Your software is configured using the Bitcoin {Config.Network} network.");
 				WriteLine("Provide your mnemonic words, separated by spaces:");
-				var mnemonic = ReadLine();
-				AssertCorrectMnemonicFormat(mnemonic);
+				var mnemonicString = ReadLine();
+				AssertCorrectMnemonicFormat(mnemonicString);
+				var mnemonic = new Mnemonic(mnemonicString);
 
 				WriteLine("Provide your password. Please note the wallet cannot check if your password is correct or not. If you provide a wrong password a wallet will be recovered with your provided mnemonic AND password pair:");
 				var password = PasswordConsole.ReadPassword();
@@ -349,7 +350,7 @@ namespace HiddenWallet
 				if (Config.ConnectionType == ConnectionType.Http)
 				{
 					await AssertCorrectQBitBlockHeightAsync().ConfigureAwait(false);
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await QueryOperationsPerSafeAddressesAsync(_qBitClient, safe, 7, Safe.HdPathType.Receive).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await QueryOperationsPerSafeAddressesAsync(_qBitClient, safe, 7, HdPathType.Receive).ConfigureAwait(false);
 
 					WriteLine("---------------------------------------------------------------------------");
 					WriteLine("Unused Receive Addresses");
@@ -412,7 +413,7 @@ namespace HiddenWallet
 					// 2. Get the script pubkey of the change.
 					WriteLine("Select change address...");
 					Script changeScriptPubKey = null;
-					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await QueryOperationsPerSafeAddressesAsync(_qBitClient, safe, minUnusedKeys: 1, hdPathType: Safe.HdPathType.Change).ConfigureAwait(false);
+					Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await QueryOperationsPerSafeAddressesAsync(_qBitClient, safe, minUnusedKeys: 1, hdPathType: HdPathType.Change).ConfigureAwait(false);
 					foreach (var elem in operationsPerChangeAddresses)
 					{
 						if (elem.Value.Count == 0)

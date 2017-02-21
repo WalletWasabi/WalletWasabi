@@ -1,11 +1,10 @@
-﻿using HiddenWallet.KeyManagement;
-using NBitcoin;
+﻿using NBitcoin;
 using QBitNinja.Client;
 using QBitNinja.Client.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static HiddenWallet.KeyManagement.Safe;
+using HBitcoin.KeyManagement;
 using static System.Console;
 
 namespace HiddenWallet.QBitNinjaJutsus
