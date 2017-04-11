@@ -124,7 +124,7 @@ namespace HiddenWallet.QBitNinjaJutsus
 				return operationsPerAllAddresses;
 			}
 
-			var addresses = safe.GetFirstNAddresses(minUnusedKeys, hdPathType.GetValueOrDefault());
+			var addresses = new HashSet<BitcoinAddress>(safe.GetFirstNAddresses(minUnusedKeys, hdPathType.GetValueOrDefault()));
 			//var addresses = FakeData.FakeSafe.GetFirstNAddresses(minUnusedKeys);
 
 			var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();

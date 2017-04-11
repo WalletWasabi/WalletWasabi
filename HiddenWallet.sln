@@ -1,16 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1A4BD1D2-55E1-4FBF-A639-AB7D5D745D79}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0C47BB4B-11AB-4422-8149-DCEDBE759E71}"
-	ProjectSection(SolutionItems) = preProject
-		global.json = global.json
-	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "HiddenWallet", "src\HiddenWallet\HiddenWallet.xproj", "{916ECAB2-FF94-46FB-B5EB-76A2D1C88C10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HiddenWallet", "src\HiddenWallet\HiddenWallet.csproj", "{916ECAB2-FF94-46FB-B5EB-76A2D1C88C10}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

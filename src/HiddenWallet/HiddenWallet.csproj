@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <AssemblyName>HiddenWallet</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <PackageId>HiddenWallet</PackageId>
+    <RuntimeFrameworkVersion>1.1.1</RuntimeFrameworkVersion>
+    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetTor" Version="2.1.3" />
+    <PackageReference Include="HBitcoin" Version="0.1.5" />
+    <PackageReference Include="NBitcoin" Version="3.0.2.14" />
+    <PackageReference Include="QBitNinja.Client" Version="1.0.3.38" />
+  </ItemGroup>
+
+</Project>
