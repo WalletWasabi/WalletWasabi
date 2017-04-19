@@ -1,5 +1,7 @@
 ﻿using HBitcoin.KeyManagement;
+using HiddenWallet.API.Models;
 using NBitcoin;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -13,6 +15,8 @@ namespace HiddenWallet.API.Wrappers
 	{
 		private string _password = null;
 
+		public bool WalletExists => File.Exists(Config.WalletFilePath);
+
 		public WalletWrapper()
 		{
 			// Loads the config file
@@ -20,10 +24,14 @@ namespace HiddenWallet.API.Wrappers
 			Config.Load();
 		}
 
-		public string Create(string password)
+		public WalletCreateResponse Create(string password)
 		{
-			Safe.Create(out Mnemonic mnemonic, password, Config.WalletFilePath, Config.Network);
-			return mnemonic.ToString();
+			var safe = Safe.Create(out Mnemonic mnemonic, password, Config.WalletFilePath, Config.Network);
+			return new WalletCreateResponse
+			{
+				Mnemonic = mnemonic.ToString(),
+				CreationTime = safe.GetCreationTimeString()
+			};
 		}
 
 		public void Load(string password)

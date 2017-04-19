@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 
 namespace HiddenWallet.API.Models
 {
-    public class MnemonicResponse : BaseResponse
+    public class WalletCreateResponse : BaseResponse
 	{
-		public MnemonicResponse() => Success = true;
+		public WalletCreateResponse() => Success = true;
 		public string Mnemonic { get; set; }
+		public string CreationTime { get; set; }
 	}
 }

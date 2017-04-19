@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Wallets\" />
+    <Folder Include="Wallets\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>

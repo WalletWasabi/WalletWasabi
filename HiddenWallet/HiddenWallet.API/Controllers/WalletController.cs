@@ -30,9 +30,9 @@ namespace HiddenWallet.API.Controllers
 
 			try
 			{
-				var mnemonic = WalletWrapper.Create(request.Password);
+				WalletCreateResponse response = WalletWrapper.Create(request.Password);
 
-				return new ObjectResult(new MnemonicResponse { Mnemonic = mnemonic });
+				return new ObjectResult(response);
 			}
 			catch(Exception ex)
 			{
@@ -81,6 +81,23 @@ namespace HiddenWallet.API.Controllers
 				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
 			}
 		}
-		
-    }
+
+		[Route("wallet-exists")]
+		[HttpGet]
+		public IActionResult WalletExists()
+		{
+			try
+			{
+				if (WalletWrapper.WalletExists)
+				{
+					return new ObjectResult(new YesNoResponse { Value = true });
+				}
+				return new ObjectResult(new YesNoResponse { Value = false });
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
+	}
 }
