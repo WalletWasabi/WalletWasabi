@@ -84,3 +84,8 @@ process.on('exit', function () {
 function writeLog(msg) {
     console.log(msg);
 }
+
+// Disable default menu
+app.on('browser-window-created', function (e, window) {
+    window.setMenu(null);
+});
