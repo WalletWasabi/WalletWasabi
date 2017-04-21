@@ -1,9 +1,9 @@
-﻿{
+{
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:49517/",
+      "applicationUrl": "http://localhost:50745/",
       "sslPort": 0
     }
   },
@@ -11,19 +11,12 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "api/v1/wallet",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
     "HiddenWallet.API": {
-      "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "api/v1/wallet",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
-      "applicationUrl": "http://localhost:49518"
+      "commandName": "Project"
     }
   }
 }
