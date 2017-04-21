@@ -1,0 +1,18 @@
+{
+  "name": "hidden-wallet.gui",
+  "version": "0.4.0",
+  "description": "HiddenWallet.GUI",
+  "main": "main.js",
+  "author": {
+    "name": "nopara73"
+  },
+  "devDependencies": {
+    "electron": "^1.6.5"
+  },
+  "dependencies": {
+    "angular": "^1.6.4"
+  },
+  "scripts": {
+    "start": "electron ."
+  }
+}

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>HiddenWallet - nopara73</title>
+    <script type="text/javascript" src="node_modules/angular/angular.min.js"></script>
+    <script type="text/javascript" src="app/app.js"></script>
+</head>
+<body>
+    <div class="container" ng-controller="WalletCtrl as ctrl">
+        <p style="color: red" ng-show="ctrl.ErrorMessage">{{ctrl.ErrorMessage}}</p>
+        <p>{{ ctrl.Wallet }}</p>
+    </div>
+</body>
+</html>
