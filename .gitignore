@@ -242,3 +242,5 @@ ModelManifest.xml
 .fake/
 Wallets
 /src/HiddenWallet/Config.json
+/dist
+/dist

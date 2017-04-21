@@ -7,12 +7,35 @@
     "name": "nopara73"
   },
   "devDependencies": {
-    "electron": "^1.6.5"
+    "electron": "^1.6.5",
+    "electron-builder": "^17.0.1"
   },
   "dependencies": {
     "angular": "^1.6.4"
   },
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "build"
+  },
+  "build": {
+    "appId": "hidden-wallet",
+    "directories": {
+      "output": "../../dist"
+    },
+    "extraResources": {
+      "from": "../HiddenWallet.API/bin/dist/",
+      "to": "HiddenWallet.API/bin/dist/",
+      "filter": [
+        "**/*"
+      ]
+    },
+    "mac": {
+      "category": "bitcoin-wallet"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    }
   }
 }
