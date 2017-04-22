@@ -1,15 +1,38 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>HiddenWallet - nopara73</title>
     <script type="text/javascript" src="node_modules/angular/angular.min.js"></script>
     <script type="text/javascript" src="app/app.js"></script>
+    <!-- Bootstrap core CSS -->
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- Custom styles for this template -->
+    <link href="app/css/justified-nav.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container" ng-controller="WalletCtrl as ctrl">
-        <p style="color: red" ng-show="ctrl.ErrorMessage">{{ctrl.ErrorMessage}}</p>
-        <p>{{ ctrl.Wallet }}</p>
+    <div class="container">
+        <div class="masthead">
+            <nav>
+                <ul class="nav nav-justified">
+                    <li class="active"><a href="#">Decrypt</a></li>
+                    <li><a href="#">Generate</a></li>
+                    <li><a href="#">Recover</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <form class="form-signin">
+            <h2 class="form-signin-heading">Decrypt your wallet</h2>
+            <label for="inputPassword" class="sr-only">Password</label>
+            <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Decrypt</button>
+        </form>
+        <div class="container" ng-controller="WalletCtrl as ctrl">
+            <p style="color: red" ng-show="ctrl.ErrorMessage">{{ctrl.ErrorMessage}}</p>
+            <p>{{ ctrl.Wallet }}</p>
+        </div>
     </div>
 </body>
 </html>

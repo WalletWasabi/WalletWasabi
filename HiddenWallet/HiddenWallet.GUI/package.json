@@ -11,7 +11,8 @@
     "electron-builder": "^17.0.1"
   },
   "dependencies": {
-    "angular": "^1.6.4"
+    "angular": "^1.6.4",
+    "bootstrap": "^3.3.7"
   },
   "scripts": {
     "start": "electron .",
