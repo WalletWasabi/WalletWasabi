@@ -31,6 +31,7 @@
     <Compile Include="app\app.js">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="app\js\decryption-phase.js" />
     <Compile Include="main.js" />
     <Content Include="app\css\justified-nav.css" />
     <Content Include="app\html\decryption-phase-content.html" />
