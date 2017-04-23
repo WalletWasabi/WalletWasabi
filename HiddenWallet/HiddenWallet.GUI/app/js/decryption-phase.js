@@ -82,3 +82,52 @@ function generateWallet() {
         decryptionPhaseShow();
     }
 }
+
+function recoverWallet() {
+    var password = document.getElementById("inputPassword").value;
+    var mnemonic = document.getElementById("inputMnemonic").value.trim();
+    var syncFrom = document.getElementById("inputSyncFrom").value.trim();
+
+    if (mnemonic === "") {
+        alert("Mnemonic is required", "Could not recover wallet");
+    }
+    else if (mnemonic.split(" ").length !== 12) {
+        alert("Wrong mnemonic format. 12 mnemonic words are required.", "Could not recover wallet");
+    }
+    else if (syncFrom === "") {
+        alert("'Syncronize transactions from' date is required", "Could not recover wallet");
+    }
+    else if (syncFrom.length !== 10) {
+        alert("Wrong 'Syncronize transactions from' date format. Format must be like: 2017-01-01", "Could not recover wallet");
+    }
+    else {
+        var obj = new Object();
+        obj.password = password;
+        obj.mnemonic = mnemonic;
+        obj.creationTime = syncFrom;
+        var result = httpPostWallet("recover", obj);
+
+        if (result.Success == false) {
+            alert(result.Message, "Could not recover wallet");
+        }
+        else {
+            alert("Starting syncronization...", "Wallet is successfully recovered!");
+        }
+        decryptionPhaseShow();
+    }
+}
+
+function decryptWallet() {
+    var password = document.getElementById("inputPassword").value;
+
+    var obj = new Object();
+    obj.password = password;
+    var result = httpPostWallet("load", obj);
+
+    if (result.Success == false) {
+        alert(result.Message, "Could not decrypt wallet");
+    }
+    else {
+        alert("Wallet is successfully decrypted!", "Success");
+    }
+}

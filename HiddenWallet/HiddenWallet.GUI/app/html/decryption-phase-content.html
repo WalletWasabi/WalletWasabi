@@ -1,7 +1,7 @@
 <div class="jumbotron" id="decrypt-active">
     <input type="password" id="inputPassword" class="form-control" placeholder="Password" />
     <br />
-    <button class="btn btn-lg btn-primary btn-block">Decrypt</button>
+    <button class="btn btn-lg btn-primary btn-block" onclick="decryptWallet()">Decrypt</button>
 </div>
 
 <div class="jumbotron" id="generate-active">
@@ -13,14 +13,14 @@
 
 <div class="jumbotron" id="recover-active">
     <label>Syncronize transactions from:</label>
-    <input type="date" id="inputSyncFrom" class="form-control" required />
+    <input type="text" id="inputSyncFrom" class="form-control" placeholder="2017-01-21" />
     <label>Password:</label>
     <input type="password" id="inputPassword" class="form-control" placeholder="Password" />
     <label>Mnemonic words:</label>
-    <input type="text" id="inputMnemonic" class="form-control" placeholder="because evil federal west carry frog trophy quantum dry blast luggage piece" required />
+    <input type="text" id="inputMnemonic" class="form-control" placeholder="because evil federal west carry frog trophy quantum dry blast luggage piece" />
     <br />
     <div class="alert alert-info" role="alert">
         <strong>Heads up!</strong> At recovery the wallet is unable to check if your password is correct or not. If you provide a wrong password a wallet will be recovered with the provided mnemonic and password combination.
     </div>
-    <button class="btn btn-lg btn-primary btn-block">Recover</button>
+    <button class="btn btn-lg btn-primary btn-block" onclick="recoverWallet()">Recover</button>
 </div>
