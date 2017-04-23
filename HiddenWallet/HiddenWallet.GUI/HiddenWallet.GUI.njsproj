@@ -28,9 +28,6 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="app\app.js">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="app\js\decryption-phase.js" />
     <Compile Include="app\js\wallet-phase.js" />
     <Compile Include="main.js" />
