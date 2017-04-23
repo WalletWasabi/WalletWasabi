@@ -1,0 +1,31 @@
+<!-- The justified navigation menu is meant for single line per list item.
+Multiple lines will require custom code not provided by Bootstrap. -->
+<div class="masthead" id="decrypt-active">
+    <nav>
+        <ul class="nav nav-justified">
+            <li class="active"><a>Decrypt</a></li>
+            <li><a href="javascript:decryptionPhaseMenuShow('generate')">Generate</a></li>
+            <li><a href="javascript:decryptionPhaseMenuShow('recover')">Recover</a></li>
+        </ul>
+    </nav>
+</div>
+
+<div class="masthead" id="generate-active">
+	<nav>
+		<ul class="nav nav-justified">
+			<li><a href="javascript:decryptionPhaseMenuShow('decrypt')">Decrypt</a></li>
+			<li class="active"><a>Generate</a></li>
+			<li><a href="javascript:decryptionPhaseMenuShow('recover')">Recover</a></li>
+		</ul>
+	</nav>
+</div>
+
+<div class="masthead" id="recover-active">
+	<nav>
+		<ul class="nav nav-justified">
+			<li><a href="javascript:decryptionPhaseMenuShow('decrypt')">Decrypt</a></li>
+			<li><a href="javascript:decryptionPhaseMenuShow('generate')">Generate</a></li>
+			<li class="active"><a>Recover</a></li>
+		</ul>
+	</nav>
+</div>
