@@ -11,7 +11,9 @@
 <body onload="decryptionPhaseShow()">
     <iframe id="decryption-phase-menu-frame" src="app/html/decryption-phase-menu.html" style="display:none"></iframe>
     <iframe id="decryption-phase-content-frame" src="app/html/decryption-phase-content.html" style="display:none"></iframe>
+    <iframe id="wallet-phase-tabs-frame" src="app/html/wallet-phase-tabs.html" style="display:none"></iframe>
     <div class="container">
+        <div id="tabs"> </div>
         <div id="menu"> </div>
         <hr />
         <div id="content"> </div>
@@ -21,5 +23,6 @@
     <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 
     <script type="text/javascript" src="app/js/decryption-phase.js"></script>
+    <script type="text/javascript" src="app/js/wallet-phase.js"></script>
 </body>
 </html>

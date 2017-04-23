@@ -111,7 +111,7 @@ function recoverWallet() {
             alert(result.Message, "Could not recover wallet");
         }
         else {
-            alert("Starting syncronization...", "Wallet is successfully recovered!");
+            alert("Wallet is successfully recovered!", "Success");
         }
         decryptionPhaseShow();
     }
@@ -129,5 +129,6 @@ function decryptWallet() {
     }
     else {
         alert("Wallet is successfully decrypted!", "Success");
+        walletPhaseShow("alice");
     }
 }
