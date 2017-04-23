@@ -33,6 +33,7 @@
     </Compile>
     <Compile Include="main.js" />
     <Content Include="app\css\justified-nav.css" />
+    <Content Include="app\html\decryption-phase-content.html" />
     <Content Include="app\html\decryption-phase-menu.html" />
     <Content Include="index.html" />
     <Content Include="package.json" />

@@ -14,7 +14,7 @@ let mainWindow;
 
 function createWindow() {
     // Create the browser window.
-    var constructedTitle = "HiddenWallet " + packageJson.version + " - " + packageJson.author.name;
+    var constructedTitle = "HiddenWallet " + packageJson.version + " - " + packageJson.author.name + " (EXPERIMENTAL)";
     mainWindow = new BrowserWindow({ width: 800, height: 600, resizable: false, title: constructedTitle });
 
     // and load the index.html of the app.

@@ -10,20 +10,11 @@
 </head>
 <body onload="decryptionPhaseMenuShow('decrypt')">
     <iframe id="decryption-phase-menu-frame" src="app/html/decryption-phase-menu.html" style="display:none"></iframe>
+    <iframe id="decryption-phase-content-frame" src="app/html/decryption-phase-content.html" style="display:none"></iframe>
     <div class="container">
-        <div id="menu">
-        </div>
-        <div class="jumbotron" id="decryption-phase-content">
-            <form class="form-signin">
-                <label for="inputPassword" class="sr-only">Password</label>
-                <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
-                <button class="btn btn-lg btn-primary btn-block" type="submit">Decrypt</button>
-            </form>
-            <div class="container" ng-controller="WalletCtrl as ctrl">
-                <p style="color: red" ng-show="ctrl.ErrorMessage">{{ctrl.ErrorMessage}}</p>
-                <p>{{ ctrl.Wallet }}</p>
-            </div>
-        </div>
+        <div id="menu"> </div>
+        <hr />
+        <div id="content"> </div>
     </div>
     <script type="text/javascript" src="node_modules/angular/angular.min.js"></script>
     <script type="text/javascript" src="app/app.js"></script>
@@ -34,17 +25,17 @@
             if (menuItem === "decrypt")
             {
                 document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("decrypt-active").innerHTML;
-                document.getElementById("decryption-phase-content").innerHTML = "decrypt";
+                document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("decrypt-active").innerHTML;
             }
             else if (menuItem === "generate")
             {
                 document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("generate-active").innerHTML;
-                document.getElementById("decryption-phase-content").innerHTML = "generate";
+                document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("generate-active").innerHTML;
             }
             else if (menuItem === "recover")
             {
                 document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("recover-active").innerHTML;
-                document.getElementById("decryption-phase-content").innerHTML = "recover";
+                document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("recover-active").innerHTML;
             }
         }
     </script>

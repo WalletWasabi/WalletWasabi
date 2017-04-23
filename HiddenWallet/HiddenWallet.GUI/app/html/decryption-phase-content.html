@@ -1,0 +1,34 @@
+<div class="jumbotron" id="decrypt-active">
+    <form class="form-signin">
+        <input type="password" id="inputPassword" class="form-control" placeholder="Password" />
+        <br />
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Decrypt</button>
+    </form>
+    <div class="container" ng-controller="WalletCtrl as ctrl">
+        <p style="color: red" ng-show="ctrl.ErrorMessage">{{ctrl.ErrorMessage}}</p>
+        <p>{{ ctrl.Wallet }}</p>
+    </div>
+</div>
+<div class="jumbotron" id="generate-active">
+    <form class="form-signin">
+        <input type="password" id="inputPassword" class="form-control" placeholder="Password" />
+        <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm password" />
+        <br />
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Generate</button>
+    </form>
+</div>
+<div class="jumbotron" id="recover-active">
+    <form class="form-signin">
+        <label>Syncronize transactions from:</label>
+        <input type="date" id="inputSyncFrom" class="form-control" required />
+        <label>Password:</label>
+        <input type="password" id="inputPassword" class="form-control" placeholder="Password" />
+        <label>Mnemonic words:</label>
+        <input type="text" id="inputMnemonic" class="form-control" placeholder="because evil federal west carry frog trophy quantum dry blast luggage piece" required />
+        <br />
+        <div class="alert alert-info" role="alert">
+            <strong>Heads up!</strong> At recovery the wallet is unable to check if your password is correct or not. If you provide a wrong password a wallet will be recovered with the provided mnemonic and password combination.
+        </div>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Recover</button>
+    </form>
+</div>
