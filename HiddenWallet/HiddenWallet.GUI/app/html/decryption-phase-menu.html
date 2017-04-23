@@ -4,8 +4,8 @@ Multiple lines will require custom code not provided by Bootstrap. -->
     <nav>
         <ul class="nav nav-justified">
             <li class="active"><a>Decrypt</a></li>
-            <li><a href="javascript:decryptionPhaseMenuShow('generate')">Generate</a></li>
-            <li><a href="javascript:decryptionPhaseMenuShow('recover')">Recover</a></li>
+            <li><a href="javascript:decryptionPhaseShow('generate')">Generate</a></li>
+            <li><a href="javascript:decryptionPhaseShow('recover')">Recover</a></li>
         </ul>
     </nav>
 </div>
@@ -13,9 +13,9 @@ Multiple lines will require custom code not provided by Bootstrap. -->
 <div class="masthead" id="generate-active">
 	<nav>
 		<ul class="nav nav-justified">
-			<li><a href="javascript:decryptionPhaseMenuShow('decrypt')">Decrypt</a></li>
+			<li><a href="javascript:decryptionPhaseShow('decrypt')">Decrypt</a></li>
 			<li class="active"><a>Generate</a></li>
-			<li><a href="javascript:decryptionPhaseMenuShow('recover')">Recover</a></li>
+			<li><a href="javascript:decryptionPhaseShow('recover')">Recover</a></li>
 		</ul>
 	</nav>
 </div>
@@ -23,8 +23,8 @@ Multiple lines will require custom code not provided by Bootstrap. -->
 <div class="masthead" id="recover-active">
 	<nav>
 		<ul class="nav nav-justified">
-			<li><a href="javascript:decryptionPhaseMenuShow('decrypt')">Decrypt</a></li>
-			<li><a href="javascript:decryptionPhaseMenuShow('generate')">Generate</a></li>
+			<li><a href="javascript:decryptionPhaseShow('decrypt')">Decrypt</a></li>
+			<li><a href="javascript:decryptionPhaseShow('generate')">Generate</a></li>
 			<li class="active"><a>Recover</a></li>
 		</ul>
 	</nav>

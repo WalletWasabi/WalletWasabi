@@ -8,7 +8,7 @@
 
     <link rel="stylesheet" href="app/css/justified-nav.css">
 </head>
-<body onload="decryptionPhaseMenuShow('decrypt')">
+<body onload="decryptionPhaseShow()">
     <iframe id="decryption-phase-menu-frame" src="app/html/decryption-phase-menu.html" style="display:none"></iframe>
     <iframe id="decryption-phase-content-frame" src="app/html/decryption-phase-content.html" style="display:none"></iframe>
     <div class="container">
@@ -20,24 +20,55 @@
     <script type="text/javascript" src="app/app.js"></script>
     <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
     <script type="text/javascript">
-        function decryptionPhaseMenuShow(menuItem) 
-        {
-            if (menuItem === "decrypt")
-            {
+        var walletExists;
+        function decryptionPhaseShow(menuItem = "") {
+            if (menuItem === "") {
+                var result = httpGetWallet("wallet-exists");
+                walletExists = JSON.parse(result).Value;
+                if (walletExists === true) {
+                    decryptionPhaseShow("decrypt");
+                }
+                else {
+                    decryptionPhaseShow("generate");
+                }
+            }
+            else if (menuItem === "decrypt") {
                 document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("decrypt-active").innerHTML;
-                document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("decrypt-active").innerHTML;
+                if (walletExists === true) {
+                    document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("decrypt-active").innerHTML;
+                }
+                else {
+                    document.getElementById("content").innerHTML = '<div class="alert alert-warning" role="alert"><strong>No wallet found!</strong> Generate or recover your wallet before decrypting it!</div>';
+                }
             }
-            else if (menuItem === "generate")
-            {
+            else if (menuItem === "generate") {
                 document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("generate-active").innerHTML;
-                document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("generate-active").innerHTML;
+                if (walletExists === false) {
+                    document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("generate-active").innerHTML;
+                }
+                else {
+                    document.getElementById("content").innerHTML = '<div class="alert alert-warning" role="alert"><strong>Wallet already exists!</strong> If you wish to continue with this operation you first need to delete or rename your wallet file!</div>';
+                }
             }
-            else if (menuItem === "recover")
-            {
+            else if (menuItem === "recover") {
                 document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("recover-active").innerHTML;
-                document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("recover-active").innerHTML;
+                if (walletExists === false) {
+                    document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("recover-active").innerHTML;
+                }
+                else {
+                    document.getElementById("content").innerHTML = '<div class="alert alert-warning" role="alert"><strong>Wallet already exists!</strong> If you wish to continue with this operation you first need to delete or rename your wallet file!</div>';
+                }
             }
         }
+
+        function httpGetWallet(path) {
+            var theUrl = "http://localhost:5000/api/v1/wallet/" + path;
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", theUrl, false); // false for synchronous request
+            xmlHttp.send(null);
+            return xmlHttp.responseText;
+        }
     </script>
+
 </body>
 </html>
