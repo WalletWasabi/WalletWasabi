@@ -19,15 +19,13 @@ namespace HiddenWallet.API.Wrappers
 	{
 		private string _password = null;
 		private WalletJob _walletJob = null;
-		private SafeAccount aliceAccount = new SafeAccount(1);
-		private SafeAccount bobAccount = new SafeAccount(2);
+		private readonly SafeAccount _aliceAccount = new SafeAccount(1);
+		private readonly SafeAccount _bobAccount = new SafeAccount(2);
 
-		private CancellationTokenSource _cts = new CancellationTokenSource();
+		private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 		private Task _walletJobTask = Task.CompletedTask;
-		private Task _headerHeightReporter = Task.CompletedTask;
 		
 		public bool WalletExists => File.Exists(Config.WalletFilePath);
-		public StatusResponse StatusResponse = new StatusResponse{ HeaderHeight = 0, TrackingHeight = 0, WalletState = WalletState.NotStarted.ToString() };
 
 		public WalletWrapper()
 		{
@@ -52,53 +50,9 @@ namespace HiddenWallet.API.Wrappers
 			if (safe.Network != Config.Network) throw new NotSupportedException("Network in the config file differs from the netwrok in the wallet file");
 			_password = password;
 
-			_walletJob = new WalletJob(safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { aliceAccount, bobAccount });
+			_walletJob = new WalletJob(safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { _aliceAccount, _bobAccount });
 
 			_walletJobTask = _walletJob.StartAsync(_cts.Token);
-
-			_walletJob.BestHeightChanged += _walletJob_BestHeightChanged;
-			_walletJob.StateChanged += _walletJob_StateChanged;
-
-			_headerHeightReporter = ReportHeaderHeightAsync(_cts.Token);
-		}
-
-		private async Task ReportHeaderHeightAsync(CancellationToken ctsToken)
-		{
-			while (true)
-			{
-				try
-				{
-					await Task.Delay(1000, ctsToken).ContinueWith(t => { }).ConfigureAwait(false);
-					if (ctsToken.IsCancellationRequested) return;
-
-					if (WalletJob.TryGetHeaderHeight(out Height height))
-					{
-						if (height.Type != HeightType.Chain)
-							StatusResponse.HeaderHeight = 0;
-						else StatusResponse.HeaderHeight = height.Value;
-					}
-				}
-				catch (OperationCanceledException)
-				{
-
-				}
-				catch (Exception ex)
-				{
-					Debug.WriteLine($"Ignoring {nameof(ReportHeaderHeightAsync)} exception:");
-					Debug.WriteLine(ex);
-				}
-			}
-		}
-		private void _walletJob_StateChanged(object sender, EventArgs e)
-		{
-			StatusResponse.WalletState = _walletJob.State.ToString();
-		}
-		private void _walletJob_BestHeightChanged(object sender, EventArgs e)
-		{
-			var height = _walletJob.BestHeight;
-			if (height.Type != HeightType.Chain)
-				StatusResponse.TrackingHeight = 0;
-			else StatusResponse.TrackingHeight = height.Value;
 		}
 
 		public void Recover(string password, string mnemonic, string creationTime)
@@ -114,13 +68,35 @@ namespace HiddenWallet.API.Wrappers
 		public async Task ShutdownAsync()
 		{
 			_cts.Cancel();
+			await Task.WhenAll(_walletJobTask).ConfigureAwait(false);
+			Console.WriteLine("Gracefully shut down...");
+		}
+
+		public StatusResponse GetStatusResponse()
+		{
 			if (_walletJob != null)
 			{
-				_walletJob.BestHeightChanged -= _walletJob_BestHeightChanged;
-				_walletJob.StateChanged -= _walletJob_StateChanged;
-			}
+				var hh = 0;
+				if (WalletJob.TryGetHeaderHeight(out Height headerHeight))
+				{
+					if (headerHeight.Type == HeightType.Chain)
+					{
+						hh = headerHeight.Value;
+					}
+				}
 
-			await Task.WhenAll(_walletJobTask, _headerHeightReporter).ConfigureAwait(false);
+				var th = 0;
+				var trackingHeight = _walletJob.BestHeight;
+				if (trackingHeight.Type == HeightType.Chain)
+				{
+					th = trackingHeight.Value;
+				}
+
+				var ws = _walletJob.State.ToString();
+				
+				return new StatusResponse { HeaderHeight = hh, TrackingHeight = th, WalletState = ws };
+			}
+			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, WalletState = WalletState.NotStarted.ToString() };
 		}
 	}
 }

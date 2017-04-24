@@ -77,7 +77,10 @@ function startApi() {
 //Kill process when electron exits
 process.on('exit', function () {
     writeLog('exit');
-    apiProcess.kill();
+    var request = require('request');
+    request('http://localhost:5000/api/v1/wallet/shutdown', function (error, response, body) {
+        apiProcess.kill();
+    });
 });
 
 function writeLog(msg) {

@@ -11,8 +11,6 @@ namespace HiddenWallet.API.Controllers
 	[Route("api/v1/[controller]")]
 	public class WalletController : Controller
 	{
-		public readonly WalletWrapper WalletWrapper = new WalletWrapper();
-
 		[HttpGet]
 		public string Test()
 		{
@@ -30,7 +28,7 @@ namespace HiddenWallet.API.Controllers
 
 			try
 			{
-				WalletCreateResponse response = WalletWrapper.Create(request.Password);
+				WalletCreateResponse response = Global.WalletWrapper.Create(request.Password);
 
 				return new ObjectResult(response);
 			}
@@ -51,7 +49,7 @@ namespace HiddenWallet.API.Controllers
 
 			try
 			{
-				WalletWrapper.Recover(request.Password, request.Mnemonic, request.CreationTime);
+				Global.WalletWrapper.Recover(request.Password, request.Mnemonic, request.CreationTime);
 
 				return new ObjectResult(new SuccessResponse());
 			}
@@ -72,7 +70,7 @@ namespace HiddenWallet.API.Controllers
 
 			try
 			{
-				WalletWrapper.Load(request.Password);
+				Global.WalletWrapper.Load(request.Password);
 
 				return new ObjectResult(new SuccessResponse());
 			}
@@ -88,7 +86,7 @@ namespace HiddenWallet.API.Controllers
 		{
 			try
 			{
-				if (WalletWrapper.WalletExists)
+				if (Global.WalletWrapper.WalletExists)
 				{
 					return new ObjectResult(new YesNoResponse { Value = true });
 				}
@@ -106,7 +104,7 @@ namespace HiddenWallet.API.Controllers
 		{
 			try
 			{
-				return new ObjectResult(WalletWrapper.StatusResponse);
+				return new ObjectResult(Global.WalletWrapper.GetStatusResponse());
 			}
 			catch (Exception ex)
 			{
@@ -120,7 +118,7 @@ namespace HiddenWallet.API.Controllers
 		{
 			try
 			{
-				WalletWrapper.ShutdownAsync().Wait();
+				Global.WalletWrapper.ShutdownAsync().Wait();
 
 				return new ObjectResult(new SuccessResponse());
 			}

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using System.Net.Http;
+using HiddenWallet.API.Wrappers;
 
 namespace HiddenWallet.API
 {
@@ -13,13 +14,22 @@ namespace HiddenWallet.API
     {
         public static void Main(string[] args)
         {
-            var host = new WebHostBuilder()
-                .UseKestrel()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseStartup<Startup>()
-                .Build();
+			try
+			{
+				Global.WalletWrapper = new WalletWrapper();
 
-            host.Run();
+				var host = new WebHostBuilder()
+					.UseKestrel()
+					.UseContentRoot(Directory.GetCurrentDirectory())
+					.UseStartup<Startup>()
+					.Build();
+
+				host.Run();
+			}
+			finally
+			{
+				Global.WalletWrapper.ShutdownAsync().Wait(); // won't happen if process is killed
+			}
         }
     }
 }
