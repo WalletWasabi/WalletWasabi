@@ -1,6 +1,7 @@
 ﻿using HBitcoin.FullBlockSpv;
 using HBitcoin.KeyManagement;
 using HBitcoin.Models;
+using HBitcoin.MemPool;
 using HiddenWallet.API.Models;
 using NBitcoin;
 using Newtonsoft.Json;
@@ -93,10 +94,14 @@ namespace HiddenWallet.API.Wrappers
 				}
 
 				var ws = _walletJob.State.ToString();
+
+				var nc = WalletJob.ConnectedNodeCount;
 				
-				return new StatusResponse { HeaderHeight = hh, TrackingHeight = th, WalletState = ws };
+				var mtxc = MemPoolJob.Transactions.Count;
+				
+				return new StatusResponse { HeaderHeight = hh, TrackingHeight = th, ConnectedNodeCount = nc, MemPoolTransactionCount = mtxc, WalletState = ws };
 			}
-			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, WalletState = WalletState.NotStarted.ToString() };
+			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, ConnectedNodeCount = 0, MemPoolTransactionCount = 0, WalletState = WalletState.NotStarted.ToString() };
 		}
 	}
 }

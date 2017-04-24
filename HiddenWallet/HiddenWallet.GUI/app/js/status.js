@@ -10,24 +10,47 @@ function statusShow(progress, text, progressType = "") {
 var walletState;
 var headerHeight;
 var trackingHeight;
+var connectedNodeCount;
+var memPoolTransactionCount;
 function periodicStatusUpdate() {
     setInterval(function statusUpdate() {
         var response = httpGetWallet("status");
+
         if (walletState === response.WalletState) {
             if (headerHeight === response.HeaderHeight) {
                 if (trackingHeight === response.TrackingHeight) {
-                    return;
+                    if (connectedNodeCount === response.ConnectedNodeCount) {
+                        if (memPoolTransactionCount === response.MemPoolTransactionCount) {
+                            return;
+                        }
+                    }
                 }
             }
         }
+
         walletState = response.WalletState;
         headerHeight = response.HeaderHeight;
         trackingHeight = response.TrackingHeight;
+        connectedNodeCount = response.ConnectedNodeCount;
+        memPoolTransactionCount = response.MemPoolTransactionCount;
 
-        var text = "Status: " + walletState + ", Header Height: " + headerHeight + ", Tracking Height: " + trackingHeight;
-        var zeroCheck = 1;
-        if (trackingHeight !== 0) zeroCheck = trackingHeight;
-        var progress = Math.floor((headerHeight / zeroCheck) * 100);
+        var connectionText = ", Connecting..."
+        if (connectedNodeCount !== 0) {
+            connectionText = ", Connections: " + connectedNodeCount;
+        }
+        var blocksLeft = "-";
+        if (trackingHeight !== 0) {
+            var difference = headerHeight - trackingHeight;
+            if (difference >= 0) {
+                blocksLeft = difference;
+            }
+        }
+        var text = walletState + connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft + ", MemPool txs: " + memPoolTransactionCount;
+        var zeroHeaderCheck = 1;
+        if (headerHeight !== 0) zeroHeaderCheck = headerHeight;
+        var zeroTrackingCheck = 1;
+        if (trackingHeight !== 0) zeroTrackingCheck = trackingHeight;
+        var progress = Math.floor((zeroTrackingCheck / zeroHeaderCheck) * 100);
 
         var progressType = "";
         if (walletState.toUpperCase() === "NotStarted".toUpperCase()) {
@@ -46,7 +69,8 @@ function periodicStatusUpdate() {
             progressType = "success";
         }
 
-        if (progress > 50) statusShow(progress, text, progressType);
-        else statusShow(50, text, progressType);
+        if (progress < 50) statusShow(50, text, progressType); //mincheck
+        else if (progress > 100) statusShow(100, text, progressType); //maxcheck
+        else statusShow(progress, text, progressType);
     }, 1000);
 }
