@@ -244,3 +244,5 @@ Wallets
 FullBlockSpvData
 /src/HiddenWallet/Config.json
 /dist
+/HiddenWallet/HiddenWallet.GUI/Config.json
+/HiddenWallet/HiddenWallet.API/Config.json
