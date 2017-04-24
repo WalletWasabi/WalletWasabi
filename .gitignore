@@ -241,6 +241,6 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 Wallets
+FullBlockSpvData
 /src/HiddenWallet/Config.json
-/dist
 /dist
