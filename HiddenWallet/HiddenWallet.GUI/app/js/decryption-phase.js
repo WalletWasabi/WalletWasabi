@@ -1,5 +1,6 @@
 var walletExists;
 function decryptionPhaseShow(menuItem = "") {
+    statusShow(0, "walletDecryption");
     if (menuItem === "") {
         walletExists = httpGetWallet("wallet-exists").Value;
         if (walletExists === true) {
@@ -128,7 +129,7 @@ function decryptWallet() {
         alert(result.Message, "Could not decrypt wallet");
     }
     else {
-        alert("Wallet is successfully decrypted!", "Success");
+        statusShow(100, "Decrypted");
         walletPhaseShow("alice");
     }
 }
