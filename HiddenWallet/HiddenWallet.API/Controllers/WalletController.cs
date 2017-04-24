@@ -99,5 +99,35 @@ namespace HiddenWallet.API.Controllers
 				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
 			}
 		}
+
+		[Route("status")]
+		[HttpGet]
+		public IActionResult Status()
+		{
+			try
+			{
+				return new ObjectResult(WalletWrapper.StatusResponse);
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
+
+		[Route("shutdown")]
+		[HttpGet]
+		public IActionResult Shutdown()
+		{
+			try
+			{
+				WalletWrapper.ShutdownAsync().Wait();
+
+				return new ObjectResult(new SuccessResponse());
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
 	}
 }
