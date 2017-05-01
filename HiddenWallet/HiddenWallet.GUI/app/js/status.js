@@ -34,9 +34,9 @@ function periodicStatusUpdate() {
         connectedNodeCount = response.ConnectedNodeCount;
         memPoolTransactionCount = response.MemPoolTransactionCount;
 
-        var connectionText = ", Connecting..."
+        var connectionText = "Connecting..."
         if (connectedNodeCount !== 0) {
-            connectionText = ", Connections: " + connectedNodeCount;
+            connectionText = "Connections: " + connectedNodeCount;
         }
         var blocksLeft = "-";
         if (trackingHeight !== 0) {
@@ -45,28 +45,34 @@ function periodicStatusUpdate() {
                 blocksLeft = difference;
             }
         }
-        var text = walletState + connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft + ", MemPool txs: " + memPoolTransactionCount;
+
         var zeroHeaderCheck = 1;
         if (headerHeight !== 0) zeroHeaderCheck = headerHeight;
         var zeroTrackingCheck = 1;
         if (trackingHeight !== 0) zeroTrackingCheck = trackingHeight;
         var progress = Math.floor((zeroTrackingCheck / zeroHeaderCheck) * 100);
 
+        var text = "";
         var progressType = "";
         if (walletState.toUpperCase() === "NotStarted".toUpperCase()) {
             progressType = "warning";
+            text = "NotConnected";
         }
         if (walletState.toUpperCase() === "SyncingHeaders".toUpperCase()) {
             progressType = "info";
+            text = walletState + ", " + connectionText + ", Headers: " + headerHeight;
         }
         if (walletState.toUpperCase() === "SyncingBlocks".toUpperCase()) {
             progressType = "striped";
+            text = walletState + ", " + connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft;
         }
         if (walletState.toUpperCase() === "SyncingMemPool".toUpperCase()) {
-            progressType = ""; // this is the default
+            progressType = "success"; // this is the default
+            text = connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft + ", MemPool txs: " + memPoolTransactionCount;
         }
         if (walletState.toUpperCase() === "Synced".toUpperCase()) {
             progressType = "success";
+            text = walletState + ", " + connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft + ", MemPool txs: " + memPoolTransactionCount;
         }
 
         if (progress < 50) statusShow(50, text, progressType); //mincheck
