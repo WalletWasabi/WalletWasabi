@@ -74,6 +74,9 @@ function periodicStatusUpdate() {
             progressType = "success";
             text = walletState + ", " + connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft + ", MemPool txs: " + memPoolTransactionCount;
         }
+        if (connectedNodeCount === 0 && walletState.toUpperCase() !== "NotStarted".toUpperCase()) {
+            text = "Connecting. . .";
+        }
 
         if (progress < 50) statusShow(50, text, progressType); //mincheck
         else if (progress > 100) statusShow(100, text, progressType); //maxcheck

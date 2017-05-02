@@ -28,6 +28,7 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="app\js\cleanup.js" />
     <Compile Include="app\js\decryption-phase.js" />
     <Compile Include="app\js\status.js" />
     <Compile Include="app\js\wallet-phase.js" />

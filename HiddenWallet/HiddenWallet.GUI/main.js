@@ -64,8 +64,10 @@ function startApi() {
     var proc = require('child_process').spawn;
     //  run server
     var apipath = path.join(__dirname, '..\\HiddenWallet.API\\bin\\dist\\win\\HiddenWallet.API.exe');
-    apiProcess = proc(apipath);
-
+    apiProcess = proc(apipath, {
+        detached: true
+    });
+    
     apiProcess.stdout.on('data', (data) => {
         writeLog(`stdout: ${data}`);
         if (mainWindow == null) {
@@ -74,14 +76,16 @@ function startApi() {
     });
 }
 
-//Kill process when electron exits
-process.on('exit', function () {
+// loads module and registers app specific cleanup callback...
+var cleanup = require('./app/js/cleanup').Cleanup(myCleanup);
+// defines app specific callback...
+
+var request = require('request');
+function myCleanup() {
     writeLog('exit');
-    var request = require('request');
-    request('http://localhost:5000/api/v1/wallet/shutdown', function (error, response, body) {
-        apiProcess.kill();
-    });
-});
+};
+// Prevents the program from closing instantly
+process.stdin.resume();
 
 function writeLog(msg) {
     console.log(msg);
