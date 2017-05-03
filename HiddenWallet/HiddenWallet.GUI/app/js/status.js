@@ -67,7 +67,7 @@ function periodicStatusUpdate() {
             text = walletState + ", " + connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft;
         }
         if (walletState.toUpperCase() === "SyncingMemPool".toUpperCase()) {
-            progressType = "success progress-bar-striped active"; // this is the default
+            progressType = "success"; // this is the default
             text = connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft + ", MemPool txs: " + memPoolTransactionCount;
         }
         if (walletState.toUpperCase() === "Synced".toUpperCase()) {
