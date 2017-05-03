@@ -49,11 +49,21 @@ namespace HiddenWallet.API.Wrappers
 		{
 			Safe safe = Safe.Load(password, Config.WalletFilePath);
 			if (safe.Network != Config.Network) throw new NotSupportedException("Network in the config file differs from the netwrok in the wallet file");
-			_password = password;
 
-			_walletJob = new WalletJob(safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { _aliceAccount, _bobAccount });
+			if (!_walletJobTask.IsCompleted)
+			{
+				// then it's already running, because the default walletJobTask is completedtask
+				if (_password != password) throw new NotSupportedException("Passwords don't match");
+			}
+			else
+			{
+				// it's not running yet, let's run it
+				_password = password;
 
-			_walletJobTask = _walletJob.StartAsync(_cts.Token);
+				_walletJob = new WalletJob(safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { _aliceAccount, _bobAccount });
+
+				_walletJobTask = _walletJob.StartAsync(_cts.Token);
+			}
 		}
 
 		public void Recover(string password, string mnemonic, string creationTime)
