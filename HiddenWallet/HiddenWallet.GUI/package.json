@@ -11,10 +11,9 @@
     "electron-builder": "^17.0.1"
   },
   "dependencies": {
-    "request": "^2.81.0",
     "bootstrap": "^3.3.7",
-    "electron": "^1.6.7",
-    "electron-builder": "^17.0.2"
+    "electron": "^1.6.8",
+    "electron-builder": "^17.1.2"
   },
   "scripts": {
     "start": "electron .",

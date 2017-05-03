@@ -6,7 +6,6 @@ const BrowserWindow = electron.BrowserWindow;
 
 const path = require('path');
 const url = require('url');
-const packageJson = require('./package.json');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -14,8 +13,7 @@ let mainWindow;
 
 function createWindow() {
     // Create the browser window.
-    var constructedTitle = "HiddenWallet " + packageJson.version + " - " + packageJson.author.name + " (EXPERIMENTAL)";
-    mainWindow = new BrowserWindow({ width: 800, height: 600, resizable: false, title: constructedTitle });
+    mainWindow = new BrowserWindow({ width: 800, height: 600, resizable: false, frame: false });
     
     // and load the index.html of the app.
     mainWindow.loadURL(url.format({
@@ -58,14 +56,14 @@ app.on('activate', function () {
 // code. You can also put them in separate files and require them here.
 
 const os = require('os');
-var apiProcess = null;
+var apiProcess;
 
 function startApi() {
-    var proc = require('child_process').spawn;
+    var spawn = require('child_process').spawn;
     //  run server
     var apipath = path.join(__dirname, '..\\HiddenWallet.API\\bin\\dist\\win\\HiddenWallet.API.exe');
-    apiProcess = proc(apipath, {
-        detached: true
+    apiProcess = spawn(apipath, {
+        detached: true        
     });
     
     apiProcess.stdout.on('data', (data) => {
@@ -77,15 +75,11 @@ function startApi() {
 }
 
 // loads module and registers app specific cleanup callback...
-var cleanup = require('./app/js/cleanup').Cleanup(myCleanup);
+const cleanup = require('./app/js/cleanup').Cleanup(myCleanup);
 // defines app specific callback...
-
-var request = require('request');
-function myCleanup() {
+function myCleanup() {   
     writeLog('exit');
 };
-// Prevents the program from closing instantly
-process.stdin.resume();
 
 function writeLog(msg) {
     console.log(msg);
@@ -93,5 +87,5 @@ function writeLog(msg) {
 
 // Disable default menu
 app.on('browser-window-created', function (e, window) {
-    window.setMenu(null);
+    window.setMenu(null);    
 });

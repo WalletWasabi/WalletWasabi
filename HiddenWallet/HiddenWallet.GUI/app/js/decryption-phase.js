@@ -1,9 +1,16 @@
 var walletExists;
 function decryptionPhaseShow(menuItem = "") {
+    document.getElementById("hide-btn").hidden = true;
     if (menuItem === "") {
         walletExists = httpGetWallet("wallet-exists").Value;
         if (walletExists === true) {
-            decryptionPhaseShow("decrypt");
+            var alreadyRunning = httpGetWallet("status").WalletState.toUpperCase() !== "NotStarted".toUpperCase();
+            if (alreadyRunning) {
+                walletPhaseShow("alice");
+            }
+            else {
+                decryptionPhaseShow("decrypt");
+            }
         }
         else {
             decryptionPhaseShow("generate");

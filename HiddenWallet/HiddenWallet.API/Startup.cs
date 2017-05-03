@@ -29,10 +29,18 @@ namespace HiddenWallet.API
 			});
 		}
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app)
+		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+		public void Configure(IApplicationBuilder app)
         {
 			app.UseMvc();
-        }
-    }
+
+			var applicationLifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
+			applicationLifetime.ApplicationStopping.Register(OnShutdown);
+		}
+
+		private void OnShutdown()
+		{
+			Global.WalletWrapper.EndAsync().Wait();
+		}
+	}
 }

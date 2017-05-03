@@ -30,12 +30,19 @@
   <ItemGroup>
     <Compile Include="app\js\cleanup.js" />
     <Compile Include="app\js\decryption-phase.js" />
+    <Compile Include="app\js\default.js">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="app\js\status.js" />
     <Compile Include="app\js\wallet-phase.js" />
     <Compile Include="main.js" />
+    <Content Include="app\css\default.css">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="app\css\justified-nav.css" />
     <Content Include="app\html\decryption-phase-content.html" />
     <Content Include="app\html\decryption-phase-menu.html" />
+    <Content Include="app\html\shutdown.html" />
     <Content Include="app\html\wallet-phase-tabs.html" />
     <Content Include="index.html" />
     <Content Include="package.json" />

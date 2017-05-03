@@ -55,19 +55,19 @@ function periodicStatusUpdate() {
         var text = "";
         var progressType = "";
         if (walletState.toUpperCase() === "NotStarted".toUpperCase()) {
-            progressType = "warning";
+            progressType = "info";
             text = "NotConnected";
         }
         if (walletState.toUpperCase() === "SyncingHeaders".toUpperCase()) {
-            progressType = "info";
+            progressType = "info progress-bar-striped active";
             text = walletState + ", " + connectionText + ", Headers: " + headerHeight;
         }
         if (walletState.toUpperCase() === "SyncingBlocks".toUpperCase()) {
-            progressType = "striped";
+            progressType = "striped active";
             text = walletState + ", " + connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft;
         }
         if (walletState.toUpperCase() === "SyncingMemPool".toUpperCase()) {
-            progressType = "success"; // this is the default
+            progressType = "success progress-bar-striped active"; // this is the default
             text = connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft + ", MemPool txs: " + memPoolTransactionCount;
         }
         if (walletState.toUpperCase() === "Synced".toUpperCase()) {
@@ -75,6 +75,7 @@ function periodicStatusUpdate() {
             text = walletState + ", " + connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft + ", MemPool txs: " + memPoolTransactionCount;
         }
         if (connectedNodeCount === 0 && walletState.toUpperCase() !== "NotStarted".toUpperCase()) {
+            progressType = "info progress-bar-striped";
             text = "Connecting. . .";
         }
 

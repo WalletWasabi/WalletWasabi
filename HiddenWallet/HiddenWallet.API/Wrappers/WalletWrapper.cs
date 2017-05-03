@@ -66,11 +66,11 @@ namespace HiddenWallet.API.Wrappers
 				DateTimeOffset.ParseExact(creationTime, "yyyy-MM-dd", CultureInfo.InvariantCulture));
 		}
 
-		public async Task ShutdownAsync()
+		public async Task EndAsync()
 		{
 			_cts.Cancel();
 			await Task.WhenAll(_walletJobTask).ConfigureAwait(false);
-			Console.WriteLine("Gracefully shut down...");
+			Console.WriteLine("Graceful shut down...");
 		}
 
 		public StatusResponse GetStatusResponse()

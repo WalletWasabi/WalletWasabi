@@ -118,9 +118,17 @@ namespace HiddenWallet.API.Controllers
 		{
 			try
 			{
-				Global.WalletWrapper.ShutdownAsync().Wait();
+				try
+				{
+					Global.WalletWrapper.EndAsync().Wait();
 
-				return new ObjectResult(new SuccessResponse());
+					return new ObjectResult(new SuccessResponse());
+				}
+				finally
+				{
+					// wait until the call returns
+					Task.Delay(1000).ContinueWith(_ => Environment.Exit(0));
+				}
 			}
 			catch (Exception ex)
 			{
