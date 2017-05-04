@@ -135,5 +135,32 @@ namespace HiddenWallet.API.Controllers
 				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
 			}
 		}
+
+		[Route("balances")]
+		[HttpGet]
+		public IActionResult Balances([FromBody]AccountModel request)
+		{
+			try
+			{
+				if (!Global.WalletWrapper.IsDecrypted)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wallet isn't decrypted" });
+				}
+				var trimmed = request.Account;
+				if (String.Equals(trimmed, "alice", StringComparison.OrdinalIgnoreCase))
+				{
+					return new ObjectResult(new BalancesResponse { Available = 32.1m, Incoming = 0.23534219m });
+				}
+				else if (String.Equals(trimmed, "bob", StringComparison.OrdinalIgnoreCase))
+				{
+					return new ObjectResult(new BalancesResponse { Available = 0.34342m, Incoming = 5m });
+				}
+				else return new ObjectResult(new FailureResponse { Message = "Wrong account" });				
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
 	}
 }

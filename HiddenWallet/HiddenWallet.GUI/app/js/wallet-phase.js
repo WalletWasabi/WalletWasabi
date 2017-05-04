@@ -34,7 +34,7 @@ function walletShow(menuItem) {
         document.getElementById("menu").innerHTML = document.getElementById("wallet-menu-frame").contentWindow.document.getElementById("receive-active").innerHTML;
     }
     else if (menuItem === 'send') {
-        writeHint('Consider feeding nopara73 with some pizza: 186n7me3QKajQZJnUsVsezVhVrSwyFCCZ');
+        writeHint('Would you consider feeding the developer with some pizza? 186n7me3QKajQZJnUsVsezVhVrSwyFCCZ');
         document.getElementById("menu").innerHTML = document.getElementById("wallet-menu-frame").contentWindow.document.getElementById("send-active").innerHTML;
     }
     else if (menuItem === 'history') {

@@ -27,6 +27,7 @@ namespace HiddenWallet.API.Wrappers
 		private Task _walletJobTask = Task.CompletedTask;
 		
 		public bool WalletExists => File.Exists(Config.WalletFilePath);
+		public bool IsDecrypted => !_walletJobTask.IsCompleted && _password != null;
 
 		public WalletWrapper()
 		{
