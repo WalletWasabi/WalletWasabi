@@ -25,6 +25,20 @@ function walletPhaseShow(tabItem = "") {
 
     writeHint("Move coins between Alice and Bob only by mixing!");
 
-    document.getElementById("menu").innerHTML = "menu not implemented";
+    walletShow('receive');
     document.getElementById("content").innerHTML = "content not implemented";
+}
+
+function walletShow(menuItem) {
+    if (menuItem === 'receive') {
+        document.getElementById("menu").innerHTML = document.getElementById("wallet-menu-frame").contentWindow.document.getElementById("receive-active").innerHTML;
+    }
+    else if (menuItem === 'send') {
+        writeHint('Consider feeding nopara73 with some pizza: 186n7me3QKajQZJnUsVsezVhVrSwyFCCZ');
+        document.getElementById("menu").innerHTML = document.getElementById("wallet-menu-frame").contentWindow.document.getElementById("send-active").innerHTML;
+    }
+    else if (menuItem === 'history') {
+        document.getElementById("menu").innerHTML = document.getElementById("wallet-menu-frame").contentWindow.document.getElementById("history-active").innerHTML;
+        writeHint('HiddenWallet? Easy Peasy Lemon Squeezey!');
+    }
 }
