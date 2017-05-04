@@ -31,3 +31,7 @@ document.getElementById("title").innerHTML = document.title;
         }
     };
 })();
+
+function writeHint(message) {
+    document.getElementById('hint').innerHTML = message;
+}

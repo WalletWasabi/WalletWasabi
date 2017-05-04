@@ -6,7 +6,7 @@ function decryptionPhaseShow(menuItem = "") {
         if (walletExists === true) {
             var alreadyRunning = httpGetWallet("status").WalletState.toUpperCase() !== "NotStarted".toUpperCase();
             if (alreadyRunning) {
-                walletPhaseShow("alice");
+                walletPhaseShow();
             }
             else {
                 decryptionPhaseShow("decrypt");
@@ -135,6 +135,6 @@ function decryptWallet() {
         alert(result.Message, "Could not decrypt wallet");
     }
     else {
-        walletPhaseShow("alice");
+        walletPhaseShow();
     }
 }

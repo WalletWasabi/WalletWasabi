@@ -13,7 +13,9 @@
   "dependencies": {
     "bootstrap": "^3.3.7",
     "electron": "^1.6.8",
-    "electron-builder": "^17.1.2"
+    "electron-builder": "^17.1.2",
+    "electron-json-storage": "^3.0.5",
+    "jquery": "^3.2.1"
   },
   "scripts": {
     "start": "electron .",
