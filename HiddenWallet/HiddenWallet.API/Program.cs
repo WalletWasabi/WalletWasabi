@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using System.Net.Http;
 using HiddenWallet.API.Wrappers;
-using System.Runtime.Loader;
+using System.Net.Http;
+using System;
 
 namespace HiddenWallet.API
 {
@@ -15,15 +11,36 @@ namespace HiddenWallet.API
 	{
 		public static void Main(string[] args)
 		{
-			Global.WalletWrapper = new WalletWrapper();
+			var alreadyRunning = false;
+			using (var client = new HttpClient())
+			{
+				try
+				{
+					client.GetAsync("http://localhost:5000/api/v1/wallet/test").Wait();
+					alreadyRunning = true;
+				}
+				catch
+				{
+					alreadyRunning = false;
+				}
+			}
 
-			var host = new WebHostBuilder()
-				.UseKestrel()
-				.UseContentRoot(Directory.GetCurrentDirectory())
-				.UseStartup<Startup>()
-				.Build();
+			if (!alreadyRunning)
+			{
+				Global.WalletWrapper = new WalletWrapper();
 
-			host.Run();
-		}
+				var host = new WebHostBuilder()
+					.UseKestrel()
+					.UseContentRoot(Directory.GetCurrentDirectory())
+					.UseStartup<Startup>()
+					.Build();
+
+				host.Run();
+			}
+			else
+			{
+				Console.WriteLine("API is already running. Shutting down...");
+			}
+		}		
 	}
 }

@@ -71,11 +71,11 @@ namespace HiddenWallet.API.Wrappers
 
 				_walletJob = new WalletJob(safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { _aliceAccount, _bobAccount });
 
-				_walletJobTask = _walletJob.StartAsync(_cts.Token);
-
 				_walletJob.BestHeightChanged += _walletJob_BestHeightChanged;
 				_walletJob.StateChanged += _walletJob_StateChanged;
 				_walletJob.Tracker.TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChanged;
+
+				_walletJobTask = _walletJob.StartAsync(_cts.Token);				
 			}
 		}
 
@@ -121,9 +121,12 @@ namespace HiddenWallet.API.Wrappers
 
 		public async Task EndAsync()
 		{
-			_walletJob.BestHeightChanged -= _walletJob_BestHeightChanged;
-			_walletJob.StateChanged -= _walletJob_StateChanged;
-			_walletJob.Tracker.TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChanged;
+			if (_walletJob != null)
+			{
+				_walletJob.BestHeightChanged -= _walletJob_BestHeightChanged;
+				_walletJob.StateChanged -= _walletJob_StateChanged;
+				_walletJob.Tracker.TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChanged;
+			}
 
 			_cts.Cancel();
 			await Task.WhenAll(_walletJobTask).ConfigureAwait(false);

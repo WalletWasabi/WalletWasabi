@@ -33,6 +33,7 @@
     <Compile Include="app\js\default.js">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="app\js\hw-client.js" />
     <Compile Include="app\js\settings.js" />
     <Compile Include="app\js\status.js" />
     <Compile Include="app\js\wallet-phase.js" />
