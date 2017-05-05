@@ -8,7 +8,7 @@ namespace HiddenWallet.API.Models
 	public class BalancesResponse : BaseResponse
 	{
 		public BalancesResponse() => Success = true;
-		public decimal Available { get; set; }
-		public decimal Incoming { get; set; }
+		public string Available { get; set; }
+		public string Incoming { get; set; }
 	}
 }

@@ -7,12 +7,13 @@ function statusShow(progress, text, progressType = "") {
     }
 }
 
+var changeBump = 0;
 var walletState;
 var headerHeight;
 var trackingHeight;
 var connectedNodeCount;
 var memPoolTransactionCount;
-function periodicStatusUpdate() {
+function periodicUpdate() {
     setInterval(function statusUpdate() {
         var response = httpGetWallet("status");
 
@@ -27,7 +28,7 @@ function periodicStatusUpdate() {
                 }
             }
         }
-
+        
         walletState = response.WalletState;
         headerHeight = response.HeaderHeight;
         trackingHeight = response.TrackingHeight;
@@ -82,5 +83,10 @@ function periodicStatusUpdate() {
         if (progress < 50) statusShow(50, text, progressType); //mincheck
         else if (progress > 100) statusShow(100, text, progressType); //maxcheck
         else statusShow(progress, text, progressType);
+
+        if (response.ChangeBump != changeBump) {
+            updateWalletContent();
+            changeBump = response.ChangeBump;
+        }
     }, 1000);
 }

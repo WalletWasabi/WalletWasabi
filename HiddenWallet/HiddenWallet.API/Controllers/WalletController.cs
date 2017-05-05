@@ -151,11 +151,19 @@ namespace HiddenWallet.API.Controllers
 				var trimmed = account;
 				if (String.Equals(trimmed, "alice", StringComparison.OrdinalIgnoreCase))
 				{
-					return new ObjectResult(new BalancesResponse { Available = 32.1m, Incoming = 0.23534219m });
+					return new ObjectResult(new BalancesResponse
+					{
+						Available = Global.WalletWrapper.GetAvailable(Global.WalletWrapper.AliceAccount).ToString(false, true),
+						Incoming = Global.WalletWrapper.GetIncoming(Global.WalletWrapper.AliceAccount).ToString(false, true)
+					}); 
 				}
 				else if (String.Equals(trimmed, "bob", StringComparison.OrdinalIgnoreCase))
 				{
-					return new ObjectResult(new BalancesResponse { Available = 0.34342m, Incoming = 5m });
+					return new ObjectResult(new BalancesResponse
+					{
+						Available = Global.WalletWrapper.GetAvailable(Global.WalletWrapper.BobAccount).ToString(false, true),
+						Incoming = Global.WalletWrapper.GetIncoming(Global.WalletWrapper.BobAccount).ToString(false, true)
+					});
 				}
 				else return new ObjectResult(new FailureResponse { Message = "Wrong account" });				
 			}

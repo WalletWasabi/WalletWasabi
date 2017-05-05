@@ -25,8 +25,8 @@ namespace HiddenWallet.API.Wrappers
 
 		private string _password = null;
 		private WalletJob _walletJob = null;
-		private readonly SafeAccount _aliceAccount = new SafeAccount(1);
-		private readonly SafeAccount _bobAccount = new SafeAccount(2);
+		public readonly SafeAccount AliceAccount = new SafeAccount(1);
+		public readonly SafeAccount BobAccount = new SafeAccount(2);
 
 		private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 		private Task _walletJobTask = Task.CompletedTask;
@@ -34,7 +34,14 @@ namespace HiddenWallet.API.Wrappers
 		public bool WalletExists => File.Exists(Config.WalletFilePath);
 		public bool IsDecrypted => !_walletJobTask.IsCompleted && _password != null;
 
-#endregion
+		private Money _availableAlice = Money.Zero;
+		private Money _availableBob = Money.Zero;
+		private Money _incomingAlice = Money.Zero;
+		private Money _incomingBob = Money.Zero;
+		public Money GetAvailable(SafeAccount account) => account == AliceAccount ? _availableAlice : _availableBob;
+		public Money GetIncoming(SafeAccount account) => account == AliceAccount ? _incomingAlice : _incomingBob;
+
+		#endregion
 
 		public WalletWrapper()
 		{
@@ -69,7 +76,7 @@ namespace HiddenWallet.API.Wrappers
 				// it's not running yet, let's run it
 				_password = password;
 
-				_walletJob = new WalletJob(safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { _aliceAccount, _bobAccount });
+				_walletJob = new WalletJob(safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
 
 				_walletJob.BestHeightChanged += _walletJob_BestHeightChanged;
 				_walletJob.StateChanged += _walletJob_StateChanged;
@@ -94,13 +101,48 @@ namespace HiddenWallet.API.Wrappers
 #region EventSubscriptions
 		private void TrackedTransactions_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			if(_changeBump >= 10000)
+			var aliceHistory = _walletJob.GetSafeHistory(AliceAccount);
+			var bobHistory = _walletJob.GetSafeHistory(BobAccount);
+
+			CalculateBalances(aliceHistory, out Money aa, out Money ia);
+			_availableAlice = aa;
+			_incomingAlice = ia;
+			CalculateBalances(bobHistory, out Money ab, out Money ib);
+			_availableBob = ab;
+			_incomingBob = ib;
+
+			// bump change
+			if (_changeBump >= 10000)
 			{
 				_changeBump = 0;
 			}
 			else
 			{
 				_changeBump++;
+			}
+		}
+
+		private static void CalculateBalances(IEnumerable<SafeHistoryRecord> history, out Money available, out Money incoming)
+		{
+			available = Money.Zero;
+			incoming = Money.Zero;
+			foreach (var rec in history)
+			{
+				if (rec.Confirmed)
+				{
+					available += rec.Amount;
+				}
+				else
+				{
+					if (rec.Amount < Money.Zero)
+					{
+						available += rec.Amount;
+					}
+					else
+					{
+						incoming += rec.Amount;
+					}
+				}
 			}
 		}
 
