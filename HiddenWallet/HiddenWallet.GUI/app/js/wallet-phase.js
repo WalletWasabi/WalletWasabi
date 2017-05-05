@@ -26,7 +26,10 @@ function walletPhaseShow(tabItem = "") {
     writeHint("Move coins between Alice and Bob only by mixing!");
 
     walletShow('receive');
-    document.getElementById("content").innerHTML = "content not implemented";
+
+    document.getElementById("before-menu-br").outerHTML = "";
+    document.getElementById("balances").innerHTML = '<h4><span class="label label-default" style="display:block;">Available: 3.123213123 BTC, Incoming: 2023.321323 BTC </span></h4>';
+    document.getElementById("content").innerHTML = "content not imlemented";
 }
 
 function walletShow(menuItem) {

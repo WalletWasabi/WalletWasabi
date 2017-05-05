@@ -44,6 +44,7 @@
     <Content Include="app\html\decryption-phase-content.html" />
     <Content Include="app\html\decryption-phase-menu.html" />
     <Content Include="app\html\shutdown.html" />
+    <Content Include="app\html\wallet-content.html" />
     <Content Include="app\html\wallet-menu.html" />
     <Content Include="app\html\wallet-phase-tabs.html" />
     <Content Include="index.html" />

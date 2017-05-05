@@ -13,5 +13,6 @@ namespace HiddenWallet.API.Models
 		public int TrackingHeight { get; set; }
 		public int ConnectedNodeCount { get; set; }
 		public int MemPoolTransactionCount { get; set; }
+		public int ChangeBump { get; set; }
 	}
 }
