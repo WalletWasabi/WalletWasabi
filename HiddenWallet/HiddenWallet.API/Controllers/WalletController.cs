@@ -198,5 +198,22 @@ namespace HiddenWallet.API.Controllers
 				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
 			}
 		}
+
+		[Route("history/{account}")]
+		[HttpGet]
+		public IActionResult History(string account)
+		{
+			try
+			{
+				var fail = GetAccount(account, out SafeAccount safeAccount);
+				if (fail != null) return new ObjectResult(fail);
+
+				return new ObjectResult(Global.WalletWrapper.GetHistoryResponse(safeAccount));
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
 	}
 }

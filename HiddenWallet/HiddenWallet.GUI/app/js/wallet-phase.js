@@ -70,10 +70,32 @@ function updateWalletContent() {
                         node.appendChild(textNode);
                         document.getElementById("receive-addresses").appendChild(node);
                     }
+                    //for (i = 0; i < resp.Addresses.length; i++) {
+                    //    var trNode = document.createElement("tr");
+                    //    var tdNode = document.createElement("td");
+                    //    tdNode.innerText = resp.Addresses[i];
+                    //    trNode.appendChild(tdNode);
+                    //    document.getElementById("receive-addresses").appendChild(trNode);
+                    //}
                 }
                 else if (menuId === "send-active") {
                 }
                 else if (menuId === "history-active") {
+                    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;
+                    var resp = httpGetWallet("history/alice");
+                    for (i = 0; i < resp.History.length; i++) {
+                        var trNode = document.createElement("tr");
+                        var tdNodeHeight = document.createElement("td");
+                        tdNodeHeight.innerText = resp.History[i].Height;
+                        var tdNodeAmount = document.createElement("td");
+                        tdNodeAmount.innerText = resp.History[i].Amount;
+                        var tdNodeTxId = document.createElement("td");
+                        tdNodeTxId.innerText = resp.History[i].TxId;
+                        trNode.appendChild(tdNodeHeight);
+                        trNode.appendChild(tdNodeAmount);
+                        trNode.appendChild(tdNodeTxId);
+                        document.getElementById("history-records").appendChild(trNode);
+                    }
                 }
             }
         }
@@ -98,6 +120,21 @@ function updateWalletContent() {
                 else if (menuId === "send-active") {
                 }
                 else if (menuId === "history-active") {
+                    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;
+                    var resp = httpGetWallet("history/bob");
+                    for (i = 0; i < resp.History.length; i++) {
+                        var trNode = document.createElement("tr");
+                        var tdNodeHeight = document.createElement("td");
+                        tdNodeHeight.innerText = resp.History[i].Height;
+                        var tdNodeAmount = document.createElement("td");
+                        tdNodeAmount.innerText = resp.History[i].Amount;
+                        var tdNodeTxId = document.createElement("td");
+                        tdNodeTxId.innerText = resp.History[i].TxId;
+                        trNode.appendChild(tdNodeHeight);
+                        trNode.appendChild(tdNodeAmount);
+                        trNode.appendChild(tdNodeTxId);
+                        document.getElementById("history-records").appendChild(trNode);
+                    }
                 }
             }
         }

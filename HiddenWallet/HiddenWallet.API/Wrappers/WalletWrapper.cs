@@ -44,6 +44,9 @@ namespace HiddenWallet.API.Wrappers
 		private ReceiveResponse _receiveAddressesBob = new ReceiveResponse();
 		public ReceiveResponse GetReceiveResponse(SafeAccount account) => account == AliceAccount ? _receiveAddressesAlice : _receiveAddressesBob;
 
+		private HistoryResponse _historyResponseAlice = new HistoryResponse();
+		private HistoryResponse _historyResponseBob = new HistoryResponse();
+		public HistoryResponse GetHistoryResponse(SafeAccount account) => account == AliceAccount ? _historyResponseAlice : _historyResponseBob;
 		#endregion
 
 		public WalletWrapper()
@@ -120,8 +123,48 @@ namespace HiddenWallet.API.Wrappers
 
 		private void UpdateHistoryRelatedMembers()
 		{
-			var aliceHistory = _walletJob.GetSafeHistory(AliceAccount);
-			var bobHistory = _walletJob.GetSafeHistory(BobAccount);
+			// history
+			var aliceHistory = _walletJob.GetSafeHistory(AliceAccount).OrderByDescending(x=> x.TimeStamp);
+			var bobHistory = _walletJob.GetSafeHistory(BobAccount).OrderByDescending(x => x.TimeStamp);
+
+			var hra = new List<HistoryRecordModel>();
+			foreach (var rec in aliceHistory)
+			{
+				string height;
+				if (rec.BlockHeight.Type == HeightType.Chain)
+				{
+					height = rec.BlockHeight.Value.ToString();
+				}
+				else height = "";
+
+				hra.Add(new HistoryRecordModel {
+					Amount = rec.Amount.ToString(true, true),
+					Confirmed = rec.Confirmed,
+					Height = height,
+					TxId = rec.TransactionId.ToString()
+				});
+			}
+			_historyResponseAlice.History = hra.ToArray();
+
+			var hrb = new List<HistoryRecordModel>();
+			foreach (var rec in bobHistory)
+			{
+				string height;
+				if (rec.BlockHeight.Type == HeightType.Chain)
+				{
+					height = rec.BlockHeight.Value.ToString();
+				}
+				else height = "";
+
+				hrb.Add(new HistoryRecordModel
+				{
+					Amount = rec.Amount.ToString(true, true),
+					Confirmed = rec.Confirmed,
+					Height = height,
+					TxId = rec.TransactionId.ToString()
+				});
+			}
+			_historyResponseBob.History = hrb.ToArray();
 
 			// balances
 			CalculateBalances(aliceHistory, out Money aa, out Money ia);
@@ -174,7 +217,8 @@ namespace HiddenWallet.API.Wrappers
 		{
 			_walletState = _walletJob.State.ToString();
 		}
-#endregion
+		
+		#endregion
 
 		public async Task EndAsync()
 		{
