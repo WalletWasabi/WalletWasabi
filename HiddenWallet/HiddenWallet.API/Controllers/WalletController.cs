@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using HiddenWallet.API.Models;
 using HiddenWallet.API.Wrappers;
+using HBitcoin.KeyManagement;
 
 namespace HiddenWallet.API.Controllers
 {
@@ -142,30 +143,55 @@ namespace HiddenWallet.API.Controllers
 		{
 			try
 			{
-				if (account == null)
-					return new ObjectResult(new FailureResponse { Message = "No request body specified" });
-
-				if (!Global.WalletWrapper.IsDecrypted)
-					return new ObjectResult(new FailureResponse { Message = "Wallet isn't decrypted" });
+				var fail = GetAccount(account, out SafeAccount safeAccount);
+				if (fail != null) return new ObjectResult(fail);
 				
-				var trimmed = account;
-				if (String.Equals(trimmed, "alice", StringComparison.OrdinalIgnoreCase))
+				return new ObjectResult(new BalancesResponse
 				{
-					return new ObjectResult(new BalancesResponse
-					{
-						Available = Global.WalletWrapper.GetAvailable(Global.WalletWrapper.AliceAccount).ToString(false, true),
-						Incoming = Global.WalletWrapper.GetIncoming(Global.WalletWrapper.AliceAccount).ToString(false, true)
-					}); 
-				}
-				else if (String.Equals(trimmed, "bob", StringComparison.OrdinalIgnoreCase))
-				{
-					return new ObjectResult(new BalancesResponse
-					{
-						Available = Global.WalletWrapper.GetAvailable(Global.WalletWrapper.BobAccount).ToString(false, true),
-						Incoming = Global.WalletWrapper.GetIncoming(Global.WalletWrapper.BobAccount).ToString(false, true)
-					});
-				}
-				else return new ObjectResult(new FailureResponse { Message = "Wrong account" });				
+					Available = Global.WalletWrapper.GetAvailable(safeAccount).ToString(false, true),
+					Incoming = Global.WalletWrapper.GetIncoming(safeAccount).ToString(false, true)
+				});
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
+
+		/// <returns>null if didn't fail</returns>
+		private FailureResponse GetAccount(string account, out SafeAccount safeAccount)
+		{
+			safeAccount = null;
+			if (account == null)
+				return new FailureResponse { Message = "No request body specified" };
+
+			if (!Global.WalletWrapper.IsDecrypted)
+				return new FailureResponse { Message = "Wallet isn't decrypted" };
+
+			var trimmed = account;
+			if (String.Equals(trimmed, "alice", StringComparison.OrdinalIgnoreCase))
+			{
+				safeAccount = Global.WalletWrapper.AliceAccount;
+				return null;
+			}
+			else if (String.Equals(trimmed, "bob", StringComparison.OrdinalIgnoreCase))
+			{
+				safeAccount = Global.WalletWrapper.BobAccount;
+				return null;
+			}
+			else return new FailureResponse { Message = "Wrong account" };
+		}
+
+		[Route("receive/{account}")]
+		[HttpGet]
+		public IActionResult Receive(string account)
+		{
+			try
+			{
+				var fail = GetAccount(account, out SafeAccount safeAccount);
+				if (fail != null) return new ObjectResult(fail);
+
+				return new ObjectResult(Global.WalletWrapper.GetReceiveResponse(safeAccount));
 			}
 			catch (Exception ex)
 			{

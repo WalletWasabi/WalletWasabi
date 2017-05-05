@@ -62,7 +62,8 @@ body {
             background-color: #3F3F41;
         }
 
-
-a {
-    color: #68217A;
+#content {
+    overflow-y: auto;
+    position: relative;
+    max-height: 340px;
 }
