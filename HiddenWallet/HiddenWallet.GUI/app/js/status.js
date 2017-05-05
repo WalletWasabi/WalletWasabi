@@ -22,7 +22,9 @@ function periodicUpdate() {
                 if (trackingHeight === response.TrackingHeight) {
                     if (connectedNodeCount === response.ConnectedNodeCount) {
                         if (memPoolTransactionCount === response.MemPoolTransactionCount) {
-                            return;
+                            if (changeBump === response.ChangeBump) {
+                                return;
+                            }
                         }
                     }
                 }
@@ -41,17 +43,8 @@ function periodicUpdate() {
         }
         var blocksLeft = "-";
         if (trackingHeight !== 0) {
-            var difference = headerHeight - trackingHeight;
-            if (difference >= 0) {
-                blocksLeft = difference;
-            }
+            blocksLeft = headerHeight - trackingHeight;
         }
-
-        var zeroHeaderCheck = 1;
-        if (headerHeight !== 0) zeroHeaderCheck = headerHeight;
-        var zeroTrackingCheck = 1;
-        if (trackingHeight !== 0) zeroTrackingCheck = trackingHeight;
-        var progress = Math.floor((zeroTrackingCheck / zeroHeaderCheck) * 100);
 
         var text = "";
         var progressType = "";
@@ -80,11 +73,9 @@ function periodicUpdate() {
             text = "Connecting. . .";
         }
 
-        if (progress < 50) statusShow(50, text, progressType); //mincheck
-        else if (progress > 100) statusShow(100, text, progressType); //maxcheck
-        else statusShow(progress, text, progressType);
+        statusShow(100, text, progressType);
 
-        if (response.ChangeBump != changeBump) {
+        if (response.ChangeBump !== changeBump) {
             updateWalletContent();
             changeBump = response.ChangeBump;
         }

@@ -20,7 +20,6 @@ namespace HiddenWallet.API.Wrappers
 	{
 #region Members
 		private int _changeBump = 0; // every time a change happens this value is bumped
-		private int _trackingHeight = 0;
 		private string _walletState = WalletState.NotStarted.ToString();
 
 		private string _password = null;
@@ -78,7 +77,6 @@ namespace HiddenWallet.API.Wrappers
 
 				_walletJob = new WalletJob(safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
 
-				_walletJob.BestHeightChanged += _walletJob_BestHeightChanged;
 				_walletJob.StateChanged += _walletJob_StateChanged;
 				_walletJob.Tracker.TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChanged;
 
@@ -150,22 +148,12 @@ namespace HiddenWallet.API.Wrappers
 		{
 			_walletState = _walletJob.State.ToString();
 		}
-
-		private void _walletJob_BestHeightChanged(object sender, EventArgs e)
-		{
-			var trackingHeight = _walletJob.BestHeight;
-			if (trackingHeight.Type == HeightType.Chain)
-			{
-				_trackingHeight = trackingHeight.Value;
-			}
-		}
 #endregion
 
 		public async Task EndAsync()
 		{
 			if (_walletJob != null)
 			{
-				_walletJob.BestHeightChanged -= _walletJob_BestHeightChanged;
 				_walletJob.StateChanged -= _walletJob_StateChanged;
 				_walletJob.Tracker.TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChanged;
 			}
@@ -188,7 +176,12 @@ namespace HiddenWallet.API.Wrappers
 					}
 				}
 
-				var th = _trackingHeight;
+				var bh = _walletJob.BestHeight;
+				var th = 0;
+				if (bh.Type == HeightType.Chain)
+				{
+					th = bh.Value;
+				}
 
 				var ws = _walletState;
 

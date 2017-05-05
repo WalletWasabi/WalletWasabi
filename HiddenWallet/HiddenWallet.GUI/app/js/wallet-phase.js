@@ -28,7 +28,8 @@ function walletPhaseShow(tabItem = "") {
     walletShow('receive');
 
     document.getElementById("before-menu-br").outerHTML = "";
-    document.getElementById("content").innerHTML = "content not imlemented";
+    document.getElementById("content").innerHTML = "";
+    //document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("receive-content").outerHTML;
 }
 
 function walletShow(menuItem) {
@@ -48,18 +49,17 @@ function walletShow(menuItem) {
 }
 
 function updateWalletContent() {
-    var bobOrAlice = document.getElementById("tabs").firstElementChild.id;
-    if (bobOrAlice == "alice-active") {
-        var obj = new Object();
-        obj.account = "alice";
-        var resp = httpGetWallet("balances/alice", obj);
-        document.getElementById("balances").innerHTML = '<h4><span class="label label-default" style="display:block;">Available: ' + resp.Available + ' BTC, Incoming: ' + resp.Incoming +' BTC </span></h4>';
+    var tabs = document.getElementById("tabs");
+    if (tabs.childElementCount > 0) {
+        var bobOrAlice = tabs.firstElementChild.id;
+
+        if (bobOrAlice == "alice-active") {
+            var resp = httpGetWallet("balances/alice");
+            document.getElementById("balances").innerHTML = '<h4><span class="label label-default" style="display:block;">Available: ' + resp.Available + ' BTC, Incoming: ' + resp.Incoming + ' BTC </span></h4>';
+        }
+        else if (bobOrAlice == "bob-active") {
+            var resp = httpGetWallet("balances/bob");
+            document.getElementById("balances").innerHTML = '<h4><span class="label label-default" style="display:block;">Available: ' + resp.Available + ' BTC, Incoming: ' + resp.Incoming + ' BTC </span></h4>';
+        }
     }
-    else if (bobOrAlice == "bob-active") {
-        var obj = new Object();
-        obj.account = "bob";
-        var resp = httpGetWallet("balances/bob", obj);
-        document.getElementById("balances").innerHTML = '<h4><span class="label label-default" style="display:block;">Available: ' + resp.Available + ' BTC, Incoming: ' + resp.Incoming + ' BTC </span></h4>';
-    }
-    
 }
