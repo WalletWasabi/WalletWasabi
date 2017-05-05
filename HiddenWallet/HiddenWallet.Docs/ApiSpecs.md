@@ -8,5 +8,5 @@
 |GET /api/v1/wallet/shutdown | Gracefully shuts down the API | None  | None |
 |GET /api/v1/wallet/balances/{account} | Displays the balances of the specified wallet account | None  | available, incoming |
 |GET /api/v1/wallet/receive/{account} | Displays unused receive addresses of the specified wallet account | None  | addresses[] |
-|GET /api/v1/wallet/history/{account} | Displays the history of the specified wallet account | None  | history |
+|GET /api/v1/wallet/history/{account} | Displays the history of the specified wallet account | None  | history[] |
 
