@@ -19,7 +19,7 @@ function decryptionPhaseShow(menuItem = "") {
     else if (menuItem === "decrypt") {
         document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("decrypt-active").innerHTML;
         if (walletExists === true) {
-            document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("decrypt-active").innerHTML;
+            document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("decrypt-content").innerHTML;
         }
         else {
             document.getElementById("content").innerHTML = '<div class="alert alert-warning" role="alert"><strong>No wallet found!</strong> Generate or recover your wallet before decrypting it!</div>';
@@ -28,7 +28,7 @@ function decryptionPhaseShow(menuItem = "") {
     else if (menuItem === "generate") {
         document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("generate-active").innerHTML;
         if (walletExists === false) {
-            document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("generate-active").innerHTML;
+            document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("generate-content").innerHTML;
         }
         else {
             document.getElementById("content").innerHTML = '<div class="alert alert-warning" role="alert"><strong>Wallet already exists!</strong> If you wish to continue with this operation you first need to delete or rename your wallet file!</div>';
@@ -37,7 +37,7 @@ function decryptionPhaseShow(menuItem = "") {
     else if (menuItem === "recover") {
         document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("recover-active").innerHTML;
         if (walletExists === false) {
-            document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("recover-active").innerHTML;
+            document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("recover-content").innerHTML;
         }
         else {
             document.getElementById("content").innerHTML = '<div class="alert alert-warning" role="alert"><strong>Wallet already exists!</strong> If you wish to continue with this operation you first need to delete or rename your wallet file!</div>';

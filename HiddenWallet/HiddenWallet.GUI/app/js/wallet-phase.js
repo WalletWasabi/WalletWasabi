@@ -53,6 +53,7 @@ function updateWalletContent() {
 
         if (bobOrAlice == "alice-active") {
             var resp = httpGetWallet("balances/alice");
+            var balance = resp.Available;
             var labelType = "default";
             if (resp.Incoming > 0) labelType = "danger";
             document.getElementById("balances").innerHTML = '<h4><span class="label label-' + labelType + '" style="display:block;">Available: ' + resp.Available + ' BTC, Incoming: ' + resp.Incoming + ' BTC </span></h4>';
@@ -63,7 +64,7 @@ function updateWalletContent() {
                 if (menuId === "receive-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("receive-content").outerHTML;
                     var resp = httpGetWallet("receive/alice");
-                    for (i = 0; i < 7; i++) {
+                    for (i = 0; i < 6; i++) {
                         var node = document.createElement("li");
                         node.setAttribute("class", "list-group-item");
                         var textNode = document.createTextNode(resp.Addresses[i]);
@@ -79,6 +80,7 @@ function updateWalletContent() {
                     //}
                 }
                 else if (menuId === "send-active") {
+                    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("send-content").outerHTML;
                 }
                 else if (menuId === "history-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;
@@ -101,7 +103,10 @@ function updateWalletContent() {
         }
         else if (bobOrAlice == "bob-active") {
             var resp = httpGetWallet("balances/bob");
-            document.getElementById("balances").innerHTML = '<h4><span class="label label-default" style="display:block;">Available: ' + resp.Available + ' BTC, Incoming: ' + resp.Incoming + ' BTC </span></h4>';
+            var balance = resp.Available;
+            var labelType = "default";
+            if (resp.Incoming > 0) labelType = "danger";
+            document.getElementById("balances").innerHTML = '<h4><span class="label label-' + labelType + '" style="display:block;">Available: ' + resp.Available + ' BTC, Incoming: ' + resp.Incoming + ' BTC </span></h4>';
 
             var menu = document.getElementById("menu");
             if (menu.childElementCount > 0) {
@@ -109,7 +114,7 @@ function updateWalletContent() {
                 if (menuId === "receive-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("receive-content").outerHTML;
                     var resp = httpGetWallet("receive/bob");
-                    for (i = 0; i < 7; i++) {
+                    for (i = 0; i < 6; i++) {
                         var node = document.createElement("li");
                         node.setAttribute("class", "list-group-item");
                         var textNode = document.createTextNode(resp.Addresses[i]);
@@ -118,6 +123,7 @@ function updateWalletContent() {
                     }
                 }
                 else if (menuId === "send-active") {
+                    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("send-content").outerHTML;
                 }
                 else if (menuId === "history-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;

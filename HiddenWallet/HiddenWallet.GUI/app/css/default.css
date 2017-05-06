@@ -65,5 +65,5 @@ body {
 #content {
     overflow-y: auto;
     position: relative;
-    max-height: 340px;
+    max-height: 320px;
 }

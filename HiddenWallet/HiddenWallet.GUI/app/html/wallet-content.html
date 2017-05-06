@@ -17,3 +17,23 @@
         </tbody>
     </table>
 </div>
+
+<div id="send-content">
+    <label>Address:</label>
+    <input id="address-to-send" type="text" class="form-control" placeholder="186n7me3QKajQZJnUsVsezVhVrSwyFCCZ" required />
+    <br />
+    <label>Amount (BTC):</label> <br />
+    <button class="btn btn-sm btn-primary">MAX</button>
+    <input id="amount-to-send" type="text" onkeypress='return event.charCode >= 48 && event.charCode <= 57 || event.keyCode == 46' placeholder="0.1" required />
+    <br /> <br />
+    <label>Fee: &nbsp</label>
+    <label class="radio-inline">
+        <input type="radio" name="fee-radio">Fast
+    </label>
+    <label class="radio-inline">
+        <input type="radio" name="fee-radio">Slow
+    </label>
+    <br />
+    <br />
+    <button class="btn btn-lg btn-primary btn-block" onclick="recoverWallet()">Build Transaction</button>
+</div>
