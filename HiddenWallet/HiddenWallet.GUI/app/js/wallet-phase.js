@@ -37,6 +37,7 @@ function walletShow(menuItem) {
     else if (menuItem === 'send') {
         writeHint('Would you consider feeding the developer with some pizza? 186n7me3QKajQZJnUsVsezVhVrSwyFCCZ');
         document.getElementById("menu").innerHTML = document.getElementById("wallet-menu-frame").contentWindow.document.getElementById("send-active").outerHTML;
+        document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("send-content").outerHTML;
     }
     else if (menuItem === 'history') {
         document.getElementById("menu").innerHTML = document.getElementById("wallet-menu-frame").contentWindow.document.getElementById("history-active").outerHTML;
@@ -53,7 +54,6 @@ function updateWalletContent() {
 
         if (bobOrAlice == "alice-active") {
             var resp = httpGetWallet("balances/alice");
-            var balance = resp.Available;
             var labelType = "default";
             if (resp.Incoming > 0) labelType = "danger";
             document.getElementById("balances").innerHTML = '<h4><span class="label label-' + labelType + '" style="display:block;">Available: ' + resp.Available + ' BTC, Incoming: ' + resp.Incoming + ' BTC </span></h4>';
@@ -71,16 +71,6 @@ function updateWalletContent() {
                         node.appendChild(textNode);
                         document.getElementById("receive-addresses").appendChild(node);
                     }
-                    //for (i = 0; i < resp.Addresses.length; i++) {
-                    //    var trNode = document.createElement("tr");
-                    //    var tdNode = document.createElement("td");
-                    //    tdNode.innerText = resp.Addresses[i];
-                    //    trNode.appendChild(tdNode);
-                    //    document.getElementById("receive-addresses").appendChild(trNode);
-                    //}
-                }
-                else if (menuId === "send-active") {
-                    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("send-content").outerHTML;
                 }
                 else if (menuId === "history-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;
@@ -103,7 +93,6 @@ function updateWalletContent() {
         }
         else if (bobOrAlice == "bob-active") {
             var resp = httpGetWallet("balances/bob");
-            var balance = resp.Available;
             var labelType = "default";
             if (resp.Incoming > 0) labelType = "danger";
             document.getElementById("balances").innerHTML = '<h4><span class="label label-' + labelType + '" style="display:block;">Available: ' + resp.Available + ' BTC, Incoming: ' + resp.Incoming + ' BTC </span></h4>';
@@ -121,9 +110,6 @@ function updateWalletContent() {
                         node.appendChild(textNode);
                         document.getElementById("receive-addresses").appendChild(node);
                     }
-                }
-                else if (menuId === "send-active") {
-                    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("send-content").outerHTML;
                 }
                 else if (menuId === "history-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;
@@ -156,6 +142,7 @@ function buildTransaction() {
     var amount = document.getElementById("amount-to-send").value;
     var fastFeeChecked = document.getElementById("fast-fee-radio").checked;
     var slowFeeChecked = document.getElementById("slow-fee-radio").checked;
+    var password = document.getElementById("send-password").value;
 
     if (!address) {
         alert("Wrong address!");
@@ -170,4 +157,34 @@ function buildTransaction() {
         alert("Wrong fee tpye!");
         return;
     }
+    // (cannot happen)
+    if (password == null) {
+        alert("Wrong fee tpye!");
+        return;
+    }
+
+    var feeType;
+    if (fastFeeChecked) feeType = "high";
+    if (slowFeeChecked) feeType = "low";
+
+    var obj = new Object();
+    obj.password = password;
+    obj.address = address;
+    obj.amount = amount;
+    obj.feeType = feeType;
+    obj.allowUnconfirmed = false;
+
+    var response;
+    var tabs = document.getElementById("tabs");
+    if (tabs.childElementCount > 0) {
+        var bobOrAlice = tabs.firstElementChild.id;
+
+        if (bobOrAlice == "alice-active") {
+            response = httpPostWallet("build-transaction/alice", obj, true);
+        }
+        if (bobOrAlice == "bob-active") {
+            response = httpPostWallet("build-transaction/bob", obj, true);
+        }
+    }
+    alert(response);
 }

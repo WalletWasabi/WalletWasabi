@@ -33,6 +33,8 @@ namespace HiddenWallet.API.Wrappers
 		public bool WalletExists => File.Exists(Config.WalletFilePath);
 		public bool IsDecrypted => !_walletJobTask.IsCompleted && _password != null;
 
+		public Network Network => _walletJob.Safe.Network;
+
 		private Money _availableAlice = Money.Zero;
 		private Money _availableBob = Money.Zero;
 		private Money _incomingAlice = Money.Zero;
@@ -264,6 +266,23 @@ namespace HiddenWallet.API.Wrappers
 				return new StatusResponse { HeaderHeight = hh, TrackingHeight = th, ConnectedNodeCount = nc, MemPoolTransactionCount = mtxc, WalletState = ws, ChangeBump = cb };
 			}
 			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, ConnectedNodeCount = 0, MemPoolTransactionCount = 0, WalletState = WalletState.NotStarted.ToString(), ChangeBump = 0 };
+		}
+
+		public BuildTransactionResponse BuildTransaction(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType, bool allowUnconfirmed)
+		{
+			if (password != _password) throw new InvalidOperationException("Wrong password");
+			var result = _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, allowUnconfirmed).Result;
+
+			return new BuildTransactionResponse
+			{
+				Valid = result.Success,
+				FailingReason = result.FailingReason,
+				SpendsUnconfirmed = result.SpendsUnconfirmed,
+				Fee = result.Fee.ToString(false, true),
+				FeePercentOfSent = result.FeePercentOfSent.ToString("0.##"),
+				Hex = result.Transaction.ToHex(),
+				Transaction = result.Transaction.ToString()
+			};
 		}
 	}
 }

@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using HiddenWallet.API.Models;
 using HiddenWallet.API.Wrappers;
 using HBitcoin.KeyManagement;
+using NBitcoin;
+using System.Globalization;
+using HBitcoin.Models;
 
 namespace HiddenWallet.API.Controllers
 {
@@ -209,6 +212,58 @@ namespace HiddenWallet.API.Controllers
 				if (fail != null) return new ObjectResult(fail);
 
 				return new ObjectResult(Global.WalletWrapper.GetHistoryResponse(safeAccount));
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
+
+		[Route("build-transaction/{account}")]
+		[HttpPost]
+		public IActionResult History(string account, [FromBody]BuildTransactionRequest request)
+		{
+			try
+			{
+				if (request == null || request.Password == null || request.Address == null || request.Amount == null || request.FeeType == null || request.AllowUnconfirmed == null)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Bad request", Details = "" });
+				}		
+			
+				var fail = GetAccount(account, out SafeAccount safeAccount);
+				if (fail != null) return new ObjectResult(fail);
+				
+				var address = BitcoinAddress.Create(request.Address, Global.WalletWrapper.Network);
+
+				Money amount = Money.Zero; // in this case all funds are sent from the wallet
+				if (request.Amount != "all")
+				{
+					var tmpAmount = new Money(decimal.Parse(request.Amount.Replace('.', ','), NumberStyles.Any, CultureInfo.InvariantCulture), MoneyUnit.BTC);
+					if (tmpAmount <= Money.Zero) throw new NotSupportedException("Amount must be > 0 or \"all\"");
+					amount = tmpAmount;
+				}
+
+				FeeType feeType;
+				if(request.FeeType.Equals("high", StringComparison.OrdinalIgnoreCase))
+				{
+					feeType = FeeType.High;
+				}
+				else if (request.FeeType.Equals("medium", StringComparison.OrdinalIgnoreCase))
+				{
+					feeType = FeeType.Medium;
+				}
+				else if (request.FeeType.Equals("low", StringComparison.OrdinalIgnoreCase))
+				{
+					feeType = FeeType.Low;
+				}
+				else
+				{
+					throw new NotSupportedException("Wrong FeeType");
+				}
+
+				var allowUnconfirmed = bool.Parse(request.AllowUnconfirmed);
+				
+				return new ObjectResult(Global.WalletWrapper.BuildTransaction(request.Password, safeAccount, address, amount, feeType, allowUnconfirmed));
 			}
 			catch (Exception ex)
 			{
