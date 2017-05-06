@@ -146,3 +146,28 @@ function updateWalletContent() {
         }
     }
 }
+
+function setAmountToAll() {
+    document.getElementById("amount-to-send").value = "all";
+}
+
+function buildTransaction() {
+    var address = document.getElementById("address-to-send").value;
+    var amount = document.getElementById("amount-to-send").value;
+    var fastFeeChecked = document.getElementById("fast-fee-radio").checked;
+    var slowFeeChecked = document.getElementById("slow-fee-radio").checked;
+
+    if (!address) {
+        alert("Wrong address!");
+        return;
+    }
+    if (!amount || amount <= 0) {
+        alert("Wrong amount!");
+        return;
+    }
+    // if both are checked or none are checked (cannot happen)
+    if ((fastFeeChecked && slowFeeChecked) || (!fastFeeChecked && !slowFeeChecked)) {
+        alert("Wrong fee tpye!");
+        return;
+    }
+}
