@@ -9,4 +9,4 @@
 |GET /api/v1/wallet/balances/{account} | Displays the balances of the specified wallet account | None  | available, incoming |
 |GET /api/v1/wallet/receive/{account} | Displays unused receive addresses of the specified wallet account | None  | addresses[] |
 |GET /api/v1/wallet/history/{account} | Displays the history of the specified wallet account | None  | history[] |
-|GET /api/v1/wallet/build-transaction/{account} | Attempts to build a transaction with the specified wallet account | password, address, amount, feeType, allowUnconfirmed  | spendsUnconfirmed, fee, feePercentOfSent, hex, transaction |
+|POST /api/v1/wallet/build-transaction/{account} | Attempts to build a transaction with the specified wallet account | password, address, amount, feeType, allowUnconfirmed  | spendsUnconfirmed, fee, feePercentOfSent, hex, transaction |
