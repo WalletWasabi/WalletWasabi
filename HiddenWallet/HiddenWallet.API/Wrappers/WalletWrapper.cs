@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static HBitcoin.FullBlockSpv.WalletJob;
 
 namespace HiddenWallet.API.Wrappers
 {
@@ -291,6 +292,14 @@ namespace HiddenWallet.API.Wrappers
 					Message = result.FailingReason
 				};
 			}
+		}
+
+		public async Task<BaseResponse> SendTransactionAsync(Transaction tx)
+		{
+			SendTransactionResult result = await _walletJob.SendTransactionAsync(tx).ConfigureAwait(false);
+
+			if (result.Success) return new SuccessResponse();
+			else return new FailureResponse { Message = result.FailingReason };
 		}
 	}
 }

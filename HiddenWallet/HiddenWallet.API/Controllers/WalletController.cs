@@ -221,7 +221,7 @@ namespace HiddenWallet.API.Controllers
 
 		[Route("build-transaction/{account}")]
 		[HttpPost]
-		public IActionResult History(string account, [FromBody]BuildTransactionRequest request)
+		public IActionResult BuildTransaction(string account, [FromBody]BuildTransactionRequest request)
 		{
 			try
 			{
@@ -280,6 +280,35 @@ namespace HiddenWallet.API.Controllers
 				var allowUnconfirmed = bool.Parse(request.AllowUnconfirmed);
 				
 				return new ObjectResult(Global.WalletWrapper.BuildTransaction(request.Password, safeAccount, address, amount, feeType, allowUnconfirmed));
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
+
+		[Route("send-transaction")]
+		[HttpPost]
+		public IActionResult SendTransaction([FromBody]HexModel request)
+		{
+			try
+			{
+				if (request == null || request.Hex == null)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Bad request", Details = "" });
+				}
+				
+				Transaction tx;
+				try
+				{
+					tx = new Transaction(request.Hex);
+				}
+				catch
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong transaction hex", Details = "" });
+				}
+				
+				return new ObjectResult(Global.WalletWrapper.SendTransactionAsync(tx).Result);
 			}
 			catch (Exception ex)
 			{
