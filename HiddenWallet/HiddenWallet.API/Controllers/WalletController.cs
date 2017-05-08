@@ -232,16 +232,32 @@ namespace HiddenWallet.API.Controllers
 			
 				var fail = GetAccount(account, out SafeAccount safeAccount);
 				if (fail != null) return new ObjectResult(fail);
-				
-				var address = BitcoinAddress.Create(request.Address, Global.WalletWrapper.Network);
 
-				Money amount = Money.Zero; // in this case all funds are sent from the wallet
-				if (request.Amount != "all")
+				BitcoinAddress address;
+				try
 				{
-					var tmpAmount = new Money(decimal.Parse(request.Amount.Replace('.', ','), NumberStyles.Any, CultureInfo.InvariantCulture), MoneyUnit.BTC);
-					if (tmpAmount <= Money.Zero) throw new NotSupportedException("Amount must be > 0 or \"all\"");
-					amount = tmpAmount;
+					address = BitcoinAddress.Create(request.Address, Global.WalletWrapper.Network);
 				}
+				catch
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong address", Details = "" });
+				}
+				Money amount = Money.Zero; // in this case all funds are sent from the wallet
+				try
+				{
+					if (request.Amount != "all")
+					{
+						var tmpAmount = new Money(decimal.Parse(request.Amount.Replace(',', '.'), NumberStyles.Any, CultureInfo.InvariantCulture), MoneyUnit.BTC);
+
+						if (tmpAmount <= Money.Zero) return new ObjectResult(new FailureResponse { Message = "Amount must be > 0 or \"all\"", Details = "" });
+						amount = tmpAmount;
+					}
+				}
+				catch
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong amount", Details = "" });
+				}
+			
 
 				FeeType feeType;
 				if(request.FeeType.Equals("high", StringComparison.OrdinalIgnoreCase))
@@ -258,7 +274,7 @@ namespace HiddenWallet.API.Controllers
 				}
 				else
 				{
-					throw new NotSupportedException("Wrong FeeType");
+					return new ObjectResult(new FailureResponse { Message = "Wrong fee type", Details = "" });
 				}
 
 				var allowUnconfirmed = bool.Parse(request.AllowUnconfirmed);

@@ -145,21 +145,21 @@ function buildTransaction() {
     var password = document.getElementById("send-password").value;
 
     if (!address) {
-        alert("Wrong address!");
+        alert("Couldn't build the transaciton: Wrong address!");
         return;
     }
     if (!amount || amount <= 0) {
-        alert("Wrong amount!");
+        alert("Couldn't build the transaciton: Wrong amount!");
         return;
     }
     // if both are checked or none are checked (cannot happen)
     if ((fastFeeChecked && slowFeeChecked) || (!fastFeeChecked && !slowFeeChecked)) {
-        alert("Wrong fee tpye!");
+        alert("Couldn't build the transaciton: Wrong fee tpye!");
         return;
     }
     // (cannot happen)
     if (password == null) {
-        alert("Wrong fee tpye!");
+        alert("Couldn't build the transaciton: Wrong fee tpye!");
         return;
     }
 
@@ -180,11 +180,34 @@ function buildTransaction() {
         var bobOrAlice = tabs.firstElementChild.id;
 
         if (bobOrAlice == "alice-active") {
-            response = httpPostWallet("build-transaction/alice", obj, true);
+            response = httpPostWallet("build-transaction/alice", obj);
         }
         if (bobOrAlice == "bob-active") {
-            response = httpPostWallet("build-transaction/bob", obj, true);
+            response = httpPostWallet("build-transaction/bob", obj);
         }
     }
-    alert(response);
+    if (response.Success === false) {
+        var alertMessage = "Couldn't build the transaciton: " + response.Message;
+        if (!isBlank(response.Details)) {
+            alertMessage = alertMessage + "\n\nDetails:\n" + response.Details;
+        }
+        alert(alertMessage);
+        return;
+    }
+    else {
+        const remote = require('electron').remote;
+        const window = remote.getCurrentWindow();
+        const BrowserWindow = remote.BrowserWindow;
+        var broadcastWindow = new BrowserWindow({ width: 600, height: 400, frame: false, resizable: false, alwaysOnTop: true, parent: window });
+        broadcastWindow.show();
+        broadcastWindow.focus();
+        broadcastWindow.loadURL('file://' + __dirname + '/app/html/broadcast-transaction-window.html');
+        broadcastWindow.webContents.on('did-finish-load', () => {
+            broadcastWindow.webContents.send('broadcast-response', response);
+        })
+    }
+}
+
+function isBlank(str) {
+    return (!str || /^\s*$/.test(str));
 }
