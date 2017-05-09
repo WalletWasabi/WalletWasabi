@@ -1,14 +1,15 @@
 <div class="jumbotron" id="decrypt-content">
     <input type="password" id="inputPassword" class="form-control" placeholder="Password" />
     <br />
-    <button class="btn btn-lg btn-primary btn-block" onclick="decryptWallet()">Decrypt</button>
+    <button id="decrypt-wallet-button" class="btn btn-lg btn-primary btn-block" onclick="decryptWallet()">Decrypt</button>
 </div>
 
 <div class="jumbotron" id="generate-content">
     <input type="password" id="inputPassword" class="form-control" placeholder="Password" />
+    <br />
     <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm password" />
     <br />
-    <button class="btn btn-lg btn-primary btn-block" onclick="generateWallet()">Generate</button>
+    <button id="generate-wallet-button" class="btn btn-lg btn-primary btn-block" onclick="generateWallet()">Generate</button>
 </div>
 
 <div class="jumbotron" id="recover-content">
@@ -22,5 +23,5 @@
     <div class="alert alert-info" role="alert">
         <strong>Heads up!</strong> At recovery the wallet is unable to check if your password is correct or not. If you provide a wrong password a wallet will be recovered with the provided mnemonic and password combination.
     </div>
-    <button class="btn btn-lg btn-primary btn-block" onclick="recoverWallet()">Recover</button>
+    <button id="recover-wallet-button" class="btn btn-lg btn-primary btn-block" onclick="recoverWallet()">Recover</button>
 </div>

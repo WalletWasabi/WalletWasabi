@@ -289,7 +289,7 @@ namespace HiddenWallet.API.Controllers
 
 		[Route("send-transaction")]
 		[HttpPost]
-		public IActionResult SendTransaction([FromBody]HexModel request)
+		public IActionResult SendTransaction([FromBody]SendTransactionRequest request)
 		{
 			try
 			{
@@ -308,7 +308,7 @@ namespace HiddenWallet.API.Controllers
 					return new ObjectResult(new FailureResponse { Message = "Wrong transaction hex", Details = "" });
 				}
 				
-				return new ObjectResult(Global.WalletWrapper.SendTransactionAsync(tx).Result);
+				return new ObjectResult(Global.WalletWrapper.SendTransactionAsync(tx, request.QuickSend).Result);
 			}
 			catch (Exception ex)
 			{

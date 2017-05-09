@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace HiddenWallet.API.Models
 {
-    public class HexModel
+    public class SendTransactionRequest
     {
 		public string Hex { get; set; }
+		public bool QuickSend { get; set; }
 	}
 }

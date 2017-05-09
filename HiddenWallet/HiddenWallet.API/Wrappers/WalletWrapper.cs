@@ -170,13 +170,13 @@ namespace HiddenWallet.API.Wrappers
 			_historyResponseBob.History = hrb.ToArray();
 
 			// balances
-			CalculateBalances(aliceHistory, out Money aa, out Money ia);
-			_availableAlice = aa;
-			_incomingAlice = ia;
-			CalculateBalances(bobHistory, out Money ab, out Money ib);
-			_availableBob = ab;
-			_incomingBob = ib;
-
+			var aa = _walletJob.GetBalance(out IDictionary<Coin, bool> unspentCoinsAlice, AliceAccount);
+			_availableAlice = aa.Confirmed;
+			_incomingAlice = aa.Unconfirmed;
+			var ab = _walletJob.GetBalance(out IDictionary<Coin, bool> unspentCoinsBob, BobAccount);
+			_availableBob = ab.Confirmed;
+			_availableBob = ab.Unconfirmed;
+			
 			// receive
 			var ua = _walletJob.GetUnusedScriptPubKeys(AliceAccount, HdPathType.Receive).ToArray();
 			var ub = _walletJob.GetUnusedScriptPubKeys(BobAccount, HdPathType.Receive).ToArray();
@@ -191,31 +191,6 @@ namespace HiddenWallet.API.Wrappers
 				else _receiveAddressesBob.Addresses[i] = "";
 			}
 		}
-
-		private static void CalculateBalances(IEnumerable<SafeHistoryRecord> history, out Money available, out Money incoming)
-		{
-			available = Money.Zero;
-			incoming = Money.Zero;
-			foreach (var rec in history)
-			{
-				if (rec.Confirmed)
-				{
-					available += rec.Amount;
-				}
-				else
-				{
-					if (rec.Amount < Money.Zero)
-					{
-						available += rec.Amount;
-					}
-					else
-					{
-						incoming += rec.Amount;
-					}
-				}
-			}
-		}
-
 		private void _walletJob_StateChanged(object sender, EventArgs e)
 		{
 			_walletState = _walletJob.State.ToString();
@@ -294,9 +269,9 @@ namespace HiddenWallet.API.Wrappers
 			}
 		}
 
-		public async Task<BaseResponse> SendTransactionAsync(Transaction tx)
+		public async Task<BaseResponse> SendTransactionAsync(Transaction tx, bool quickSend)
 		{
-			SendTransactionResult result = await _walletJob.SendTransactionAsync(tx).ConfigureAwait(false);
+			SendTransactionResult result = await _walletJob.SendTransactionAsync(tx, quickSend).ConfigureAwait(false);
 
 			if (result.Success) return new SuccessResponse();
 			else return new FailureResponse { Message = result.FailingReason };

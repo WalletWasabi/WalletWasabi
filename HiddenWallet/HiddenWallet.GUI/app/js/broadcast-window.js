@@ -2,7 +2,10 @@
     window.close();
 }
 
+let hex;
 require('electron').ipcRenderer.on('broadcast-response', (event, response) => {
+    hex = response.Hex;
+
     document.getElementById("fee").innerText = response.Fee;
 
     if (parseFloat(response.FeePercentOfSent) > 1) {
@@ -22,7 +25,24 @@ require('electron').ipcRenderer.on('broadcast-response', (event, response) => {
         document.getElementById("spends-unconfirmed").classList.add("label-warning");
     }
     document.getElementById("spends-unconfirmed").innerText = response.SpendsUnconfirmed;
-    document.getElementById("transaction").innerText = response.Transaction;
-
-    hex = response.Hex;
+    document.getElementById("transaction").innerText = response.Transaction + "\n HEX: " + hex;
 });
+
+function broadcastTransaction() {
+    document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:none;");
+    document.getElementById("broadcast-button").innerHTML = '<span class="glyphicon glyphicon-refresh spinning"></span> Broadcasting...';
+
+    let obj = new Object();
+    obj.hex = hex;
+    obj.quickSend = false;
+    httpPostWalletAsync("send-transaction", obj, function (json) {
+        let result = httpPostWallet("send-transaction", obj);
+        if (result.Success) {
+            alert("SUCCESS! Transaction is successfully broadcasted!");
+        }
+        else {
+            alert("FAIL! Details:\n" + result.FailingReason);
+        }
+        window.close();
+    });    
+}

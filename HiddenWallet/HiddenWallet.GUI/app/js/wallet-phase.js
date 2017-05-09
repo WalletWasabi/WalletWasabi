@@ -1,4 +1,5 @@
 function walletPhaseShow(tabItem = "") {
+    document.getElementById("content").setAttribute("style", "max-height: 320px");
     document.getElementById("hide-btn").hidden = false;
     
     if (tabItem === "alice") {
@@ -48,40 +49,40 @@ function walletShow(menuItem) {
 }
 
 function updateWalletContent() {
-    var tabs = document.getElementById("tabs");
+    let tabs = document.getElementById("tabs");
     if (tabs.childElementCount > 0) {
-        var bobOrAlice = tabs.firstElementChild.id;
+        let bobOrAlice = tabs.firstElementChild.id;
 
         if (bobOrAlice == "alice-active") {
-            var resp = httpGetWallet("balances/alice");
-            var labelType = "default";
+            let resp = httpGetWallet("balances/alice");
+            let labelType = "default";
             if (resp.Incoming > 0) labelType = "danger";
             document.getElementById("balances").innerHTML = '<h4><span class="label label-' + labelType + '" style="display:block;">Available: ' + resp.Available + ' BTC, Incoming: ' + resp.Incoming + ' BTC </span></h4>';
 
-            var menu = document.getElementById("menu");
+            let menu = document.getElementById("menu");
             if (menu.childElementCount > 0) {
-                var menuId = menu.firstElementChild.id;
+                let menuId = menu.firstElementChild.id;
                 if (menuId === "receive-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("receive-content").outerHTML;
-                    var resp = httpGetWallet("receive/alice");
+                    let resp = httpGetWallet("receive/alice");
                     for (i = 0; i < 6; i++) {
-                        var node = document.createElement("li");
+                        let node = document.createElement("li");
                         node.setAttribute("class", "list-group-item");
-                        var textNode = document.createTextNode(resp.Addresses[i]);
+                        let textNode = document.createTextNode(resp.Addresses[i]);
                         node.appendChild(textNode);
                         document.getElementById("receive-addresses").appendChild(node);
                     }
                 }
                 else if (menuId === "history-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;
-                    var resp = httpGetWallet("history/alice");
+                    let resp = httpGetWallet("history/alice");
                     for (i = 0; i < resp.History.length; i++) {
-                        var trNode = document.createElement("tr");
-                        var tdNodeHeight = document.createElement("td");
+                        let trNode = document.createElement("tr");
+                        let tdNodeHeight = document.createElement("td");
                         tdNodeHeight.innerText = resp.History[i].Height;
-                        var tdNodeAmount = document.createElement("td");
+                        let tdNodeAmount = document.createElement("td");
                         tdNodeAmount.innerText = resp.History[i].Amount;
-                        var tdNodeTxId = document.createElement("td");
+                        let tdNodeTxId = document.createElement("td");
                         tdNodeTxId.innerText = resp.History[i].TxId;
                         trNode.appendChild(tdNodeHeight);
                         trNode.appendChild(tdNodeAmount);
@@ -92,35 +93,35 @@ function updateWalletContent() {
             }
         }
         else if (bobOrAlice == "bob-active") {
-            var resp = httpGetWallet("balances/bob");
-            var labelType = "default";
+            let resp = httpGetWallet("balances/bob");
+            let labelType = "default";
             if (resp.Incoming > 0) labelType = "danger";
             document.getElementById("balances").innerHTML = '<h4><span class="label label-' + labelType + '" style="display:block;">Available: ' + resp.Available + ' BTC, Incoming: ' + resp.Incoming + ' BTC </span></h4>';
 
-            var menu = document.getElementById("menu");
+            let menu = document.getElementById("menu");
             if (menu.childElementCount > 0) {
-                var menuId = menu.firstElementChild.id;
+                let menuId = menu.firstElementChild.id;
                 if (menuId === "receive-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("receive-content").outerHTML;
-                    var resp = httpGetWallet("receive/bob");
+                    let resp = httpGetWallet("receive/bob");
                     for (i = 0; i < 6; i++) {
-                        var node = document.createElement("li");
+                        let node = document.createElement("li");
                         node.setAttribute("class", "list-group-item");
-                        var textNode = document.createTextNode(resp.Addresses[i]);
+                        let textNode = document.createTextNode(resp.Addresses[i]);
                         node.appendChild(textNode);
                         document.getElementById("receive-addresses").appendChild(node);
                     }
                 }
                 else if (menuId === "history-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;
-                    var resp = httpGetWallet("history/bob");
+                    let resp = httpGetWallet("history/bob");
                     for (i = 0; i < resp.History.length; i++) {
-                        var trNode = document.createElement("tr");
-                        var tdNodeHeight = document.createElement("td");
+                        let trNode = document.createElement("tr");
+                        let tdNodeHeight = document.createElement("td");
                         tdNodeHeight.innerText = resp.History[i].Height;
-                        var tdNodeAmount = document.createElement("td");
+                        let tdNodeAmount = document.createElement("td");
                         tdNodeAmount.innerText = resp.History[i].Amount;
-                        var tdNodeTxId = document.createElement("td");
+                        let tdNodeTxId = document.createElement("td");
                         tdNodeTxId.innerText = resp.History[i].TxId;
                         trNode.appendChild(tdNodeHeight);
                         trNode.appendChild(tdNodeAmount);
@@ -163,49 +164,60 @@ function buildTransaction() {
         return;
     }
 
-    var feeType;
+    let feeType;
     if (fastFeeChecked) feeType = "high";
     if (slowFeeChecked) feeType = "low";
 
-    var obj = new Object();
+    let obj = new Object();
     obj.password = password;
     obj.address = address;
     obj.amount = amount;
     obj.feeType = feeType;
     obj.allowUnconfirmed = false;
 
-    var response;
-    var tabs = document.getElementById("tabs");
+    let json;
+    let tabs = document.getElementById("tabs");
+    let bobOrAlice;
     if (tabs.childElementCount > 0) {
-        var bobOrAlice = tabs.firstElementChild.id;
+        let bobOrAliceTab = tabs.firstElementChild.id;
 
-        if (bobOrAlice == "alice-active") {
-            response = httpPostWallet("build-transaction/alice", obj);
+        if (bobOrAliceTab == "alice-active") {
+            bobOrAlice = "alice";
         }
-        if (bobOrAlice == "bob-active") {
-            response = httpPostWallet("build-transaction/bob", obj);
+        if (bobOrAliceTab == "bob-active") {
+            bobOrAlice = "bob";            
         }
-    }
-    if (response.Success === false) {
-        var alertMessage = "Couldn't build the transaciton: " + response.Message;
-        if (!isBlank(response.Details)) {
-            alertMessage = alertMessage + "\n\nDetails:\n" + response.Details;
-        }
-        alert(alertMessage);
-        return;
     }
     else {
-        const remote = require('electron').remote;
-        const window = remote.getCurrentWindow();
-        const BrowserWindow = remote.BrowserWindow;
-        var broadcastWindow = new BrowserWindow({ width: 600, height: 400, frame: false, resizable: false, alwaysOnTop: true, parent: window });
-        broadcastWindow.show();
-        broadcastWindow.focus();
-        broadcastWindow.loadURL('file://' + __dirname + '/app/html/broadcast-transaction-window.html');
-        broadcastWindow.webContents.on('did-finish-load', () => {
-            broadcastWindow.webContents.send('broadcast-response', response);
-        })
+        alert("Alice or Bob is not chosen"); // this should never be happen
+        return;
     }
+
+    document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:none;");
+    document.getElementById("build-transaction-button").innerHTML = '<span class="glyphicon glyphicon-cog spinning"></span> Building...';
+    httpPostWalletAsync("build-transaction/" + bobOrAlice, obj, function (json) {
+        if (json.Success === false) {
+            let alertMessage = "Couldn't build the transaciton: " + json.Message;
+            if (!isBlank(json.Details)) {
+                alertMessage = alertMessage + "\n\nDetails:\n" + json.Details;
+            }
+            alert(alertMessage);
+        }
+        else {
+            const remote = require('electron').remote;
+            const window = remote.getCurrentWindow();
+            const BrowserWindow = remote.BrowserWindow;
+            let broadcastWindow = new BrowserWindow({ width: 600, height: 400, frame: false, resizable: false, alwaysOnTop: true, parent: window });
+            broadcastWindow.show();
+            broadcastWindow.focus();
+            broadcastWindow.loadURL('file://' + __dirname + '/app/html/broadcast-transaction-window.html');
+            broadcastWindow.webContents.on('did-finish-load', () => {
+                broadcastWindow.webContents.send('broadcast-response', json);
+            })
+        }
+        document.getElementById("build-transaction-button").innerHTML = "Build Transaction";
+        document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:all;");
+    });    
 }
 
 function isBlank(str) {
