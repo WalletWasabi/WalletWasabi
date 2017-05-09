@@ -175,7 +175,7 @@ namespace HiddenWallet.API.Wrappers
 			_incomingAlice = aa.Unconfirmed;
 			var ab = _walletJob.GetBalance(out IDictionary<Coin, bool> unspentCoinsBob, BobAccount);
 			_availableBob = ab.Confirmed;
-			_availableBob = ab.Unconfirmed;
+			_incomingBob = ab.Unconfirmed;
 			
 			// receive
 			var ua = _walletJob.GetUnusedScriptPubKeys(AliceAccount, HdPathType.Receive).ToArray();
@@ -244,10 +244,10 @@ namespace HiddenWallet.API.Wrappers
 			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, ConnectedNodeCount = 0, MemPoolTransactionCount = 0, WalletState = WalletState.NotStarted.ToString(), ChangeBump = 0 };
 		}
 
-		public BaseResponse BuildTransaction(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType, bool allowUnconfirmed)
+		public BaseResponse BuildTransaction(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType)
 		{
 			if (password != _password) throw new InvalidOperationException("Wrong password");
-			var result = _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, allowUnconfirmed).Result;
+			var result = _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, Config.CanSpendUnconfirmed).Result;
 
 			if (result.Success)
 			{

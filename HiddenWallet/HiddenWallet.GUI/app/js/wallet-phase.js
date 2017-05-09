@@ -173,7 +173,6 @@ function buildTransaction() {
     obj.address = address;
     obj.amount = amount;
     obj.feeType = feeType;
-    obj.allowUnconfirmed = false;
 
     let json;
     let tabs = document.getElementById("tabs");

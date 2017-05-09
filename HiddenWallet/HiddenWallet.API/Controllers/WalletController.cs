@@ -225,7 +225,7 @@ namespace HiddenWallet.API.Controllers
 		{
 			try
 			{
-				if (request == null || request.Password == null || request.Address == null || request.Amount == null || request.FeeType == null || request.AllowUnconfirmed == null)
+				if (request == null || request.Password == null || request.Address == null || request.Amount == null || request.FeeType == null)
 				{
 					return new ObjectResult(new FailureResponse { Message = "Bad request", Details = "" });
 				}		
@@ -276,10 +276,8 @@ namespace HiddenWallet.API.Controllers
 				{
 					return new ObjectResult(new FailureResponse { Message = "Wrong fee type", Details = "" });
 				}
-
-				var allowUnconfirmed = bool.Parse(request.AllowUnconfirmed);
 				
-				return new ObjectResult(Global.WalletWrapper.BuildTransaction(request.Password, safeAccount, address, amount, feeType, allowUnconfirmed));
+				return new ObjectResult(Global.WalletWrapper.BuildTransaction(request.Password, safeAccount, address, amount, feeType));
 			}
 			catch (Exception ex)
 			{

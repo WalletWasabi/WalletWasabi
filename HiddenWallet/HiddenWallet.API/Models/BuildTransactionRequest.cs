@@ -11,6 +11,5 @@ namespace HiddenWallet.API.Models
 		public string Address { get; set; }
 		public string Amount { get; set; }
 		public string FeeType { get; set; }
-		public string AllowUnconfirmed { get; set; }
 	}
 }
