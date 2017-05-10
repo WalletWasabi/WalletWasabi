@@ -214,7 +214,7 @@ function buildTransaction() {
                 broadcastWindow.webContents.send('broadcast-response', json);
             })
         }
-        document.getElementById("build-transaction-button").innerHTML = "Build Transaction";
+        document.getElementById("build-transaction-button").innerHTML = '<span class="mdi mdi-tor"></span> Build Transaction';
         document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:all;");
     });    
 }

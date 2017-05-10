@@ -306,7 +306,7 @@ namespace HiddenWallet.API.Controllers
 					return new ObjectResult(new FailureResponse { Message = "Wrong transaction hex", Details = "" });
 				}
 				
-				return new ObjectResult(Global.WalletWrapper.SendTransactionAsync(tx, request.QuickSend).Result);
+				return new ObjectResult(Global.WalletWrapper.SendTransactionAsync(tx).Result);
 			}
 			catch (Exception ex)
 			{

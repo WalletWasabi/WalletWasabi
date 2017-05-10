@@ -8,6 +8,5 @@ namespace HiddenWallet.API.Models
     public class SendTransactionRequest
     {
 		public string Hex { get; set; }
-		public bool QuickSend { get; set; }
 	}
 }

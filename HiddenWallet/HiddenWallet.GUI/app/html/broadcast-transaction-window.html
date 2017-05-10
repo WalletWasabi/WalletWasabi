@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>HiddenWallet</title>
     <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" media="all" href="../../node_modules/mdi/css/materialdesignicons.min.css" />
     <link rel="stylesheet" href="../css/default.css" />
 </head>
 <body>
@@ -28,7 +29,9 @@
         <h4><span class="label label-info">Programmer nonsense:</span> </h4>
         <textarea id= "transaction" rows="9" cols="76" disabled></textarea><br />
         <button class="btn btn-sm btn-primary btn-inline" onclick="closeWindow()">Cancel</button>
-        <button id="broadcast-button" class="btn btn-sm btn-success btn-inline" onclick="broadcastTransaction()">Broadcast</button>
+        <button id="broadcast-button" class="btn btn-sm btn-success btn-inline" onclick="broadcastTransaction()">
+            <span class="mdi mdi-tor"></span> Broadcast
+        </button>
     </div>
     <script src="../js/broadcast-window.js"></script>
     <script src="../js/hw-client.js"></script>
