@@ -24,6 +24,13 @@
     "appId": "hidden.wallet",
     "directories": {
       "output": "../../dist"
+    },
+    "extraResources": {
+      "from": "../HiddenWallet.API/bin/dist/win7/",
+      "to": "HiddenWallet.API/bin/dist/win7/",
+      "filter": [
+        "**/*"
+      ]
     }
   }
 }
