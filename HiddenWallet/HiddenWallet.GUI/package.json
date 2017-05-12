@@ -18,7 +18,7 @@
   },
   "scripts": {
     "start": "electron .",
-    "dist": "build"
+    "dist": "build -l"
   },
   "build": {
     "appId": "hidden.wallet",
@@ -26,8 +26,8 @@
       "output": "../../dist"
     },
     "extraResources": {
-      "from": "../HiddenWallet.API/bin/dist/win7/",
-      "to": "HiddenWallet.API/bin/dist/win7/",
+      "from": "../HiddenWallet.API/bin/dist/ubuntu.16.04/",
+      "to": "HiddenWallet.API/bin/dist/ubuntu.16.04/",
       "filter": [
         "**/*"
       ]

@@ -286,7 +286,7 @@ namespace HiddenWallet.API.Wrappers
 			SendTransactionResult result = await _walletJob.SendTransactionAsync(tx).ConfigureAwait(false);
 
 			if (result.Success) return new SuccessResponse();
-			else return new FailureResponse { Message = result.FailingReason };
+			else return new FailureResponse { Message = result.FailingReason, Details = "" };
 		}
 	}
 }

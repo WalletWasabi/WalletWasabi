@@ -33,7 +33,7 @@ namespace HiddenWallet.API
 			if (!alreadyRunning)
 			{
 				Console.WriteLine("Starting Tor process...");
-				var torPath = @"tor/Tor/tor";
+				var torPath = "tor"; // On Linux and OSX tor must be installed and added to path
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					torPath = @"tor\Tor\tor.exe";

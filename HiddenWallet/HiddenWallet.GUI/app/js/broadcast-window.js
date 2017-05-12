@@ -41,7 +41,11 @@ function broadcastTransaction() {
             alert("SUCCESS! Transaction is successfully broadcasted!");
         }
         else {
-            alert("FAIL! Details:\n" + result.FailingReason);
+            let failText = "FAIL! " + result.Message;
+            if (result.Details) {
+                failText = failText + "\n\nDetails:\n" + result.Details;
+            }
+            alert(failText);
         }
         window.close();
     });    
