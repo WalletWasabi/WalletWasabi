@@ -61,7 +61,7 @@ var apiProcess;
 function startApi() {
     var spawn = require('child_process').spawn;
     //  run server
-    apipath = path.join(__dirname, '..//api//bin//dist//ubuntu.16.04//HiddenWallet.API');    
+    apipath = path.join(__dirname, '..//HiddenWallet.API//bin//dist//ubuntu.16.04//HiddenWallet.API');    
     if (os.platform() === 'win32') {
         var apipath = path.join(__dirname, '..\\HiddenWallet.API\\bin\\dist\\win7\\HiddenWallet.API.exe');
     }
