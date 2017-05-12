@@ -1,9 +1,14 @@
-function httpGetWallet(path) {
+function httpGetWallet(path, returnJson = true) {
     let theUrl = "http://localhost:37120/api/v1/wallet/" + path;
     let xmlHttp = new XMLHttpRequest();
     xmlHttp.open("GET", theUrl, false); // false for synchronous request
     xmlHttp.send(null);
-    return JSON.parse(xmlHttp.responseText);
+    if (returnJson) {
+        return JSON.parse(xmlHttp.responseText);
+    }
+    else {
+        return xmlHttp.responseText;
+    }
 }
 
 function httpPostWallet(path, data) {

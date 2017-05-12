@@ -1,7 +1,26 @@
+function blockUntilApiReady() {
+    try {
+        httpGetWallet("test", false);
+    }
+    catch (err) {
+        wait(100);
+        blockUntilApiReady();
+    }
+}
+function wait(ms) {
+    var start = Date.now(),
+        now = start;
+    while (now - start < ms) {
+        now = Date.now();
+    }
+}
+
 let walletExists;
 function decryptionPhaseShow(menuItem = "") {
     document.getElementById("hide-btn").hidden = true;
     if (menuItem === "") {
+        blockUntilApiReady();
+
         walletExists = httpGetWallet("wallet-exists").Value;
         if (walletExists === true) {
             let alreadyRunning = httpGetWallet("status").WalletState.toUpperCase() !== "NotStarted".toUpperCase();
@@ -74,7 +93,7 @@ function generateWallet() {
                 decryptionPhaseShow();
             }
             document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:all;");
-        });            
+        });
     }
 }
 
@@ -113,7 +132,7 @@ function recoverWallet() {
                 decryptionPhaseShow();
             }
             document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:all;");
-        });        
+        });
     }
 }
 
@@ -122,17 +141,17 @@ function decryptWallet() {
 
     let obj = new Object();
     obj.password = password;
-    
+
     document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:none;");
     document.getElementById("decrypt-wallet-button").innerHTML = '<span class="glyphicon glyphicon-cog spinning"></span> Decrypting...';
     httpPostWalletAsync("load", obj, function (json) {
-        if (json.Success == false) {            
-            alert("Could not decrypt wallet, details:\n\n" + json.Message);            
+        if (json.Success == false) {
+            alert("Could not decrypt wallet, details:\n\n" + json.Message);
             document.getElementById("decrypt-wallet-button").innerHTML = "Decrypt";
         }
         else {
             walletPhaseShow();
         }
         document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:all;");
-    });   
+    });
 }
