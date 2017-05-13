@@ -58,4 +58,4 @@ If you get an error here, don't worry, just add your platform identifier to the 
 7. `cd ../HiddenWallet.GUI`
 8. `npm install`
 9. `npm start`
-10. Check out the Configuration section above.
+10. Check out the [Configuration section](https://github.com/nopara73/HiddenWallet#configuration) above.
