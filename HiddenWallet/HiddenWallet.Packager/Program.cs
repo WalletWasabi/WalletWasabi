@@ -14,14 +14,16 @@ namespace HiddenWallet.Packager
 		{
 			var packagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
 			var apiProjectDirectory = Path.Combine(packagerProjectDirectory, "..\\HiddenWallet.API");
+			var guiProjectDirectory = Path.Combine(packagerProjectDirectory, "..\\HiddenWallet.GUI");
+			var solutionDirectory = Path.Combine(packagerProjectDirectory, "..\\..\\");
 
 			// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
 			string[] targets =
 			{
 				"win7-x64",
-				//"win8-x64",
-				//"win81-x64",
-				//"win10-x64"
+				"win8-x64",
+				"win81-x64",
+				"win10-x64"
 			};
 			UpdateCsproj(apiProjectDirectory, targets);
 
@@ -61,8 +63,63 @@ namespace HiddenWallet.Packager
 				pPublish.WaitForExit();
 			}
 
+			var distDir = Path.Combine(solutionDirectory, "dist");
+			if (Directory.Exists(distDir))
+			{
+				Directory.Delete(distDir, true);
+			}
+
+			var psiNpmRunDist = new ProcessStartInfo
+			{
+				FileName = "cmd",
+				RedirectStandardInput = true,
+				WorkingDirectory = guiProjectDirectory
+			};
+			var pNpmRunDist = Process.Start(psiNpmRunDist);
+			pNpmRunDist.StandardInput.WriteLine("npm run dist & exit");
+			pNpmRunDist.WaitForExit();
+
+			foreach (var file in Directory.GetFiles(distDir))
+			{
+				if (file.EndsWith(".exe")) File.Delete(file);
+			}
+
+			foreach(var target in targets)
+			{
+				Console.WriteLine($"Preparing final package for {target}");
+				string currentDistributionDirectory = Path.Combine(distDir, target);
+				CloneDirectory(Path.Combine(distDir, "win-unpacked"), currentDistributionDirectory);
+				string currTargDir = Path.Combine(distDir, target, "resources\\HiddenWallet.API\\bin\\dist\\current-target");
+				Directory.CreateDirectory(currTargDir);
+				var apiTargetDir = Path.Combine(apiProjectDirectory, "bin\\dist", target);
+				CloneDirectory(apiTargetDir, currTargDir);
+
+				ZipFile.CreateFromDirectory(currentDistributionDirectory, currentDistributionDirectory + ".zip", CompressionLevel.Optimal, true);
+				Directory.Delete(currentDistributionDirectory, true);
+			}
+
+			Directory.Delete(Path.Combine(distDir, "win-unpacked"), true);
+
 			Console.WriteLine("Finished. Press key to exit...");
 			Console.ReadKey();
+		}
+
+		private static void CloneDirectory(string root, string dest)
+		{
+			foreach (var directory in Directory.GetDirectories(root))
+			{
+				string dirName = Path.GetFileName(directory);
+				if (!Directory.Exists(Path.Combine(dest, dirName)))
+				{
+					Directory.CreateDirectory(Path.Combine(dest, dirName));
+				}
+				CloneDirectory(directory, Path.Combine(dest, dirName));
+			}
+
+			foreach (var file in Directory.GetFiles(root))
+			{
+				File.Copy(file, Path.Combine(dest, Path.GetFileName(file)));
+			}
 		}
 
 		private static void UpdateCsproj(string apiProjectDirectory, string[] targets)

@@ -24,13 +24,6 @@
     "appId": "hidden.wallet",
     "directories": {
       "output": "../../dist"
-    },
-    "extraResources": {
-      "from": "../HiddenWallet.API/bin/dist/current-target/",
-      "to": "HiddenWallet.API/bin/dist/current-target/",
-      "filter": [
-        "**/*"
-      ]
     }
   }
 }
