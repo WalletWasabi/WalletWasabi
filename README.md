@@ -1,6 +1,12 @@
 # Hidden Wallet
 Privacy focused, [full block downloading SPV](https://medium.com/@nopara73/bitcoin-privacy-landscape-in-2017-zero-to-hero-guidelines-and-research-a10d30f1e034) Bitcoin wallet with [TumbleBit](https://hackernoon.com/understanding-tumblebit-part-1-making-the-case-823d786113f3) support.  
 
+## Screenshots 
+
+![Generate](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Docs/HwDecryptingScreenshot.png)
+![BuildTransaction](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Docs/HwBuildTransactionScreenshot.png)
+![History](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Docs/HwHistoryScreenshot.png)
+
 ## Release  
 Note: Binaries are only available to Windows, for Linux and OSX you need to build from source code (see "Building from source code" section).  
 
