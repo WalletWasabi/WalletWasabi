@@ -41,6 +41,7 @@
     <Compile Include="app\js\status.js" />
     <Compile Include="app\js\wallet-phase.js" />
     <Compile Include="main.js" />
+    <Content Include="app\assets\TumbleBit.png" />
     <Content Include="app\css\default.css">
       <SubType>Code</SubType>
     </Content>
@@ -60,6 +61,7 @@
     <Folder Include="app\css\" />
     <Folder Include="app\js\" />
     <Folder Include="app\html\" />
+    <Folder Include="app\assets\" />
   </ItemGroup>
   <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
