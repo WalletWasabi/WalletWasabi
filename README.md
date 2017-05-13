@@ -1,5 +1,9 @@
 # Hidden Wallet
-Privacy focused, full block downloading SPV Bitcoin wallet with TumbleBit support.  
+Privacy focused, full block downloading SPV Bitcoin wallet with TumbleBit support. This repository is a thin GUI, the bulk of the project is at https://github.com/nopara73/HBitcoin/.  
+  
+Pizza and/or coffee is welcome: [186n7me3QKajQZJnUsVsezVhVrSwyFCCZ](https://www.smartbit.com.au/address/186n7me3QKajQZJnUsVsezVhVrSwyFCCZ).
+  
+**Important Note:** Until the stable version is out, one shold not use it on the mainnet, but only on the testnet for testing purposes. Please load me with a lot of work by opening countless GitHub issues on literally anything or send me email to `adam.ficsor73@gmail.com`.
   
 ## Status && Roadmap
 1. [Full Block Downloading SPV](https://medium.com/@nopara73/bitcoin-privacy-landscape-in-2017-zero-to-hero-guidelines-and-research-a10d30f1e034) - **Ready, unstable.**  This feature provides full node level privacy against network analysis with SPV security.  
