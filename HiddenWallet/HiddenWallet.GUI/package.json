@@ -18,6 +18,7 @@
   },
   "scripts": {
     "start": "electron .",
+    "pack": "build --dir",
     "dist": "build"
   },
   "build": {

@@ -10,7 +10,7 @@ document.getElementById("title").innerHTML = document.title;
         document.getElementById("close-btn").addEventListener("click", function (e) {
             const window = remote.getCurrentWindow();
             const BrowserWindow = remote.BrowserWindow;
-            var shutDownWindow = new BrowserWindow({ width: 300, height: 60, frame: true, resizable: false, title: "HiddenWallet" });
+            var shutDownWindow = new BrowserWindow({ width: 300, height: 60, frame: true, resizable: false, title: "HiddenWallet", icon: __dirname + '/app/assets/TumbleBit.png' });
             shutDownWindow.show();
             shutDownWindow.focus();
             shutDownWindow.loadURL('file://' + __dirname + '/app/html/shutdown.html');
