@@ -35,3 +35,43 @@ document.getElementById("title").innerHTML = document.title;
 function writeHint(message) {
     document.getElementById('hint').innerHTML = message;
 }
+
+'use strict';
+
+const electron = require('electron');
+const remote = electron.remote;
+const Menu = remote.Menu;
+
+const EditMenu = Menu.buildFromTemplate([{
+    label: 'Copy',
+    role: 'copy',
+}, {
+    label: 'Paste',
+    role: 'paste',
+},
+]);
+
+const CopyMenu = Menu.buildFromTemplate([{
+    label: 'Copy',
+    role: 'copy',
+},
+]);
+
+document.body.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    let node = e.target;
+
+    while (node) {
+        if (node.nodeName.match(/^(input|textarea)$/i) || node.isContentEditable) {
+            EditMenu.popup(remote.getCurrentWindow());
+            break;
+        }
+        else {
+            CopyMenu.popup(remote.getCurrentWindow());
+            break;
+        }
+        node = node.parentNode;
+    }
+});

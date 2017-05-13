@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.DotNet.PlatformAbstractions;
 using System.Runtime.InteropServices;
+using NBitcoin;
 
 namespace HiddenWallet.API
 {

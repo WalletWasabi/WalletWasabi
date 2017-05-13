@@ -57,7 +57,6 @@ app.on('activate', function () {
 
 const os = require('os');
 var apiProcess;
-
 function startApi() {
     var spawn = require('child_process').spawn;
     //  run server
