@@ -5,7 +5,7 @@ Pizza and/or coffee is welcome: [186n7me3QKajQZJnUsVsezVhVrSwyFCCZ](https://www.
   
 **Important Note:** Until the stable version is out, one shold not use it on the mainnet, but only on the testnet for testing purposes. Please load me with a lot of work by opening countless GitHub issues on literally anything or send me email to `adam.ficsor73@gmail.com`.
   
-## Status && Roadmap
+## Status & Roadmap
 1. [Full Block Downloading SPV](https://medium.com/@nopara73/bitcoin-privacy-landscape-in-2017-zero-to-hero-guidelines-and-research-a10d30f1e034) - **Ready, unstable.**  This feature provides full node level privacy against network analysis with SPV security.  
 2. [TumbleBit integration, Classi Tumbler Mode](https://hackernoon.com/understanding-tumblebit-part-1-making-the-case-823d786113f3) - **Next up.** TumbleBit is a Bitcoin mixer where not even the Tumbler can steal your coins, nor deanonymize you.   
 3. [Transaction Filtered Block Downloading](https://medium.com/@nopara73/full-node-level-privacy-even-for-mobile-wallets-transaction-filtered-full-block-downloading-wallet-16ef1847c21)  - 10-100x performance increase, while still keeping full node level privacy against network analysis, but replacing SPV security to trusted full node security.  
