@@ -13,10 +13,6 @@ namespace HiddenWallet.API
 
 		public static Network Network = Network.Main;
 		public static bool CanSpendUnconfirmed = false;
-		public static string TorHost = "127.0.0.1";
-		public static int TorSocksPort = 9050;
-		public static int TorControlPort = 9051;
-		public static string TorControlPortPassword = "ILoveBitcoin21";
 
 		static Config()
 		{
@@ -33,11 +29,7 @@ namespace HiddenWallet.API
 			ConfigFileSerializer.Serialize(
 				WalletFilePath,
 				Network.ToString(),
-				CanSpendUnconfirmed.ToString(),
-				TorHost,
-				TorSocksPort.ToString(),
-				TorControlPort.ToString(),
-				TorControlPortPassword);
+				CanSpendUnconfirmed.ToString());
 			Load();
 		}
 
@@ -47,120 +39,89 @@ namespace HiddenWallet.API
 
 			WalletFilePath = rawContent.WalletFilePath;
 
-			if (rawContent.Network == Network.Main.ToString())
+			if (rawContent.Network == null)
+				throw new NotSupportedException($"Network is missing from {ConfigFileSerializer.ConfigFilePath}");
+			string networkString = rawContent.Network.Trim();
+			if (networkString == "")
+				throw new NotSupportedException($"Network is missing from {ConfigFileSerializer.ConfigFilePath}");
+			else if ("mainnet".Equals(networkString, StringComparison.OrdinalIgnoreCase)
+				|| "main".Equals(networkString, StringComparison.OrdinalIgnoreCase))
 				Network = Network.Main;
-			else if (rawContent.Network == Network.TestNet.ToString())
+			else if ("testnet".Equals(networkString, StringComparison.OrdinalIgnoreCase)
+				|| "test".Equals(networkString, StringComparison.OrdinalIgnoreCase))
 				Network = Network.TestNet;
-			else if (rawContent.Network == null)
-				throw new Exception($"Network is missing from {ConfigFileSerializer.ConfigFilePath}");
 			else
-				throw new Exception($"Wrong Network is specified in {ConfigFileSerializer.ConfigFilePath}");
+				throw new NotSupportedException($"Wrong Network is specified in {ConfigFileSerializer.ConfigFilePath}");
 
-			try
-			{
-				CanSpendUnconfirmed = bool.Parse(rawContent.CanSpendUnconfirmed.Trim());
-			}
-			catch (Exception ex)
-			{
-				throw new Exception($"Wrong CanSpendUnconfirmed value in {ConfigFileSerializer.ConfigFilePath}", ex);
-			}
+			if (rawContent.CanSpendUnconfirmed == null)
+				throw new NotSupportedException($"CanSpendUnconfirmed is missing from {ConfigFileSerializer.ConfigFilePath}");
+			string canSpendUnconfirmedString = rawContent.CanSpendUnconfirmed.Trim();
+			if (canSpendUnconfirmedString == "")
+				throw new NotSupportedException($"CanSpendUnconfirmed is missing from {ConfigFileSerializer.ConfigFilePath}");
+			else if ("true".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
+				|| "yes".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
+				|| "fuckyeah".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
+				|| "1" == canSpendUnconfirmedString)
+				CanSpendUnconfirmed = true;
+			else if ("false".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
+				|| "no".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
+				|| "nah".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
+				|| "0" == canSpendUnconfirmedString)
+				CanSpendUnconfirmed = false;
+			else
+				throw new NotSupportedException($"Wrong CanSpendUnconfirmed value in {ConfigFileSerializer.ConfigFilePath}");
 
-			TorHost = rawContent.TorHost.Trim();
-
-			try
-			{
-				TorSocksPort = int.Parse(rawContent.TorSocksPort.Trim());
-			}
-			catch (Exception ex)
-			{
-				throw new Exception($"Wrong TorSocksPort value in {ConfigFileSerializer.ConfigFilePath}", ex);
-			}
-
-			try
-			{
-				TorControlPort = int.Parse(rawContent.TorControlPort.Trim());
-			}
-			catch (Exception ex)
-			{
-				throw new Exception($"Wrong TorControlPort value in {ConfigFileSerializer.ConfigFilePath}", ex);
-			}
-
-			TorControlPortPassword = rawContent.TorControlPortPassword;
-		}
-	}
-
-	public class ConfigFileSerializer
-	{
-		public static readonly string ConfigFilePath = "Config.json";
-
-		// KEEP THEM PUBLIC OTHERWISE IT WILL NOT SERIALIZE!
-		public string WalletFilePath { get; set; }
-
-		public string Network { get; set; }
-		public string CanSpendUnconfirmed { get; set; }
-		public string TorHost { get; set; }
-		public string TorSocksPort { get; set; }
-		public string TorControlPort { get; set; }
-		public string TorControlPortPassword { get; set; }
-
-		[JsonConstructor]
-		private ConfigFileSerializer(
-			string walletFilePath,
-			string network,
-			string canSpendUnconfirmed,
-			string torHost,
-			string torSocksPort,
-			string torControlPort,
-			string torControlPortPassword)
-		{
-			WalletFilePath = walletFilePath;
-			Network = network;
-			CanSpendUnconfirmed = canSpendUnconfirmed;
-			TorHost = torHost;
-			TorSocksPort = torSocksPort;
-			TorControlPort = torControlPort;
-			TorControlPortPassword = torControlPortPassword;
 		}
 
-		internal static void Serialize(
-			string walletFilePath,
-			string network,
-			string canSpendUnconfirmed,
-			string torHost,
-			string torSocksPort,
-			string torControlPort,
-			string torControlPortPassword)
+		public class ConfigFileSerializer
 		{
-			var content =
-				JsonConvert.SerializeObject(
-					new ConfigFileSerializer(
-						walletFilePath,
-						network,
-						canSpendUnconfirmed,
-						torHost,
-						torSocksPort,
-						torControlPort,
-						torControlPortPassword), Formatting.Indented);
+			public static readonly string ConfigFilePath = "Config.json";
 
-			File.WriteAllText(ConfigFilePath, content);
-		}
+			// KEEP THEM PUBLIC OTHERWISE IT WILL NOT SERIALIZE!
+			public string WalletFilePath { get; set; }
 
-		internal static ConfigFileSerializer Deserialize()
-		{
-			if (!File.Exists(ConfigFilePath))
-				throw new Exception($"Config file does not exist. Create {ConfigFilePath} before reading it.");
+			public string Network { get; set; }
+			public string CanSpendUnconfirmed { get; set; }
 
-			var contentString = File.ReadAllText(ConfigFilePath);
-			var configFileSerializer = JsonConvert.DeserializeObject<ConfigFileSerializer>(contentString);
+			[JsonConstructor]
+			private ConfigFileSerializer(
+				string walletFilePath,
+				string network,
+				string canSpendUnconfirmed)
+			{
+				WalletFilePath = walletFilePath;
+				Network = network;
+				CanSpendUnconfirmed = canSpendUnconfirmed;
+			}
 
-			return new ConfigFileSerializer(
-				configFileSerializer.WalletFilePath,
-				configFileSerializer.Network,
-				configFileSerializer.CanSpendUnconfirmed,
-				configFileSerializer.TorHost,
-				configFileSerializer.TorSocksPort,
-				configFileSerializer.TorControlPort,
-				configFileSerializer.TorControlPortPassword);
+			internal static void Serialize(
+				string walletFilePath,
+				string network,
+				string canSpendUnconfirmed)
+			{
+				var content =
+					JsonConvert.SerializeObject(
+						new ConfigFileSerializer(
+							walletFilePath,
+							network,
+							canSpendUnconfirmed), Formatting.Indented);
+
+				File.WriteAllText(ConfigFilePath, content);
+			}
+
+			internal static ConfigFileSerializer Deserialize()
+			{
+				if (!File.Exists(ConfigFilePath))
+					throw new Exception($"Config file does not exist. Create {ConfigFilePath} before reading it.");
+
+				var contentString = File.ReadAllText(ConfigFilePath);
+				var configFileSerializer = JsonConvert.DeserializeObject<ConfigFileSerializer>(contentString);
+
+				return new ConfigFileSerializer(
+					configFileSerializer.WalletFilePath,
+					configFileSerializer.Network,
+					configFileSerializer.CanSpendUnconfirmed);
+			}
 		}
 	}
 }

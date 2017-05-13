@@ -19,9 +19,9 @@ namespace HiddenWallet.Packager
 			string[] targets =
 			{
 				"win7-x64",
-				"win8-x64",
-				"win81-x64",
-				"win10-x64"
+				//"win8-x64",
+				//"win81-x64",
+				//"win10-x64"
 			};
 			UpdateCsproj(apiProjectDirectory, targets);
 
@@ -37,7 +37,10 @@ namespace HiddenWallet.Packager
 			foreach (var target in targets)
 			{
 				var currDistDir = Path.Combine(apiProjectDirectory, "bin\\dist", target);
-				Directory.Delete(currDistDir, true);
+				if (Directory.Exists(currDistDir))
+				{
+					Directory.Delete(currDistDir, true);
+				}
 				Directory.CreateDirectory(currDistDir);
 
 				var torFolderPath = Path.Combine(currDistDir, "tor");
