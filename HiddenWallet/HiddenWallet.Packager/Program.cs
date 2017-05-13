@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -41,7 +42,7 @@ namespace HiddenWallet.Packager
 				var currDistDir = Path.Combine(apiProjectDirectory, "bin\\dist", target);
 				if (Directory.Exists(currDistDir))
 				{
-					Directory.Delete(currDistDir, true);
+					DeleteDirectoryRecursively(currDistDir);
 				}
 				Directory.CreateDirectory(currDistDir);
 
@@ -49,7 +50,7 @@ namespace HiddenWallet.Packager
 				Console.WriteLine("Replacing tor...");
 				if (Directory.Exists(torFolderPath))
 				{
-					Directory.Delete(torFolderPath, true);
+					DeleteDirectoryRecursively(torFolderPath);
 				}
 				ZipFile.ExtractToDirectory(Path.Combine(packagerProjectDirectory, "tor.zip"), currDistDir);
 
@@ -66,7 +67,7 @@ namespace HiddenWallet.Packager
 			var distDir = Path.Combine(solutionDirectory, "dist");
 			if (Directory.Exists(distDir))
 			{
-				Directory.Delete(distDir, true);
+				DeleteDirectoryRecursively(distDir);
 			}
 
 			var psiNpmRunDist = new ProcessStartInfo
@@ -95,13 +96,26 @@ namespace HiddenWallet.Packager
 				CloneDirectory(apiTargetDir, currTargDir);
 
 				ZipFile.CreateFromDirectory(currentDistributionDirectory, currentDistributionDirectory + ".zip", CompressionLevel.Optimal, true);
-				Directory.Delete(currentDistributionDirectory, true);
+				DeleteDirectoryRecursively(currentDistributionDirectory);
 			}
 
-			Directory.Delete(Path.Combine(distDir, "win-unpacked"), true);
+			DeleteDirectoryRecursively(Path.Combine(distDir, "win-unpacked"));
 
 			Console.WriteLine("Finished. Press key to exit...");
 			Console.ReadKey();
+		}
+
+		private static void DeleteDirectoryRecursively(string directory)
+		{
+			try
+			{
+				Directory.Delete(directory, true);
+			}
+			catch (IOException)
+			{
+				Task.Delay(100);
+				Directory.Delete(directory, true);
+			}
 		}
 
 		private static void CloneDirectory(string root, string dest)
