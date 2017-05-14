@@ -1,3 +1,7 @@
+## Releases  
+[Download for Windows.](https://github.com/nopara73/HiddenWallet/releases)  
+For Linux and OSX you need to build from the source code, [see instructions below](https://github.com/nopara73/HiddenWallet#building-from-source-code).
+
 # Hidden Wallet
 Privacy focused, full block downloading SPV Bitcoin wallet with TumbleBit support. This repository is a thin GUI, the bulk of the project is at https://github.com/nopara73/HBitcoin/.  
   
@@ -18,11 +22,7 @@ Pizza and/or coffee is welcome: [186n7me3QKajQZJnUsVsezVhVrSwyFCCZ](https://www.
 
 ![BuildTransaction](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Docs/HwBuildTransactionScreenshot.png)  
 
-![History](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Docs/HwHistoryScreenshot.png)  
-
-
-## Release  
-Note: Binaries are only available to Windows, for Linux and OSX you need to build from source code (see "Building from source code" section).  
+![History](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Docs/HwHistoryScreenshot.png)    
 
 ## Configuration
 
