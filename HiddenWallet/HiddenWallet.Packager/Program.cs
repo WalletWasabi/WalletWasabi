@@ -21,10 +21,10 @@ namespace HiddenWallet.Packager
 			// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
 			string[] targets =
 			{
-				"win7-x64",
-				"win8-x64",
-				"win81-x64",
-				"win10-x64"
+				"win7-x64", "win7-x86",
+				"win8-x64", "win8-x86",
+				"win81-x86", "win81-x64",
+				"win10-x64", "win10-x86",
 			};
 			UpdateCsproj(apiProjectDirectory, targets);
 
@@ -52,7 +52,15 @@ namespace HiddenWallet.Packager
 				{
 					DeleteDirectoryRecursively(torFolderPath);
 				}
-				ZipFile.ExtractToDirectory(Path.Combine(packagerProjectDirectory, "tor.zip"), currDistDir);
+				try
+				{
+					ZipFile.ExtractToDirectory(Path.Combine(packagerProjectDirectory, "tor.zip"), currDistDir);
+				}
+				catch(UnauthorizedAccessException)
+				{
+					Task.Delay(100);
+					ZipFile.ExtractToDirectory(Path.Combine(packagerProjectDirectory, "tor.zip"), currDistDir);
+				}
 
 				var psiPublish = new ProcessStartInfo
 				{
@@ -77,7 +85,7 @@ namespace HiddenWallet.Packager
 				WorkingDirectory = guiProjectDirectory
 			};
 			var pNpmRunDist = Process.Start(psiNpmRunDist);
-			pNpmRunDist.StandardInput.WriteLine("npm run dist & exit");
+			pNpmRunDist.StandardInput.WriteLine("npm run pack & exit");
 			pNpmRunDist.WaitForExit();
 
 			foreach (var file in Directory.GetFiles(distDir))
@@ -88,9 +96,9 @@ namespace HiddenWallet.Packager
 			foreach(var target in targets)
 			{
 				Console.WriteLine($"Preparing final package for {target}");
-				string currentDistributionDirectory = Path.Combine(distDir, target);
+				string currentDistributionDirectory = Path.Combine(distDir, "HiddenWallet-" + target);
 				CloneDirectory(Path.Combine(distDir, "win-unpacked"), currentDistributionDirectory);
-				string currTargDir = Path.Combine(distDir, target, "resources\\HiddenWallet.API\\bin\\dist\\current-target");
+				string currTargDir = Path.Combine(currentDistributionDirectory, "resources\\HiddenWallet.API\\bin\\dist\\current-target");
 				Directory.CreateDirectory(currTargDir);
 				var apiTargetDir = Path.Combine(apiProjectDirectory, "bin\\dist", target);
 				CloneDirectory(apiTargetDir, currTargDir);
