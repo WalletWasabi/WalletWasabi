@@ -17,6 +17,7 @@ function wait(ms) {
 
 let walletExists;
 function decryptionPhaseShow(menuItem = "") {
+    document.getElementById("menu").hidden = false;
     document.getElementById("hide-btn").hidden = true;
     if (menuItem === "") {
         blockUntilApiReady();
@@ -81,16 +82,10 @@ function generateWallet() {
                 document.getElementById("generate-wallet-button").innerHTML = "Generate";
             }
             else {
-                let message = "Write down these mnemonic words:\n\n"
-                    + json.Mnemonic + "\n\n"
-                    + "You can recover your wallet on any computer with:\n"
-                    + "- the mnemonic words AND\n"
-                    + "- your password AND\n"
-                    + "- the wallet creation time: " + json.CreationTime.substr(0, 10)
-                    + "\n\n"
-                    + "Unlike most other wallets if an attacker acquires your mnemonic words, it will not be able to hack your wallet without knowing your password. On the contrary, unlike other wallets, you will not be able to recover your wallet only with the mnemonic words if you lose your password.";
-                alert("Wallet is successfully generated!\n\n" + message);
-                decryptionPhaseShow();
+                document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("mnemonic-words").innerHTML = json.Mnemonic;
+                document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("wallet-creation-time").innerHTML = json.CreationTime.substr(0, 10);
+                document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("wallet-generated-content").innerHTML;
+                document.getElementById("menu").hidden = true;                
             }
             document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:all;");
         });

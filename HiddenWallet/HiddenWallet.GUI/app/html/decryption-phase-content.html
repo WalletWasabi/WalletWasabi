@@ -25,3 +25,18 @@
     </div>
     <button id="recover-wallet-button" class="btn btn-lg btn-primary btn-block" onclick="recoverWallet()">Recover</button>
 </div>
+
+<div id="wallet-generated-content">
+    <h4><span class="label label-success">Wallet is generated successfully!</span></h4>
+    <label>Write down these mnemonic words:</label>
+    <h4><span class="label label-default" id="mnemonic-words"></span></h4>
+    <label>You can recover your wallet on any computer with:</label>
+    <br /><label>- the mnemonic words AND</label>
+    <br /><label>- your password AND</label>
+    <br /><label>- the wallet creation time:</label>
+    <label id="wallet-creation-time"></label>
+    <br />
+    <div>Unlike most other wallets if an attacker acquires your mnemonic words, it will not be able to hack your wallet without knowing your password. On the contrary, unlike other wallets, you will not be able to recover your wallet only with the mnemonic words if you lose your password.</div>
+    <br />
+    <button class="btn btn-lg btn-primary btn-block" onclick="decryptionPhaseShow()">Got it, go to decrypting!</button>
+</div>
