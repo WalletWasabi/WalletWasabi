@@ -9,5 +9,5 @@ A reference of common local ports used by HiddenWallet and related softwares.
 |9051  | Default Tor control port |
 |9150  | Tor socks port used by Tor Browser |
 |9151  | Tor control port used by Tor Browser |
-|8333  | Bitcoin Core RPC port |
+|8333  | Bitcoin Core RPC |
 
