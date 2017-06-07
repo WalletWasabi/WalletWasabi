@@ -72,6 +72,7 @@ function updateWalletContent() {
                         node.appendChild(textNode);
                         document.getElementById("receive-addresses").appendChild(node);
                     }
+                    document.getElementById("extpubkey").innerText = resp.ExtPubKey;
                 }
                 else if (menuId === "history-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;
@@ -111,6 +112,7 @@ function updateWalletContent() {
                         node.appendChild(textNode);
                         document.getElementById("receive-addresses").appendChild(node);
                     }
+                    document.getElementById("extpubkey").innerText = resp.ExtPubKey;
                 }
                 else if (menuId === "history-active") {
                     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;

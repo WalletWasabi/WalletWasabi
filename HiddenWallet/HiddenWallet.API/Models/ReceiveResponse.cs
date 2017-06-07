@@ -9,5 +9,6 @@ namespace HiddenWallet.API.Models
 	{
 		public ReceiveResponse() => Success = true;
 		public string[] Addresses { get; set; }
+		public string ExtPubKey { get; set; }
 	}
 }

@@ -44,9 +44,9 @@ namespace HiddenWallet.API.Wrappers
 		public Money GetAvailable(SafeAccount account) => account == AliceAccount ? _availableAlice : _availableBob;
 		public Money GetIncoming(SafeAccount account) => account == AliceAccount ? _incomingAlice : _incomingBob;
 
-		private ReceiveResponse _receiveAddressesAlice = new ReceiveResponse();
-		private ReceiveResponse _receiveAddressesBob = new ReceiveResponse();
-		public ReceiveResponse GetReceiveResponse(SafeAccount account) => account == AliceAccount ? _receiveAddressesAlice : _receiveAddressesBob;
+		private ReceiveResponse _receiveResponseAlice = new ReceiveResponse();
+		private ReceiveResponse _receiveResponseBob = new ReceiveResponse();
+		public ReceiveResponse GetReceiveResponse(SafeAccount account) => account == AliceAccount ? _receiveResponseAlice : _receiveResponseBob;
 
 		private HistoryResponse _historyResponseAlice = new HistoryResponse();
 		private HistoryResponse _historyResponseBob = new HistoryResponse();
@@ -93,6 +93,9 @@ namespace HiddenWallet.API.Wrappers
 
 				_walletJob.StateChanged += _walletJob_StateChanged;
 				_walletJob.Tracker.TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChanged;
+
+				_receiveResponseAlice.ExtPubKey = _walletJob.Safe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: AliceAccount).ToWif();
+				_receiveResponseBob.ExtPubKey = _walletJob.Safe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: BobAccount).ToWif();
 
 				_walletJobTask = _walletJob.StartAsync(_cts.Token);
 
@@ -184,15 +187,15 @@ namespace HiddenWallet.API.Wrappers
 			// receive
 			var ua = _walletJob.GetUnusedScriptPubKeys(AliceAccount, HdPathType.Receive).ToArray();
 			var ub = _walletJob.GetUnusedScriptPubKeys(BobAccount, HdPathType.Receive).ToArray();
-			_receiveAddressesAlice.Addresses = new string[7];
-			_receiveAddressesBob.Addresses = new string[7];
+			_receiveResponseAlice.Addresses = new string[7];
+			_receiveResponseBob.Addresses = new string[7];
 			var network = _walletJob.Safe.Network;
 			for (int i = 0; i < 7; i++)
 			{
-				if (ua[i] != null) _receiveAddressesAlice.Addresses[i] = ua[i].GetDestinationAddress(network).ToWif();
-				else _receiveAddressesAlice.Addresses[i] = "";
-				if (ub[i] != null) _receiveAddressesBob.Addresses[i] = ub[i].GetDestinationAddress(network).ToWif();
-				else _receiveAddressesBob.Addresses[i] = "";
+				if (ua[i] != null) _receiveResponseAlice.Addresses[i] = ua[i].GetDestinationAddress(network).ToWif();
+				else _receiveResponseAlice.Addresses[i] = "";
+				if (ub[i] != null) _receiveResponseBob.Addresses[i] = ub[i].GetDestinationAddress(network).ToWif();
+				else _receiveResponseBob.Addresses[i] = "";
 			}
 		}
 		private void _walletJob_StateChanged(object sender, EventArgs e)
