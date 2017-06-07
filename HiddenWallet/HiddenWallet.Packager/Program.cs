@@ -117,12 +117,23 @@ namespace HiddenWallet.Packager
 		{
 			try
 			{
-				Directory.Delete(directory, true);
+				DeleteDirectoryIfExists(directory, true);
 			}
 			catch (IOException)
 			{
 				Task.Delay(100);
-				Directory.Delete(directory, true);
+				if (Directory.Exists(directory))
+				{
+					DeleteDirectoryIfExists(directory, true);
+				}
+			}
+		}
+
+		private static void DeleteDirectoryIfExists(string directory, bool recursive)
+		{
+			if (Directory.Exists(directory))
+			{
+				Directory.Delete(directory, recursive);
 			}
 		}
 
