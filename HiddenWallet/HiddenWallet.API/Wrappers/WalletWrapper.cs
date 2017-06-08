@@ -216,13 +216,10 @@ namespace HiddenWallet.API.Wrappers
 
 			_cts.Cancel();
 			await Task.WhenAll(_walletJobTask).ConfigureAwait(false);
-			if(Global.TorProcess != null)
+			if(Global.TorProcess != null && !Global.TorProcess.HasExited)
 			{
-				if (!Global.TorProcess.HasExited)
-				{
-					Console.WriteLine("Terminating Tor process");
-					Global.TorProcess.Kill();
-				}
+				Console.WriteLine("Terminating Tor process");
+				Global.TorProcess.Kill();
 			}
 		}
 
