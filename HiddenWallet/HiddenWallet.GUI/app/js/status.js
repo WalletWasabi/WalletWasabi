@@ -13,6 +13,7 @@ var headerHeight;
 var trackingHeight;
 var connectedNodeCount;
 var memPoolTransactionCount;
+var torState;
 function periodicUpdate() {
     setInterval(function statusUpdate() {
         var response = httpGetWallet("status");
@@ -22,8 +23,10 @@ function periodicUpdate() {
                 if (trackingHeight === response.TrackingHeight) {
                     if (connectedNodeCount === response.ConnectedNodeCount) {
                         if (memPoolTransactionCount === response.MemPoolTransactionCount) {
-                            if (changeBump === response.ChangeBump) {
-                                return;
+                            if (torState === response.TorState) {
+                                if (changeBump === response.ChangeBump) {
+                                    return;
+                                }
                             }
                         }
                     }
@@ -36,6 +39,7 @@ function periodicUpdate() {
         trackingHeight = response.TrackingHeight;
         connectedNodeCount = response.ConnectedNodeCount;
         memPoolTransactionCount = response.MemPoolTransactionCount;
+        torState = response.TorState;
 
         var connectionText = "Connecting..."
         if (connectedNodeCount !== 0) {
@@ -50,7 +54,7 @@ function periodicUpdate() {
         var progressType = "";
         if (walletState.toUpperCase() === "NotStarted".toUpperCase()) {
             progressType = "info";
-            text = "NotConnected";
+            text = "Tor circuit estabilished, Wallet is offline";
         }
         if (walletState.toUpperCase() === "SyncingHeaders".toUpperCase()) {
             progressType = "info progress-bar-striped active";
@@ -73,7 +77,16 @@ function periodicUpdate() {
             text = "Connecting. . .";
         }
 
-        statusShow(100, text, progressType);
+        if (torState.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
+            statusShow(100, text, progressType);
+        }
+        if (torState.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
+            statusShow(100, "Estabilishing Tor circuit...", progressType);
+        } 
+        if (torState.toUpperCase() === "NotStarted".toUpperCase()) {
+            statusShow(100, "Tor is not running", "danger")
+        }
+               
 
         if (response.ChangeBump !== changeBump) {
             updateWalletContent();

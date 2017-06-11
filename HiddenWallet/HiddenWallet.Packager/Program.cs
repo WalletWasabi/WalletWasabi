@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -18,13 +19,17 @@ namespace HiddenWallet.Packager
 			var guiProjectDirectory = Path.Combine(packagerProjectDirectory, "..\\HiddenWallet.GUI");
 			var solutionDirectory = Path.Combine(packagerProjectDirectory, "..\\..\\");
 
+			var packageJsonString = File.ReadAllText(Path.Combine(guiProjectDirectory, "package.json"));
+			JToken packageJson = JObject.Parse(packageJsonString);
+			var version = packageJson.SelectToken("version").Value<string>();
+
 			// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
 			string[] targets =
 			{
-				"win7-x64", "win7-x86",
-				"win8-x64", "win8-x86",
-				"win81-x86", "win81-x64",
-				"win10-x64", "win10-x86",
+				"win7-x64",
+				"win8-x64",
+				"win81-x64",
+				"win10-x64",
 			};
 			UpdateCsproj(apiProjectDirectory, targets);
 
@@ -96,7 +101,9 @@ namespace HiddenWallet.Packager
 			foreach(var target in targets)
 			{
 				Console.WriteLine($"Preparing final package for {target}");
-				string currentDistributionDirectory = Path.Combine(distDir, "HiddenWallet-" + target);
+				string targetWithoutArch = target.Remove(target.Length - 3);
+
+				string currentDistributionDirectory = Path.Combine(distDir, "HiddenWallet-" + version + "-" + targetWithoutArch);
 				CloneDirectory(Path.Combine(distDir, "win-unpacked"), currentDistributionDirectory);
 				string currTargDir = Path.Combine(currentDistributionDirectory, "resources\\HiddenWallet.API\\bin\\dist\\current-target");
 				Directory.CreateDirectory(currTargDir);
@@ -133,7 +140,14 @@ namespace HiddenWallet.Packager
 		{
 			if (Directory.Exists(directory))
 			{
-				Directory.Delete(directory, recursive);
+				try
+				{
+					Directory.Delete(directory, recursive);
+				}
+				catch (DirectoryNotFoundException)
+				{
+					// for some reason it still happen
+				}
 			}
 		}
 

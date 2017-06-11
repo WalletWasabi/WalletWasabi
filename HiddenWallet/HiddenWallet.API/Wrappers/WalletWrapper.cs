@@ -52,8 +52,6 @@ namespace HiddenWallet.API.Wrappers
 		private HistoryResponse _historyResponseBob = new HistoryResponse();
 		public HistoryResponse GetHistoryResponse(SafeAccount account) => account == AliceAccount ? _historyResponseAlice : _historyResponseBob;
 
-		public readonly SocksPortHandler SocksPortHandler = new SocksPortHandler("127.0.0.1", socksPort: 37121, ignoreSslCertification: true);
-		public readonly DotNetTor.ControlPort.Client ControlPortClient = new DotNetTor.ControlPort.Client("127.0.0.1", controlPort: 37122, password: "ILoveBitcoin21");
 		#endregion
 
 		public WalletWrapper()
@@ -89,7 +87,7 @@ namespace HiddenWallet.API.Wrappers
 				// it's not running yet, let's run it
 				_password = password;
 
-				_walletJob = new WalletJob(SocksPortHandler, ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
+				_walletJob = new WalletJob(Tor.SocksPortHandler, Tor.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
 
 				_walletJob.StateChanged += _walletJob_StateChanged;
 				_walletJob.Tracker.TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChanged;
@@ -216,15 +214,12 @@ namespace HiddenWallet.API.Wrappers
 
 			_cts.Cancel();
 			await Task.WhenAll(_walletJobTask).ConfigureAwait(false);
-			if(Global.TorProcess != null && !Global.TorProcess.HasExited)
-			{
-				Console.WriteLine("Terminating Tor process");
-				Global.TorProcess.Kill();
-			}
+			Tor.Kill();
 		}
 
 		public StatusResponse GetStatusResponse()
 		{
+			var ts = Tor.State.ToString();
 			if (_walletJob != null)
 			{
 				var hh = 0;
@@ -251,9 +246,9 @@ namespace HiddenWallet.API.Wrappers
 
 				var cb = _changeBump;
 				
-				return new StatusResponse { HeaderHeight = hh, TrackingHeight = th, ConnectedNodeCount = nc, MemPoolTransactionCount = mtxc, WalletState = ws, ChangeBump = cb };
+				return new StatusResponse { HeaderHeight = hh, TrackingHeight = th, ConnectedNodeCount = nc, MemPoolTransactionCount = mtxc, WalletState = ws, TorState = ts, ChangeBump = cb };
 			}
-			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, ConnectedNodeCount = 0, MemPoolTransactionCount = 0, WalletState = WalletState.NotStarted.ToString(), ChangeBump = 0 };
+			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, ConnectedNodeCount = 0, MemPoolTransactionCount = 0, WalletState = WalletState.NotStarted.ToString(), TorState = ts, ChangeBump = 0 };
 		}
 
 		public BaseResponse BuildTransaction(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType)

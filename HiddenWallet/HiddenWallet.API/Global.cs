@@ -10,6 +10,5 @@ namespace HiddenWallet.API
     public static class Global
 	{
 		public static WalletWrapper WalletWrapper;
-		public static Process TorProcess = null;
 	}
 }

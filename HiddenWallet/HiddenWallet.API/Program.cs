@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.DotNet.PlatformAbstractions;
 using System.Runtime.InteropServices;
 using NBitcoin;
+using System.Threading;
 
 namespace HiddenWallet.API
 {
@@ -33,7 +34,6 @@ namespace HiddenWallet.API
 
 			if (!alreadyRunning)
 			{
-				Console.WriteLine("Starting Tor process...");
 				var torPath = "tor"; // On Linux and OSX tor must be installed and added to path
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
@@ -41,13 +41,34 @@ namespace HiddenWallet.API
 				}
 				var torProcessStartInfo = new ProcessStartInfo(torPath)
 				{
-					Arguments = "SOCKSPort 37121 ControlPort 37122 HashedControlPassword 16:0978DBAF70EEB5C46063F3F6FD8CBC7A86DF70D2206916C1E2AE29EAF6",
+					Arguments = Tor.TorArguments,
 					UseShellExecute = false,
 					CreateNoWindow = true,
 					RedirectStandardOutput = true
 				};
-				Global.TorProcess = Process.Start(torProcessStartInfo);
 
+				try
+				{
+					// if doesn't fail tor is already running with the control port
+					Tor.ControlPortClient.IsCircuitEstabilishedAsync().Wait();
+					Debug.WriteLine($"Tor is already running, using the existing instance.");
+				}
+				catch
+				{
+					Debug.WriteLine($"Starting Tor with arguments: {Tor.TorArguments}");
+					try
+					{
+						Tor.TorProcess = Process.Start(torProcessStartInfo);
+					}
+					catch
+					{
+						// ignore, just run the torjob
+					}
+				}
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+				Tor.TorStateJobAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+				
 				Global.WalletWrapper = new WalletWrapper();
 
 				var host = new WebHostBuilder()
