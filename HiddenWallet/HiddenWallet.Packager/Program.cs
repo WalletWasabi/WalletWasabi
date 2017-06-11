@@ -101,7 +101,7 @@ namespace HiddenWallet.Packager
 			foreach(var target in targets)
 			{
 				Console.WriteLine($"Preparing final package for {target}");
-				string targetWithoutArch = target.Remove(target.Length - 3);
+				string targetWithoutArch = target.Remove(target.Length - 4);
 
 				string currentDistributionDirectory = Path.Combine(distDir, "HiddenWallet-" + version + "-" + targetWithoutArch);
 				CloneDirectory(Path.Combine(distDir, "win-unpacked"), currentDistributionDirectory);
