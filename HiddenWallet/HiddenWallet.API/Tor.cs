@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -47,13 +48,16 @@ namespace HiddenWallet.API
 					}
 					catch (Exception ex)
 					{
-						State = TorState.NotStarted;
 						if (ex.InnerException is TimeoutException)
 						{
 							// Tor messed up something internally, this sometimes happens when it creates new datadir (at first launch)
 							// Restarting to solves the issue
 							await RestartAsync(ctsToken).ConfigureAwait(false);
 							if (ctsToken.IsCancellationRequested) return;
+						}
+						else
+						{
+							await WakeUpAsync(ctsToken).ConfigureAwait(false);
 						}
 					}					
 				}
@@ -66,9 +70,29 @@ namespace HiddenWallet.API
 				var wait = TimeSpan.FromSeconds(3);
 				if (State == TorState.CircuitEstabilished)
 				{
-					wait = TimeSpan.FromMinutes(1);
+					wait = TimeSpan.FromSeconds(21);
 				}
 				await Task.Delay(wait, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
+			}
+		}
+
+		public static async Task<bool> WakeUpAsync(CancellationToken ctsToken)
+		{
+			try
+			{
+				State = TorState.EstabilishingCircuit;
+				using (var httpClient = new HttpClient(SocksPortHandler))
+				{
+					// a socks port request should wake up tor
+					await httpClient.GetAsync("http://www.msftncsi.com/ncsi.txt", ctsToken).ContinueWith(tsk=> { }).ConfigureAwait(false);
+					if (ctsToken.IsCancellationRequested) return false;
+				}
+				return true;
+			}
+			catch(Exception ex)
+			{
+				Debug.WriteLine(ex);
+				return false;
 			}
 		}
 
