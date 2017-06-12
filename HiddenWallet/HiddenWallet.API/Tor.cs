@@ -53,12 +53,12 @@ namespace HiddenWallet.API
 							// Tor messed up something internally, this sometimes happens when it creates new datadir (at first launch)
 							// Restarting to solves the issue
 							await RestartAsync(ctsToken).ConfigureAwait(false);
-							if (ctsToken.IsCancellationRequested) return;
 						}
 						else
 						{
 							await WakeUpAsync(ctsToken).ConfigureAwait(false);
 						}
+						if (ctsToken.IsCancellationRequested) return;
 					}					
 				}
 				catch(Exception ex)
@@ -76,7 +76,7 @@ namespace HiddenWallet.API
 			}
 		}
 
-		public static async Task<bool> WakeUpAsync(CancellationToken ctsToken)
+		public static async Task WakeUpAsync(CancellationToken ctsToken)
 		{
 			try
 			{
@@ -84,15 +84,13 @@ namespace HiddenWallet.API
 				using (var httpClient = new HttpClient(SocksPortHandler))
 				{
 					// a socks port request should wake up tor
-					await httpClient.GetAsync("http://www.msftncsi.com/ncsi.txt", ctsToken).ContinueWith(tsk=> { }).ConfigureAwait(false);
-					if (ctsToken.IsCancellationRequested) return false;
+					await httpClient.GetAsync("http://www.msftncsi.com/ncsi.txt", ctsToken).WithTimeout(TimeSpan.FromSeconds(7)).ConfigureAwait(false);
 				}
-				return true;
 			}
 			catch(Exception ex)
 			{
 				Debug.WriteLine(ex);
-				return false;
+				await RestartAsync(ctsToken).ConfigureAwait(false);
 			}
 		}
 
