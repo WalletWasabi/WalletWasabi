@@ -214,6 +214,7 @@ namespace HiddenWallet.API.Wrappers
 
 			_cts.Cancel();
 			await Task.WhenAll(_walletJobTask).ConfigureAwait(false);
+			
 			Tor.Kill();
 		}
 

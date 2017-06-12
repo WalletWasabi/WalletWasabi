@@ -247,3 +247,4 @@ FullBlockSpvData
 /HiddenWallet/HiddenWallet.GUI/Config.json
 /HiddenWallet/HiddenWallet.API/Config.json
 TorData
+tor

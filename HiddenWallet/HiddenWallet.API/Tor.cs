@@ -48,11 +48,11 @@ namespace HiddenWallet.API
 					}
 					catch (Exception ex)
 					{
-						if (ex.InnerException is TimeoutException)
+						if (ex is TimeoutException ||ex.InnerException is TimeoutException)
 						{
 							// Tor messed up something internally, this sometimes happens when it creates new datadir (at first launch)
 							// Restarting to solves the issue
-							await RestartAsync(ctsToken).ConfigureAwait(false);
+							await RestartAsync().ConfigureAwait(false);
 						}
 						else
 						{
@@ -90,24 +90,29 @@ namespace HiddenWallet.API
 			catch(Exception ex)
 			{
 				Debug.WriteLine(ex);
-				await RestartAsync(ctsToken).ConfigureAwait(false);
+				await RestartAsync().ConfigureAwait(false);
 			}
 		}
 
-		public static async Task RestartAsync(CancellationToken ctsToken)
+		public static async Task RestartAsync()
 		{
 			Kill();
 			
-			await Task.Delay(3000, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
-			if (ctsToken.IsCancellationRequested) return;
+			await Task.Delay(3000).ContinueWith(tsk => { }).ConfigureAwait(false);
+
 			try
 			{
 				Console.WriteLine("Starting Tor process...");
 				TorProcess.Start();
-				State = TorState.EstabilishingCircuit;
+
+				TorStateJobCtsSource = new CancellationTokenSource();
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+				TorStateJobAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			}
-			catch
+			catch (Exception ex)
 			{
+				Debug.WriteLine(ex);
 				State = TorState.NotStarted;
 			}
 		}
