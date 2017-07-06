@@ -190,9 +190,9 @@ namespace HiddenWallet.API.Wrappers
 			var network = _walletJob.Safe.Network;
 			for (int i = 0; i < 7; i++)
 			{
-				if (ua[i] != null) _receiveResponseAlice.Addresses[i] = ua[i].GetDestinationAddress(network).ToWif();
+				if (ua[i] != null) _receiveResponseAlice.Addresses[i] = ua[i].GetDestinationAddress(network).ToString();
 				else _receiveResponseAlice.Addresses[i] = "";
-				if (ub[i] != null) _receiveResponseBob.Addresses[i] = ub[i].GetDestinationAddress(network).ToWif();
+				if (ub[i] != null) _receiveResponseBob.Addresses[i] = ub[i].GetDestinationAddress(network).ToString();
 				else _receiveResponseBob.Addresses[i] = "";
 			}
 		}
