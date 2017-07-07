@@ -54,10 +54,6 @@ namespace HiddenWallet.API
 							// Restarting to solves the issue
 							await RestartAsync().ConfigureAwait(false);
 						}
-						else
-						{
-							await WakeUpAsync(ctsToken).ConfigureAwait(false);
-						}
 						if (ctsToken.IsCancellationRequested) return;
 					}					
 				}
@@ -67,33 +63,15 @@ namespace HiddenWallet.API
 					Debug.WriteLine(ex);
 				}
 
-				var wait = TimeSpan.FromSeconds(3);
 				if (State == TorState.CircuitEstabilished)
 				{
-					wait = TimeSpan.FromSeconds(21);
+					return;
 				}
+				var wait = TimeSpan.FromSeconds(3);
 				await Task.Delay(wait, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
 			}
 		}
-
-		public static async Task WakeUpAsync(CancellationToken ctsToken)
-		{
-			try
-			{
-				State = TorState.EstabilishingCircuit;
-				using (var httpClient = new HttpClient(SocksPortHandler))
-				{
-					// a socks port request should wake up tor
-					await httpClient.GetAsync("http://www.msftncsi.com/ncsi.txt", ctsToken).WithTimeout(TimeSpan.FromSeconds(7)).ConfigureAwait(false);
-				}
-			}
-			catch(Exception ex)
-			{
-				Debug.WriteLine(ex);
-				await RestartAsync().ConfigureAwait(false);
-			}
-		}
-
+		
 		public static async Task RestartAsync()
 		{
 			Kill();
