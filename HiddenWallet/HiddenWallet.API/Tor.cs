@@ -20,11 +20,11 @@ namespace HiddenWallet.API
 		public static SocksPortHandler SocksPortHandler = new SocksPortHandler("127.0.0.1", socksPort: SOCKSPort);
 		public static DotNetTor.ControlPort.Client ControlPortClient = new DotNetTor.ControlPort.Client("127.0.0.1", controlPort: ControlPort, password: "ILoveBitcoin21");
 		public static TorState State = TorState.NotStarted;
-		public static CancellationTokenSource TorStateJobCtsSource = new CancellationTokenSource();
+		public static CancellationTokenSource CircuitEstabilishingJobCancel = new CancellationTokenSource();
 
-		public static async Task TorStateJobAsync()
+		public static async Task MakeSureCircuitEstabilishedAsync()
 		{
-			var ctsToken = TorStateJobCtsSource.Token;
+			var ctsToken = CircuitEstabilishingJobCancel.Token;
 			State = TorState.NotStarted;
 			while (true)
 			{
@@ -59,7 +59,7 @@ namespace HiddenWallet.API
 				}
 				catch(Exception ex)
 				{
-					Debug.WriteLine("Ignoring Tor exception");
+					Debug.WriteLine("Ignoring Tor exception:");
 					Debug.WriteLine(ex);
 				}
 
@@ -83,9 +83,9 @@ namespace HiddenWallet.API
 				Console.WriteLine("Starting Tor process...");
 				TorProcess.Start();
 
-				TorStateJobCtsSource = new CancellationTokenSource();
+				CircuitEstabilishingJobCancel = new CancellationTokenSource();
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				TorStateJobAsync();
+				MakeSureCircuitEstabilishedAsync();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			}
 			catch (Exception ex)
@@ -97,7 +97,7 @@ namespace HiddenWallet.API
 
 		public static void Kill()
 		{
-			TorStateJobCtsSource.Cancel();
+			CircuitEstabilishingJobCancel.Cancel();
 			State = TorState.NotStarted;
 			if (TorProcess != null && !TorProcess.HasExited)
 			{
