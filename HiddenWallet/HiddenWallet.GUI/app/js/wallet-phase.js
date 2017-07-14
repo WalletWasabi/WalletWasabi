@@ -61,6 +61,18 @@ function walletShow(menuItem) {
 
 function mixerShow() {
     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("mixer-content").outerHTML;
+
+    document.getElementById("tumbler-address").innerText = "http://testnet.ntumblebit.metaco.com/api/v1/tumblers/7c762c3dc672d440a9a0ed3082a2fc5fbfcc51db";
+    document.getElementById("tumbler-status").innerText = "Online";
+    document.getElementById("tumbler-status").classList.add("label-success");
+    document.getElementById("tumbler-denomination").innerText = "0.7";
+    document.getElementById("tumbler-denomination").classList.add("label-warning");
+    document.getElementById("tumbler-fee").innerText = "1.01";
+    document.getElementById("tumbler-fee").classList.add("label-warning");
+    document.getElementById("tumbling-time").innerText = "3";
+    document.getElementById("tumbling-time").classList.add("label-warning");
+    document.getElementById("tumbling-network-fees").innerText = "0.001";
+    document.getElementById("tumbling-network-fees").classList.add("label-warning");
 }
 
 function updateWalletContent() {
