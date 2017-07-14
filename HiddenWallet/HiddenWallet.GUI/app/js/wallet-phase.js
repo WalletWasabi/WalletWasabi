@@ -1,8 +1,8 @@
 function walletPhaseShow(tabItem = "") {
-    document.getElementById("content").setAttribute("style", "max-height: 320px");
     document.getElementById("hide-btn").hidden = false;
     
     if (tabItem === "alice") {
+        document.getElementById("content").setAttribute("style", "max-height: 320px");
         document.getElementById("tabs").innerHTML = document.getElementById("wallet-phase-tabs-frame").contentWindow.document.getElementById("alice-active").outerHTML;
 
         storage.set('lastAccount', { lastAccount: 'alice' }, function (error) {
@@ -14,6 +14,7 @@ function walletPhaseShow(tabItem = "") {
         walletShow('receive');
     }
     else if (tabItem === "bob") {
+        document.getElementById("content").setAttribute("style", "max-height: 320px");
         document.getElementById("tabs").innerHTML = document.getElementById("wallet-phase-tabs-frame").contentWindow.document.getElementById("bob-active").outerHTML;
         storage.set('lastAccount', { lastAccount: 'bob' }, function (error) {
             if (error) throw error;
@@ -24,8 +25,11 @@ function walletPhaseShow(tabItem = "") {
         walletShow('receive');
     }
     else if (tabItem === "mixer") {
+        document.getElementById("content").setAttribute("style", "max-height: 430");
         document.getElementById("tabs").innerHTML = document.getElementById("wallet-phase-tabs-frame").contentWindow.document.getElementById("mixer-active").outerHTML;
-        writeHint("TumbleBit cannot steal your coins, nor deanonymize you");
+        let hintTextArray = ["TumbleBit cannot steal your coins, nor deanonymize you", "Losing internet connection while mixing is dangerous if the Tumbler is malicous"];
+        let randomHint = hintTextArray[Math.floor(Math.random() * hintTextArray.length)];
+        writeHint(randomHint);
         document.getElementById("menu").innerHTML = "";
         document.getElementById("balances").innerHTML = "";
         document.getElementById("before-menu-br").style.display = "block";
@@ -59,6 +63,31 @@ function walletShow(menuItem) {
     updateWalletContent();
 }
 
+
+/* When the user clicks on the button, 
+toggle between hiding and showing the dropdown content */
+function chooseWalletDropdown(aliceBob = "") {
+    if (aliceBob === "") {
+        document.getElementById("choose-wallet-dropdown").classList.toggle("show");
+    }
+    else if (aliceBob === "alice") {
+        document.getElementById("choose-wallet-dropdown-active").innerHTML = "Alice";
+        document.getElementById("choose-wallet-dropdown-active").classList.remove("label-danger");
+        document.getElementById("choose-wallet-dropdown-active").classList.add("label-success");
+        document.getElementById("tumbling-to-wallet").innerHTML = "Bob";
+        document.getElementById("tumbling-to-wallet").classList.remove("label-danger");
+        document.getElementById("tumbling-to-wallet").classList.add("label-success");
+    }
+    else if (aliceBob === "bob") {
+        document.getElementById("choose-wallet-dropdown-active").innerHTML = "Bob";
+        document.getElementById("choose-wallet-dropdown-active").classList.remove("label-danger");
+        document.getElementById("choose-wallet-dropdown-active").classList.add("label-success");
+        document.getElementById("tumbling-to-wallet").innerHTML = "Alice";
+        document.getElementById("tumbling-to-wallet").classList.remove("label-danger");
+        document.getElementById("tumbling-to-wallet").classList.add("label-success");
+    }
+}
+
 function mixerShow() {
     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("mixer-content").outerHTML;
 
@@ -71,7 +100,7 @@ function mixerShow() {
     document.getElementById("tumbler-fee").classList.add("label-warning");
     document.getElementById("tumbling-time").innerText = "3";
     document.getElementById("tumbling-time").classList.add("label-warning");
-    document.getElementById("tumbling-network-fees").innerText = "0.001";
+    document.getElementById("tumbling-network-fees").innerText = "2.2";
     document.getElementById("tumbling-network-fees").classList.add("label-warning");
 }
 
