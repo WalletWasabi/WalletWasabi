@@ -8,12 +8,29 @@ function walletPhaseShow(tabItem = "") {
         storage.set('lastAccount', { lastAccount: 'alice' }, function (error) {
             if (error) throw error;
         });
+        writeHint("Move coins between Alice and Bob only by mixing!");
+        document.getElementById("before-menu-br").style.display = "none";
+        document.getElementById("after-menu-hr").style.display = "block";
+        walletShow('receive');
     }
     else if (tabItem === "bob") {
         document.getElementById("tabs").innerHTML = document.getElementById("wallet-phase-tabs-frame").contentWindow.document.getElementById("bob-active").outerHTML;
         storage.set('lastAccount', { lastAccount: 'bob' }, function (error) {
             if (error) throw error;
         });
+        writeHint("Move coins between Alice and Bob only by mixing!");
+        document.getElementById("before-menu-br").style.display = "none";
+        document.getElementById("after-menu-hr").style.display = "block";
+        walletShow('receive');
+    }
+    else if (tabItem === "mixer") {
+        document.getElementById("tabs").innerHTML = document.getElementById("wallet-phase-tabs-frame").contentWindow.document.getElementById("mixer-active").outerHTML;
+        writeHint("TumbleBit cannot steal your coins, nor deanonymize you");
+        document.getElementById("menu").innerHTML = "";
+        document.getElementById("balances").innerHTML = "";
+        document.getElementById("before-menu-br").style.display = "block";
+        document.getElementById("after-menu-hr").style.display = "none";
+        mixerShow();
     }
     else if (tabItem === "") {
         storage.get('lastAccount', function (error, data) {
@@ -22,13 +39,7 @@ function walletPhaseShow(tabItem = "") {
             walletPhaseShow(data.lastAccount);
             return;
         });
-    }   
-
-    writeHint("Move coins between Alice and Bob only by mixing!");
-
-    walletShow('receive');
-
-    document.getElementById("before-menu-br").outerHTML = "";
+    }    
 }
 
 function walletShow(menuItem) {
@@ -46,6 +57,10 @@ function walletShow(menuItem) {
     }
 
     updateWalletContent();
+}
+
+function mixerShow() {
+    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("mixer-content").outerHTML;
 }
 
 function updateWalletContent() {
