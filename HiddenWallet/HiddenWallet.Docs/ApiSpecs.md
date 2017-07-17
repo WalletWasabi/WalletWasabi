@@ -13,8 +13,4 @@
 |GET /api/v1/wallet/history/{account} | Displays the history of the specified wallet account | None  | history[] |
 |POST /api/v1/wallet/build-transaction/{account} | Attempts to build a transaction with the specified wallet account | password, address, amount, feeType  | spendsUnconfirmed, fee, feePercentOfSent, hex, transaction |
 |POST /api/v1/wallet/send-transaction | Broadcasts a transaction | hex  | None |
-
-# TumbleBit  
-|API | Description    | Request body    | Response body   |
-|--- | ---- | ---- | ---- |
-|GET /api/v1/tumblebit/server  | Gets TumbleBit server information | None | address, status, denomination, feePercent |
+|GET /api/v1/wallet/tumblerserver  | Gets TumbleBit server information | None | address, status, denomination, feePercent |
