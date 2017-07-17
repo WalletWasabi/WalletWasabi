@@ -138,7 +138,7 @@ function decryptWallet() {
     obj.password = password;
 
     document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:none;");
-    document.getElementById("decrypt-wallet-button").innerHTML = '<span class="glyphicon glyphicon-cog spinning"></span> Decrypting...';
+    document.getElementById("decrypt-wallet-button").innerHTML = '<span class="glyphicon glyphicon-cog spinning"></span> Initializing...';
     httpPostWalletAsync("load", obj, function (json) {
         if (json.Success == false) {
             alert("Could not decrypt wallet, details:\n\n" + json.Message);

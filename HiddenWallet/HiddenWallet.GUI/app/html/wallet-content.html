@@ -1,9 +1,8 @@
 <div id="receive-content">
     <label>Unused Receive Addresses:</label>
-    <ul id="receive-addresses" class="list-group">
-    </ul>
+    <ul id="receive-addresses" class="list-group"></ul>
     <label>[Advanced] Extended Public Key:</label>
-    <ul  class="list-group">
+    <ul class="list-group">
         <li id="extpubkey" class="list-group-item" style="word-wrap:break-word"></li>
     </ul>
 </div>
@@ -17,8 +16,7 @@
                 <th>Transaction ID</th>
             </tr>
         </thead>
-        <tbody id="history-records">
-        </tbody>
+        <tbody id="history-records"></tbody>
     </table>
 </div>
 
@@ -50,51 +48,53 @@
     <hr />
 
     <label>Tumbler</label>
-    <input id="tumbler-address" type="text" class="form-control" readonly/>
+    <input id="tumbler-address" type="text" class="form-control" readonly />
     <br />
     <label>Status:</label>
-    <span class="label" style="font-size: 13px; margin-left:4em;" id="tumbler-status"></span>
+    <span class="label" style="font-size: 13px; margin-left:11.4em;" id="tumbler-status"></span>
     <br />
-    <label>Denomination:</label>
-    <span class="label"  style="font-size: 13px;" id="tumbler-denomination"></span>
-    <label>BTC</label>
-    <br />
-    <label>Tumbler Fee:</label>
-    <span class="label" style="font-size: 13px; margin-left:0.9em;" id="tumbler-fee"></span>
-    <label>%</label>
-    <hr />
+    <div id="mixer-settings-content">
+        <label>Denomination:</label>
+        <span class="label label-success" style="font-size: 13px; margin-left:7.4em;" id="tumbler-denomination"></span>
+        <br />
+        <label>Tumbler Fee:</label>
+        <span class="label label-success" style="font-size: 13px; margin-left:8.4em;" id="tumbler-fee"></span>
+        <br />
+        <label>Time to tumble the first coin:</label>
+        <span style="font-size: 13px;" class="label label-success" id="tumbling-time"></span>
+        <hr />
 
-    <label>From:</label>
-    <span class="dropdown">
-        <span id="choose-wallet-dropdown-active" onclick="chooseWalletDropdown()" style="font-size: 15px; margin-left:2.2em;" class="label label-danger dropbtn"><span class="mdi mdi-arrow-down-drop-circle"></span> Select Wallet!</span>
-        <div id="choose-wallet-dropdown" class="dropdown-content">
-            <a id="wallet-dropdown-alice" onclick="chooseWalletDropdown('alice')" href="#">Alice</a>
-            <a id="wallet-dropdown-bob" onclick="chooseWalletDropdown('bob')" href="#">Bob</a>
+        <label>From:</label>
+        <div class="dropdown">
+            <span id="choose-wallet-dropdown-active" onclick="chooseWalletDropdown()" style="font-size: 15px; margin-left:2.2em;" class="label label-danger dropbtn"><span class="mdi mdi-arrow-down-drop-circle"></span> Select Wallet!</span>
+            <div id="choose-wallet-dropdown" class="dropdown-content">
+                <a id="wallet-dropdown-alice" onclick="chooseWalletDropdown('alice')" href="#">Alice</a>
+                <a id="wallet-dropdown-bob" onclick="chooseWalletDropdown('bob')" href="#">Bob</a>
+            </div>
         </div>
-    </span>
-    <label>To:</label>
-    <span class="label label-danger" id="tumbling-to-wallet" style="font-size: 15px;">?</span>
-    <br />
-    <form class="form-inline">
-        <label>Amount:</label>
-        <input style="margin-left:1em;" id="amount-input" class="form-control form-inline" onkeypress="document.getElementById('amount-input').stepUp(1); return false;" type="number" size="11" step="0.5" min="0.5" max="5" />
-        <label>BTC</label>
-    </form>
-    <hr />
+        <label>To:</label>
+        <span class="label label-danger" id="tumbling-to-wallet" style="font-size: 15px;">?</span>
+        <br />
+        <br />
+        <div id="not-enough-funds-to-mix" style="font-size: 13px;" class="alert alert-danger">Not enough funds to mix</div>
+        <div id="wallet-selected">
+            <form class="form-inline">
+                <label>Amount:</label>
+                <input style="margin-left:1em;" id="amount-input" class="form-control form-inline" onchange="amountChanged()" onkeypress="document.getElementById('amount-input').stepUp(1); return false;" type="number" size="11" />
+                <label>BTC</label>
+            </form>
+            <hr />
 
-    <label>Estimated Tumbling Time:</label>
-    <span style="font-size: 13px;" class="label" id="tumbling-time"></span>
-    <label>h</label>
-    <br />
-    <label>Estimated Network Fees:</label>
-    <span style="font-size: 13px; margin-left:0.6em;" class="label" id="tumbling-network-fees"></span>
-    <label>%</label>
-    <br />
-    <br />
+            <label>Estimated Network Fees:</label>
+            <span style="font-size: 13px;" class="label label-success" id="tumbling-network-fees"></span>
+            <br />
+            <br />
 
-    <button id="broadcast-button" class="btn btn-lg btn-success btn-block" onclick="">
-        <span class="mdi mdi-tor"></span> Start Mixing
-    </button>
+            <button id="broadcast-button" class="btn btn-lg btn-success btn-block" onclick="">
+                <span class="mdi mdi-tor"></span> Start Mixing
+            </button>
+        </div>
+    </div>
     <hr />
     <table class="table table-striped">
         <thead>

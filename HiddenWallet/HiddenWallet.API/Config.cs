@@ -84,7 +84,7 @@ namespace HiddenWallet.API
 			
 			if (rawContent.TumbleBitServerMainNet == null || rawContent.TumbleBitServerMainNet == "")
 			{
-				TumbleBitServerTestNet = null;
+				TumbleBitServerMainNet = null;
 			}
 			else TumbleBitServerMainNet = new Uri(rawContent.TumbleBitServerMainNet);
 		}

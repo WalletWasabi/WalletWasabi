@@ -313,5 +313,19 @@ namespace HiddenWallet.API.Controllers
 				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
 			}
 		}
+
+		[Route("tumbler-server")]
+		[HttpGet]
+		public IActionResult TumblerServer()
+		{
+			try
+			{
+				return new ObjectResult(Global.WalletWrapper.GetTumblerServerResponse());
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
 	}
 }

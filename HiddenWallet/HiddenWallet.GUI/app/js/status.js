@@ -7,16 +7,17 @@ function statusShow(progress, text, progressType = "") {
     }
 }
 
-var changeBump = 0;
-var walletState;
-var headerHeight;
-var trackingHeight;
-var connectedNodeCount;
-var memPoolTransactionCount;
-var torState;
+let blocksLeftToSync;
+let changeBump = 0;
+let walletState;
+let headerHeight;
+let trackingHeight;
+let connectedNodeCount;
+let memPoolTransactionCount;
+let torState;
 function periodicUpdate() {
     setInterval(function statusUpdate() {
-        var response = httpGetWallet("status");
+        let response = httpGetWallet("status");
 
         if (walletState === response.WalletState) {
             if (headerHeight === response.HeaderHeight) {
@@ -41,17 +42,18 @@ function periodicUpdate() {
         memPoolTransactionCount = response.MemPoolTransactionCount;
         torState = response.TorState;
 
-        var connectionText = "Connecting..."
+        let connectionText = "Connecting..."
         if (connectedNodeCount !== 0) {
             connectionText = "Connections: " + connectedNodeCount;
         }
-        var blocksLeft = "-";
+        let blocksLeft = "-";
         if (trackingHeight !== 0) {
             blocksLeft = headerHeight - trackingHeight;
         }
+        blocksLeftToSync = blocksLeft;
 
-        var text = "";
-        var progressType = "";
+        let text = "";
+        let progressType = "";
         if (walletState.toUpperCase() === "NotStarted".toUpperCase()) {
             progressType = "info";
             text = "Tor circuit estabilished, Wallet is offline";
