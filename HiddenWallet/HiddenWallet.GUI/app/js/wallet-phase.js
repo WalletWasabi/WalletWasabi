@@ -91,7 +91,7 @@ function chooseWalletDropdown(aliceBob = "") {
 function mixerShow() {
     document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("mixer-content").outerHTML;
 
-    document.getElementById("tumbler-address").innerText = "http://testnet.ntumblebit.metaco.com/api/v1/tumblers/7c762c3dc672d440a9a0ed3082a2fc5fbfcc51db";
+    document.getElementById("tumbler-address").value = "http://testnet.ntumblebit.metaco.com/api/v1/tumblers/7c762c3dc672d440a9a0ed3082a2fc5fbfcc51db";
     document.getElementById("tumbler-status").innerText = "Online";
     document.getElementById("tumbler-status").classList.add("label-success");
     document.getElementById("tumbler-denomination").innerText = "0.7";

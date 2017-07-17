@@ -87,7 +87,8 @@ namespace HiddenWallet.API.Wrappers
 				// it's not running yet, let's run it
 				_password = password;
 
-				_walletJob = new WalletJob(Tor.SocksPortHandler, Tor.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
+				Uri tumblerUri = Config.Network == Network.Main ? Config.TumbleBitServerMainNet : Config.TumbleBitServerTestNet;
+				_walletJob = new WalletJob(Tor.SocksPortHandler, Tor.ControlPortClient, safe, tumbleBitServerUri: tumblerUri, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
 
 				_walletJob.StateChanged += _walletJob_StateChanged;
 				_walletJob.Tracker.TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChanged;

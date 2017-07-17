@@ -46,58 +46,52 @@
 </div>
 
 <div id="mixer-content">
-    <h4><span class="label label-info">Queue coins for mixing with TumbleBit</span></h4>
+    <span class="label label-info" style="font-size: 14px;">Queue coins for mixing with TumbleBit</span>
     <hr />
-    <h4>
-        <span class="label label-info">Tumbler Address:</span>
-    </h4>
-    <h5>
-        <span id="tumbler-address"></span>
-    </h5>
-    <h4>
-        <span class="label label-info">Status:</span>
-        <span class="label" id="tumbler-status"></span>
-    </h4>
-    <h4>
-        <span class="label label-info">Denomination:</span>
-        <span class="label" id="tumbler-denomination"></span>
-        <span class="label label-info">BTC</span>
-    </h4>
-    <h4>
-        <span class="label label-info">Tumbler Fee:</span>
-        <span class="label" id="tumbler-fee"></span>
-        <span class="label label-info">%</span>
-    </h4>
-    <hr />
-    <h4>
-        <span class="label label-info">From:</span>
-        <span class="dropdown">
-            <span id="choose-wallet-dropdown-active" onclick="chooseWalletDropdown()" class="label label-danger dropbtn"><span class="mdi mdi-arrow-down-drop-circle"></span> Select Wallet!</span>
-            <div id="choose-wallet-dropdown" class="dropdown-content">
-                <a id="wallet-dropdown-alice" onclick="chooseWalletDropdown('alice')" href="#">Alice</a>
-                <a id="wallet-dropdown-bob" onclick="chooseWalletDropdown('bob')" href="#">Bob</a>
-            </div>
-        </span>
-        <span class="label label-info">To:</span>
-        <span class="label label-danger" id="tumbling-to-wallet">?</span>
-    </h4>
-    <h4>
-        <span class="label label-info">Amount:</span>
-        <input id="amount-input" onkeypress="document.getElementById('amount-input').stepUp(1); return false;" type="number" size="7" step="0.5" min="0.5" max="5"/>       
-        <span class="label label-info">BTC</span>
-    </h4>
-    <hr />
-    <h4>
-        <span class="label label-info">Estimated Tumbling Time:</span>
-        <span class="label" id="tumbling-time"></span>
-        <span class="label label-info">h</span>
-    </h4>
-    <h4>
-        <span class="label label-info">Estimated Network Fees:</span>
-        <span class="label" id="tumbling-network-fees"></span>
-        <span class="label label-info">%</span>
-    </h4>
+
+    <label>Tumbler</label>
+    <input id="tumbler-address" type="text" class="form-control" readonly/>
     <br />
+    <label>Status:</label>
+    <span class="label" style="font-size: 13px; margin-left:4em;" id="tumbler-status"></span>
+    <br />
+    <label>Denomination:</label>
+    <span class="label"  style="font-size: 13px;" id="tumbler-denomination"></span>
+    <label>BTC</label>
+    <br />
+    <label>Tumbler Fee:</label>
+    <span class="label" style="font-size: 13px; margin-left:0.9em;" id="tumbler-fee"></span>
+    <label>%</label>
+    <hr />
+
+    <label>From:</label>
+    <span class="dropdown">
+        <span id="choose-wallet-dropdown-active" onclick="chooseWalletDropdown()" style="font-size: 15px; margin-left:2.2em;" class="label label-danger dropbtn"><span class="mdi mdi-arrow-down-drop-circle"></span> Select Wallet!</span>
+        <div id="choose-wallet-dropdown" class="dropdown-content">
+            <a id="wallet-dropdown-alice" onclick="chooseWalletDropdown('alice')" href="#">Alice</a>
+            <a id="wallet-dropdown-bob" onclick="chooseWalletDropdown('bob')" href="#">Bob</a>
+        </div>
+    </span>
+    <label>To:</label>
+    <span class="label label-danger" id="tumbling-to-wallet" style="font-size: 15px;">?</span>
+    <br />
+    <form class="form-inline">
+        <label>Amount:</label>
+        <input style="margin-left:1em;" id="amount-input" class="form-control form-inline" onkeypress="document.getElementById('amount-input').stepUp(1); return false;" type="number" size="11" step="0.5" min="0.5" max="5" />
+        <label>BTC</label>
+    </form>
+    <hr />
+
+    <label>Estimated Tumbling Time:</label>
+    <span style="font-size: 13px;" class="label" id="tumbling-time"></span>
+    <label>h</label>
+    <br />
+    <label>Estimated Network Fees:</label>
+    <span style="font-size: 13px; margin-left:0.6em;" class="label" id="tumbling-network-fees"></span>
+    <label>%</label>
+    <br />
+    <br />
+
     <button id="broadcast-button" class="btn btn-lg btn-success btn-block" onclick="">
         <span class="mdi mdi-tor"></span> Start Mixing
     </button>
