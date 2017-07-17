@@ -17,4 +17,4 @@
 # TumbleBit  
 |API | Description    | Request body    | Response body   |
 |--- | ---- | ---- | ---- |
-|GET /api/v1/tumblebit/tumbler  | Gets TumbleBit server information | None | address, status, denomination, feePercent |
+|GET /api/v1/tumblebit/server  | Gets TumbleBit server information | None | address, status, denomination, feePercent |
