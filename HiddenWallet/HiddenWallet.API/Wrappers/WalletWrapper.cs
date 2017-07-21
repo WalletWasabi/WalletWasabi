@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using static HBitcoin.FullBlockSpv.WalletJob;
 using DotNetTor.SocksPort;
 using HBitcoin.TumbleBit.ClassicTumbler;
+using HBitcoin.Fees;
 
 namespace HiddenWallet.API.Wrappers
 {
@@ -287,7 +288,7 @@ namespace HiddenWallet.API.Wrappers
 			else return new FailureResponse { Message = result.FailingReason, Details = "" };
 		}
 
-		public TumblerServerResponse GetTumblerServerResponse()
+		public async Task<TumblerServerResponse> GetTumblerServerResponseAsync()
 		{
 			var addressUri = Network == Network.Main ? Config.TumbleBitServerMainNet : Config.TumbleBitServerTestNet;
 			var address = "";
@@ -305,7 +306,7 @@ namespace HiddenWallet.API.Wrappers
 			{
 				return new TumblerServerResponse { Address = address, Status = "TumblerServerIssues", Denomination = "", FeePercent = "", SatoshiFeePerBytes = "", CycleLengthMinutes = "" };
 			}
-			var satoshiFeePerBytes = _walletJob.TumbleBitRuntime.Services.FeeService.GetFeeRate().FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000;
+			var satoshiFeePerBytes = (await _walletJob.FeeJob.GetFeePerBytesAsync(FeeType.High, default(CancellationToken)).ConfigureAwait(false)).ToDecimal(MoneyUnit.Satoshi);
 			var periods = _walletJob.TumbleBitRuntime.TumblerParameters.CycleGenerator.FirstCycle.GetPeriods();
 			var lengthBlocks = periods.Total.End - periods.Total.Start;
 			var cycleLengthMinutes = lengthBlocks * 10;

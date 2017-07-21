@@ -109,7 +109,12 @@ function chooseWalletDropdown(aliceBob = "") {
 
 function amountChanged() {
     let cycleCount = document.getElementById("amount-input").value / tumblerDenomination;
-    document.getElementById("tumbling-network-fees").innerText = cycleCount * estCycleFee + " BTC";
+    document.getElementById("tumbling-network-fees").innerText = round(cycleCount * estCycleFee, 8) + " BTC";
+}
+
+function round(value, precision) {
+    var multiplier = Math.pow(10, precision || 0);
+    return Math.round(value * multiplier) / multiplier;
 }
 
 let tumblerAddress;
@@ -129,7 +134,9 @@ function mixerShow() {
     document.getElementById("tumbler-address").value = resp.Address;
     
     document.getElementById("tumbler-status").innerText = resp.Status;
-    if (blocksLeftToSync !== 0 && blocksLeftToSync !== 1 && blocksLeftToSync !== 2) {
+    if (walletState.toUpperCase() === "SyncingHeaders".toUpperCase()
+        || walletState.toUpperCase() === "NotStarted".toUpperCase()
+        || (blocksLeftToSync !== 0 && blocksLeftToSync !== 1 && blocksLeftToSync !== 2)) {
         document.getElementById("tumbler-status").innerText = "WalletIsNotSynced";
         document.getElementById("tumbler-status").classList.add("label-danger");
         document.getElementById("mixer-settings-content").style.display = "none";
