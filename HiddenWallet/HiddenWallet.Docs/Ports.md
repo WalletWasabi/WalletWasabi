@@ -13,7 +13,9 @@ HiddenWallet's ports (3712x) are chosen within a long range of unassigned IANA p
 |9051  | Default Tor control port |
 |9150  | Tor socks port used by Tor Browser |
 |9151  | Tor control port used by Tor Browser |
-|8333  | Bitcoin Core RPC |
+|8333  | Bitcoin Core Mainnet RPC |
+|18333  | Bitcoin Core Testnet RPC |
+|18444  | Bitcoin Core Regtest RPC |
 |5000  | Stratis: Bitcoin node and Breeze Wallet API |
 |5105  | Stratis: Stratis node and Stratis Wallet API |
 
