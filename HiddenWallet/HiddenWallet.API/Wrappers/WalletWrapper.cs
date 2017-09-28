@@ -15,8 +15,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using static HBitcoin.FullBlockSpv.WalletJob;
 using DotNetTor.SocksPort;
-using HBitcoin.TumbleBit.ClassicTumbler;
-using HBitcoin.Fees;
 
 namespace HiddenWallet.API.Wrappers
 {
@@ -89,8 +87,7 @@ namespace HiddenWallet.API.Wrappers
 				// it's not running yet, let's run it
 				_password = password;
 
-				Uri tumblerUri = Config.Network == Network.Main ? Config.TumbleBitServerMainNet : Config.TumbleBitServerTestNet;
-				_walletJob = new WalletJob(Tor.SocksPortHandler, Tor.ControlPortClient, safe, tumbleBitServerUri: tumblerUri, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
+				_walletJob = new WalletJob(Tor.SocksPortHandler, Tor.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
 
 				_walletJob.StateChanged += _walletJob_StateChanged;
 				_walletJob.Tracker.TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChanged;
@@ -286,39 +283,6 @@ namespace HiddenWallet.API.Wrappers
 
 			if (result.Success) return new SuccessResponse();
 			else return new FailureResponse { Message = result.FailingReason, Details = "" };
-		}
-
-		public async Task<TumblerServerResponse> GetTumblerServerResponseAsync()
-		{
-			var addressUri = Network == Network.Main ? Config.TumbleBitServerMainNet : Config.TumbleBitServerTestNet;
-			var address = "";
-			if (addressUri != null)
-			{
-				address = addressUri.AbsoluteUri;
-			}
-
-			if(address == "" || _walletJob.UseTumbleBit == false)
-			{
-				return new TumblerServerResponse { Address = address, Status = "TumbleBitConfiguredToBeNotUsed", Denomination = "", FeePercent = "", SatoshiFeePerBytes = "", CycleLengthMinutes = "" };
-			}
-
-			if (_walletJob.TumbleBitSetupSuccessful == false)
-			{
-				return new TumblerServerResponse { Address = address, Status = "TumblerServerIssues", Denomination = "", FeePercent = "", SatoshiFeePerBytes = "", CycleLengthMinutes = "" };
-			}
-			var satoshiFeePerBytes = (await _walletJob.FeeJob.GetFeePerBytesAsync(FeeType.High, default(CancellationToken)).ConfigureAwait(false)).ToDecimal(MoneyUnit.Satoshi);
-			var periods = _walletJob.TumbleBitRuntime.TumblerParameters.CycleGenerator.FirstCycle.GetPeriods();
-			var lengthBlocks = periods.Total.End - periods.Total.Start;
-			var cycleLengthMinutes = lengthBlocks * 10;
-
-			var denomination = _walletJob.TumbleBitRuntime.TumblerParameters.Denomination.ToDecimal(MoneyUnit.BTC);
-			var fee = _walletJob.TumbleBitRuntime.TumblerParameters.Fee.ToDecimal(MoneyUnit.BTC);
-			var feePercent = (fee / denomination) * 100;
-			var fps = feePercent.ToString("0.##");
-			var ds = denomination.ToString(CultureInfo.InvariantCulture);
-			var sfpb = satoshiFeePerBytes.ToString(CultureInfo.InvariantCulture);
-			var slm = cycleLengthMinutes.ToString(CultureInfo.InvariantCulture);
-			return new TumblerServerResponse { Address = address, Status = "Online", Denomination = ds, FeePercent = fps, SatoshiFeePerBytes = sfpb, CycleLengthMinutes = slm };
 		}
 	}
 }

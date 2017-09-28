@@ -24,18 +24,6 @@ function walletPhaseShow(tabItem = "") {
         document.getElementById("after-menu-hr").style.display = "block";
         walletShow('receive');
     }
-    else if (tabItem === "mixer") {
-        document.getElementById("content").setAttribute("style", "max-height: 430");
-        document.getElementById("tabs").innerHTML = document.getElementById("wallet-phase-tabs-frame").contentWindow.document.getElementById("mixer-active").outerHTML;
-        let hintTextArray = ["TumbleBit cannot steal your coins, nor deanonymize you", "Losing internet connection while mixing is dangerous if the Tumbler is malicous"];
-        let randomHint = hintTextArray[Math.floor(Math.random() * hintTextArray.length)];
-        writeHint(randomHint);
-        document.getElementById("menu").innerHTML = "";
-        document.getElementById("balances").innerHTML = "";
-        document.getElementById("before-menu-br").style.display = "block";
-        document.getElementById("after-menu-hr").style.display = "none";
-        mixerShow();
-    }
     else if (tabItem === "") {
         storage.get('lastAccount', function (error, data) {
             if (error) throw error;
@@ -61,100 +49,6 @@ function walletShow(menuItem) {
     }
 
     updateWalletContent();
-}
-
-
-/* When the user clicks on the button, 
-toggle between hiding and showing the dropdown content */
-function chooseWalletDropdown(aliceBob = "") {
-    let balances;
-    if (aliceBob === "") {
-        document.getElementById("choose-wallet-dropdown").classList.toggle("show");
-    }
-    else if (aliceBob === "alice") {
-        document.getElementById("choose-wallet-dropdown-active").innerHTML = "Alice";
-        document.getElementById("tumbling-to-wallet").innerHTML = "Bob";
-        resp = httpGetWallet("balances/alice");
-    }
-    else if (aliceBob === "bob") {
-        document.getElementById("choose-wallet-dropdown-active").innerHTML = "Bob";
-        document.getElementById("tumbling-to-wallet").innerHTML = "Alice";
-        resp = httpGetWallet("balances/bob");
-    }
-    if (aliceBob === "bob" || aliceBob === "alice") {
-        document.getElementById("choose-wallet-dropdown-active").classList.remove("label-danger");
-        document.getElementById("choose-wallet-dropdown-active").classList.add("label-success");
-        document.getElementById("tumbling-to-wallet").classList.remove("label-danger");
-        document.getElementById("tumbling-to-wallet").classList.add("label-success");
-
-        let maximumMixed = resp.Available - (resp.Available * (tumblerFeePercent / 100));        
-        
-        if (maximumMixed < tumblerDenomination) {
-            document.getElementById("not-enough-funds-to-mix").style.removeProperty("display");
-            document.getElementById("wallet-selected").style.display = "none";
-        }
-        else {
-            var times = Math.floor(maximumMixed / tumblerDenomination);
-            maximumMixed -= (estCycleFee * times);
-            document.getElementById("wallet-selected").style.removeProperty("display");
-            document.getElementById("not-enough-funds-to-mix").style.display = "none";
-            document.getElementById("amount-input").step = tumblerDenomination;
-            document.getElementById("amount-input").min = tumblerDenomination;
-            document.getElementById("amount-input").max = maximumMixed;
-            document.getElementById("amount-input").value = tumblerDenomination;
-            document.getElementById("tumbling-network-fees").innerText = estCycleFee + " BTC";      
-        }
-    }
-}
-
-function amountChanged() {
-    let cycleCount = document.getElementById("amount-input").value / tumblerDenomination;
-    document.getElementById("tumbling-network-fees").innerText = round(cycleCount * estCycleFee, 8) + " BTC";
-}
-
-function round(value, precision) {
-    var multiplier = Math.pow(10, precision || 0);
-    return Math.round(value * multiplier) / multiplier;
-}
-
-let tumblerAddress;
-let tumblerDenomination;
-let tumblerFeePercent;
-let tumblerFeeRate;
-let estCycleFee;
-function mixerShow() {
-    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("mixer-content").outerHTML;
-    let resp = httpGetWallet("tumbler-server");
-    tumblerAddress = resp.Address;
-    tumblerDenomination = resp.Denomination;
-    tumblerFeePercent = resp.FeePercent;
-    tumblerFeeRate = resp.SatoshiFeePerBytes;
-    estCycleFee = tumblerFeeRate * (380 + 310) * 2 * 0.00000001;
-
-    document.getElementById("tumbler-address").value = resp.Address;
-    
-    document.getElementById("tumbler-status").innerText = resp.Status;
-    if (walletState.toUpperCase() === "SyncingHeaders".toUpperCase()
-        || walletState.toUpperCase() === "NotStarted".toUpperCase()
-        || (blocksLeftToSync !== 0 && blocksLeftToSync !== 1 && blocksLeftToSync !== 2)) {
-        document.getElementById("tumbler-status").innerText = "WalletIsNotSynced";
-        document.getElementById("tumbler-status").classList.add("label-danger");
-        document.getElementById("mixer-settings-content").style.display = "none";
-    }
-    else if (resp.Status.toUpperCase() != "online".toUpperCase()) {
-        document.getElementById("tumbler-status").classList.add("label-danger");
-        document.getElementById("mixer-settings-content").style.display = "none";
-    }
-    else {
-        document.getElementById("tumbler-status").classList.add("label-success");
-
-        document.getElementById("tumbler-denomination").innerText = resp.Denomination + " BTC";
-        document.getElementById("tumbler-fee").innerText = resp.FeePercent + " %";
-        document.getElementById("tumbling-time").innerText = Math.round((resp.CycleLengthMinutes / 60) * 10) / 10  + " hours";
-
-        document.getElementById("wallet-selected").style.display = "none";
-        document.getElementById("not-enough-funds-to-mix").style.display = "none";
-    }
 }
 
 function updateWalletContent() {

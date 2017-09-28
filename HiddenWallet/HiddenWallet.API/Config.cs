@@ -14,9 +14,6 @@ namespace HiddenWallet.API
 		public static Network Network = Network.Main;
 		public static bool CanSpendUnconfirmed = false;
 
-		public static Uri TumbleBitServerTestNet = new Uri("http://t4cqwqlvswcyyagg.onion/api/v1/tumblers/310586435471416ca16058c1fb9ed3c868f239b9");
-		public static Uri TumbleBitServerMainNet = null;
-
 		static Config()
 		{
 			if (!File.Exists(ConfigFileSerializer.ConfigFilePath))
@@ -29,12 +26,10 @@ namespace HiddenWallet.API
 
 		public static void Save()
 		{
-			ConfigFileSerializer.Serialize(
-				WalletFilePath,
-				Network.ToString(),
-				CanSpendUnconfirmed.ToString(),
-				TumbleBitServerTestNet == null ? "" : TumbleBitServerTestNet.AbsoluteUri,
-				TumbleBitServerMainNet == null ? "" : TumbleBitServerMainNet.AbsoluteUri);
+            ConfigFileSerializer.Serialize(
+                WalletFilePath,
+                Network.ToString(),
+                CanSpendUnconfirmed.ToString());
 			Load();
 		}
 
@@ -74,19 +69,7 @@ namespace HiddenWallet.API
 				|| "0" == canSpendUnconfirmedString)
 				CanSpendUnconfirmed = false;
 			else
-				throw new NotSupportedException($"Wrong CanSpendUnconfirmed value in {ConfigFileSerializer.ConfigFilePath}");
-
-			if (rawContent.TumbleBitServerTestNet == null || rawContent.TumbleBitServerTestNet  == "")
-			{
-				TumbleBitServerTestNet = null;
-			}
-			else TumbleBitServerTestNet = new Uri(rawContent.TumbleBitServerTestNet);
-			
-			if (rawContent.TumbleBitServerMainNet == null || rawContent.TumbleBitServerMainNet == "")
-			{
-				TumbleBitServerMainNet = null;
-			}
-			else TumbleBitServerMainNet = new Uri(rawContent.TumbleBitServerMainNet);
+				throw new NotSupportedException($"Wrong CanSpendUnconfirmed value in {ConfigFileSerializer.ConfigFilePath}");            
 		}
 
 		public class ConfigFileSerializer
@@ -99,39 +82,28 @@ namespace HiddenWallet.API
 			public string Network { get; set; }
 			public string CanSpendUnconfirmed { get; set; }
 
-			public string TumbleBitServerTestNet { get; set; }
-			public string TumbleBitServerMainNet { get; set; }
-
 			[JsonConstructor]
 			private ConfigFileSerializer(
 				string walletFilePath,
 				string network,
-				string canSpendUnconfirmed,
-				string tumbleBitServerTestNet,
-				string tumbleBitServerMainNet)
+				string canSpendUnconfirmed)
 			{
 				WalletFilePath = walletFilePath;
 				Network = network;
 				CanSpendUnconfirmed = canSpendUnconfirmed;
-				TumbleBitServerTestNet = tumbleBitServerTestNet;
-				TumbleBitServerMainNet = tumbleBitServerMainNet;
 			}
 
 			internal static void Serialize(
 				string walletFilePath,
 				string network,
-				string canSpendUnconfirmed,
-				string tumbleBitServerTestNet,
-				string tumbleBitServerMainNet)
+				string canSpendUnconfirmed)
 			{
 				var content =
 					JsonConvert.SerializeObject(
 						new ConfigFileSerializer(
 							walletFilePath,
 							network,
-							canSpendUnconfirmed,
-							tumbleBitServerTestNet,
-							tumbleBitServerMainNet), Formatting.Indented);
+							canSpendUnconfirmed), Formatting.Indented);
 
 				File.WriteAllText(ConfigFilePath, content);
 			}
@@ -147,9 +119,7 @@ namespace HiddenWallet.API
 				return new ConfigFileSerializer(
 					configFileSerializer.WalletFilePath,
 					configFileSerializer.Network,
-					configFileSerializer.CanSpendUnconfirmed,
-					configFileSerializer.TumbleBitServerTestNet,
-					configFileSerializer.TumbleBitServerMainNet);
+					configFileSerializer.CanSpendUnconfirmed);
 			}
 		}
 	}

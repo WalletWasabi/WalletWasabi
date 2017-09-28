@@ -9,7 +9,6 @@ using HBitcoin.KeyManagement;
 using NBitcoin;
 using System.Globalization;
 using HBitcoin.Models;
-using HBitcoin.Fees;
 
 namespace HiddenWallet.API.Controllers
 {
@@ -308,20 +307,6 @@ namespace HiddenWallet.API.Controllers
 				}
 				
 				return new ObjectResult(Global.WalletWrapper.SendTransactionAsync(tx).Result);
-			}
-			catch (Exception ex)
-			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
-			}
-		}
-
-		[Route("tumbler-server")]
-		[HttpGet]
-		public IActionResult TumblerServer()
-		{
-			try
-			{
-				return new ObjectResult(Global.WalletWrapper.GetTumblerServerResponseAsync().Result);
 			}
 			catch (Exception ex)
 			{
