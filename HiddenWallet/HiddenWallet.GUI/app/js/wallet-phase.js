@@ -1,19 +1,28 @@
 function walletPhaseShow(tabItem = "") {
-    document.getElementById("content").setAttribute("style", "max-height: 320px");
     document.getElementById("hide-btn").hidden = false;
     
     if (tabItem === "alice") {
+        document.getElementById("content").setAttribute("style", "max-height: 320px");
         document.getElementById("tabs").innerHTML = document.getElementById("wallet-phase-tabs-frame").contentWindow.document.getElementById("alice-active").outerHTML;
 
         storage.set('lastAccount', { lastAccount: 'alice' }, function (error) {
             if (error) throw error;
         });
+        writeHint("Move coins between Alice and Bob only by mixing!");
+        document.getElementById("before-menu-br").style.display = "none";
+        document.getElementById("after-menu-hr").style.display = "block";
+        walletShow('receive');
     }
     else if (tabItem === "bob") {
+        document.getElementById("content").setAttribute("style", "max-height: 320px");
         document.getElementById("tabs").innerHTML = document.getElementById("wallet-phase-tabs-frame").contentWindow.document.getElementById("bob-active").outerHTML;
         storage.set('lastAccount', { lastAccount: 'bob' }, function (error) {
             if (error) throw error;
         });
+        writeHint("Move coins between Alice and Bob only by mixing!");
+        document.getElementById("before-menu-br").style.display = "none";
+        document.getElementById("after-menu-hr").style.display = "block";
+        walletShow('receive');
     }
     else if (tabItem === "") {
         storage.get('lastAccount', function (error, data) {
@@ -22,13 +31,7 @@ function walletPhaseShow(tabItem = "") {
             walletPhaseShow(data.lastAccount);
             return;
         });
-    }   
-
-    writeHint("Move coins between Alice and Bob only by mixing!");
-
-    walletShow('receive');
-
-    document.getElementById("before-menu-br").outerHTML = "";
+    }    
 }
 
 function walletShow(menuItem) {

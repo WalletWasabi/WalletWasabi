@@ -9,7 +9,7 @@ namespace HiddenWallet.API
 	public static class Config
 	{
 		// Initialized with default attributes
-		public static string WalletFilePath = @"Wallets\Wallet.json";
+		public static string WalletFilePath = Path.Combine("Wallets", "Wallet.json");
 
 		public static Network Network = Network.Main;
 		public static bool CanSpendUnconfirmed = false;
@@ -26,10 +26,10 @@ namespace HiddenWallet.API
 
 		public static void Save()
 		{
-			ConfigFileSerializer.Serialize(
-				WalletFilePath,
-				Network.ToString(),
-				CanSpendUnconfirmed.ToString());
+            ConfigFileSerializer.Serialize(
+                WalletFilePath,
+                Network.ToString(),
+                CanSpendUnconfirmed.ToString());
 			Load();
 		}
 
@@ -37,7 +37,7 @@ namespace HiddenWallet.API
 		{
 			var rawContent = ConfigFileSerializer.Deserialize();
 
-			WalletFilePath = rawContent.WalletFilePath;
+			WalletFilePath = rawContent.WalletFilePath;			
 
 			if (rawContent.Network == null)
 				throw new NotSupportedException($"Network is missing from {ConfigFileSerializer.ConfigFilePath}");
@@ -69,8 +69,7 @@ namespace HiddenWallet.API
 				|| "0" == canSpendUnconfirmedString)
 				CanSpendUnconfirmed = false;
 			else
-				throw new NotSupportedException($"Wrong CanSpendUnconfirmed value in {ConfigFileSerializer.ConfigFilePath}");
-
+				throw new NotSupportedException($"Wrong CanSpendUnconfirmed value in {ConfigFileSerializer.ConfigFilePath}");            
 		}
 
 		public class ConfigFileSerializer
