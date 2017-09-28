@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Privacy focused Bitcoin library on top of NBitcoin for .NET Core.</Description>
+    <Copyright>MIT</Copyright>
+    <AssemblyTitle>HBitcoin</AssemblyTitle>
+    <VersionPrefix>0.1.7</VersionPrefix>
+    <Authors>nopara73</Authors>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <AssemblyName>HBitcoin</AssemblyName>
+    <PackageId>HBitcoin</PackageId>
+    <PackageTags>bitcoin, nbitcoin</PackageTags>
+    <PackageProjectUrl>https://github.com/nopara73/HBitcoin</PackageProjectUrl>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <PackageTargetFallback>$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <Version>0.2.4</Version>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;1705;S125;S3776;S1450;S1066;S3241;S3010;S1104;IDE0017</NoWarn>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DBreeze" Version="1.88.0" />
+    <PackageReference Include="DotNetTor" Version="2.2.4.1" />
+    <PackageReference Include="NBitcoin" Version="4.0.0.8" />
+    <PackageReference Include="ConcurrentHashSet" Version="1.0.1" />
+    <PackageReference Include="QBitNinja.Client" Version="1.0.3.39" />
+    <PackageReference Include="System.Diagnostics.Process" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
+  </ItemGroup>
+
+</Project>
