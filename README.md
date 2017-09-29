@@ -18,11 +18,9 @@ Pizza and/or coffee is welcome: [186n7me3QKajQZJnUsVsezVhVrSwyFCCZ](https://www.
 
 ## Screenshots 
 
-![Generate](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Documentation/HwDecryptingScreenshot.png)  
+![BuildTransaction](https://i.imgur.com/EUX4zT4.png)  
 
-![BuildTransaction](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Documentation/HwBuildTransactionScreenshot.png)  
-
-![History](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Documentation/HwHistoryScreenshot.png)    
+![History](https://i.imgur.com/IQ0M37R.png)    
 
 ## Configuration
 
