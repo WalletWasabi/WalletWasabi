@@ -1,6 +1,6 @@
 ## Technical Overview Of Projects
   
-- [HiddenWallet](https://github.com/nopara73/HiddenWallet/tree/master/HiddenWallet) - Basic Bitcoin library, on top of [NBitcoin](https://github.com/MetacoSA/NBitcoin/).  
+- [HiddenWallet](https://github.com/nopara73/HiddenWallet/tree/master/HiddenWallet) - Basic Bitcoin library, on top of [NBitcoin](https://github.com/MetacoSA/NBitcoin/). Previously it was a part of [HBitcoin](https://github.com/nopara73/HBitcoin/) library.  
 
 - [HiddenWallet.FullSpvWallet](https://github.com/nopara73/HiddenWallet/tree/master/HiddenWallet.FullSpvWallet) - Previously it was a part of [HBitcoin](https://github.com/nopara73/HBitcoin/) library. This is where the wallet logic happens.  
 HiddenWallet.FullSpvWallet project is using Tor through the [DotNetTor](https://github.com/nopara73/DotNetTor) library, where it's needed to protect the user's privacy.  
