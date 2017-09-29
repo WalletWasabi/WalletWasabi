@@ -58,4 +58,4 @@ If you get an error here, don't worry, just add your platform identifier to the 
 9. `npm start`
 10. Check out the [Configuration section](https://github.com/nopara73/HiddenWallet#configuration) above.
 
-## [Architechture Overview](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Documentation/ArchitechtureOverview.md)
+## [Architechture Overview](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet.Documentation/ArchitechtureOverview.md)
