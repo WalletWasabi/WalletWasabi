@@ -3,7 +3,7 @@
 For Linux and OSX you need to build from the source code, [see instructions below](https://github.com/nopara73/HiddenWallet#building-from-source-code).
 
 # Hidden Wallet
-Privacy focused, full block downloading SPV Bitcoin wallet with TumbleBit support. This repository is a thin GUI, the bulk of the project is at https://github.com/nopara73/HBitcoin/.  
+Privacy focused, full block downloading SPV Bitcoin wallet with TumbleBit support.  
   
 Pizza and/or coffee is welcome: [186n7me3QKajQZJnUsVsezVhVrSwyFCCZ](https://www.smartbit.com.au/address/186n7me3QKajQZJnUsVsezVhVrSwyFCCZ).
   
@@ -18,11 +18,11 @@ Pizza and/or coffee is welcome: [186n7me3QKajQZJnUsVsezVhVrSwyFCCZ](https://www.
 
 ## Screenshots 
 
-![Generate](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Docs/HwDecryptingScreenshot.png)  
+![Generate](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Documentation/HwDecryptingScreenshot.png)  
 
-![BuildTransaction](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Docs/HwBuildTransactionScreenshot.png)  
+![BuildTransaction](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Documentation/HwBuildTransactionScreenshot.png)  
 
-![History](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Docs/HwHistoryScreenshot.png)    
+![History](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Documentation/HwHistoryScreenshot.png)    
 
 ## Configuration
 
@@ -49,15 +49,15 @@ Since testnet coins have no value, you can acquire them freely and quickly: http
 ### Step by step
   
 1. `git clone https://github.com/nopara73/HiddenWallet.git`
-2. `cd HiddenWallet/HiddenWallet/HiddenWallet.API`  
+2. `cd HiddenWallet/HiddenWallet.Daemon`  
 3. `dotnet restore`  
 4. `dotnet build`
-5. `dotnet publish -r win7-x64 --output bin/dist/current-target`. Find your platform identifier [here](https://github.com/dotnet/docs/blob/master/docs/core/rid-catalog.md#windows-rids) and replace `win7-x64`.
-If you get an error here, don't worry, just add your platform identifier to the `<RuntimeIdentifiers>` tag in the `HiddenWallet.API/HiddenWallet.API.csproj file).  
-6. (Only on Windows) - Copy and unzip `HiddenWallet.Packager/tor.zip` to `HiddenWallet.API/bin/dist/current-target` directory. (Quick note on unzipping: the final path to tor.exe has to be: `current-target/tor/Tor/tor.exe` and not: `current-target/tor/tor/Tor/tor.exe`.)
-7. `cd ../HiddenWallet.GUI`
+5. `dotnet publish -r win10-x64 --output bin/dist/current-target`. Find your platform identifier [here](https://github.com/dotnet/docs/blob/master/docs/core/rid-catalog.md#windows-rids) and replace `win7-x64`.
+If you get an error here, don't worry, just add your platform identifier to the `<RuntimeIdentifiers>` tag in the `HiddenWallet.Daemon/HiddenWallet.Daemon.csproj file).  
+6. (Only on Windows) - Copy and unzip `HiddenWallet.Packager/tor.zip` to `HiddenWallet.Daemon/bin/dist/current-target` directory. (Quick note on unzipping: the final path to tor.exe has to be: `current-target/tor/Tor/tor.exe` and not: `current-target/tor/tor/Tor/tor.exe`.)
+7. `cd ../HiddenWallet.Gui`
 8. `npm install`
 9. `npm start`
 10. Check out the [Configuration section](https://github.com/nopara73/HiddenWallet#configuration) above.
 
-## [Architechture Overview](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Docs/ArchitechtureOverview.md)
+## [Architechture Overview](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet/HiddenWallet.Documentation/ArchitechtureOverview.md)
