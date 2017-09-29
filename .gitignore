@@ -252,3 +252,4 @@ tor
 /HiddenWallet/HiddenWallet.GUI/TumbleBitData/TestNet/db2/Configuration
 /HiddenWallet/HiddenWallet.GUI/torchangelog.txt
 /HiddenWallet/HiddenWallet.API/torchangelog.txt
+/HiddenWallet.Gui/Config.json

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Version>0.5.0</Version>
+    <AssemblyVersion>0.5.0.0</AssemblyVersion>
+    <FileVersion>0.5.0.0</FileVersion>
+    <Authors>nopara73</Authors>
+    <Copyright>MIT</Copyright>
+    <PackageProjectUrl></PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nopara73/HiddenWallet/</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>hiddenwallet, wallet, bitcoin, hbitcoin, nbitcoin, fungibility, privacy, anonymity</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetTor" Version="2.2.4.1" />
+    <PackageReference Include="QBitNinja.Client" Version="1.0.3.39" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HiddenWallet\HiddenWallet.csproj" />
+  </ItemGroup>
+
+</Project>
