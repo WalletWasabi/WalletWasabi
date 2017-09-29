@@ -42,8 +42,6 @@ namespace HiddenWallet.Packager
             pBuild.StandardInput.WriteLine("dotnet build & exit");
             pBuild.WaitForExit();
 
-            return;
-
             foreach (var target in targets)
             {
                 var currDistDir = Path.Combine(daemonProjectDirectory, "bin\\dist", target);
