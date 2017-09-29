@@ -14,9 +14,9 @@ namespace HiddenWallet.Packager
         static void Main(string[] args)
         {
             var packagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
-            var apiProjectDirectory = Path.Combine(packagerProjectDirectory, "..\\HiddenWallet.Daemon");
+            var daemonProjectDirectory = Path.Combine(packagerProjectDirectory, "..\\HiddenWallet.Daemon");
             var guiProjectDirectory = Path.Combine(packagerProjectDirectory, "..\\HiddenWallet.Gui");
-            var solutionDirectory = Path.Combine(packagerProjectDirectory, "..\\..\\");
+            var solutionDirectory = Path.Combine(packagerProjectDirectory, "..\\");
 
             var packageJsonString = File.ReadAllText(Path.Combine(guiProjectDirectory, "package.json"));
             JToken packageJson = JObject.Parse(packageJsonString);
@@ -30,20 +30,23 @@ namespace HiddenWallet.Packager
                 "win81-x64",
                 "win10-x64",
             };
-            UpdateCsproj(apiProjectDirectory, targets);
+            UpdateCsproj(daemonProjectDirectory, targets);
 
             var psiBuild = new ProcessStartInfo
             {
-                FileName = "dotnet",
-                Arguments = "build",
-                WorkingDirectory = apiProjectDirectory
+                FileName = "cmd",
+                RedirectStandardInput = true,
+                WorkingDirectory = daemonProjectDirectory
             };
             var pBuild = Process.Start(psiBuild);
+            pBuild.StandardInput.WriteLine("dotnet build & exit");
             pBuild.WaitForExit();
+
+            return;
 
             foreach (var target in targets)
             {
-                var currDistDir = Path.Combine(apiProjectDirectory, "bin\\dist", target);
+                var currDistDir = Path.Combine(daemonProjectDirectory, "bin\\dist", target);
                 if (Directory.Exists(currDistDir))
                 {
                     DeleteDirectoryRecursively(currDistDir);
@@ -70,7 +73,7 @@ namespace HiddenWallet.Packager
                 {
                     FileName = "dotnet",
                     Arguments = $"publish -r {target} --output bin/dist/{target}",
-                    WorkingDirectory = apiProjectDirectory
+                    WorkingDirectory = daemonProjectDirectory
                 };
                 var pPublish = Process.Start(psiPublish);
                 pPublish.WaitForExit();
@@ -106,7 +109,7 @@ namespace HiddenWallet.Packager
                 CloneDirectory(Path.Combine(distDir, "win-unpacked"), currentDistributionDirectory);
                 string currTargDir = Path.Combine(currentDistributionDirectory, "resources\\HiddenWallet.Daemon\\bin\\dist\\current-target");
                 Directory.CreateDirectory(currTargDir);
-                var apiTargetDir = Path.Combine(apiProjectDirectory, "bin\\dist", target);
+                var apiTargetDir = Path.Combine(daemonProjectDirectory, "bin\\dist", target);
                 CloneDirectory(apiTargetDir, currTargDir);
 
                 ZipFile.CreateFromDirectory(currentDistributionDirectory, currentDistributionDirectory + ".zip", CompressionLevel.Optimal, true);

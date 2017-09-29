@@ -1,6 +1,6 @@
 {
   "name": "hiddenwallet",
-  "version": "0.4.5",
+  "version": "0.5.0",
   "description": "HiddenWallet.Gui",
   "main": "main.js",
   "author": {
@@ -24,7 +24,7 @@
   "build": {
     "appId": "hidden.wallet",
     "directories": {
-      "output": "../../dist"
+      "output": "../dist"
     }
   }
 }
