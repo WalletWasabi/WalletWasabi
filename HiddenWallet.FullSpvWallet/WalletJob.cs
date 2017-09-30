@@ -909,7 +909,7 @@ namespace HiddenWallet.FullSpv
 				}
 				else
 				{
-					const int expectedMinTxSize = 1 * 146 + 1 * 33 + 10;
+					const int expectedMinTxSize = 1 * 41 + 1 * 33 + 10;
 					try
 					{
 						inNum = SelectCoinsToSpend(unspentCoins, amount + feePerBytes * expectedMinTxSize).Count;
