@@ -3,7 +3,7 @@
 For Linux and OSX you need to build from the source code, [see instructions below](https://github.com/nopara73/HiddenWallet#building-from-source-code).
 
 # Hidden Wallet
-Privacy focused, full block downloading SPV Bitcoin wallet with TumbleBit support.  
+Privacy focused, ZeroLink compliant Bitcoin wallet.  
   
 Pizza and/or coffee is welcome: [186n7me3QKajQZJnUsVsezVhVrSwyFCCZ](https://www.smartbit.com.au/address/186n7me3QKajQZJnUsVsezVhVrSwyFCCZ).
   
@@ -11,7 +11,7 @@ Pizza and/or coffee is welcome: [186n7me3QKajQZJnUsVsezVhVrSwyFCCZ](https://www.
   
 ## Status & Roadmap
 1. [Full Block Downloading SPV](https://medium.com/@nopara73/bitcoin-privacy-landscape-in-2017-zero-to-hero-guidelines-and-research-a10d30f1e034) - **Ready, unstable.**  This feature provides full node level privacy against network analysis with SPV security.  
-2. [TumbleBit integration, Classic Tumbler Mode](https://hackernoon.com/understanding-tumblebit-part-1-making-the-case-823d786113f3) - **Next up.** TumbleBit is a Bitcoin mixer where not even the Tumbler can steal your coins, nor deanonymize you.   
+2. [ZeroLink compliance](https://github.com/nopara73/ZeroLink/) - **Next up.** ZeroLink is a Bitcoin Fungibility Framework, it includes Wallet Privacy requirements and a mixing technique: Chaumian CoinJoin.   
 3. [Transaction Filtered Block Downloading](https://medium.com/@nopara73/full-node-level-privacy-even-for-mobile-wallets-transaction-filtered-full-block-downloading-wallet-16ef1847c21)  - 10-100x performance increase, while still keeping full node level privacy against network analysis, but replacing SPV security to trusted full node security.  
 4. Release stable version.  
 5. TumbleBit Paymen Hub Mode? JoinMarket integration? Stealth addresses support?
@@ -36,7 +36,7 @@ For testing, set the network to `"TestNet"` and enable the spending of unconfirm
 If you've already generated a wallet on the mainnet, then you want to change the default wallet file path, too, for example to `"WalletTestNet.json"`.  
 Since testnet coins have no value, you can acquire them freely and quickly: http://lmgtfy.com/?q=get+testnet+faucet
 
-## Building from source code  
+## Building From Source Code  
   
 ### Requirements:  
 - [Git](https://git-scm.com/downloads)  
@@ -44,7 +44,7 @@ Since testnet coins have no value, you can acquire them freely and quickly: http
 - [Node.js](https://nodejs.org/en/download/)
 - Tor: On Linux and OSX make sure "tor" is in your PATH!
   
-### Step by step
+### Step By Step
   
 1. `git clone https://github.com/nopara73/HiddenWallet.git`
 2. `cd HiddenWallet/HiddenWallet.Daemon`  
@@ -57,5 +57,18 @@ If you get an error here, don't worry, just add your platform identifier to the 
 8. `npm install`
 9. `npm start`
 10. Check out the [Configuration section](https://github.com/nopara73/HiddenWallet#configuration) above.
+
+### Runnin The Tests
+
+1. Download [Tor](https://www.torproject.org/download/download) and use this configuration file: [torrc](https://github.com/nopara73/DotNetTor/blob/master/torrc)  
+2. Run Tor 
+3. `cd HiddenWallet/HiddenWallet.Tests`  
+4. `dotnet restore`  
+5. `dotnet build`  
+6. `dotnet test`  
+
+*Notes:* 
+- As of today some tests might fail when running them all at once. Running them one by one should work.
+- Some tests have been prefunded with testnet coins. If some funny dev messing with the wallets (sending transactions to them, spending them and such) those tests might fail, too.
 
 ## [Architechture Overview](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet.Documentation/ArchitechtureOverview.md)
