@@ -57,6 +57,11 @@ namespace HiddenWallet.Tests
 					Task.Delay(1000).Wait();
 				}
 
+                foreach(var r in walletJob.GetSafeHistory(account))
+                {
+                    Debug.WriteLine(r.TransactionId);
+                }
+
 				var record = walletJob.GetSafeHistory(account).FirstOrDefault();
 				Debug.WriteLine(record.Confirmed);
 				Debug.WriteLine(record.Amount);

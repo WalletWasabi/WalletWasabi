@@ -376,7 +376,7 @@ namespace HiddenWallet.FullSpv
                     if (Tracker.IsClean(scriptPubkey))
                     {
                         cleanCount++;
-                        if (cleanCount > MaxCleanAddressCount) return;
+                        if (cleanCount > MaxCleanAddressCount) break;
                     }
 
                     i++;
