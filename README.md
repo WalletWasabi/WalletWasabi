@@ -39,6 +39,7 @@ After first running the software, it will generate a `Config.json` file for you:
 For testing, set the network to `"TestNet"` and enable the spending of unconfirmed transactions by setting its value to `"True"`.  
 If you've already generated a wallet on the mainnet, then you want to change the default wallet file path, too, for example to `"WalletTestNet.json"`.  
 Since testnet coins have no value, you can acquire them freely and quickly: http://lmgtfy.com/?q=get+testnet+faucet
+**Update:** From release 0.5 he wallet only generates [Bech32 SegWit addresses]. At the time of writing it is not intuitive how to acquire testnet faucets to such addresses. Hopefully by the time you are reading this, it will not be the case anymore. From Bitcoin Core 0.15.1 you can send transactions to Bech32 addresses. So as a workaround you might want to setup Core on the testnet, receive faucets there and forward it to HiddenWallet.  
 
 ## Building From Source Code  
   
