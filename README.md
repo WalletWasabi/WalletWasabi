@@ -4,7 +4,7 @@ For Linux and OSX you need to build from the source code, [see instructions belo
 
 # Hidden Wallet
 
-Privacy focused, soon ZeroLink compliant Bitcoin wallet.  
+Privacy focused, soon [ZeroLink](https://github.com/nopara73/ZeroLink) compliant Bitcoin wallet.  
   
 ## Support
 
