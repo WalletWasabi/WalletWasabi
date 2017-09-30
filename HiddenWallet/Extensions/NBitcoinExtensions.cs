@@ -7,7 +7,7 @@ namespace NBitcoin
 {
     public static class NBitcoinExtensions
     {
-        public static ChainedBlock GetBlock(this ConcurrentChain concurrentChain, Height height)
-            => concurrentChain.GetBlock(height.Value);
+        public static ChainedBlock GetBlock(this ConcurrentChain me, Height height)
+            => me.GetBlock(height.Value);
     }
 }

@@ -86,10 +86,22 @@ namespace HiddenWallet.Tests
 			    return operationsPerAllAddresses;
 		    }
 
-		    var addresses = safe.GetFirstNAddresses(minUnusedKeys, hdPathType.GetValueOrDefault());
-		    //var addresses = FakeData.FakeSafe.GetFirstNAddresses(minUnusedKeys);
+            var addresses = new List<BitcoinAddress>();
+            var addressTypes = new HashSet<AddressType>
+            {
+                AddressType.Pay2PublicKeyHash,
+                AddressType.Pay2WitnessPublicKeyHash
+            };
+            foreach (AddressType addressType in addressTypes)
+            { 
+		        foreach(var address in safe.GetFirstNAddresses(addressType, minUnusedKeys, hdPathType.GetValueOrDefault()))
+                {
+                    addresses.Add(address);
+                }
+            }
+            //var addresses = FakeData.FakeSafe.GetFirstNAddresses(minUnusedKeys);
 
-		    var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
+            var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
 		    var unusedKeyCount = 0;
 		    foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses).ConfigureAwait(false))
 		    {
@@ -105,7 +117,15 @@ namespace HiddenWallet.Tests
 			    addresses = new List<BitcoinAddress>();
 			    for (int i = startIndex; i < startIndex + minUnusedKeys; i++)
 			    {
-				    addresses.Add(safe.GetAddress(i, hdPathType.GetValueOrDefault()));
+                    addressTypes = new HashSet<AddressType>
+                    {
+                        AddressType.Pay2PublicKeyHash,
+                        AddressType.Pay2WitnessPublicKeyHash
+                    };
+                    foreach (AddressType addressType in addressTypes)
+                    {
+                        addresses.Add(safe.GetAddress(addressType, i, hdPathType.GetValueOrDefault()));
+                    }
 				    //addresses.Add(FakeData.FakeSafe.GetAddress(i));
 			    }
 			    foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses).ConfigureAwait(false))

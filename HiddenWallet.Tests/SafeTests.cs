@@ -3,6 +3,7 @@ using System.Globalization;
 using HiddenWallet.KeyManagement;
 using NBitcoin;
 using Xunit;
+using HiddenWallet.Models;
 
 namespace HiddenWallet.Tests
 {
@@ -29,12 +30,15 @@ namespace HiddenWallet.Tests
 				var bob = new SafeAccount(4);
 				try
 				{
-					Assert.Equal(safe.GetAddress(3, account: alice), recoverdSafe.GetAddress(3, account: alice));
-					Assert.Equal(safe.GetAddress(4, HdPathType.NonHardened, account: alice), recoverdSafe.GetAddress(4, HdPathType.NonHardened, account: alice));
-					Assert.NotEqual(safe.GetAddress(4, HdPathType.Change, account: alice), recoverdSafe.GetAddress(4, HdPathType.NonHardened, account: alice));
-					Assert.NotEqual(safe.GetAddress(3, HdPathType.NonHardened, account: alice), recoverdSafe.GetAddress(4, HdPathType.NonHardened, account: alice));
-					Assert.NotEqual(safe.GetAddress(4, HdPathType.NonHardened, account: alice), recoverdSafe.GetAddress(4, HdPathType.NonHardened, account: bob));
-					Assert.NotEqual(safe.GetAddress(4, account: alice), safe.GetAddress(4));
+                    foreach (AddressType addressType in Enum.GetValues(typeof(AddressType)))
+                    {
+                        Assert.Equal(safe.GetAddress(addressType, 3, account: alice), recoverdSafe.GetAddress(addressType, 3, account: alice));
+                        Assert.Equal(safe.GetAddress(addressType, 4, HdPathType.NonHardened, account: alice), recoverdSafe.GetAddress(addressType, 4, HdPathType.NonHardened, account: alice));
+                        Assert.NotEqual(safe.GetAddress(addressType, 4, HdPathType.Change, account: alice), recoverdSafe.GetAddress(addressType, 4, HdPathType.NonHardened, account: alice));
+                        Assert.NotEqual(safe.GetAddress(addressType, 3, HdPathType.NonHardened, account: alice), recoverdSafe.GetAddress(addressType, 4, HdPathType.NonHardened, account: alice));
+                        Assert.NotEqual(safe.GetAddress(addressType, 4, HdPathType.NonHardened, account: alice), recoverdSafe.GetAddress(addressType, 4, HdPathType.NonHardened, account: bob));
+                        Assert.NotEqual(safe.GetAddress(addressType, 4, account: alice), safe.GetAddress(addressType, 4));
+                    }
 
 					Assert.Equal(DateTimeOffset.UtcNow.Date, safe.CreationTime.Date);
 					Assert.True(Safe.EarliestPossibleCreationTime < safe.CreationTime);
@@ -73,7 +77,10 @@ namespace HiddenWallet.Tests
 				Assert.Equal(safe.ExtKey.ScriptPubKey, loadedSafe.ExtKey.ScriptPubKey);
 				Assert.Equal(loadedSafe.BitcoinExtKey, recoverdSafe.BitcoinExtKey);
 				Assert.Equal(loadedSafe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: new SafeAccount(1)), recoverdSafe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: new SafeAccount(1)));
-				Assert.Equal(loadedSafe.GetAddress(index), recoverdSafe.GetAddress(index));
+                foreach (AddressType addressType in Enum.GetValues(typeof(AddressType)))
+                {
+                    Assert.Equal(loadedSafe.GetAddress(addressType, index), recoverdSafe.GetAddress(addressType, index));
+                }
 				Assert.Equal(loadedSafe.GetBitcoinExtKey(index), recoverdSafe.GetBitcoinExtKey(index));
 			}
 			finally

@@ -184,8 +184,8 @@ namespace HiddenWallet.Daemon.Wrappers
 			_incomingBob = ab.Unconfirmed;
 			
 			// receive
-			var ua = _walletJob.GetUnusedScriptPubKeys(AliceAccount, HdPathType.Receive).ToArray();
-			var ub = _walletJob.GetUnusedScriptPubKeys(BobAccount, HdPathType.Receive).ToArray();
+			var ua = _walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, AliceAccount, HdPathType.Receive).ToArray();
+			var ub = _walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, BobAccount, HdPathType.Receive).ToArray();
 			_receiveResponseAlice.Addresses = new string[7];
 			_receiveResponseBob.Addresses = new string[7];
 			var network = _walletJob.Safe.Network;

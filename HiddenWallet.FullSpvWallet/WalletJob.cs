@@ -355,26 +355,34 @@ namespace HiddenWallet.FullSpv
 			}
 		}
 
-		private void UpdateSafeTrackingByPath(HdPathType hdPathType, SafeAccount account = null)
-		{
-			int i = 0;
-			var cleanCount = 0;
-			while (true)
-			{
-				Script scriptPubkey = account == null ? Safe.GetAddress(i, hdPathType).ScriptPubKey : Safe.GetAddress(i, hdPathType, account).ScriptPubKey;
+        private void UpdateSafeTrackingByPath(HdPathType hdPathType, SafeAccount account = null)
+        {
+            var addressTypes = new HashSet<AddressType>
+            {
+                AddressType.Pay2PublicKeyHash,
+                AddressType.Pay2WitnessPublicKeyHash
+            };
+            foreach (AddressType addressType in addressTypes)
+            {
+                int i = 0;
+                var cleanCount = 0;
+                while (true)
+                {
+                    Script scriptPubkey = account == null ? Safe.GetAddress(addressType, i, hdPathType).ScriptPubKey : Safe.GetAddress(addressType, i, hdPathType, account).ScriptPubKey;
 
-				Tracker.TrackedScriptPubKeys.Add(scriptPubkey);
+                    Tracker.TrackedScriptPubKeys.Add(scriptPubkey);
 
-				// if clean elevate cleancount and if max reached don't look for more
-				if (Tracker.IsClean(scriptPubkey))
-				{
-					cleanCount++;
-					if (cleanCount > MaxCleanAddressCount) return;
-				}
+                    // if clean elevate cleancount and if max reached don't look for more
+                    if (Tracker.IsClean(scriptPubkey))
+                    {
+                        cleanCount++;
+                        if (cleanCount > MaxCleanAddressCount) return;
+                    }
 
-				i++;
-			}
-		}
+                    i++;
+                }
+            }
+        }
 
 		#endregion
 
@@ -474,31 +482,40 @@ namespace HiddenWallet.FullSpv
 		}
 
 		public HashSet<Script> GetTrackedScriptPubKeysBySafeAccount(SafeAccount account = null)
-		{
-			var maxTracked = Tracker.TrackedScriptPubKeys.Count;
-			var allPossiblyTrackedAddresses = new HashSet<BitcoinAddress>();
-			foreach (var address in Safe.GetFirstNAddresses(maxTracked, HdPathType.Receive, account))
-			{
-				allPossiblyTrackedAddresses.Add(address);
-			}
-			foreach (var address in Safe.GetFirstNAddresses(maxTracked, HdPathType.Change, account))
-			{
-				allPossiblyTrackedAddresses.Add(address);
-			}
-			foreach (var address in Safe.GetFirstNAddresses(maxTracked, HdPathType.NonHardened, account))
-			{
-				allPossiblyTrackedAddresses.Add(address);
-			}
+        {
+            var maxTracked = Tracker.TrackedScriptPubKeys.Count;
+            var allPossiblyTrackedAddresses = new HashSet<BitcoinAddress>();
 
-			var actuallyTrackedScriptPubKeys = new HashSet<Script>();
-			foreach (var address in allPossiblyTrackedAddresses)
-			{
-				if (Tracker.TrackedScriptPubKeys.Any(x => x == address.ScriptPubKey))
-					actuallyTrackedScriptPubKeys.Add(address.ScriptPubKey);
-			}
+            var addressTypes = new HashSet<AddressType>
+            {
+                AddressType.Pay2PublicKeyHash,
+                AddressType.Pay2WitnessPublicKeyHash
+            };
+            foreach (AddressType addressType in addressTypes)
+            {
+                foreach (var address in Safe.GetFirstNAddresses(addressType, maxTracked, HdPathType.Receive, account))
+                {
+                    allPossiblyTrackedAddresses.Add(address);
+                }
+                foreach (var address in Safe.GetFirstNAddresses(addressType, maxTracked, HdPathType.Change, account))
+                {
+                    allPossiblyTrackedAddresses.Add(address);
+                }
+                foreach (var address in Safe.GetFirstNAddresses(addressType, maxTracked, HdPathType.NonHardened, account))
+                {
+                    allPossiblyTrackedAddresses.Add(address);
+                }
+            }
 
-			return actuallyTrackedScriptPubKeys;
-		}
+            var actuallyTrackedScriptPubKeys = new HashSet<Script>();
+            foreach (var address in allPossiblyTrackedAddresses)
+            {
+                if (Tracker.TrackedScriptPubKeys.Any(x => x == address.ScriptPubKey))
+                    actuallyTrackedScriptPubKeys.Add(address.ScriptPubKey);
+            }
+
+            return actuallyTrackedScriptPubKeys;
+        }
 
 		/// <summary>
 		/// 
@@ -848,7 +865,7 @@ namespace HiddenWallet.FullSpv
 
 				// 1. Get the script pubkey of the change.
 				Debug.WriteLine("Select change address...");
-				Script changeScriptPubKey = GetUnusedScriptPubKeys(account, HdPathType.Change).FirstOrDefault();
+				Script changeScriptPubKey = GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Change).FirstOrDefault();
 
 				// 2. Find all coins I can spend from the account
 				// 3. How much money we can spend?
@@ -892,7 +909,7 @@ namespace HiddenWallet.FullSpv
 				}
 				else
 				{
-					const int expectedMinTxSize = 1 * 148 + 2 * 34 + 10 - 1;
+					const int expectedMinTxSize = 1 * 146 + 1 * 33 + 10;
 					try
 					{
 						inNum = SelectCoinsToSpend(unspentCoins, amount + feePerBytes * expectedMinTxSize).Count;
@@ -903,10 +920,14 @@ namespace HiddenWallet.FullSpv
 					}
 				}
 
-				const int outNum = 2; // 1 address to send + 1 for change
-				var estimatedTxSize = inNum * 148 + outNum * 34 + 10 + inNum; // http://bitcoin.stackexchange.com/questions/1195/how-to-calculate-transaction-size-before-sending
-				Debug.WriteLine($"Estimated tx size: {estimatedTxSize} bytes");
-				Money fee = feePerBytes * estimatedTxSize;
+                // https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
+                // https://bitcoin.stackexchange.com/a/46379/26859
+                int outNum = spendAll ? 1 : 2; // 1 address to send + 1 for change
+				var origTxSize = inNum * 146 + outNum * 33 + 10;
+                var newTxSize = inNum * 41 + outNum * 33 + 10; // BEWARE: This assumes segwit only inputs!
+                var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
+                Debug.WriteLine($"Estimated tx size: {vSize} bytes");
+				Money fee = feePerBytes * vSize;
 				Debug.WriteLine($"Fee: {fee.ToDecimal(MoneyUnit.BTC):0.#############################}btc");
 				successfulResult.Fee = fee;
 
@@ -973,9 +994,9 @@ namespace HiddenWallet.FullSpv
 				var signingKeys = new HashSet<ISecret>();
 				foreach (var coin in coinsToSpend)
 				{
-					var signingKey = Safe.FindPrivateKey(coin.ScriptPubKey.GetDestinationAddress(Safe.Network), Tracker.TrackedScriptPubKeys.Count, account);
-					signingKeys.Add(signingKey);
-				}
+                    var signingKey = Safe.FindPrivateKey(coin.ScriptPubKey.GetDestinationAddress(Safe.Network), Tracker.TrackedScriptPubKeys.Count, account);
+                    signingKeys.Add(signingKey);
+                }
 
 				// 9. Build the transaction
 				Debug.WriteLine("Signing transaction...");
@@ -1015,24 +1036,24 @@ namespace HiddenWallet.FullSpv
 				FailingReason = "Not enough funds"
 			};
 
-		public IEnumerable<Script> GetUnusedScriptPubKeys(SafeAccount account = null, HdPathType hdPathType = HdPathType.Receive)
+		public IEnumerable<Script> GetUnusedScriptPubKeys(AddressType type, SafeAccount account = null, HdPathType hdPathType = HdPathType.Receive)
 		{
 			AssertAccount(account);
 
-			HashSet<Script> scriptPubKeys = new HashSet<Script>();
-			int i = 0;
-			while (true)
-			{
-				Script scriptPubkey = account == null ? Safe.GetAddress(i, hdPathType).ScriptPubKey : Safe.GetAddress(i, hdPathType, account).ScriptPubKey;
-				if (Tracker.IsClean(scriptPubkey))
-				{
-					scriptPubKeys.Add(scriptPubkey);
-					if (scriptPubKeys.Count >= MaxCleanAddressCount)
-						return scriptPubKeys;
-				}
-				i++;
-			}
-		}
+            HashSet<Script> scriptPubKeys = new HashSet<Script>();
+            int i = 0;
+            while (true)
+            {
+                Script scriptPubkey = account == null ? Safe.GetAddress(type, i, hdPathType).ScriptPubKey : Safe.GetAddress(type, i, hdPathType, account).ScriptPubKey;
+                if (Tracker.IsClean(scriptPubkey))
+                {
+                    scriptPubKeys.Add(scriptPubkey);
+                    if (scriptPubKeys.Count >= MaxCleanAddressCount)
+                        return scriptPubKeys;
+                }
+                i++;
+            }
+        }
 
 		internal static HashSet<Coin> SelectCoinsToSpend(IDictionary<Coin, bool> unspentCoins, Money totalOutAmount)
 		{

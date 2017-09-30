@@ -1,4 +1,5 @@
-﻿using NBitcoin;
+﻿using HiddenWallet.Models;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -18,21 +19,52 @@ namespace HiddenWallet.KeyManagement
 		public BitcoinExtKey BitcoinExtKey => ExtKey.GetWif(Network);
 		public BitcoinExtPubKey GetBitcoinExtPubKey(int? index = null, HdPathType hdPathType = HdPathType.Receive, SafeAccount account = null) => GetBitcoinExtKey(index, hdPathType, account).Neuter();
 
-		public BitcoinAddress GetAddress(int index, HdPathType hdPathType = HdPathType.Receive, SafeAccount account  = null)
-		{
-			return GetBitcoinExtKey(index, hdPathType, account).ScriptPubKey.GetDestinationAddress(Network);
-		}
+        public PubKey GetPubKey(int index, HdPathType hdPathType, SafeAccount account)
+        {
+            return GetBitcoinExtKey(index, hdPathType, account).PrivateKey.PubKey;
+        }
 
-		public IList<BitcoinAddress> GetFirstNAddresses(int addressCount, HdPathType hdPathType = HdPathType.Receive, SafeAccount account = null)
+        // GetP2wpkh pubKey.WitHash.ScriptPubKey.GetDestinationAddress(Network);
+        // GetP2pkhAddress pubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
+        // GetP2shAddress pubKey.Hash.ScriptPubKey.GetScriptAddress(Network);
+        // GetP2wshAddress pubKey.WitHash.ScriptPubKey.GetWitScriptAddress(Network);
+        // GetP2shOverP2wpkhAddress pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
+        public BitcoinAddress GetAddress(AddressType type, int index, HdPathType hdPathType = HdPathType.Receive, SafeAccount account  = null)
+        {
+            PubKey pubKey = GetPubKey(index, hdPathType, account);
+            if (type == AddressType.Pay2WitnessPublicKeyHash)
+            {
+                return pubKey.WitHash.ScriptPubKey.GetDestinationAddress(Network);
+            }
+            if (type == AddressType.Pay2PublicKeyHash)
+            {
+                return pubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
+            }
+            if (type == AddressType.Pay2ScriptHash)
+            {
+                return pubKey.Hash.ScriptPubKey.GetScriptAddress(Network);
+            }
+            if (type == AddressType.Pay2WitnessScriptHash)
+            {
+                return pubKey.WitHash.ScriptPubKey.GetWitScriptAddress(Network);
+            }
+            if (type == AddressType.Pay2ScriptHashOverPay2WitnessPublicKeyHash)
+            {
+                return pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
+            }
+            else throw new NotSupportedException(type.ToString());
+        }
+
+        public IList<BitcoinAddress> GetFirstNAddresses(AddressType type, int addressCount, HdPathType hdPathType = HdPathType.Receive, SafeAccount account = null)
 		{
 			var addresses = new List<BitcoinAddress>();
 
-			for (var i = 0; i < addressCount; i++)
-			{
-				addresses.Add(GetAddress(i, hdPathType, account));
-			}
+            for (var i = 0; i < addressCount; i++)
+            {
+                addresses.Add(GetAddress(type, i, hdPathType, account));
+            }
 
-			return addresses;
+            return addresses;
 		}
 
 		// Let's generate a unique id from seedpublickey
@@ -171,17 +203,20 @@ namespace HiddenWallet.KeyManagement
 
 		public BitcoinExtKey FindPrivateKey(BitcoinAddress address, int stopSearchAfterIteration = 100000, SafeAccount account = null)
 		{
-			for (int i = 0; i < stopSearchAfterIteration; i++)
-			{
-				if (GetAddress(i, HdPathType.Receive, account) == address)
-					return GetBitcoinExtKey(i, HdPathType.Receive, account);
-				if (GetAddress(i, HdPathType.Change, account) == address)
-					return GetBitcoinExtKey(i, HdPathType.Change, account);
-				if (GetAddress(i, HdPathType.NonHardened, account) == address)
-					return GetBitcoinExtKey(i, HdPathType.NonHardened, account);
-			}
+            foreach (AddressType type in Enum.GetValues(typeof(AddressType)))
+            {
+                for (int i = 0; i < stopSearchAfterIteration; i++)
+                {
+                    if (GetAddress(type, i, HdPathType.Receive, account) == address)
+                        return GetBitcoinExtKey(i, HdPathType.Receive, account);
+                    if (GetAddress(type, i, HdPathType.Change, account) == address)
+                        return GetBitcoinExtKey(i, HdPathType.Change, account);
+                    if (GetAddress(type, i, HdPathType.NonHardened, account) == address)
+                        return GetBitcoinExtKey(i, HdPathType.NonHardened, account);
+                }
+            }
 
-			throw new KeyNotFoundException(address.ToString());
+            throw new KeyNotFoundException(address.ToString());
 		}
 
 		public BitcoinExtKey GetBitcoinExtKey(int? index = null, HdPathType hdPathType = HdPathType.Receive, SafeAccount account = null)

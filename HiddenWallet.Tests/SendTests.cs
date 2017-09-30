@@ -61,7 +61,7 @@ namespace HiddenWallet.Tests
 				Debug.WriteLine(record.Confirmed);
 				Debug.WriteLine(record.Amount);
 
-				var receive = walletJob.GetUnusedScriptPubKeys(account, HdPathType.Receive).FirstOrDefault();
+				var receive = walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive).FirstOrDefault();
 
 				IDictionary<Coin, bool> unspentCoins;
 				var bal = walletJob.GetBalance(out unspentCoins, account);
@@ -163,7 +163,7 @@ namespace HiddenWallet.Tests
 					Task.Delay(1000).Wait();
 				}
 
-				var receive = walletJob.GetUnusedScriptPubKeys(account, HdPathType.Receive).FirstOrDefault();
+				var receive = walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive).FirstOrDefault();
 
 				IDictionary<Coin, bool> unspentCoins;
 				var bal = walletJob.GetBalance(out unspentCoins, account);
@@ -325,7 +325,7 @@ namespace HiddenWallet.Tests
 					Task.Delay(1000).Wait();
 				}
 
-				var receive = walletJob.GetUnusedScriptPubKeys(account, HdPathType.Receive).FirstOrDefault();
+				var receive = walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive).FirstOrDefault();
 
 				IDictionary<Coin, bool> unspentCoins;
 				var bal = walletJob.GetBalance(out unspentCoins, account);
@@ -433,7 +433,7 @@ namespace HiddenWallet.Tests
 					Debug.WriteLine($"{record.TransactionId} {record.Amount} {record.Confirmed}");
 				}
 
-				var receive = walletJob.GetUnusedScriptPubKeys(account, HdPathType.Receive).FirstOrDefault();
+				var receive = walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive).FirstOrDefault();
 
 				IDictionary<Coin, bool> unspentCoins;
 				var bal = walletJob.GetBalance(out unspentCoins, account);
