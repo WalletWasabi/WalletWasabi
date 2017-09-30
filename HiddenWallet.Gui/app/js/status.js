@@ -19,6 +19,8 @@ function periodicUpdate() {
     setInterval(function statusUpdate() {
         let response = httpGetWallet("status");
 
+        updateDecryptButton(response.TorState);
+
         if (walletState === response.WalletState) {
             if (headerHeight === response.HeaderHeight) {
                 if (trackingHeight === response.TrackingHeight) {
@@ -81,28 +83,41 @@ function periodicUpdate() {
 
         if (torState.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
             statusShow(100, text, progressType);
-            if (document.getElementById("decrypt-wallet-button").innerText === "Waiting for Tor...") {
-                document.getElementById("decrypt-wallet-button").innerText = "Decrypt";
-            }
-            if (document.getElementById("decrypt-wallet-button").hasAttribute("disabled")) {
-                document.getElementById("decrypt-wallet-button").removeAttribute("disabled");                
-            }
         }
         if (torState.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
             statusShow(100, "Estabilishing Tor circuit...", progressType);
-            document.getElementById("decrypt-wallet-button").innerText = "Waiting for Tor...";
-            document.getElementById("decrypt-wallet-button").setAttribute("disabled");
         } 
         if (torState.toUpperCase() === "NotStarted".toUpperCase()) {
             statusShow(100, "Tor is not running", "danger");
-            document.getElementById("decrypt-wallet-button").innerText = "Waiting for Tor...";
-            document.getElementById("decrypt-wallet-button").setAttribute("disabled");
         }
-               
 
         if (response.ChangeBump !== changeBump) {
             updateWalletContent();
             changeBump = response.ChangeBump;
         }
     }, 1000);
+}
+
+function updateDecryptButton(ts) {
+    try {
+        if (ts.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
+            if (document.getElementById("decrypt-wallet-button").innerText === "Waiting for Tor...") {
+                document.getElementById("decrypt-wallet-button").innerText = "Decrypt";
+            }
+            if (document.getElementById("decrypt-wallet-button").hasAttribute("disabled")) {
+                document.getElementById("decrypt-wallet-button").removeAttribute("disabled");
+            }
+        }
+        if (ts.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
+            document.getElementById("decrypt-wallet-button").innerText = "Waiting for Tor...";
+            document.getElementById("decrypt-wallet-button").setAttribute("disabled");
+        }
+        if (ts.toUpperCase() === "NotStarted".toUpperCase()) {
+            document.getElementById("decrypt-wallet-button").innerText = "Waiting for Tor...";
+            document.getElementById("decrypt-wallet-button").setAttribute("disabled");
+        }
+    }
+    catch (err) {
+
+    }
 }
