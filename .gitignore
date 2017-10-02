@@ -253,3 +253,4 @@ tor
 /HiddenWallet/HiddenWallet.GUI/torchangelog.txt
 /HiddenWallet/HiddenWallet.API/torchangelog.txt
 /HiddenWallet.Gui/Config.json
+/HiddenWallet.Daemon/Config.json

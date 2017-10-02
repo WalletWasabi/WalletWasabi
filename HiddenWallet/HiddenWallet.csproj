@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <Folder Include="Extensions\" />
-    <Folder Include="KeyManagement\" />
     <Folder Include="WebClients\" />
   </ItemGroup>
 

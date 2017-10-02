@@ -1,9 +1,12 @@
-﻿using HiddenWallet.Models;
+﻿using ConcurrentCollections;
+using HiddenWallet.Models;
 using NBitcoin;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Collections.Concurrent;
 
 namespace HiddenWallet.KeyManagement
 {
@@ -24,6 +27,7 @@ namespace HiddenWallet.KeyManagement
             return GetBitcoinExtKey(index, hdPathType, account).PrivateKey.PubKey;
         }
 
+        ConcurrentDictionary<Tuple<AddressType, int, HdPathType, SafeAccount>, BitcoinAddress> SafeCache = new ConcurrentDictionary<Tuple<AddressType, int, HdPathType, SafeAccount>, BitcoinAddress>();
         // GetP2wpkh pubKey.WitHash.ScriptPubKey.GetDestinationAddress(Network);
         // GetP2pkhAddress pubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
         // GetP2shAddress pubKey.Hash.ScriptPubKey.GetScriptAddress(Network);
@@ -31,28 +35,35 @@ namespace HiddenWallet.KeyManagement
         // GetP2shOverP2wpkhAddress pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
         public BitcoinAddress GetAddress(AddressType type, int index, HdPathType hdPathType = HdPathType.Receive, SafeAccount account  = null)
         {
+            BitcoinAddress cachedAddress = SafeCache.FirstOrDefault(x => x.Key.Item1 == type && x.Key.Item2 == index && x.Key.Item3 == hdPathType && x.Key.Item4 == account).Value;
+            if (cachedAddress != null) return cachedAddress;
+
             PubKey pubKey = GetPubKey(index, hdPathType, account);
+            BitcoinAddress address = null;
             if (type == AddressType.Pay2WitnessPublicKeyHash)
             {
-                return pubKey.WitHash.ScriptPubKey.GetDestinationAddress(Network);
+                address= pubKey.WitHash.ScriptPubKey.GetDestinationAddress(Network);
             }
-            if (type == AddressType.Pay2PublicKeyHash)
+            else if (type == AddressType.Pay2PublicKeyHash)
             {
-                return pubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
+                address = pubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
             }
-            if (type == AddressType.Pay2ScriptHash)
+            else if (type == AddressType.Pay2ScriptHash)
             {
-                return pubKey.Hash.ScriptPubKey.GetScriptAddress(Network);
+                address = pubKey.Hash.ScriptPubKey.GetScriptAddress(Network);
             }
-            if (type == AddressType.Pay2WitnessScriptHash)
+            else if (type == AddressType.Pay2WitnessScriptHash)
             {
-                return pubKey.WitHash.ScriptPubKey.GetWitScriptAddress(Network);
+                address = pubKey.WitHash.ScriptPubKey.GetWitScriptAddress(Network);
             }
-            if (type == AddressType.Pay2ScriptHashOverPay2WitnessPublicKeyHash)
+            else if (type == AddressType.Pay2ScriptHashOverPay2WitnessPublicKeyHash)
             {
-                return pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
+                address = pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
             }
             else throw new NotSupportedException(type.ToString());
+
+            SafeCache.TryAdd(new Tuple<AddressType, int, HdPathType, SafeAccount>(type, index, hdPathType, account), address);
+            return address;
         }
 
         public IList<BitcoinAddress> GetFirstNAddresses(AddressType type, int addressCount, HdPathType hdPathType = HdPathType.Receive, SafeAccount account = null)
