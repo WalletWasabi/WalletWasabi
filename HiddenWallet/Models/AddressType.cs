@@ -8,8 +8,6 @@ namespace HiddenWallet.Models
     {
         Pay2PublicKeyHash,
         Pay2WitnessPublicKeyHash,
-        Pay2ScriptHash,
-        Pay2WitnessScriptHash,
         Pay2ScriptHashOverPay2WitnessPublicKeyHash
     }
 }

@@ -30,8 +30,6 @@ namespace HiddenWallet.KeyManagement
         ConcurrentDictionary<Tuple<AddressType, int, HdPathType, SafeAccount>, BitcoinAddress> SafeCache = new ConcurrentDictionary<Tuple<AddressType, int, HdPathType, SafeAccount>, BitcoinAddress>();
         // GetP2wpkh pubKey.WitHash.ScriptPubKey.GetDestinationAddress(Network);
         // GetP2pkhAddress pubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
-        // GetP2shAddress pubKey.Hash.ScriptPubKey.GetScriptAddress(Network);
-        // GetP2wshAddress pubKey.WitHash.ScriptPubKey.GetWitScriptAddress(Network);
         // GetP2shOverP2wpkhAddress pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
         public BitcoinAddress GetAddress(AddressType type, int index, HdPathType hdPathType = HdPathType.Receive, SafeAccount account  = null)
         {
@@ -47,14 +45,6 @@ namespace HiddenWallet.KeyManagement
             else if (type == AddressType.Pay2PublicKeyHash)
             {
                 address = pubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
-            }
-            else if (type == AddressType.Pay2ScriptHash)
-            {
-                address = pubKey.Hash.ScriptPubKey.GetScriptAddress(Network);
-            }
-            else if (type == AddressType.Pay2WitnessScriptHash)
-            {
-                address = pubKey.WitHash.ScriptPubKey.GetWitScriptAddress(Network);
             }
             else if (type == AddressType.Pay2ScriptHashOverPay2WitnessPublicKeyHash)
             {
