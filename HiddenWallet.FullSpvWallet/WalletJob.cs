@@ -1007,6 +1007,7 @@ namespace HiddenWallet.FullSpv
 					.Send(scriptPubKeyToSend, amountToSend)
 					.SetChange(changeScriptPubKey)
 					.SendFees(fee)
+                    .Shuffle()
 					.BuildTransaction(true);
 
 				if (!builder.Verify(tx))
