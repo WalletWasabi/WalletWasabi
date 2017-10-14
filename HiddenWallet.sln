@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HiddenWallet", "HiddenWallet\HiddenWallet.csproj", "{CC747037-7AAD-4EE4-A693-204C0E242DCC}"
 EndProject
@@ -11,9 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HiddenWallet.Tests", "Hidde
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HiddenWallet.Daemon", "HiddenWallet.Daemon\HiddenWallet.Daemon.csproj", "{C16708D4-7129-4D29-B28D-A07961296FD6}"
 EndProject
-Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "HiddenWallet.Gui", "HiddenWallet.GUI\HiddenWallet.Gui.njsproj", "{AA83AE28-4FD1-4064-B256-634091A8D738}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HiddenWallet.Packager", "HiddenWallet.Packager\HiddenWallet.Packager.csproj", "{F6A8A384-1CB9-4237-B115-ABC43C93AED2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HiddenWallet.Packager", "HiddenWallet.Packager\HiddenWallet.Packager.csproj", "{F6A8A384-1CB9-4237-B115-ABC43C93AED2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +35,6 @@ Global
 		{C16708D4-7129-4D29-B28D-A07961296FD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C16708D4-7129-4D29-B28D-A07961296FD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C16708D4-7129-4D29-B28D-A07961296FD6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AA83AE28-4FD1-4064-B256-634091A8D738}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AA83AE28-4FD1-4064-B256-634091A8D738}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AA83AE28-4FD1-4064-B256-634091A8D738}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AA83AE28-4FD1-4064-B256-634091A8D738}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F6A8A384-1CB9-4237-B115-ABC43C93AED2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F6A8A384-1CB9-4237-B115-ABC43C93AED2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6A8A384-1CB9-4237-B115-ABC43C93AED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
