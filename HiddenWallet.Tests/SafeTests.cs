@@ -40,7 +40,7 @@ namespace HiddenWallet.Tests
                     }
 
 					Assert.Equal(DateTimeOffset.UtcNow.Date, safe.CreationTime.Date);
-					Assert.True(Safe.EarliestPossibleCreationTime < safe.CreationTime);
+					Assert.InRange(safe.CreationTime, Safe.EarliestPossibleCreationTime, DateTimeOffset.UtcNow);
 					Assert.True(wantedCreation < recoverdSafe.CreationTime);
 					Assert.Equal(network, safe.Network);
 					Assert.Equal(network, loadedSafe.Network);
@@ -48,8 +48,8 @@ namespace HiddenWallet.Tests
 				}
 				finally
 				{
-					safe.Delete();
-					recoverdSafe.Delete();
+					safe?.Delete();
+					recoverdSafe?.Delete();
 				}
 			}
 		}
@@ -83,8 +83,8 @@ namespace HiddenWallet.Tests
 			}
 			finally
 			{
-				safe.Delete();
-				recoverdSafe.Delete();
+				safe?.Delete();
+				recoverdSafe?.Delete();
 			}
 		}
 	}

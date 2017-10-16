@@ -67,7 +67,7 @@ namespace System.Collections.ObjectModel
 		{
 			get
 			{
-                return TryGetValue(key, out TValue value) ? value : default(TValue);
+                return TryGetValue(key, out TValue value) ? value : default;
             }
 			set
 			{

@@ -53,18 +53,17 @@ namespace HiddenWallet.Tests
 			WalletJob.ConnectedNodeCountChanged += WalletJob_ConnectedNodeCountChanged;
 			walletJob.StateChanged += WalletJob_StateChanged;
 
-			Assert.True(walletJob.SafeAccounts.Count == 0);
-			Assert.True(WalletJob.ConnectedNodeCount == 0);
-			var allTxCount = (await walletJob.GetTrackerAsync()).TrackedTransactions.Count;
-			Assert.True(allTxCount == 0);
-			Assert.True(!(await walletJob.GetSafeHistoryAsync()).Any());
-			Assert.True(walletJob.State == WalletState.NotStarted);
+			Assert.Empty(walletJob.SafeAccounts);
+			Assert.Equal(0, WalletJob.ConnectedNodeCount);
+			Assert.Empty((await walletJob.GetTrackerAsync()).TrackedTransactions);
+			Assert.Empty(await walletJob.GetSafeHistoryAsync());
+			Assert.Equal(WalletState.NotStarted, walletJob.State);
 			Assert.True(walletJob.TracksDefaultSafe);
 
 			// start syncing
 			var cts = new CancellationTokenSource();
             var walletJobTask = walletJob.StartAsync(cts.Token);
-            Assert.True(walletJob.State != WalletState.NotStarted);
+            Assert.NotEqual(WalletState.NotStarted, walletJob.State);
 			Task reportTask = Helpers.ReportAsync(cts.Token, walletJob);
 
 			try
@@ -80,25 +79,28 @@ namespace HiddenWallet.Tests
                     await Task.Delay(1000);
 				}
 
-				Assert.True(walletJob.State == WalletState.Synced);
-				Assert.True(await walletJob.GetCreationHeightAsync() != Height.Unknown);
-				Assert.True((await walletJob.GetTrackerAsync()).TrackedTransactions.Count == 0);
-				Assert.True(!(await walletJob.GetSafeHistoryAsync()).Any());
+				Assert.Equal(WalletState.Synced, walletJob.State);
+				Assert.NotEqual(Height.Unknown, await walletJob.GetCreationHeightAsync());
+				Assert.Empty((await walletJob.GetTrackerAsync()).TrackedTransactions);
+				Assert.Empty(await walletJob.GetSafeHistoryAsync());
                 var headerHeightResult = await WalletJob.TryGetHeaderHeightAsync();
                 Assert.True(headerHeightResult.Success);
                 var expectedBlockCount = headerHeightResult.Height.Value - (await walletJob.GetCreationHeightAsync()).Value + 1;
-				Assert.True((await walletJob.GetTrackerAsync()).BlockCount == expectedBlockCount);
-				Assert.True((await walletJob.GetTrackerAsync()).TrackedScriptPubKeys.Count > 0);
-				Assert.True((await walletJob.GetTrackerAsync()).TrackedTransactions.Count == 0);
+				Assert.Equal(expectedBlockCount, (await walletJob.GetTrackerAsync()).BlockCount);
+				Assert.NotEmpty((await walletJob.GetTrackerAsync()).TrackedScriptPubKeys);
+				Assert.Empty((await walletJob.GetTrackerAsync()).TrackedTransactions);
 				
 			}
 			finally
 			{
-				cts.Cancel();
+				cts?.Cancel();
                 await Task.WhenAll(reportTask, walletJobTask);
 
 				WalletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChanged;
 				walletJob.StateChanged -= WalletJob_StateChanged;
+                cts?.Dispose();
+                reportTask?.Dispose();
+                walletJobTask?.Dispose();
 			}
 		}
 
@@ -159,21 +161,25 @@ namespace HiddenWallet.Tests
 				Debug.WriteLine($"Checking proper balance on {hasMoneyAddress.ToString()}");
 
 				var record = (await walletJob.GetSafeHistoryAsync()).FirstOrDefault();
-				Assert.True(record != default(WalletHistoryRecord));
+				Assert.NotEqual(default, record);
 
 				Assert.True(record.Confirmed);
-				Assert.True(record.Amount == new Money(0.1m, MoneyUnit.BTC));
+				Assert.Equal(new Money(0.1m, MoneyUnit.BTC), record.Amount);
                 DateTimeOffset.TryParse("2017.03.06. 16:47:15 +00:00", out DateTimeOffset expTime);
-                Assert.True(record.TimeStamp == expTime);
-				Assert.True(record.TransactionId == new uint256("50898694f281ed059fa6b9d37ccf099ab261540be14fd43ce1a6d6684fbd4e94"));
+                Assert.Equal(expTime, record.TimeStamp);
+                var expectedId = new uint256("50898694f281ed059fa6b9d37ccf099ab261540be14fd43ce1a6d6684fbd4e94");
+                Assert.Equal(expectedId, record.TransactionId);
 			}
 			finally
 			{
-				cts.Cancel();
+				cts?.Cancel();
                 await Task.WhenAll(reportTask, walletJobTask);
 
 				WalletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChanged;
 				walletJob.StateChanged -= WalletJob_StateChanged;
+                cts?.Dispose();
+                reportTask?.Dispose();
+                walletJobTask?.Dispose();
 			}
 		}
 
@@ -269,18 +275,21 @@ namespace HiddenWallet.Tests
 				{
 					if (!qBitFoundItToo.Contains(record))
 					{
-                        Assert.False(qBitHistoryRecords.Any(x => x.TxId == record.TransactionId));
+                        Assert.DoesNotContain(qBitHistoryRecords, x => x.TxId == record.TransactionId);
 						Debug.WriteLine($@"QBitNinja failed to find, but SPV found it: {record.TimeStamp.DateTime}	{record.Amount}	{record.Confirmed}		{record.TransactionId}");
 					}
 				}
 			}
 			finally
 			{
-				cts.Cancel();
+				cts?.Cancel();
                 await Task.WhenAll(reportTask, walletJobTask);
 
 				WalletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChanged;
 				walletJob.StateChanged -= WalletJob_StateChanged;
+                cts?.Dispose();
+                reportTask?.Dispose();
+                walletJobTask?.Dispose();
 			}
 		}
 	}

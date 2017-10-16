@@ -898,7 +898,7 @@ namespace HiddenWallet.FullSpv
 				// 2. Find all coins I can spend from the account
 				// 3. How much money we can spend?
 				Debug.WriteLine("Calculating available amount...");
-                var getBalanceResult = await GetBalanceAsync();
+                var getBalanceResult = await GetBalanceAsync(account);
                 var unspentCoins = getBalanceResult.UnspentCoins;
                 AvailableAmount balance = getBalanceResult.Available;
 				Money spendableConfirmedAmount = balance.Confirmed;

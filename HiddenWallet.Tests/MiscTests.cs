@@ -61,7 +61,7 @@ namespace HiddenWallet.Tests
 			dict.AddOrReplace(1, "boo");
 			dict.Remove(dict.First(x => x.Value == "moo"));
 
-			Assert.True(dict.Values.All(x => x == "boo"));
+			Assert.DoesNotContain(dict.Values, x => x != "boo");
 			Assert.Equal(5, times);
 		}
 

@@ -42,7 +42,7 @@ namespace HiddenWallet.FullSpv
 	    public bool TryGetAndRemoveOldest(out Height height, out Block block)
 	    {
 		    height = Height.Unknown;
-		    block = default(Block);
+		    block = default;
 		    if(_blocks.Count == 0) return false;
 
 			height = _blocks.Keys.Min();

@@ -53,13 +53,13 @@ namespace HiddenWallet.Tests
 
 			try
 			{
-				// wait until blocks are synced
-				while (walletJob.State <= WalletState.SyncingMemPool)
-				{
-					await Task.Delay(1000);
-				}
+                // wait until blocks are synced
+                while (walletJob.State <= WalletState.SyncingMemPool)
+                {
+                    await Task.Delay(1000);
+                }
 
-                foreach(var r in await walletJob.GetSafeHistoryAsync(account))
+                foreach (var r in await walletJob.GetSafeHistoryAsync(account))
                 {
                     Debug.WriteLine(r.TransactionId);
                 }
@@ -77,7 +77,7 @@ namespace HiddenWallet.Tests
 					allowUnconfirmed: true);
 
 				Assert.True(res.Success);
-				Assert.True(res.FailingReason == "");
+				Assert.Empty(res.FailingReason);
 				Debug.WriteLine($"Fee: {res.Fee}");
 				Debug.WriteLine($"FeePercentOfSent: {res.FeePercentOfSent} %");
 				Debug.WriteLine($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
@@ -90,7 +90,7 @@ namespace HiddenWallet.Tests
 					if(output.ScriptPubKey == receive)
 					{
 						foundReceive = true;
-						Assert.True(amountToSend == output.Value);
+						Assert.Equal(amountToSend, output.Value);
 					}
 				}
 				Assert.True(foundReceive);
@@ -102,7 +102,7 @@ namespace HiddenWallet.Tests
                 
 				var sendRes = await walletJob.SendTransactionAsync(res.Transaction);
 				Assert.True(sendRes.Success);
-				Assert.True(sendRes.FailingReason == "");
+				Assert.Empty(sendRes.FailingReason);
 
 				while (_txProbArrived == false)
 				{
@@ -111,7 +111,7 @@ namespace HiddenWallet.Tests
 				}
 
 				Debug.WriteLine("TrackedTransactions collection changed");
-				Assert.True((await walletJob.GetTrackerAsync()).TrackedTransactions.Any(x => x.Transaction.GetHash() == res.Transaction.GetHash()));
+				Assert.Contains((await walletJob.GetTrackerAsync()).TrackedTransactions, x => x.Transaction.GetHash() == res.Transaction.GetHash());
 				Debug.WriteLine("Transaction arrived");
 			}
 			finally
@@ -189,7 +189,7 @@ namespace HiddenWallet.Tests
 					allowUnconfirmed: true);
 
 				Assert.True(resLow.Success);
-				Assert.True(resLow.FailingReason == "");
+				Assert.Empty(resLow.FailingReason);
 				Debug.WriteLine($"Fee: {resLow.Fee}");
 				Debug.WriteLine($"FeePercentOfSent: {resLow.FeePercentOfSent} %");
 				Debug.WriteLine($"SpendsUnconfirmed: {resLow.SpendsUnconfirmed}");
@@ -202,7 +202,7 @@ namespace HiddenWallet.Tests
 					if (output.ScriptPubKey == receive)
 					{
 						foundReceive = true;
-						Assert.True(amountToSend == output.Value);
+						Assert.Equal(amountToSend, output.Value);
 					}
 				}
 				Assert.True(foundReceive);
@@ -215,7 +215,7 @@ namespace HiddenWallet.Tests
 					allowUnconfirmed: true);
 
 				Assert.True(resMedium.Success);
-				Assert.True(resMedium.FailingReason == "");
+				Assert.Empty(resMedium.FailingReason);
 				Debug.WriteLine($"Fee: {resMedium.Fee}");
 				Debug.WriteLine($"FeePercentOfSent: {resMedium.FeePercentOfSent} %");
 				Debug.WriteLine($"SpendsUnconfirmed: {resMedium.SpendsUnconfirmed}");
@@ -228,7 +228,7 @@ namespace HiddenWallet.Tests
 					if (output.ScriptPubKey == receive)
 					{
 						foundReceive = true;
-						Assert.True(amountToSend == output.Value);
+						Assert.Equal(amountToSend, output.Value);
 					}
 				}
 				Assert.True(foundReceive);
@@ -241,7 +241,7 @@ namespace HiddenWallet.Tests
 					allowUnconfirmed: true);
 
 				Assert.True(resHigh.Success);
-				Assert.True(resHigh.FailingReason == "");
+				Assert.Empty(resHigh.FailingReason);
 				Debug.WriteLine($"Fee: {resHigh.Fee}");
 				Debug.WriteLine($"FeePercentOfSent: {resHigh.FeePercentOfSent} %");
 				Debug.WriteLine($"SpendsUnconfirmed: {resHigh.SpendsUnconfirmed}");
@@ -254,15 +254,15 @@ namespace HiddenWallet.Tests
 					if (output.ScriptPubKey == receive)
 					{
 						foundReceive = true;
-						Assert.True(amountToSend == output.Value);
+						Assert.Equal(amountToSend, output.Value);
 					}
 				}
 				Assert.True(foundReceive);
 
-				#endregion
+                #endregion
 
-				Assert.True(resLow.Fee <= resMedium.Fee);
-				Assert.True(resMedium.Fee <= resHigh.Fee);
+                Assert.InRange(resLow.Fee, Money.Zero, resMedium.Fee);
+                Assert.InRange(resMedium.Fee, resLow.Fee, resHigh.Fee);
 
                 _txProbArrived = false;
                 _prevCount = (await walletJob.GetTrackerAsync()).TrackedTransactions.Count;
@@ -271,7 +271,7 @@ namespace HiddenWallet.Tests
 
                 var sendRes = await walletJob.SendTransactionAsync(resHigh.Transaction);
 				Assert.True(sendRes.Success);
-				Assert.True(sendRes.FailingReason == "");
+				Assert.Empty(sendRes.FailingReason);
 
 				while (_txProbArrived == false)
 				{
@@ -280,7 +280,7 @@ namespace HiddenWallet.Tests
 				}
 
 				Debug.WriteLine("TrackedTransactions collection changed");
-				Assert.True((await walletJob.GetTrackerAsync()).TrackedTransactions.Any(x => x.Transaction.GetHash() == resHigh.Transaction.GetHash()));
+				Assert.Contains((await walletJob.GetTrackerAsync()).TrackedTransactions, x => x.Transaction.GetHash() == resHigh.Transaction.GetHash());
 				Debug.WriteLine("Transaction arrived");
 			}
 			finally
@@ -341,7 +341,7 @@ namespace HiddenWallet.Tests
 					allowUnconfirmed: true);
 
 				Assert.True(res.Success);
-				Assert.True(res.FailingReason == "");
+				Assert.Empty(res.FailingReason);
 				Debug.WriteLine($"Fee: {res.Fee}");
 				Debug.WriteLine($"FeePercentOfSent: {res.FeePercentOfSent} %");
 				Debug.WriteLine($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
@@ -354,7 +354,7 @@ namespace HiddenWallet.Tests
 					if (output.ScriptPubKey == receive)
 					{
 						foundReceive = true;
-						Assert.True(bal.Confirmed + bal.Unconfirmed - res.Fee == output.Value);
+						Assert.Equal(bal.Confirmed + bal.Unconfirmed - res.Fee, output.Value);
 					}
 				}
 				Assert.True(foundReceive);
@@ -366,7 +366,7 @@ namespace HiddenWallet.Tests
 
                 var sendRes = await walletJob.SendTransactionAsync(res.Transaction);
 				Assert.True(sendRes.Success);
-				Assert.True(sendRes.FailingReason == "");
+				Assert.Empty(sendRes.FailingReason);
 
 				while (_txProbArrived == false)
 				{
@@ -375,7 +375,7 @@ namespace HiddenWallet.Tests
 				}
 
 				Debug.WriteLine("TrackedTransactions collection changed");
-				Assert.True((await walletJob.GetTrackerAsync()).TrackedTransactions.Any(x => x.Transaction.GetHash() == res.Transaction.GetHash()));
+				Assert.Contains((await walletJob.GetTrackerAsync()).TrackedTransactions, x => x.Transaction.GetHash() == res.Transaction.GetHash());
 				Debug.WriteLine("Transaction arrived");
 			}
 			finally
@@ -442,16 +442,16 @@ namespace HiddenWallet.Tests
                 Money amountToSend = (bal.Confirmed + bal.Unconfirmed) - new Money(1m, MoneyUnit.Satoshi);
 				var res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
 					allowUnconfirmed: true);
-				Assert.True(res.Success == false);
-				Assert.True(res.FailingReason != "");
+				Assert.False(res.Success);
+				Assert.NotEmpty(res.FailingReason);
 				Debug.WriteLine($"Expected FailingReason: {res.FailingReason}");
 
 				// That's not how you spend all
 				amountToSend = (bal.Confirmed + bal.Unconfirmed);
 				res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
 					allowUnconfirmed: true);
-				Assert.True(res.Success == false);
-				Assert.True(res.FailingReason != "");
+				Assert.False(res.Success);
+				Assert.NotEmpty(res.FailingReason);
 				Debug.WriteLine($"Expected FailingReason: {res.FailingReason}");
 
 				// Too much
@@ -466,8 +466,8 @@ namespace HiddenWallet.Tests
 				amountToSend = new Money(-1m, MoneyUnit.BTC);
 				res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
 					allowUnconfirmed: true);
-				Assert.True(res.Success == false);
-				Assert.True(res.FailingReason != "");
+				Assert.False(res.Success);
+				Assert.NotEmpty(res.FailingReason);
 				Debug.WriteLine($"Expected FailingReason: {res.FailingReason}");
 
 				// Default account is disabled
@@ -482,9 +482,12 @@ namespace HiddenWallet.Tests
 			}
 			finally
 			{
-				cts.Cancel();
+				cts?.Cancel();
 				await Task.WhenAll(reportTask, walletJobTask);
-			}
+                cts?.Dispose();
+                reportTask?.Dispose();
+                walletJobTask?.Dispose();
+            }
 		}
 	}
 }
