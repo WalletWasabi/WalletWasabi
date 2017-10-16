@@ -10,7 +10,7 @@ namespace System.Net.Sockets
     {
         public static async Task ConnectAsync(this Socket me, EndPoint remoteEP, CancellationToken cancel)
         {
-            await me.ConnectAsync(remoteEP).WithCancellation(cancel).ConfigureAwait(false);
+            await me.ConnectAsync(remoteEP).WithCancellation(cancel);
         }
     }
 }

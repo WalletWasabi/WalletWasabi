@@ -31,29 +31,30 @@ namespace HiddenWallet.Tests
 			    if (ctsToken.IsCancellationRequested) return;
 			    try
 			    {
-				    await Task.Delay(1000, ctsToken).ContinueWith(t => { }).ConfigureAwait(false);
+				    await Task.Delay(1000, ctsToken).ContinueWith(t => { });
 
-				    Height currHeaderHeight;
-				    if(WalletJob.TryGetHeaderHeight(out currHeaderHeight))
-				    {
-					    // HEADERCHAIN
-					    if(currHeaderHeight.Type == HeightType.Chain
-							&& (_prevHeaderHeight == Height.Unknown || currHeaderHeight > _prevHeaderHeight))
-					    {
-						    Debug.WriteLine($"HeaderChain height: {currHeaderHeight}");
-						    _prevHeaderHeight = currHeaderHeight;
-					    }
+                    var result = await WalletJob.TryGetHeaderHeightAsync();
+                    var currHeaderHeight = result.Height;
+                    if (result.Success)
+                    {
+                        // HEADERCHAIN
+                        if (currHeaderHeight.Type == HeightType.Chain
+                            && (_prevHeaderHeight == Height.Unknown || currHeaderHeight > _prevHeaderHeight))
+                        {
+                            Debug.WriteLine($"HeaderChain height: {currHeaderHeight}");
+                            _prevHeaderHeight = currHeaderHeight;
+                        }
 
-					    // TRACKER
-					    var currHeight = walletJob.BestHeight;
-					    if(currHeight.Type == HeightType.Chain
-							&& (_prevHeight == Height.Unknown || currHeight > _prevHeight))
-					    {
-						    Debug.WriteLine($"Tracker height: {currHeight} left: {currHeaderHeight.Value - currHeight.Value}");
-						    _prevHeight = currHeight;
-					    }
-				    }
-			    }
+                        // TRACKER
+                        var currHeight = await walletJob.GetBestHeightAsync();
+                        if (currHeight.Type == HeightType.Chain
+                            && (_prevHeight == Height.Unknown || currHeight > _prevHeight))
+                        {
+                            Debug.WriteLine($"Tracker height: {currHeight} left: {currHeaderHeight.Value - currHeight.Value}");
+                            _prevHeight = currHeight;
+                        }
+                    }
+                }
 			    catch
 			    {
 				    // ignored
@@ -69,11 +70,11 @@ namespace HiddenWallet.Tests
 			    var t2 = QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.Change);
 			    var t3 = QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.NonHardened);
 
-			    await Task.WhenAll(t1, t2, t3).ConfigureAwait(false);
+			    await Task.WhenAll(t1, t2, t3);
 
-			    Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await t1.ConfigureAwait(false);
-			    Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await t2.ConfigureAwait(false);
-			    Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerNonHardenedAddresses = await t3.ConfigureAwait(false);
+			    Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await t1;
+			    Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await t2;
+			    Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerNonHardenedAddresses = await t3;
 
 			    var operationsPerAllAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
 			    foreach (var elem in operationsPerReceiveAddresses)
@@ -103,7 +104,7 @@ namespace HiddenWallet.Tests
 
             var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
 		    var unusedKeyCount = 0;
-		    foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses).ConfigureAwait(false))
+		    foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses))
 		    {
 			    operationsPerAddresses.Add(elem.Key, elem.Value);
 			    if (elem.Value.Count == 0) unusedKeyCount++;
@@ -128,7 +129,7 @@ namespace HiddenWallet.Tests
                     }
 				    //addresses.Add(FakeData.FakeSafe.GetAddress(i));
 			    }
-			    foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses).ConfigureAwait(false))
+			    foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses))
 			    {
 				    operationsPerAddresses.Add(elem.Key, elem.Value);
 				    if (elem.Value.Count == 0) unusedKeyCount++;
@@ -148,7 +149,7 @@ namespace HiddenWallet.Tests
 		    var addressList = addresses.ToList();
 		    var balanceModelList = new List<BalanceModel>();
 
-		    foreach (var balance in await GetBalancesAsync(client, addressList, unspentOnly: false).ConfigureAwait(false))
+		    foreach (var balance in await GetBalancesAsync(client, addressList, unspentOnly: false))
 		    {
 			    balanceModelList.Add(balance);
 		    }
@@ -163,33 +164,18 @@ namespace HiddenWallet.Tests
 
 	    public static async Task<IEnumerable<BalanceModel>> GetBalancesAsync(QBitNinjaClient client, IEnumerable<BitcoinAddress> addresses, bool unspentOnly)
 	    {
-			//var tasks = new HashSet<Task<BalanceModel>>();
-			//foreach (var dest in addresses)
-			//{
-			// var task = client.GetBalance(dest, unspentOnly);
-
-			// tasks.Add(task);
-			//}
-
-			//await Task.WhenAll(tasks).ConfigureAwait(false);
-
-			//var results = new HashSet<BalanceModel>();
-			//foreach (var task in tasks)
-			// results.Add(await task.ConfigureAwait(false));
-
-			//return results;
 			var results = new HashSet<BalanceModel>();
 			foreach (var dest in addresses)
 			{
-				results.Add(await client.GetBalance(dest, unspentOnly).ConfigureAwait(false));
+				results.Add(await client.GetBalance(dest, unspentOnly));
 			}
 
 			return results;
 		}
 
-	    public static void ReportFullHistory(WalletJob walletJob)
+	    public static async Task ReportFullHistoryAsync(WalletJob walletJob)
 	    {
-		    var history = walletJob.GetSafeHistory();
+		    var history = await walletJob.GetSafeHistoryAsync();
 		    if (!history.Any())
 		    {
 			    Debug.WriteLine("Wallet has no history...");

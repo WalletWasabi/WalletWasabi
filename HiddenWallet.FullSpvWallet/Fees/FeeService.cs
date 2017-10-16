@@ -45,7 +45,7 @@ namespace HiddenWallet.FullSpv.Fees
             while (_firstRun)
             {
                 ctsToken.ThrowIfCancellationRequested();
-                await Task.Delay(100, ctsToken).ContinueWith(t => { }).ConfigureAwait(false);
+                await Task.Delay(100, ctsToken).ContinueWith(t => { });
             }
             ctsToken.ThrowIfCancellationRequested();
 
@@ -65,15 +65,15 @@ namespace HiddenWallet.FullSpv.Fees
             {
                 try
                 {
-                    await Semaphore.WaitAsync(ctsToken).ConfigureAwait(false);
+                    await Semaphore.WaitAsync(ctsToken);
                     if (ctsToken.IsCancellationRequested) return;
 
                     if (TorControlPortClient != null)
                     {
-                        await TorControlPortClient.ChangeCircuitAsync(ctsToken).ConfigureAwait(false);
+                        await TorControlPortClient.ChangeCircuitAsync(ctsToken);
                     }
 
-                    var generalInfo = await BlockCypherClient.GetGeneralInformationAsync(ctsToken).ConfigureAwait(false);
+                    var generalInfo = await BlockCypherClient.GetGeneralInformationAsync(ctsToken);
 
                     _lowFee = generalInfo.LowFee;
                     _mediumFee = generalInfo.MediumFee;
@@ -100,7 +100,7 @@ namespace HiddenWallet.FullSpv.Fees
                 }
 
                 var waitMinutes = new Random().Next(3, 10);
-                await Task.Delay(TimeSpan.FromMinutes(waitMinutes), ctsToken).ContinueWith(t => { }).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromMinutes(waitMinutes), ctsToken).ContinueWith(t => { });
             }
         }
 

@@ -27,13 +27,13 @@ namespace HiddenWallet.KeyManagement
             return GetBitcoinExtKey(index, hdPathType, account).PrivateKey.PubKey;
         }
 
-        ConcurrentDictionary<Tuple<AddressType, int, HdPathType, SafeAccount>, BitcoinAddress> SafeCache = new ConcurrentDictionary<Tuple<AddressType, int, HdPathType, SafeAccount>, BitcoinAddress>();
+        ConcurrentDictionary<(AddressType Type, int Index, HdPathType HdPathType, SafeAccount Account), BitcoinAddress> SafeCache = new ConcurrentDictionary<(AddressType Type, int Index, HdPathType HdPathType, SafeAccount Account), BitcoinAddress>();
         // GetP2wpkh pubKey.WitHash.ScriptPubKey.GetDestinationAddress(Network);
         // GetP2pkhAddress pubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
         // GetP2shOverP2wpkhAddress pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
         public BitcoinAddress GetAddress(AddressType type, int index, HdPathType hdPathType = HdPathType.Receive, SafeAccount account  = null)
         {
-            BitcoinAddress cachedAddress = SafeCache.FirstOrDefault(x => x.Key.Item1 == type && x.Key.Item2 == index && x.Key.Item3 == hdPathType && x.Key.Item4 == account).Value;
+            BitcoinAddress cachedAddress = SafeCache.FirstOrDefault(x => x.Key.Type == type && x.Key.Index == index && x.Key.HdPathType == hdPathType && x.Key.Account == account).Value;
             if (cachedAddress != null) return cachedAddress;
 
             PubKey pubKey = GetPubKey(index, hdPathType, account);
@@ -51,8 +51,8 @@ namespace HiddenWallet.KeyManagement
                 address = pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
             }
             else throw new NotSupportedException(type.ToString());
-
-            SafeCache.TryAdd(new Tuple<AddressType, int, HdPathType, SafeAccount>(type, index, hdPathType, account), address);
+            
+            SafeCache.TryAdd((type, index, hdPathType, account), address);
             return address;
         }
 

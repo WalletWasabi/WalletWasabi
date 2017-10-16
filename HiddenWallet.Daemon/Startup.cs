@@ -35,12 +35,12 @@ namespace HiddenWallet.Daemon
 			app.UseMvc();
 
 			var applicationLifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
-			applicationLifetime.ApplicationStopping.Register(OnShutdown);
+			applicationLifetime.ApplicationStopping.Register(OnShutdownAsync);
 		}
 
-		private void OnShutdown()
+		private async void OnShutdownAsync()
 		{
-			Global.WalletWrapper.EndAsync().Wait();
+			await Global.WalletWrapper.EndAsync();
 		}
 	}
 }

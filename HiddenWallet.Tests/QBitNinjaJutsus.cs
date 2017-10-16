@@ -78,11 +78,11 @@ namespace HiddenWallet.Tests
 				var t2 = QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.Change);
 				var t3 = QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.NonHardened);
 
-				await Task.WhenAll(t1, t2, t3).ConfigureAwait(false);
+				await Task.WhenAll(t1, t2, t3);
 
-				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await t1.ConfigureAwait(false);
-				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await t2.ConfigureAwait(false);
-				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerNonHardenedAddresses = await t3.ConfigureAwait(false);
+				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await t1;
+				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await t2;
+				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerNonHardenedAddresses = await t3;
 
 				var operationsPerAllAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
 				foreach (var elem in operationsPerReceiveAddresses)
@@ -112,7 +112,7 @@ namespace HiddenWallet.Tests
 
 			var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
 			var unusedKeyCount = 0;
-			foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses).ConfigureAwait(false))
+			foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses))
 			{
 				operationsPerAddresses.Add(elem.Key, elem.Value);
 				if (elem.Value.Count == 0) unusedKeyCount++;
@@ -137,7 +137,7 @@ namespace HiddenWallet.Tests
                     }
                     //addresses.Add(FakeData.FakeSafe.GetAddress(i));
                 }
-				foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses).ConfigureAwait(false))
+				foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses))
 				{
 					operationsPerAddresses.Add(elem.Key, elem.Value);
 					if (elem.Value.Count == 0) unusedKeyCount++;
@@ -157,7 +157,7 @@ namespace HiddenWallet.Tests
 			var addressList = addresses.ToList();
 			var balanceModelList = new List<BalanceModel>();
 
-			foreach (var balance in await GetBalancesAsync(client, addressList, unspentOnly: false).ConfigureAwait(false))
+			foreach (var balance in await GetBalancesAsync(client, addressList, unspentOnly: false))
 			{
 				balanceModelList.Add(balance);
 			}
@@ -180,11 +180,11 @@ namespace HiddenWallet.Tests
 				tasks.Add(task);
 			}
 
-			await Task.WhenAll(tasks).ConfigureAwait(false);
+			await Task.WhenAll(tasks);
 
 			var results = new HashSet<BalanceModel>();
 			foreach (var task in tasks)
-				results.Add(await task.ConfigureAwait(false));
+				results.Add(await task);
 
 			return results;
 		}

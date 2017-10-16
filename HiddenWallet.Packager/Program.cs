@@ -11,7 +11,7 @@ namespace HiddenWallet.Packager
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var packagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
             var daemonProjectDirectory = Path.Combine(packagerProjectDirectory, "..\\HiddenWallet.Daemon");
@@ -47,7 +47,7 @@ namespace HiddenWallet.Packager
                 var currDistDir = Path.Combine(daemonProjectDirectory, "bin\\dist", target);
                 if (Directory.Exists(currDistDir))
                 {
-                    DeleteDirectoryRecursively(currDistDir);
+                    await DeleteDirectoryRecursivelyAsync(currDistDir);
                 }
                 Directory.CreateDirectory(currDistDir);
 
@@ -55,7 +55,7 @@ namespace HiddenWallet.Packager
                 Console.WriteLine("Replacing tor...");
                 if (Directory.Exists(torFolderPath))
                 {
-                    DeleteDirectoryRecursively(torFolderPath);
+                    await DeleteDirectoryRecursivelyAsync(torFolderPath);
                 }
                 try
                 {
@@ -63,7 +63,7 @@ namespace HiddenWallet.Packager
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    Task.Delay(100);
+                    await Task.Delay(100);
                     ZipFile.ExtractToDirectory(Path.Combine(packagerProjectDirectory, "tor.zip"), currDistDir);
                 }
 
@@ -80,7 +80,7 @@ namespace HiddenWallet.Packager
             var distDir = Path.Combine(solutionDirectory, "dist");
             if (Directory.Exists(distDir))
             {
-                DeleteDirectoryRecursively(distDir);
+                await DeleteDirectoryRecursivelyAsync(distDir);
             }
 
             var psiNpmRunDist = new ProcessStartInfo
@@ -111,16 +111,16 @@ namespace HiddenWallet.Packager
                 CloneDirectory(apiTargetDir, currTargDir);
 
                 ZipFile.CreateFromDirectory(currentDistributionDirectory, currentDistributionDirectory + ".zip", CompressionLevel.Optimal, true);
-                DeleteDirectoryRecursively(currentDistributionDirectory);
+                await DeleteDirectoryRecursivelyAsync(currentDistributionDirectory);
             }
 
-            DeleteDirectoryRecursively(Path.Combine(distDir, "win-unpacked"));
+            await DeleteDirectoryRecursivelyAsync(Path.Combine(distDir, "win-unpacked"));
 
             Console.WriteLine("Finished. Press key to exit...");
             Console.ReadKey();
         }
 
-        private static void DeleteDirectoryRecursively(string directory)
+        private static async Task DeleteDirectoryRecursivelyAsync(string directory)
         {
             try
             {
@@ -128,7 +128,7 @@ namespace HiddenWallet.Packager
             }
             catch (IOException)
             {
-                Task.Delay(100);
+                await Task.Delay(100);
                 if (Directory.Exists(directory))
                 {
                     DeleteDirectoryIfExists(directory, true);

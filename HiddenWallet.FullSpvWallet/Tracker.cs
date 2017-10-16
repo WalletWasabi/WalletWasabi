@@ -269,7 +269,7 @@ namespace HiddenWallet.FullSpv
 		private static readonly byte[] blockSep = new byte[] { 0x10, 0x1A, 0x7B, 0x23, 0x5D, 0x12, 0x7D };
 		public async Task SaveAsync(string trackerFolderPath)
 		{
-			await Saving.WaitAsync().ConfigureAwait(false);
+			await Saving.WaitAsync();
 			try
 			{
 				if (TrackedScriptPubKeys.Count > 0 || TrackedTransactions.Count > 0 || MerkleChain.Count > 0)
@@ -307,12 +307,12 @@ namespace HiddenWallet.FullSpv
 					using(FileStream stream = File.OpenWrite(path))
 					{
 						var toFile = MerkleChain.First().ToBytes();
-						await stream.WriteAsync(toFile, 0, toFile.Length).ConfigureAwait(false);
+						await stream.WriteAsync(toFile, 0, toFile.Length);
 						foreach(var block in MerkleChain.Skip(1))
 						{
-							await stream.WriteAsync(blockSep, 0, blockSep.Length).ConfigureAwait(false);
+							await stream.WriteAsync(blockSep, 0, blockSep.Length);
 							var blockBytes = block.ToBytes();
-							await stream.WriteAsync(blockBytes, 0, blockBytes.Length).ConfigureAwait(false);
+							await stream.WriteAsync(blockBytes, 0, blockBytes.Length);
 						}
 					}
 				}
@@ -325,7 +325,7 @@ namespace HiddenWallet.FullSpv
 
 		public async Task LoadAsync(string trackerFolderPath)
 		{
-			await Saving.WaitAsync().ConfigureAwait(false);
+			await Saving.WaitAsync();
 			try
 			{
 				if (!Directory.Exists(trackerFolderPath))

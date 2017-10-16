@@ -38,7 +38,7 @@ namespace HiddenWallet.FullSpv
 			while (!DownloadedBlocks.ContainsKey(height))
 			{
 				if (ctsToken.IsCancellationRequested) return null;
-				await Task.Delay(100, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
+				await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
 			}
 
 			if (ctsToken.IsCancellationRequested) return null;
@@ -51,7 +51,7 @@ namespace HiddenWallet.FullSpv
 		{
 			while (WalletJob.ConnectedNodeCount < 3)
 			{
-				await Task.Delay(100, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
+				await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
 				if (ctsToken.IsCancellationRequested) return;
 			}
 
@@ -61,7 +61,7 @@ namespace HiddenWallet.FullSpv
 				StartDownloadingWithIteratingAync(ctsToken)
 			};
 
-			await Task.WhenAll(tasks).ConfigureAwait(false);
+			await Task.WhenAll(tasks);
 		}
 
 		private IPEndPoint _fastestNodeEndPoint;
@@ -77,7 +77,7 @@ namespace HiddenWallet.FullSpv
 
 					Node fastestNode = WalletJob.Nodes.ConnectedNodes.FirstOrDefault(x => x.RemoteSocketEndpoint.Equals(_fastestNodeEndPoint));
 					if (fastestNode == default(Node)) continue;
-					await DownloadNextBlocks(fastestNode, ctsToken, 3).ConfigureAwait(false);
+					await DownloadNextBlocks(fastestNode, ctsToken, 3);
 				}
 				catch (Exception ex)
 				{
@@ -94,11 +94,11 @@ namespace HiddenWallet.FullSpv
 			var heights = new List<Height>();
 			try
 			{
-				await _sem.WaitAsync(ctsToken).ConfigureAwait(false);
+				await _sem.WaitAsync(ctsToken);
 
 				if (BlocksToDownload.Count == 0)
 				{
-					await Task.Delay(100, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
+					await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
 					return;
 				}
 
@@ -124,7 +124,7 @@ namespace HiddenWallet.FullSpv
 				var headers = new HashSet<ChainedBlock>();
 				foreach(var height in heights)
 				{
-					WalletJob.TryGetHeader(height, out ChainedBlock neededHeader);
+					var neededHeader = await WalletJob.TryGetHeaderAsync(height);
 					headers.Add(neededHeader);
 				}
 
@@ -135,7 +135,7 @@ namespace HiddenWallet.FullSpv
 				HashSet<Block> blocks = null;
 				try
 				{
-					blocks = new HashSet<Block>(await Task.Run(() => node.GetBlocks(headers.ToArray(), downloadCtsToken)).ConfigureAwait(false));
+					blocks = new HashSet<Block>(await Task.Run(() => node.GetBlocks(headers.ToArray(), downloadCtsToken)));
 				}
 				catch
 				{
@@ -167,7 +167,7 @@ namespace HiddenWallet.FullSpv
 			{
 				try
 				{
-					await _sem.WaitAsync(ctsToken).ConfigureAwait(false);
+					await _sem.WaitAsync(ctsToken);
 
 					foreach (var height in heights)
 					{
@@ -211,7 +211,7 @@ namespace HiddenWallet.FullSpv
 						}
 						if (downloadTasks.Count >= 2)
 						{
-							await Task.WhenAny(downloadTasks).ConfigureAwait(false);
+							await Task.WhenAny(downloadTasks);
 						}
 						RemoveCompletedTasks(downloadTasks);
 					}

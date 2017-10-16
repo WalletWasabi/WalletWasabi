@@ -15,7 +15,7 @@ namespace HiddenWallet.Daemon
 {
 	public class Program
 	{
-		public static void Main(string[] args)
+		public static async Task Main(string[] args)
 		{
 			var endPoint = "http://localhost:37120/";
 			var alreadyRunning = false;
@@ -23,7 +23,7 @@ namespace HiddenWallet.Daemon
 			{
 				try
 				{
-					client.GetAsync(endPoint + "api/v1/wallet/test").Wait();
+					await client.GetAsync(endPoint + "api/v1/wallet/test");
 					alreadyRunning = true;
 				}
 				catch
@@ -50,7 +50,7 @@ namespace HiddenWallet.Daemon
 				try
 				{
 					// if doesn't fail tor is already running with the control port
-					Tor.ControlPortClient.IsCircuitEstabilishedAsync().Wait();
+					await Tor.ControlPortClient.IsCircuitEstabilishedAsync();
 					Debug.WriteLine($"Tor is already running, using the existing instance.");
 				}
 				catch
@@ -78,7 +78,7 @@ namespace HiddenWallet.Daemon
 					.UseUrls(endPoint)
 					.Build();
 
-				host.Run();
+				await host.RunAsync();
 			}
 			else
 			{

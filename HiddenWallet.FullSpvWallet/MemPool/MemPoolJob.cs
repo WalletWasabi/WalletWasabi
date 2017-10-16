@@ -46,11 +46,11 @@ namespace HiddenWallet.FullSpv.MemPool
 					if (ShouldNotRunYet)
 					{
 						_notNeededTransactions.Clear(); // should not grow infinitely
-						await Task.Delay(100, ctsToken).ContinueWith(t => { }).ConfigureAwait(false);
+						await Task.Delay(100, ctsToken).ContinueWith(t => { });
 						continue;
 					}
 
-					var currentMemPoolTransactions = await UpdateAsync(ctsToken).ConfigureAwait(false);
+					var currentMemPoolTransactions = await UpdateAsync(ctsToken);
 					if (ctsToken.IsCancellationRequested) return;
 
 					// Clear the transactions from the previous cycle
@@ -63,7 +63,7 @@ namespace HiddenWallet.FullSpv.MemPool
 					}
 					OnSynced();
 
-					await Task.Delay(TimeSpan.FromMinutes(3), ctsToken).ContinueWith(t => { }).ConfigureAwait(false);
+					await Task.Delay(TimeSpan.FromMinutes(3), ctsToken).ContinueWith(t => { });
 				}
 				catch (OperationCanceledException)
 				{
@@ -95,7 +95,7 @@ namespace HiddenWallet.FullSpv.MemPool
 					sw.Start();
 					var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 					var ctsTokenGetMempool = CancellationTokenSource.CreateLinkedTokenSource(ctsToken, timeout.Token);
-					var txidsOfNode = await Task.Run(() => node.GetMempool(ctsTokenGetMempool.Token)).ConfigureAwait(false);
+					var txidsOfNode = await Task.Run(() => node.GetMempool(ctsTokenGetMempool.Token));
 					sw.Stop();
 					Debug.WriteLine($"GetMempool(), txs: {txidsOfNode.Count()}, secs: {sw.Elapsed.TotalSeconds}");
 					if (ShouldNotRunYet) break;
@@ -121,7 +121,7 @@ namespace HiddenWallet.FullSpv.MemPool
 						sw.Restart();
 						_getMempoolTransactionsTimeoutSource = new CancellationTokenSource(TimeSpan.FromSeconds(_getMempoolTransactionsTimeoutSec));
 						var ctsTokenGetMempoolTransactions = CancellationTokenSource.CreateLinkedTokenSource(ctsToken, _getMempoolTransactionsTimeoutSource.Token);
-						Transaction[] txsPiece = await Task.Run(() => node.GetMempoolTransactions(txIdsPiece.ToArray(), ctsTokenGetMempoolTransactions.Token)).ConfigureAwait(false);
+						Transaction[] txsPiece = await Task.Run(() => node.GetMempoolTransactions(txIdsPiece.ToArray(), ctsTokenGetMempoolTransactions.Token));
 						sw.Stop();
 						Debug.WriteLine($"GetMempoolTransactions(), asked txs: {txIdsPiece.Count()}, actual txs: {txsPiece.Count()}, secs: {sw.Elapsed.TotalSeconds}");
 						

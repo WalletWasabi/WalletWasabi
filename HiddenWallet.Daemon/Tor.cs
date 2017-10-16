@@ -34,7 +34,7 @@ namespace HiddenWallet.Daemon
 
 					try
 					{
-						var estabilished = await ControlPortClient.IsCircuitEstabilishedAsync().WithTimeout(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
+						var estabilished = await ControlPortClient.IsCircuitEstabilishedAsync().WithTimeout(TimeSpan.FromSeconds(3));
 						if (ctsToken.IsCancellationRequested) return;
 
 						if (estabilished)
@@ -52,7 +52,7 @@ namespace HiddenWallet.Daemon
 						{
 							// Tor messed up something internally, this sometimes happens when it creates new datadir (at first launch)
 							// Restarting to solves the issue
-							await RestartAsync().ConfigureAwait(false);
+							await RestartAsync();
 						}
 						if (ctsToken.IsCancellationRequested) return;
 					}					
@@ -68,7 +68,7 @@ namespace HiddenWallet.Daemon
 					return;
 				}
 				var wait = TimeSpan.FromSeconds(3);
-				await Task.Delay(wait, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
+				await Task.Delay(wait, ctsToken).ContinueWith(tsk => { });
 			}
 		}
 		
@@ -76,7 +76,7 @@ namespace HiddenWallet.Daemon
 		{
 			Kill();
 			
-			await Task.Delay(3000).ContinueWith(tsk => { }).ConfigureAwait(false);
+			await Task.Delay(3000).ContinueWith(tsk => { });
 
 			try
 			{

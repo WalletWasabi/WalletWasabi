@@ -33,30 +33,27 @@ namespace HiddenWallet.FullSpv
 		public bool TracksDefaultSafe { get; private set; }
 		public ConcurrentHashSet<SafeAccount> SafeAccounts { get; private set; }
 
-		public QBitNinjaClient TorQBitClient { get; }
-		public QBitNinjaClient NoTorQBitClient { get; }
-		public HttpClient TorHttpClient { get; }
-		public DotNetTor.ControlPort.Client ControlPortClient { get; }
+		public QBitNinjaClient TorQBitClient { get; private set; }
+		public QBitNinjaClient NoTorQBitClient { get; private set; }
+		public HttpClient TorHttpClient { get; private set; }
+		public DotNetTor.ControlPort.Client ControlPortClient { get; private set; }
 
 		public BlockDownloader BlockDownloader;
 
 		public FeeService FeeService;
 
 		private Height _creationHeight;
-		public Height CreationHeight
+		public async Task<Height> GetCreationHeightAsync()
 		{
-			get
-			{
-				// it's enough to estimate once
-				if (_creationHeight != Height.Unknown) return _creationHeight;
-				else return _creationHeight = FindSafeCreationHeight();
-			}
-		}
-		private Height FindSafeCreationHeight()
+            // it's enough to estimate once
+            if (_creationHeight != Height.Unknown) return _creationHeight;
+            else return _creationHeight = await FindSafeCreationHeightAsync();
+        }
+		private async Task<Height> FindSafeCreationHeightAsync()
 		{
 			try
 			{
-				var currTip = HeaderChain.Tip;
+				var currTip = (await GetHeaderChainAsync()).Tip;
 				var currTime = currTip.Header.BlockTime;
 
 				// the chain didn't catch up yet
@@ -82,7 +79,11 @@ namespace HiddenWallet.FullSpv
 			}
 		}
 
-		public Height BestHeight => HeaderChain.Height < Tracker.BestHeight ? Height.Unknown : Tracker.BestHeight;
+        public async Task<Height> GetBestHeightAsync()
+        {
+            var tracker = (await GetTrackerAsync());
+            return (await GetHeaderChainAsync()).Height < tracker.BestHeight ? Height.Unknown : tracker.BestHeight;
+        }
 		public event EventHandler BestHeightChanged;
 		private void OnBestHeightChanged() => BestHeightChanged?.Invoke(this, EventArgs.Empty);
 
@@ -129,9 +130,7 @@ namespace HiddenWallet.FullSpv
 		private string _trackerFolderPath => Path.Combine(WorkFolderPath, Safe.UniqueId);
 
 		private Tracker _tracker;
-		public Tracker Tracker => GetTrackerAsync().Result;
-		// This async getter is for clean exception handling
-		private async Task<Tracker> GetTrackerAsync()
+		public async Task<Tracker> GetTrackerAsync()
 		{
 			// if already in memory return it
 			if (_tracker != null) return _tracker;
@@ -140,8 +139,8 @@ namespace HiddenWallet.FullSpv
 			_tracker = new Tracker(Safe.Network);
 			try
 			{
-				await _tracker.LoadAsync(_trackerFolderPath).ConfigureAwait(false);
-				EnsureNoMissingRelevantBlocks();
+				await _tracker.LoadAsync(_trackerFolderPath);
+				await EnsureNoMissingRelevantBlocksAsync();
 			}
 			catch
 			{
@@ -152,38 +151,36 @@ namespace HiddenWallet.FullSpv
 			return _tracker;
 		}
 
-		private static AddressManager AddressManager
+        private static AddressManager _addressManager;        
+		public static async Task<AddressManager> GetAddressManagerAsync()
 		{
-			get
+			if (_connectionParameters != null)
 			{
-				if (_connectionParameters != null)
+				foreach (var behavior in _connectionParameters.TemplateBehaviors)
 				{
-					foreach (var behavior in _connectionParameters.TemplateBehaviors)
-					{
-						if (behavior is AddressManagerBehavior addressManagerBehavior)
-							return addressManagerBehavior.AddressManager;
-					}
+					if (behavior is AddressManagerBehavior addressManagerBehavior)
+						return addressManagerBehavior.AddressManager;
 				}
-				SemaphoreSave.Wait();
-				try
-				{
-					return AddressManager.LoadPeerFile(_addressManagerFilePath);
-				}
-				catch
-				{
-					return new AddressManager();
-				}
-				finally
-				{
-					SemaphoreSave.Release();
-				}
+			}
+			await SemaphoreSave.WaitAsync();
+			try
+			{
+				return AddressManager.LoadPeerFile(_addressManagerFilePath);
+			}
+			catch
+			{
+				return new AddressManager();
+			}
+			finally
+			{
+				SemaphoreSave.Release();
 			}
 		}
 
-		public static int GetBlockConfirmations(uint256 blockId)
+		public static async Task<int> GetBlockConfirmationsAsync(uint256 blockId)
 		{
 			var height = 0;
-			foreach(var header in HeaderChain.ToEnumerable(fromTip: true))
+			foreach(var header in (await GetHeaderChainAsync()).ToEnumerable(fromTip: true))
 			{
 				if(header.HashBlock == blockId)
 				{
@@ -193,38 +190,41 @@ namespace HiddenWallet.FullSpv
 			return height;
 		}
 
-		private static ConcurrentChain HeaderChain
+        private static ConcurrentChain _headerChain;
+		private static async Task<ConcurrentChain> GetHeaderChainAsync()
 		{
-			get
-			{
-				if (_connectionParameters != null)
-					foreach (var behavior in _connectionParameters.TemplateBehaviors)
-					{
-						if (behavior is ChainBehavior chainBehavior)
-							return chainBehavior.Chain;
-					}
-				var chain = new ConcurrentChain(CurrentNetwork);
-				SemaphoreSave.Wait();
-				try
-				{
-					chain.Load(File.ReadAllBytes(_headerChainFilePath));
-				}
-				catch
-				{
-					// ignored
-				}
-				finally
-				{
-					SemaphoreSave.Release();
-				}
+            if (_connectionParameters != null)
+                foreach (var behavior in _connectionParameters.TemplateBehaviors)
+                {
+                    if (behavior is ChainBehavior chainBehavior)
+                        return chainBehavior.Chain;
+                }
+            var chain = new ConcurrentChain(CurrentNetwork);
+            await SemaphoreSave.WaitAsync();
+            try
+            {
+                chain.Load(await File.ReadAllBytesAsync(_headerChainFilePath));
+            }
+            catch
+            {
+                // ignored
+            }
+            finally
+            {
+                SemaphoreSave.Release();
+            }
 
-				return chain;
-			}
-		}
+            return chain;
+        }
 
-		#endregion
+        #endregion
 
-		public WalletJob(SocksPortHandler handler, DotNetTor.ControlPort.Client controlPortClient, Safe safeToTrack, bool trackDefaultSafe = true, params SafeAccount[] accountsToTrack)
+        public WalletJob()
+        {
+
+        }
+
+		public async Task InitializeAsync(SocksPortHandler handler, DotNetTor.ControlPort.Client controlPortClient, Safe safeToTrack, bool trackDefaultSafe = true, params SafeAccount[] accountsToTrack)
 		{
 			_creationHeight = Height.Unknown;
 			_tracker = null;
@@ -257,19 +257,16 @@ namespace HiddenWallet.FullSpv
 
 			Directory.CreateDirectory(WorkFolderPath);
 
-			Tracker.TrackedTransactions.CollectionChanged += delegate
-			{
-				UpdateSafeTracking();
-			};
-
+            (await GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
+          
 			_connectionParameters = new NodeConnectionParameters();
 			//So we find nodes faster
-			_connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(AddressManager));
+			_connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(await GetAddressManagerAsync()));
 			//So we don't have to load the chain each time we start
-			_connectionParameters.TemplateBehaviors.Add(new ChainBehavior(HeaderChain));
+			_connectionParameters.TemplateBehaviors.Add(new ChainBehavior(await GetHeaderChainAsync()));
 			_connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior());
 
-			UpdateSafeTracking();
+			await UpdateSafeTrackingAsync();
 
 			Nodes = new NodesGroup(Safe.Network, _connectionParameters,
 				new NodeRequirement
@@ -279,39 +276,63 @@ namespace HiddenWallet.FullSpv
 				});
 			Nodes.NodeConnectionParameters = _connectionParameters;
 
-			MemPoolJob.Synced += delegate
-			{
-				State = WalletState.Synced;
+            MemPoolJob.Synced += MemPoolJob_SyncedAsync;
 
-				var trackedMemPoolTransactions = Tracker.TrackedTransactions.Where(x => x.Height == Height.MemPool);
-				foreach (var tx in trackedMemPoolTransactions)
-				{
-					// If we are tracking a tx that is malleated or fall out of mempool (too long to confirm) then stop tracking
-					if (!MemPoolJob.Transactions.Contains(tx.GetHash()))
-					{
-						Tracker.TrackedTransactions.TryRemove(tx);
-						Debug.WriteLine($"Transaction fall out of MemPool: {tx.GetHash()}");
-					}
-				}
+            MemPoolJob.NewTransaction += MemPoolJob_NewTransactionAsync;
 
-				Debug.WriteLine("MemPool updated");
-			};
+            Nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
+            Nodes.ConnectedNodes.Added += ConnectedNodes_Added;
 
-			MemPoolJob.NewTransaction += (s, e) =>
-			{
-				if (Tracker.ProcessTransaction(new SmartTransaction(e.Transaction, Height.MemPool)))
-				{
-					UpdateSafeTracking();
-				}
-			};
-
-			Nodes.ConnectedNodes.Removed += delegate { OnConnectedNodeCountChanged(); };
-			Nodes.ConnectedNodes.Added += delegate { OnConnectedNodeCountChanged(); };
-
-			Tracker.BestHeightChanged += delegate { OnBestHeightChanged(); };
+            (await GetTrackerAsync()).BestHeightChanged += WalletJob_BestHeightChanged;
 		}
 
-		public async Task StartAsync(CancellationToken ctsToken)
+        private async void TrackedTransactions_CollectionChangedAsync(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            await UpdateSafeTrackingAsync();
+        }
+
+        private void WalletJob_BestHeightChanged(object sender, EventArgs e)
+        {
+            OnBestHeightChanged();
+        }
+
+        private void ConnectedNodes_Added(object sender, NodeEventArgs e)
+        {
+            OnConnectedNodeCountChanged();
+        }
+
+        private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
+        {
+            OnConnectedNodeCountChanged();
+        }
+
+        private async void MemPoolJob_NewTransactionAsync(object sender, NewTransactionEventArgs e)
+        {
+            if ((await GetTrackerAsync()).ProcessTransaction(new SmartTransaction(e.Transaction, Height.MemPool)))
+            {
+                await UpdateSafeTrackingAsync();
+            }
+        }
+
+        private async void MemPoolJob_SyncedAsync(object sender, EventArgs e)
+        {
+            State = WalletState.Synced;
+
+            var trackedMemPoolTransactions = (await GetTrackerAsync()).TrackedTransactions.Where(x => x.Height == Height.MemPool);
+            foreach (var tx in trackedMemPoolTransactions)
+            {
+                // If we are tracking a tx that is malleated or fall out of mempool (too long to confirm) then stop tracking
+                if (!MemPoolJob.Transactions.Contains(tx.GetHash()))
+                {
+                    (await GetTrackerAsync()).TrackedTransactions.TryRemove(tx);
+                    Debug.WriteLine($"Transaction fall out of MemPool: {tx.GetHash()}");
+                }
+            }
+
+            Debug.WriteLine("MemPool updated");
+        }
+
+        public async Task StartAsync(CancellationToken ctsToken)
 		{
 			State = WalletState.SyncingHeaders;
 			Nodes.Connect();
@@ -327,35 +348,41 @@ namespace HiddenWallet.FullSpv
 				FeeService.StartAsync(ctsToken)
 			};
 
-			await Task.WhenAll(tasks).ConfigureAwait(false);
+			await Task.WhenAll(tasks);
 
 			State = WalletState.NotStarted;
-			await SaveAllChangedAsync().ConfigureAwait(false);
+            (await GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
+            MemPoolJob.Synced -= MemPoolJob_SyncedAsync;
+            MemPoolJob.NewTransaction -= MemPoolJob_NewTransactionAsync;
+            Nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
+            Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
+            (await GetTrackerAsync()).BestHeightChanged -= WalletJob_BestHeightChanged;
+            await SaveAllChangedAsync();
 			Nodes.Dispose();
-		}
+        }
 
 		#region SafeTracking
 
 		// BIP44 specifies default 20, altough we don't use BIP44, let's be somewhat consistent
 		public int MaxCleanAddressCount { get; set; } = 20;
-		private void UpdateSafeTracking()
+		private async Task UpdateSafeTrackingAsync()
 		{
-			UpdateSafeTrackingByHdPathType(HdPathType.Receive);
-			UpdateSafeTrackingByHdPathType(HdPathType.Change);
-			UpdateSafeTrackingByHdPathType(HdPathType.NonHardened);
+            await UpdateSafeTrackingByHdPathTypeAsync(HdPathType.Receive);
+            await UpdateSafeTrackingByHdPathTypeAsync(HdPathType.Change);
+            await UpdateSafeTrackingByHdPathTypeAsync(HdPathType.NonHardened);
 		}
 
-		private void UpdateSafeTrackingByHdPathType(HdPathType hdPathType)
+		private async Task UpdateSafeTrackingByHdPathTypeAsync(HdPathType hdPathType)
 		{
-			if (TracksDefaultSafe) UpdateSafeTrackingByPath(hdPathType);
+			if (TracksDefaultSafe) await UpdateSafeTrackingByPathAsync(hdPathType);
 
 			foreach (var acc in SafeAccounts)
 			{
-				UpdateSafeTrackingByPath(hdPathType, acc);
+				await UpdateSafeTrackingByPathAsync(hdPathType, acc);
 			}
 		}
 
-        private void UpdateSafeTrackingByPath(HdPathType hdPathType, SafeAccount account = null)
+        private async Task UpdateSafeTrackingByPathAsync(HdPathType hdPathType, SafeAccount account = null)
         {
             var addressTypes = new HashSet<AddressType>
             {
@@ -370,10 +397,10 @@ namespace HiddenWallet.FullSpv
                 {
                     Script scriptPubkey = account == null ? Safe.GetAddress(addressType, i, hdPathType).ScriptPubKey : Safe.GetAddress(addressType, i, hdPathType, account).ScriptPubKey;
 
-                    Tracker.TrackedScriptPubKeys.Add(scriptPubkey);
+                    (await GetTrackerAsync()).TrackedScriptPubKeys.Add(scriptPubkey);
 
                     // if clean elevate cleancount and if max reached don't look for more
-                    if (Tracker.IsClean(scriptPubkey))
+                    if ((await GetTrackerAsync()).IsClean(scriptPubkey))
                     {
                         cleanCount++;
                         if (cleanCount > MaxCleanAddressCount) break;
@@ -393,29 +420,31 @@ namespace HiddenWallet.FullSpv
 		/// </summary>
 		/// <param name="account">if null then default safe, if doesn't contain, then exception</param>
 		/// <returns></returns>
-		public IEnumerable<WalletHistoryRecord> GetSafeHistory(SafeAccount account = null)
+		public async Task<IEnumerable<WalletHistoryRecord>> GetSafeHistoryAsync(SafeAccount account = null)
 		{
 			AssertAccount(account);
 
 			var safeHistory = new HashSet<WalletHistoryRecord>();
 
-			var transactions = GetAllChainAndMemPoolTransactionsBySafeAccount(account);
-			var scriptPubKeys = GetTrackedScriptPubKeysBySafeAccount(account);
+			var transactions = await GetAllChainAndMemPoolTransactionsBySafeAccountAsync(account);
+			var scriptPubKeys = await GetTrackedScriptPubKeysBySafeAccountAsync(account);
 
 			foreach (SmartTransaction transaction in transactions)
 			{
-                WalletHistoryRecord record = new WalletHistoryRecord();
-				record.TransactionId = transaction.GetHash();
-				record.BlockHeight = transaction.Height;
+                WalletHistoryRecord record = new WalletHistoryRecord
+                {
+                    TransactionId = transaction.GetHash(),
+                    BlockHeight = transaction.Height,
 
-				record.TimeStamp = !transaction.Confirmed
-					? transaction.GetFirstSeenIfMemPoolHeight() ?? DateTimeOffset.UtcNow
-					: HeaderChain.GetBlock(transaction.Height).Header.BlockTime;
+                    TimeStamp = !transaction.Confirmed
+                    ? transaction.GetFirstSeenIfMemPoolHeight() ?? DateTimeOffset.UtcNow
+                    : (await GetHeaderChainAsync()).GetBlock(transaction.Height).Header.BlockTime,
 
-				record.Amount = Money.Zero; //for now
+                    Amount = Money.Zero //for now
+                };
 
-				// how much came to our scriptpubkeys
-				foreach (var output in transaction.Transaction.Outputs)
+                // how much came to our scriptpubkeys
+                foreach (var output in transaction.Transaction.Outputs)
 				{
 					if (scriptPubKeys.Contains(output.ScriptPubKey))
 						record.Amount += output.Value;
@@ -457,15 +486,17 @@ namespace HiddenWallet.FullSpv
 			}
 		}
 
-		public HashSet<SmartTransaction> GetAllChainAndMemPoolTransactionsBySafeAccount(SafeAccount account = null)
+		public async Task<HashSet<SmartTransaction>> GetAllChainAndMemPoolTransactionsBySafeAccountAsync(SafeAccount account = null)
 		{
-			HashSet<Script> trackedScriptPubkeys = GetTrackedScriptPubKeysBySafeAccount(account);
+			HashSet<Script> trackedScriptPubkeys = await GetTrackedScriptPubKeysBySafeAccountAsync(account);
 			var foundTransactions = new HashSet<SmartTransaction>();
 
 			foreach (var spk in trackedScriptPubkeys)
 			{
-
-				if (TryFindAllChainAndMemPoolTransactions(spk, out HashSet<SmartTransaction> rec, out HashSet<SmartTransaction> spent))
+                var result = await TryFindAllChainAndMemPoolTransactionsAsync(spk);
+                var rec = result.ReceivedTransactions;
+                var spent = result.SpentTransactions;
+                if (result.Success)
 				{
 					foreach (var tx in rec)
 					{
@@ -481,9 +512,9 @@ namespace HiddenWallet.FullSpv
 			return foundTransactions;
 		}
 
-		public HashSet<Script> GetTrackedScriptPubKeysBySafeAccount(SafeAccount account = null)
+		public async Task<HashSet<Script>> GetTrackedScriptPubKeysBySafeAccountAsync(SafeAccount account = null)
         {
-            var maxTracked = Tracker.TrackedScriptPubKeys.Count;
+            var maxTracked = (await GetTrackerAsync()).TrackedScriptPubKeys.Count;
             var allPossiblyTrackedAddresses = new HashSet<BitcoinAddress>();
 
             var addressTypes = new HashSet<AddressType>
@@ -510,7 +541,7 @@ namespace HiddenWallet.FullSpv
             var actuallyTrackedScriptPubKeys = new HashSet<Script>();
             foreach (var address in allPossiblyTrackedAddresses)
             {
-                if (Tracker.TrackedScriptPubKeys.Any(x => x == address.ScriptPubKey))
+                if ((await GetTrackerAsync()).TrackedScriptPubKeys.Any(x => x == address.ScriptPubKey))
                     actuallyTrackedScriptPubKeys.Add(address.ScriptPubKey);
             }
 
@@ -524,13 +555,13 @@ namespace HiddenWallet.FullSpv
 		/// <param name="receivedTransactions">int: block height</param>
 		/// <param name="spentTransactions">int: block height</param>
 		/// <returns></returns>
-		public bool TryFindAllChainAndMemPoolTransactions(Script scriptPubKey, out HashSet<SmartTransaction> receivedTransactions, out HashSet<SmartTransaction> spentTransactions)
+		public async Task<(bool Success, HashSet<SmartTransaction> ReceivedTransactions, HashSet<SmartTransaction> SpentTransactions)> TryFindAllChainAndMemPoolTransactionsAsync(Script scriptPubKey)
 		{
 			var found = false;
-			receivedTransactions = new HashSet<SmartTransaction>();
-			spentTransactions = new HashSet<SmartTransaction>();
+			var receivedTransactions = new HashSet<SmartTransaction>();
+			var spentTransactions = new HashSet<SmartTransaction>();
 
-			foreach (var tx in Tracker.TrackedTransactions)
+			foreach (var tx in (await GetTrackerAsync()).TrackedTransactions)
 			{
 				// if already has that tx continue
 				if (receivedTransactions.Any(x => x.GetHash() == tx.GetHash()))
@@ -548,7 +579,7 @@ namespace HiddenWallet.FullSpv
 
 			if (found)
 			{
-				foreach (var tx in Tracker.TrackedTransactions)
+				foreach (var tx in (await GetTrackerAsync()).TrackedTransactions)
 				{
 					// if already has that tx continue
 					if (spentTransactions.Any(x => x.GetHash() == tx.GetHash()))
@@ -565,43 +596,40 @@ namespace HiddenWallet.FullSpv
 				}
 			}
 
-			return found;
+			return (found, receivedTransactions, spentTransactions);
 		}
 
-		public static bool TryGetHeader(Height height, out ChainedBlock header)
+		public static async Task<ChainedBlock> TryGetHeaderAsync(Height height)
 		{
-			header = null;
+			ChainedBlock header = null;
 			try
 			{
 				if (_connectionParameters == null)
-					return false;
+					return null;
 
-				header = HeaderChain.GetBlock(height);
-
-				if (header == null)
-					return false;
-				else return true;
+				header = (await GetHeaderChainAsync()).GetBlock(height);				
 			}
 			catch
 			{
-				return false;
+                header = null;
 			}
+            return header;
 		}
 
-		public static bool TryGetHeaderHeight(out Height height)
+		public static async Task<(bool Success, Height Height)> TryGetHeaderHeightAsync()
 		{
-			height = Height.Unknown;
+			var height = Height.Unknown;
 			try
 			{
 				if (_connectionParameters == null)
-					return false;
+					return (false, height);
 
-				height = new Height(HeaderChain.Height);
-				return true;
+				height = new Height((await GetHeaderChainAsync()).Height);
+				return (true, height);
 			}
 			catch
 			{
-				return false;
+				return (false, height);
 			}
 		}
 
@@ -619,23 +647,23 @@ namespace HiddenWallet.FullSpv
 
 					// the headerchain didn't catch up to the creationheight yet
 					if (Nodes.ConnectedNodes.Count < 3 || // at this condition it might catched up already, neverthless don't progress further
-						CreationHeight == Height.Unknown || HeaderChain.Height < CreationHeight)
+						(await GetCreationHeightAsync()) == Height.Unknown || (await GetHeaderChainAsync()).Height < (await GetCreationHeightAsync()))
 					{
 						State = WalletState.SyncingHeaders;
-						await Task.Delay(100, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
+						await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
 						continue;
 					}
 
 					Height height;
-					Height trackerBestHeight = Tracker.BestHeight;
+					Height trackerBestHeight = (await GetTrackerAsync()).BestHeight;
 					var downloadMissing = false;
-					if (Tracker.BlockCount == 0)
+					if ((await GetTrackerAsync()).BlockCount == 0)
 					{
-						height = CreationHeight;
+						height = await GetCreationHeightAsync();
 					}
 					else if (trackerBestHeight.Type != HeightType.Chain)
 					{
-						await Task.Delay(100, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
+						await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
 						continue;
 					}
 					else if (_missingBlocks.Count() != 0)
@@ -645,13 +673,13 @@ namespace HiddenWallet.FullSpv
 					}
 					else
 					{
-						Height unprocessedBlockBestHeight = Tracker.UnprocessedBlockBuffer.BestHeight;
+						Height unprocessedBlockBestHeight = (await GetTrackerAsync()).UnprocessedBlockBuffer.BestHeight;
 						// if no blocks to download (or process) start syncing mempool
-						if (HeaderChain.Height <= trackerBestHeight)
+						if ((await GetHeaderChainAsync()).Height <= trackerBestHeight)
 						{
 							State = MemPoolJob.SyncedOnce ? WalletState.Synced : WalletState.SyncingMemPool;
 							MemPoolJob.Enabled = true;
-							await Task.Delay(100, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
+							await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
 							continue;
 						}
 						// else sync blocks
@@ -664,11 +692,11 @@ namespace HiddenWallet.FullSpv
 							// wait until they get processed
 							if ((
 									unprocessedBlockBestHeight.Type == HeightType.Chain
-									&& (HeaderChain.Height <= unprocessedBlockBestHeight)
+									&& ((await GetHeaderChainAsync()).Height <= unprocessedBlockBestHeight)
 								)
-								|| Tracker.UnprocessedBlockBuffer.Full)
+								|| (await GetTrackerAsync()).UnprocessedBlockBuffer.Full)
 							{
-								await Task.Delay(100, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
+								await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
 								continue;
 							}
 							// else figure out the next block's height to download
@@ -681,7 +709,7 @@ namespace HiddenWallet.FullSpv
 								// should not happen at this point, but better to check
 								if (trackerBestHeight.Type != HeightType.Chain)
 								{
-									await Task.Delay(100, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
+									await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
 									continue;
 								}
 
@@ -700,17 +728,17 @@ namespace HiddenWallet.FullSpv
 					}
 					else
 					{
-						lookAheadHeight = new Height(HeaderChain.Height);
+						lookAheadHeight = new Height((await GetHeaderChainAsync()).Height);
 					}
 
-					var block = await BlockDownloader.TakeBlockAsync(firstHeight, lookAheadHeight, ctsToken).ConfigureAwait(false);
+					var block = await BlockDownloader.TakeBlockAsync(firstHeight, lookAheadHeight, ctsToken);
 
 					if (ctsToken.IsCancellationRequested) return;
 
 					if (block == null)
 					{
 						// should not happen
-						await Task.Delay(1000).ConfigureAwait(false);
+						await Task.Delay(1000);
 						continue;
 					}
 
@@ -718,14 +746,14 @@ namespace HiddenWallet.FullSpv
 
 					// if the hash of the downloaded block is not the same as the header's
 					// if the proof of work and merkle root isn't valid
-					if (HeaderChain.GetBlock(height).HashBlock != block.GetHash()
+					if ((await GetHeaderChainAsync()).GetBlock(height).HashBlock != block.GetHash()
 						|| !block.Check())
 					{
-						Reorg();
+						await ReorgAsync();
 						continue;
 					}
 
-					Tracker.AddOrReplaceBlock(height, block);
+                    (await GetTrackerAsync()).AddOrReplaceBlock(height, block);
 					MemPoolJob.RemoveTransactions(block.Transactions.Select(x => x.GetHash()));
 
 					if (downloadMissing)
@@ -744,18 +772,18 @@ namespace HiddenWallet.FullSpv
 
 		// keep it int for better performance
 		private ConcurrentHashSet<int> _missingBlocks = new ConcurrentHashSet<int>();
-		private void EnsureNoMissingRelevantBlocks()
+		private async Task EnsureNoMissingRelevantBlocksAsync()
 		{
 			// must be this complicated for performance
 			var neededHeights = new HashSet<int>();
-			foreach (var h in Tracker.TrackedTransactions
+			foreach (var h in (await GetTrackerAsync()).TrackedTransactions
 				.Where(x => x.Height.Type == HeightType.Chain)
 				.Select(x => x.Height))
 			{
 				neededHeights.Add(h.Value);
 			}
 
-			foreach (var h in Tracker.MerkleChain.Select(x => x.Height.Value))
+			foreach (var h in (await GetTrackerAsync()).MerkleChain.Select(x => x.Height.Value))
 			{
 				if (neededHeights.Contains(h))
 				{
@@ -768,12 +796,12 @@ namespace HiddenWallet.FullSpv
 			}
 		}
 
-		private void Reorg()
+		private async Task ReorgAsync()
 		{
 			BlockDownloader.Clear();
-			HeaderChain.SetTip(HeaderChain.Tip.Previous);
-			Tracker.ReorgOne();
-			SaveAllChangedAsync().Wait();
+			(await GetHeaderChainAsync()).SetTip((await GetHeaderChainAsync()).Tip.Previous);
+            (await GetTrackerAsync()).ReorgOne();
+			await SaveAllChangedAsync();
 		}
 		#endregion
 
@@ -786,9 +814,9 @@ namespace HiddenWallet.FullSpv
 				{
 					if (ctsToken.IsCancellationRequested) return;
 
-					await SaveAllChangedAsync().ConfigureAwait(false);
+					await SaveAllChangedAsync();
 
-					await Task.Delay(delay, ctsToken).ContinueWith(tsk => { }).ConfigureAwait(false);
+					await Task.Delay(delay, ctsToken).ContinueWith(tsk => { });
 				}
 				catch (Exception ex)
 				{
@@ -803,19 +831,19 @@ namespace HiddenWallet.FullSpv
 
 		private async Task SaveAllChangedAsync()
 		{
-			await SemaphoreSave.WaitAsync().ConfigureAwait(false);
+			await SemaphoreSave.WaitAsync();
 			try
 			{
-				AddressManager.SavePeerFile(_addressManagerFilePath, Safe.Network);
+				(await GetAddressManagerAsync()).SavePeerFile(_addressManagerFilePath, Safe.Network);
 				Debug.WriteLine($"Saved {nameof(AddressManager)}");
 
 				if (_connectionParameters != null)
 				{
-					var headerHeight = new Height(HeaderChain.Height);
+					var headerHeight = new Height((await GetHeaderChainAsync()).Height);
 					if (_savedHeaderHeight == Height.Unknown || headerHeight > _savedHeaderHeight)
 					{
-						SaveHeaderChain();
-						Debug.WriteLine($"Saved {nameof(HeaderChain)} at height: {headerHeight}");
+						await SaveHeaderChainAsync();
+						Debug.WriteLine($"Saved HeaderChain at height: {headerHeight}");
 						_savedHeaderHeight = headerHeight;
 					}
 				}
@@ -825,23 +853,23 @@ namespace HiddenWallet.FullSpv
 				SemaphoreSave.Release();
 			}
 
-			var bestHeight = BestHeight;
-			var trackerBlockCount = Tracker.BlockCount;
+			var bestHeight = await GetBestHeightAsync();
+			var trackerBlockCount = (await GetTrackerAsync()).BlockCount;
 			if (bestHeight.Type == HeightType.Chain
 				&& (_savedTrackerBlockCount == -1
 					|| trackerBlockCount > _savedTrackerBlockCount))
 			{
-				await Tracker.SaveAsync(_trackerFolderPath).ConfigureAwait(false);
+				await (await GetTrackerAsync()).SaveAsync(_trackerFolderPath);
 				Debug.WriteLine($"Saved {nameof(Tracker)} at height: {bestHeight} and block count: {trackerBlockCount}");
 				_savedTrackerBlockCount = trackerBlockCount;
 			}
 		}
 
-		private static void SaveHeaderChain()
+		private static async Task SaveHeaderChainAsync()
 		{
 			using (var fs = File.Open(_headerChainFilePath, FileMode.Create))
 			{
-				HeaderChain.WriteTo(fs);
+                (await GetHeaderChainAsync()).WriteTo(fs);
 			}
 		}
 		#endregion
@@ -865,12 +893,14 @@ namespace HiddenWallet.FullSpv
 
 				// 1. Get the script pubkey of the change.
 				Debug.WriteLine("Select change address...");
-				Script changeScriptPubKey = GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Change).FirstOrDefault();
+				Script changeScriptPubKey = (await GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Change)).FirstOrDefault();
 
 				// 2. Find all coins I can spend from the account
 				// 3. How much money we can spend?
 				Debug.WriteLine("Calculating available amount...");
-				AvailableAmount balance = GetBalance(out IDictionary<Coin, bool> unspentCoins, account);
+                var getBalanceResult = await GetBalanceAsync();
+                var unspentCoins = getBalanceResult.UnspentCoins;
+                AvailableAmount balance = getBalanceResult.Available;
 				Money spendableConfirmedAmount = balance.Confirmed;
 				Money spendableUnconfirmedAmount =
 					allowUnconfirmed ? balance.Unconfirmed : Money.Zero;
@@ -888,7 +918,7 @@ namespace HiddenWallet.FullSpv
 				Money feePerBytes = null;
 				try
 				{
-                    var feeRate = await FeeService.GetFeeRateAsync(feeType, new CancellationTokenSource(TimeSpan.FromMinutes(1)).Token).ConfigureAwait(false);
+                    var feeRate = await FeeService.GetFeeRateAsync(feeType, new CancellationTokenSource(TimeSpan.FromMinutes(1)).Token);
                     feePerBytes = (feeRate.FeePerK / 1000);
                 }
 				catch (Exception ex)
@@ -994,7 +1024,7 @@ namespace HiddenWallet.FullSpv
 				var signingKeys = new HashSet<ISecret>();
 				foreach (var coin in coinsToSpend)
 				{
-                    var signingKey = Safe.FindPrivateKey(coin.ScriptPubKey.GetDestinationAddress(Safe.Network), Tracker.TrackedScriptPubKeys.Count, account);
+                    var signingKey = Safe.FindPrivateKey(coin.ScriptPubKey.GetDestinationAddress(Safe.Network), (await GetTrackerAsync()).TrackedScriptPubKeys.Count, account);
                     signingKeys.Add(signingKey);
                 }
 
@@ -1037,7 +1067,7 @@ namespace HiddenWallet.FullSpv
 				FailingReason = "Not enough funds"
 			};
 
-		public IEnumerable<Script> GetUnusedScriptPubKeys(AddressType type, SafeAccount account = null, HdPathType hdPathType = HdPathType.Receive)
+		public async Task<IEnumerable<Script>> GetUnusedScriptPubKeysAsync(AddressType type, SafeAccount account = null, HdPathType hdPathType = HdPathType.Receive)
 		{
 			AssertAccount(account);
 
@@ -1046,7 +1076,7 @@ namespace HiddenWallet.FullSpv
             while (true)
             {
                 Script scriptPubkey = account == null ? Safe.GetAddress(type, i, hdPathType).ScriptPubKey : Safe.GetAddress(type, i, hdPathType, account).ScriptPubKey;
-                if (Tracker.IsClean(scriptPubkey))
+                if ((await GetTrackerAsync()).IsClean(scriptPubkey))
                 {
                     scriptPubKeys.Add(scriptPubkey);
                     if (scriptPubKeys.Count >= MaxCleanAddressCount)
@@ -1089,11 +1119,11 @@ namespace HiddenWallet.FullSpv
 			return haveEnough;
 		}
 
-		public AvailableAmount GetBalance(out IDictionary<Coin, bool> unspentCoins, SafeAccount account = null)
+		public async Task<(AvailableAmount Available, IDictionary<Coin, bool> UnspentCoins)> GetBalanceAsync(SafeAccount account = null)
 		{
 			// 1. Find all coins I can spend from the account
 			Debug.WriteLine("Finding all unspent coins...");
-			unspentCoins = GetUnspentCoins(account);
+			var unspentCoins = await GetUnspentCoinsAsync(account);
 
 			// 2. How much money we can spend?
 			var confirmedAvailableAmount = Money.Zero;
@@ -1111,11 +1141,14 @@ namespace HiddenWallet.FullSpv
 				}
 			}
 
-			return new AvailableAmount
-			{
-				Confirmed = confirmedAvailableAmount,
-				Unconfirmed = unconfirmedAvailableAmount
-			};
+            return
+                (new AvailableAmount
+            {
+                Confirmed = confirmedAvailableAmount,
+                Unconfirmed = unconfirmedAvailableAmount
+            },
+            unspentCoins);
+            
 		}
 
 		public struct BuildTransactionResult
@@ -1136,16 +1169,16 @@ namespace HiddenWallet.FullSpv
 		/// <summary>
 		/// Find all unspent transaction output of the account
 		/// </summary>
-		public IDictionary<Coin, bool> GetUnspentCoins(SafeAccount account = null)
+		public async Task<IDictionary<Coin, bool>> GetUnspentCoinsAsync(SafeAccount account = null)
 		{
 			AssertAccount(account);
 
 			var unspentCoins = new Dictionary<Coin, bool>();
 
-			var trackedScriptPubkeys = GetTrackedScriptPubKeysBySafeAccount(account);
+			var trackedScriptPubkeys = await GetTrackedScriptPubKeysBySafeAccountAsync(account);
 
 			// 1. Go through all the transactions and their outputs
-			foreach (SmartTransaction tx in Tracker
+			foreach (SmartTransaction tx in (await GetTrackerAsync())
 				.TrackedTransactions
 				.Where(x => x.Height != Height.Unknown))
 			{
@@ -1155,7 +1188,7 @@ namespace HiddenWallet.FullSpv
 					if (trackedScriptPubkeys.Contains(coin.ScriptPubKey))
 					{
 						// 3. Check if coin is unspent, if so add to our utxoSet
-						if (IsUnspent(coin))
+						if (await IsUnspent(coin))
 						{
 							unspentCoins.Add(coin, tx.Confirmed);
 						}
@@ -1166,7 +1199,7 @@ namespace HiddenWallet.FullSpv
 			return unspentCoins;
 		}
 
-		private bool IsUnspent(Coin coin) => Tracker
+		private async Task<bool> IsUnspent(Coin coin) => (await GetTrackerAsync())
 			.TrackedTransactions
 			.Where(x => x.Height.Type == HeightType.Chain || x.Height.Type == HeightType.MemPool)
 			.SelectMany(x => x.Transaction.Inputs)
@@ -1186,7 +1219,7 @@ namespace HiddenWallet.FullSpv
 
 			try
 			{
-				await ControlPortClient.ChangeCircuitAsync().ConfigureAwait(false);
+				await ControlPortClient.ChangeCircuitAsync();
 				var successfulResult = new SendTransactionResult
 				{
 					Success = true,
@@ -1206,7 +1239,7 @@ namespace HiddenWallet.FullSpv
 						if (counter % 2 == 0)
 						{
 							Debug.WriteLine("QBit...");
-							qbitResponse = await TorQBitClient.Broadcast(tx).ConfigureAwait(false);
+							qbitResponse = await TorQBitClient.Broadcast(tx);
 						}
 						else
 						{
@@ -1217,7 +1250,7 @@ namespace HiddenWallet.FullSpv
 
 							var content = new StringContent(new JObject(new JProperty("hex", tx.ToHex())).ToString(), Encoding.UTF8,
 								"application/json");
-							smartBitResponse = await TorHttpClient.PostAsync(post, content).ConfigureAwait(false);
+							smartBitResponse = await TorHttpClient.PostAsync(post, content);
 						}
 					}
 					catch
@@ -1225,7 +1258,7 @@ namespace HiddenWallet.FullSpv
 						counter++;
 						continue;
 					}
-					await Task.Delay(1000).ConfigureAwait(false);
+					await Task.Delay(1000);
 					var arrived = MemPoolJob.Transactions.Contains(tx.GetHash());
 					if (arrived)
 					{
@@ -1246,7 +1279,7 @@ namespace HiddenWallet.FullSpv
 						}
 						else //smartbit
 						{
-							var json = JObject.Parse(await smartBitResponse.Content.ReadAsStringAsync().ConfigureAwait(false));
+							var json = JObject.Parse(await smartBitResponse.Content.ReadAsStringAsync());
 							if (json.Value<bool>("success"))
 							{
 								Debug.WriteLine("Transaction is successfully propagated on the network.");

@@ -13,6 +13,10 @@
     <PackageTags>hiddenwallet, wallet, bitcoin, hbitcoin, nbitcoin, fungibility, privacy, anonymity</PackageTags>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="DotNetTor" Version="2.2.4.1" />
     <PackageReference Include="QBitNinja.Client" Version="1.0.3.39" />

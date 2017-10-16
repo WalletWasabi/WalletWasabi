@@ -39,15 +39,14 @@ namespace HiddenWallet.WebClients.BlockCypher
 
         public async Task<BlockCypherGeneralInformation> GetGeneralInformationAsync(CancellationToken cancel)
         {
-            await Semaphore.WaitAsync(cancel).ConfigureAwait(false);
+            await Semaphore.WaitAsync(cancel);
             try
             {
                 HttpResponseMessage response =
-                        await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel)
-                        .ConfigureAwait(false);
+                        await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel);
 
                 if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
-                var json = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+                var json = JObject.Parse(await response.Content.ReadAsStringAsync());
 
                 return new BlockCypherGeneralInformation
                 {

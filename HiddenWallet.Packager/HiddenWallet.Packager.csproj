@@ -4,6 +4,10 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />

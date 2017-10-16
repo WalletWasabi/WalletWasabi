@@ -16,11 +16,10 @@ namespace HiddenWallet.Tests
 			{
 				var network = i == 0 ? Network.Main : Network.TestNet;
 
-				Mnemonic mnemonic;
-				const string path = "Wallets/TestWallet.json";
-				const string password = "password";
+                const string path = "Wallets/TestWallet.json";
+                const string password = "password";
 
-				var safe = Safe.Create(out mnemonic, password, path, network);
+				var safe = Safe.Create(out Mnemonic mnemonic, password, path, network);
 				var loadedSafe = Safe.Load(password, path);
 
 				var wantedCreation = DateTimeOffset.ParseExact("1998-01-01", "yyyy-MM-dd", CultureInfo.InvariantCulture);
@@ -63,11 +62,10 @@ namespace HiddenWallet.Tests
 		public void ProperlyLoadRecover(int index)
 		{
 			Network network = Network.TestNet;
-			Mnemonic mnemonic;
-			const string path = "Wallets/TestWallet2.json";
-			const string password = "password";
+            const string path = "Wallets/TestWallet2.json";
+            const string password = "password";
 
-			var safe = Safe.Create(out mnemonic, password, path, network);
+			var safe = Safe.Create(out Mnemonic mnemonic, password, path, network);
 			var loadedSafe = Safe.Load(password, path);
 			var recoverdSafe = Safe.Recover(mnemonic, password, "Wallets/RecoveredTestWallet.json", network, Safe.EarliestPossibleCreationTime);
 			

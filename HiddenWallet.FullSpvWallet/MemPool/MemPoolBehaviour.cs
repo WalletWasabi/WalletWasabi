@@ -22,7 +22,7 @@ namespace HiddenWallet.FullSpv.MemPool
 			AttachedNode.MessageReceived -= AttachedNode_MessageReceived;
 		}
 
-		private void AttachedNode_MessageReceived(Node node, IncomingMessage message)
+		private async void AttachedNode_MessageReceived(Node node, IncomingMessage message)
 		{
 			if (MemPoolJob.ForcefullyStopped) return;
 			if (!MemPoolJob.Enabled) return;
@@ -37,7 +37,7 @@ namespace HiddenWallet.FullSpv.MemPool
 
 				if (message.Message.Payload is InvPayload invPayload)
 				{
-					ProcessInvAsync(node, invPayload).Wait();
+                    await ProcessInvAsync(node, invPayload);
 					return;
 				}
 			}
@@ -67,7 +67,7 @@ namespace HiddenWallet.FullSpv.MemPool
 			}
 
 			if (node.IsConnected)
-				await node.SendMessageAsync(send).ConfigureAwait(false);
+				await node.SendMessageAsync(send);
 		}
 
 		private void ProcessTxPayload(TxPayload transactionPayload)

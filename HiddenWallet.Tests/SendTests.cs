@@ -11,13 +11,14 @@ using NBitcoin;
 using Xunit;
 using HiddenWallet.FullSpv;
 using HiddenWallet.FullSpv.Fees;
+using System.Collections.Specialized;
 
 namespace HiddenWallet.Tests
 {
 	public class SendTests
 	{
 		[Fact]
-		public void BasicSendTest()
+		public async Task BasicSendTestAsync()
 		{
 			Network network = Network.TestNet;
 			SafeAccount account = new SafeAccount(1);
@@ -27,8 +28,9 @@ namespace HiddenWallet.Tests
 			Assert.Equal(network, safe.Network);
 			Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
 
-			// create walletjob
-			WalletJob walletJob = new WalletJob(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
+            // create walletjob
+            WalletJob walletJob = new WalletJob();
+            await walletJob.InitializeAsync(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
 			// note some event
 			WalletJob.ConnectedNodeCountChanged += delegate
 			{
@@ -54,25 +56,25 @@ namespace HiddenWallet.Tests
 				// wait until blocks are synced
 				while (walletJob.State <= WalletState.SyncingMemPool)
 				{
-					Task.Delay(1000).Wait();
+					await Task.Delay(1000);
 				}
 
-                foreach(var r in walletJob.GetSafeHistory(account))
+                foreach(var r in await walletJob.GetSafeHistoryAsync(account))
                 {
                     Debug.WriteLine(r.TransactionId);
                 }
 
-				var record = walletJob.GetSafeHistory(account).FirstOrDefault();
+				var record = (await walletJob.GetSafeHistoryAsync(account)).FirstOrDefault();
 				Debug.WriteLine(record.Confirmed);
 				Debug.WriteLine(record.Amount);
 
-				var receive = walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive).FirstOrDefault();
+				var receive = (await walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive)).FirstOrDefault();
 
-				IDictionary<Coin, bool> unspentCoins;
-				var bal = walletJob.GetBalance(out unspentCoins, account);
-				Money amountToSend = (bal.Confirmed + bal.Unconfirmed) / 2;
-				var res = walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
-					allowUnconfirmed: true).Result;
+                var getBalanceResult = await walletJob.GetBalanceAsync(account);
+                var bal = getBalanceResult.Available;
+                Money amountToSend = (bal.Confirmed + bal.Unconfirmed) / 2;
+				var res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
+					allowUnconfirmed: true);
 
 				Assert.True(res.Success);
 				Assert.True(res.FailingReason == "");
@@ -93,42 +95,49 @@ namespace HiddenWallet.Tests
 				}
 				Assert.True(foundReceive);
 
-				var txProbArrived = false;
-				var prevCount = walletJob.Tracker.TrackedTransactions.Count;
-				walletJob.Tracker.TrackedTransactions.CollectionChanged += delegate
-				{
-					var actCount = walletJob.Tracker.TrackedTransactions.Count;
-					// if arrived
-					if (actCount > prevCount)
-					{
-						txProbArrived = true;
-					}
-					else prevCount = actCount;
-				};
-
-				var sendRes = walletJob.SendTransactionAsync(res.Transaction).Result;
+				_txProbArrived = false;
+				_prevCount = (await walletJob.GetTrackerAsync()).TrackedTransactions.Count;
+                _currentWalletJob = walletJob;
+                (await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
+                
+				var sendRes = await walletJob.SendTransactionAsync(res.Transaction);
 				Assert.True(sendRes.Success);
 				Assert.True(sendRes.FailingReason == "");
 
-				while (txProbArrived == false)
+				while (_txProbArrived == false)
 				{
 					Debug.WriteLine("Waiting for transaction...");
-					Task.Delay(1000).Wait();
+					await Task.Delay(1000);
 				}
 
 				Debug.WriteLine("TrackedTransactions collection changed");
-				Assert.True(walletJob.Tracker.TrackedTransactions.Any(x => x.Transaction.GetHash() == res.Transaction.GetHash()));
+				Assert.True((await walletJob.GetTrackerAsync()).TrackedTransactions.Any(x => x.Transaction.GetHash() == res.Transaction.GetHash()));
 				Debug.WriteLine("Transaction arrived");
 			}
 			finally
 			{
-				cts.Cancel();
-				Task.WhenAll(reportTask, walletJobTask).Wait();
+                (await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
+                cts.Cancel();
+                await Task.WhenAll(reportTask, walletJobTask);
 			}
 		}
 
-		[Fact]
-		public void FeeTest()
+        bool _txProbArrived;
+        private int _prevCount;
+        WalletJob _currentWalletJob;
+        private async void TrackedTransactions_CollectionChangedAsync(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            var actCount = (await _currentWalletJob.GetTrackerAsync()).TrackedTransactions.Count;
+            // if arrived
+            if (actCount > _prevCount)
+            {
+                _txProbArrived = true;
+            }
+            else _prevCount = actCount;
+        }
+
+        [Fact]
+		public async Task FeeTestAsync()
 		{
 			Network network = Network.TestNet;
 			SafeAccount account = new SafeAccount(1);
@@ -138,8 +147,9 @@ namespace HiddenWallet.Tests
 			Assert.Equal(network, safe.Network);
 			Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
 
-			// create walletjob
-			WalletJob walletJob = new WalletJob(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
+            // create walletjob
+            WalletJob walletJob = new WalletJob();
+            await walletJob.InitializeAsync(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
 			// note some event
 			WalletJob.ConnectedNodeCountChanged += delegate
 			{
@@ -165,19 +175,18 @@ namespace HiddenWallet.Tests
 				// wait until blocks are synced
 				while (walletJob.State <= WalletState.SyncingMemPool)
 				{
-					Task.Delay(1000).Wait();
+                    await Task.Delay(1000);
 				}
 
-				var receive = walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive).FirstOrDefault();
+				var receive = (await walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive)).FirstOrDefault();
 
-				IDictionary<Coin, bool> unspentCoins;
-				var bal = walletJob.GetBalance(out unspentCoins, account);
-				Money amountToSend = (bal.Confirmed + bal.Unconfirmed) / 2;
+                var bal = (await walletJob.GetBalanceAsync(account)).Available;
+                Money amountToSend = (bal.Confirmed + bal.Unconfirmed) / 2;
 
 				#region LowFee
 
-				var resLow = walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
-					allowUnconfirmed: true).Result;
+				var resLow = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
+					allowUnconfirmed: true);
 
 				Assert.True(resLow.Success);
 				Assert.True(resLow.FailingReason == "");
@@ -202,8 +211,8 @@ namespace HiddenWallet.Tests
 
 				#region MediumFee
 
-				var resMedium = walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Medium, account,
-					allowUnconfirmed: true).Result;
+				var resMedium = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Medium, account,
+					allowUnconfirmed: true);
 
 				Assert.True(resMedium.Success);
 				Assert.True(resMedium.FailingReason == "");
@@ -228,8 +237,8 @@ namespace HiddenWallet.Tests
 
 				#region HighFee
 
-				var resHigh = walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.High, account,
-					allowUnconfirmed: true).Result;
+				var resHigh = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.High, account,
+					allowUnconfirmed: true);
 
 				Assert.True(resHigh.Success);
 				Assert.True(resHigh.FailingReason == "");
@@ -255,42 +264,35 @@ namespace HiddenWallet.Tests
 				Assert.True(resLow.Fee <= resMedium.Fee);
 				Assert.True(resMedium.Fee <= resHigh.Fee);
 
-				var txProbArrived = false;
-				var prevCount = walletJob.Tracker.TrackedTransactions.Count;
-				walletJob.Tracker.TrackedTransactions.CollectionChanged += delegate
-				{
-					var actCount = walletJob.Tracker.TrackedTransactions.Count;
-					// if arrived
-					if(actCount > prevCount)
-					{
-						txProbArrived = true;
-					}
-					else prevCount = actCount;
-				};
+                _txProbArrived = false;
+                _prevCount = (await walletJob.GetTrackerAsync()).TrackedTransactions.Count;
+                _currentWalletJob = walletJob;
+                (await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
 
-				var sendRes = walletJob.SendTransactionAsync(resHigh.Transaction).Result;
+                var sendRes = await walletJob.SendTransactionAsync(resHigh.Transaction);
 				Assert.True(sendRes.Success);
 				Assert.True(sendRes.FailingReason == "");
 
-				while (txProbArrived == false)
+				while (_txProbArrived == false)
 				{
 					Debug.WriteLine("Waiting for transaction...");
-					Task.Delay(1000).Wait();
+					await Task.Delay(1000);
 				}
 
 				Debug.WriteLine("TrackedTransactions collection changed");
-				Assert.True(walletJob.Tracker.TrackedTransactions.Any(x => x.Transaction.GetHash() == resHigh.Transaction.GetHash()));
+				Assert.True((await walletJob.GetTrackerAsync()).TrackedTransactions.Any(x => x.Transaction.GetHash() == resHigh.Transaction.GetHash()));
 				Debug.WriteLine("Transaction arrived");
 			}
 			finally
 			{
-				cts.Cancel();
-				Task.WhenAll(reportTask, walletJobTask).Wait();
+                (await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
+                cts.Cancel();
+                await Task.WhenAll(reportTask, walletJobTask);
 			}
 		}
 
 		[Fact]
-		public void MaxAmountTest()
+		public async Task MaxAmountTestAsync()
 		{
 			Network network = Network.TestNet;
 			SafeAccount account = new SafeAccount(1);
@@ -300,8 +302,9 @@ namespace HiddenWallet.Tests
 			Assert.Equal(network, safe.Network);
 			Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
 
-			// create walletjob
-			WalletJob walletJob = new WalletJob(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
+            // create walletjob
+            WalletJob walletJob = new WalletJob();
+            await walletJob.InitializeAsync(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
 			// note some event
 			WalletJob.ConnectedNodeCountChanged += delegate
 			{
@@ -327,16 +330,15 @@ namespace HiddenWallet.Tests
 				// wait until blocks are synced
 				while (walletJob.State <= WalletState.SyncingMemPool)
 				{
-					Task.Delay(1000).Wait();
+                    await Task.Delay(1000);
 				}
 
-				var receive = walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive).FirstOrDefault();
+				var receive = (await walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive)).FirstOrDefault();
 
-				IDictionary<Coin, bool> unspentCoins;
-				var bal = walletJob.GetBalance(out unspentCoins, account);
-				
-				var res = walletJob.BuildTransactionAsync(receive, Money.Zero, FeeType.Low, account,
-					allowUnconfirmed: true).Result;
+                var bal = (await walletJob.GetBalanceAsync(account)).Available;
+
+                var res = await walletJob.BuildTransactionAsync(receive, Money.Zero, FeeType.Low, account,
+					allowUnconfirmed: true);
 
 				Assert.True(res.Success);
 				Assert.True(res.FailingReason == "");
@@ -357,42 +359,35 @@ namespace HiddenWallet.Tests
 				}
 				Assert.True(foundReceive);
 
-				var txProbArrived = false;
-				var prevCount = walletJob.Tracker.TrackedTransactions.Count;
-				walletJob.Tracker.TrackedTransactions.CollectionChanged += delegate
-				{
-					var actCount = walletJob.Tracker.TrackedTransactions.Count;
-					// if arrived
-					if (actCount > prevCount)
-					{
-						txProbArrived = true;
-					}
-					else prevCount = actCount;
-				};
+                _txProbArrived = false;
+                _prevCount = (await walletJob.GetTrackerAsync()).TrackedTransactions.Count;
+                _currentWalletJob = walletJob;
+                (await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
 
-				var sendRes = walletJob.SendTransactionAsync(res.Transaction).Result;
+                var sendRes = await walletJob.SendTransactionAsync(res.Transaction);
 				Assert.True(sendRes.Success);
 				Assert.True(sendRes.FailingReason == "");
 
-				while (txProbArrived == false)
+				while (_txProbArrived == false)
 				{
 					Debug.WriteLine("Waiting for transaction...");
-					Task.Delay(1000).Wait();
+					await Task.Delay(1000);
 				}
 
 				Debug.WriteLine("TrackedTransactions collection changed");
-				Assert.True(walletJob.Tracker.TrackedTransactions.Any(x => x.Transaction.GetHash() == res.Transaction.GetHash()));
+				Assert.True((await walletJob.GetTrackerAsync()).TrackedTransactions.Any(x => x.Transaction.GetHash() == res.Transaction.GetHash()));
 				Debug.WriteLine("Transaction arrived");
 			}
 			finally
 			{
-				cts.Cancel();
-				Task.WhenAll(reportTask, walletJobTask).Wait();
+                (await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
+                cts.Cancel();
+				await Task.WhenAll(reportTask, walletJobTask);
 			}
 		}
 
 		[Fact]
-		public void SendsFailGracefullyTest()
+		public async Task SendsFailGracefullyTestAsync()
 		{
 			Network network = Network.TestNet;
 			SafeAccount account = new SafeAccount(1);
@@ -401,9 +396,10 @@ namespace HiddenWallet.Tests
 			Safe safe = Safe.Load(password, path);
 			Assert.Equal(network, safe.Network);
 			Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
-			
-			// create walletjob
-			WalletJob walletJob = new WalletJob(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
+
+            // create walletjob
+            WalletJob walletJob = new WalletJob();
+            await walletJob.InitializeAsync(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
 			// note some event
 			WalletJob.ConnectedNodeCountChanged += delegate
 			{
@@ -429,66 +425,65 @@ namespace HiddenWallet.Tests
 				// wait until blocks are synced
 				while (walletJob.State <= WalletState.SyncingMemPool)
 				{
-					Task.Delay(1000).Wait();
+					await Task.Delay(1000);
 				}
 
-				var history = walletJob.GetSafeHistory(account);
+				var history = await walletJob.GetSafeHistoryAsync(account);
 				foreach(var record in history)
 				{
 					Debug.WriteLine($"{record.TransactionId} {record.Amount} {record.Confirmed}");
 				}
 
-				var receive = walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive).FirstOrDefault();
+				var receive = (await walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive)).FirstOrDefault();
 
-				IDictionary<Coin, bool> unspentCoins;
-				var bal = walletJob.GetBalance(out unspentCoins, account);
+                var bal = (await walletJob.GetBalanceAsync(account)).Available;
 
-				// Not enough fee
-				Money amountToSend = (bal.Confirmed + bal.Unconfirmed) - new Money(1m, MoneyUnit.Satoshi);
-				var res = walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
-					allowUnconfirmed: true).Result;
+                // Not enough fee
+                Money amountToSend = (bal.Confirmed + bal.Unconfirmed) - new Money(1m, MoneyUnit.Satoshi);
+				var res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
+					allowUnconfirmed: true);
 				Assert.True(res.Success == false);
 				Assert.True(res.FailingReason != "");
 				Debug.WriteLine($"Expected FailingReason: {res.FailingReason}");
 
 				// That's not how you spend all
 				amountToSend = (bal.Confirmed + bal.Unconfirmed);
-				res = walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
-					allowUnconfirmed: true).Result;
+				res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
+					allowUnconfirmed: true);
 				Assert.True(res.Success == false);
 				Assert.True(res.FailingReason != "");
 				Debug.WriteLine($"Expected FailingReason: {res.FailingReason}");
 
 				// Too much
 				amountToSend = (bal.Confirmed + bal.Unconfirmed) + new Money(1, MoneyUnit.BTC);
-				res = walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
-					allowUnconfirmed: true).Result;
+				res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
+					allowUnconfirmed: true);
 				Assert.True(res.Success == false);
 				Assert.True(res.FailingReason != "");
 				Debug.WriteLine($"Expected FailingReason: {res.FailingReason}");
 
 				// Minus
 				amountToSend = new Money(-1m, MoneyUnit.BTC);
-				res = walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
-					allowUnconfirmed: true).Result;
+				res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
+					allowUnconfirmed: true);
 				Assert.True(res.Success == false);
 				Assert.True(res.FailingReason != "");
 				Debug.WriteLine($"Expected FailingReason: {res.FailingReason}");
 
 				// Default account is disabled
 				amountToSend = (bal.Confirmed + bal.Unconfirmed) / 2;
-				Assert.ThrowsAsync<NotSupportedException>(async () => await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, 
-					allowUnconfirmed: true).ConfigureAwait(false)).ContinueWith(t => {}).Wait();
+				await Assert.ThrowsAsync<NotSupportedException>(async () => await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, 
+					allowUnconfirmed: true)).ContinueWith(t => {});
 
 				// No such account
 				amountToSend = (bal.Confirmed + bal.Unconfirmed) / 2;
-				Assert.ThrowsAsync<NotSupportedException>(async () => await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, new SafeAccount(23421),
-					allowUnconfirmed: true).ConfigureAwait(false)).ContinueWith(t => { }).Wait();
+				await Assert.ThrowsAsync<NotSupportedException>(async () => await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, new SafeAccount(23421),
+					allowUnconfirmed: true)).ContinueWith(t => { });
 			}
 			finally
 			{
 				cts.Cancel();
-				Task.WhenAll(reportTask, walletJobTask).Wait();
+				await Task.WhenAll(reportTask, walletJobTask);
 			}
 		}
 	}

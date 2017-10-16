@@ -11,6 +11,10 @@
     <RepositoryType>Git</RepositoryType>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <Folder Include="Extensions\" />
     <Folder Include="WebClients\" />

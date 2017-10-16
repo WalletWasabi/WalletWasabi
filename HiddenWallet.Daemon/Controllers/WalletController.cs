@@ -64,7 +64,7 @@ namespace HiddenWallet.Daemon.Controllers
 
         [Route("load")]
         [HttpPost]
-        public IActionResult Load([FromBody]PasswordModel request)
+        public async Task<IActionResult> LoadAsync([FromBody]PasswordModel request)
         {
             if (request == null || request.Password == null)
             {
@@ -73,7 +73,7 @@ namespace HiddenWallet.Daemon.Controllers
 
             try
             {
-                Global.WalletWrapper.Load(request.Password);
+                await Global.WalletWrapper.LoadAsync(request.Password);
 
                 return new ObjectResult(new SuccessResponse());
             }
@@ -103,11 +103,11 @@ namespace HiddenWallet.Daemon.Controllers
 
         [Route("status")]
         [HttpGet]
-        public IActionResult Status()
+        public async Task<IActionResult> StatusAsync()
         {
             try
             {
-                return new ObjectResult(Global.WalletWrapper.GetStatusResponse());
+                return new ObjectResult(await Global.WalletWrapper.GetStatusResponseAsync());
             }
             catch (Exception ex)
             {
@@ -117,20 +117,20 @@ namespace HiddenWallet.Daemon.Controllers
 
         [Route("shutdown")]
         [HttpGet]
-        public IActionResult Shutdown()
+        public async Task<IActionResult> ShutdownAsync()
         {
             try
             {
                 try
                 {
-                    Global.WalletWrapper.EndAsync().Wait();
+                    await Global.WalletWrapper.EndAsync();
 
                     return new ObjectResult(new SuccessResponse());
                 }
                 finally
                 {
                     // wait until the call returns
-                    Task.Delay(1000).ContinueWith(_ => Environment.Exit(0));
+                    await Task.Delay(1000).ContinueWith(_ => Environment.Exit(0));
                 }
             }
             catch (Exception ex)
@@ -220,7 +220,7 @@ namespace HiddenWallet.Daemon.Controllers
 
         [Route("build-transaction/{account}")]
         [HttpPost]
-        public IActionResult BuildTransaction(string account, [FromBody]BuildTransactionRequest request)
+        public async Task<IActionResult> BuildTransactionAsync(string account, [FromBody]BuildTransactionRequest request)
         {
             try
             {
@@ -276,7 +276,7 @@ namespace HiddenWallet.Daemon.Controllers
                     return new ObjectResult(new FailureResponse { Message = "Wrong fee type", Details = "" });
                 }
 
-                return new ObjectResult(Global.WalletWrapper.BuildTransaction(request.Password, safeAccount, address, amount, feeType));
+                return new ObjectResult(await Global.WalletWrapper.BuildTransactionAsync(request.Password, safeAccount, address, amount, feeType));
             }
             catch (Exception ex)
             {
@@ -286,7 +286,7 @@ namespace HiddenWallet.Daemon.Controllers
 
         [Route("send-transaction")]
         [HttpPost]
-        public IActionResult SendTransaction([FromBody]SendTransactionRequest request)
+        public async Task<IActionResult> SendTransactionAsync([FromBody]SendTransactionRequest request)
         {
             try
             {
@@ -305,7 +305,7 @@ namespace HiddenWallet.Daemon.Controllers
                     return new ObjectResult(new FailureResponse { Message = "Wrong transaction hex", Details = "" });
                 }
 
-                return new ObjectResult(Global.WalletWrapper.SendTransactionAsync(tx).Result);
+                return new ObjectResult(await Global.WalletWrapper.SendTransactionAsync(tx));
             }
             catch (Exception ex)
             {

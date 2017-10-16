@@ -73,7 +73,7 @@ namespace HiddenWallet.Daemon.Wrappers
 			};
 		}
 
-		public void Load(string password)
+		public async Task LoadAsync(string password)
 		{
 			Safe safe = Safe.Load(password, Config.WalletFilePath);
 			if (safe.Network != Config.Network) throw new NotSupportedException("Network in the config file differs from the netwrok in the wallet file");
@@ -88,17 +88,18 @@ namespace HiddenWallet.Daemon.Wrappers
 				// it's not running yet, let's run it
 				_password = password;
 
-				_walletJob = new WalletJob(Tor.SocksPortHandler, Tor.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
+                _walletJob = new WalletJob();
+				await _walletJob.InitializeAsync(Tor.SocksPortHandler, Tor.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
 
 				_walletJob.StateChanged += _walletJob_StateChanged;
-				_walletJob.Tracker.TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChanged;
+				(await _walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
 
 				_receiveResponseAlice.ExtPubKey = _walletJob.Safe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: AliceAccount).ToWif();
 				_receiveResponseBob.ExtPubKey = _walletJob.Safe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: BobAccount).ToWif();
 
 				_walletJobTask = _walletJob.StartAsync(_cts.Token);
 
-				UpdateHistoryRelatedMembers();
+				await UpdateHistoryRelatedMembersAsync();
 			}
 		}
 
@@ -115,9 +116,9 @@ namespace HiddenWallet.Daemon.Wrappers
 		#endregion
 
 #region EventSubscriptions
-		private void TrackedTransactions_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private async void TrackedTransactions_CollectionChangedAsync(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			UpdateHistoryRelatedMembers();
+			await UpdateHistoryRelatedMembersAsync();
 
 			// changeBump
 			if (_changeBump >= 10000)
@@ -130,11 +131,11 @@ namespace HiddenWallet.Daemon.Wrappers
 			}
 		}
 
-		private void UpdateHistoryRelatedMembers()
+		private async Task UpdateHistoryRelatedMembersAsync()
 		{
 			// history
-			var aliceHistory = _walletJob.GetSafeHistory(AliceAccount).OrderByDescending(x=> x.TimeStamp);
-			var bobHistory = _walletJob.GetSafeHistory(BobAccount).OrderByDescending(x => x.TimeStamp);
+			var aliceHistory = (await _walletJob.GetSafeHistoryAsync(AliceAccount)).OrderByDescending(x=> x.TimeStamp);
+			var bobHistory = (await _walletJob.GetSafeHistoryAsync(BobAccount)).OrderByDescending(x => x.TimeStamp);
 
 			var hra = new List<HistoryRecordModel>();
 			foreach (var rec in aliceHistory)
@@ -175,17 +176,19 @@ namespace HiddenWallet.Daemon.Wrappers
 			}
 			_historyResponseBob.History = hrb.ToArray();
 
-			// balances
-			var aa = _walletJob.GetBalance(out IDictionary<Coin, bool> unspentCoinsAlice, AliceAccount);
+            // balances
+            var getBalanceResult = await _walletJob.GetBalanceAsync(AliceAccount);
+            var aa = getBalanceResult.Available;
+            var getBalanceResult2 = await _walletJob.GetBalanceAsync(BobAccount);
+            var ab = getBalanceResult2.Available;
 			_availableAlice = aa.Confirmed;
 			_incomingAlice = aa.Unconfirmed;
-			var ab = _walletJob.GetBalance(out IDictionary<Coin, bool> unspentCoinsBob, BobAccount);
 			_availableBob = ab.Confirmed;
 			_incomingBob = ab.Unconfirmed;
 			
 			// receive
-			var ua = _walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, AliceAccount, HdPathType.Receive).ToArray();
-			var ub = _walletJob.GetUnusedScriptPubKeys(AddressType.Pay2WitnessPublicKeyHash, BobAccount, HdPathType.Receive).ToArray();
+			var ua = (await _walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, AliceAccount, HdPathType.Receive)).ToArray();
+			var ub = (await _walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, BobAccount, HdPathType.Receive)).ToArray();
 			_receiveResponseAlice.Addresses = new string[7];
 			_receiveResponseBob.Addresses = new string[7];
 			var network = _walletJob.Safe.Network;
@@ -210,22 +213,24 @@ namespace HiddenWallet.Daemon.Wrappers
 			if (_walletJob != null)
 			{
 				_walletJob.StateChanged -= _walletJob_StateChanged;
-				_walletJob.Tracker.TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChanged;
+				(await _walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
 			}
 
 			_cts.Cancel();
-			await Task.WhenAll(_walletJobTask).ConfigureAwait(false);
+			await Task.WhenAll(_walletJobTask);
 			
 			Tor.Kill();
 		}		
 
-		public StatusResponse GetStatusResponse()
+		public async Task<StatusResponse> GetStatusResponseAsync()
 		{
 			var ts = Tor.State.ToString();
 			if (_walletJob != null)
 			{
 				var hh = 0;
-				if (WalletJob.TryGetHeaderHeight(out Height headerHeight))
+                var result = await WalletJob.TryGetHeaderHeightAsync();
+                var headerHeight = result.Height;
+                if (result.Success)
 				{
 					if (headerHeight.Type == HeightType.Chain)
 					{
@@ -233,7 +238,7 @@ namespace HiddenWallet.Daemon.Wrappers
 					}
 				}
 
-				var bh = _walletJob.BestHeight;
+				var bh = await _walletJob.GetBestHeightAsync();
 				var th = 0;
 				if (bh.Type == HeightType.Chain)
 				{
@@ -253,10 +258,10 @@ namespace HiddenWallet.Daemon.Wrappers
 			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, ConnectedNodeCount = 0, MemPoolTransactionCount = 0, WalletState = WalletState.NotStarted.ToString(), TorState = ts, ChangeBump = 0 };
 		}
 
-		public BaseResponse BuildTransaction(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType)
+		public async Task<BaseResponse> BuildTransactionAsync(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType)
 		{
 			if (password != _password) throw new InvalidOperationException("Wrong password");
-			var result = _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, Config.CanSpendUnconfirmed).Result;
+			var result = await _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, Config.CanSpendUnconfirmed);
 
 			if (result.Success)
 			{
@@ -280,7 +285,7 @@ namespace HiddenWallet.Daemon.Wrappers
 
 		public async Task<BaseResponse> SendTransactionAsync(Transaction tx)
 		{
-			SendTransactionResult result = await _walletJob.SendTransactionAsync(tx).ConfigureAwait(false);
+			SendTransactionResult result = await _walletJob.SendTransactionAsync(tx);
 
 			if (result.Success) return new SuccessResponse();
 			else return new FailureResponse { Message = result.FailingReason, Details = "" };

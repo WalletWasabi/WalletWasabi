@@ -8,7 +8,7 @@ namespace System.Threading.Tasks
     {
         public static Task WithCancellation(this Task me, CancellationToken cancel)
         {
-            return me.ContinueWith(async t => await t.ConfigureAwait(false), cancel);
+            return me.ContinueWith(async t => await t, cancel);
         }
 
         public static void AwaiterWait(this Task me)
