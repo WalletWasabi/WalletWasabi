@@ -204,17 +204,17 @@ namespace HiddenWallet.Tests
 
 			try
 			{
-				// wait until fully synced
-				while (!_syncedOnce)
-				{
-                    await Task.Delay(1000);
-				}
+                // wait until fully synced
+                //while (!_syncedOnce)
+                //{
+                //    await Task.Delay(1000);
+                //}
 
-				await Helpers.ReportFullHistoryAsync(walletJob);
+                await Helpers.ReportFullHistoryAsync(walletJob);
 
-				// 0. Query all operations, grouped our used safe addresses
-				int MinUnusedKeyNum = 37;
-				Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await Helpers.QueryOperationsPerSafeAddressesAsync(new QBitNinjaClient(safe.Network), safe, MinUnusedKeyNum);
+                // 0. Query all operations, grouped our used safe addresses
+                int MinUnusedKeyNum = 74;
+                Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await Helpers.QueryOperationsPerSafeAddressesAsync(new QBitNinjaClient(safe.Network), safe, MinUnusedKeyNum);
 
 				Dictionary<uint256, List<BalanceOperation>> operationsPerTransactions = QBitNinjaJutsus.GetOperationsPerTransactions(operationsPerAddresses);
 

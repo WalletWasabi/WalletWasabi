@@ -1099,7 +1099,7 @@ namespace HiddenWallet.FullSpv
 		{
 			AssertAccount(account);
 
-            HashSet<Script> scriptPubKeys = new HashSet<Script>();
+            var scriptPubKeys = new HashSet<Script>();
             int i = 0;
             while (true)
             {
