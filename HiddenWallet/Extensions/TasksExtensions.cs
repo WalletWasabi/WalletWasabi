@@ -6,7 +6,7 @@ namespace System.Threading.Tasks
 {
     public static class TasksExtensions
     {
-        public static Task WithCancellation(this Task me, CancellationToken cancel)
+        public static Task WithCancellationAsync(this Task me, CancellationToken cancel)
         {
             return me.ContinueWith(async t => await t, cancel);
         }

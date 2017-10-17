@@ -12,17 +12,23 @@ namespace HiddenWallet.FullSpv.MemPool
 	{
 		const int MAX_INV_SIZE = 50000;
 
+        public MemPoolJob MemPoolJob { get; }
+        public MemPoolBehavior(MemPoolJob memPoolJob)
+        {
+            MemPoolJob = memPoolJob ?? throw new ArgumentNullException(nameof(memPoolJob));
+        }
+
 		protected override void AttachCore()
 		{
-			AttachedNode.MessageReceived += AttachedNode_MessageReceived;
+			AttachedNode.MessageReceived += AttachedNode_MessageReceivedAsync;
 		}
 
 		protected override void DetachCore()
 		{
-			AttachedNode.MessageReceived -= AttachedNode_MessageReceived;
+			AttachedNode.MessageReceived -= AttachedNode_MessageReceivedAsync;
 		}
 
-		private async void AttachedNode_MessageReceived(Node node, IncomingMessage message)
+		private async void AttachedNode_MessageReceivedAsync(Node node, IncomingMessage message)
 		{
 			if (MemPoolJob.ForcefullyStopped) return;
 			if (!MemPoolJob.Enabled) return;
@@ -78,7 +84,7 @@ namespace HiddenWallet.FullSpv.MemPool
 
 		public override object Clone()
 		{
-			return new MemPoolBehavior();
+			return new MemPoolBehavior(MemPoolJob);
 		}
 	}
 }

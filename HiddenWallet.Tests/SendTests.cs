@@ -31,20 +31,9 @@ namespace HiddenWallet.Tests
             // create walletjob
             WalletJob walletJob = new WalletJob();
             await walletJob.InitializeAsync(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
-			// note some event
-			WalletJob.ConnectedNodeCountChanged += delegate
-			{
-				if (WalletJob.MaxConnectedNodeCount == WalletJob.ConnectedNodeCount)
-				{
-					Debug.WriteLine(
-						$"{nameof(WalletJob.MaxConnectedNodeCount)} reached: {WalletJob.MaxConnectedNodeCount}");
-				}
-				else Debug.WriteLine($"{nameof(WalletJob.ConnectedNodeCount)}: {WalletJob.ConnectedNodeCount}");
-			};
-			walletJob.StateChanged += delegate
-			{
-				Debug.WriteLine($"{nameof(walletJob.State)}: {walletJob.State}");
-			};
+            // note some event
+            walletJob.ConnectedNodeCountChanged += WalletJob_ConnectedNodeCountChanged;
+            walletJob.StateChanged += WalletJob_StateChanged;
 
 			// start syncing
 			var cts = new CancellationTokenSource();
@@ -99,12 +88,12 @@ namespace HiddenWallet.Tests
 				_prevCount = (await walletJob.GetTrackerAsync()).TrackedTransactions.Count;
                 _currentWalletJob = walletJob;
                 (await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
-                
+
 				var sendRes = await walletJob.SendTransactionAsync(res.Transaction);
 				Assert.True(sendRes.Success);
 				Assert.Empty(sendRes.FailingReason);
 
-				while (_txProbArrived == false)
+				while (!_txProbArrived)
 				{
 					Debug.WriteLine("Waiting for transaction...");
 					await Task.Delay(1000);
@@ -117,10 +106,35 @@ namespace HiddenWallet.Tests
 			finally
 			{
                 (await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
+                
                 cts.Cancel();
                 await Task.WhenAll(reportTask, walletJobTask);
+
+                walletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChanged;
+                walletJob.StateChanged -= WalletJob_StateChanged;
+
+                cts?.Dispose();
+                reportTask?.Dispose();
+                walletJobTask?.Dispose();
 			}
 		}
+
+        private void WalletJob_StateChanged(object sender, EventArgs e)
+        {
+            var walletJob = sender as WalletJob;
+            Debug.WriteLine($"{nameof(walletJob.State)}: {walletJob.State}");
+        }
+
+        private void WalletJob_ConnectedNodeCountChanged(object sender, EventArgs e)
+        {
+            var walletJob = sender as WalletJob;
+            if (walletJob.MaxConnectedNodeCount == walletJob.ConnectedNodeCount)
+            {
+                Debug.WriteLine(
+                    $"{nameof(WalletJob.MaxConnectedNodeCount)} reached: {walletJob.MaxConnectedNodeCount}");
+            }
+            else Debug.WriteLine($"{nameof(WalletJob.ConnectedNodeCount)}: {walletJob.ConnectedNodeCount}");
+        }
 
         bool _txProbArrived;
         private int _prevCount;
@@ -150,23 +164,12 @@ namespace HiddenWallet.Tests
             // create walletjob
             WalletJob walletJob = new WalletJob();
             await walletJob.InitializeAsync(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
-			// note some event
-			WalletJob.ConnectedNodeCountChanged += delegate
-			{
-				if (WalletJob.MaxConnectedNodeCount == WalletJob.ConnectedNodeCount)
-				{
-					Debug.WriteLine(
-						$"{nameof(WalletJob.MaxConnectedNodeCount)} reached: {WalletJob.MaxConnectedNodeCount}");
-				}
-				else Debug.WriteLine($"{nameof(WalletJob.ConnectedNodeCount)}: {WalletJob.ConnectedNodeCount}");
-			};
-			walletJob.StateChanged += delegate
-			{
-				Debug.WriteLine($"{nameof(walletJob.State)}: {walletJob.State}");
-			};
+            // note some event
+            walletJob.ConnectedNodeCountChanged += WalletJob_ConnectedNodeCountChanged;
+            walletJob.StateChanged += WalletJob_StateChanged;
 
-			// start syncing
-			var cts = new CancellationTokenSource();
+            // start syncing
+            var cts = new CancellationTokenSource();
 			var walletJobTask = walletJob.StartAsync(cts.Token);
 			Task reportTask = Helpers.ReportAsync(cts.Token, walletJob);
 
@@ -288,6 +291,13 @@ namespace HiddenWallet.Tests
                 (await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
                 cts.Cancel();
                 await Task.WhenAll(reportTask, walletJobTask);
+
+                walletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChanged;
+                walletJob.StateChanged -= WalletJob_StateChanged;
+
+                cts?.Dispose();
+                reportTask?.Dispose();
+                walletJobTask?.Dispose();
 			}
 		}
 
@@ -305,23 +315,12 @@ namespace HiddenWallet.Tests
             // create walletjob
             WalletJob walletJob = new WalletJob();
             await walletJob.InitializeAsync(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
-			// note some event
-			WalletJob.ConnectedNodeCountChanged += delegate
-			{
-				if (WalletJob.MaxConnectedNodeCount == WalletJob.ConnectedNodeCount)
-				{
-					Debug.WriteLine(
-						$"{nameof(WalletJob.MaxConnectedNodeCount)} reached: {WalletJob.MaxConnectedNodeCount}");
-				}
-				else Debug.WriteLine($"{nameof(WalletJob.ConnectedNodeCount)}: {WalletJob.ConnectedNodeCount}");
-			};
-			walletJob.StateChanged += delegate
-			{
-				Debug.WriteLine($"{nameof(walletJob.State)}: {walletJob.State}");
-			};
+            // note some event
+            walletJob.ConnectedNodeCountChanged += WalletJob_ConnectedNodeCountChanged;
+            walletJob.StateChanged += WalletJob_StateChanged;
 
-			// start syncing
-			var cts = new CancellationTokenSource();
+            // start syncing
+            var cts = new CancellationTokenSource();
 			var walletJobTask = walletJob.StartAsync(cts.Token);
 			Task reportTask = Helpers.ReportAsync(cts.Token, walletJob);
 
@@ -383,6 +382,13 @@ namespace HiddenWallet.Tests
                 (await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
                 cts.Cancel();
 				await Task.WhenAll(reportTask, walletJobTask);
+
+                walletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChanged;
+                walletJob.StateChanged -= WalletJob_StateChanged;
+
+                cts?.Dispose();
+                reportTask?.Dispose();
+                walletJobTask?.Dispose();
 			}
 		}
 
@@ -400,23 +406,12 @@ namespace HiddenWallet.Tests
             // create walletjob
             WalletJob walletJob = new WalletJob();
             await walletJob.InitializeAsync(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: account);
-			// note some event
-			WalletJob.ConnectedNodeCountChanged += delegate
-			{
-				if (WalletJob.MaxConnectedNodeCount == WalletJob.ConnectedNodeCount)
-				{
-					Debug.WriteLine(
-						$"{nameof(WalletJob.MaxConnectedNodeCount)} reached: {WalletJob.MaxConnectedNodeCount}");
-				}
-				else Debug.WriteLine($"{nameof(WalletJob.ConnectedNodeCount)}: {WalletJob.ConnectedNodeCount}");
-			};
-			walletJob.StateChanged += delegate
-			{
-				Debug.WriteLine($"{nameof(walletJob.State)}: {walletJob.State}");
-			};
+            // note some event
+            walletJob.ConnectedNodeCountChanged += WalletJob_ConnectedNodeCountChanged;
+            walletJob.StateChanged += WalletJob_StateChanged;
 
-			// start syncing
-			var cts = new CancellationTokenSource();
+            // start syncing
+            var cts = new CancellationTokenSource();
 			var walletJobTask = walletJob.StartAsync(cts.Token);
 			Task reportTask = Helpers.ReportAsync(cts.Token, walletJob);
 
@@ -472,7 +467,7 @@ namespace HiddenWallet.Tests
 
 				// Default account is disabled
 				amountToSend = (bal.Confirmed + bal.Unconfirmed) / 2;
-				await Assert.ThrowsAsync<NotSupportedException>(async () => await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, 
+				await Assert.ThrowsAsync<NotSupportedException>(async () => await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low,
 					allowUnconfirmed: true)).ContinueWith(t => {});
 
 				// No such account
@@ -484,6 +479,10 @@ namespace HiddenWallet.Tests
 			{
 				cts?.Cancel();
 				await Task.WhenAll(reportTask, walletJobTask);
+
+                walletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChanged;
+                walletJob.StateChanged -= WalletJob_StateChanged;
+
                 cts?.Dispose();
                 reportTask?.Dispose();
                 walletJobTask?.Dispose();

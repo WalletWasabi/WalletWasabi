@@ -17,7 +17,7 @@ namespace HiddenWallet.FullSpv
 		public void Clear() => _blocks.Clear();
 
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="height"></param>
 		/// <param name="block"></param>
@@ -25,7 +25,7 @@ namespace HiddenWallet.FullSpv
 		public bool TryAddOrReplace(Height height, Block block)
 	    {
 			if (_blocks.Count > Capacity) return false;
-			
+
 		    _blocks.AddOrReplace(height, block);
 
 			if (_blocks.Count == 1) OnHaveBlocks();
@@ -36,7 +36,7 @@ namespace HiddenWallet.FullSpv
 	    public Height BestHeight => _blocks.Count == 0 ? Height.Unknown : _blocks.Keys.Max();
 
 	    /// <summary>
-	    /// 
+	    ///
 	    /// </summary>
 	    /// <returns>false if empty</returns>
 	    public bool TryGetAndRemoveOldest(out Height height, out Block block)

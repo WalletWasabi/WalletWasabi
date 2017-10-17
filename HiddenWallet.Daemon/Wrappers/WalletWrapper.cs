@@ -32,7 +32,7 @@ namespace HiddenWallet.Daemon.Wrappers
 
 		private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 		private Task _walletJobTask = Task.CompletedTask;
-		
+
 		public bool WalletExists => File.Exists(Config.WalletFilePath);
 		public bool IsDecrypted => !_walletJobTask.IsCompleted && _password != null;
 
@@ -185,7 +185,7 @@ namespace HiddenWallet.Daemon.Wrappers
 			_incomingAlice = aa.Unconfirmed;
 			_availableBob = ab.Confirmed;
 			_incomingBob = ab.Unconfirmed;
-			
+
 			// receive
 			var ua = (await _walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, AliceAccount, HdPathType.Receive)).ToArray();
 			var ub = (await _walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, BobAccount, HdPathType.Receive)).ToArray();
@@ -204,7 +204,7 @@ namespace HiddenWallet.Daemon.Wrappers
 		{
 			_walletState = _walletJob.State.ToString();
 		}
-		
+
 		#endregion
 
 		public async Task EndAsync()
@@ -218,9 +218,12 @@ namespace HiddenWallet.Daemon.Wrappers
 
 			_cts.Cancel();
 			await Task.WhenAll(_walletJobTask);
-			
+
 			Tor.Kill();
-		}		
+
+            _cts?.Dispose();
+            _walletJobTask?.Dispose();
+		}
 
 		public async Task<StatusResponse> GetStatusResponseAsync()
 		{
@@ -228,7 +231,7 @@ namespace HiddenWallet.Daemon.Wrappers
 			if (_walletJob != null)
 			{
 				var hh = 0;
-                var result = await WalletJob.TryGetHeaderHeightAsync();
+                var result = await _walletJob.TryGetHeaderHeightAsync();
                 var headerHeight = result.Height;
                 if (result.Success)
 				{
@@ -247,12 +250,12 @@ namespace HiddenWallet.Daemon.Wrappers
 
 				var ws = _walletState;
 
-				var nc = WalletJob.ConnectedNodeCount;
-				
-				var mtxc = MemPoolJob.Transactions.Count;
+				var nc = _walletJob.ConnectedNodeCount;
+
+				var mtxc = _walletJob.MemPoolJob.Transactions.Count;
 
 				var cb = _changeBump;
-				
+
 				return new StatusResponse { HeaderHeight = hh, TrackingHeight = th, ConnectedNodeCount = nc, MemPoolTransactionCount = mtxc, WalletState = ws, TorState = ts, ChangeBump = cb };
 			}
 			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, ConnectedNodeCount = 0, MemPoolTransactionCount = 0, WalletState = WalletState.NotStarted.ToString(), TorState = ts, ChangeBump = 0 };

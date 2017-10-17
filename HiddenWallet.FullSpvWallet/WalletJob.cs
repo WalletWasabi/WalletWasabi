@@ -27,7 +27,7 @@ namespace HiddenWallet.FullSpv
 	{
 		#region MembersAndProperties
 
-		public static Network CurrentNetwork { get; private set; }
+		public Network CurrentNetwork { get; private set; }
 
 		public Safe Safe { get; private set; }
 		public bool TracksDefaultSafe { get; private set; }
@@ -73,11 +73,11 @@ namespace HiddenWallet.FullSpv
 				// when the current tip time is lower than the creation time of the safe let's estimate that to be the creation height
 				return new Height(currTip.Height);
 			}
-			catch
-			{
-				return Height.Unknown;
-			}
-		}
+            catch (Exception)
+            {
+                return Height.Unknown;
+            }
+        }
 
         public async Task<Height> GetBestHeightAsync()
         {
@@ -87,7 +87,7 @@ namespace HiddenWallet.FullSpv
 		public event EventHandler BestHeightChanged;
 		private void OnBestHeightChanged() => BestHeightChanged?.Invoke(this, EventArgs.Empty);
 
-		public static int ConnectedNodeCount
+		public int ConnectedNodeCount
 		{
 			get
 			{
@@ -95,7 +95,7 @@ namespace HiddenWallet.FullSpv
 				return Nodes.ConnectedNodes.Count;
 			}
 		}
-		public static int MaxConnectedNodeCount
+		public int MaxConnectedNodeCount
 		{
 			get
 			{
@@ -103,8 +103,8 @@ namespace HiddenWallet.FullSpv
 				return Nodes.MaximumNodeConnection;
 			}
 		}
-		public static event EventHandler ConnectedNodeCountChanged;
-		private static void OnConnectedNodeCountChanged() => ConnectedNodeCountChanged?.Invoke(null, EventArgs.Empty);
+		public event EventHandler ConnectedNodeCountChanged;
+		private void OnConnectedNodeCountChanged() => ConnectedNodeCountChanged?.Invoke(this, EventArgs.Empty);
 
 		private WalletState _state;
 		public WalletState State
@@ -120,13 +120,13 @@ namespace HiddenWallet.FullSpv
 		public event EventHandler StateChanged;
 		private void OnStateChanged() => StateChanged?.Invoke(this, EventArgs.Empty);
 
-		private static readonly SemaphoreSlim SemaphoreSave = new SemaphoreSlim(1, 1);
-		private static NodeConnectionParameters _connectionParameters;
-		public static NodesGroup Nodes { get; private set; }
+		private readonly SemaphoreSlim SemaphoreSave = new SemaphoreSlim(1, 1);
+		private NodeConnectionParameters _connectionParameters;
+		public NodesGroup Nodes { get; private set; }
 
 		private const string WorkFolderPath = "FullBlockSpvData";
-		private static string _addressManagerFilePath => Path.Combine(WorkFolderPath, $"AddressManager{CurrentNetwork}.dat");
-		private static string _headerChainFilePath => Path.Combine(WorkFolderPath, $"HeaderChain{CurrentNetwork}.dat");
+		private string _addressManagerFilePath => Path.Combine(WorkFolderPath, $"AddressManager{CurrentNetwork}.dat");
+		private string _headerChainFilePath => Path.Combine(WorkFolderPath, $"HeaderChain{CurrentNetwork}.dat");
 		private string _trackerFolderPath => Path.Combine(WorkFolderPath, Safe.UniqueId);
 
 		private Tracker _tracker;
@@ -142,17 +142,18 @@ namespace HiddenWallet.FullSpv
 				await _tracker.LoadAsync(_trackerFolderPath);
 				await EnsureNoMissingRelevantBlocksAsync();
 			}
-			catch
-			{
-				// Sync blockchain:
-				_tracker = new Tracker(Safe.Network);
-			}
+            catch (Exception)
+            {
+                // Sync blockchain:
+                _tracker = new Tracker(Safe.Network);
+            }
 
-			return _tracker;
+            return _tracker;
 		}
 
-        private static AddressManager _addressManager;        
-		public static async Task<AddressManager> GetAddressManagerAsync()
+        public MemPoolJob MemPoolJob { get; private set; }
+
+		public async Task<AddressManager> GetAddressManagerAsync()
 		{
 			if (_connectionParameters != null)
 			{
@@ -167,17 +168,17 @@ namespace HiddenWallet.FullSpv
 			{
 				return AddressManager.LoadPeerFile(_addressManagerFilePath);
 			}
-			catch
+            catch (Exception)
+            {
+                return new AddressManager();
+            }
+            finally
 			{
-				return new AddressManager();
-			}
-			finally
-			{
-				SemaphoreSave.Release();
+				SemaphoreSave.SafeRelease();
 			}
 		}
 
-		public static async Task<int> GetBlockConfirmationsAsync(uint256 blockId)
+		public async Task<int> GetBlockConfirmationsAsync(uint256 blockId)
 		{
 			var height = 0;
 			foreach(var header in (await GetHeaderChainAsync()).ToEnumerable(fromTip: true))
@@ -190,15 +191,17 @@ namespace HiddenWallet.FullSpv
 			return height;
 		}
 
-        private static ConcurrentChain _headerChain;
-		private static async Task<ConcurrentChain> GetHeaderChainAsync()
+		private async Task<ConcurrentChain> GetHeaderChainAsync()
 		{
             if (_connectionParameters != null)
+            {
                 foreach (var behavior in _connectionParameters.TemplateBehaviors)
                 {
                     if (behavior is ChainBehavior chainBehavior)
                         return chainBehavior.Chain;
                 }
+            }
+
             var chain = new ConcurrentChain(CurrentNetwork);
             await SemaphoreSave.WaitAsync();
             try
@@ -211,7 +214,7 @@ namespace HiddenWallet.FullSpv
             }
             finally
             {
-                SemaphoreSave.Release();
+                SemaphoreSave.SafeRelease();
             }
 
             return chain;
@@ -231,9 +234,12 @@ namespace HiddenWallet.FullSpv
 
 			Safe = safeToTrack;
 			CurrentNetwork = safeToTrack.Network;
-			MemPoolJob.Enabled = false;
+            MemPoolJob = new MemPoolJob(this)
+            {
+                Enabled = false
+            };
 
-			NoTorQBitClient = new QBitNinjaClient(safeToTrack.Network);
+            NoTorQBitClient = new QBitNinjaClient(safeToTrack.Network);
 			TorQBitClient = new QBitNinjaClient(safeToTrack.Network);
 			TorQBitClient.SetHttpMessageHandler(handler);
 			TorHttpClient = new HttpClient(handler);
@@ -258,13 +264,13 @@ namespace HiddenWallet.FullSpv
 			Directory.CreateDirectory(WorkFolderPath);
 
             (await GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
-          
+
 			_connectionParameters = new NodeConnectionParameters();
 			//So we find nodes faster
 			_connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(await GetAddressManagerAsync()));
 			//So we don't have to load the chain each time we start
 			_connectionParameters.TemplateBehaviors.Add(new ChainBehavior(await GetHeaderChainAsync()));
-			_connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior());
+			_connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolJob));
 
 			await UpdateSafeTrackingAsync();
 
@@ -277,7 +283,6 @@ namespace HiddenWallet.FullSpv
 			Nodes.NodeConnectionParameters = _connectionParameters;
 
             MemPoolJob.Synced += MemPoolJob_SyncedAsync;
-
             MemPoolJob.NewTransaction += MemPoolJob_NewTransactionAsync;
 
             Nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
@@ -333,32 +338,54 @@ namespace HiddenWallet.FullSpv
         }
 
         public async Task StartAsync(CancellationToken ctsToken)
-		{
-			State = WalletState.SyncingHeaders;
-			Nodes.Connect();
+        {
+            var tasks = new HashSet<Task>();
+            try
+            {
+                State = WalletState.SyncingHeaders;
+                Nodes.Connect();
 
-			BlockDownloader = new BlockDownloader();
+                BlockDownloader = new BlockDownloader(this);
 
-			var tasks = new HashSet<Task>
-			{
-				PeriodicSaveAsync(TimeSpan.FromMinutes(3), ctsToken),
-				BlockDownloadingJobAsync(ctsToken),
-				MemPoolJob.StartAsync(ctsToken),
-				BlockDownloader.StartAsync(ctsToken),
-				FeeService.StartAsync(ctsToken)
-			};
+                tasks = new HashSet<Task>
+            {
+                PeriodicSaveAsync(TimeSpan.FromMinutes(3), ctsToken),
+                BlockDownloadingJobAsync(ctsToken),
+                MemPoolJob.StartAsync(ctsToken),
+                BlockDownloader.StartAsync(ctsToken),
+                FeeService.StartAsync(ctsToken)
+            };
 
-			await Task.WhenAll(tasks);
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                State = WalletState.NotStarted;
+                (await GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
+                MemPoolJob.Synced -= MemPoolJob_SyncedAsync;
+                MemPoolJob.NewTransaction -= MemPoolJob_NewTransactionAsync;
+                Nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
+                Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
+                (await GetTrackerAsync()).BestHeightChanged -= WalletJob_BestHeightChanged;
+                await SaveAllChangedAsync();
+                (await GetTrackerAsync())?.Dispose();
+                Nodes?.Dispose();
+                foreach(var task in tasks)
+                {
+                    task?.Dispose();
+                }
+                FeeService?.Dispose();
+                TorHttpClient?.Dispose();
+                try
+                {
+                    ControlPortClient?.DisconnectDisposeSocket();
+                }
+                catch (Exception)
+                {
 
-			State = WalletState.NotStarted;
-            (await GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
-            MemPoolJob.Synced -= MemPoolJob_SyncedAsync;
-            MemPoolJob.NewTransaction -= MemPoolJob_NewTransactionAsync;
-            Nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
-            Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
-            (await GetTrackerAsync()).BestHeightChanged -= WalletJob_BestHeightChanged;
-            await SaveAllChangedAsync();
-			Nodes.Dispose();
+                }
+                SemaphoreSave?.Dispose();
+            }
         }
 
 		#region SafeTracking
@@ -416,7 +443,7 @@ namespace HiddenWallet.FullSpv
 		#region Misc
 
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="account">if null then default safe, if doesn't contain, then exception</param>
 		/// <returns></returns>
@@ -549,11 +576,9 @@ namespace HiddenWallet.FullSpv
         }
 
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="scriptPubKey"></param>
-		/// <param name="receivedTransactions">int: block height</param>
-		/// <param name="spentTransactions">int: block height</param>
 		/// <returns></returns>
 		public async Task<(bool Success, HashSet<SmartTransaction> ReceivedTransactions, HashSet<SmartTransaction> SpentTransactions)> TryFindAllChainAndMemPoolTransactionsAsync(Script scriptPubKey)
 		{
@@ -599,7 +624,7 @@ namespace HiddenWallet.FullSpv
 			return (found, receivedTransactions, spentTransactions);
 		}
 
-		public static async Task<ChainedBlock> TryGetHeaderAsync(Height height)
+		public async Task<ChainedBlock> TryGetHeaderAsync(Height height)
 		{
 			ChainedBlock header = null;
 			try
@@ -607,16 +632,16 @@ namespace HiddenWallet.FullSpv
 				if (_connectionParameters == null)
 					return null;
 
-				header = (await GetHeaderChainAsync()).GetBlock(height);				
+				header = (await GetHeaderChainAsync()).GetBlock(height);
 			}
-			catch
-			{
+            catch (Exception)
+            {
                 header = null;
-			}
+            }
             return header;
 		}
 
-		public static async Task<(bool Success, Height Height)> TryGetHeaderHeightAsync()
+		public async Task<(bool Success, Height Height)> TryGetHeaderHeightAsync()
 		{
 			var height = Height.Unknown;
 			try
@@ -627,18 +652,18 @@ namespace HiddenWallet.FullSpv
 				height = new Height((await GetHeaderChainAsync()).Height);
 				return (true, height);
 			}
-			catch
-			{
-				return (false, height);
-			}
-		}
+            catch (Exception)
+            {
+                return (false, height);
+            }
+        }
 
 		#endregion
 
 		#region BlockDownloading
 		private async Task BlockDownloadingJobAsync(CancellationToken ctsToken)
 		{
-			MemPoolJob.Enabled = false;
+            MemPoolJob.Enabled = false;
 			while (true)
 			{
 				try
@@ -678,14 +703,14 @@ namespace HiddenWallet.FullSpv
 						if ((await GetHeaderChainAsync()).Height <= trackerBestHeight)
 						{
 							State = MemPoolJob.SyncedOnce ? WalletState.Synced : WalletState.SyncingMemPool;
-							MemPoolJob.Enabled = true;
+                            MemPoolJob.Enabled = true;
 							await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
 							continue;
 						}
 						// else sync blocks
 						else
 						{
-							MemPoolJob.Enabled = false;
+                            MemPoolJob.Enabled = false;
 							State = WalletState.SyncingBlocks;
 							// if unprocessed buffer hit the headerchain height
 							// or unprocessed buffer is full
@@ -850,7 +875,7 @@ namespace HiddenWallet.FullSpv
 			}
 			finally
 			{
-				SemaphoreSave.Release();
+				SemaphoreSave.SafeRelease();
 			}
 
 			var bestHeight = await GetBestHeightAsync();
@@ -865,7 +890,7 @@ namespace HiddenWallet.FullSpv
 			}
 		}
 
-		private static async Task SaveHeaderChainAsync()
+		private async Task SaveHeaderChainAsync()
 		{
 			using (var fs = File.Open(_headerChainFilePath, FileMode.Create))
 			{
@@ -877,7 +902,7 @@ namespace HiddenWallet.FullSpv
 		#region TransactionSending
 
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="scriptPubKeyToSend"></param>
 		/// <param name="amount">If Money.Zero then spend all available amount</param>
@@ -918,8 +943,11 @@ namespace HiddenWallet.FullSpv
 				Money feePerBytes = null;
 				try
 				{
-                    var feeRate = await FeeService.GetFeeRateAsync(feeType, new CancellationTokenSource(TimeSpan.FromMinutes(1)).Token);
-                    feePerBytes = (feeRate.FeePerK / 1000);
+                    using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1)))
+                    {
+                        var feeRate = await FeeService.GetFeeRateAsync(feeType, cancellationTokenSource.Token);
+                        feePerBytes = (feeRate.FeePerK / 1000);
+                    }
                 }
 				catch (Exception ex)
 				{
@@ -1086,7 +1114,7 @@ namespace HiddenWallet.FullSpv
             }
         }
 
-		internal static HashSet<Coin> SelectCoinsToSpend(IDictionary<Coin, bool> unspentCoins, Money totalOutAmount)
+		internal HashSet<Coin> SelectCoinsToSpend(IDictionary<Coin, bool> unspentCoins, Money totalOutAmount)
 		{
 			var coinsToSpend = new HashSet<Coin>();
 			var unspentConfirmedCoins = new List<Coin>();
@@ -1103,7 +1131,7 @@ namespace HiddenWallet.FullSpv
 
 			return coinsToSpend;
 		}
-		private static bool SelectCoins(ref HashSet<Coin> coinsToSpend, Money totalOutAmount, IEnumerable<Coin> unspentCoins)
+		private bool SelectCoins(ref HashSet<Coin> coinsToSpend, Money totalOutAmount, IEnumerable<Coin> unspentCoins)
 		{
 			var haveEnough = false;
 			foreach (var coin in unspentCoins.OrderByDescending(x => x.Amount))
@@ -1148,7 +1176,7 @@ namespace HiddenWallet.FullSpv
                 Unconfirmed = unconfirmedAvailableAmount
             },
             unspentCoins);
-            
+
 		}
 
 		public struct BuildTransactionResult
@@ -1188,7 +1216,7 @@ namespace HiddenWallet.FullSpv
 					if (trackedScriptPubkeys.Contains(coin.ScriptPubKey))
 					{
 						// 3. Check if coin is unspent, if so add to our utxoSet
-						if (await IsUnspent(coin))
+						if (await IsUnspentAsync(coin))
 						{
 							unspentCoins.Add(coin, tx.Confirmed);
 						}
@@ -1199,7 +1227,7 @@ namespace HiddenWallet.FullSpv
 			return unspentCoins;
 		}
 
-		private async Task<bool> IsUnspent(Coin coin) => (await GetTrackerAsync())
+		private async Task<bool> IsUnspentAsync(Coin coin) => (await GetTrackerAsync())
 			.TrackedTransactions
 			.Where(x => x.Height.Type == HeightType.Chain || x.Height.Type == HeightType.MemPool)
 			.SelectMany(x => x.Transaction.Inputs)
@@ -1231,8 +1259,8 @@ namespace HiddenWallet.FullSpv
 				var counter = 0;
 				while (true)
 				{
-					HttpResponseMessage smartBitResponse = new HttpResponseMessage();
-					BroadcastResponse qbitResponse = new BroadcastResponse();
+					var smartBitResponse = new HttpResponseMessage();
+					var qbitResponse = new BroadcastResponse();
 					try
 					{
 						Debug.Write("Broadcasting with ");
@@ -1253,12 +1281,12 @@ namespace HiddenWallet.FullSpv
 							smartBitResponse = await TorHttpClient.PostAsync(post, content);
 						}
 					}
-					catch
-					{
-						counter++;
-						continue;
-					}
-					await Task.Delay(1000);
+                    catch (Exception)
+                    {
+                        counter++;
+                        continue;
+                    }
+                    await Task.Delay(1000);
 					var arrived = MemPoolJob.Transactions.Contains(tx.GetHash());
 					if (arrived)
 					{
@@ -1300,6 +1328,7 @@ namespace HiddenWallet.FullSpv
 						};
 					}
 					counter++;
+                    smartBitResponse?.Dispose();
 				}
 			}
 			catch (Exception ex)

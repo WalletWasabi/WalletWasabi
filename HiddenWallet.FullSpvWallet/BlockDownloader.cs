@@ -17,6 +17,12 @@ namespace HiddenWallet.FullSpv
 	{
 		private ConcurrentHashSet<Height> BlocksToDownload = new ConcurrentHashSet<Height>();
 		private ConcurrentDictionary<Height, Block> DownloadedBlocks = new ConcurrentDictionary<Height, Block>();
+        private WalletJob _walletJob;
+
+        public BlockDownloader(WalletJob walletJob)
+        {
+            _walletJob = walletJob ?? throw new ArgumentNullException(nameof(walletJob));
+        }
 
 		public void Clear()
 		{
@@ -47,22 +53,34 @@ namespace HiddenWallet.FullSpv
 			return block;
 		}
 
-		public async Task StartAsync(CancellationToken ctsToken)
-		{
-			while (WalletJob.ConnectedNodeCount < 3)
-			{
-				await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
-				if (ctsToken.IsCancellationRequested) return;
-			}
+        public async Task StartAsync(CancellationToken ctsToken)
+        {
+            var tasks = new HashSet<Task>();
+            try
+            {
+                while (_walletJob.ConnectedNodeCount < 3)
+                {
+                    await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
+                    if (ctsToken.IsCancellationRequested) return;
+                }
 
-			var tasks = new HashSet<Task>
-			{
-				StartDownloadingWithFastestAsync(ctsToken),
-				StartDownloadingWithIteratingAync(ctsToken)
-			};
+                tasks = new HashSet<Task>
+            {
+                StartDownloadingWithFastestAsync(ctsToken),
+                StartDownloadingWithIteratingAsync(ctsToken)
+            };
 
-			await Task.WhenAll(tasks);
-		}
+                await Task.WhenAll(tasks);
+            }
+            finally
+            {
+                foreach(var task in tasks)
+                {
+                    task?.Dispose();
+                }
+                Semaphore?.Dispose();
+            }
+        }
 
 		private IPEndPoint _fastestNodeEndPoint;
 		private async Task StartDownloadingWithFastestAsync(CancellationToken ctsToken)
@@ -75,9 +93,9 @@ namespace HiddenWallet.FullSpv
 					SetFastestNode();
 					if (ctsToken.IsCancellationRequested) return;
 
-					Node fastestNode = WalletJob.Nodes.ConnectedNodes.FirstOrDefault(x => x.RemoteSocketEndpoint.Equals(_fastestNodeEndPoint));
+					Node fastestNode = _walletJob.Nodes.ConnectedNodes.FirstOrDefault(x => x.RemoteSocketEndpoint.Equals(_fastestNodeEndPoint));
 					if (fastestNode == default(Node)) continue;
-					await DownloadNextBlocks(fastestNode, ctsToken, 3);
+					await DownloadNextBlocksAsync(fastestNode, ctsToken, 3);
 				}
 				catch (Exception ex)
 				{
@@ -87,14 +105,14 @@ namespace HiddenWallet.FullSpv
 			}
 		}
 
-		private SemaphoreSlim _sem = new SemaphoreSlim(1, 1);
+		private readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
 
-		private async Task DownloadNextBlocks(Node node, CancellationToken ctsToken, int maxBlocksToDownload = 1)
+		private async Task DownloadNextBlocksAsync(Node node, CancellationToken ctsToken, int maxBlocksToDownload = 1)
 		{
 			var heights = new List<Height>();
 			try
 			{
-				await _sem.WaitAsync(ctsToken);
+				await Semaphore.WaitAsync(ctsToken);
 
 				if (BlocksToDownload.Count == 0)
 				{
@@ -117,74 +135,77 @@ namespace HiddenWallet.FullSpv
 			}
 			finally
 			{
-				_sem.Release();
+				Semaphore.SafeRelease();
 			}
 			try
 			{
 				var headers = new HashSet<ChainedBlock>();
 				foreach(var height in heights)
 				{
-					var neededHeader = await WalletJob.TryGetHeaderAsync(height);
+					var neededHeader = await _walletJob.TryGetHeaderAsync(height);
 					headers.Add(neededHeader);
 				}
 
 				var delayMinutes = heights.Count;
-				var timeoutToken = new CancellationTokenSource(TimeSpan.FromMinutes(delayMinutes)).Token;
-				var downloadCtsToken = CancellationTokenSource.CreateLinkedTokenSource(timeoutToken, ctsToken).Token;
+                using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(delayMinutes)))
+                {
+                    var timeoutToken = cancellationTokenSource.Token;
+                    var downloadCtsToken = CancellationTokenSource.CreateLinkedTokenSource(timeoutToken, ctsToken).Token;
 
-				HashSet<Block> blocks = null;
-				try
-				{
-					blocks = new HashSet<Block>(await Task.Run(() => node.GetBlocks(headers.ToArray(), downloadCtsToken)));
-				}
-				catch
-				{
-					if (timeoutToken.IsCancellationRequested)
-					{
-						node.DisconnectAsync($"Block download time > {delayMinutes}min");
-					}
-					else node.DisconnectAsync("Block download failed");
-					blocks = null;
-				}
-				if (blocks == null)
-				{
-					foreach (var height in heights)
-					{
-						BlocksToDownload.Add(height);
-					}
-				}
-				else
-				{
-					int i = 0;
-					foreach (var block in blocks)
-					{
-						DownloadedBlocks.AddOrReplace(heights[i], block);
-						i++;
-					}
-				}
-			}
-			catch
-			{
-				try
-				{
-					await _sem.WaitAsync(ctsToken);
+                    HashSet<Block> blocks = null;
+                    try
+                    {
+                        blocks = new HashSet<Block>(await Task.Run(() => node.GetBlocks(headers.ToArray(), downloadCtsToken)));
+                    }
+                    catch (Exception)
+                    {
+                        if (timeoutToken.IsCancellationRequested)
+                        {
+                            node.DisconnectAsync($"Block download time > {delayMinutes}min");
+                        }
+                        else node.DisconnectAsync("Block download failed");
+                        blocks = null;
+                    }
+                    if (blocks == null)
+                    {
+                        foreach (var height in heights)
+                        {
+                            BlocksToDownload.Add(height);
+                        }
+                    }
+                    else
+                    {
+                        int i = 0;
+                        foreach (var block in blocks)
+                        {
+                            DownloadedBlocks.AddOrReplace(heights[i], block);
+                            i++;
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    await Semaphore.WaitAsync(ctsToken);
 
-					foreach (var height in heights)
-					{
-						BlocksToDownload.Add(height);
-					}
-				}
-				finally
-				{
-					_sem.Release();
-				}
-			}
-		}
+                    foreach (var height in heights)
+                    {
+                        BlocksToDownload.Add(height);
+                    }
+                }
+                finally
+                {
+                    Semaphore.SafeRelease();
+                }
+            }
+        }
 
 		private void SetFastestNode()
 		{
 			var performances = new Dictionary<IPEndPoint, long>();
-			foreach (var node in WalletJob.Nodes.ConnectedNodes)
+			foreach (var node in _walletJob.Nodes.ConnectedNodes)
 			{
 				var speed = (long)(node.Counter.ReadenBytes / node.Counter.Elapsed.TotalSeconds);
 				performances.Add(node.RemoteSocketEndpoint, speed);
@@ -194,7 +215,7 @@ namespace HiddenWallet.FullSpv
 			_fastestNodeEndPoint = performances.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
 		}
 
-		private async Task StartDownloadingWithIteratingAync(CancellationToken ctsToken)
+		private async Task StartDownloadingWithIteratingAsync(CancellationToken ctsToken)
 		{
 			var downloadTasks = new HashSet<Task>();
 			while (true)
@@ -203,11 +224,11 @@ namespace HiddenWallet.FullSpv
 				{
 					if (ctsToken.IsCancellationRequested) return;
 
-					foreach (var node in WalletJob.Nodes.ConnectedNodes)
+					foreach (var node in _walletJob.Nodes.ConnectedNodes)
 					{
 						if (node.RemoteSocketEndpoint != _fastestNodeEndPoint)
 						{
-							downloadTasks.Add(DownloadNextBlocks(node, ctsToken, 1));
+							downloadTasks.Add(DownloadNextBlocksAsync(node, ctsToken, 1));
 						}
 						if (downloadTasks.Count >= 2)
 						{
@@ -218,13 +239,13 @@ namespace HiddenWallet.FullSpv
 				}
 				catch (Exception ex)
 				{
-					Debug.WriteLine($"Ignoring {nameof(StartDownloadingWithIteratingAync)} exception:");
+					Debug.WriteLine($"Ignoring {nameof(StartDownloadingWithIteratingAsync)} exception:");
 					Debug.WriteLine(ex);
 				}
 			}
 		}
 
-		private static void RemoveCompletedTasks(HashSet<Task> downloadTasks)
+		private void RemoveCompletedTasks(HashSet<Task> downloadTasks)
 		{
 			var tasksToRemove = new HashSet<Task>();
 			foreach (var task in downloadTasks)

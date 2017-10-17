@@ -237,7 +237,7 @@ namespace HiddenWallet.Daemon.Controllers
                 {
                     address = BitcoinAddress.Create(request.Address, Global.WalletWrapper.Network);
                 }
-                catch
+                catch (Exception)
                 {
                     return new ObjectResult(new FailureResponse { Message = "Wrong address", Details = "" });
                 }
@@ -252,7 +252,7 @@ namespace HiddenWallet.Daemon.Controllers
                         amount = tmpAmount;
                     }
                 }
-                catch
+                catch (Exception)
                 {
                     return new ObjectResult(new FailureResponse { Message = "Wrong amount", Details = "" });
                 }
@@ -300,7 +300,7 @@ namespace HiddenWallet.Daemon.Controllers
                 {
                     tx = new Transaction(request.Hex);
                 }
-                catch
+                catch (Exception)
                 {
                     return new ObjectResult(new FailureResponse { Message = "Wrong transaction hex", Details = "" });
                 }

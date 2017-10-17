@@ -33,7 +33,7 @@ namespace HiddenWallet.Tests
 			    {
 				    await Task.Delay(1000, ctsToken).ContinueWith(t => { });
 
-                    var result = await WalletJob.TryGetHeaderHeightAsync();
+                    var result = await walletJob.TryGetHeaderHeightAsync();
                     var currHeaderHeight = result.Height;
                     if (result.Success)
                     {

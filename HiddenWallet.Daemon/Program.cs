@@ -26,11 +26,11 @@ namespace HiddenWallet.Daemon
 					await client.GetAsync(endPoint + "api/v1/wallet/test");
 					alreadyRunning = true;
 				}
-				catch
-				{
-					alreadyRunning = false;
-				}
-			}
+                catch (Exception)
+                {
+                    alreadyRunning = false;
+                }
+            }
 
 			if (!alreadyRunning)
 			{
@@ -53,22 +53,22 @@ namespace HiddenWallet.Daemon
 					await Tor.ControlPortClient.IsCircuitEstabilishedAsync();
 					Debug.WriteLine($"Tor is already running, using the existing instance.");
 				}
-				catch
-				{
-					Debug.WriteLine($"Starting Tor with arguments: {Tor.TorArguments}");
-					try
-					{
-						Tor.TorProcess = Process.Start(torProcessStartInfo);
-					}
-					catch
-					{
-						// ignore, just run the torjob
-					}
-				}
+                catch (Exception)
+                {
+                    Debug.WriteLine($"Starting Tor with arguments: {Tor.TorArguments}");
+                    try
+                    {
+                        Tor.TorProcess = Process.Start(torProcessStartInfo);
+                    }
+                    catch
+                    {
+                        // ignore, just run the torjob
+                    }
+                }
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				Tor.MakeSureCircuitEstabilishedAsync();
+                Tor.MakeSureCircuitEstabilishedAsync();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				
+
 				Global.WalletWrapper = new WalletWrapper();
 
 				var host = new WebHostBuilder()
@@ -84,6 +84,6 @@ namespace HiddenWallet.Daemon
 			{
 				Console.WriteLine("API is already running. Shutting down...");
 			}
-		}		
+		}
 	}
 }

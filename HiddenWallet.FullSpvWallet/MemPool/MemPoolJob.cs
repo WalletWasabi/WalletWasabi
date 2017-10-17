@@ -19,67 +19,80 @@ namespace HiddenWallet.FullSpv.MemPool
 			Transaction = transaction;
 		}
 	}
-	public static class MemPoolJob
+	public class MemPoolJob
     {
-	    private static ConcurrentHashSet<uint256> _transactions = new ConcurrentHashSet<uint256>();
-        public static ConcurrentHashSet<uint256> Transactions { get => _transactions; private set => _transactions = value; }
-		private static ConcurrentHashSet<uint256> _notNeededTransactions = new ConcurrentHashSet<uint256>();
+	    private ConcurrentHashSet<uint256> _transactions = new ConcurrentHashSet<uint256>();
+        public ConcurrentHashSet<uint256> Transactions { get => _transactions; private set => _transactions = value; }
+		private ConcurrentHashSet<uint256> _notNeededTransactions = new ConcurrentHashSet<uint256>();
 
-        public static event EventHandler<NewTransactionEventArgs> NewTransaction;
-		private static void OnNewTransaction(Transaction transaction) => NewTransaction?.Invoke(null, new NewTransactionEventArgs(transaction));
+        public event EventHandler<NewTransactionEventArgs> NewTransaction;
+		private void OnNewTransaction(Transaction transaction) => NewTransaction?.Invoke(this, new NewTransactionEventArgs(transaction));
 
-	    public static bool SyncedOnce { get; private set; } = false;
-		public static event EventHandler Synced;
-		private static void OnSynced() => Synced?.Invoke(null, EventArgs.Empty);
+	    public bool SyncedOnce { get; private set; } = false;
+		public event EventHandler Synced;
+		private void OnSynced() => Synced?.Invoke(this, EventArgs.Empty);
 
-		public static bool ForcefullyStopped { get; set; } = false;
-		internal static bool Enabled { get; set; } = true;
-		private static bool ShouldNotRunYet => !Enabled || ForcefullyStopped || WalletJob.Nodes.ConnectedNodes.Count <= 3;
+		public bool ForcefullyStopped { get; set; } = false;
+		internal bool Enabled { get; set; } = true;
+		private bool ShouldNotRunYet => !Enabled || ForcefullyStopped || WalletJob.Nodes.ConnectedNodes.Count <= 3;
+        public WalletJob WalletJob { get; }
 
-		public static async Task StartAsync(CancellationToken ctsToken)
+        public MemPoolJob(WalletJob walletJob)
+        {
+            WalletJob = walletJob ?? throw new ArgumentNullException(nameof(walletJob));
+        }
+
+		public async Task StartAsync(CancellationToken ctsToken)
 		{
-			while (true)
-			{
-				try
-				{
-					if (ctsToken.IsCancellationRequested) return;
-					if (ShouldNotRunYet)
-					{
-						_notNeededTransactions.Clear(); // should not grow infinitely
-						await Task.Delay(100, ctsToken).ContinueWith(t => { });
-						continue;
-					}
+            try
+            {
+                while (true)
+                {
+                    try
+                    {
+                        if (ctsToken.IsCancellationRequested) return;
+                        if (ShouldNotRunYet)
+                        {
+                            _notNeededTransactions.Clear(); // should not grow infinitely
+                            await Task.Delay(100, ctsToken).ContinueWith(t => { });
+                            continue;
+                        }
 
-					var currentMemPoolTransactions = await UpdateAsync(ctsToken);
-					if (ctsToken.IsCancellationRequested) return;
+                        var currentMemPoolTransactions = await UpdateAsync(ctsToken);
+                        if (ctsToken.IsCancellationRequested) return;
 
-					// Clear the transactions from the previous cycle
-					Transactions = new ConcurrentHashSet<uint256>(currentMemPoolTransactions);
-					_notNeededTransactions.Clear();
+                        // Clear the transactions from the previous cycle
+                        Transactions = new ConcurrentHashSet<uint256>(currentMemPoolTransactions);
+                        _notNeededTransactions.Clear();
 
-					if (!SyncedOnce)
-					{
-						SyncedOnce = true;
-					}
-					OnSynced();
+                        if (!SyncedOnce)
+                        {
+                            SyncedOnce = true;
+                        }
+                        OnSynced();
 
-					await Task.Delay(TimeSpan.FromMinutes(3), ctsToken).ContinueWith(t => { });
-				}
-				catch (OperationCanceledException)
-				{
-					continue;
-				}
-				catch (Exception ex)
-				{
-					Debug.WriteLine($"Ignoring {nameof(MemPoolJob)} exception:");
-					Debug.WriteLine(ex);
-				}
-			}
+                        await Task.Delay(TimeSpan.FromMinutes(3), ctsToken).ContinueWith(t => { });
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        continue;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Ignoring {nameof(MemPoolJob)} exception:");
+                        Debug.WriteLine(ex);
+                    }
+                }
+            }
+            finally
+            {
+                _getMempoolTransactionsTimeoutSource?.Dispose();
+            }
 		}		
 
-		private static int _getMempoolTransactionsTimeoutSec = 30;
-		private static CancellationTokenSource _getMempoolTransactionsTimeoutSource;
-		private static async Task<IEnumerable<uint256>> UpdateAsync(CancellationToken ctsToken)
+		private int _getMempoolTransactionsTimeoutSec = 30;
+		private CancellationTokenSource _getMempoolTransactionsTimeoutSource;
+		private async Task<IEnumerable<uint256>> UpdateAsync(CancellationToken ctsToken)
 	    {
 		    var txidsWeAlreadyHadAndFound = new HashSet<uint256>();
 
@@ -93,76 +106,78 @@ namespace HiddenWallet.FullSpv.MemPool
                     var txidsWeNeed = new HashSet<uint256>();
 					var sw = new Stopwatch();
 					sw.Start();
-					var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-					var ctsTokenGetMempool = CancellationTokenSource.CreateLinkedTokenSource(ctsToken, timeout.Token);
-					var txidsOfNode = await Task.Run(() => node.GetMempool(ctsTokenGetMempool.Token));
-					sw.Stop();
-					Debug.WriteLine($"GetMempool(), txs: {txidsOfNode.Count()}, secs: {sw.Elapsed.TotalSeconds}");
-					if (ShouldNotRunYet) break;
-
-					foreach (var txid in txidsOfNode)
+                    using (var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
                     {
-                        // if we had it in prevcycle note we found it again
-                        if (Transactions.Contains(txid)) txidsWeAlreadyHadAndFound.Add(txid);
-						else if(_notNeededTransactions.Contains(txid))
-						{
-							// we don't need, do nothing
-						}
-                        // if we didn't have it in prevcicle note we need it
-                        else txidsWeNeed.Add(txid);
-                    }					
-                    var txIdsPieces = CollectionHelpers.Split(txidsWeNeed.ToArray(), 500);
+                        var ctsTokenGetMempool = CancellationTokenSource.CreateLinkedTokenSource(ctsToken, timeout.Token);
+                        var txidsOfNode = await Task.Run(() => node.GetMempool(ctsTokenGetMempool.Token));
+                        sw.Stop();
+                        Debug.WriteLine($"GetMempool(), txs: {txidsOfNode.Count()}, secs: {sw.Elapsed.TotalSeconds}");
+                        if (ShouldNotRunYet) break;
 
-                    if (ctsToken.IsCancellationRequested) continue;
-                    if (!node.IsConnected) continue;
-
-                    foreach (var txIdsPiece in txIdsPieces)
-                    {
-						sw.Restart();
-						_getMempoolTransactionsTimeoutSource = new CancellationTokenSource(TimeSpan.FromSeconds(_getMempoolTransactionsTimeoutSec));
-						var ctsTokenGetMempoolTransactions = CancellationTokenSource.CreateLinkedTokenSource(ctsToken, _getMempoolTransactionsTimeoutSource.Token);
-						Transaction[] txsPiece = await Task.Run(() => node.GetMempoolTransactions(txIdsPiece.ToArray(), ctsTokenGetMempoolTransactions.Token));
-						sw.Stop();
-						Debug.WriteLine($"GetMempoolTransactions(), asked txs: {txIdsPiece.Count()}, actual txs: {txsPiece.Count()}, secs: {sw.Elapsed.TotalSeconds}");
-						
-						// if node doesn't give us pieces disconnect				
-						if (txIdsPiece.Count() != 0 && txsPiece.Count() == 0)
-						{
-							node.Disconnect();
-							node.Dispose();
-							Debug.WriteLine("Disconnected node, because it did not return transactions.");
-							break;
-						}
-
-						foreach (
-                            var tx in
-							txsPiece)
+                        foreach (var txid in txidsOfNode)
                         {
-                            if (!node.IsConnected) continue;
-                            if (ctsToken.IsCancellationRequested) continue;
+                            // if we had it in prevcycle note we found it again
+                            if (Transactions.Contains(txid)) txidsWeAlreadyHadAndFound.Add(txid);
+                            else if (_notNeededTransactions.Contains(txid))
+                            {
+                                // we don't need, do nothing
+                            }
+                            // if we didn't have it in prevcicle note we need it
+                            else txidsWeNeed.Add(txid);
+                        }
+                        var txIdsPieces = CollectionHelpers.Split(txidsWeNeed.ToArray(), 500);
 
-							// note we found it and add to unprocessed
-							if (txidsWeAlreadyHadAndFound.Add(tx.GetHash()))
-							{
-								if (!_notNeededTransactions.Contains(tx.GetHash()))
-								{
-									if (Transactions.Add(tx.GetHash()))
-									{
-										OnNewTransaction(tx);
-									}
-								}
-							}
-						}
-						if (ShouldNotRunYet) break;
-					}
+                        if (ctsToken.IsCancellationRequested) continue;
+                        if (!node.IsConnected) continue;
 
-					// if the node has very few transactions disconnect it					
-					if (node.IsConnected && WalletJob.CurrentNetwork == Network.Main && txidsOfNode.Count() <= 1)
-					{
-						node.Disconnect();
-						node.Dispose();
-						Debug.WriteLine("Disconnected node, because it has too few transactions.");
-					}
+                        foreach (var txIdsPiece in txIdsPieces)
+                        {
+                            sw.Restart();
+                            _getMempoolTransactionsTimeoutSource = new CancellationTokenSource(TimeSpan.FromSeconds(_getMempoolTransactionsTimeoutSec));
+                            var ctsTokenGetMempoolTransactions = CancellationTokenSource.CreateLinkedTokenSource(ctsToken, _getMempoolTransactionsTimeoutSource.Token);
+                            Transaction[] txsPiece = await Task.Run(() => node.GetMempoolTransactions(txIdsPiece.ToArray(), ctsTokenGetMempoolTransactions.Token));
+                            sw.Stop();
+                            Debug.WriteLine($"GetMempoolTransactions(), asked txs: {txIdsPiece.Count()}, actual txs: {txsPiece.Count()}, secs: {sw.Elapsed.TotalSeconds}");
+
+                            // if node doesn't give us pieces disconnect				
+                            if (txIdsPiece.Count() != 0 && txsPiece.Count() == 0)
+                            {
+                                node.Disconnect();
+                                node.Dispose();
+                                Debug.WriteLine("Disconnected node, because it did not return transactions.");
+                                break;
+                            }
+
+                            foreach (
+                                var tx in
+                                txsPiece)
+                            {
+                                if (!node.IsConnected) continue;
+                                if (ctsToken.IsCancellationRequested) continue;
+
+                                // note we found it and add to unprocessed
+                                if (txidsWeAlreadyHadAndFound.Add(tx.GetHash()))
+                                {
+                                    if (!_notNeededTransactions.Contains(tx.GetHash()))
+                                    {
+                                        if (Transactions.Add(tx.GetHash()))
+                                        {
+                                            OnNewTransaction(tx);
+                                        }
+                                    }
+                                }
+                            }
+                            if (ShouldNotRunYet) break;
+                        }
+
+                        // if the node has very few transactions disconnect it					
+                        if (node.IsConnected && WalletJob.CurrentNetwork == Network.Main && txidsOfNode.Count() <= 1)
+                        {
+                            node.Disconnect();
+                            node.Dispose();
+                            Debug.WriteLine("Disconnected node, because it has too few transactions.");
+                        }
+                    }
                 }
 				catch (OperationCanceledException ex)
 				{
@@ -207,7 +222,7 @@ namespace HiddenWallet.FullSpv.MemPool
 		    return txidsWeAlreadyHadAndFound;
 	    }
 
-		public static void RemoveTransactions(IEnumerable<uint256> transactionsToRemove)
+		public void RemoveTransactions(IEnumerable<uint256> transactionsToRemove)
 		{
 			foreach(var tx in transactionsToRemove)
 			{
@@ -220,7 +235,7 @@ namespace HiddenWallet.FullSpv.MemPool
 			}
 		}
 
-		public static bool TryAddNewTransaction(Transaction tx)
+		public bool TryAddNewTransaction(Transaction tx)
 		{
 			if (ForcefullyStopped) return false;
 			if (!Enabled) return false;

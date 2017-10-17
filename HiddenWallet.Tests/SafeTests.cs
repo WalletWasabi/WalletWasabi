@@ -68,7 +68,7 @@ namespace HiddenWallet.Tests
 			var safe = Safe.Create(out Mnemonic mnemonic, password, path, network);
 			var loadedSafe = Safe.Load(password, path);
 			var recoverdSafe = Safe.Recover(mnemonic, password, "Wallets/RecoveredTestWallet.json", network, Safe.EarliestPossibleCreationTime);
-			
+
 			try
 			{
 				Assert.Equal(safe.ExtKey.ScriptPubKey, loadedSafe.ExtKey.ScriptPubKey);

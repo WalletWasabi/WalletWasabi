@@ -34,7 +34,7 @@ namespace HiddenWallet.Daemon
 
 					try
 					{
-						var estabilished = await ControlPortClient.IsCircuitEstabilishedAsync().WithTimeout(TimeSpan.FromSeconds(3));
+						var estabilished = await ControlPortClient.IsCircuitEstabilishedAsync().WithTimeoutAsync(TimeSpan.FromSeconds(3));
 						if (ctsToken.IsCancellationRequested) return;
 
 						if (estabilished)
@@ -55,7 +55,7 @@ namespace HiddenWallet.Daemon
 							await RestartAsync();
 						}
 						if (ctsToken.IsCancellationRequested) return;
-					}					
+					}
 				}
 				catch(Exception ex)
 				{
@@ -71,11 +71,11 @@ namespace HiddenWallet.Daemon
 				await Task.Delay(wait, ctsToken).ContinueWith(tsk => { });
 			}
 		}
-		
+
 		public static async Task RestartAsync()
 		{
 			Kill();
-			
+
 			await Task.Delay(3000).ContinueWith(tsk => { });
 
 			try

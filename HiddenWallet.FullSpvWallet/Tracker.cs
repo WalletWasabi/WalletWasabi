@@ -13,7 +13,7 @@ using System.Collections;
 
 namespace HiddenWallet.FullSpv
 {
-	public class Tracker
+	public class Tracker : IDisposable
     {
 		#region Members
 
@@ -21,7 +21,7 @@ namespace HiddenWallet.FullSpv
 		public ConcurrentHashSet<SmartMerkleBlock> MerkleChain { get; } = new ConcurrentHashSet<SmartMerkleBlock>();
 
 	    /// <summary>
-	    /// 
+	    ///
 	    /// </summary>
 	    /// <param name="scriptPubKey"></param>
 	    /// <param name="receivedTransactions">int: block height</param>
@@ -32,7 +32,7 @@ namespace HiddenWallet.FullSpv
 		    var found = false;
 		    receivedTransactions = new ConcurrentHashSet<SmartTransaction>();
 			spentTransactions = new ConcurrentHashSet<SmartTransaction>();
-			
+
 			foreach(var tx in TrackedTransactions.Where(x=>x.Confirmed))
 			{
 				// if already has that tx continue
@@ -72,7 +72,7 @@ namespace HiddenWallet.FullSpv
 	    }
 
 		/// <summary>
-		/// 
+		///
 		/// </summary>
 		/// <param name="scriptPubKey"></param>
 		/// <returns>if never had any money on it</returns>
@@ -115,7 +115,7 @@ namespace HiddenWallet.FullSpv
 		}
 
 		#endregion
-        
+
 		public void ReorgOne()
 		{
 			UnprocessedBlockBuffer.Clear();
@@ -260,16 +260,16 @@ namespace HiddenWallet.FullSpv
 
 		#region Saving
 
-		private readonly SemaphoreSlim Saving = new SemaphoreSlim(1, 1);
+		private readonly SemaphoreSlim SemaphoreSaving = new SemaphoreSlim(1, 1);
 
 	    private const string TrackedScriptPubKeysFileName = "TrackedScriptPubKeys.dat";
 	    private const string TrackedTransactionsFileName = "TrackedTransactions.dat";
 	    private const string MerkleChainFileName = "MerkleChain.dat";
 
-		private static readonly byte[] blockSep = new byte[] { 0x10, 0x1A, 0x7B, 0x23, 0x5D, 0x12, 0x7D };
+		private static readonly byte[] BlockSep = new byte[] { 0x10, 0x1A, 0x7B, 0x23, 0x5D, 0x12, 0x7D };
 		public async Task SaveAsync(string trackerFolderPath)
 		{
-			await Saving.WaitAsync();
+			await SemaphoreSaving.WaitAsync();
 			try
 			{
 				if (TrackedScriptPubKeys.Count > 0 || TrackedTransactions.Count > 0 || MerkleChain.Count > 0)
@@ -310,7 +310,7 @@ namespace HiddenWallet.FullSpv
 						await stream.WriteAsync(toFile, 0, toFile.Length);
 						foreach(var block in MerkleChain.Skip(1))
 						{
-							await stream.WriteAsync(blockSep, 0, blockSep.Length);
+							await stream.WriteAsync(BlockSep, 0, BlockSep.Length);
 							var blockBytes = block.ToBytes();
 							await stream.WriteAsync(blockBytes, 0, blockBytes.Length);
 						}
@@ -319,13 +319,13 @@ namespace HiddenWallet.FullSpv
 			}
 			finally
 			{
-				Saving.Release();
+				SemaphoreSaving.SafeRelease();
 			}
 		}
 
 		public async Task LoadAsync(string trackerFolderPath)
 		{
-			await Saving.WaitAsync();
+			await SemaphoreSaving.WaitAsync();
 			try
 			{
 				if (!Directory.Exists(trackerFolderPath))
@@ -353,7 +353,7 @@ namespace HiddenWallet.FullSpv
 				var pbc = Path.Combine(trackerFolderPath, MerkleChainFileName);
 				if (File.Exists(pbc) && new FileInfo(pbc).Length != 0)
 				{
-					foreach (var block in CollectionHelpers.Separate(File.ReadAllBytes(pbc), blockSep))
+					foreach (var block in CollectionHelpers.Separate(File.ReadAllBytes(pbc), BlockSep))
 					{
 						try
 						{
@@ -373,10 +373,46 @@ namespace HiddenWallet.FullSpv
 			}
 			finally
 			{
-				Saving.Release();
+				SemaphoreSaving.SafeRelease();
 			}
 		}
 
-		#endregion
-	}
+        #endregion
+
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    SemaphoreSaving?.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~Tracker() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
+    }
 }
