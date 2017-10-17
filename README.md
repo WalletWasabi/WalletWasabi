@@ -65,7 +65,7 @@ If you get an error here, don't worry, just add your platform identifier to the 
 
 ### Runnin The Tests
 
-1. Download [Tor](https://www.torproject.org/download/download) and use this configuration file: [torrc](https://github.com/nopara73/DotNetTor/blob/master/torrc)  
+1. Download [Tor](https://www.torproject.org/download/download), (for Windows you need the Expert Bundle) and use this configuration file: [torrc](https://github.com/nopara73/DotNetTor/blob/master/torrc)  
 2. Run Tor 
 3. `cd HiddenWallet.Tests`  
 4. `dotnet restore`  
