@@ -7,7 +7,7 @@
 
     <ApplicationIcon />
 
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
 
     <StartupObject />
   </PropertyGroup>
