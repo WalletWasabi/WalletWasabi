@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using ConcurrentCollections;
+using Nito.AsyncEx;
 
 namespace System.Collections.ObjectModel
 {
@@ -8,7 +9,7 @@ namespace System.Collections.ObjectModel
 	{
 		protected ConcurrentHashSet<T> ConcurrentHashSet { get; }
 
-		private readonly object Lock = new object();
+        private readonly AsyncLock _asyncLock = new AsyncLock();
 
 		public ConcurrentObservableHashSet()
 		{
@@ -27,7 +28,7 @@ namespace System.Collections.ObjectModel
 		
 		public bool TryAdd(T item)
 		{
-			lock(Lock)
+			using(_asyncLock.Lock())
 			{
 				if(ConcurrentHashSet.Add(item))
 				{
@@ -40,8 +41,8 @@ namespace System.Collections.ObjectModel
 
 		public void Clear()
 		{
-			lock(Lock)
-			{
+            using (_asyncLock.Lock())
+            {
 				if(ConcurrentHashSet.Count > 0)
 				{
 					ConcurrentHashSet.Clear();
@@ -54,8 +55,8 @@ namespace System.Collections.ObjectModel
 
 		public bool TryRemove(T item)
 		{
-			lock(Lock)
-			{
+            using (_asyncLock.Lock())
+            {
 				if(ConcurrentHashSet.TryRemove(item))
 				{
 					OnCollectionChanged();

@@ -70,6 +70,7 @@ namespace HiddenWallet.Daemon
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 				Global.WalletWrapper = new WalletWrapper();
+                await Global.WalletWrapper.InitializeAsync();
 
 				var host = new WebHostBuilder()
 					.UseKestrel()

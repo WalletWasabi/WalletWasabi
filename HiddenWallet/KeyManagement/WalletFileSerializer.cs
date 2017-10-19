@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace HiddenWallet.KeyManagement
 {
@@ -21,7 +22,7 @@ namespace HiddenWallet.KeyManagement
 		public string Network { get; set; }
 		public string CreationTime { get; set; }
 
-		internal static void Serialize(string walletFilePath, string encryptedBitcoinPrivateKey, string chainCode,
+		internal static async Task SerializeAsync(string walletFilePath, string encryptedBitcoinPrivateKey, string chainCode,
 			string network, string creationTime)
 		{
 			var content =
@@ -33,15 +34,15 @@ namespace HiddenWallet.KeyManagement
 			var directoryPath = Path.GetDirectoryName(Path.GetFullPath(walletFilePath));
 			if (directoryPath != null) Directory.CreateDirectory(directoryPath);
 
-			File.WriteAllText(walletFilePath, content);
+			await File.WriteAllTextAsync(walletFilePath, content);
 		}
 
-		internal static WalletFileSerializer Deserialize(string path)
+		internal static async Task<WalletFileSerializer> DeserializeAsync(string path)
 		{
 			if (!File.Exists(path))
 				throw new FileNotFoundException($"Wallet not found at {path}");
 
-			var contentString = File.ReadAllText(path);
+			var contentString = await File.ReadAllTextAsync(path);
 			var walletFileSerializer = JsonConvert.DeserializeObject<WalletFileSerializer>(contentString);
 
 			return new WalletFileSerializer(walletFileSerializer.EncryptedSeed, walletFileSerializer.ChainCode,

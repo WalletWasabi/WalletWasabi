@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace HiddenWallet.KeyManagement
 {
@@ -106,17 +107,17 @@ namespace HiddenWallet.KeyManagement
 		/// <param name="walletFilePath"></param>
 		/// <param name="network"></param>
 		/// <returns>Safe</returns>
-		public static Safe Create(out Mnemonic mnemonic, string password, string walletFilePath, Network network)
+		public static async Task<(Safe Safe, Mnemonic Mnemonic)> CreateAsync(string password, string walletFilePath, Network network)
 		{
 			var creationTime = new DateTimeOffset(DateTimeOffset.UtcNow.Date);
 
 			var safe = new Safe(password, walletFilePath, network, creationTime);
 
-			mnemonic = safe.SetSeed(password);
+			var mnemonic = safe.SetSeed(password);
 
-			safe.Save(password, walletFilePath, network, creationTime);
+			await safe.SaveAsync(password, walletFilePath, network, creationTime);
 
-			return safe;
+			return (safe, mnemonic);
 		}
 
 		/// <summary>
@@ -128,13 +129,13 @@ namespace HiddenWallet.KeyManagement
 		/// <param name="network"></param>
 		/// <param name="creationTime">if null then will default to EarliestPossibleCreationTime</param>
 		/// <returns></returns>
-		public static Safe Recover(Mnemonic mnemonic, string password, string walletFilePath, Network network, DateTimeOffset? creationTime = null)
+		public static async Task<Safe> RecoverAsync(Mnemonic mnemonic, string password, string walletFilePath, Network network, DateTimeOffset? creationTime = null)
 		{
 			if(creationTime == null)
 				creationTime = EarliestPossibleCreationTime;
 
 			var safe = new Safe(password, walletFilePath, network, (DateTimeOffset)creationTime, mnemonic);
-			safe.Save(password, walletFilePath, network, safe.CreationTime);
+			await safe.SaveAsync(password, walletFilePath, network, safe.CreationTime);
 			return safe;
 		}
 
@@ -149,7 +150,7 @@ namespace HiddenWallet.KeyManagement
 
 		private void SetSeed(ExtKey seedExtKey) => ExtKey = seedExtKey;
 
-		private void Save(string password, string walletFilePath, Network network, DateTimeOffset creationTime)
+		private async Task SaveAsync(string password, string walletFilePath, Network network, DateTimeOffset creationTime)
 		{
 			if (File.Exists(walletFilePath))
 				throw new NotSupportedException($"Wallet already exists at {walletFilePath}");
@@ -167,7 +168,7 @@ namespace HiddenWallet.KeyManagement
 
 			var creationTimeString = creationTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
-			WalletFileSerializer.Serialize(
+			await WalletFileSerializer.SerializeAsync(
 				walletFilePath,
 				encryptedBitcoinPrivateKeyString,
 				chainCodeString,
@@ -175,12 +176,12 @@ namespace HiddenWallet.KeyManagement
 				creationTimeString);
 		}
 
-		public static Safe Load(string password, string walletFilePath)
+		public static async Task<Safe> LoadAsync(string password, string walletFilePath)
 		{
 			if (!File.Exists(walletFilePath))
 				throw new ArgumentException($"No wallet file found at {walletFilePath}");
 
-			var walletFileRawContent = WalletFileSerializer.Deserialize(walletFilePath);
+			var walletFileRawContent = await WalletFileSerializer.DeserializeAsync(walletFilePath);
 
 			var encryptedBitcoinPrivateKeyString = walletFileRawContent.EncryptedSeed;
 			var chainCodeString = walletFileRawContent.ChainCode;

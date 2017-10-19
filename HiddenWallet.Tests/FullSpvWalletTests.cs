@@ -31,8 +31,7 @@ namespace HiddenWallet.Tests
 			Network network = networkString == "TestNet"? Network.TestNet:Network.Main;
 			string path = $"Wallets/Empty{network}.json";
 			const string password = "";
-			Safe safe;
-            safe = File.Exists(path) ? Safe.Load(password, path) : Safe.Create(out Mnemonic mnemonic, password, path, network);
+			Safe safe = File.Exists(path) ? await Safe.LoadAsync(password, path) : (await Safe.CreateAsync(password, path, network)).Safe;
 
             Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
 
@@ -122,7 +121,7 @@ namespace HiddenWallet.Tests
 			Network network = Network.TestNet;
 			string path = Path.Combine(Helpers.CommittedWalletsFolderPath, $"HaveFunds{network}.json");
 			const string password = "";
-			Safe safe = Safe.Load(password, path);
+			Safe safe = await Safe.LoadAsync(password, path);
 			Assert.Equal(network, safe.Network);
 			Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
 
@@ -182,7 +181,7 @@ namespace HiddenWallet.Tests
 			const string password = "";
 			// I change it because I am using a very old wallet to test
 			Safe.EarliestPossibleCreationTime = DateTimeOffset.ParseExact("2016-12-18", "yyyy-MM-dd", CultureInfo.InvariantCulture);
-			Safe safe = Safe.Load(password, path);
+			Safe safe = await Safe.LoadAsync(password, path);
 			Assert.Equal(network, safe.Network);
 			Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
 
@@ -205,10 +204,10 @@ namespace HiddenWallet.Tests
 			try
 			{
                 // wait until fully synced
-                //while (!_syncedOnce)
-                //{
-                //    await Task.Delay(1000);
-                //}
+                while (!_syncedOnce)
+                {
+                    await Task.Delay(1000);
+                }
 
                 await Helpers.ReportFullHistoryAsync(walletJob);
 

@@ -10,10 +10,11 @@ using ConcurrentCollections;
 using NBitcoin;
 using HiddenWallet.Models;
 using System.Collections;
+using Nito.AsyncEx;
 
 namespace HiddenWallet.FullSpv
 {
-	public class Tracker : IDisposable
+	public class Tracker
     {
 		#region Members
 
@@ -258,9 +259,9 @@ namespace HiddenWallet.FullSpv
             }
         }
 
-		#region Saving
+        #region Saving
 
-		private readonly SemaphoreSlim SemaphoreSaving = new SemaphoreSlim(1, 1);
+        private readonly AsyncLock AsyncLockSaving = new AsyncLock();
 
 	    private const string TrackedScriptPubKeysFileName = "TrackedScriptPubKeys.dat";
 	    private const string TrackedTransactionsFileName = "TrackedTransactions.dat";
@@ -269,8 +270,7 @@ namespace HiddenWallet.FullSpv
 		private static readonly byte[] BlockSep = new byte[] { 0x10, 0x1A, 0x7B, 0x23, 0x5D, 0x12, 0x7D };
 		public async Task SaveAsync(string trackerFolderPath)
 		{
-			await SemaphoreSaving.WaitAsync();
-			try
+			using(await AsyncLockSaving.LockAsync())
 			{
 				if (TrackedScriptPubKeys.Count > 0 || TrackedTransactions.Count > 0 || MerkleChain.Count > 0)
 				{
@@ -279,14 +279,14 @@ namespace HiddenWallet.FullSpv
 
 				if (TrackedScriptPubKeys.Count > 0)
 				{
-					File.WriteAllLines(
+					await File.WriteAllLinesAsync(
 						Path.Combine(trackerFolderPath, TrackedScriptPubKeysFileName),
 						TrackedScriptPubKeys.Select(x => x.ToString()));
 				}
 
 				if (TrackedTransactions.Count > 0)
 				{
-					File.WriteAllLines(
+					await File.WriteAllLinesAsync(
 						Path.Combine(trackerFolderPath, TrackedTransactionsFileName),
 						TrackedTransactions
 						.Select(x => $"{x.Transaction.ToHex()}:{x.Height}"));
@@ -317,16 +317,11 @@ namespace HiddenWallet.FullSpv
 					}
 				}
 			}
-			finally
-			{
-				SemaphoreSaving.SafeRelease();
-			}
 		}
 
 		public async Task LoadAsync(string trackerFolderPath)
 		{
-			await SemaphoreSaving.WaitAsync();
-			try
+			using(await AsyncLockSaving.LockAsync())
 			{
 				if (!Directory.Exists(trackerFolderPath))
 					throw new DirectoryNotFoundException($"No Blockchain found at {trackerFolderPath}");
@@ -334,7 +329,7 @@ namespace HiddenWallet.FullSpv
 				var tspb = Path.Combine(trackerFolderPath, TrackedScriptPubKeysFileName);
 				if (File.Exists(tspb) && new FileInfo(tspb).Length != 0)
 				{
-					foreach (var line in File.ReadAllLines(tspb))
+					foreach (var line in await File.ReadAllLinesAsync(tspb))
 					{
 						TrackedScriptPubKeys.Add(new Script(line));
 					}
@@ -343,7 +338,7 @@ namespace HiddenWallet.FullSpv
 				var tt = Path.Combine(trackerFolderPath, TrackedTransactionsFileName);
 				if (File.Exists(tt) && new FileInfo(tt).Length != 0)
 				{
-					foreach (var line in File.ReadAllLines(tt))
+					foreach (var line in await File.ReadAllLinesAsync(tt))
 					{
 						var pieces = line.Split(':');
 						ProcessTransaction(new SmartTransaction(new Transaction(pieces[0]), new Height(pieces[1])));
@@ -353,7 +348,7 @@ namespace HiddenWallet.FullSpv
 				var pbc = Path.Combine(trackerFolderPath, MerkleChainFileName);
 				if (File.Exists(pbc) && new FileInfo(pbc).Length != 0)
 				{
-					foreach (var block in CollectionHelpers.Separate(File.ReadAllBytes(pbc), BlockSep))
+					foreach (var block in CollectionHelpers.Separate(await File.ReadAllBytesAsync(pbc), BlockSep))
 					{
 						try
 						{
@@ -371,48 +366,8 @@ namespace HiddenWallet.FullSpv
 					}
 				}
 			}
-			finally
-			{
-				SemaphoreSaving.SafeRelease();
-			}
 		}
 
-        #endregion
-
-
-        #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    SemaphoreSaving?.Dispose();
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-
-                disposedValue = true;
-            }
-        }
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~Tracker() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
-        }
         #endregion
     }
 }

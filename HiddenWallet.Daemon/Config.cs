@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace HiddenWallet.Daemon
 {
@@ -14,28 +15,28 @@ namespace HiddenWallet.Daemon
 		public static Network Network = Network.Main;
 		public static bool CanSpendUnconfirmed = false;
 
-		static Config()
+		public static async Task InitializeAsync()
 		{
 			if (!File.Exists(ConfigFileSerializer.ConfigFilePath))
 			{
-				Save();
+				await SaveAsync();
 				Debug.WriteLine($"{ConfigFileSerializer.ConfigFilePath} was missing. It has been created created with default settings.");
 			}
-			Load();
+			await LoadAsync();
 		}
 
-		public static void Save()
+		public static async Task SaveAsync()
 		{
-            ConfigFileSerializer.Serialize(
+            await ConfigFileSerializer.SerializeAsync(
                 WalletFilePath,
                 Network.ToString(),
                 CanSpendUnconfirmed.ToString());
-			Load();
+			await LoadAsync();
 		}
 
-		public static void Load()
+		public static async Task LoadAsync()
 		{
-			var rawContent = ConfigFileSerializer.Deserialize();
+			var rawContent = await ConfigFileSerializer.DeserializeAsync();
 
 			WalletFilePath = rawContent.WalletFilePath;			
 
@@ -93,7 +94,7 @@ namespace HiddenWallet.Daemon
 				CanSpendUnconfirmed = canSpendUnconfirmed;
 			}
 
-			internal static void Serialize(
+			internal static async Task SerializeAsync(
 				string walletFilePath,
 				string network,
 				string canSpendUnconfirmed)
@@ -105,15 +106,15 @@ namespace HiddenWallet.Daemon
 							network,
 							canSpendUnconfirmed), Formatting.Indented);
 
-				File.WriteAllText(ConfigFilePath, content);
+				await File.WriteAllTextAsync(ConfigFilePath, content);
 			}
 
-			internal static ConfigFileSerializer Deserialize()
+			internal static async Task<ConfigFileSerializer> DeserializeAsync()
 			{
 				if (!File.Exists(ConfigFilePath))
 					throw new Exception($"Config file does not exist. Create {ConfigFilePath} before reading it.");
 
-				var contentString = File.ReadAllText(ConfigFilePath);
+				var contentString = await File.ReadAllTextAsync(ConfigFilePath);
 				var configFileSerializer = JsonConvert.DeserializeObject<ConfigFileSerializer>(contentString);
 
 				return new ConfigFileSerializer(

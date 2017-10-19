@@ -6,6 +6,7 @@ using System.Linq;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using Nito.AsyncEx;
 
 namespace System.Collections.ObjectModel
 {
@@ -16,9 +17,9 @@ namespace System.Collections.ObjectModel
 		private const string KeysName = "Keys";
 		private const string ValuesName = "Values";
 
-		private readonly object Lock = new object();
+        private readonly AsyncLock _asyncLock = new AsyncLock();
 
-		protected ConcurrentDictionary<TKey, TValue> ConcurrentDictionary { get; private set; }
+        protected ConcurrentDictionary<TKey, TValue> ConcurrentDictionary { get; private set; }
 
 		#region Constructors
 		public ConcurrentObservableDictionary()
@@ -51,7 +52,7 @@ namespace System.Collections.ObjectModel
 
 		private bool Remove(TKey key, bool suppressNotifications)
 		{
-			lock(Lock)
+			using(_asyncLock.Lock())
 			{
                 var ret = ConcurrentDictionary.TryRemove(key, out TValue value);
                 if (ret && !suppressNotifications) OnCollectionChanged();
@@ -83,8 +84,8 @@ namespace System.Collections.ObjectModel
 
 		public void Clear()
 		{
-			lock(Lock)
-			{
+            using (_asyncLock.Lock())
+            {
 				if (ConcurrentDictionary.Count > 0)
 				{
 					ConcurrentDictionary.Clear();
@@ -161,8 +162,8 @@ namespace System.Collections.ObjectModel
 
 		private void Insert(TKey key, TValue value, bool add)
 		{
-			lock(Lock)
-			{
+            using (_asyncLock.Lock())
+            {
 				if (key == null) throw new ArgumentNullException(nameof(key));
 
                 if (ConcurrentDictionary.TryGetValue(key, out TValue item))

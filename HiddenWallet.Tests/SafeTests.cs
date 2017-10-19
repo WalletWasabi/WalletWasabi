@@ -4,13 +4,14 @@ using HiddenWallet.KeyManagement;
 using NBitcoin;
 using Xunit;
 using HiddenWallet.Models;
+using System.Threading.Tasks;
 
 namespace HiddenWallet.Tests
 {
 	public class SafeTests
 	{
 		[Fact]
-		public void CreationTests()
+		public async Task CreationTestsAsync()
 		{
 			for (int i = 0; i < 2; i++)
 			{
@@ -19,11 +20,13 @@ namespace HiddenWallet.Tests
                 const string path = "Wallets/TestWallet.json";
                 const string password = "password";
 
-				var safe = Safe.Create(out Mnemonic mnemonic, password, path, network);
-				var loadedSafe = Safe.Load(password, path);
+				var result = await Safe.CreateAsync(password, path, network);
+                var safe = result.Safe;
+                var mnemonic = result.Mnemonic;
+				var loadedSafe = await Safe.LoadAsync(password, path);
 
 				var wantedCreation = DateTimeOffset.ParseExact("1998-01-01", "yyyy-MM-dd", CultureInfo.InvariantCulture);
-				var recoverdSafe = Safe.Recover(mnemonic, password, "Wallets/RecoveredTestWallet.json", network, wantedCreation);
+				var recoverdSafe = await Safe.RecoverAsync(mnemonic, password, "Wallets/RecoveredTestWallet.json", network, wantedCreation);
 
 				var alice = new SafeAccount(3);
 				var bob = new SafeAccount(4);
@@ -59,15 +62,17 @@ namespace HiddenWallet.Tests
 		[InlineData(1)]
 		[InlineData(100)]
 		[InlineData(9999)]
-		public void ProperlyLoadRecover(int index)
+		public async Task ProperlyLoadRecoverAsync(int index)
 		{
 			Network network = Network.TestNet;
             const string path = "Wallets/TestWallet2.json";
             const string password = "password";
 
-			var safe = Safe.Create(out Mnemonic mnemonic, password, path, network);
-			var loadedSafe = Safe.Load(password, path);
-			var recoverdSafe = Safe.Recover(mnemonic, password, "Wallets/RecoveredTestWallet.json", network, Safe.EarliestPossibleCreationTime);
+			var result = await Safe.CreateAsync(password, path, network);
+            var safe = result.Safe;
+            var mnemonic = result.Mnemonic;
+			var loadedSafe = await Safe.LoadAsync(password, path);
+			var recoverdSafe = await Safe.RecoverAsync(mnemonic, password, "Wallets/RecoveredTestWallet.json", network, Safe.EarliestPossibleCreationTime);
 
 			try
 			{

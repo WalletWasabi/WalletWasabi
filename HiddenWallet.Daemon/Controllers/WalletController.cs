@@ -22,7 +22,7 @@ namespace HiddenWallet.Daemon.Controllers
 
         [Route("create")]
         [HttpPost]
-        public IActionResult Create([FromBody]PasswordModel request)
+        public async Task<IActionResult> CreateAsync([FromBody]PasswordModel request)
         {
             if (request == null || request.Password == null)
             {
@@ -31,7 +31,7 @@ namespace HiddenWallet.Daemon.Controllers
 
             try
             {
-                WalletCreateResponse response = Global.WalletWrapper.Create(request.Password);
+                WalletCreateResponse response = await Global.WalletWrapper.CreateAsync(request.Password);
 
                 return new ObjectResult(response);
             }
@@ -43,7 +43,7 @@ namespace HiddenWallet.Daemon.Controllers
 
         [Route("recover")]
         [HttpPost]
-        public IActionResult Recover([FromBody]WalletRecoverRequest request)
+        public async Task<IActionResult> RecoverAsync([FromBody]WalletRecoverRequest request)
         {
             if (request == null || request.Password == null || request.Mnemonic == null)
             {
@@ -52,7 +52,7 @@ namespace HiddenWallet.Daemon.Controllers
 
             try
             {
-                Global.WalletWrapper.Recover(request.Password, request.Mnemonic, request.CreationTime);
+                await Global.WalletWrapper.RecoverAsync(request.Password, request.Mnemonic, request.CreationTime);
 
                 return new ObjectResult(new SuccessResponse());
             }

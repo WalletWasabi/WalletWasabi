@@ -2,6 +2,7 @@
 using HiddenWallet.WebClients.BlockCypher.Models;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,7 +17,7 @@ namespace HiddenWallet.WebClients.BlockCypher
     {
         public Network Network { get; }
         private HttpClient HttpClient { get; }
-        private SemaphoreSlim Semaphore { get; }
+        private readonly AsyncLock _asyncLock = new AsyncLock();
 
         public BlockCypherClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
         {
@@ -25,7 +26,6 @@ namespace HiddenWallet.WebClients.BlockCypher
                 HttpClient = new HttpClient(handler, disposeHandler);
             }
             HttpClient = new HttpClient();
-            Semaphore = new SemaphoreSlim(1, 1); // don't make async requests, linux and mac can fail for no reason
             if (network == Network.Main)
             {
                 HttpClient.BaseAddress = new Uri("http://api.blockcypher.com/v1/btc/main");
@@ -39,8 +39,7 @@ namespace HiddenWallet.WebClients.BlockCypher
 
         public async Task<BlockCypherGeneralInformation> GetGeneralInformationAsync(CancellationToken cancel)
         {
-            await Semaphore.WaitAsync(cancel);
-            try
+            using(await _asyncLock.LockAsync())
             {
                 HttpResponseMessage response =
                         await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel);
@@ -66,10 +65,6 @@ namespace HiddenWallet.WebClients.BlockCypher
                     LastForkHash = new uint256(json.Value<string>("last_fork_hash"))
                 };
             }
-            finally
-            {
-                Semaphore.SafeRelease();
-            }
         }
 
         #region IDisposable Support
@@ -83,7 +78,6 @@ namespace HiddenWallet.WebClients.BlockCypher
                 {
                     // dispose managed state (managed objects).
                     HttpClient?.Dispose();
-                    Semaphore?.Dispose();
                 }
 
                 // free unmanaged resources (unmanaged objects) and override a finalizer below.

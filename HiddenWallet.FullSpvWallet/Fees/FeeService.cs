@@ -1,6 +1,7 @@
 ﻿using HiddenWallet.WebClients.BlockCypher;
 using NBitcoin;
 using Newtonsoft.Json.Linq;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +20,7 @@ namespace HiddenWallet.FullSpv.Fees
 
         public Network Network { get; }
         private BlockCypherClient BlockCypherClient { get; }
-        private SemaphoreSlim Semaphore { get; }
+        private readonly AsyncLock _asyncLock = new AsyncLock();
         private DotNetTor.ControlPort.Client TorControlPortClient { get; }
         private bool DisposeTorControl { get; }
 
@@ -28,7 +29,6 @@ namespace HiddenWallet.FullSpv.Fees
             TorControlPortClient = torControlPortClient;
             DisposeTorControl = disposeTorControl;
             Network = network ?? throw new ArgumentNullException(nameof(network));
-            Semaphore = new SemaphoreSlim(1, 1); // don't make async requests, linux and mac can fail for no reason
             if (network == Network.Main)
             {
                 BlockCypherClient = new BlockCypherClient(Network.Main, handler, disposeHandler);
@@ -63,40 +63,38 @@ namespace HiddenWallet.FullSpv.Fees
         {
             while (true)
             {
-                try
+                using (await _asyncLock.LockAsync())
                 {
-                    await Semaphore.WaitAsync(ctsToken);
-                    if (ctsToken.IsCancellationRequested) return;
-
-                    if (TorControlPortClient != null)
+                    try
                     {
-                        await TorControlPortClient.ChangeCircuitAsync(ctsToken);
+                        if (ctsToken.IsCancellationRequested) return;
+
+                        if (TorControlPortClient != null)
+                        {
+                            await TorControlPortClient.ChangeCircuitAsync(ctsToken);
+                        }
+
+                        var generalInfo = await BlockCypherClient.GetGeneralInformationAsync(ctsToken);
+
+                        _lowFee = generalInfo.LowFee;
+                        _mediumFee = generalInfo.MediumFee;
+                        _highFee = generalInfo.HighFee;
+
+                        if (ctsToken.IsCancellationRequested) return;
+                        _firstRun = false;
                     }
+                    catch (OperationCanceledException)
+                    {
+                        if (ctsToken.IsCancellationRequested) return;
+                        continue;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (_firstRun) throw;
 
-                    var generalInfo = await BlockCypherClient.GetGeneralInformationAsync(ctsToken);
-
-                    _lowFee = generalInfo.LowFee;
-                    _mediumFee = generalInfo.MediumFee;
-                    _highFee = generalInfo.HighFee;
-
-                    if (ctsToken.IsCancellationRequested) return;
-                    _firstRun = false;
-                }
-                catch (OperationCanceledException)
-                {
-                    if (ctsToken.IsCancellationRequested) return;
-                    continue;
-                }
-                catch (Exception ex)
-                {
-                    if (_firstRun) throw;
-
-                    Debug.WriteLine($"Ignoring {nameof(FeeService)} exception:");
-                    Debug.WriteLine(ex);
-                }
-                finally
-                {
-                    Semaphore.SafeRelease();
+                        Debug.WriteLine($"Ignoring {nameof(FeeService)} exception:");
+                        Debug.WriteLine(ex);
+                    }
                 }
 
                 var waitMinutes = new Random().Next(3, 10);
@@ -115,10 +113,16 @@ namespace HiddenWallet.FullSpv.Fees
                 {
                     // dispose managed state (managed objects).
                     BlockCypherClient?.Dispose();
-                    Semaphore?.Dispose();
                     if (DisposeTorControl)
                     {
-                        TorControlPortClient?.DisconnectDisposeSocket();
+                        try
+                        {
+                            TorControlPortClient?.DisconnectDisposeSocket();
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
                     }
                 }
 

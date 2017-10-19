@@ -57,25 +57,30 @@ namespace HiddenWallet.Daemon.Wrappers
 
 		public WalletWrapper()
 		{
-			// Loads the config file
-			// It also creates it with default settings if doesn't exist
-			Config.Load();
+
 		}
 
+        public async Task InitializeAsync()
+        {
+            // Loads the config file
+            // It also creates it with default settings if doesn't exist
+            await Config.LoadAsync();
+        }
+
 #region SafeOperations
-		public WalletCreateResponse Create(string password)
+		public async Task<WalletCreateResponse> CreateAsync(string password)
 		{
-			var safe = Safe.Create(out Mnemonic mnemonic, password, Config.WalletFilePath, Config.Network);
+			var result = await Safe.CreateAsync(password, Config.WalletFilePath, Config.Network);
 			return new WalletCreateResponse
 			{
-				Mnemonic = mnemonic.ToString(),
-				CreationTime = safe.GetCreationTimeString()
+				Mnemonic = result.Mnemonic.ToString(),
+				CreationTime = result.Safe.GetCreationTimeString()
 			};
 		}
 
 		public async Task LoadAsync(string password)
 		{
-			Safe safe = Safe.Load(password, Config.WalletFilePath);
+			Safe safe = await Safe.LoadAsync(password, Config.WalletFilePath);
 			if (safe.Network != Config.Network) throw new NotSupportedException("Network in the config file differs from the netwrok in the wallet file");
 
 			if (!_walletJobTask.IsCompleted)
@@ -103,9 +108,9 @@ namespace HiddenWallet.Daemon.Wrappers
 			}
 		}
 
-		public void Recover(string password, string mnemonic, string creationTime)
+		public async Task RecoverAsync(string password, string mnemonic, string creationTime)
 		{
-			Safe.Recover(
+			await Safe.RecoverAsync(
 				new Mnemonic(mnemonic),
 				password,
 				Config.WalletFilePath,

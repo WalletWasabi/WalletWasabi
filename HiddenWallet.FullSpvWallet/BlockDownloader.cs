@@ -10,6 +10,7 @@ using System.Net;
 using ConcurrentCollections;
 using System.Collections.Concurrent;
 using HiddenWallet.Models;
+using Nito.AsyncEx;
 
 namespace HiddenWallet.FullSpv
 {
@@ -78,7 +79,6 @@ namespace HiddenWallet.FullSpv
                 {
                     task?.Dispose();
                 }
-                Semaphore?.Dispose();
             }
         }
 
@@ -105,15 +105,13 @@ namespace HiddenWallet.FullSpv
 			}
 		}
 
-		private readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
+        private readonly AsyncLock _asyncLock = new AsyncLock();
 
 		private async Task DownloadNextBlocksAsync(Node node, CancellationToken ctsToken, int maxBlocksToDownload = 1)
 		{
 			var heights = new List<Height>();
-			try
+			using(await _asyncLock.LockAsync())
 			{
-				await Semaphore.WaitAsync(ctsToken);
-
 				if (BlocksToDownload.Count == 0)
 				{
 					await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
@@ -132,10 +130,6 @@ namespace HiddenWallet.FullSpv
 					BlocksToDownload.TryRemove(height);
 					heights.Add(height);
 				}
-			}
-			finally
-			{
-				Semaphore.SafeRelease();
 			}
 			try
 			{
@@ -186,18 +180,12 @@ namespace HiddenWallet.FullSpv
             }
             catch (Exception)
             {
-                try
+                using(_asyncLock.Lock())
                 {
-                    await Semaphore.WaitAsync(ctsToken);
-
                     foreach (var height in heights)
                     {
                         BlocksToDownload.Add(height);
                     }
-                }
-                finally
-                {
-                    Semaphore.SafeRelease();
                 }
             }
         }

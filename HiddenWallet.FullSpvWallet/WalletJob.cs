@@ -20,6 +20,7 @@ using HiddenWallet.Models;
 using HiddenWallet.KeyManagement;
 using HiddenWallet.FullSpv.MemPool;
 using HiddenWallet.FullSpv.Fees;
+using Nito.AsyncEx;
 
 namespace HiddenWallet.FullSpv
 {
@@ -120,7 +121,7 @@ namespace HiddenWallet.FullSpv
 		public event EventHandler StateChanged;
 		private void OnStateChanged() => StateChanged?.Invoke(this, EventArgs.Empty);
 
-		private readonly SemaphoreSlim SemaphoreSave = new SemaphoreSlim(1, 1);
+        private readonly AsyncLock _asyncLockSave = new AsyncLock();
 		private NodeConnectionParameters _connectionParameters;
 		public NodesGroup Nodes { get; private set; }
 
@@ -153,30 +154,29 @@ namespace HiddenWallet.FullSpv
 
         public MemPoolJob MemPoolJob { get; private set; }
 
-		public async Task<AddressManager> GetAddressManagerAsync()
-		{
-			if (_connectionParameters != null)
-			{
-				foreach (var behavior in _connectionParameters.TemplateBehaviors)
-				{
-					if (behavior is AddressManagerBehavior addressManagerBehavior)
-						return addressManagerBehavior.AddressManager;
-				}
-			}
-			await SemaphoreSave.WaitAsync();
-			try
-			{
-				return AddressManager.LoadPeerFile(_addressManagerFilePath);
-			}
-            catch (Exception)
+        public AddressManager GetAddressManager()
+        {
+            if (_connectionParameters != null)
             {
-                return new AddressManager();
+                foreach (var behavior in _connectionParameters.TemplateBehaviors)
+                {
+                    if (behavior is AddressManagerBehavior addressManagerBehavior)
+                        return addressManagerBehavior.AddressManager;
+                }
             }
-            finally
-			{
-				SemaphoreSave.SafeRelease();
-			}
-		}
+
+            using (_asyncLockSave.Lock())
+            {
+                try
+                {
+                    return AddressManager.LoadPeerFile(_addressManagerFilePath);
+                }
+                catch (Exception)
+                {
+                    return new AddressManager();
+                }
+            }
+        }
 
 		public async Task<int> GetBlockConfirmationsAsync(uint256 blockId)
 		{
@@ -203,18 +203,16 @@ namespace HiddenWallet.FullSpv
             }
 
             var chain = new ConcurrentChain(CurrentNetwork);
-            await SemaphoreSave.WaitAsync();
-            try
+            using (await _asyncLockSave.LockAsync())
             {
-                chain.Load(await File.ReadAllBytesAsync(_headerChainFilePath));
-            }
-            catch
-            {
-                // ignored
-            }
-            finally
-            {
-                SemaphoreSave.SafeRelease();
+                try
+                {
+                    chain.Load(await File.ReadAllBytesAsync(_headerChainFilePath));
+                }
+                catch
+                {
+                    // ignored
+                }
             }
 
             return chain;
@@ -267,20 +265,22 @@ namespace HiddenWallet.FullSpv
 
 			_connectionParameters = new NodeConnectionParameters();
 			//So we find nodes faster
-			_connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(await GetAddressManagerAsync()));
+			_connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(GetAddressManager()));
 			//So we don't have to load the chain each time we start
 			_connectionParameters.TemplateBehaviors.Add(new ChainBehavior(await GetHeaderChainAsync()));
 			_connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolJob));
 
 			await UpdateSafeTrackingAsync();
 
-			Nodes = new NodesGroup(Safe.Network, _connectionParameters,
-				new NodeRequirement
-				{
-					RequiredServices = NodeServices.Network,
-					MinVersion = ProtocolVersion.SENDHEADERS_VERSION
-				});
-			Nodes.NodeConnectionParameters = _connectionParameters;
+            Nodes = new NodesGroup(Safe.Network, _connectionParameters,
+                new NodeRequirement
+                {
+                    RequiredServices = NodeServices.Network,
+                    MinVersion = ProtocolVersion.SENDHEADERS_VERSION
+                })
+            {
+                NodeConnectionParameters = _connectionParameters
+            };
 
             MemPoolJob.Synced += MemPoolJob_SyncedAsync;
             MemPoolJob.NewTransaction += MemPoolJob_NewTransactionAsync;
@@ -368,7 +368,6 @@ namespace HiddenWallet.FullSpv
                 Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
                 (await GetTrackerAsync()).BestHeightChanged -= WalletJob_BestHeightChanged;
                 await SaveAllChangedAsync();
-                (await GetTrackerAsync())?.Dispose();
                 Nodes?.Dispose();
                 foreach(var task in tasks)
                 {
@@ -384,7 +383,6 @@ namespace HiddenWallet.FullSpv
                 {
 
                 }
-                SemaphoreSave?.Dispose();
             }
         }
 
@@ -856,10 +854,9 @@ namespace HiddenWallet.FullSpv
 
 		private async Task SaveAllChangedAsync()
 		{
-			await SemaphoreSave.WaitAsync();
-			try
-			{
-				(await GetAddressManagerAsync()).SavePeerFile(_addressManagerFilePath, Safe.Network);
+            using (await _asyncLockSave.LockAsync())
+            {
+				(GetAddressManager()).SavePeerFile(_addressManagerFilePath, Safe.Network);
 				Debug.WriteLine($"Saved {nameof(AddressManager)}");
 
 				if (_connectionParameters != null)
@@ -872,10 +869,6 @@ namespace HiddenWallet.FullSpv
 						_savedHeaderHeight = headerHeight;
 					}
 				}
-			}
-			finally
-			{
-				SemaphoreSave.SafeRelease();
 			}
 
 			var bestHeight = await GetBestHeightAsync();

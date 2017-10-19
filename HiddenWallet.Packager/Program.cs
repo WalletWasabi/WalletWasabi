@@ -18,7 +18,7 @@ namespace HiddenWallet.Packager
             var guiProjectDirectory = Path.Combine(packagerProjectDirectory, "..\\HiddenWallet.Gui");
             var solutionDirectory = Path.Combine(packagerProjectDirectory, "..\\");
 
-            var packageJsonString = File.ReadAllText(Path.Combine(guiProjectDirectory, "package.json"));
+            var packageJsonString = await File.ReadAllTextAsync(Path.Combine(guiProjectDirectory, "package.json"));
             JToken packageJson = JObject.Parse(packageJsonString);
             var version = packageJson.SelectToken("version").Value<string>();
 
@@ -30,7 +30,7 @@ namespace HiddenWallet.Packager
                 "win81-x64",
                 "win10-x64",
             };
-            UpdateCsproj(daemonProjectDirectory, targets);
+            await UpdateCsprojAsync(daemonProjectDirectory, targets);
 
             var psiBuild = new ProcessStartInfo
             {
@@ -169,10 +169,10 @@ namespace HiddenWallet.Packager
             }
         }
 
-        private static void UpdateCsproj(string apiProjectDirectory, string[] targets)
+        private static async Task UpdateCsprojAsync(string apiProjectDirectory, string[] targets)
         {
             string csprojFile = Path.Combine(apiProjectDirectory, "HiddenWallet.Daemon.csproj");
-            var csprojString = File.ReadAllText(csprojFile);
+            var csprojString = await File.ReadAllTextAsync(csprojFile);
             var csprojXml = new XmlDocument();
             csprojXml.LoadXml(csprojString);
             var csprojTargets = csprojXml.GetElementsByTagName("RuntimeIdentifiers")[0].InnerText.Split(';').ToList();
