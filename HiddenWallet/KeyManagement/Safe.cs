@@ -28,13 +28,13 @@ namespace HiddenWallet.KeyManagement
             return GetBitcoinExtKey(index, hdPathType, account).PrivateKey.PubKey;
         }
 
-        ConcurrentDictionary<(AddressType Type, int Index, HdPathType HdPathType, SafeAccount Account), BitcoinAddress> SafeCache = new ConcurrentDictionary<(AddressType Type, int Index, HdPathType HdPathType, SafeAccount Account), BitcoinAddress>();
+        private ConcurrentDictionary<(AddressType Type, int Index, HdPathType HdPathType, SafeAccount Account), BitcoinAddress> _safeCache = new ConcurrentDictionary<(AddressType Type, int Index, HdPathType HdPathType, SafeAccount Account), BitcoinAddress>();
         // GetP2wpkh pubKey.WitHash.ScriptPubKey.GetDestinationAddress(Network);
         // GetP2pkhAddress pubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
         // GetP2shOverP2wpkhAddress pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
         public BitcoinAddress GetAddress(AddressType type, int index, HdPathType hdPathType = HdPathType.Receive, SafeAccount account  = null)
         {
-            BitcoinAddress cachedAddress = SafeCache.FirstOrDefault(x => x.Key.Type == type && x.Key.Index == index && x.Key.HdPathType == hdPathType && x.Key.Account == account).Value;
+            BitcoinAddress cachedAddress = _safeCache.FirstOrDefault(x => x.Key.Type == type && x.Key.Index == index && x.Key.HdPathType == hdPathType && x.Key.Account == account).Value;
             if (cachedAddress != null) return cachedAddress;
 
             PubKey pubKey = GetPubKey(index, hdPathType, account);
@@ -53,7 +53,7 @@ namespace HiddenWallet.KeyManagement
             }
             else throw new NotSupportedException(type.ToString());
             
-            SafeCache.TryAdd((type, index, hdPathType, account), address);
+            _safeCache.TryAdd((type, index, hdPathType, account), address);
             return address;
         }
 

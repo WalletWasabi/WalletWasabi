@@ -11,8 +11,10 @@ namespace HiddenWallet.Packager
 {
     class Program
     {
-        static async Task Main(string[] args)
-        {
+#pragma warning disable IDE1006 // Naming Styles
+		static async Task Main(string[] args)
+#pragma warning restore IDE1006 // Naming Styles
+		{
             var packagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
             var daemonProjectDirectory = Path.Combine(packagerProjectDirectory, "..\\HiddenWallet.Daemon");
             var guiProjectDirectory = Path.Combine(packagerProjectDirectory, "..\\HiddenWallet.Gui");

@@ -171,12 +171,12 @@ namespace HiddenWallet.Daemon.Controllers
                 return new FailureResponse { Message = "Wallet isn't decrypted" };
 
             var trimmed = account;
-            if (String.Equals(trimmed, "alice", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(trimmed, "alice", StringComparison.OrdinalIgnoreCase))
             {
                 safeAccount = Global.WalletWrapper.AliceAccount;
                 return null;
             }
-            else if (String.Equals(trimmed, "bob", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(trimmed, "bob", StringComparison.OrdinalIgnoreCase))
             {
                 safeAccount = Global.WalletWrapper.BobAccount;
                 return null;

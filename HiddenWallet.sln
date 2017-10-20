@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2002
+VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HiddenWallet", "HiddenWallet\HiddenWallet.csproj", "{CC747037-7AAD-4EE4-A693-204C0E242DCC}"
 EndProject
@@ -12,6 +12,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HiddenWallet.Daemon", "HiddenWallet.Daemon\HiddenWallet.Daemon.csproj", "{C16708D4-7129-4D29-B28D-A07961296FD6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HiddenWallet.Packager", "HiddenWallet.Packager\HiddenWallet.Packager.csproj", "{F6A8A384-1CB9-4237-B115-ABC43C93AED2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4CC18889-CF17-44E1-929B-B6B0C037F620}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

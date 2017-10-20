@@ -16,8 +16,8 @@ namespace HiddenWallet.FullSpv
 {
 	public class BlockDownloader
 	{
-		private ConcurrentHashSet<Height> BlocksToDownload = new ConcurrentHashSet<Height>();
-		private ConcurrentDictionary<Height, Block> DownloadedBlocks = new ConcurrentDictionary<Height, Block>();
+		private ConcurrentHashSet<Height> _blocksToDownload = new ConcurrentHashSet<Height>();
+		private ConcurrentDictionary<Height, Block> _downloadedBlocks = new ConcurrentDictionary<Height, Block>();
         private WalletJob _walletJob;
 
         public BlockDownloader(WalletJob walletJob)
@@ -27,8 +27,8 @@ namespace HiddenWallet.FullSpv
 
 		public void Clear()
 		{
-			BlocksToDownload.Clear();
-			DownloadedBlocks.Clear();
+			_blocksToDownload.Clear();
+			_downloadedBlocks.Clear();
 		}
 
 		public async Task<Block> TakeBlockAsync(Height height, Height lookAheadHeight, CancellationToken ctsToken)
@@ -36,13 +36,13 @@ namespace HiddenWallet.FullSpv
 
 			for (int h = height.Value; h <= lookAheadHeight; h++)
 			{
-				if (!DownloadedBlocks.ContainsKey(new Height(h)))
+				if (!_downloadedBlocks.ContainsKey(new Height(h)))
 				{
-					BlocksToDownload.Add(new Height(h));
+					_blocksToDownload.Add(new Height(h));
 				}
 			}
 
-			while (!DownloadedBlocks.ContainsKey(height))
+			while (!_downloadedBlocks.ContainsKey(height))
 			{
 				if (ctsToken.IsCancellationRequested) return null;
 				await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
@@ -50,7 +50,7 @@ namespace HiddenWallet.FullSpv
 
 			if (ctsToken.IsCancellationRequested) return null;
 
-			DownloadedBlocks.TryRemove(height, out Block block);
+			_downloadedBlocks.TryRemove(height, out Block block);
 			return block;
 		}
 
@@ -112,13 +112,13 @@ namespace HiddenWallet.FullSpv
 			var heights = new List<Height>();
 			using(await _asyncLock.LockAsync())
 			{
-				if (BlocksToDownload.Count == 0)
+				if (_blocksToDownload.Count == 0)
 				{
 					await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
 					return;
 				}
 
-				if (BlocksToDownload.Count < maxBlocksToDownload * 2)
+				if (_blocksToDownload.Count < maxBlocksToDownload * 2)
 				{
 					maxBlocksToDownload = 1;
 				}
@@ -126,8 +126,8 @@ namespace HiddenWallet.FullSpv
 				for (int i = 0; i < maxBlocksToDownload; i++)
 				{
 					// todo check if we have that much block
-					var height = BlocksToDownload.Min();
-					BlocksToDownload.TryRemove(height);
+					var height = _blocksToDownload.Min();
+					_blocksToDownload.TryRemove(height);
 					heights.Add(height);
 				}
 			}
@@ -164,7 +164,7 @@ namespace HiddenWallet.FullSpv
                     {
                         foreach (var height in heights)
                         {
-                            BlocksToDownload.Add(height);
+                            _blocksToDownload.Add(height);
                         }
                     }
                     else
@@ -172,7 +172,7 @@ namespace HiddenWallet.FullSpv
                         int i = 0;
                         foreach (var block in blocks)
                         {
-                            DownloadedBlocks.AddOrReplace(heights[i], block);
+                            _downloadedBlocks.AddOrReplace(heights[i], block);
                             i++;
                         }
                     }
@@ -184,7 +184,7 @@ namespace HiddenWallet.FullSpv
                 {
                     foreach (var height in heights)
                     {
-                        BlocksToDownload.Add(height);
+                        _blocksToDownload.Add(height);
                     }
                 }
             }

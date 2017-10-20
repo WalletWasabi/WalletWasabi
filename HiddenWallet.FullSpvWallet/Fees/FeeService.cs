@@ -103,11 +103,11 @@ namespace HiddenWallet.FullSpv.Fees
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        private bool _disposedValue = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
@@ -129,7 +129,7 @@ namespace HiddenWallet.FullSpv.Fees
                 // free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // set large fields to null.
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
 
