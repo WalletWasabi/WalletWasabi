@@ -9,7 +9,6 @@ namespace HiddenWallet.ChaumianCoinJoin.Tumbler.Models
 	public class StatusResponse : BaseResponse
 	{
 		public StatusResponse() => Success = true;
-		public string PubKey { get; set; }
 		public string Phase { get; set; }
 		public string Denomination { get; set; }
 		public int AnonymitySet { get; set; }
