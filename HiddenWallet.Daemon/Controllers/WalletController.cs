@@ -8,6 +8,7 @@ using HiddenWallet.KeyManagement;
 using NBitcoin;
 using System.Globalization;
 using HiddenWallet.FullSpv.Fees;
+using HiddenWallet.SharedApi.Models;
 
 namespace HiddenWallet.Daemon.Controllers
 {

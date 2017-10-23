@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using static HiddenWallet.FullSpv.WalletJob;
 using DotNetTor.SocksPort;
 using HiddenWallet.FullSpv.Fees;
+using HiddenWallet.SharedApi.Models;
 
 namespace HiddenWallet.Daemon.Wrappers
 {
