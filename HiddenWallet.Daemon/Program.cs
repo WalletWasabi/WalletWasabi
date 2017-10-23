@@ -19,6 +19,7 @@ namespace HiddenWallet.Daemon
 		public static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
+			await Config.InitializeAsync();
 			var endPoint = "http://localhost:37120/";
 			var alreadyRunning = false;
 			using (var client = new HttpClient())
@@ -70,7 +71,7 @@ namespace HiddenWallet.Daemon
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 Tor.MakeSureCircuitEstabilishedAsync();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
+				
 				Global.WalletWrapper = new WalletWrapper();
                 await Global.WalletWrapper.InitializeAsync();
 
