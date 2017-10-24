@@ -28,6 +28,7 @@ Privacy focused, soon [ZeroLink](https://github.com/nopara73/ZeroLink) compliant
 
 ## Configuration
 
+HiddenWallet is working in your APPDATA folder on Windows and in your HOME folder on Linux and OSX.  
 After first running the software, it will generate a `Config.json` file for you:  
 ```
 {
@@ -39,7 +40,7 @@ After first running the software, it will generate a `Config.json` file for you:
 For testing, set the network to `"TestNet"` and enable the spending of unconfirmed transactions by setting its value to `"True"`.  
 If you've already generated a wallet on the mainnet, then you want to change the default wallet file path, too, for example to `"WalletTestNet.json"`.  
 Since testnet coins have no value, you can acquire them freely and quickly: http://lmgtfy.com/?q=get+testnet+faucet  
-**Update:** From release of HiddenWallet v0.5 the wallet only generates [Bech32 SegWit addresses]. At the time of writing it is not intuitive how to acquire testnet faucets to such addresses. Hopefully by the time you are reading this, it will not be the case anymore. From Bitcoin Core v0.15.1 you can send transactions to Bech32 addresses. So as a workaround you can use your Core node, receive faucets there and forward it to HiddenWallet.  
+**Update:** From release of HiddenWallet v0.5 the wallet only generates [Bech32 SegWit addresses](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki). At the time of writing it is not intuitive how to acquire testnet faucets to such addresses. Hopefully by the time you are reading this, it will not be the case anymore. From Bitcoin Core v0.15.1 you can send transactions to Bech32 addresses. So as a workaround you can use your Core node, receive faucets there and forward it to HiddenWallet.  
 
 ## Building From Source Code  
   
@@ -53,17 +54,15 @@ Since testnet coins have no value, you can acquire them freely and quickly: http
   
 1. `git clone https://github.com/nopara73/HiddenWallet.git`
 2. `cd HiddenWallet/HiddenWallet.Daemon`  
-3. `dotnet restore`  
-4. `dotnet build`
-5. `dotnet publish -r win10-x64 --output bin/dist/current-target`. Find your platform identifier [here](https://github.com/dotnet/docs/blob/master/docs/core/rid-catalog.md#windows-rids) and replace `win7-x64`.
-If you get an error here, don't worry, just add your platform identifier to the `<RuntimeIdentifiers>` tag in the `HiddenWallet.Daemon/HiddenWallet.Daemon.csproj file).  
-6. (Only on Windows) - Copy and unzip `HiddenWallet.Packager/tor.zip` to `HiddenWallet.Daemon/bin/dist/current-target` directory. (Quick note on unzipping: the final path to tor.exe has to be: `current-target/tor/Tor/tor.exe` and not: `current-target/tor/tor/Tor/tor.exe`.)
-7. `cd ../HiddenWallet.Gui`
-8. `npm install`
-9. `npm start`
-10. Check out the [Configuration section](https://github.com/nopara73/HiddenWallet#configuration) above.
+3. `dotnet publish -r win10-x64 --output bin/dist/current-target`. Find your platform identifier [here](https://github.com/dotnet/docs/blob/master/docs/core/rid-catalog.md#windows-rids) and replace `win7-x64`.
+If you get an error here, don't worry, just add your platform identifier to the `<RuntimeIdentifiers>` tag in the `HiddenWallet.Daemon/HiddenWallet.Daemon.csproj` file).  
+4. (Only on Windows) - Copy and unzip `HiddenWallet.Packager/tor.zip` to `HiddenWallet.Daemon/bin/dist/current-target` directory. (Quick note on unzipping: the final path to tor.exe has to be: `current-target/tor/Tor/tor.exe` and not: `current-target/tor/tor/Tor/tor.exe`.)
+5. `cd ../HiddenWallet.Gui`
+6. `npm install`
+7. `npm start`
+8. Check out the [Configuration section](https://github.com/nopara73/HiddenWallet#configuration) above.
 
-### Runnin The Tests
+### Running The Tests
 
 1. Download [Tor](https://www.torproject.org/download/download), (for Windows you need the Expert Bundle) and use this configuration file: [torrc](https://github.com/nopara73/DotNetTor/blob/master/torrc)  
 2. Run Tor 
