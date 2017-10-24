@@ -31,7 +31,7 @@ namespace HiddenWallet.Daemon
 
 			services.AddSwaggerGen(c =>
 			{
-				c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
+				c.SwaggerDoc("v1", new Info { Title = "HiddenWalletAPI", Version = "v1" });
 			});
 		}
 
@@ -48,7 +48,7 @@ namespace HiddenWallet.Daemon
 			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
 			app.UseSwaggerUI(c =>
 			{
-				c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+				c.SwaggerEndpoint("/swagger/v1/swagger.json", "HiddenWalletAPI V1");
 			});
 		}
 
