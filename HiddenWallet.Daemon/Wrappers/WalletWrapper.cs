@@ -212,8 +212,11 @@ namespace HiddenWallet.Daemon.Wrappers
 
 		#endregion
 
+		private volatile bool _endCalled = false;
 		public async Task EndAsync()
 		{
+			if (_endCalled) return;
+			_endCalled = true;
 			Console.WriteLine("Gracefully shutting down...");
 			if (_walletJob != null)
 			{
