@@ -114,63 +114,6 @@ namespace HiddenWallet.Tests
 			else Debug.WriteLine($"{nameof(walletJob.ConnectedNodeCount)}: {walletJob.ConnectedNodeCount}");
 		}
 
-		[Fact]
-		public async Task HaveFundsTestAsync()
-		{
-			// load wallet
-			Network network = Network.TestNet;
-			string path = Path.Combine(Helpers.CommittedWalletsFolderPath, $"HaveFunds{network}.json");
-			const string password = "";
-			Safe safe = await Safe.LoadAsync(password, path);
-			Assert.Equal(network, safe.Network);
-			Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
-
-            // create walletjob
-            WalletJob walletJob = new WalletJob();
-            await walletJob.InitializeAsync(Helpers.SocksPortHandler, Helpers.ControlPortClient, safe);
-            // note some event
-            walletJob.ConnectedNodeCountChanged += WalletJob_ConnectedNodeCountChanged;
-			walletJob.StateChanged += WalletJob_StateChanged;
-
-			// start syncing
-			var cts = new CancellationTokenSource();
-			var walletJobTask = walletJob.StartAsync(cts.Token);
-			Task reportTask = Helpers.ReportAsync(cts.Token, walletJob);
-
-			try
-			{
-				// wait until synced enough to have our transaction
-				while ((await walletJob.GetBestHeightAsync()).Type != HeightType.Chain || (await walletJob.GetBestHeightAsync()) < 1092448)
-				{
-                    await Task.Delay(1000);
-				}
-
-				var hasMoneyAddress = BitcoinAddress.Create("mmVZjqZjmLvxc3YFhWqYWoe5anrWVcoJcc");
-				Debug.WriteLine($"Checking proper balance on {hasMoneyAddress.ToString()}");
-
-				var record = (await walletJob.GetSafeHistoryAsync()).FirstOrDefault();
-				Assert.NotEqual(default, record);
-
-				Assert.True(record.Confirmed);
-				Assert.Equal(new Money(0.1m, MoneyUnit.BTC), record.Amount);
-                DateTimeOffset.TryParse("2017.03.06. 16:47:15 +00:00", out DateTimeOffset expTime);
-                Assert.Equal(expTime, record.TimeStamp);
-                var expectedId = new uint256("50898694f281ed059fa6b9d37ccf099ab261540be14fd43ce1a6d6684fbd4e94");
-                Assert.Equal(expectedId, record.TransactionId);
-			}
-			finally
-			{
-				cts?.Cancel();
-                await Task.WhenAll(reportTask, walletJobTask);
-
-                walletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChanged;
-				walletJob.StateChanged -= WalletJob_StateChanged;
-                cts?.Dispose();
-                reportTask?.Dispose();
-                walletJobTask?.Dispose();
-			}
-		}
-
 		// test with a long time used testnet wallet, with exotic, including tumblebit transactions
 		[Fact]
 		public async Task RealHistoryTestAsync()
