@@ -61,7 +61,7 @@ If you get an error here, don't worry, just add your platform identifier to the 
 7. `npm start`
 8. Check out the [Configuration section](https://github.com/nopara73/HiddenWallet#configuration) above.
 
-### Runnin The Tests
+### Running The Tests
 
 1. Download [Tor](https://www.torproject.org/download/download), (for Windows you need the Expert Bundle) and use this configuration file: [torrc](https://github.com/nopara73/DotNetTor/blob/master/torrc)  
 2. Run Tor 
