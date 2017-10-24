@@ -125,7 +125,7 @@ namespace HiddenWallet.FullSpv
 		private NodeConnectionParameters _connectionParameters;
 		public NodesGroup Nodes { get; private set; }
 
-		private const string WorkFolderPath = "FullBlockSpvData";
+		private string WorkFolderPath => Path.Combine(FullSpvWallet.Global.DataDir, "FullBlockSpvData");
 		private string _addressManagerFilePath => Path.Combine(WorkFolderPath, $"AddressManager{CurrentNetwork}.dat");
 		private string _headerChainFilePath => Path.Combine(WorkFolderPath, $"HeaderChain{CurrentNetwork}.dat");
 		private string _trackerFolderPath => Path.Combine(WorkFolderPath, Safe.UniqueId);
