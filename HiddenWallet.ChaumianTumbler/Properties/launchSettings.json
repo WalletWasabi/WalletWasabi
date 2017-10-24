@@ -16,7 +16,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "HiddenWallet.ChaumianCoinJoin.Tumbler": {
+    "HiddenWallet.ChaumianTumbler": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "api/values",

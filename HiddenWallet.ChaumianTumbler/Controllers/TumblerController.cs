@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using HiddenWallet.SharedApi.Models;
-using HiddenWallet.ChaumianCoinJoin.Tumbler.Models;
+using HiddenWallet.ChaumianTumbler.Models;
 
-namespace HiddenWallet.ChaumianCoinJoin.Tumbler.Controllers
+namespace HiddenWallet.ChaumianTumbler.Controllers
 {
 	[Route("api/v1/[controller]")]
 	public class TumblerController : Controller

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace HiddenWallet.ChaumianCoinJoin.Tumbler.Models
+namespace HiddenWallet.ChaumianTumbler.Models
 {
     public class SignatureRequest
     {

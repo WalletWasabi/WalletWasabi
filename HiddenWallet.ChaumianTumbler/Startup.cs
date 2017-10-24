@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace HiddenWallet.ChaumianCoinJoin.Tumbler
+namespace HiddenWallet.ChaumianTumbler
 {
     public class Startup
     {
