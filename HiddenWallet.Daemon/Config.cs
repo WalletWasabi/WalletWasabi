@@ -1,127 +1,63 @@
-﻿using NBitcoin;
+﻿using HiddenWallet.Converters;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HiddenWallet.Daemon
 {
-	public static class Config
-	{
-		// Initialized with default attributes
-		public static string WalletFilePath = Path.Combine("Wallets", "Wallet.json");
+	[JsonObject(MemberSerialization.OptIn)]
+	public class Config
+    {
+		[JsonProperty(PropertyName = "WalletFilePath", Order = 1)]
+		public string WalletFilePath { get; private set; }
 
-		public static Network Network = Network.Main;
-		public static bool CanSpendUnconfirmed = false;
+		[JsonProperty(PropertyName = "Network", Order = 2)]
+		[JsonConverter(typeof(NetworkConverter))]
+		public Network Network { get; private set; }
 
-		public static async Task InitializeAsync()
+		[JsonProperty(PropertyName = "CanSpendUnconfirmed", Order = 3)]
+		[JsonConverter(typeof(FunnyBoolConverter))]
+		public bool CanSpendUnconfirmed { get; set; }
+
+		public Config()
 		{
-			if (!File.Exists(ConfigFileSerializer.ConfigFilePath))
-			{
-				await SaveAsync();
-				Debug.WriteLine($"{ConfigFileSerializer.ConfigFilePath} was missing. It has been created created with default settings.");
-			}
-			await LoadAsync();
+
 		}
 
-		public static async Task SaveAsync()
+		public Config(string walletFilePath, Network network, bool canSpendUnconfirmed)
 		{
-            await ConfigFileSerializer.SerializeAsync(
-                WalletFilePath,
-                Network.ToString(),
-                CanSpendUnconfirmed.ToString());
-			await LoadAsync();
+			WalletFilePath = walletFilePath ?? throw new ArgumentNullException(nameof(walletFilePath));
+			Network = network ?? throw new ArgumentNullException(nameof(network));
+			CanSpendUnconfirmed = canSpendUnconfirmed;
 		}
 
-		public static async Task LoadAsync()
+		public async Task ToFileAsync(string path, CancellationToken cancel)
 		{
-			var rawContent = await ConfigFileSerializer.DeserializeAsync();
+			if (path == null) throw new ArgumentNullException(nameof(path));
 
-			WalletFilePath = rawContent.WalletFilePath;			
-
-			if (rawContent.Network == null)
-				throw new NotSupportedException($"Network is missing from {ConfigFileSerializer.ConfigFilePath}");
-			string networkString = rawContent.Network.Trim();
-			if (networkString == "")
-				throw new NotSupportedException($"Network is missing from {ConfigFileSerializer.ConfigFilePath}");
-			else if ("mainnet".Equals(networkString, StringComparison.OrdinalIgnoreCase)
-				|| "main".Equals(networkString, StringComparison.OrdinalIgnoreCase))
-				Network = Network.Main;
-			else if ("testnet".Equals(networkString, StringComparison.OrdinalIgnoreCase)
-				|| "test".Equals(networkString, StringComparison.OrdinalIgnoreCase))
-				Network = Network.TestNet;
-			else
-				throw new NotSupportedException($"Wrong Network is specified in {ConfigFileSerializer.ConfigFilePath}");
-
-			if (rawContent.CanSpendUnconfirmed == null)
-				throw new NotSupportedException($"CanSpendUnconfirmed is missing from {ConfigFileSerializer.ConfigFilePath}");
-			string canSpendUnconfirmedString = rawContent.CanSpendUnconfirmed.Trim();
-			if (canSpendUnconfirmedString == "")
-				throw new NotSupportedException($"CanSpendUnconfirmed is missing from {ConfigFileSerializer.ConfigFilePath}");
-			else if ("true".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
-				|| "yes".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
-				|| "fuckyeah".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
-				|| "1" == canSpendUnconfirmedString)
-				CanSpendUnconfirmed = true;
-			else if ("false".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
-				|| "no".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
-				|| "nah".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
-				|| "0" == canSpendUnconfirmedString)
-				CanSpendUnconfirmed = false;
-			else
-				throw new NotSupportedException($"Wrong CanSpendUnconfirmed value in {ConfigFileSerializer.ConfigFilePath}");            
+			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+			await File.WriteAllTextAsync(path,
+			jsonString,
+			Encoding.UTF8,
+			cancel);
 		}
 
-		public class ConfigFileSerializer
+		public static async Task<Config> CreateFromFileAsync(string path, CancellationToken cancel)
 		{
-			public static readonly string ConfigFilePath = "Config.json";
-
-			// KEEP THEM PUBLIC OTHERWISE IT WILL NOT SERIALIZE!
-			public string WalletFilePath { get; set; }
-
-			public string Network { get; set; }
-			public string CanSpendUnconfirmed { get; set; }
-
-			[JsonConstructor]
-			private ConfigFileSerializer(
-				string walletFilePath,
-				string network,
-				string canSpendUnconfirmed)
+			if (path == null) throw new ArgumentNullException(nameof(path));
+			if (!File.Exists(path))
 			{
-				WalletFilePath = walletFilePath;
-				Network = network;
-				CanSpendUnconfirmed = canSpendUnconfirmed;
+				throw new ArgumentException($"Config file does not exist at {path}");
 			}
 
-			internal static async Task SerializeAsync(
-				string walletFilePath,
-				string network,
-				string canSpendUnconfirmed)
-			{
-				var content =
-					JsonConvert.SerializeObject(
-						new ConfigFileSerializer(
-							walletFilePath,
-							network,
-							canSpendUnconfirmed), Formatting.Indented);
-
-				await File.WriteAllTextAsync(ConfigFilePath, content);
-			}
-
-			internal static async Task<ConfigFileSerializer> DeserializeAsync()
-			{
-				if (!File.Exists(ConfigFilePath))
-					throw new Exception($"Config file does not exist. Create {ConfigFilePath} before reading it.");
-
-				var contentString = await File.ReadAllTextAsync(ConfigFilePath);
-				var configFileSerializer = JsonConvert.DeserializeObject<ConfigFileSerializer>(contentString);
-
-				return new ConfigFileSerializer(
-					configFileSerializer.WalletFilePath,
-					configFileSerializer.Network,
-					configFileSerializer.CanSpendUnconfirmed);
-			}
+			string jsonString = await File.ReadAllTextAsync(path, Encoding.UTF8, cancel);
+			return JsonConvert.DeserializeObject<Config>(jsonString);
 		}
-	}
+    }
 }

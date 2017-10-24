@@ -34,7 +34,7 @@ namespace HiddenWallet.Daemon.Wrappers
 		private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 		private Task _walletJobTask = Task.CompletedTask;
 
-		public bool WalletExists => File.Exists(Config.WalletFilePath);
+		public bool WalletExists => File.Exists(Global.Config.WalletFilePath);
 		public bool IsDecrypted => !_walletJobTask.IsCompleted && _password != null;
 
 		public Network Network => _walletJob.Safe.Network;
@@ -61,17 +61,10 @@ namespace HiddenWallet.Daemon.Wrappers
 
 		}
 
-        public async Task InitializeAsync()
-        {
-            // Loads the config file
-            // It also creates it with default settings if doesn't exist
-            await Config.LoadAsync();
-        }
-
 #region SafeOperations
 		public async Task<WalletCreateResponse> CreateAsync(string password)
 		{
-			var result = await Safe.CreateAsync(password, Config.WalletFilePath, Config.Network);
+			var result = await Safe.CreateAsync(password, Global.Config.WalletFilePath, Global.Config.Network);
 			return new WalletCreateResponse
 			{
 				Mnemonic = result.Mnemonic.ToString(),
@@ -81,8 +74,8 @@ namespace HiddenWallet.Daemon.Wrappers
 
 		public async Task LoadAsync(string password)
 		{
-			Safe safe = await Safe.LoadAsync(password, Config.WalletFilePath);
-			if (safe.Network != Config.Network) throw new NotSupportedException("Network in the config file differs from the netwrok in the wallet file");
+			Safe safe = await Safe.LoadAsync(password, Global.Config.WalletFilePath);
+			if (safe.Network != Global.Config.Network) throw new NotSupportedException("Network in the config file differs from the network in the wallet file");
 
 			if (!_walletJobTask.IsCompleted)
 			{
@@ -114,8 +107,8 @@ namespace HiddenWallet.Daemon.Wrappers
 			await Safe.RecoverAsync(
 				new Mnemonic(mnemonic),
 				password,
-				Config.WalletFilePath,
-				Config.Network,
+				Global.Config.WalletFilePath,
+				Global.Config.Network,
 				DateTimeOffset.ParseExact(creationTime, "yyyy-MM-dd", CultureInfo.InvariantCulture));
 		}
 
@@ -213,8 +206,11 @@ namespace HiddenWallet.Daemon.Wrappers
 
 		#endregion
 
+		private volatile bool _endCalled = false;
 		public async Task EndAsync()
 		{
+			if (_endCalled) return;
+			_endCalled = true;
 			Console.WriteLine("Gracefully shutting down...");
 			if (_walletJob != null)
 			{
@@ -270,7 +266,7 @@ namespace HiddenWallet.Daemon.Wrappers
 		public async Task<BaseResponse> BuildTransactionAsync(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType)
 		{
 			if (password != _password) throw new InvalidOperationException("Wrong password");
-			var result = await _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, Config.CanSpendUnconfirmed);
+			var result = await _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, Global.Config.CanSpendUnconfirmed);
 
 			if (result.Success)
 			{

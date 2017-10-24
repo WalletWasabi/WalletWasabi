@@ -19,7 +19,18 @@ namespace HiddenWallet.Daemon
 		public static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
-			await Config.InitializeAsync();
+			var configFilePath = "Config.json";
+			if(File.Exists(configFilePath))
+			{
+				Global.Config = await Config.CreateFromFileAsync(configFilePath, CancellationToken.None);
+			}
+			else
+			{
+				Global.Config = new Config(Path.Combine("Wallets", "Wallet.json"), Network.Main, false);
+				await Global.Config.ToFileAsync(configFilePath, CancellationToken.None);
+				Console.WriteLine($"Config file did not exist. Created at path: {configFilePath}");
+			}
+
 			var endPoint = "http://localhost:37120/";
 			var alreadyRunning = false;
 			using (var client = new HttpClient())
@@ -73,7 +84,6 @@ namespace HiddenWallet.Daemon
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				
 				Global.WalletWrapper = new WalletWrapper();
-                await Global.WalletWrapper.InitializeAsync();
 
 				var host = new WebHostBuilder()
 					.UseKestrel()
