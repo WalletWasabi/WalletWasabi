@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace HiddenWallet.Daemon
 {
@@ -27,6 +28,11 @@ namespace HiddenWallet.Daemon
 				//return json format with Camel Case
 				options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver();
 			});
+
+			services.AddSwaggerGen(c =>
+			{
+				c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
+			});
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -36,6 +42,14 @@ namespace HiddenWallet.Daemon
 
 			var applicationLifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
 			applicationLifetime.ApplicationStopping.Register(OnShutdownAsync);
+
+			app.UseSwagger();
+
+			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
+			app.UseSwaggerUI(c =>
+			{
+				c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+			});
 		}
 
 		private async void OnShutdownAsync()
