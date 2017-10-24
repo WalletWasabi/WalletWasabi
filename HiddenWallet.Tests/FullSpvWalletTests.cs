@@ -22,13 +22,11 @@ namespace HiddenWallet.Tests
 	{
 		private bool _fullyConnected;
 		private bool _syncedOnce;
-		[Theory]
-		[InlineData("TestNet")]
-		[InlineData("Main")]
-		public async Task SyncingTestAsync(string networkString)
+		[Fact]
+		public async Task SyncingTestAsync()
 		{
 			// load wallet
-			Network network = networkString == "TestNet"? Network.TestNet:Network.Main;
+			Network network = Network.Main;
 			string path = $"Wallets/Empty{network}.json";
 			const string password = "";
 			Safe safe = File.Exists(path) ? await Safe.LoadAsync(password, path) : (await Safe.CreateAsync(password, path, network)).Safe;
@@ -139,10 +137,17 @@ namespace HiddenWallet.Tests
 			_syncedOnce = false;
 			walletJob.StateChanged += WalletJob_StateChanged;
 
+			Assert.Empty(walletJob.SafeAccounts);
+			Assert.Equal(0, walletJob.ConnectedNodeCount);
+			Assert.Equal(WalletState.NotStarted, walletJob.State);
+			Assert.True(walletJob.TracksDefaultSafe);
+
 			// start syncing
 			var cts = new CancellationTokenSource();
 			var walletJobTask = walletJob.StartAsync(cts.Token);
+			Assert.NotEqual(WalletState.NotStarted, walletJob.State);
 			Task reportTask = Helpers.ReportAsync(cts.Token, walletJob);
+
 
 			try
 			{
@@ -152,7 +157,13 @@ namespace HiddenWallet.Tests
                     await Task.Delay(1000);
                 }
 
-                await Helpers.ReportFullHistoryAsync(walletJob);
+				Assert.Equal(WalletState.Synced, walletJob.State);
+				Assert.NotEqual(Height.Unknown, await walletJob.GetCreationHeightAsync());
+				var headerHeightResult = await walletJob.TryGetHeaderHeightAsync();
+				Assert.True(headerHeightResult.Success);
+				Assert.NotEmpty((await walletJob.GetTrackerAsync()).TrackedScriptPubKeys);
+
+				await Helpers.ReportFullHistoryAsync(walletJob);
 
                 // 0. Query all operations, grouped our used safe addresses
                 int MinUnusedKeyNum = 74;
