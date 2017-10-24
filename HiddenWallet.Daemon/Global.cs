@@ -10,5 +10,6 @@ namespace HiddenWallet.Daemon
     public static class Global
 	{
 		public static WalletWrapper WalletWrapper;
+		public static Config Config;
 	}
 }
