@@ -58,7 +58,7 @@ function periodicUpdate() {
         let progressType = "";
         if (walletState.toUpperCase() === "NotStarted".toUpperCase()) {
             progressType = "info";
-            text = "Tor circuit estabilished, Wallet is offline";
+            text = "Tor circuit established, Wallet is offline";
         }
         if (walletState.toUpperCase() === "SyncingHeaders".toUpperCase()) {
             progressType = "info progress-bar-striped active";
@@ -85,7 +85,7 @@ function periodicUpdate() {
             statusShow(100, text, progressType);
         }
         if (torState.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
-            statusShow(100, "Estabilishing Tor circuit...", progressType);
+            statusShow(100, "Establishing Tor circuit...", progressType);
         } 
         if (torState.toUpperCase() === "NotStarted".toUpperCase()) {
             statusShow(100, "Tor is not running", "danger");
