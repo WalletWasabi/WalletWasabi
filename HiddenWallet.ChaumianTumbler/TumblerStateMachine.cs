@@ -11,20 +11,20 @@ namespace HiddenWallet.ChaumianTumbler
 {
     public class TumblerStateMachine : IDisposable
     {
-		public string Phase { get; private set; } = TumblerPhase.InputRegistration;
+		public TumblerPhase Phase { get; private set; } = TumblerPhase.InputRegistration;
 
 		private TumblerPhaseBroadcaster _broadcaster = TumblerPhaseBroadcaster.Instance;
 
-		private CancellationTokenSource _ctsSourcePhaseCancel = new CancellationTokenSource();
+		private CancellationTokenSource _ctsPhaseCancel = new CancellationTokenSource();
 
-		public void UpdatePhase(string phase)
+		public void UpdatePhase(TumblerPhase phase)
 		{
 			if (phase == Phase) return;
 
 			Phase = phase;
-			_ctsSourcePhaseCancel.Cancel();
-			_ctsSourcePhaseCancel = new CancellationTokenSource();
-			PhaseChangeBroadcast broadcast = new PhaseChangeBroadcast { NewPhase = phase, Message = "" };
+			_ctsPhaseCancel.Cancel();
+			_ctsPhaseCancel = new CancellationTokenSource();
+			var broadcast = new PhaseChangeBroadcast { NewPhase = phase.ToString(), Message = "" };
 			_broadcaster.Broadcast(broadcast);
 			Console.WriteLine($"NEW PHASE: {phase}");
 		}
@@ -72,36 +72,36 @@ namespace HiddenWallet.ChaumianTumbler
 					{
 						case TumblerPhase.InputRegistration:
 							{
-								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsSourcePhaseCancel.Token))
+								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
-									await Task.Delay(TimeSpan.FromSeconds(Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { }); ;
+									await Task.Delay(TimeSpan.FromSeconds(Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
 								AdvancePhase();
 								break;
 							}
 						case TumblerPhase.InputConfirmation:
 							{
-								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsSourcePhaseCancel.Token))
+								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
-									await Task.Delay(TimeSpan.FromSeconds(Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { }); ;
+									await Task.Delay(TimeSpan.FromSeconds(Global.Config.InputConfirmationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
 								AdvancePhase();
 								break;
 							}
 						case TumblerPhase.OutputRegistration:
 							{
-								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsSourcePhaseCancel.Token))
+								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
-									await Task.Delay(TimeSpan.FromSeconds(Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { }); ;
+									await Task.Delay(TimeSpan.FromSeconds(Global.Config.OutputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
 								AdvancePhase();
 								break;
 							}
 						case TumblerPhase.Signing:
 							{
-								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsSourcePhaseCancel.Token))
+								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
-									await Task.Delay(TimeSpan.FromSeconds(Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { }); ;
+									await Task.Delay(TimeSpan.FromSeconds(Global.Config.SigningPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
 								AdvancePhase();
 								break;
@@ -128,7 +128,7 @@ namespace HiddenWallet.ChaumianTumbler
 			{
 				if (disposing)
 				{
-					_ctsSourcePhaseCancel?.Dispose();
+					_ctsPhaseCancel?.Dispose();
 				}
 
 				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

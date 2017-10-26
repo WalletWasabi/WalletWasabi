@@ -40,9 +40,15 @@ namespace HiddenWallet.ChaumianTumbler
 			using (Global.StateMachine = new TumblerStateMachine())
 			{
 				var stateMachineTask = Global.StateMachine.StartAsync(ctsSource.Token);
-				await host.RunAsync();
-				ctsSource.Cancel();
-				await stateMachineTask;
+				try
+				{
+					await host.RunAsync();
+				}
+				finally
+				{
+					ctsSource.Cancel();
+					await stateMachineTask;
+				}
 			}
 		}
 	}

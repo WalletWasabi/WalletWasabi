@@ -19,13 +19,7 @@ namespace HiddenWallet.ChaumianTumbler
  			//	Put any code to initliase collections etc. here.
  		}
 
-		public static TumblerPhaseBroadcaster Instance
- 		{
- 			get
- 			{
- 				return _instance.Value;
-			}
- 		}
+		public static TumblerPhaseBroadcaster Instance => _instance.Value;
 
 		public IHubContext<TumblerHub> SignalRHub
 		{

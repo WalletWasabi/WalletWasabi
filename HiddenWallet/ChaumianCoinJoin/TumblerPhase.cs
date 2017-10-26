@@ -4,11 +4,11 @@ using System.Text;
 
 namespace HiddenWallet.ChaumianCoinJoin
 {
-    public static class TumblerPhase
+    public enum TumblerPhase
     {
-		public const string InputRegistration = "InputRegistration";
-		public const string InputConfirmation = "InputConfirmation";
-		public const string OutputRegistration = "OutputRegistration";
-		public const string Signing = "Signing";
+		InputRegistration,
+		InputConfirmation,
+		OutputRegistration,
+		Signing,
 	}
 }

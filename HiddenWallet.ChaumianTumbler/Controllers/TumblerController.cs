@@ -35,7 +35,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			//	Trigger a call to the hub to broadcast a new state to the clients.
 			TumblerPhaseBroadcaster tumblerPhaseBroadcast = TumblerPhaseBroadcaster.Instance;
 
-			PhaseChangeBroadcast broadcast = new PhaseChangeBroadcast { NewPhase = TumblerPhase.OutputRegistration, Message = "Just a test" };
+			PhaseChangeBroadcast broadcast = new PhaseChangeBroadcast { NewPhase = TumblerPhase.OutputRegistration.ToString(), Message = "Just a test" };
 			tumblerPhaseBroadcast.Broadcast(broadcast); //If collection.Count > 3 a SignalR broadcast is made to clients that connected via client-test
 		}
 
@@ -48,7 +48,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			{
 				return new JsonResult(new StatusResponse
 				{
-					Phase = Global.StateMachine.Phase
+					Phase = Global.StateMachine.Phase.ToString()
 				});
 			}
 			catch (Exception ex)
