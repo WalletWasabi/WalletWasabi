@@ -23,7 +23,10 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
-				throw new NotImplementedException();
+				return new JsonResult(new StatusResponse
+				{
+					Phase = Global.StateMachine.Phase
+				});
 			}
 			catch (Exception ex)
 			{

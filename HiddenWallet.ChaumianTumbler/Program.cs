@@ -7,6 +7,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Threading;
 
 namespace HiddenWallet.ChaumianTumbler
 {
@@ -16,11 +17,17 @@ namespace HiddenWallet.ChaumianTumbler
 		public static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
-			var host = WebHost.CreateDefaultBuilder(args)
+			using (var host = WebHost.CreateDefaultBuilder(args)
 				.UseStartup<Startup>()
-				.Build();
-
-			await host.RunAsync();
-        }
+				.Build())
+			using(var ctsSource = new CancellationTokenSource())
+			{
+				Global.StateMachine = new TumblerStateMachine();
+				var stateMachineTask = Global.StateMachine.StartAsync(ctsSource.Token);
+				await host.RunAsync();
+				ctsSource.Cancel();
+				await stateMachineTask;
+			}
+		}
     }
 }
