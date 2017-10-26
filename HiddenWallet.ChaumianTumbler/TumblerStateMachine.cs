@@ -1,4 +1,5 @@
 ﻿using HiddenWallet.ChaumianCoinJoin;
+using HiddenWallet.ChaumianTumbler.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +13,8 @@ namespace HiddenWallet.ChaumianTumbler
     {
 		public string Phase { get; private set; } = TumblerPhase.InputRegistration;
 
+		private TumblerPhaseBroadcaster _broadcaster = TumblerPhaseBroadcaster.Instance;
+
 		private CancellationTokenSource _ctsSourcePhaseCancel = new CancellationTokenSource();
 
 		public void UpdatePhase(string phase)
@@ -21,6 +24,8 @@ namespace HiddenWallet.ChaumianTumbler
 			Phase = phase;
 			_ctsSourcePhaseCancel.Cancel();
 			_ctsSourcePhaseCancel = new CancellationTokenSource();
+			PhaseChangeBroadcast broadcast = new PhaseChangeBroadcast { NewPhase = phase, Message = "" };
+			_broadcaster.Broadcast(broadcast);
 			Console.WriteLine($"NEW PHASE: {phase}");
 		}
 
