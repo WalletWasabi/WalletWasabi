@@ -8,6 +8,8 @@ namespace HiddenWallet.ChaumianTumbler
 {
 	public static class Global
 	{
+		public static Config Config;
+
 		public static TumblerStateMachine StateMachine;
 
 		private static string _dataDir = null;
