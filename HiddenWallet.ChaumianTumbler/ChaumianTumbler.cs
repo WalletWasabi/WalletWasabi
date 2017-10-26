@@ -52,7 +52,7 @@ namespace HiddenWallet.ChaumianTumbler
 		//	An example method that will be called from the MVC code - for example when adding inputs for processing
 		public void ProcessInputsRequest(InputsRequest request)
 		{
-			//	ConcurrentDictionary provides better performance than lock + Dictionary for read heav and read/update 
+			//	ConcurrentDictionary provides better performance than lock + Dictionary for read heavy and read/update 
 			//	actions. However - locks around the ConcurrentDictionary are still needed as individual operations 
 			//	may be thread-safe, but sequences of operations are not atomic - for example check .Count then .Contains
 			lock (_inputsRequestsLock)

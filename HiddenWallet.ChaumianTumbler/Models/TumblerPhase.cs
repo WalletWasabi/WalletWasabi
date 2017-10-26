@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace HiddenWallet.ChaumianTumbler.Models
 {
-	public enum TumblerPhase
+	public static class TumblerPhase
 	{
-		InputRegistration,
-		InputConfirmation,
-		OutputRegistration,
-		Signing
+		public const string InputRegistration = "InputRegistration";
+		public const string InputConfirmation = "InputConfirmation";
+		public const string OutputRegistration = "OutputRegistration";
+		public const string Signing = "Signing";
 	}
 }

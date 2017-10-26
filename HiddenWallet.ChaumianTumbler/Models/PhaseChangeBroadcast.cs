@@ -7,7 +7,7 @@ namespace HiddenWallet.ChaumianTumbler.Models
 {
     public class PhaseChangeBroadcast
     {
-		public TumblerPhase NewPhase { get; set; }
+		public string NewPhase { get; set; }
 		public string Message { get; set; } //Optional
 	}
 }
