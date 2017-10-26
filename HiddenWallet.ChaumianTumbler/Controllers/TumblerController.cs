@@ -11,10 +11,36 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 	[Route("api/v1/[controller]")]
 	public class TumblerController : Controller
     {
+		//	Used to simulate a client connecting. Returns ClientTest.html which contains JavaScript
+		//	to connect to the SignalR Hub - ChaumianTumblerHub. In real use the clients will connect 
+		//	directly to the hub via C# code in HiddenWallet.
+		[Route("client-test")]
 		[HttpGet]
-		public string Test()
+		public IActionResult ClientTest()
 		{
-			return "test";
+			return View();
+		}
+
+		//	Used to simulate submissions via MVC of data such as InputRequest which get actioned by 
+		//	ChaumianTumbler which then broadcasts messages back to the client connected using 
+		//	'client-test' above. 
+		[Route("client-test-submit")]
+		[HttpGet]
+		public void TestInputsSubmit(InputsRequest request)
+		{
+			//	This will simply mock up the submission of data to the MVC controllers.
+			//	Once the collection inside ChaumianTumbler reaches 3 (just used for example
+			//	purposes until actual Chaumian code implemented) it will trigger a call to the 
+			//	hub to broadcast a new state to the clients.
+
+			Random rnd = new Random();
+			int random = rnd.Next(1, 1000);
+
+			InputsRequest testRequest = new InputsRequest { BlindedOutput = random.ToString(), ChangeOutput = "CHANGE TEST" };
+
+			ChaumianTumbler ct = ChaumianTumbler.Instance;
+			
+			ct.ProcessInputsRequest(testRequest); //If collection.Count > 3 a SignalR broadcast is made to clients that connected via client-test
 		}
 
 		[Route("status")]

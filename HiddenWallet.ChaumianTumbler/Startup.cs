@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.SignalR;
 
 namespace HiddenWallet.ChaumianTumbler
 {
@@ -23,18 +24,29 @@ namespace HiddenWallet.ChaumianTumbler
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+			services.AddSignalR(); //Must come before .AddMvc()
+			services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+		// Inject IHubContext so MVC and ChaumianTumbler class can access the hub context
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IHubContext<ChaumianTumblerHub> context)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMvc();
-        }
+			app.UseSignalR(routes =>
+			{
+				routes.MapHub<ChaumianTumblerHub>("chaumianTumbler");
+			}); //Must come before .UseMvc()
+
+			app.UseMvc();
+
+			//	Set the context within the ChaumianTumble singleton
+			ChaumianTumbler ct = ChaumianTumbler.Instance;
+			ct.ChatHub = context;
+		}
     }
 }
