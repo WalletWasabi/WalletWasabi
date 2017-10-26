@@ -72,7 +72,6 @@ If you get an error here, don't worry, just add your platform identifier to the 
 6. `dotnet test`  
 
 *Notes:* 
-- As of today some tests might fail when running them all at once. Running them one by one should work.
 - Some tests have been prefunded with testnet coins. If some funny dev messing with the wallets (sending transactions to them, spending them and such) those tests might fail, too.
 
 ## [Architechture Overview](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet.Documentation/ArchitechtureOverview.md)
