@@ -15,7 +15,11 @@ document.getElementById("title").innerHTML = document.title;
             shutDownWindow.focus();
             shutDownWindow.loadURL('file://' + __dirname + '/app/html/shutdown.html');
             window.hide();
-            httpGetWalletAsync("shutdown");
+            //An exception thrown by shutdown means that the web service is offline - and therefore the shutdown call has succeeded
+            try {
+                httpGetWallet("shutdown");
+            }
+            catch(e) { }
             shutDownWindow.close();
             window.close();
         });
