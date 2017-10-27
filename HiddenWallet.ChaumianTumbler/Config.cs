@@ -59,24 +59,16 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			if (path == null) throw new ArgumentNullException(nameof(path));
 
-			var defaultDenominationAlgorithm = Denomination.DenominationAlgorithm.FixedUSD;
-			var defaultDenominationUSD = 10000;
-			var defaultDenominationBTC = new Money(1m, MoneyUnit.BTC);
-			var defaultInputRegistrationPhaseTimeoutInSeconds = 86400; // one day
-			var defaultInputConfirmationPhaseTimeoutInSeconds = 60;
-			var defaultOutputRegistrationPhaseTimeoutInSeconds = 60;
-			var defaultSigningPhaseTimeoutInSeconds = 60;
+			DenominationAlgorithm = Denomination.DenominationAlgorithm.FixedUSD;
+			DenominationUSD = 10000;
+			DenominationBTC = new Money(1m, MoneyUnit.BTC);
+			InputRegistrationPhaseTimeoutInSeconds = 86400; // one day
+			InputConfirmationPhaseTimeoutInSeconds = 60;
+			OutputRegistrationPhaseTimeoutInSeconds = 60;
+			SigningPhaseTimeoutInSeconds = 60;
 
 			if (!File.Exists(path))
 			{
-				DenominationAlgorithm = defaultDenominationAlgorithm;
-				DenominationUSD = defaultDenominationUSD;
-				DenominationBTC = defaultDenominationBTC;
-				InputRegistrationPhaseTimeoutInSeconds = defaultInputRegistrationPhaseTimeoutInSeconds;
-				InputConfirmationPhaseTimeoutInSeconds = defaultInputConfirmationPhaseTimeoutInSeconds;
-				OutputRegistrationPhaseTimeoutInSeconds = defaultOutputRegistrationPhaseTimeoutInSeconds;
-				SigningPhaseTimeoutInSeconds = defaultSigningPhaseTimeoutInSeconds;
-
 				Console.WriteLine($"Config file did not exist. Created at path: {path}");
 			}
 			else
@@ -84,13 +76,13 @@ namespace HiddenWallet.ChaumianTumbler
 				string jsonString = await File.ReadAllTextAsync(path, Encoding.UTF8, cancel);
 				var config = JsonConvert.DeserializeObject<Config>(jsonString);
 
-				DenominationAlgorithm = config.DenominationAlgorithm ?? defaultDenominationAlgorithm;
-				DenominationUSD = config.DenominationUSD ?? defaultDenominationUSD;
-				DenominationBTC = config.DenominationBTC ?? defaultDenominationBTC;
-				InputRegistrationPhaseTimeoutInSeconds = config.InputRegistrationPhaseTimeoutInSeconds ?? defaultInputRegistrationPhaseTimeoutInSeconds;
-				InputConfirmationPhaseTimeoutInSeconds = config.InputConfirmationPhaseTimeoutInSeconds ?? defaultInputConfirmationPhaseTimeoutInSeconds;
-				OutputRegistrationPhaseTimeoutInSeconds = config.OutputRegistrationPhaseTimeoutInSeconds ?? defaultOutputRegistrationPhaseTimeoutInSeconds;
-				SigningPhaseTimeoutInSeconds = config.SigningPhaseTimeoutInSeconds ?? defaultSigningPhaseTimeoutInSeconds;
+				DenominationAlgorithm = config.DenominationAlgorithm ?? DenominationAlgorithm;
+				DenominationUSD = config.DenominationUSD ?? DenominationUSD;
+				DenominationBTC = config.DenominationBTC ?? DenominationBTC;
+				InputRegistrationPhaseTimeoutInSeconds = config.InputRegistrationPhaseTimeoutInSeconds ?? InputRegistrationPhaseTimeoutInSeconds;
+				InputConfirmationPhaseTimeoutInSeconds = config.InputConfirmationPhaseTimeoutInSeconds ?? InputConfirmationPhaseTimeoutInSeconds;
+				OutputRegistrationPhaseTimeoutInSeconds = config.OutputRegistrationPhaseTimeoutInSeconds ?? OutputRegistrationPhaseTimeoutInSeconds;
+				SigningPhaseTimeoutInSeconds = config.SigningPhaseTimeoutInSeconds ?? SigningPhaseTimeoutInSeconds;
 			}
 
 			await ToFileAsync(path, cancel);
