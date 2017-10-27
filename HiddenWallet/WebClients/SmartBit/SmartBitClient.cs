@@ -1,4 +1,6 @@
-﻿using NBitcoin;
+﻿using HiddenWallet.WebClients.SmartBit.Models;
+using NBitcoin;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
@@ -51,6 +53,36 @@ namespace HiddenWallet.WebClients.SmartBit
 				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
 				AssertSuccess(responseString);
+			}
+		}
+
+		public async Task<IEnumerable<SmartBitExchangeRate>> GetExchangeRatesAsync(CancellationToken cancel)
+		{
+			using (await _asyncLock.LockAsync())
+			using (HttpResponseMessage response =
+					await HttpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel))
+			{
+
+				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
+				string responseString = await response.Content.ReadAsStringAsync();
+				AssertSuccess(responseString);
+
+				var exchangeRates = JObject.Parse(responseString).Value<JArray>("exchange_rates");
+				var ret = new HashSet<SmartBitExchangeRate>();
+				foreach(var jtoken in exchangeRates)
+				{
+					ret.Add(JsonConvert.DeserializeObject<SmartBitExchangeRate>(jtoken.ToString()));
+				}
+				return ret;
+			}
+		}
+
+		private static void AssertSuccess(string responseString)
+		{
+			var jObject = JObject.Parse(responseString);
+			if (!jObject.Value<bool>("success"))
+			{
+				throw new HttpRequestException($"Error code: {jObject["error"].Value<string>("code")} Reason: {jObject["error"].Value<string>("message")}");
 			}
 		}
 

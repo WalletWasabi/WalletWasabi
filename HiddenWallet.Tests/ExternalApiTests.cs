@@ -1,7 +1,10 @@
 ﻿using HiddenWallet.WebClients.BlockCypher;
+using HiddenWallet.WebClients.SmartBit;
 using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +14,23 @@ namespace HiddenWallet.Tests
 {
     public class ExternalApiTests
     {
+		[Theory]
+		[InlineData("test")]
+		[InlineData("main")]
+		public async Task SmartBitTestsAsync(string networkString)
+		{
+			var network = Network.GetNetwork(networkString);
+			using (var client = new SmartBitClient(network))
+			{
+				var rates = (await client.GetExchangeRatesAsync(CancellationToken.None));
+
+				Assert.Contains("AUD", rates.Select(x => x.Code));
+				Assert.Contains("USD", rates.Select(x => x.Code));
+
+				await Assert.ThrowsAsync<HttpRequestException>(async()=> await client.PushTransactionAsync(new Transaction(), CancellationToken.None));				
+			}
+		}
+
 		[Theory]
 		[InlineData("test")]
 		[InlineData("main")]
