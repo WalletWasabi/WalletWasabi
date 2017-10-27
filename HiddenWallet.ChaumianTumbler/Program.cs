@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Threading;
+using HiddenWallet.ChaumianTumbler.Denomination;
+using NBitcoin;
 
 namespace HiddenWallet.ChaumianTumbler
 {
@@ -18,21 +20,9 @@ namespace HiddenWallet.ChaumianTumbler
 #pragma warning restore IDE1006 // Naming Styles
 		{
 			var configFilePath = Path.Combine(Global.DataDir, "Config.json");
-			if (File.Exists(configFilePath))
-			{
-				Global.Config = await Config.CreateFromFileAsync(configFilePath, CancellationToken.None);
-			}
-			else
-			{
-				Global.Config = new Config(
-					inputRegistrationPhaseTimeoutInSeconds: 86400, // one day
-					inputConfirmationPhaseTimeoutInSeconds: 60,
-					outputRegistrationPhaseTimeoutInSeconds: 60,
-					signingPhaseTimeoutInSeconds: 60);
-				await Global.Config.ToFileAsync(configFilePath, CancellationToken.None);
-				Console.WriteLine($"Config file did not exist. Created at path: {configFilePath}");
-			}
-			
+			Global.Config = new Config();
+			await Global.Config.LoadOrCreateDefaultFileAsync(configFilePath, CancellationToken.None);
+
 			Global.StateMachine = new TumblerStateMachine();
 			Global.StateMachineJobCancel = new CancellationTokenSource();
 			Global.StateMachineJob = Global.StateMachine.StartAsync(Global.StateMachineJobCancel.Token);

@@ -74,7 +74,7 @@ namespace HiddenWallet.ChaumianTumbler
 							{
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
-									await Task.Delay(TimeSpan.FromSeconds(Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
+									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
 								AdvancePhase();
 								break;
@@ -83,7 +83,7 @@ namespace HiddenWallet.ChaumianTumbler
 							{
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
-									await Task.Delay(TimeSpan.FromSeconds(Global.Config.InputConfirmationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
+									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.InputConfirmationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
 								AdvancePhase();
 								break;
@@ -92,7 +92,7 @@ namespace HiddenWallet.ChaumianTumbler
 							{
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
-									await Task.Delay(TimeSpan.FromSeconds(Global.Config.OutputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
+									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.OutputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
 								AdvancePhase();
 								break;
@@ -101,7 +101,7 @@ namespace HiddenWallet.ChaumianTumbler
 							{
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
-									await Task.Delay(TimeSpan.FromSeconds(Global.Config.SigningPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
+									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.SigningPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
 								AdvancePhase();
 								break;
