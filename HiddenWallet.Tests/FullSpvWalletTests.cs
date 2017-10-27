@@ -75,9 +75,7 @@ namespace HiddenWallet.Tests
 				Assert.Empty(await walletJob.GetSafeHistoryAsync());
                 var headerHeightResult = await walletJob.TryGetHeaderHeightAsync();
                 Assert.True(headerHeightResult.Success);
-                var expectedBlockCount = headerHeightResult.Height.Value - (await walletJob.GetCreationHeightAsync()).Value + 1;
-				Assert.Equal(expectedBlockCount, (await walletJob.GetTrackerAsync()).BlockCount);
-				Assert.NotEmpty((await walletJob.GetTrackerAsync()).TrackedScriptPubKeys);
+                Assert.NotEmpty((await walletJob.GetTrackerAsync()).TrackedScriptPubKeys);
 				Assert.Empty((await walletJob.GetTrackerAsync()).TrackedTransactions);
 			}
 			finally

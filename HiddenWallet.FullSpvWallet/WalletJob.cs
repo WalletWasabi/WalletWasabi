@@ -21,6 +21,7 @@ using HiddenWallet.KeyManagement;
 using HiddenWallet.FullSpv.MemPool;
 using HiddenWallet.FullSpv.Fees;
 using Nito.AsyncEx;
+using HiddenWallet.WebClients.SmartBit;
 
 namespace HiddenWallet.FullSpv
 {
@@ -33,10 +34,8 @@ namespace HiddenWallet.FullSpv
 		public Safe Safe { get; private set; }
 		public bool TracksDefaultSafe { get; private set; }
 		public ConcurrentHashSet<SafeAccount> SafeAccounts { get; private set; }
-
-		public QBitNinjaClient TorQBitClient { get; private set; }
-		public QBitNinjaClient NoTorQBitClient { get; private set; }
-		public HttpClient TorHttpClient { get; private set; }
+		
+		public SmartBitClient TorSmartBitClient { get; private set; }
 		public DotNetTor.ControlPort.Client ControlPortClient { get; private set; }
 
 		public BlockDownloader BlockDownloader;
@@ -236,12 +235,9 @@ namespace HiddenWallet.FullSpv
             {
                 Enabled = false
             };
-
-            NoTorQBitClient = new QBitNinjaClient(safeToTrack.Network);
-			TorQBitClient = new QBitNinjaClient(safeToTrack.Network);
-			TorQBitClient.SetHttpMessageHandler(handler);
-			TorHttpClient = new HttpClient(handler);
+			
 			ControlPortClient = controlPortClient;
+			TorSmartBitClient = new SmartBitClient(safeToTrack.Network, handler, false);
 
 			FeeService = new FeeService(safeToTrack.Network, ControlPortClient, disposeTorControl: false, handler: handler, disposeHandler: false);
 
@@ -374,7 +370,7 @@ namespace HiddenWallet.FullSpv
                     task?.Dispose();
                 }
                 FeeService?.Dispose();
-                TorHttpClient?.Dispose();
+				TorSmartBitClient?.Dispose();
                 try
                 {
                     ControlPortClient?.DisconnectDisposeSocket();
@@ -1228,6 +1224,8 @@ namespace HiddenWallet.FullSpv
 
 		public async Task<SendTransactionResult> SendTransactionAsync(Transaction tx)
 		{
+			Debug.WriteLine($"Broadcasting Transaction: {tx.GetHash()}");
+
 			if (State < WalletState.SyncingMemPool)
 			{
 				return new SendTransactionResult
@@ -1238,101 +1236,43 @@ namespace HiddenWallet.FullSpv
 				};
 			}
 
+			var failureResult = new SendTransactionResult
+			{
+				Success = false,
+				FailingReason =
+						$"The transaction might not have been successfully broadcasted. Check the Transaction ID in a block explorer. Transaction Id: {tx.GetHash()}"
+			};
+
+			var successfulResult = new SendTransactionResult
+			{
+				Success = true,
+				FailingReason = ""
+			};
+
 			try
 			{
+				Debug.WriteLine($"Changing Tor circuit: {tx.GetHash()}");
 				await ControlPortClient.ChangeCircuitAsync();
-				var successfulResult = new SendTransactionResult
+				
+				await Task.Delay(100);
+				await TorSmartBitClient.PushTransactionAsync(tx, CancellationToken.None);
+				
+				for (int i = 0; i < 21; i++)
 				{
-					Success = true,
-					FailingReason = ""
-				};
-				Debug.WriteLine($"Transaction Id: {tx.GetHash()}");
-
-				// times out at 21sec, last is smartbit, doesn't check for responses, they are sometimes buggy
-				var counter = 0;
-				while (true)
-				{
-					var smartBitResponse = new HttpResponseMessage();
-					var qbitResponse = new BroadcastResponse();
-					try
-					{
-						Debug.Write("Broadcasting with ");
-						if (counter % 2 == 0)
-						{
-							Debug.WriteLine("QBit...");
-							qbitResponse = await TorQBitClient.Broadcast(tx);
-						}
-						else
-						{
-							Debug.WriteLine("SmartBit...");
-							var post = "https://testnet-api.smartbit.com.au/v1/blockchain/pushtx";
-							if (CurrentNetwork == Network.Main)
-								post = "https://api.smartbit.com.au/v1/blockchain/pushtx";
-
-							var content = new StringContent(new JObject(new JProperty("hex", tx.ToHex())).ToString(), Encoding.UTF8,
-								"application/json");
-							smartBitResponse = await TorHttpClient.PostAsync(post, content);
-						}
-					}
-                    catch (Exception)
-                    {
-                        counter++;
-                        continue;
-                    }
-                    await Task.Delay(1000);
+					await Task.Delay(1000);
 					var arrived = MemPoolJob.Transactions.Contains(tx.GetHash());
 					if (arrived)
 					{
 						Debug.WriteLine("Transaction is successfully propagated on the network.");
 						return successfulResult;
 					}
-
-					if (counter >= 21) // keep it odd, smartbit has more reliable error messages
-					{
-						string reason = "";
-						if (counter % 2 == 0) //qbit
-						{
-							reason = $"Success: {qbitResponse.Success}";
-							if (qbitResponse.Error != null)
-							{
-								reason += $", ErrorCode: {qbitResponse.Error.ErrorCode}, Reason: {qbitResponse.Error.Reason}";
-							}
-						}
-						else //smartbit
-						{
-							var json = JObject.Parse(await smartBitResponse.Content.ReadAsStringAsync());
-							if (json.Value<bool>("success"))
-							{
-								Debug.WriteLine("Transaction is successfully propagated on the network.");
-								return successfulResult;
-							}
-							else
-							{
-								Debug.WriteLine(
-									$"Error code: {json["error"].Value<string>("code")} Reason: {json["error"].Value<string>("message")}");
-							}
-							reason = $"Success: { json.Value<bool>("success") } Error code: {json["error"].Value<string>("code")} Reason: {json["error"].Value<string>("message")}";
-						}
-						return new SendTransactionResult
-						{
-							Success = false,
-							FailingReason =
-							$"The transaction might not have been successfully broadcasted. Check the Transaction ID in a block explorer. Details: {reason}"
-						};
-					}
-					counter++;
-                    smartBitResponse?.Dispose();
 				}
 			}
-			catch (Exception ex)
+			catch(Exception ex)
 			{
-				return new SendTransactionResult
-				{
-					Success = false,
-					FailingReason =
-						"The transaction might not have been successfully broadcasted. Check the Transaction ID in a block explorer. Details:" + ex.ToString()
-				};
+				failureResult.FailingReason += $" Details: {ex.ToString()}";
 			}
+			return failureResult;
 		}
 
 		public struct SendTransactionResult

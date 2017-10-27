@@ -1,6 +1,7 @@
 ﻿using HiddenWallet.Models;
 using HiddenWallet.WebClients.BlockCypher.Models;
 using NBitcoin;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
@@ -17,6 +18,7 @@ namespace HiddenWallet.WebClients.BlockCypher
     {
         public Network Network { get; }
         private HttpClient HttpClient { get; }
+		public Uri BaseAddress => HttpClient.BaseAddress;
         private readonly AsyncLock _asyncLock = new AsyncLock();
 
         public BlockCypherClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
@@ -40,31 +42,14 @@ namespace HiddenWallet.WebClients.BlockCypher
         public async Task<BlockCypherGeneralInformation> GetGeneralInformationAsync(CancellationToken cancel)
         {
             using(await _asyncLock.LockAsync())
-            {
-                HttpResponseMessage response =
-                        await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel);
+			using (HttpResponseMessage response =
+					 await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel))
+			{ 
+				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 
-                if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
-                var json = JObject.Parse(await response.Content.ReadAsStringAsync());
-
-                return new BlockCypherGeneralInformation
-                {
-                    Name = json.Value<string>("name"),
-                    Height = new Height(json.Value<int>("height")),
-                    Hash = new uint256(json.Value<string>("hash")),
-                    Time = DateTimeOffset.Parse(json.Value<string>("time"), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal),
-                    LatestUrl = new Uri(json.Value<string>("latest_url"), UriKind.Absolute),
-                    PreviousHash = new uint256(json.Value<string>("previous_hash")),
-                    PreviousUrl = new Uri(json.Value<string>("previous_url"), UriKind.Absolute),
-                    PeerCount = json.Value<int>("peer_count"),
-                    UnconfirmedCount = json.Value<long>("unconfirmed_count"),
-                    LowFee = new FeeRate(new Money(json.Value<long>("low_fee_per_kb"))),
-                    MediumFee = new FeeRate(new Money(json.Value<long>("medium_fee_per_kb"))),
-                    HighFee = new FeeRate(new Money(json.Value<long>("high_fee_per_kb"))),
-                    LastForkHeight = new Height(json.Value<int>("last_fork_height")),
-                    LastForkHash = new uint256(json.Value<string>("last_fork_hash"))
-                };
-            }
+				string jsonString = await response.Content.ReadAsStringAsync();
+				return JsonConvert.DeserializeObject<BlockCypherGeneralInformation>(jsonString);
+			}
         }
 
         #region IDisposable Support
