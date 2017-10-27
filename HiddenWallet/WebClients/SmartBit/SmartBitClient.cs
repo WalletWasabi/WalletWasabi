@@ -1,9 +1,12 @@
 ﻿using NBitcoin;
+using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HiddenWallet.WebClients.SmartBit
 {
@@ -24,25 +27,30 @@ namespace HiddenWallet.WebClients.SmartBit
 			HttpClient = new HttpClient();
 			if (network == Network.Main)
 			{
-				HttpClient.BaseAddress = new Uri("http://api.blockcypher.com/v1/btc/main");
+				HttpClient.BaseAddress = new Uri("https://api.smartbit.com.au/v1/");
 			}
 			else if (network == Network.TestNet)
 			{
-				HttpClient.BaseAddress = new Uri("http://api.blockcypher.com/v1/btc/test3");
+				HttpClient.BaseAddress = new Uri("https://testnet-api.smartbit.com.au/v1/");
 			}
 			else throw new NotSupportedException($"{network} is not supported");
 		}
 
-		public async Task<BlockCypherGeneralInformation> GetGeneralInformationAsync(CancellationToken cancel)
+		public async Task PushTransactionAsync(Transaction transaction, CancellationToken cancel)
 		{
 			using (await _asyncLock.LockAsync())
-			using (HttpResponseMessage response =
-					 await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel))
 			{
-				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
+				var content = new StringContent(
+					new JObject(new JProperty("hex", transaction.ToHex())).ToString(),
+					Encoding.UTF8,
+					"application/json");
 
-				string jsonString = await response.Content.ReadAsStringAsync();
-				return JsonConvert.DeserializeObject<BlockCypherGeneralInformation>(jsonString);
+				HttpResponseMessage response =
+						await HttpClient.PostAsync("blockchain/pushtx", content, cancel);
+
+				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
+				string responseString = await response.Content.ReadAsStringAsync();
+				AssertSuccess(responseString);
 			}
 		}
 
