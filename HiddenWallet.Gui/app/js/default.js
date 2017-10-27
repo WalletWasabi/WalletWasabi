@@ -15,7 +15,7 @@ document.getElementById("title").innerHTML = document.title;
             shutDownWindow.focus();
             shutDownWindow.loadURL('file://' + __dirname + '/app/html/shutdown.html');
             window.hide();
-            httpGetWallet("shutdown");
+            httpGetWalletAsync("shutdown");
             shutDownWindow.close();
             window.close();
         });
