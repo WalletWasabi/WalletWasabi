@@ -1,26 +1,67 @@
-﻿using HiddenWallet.Models;
+﻿using HiddenWallet.Converters;
+using HiddenWallet.Models;
 using NBitcoin;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace HiddenWallet.WebClients.BlockCypher.Models
 {
-    public class BlockCypherGeneralInformation
+	[JsonObject(MemberSerialization.OptIn)]
+	public class BlockCypherGeneralInformation
     {
-        public string Name { get; set; }
-        public Height Height { get; set; }
-        public uint256 Hash { get; set; }
-        public DateTimeOffset Time { get; set; }
-        public Uri LatestUrl { get; set; }
-        public uint256 PreviousHash { get; set; }
-        public Uri PreviousUrl { get; set; }
-        public int PeerCount { get; set; }
-        public long UnconfirmedCount { get; set; }
-        public FeeRate HighFee { get; set; }
-        public FeeRate MediumFee { get; set; }
-        public FeeRate LowFee { get; set; }
-        public Height LastForkHeight { get; set; }
-        public uint256 LastForkHash { get; set; }
+		[JsonProperty(PropertyName = "name")]
+		public string Name { get; set; }
+
+		[JsonProperty(PropertyName = "height")]
+		[JsonConverter(typeof(HeightConverter))]
+		public Height Height { get; set; }
+
+		[JsonProperty(PropertyName = "hash")]
+		[JsonConverter(typeof(Uint256Converter))]
+		public uint256 Hash { get; set; }
+
+		[JsonProperty(PropertyName = "time")]
+		[JsonConverter(typeof(BlockCypherDateTimeOffsetConverter))]
+		public DateTimeOffset Time { get; set; }
+
+		[JsonProperty(PropertyName = "latest_url")]
+		[JsonConverter(typeof(BlockCypherUriConverter))]
+		public Uri LatestUrl { get; set; }
+
+		[JsonProperty(PropertyName = "previous_hash")]
+		[JsonConverter(typeof(Uint256Converter))]
+		public uint256 PreviousHash { get; set; }
+
+		[JsonProperty(PropertyName = "previous_url")]
+		[JsonConverter(typeof(BlockCypherUriConverter))]
+		public Uri PreviousUrl { get; set; }
+
+		[JsonProperty(PropertyName = "peer_count")]
+		public int PeerCount { get; set; }
+
+		[JsonProperty(PropertyName = "unconfirmed_count")]
+		public long UnconfirmedCount { get; set; }
+
+		[JsonProperty(PropertyName = "high_fee_per_kb")]
+		[JsonConverter(typeof(FeeRatePerKbConverter))]
+		public FeeRate HighFee { get; set; }
+
+		[JsonProperty(PropertyName = "medium_fee_per_kb")]
+		[JsonConverter(typeof(FeeRatePerKbConverter))]
+		public FeeRate MediumFee { get; set; }
+
+		[JsonProperty(PropertyName = "low_fee_per_kb")]
+		[JsonConverter(typeof(FeeRatePerKbConverter))]
+		public FeeRate LowFee { get; set; }
+
+		[JsonProperty(PropertyName = "last_fork_height")]
+		[JsonConverter(typeof(HeightConverter))]
+		public Height LastForkHeight { get; set; }
+
+		[JsonProperty(PropertyName = "last_fork_hash")]
+		[JsonConverter(typeof(Uint256Converter))]
+		public uint256 LastForkHash { get; set; }
     }
 }

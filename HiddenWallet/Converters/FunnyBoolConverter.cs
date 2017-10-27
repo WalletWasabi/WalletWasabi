@@ -10,7 +10,7 @@ namespace HiddenWallet.Converters
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(FunnyBoolConverter);
+			return objectType == typeof(bool);
 		}
 
 		/// <inheritdoc />
