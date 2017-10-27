@@ -9,6 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.SignalR;
+using System.IO;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace HiddenWallet.ChaumianTumbler
 {
@@ -26,6 +28,10 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			services.AddSignalR(); //Must come before .AddMvc()
 			services.AddMvc();
+			services.AddSwaggerGen(c =>
+			{
+				c.SwaggerDoc("v1", new Info { Title = "HiddenWallet.ChaumianTumbler", Version = "v1" });
+			});
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,8 +49,29 @@ namespace HiddenWallet.ChaumianTumbler
 
 			app.UseMvc();
 
+			var applicationLifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
+			applicationLifetime.ApplicationStopping.Register(OnShutdownAsync);
+
+			app.UseSwagger();
+
+			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
+			app.UseSwaggerUI(c =>
+			{
+				c.SwaggerEndpoint("/swagger/v1/swagger.json", "HiddenWallet.ChaumianTumbler V1");
+			});
+
 			TumblerPhaseBroadcaster tumblerPhaseBroadcast = TumblerPhaseBroadcaster.Instance;
 			tumblerPhaseBroadcast.SignalRHub = context;
+		}
+
+		private async void OnShutdownAsync()
+		{
+			Global.StateMachineJobCancel?.Cancel();
+			if(Global.StateMachineJob != null)
+			{
+				await Global.StateMachineJob;
+			}
+			Global.StateMachine?.Dispose();
 		}
 	}
 }

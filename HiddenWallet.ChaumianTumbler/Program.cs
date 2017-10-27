@@ -32,23 +32,16 @@ namespace HiddenWallet.ChaumianTumbler
 				await Global.Config.ToFileAsync(configFilePath, CancellationToken.None);
 				Console.WriteLine($"Config file did not exist. Created at path: {configFilePath}");
 			}
+			
+			Global.StateMachine = new TumblerStateMachine();
+			Global.StateMachineJobCancel = new CancellationTokenSource();
+			Global.StateMachineJob = Global.StateMachine.StartAsync(Global.StateMachineJobCancel.Token);
 
 			using (var host = WebHost.CreateDefaultBuilder(args)
 				.UseStartup<Startup>()
 				.Build())
-			using (var ctsSource = new CancellationTokenSource())
-			using (Global.StateMachine = new TumblerStateMachine())
 			{
-				var stateMachineTask = Global.StateMachine.StartAsync(ctsSource.Token);
-				try
-				{
-					await host.RunAsync();
-				}
-				finally
-				{
-					ctsSource.Cancel();
-					await stateMachineTask;
-				}
+				await host.RunAsync();
 			}
 		}
 	}
