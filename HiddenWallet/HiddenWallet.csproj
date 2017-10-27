@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <Folder Include="Extensions\" />
-    <Folder Include="WebClients\" />
+    <Folder Include="WebClients\SmartBit\Models\" />
   </ItemGroup>
 
   <ItemGroup>
