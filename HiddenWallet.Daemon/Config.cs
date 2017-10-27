@@ -23,18 +23,11 @@ namespace HiddenWallet.Daemon
 
 		[JsonProperty(PropertyName = "CanSpendUnconfirmed", Order = 3)]
 		[JsonConverter(typeof(FunnyBoolConverter))]
-		public bool CanSpendUnconfirmed { get; set; }
+		public bool? CanSpendUnconfirmed { get; set; }
 
 		public Config()
 		{
 
-		}
-
-		public Config(string walletFilePath, Network network, bool canSpendUnconfirmed)
-		{
-			WalletFilePath = walletFilePath ?? throw new ArgumentNullException(nameof(walletFilePath));
-			Network = network ?? throw new ArgumentNullException(nameof(network));
-			CanSpendUnconfirmed = canSpendUnconfirmed;
 		}
 
 		public async Task ToFileAsync(string path, CancellationToken cancel)
@@ -48,16 +41,29 @@ namespace HiddenWallet.Daemon
 			cancel);
 		}
 
-		public static async Task<Config> CreateFromFileAsync(string path, CancellationToken cancel)
+		public async Task LoadOrCreateDefaultFileAsync(string path, CancellationToken cancel)
 		{
 			if (path == null) throw new ArgumentNullException(nameof(path));
+
+			WalletFilePath = Path.Combine(FullSpvWallet.Global.DataDir, "Wallets", "Wallet.json");
+			Network = Network.Main;
+			CanSpendUnconfirmed = false;
+
 			if (!File.Exists(path))
 			{
-				throw new ArgumentException($"Config file does not exist at {path}");
+				Console.WriteLine($"Config file did not exist. Created at path: {path}");
+			}
+			else
+			{
+				string jsonString = await File.ReadAllTextAsync(path, Encoding.UTF8, cancel);
+				var config = JsonConvert.DeserializeObject<Config>(jsonString);
+
+				WalletFilePath = config.WalletFilePath ?? WalletFilePath;
+				Network = config.Network ?? Network;
+				CanSpendUnconfirmed = config.CanSpendUnconfirmed ?? CanSpendUnconfirmed;
 			}
 
-			string jsonString = await File.ReadAllTextAsync(path, Encoding.UTF8, cancel);
-			return JsonConvert.DeserializeObject<Config>(jsonString);
+			await ToFileAsync(path, cancel);
 		}
-    }
+	}
 }

@@ -20,16 +20,8 @@ namespace HiddenWallet.Daemon
 #pragma warning restore IDE1006 // Naming Styles
 		{
 			var configFilePath = Path.Combine(FullSpvWallet.Global.DataDir, "Config.json");
-			if(File.Exists(configFilePath))
-			{
-				Global.Config = await Config.CreateFromFileAsync(configFilePath, CancellationToken.None);
-			}
-			else
-			{
-				Global.Config = new Config(Path.Combine(FullSpvWallet.Global.DataDir, "Wallets", "Wallet.json"), Network.Main, false);
-				await Global.Config.ToFileAsync(configFilePath, CancellationToken.None);
-				Console.WriteLine($"Config file did not exist. Created at path: {configFilePath}");
-			}
+			Global.Config = new Config();
+			await Global.Config.LoadOrCreateDefaultFileAsync(configFilePath, CancellationToken.None);
 
 			var endPoint = "http://localhost:37120/";
 			var alreadyRunning = false;
