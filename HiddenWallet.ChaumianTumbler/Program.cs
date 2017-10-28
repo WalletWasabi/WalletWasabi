@@ -22,7 +22,7 @@ namespace HiddenWallet.ChaumianTumbler
 			var configFilePath = Path.Combine(Global.DataDir, "Config.json");
 			Global.Config = new Config();
 			await Global.Config.LoadOrCreateDefaultFileAsync(configFilePath, CancellationToken.None);
-
+			
 			Global.StateMachine = new TumblerStateMachine();
 			Global.StateMachineJobCancel = new CancellationTokenSource();
 			Global.StateMachineJob = Global.StateMachine.StartAsync(Global.StateMachineJobCancel.Token);

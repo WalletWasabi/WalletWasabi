@@ -1,5 +1,8 @@
 ﻿using HiddenWallet.ChaumianCoinJoin;
+using HiddenWallet.ChaumianTumbler.Denomination;
 using HiddenWallet.ChaumianTumbler.Models;
+using HiddenWallet.WebClients.SmartBit;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,10 +15,17 @@ namespace HiddenWallet.ChaumianTumbler
     public class TumblerStateMachine : IDisposable
     {
 		public TumblerPhase Phase { get; private set; } = TumblerPhase.InputRegistration;
+		public Money Denomination { get; private set; }
+		private SmartBitClient SmartBitClient { get; }
 
 		private TumblerPhaseBroadcaster _broadcaster = TumblerPhaseBroadcaster.Instance;
 
 		private CancellationTokenSource _ctsPhaseCancel = new CancellationTokenSource();
+
+		public TumblerStateMachine()
+		{
+			SmartBitClient = new SmartBitClient(Network.Main);
+		}
 
 		public void UpdatePhase(TumblerPhase phase)
 		{
@@ -72,6 +82,8 @@ namespace HiddenWallet.ChaumianTumbler
 					{
 						case TumblerPhase.InputRegistration:
 							{
+								await SetDenominationAsync(cancel);
+
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
@@ -119,6 +131,33 @@ namespace HiddenWallet.ChaumianTumbler
 			}
 		}
 
+		private async Task SetDenominationAsync(CancellationToken cancel)
+		{
+			if (Global.Config.DenominationAlgorithm == DenominationAlgorithm.FixedUSD)
+			{
+				try
+				{
+					var exchangeRates = await SmartBitClient.GetExchangeRatesAsync(cancel);
+					decimal price = exchangeRates.Single(x => x.Code == "USD").Rate;
+					decimal denominationUSD = (decimal)Global.Config.DenominationUSD;
+					decimal denominationBTC = denominationUSD / price;
+					Denomination = new Money(denominationBTC, MoneyUnit.BTC);
+				}
+				catch
+				{
+					Denomination = Global.Config.DenominationBTC;
+				}
+			}
+			else if (Global.Config.DenominationAlgorithm == DenominationAlgorithm.FixedBTC)
+			{
+				Denomination = Global.Config.DenominationBTC;
+			}
+			else
+			{
+				throw new NotSupportedException(Global.Config.DenominationAlgorithm.ToString());
+			}
+		}
+
 		#region IDisposable Support
 		private bool _disposedValue = false; // To detect redundant calls
 
@@ -129,6 +168,7 @@ namespace HiddenWallet.ChaumianTumbler
 				if (disposing)
 				{
 					_ctsPhaseCancel?.Dispose();
+					SmartBitClient?.Dispose();
 				}
 
 				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
