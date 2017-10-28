@@ -15,7 +15,7 @@ namespace HiddenWallet.KeyManagement
 	{
 		public Network Network { get; }
 
-		public static DateTimeOffset EarliestPossibleCreationTime { get; set; } = DateTimeOffset.ParseExact("2017-02-19", "yyyy-MM-dd", CultureInfo.InvariantCulture);
+		public static DateTimeOffset EarliestPossibleCreationTime { get; set; } = DateTimeOffset.ParseExact("2017-02-19", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
 
 		public DateTimeOffset CreationTime { get; }
 
@@ -109,7 +109,7 @@ namespace HiddenWallet.KeyManagement
 		/// <returns>Safe</returns>
 		public static async Task<(Safe Safe, Mnemonic Mnemonic)> CreateAsync(string password, string walletFilePath, Network network)
 		{
-			var creationTime = new DateTimeOffset(DateTimeOffset.UtcNow.Date);
+			var creationTime = new DateTimeOffset(DateTimeOffset.UtcNow.Date, TimeSpan.Zero);
 
 			var safe = new Safe(password, walletFilePath, network, creationTime);
 
@@ -192,7 +192,7 @@ namespace HiddenWallet.KeyManagement
 			var networkString = walletFileRawContent.Network;
 			network = networkString == Network.Main.ToString() ? Network.Main : Network.TestNet;
 
-			DateTimeOffset creationTime = DateTimeOffset.ParseExact(walletFileRawContent.CreationTime, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+			DateTimeOffset creationTime = DateTimeOffset.ParseExact(walletFileRawContent.CreationTime, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
 
 			var safe = new Safe(password, walletFilePath, network, creationTime);
 
