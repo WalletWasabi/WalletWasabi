@@ -5,6 +5,7 @@ using NBitcoin;
 using Xunit;
 using HiddenWallet.Models;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace HiddenWallet.Tests
 {
@@ -19,14 +20,18 @@ namespace HiddenWallet.Tests
 
                 const string path = "Wallets/TestWallet.json";
                 const string password = "password";
+				const string recoveredPath = "Wallets/RecoveredTestWallet.json";
+
+				if (File.Exists(path)) File.Delete(path);
+				if (File.Exists(recoveredPath)) File.Delete(recoveredPath);
 
 				var result = await Safe.CreateAsync(password, path, network);
                 var safe = result.Safe;
                 var mnemonic = result.Mnemonic;
 				var loadedSafe = await Safe.LoadAsync(password, path);
 
-				var wantedCreation = DateTimeOffset.ParseExact("1998-01-01", "yyyy-MM-dd", CultureInfo.InvariantCulture);
-				var recoverdSafe = await Safe.RecoverAsync(mnemonic, password, "Wallets/RecoveredTestWallet.json", network, wantedCreation);
+				var wantedCreation = DateTimeOffset.ParseExact("1998-01-01", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+				var recoverdSafe = await Safe.RecoverAsync(mnemonic, password, recoveredPath, network, wantedCreation);
 
 				var alice = new SafeAccount(3);
 				var bob = new SafeAccount(4);
