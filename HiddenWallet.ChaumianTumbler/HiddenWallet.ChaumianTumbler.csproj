@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Denomination\" />
     <Folder Include="Views\Tumbler\" />
   </ItemGroup>
 

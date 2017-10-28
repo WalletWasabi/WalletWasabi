@@ -1,5 +1,4 @@
-﻿using HiddenWallet.ChaumianTumbler.Denomination;
-using HiddenWallet.Converters;
+﻿using HiddenWallet.Converters;
 using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -10,8 +9,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using HiddenWallet.ChaumianTumbler.Configuration;
 
-namespace HiddenWallet.ChaumianTumbler
+namespace HiddenWallet.ChaumianTumbler.Configuration
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class Config
@@ -19,13 +19,22 @@ namespace HiddenWallet.ChaumianTumbler
 		[JsonProperty(PropertyName = "DenominationAlgorithm")]
 		[JsonConverter(typeof(StringEnumConverter))]
 		public DenominationAlgorithm? DenominationAlgorithm { get; private set; }
-
+		
 		[JsonProperty(PropertyName = "DenominationUSD")]
 		public decimal? DenominationUSD { get; private set; }
 
 		[JsonProperty(PropertyName = "DenominationBTC")]
 		[JsonConverter(typeof(MoneyBtcConverter))]
 		public Money DenominationBTC { get; private set; }
+
+		[JsonProperty(PropertyName = "MinimumAnonymitySet")]
+		public int? MinimumAnonymitySet { get; private set; }
+
+		[JsonProperty(PropertyName = "MaximumAnonymitySet")]
+		public int? MaximumAnonymitySet { get; private set; }
+
+		[JsonProperty(PropertyName = "AverageInputRegistrationTimeInSeconds")]
+		public int? AverageTimeToSpendInInputRegistrationInSeconds { get; private set; }
 
 		[JsonProperty(PropertyName = "InputRegistrationPhaseTimeoutInSeconds")]
 		public int? InputRegistrationPhaseTimeoutInSeconds { get; private set; }
@@ -59,9 +68,12 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			if (path == null) throw new ArgumentNullException(nameof(path));
 
-			DenominationAlgorithm = Denomination.DenominationAlgorithm.FixedUSD;
+			DenominationAlgorithm = Configuration.DenominationAlgorithm.FixedUSD;
 			DenominationUSD = 10000;
 			DenominationBTC = new Money(1m, MoneyUnit.BTC);
+			MinimumAnonymitySet = 3;
+			MaximumAnonymitySet = 100; // for now, in theory 300-400 should be fine, too
+			AverageTimeToSpendInInputRegistrationInSeconds = 180; // 3min
 			InputRegistrationPhaseTimeoutInSeconds = 86400; // one day
 			InputConfirmationPhaseTimeoutInSeconds = 60;
 			OutputRegistrationPhaseTimeoutInSeconds = 60;
@@ -79,6 +91,9 @@ namespace HiddenWallet.ChaumianTumbler
 				DenominationAlgorithm = config.DenominationAlgorithm ?? DenominationAlgorithm;
 				DenominationUSD = config.DenominationUSD ?? DenominationUSD;
 				DenominationBTC = config.DenominationBTC ?? DenominationBTC;
+				MinimumAnonymitySet = config.MinimumAnonymitySet ?? MinimumAnonymitySet;
+				MaximumAnonymitySet = config.MaximumAnonymitySet ?? MaximumAnonymitySet;
+				AverageTimeToSpendInInputRegistrationInSeconds = config.AverageTimeToSpendInInputRegistrationInSeconds ?? AverageTimeToSpendInInputRegistrationInSeconds;
 				InputRegistrationPhaseTimeoutInSeconds = config.InputRegistrationPhaseTimeoutInSeconds ?? InputRegistrationPhaseTimeoutInSeconds;
 				InputConfirmationPhaseTimeoutInSeconds = config.InputConfirmationPhaseTimeoutInSeconds ?? InputConfirmationPhaseTimeoutInSeconds;
 				OutputRegistrationPhaseTimeoutInSeconds = config.OutputRegistrationPhaseTimeoutInSeconds ?? OutputRegistrationPhaseTimeoutInSeconds;

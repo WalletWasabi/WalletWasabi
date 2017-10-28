@@ -1,4 +1,4 @@
-﻿using HiddenWallet.ChaumianTumbler.Denomination;
+﻿using HiddenWallet.ChaumianTumbler.Configuration;
 using HiddenWallet.Helpers;
 using System;
 using System.Collections.Generic;

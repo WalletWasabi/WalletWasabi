@@ -1,5 +1,5 @@
 ﻿using HiddenWallet.ChaumianCoinJoin;
-using HiddenWallet.ChaumianTumbler.Denomination;
+using HiddenWallet.ChaumianTumbler.Configuration;
 using HiddenWallet.ChaumianTumbler.Models;
 using HiddenWallet.WebClients.SmartBit;
 using NBitcoin;
@@ -16,6 +16,9 @@ namespace HiddenWallet.ChaumianTumbler
     {
 		public TumblerPhase Phase { get; private set; } = TumblerPhase.InputRegistration;
 		public Money Denomination { get; private set; }
+		public int AnonymitySet { get; private set; } = (int)Global.Config.MinimumAnonymitySet;
+		public TimeSpan TimeSpentInInputRegistration { get; private set; } = TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds) + TimeSpan.FromSeconds(1); // took one sec longer, so the first round will use the same anonymity set
+
 		private SmartBitClient SmartBitClient { get; }
 
 		private TumblerPhaseBroadcaster _broadcaster = TumblerPhaseBroadcaster.Instance;
@@ -83,11 +86,17 @@ namespace HiddenWallet.ChaumianTumbler
 						case TumblerPhase.InputRegistration:
 							{
 								await SetDenominationAsync(cancel);
+								CalculateAnonymitySet();
 
+								Stopwatch stopwatch = new Stopwatch();
+								stopwatch.Start();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
+								stopwatch.Stop();
+								TimeSpentInInputRegistration = stopwatch.Elapsed;
+
 								AdvancePhase();
 								break;
 							}
@@ -128,6 +137,23 @@ namespace HiddenWallet.ChaumianTumbler
 				{
 					Console.WriteLine($"Ignoring {nameof(TumblerStateMachine)} exception: {ex}");
 				}
+			}
+		}
+
+		private void CalculateAnonymitySet()
+		{
+			var min = (int)Global.Config.MinimumAnonymitySet;
+			var max = (int)Global.Config.MaximumAnonymitySet;
+			// If the previous non-fallback Input Registration phase took more than three minutes
+			if (TimeSpentInInputRegistration > TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds))
+			{
+				// decrement this round's desired anonymity set relative to the previous desired anonymity set,
+				AnonymitySet = Math.Max(min, AnonymitySet - 1);
+			}
+			else
+			{
+				// otherwise increment it
+				AnonymitySet = Math.Min(max, AnonymitySet + 1);
 			}
 		}
 

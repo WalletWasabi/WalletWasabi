@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Threading;
-using HiddenWallet.ChaumianTumbler.Denomination;
 using NBitcoin;
+using HiddenWallet.ChaumianTumbler.Configuration;
 
 namespace HiddenWallet.ChaumianTumbler
 {

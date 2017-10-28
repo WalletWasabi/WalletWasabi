@@ -12,6 +12,6 @@ namespace HiddenWallet.ChaumianTumbler.Models
 		public string Phase { get; set; }
 		public string Denomination { get; set; }
 		public int AnonymitySet { get; set; }
-		public string TimeSpentInInputRegistrationLastTime { get; set; }
+		public int TimeSpentInInputRegistrationInSeconds { get; set; }
 	}
 }
