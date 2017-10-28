@@ -17,14 +17,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Denomination\**" />
     <Compile Remove="wwwroot\**" />
+    <Content Remove="Denomination\**" />
     <Content Remove="wwwroot\**" />
+    <EmbeddedResource Remove="Denomination\**" />
     <EmbeddedResource Remove="wwwroot\**" />
+    <None Remove="Denomination\**" />
     <None Remove="wwwroot\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Denomination\" />
     <Folder Include="Views\Tumbler\" />
   </ItemGroup>
 
