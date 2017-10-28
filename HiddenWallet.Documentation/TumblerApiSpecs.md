@@ -9,7 +9,7 @@
 
 |API | Description    | Request body    | Response body   |
 |--- | ---- | ---- | ---- |
-|GET /api/v1/tumbler/status | Gets dynamic information on the Tumbler | None  | phase, denomination, anonymitySet, timeSpentInInputRegistrationDuringLastRound |
+|GET /api/v1/tumbler/status | Gets dynamic information on the Tumbler | None  | phase, denomination, anonymitySet, timeSpentInInputRegistration |
 |POST /api/v1/tumbler/inputs  | Alice registers her inputs to the Tumbler | inputs[(input, proof)], blindedOutput, changeOutput | signedBlindedOutput, uniqueId |
 |GET /api/v1/tumbler/input-registration-status  | Gets dynamic information on the status of InputRegistration phase | None | registeredPeerCount, requiredPeerCount, elapsedTime |
 |POST /api/v1/tumbler/connection-confirmation  | Alice confirms she's still connected to the Tumbler | uniqueId | None |
