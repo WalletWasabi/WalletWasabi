@@ -8,6 +8,7 @@ namespace HiddenWallet.ChaumianTumbler.Models
     public class InputsRequest
     {
 		public InputProofModel[] Inputs { get; set; }
+		// 
 		public string BlindedOutput { get; set; }
 		public string ChangeOutput { get; set; }
 	}

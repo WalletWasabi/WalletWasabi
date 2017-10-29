@@ -16,7 +16,7 @@ namespace HiddenWallet.Tests
 
 			// generate blinding factor with pubkey
 			// blind message
-			byte[] message = Encoding.ASCII.GetBytes("sing me please");
+			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
 			var blindingResult = key.PubKey.Blind(message);
 
 			// sign the blinded message
@@ -28,5 +28,18 @@ namespace HiddenWallet.Tests
 			// verify the original data is signed
 			Assert.True(key.PubKey.Verify(unblindedSignature, message));
 		}
-    }
+
+		[Fact]
+		public void CanEncodeDecode()
+		{
+			var key = new BlindingRsaKey();
+			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
+
+			byte[] blindedData = key.PubKey.Blind(message).BlindedData;
+			string encoded = HexHelpers.ToString(blindedData);
+			byte[] decoded = HexHelpers.GetBytes(encoded);
+
+			Assert.Equal(blindedData, decoded);
+		}
+	}
 }

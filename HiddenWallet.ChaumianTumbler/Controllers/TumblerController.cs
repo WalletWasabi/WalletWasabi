@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using HiddenWallet.SharedApi.Models;
 using HiddenWallet.ChaumianTumbler.Models;
 using HiddenWallet.ChaumianCoinJoin;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace HiddenWallet.ChaumianTumbler.Controllers
 {
@@ -66,6 +67,13 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				// Check format (parse everyting))
+				// Check if inputs are native segwit
+				// Check if proofs are valid
+				// Check if inputs have enough coins
+				// Check if inputs are unspent
+				// Check if inputs are confirmed or part of previous CoinJoin
+
 				throw new NotImplementedException();
 			}
 			catch (Exception ex)

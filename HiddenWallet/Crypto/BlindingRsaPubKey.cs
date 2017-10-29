@@ -25,7 +25,7 @@ namespace HiddenWallet.Crypto
 			var blindingFactorGenerator = new RsaBlindingFactorGenerator();
 			blindingFactorGenerator.Init(KeyParameters);
 			BigInteger blindingFactor = blindingFactorGenerator.GenerateBlindingFactor();
-
+			
 			// blind data
 			var blindingParams = new RsaBlindingParameters(KeyParameters, blindingFactor);
 			var blinder = new PssSigner(
