@@ -20,6 +20,12 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 		[JsonConverter(typeof(NetworkConverter))]
 		public Network Network { get; private set; }
 
+		[JsonProperty(PropertyName = "BitcoinRpcUser")]
+		public string BitcoinRpcUser { get; private set; }
+
+		[JsonProperty(PropertyName = "BitcoinRpcPassword")]
+		public string BitcoinRpcPassword { get; private set; }
+
 		[JsonProperty(PropertyName = "DenominationAlgorithm")]
 		[JsonConverter(typeof(StringEnumConverter))]
 		public DenominationAlgorithm? DenominationAlgorithm { get; private set; }
@@ -73,6 +79,8 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 			if (path == null) throw new ArgumentNullException(nameof(path));
 
 			Network = Network.Main;
+			BitcoinRpcUser = "user";
+			BitcoinRpcPassword = "password";
 			DenominationAlgorithm = Configuration.DenominationAlgorithm.FixedUSD;
 			DenominationUSD = 10000;
 			DenominationBTC = new Money(1m, MoneyUnit.BTC);
@@ -94,6 +102,8 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 				var config = JsonConvert.DeserializeObject<Config>(jsonString);
 
 				Network = config.Network ?? Network;
+				BitcoinRpcUser = config.BitcoinRpcUser ?? BitcoinRpcUser;
+				BitcoinRpcPassword = config.BitcoinRpcPassword ?? BitcoinRpcPassword;
 				DenominationAlgorithm = config.DenominationAlgorithm ?? DenominationAlgorithm;
 				DenominationUSD = config.DenominationUSD ?? DenominationUSD;
 				DenominationBTC = config.DenominationBTC ?? DenominationBTC;

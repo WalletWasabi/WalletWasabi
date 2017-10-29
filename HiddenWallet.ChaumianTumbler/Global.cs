@@ -1,5 +1,6 @@
 ﻿using HiddenWallet.ChaumianTumbler.Configuration;
 using HiddenWallet.Helpers;
+using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,8 @@ namespace HiddenWallet.ChaumianTumbler
 	public static class Global
 	{
 		public static Config Config;
+
+		public static RPCClient RpcClient;
 
 		public static TumblerStateMachine StateMachine;
 		public static Task StateMachineJob;
