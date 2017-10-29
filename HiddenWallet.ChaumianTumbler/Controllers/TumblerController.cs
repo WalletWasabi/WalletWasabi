@@ -100,11 +100,12 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						throw new ArgumentException("Provided input is not witness_v0_keyhash");
 					}
 					var value = txOutResponse.Result.Value<decimal>("value");
-					var scriptPubKey = new Script(txOutResponse.Result["scriptPubKey"].Value<string>("asm"));					
+					var scriptPubKey = new Script(txOutResponse.Result["scriptPubKey"].Value<string>("asm"));
+					
 					var txout = new TxOut(new Money(value, MoneyUnit.BTC), scriptPubKey);
 					inputs.Add(txout);
 				}
-				
+
 				// Check if proofs are valid
 				// Check if inputs have enough coins				
 				// Check if inputs are confirmed or part of previous CoinJoin
