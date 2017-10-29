@@ -16,6 +16,10 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 	[JsonObject(MemberSerialization.OptIn)]
 	public class Config
 	{
+		[JsonProperty(PropertyName = "Network")]
+		[JsonConverter(typeof(NetworkConverter))]
+		public Network Network { get; private set; }
+
 		[JsonProperty(PropertyName = "DenominationAlgorithm")]
 		[JsonConverter(typeof(StringEnumConverter))]
 		public DenominationAlgorithm? DenominationAlgorithm { get; private set; }
@@ -68,6 +72,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 		{
 			if (path == null) throw new ArgumentNullException(nameof(path));
 
+			Network = Network.Main;
 			DenominationAlgorithm = Configuration.DenominationAlgorithm.FixedUSD;
 			DenominationUSD = 10000;
 			DenominationBTC = new Money(1m, MoneyUnit.BTC);
@@ -88,6 +93,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 				string jsonString = await File.ReadAllTextAsync(path, Encoding.UTF8, cancel);
 				var config = JsonConvert.DeserializeObject<Config>(jsonString);
 
+				Network = config.Network ?? Network;
 				DenominationAlgorithm = config.DenominationAlgorithm ?? DenominationAlgorithm;
 				DenominationUSD = config.DenominationUSD ?? DenominationUSD;
 				DenominationBTC = config.DenominationBTC ?? DenominationBTC;

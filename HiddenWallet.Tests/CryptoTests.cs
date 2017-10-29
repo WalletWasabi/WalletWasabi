@@ -1,4 +1,5 @@
 ﻿using HiddenWallet.Crypto;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,19 +28,6 @@ namespace HiddenWallet.Tests
 
 			// verify the original data is signed
 			Assert.True(key.PubKey.Verify(unblindedSignature, message));
-		}
-
-		[Fact]
-		public void CanEncodeDecode()
-		{
-			var key = new BlindingRsaKey();
-			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-
-			byte[] blindedData = key.PubKey.Blind(message).BlindedData;
-			string encoded = HexHelpers.ToString(blindedData);
-			byte[] decoded = HexHelpers.GetBytes(encoded);
-
-			Assert.Equal(blindedData, decoded);
 		}
 	}
 }

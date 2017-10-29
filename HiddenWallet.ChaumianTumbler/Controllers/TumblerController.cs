@@ -7,6 +7,7 @@ using HiddenWallet.SharedApi.Models;
 using HiddenWallet.ChaumianTumbler.Models;
 using HiddenWallet.ChaumianCoinJoin;
 using Org.BouncyCastle.Utilities.Encoders;
+using NBitcoin;
 
 namespace HiddenWallet.ChaumianTumbler.Controllers
 {
@@ -67,6 +68,19 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				if (request.BlindedOutput == null) return new BadRequestResult();
+				if (request.ChangeOutput == null) return new BadRequestResult();
+				if (request.Inputs == null || request.Inputs.Count() == 0) return new BadRequestResult();
+				byte[] blindedOutut = HexHelpers.GetBytes(request.BlindedOutput);
+				var changeOutput = new BitcoinWitPubKeyAddress(request.ChangeOutput, expectedNetwork: Global.Config.Network);
+				var inputs = new HashSet<OutPoint>();
+				foreach (var input in request.Inputs)
+				{
+					OutPoint op = new OutPoint();
+					op.FromHex(input.Input);
+					inputs.Add(op);
+				}
+
 				// Check format (parse everyting))
 				// Check if inputs are native segwit
 				// Check if proofs are valid
@@ -102,6 +116,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				if (request.UniqueId == null) return new BadRequestResult();
+
 				throw new NotImplementedException();
 			}
 			catch (Exception ex)
@@ -116,6 +132,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				if (request.SignedOutput == null) return new BadRequestResult();
+
 				throw new NotImplementedException();
 			}
 			catch (Exception ex)
@@ -144,6 +162,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				if (request.Signature == null) return new BadRequestResult();
 				throw new NotImplementedException();
 			}
 			catch (Exception ex)

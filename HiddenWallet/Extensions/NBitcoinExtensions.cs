@@ -9,5 +9,16 @@ namespace NBitcoin
     {
         public static ChainedBlock GetBlock(this ConcurrentChain me, Height height)
             => me.GetBlock(height.Value);
-    }
+
+		public static string ToHex(this IBitcoinSerializable me)
+		{
+			return HexHelpers.ToString(me.ToBytes());
+		}
+
+		public static void FromHex(this IBitcoinSerializable me, string hex)
+		{
+			if (me == null) throw new ArgumentNullException(nameof(me));
+			me.FromBytes(HexHelpers.GetBytes(hex));
+		}
+	}
 }
