@@ -82,9 +82,9 @@ namespace HiddenWallet.ChaumianTumbler
 					throw new NotSupportedException("blocks != headers");
 				}
 
-				if (await Global.RpcClient.EstimateFeeRateAsync(1) == null)
+				if (await Global.RpcClient.SendCommandAsync("estimatesmartfee", 1, "ECONOMICAL") == null)
 				{
-					throw new NotSupportedException("estimatefee 1 == null");
+					throw new NotSupportedException("estimatesmartfee 1 ECONOMICAL == null");
 				}
 			}
 			catch
