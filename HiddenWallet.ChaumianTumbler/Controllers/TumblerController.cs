@@ -77,7 +77,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				
 				// Check format (parse everyting))
 				byte[] blindedOutput = HexHelpers.GetBytes(request.BlindedOutput);
-				var changeOutput = new BitcoinWitPubKeyAddress(request.ChangeOutput, expectedNetwork: Global.Config.Network);
+				Network network = Global.Config.Network;
+				var changeOutput = new BitcoinWitPubKeyAddress(request.ChangeOutput, expectedNetwork: network);
 				if (request.Inputs.Count() > Global.Config.MaximumInputsPerAlices) throw new NotSupportedException("Too many inputs provided");
 				var inputs = new HashSet<TxOut>();
 				foreach (InputProofModel input in request.Inputs)
@@ -101,12 +102,16 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					}
 					var value = txOutResponse.Result.Value<decimal>("value");
 					var scriptPubKey = new Script(txOutResponse.Result["scriptPubKey"].Value<string>("asm"));
-					
+					var address = (BitcoinWitPubKeyAddress)scriptPubKey.GetDestinationAddress(network);
+					// Check if proofs are valid
+					if (!address.VerifyMessage(request.BlindedOutput, input.Proof))
+					{
+						throw new ArgumentException("Provided proof is invalid");
+					}
 					var txout = new TxOut(new Money(value, MoneyUnit.BTC), scriptPubKey);
 					inputs.Add(txout);
 				}
 
-				// Check if proofs are valid
 				// Check if inputs have enough coins				
 				// Check if inputs are confirmed or part of previous CoinJoin
 				// only enable requests in specific phases
