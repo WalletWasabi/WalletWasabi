@@ -57,7 +57,10 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 
 		[JsonProperty(PropertyName = "SigningPhaseTimeoutInSeconds")]
 		public int? SigningPhaseTimeoutInSeconds { get; private set; }
-		
+
+		[JsonProperty(PropertyName = "MaximumInputsPerAlices")]
+		public int? MaximumInputsPerAlices { get; private set; }
+
 		public Config()
 		{
 
@@ -91,6 +94,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 			InputConfirmationPhaseTimeoutInSeconds = 60;
 			OutputRegistrationPhaseTimeoutInSeconds = 60;
 			SigningPhaseTimeoutInSeconds = 60;
+			MaximumInputsPerAlices = 7;
 
 			if (!File.Exists(path))
 			{
@@ -114,6 +118,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 				InputConfirmationPhaseTimeoutInSeconds = config.InputConfirmationPhaseTimeoutInSeconds ?? InputConfirmationPhaseTimeoutInSeconds;
 				OutputRegistrationPhaseTimeoutInSeconds = config.OutputRegistrationPhaseTimeoutInSeconds ?? OutputRegistrationPhaseTimeoutInSeconds;
 				SigningPhaseTimeoutInSeconds = config.SigningPhaseTimeoutInSeconds ?? SigningPhaseTimeoutInSeconds;
+				MaximumInputsPerAlices = config.MaximumInputsPerAlices ?? MaximumInputsPerAlices;
 			}
 
 			await ToFileAsync(path, cancel);

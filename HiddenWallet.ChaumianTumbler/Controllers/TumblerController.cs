@@ -8,6 +8,7 @@ using HiddenWallet.ChaumianTumbler.Models;
 using HiddenWallet.ChaumianCoinJoin;
 using Org.BouncyCastle.Utilities.Encoders;
 using NBitcoin;
+using NBitcoin.RPC;
 
 namespace HiddenWallet.ChaumianTumbler.Controllers
 {
@@ -53,7 +54,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					Phase = Global.StateMachine.Phase.ToString(),
 					Denomination = Global.StateMachine.Denomination.ToString(fplus: false, trimExcessZero: true),
 					AnonymitySet = Global.StateMachine.AnonymitySet,
-					TimeSpentInInputRegistrationInSeconds = (int)Global.StateMachine.TimeSpentInInputRegistration.TotalSeconds
+					TimeSpentInInputRegistrationInSeconds = (int)Global.StateMachine.TimeSpentInInputRegistration.TotalSeconds,
+					MaximumInputsPerAlices = (int)Global.Config.MaximumInputsPerAlices
 				});
 			}
 			catch (Exception ex)
@@ -64,29 +66,49 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 		[Route("inputs")]
 		[HttpPost]
-		public IActionResult Inputs(InputsRequest request)
+		public async Task<IActionResult> InputsAsync(InputsRequest request)
 		{
 			try
 			{
+				// Check not nulls
 				if (request.BlindedOutput == null) return new BadRequestResult();
 				if (request.ChangeOutput == null) return new BadRequestResult();
 				if (request.Inputs == null || request.Inputs.Count() == 0) return new BadRequestResult();
-				byte[] blindedOutut = HexHelpers.GetBytes(request.BlindedOutput);
-				var changeOutput = new BitcoinWitPubKeyAddress(request.ChangeOutput, expectedNetwork: Global.Config.Network);
-				var inputs = new HashSet<OutPoint>();
-				foreach (var input in request.Inputs)
-				{
-					OutPoint op = new OutPoint();
-					op.FromHex(input.Input);
-					inputs.Add(op);
-				}
-
+				
 				// Check format (parse everyting))
-				// Check if inputs are native segwit
+				byte[] blindedOutput = HexHelpers.GetBytes(request.BlindedOutput);
+				var changeOutput = new BitcoinWitPubKeyAddress(request.ChangeOutput, expectedNetwork: Global.Config.Network);
+				if (request.Inputs.Count() > Global.Config.MaximumInputsPerAlices) throw new NotSupportedException("Too many inputs provided");
+				var inputs = new HashSet<TxOut>();
+				foreach (InputProofModel input in request.Inputs)
+				{
+					var op = new OutPoint();
+					op.FromHex(input.Input);
+					var txOutResponse = await Global.RpcClient.SendCommandAsync(RPCOperations.gettxout, op.Hash.ToString(), op.N, true);
+					// Check if inputs are unspent
+					if (txOutResponse.Result == null)
+					{
+						throw new ArgumentException("Provided input is not unspent");
+					}
+					if(txOutResponse.Result.Value<int>("confirmations") <= 0)
+					{
+						throw new ArgumentException("Provided input is not confirmed");
+					}
+					// Check if inputs are native segwit
+					if (txOutResponse.Result["scriptPubKey"].Value<string>("type") != "witness_v0_keyhash")
+					{
+						throw new ArgumentException("Provided input is not witness_v0_keyhash");
+					}
+					var value = txOutResponse.Result.Value<decimal>("value");
+					var scriptPubKey = new Script(txOutResponse.Result["scriptPubKey"].Value<string>("asm"));					
+					var txout = new TxOut(new Money(value, MoneyUnit.BTC), scriptPubKey);
+					inputs.Add(txout);
+				}
+				
 				// Check if proofs are valid
-				// Check if inputs have enough coins
-				// Check if inputs are unspent
+				// Check if inputs have enough coins				
 				// Check if inputs are confirmed or part of previous CoinJoin
+				// only enable requests in specific phases
 
 				throw new NotImplementedException();
 			}
