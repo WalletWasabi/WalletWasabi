@@ -9,6 +9,7 @@ using HiddenWallet.ChaumianCoinJoin;
 using Org.BouncyCastle.Utilities.Encoders;
 using NBitcoin;
 using NBitcoin.RPC;
+using HiddenWallet.ChaumianTumbler.Store;
 
 namespace HiddenWallet.ChaumianTumbler.Controllers
 {
@@ -58,6 +59,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					MaximumInputsPerAlices = (int)Global.Config.MaximumInputsPerAlices,
 					FeePerInputs = Global.StateMachine.FeePerInputs.ToString(fplus: false, trimExcessZero: true),
 					FeePerOutputs = Global.StateMachine.FeePerOutputs.ToString(fplus: false, trimExcessZero: true),
+					Version = "v1" // client should check and if the version is newer then client should update its software
 				});
 			}
 			catch (Exception ex)
@@ -93,9 +95,14 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					{
 						throw new ArgumentException("Provided input is not unspent");
 					}
-					if(txOutResponse.Result.Value<int>("confirmations") <= 0)
+					// Check if inputs are confirmed or part of previous CoinJoin
+					if (txOutResponse.Result.Value<int>("confirmations") <= 0)
 					{
-						throw new ArgumentException("Provided input is not confirmed");
+						if(!Global.CoinJoinStore.Transactions
+							.Any(x => x.State == CoinJoinTransactionState.Succeeded && x.Transaction.GetHash() == op.Hash))
+						{
+							throw new ArgumentException("Provided input is not confirmed, nor spends a previous CJ transaction");
+						}
 					}
 					// Check if inputs are native segwit
 					if (txOutResponse.Result["scriptPubKey"].Value<string>("type") != "witness_v0_keyhash")
@@ -126,7 +133,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					throw new ArgumentException("Total provided inputs must be > denomination + fee");
 				}
 
-				// Check if inputs are confirmed or part of previous CoinJoin
+
 				// only enable requests in specific phases
 
 				throw new NotImplementedException();

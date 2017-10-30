@@ -1,4 +1,5 @@
 ﻿using HiddenWallet.ChaumianTumbler.Configuration;
+using HiddenWallet.ChaumianTumbler.Store;
 using HiddenWallet.Helpers;
 using NBitcoin.RPC;
 using System;
@@ -12,6 +13,8 @@ namespace HiddenWallet.ChaumianTumbler
 	public static class Global
 	{
 		public static Config Config;
+		
+		public static CoinJoinStore CoinJoinStore;
 
 		public static RPCClient RpcClient;
 

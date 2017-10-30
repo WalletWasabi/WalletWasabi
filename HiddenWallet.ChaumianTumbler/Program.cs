@@ -12,6 +12,7 @@ using NBitcoin;
 using HiddenWallet.ChaumianTumbler.Configuration;
 using NBitcoin.RPC;
 using System.Net;
+using HiddenWallet.ChaumianTumbler.Store;
 
 namespace HiddenWallet.ChaumianTumbler
 {
@@ -23,7 +24,7 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			try
 			{
-				var configFilePath = Path.Combine(Global.DataDir, "Config.json");
+				string configFilePath = Path.Combine(Global.DataDir, "Config.json");
 				Global.Config = new Config();
 				await Global.Config.LoadOrCreateDefaultFileAsync(configFilePath, CancellationToken.None);
 
@@ -34,6 +35,16 @@ namespace HiddenWallet.ChaumianTumbler
 					},
 					network: Global.Config.Network);
 				await AssertRpcNodeFullyInitializedAsync();
+
+				string coinJoinStorePath = Path.Combine(Global.DataDir, "CoinJoins.json");
+				if(File.Exists(coinJoinStorePath))
+				{
+					Global.CoinJoinStore = await CoinJoinStore.CreateFromFileAsync(coinJoinStorePath);
+				}
+				else
+				{
+					Global.CoinJoinStore = new CoinJoinStore();
+				}
 
 				Global.StateMachine = new TumblerStateMachine();
 				Global.StateMachineJobCancel = new CancellationTokenSource();
