@@ -49,8 +49,8 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 		[JsonProperty(PropertyName = "InputRegistrationPhaseTimeoutInSeconds")]
 		public int? InputRegistrationPhaseTimeoutInSeconds { get; private set; }
 
-		[JsonProperty(PropertyName = "InputConfirmationPhaseTimeoutInSeconds")]
-		public int? InputConfirmationPhaseTimeoutInSeconds { get; private set; }
+		[JsonProperty(PropertyName = "ConnectionConfirmationPhaseTimeoutInSeconds")]
+		public int? ConnectionConfirmationPhaseTimeoutInSeconds { get; private set; }
 
 		[JsonProperty(PropertyName = "OutputRegistrationPhaseTimeoutInSeconds")]
 		public int? OutputRegistrationPhaseTimeoutInSeconds { get; private set; }
@@ -94,7 +94,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 			MaximumAnonymitySet = 100; // for now, in theory 300-400 should be fine, too
 			AverageTimeToSpendInInputRegistrationInSeconds = 180; // 3min
 			InputRegistrationPhaseTimeoutInSeconds = 86400; // one day
-			InputConfirmationPhaseTimeoutInSeconds = 60;
+			ConnectionConfirmationPhaseTimeoutInSeconds = 60;
 			OutputRegistrationPhaseTimeoutInSeconds = 60;
 			SigningPhaseTimeoutInSeconds = 60;
 			MaximumInputsPerAlices = 7;
@@ -119,7 +119,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 				MaximumAnonymitySet = config.MaximumAnonymitySet ?? MaximumAnonymitySet;
 				AverageTimeToSpendInInputRegistrationInSeconds = config.AverageTimeToSpendInInputRegistrationInSeconds ?? AverageTimeToSpendInInputRegistrationInSeconds;
 				InputRegistrationPhaseTimeoutInSeconds = config.InputRegistrationPhaseTimeoutInSeconds ?? InputRegistrationPhaseTimeoutInSeconds;
-				InputConfirmationPhaseTimeoutInSeconds = config.InputConfirmationPhaseTimeoutInSeconds ?? InputConfirmationPhaseTimeoutInSeconds;
+				ConnectionConfirmationPhaseTimeoutInSeconds = config.ConnectionConfirmationPhaseTimeoutInSeconds ?? ConnectionConfirmationPhaseTimeoutInSeconds;
 				OutputRegistrationPhaseTimeoutInSeconds = config.OutputRegistrationPhaseTimeoutInSeconds ?? OutputRegistrationPhaseTimeoutInSeconds;
 				SigningPhaseTimeoutInSeconds = config.SigningPhaseTimeoutInSeconds ?? SigningPhaseTimeoutInSeconds;
 				MaximumInputsPerAlices = config.MaximumInputsPerAlices ?? MaximumInputsPerAlices;

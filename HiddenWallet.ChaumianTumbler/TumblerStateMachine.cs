@@ -22,6 +22,7 @@ namespace HiddenWallet.ChaumianTumbler
 		public Money FeePerOutputs { get; private set; }
 		public int AnonymitySet { get; private set; } = (int)Global.Config.MinimumAnonymitySet;
 		public TimeSpan TimeSpentInInputRegistration { get; private set; } = TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds) + TimeSpan.FromSeconds(1); // took one sec longer, so the first round will use the same anonymity set
+		public bool AcceptRequest { get; private set; } = false;
 
 		private SmartBitClient SmartBitClient { get; }
 
@@ -34,15 +35,21 @@ namespace HiddenWallet.ChaumianTumbler
 			SmartBitClient = new SmartBitClient(Network.Main);
 		}
 
+		public void BroadcastPhaseChange()
+		{
+			AcceptRequest = true;
+			var broadcast = new PhaseChangeBroadcast { NewPhase = Phase.ToString(), Message = "" };
+			_broadcaster.Broadcast(broadcast);
+		}
+
 		public void UpdatePhase(TumblerPhase phase)
 		{
 			if (phase == Phase) return;
+			AcceptRequest = false;
 
 			Phase = phase;
 			_ctsPhaseCancel.Cancel();
 			_ctsPhaseCancel = new CancellationTokenSource();
-			var broadcast = new PhaseChangeBroadcast { NewPhase = phase.ToString(), Message = "" };
-			_broadcaster.Broadcast(broadcast);
 			Console.WriteLine($"NEW PHASE: {phase}");
 		}
 
@@ -52,10 +59,10 @@ namespace HiddenWallet.ChaumianTumbler
 			{
 				case TumblerPhase.InputRegistration:
 					{
-						UpdatePhase(TumblerPhase.InputConfirmation);
+						UpdatePhase(TumblerPhase.ConnectionConfirmation);
 						break;
 					}
-				case TumblerPhase.InputConfirmation:
+				case TumblerPhase.ConnectionConfirmation:
 					{
 						UpdatePhase(TumblerPhase.OutputRegistration);
 						break;
@@ -94,6 +101,7 @@ namespace HiddenWallet.ChaumianTumbler
 								CalculateAnonymitySet();
 								await Task.WhenAll(denominationTask, feeTask);
 
+								BroadcastPhaseChange();
 								Stopwatch stopwatch = new Stopwatch();
 								stopwatch.Start();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
@@ -106,17 +114,19 @@ namespace HiddenWallet.ChaumianTumbler
 								AdvancePhase();
 								break;
 							}
-						case TumblerPhase.InputConfirmation:
+						case TumblerPhase.ConnectionConfirmation:
 							{
+								BroadcastPhaseChange();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
-									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.InputConfirmationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
+									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.ConnectionConfirmationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
 								AdvancePhase();
 								break;
 							}
 						case TumblerPhase.OutputRegistration:
 							{
+								BroadcastPhaseChange();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.OutputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
@@ -126,6 +136,7 @@ namespace HiddenWallet.ChaumianTumbler
 							}
 						case TumblerPhase.Signing:
 							{
+								BroadcastPhaseChange();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.SigningPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });

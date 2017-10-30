@@ -74,11 +74,16 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				if (Global.StateMachine.Phase != TumblerPhase.InputRegistration || !Global.StateMachine.AcceptRequest)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+				}
+
 				// Check not nulls
 				if (request.BlindedOutput == null) return new BadRequestResult();
 				if (request.ChangeOutput == null) return new BadRequestResult();
 				if (request.Inputs == null || request.Inputs.Count() == 0) return new BadRequestResult();
-				
+
 				// Check format (parse everyting))
 				byte[] blindedOutput = HexHelpers.GetBytes(request.BlindedOutput);
 				Network network = Global.Config.Network;
@@ -98,7 +103,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					// Check if inputs are confirmed or part of previous CoinJoin
 					if (txOutResponse.Result.Value<int>("confirmations") <= 0)
 					{
-						if(!Global.CoinJoinStore.Transactions
+						if (!Global.CoinJoinStore.Transactions
 							.Any(x => x.State == CoinJoinTransactionState.Succeeded && x.Transaction.GetHash() == op.Hash))
 						{
 							throw new ArgumentException("Provided input is not confirmed, nor spends a previous CJ transaction");
@@ -123,7 +128,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				// Check if inputs have enough coins
 				Money amount = Money.Zero;
-				foreach(Money val in inputs.Select(x=>x.Value))
+				foreach (Money val in inputs.Select(x => x.Value))
 				{
 					amount += val;
 				}
@@ -132,9 +137,6 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				{
 					throw new ArgumentException("Total provided inputs must be > denomination + fee");
 				}
-
-
-				// only enable requests in specific phases
 
 				throw new NotImplementedException();
 			}
@@ -150,6 +152,11 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				if (Global.StateMachine.Phase != TumblerPhase.InputRegistration || !Global.StateMachine.AcceptRequest)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+				}
+
 				throw new NotImplementedException();
 			}
 			catch (Exception ex)
@@ -164,6 +171,11 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				if (Global.StateMachine.Phase != TumblerPhase.ConnectionConfirmation || !Global.StateMachine.AcceptRequest)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+				}
+
 				if (request.UniqueId == null) return new BadRequestResult();
 
 				throw new NotImplementedException();
@@ -180,6 +192,11 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				if (Global.StateMachine.Phase != TumblerPhase.OutputRegistration || !Global.StateMachine.AcceptRequest)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+				}
+
 				if (request.SignedOutput == null) return new BadRequestResult();
 
 				throw new NotImplementedException();
@@ -196,6 +213,11 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				if (Global.StateMachine.Phase != TumblerPhase.Signing || !Global.StateMachine.AcceptRequest)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+				}
+
 				throw new NotImplementedException();
 			}
 			catch (Exception ex)
@@ -210,6 +232,11 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				if (Global.StateMachine.Phase != TumblerPhase.Signing || !Global.StateMachine.AcceptRequest)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+				}
+
 				if (request.Signature == null) return new BadRequestResult();
 				throw new NotImplementedException();
 			}

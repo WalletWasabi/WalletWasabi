@@ -7,7 +7,7 @@ namespace HiddenWallet.ChaumianCoinJoin
     public enum TumblerPhase
     {
 		InputRegistration,
-		InputConfirmation,
+		ConnectionConfirmation,
 		OutputRegistration,
 		Signing,
 	}
