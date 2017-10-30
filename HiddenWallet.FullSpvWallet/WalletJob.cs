@@ -22,6 +22,7 @@ using HiddenWallet.FullSpv.MemPool;
 using HiddenWallet.FullSpv.Fees;
 using Nito.AsyncEx;
 using HiddenWallet.WebClients.SmartBit;
+using HiddenWallet.Helpers;
 
 namespace HiddenWallet.FullSpv
 {
@@ -956,7 +957,7 @@ namespace HiddenWallet.FullSpv
 				}
 				else
 				{
-					const int expectedMinTxSize = 1 * 41 + 1 * 33 + 10;
+					const int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
 					try
 					{
 						inNum = SelectCoinsToSpend(unspentCoins, amount + feePerBytes * expectedMinTxSize).Count;
@@ -970,8 +971,8 @@ namespace HiddenWallet.FullSpv
                 // https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
                 // https://bitcoin.stackexchange.com/a/46379/26859
                 int outNum = spendAll ? 1 : 2; // 1 address to send + 1 for change
-				var origTxSize = inNum * 146 + outNum * 33 + 10;
-                var newTxSize = inNum * 41 + outNum * 33 + 10; // BEWARE: This assumes segwit only inputs!
+				var origTxSize = inNum * Constants.P2pkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10;
+                var newTxSize = inNum * Constants.P2wpkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10; // BEWARE: This assumes segwit only inputs!
                 var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
                 Debug.WriteLine($"Estimated tx size: {vSize} bytes");
 				Money fee = feePerBytes * vSize;

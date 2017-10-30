@@ -55,7 +55,9 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					Denomination = Global.StateMachine.Denomination.ToString(fplus: false, trimExcessZero: true),
 					AnonymitySet = Global.StateMachine.AnonymitySet,
 					TimeSpentInInputRegistrationInSeconds = (int)Global.StateMachine.TimeSpentInInputRegistration.TotalSeconds,
-					MaximumInputsPerAlices = (int)Global.Config.MaximumInputsPerAlices
+					MaximumInputsPerAlices = (int)Global.Config.MaximumInputsPerAlices,
+					FeePerInputs = Global.StateMachine.FeePerInputs.ToString(fplus: false, trimExcessZero: true),
+					FeePerOutputs = Global.StateMachine.FeePerOutputs.ToString(fplus: false, trimExcessZero: true),
 				});
 			}
 			catch (Exception ex)
@@ -112,7 +114,18 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					inputs.Add(txout);
 				}
 
-				// Check if inputs have enough coins				
+				// Check if inputs have enough coins
+				Money amount = Money.Zero;
+				foreach(Money val in inputs.Select(x=>x.Value))
+				{
+					amount += val;
+				}
+				Money feeToPay = (inputs.Count() * Global.StateMachine.FeePerInputs + 2 * Global.StateMachine.FeePerOutputs);
+				if (amount < Global.StateMachine.Denomination + feeToPay)
+				{
+					throw new ArgumentException("Total provided inputs must be > denomination + fee");
+				}
+
 				// Check if inputs are confirmed or part of previous CoinJoin
 				// only enable requests in specific phases
 

@@ -1,8 +1,10 @@
 ﻿using HiddenWallet.ChaumianCoinJoin;
 using HiddenWallet.ChaumianTumbler.Configuration;
 using HiddenWallet.ChaumianTumbler.Models;
+using HiddenWallet.Helpers;
 using HiddenWallet.WebClients.SmartBit;
 using NBitcoin;
+using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,6 +18,8 @@ namespace HiddenWallet.ChaumianTumbler
     {
 		public TumblerPhase Phase { get; private set; } = TumblerPhase.InputRegistration;
 		public Money Denomination { get; private set; }
+		public Money FeePerInputs { get; private set; }
+		public Money FeePerOutputs { get; private set; }
 		public int AnonymitySet { get; private set; } = (int)Global.Config.MinimumAnonymitySet;
 		public TimeSpan TimeSpentInInputRegistration { get; private set; } = TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds) + TimeSpan.FromSeconds(1); // took one sec longer, so the first round will use the same anonymity set
 
@@ -85,8 +89,10 @@ namespace HiddenWallet.ChaumianTumbler
 					{
 						case TumblerPhase.InputRegistration:
 							{
-								await SetDenominationAsync(cancel);
+								var denominationTask = SetDenominationAsync(cancel);
+								var feeTask = SetFeesAsync(cancel);
 								CalculateAnonymitySet();
+								await Task.WhenAll(denominationTask, feeTask);
 
 								Stopwatch stopwatch = new Stopwatch();
 								stopwatch.Start();
@@ -171,7 +177,11 @@ namespace HiddenWallet.ChaumianTumbler
 				}
 				catch
 				{
-					Denomination = Global.Config.DenominationBTC;
+					// if denomination hasn't been initialized once, fall back to config data
+					if (Denomination == null)
+					{
+						Denomination = Global.Config.DenominationBTC;
+					}
 				}
 			}
 			else if (Global.Config.DenominationAlgorithm == DenominationAlgorithm.FixedBTC)
@@ -181,6 +191,34 @@ namespace HiddenWallet.ChaumianTumbler
 			else
 			{
 				throw new NotSupportedException(Global.Config.DenominationAlgorithm.ToString());
+			}
+		}
+
+		private async Task SetFeesAsync(CancellationToken cancel)
+		{
+			int inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m); // vSize
+			int outputSizeInBytes = Constants.OutputSizeInBytes;
+			try
+			{				
+				var result = (await Global.RpcClient.SendCommandAsync("estimatesmartfee", 1, "ECONOMICAL")).Result;
+				if (result == null) throw new ArgumentNullException();
+				var feeRateDecimal = result.Value<decimal>("feerate");
+				var feeRate = new FeeRate(new Money(feeRateDecimal, MoneyUnit.BTC));
+				Money feePerBytes = (feeRate.FeePerK / 1000);
+
+				FeePerInputs = feePerBytes * inputSizeInBytes;
+				FeePerOutputs = feePerBytes * outputSizeInBytes;
+			}
+			catch
+			{
+				// if fee hasn't been initialized once, fall back
+				if(FeePerInputs == null || FeePerOutputs == null)
+				{
+					var feePerBytes = new Money((int)Global.Config.FallBackSatoshiFeePerBytes);
+
+					FeePerInputs = feePerBytes * inputSizeInBytes;
+					FeePerOutputs = feePerBytes * outputSizeInBytes;
+				}
 			}
 		}
 
