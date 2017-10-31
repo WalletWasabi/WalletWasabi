@@ -1,9 +1,13 @@
 ﻿using HiddenWallet.Crypto;
 using NBitcoin;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using Xunit;
+using System.Diagnostics;
 
 namespace HiddenWallet.Tests
 {
@@ -28,6 +32,35 @@ namespace HiddenWallet.Tests
 
 			// verify the original data is signed
 			Assert.True(key.PubKey.Verify(unblindedSignature, message));
+		}
+
+		[Fact]
+		public void CanSerialize()
+		{
+			var key = new BlindingRsaKey();
+			string jsonKey = key.ToJson();
+			var key2 = BlindingRsaKey.CreateFromJson(jsonKey);
+
+			Assert.Equal(key, key2);
+			Assert.Equal(key.PubKey, key2.PubKey);
+
+			var jsonPubKey = key.PubKey.ToJson();
+			var pubKey2 = BlindingRsaPubKey.CreateFromJson(jsonPubKey);
+			Assert.Equal(key.PubKey, pubKey2);
+
+			// generate blinding factor with pubkey
+			// blind message
+			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
+			var blindingResult = pubKey2.Blind(message);
+
+			// sign the blinded message
+			var signature = key.SignBlindedData(blindingResult.BlindedData);
+
+			// unblind the signature
+			var unblindedSignature = key2.PubKey.UnblindSignature(signature, blindingResult.BlindingFactor);
+
+			// verify the original data is signed
+			Assert.True(key2.PubKey.Verify(unblindedSignature, message));
 		}
 	}
 }

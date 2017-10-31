@@ -42,8 +42,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			PhaseChangeBroadcast broadcast = new PhaseChangeBroadcast { NewPhase = TumblerPhase.OutputRegistration.ToString(), Message = "Just a test" };
 			tumblerPhaseBroadcast.Broadcast(broadcast); //If collection.Count > 3 a SignalR broadcast is made to clients that connected via client-test
 		}
-
-
+		
 		[Route("status")]
 		[HttpGet]
 		public IActionResult Status()
@@ -138,7 +137,11 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					throw new ArgumentException("Total provided inputs must be > denomination + fee");
 				}
 
-				throw new NotImplementedException();
+				return new ObjectResult(new InputsResponse()
+				{
+					UniqueId = Guid.NewGuid().ToString(),
+					SignedBlindedOutput = ""
+				});
 			}
 			catch (Exception ex)
 			{

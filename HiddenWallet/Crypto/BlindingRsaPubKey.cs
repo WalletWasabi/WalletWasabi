@@ -1,4 +1,5 @@
-﻿using Org.BouncyCastle.Crypto.Digests;
+﻿using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -10,13 +11,23 @@ using System.Text;
 
 namespace HiddenWallet.Crypto
 {
-    public class BlindingRsaPubKey
-    {
+    public class BlindingRsaPubKey : IEquatable<BlindingRsaPubKey>
+	{
 		public RsaKeyParameters KeyParameters { get; private set; }
+		public BigInteger Modulus => KeyParameters.Modulus;
+		public BigInteger Exponent => KeyParameters.Exponent;
 
 		public BlindingRsaPubKey(RsaKeyParameters keyParameters)
 		{
 			KeyParameters = keyParameters ?? throw new ArgumentNullException(nameof(keyParameters));
+		}
+
+		public BlindingRsaPubKey(BigInteger modulus, BigInteger exponent)
+		{
+			if (modulus == null) throw new ArgumentNullException(nameof(modulus));
+			if (exponent == null) throw new ArgumentNullException(nameof(exponent));
+
+			KeyParameters = new RsaKeyParameters(false, modulus, exponent);
 		}
 
 		public (BigInteger BlindingFactor, byte[] BlindedData) Blind(byte[] data)
@@ -58,5 +69,47 @@ namespace HiddenWallet.Crypto
 			verifier.BlockUpdate(data, 0, data.Length);
 			return verifier.VerifySignature(signature);
 		}
+
+		public string ToJson()
+		{
+			dynamic json = new JObject();
+			json.Modulus = Modulus.ToString();
+			json.Exponent = Exponent.ToString();
+
+			return json.ToString();
+		}
+
+		public static BlindingRsaPubKey CreateFromJson(string json)
+		{
+			var token = JToken.Parse(json);
+			var mod = new BigInteger(token.Value<string>("Modulus"));
+			var exp = new BigInteger(token.Value<string>("Exponent"));
+
+			return new BlindingRsaPubKey(mod, exp);
+		}
+
+		#region Equality
+
+		public override bool Equals(object obj) => obj is BlindingRsaPubKey && this == (BlindingRsaPubKey)obj;
+		public bool Equals(BlindingRsaPubKey other) => this == other;
+		public override int GetHashCode()
+		{
+			var hash = Modulus.GetHashCode();
+			hash = hash ^ Exponent.GetHashCode();
+
+			return hash;
+		}
+
+		public static bool operator ==(BlindingRsaPubKey x, BlindingRsaPubKey y)
+		{
+			// todo add null comparisions (== must not throw from nulls)
+			return
+				x.Modulus.Equals(y.Modulus)
+				&& x.Exponent.Equals(y.Exponent);
+		}
+
+		public static bool operator !=(BlindingRsaPubKey x, BlindingRsaPubKey y) => !(x == y);
+
+		#endregion
 	}
 }
