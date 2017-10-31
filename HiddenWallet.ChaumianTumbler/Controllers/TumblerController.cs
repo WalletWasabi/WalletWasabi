@@ -147,7 +147,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						amount += val;
 					}
 					Money feeToPay = (inputs.Count() * Global.StateMachine.FeePerInputs + 2 * Global.StateMachine.FeePerOutputs);
-					if (amount < Global.StateMachine.Denomination + feeToPay)
+					Money changeAmount = amount - (Global.StateMachine.Denomination + feeToPay);
+					if (changeAmount < Money.Zero)
 					{
 						throw new ArgumentException("Total provided inputs must be > denomination + fee");
 					}
@@ -159,6 +160,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					{
 						UniqueId = uniqueId,
 						ChangeOutput = changeOutput,
+						ChangeAmount = changeAmount,
 						State = AliceState.InputsRegistered
 					};
 					foreach (var input in inputs)
@@ -304,7 +306,17 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				if (request.UniqueId == null) return new BadRequestResult();
 				Alice alice = FindAlice(request.UniqueId);
 
-				throw new NotImplementedException();
+				if (alice.State == AliceState.AskedForCoinJoin)
+				{
+					throw new InvalidOperationException("CoinJoin has been already asked for");
+				}
+
+				alice.State = AliceState.AskedForCoinJoin;
+
+				return new ObjectResult(new CoinJoinResponse
+				{
+					Transaction = Global.StateMachine.CoinJoin.ToHex()
+				});
 			}
 			catch (Exception ex)
 			{

@@ -12,6 +12,7 @@ namespace HiddenWallet.ChaumianTumbler.Clients
 		public Guid UniqueId { get; set; }
 		public ConcurrentHashSet<(TxOut Output, OutPoint OutPoint)> Inputs { get; set; }
 		public BitcoinWitPubKeyAddress ChangeOutput { get; set; }
+		public Money ChangeAmount { get; set; }
 		public AliceState State { get; set; }
 	}
 }

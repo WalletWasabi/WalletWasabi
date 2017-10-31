@@ -9,6 +9,6 @@ namespace HiddenWallet.ChaumianTumbler.Models
     public class CoinJoinResponse : BaseResponse
 	{
 		public CoinJoinResponse() => Success = true;
-		public string Transactions { get; set; }
+		public string Transaction { get; set; }
 	}
 }

@@ -8,6 +8,7 @@ namespace HiddenWallet.ChaumianTumbler.Clients
     public enum AliceState
     {
 		InputsRegistered,
-		ConnectionConfirmed
+		ConnectionConfirmed,
+		AskedForCoinJoin
     }
 }

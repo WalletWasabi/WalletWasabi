@@ -26,11 +26,13 @@ namespace HiddenWallet.ChaumianTumbler
 		public TimeSpan TimeSpentInInputRegistration { get; private set; } = TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds) + TimeSpan.FromSeconds(1); // took one sec longer, so the first round will use the same anonymity set
 		public bool AcceptRequest { get; private set; } = false;
 		public Stopwatch InputRegistrationStopwatch { get; private set; }
-		public bool FallBackRound = false;
+		public bool FallBackRound { get; private set; } = false;
 
-		private SmartBitClient SmartBitClient { get; }
-		public ConcurrentHashSet<Alice> Alices { get; internal set; }
-		public ConcurrentHashSet<Bob> Bobs { get; internal set; }
+		public Transaction CoinJoin { get; private set; } = null;
+
+		private SmartBitClient SmartBitClient { get; } = new SmartBitClient(Network.Main);
+		public ConcurrentHashSet<Alice> Alices { get; private set; }
+		public ConcurrentHashSet<Bob> Bobs { get; private set; }
 
 		private TumblerPhaseBroadcaster _broadcaster = TumblerPhaseBroadcaster.Instance;
 
@@ -38,7 +40,7 @@ namespace HiddenWallet.ChaumianTumbler
 
 		public TumblerStateMachine()
 		{
-			SmartBitClient = new SmartBitClient(Network.Main);
+
 		}
 
 		public void BroadcastPhaseChange()
@@ -127,6 +129,8 @@ namespace HiddenWallet.ChaumianTumbler
 							}
 						case TumblerPhase.Signing:
 							{
+								BuildCoinJoin();
+
 								BroadcastPhaseChange();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
@@ -134,6 +138,7 @@ namespace HiddenWallet.ChaumianTumbler
 								}
 								FallBackRound = false;
 								UpdatePhase(TumblerPhase.InputRegistration);
+								CoinJoin = null;
 								break;
 							}
 						default:
@@ -147,6 +152,29 @@ namespace HiddenWallet.ChaumianTumbler
 					Console.WriteLine($"Ignoring {nameof(TumblerStateMachine)} exception: {ex}");
 				}
 			}
+		}
+
+		private void BuildCoinJoin()
+		{
+			var transaction = new Transaction();
+			foreach (var bob in Bobs)
+			{
+				transaction.AddOutput(Denomination, bob.Output);
+			}
+			foreach (var alice in Alices)
+			{
+				foreach (var input in alice.Inputs)
+				{
+					transaction.AddInput(new TxIn(input.OutPoint));
+				}
+				transaction.AddOutput(alice.ChangeAmount, alice.ChangeOutput);
+			}
+
+			var builder = new TransactionBuilder();
+			CoinJoin = builder
+				.ContinueToBuild(transaction)
+				.Shuffle()
+				.BuildTransaction(false);
 		}
 
 		private void CalculateAnonymitySet()
