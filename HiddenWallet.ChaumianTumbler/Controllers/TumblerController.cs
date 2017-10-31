@@ -137,10 +137,11 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					throw new ArgumentException("Total provided inputs must be > denomination + fee");
 				}
 
+				byte[] signature = Global.RsaKey.SignBlindedData(blindedOutput);
 				return new ObjectResult(new InputsResponse()
 				{
 					UniqueId = Guid.NewGuid().ToString(),
-					SignedBlindedOutput = ""
+					SignedBlindedOutput = HexHelpers.ToString(signature)
 				});
 			}
 			catch (Exception ex)

@@ -13,6 +13,8 @@ using HiddenWallet.ChaumianTumbler.Configuration;
 using NBitcoin.RPC;
 using System.Net;
 using HiddenWallet.ChaumianTumbler.Store;
+using System.Text;
+using HiddenWallet.Crypto;
 
 namespace HiddenWallet.ChaumianTumbler
 {
@@ -27,6 +29,19 @@ namespace HiddenWallet.ChaumianTumbler
 				string configFilePath = Path.Combine(Global.DataDir, "Config.json");
 				Global.Config = new Config();
 				await Global.Config.LoadOrCreateDefaultFileAsync(configFilePath, CancellationToken.None);
+
+				string rsaPath = Path.Combine(Global.DataDir, "RsaKey.json");
+				if (File.Exists(rsaPath))
+				{
+					string rsaKeyJson = await File.ReadAllTextAsync(rsaPath, Encoding.UTF8);
+					Global.RsaKey = BlindingRsaKey.CreateFromJson(rsaKeyJson);
+				}
+				else
+				{
+					Global.RsaKey = new BlindingRsaKey();
+					await File.WriteAllTextAsync(rsaPath, Global.RsaKey.ToJson(), Encoding.UTF8);
+					Console.WriteLine($"Created RSA key at: {rsaPath}");
+				}
 
 				Global.RpcClient = new RPCClient(
 					credentials: new RPCCredentialString

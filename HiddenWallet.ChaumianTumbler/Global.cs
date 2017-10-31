@@ -1,5 +1,6 @@
 ﻿using HiddenWallet.ChaumianTumbler.Configuration;
 using HiddenWallet.ChaumianTumbler.Store;
+using HiddenWallet.Crypto;
 using HiddenWallet.Helpers;
 using NBitcoin.RPC;
 using System;
@@ -17,6 +18,8 @@ namespace HiddenWallet.ChaumianTumbler
 		public static CoinJoinStore CoinJoinStore;
 
 		public static RPCClient RpcClient;
+
+		public static BlindingRsaKey RsaKey;
 
 		public static TumblerStateMachine StateMachine;
 		public static Task StateMachineJob;
