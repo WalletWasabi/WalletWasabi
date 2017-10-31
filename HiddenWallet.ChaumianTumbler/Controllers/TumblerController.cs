@@ -355,9 +355,9 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						}
 					}
 
-					foreach (var signatureHex in request.Signatures)
+					foreach (var signatureModel in request.Signatures)
 					{
-						var signature = HexHelpers.GetBytes(signatureHex);
+						var signature = HexHelpers.GetBytes(signatureModel.Witness);
 
 						// todo find input
 						// add signature

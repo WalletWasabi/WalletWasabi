@@ -8,6 +8,6 @@ namespace HiddenWallet.ChaumianTumbler.Models
     public class SignatureRequest
 	{
 		public string UniqueId { get; set; }
-		public IEnumerable<string> Signatures { get; set; }
+		public IEnumerable<(string Witness, int Index)> Signatures { get; set; }
 	}
 }
