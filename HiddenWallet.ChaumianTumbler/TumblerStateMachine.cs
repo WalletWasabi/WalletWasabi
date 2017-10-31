@@ -28,7 +28,8 @@ namespace HiddenWallet.ChaumianTumbler
 		public Stopwatch InputRegistrationStopwatch { get; private set; }
 		public bool FallBackRound { get; private set; } = false;
 
-		public Transaction CoinJoin { get; private set; } = null;
+		public Transaction UnsignedCoinJoin { get; private set; } = null;
+		public Transaction CoinJoinToSign { get; set; } = null;
 
 		private SmartBitClient SmartBitClient { get; } = new SmartBitClient(Network.Main);
 		public ConcurrentHashSet<Alice> Alices { get; private set; }
@@ -138,7 +139,7 @@ namespace HiddenWallet.ChaumianTumbler
 								}
 								FallBackRound = false;
 								UpdatePhase(TumblerPhase.InputRegistration);
-								CoinJoin = null;
+								UnsignedCoinJoin = null;
 								break;
 							}
 						default:
@@ -171,7 +172,7 @@ namespace HiddenWallet.ChaumianTumbler
 			}
 
 			var builder = new TransactionBuilder();
-			CoinJoin = builder
+			UnsignedCoinJoin = builder
 				.ContinueToBuild(transaction)
 				.Shuffle()
 				.BuildTransaction(false);

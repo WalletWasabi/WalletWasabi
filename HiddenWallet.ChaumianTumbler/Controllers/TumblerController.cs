@@ -315,7 +315,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				return new ObjectResult(new CoinJoinResponse
 				{
-					Transaction = Global.StateMachine.CoinJoin.ToHex()
+					Transaction = Global.StateMachine.UnsignedCoinJoin.ToHex()
 				});
 			}
 			catch (Exception ex)
@@ -324,9 +324,10 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 		}
 
+		private readonly AsyncLock SignatureProvidedAsyncLock = new AsyncLock();
 		[Route("signature")]
 		[HttpPost]
-		public IActionResult Signature(SignatureRequest request)
+		public async Task<IActionResult> SignatureAsync(SignatureRequest request)
 		{
 			try
 			{
@@ -336,8 +337,33 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				}
 
 				if (request.UniqueId == null) return new BadRequestResult();
-				if (request.Signature == null) return new BadRequestResult();
+				if (request.Signatures == null) return new BadRequestResult();
+				if (request.Signatures.Count() == 0) return new BadRequestResult();
 				Alice alice = Global.StateMachine.FindAlice(request.UniqueId, throwException: true);
+
+				using (await SignatureProvidedAsyncLock.LockAsync())
+				{
+					if (Global.StateMachine.CoinJoinToSign == null)
+					{
+						foreach(var input in Global.StateMachine.UnsignedCoinJoin.Inputs)
+						{
+							Global.StateMachine.CoinJoinToSign.AddInput(input);
+						}
+						foreach (var output in Global.StateMachine.UnsignedCoinJoin.Outputs)
+						{
+							Global.StateMachine.CoinJoinToSign.AddOutput(output);
+						}
+					}
+
+					foreach (var signatureHex in request.Signatures)
+					{
+						var signature = HexHelpers.GetBytes(signatureHex);
+
+						// todo find input
+						// add signature
+						// check if correctly signed
+					}
+				}
 
 				throw new NotImplementedException();
 			}
