@@ -223,7 +223,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				}
 
 				if (request.UniqueId == null) return new BadRequestResult();
-				Alice alice = FindAlice(request.UniqueId);
+				Alice alice = Global.StateMachine.FindAlice(request.UniqueId, throwException: true);
 
 				if (alice.State == AliceState.ConnectionConfirmed)
 				{
@@ -304,7 +304,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				}
 
 				if (request.UniqueId == null) return new BadRequestResult();
-				Alice alice = FindAlice(request.UniqueId);
+				Alice alice = Global.StateMachine.FindAlice(request.UniqueId, throwException: true);
 
 				if (alice.State == AliceState.AskedForCoinJoin)
 				{
@@ -337,7 +337,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				if (request.UniqueId == null) return new BadRequestResult();
 				if (request.Signature == null) return new BadRequestResult();
-				Alice alice = FindAlice(request.UniqueId);
+				Alice alice = Global.StateMachine.FindAlice(request.UniqueId, throwException: true);
 
 				throw new NotImplementedException();
 			}
@@ -345,17 +345,6 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			{
 				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
 			}
-		}
-
-		private static Alice FindAlice(string uniqueId)
-		{
-			Alice alice = Global.StateMachine.Alices.FirstOrDefault(x => x.UniqueId == new Guid(uniqueId));
-			if (alice == default(Alice))
-			{
-				throw new ArgumentException("Wrong uniqueId");
-			}
-
-			return alice;
 		}
 	}
 }

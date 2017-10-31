@@ -253,6 +253,20 @@ namespace HiddenWallet.ChaumianTumbler
 			}
 		}
 
+		public Alice FindAlice(string uniqueId, bool throwException)
+		{
+			Alice alice = Alices.FirstOrDefault(x => x.UniqueId == new Guid(uniqueId));
+			if (alice == default(Alice))
+			{
+				if (throwException)
+				{
+					throw new ArgumentException("Wrong uniqueId");
+				}
+			}
+
+			return alice;
+		}
+
 		#region IDisposable Support
 		private bool _disposedValue = false; // To detect redundant calls
 
