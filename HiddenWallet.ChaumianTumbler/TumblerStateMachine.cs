@@ -30,6 +30,7 @@ namespace HiddenWallet.ChaumianTumbler
 
 		private SmartBitClient SmartBitClient { get; }
 		public ConcurrentHashSet<Alice> Alices { get; internal set; }
+		public ConcurrentHashSet<Bob> Bobs { get; internal set; }
 
 		private TumblerPhaseBroadcaster _broadcaster = TumblerPhaseBroadcaster.Instance;
 
@@ -71,6 +72,7 @@ namespace HiddenWallet.ChaumianTumbler
 						case TumblerPhase.InputRegistration:
 							{
 								Alices = new ConcurrentHashSet<Alice>();
+								Bobs = new ConcurrentHashSet<Bob>();
 								var denominationTask = SetDenominationAsync(cancel);
 								var feeTask = SetFeesAsync(cancel);
 								CalculateAnonymitySet();
@@ -117,7 +119,10 @@ namespace HiddenWallet.ChaumianTumbler
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.OutputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
-								UpdatePhase(TumblerPhase.Signing);
+								// Output registration never falls back
+								// We don't know which Alice to ban
+								// Therefore proceed to signing, and whichever Alice doesn't sign ban
+								UpdatePhase(TumblerPhase.Signing); 
 								break;
 							}
 						case TumblerPhase.Signing:

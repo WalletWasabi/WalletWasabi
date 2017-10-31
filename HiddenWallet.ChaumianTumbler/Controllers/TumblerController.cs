@@ -229,13 +229,18 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				}
 
 				alice.State = AliceState.ConnectionConfirmed;
-
-				if(Global.StateMachine.Alices.All(x=>x.State == AliceState.ConnectionConfirmed))
+								
+				try
 				{
-					Global.StateMachine.UpdatePhase(TumblerPhase.OutputRegistration);
+					return new ObjectResult(new SuccessResponse());
 				}
-
-				return new ObjectResult(new SuccessResponse());
+				finally
+				{
+					if (Global.StateMachine.Alices.All(x => x.State == AliceState.ConnectionConfirmed))
+					{
+						Global.StateMachine.UpdatePhase(TumblerPhase.OutputRegistration);
+					}
+				}
 			}
 			catch (Exception ex)
 			{
@@ -254,9 +259,30 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
 				}
 
-				if (request.SignedOutput == null) return new BadRequestResult();
+				if (request.Output == null) return new BadRequestResult();
+				if (request.Signature == null) return new BadRequestResult();
 
-				throw new NotImplementedException();
+				var output = new BitcoinWitPubKeyAddress(request.Output, expectedNetwork: Global.Config.Network);
+
+				if(Global.RsaKey.PubKey.Verify(HexHelpers.GetBytes(request.Signature), HexHelpers.GetBytes(request.Output)))
+				{
+					try
+					{
+						Global.StateMachine.Bobs.Add(new Bob { Output = output });
+						return new ObjectResult(new SuccessResponse());
+					}
+					finally
+					{
+						if (Global.StateMachine.Alices.Count == Global.StateMachine.Bobs.Count)
+						{
+							Global.StateMachine.UpdatePhase(TumblerPhase.OutputRegistration);
+						}
+					}
+				}
+				else
+				{
+					throw new ArgumentException("Bad output");
+				}
 			}
 			catch (Exception ex)
 			{
