@@ -11,6 +11,6 @@ namespace HiddenWallet.ChaumianTumbler.Models
 		public InputRegistrationStatusResponse() => Success = true;
 		public int RegisteredPeerCount { get; set; }
 		public int RequiredPeerCount { get; set; }
-		public string ElapsedTime { get; set; }
+		public int ElapsedSeconds { get; set; }
 	}
 }

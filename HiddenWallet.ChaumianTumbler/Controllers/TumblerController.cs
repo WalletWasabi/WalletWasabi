@@ -138,9 +138,27 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				}
 
 				byte[] signature = Global.RsaKey.SignBlindedData(blindedOutput);
+				Guid uniqueId = Guid.NewGuid();
+
+				var alice = new AliceModel
+				{
+					UniqueId = uniqueId,
+					ChangeOutput = changeOutput
+				};
+				foreach(var input in inputs)
+				{
+					alice.Inputs.Add(input);
+				}
+				Global.StateMachine.Alices.Add(alice);
+
+				if(Global.StateMachine.Alices.Count >= Global.StateMachine.AnonymitySet)
+				{
+					Global.StateMachine.UpdatePhase(TumblerPhase.ConnectionConfirmation);
+				}
+
 				return new ObjectResult(new InputsResponse()
 				{
-					UniqueId = Guid.NewGuid().ToString(),
+					UniqueId = uniqueId.ToString(),
 					SignedBlindedOutput = HexHelpers.ToString(signature)
 				});
 			}
@@ -161,7 +179,12 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
 				}
 
-				throw new NotImplementedException();
+				return new ObjectResult(new InputRegistrationStatusResponse()
+				{
+					ElapsedSeconds = (int)Global.StateMachine.InputRegistrationStopwatch.Elapsed.TotalSeconds,
+					RequiredPeerCount = Global.StateMachine.AnonymitySet,
+					RegisteredPeerCount = Global.StateMachine.Alices.Count
+				});
 			}
 			catch (Exception ex)
 			{
