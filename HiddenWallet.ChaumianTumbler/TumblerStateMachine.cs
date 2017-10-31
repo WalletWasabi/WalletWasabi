@@ -1,5 +1,6 @@
 ﻿using ConcurrentCollections;
 using HiddenWallet.ChaumianCoinJoin;
+using HiddenWallet.ChaumianTumbler.Clients;
 using HiddenWallet.ChaumianTumbler.Configuration;
 using HiddenWallet.ChaumianTumbler.Models;
 using HiddenWallet.Helpers;
@@ -25,9 +26,10 @@ namespace HiddenWallet.ChaumianTumbler
 		public TimeSpan TimeSpentInInputRegistration { get; private set; } = TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds) + TimeSpan.FromSeconds(1); // took one sec longer, so the first round will use the same anonymity set
 		public bool AcceptRequest { get; private set; } = false;
 		public Stopwatch InputRegistrationStopwatch { get; private set; }
+		public bool FallBackRound = false;
 
 		private SmartBitClient SmartBitClient { get; }
-		public ConcurrentHashSet<AliceModel> Alices { get; internal set; }
+		public ConcurrentHashSet<Alice> Alices { get; internal set; }
 
 		private TumblerPhaseBroadcaster _broadcaster = TumblerPhaseBroadcaster.Instance;
 
@@ -68,7 +70,7 @@ namespace HiddenWallet.ChaumianTumbler
 					{
 						case TumblerPhase.InputRegistration:
 							{
-								Alices = new ConcurrentHashSet<AliceModel>();
+								Alices = new ConcurrentHashSet<Alice>();
 								var denominationTask = SetDenominationAsync(cancel);
 								var feeTask = SetFeesAsync(cancel);
 								CalculateAnonymitySet();
@@ -82,7 +84,10 @@ namespace HiddenWallet.ChaumianTumbler
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
 								InputRegistrationStopwatch.Stop();
-								TimeSpentInInputRegistration = InputRegistrationStopwatch.Elapsed;
+								if (FallBackRound == false)
+								{
+									TimeSpentInInputRegistration = InputRegistrationStopwatch.Elapsed;
+								}
 
 								UpdatePhase(TumblerPhase.ConnectionConfirmation);
 								break;
@@ -94,7 +99,15 @@ namespace HiddenWallet.ChaumianTumbler
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.ConnectionConfirmationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
-								UpdatePhase(TumblerPhase.OutputRegistration);
+								if (Alices.All(x => x.State == AliceState.ConnectionConfirmed))
+								{
+									UpdatePhase(TumblerPhase.OutputRegistration);
+								}
+								else
+								{
+									FallBackRound = true;
+									UpdatePhase(TumblerPhase.InputRegistration);
+								}
 								break;
 							}
 						case TumblerPhase.OutputRegistration:
@@ -114,6 +127,7 @@ namespace HiddenWallet.ChaumianTumbler
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.SigningPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
+								FallBackRound = false;
 								UpdatePhase(TumblerPhase.InputRegistration);
 								break;
 							}

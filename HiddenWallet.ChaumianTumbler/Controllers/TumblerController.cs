@@ -10,6 +10,8 @@ using Org.BouncyCastle.Utilities.Encoders;
 using NBitcoin;
 using NBitcoin.RPC;
 using HiddenWallet.ChaumianTumbler.Store;
+using HiddenWallet.ChaumianTumbler.Clients;
+using Nito.AsyncEx;
 
 namespace HiddenWallet.ChaumianTumbler.Controllers
 {
@@ -67,6 +69,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 		}
 
+		private readonly AsyncLock InputRegistrationLock = new AsyncLock();
 		[Route("inputs")]
 		[HttpPost]
 		public async Task<IActionResult> InputsAsync(InputsRequest request)
@@ -88,79 +91,93 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				Network network = Global.Config.Network;
 				var changeOutput = new BitcoinWitPubKeyAddress(request.ChangeOutput, expectedNetwork: network);
 				if (request.Inputs.Count() > Global.Config.MaximumInputsPerAlices) throw new NotSupportedException("Too many inputs provided");
-				var inputs = new HashSet<TxOut>();
-				foreach (InputProofModel input in request.Inputs)
+				var inputs = new HashSet<(TxOut Output, OutPoint OutPoint)>();
+
+				using (await InputRegistrationLock.LockAsync())
 				{
-					var op = new OutPoint();
-					op.FromHex(input.Input);
-					var txOutResponse = await Global.RpcClient.SendCommandAsync(RPCOperations.gettxout, op.Hash.ToString(), op.N, true);
-					// Check if inputs are unspent
-					if (txOutResponse.Result == null)
+					foreach (InputProofModel input in request.Inputs)
 					{
-						throw new ArgumentException("Provided input is not unspent");
-					}
-					// Check if inputs are confirmed or part of previous CoinJoin
-					if (txOutResponse.Result.Value<int>("confirmations") <= 0)
-					{
-						if (!Global.CoinJoinStore.Transactions
-							.Any(x => x.State == CoinJoinTransactionState.Succeeded && x.Transaction.GetHash() == op.Hash))
+						var op = new OutPoint();
+						op.FromHex(input.Input);
+						if (inputs.Any(x => x.OutPoint.Hash == op.Hash && x.OutPoint.N == op.N))
 						{
-							throw new ArgumentException("Provided input is not confirmed, nor spends a previous CJ transaction");
+							throw new ArgumentException("Attempting to register an input twice is not permitted");
 						}
+						if (Global.StateMachine.Alices.SelectMany(x => x.Inputs).Any(x => x.OutPoint.Hash == op.Hash && x.OutPoint.N == op.N))
+						{
+							throw new ArgumentException("Input is already registered by another Alice");
+						}
+
+						var txOutResponse = await Global.RpcClient.SendCommandAsync(RPCOperations.gettxout, op.Hash.ToString(), op.N, true);
+						// Check if inputs are unspent
+						if (txOutResponse.Result == null)
+						{
+							throw new ArgumentException("Provided input is not unspent");
+						}
+						// Check if inputs are confirmed or part of previous CoinJoin
+						if (txOutResponse.Result.Value<int>("confirmations") <= 0)
+						{
+							if (!Global.CoinJoinStore.Transactions
+								.Any(x => x.State == CoinJoinTransactionState.Succeeded && x.Transaction.GetHash() == op.Hash))
+							{
+								throw new ArgumentException("Provided input is not confirmed, nor spends a previous CJ transaction");
+							}
+						}
+						// Check if inputs are native segwit
+						if (txOutResponse.Result["scriptPubKey"].Value<string>("type") != "witness_v0_keyhash")
+						{
+							throw new ArgumentException("Provided input is not witness_v0_keyhash");
+						}
+						var value = txOutResponse.Result.Value<decimal>("value");
+						var scriptPubKey = new Script(txOutResponse.Result["scriptPubKey"].Value<string>("asm"));
+						var address = (BitcoinWitPubKeyAddress)scriptPubKey.GetDestinationAddress(network);
+						// Check if proofs are valid
+						if (!address.VerifyMessage(request.BlindedOutput, input.Proof))
+						{
+							throw new ArgumentException("Provided proof is invalid");
+						}
+						var txout = new TxOut(new Money(value, MoneyUnit.BTC), scriptPubKey);
+						inputs.Add((txout, op));
 					}
-					// Check if inputs are native segwit
-					if (txOutResponse.Result["scriptPubKey"].Value<string>("type") != "witness_v0_keyhash")
+
+					// Check if inputs have enough coins
+					Money amount = Money.Zero;
+					foreach (Money val in inputs.Select(x => x.Output.Value))
 					{
-						throw new ArgumentException("Provided input is not witness_v0_keyhash");
+						amount += val;
 					}
-					var value = txOutResponse.Result.Value<decimal>("value");
-					var scriptPubKey = new Script(txOutResponse.Result["scriptPubKey"].Value<string>("asm"));
-					var address = (BitcoinWitPubKeyAddress)scriptPubKey.GetDestinationAddress(network);
-					// Check if proofs are valid
-					if (!address.VerifyMessage(request.BlindedOutput, input.Proof))
+					Money feeToPay = (inputs.Count() * Global.StateMachine.FeePerInputs + 2 * Global.StateMachine.FeePerOutputs);
+					if (amount < Global.StateMachine.Denomination + feeToPay)
 					{
-						throw new ArgumentException("Provided proof is invalid");
+						throw new ArgumentException("Total provided inputs must be > denomination + fee");
 					}
-					var txout = new TxOut(new Money(value, MoneyUnit.BTC), scriptPubKey);
-					inputs.Add(txout);
-				}
 
-				// Check if inputs have enough coins
-				Money amount = Money.Zero;
-				foreach (Money val in inputs.Select(x => x.Value))
-				{
-					amount += val;
-				}
-				Money feeToPay = (inputs.Count() * Global.StateMachine.FeePerInputs + 2 * Global.StateMachine.FeePerOutputs);
-				if (amount < Global.StateMachine.Denomination + feeToPay)
-				{
-					throw new ArgumentException("Total provided inputs must be > denomination + fee");
-				}
+					byte[] signature = Global.RsaKey.SignBlindedData(blindedOutput);
+					Guid uniqueId = Guid.NewGuid();
 
-				byte[] signature = Global.RsaKey.SignBlindedData(blindedOutput);
-				Guid uniqueId = Guid.NewGuid();
+					var alice = new Alice
+					{
+						UniqueId = uniqueId,
+						ChangeOutput = changeOutput,
+						State = AliceState.InputsRegistered
+					};
+					foreach (var input in inputs)
+					{
+						alice.Inputs.Add(input);
+					}
+					Global.StateMachine.Alices.Add(alice);
 
-				var alice = new AliceModel
-				{
-					UniqueId = uniqueId,
-					ChangeOutput = changeOutput
-				};
-				foreach(var input in inputs)
-				{
-					alice.Inputs.Add(input);
+					if (Global.StateMachine.Alices.Count >= Global.StateMachine.AnonymitySet)
+					{
+						Global.StateMachine.UpdatePhase(TumblerPhase.ConnectionConfirmation);
+					}
+
+					return new ObjectResult(new InputsResponse()
+					{
+						UniqueId = uniqueId.ToString(),
+						SignedBlindedOutput = HexHelpers.ToString(signature)
+					});
 				}
-				Global.StateMachine.Alices.Add(alice);
-
-				if(Global.StateMachine.Alices.Count >= Global.StateMachine.AnonymitySet)
-				{
-					Global.StateMachine.UpdatePhase(TumblerPhase.ConnectionConfirmation);
-				}
-
-				return new ObjectResult(new InputsResponse()
-				{
-					UniqueId = uniqueId.ToString(),
-					SignedBlindedOutput = HexHelpers.ToString(signature)
-				});
 			}
 			catch (Exception ex)
 			{
@@ -204,8 +221,21 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				}
 
 				if (request.UniqueId == null) return new BadRequestResult();
+				Alice alice = FindAlice(request.UniqueId);
 
-				throw new NotImplementedException();
+				if (alice.State == AliceState.ConnectionConfirmed)
+				{
+					throw new InvalidOperationException("Connection is already confirmed");
+				}
+
+				alice.State = AliceState.ConnectionConfirmed;
+
+				if(Global.StateMachine.Alices.All(x=>x.State == AliceState.ConnectionConfirmed))
+				{
+					Global.StateMachine.UpdatePhase(TumblerPhase.OutputRegistration);
+				}
+
+				return new ObjectResult(new SuccessResponse());
 			}
 			catch (Exception ex)
 			{
@@ -236,7 +266,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 		[Route("coinjoin")]
 		[HttpGet]
-		public IActionResult CoinJoin()
+		public IActionResult CoinJoin(CoinJoinRequest request)
 		{
 			try
 			{
@@ -244,6 +274,9 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				{
 					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
 				}
+
+				if (request.UniqueId == null) return new BadRequestResult();
+				Alice alice = FindAlice(request.UniqueId);
 
 				throw new NotImplementedException();
 			}
@@ -264,13 +297,27 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
 				}
 
+				if (request.UniqueId == null) return new BadRequestResult();
 				if (request.Signature == null) return new BadRequestResult();
+				Alice alice = FindAlice(request.UniqueId);
+
 				throw new NotImplementedException();
 			}
 			catch (Exception ex)
 			{
 				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
 			}
+		}
+
+		private static Alice FindAlice(string uniqueId)
+		{
+			Alice alice = Global.StateMachine.Alices.FirstOrDefault(x => x.UniqueId == new Guid(uniqueId));
+			if (alice == default(Alice))
+			{
+				throw new ArgumentException("Wrong uniqueId");
+			}
+
+			return alice;
 		}
 	}
 }
