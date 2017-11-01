@@ -3,7 +3,7 @@ function walletPhaseShow(tabItem = "") {
     
     if (tabItem === "alice") {
         document.getElementById("content").setAttribute("style", "max-height: 320px");
-        document.getElementById("tabs").innerHTML = document.getElementById("wallet-phase-tabs-frame").contentWindow.document.getElementById("alice-active").outerHTML;
+        document.getElementById("tabs").innerHTML = (<HTMLIFrameElement>document.getElementById("wallet-phase-tabs-frame")).contentWindow.document.getElementById("alice-active").outerHTML;
 
         storage.set('lastAccount', { lastAccount: 'alice' }, function (error) {
             if (error) throw error;
@@ -15,7 +15,7 @@ function walletPhaseShow(tabItem = "") {
     }
     else if (tabItem === "bob") {
         document.getElementById("content").setAttribute("style", "max-height: 320px");
-        document.getElementById("tabs").innerHTML = document.getElementById("wallet-phase-tabs-frame").contentWindow.document.getElementById("bob-active").outerHTML;
+        document.getElementById("tabs").innerHTML = (<HTMLIFrameElement>document.getElementById("wallet-phase-tabs-frame")).contentWindow.document.getElementById("bob-active").outerHTML;
         storage.set('lastAccount', { lastAccount: 'bob' }, function (error) {
             if (error) throw error;
         });
@@ -36,15 +36,15 @@ function walletPhaseShow(tabItem = "") {
 
 function walletShow(menuItem) {
     if (menuItem === 'receive') {
-        document.getElementById("menu").innerHTML = document.getElementById("wallet-menu-frame").contentWindow.document.getElementById("receive-active").outerHTML;
+        document.getElementById("menu").innerHTML = (<HTMLIFrameElement>document.getElementById("wallet-menu-frame")).contentWindow.document.getElementById("receive-active").outerHTML;
     }
     else if (menuItem === 'send') {
         writeHint('Would you consider feeding the developer with some pizza? 186n7me3QKajQZJnUsVsezVhVrSwyFCCZ');
-        document.getElementById("menu").innerHTML = document.getElementById("wallet-menu-frame").contentWindow.document.getElementById("send-active").outerHTML;
-        document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("send-content").outerHTML;
+        document.getElementById("menu").innerHTML = (<HTMLIFrameElement>document.getElementById("wallet-menu-frame")).contentWindow.document.getElementById("send-active").outerHTML;
+        document.getElementById("content").innerHTML = (<HTMLIFrameElement>document.getElementById("wallet-content-frame")).contentWindow.document.getElementById("send-content").outerHTML;
     }
     else if (menuItem === 'history') {
-        document.getElementById("menu").innerHTML = document.getElementById("wallet-menu-frame").contentWindow.document.getElementById("history-active").outerHTML;
+        document.getElementById("menu").innerHTML = (<HTMLIFrameElement>document.getElementById("wallet-menu-frame")).contentWindow.document.getElementById("history-active").outerHTML;
         writeHint('HiddenWallet? Easy Peasy Lemon Squeezey!');
     }
 
@@ -66,8 +66,9 @@ function updateWalletContent() {
             if (menu.childElementCount > 0) {
                 let menuId = menu.firstElementChild.id;
                 if (menuId === "receive-active") {
-                    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("receive-content").outerHTML;
+                    document.getElementById("content").innerHTML = (<HTMLIFrameElement>document.getElementById("wallet-content-frame")).contentWindow.document.getElementById("receive-content").outerHTML;
                     let resp = httpGetWallet("receive/alice");
+                    let i:number = 0
                     for (i = 0; i < 6; i++) {
                         let node = document.createElement("li");
                         node.setAttribute("class", "list-group-item");
@@ -78,8 +79,9 @@ function updateWalletContent() {
                     document.getElementById("extpubkey").innerText = resp.ExtPubKey;
                 }
                 else if (menuId === "history-active") {
-                    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;
+                    document.getElementById("content").innerHTML = (<HTMLIFrameElement>document.getElementById("wallet-content-frame")).contentWindow.document.getElementById("history-content").outerHTML;
                     let resp = httpGetWallet("history/alice");
+                    let i: number = 0
                     for (i = 0; i < resp.History.length; i++) {
                         let trNode = document.createElement("tr");
                         let tdNodeHeight = document.createElement("td");
@@ -106,8 +108,9 @@ function updateWalletContent() {
             if (menu.childElementCount > 0) {
                 let menuId = menu.firstElementChild.id;
                 if (menuId === "receive-active") {
-                    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("receive-content").outerHTML;
+                    document.getElementById("content").innerHTML = (<HTMLIFrameElement>document.getElementById("wallet-content-frame")).contentWindow.document.getElementById("receive-content").outerHTML;
                     let resp = httpGetWallet("receive/bob");
+                    let i: number = 0
                     for (i = 0; i < 6; i++) {
                         let node = document.createElement("li");
                         node.setAttribute("class", "list-group-item");
@@ -118,8 +121,9 @@ function updateWalletContent() {
                     document.getElementById("extpubkey").innerText = resp.ExtPubKey;
                 }
                 else if (menuId === "history-active") {
-                    document.getElementById("content").innerHTML = document.getElementById("wallet-content-frame").contentWindow.document.getElementById("history-content").outerHTML;
+                    document.getElementById("content").innerHTML = (<HTMLIFrameElement>document.getElementById("wallet-content-frame")).contentWindow.document.getElementById("history-content").outerHTML;
                     let resp = httpGetWallet("history/bob");
+                    let i: number = 0
                     for (i = 0; i < resp.History.length; i++) {
                         let trNode = document.createElement("tr");
                         let tdNodeHeight = document.createElement("td");
@@ -140,21 +144,28 @@ function updateWalletContent() {
 }
 
 function setAmountToAll() {
-    document.getElementById("amount-to-send").value = "all";
+    (<HTMLInputElement>document.getElementById("amount-to-send")).value = "all";
+}
+
+class Transaction {
+    password: string;
+    address: string;
+    amount: string;
+    feeType: string;
 }
 
 function buildTransaction() {
-    var address = document.getElementById("address-to-send").value;
-    var amount = document.getElementById("amount-to-send").value;
-    var fastFeeChecked = document.getElementById("fast-fee-radio").checked;
-    var slowFeeChecked = document.getElementById("slow-fee-radio").checked;
-    var password = document.getElementById("send-password").value;
+    var address = (<HTMLInputElement>document.getElementById("address-to-send")).value;
+    var amount = (<HTMLInputElement>document.getElementById("amount-to-send")).value;
+    var fastFeeChecked = (<HTMLInputElement>document.getElementById("fast-fee-radio")).checked;
+    var slowFeeChecked = (<HTMLInputElement>document.getElementById("slow-fee-radio")).checked;
+    var password = (<HTMLInputElement>document.getElementById("send-password")).value;
 
     if (!address) {
         alert("Couldn't build the transaciton: Wrong address!");
         return;
     }
-    if (!amount || amount <= 0) {
+    if (!amount || Number(amount) <= 0) {
         alert("Couldn't build the transaciton: Wrong amount!");
         return;
     }
@@ -173,7 +184,7 @@ function buildTransaction() {
     if (fastFeeChecked) feeType = "high";
     if (slowFeeChecked) feeType = "low";
 
-    let obj = new Object();
+    let obj = new Transaction();
     obj.password = password;
     obj.address = address;
     obj.amount = amount;

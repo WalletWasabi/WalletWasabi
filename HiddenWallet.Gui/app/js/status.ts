@@ -50,7 +50,7 @@ function periodicUpdate() {
         }
         let blocksLeft = "-";
         if (trackingHeight !== 0) {
-            blocksLeft = headerHeight - trackingHeight;
+            blocksLeft = (headerHeight - trackingHeight).toString();
         }
         blocksLeftToSync = blocksLeft;
 
@@ -109,12 +109,14 @@ function updateDecryptButton(ts) {
             }
         }
         if (ts.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
-            document.getElementById("decrypt-wallet-button").innerText = "Waiting for Tor...";
-            document.getElementById("decrypt-wallet-button").setAttribute("disabled");
+            var element = <HTMLInputElement>document.getElementById("decrypt-wallet-button");
+            element.innerText = "Waiting for Tor...";
+            element.disabled = true;
         }
         if (ts.toUpperCase() === "NotStarted".toUpperCase()) {
-            document.getElementById("decrypt-wallet-button").innerText = "Waiting for Tor...";
-            document.getElementById("decrypt-wallet-button").setAttribute("disabled");
+            var element = <HTMLInputElement>document.getElementById("decrypt-wallet-button");
+            element.innerText = "Waiting for Tor...";
+            element.disabled = true;
         }
     }
     catch (err) {
