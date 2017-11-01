@@ -37,27 +37,27 @@ function decryptionPhaseShow(menuItem = "") {
         }
     }
     else if (menuItem === "decrypt") {
-        document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("decrypt-active").innerHTML;
+        document.getElementById("menu").innerHTML = (<HTMLIFrameElement>document.getElementById("decryption-phase-menu-frame")).contentWindow.document.getElementById("decrypt-active").innerHTML;
         if (walletExists === true) {
-            document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("decrypt-content").innerHTML;
+            document.getElementById("content").innerHTML = (<HTMLIFrameElement>document.getElementById("decryption-phase-content-frame")).contentWindow.document.getElementById("decrypt-content").innerHTML;
         }
         else {
             document.getElementById("content").innerHTML = '<div class="alert alert-warning" role="alert"><strong>No wallet found!</strong> Generate or recover your wallet before decrypting it!</div>';
         }
     }
     else if (menuItem === "generate") {
-        document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("generate-active").innerHTML;
+        document.getElementById("menu").innerHTML = (<HTMLIFrameElement>document.getElementById("decryption-phase-menu-frame")).contentWindow.document.getElementById("generate-active").innerHTML;
         if (walletExists === false) {
-            document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("generate-content").innerHTML;
+            document.getElementById("content").innerHTML = (<HTMLIFrameElement>document.getElementById("decryption-phase-content-frame")).contentWindow.document.getElementById("generate-content").innerHTML;
         }
         else {
             document.getElementById("content").innerHTML = '<div class="alert alert-warning" role="alert"><strong>Wallet already exists!</strong> If you wish to continue with this operation you first need to delete or rename your wallet file!</div>';
         }
     }
     else if (menuItem === "recover") {
-        document.getElementById("menu").innerHTML = document.getElementById("decryption-phase-menu-frame").contentWindow.document.getElementById("recover-active").innerHTML;
+        document.getElementById("menu").innerHTML = (<HTMLIFrameElement>document.getElementById("decryption-phase-menu-frame")).contentWindow.document.getElementById("recover-active").innerHTML;
         if (walletExists === false) {
-            document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("recover-content").innerHTML;
+            document.getElementById("content").innerHTML = (<HTMLIFrameElement>document.getElementById("decryption-phase-content-frame")).contentWindow.document.getElementById("recover-content").innerHTML;
         }
         else {
             document.getElementById("content").innerHTML = '<div class="alert alert-warning" role="alert"><strong>Wallet already exists!</strong> If you wish to continue with this operation you first need to delete or rename your wallet file!</div>';
@@ -65,13 +65,17 @@ function decryptionPhaseShow(menuItem = "") {
     }
 }
 
+class GenerateWallet {
+    password: string;
+}
+
 function generateWallet() {
-    let password = document.getElementById("inputPassword").value;
-    if (password !== document.getElementById("confirmPassword").value) {
+    let password = (<HTMLInputElement>document.getElementById("inputPassword")).value;
+    if (password !== (<HTMLInputElement>document.getElementById("confirmPassword")).value) {
         alert("Could not generate wallet, details:\n\nPassword confirmation does not match the password");
     }
     else {
-        let obj = new Object();
+        let obj = new GenerateWallet();
         obj.password = password;
 
         document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:none;");
@@ -82,9 +86,9 @@ function generateWallet() {
                 document.getElementById("generate-wallet-button").innerHTML = "Generate";
             }
             else {
-                document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("mnemonic-words").innerHTML = json.Mnemonic;
-                document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("wallet-creation-time").innerHTML = json.CreationTime.substr(0, 10);
-                document.getElementById("content").innerHTML = document.getElementById("decryption-phase-content-frame").contentWindow.document.getElementById("wallet-generated-content").innerHTML;
+                (<HTMLIFrameElement>document.getElementById("decryption-phase-content-frame")).contentWindow.document.getElementById("mnemonic-words").innerHTML = json.Mnemonic;
+                (<HTMLIFrameElement>document.getElementById("decryption-phase-content-frame")).contentWindow.document.getElementById("wallet-creation-time").innerHTML = json.CreationTime.substr(0, 10);
+                document.getElementById("content").innerHTML = (<HTMLIFrameElement>document.getElementById("decryption-phase-content-frame")).contentWindow.document.getElementById("wallet-generated-content").innerHTML;
                 document.getElementById("menu").hidden = true;                
             }
             document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:all;");
@@ -92,10 +96,16 @@ function generateWallet() {
     }
 }
 
+class RecoverWallet {
+    password: string;
+    mnemonic: string;
+    creationTime: string;
+}
+
 function recoverWallet() {
-    let password = document.getElementById("inputPassword").value;
-    let mnemonic = document.getElementById("inputMnemonic").value.trim();
-    let syncFrom = document.getElementById("inputSyncFrom").value.trim();
+    let password = (<HTMLInputElement>document.getElementById("inputPassword")).value;
+    let mnemonic = (<HTMLInputElement>document.getElementById("inputMnemonic")).value.trim();
+    let syncFrom = (<HTMLInputElement>document.getElementById("inputSyncFrom")).value.trim();
 
     if (mnemonic === "") {
         alert("Could not recover wallet, details:\n\nMnemonic is required");
@@ -110,7 +120,7 @@ function recoverWallet() {
         alert("Could not recover wallet, details:\n\nWrong 'Syncronize transactions from' date format. Format must be like: 2017-01-01");
     }
     else {
-        let obj = new Object();
+        let obj = new RecoverWallet();
         obj.password = password;
         obj.mnemonic = mnemonic;
         obj.creationTime = syncFrom;
@@ -131,10 +141,14 @@ function recoverWallet() {
     }
 }
 
-function decryptWallet() {
-    let password = document.getElementById("inputPassword").value;
+class DecryptWallet {
+    password: string;
+}
 
-    let obj = new Object();
+function decryptWallet() {
+    let password = (<HTMLInputElement>document.getElementById("inputPassword")).value;
+
+    let obj = new DecryptWallet();
     obj.password = password;
 
     document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:none;");

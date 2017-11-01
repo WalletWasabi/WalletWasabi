@@ -64,9 +64,7 @@ const CopyMenu = Menu.buildFromTemplate([{
 document.body.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    let node = e.target;
-
+    let node:any = e.target;
     while (node) {
         if (node.nodeName.match(/^(input|textarea)$/i) || node.isContentEditable) {
             EditMenu.popup(remote.getCurrentWindow());
@@ -76,13 +74,14 @@ document.body.addEventListener('contextmenu', (e) => {
             CopyMenu.popup(remote.getCurrentWindow());
             break;
         }
-        node = node.parentNode;
     }
 });
 
 // Close the dropdown menu if the user clicks outside of it
 window.onclick = function (event) {
-    if (!event.target.matches('.dropbtn')) {
+    var eventTarget: any;
+    eventTarget = event.target;
+    if (!eventTarget.matches('.dropbtn')) {
 
         var dropdowns = document.getElementsByClassName("dropdown-content");
         var i;
