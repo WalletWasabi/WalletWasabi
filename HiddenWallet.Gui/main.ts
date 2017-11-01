@@ -1,11 +1,15 @@
-const electron = require('electron');
-// Module to control application life.
-const app = electron.app;
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow;
+﻿import { app, BrowserWindow } from 'electron';
 
 const path = require('path');
 const url = require('url');
+
+let openDevTools = false;
+
+for (let arg of process.argv) {
+    if (arg == 'dev') {
+        openDevTools = true;
+    }
+}
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -14,14 +18,19 @@ let mainWindow;
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({
-        width: 800, height: 600, resizable: false, frame: false, icon: __dirname + '/app/assets/TumbleBit.png' });
-    
+        width: 800, height: 600, resizable: false, frame: false, icon: __dirname + '/app/assets/TumbleBit.png'
+    });
+
     // and load the index.html of the app.
     mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'index.html'),
         protocol: 'file:',
         slashes: true
     }));
+
+    if (openDevTools) {
+        mainWindow.webContents.openDevTools();
+    }
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
@@ -61,15 +70,15 @@ var apiProcess;
 function startApi() {
     var spawn = require('child_process').spawn;
     //  run server
-    apipath = path.join(__dirname, '..//HiddenWallet.Daemon//bin//dist//current-target//HiddenWallet.Daemon');    
+    apipath = path.join(__dirname, '..//HiddenWallet.Daemon//bin//dist//current-target//HiddenWallet.Daemon');
     if (os.platform() === 'win32') {
         var apipath = path.join(__dirname, '..\\HiddenWallet.Daemon\\bin\\dist\\current-target\\HiddenWallet.Daemon.exe');
     }
-    
+
     apiProcess = spawn(apipath, {
-        detached: true        
+        detached: true
     });
-    
+
     apiProcess.stdout.on('data', (data) => {
         writeLog(`stdout: ${data}`);
         if (mainWindow == null) {
@@ -81,7 +90,7 @@ function startApi() {
 // loads module and registers app specific cleanup callback...
 const cleanup = require('./app/js/cleanup').Cleanup(myCleanup);
 // defines app specific callback...
-function myCleanup() {   
+function myCleanup() {
     writeLog('exit');
 };
 
@@ -91,5 +100,5 @@ function writeLog(msg) {
 
 // Disable default menu
 app.on('browser-window-created', function (e, window) {
-    window.setMenu(null);    
+    window.setMenu(null);
 });

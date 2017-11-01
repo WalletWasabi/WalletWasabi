@@ -1,7 +1,7 @@
 ﻿function closeWindow() {
     window.close();
 }
-
+ 
 let hex;
 require('electron').ipcRenderer.on('broadcast-response', (event, response) => {
     hex = response.Hex;
@@ -28,11 +28,17 @@ require('electron').ipcRenderer.on('broadcast-response', (event, response) => {
     document.getElementById("transaction").innerText = response.Transaction + "\n HEX: " + hex;
 });
 
+class BroadcastTransaction {
+    hex: any;
+    quickSend: boolean;
+}
+
 function broadcastTransaction() {
     document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:none;");
     document.getElementById("broadcast-button").innerHTML = '<span class="glyphicon glyphicon-refresh spinning"></span> Broadcasting...';
 
-    let obj = new Object();
+    // MJH CHECK THIS WORKS - you changed Object() to BroadcastTransaction()
+    let obj = new BroadcastTransaction();
     obj.hex = hex;
     obj.quickSend = false;
     httpPostWalletAsync("send-transaction", obj, function (json) {

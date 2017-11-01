@@ -59,6 +59,8 @@ If you get an error here, don't worry, just add your platform identifier to the 
 4. (Only on Windows) - Copy and unzip `HiddenWallet.Packager/tor.zip` to `HiddenWallet.Daemon/bin/dist/current-target` directory. (Quick note on unzipping: the final path to tor.exe has to be: `current-target/tor/Tor/tor.exe` and not: `current-target/tor/tor/Tor/tor.exe`.)
 5. `cd ../HiddenWallet.Gui`
 6. `npm install`
+6. `npm install -g typescript`
+6. `tsc`
 7. `npm start`
 8. Check out the [Configuration section](https://github.com/nopara73/HiddenWallet#configuration) above.
 
