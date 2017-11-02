@@ -123,6 +123,14 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 								throw new ArgumentException("Provided input is not confirmed, nor spends a previous CJ transaction");
 							}
 						}
+						// Check coinbase > 100
+						if (txOutResponse.Result.Value<int>("confirmations") < 100)
+						{
+							if (txOutResponse.Result.Value<bool>("coinbase"))
+							{
+								throw new ArgumentException("Provided input is unspendable");
+							}
+						}
 						// Check if inputs are native segwit
 						if (txOutResponse.Result["scriptPubKey"].Value<string>("type") != "witness_v0_keyhash")
 						{
