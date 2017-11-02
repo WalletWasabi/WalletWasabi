@@ -315,7 +315,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				return new ObjectResult(new CoinJoinResponse
 				{
-					Transaction = Global.StateMachine.UnsignedCoinJoin.ToHex()
+					Transaction = Global.StateMachine.CoinJoin.ToHex()
 				});
 			}
 			catch (Exception ex)
@@ -343,29 +343,39 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				using (await SignatureProvidedAsyncLock.LockAsync())
 				{
-					if (Global.StateMachine.CoinJoinToSign == null)
-					{
-						foreach(var input in Global.StateMachine.UnsignedCoinJoin.Inputs)
-						{
-							Global.StateMachine.CoinJoinToSign.AddInput(input);
-						}
-						foreach (var output in Global.StateMachine.UnsignedCoinJoin.Outputs)
-						{
-							Global.StateMachine.CoinJoinToSign.AddOutput(output);
-						}
-					}
-
 					foreach (var signatureModel in request.Signatures)
 					{
-						var signature = HexHelpers.GetBytes(signatureModel.Witness);
-
-						// todo find input
-						// add signature
-						// check if correctly signed
+						var witness = new WitScript(signatureModel.Witness);
+						if(Global.StateMachine.CoinJoin.Inputs.Count <= signatureModel.Index)
+						{
+							// round fails, ban alice
+							throw new NotImplementedException();
+						}
+						if(Global.StateMachine.CoinJoin.Inputs[signatureModel.Index].WitScript != default)
+						{
+							// round fails, ban alice
+							throw new NotImplementedException();
+						}
+						Global.StateMachine.CoinJoin.Inputs[signatureModel.Index].WitScript = witness;
+						var output = alice.Inputs.Single(x => x.OutPoint == Global.StateMachine.CoinJoin.Inputs[signatureModel.Index].PrevOut).Output;
+						if(!Script.VerifyScript(output.ScriptPubKey, Global.StateMachine.CoinJoin, signatureModel.Index, output.Value, ScriptVerify.Standard, SigHash.All))
+						{
+							// round fails, ban alice
+							throw new NotImplementedException();
+						}
 					}
-				}
 
-				throw new NotImplementedException();
+					// check if fully signed
+					if(Global.StateMachine.CoinJoin.Inputs.All(x => x.WitScript != default))
+					{
+						// propagate transaction
+						// save coinjoin to coinjoinstore
+						// progress round
+						throw new NotImplementedException();
+					}
+
+					return new ObjectResult(new SuccessResponse());
+				}
 			}
 			catch (Exception ex)
 			{
