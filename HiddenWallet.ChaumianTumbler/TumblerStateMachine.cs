@@ -26,9 +26,10 @@ namespace HiddenWallet.ChaumianTumbler
 		public TimeSpan TimeSpentInInputRegistration { get; private set; } = TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds) + TimeSpan.FromSeconds(1); // took one sec longer, so the first round will use the same anonymity set
 		public bool AcceptRequest { get; private set; } = false;
 		public Stopwatch InputRegistrationStopwatch { get; private set; }
-		public bool FallBackRound { get; private set; } = false;
+		public bool FallBackRound { get; set; } = false;
 
 		public Transaction CoinJoin { get; private set; } = null;
+		public bool FullySignedCoinJoin => CoinJoin?.Inputs == null ? false : CoinJoin.Inputs.All(x => x.WitScript != default);
 
 		private SmartBitClient SmartBitClient { get; } = new SmartBitClient(Network.Main);
 		public ConcurrentHashSet<Alice> Alices { get; private set; }
@@ -136,7 +137,10 @@ namespace HiddenWallet.ChaumianTumbler
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.SigningPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
 								}
-								FallBackRound = false;
+								if(!FullySignedCoinJoin)
+								{
+									FallBackRound = true;
+								}
 								UpdatePhase(TumblerPhase.InputRegistration);
 								CoinJoin = null;
 								break;

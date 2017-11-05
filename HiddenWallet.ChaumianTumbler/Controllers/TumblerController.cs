@@ -374,24 +374,35 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					}
 
 					// check if fully signed
-					if(Global.StateMachine.CoinJoin.Inputs.All(x => x.WitScript != default))
+					if(Global.StateMachine.FullySignedCoinJoin)
 					{
-						var res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendrawtransaction, Global.StateMachine.CoinJoin.ToHex(), true);
-						var state = CoinJoinTransactionState.Failed;
-						if (Global.StateMachine.CoinJoin.GetHash().ToString() == res.ToString())
-						{
-							state = CoinJoinTransactionState.Succeeded;	
+						var failed = true;
+						try
+						{							
+							var res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendrawtransaction, Global.StateMachine.CoinJoin.ToHex(), true);
+							var state = CoinJoinTransactionState.Failed;
+							if (Global.StateMachine.CoinJoin.GetHash().ToString() == res.ToString())
+							{
+								failed = false;
+								state = CoinJoinTransactionState.Succeeded;
+							}
+							Global.CoinJoinStore.Transactions.Add(new CoinJoinTransaction
+							{
+								Transaction = Global.StateMachine.CoinJoin,
+								DateTime = DateTimeOffset.UtcNow,
+								State = state
+							});
+							await Global.CoinJoinStore.ToFileAsync(Global.CoinJoinStorePath);
 						}
-						Global.CoinJoinStore.Transactions.Add(new CoinJoinTransaction
+						finally
 						{
-							Transaction = Global.StateMachine.CoinJoin,
-							DateTime = DateTimeOffset.UtcNow,
-							State = state
-						});
-						await Global.CoinJoinStore.ToFileAsync(Global.CoinJoinStorePath);
-
-						// progress round
-						throw new NotImplementedException();
+							if (failed)
+							{
+								Global.StateMachine.FallBackRound = true;
+							}
+							else Global.StateMachine.FallBackRound = false;
+							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
+						}
 					}
 
 					return new ObjectResult(new SuccessResponse());
