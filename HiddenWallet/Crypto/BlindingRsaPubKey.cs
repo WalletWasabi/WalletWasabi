@@ -41,7 +41,7 @@ namespace HiddenWallet.Crypto
 			var blindingParams = new RsaBlindingParameters(KeyParameters, blindingFactor);
 			var blinder = new PssSigner(
 				cipher: new RsaBlindingEngine(),
-				digest: new Sha1Digest(),
+				digest: new Sha256Digest(),
 				saltLen: 20);
 			blinder.Init(forSigning: true, parameters: blindingParams);
 			blinder.BlockUpdate(data, 0, data.Length);
@@ -63,7 +63,7 @@ namespace HiddenWallet.Crypto
 		{
 			var verifier = new PssSigner(
 				cipher: new RsaEngine(),
-				digest: new Sha1Digest(),
+				digest: new Sha256Digest(),
 				saltLen: 20);
 			verifier.Init(forSigning: false, parameters: KeyParameters);
 			verifier.BlockUpdate(data, 0, data.Length);
