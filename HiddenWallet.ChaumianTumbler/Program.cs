@@ -50,11 +50,10 @@ namespace HiddenWallet.ChaumianTumbler
 					},
 					network: Global.Config.Network);
 				await AssertRpcNodeFullyInitializedAsync();
-
-				string coinJoinStorePath = Path.Combine(Global.DataDir, "CoinJoins.json");
-				if(File.Exists(coinJoinStorePath))
+				
+				if(File.Exists(Global.CoinJoinStorePath))
 				{
-					Global.CoinJoinStore = await CoinJoinStore.CreateFromFileAsync(coinJoinStorePath);
+					Global.CoinJoinStore = await CoinJoinStore.CreateFromFileAsync(Global.CoinJoinStorePath);
 				}
 				else
 				{

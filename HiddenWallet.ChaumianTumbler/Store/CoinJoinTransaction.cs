@@ -14,7 +14,7 @@ namespace HiddenWallet.ChaumianTumbler.Store
 	{
 		[JsonProperty(PropertyName = "Hex")]
 		[JsonConverter(typeof(TransactionHexConverter))]
-		public Transaction Transaction { get; private set; }
+		public Transaction Transaction { get; set; }
 
 		[JsonProperty(PropertyName = "State")]
 		[JsonConverter(typeof(StringEnumConverter))]

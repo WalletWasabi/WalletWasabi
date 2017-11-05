@@ -376,8 +376,20 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					// check if fully signed
 					if(Global.StateMachine.CoinJoin.Inputs.All(x => x.WitScript != default))
 					{
-						// propagate transaction
-						// save coinjoin to coinjoinstore
+						var res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendrawtransaction, Global.StateMachine.CoinJoin.ToHex(), true);
+						var state = CoinJoinTransactionState.Failed;
+						if (Global.StateMachine.CoinJoin.GetHash().ToString() == res.ToString())
+						{
+							state = CoinJoinTransactionState.Succeeded;	
+						}
+						Global.CoinJoinStore.Transactions.Add(new CoinJoinTransaction
+						{
+							Transaction = Global.StateMachine.CoinJoin,
+							DateTime = DateTimeOffset.UtcNow,
+							State = state
+						});
+						await Global.CoinJoinStore.ToFileAsync(Global.CoinJoinStorePath);
+
 						// progress round
 						throw new NotImplementedException();
 					}

@@ -5,6 +5,7 @@ using HiddenWallet.Helpers;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace HiddenWallet.ChaumianTumbler
 		public static Config Config;
 		
 		public static CoinJoinStore CoinJoinStore;
+		public static string CoinJoinStorePath = Path.Combine(DataDir, "CoinJoins.json");
 
 		public static RPCClient RpcClient;
 
