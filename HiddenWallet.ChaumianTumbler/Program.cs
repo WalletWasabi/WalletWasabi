@@ -27,54 +27,7 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			try
 			{
-				string configFilePath = Path.Combine(Global.DataDir, "Config.json");
-				Global.Config = new Config();
-				await Global.Config.LoadOrCreateDefaultFileAsync(configFilePath, CancellationToken.None);
-
-				string rsaPath = Path.Combine(Global.DataDir, "RsaKey.json");
-				if (File.Exists(rsaPath))
-				{
-					string rsaKeyJson = await File.ReadAllTextAsync(rsaPath, Encoding.UTF8);
-					Global.RsaKey = BlindingRsaKey.CreateFromJson(rsaKeyJson);
-				}
-				else
-				{
-					Global.RsaKey = new BlindingRsaKey();
-					await File.WriteAllTextAsync(rsaPath, Global.RsaKey.ToJson(), Encoding.UTF8);
-					Console.WriteLine($"Created RSA key at: {rsaPath}");
-				}
-
-				Global.RpcClient = new RPCClient(
-					credentials: new RPCCredentialString
-					{
-						UserPassword = new NetworkCredential(Global.Config.BitcoinRpcUser, Global.Config.BitcoinRpcPassword)
-					},
-					network: Global.Config.Network);
-				await AssertRpcNodeFullyInitializedAsync();
-				
-				if(File.Exists(Global.CoinJoinStorePath))
-				{
-					Global.CoinJoinStore = await CoinJoinStore.CreateFromFileAsync(Global.CoinJoinStorePath);
-				}
-				else
-				{
-					Global.CoinJoinStore = new CoinJoinStore();
-				}
-
-				if (File.Exists(Global.UtxoRefereePath))
-				{
-					Global.UtxoReferee = await UtxoReferee.CreateFromFileAsync(Global.UtxoRefereePath);
-				}
-				else
-				{
-					Global.UtxoReferee = new UtxoReferee();
-				}
-				Global.UtxoRefereeJobCancel = new CancellationTokenSource();
-				Global.UtxoRefereeJob = Global.UtxoReferee.StartAsync(Global.UtxoRefereeJobCancel.Token);
-
-				Global.StateMachine = new TumblerStateMachine();
-				Global.StateMachineJobCancel = new CancellationTokenSource();
-				Global.StateMachineJob = Global.StateMachine.StartAsync(Global.StateMachineJobCancel.Token);
+				await Global.InitializeAsync();
 
 				using (var host = WebHost.CreateDefaultBuilder(args)
 					.UseStartup<Startup>()
@@ -88,46 +41,6 @@ namespace HiddenWallet.ChaumianTumbler
 				Console.WriteLine(ex);
 				Console.WriteLine("Press a key to exit...");
 				Console.ReadKey();
-			}
-		}
-
-		private static async Task AssertRpcNodeFullyInitializedAsync()
-		{
-			RPCResponse blockchainInfo = await Global.RpcClient.SendCommandAsync(RPCOperations.getblockchaininfo);
-			try
-			{				
-				if (blockchainInfo.Error != null)
-				{
-					throw new NotSupportedException("blockchainInfo.Error != null");
-				}
-				if (blockchainInfo.Result == null)
-				{
-					throw new NotSupportedException("blockchainInfo.Result == null");
-				}
-				int blocks = blockchainInfo.Result.Value<int>("blocks");
-				if (blocks == 0)
-				{
-					throw new NotSupportedException("blocks == 0");
-				}
-				int headers = blockchainInfo.Result.Value<int>("headers");
-				if (headers == 0)
-				{
-					throw new NotSupportedException("headers == 0");
-				}
-				if (blocks != headers)
-				{
-					throw new NotSupportedException("blocks != headers");
-				}
-
-				if (await Global.RpcClient.SendCommandAsync("estimatesmartfee", 1, "ECONOMICAL") == null)
-				{
-					throw new NotSupportedException("estimatesmartfee 1 ECONOMICAL == null");
-				}
-			}
-			catch
-			{
-				Console.WriteLine("Bitcoin Core is not yet fully initialized.");
-				throw;
 			}
 		}
 	}
