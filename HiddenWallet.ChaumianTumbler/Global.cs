@@ -1,4 +1,5 @@
 ﻿using HiddenWallet.ChaumianTumbler.Configuration;
+using HiddenWallet.ChaumianTumbler.Referee;
 using HiddenWallet.ChaumianTumbler.Store;
 using HiddenWallet.Crypto;
 using HiddenWallet.Helpers;
@@ -15,9 +16,12 @@ namespace HiddenWallet.ChaumianTumbler
 	public static class Global
 	{
 		public static Config Config;
-		
+
 		public static CoinJoinStore CoinJoinStore;
 		public static string CoinJoinStorePath = Path.Combine(DataDir, "CoinJoins.json");
+		
+		public static UtxoReferee UtxoReferee;
+		public static string UtxoRefereePath = Path.Combine(DataDir, "BannedUtxos.json");
 
 		public static RPCClient RpcClient;
 

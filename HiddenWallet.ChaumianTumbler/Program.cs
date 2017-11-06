@@ -15,6 +15,7 @@ using System.Net;
 using HiddenWallet.ChaumianTumbler.Store;
 using System.Text;
 using HiddenWallet.Crypto;
+using HiddenWallet.ChaumianTumbler.Referee;
 
 namespace HiddenWallet.ChaumianTumbler
 {
@@ -58,6 +59,15 @@ namespace HiddenWallet.ChaumianTumbler
 				else
 				{
 					Global.CoinJoinStore = new CoinJoinStore();
+				}
+
+				if (File.Exists(Global.UtxoRefereePath))
+				{
+					Global.UtxoReferee = await UtxoReferee.CreateFromFileAsync(Global.UtxoRefereePath);
+				}
+				else
+				{
+					Global.UtxoReferee = new UtxoReferee();
 				}
 
 				Global.StateMachine = new TumblerStateMachine();

@@ -108,6 +108,11 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 							throw new ArgumentException("Input is already registered by another Alice");
 						}
 
+						if (Global.UtxoReferee.Utxos.Any(x => x.Hash == op.Hash && x.N == op.N))
+						{
+							throw new ArgumentException("Input is already registered by another Alice");
+						}
+
 						var txOutResponse = await Global.RpcClient.SendCommandAsync(RPCOperations.gettxout, op.Hash.ToString(), op.N, true);
 						// Check if inputs are unspent
 						if (txOutResponse.Result == null)
