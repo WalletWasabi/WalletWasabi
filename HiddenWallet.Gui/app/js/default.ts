@@ -1,13 +1,20 @@
 ﻿const packageJson = require('./package.json');
-document.title = "HiddenWallet " + packageJson.version + " - " + packageJson.author.name + " (EXPERIMENTAL)";
-document.getElementById("title").innerHTML = document.title;
+
+let title: string = `HiddenWallet ${packageJson.version} - ${packageJson.author.name}  (EXPERIMENTAL)`;
+
+let titleElement: HTMLElement = document.getElementById("title");
+
+titleElement.innerHTML = title;
+document.title = title;
 
 (function () {
-
     const remote = require('electron').remote;
 
     function init() {
-        document.getElementById("close-btn").addEventListener("click", function (e) {
+        let closeButton: HTMLElement = document.getElementById("close-btn");
+        let hideButton: HTMLElement = document.getElementById("hide-btn");
+
+        closeButton.addEventListener("click", function (e) {
             const window = remote.getCurrentWindow();
             const BrowserWindow = remote.BrowserWindow;
             var shutDownWindow = new BrowserWindow({ width: 300, height: 60, frame: true, resizable: false, title: "HiddenWallet", icon: __dirname + '/app/assets/TumbleBit.png' });
@@ -15,15 +22,17 @@ document.getElementById("title").innerHTML = document.title;
             shutDownWindow.focus();
             shutDownWindow.loadURL('file://' + __dirname + '/app/html/shutdown.html');
             window.hide();
-            //An exception thrown by shutdown means that the web service is offline - and therefore the shutdown call has succeeded
+
             try {
-                httpGetWallet("shutdown");
+                httpGetWallet("shutdown"); //An exception means the web service is offline and therefore shutdown has succeeded
             }
-            catch(e) { }
+            catch (e) { }
+
             shutDownWindow.close();
             window.close();
         });
-        document.getElementById("hide-btn").addEventListener("click", function (e) {
+
+        hideButton.addEventListener("click", function (e) {
             const window = remote.getCurrentWindow();
             window.close();
         });
@@ -36,11 +45,10 @@ document.getElementById("title").innerHTML = document.title;
     };
 })();
 
-function writeHint(message) {
-    document.getElementById('hint').innerHTML = message;
+function writeHint(message: string) {
+    let hint: HTMLElement = document.getElementById('hint');
+    hint.innerHTML = message;
 }
-
-'use strict';
 
 const electron = require('electron');
 const remote = electron.remote;
@@ -61,10 +69,12 @@ const CopyMenu = Menu.buildFromTemplate([{
 },
 ]);
 
-document.body.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    let node:any = e.target;
+document.body.addEventListener('contextmenu', (mouseEvent: MouseEvent) => {
+    mouseEvent.preventDefault();
+    mouseEvent.stopPropagation();
+
+    let node: HTMLInputElement = mouseEvent.target as HTMLInputElement;
+
     while (node) {
         if (node.nodeName.match(/^(input|textarea)$/i) || node.isContentEditable) {
             EditMenu.popup(remote.getCurrentWindow());
@@ -78,15 +88,15 @@ document.body.addEventListener('contextmenu', (e) => {
 });
 
 // Close the dropdown menu if the user clicks outside of it
-window.onclick = function (event) {
-    var eventTarget: any;
-    eventTarget = event.target;
-    if (!eventTarget.matches('.dropbtn')) {
+window.onclick = function (mouseEvent: MouseEvent) {
+    let eventTarget: HTMLElement = mouseEvent.target as HTMLElement;
 
-        var dropdowns = document.getElementsByClassName("dropdown-content");
-        var i;
-        for (i = 0; i < dropdowns.length; i++) {
-            var openDropdown = dropdowns[i];
+    if (eventTarget.className !== 'dropbtn') {
+
+        var dropdowns: HTMLCollectionOf<Element> = document.getElementsByClassName("dropdown-content");
+
+        for (let i: number = 0; i < dropdowns.length; i++) {
+            var openDropdown: Element = dropdowns[i];
             if (openDropdown.classList.contains('show')) {
                 openDropdown.classList.remove('show');
             }
