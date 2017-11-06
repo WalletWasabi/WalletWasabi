@@ -1,23 +1,26 @@
-function statusShow(progress, text, progressType = "") {
-    if (progressType == "") {
-        document.getElementById("status").innerHTML = '<div class="progress" style="margin:0"><div class="progress-bar" role="progressbar" style="width:' + progress + '%;"><span><strong>' + text + '</strong></span></div></div>';
+function statusShow(progress: number, text: string, progressType: string = "") {
+    var status: HTMLElement = document.getElementById("status");
+
+    if (progressType === "") {
+        status.innerHTML = `<div class="progress" style="margin:0"><div class="progress-bar" role="progressbar" style="width:${progress}%;"><span><strong>${text}</strong></span></div></div>`;
     }
     else {
-        document.getElementById("status").innerHTML = '<div class="progress" style="margin:0"><div class="progress-bar progress-bar-' + progressType + '" role="progressbar" style="width:' + progress + '%;"><span><strong>' + text + '</strong></span></div></div>';
+        status.innerHTML = `<div class="progress" style="margin:0"><div class="progress-bar progress-bar-${progressType}" role="progressbar" style="width:${progress}%;"><span><strong>${text}</strong></span></div></div>`;
     }
 }
 
-let blocksLeftToSync;
-let changeBump = 0;
-let walletState;
-let headerHeight;
-let trackingHeight;
-let connectedNodeCount;
-let memPoolTransactionCount;
-let torState;
+let blocksLeftToSync: string;
+let changeBump: number = 0;
+let walletState: string;
+let headerHeight: number;
+let trackingHeight: number;
+let connectedNodeCount: number;
+let memPoolTransactionCount: number;
+let torState: string;
+
 function periodicUpdate() {
     setInterval(function statusUpdate() {
-        let response = httpGetWallet("status");
+        let response: any = httpGetWallet("status");
 
         updateDecryptButton(response.TorState);
 
@@ -36,7 +39,7 @@ function periodicUpdate() {
                 }
             }
         }
-        
+
         walletState = response.WalletState;
         headerHeight = response.HeaderHeight;
         trackingHeight = response.TrackingHeight;
@@ -44,38 +47,48 @@ function periodicUpdate() {
         memPoolTransactionCount = response.MemPoolTransactionCount;
         torState = response.TorState;
 
-        let connectionText = "Connecting..."
+        let connectionText: string = "Connecting..."
+
         if (connectedNodeCount !== 0) {
-            connectionText = "Connections: " + connectedNodeCount;
+            connectionText = `Connections: ${connectedNodeCount}`;
         }
-        let blocksLeft = "-";
+
+        let blocksLeft: string = "-";
+
         if (trackingHeight !== 0) {
             blocksLeft = (headerHeight - trackingHeight).toString();
         }
+
         blocksLeftToSync = blocksLeft;
 
-        let text = "";
-        let progressType = "";
+        let text: string = "";
+        let progressType: string = "";
+
         if (walletState.toUpperCase() === "NotStarted".toUpperCase()) {
             progressType = "info";
             text = "Tor circuit established, Wallet is offline";
         }
+
         if (walletState.toUpperCase() === "SyncingHeaders".toUpperCase()) {
             progressType = "info progress-bar-striped active";
-            text = walletState + ", " + connectionText + ", Headers: " + headerHeight;
+            text = `${walletState}, ${connectionText}, Headers: ${headerHeight}`;
         }
+
         if (walletState.toUpperCase() === "SyncingBlocks".toUpperCase()) {
             progressType = "striped active";
-            text = walletState + ", " + connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft;
+            text = `${walletState}, ${connectionText}, Headers: ${headerHeight}, Blocks left: ${blocksLeft}`;
         }
+
         if (walletState.toUpperCase() === "SyncingMemPool".toUpperCase()) {
             progressType = "success"; // this is the default
-            text = connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft + ", MemPool txs: " + memPoolTransactionCount;
+            text = `${connectionText}, Headers: ${headerHeight}, Blocks left: ${blocksLeft}, MemPool txs: ${memPoolTransactionCount}`;
         }
+
         if (walletState.toUpperCase() === "Synced".toUpperCase()) {
             progressType = "success";
-            text = walletState + ", " + connectionText + ", Headers: " + headerHeight + ", Blocks left: " + blocksLeft + ", MemPool txs: " + memPoolTransactionCount;
+            text = `${walletState}, ${connectionText}, Headers: ${headerHeight}, Blocks left: ${blocksLeft}, MemPool txs: ${memPoolTransactionCount}`;
         }
+
         if (connectedNodeCount === 0 && walletState.toUpperCase() !== "NotStarted".toUpperCase()) {
             progressType = "info progress-bar-striped";
             text = "Connecting. . .";
@@ -84,9 +97,11 @@ function periodicUpdate() {
         if (torState.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
             statusShow(100, text, progressType);
         }
+
         if (torState.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
             statusShow(100, "Establishing Tor circuit...", progressType);
-        } 
+        }
+
         if (torState.toUpperCase() === "NotStarted".toUpperCase()) {
             statusShow(100, "Tor is not running", "danger");
         }
@@ -98,25 +113,28 @@ function periodicUpdate() {
     }, 1000);
 }
 
-function updateDecryptButton(ts) {
+function updateDecryptButton(ts: string) {
     try {
+        var decButton: HTMLButtonElement = document.getElementById("decrypt-wallet-button") as HTMLButtonElement;
+
         if (ts.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
-            if (document.getElementById("decrypt-wallet-button").innerText === "Waiting for Tor...") {
-                document.getElementById("decrypt-wallet-button").innerText = "Decrypt";
+            if (decButton.innerText === "Waiting for Tor...") {
+                decButton.innerText = "Decrypt";
             }
-            if (document.getElementById("decrypt-wallet-button").hasAttribute("disabled")) {
-                document.getElementById("decrypt-wallet-button").removeAttribute("disabled");
+
+            if (decButton.hasAttribute("disabled")) {
+                decButton.removeAttribute("disabled");
             }
         }
+
         if (ts.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
-            var element = <HTMLInputElement>document.getElementById("decrypt-wallet-button");
-            element.innerText = "Waiting for Tor...";
-            element.disabled = true;
+            decButton.innerText = "Waiting for Tor...";
+            decButton.disabled = true;
         }
+
         if (ts.toUpperCase() === "NotStarted".toUpperCase()) {
-            var element = <HTMLInputElement>document.getElementById("decrypt-wallet-button");
-            element.innerText = "Waiting for Tor...";
-            element.disabled = true;
+            decButton.innerText = "Waiting for Tor...";
+            decButton.disabled = true;
         }
     }
     catch (err) {

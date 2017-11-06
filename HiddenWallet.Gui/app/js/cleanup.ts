@@ -9,7 +9,7 @@ exports.Cleanup = function Cleanup(callback) {
     callback = callback || noOp;
 
     (process as NodeJS.EventEmitter).on('cleanup', callback);
-    
+
     (process as NodeJS.EventEmitter).on('exit', function () {
         process.emit('cleanup');
     });

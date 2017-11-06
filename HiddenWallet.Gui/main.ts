@@ -1,19 +1,20 @@
 ﻿import { app, BrowserWindow } from 'electron';
+import * as path from 'path';
+import * as url from 'url';
+import * as os from 'os';
+import * as childProcess from 'child_process';
 
-const path = require('path');
-const url = require('url');
-
-let openDevTools = false;
+let openDevTools: boolean = false;
 
 for (let arg of process.argv) {
-    if (arg == 'dev') {
+    if (arg === 'dev') {
         openDevTools = true;
     }
 }
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow;
+let mainWindow: Electron.BrowserWindow;
 
 function createWindow() {
     // Create the browser window.
@@ -62,20 +63,20 @@ app.on('activate', function () {
         createWindow();
     }
 });
+
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+let apiProcess: childProcess.ChildProcess;
 
-const os = require('os');
-var apiProcess;
 function startApi() {
-    var spawn = require('child_process').spawn;
     //  run server
     apipath = path.join(__dirname, '..//HiddenWallet.Daemon//bin//dist//current-target//HiddenWallet.Daemon');
+
     if (os.platform() === 'win32') {
         var apipath = path.join(__dirname, '..\\HiddenWallet.Daemon\\bin\\dist\\current-target\\HiddenWallet.Daemon.exe');
     }
 
-    apiProcess = spawn(apipath, {
+    apiProcess = childProcess.spawn(apipath, [], {
         detached: true
     });
 
@@ -89,6 +90,7 @@ function startApi() {
 
 // loads module and registers app specific cleanup callback...
 const cleanup = require('./app/js/cleanup').Cleanup(myCleanup);
+
 // defines app specific callback...
 function myCleanup() {
     writeLog('exit');

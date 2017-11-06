@@ -1,58 +1,80 @@
 ﻿function closeWindow() {
     window.close();
 }
- 
-let hex;
+
+let hex: any;
+
 require('electron').ipcRenderer.on('broadcast-response', (event, response) => {
     hex = response.Hex;
 
-    document.getElementById("fee").innerText = response.Fee;
+    let fee: HTMLElement = document.getElementById("fee");
+    let feePercent: HTMLElement = document.getElementById("fee-percent-of-sent");
+    let spends: HTMLElement = document.getElementById("spends-unconfirmed");
+    let transaction: HTMLElement = document.getElementById("transaction");
+
+    fee.innerText = response.Fee;
 
     if (parseFloat(response.FeePercentOfSent) > 1) {
-        document.getElementById("fee-percent-of-sent").classList.add("label-danger");
-        document.getElementById("fee").classList.add("label-danger");
+        feePercent.classList.add("label-danger");
+        fee.classList.add("label-danger");
     }
     else {
-        document.getElementById("fee-percent-of-sent").classList.add("label-warning");
-        document.getElementById("fee").classList.add("label-warning");
+        feePercent.classList.add("label-warning");
+        fee.classList.add("label-warning");
     }
-    document.getElementById("fee-percent-of-sent").innerText = response.FeePercentOfSent;
+
+    feePercent.innerText = response.FeePercentOfSent;
 
     if (response.SpendsUnconfirmed == true) {
-        document.getElementById("spends-unconfirmed").classList.add("label-danger");
+        spends.classList.add("label-danger");
     }
     else {
-        document.getElementById("spends-unconfirmed").classList.add("label-warning");
+        spends.classList.add("label-warning");
     }
-    document.getElementById("spends-unconfirmed").innerText = response.SpendsUnconfirmed;
-    document.getElementById("transaction").innerText = response.Transaction + "\n HEX: " + hex;
+
+    spends.innerText = response.SpendsUnconfirmed;
+
+    transaction.innerText =
+        `${response.Transaction} 
+
+HEX: ${hex}`;
+
 });
 
-class BroadcastTransaction {
-    hex: any;
-    quickSend: boolean;
+interface BroadcastTransaction {
+    Hex: any;
+    QuickSend: boolean;
 }
 
 function broadcastTransaction() {
-    document.getElementsByClassName("container").item(0).setAttribute("style", "pointer-events:none;");
-    document.getElementById("broadcast-button").innerHTML = '<span class="glyphicon glyphicon-refresh spinning"></span> Broadcasting...';
+    let broadcastButton: HTMLElement = document.getElementById("broadcast-button");
 
-    // MJH CHECK THIS WORKS - you changed Object() to BroadcastTransaction()
-    let obj = new BroadcastTransaction();
-    obj.hex = hex;
-    obj.quickSend = false;
+    let containerElement: Element = document.getElementsByClassName("container").item(0);
+
+    containerElement.setAttribute("style", "pointer-events:none;");
+
+    broadcastButton.innerHTML = '<span class="glyphicon glyphicon-refresh spinning"></span> Broadcasting...';
+
+    var obj: BroadcastTransaction = { Hex: hex, QuickSend: false };
+
     httpPostWalletAsync("send-transaction", obj, function (json) {
-        let result = httpPostWallet("send-transaction", obj);
+        let result: any = httpPostWallet("send-transaction", obj);
+
         if (result.Success) {
             alert("SUCCESS! Transaction is successfully broadcasted!");
         }
         else {
             let failText = "FAIL! " + result.Message;
+
             if (result.Details) {
-                failText = failText + "\n\nDetails:\n" + result.Details;
+                failText =
+                    `${failText} 
+
+Details: ${result.Details}`;
+
             }
             alert(failText);
         }
         window.close();
-    });    
+    });
 }
