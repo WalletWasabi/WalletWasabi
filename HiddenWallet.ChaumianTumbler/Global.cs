@@ -22,6 +22,8 @@ namespace HiddenWallet.ChaumianTumbler
 		
 		public static UtxoReferee UtxoReferee;
 		public static string UtxoRefereePath = Path.Combine(DataDir, "BannedUtxos.json");
+		public static Task UtxoRefereeJob;
+		public static CancellationTokenSource UtxoRefereeJobCancel;
 
 		public static RPCClient RpcClient;
 

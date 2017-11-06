@@ -69,6 +69,8 @@ namespace HiddenWallet.ChaumianTumbler
 				{
 					Global.UtxoReferee = new UtxoReferee();
 				}
+				Global.UtxoRefereeJobCancel = new CancellationTokenSource();
+				Global.UtxoRefereeJob = Global.UtxoReferee.StartAsync(Global.UtxoRefereeJobCancel.Token);
 
 				Global.StateMachine = new TumblerStateMachine();
 				Global.StateMachineJobCancel = new CancellationTokenSource();

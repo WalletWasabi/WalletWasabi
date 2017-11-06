@@ -12,6 +12,7 @@ using NBitcoin.RPC;
 using HiddenWallet.ChaumianTumbler.Store;
 using HiddenWallet.ChaumianTumbler.Clients;
 using Nito.AsyncEx;
+using HiddenWallet.ChaumianTumbler.Referee;
 
 namespace HiddenWallet.ChaumianTumbler.Controllers
 {
@@ -108,9 +109,12 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 							throw new ArgumentException("Input is already registered by another Alice");
 						}
 
-						if (Global.UtxoReferee.Utxos.Any(x => x.Hash == op.Hash && x.N == op.N))
+						BannedUtxo banned = Global.UtxoReferee.Utxos.FirstOrDefault(x => x.Utxo.Hash == op.Hash && x.Utxo.N == op.N);
+						if (banned != default(BannedUtxo))
 						{
-							throw new ArgumentException("Input is already registered by another Alice");
+							var maxBan = (int)TimeSpan.FromDays(30).TotalMinutes;
+							int banLeft = maxBan - (int)((DateTimeOffset.UtcNow - banned.TimeOfBan).TotalMinutes);
+							throw new ArgumentException($"Input is banned for {banLeft} minutes");
 						}
 
 						var txOutResponse = await Global.RpcClient.SendCommandAsync(RPCOperations.gettxout, op.Hash.ToString(), op.N, true);
@@ -359,22 +363,28 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					foreach (var signatureModel in request.Signatures)
 					{
 						var witness = new WitScript(signatureModel.Witness);
-						if(Global.StateMachine.CoinJoin.Inputs.Count <= signatureModel.Index)
+						if (Global.StateMachine.CoinJoin.Inputs.Count <= signatureModel.Index)
 						{
 							// round fails, ban alice
-							throw new NotImplementedException();
+							await Global.UtxoReferee.BanAliceAsync(alice);
+							Global.StateMachine.FallBackRound = true;
+							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
 						}
 						if(Global.StateMachine.CoinJoin.Inputs[signatureModel.Index].WitScript != default)
 						{
 							// round fails, ban alice
-							throw new NotImplementedException();
+							await Global.UtxoReferee.BanAliceAsync(alice);
+							Global.StateMachine.FallBackRound = true;
+							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
 						}
 						Global.StateMachine.CoinJoin.Inputs[signatureModel.Index].WitScript = witness;
 						var output = alice.Inputs.Single(x => x.OutPoint == Global.StateMachine.CoinJoin.Inputs[signatureModel.Index].PrevOut).Output;
 						if(!Script.VerifyScript(output.ScriptPubKey, Global.StateMachine.CoinJoin, signatureModel.Index, output.Value, ScriptVerify.Standard, SigHash.All))
 						{
 							// round fails, ban alice
-							throw new NotImplementedException();
+							await Global.UtxoReferee.BanAliceAsync(alice);
+							Global.StateMachine.FallBackRound = true;
+							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
 						}
 					}
 
