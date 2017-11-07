@@ -102,7 +102,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						{
 							throw new ArgumentException("Provided input is not unspent");
 						}
-						// Check if inputs are confirmed or part of previous CoinJoin
+						// Check if inputs are unconfirmed, if so check if they are part of previous CoinJoin
 						if (txOutResponse.Result.Value<int>("confirmations") <= 0)
 						{
 							if (!Global.CoinJoinStore.Transactions
