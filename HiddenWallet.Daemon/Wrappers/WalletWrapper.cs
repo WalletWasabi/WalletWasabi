@@ -99,6 +99,15 @@ namespace HiddenWallet.Daemon.Wrappers
 				_walletJobTask = _walletJob.StartAsync(_cts.Token);
 
 				await UpdateHistoryRelatedMembersAsync();
+
+				if(Network == Network.Main)
+				{
+					await _walletJob.SubscribeTumblerPhaseChangeAsync(Global.Config.ChaumianTumblerMainAddress);
+				}
+				else
+				{
+					await _walletJob.SubscribeTumblerPhaseChangeAsync(Global.Config.ChaumianTumblerTestNetAddress);
+				}
 			}
 		}
 

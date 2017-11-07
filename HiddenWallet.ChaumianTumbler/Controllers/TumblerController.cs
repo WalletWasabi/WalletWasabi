@@ -24,27 +24,6 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			return "test";
 		}
-
-		//	Used to simulate a client connecting. Returns ClientTest.html which contains JavaScript
-		//	to connect to the SignalR Hub - ChaumianTumblerHub. In real use the clients will connect 
-		//	directly to the hub via C# code in HiddenWallet.
-		[Route("client-test")]
-		[HttpGet]
-		public IActionResult ClientTest()
-		{
-			return View();
-		}
-
-		[Route("client-test-broadcast")]
-		[HttpGet]
-		public void TestBroadcast()
-		{
-			//	Trigger a call to the hub to broadcast a new state to the clients.
-			TumblerPhaseBroadcaster tumblerPhaseBroadcast = TumblerPhaseBroadcaster.Instance;
-
-			PhaseChangeBroadcast broadcast = new PhaseChangeBroadcast { NewPhase = TumblerPhase.OutputRegistration.ToString(), Message = "Just a test" };
-			tumblerPhaseBroadcast.Broadcast(broadcast); //If collection.Count > 3 a SignalR broadcast is made to clients that connected via client-test
-		}
 		
 		[Route("status")]
 		[HttpGet]

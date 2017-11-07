@@ -23,6 +23,7 @@ using HiddenWallet.FullSpv.Fees;
 using Nito.AsyncEx;
 using HiddenWallet.WebClients.SmartBit;
 using HiddenWallet.Helpers;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace HiddenWallet.FullSpv
 {
@@ -288,7 +289,7 @@ namespace HiddenWallet.FullSpv
             (await GetTrackerAsync()).BestHeightChanged += WalletJob_BestHeightChanged;
 		}
 
-        private async void TrackedTransactions_CollectionChangedAsync(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private async void TrackedTransactions_CollectionChangedAsync(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             await UpdateSafeTrackingAsync();
         }
@@ -356,32 +357,33 @@ namespace HiddenWallet.FullSpv
                 await Task.WhenAll(tasks);
             }
             finally
-            {
-                State = WalletState.NotStarted;
-                (await GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
-                MemPoolJob.Synced -= MemPoolJob_SyncedAsync;
-                MemPoolJob.NewTransaction -= MemPoolJob_NewTransactionAsync;
-                Nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
-                Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
-                (await GetTrackerAsync()).BestHeightChanged -= WalletJob_BestHeightChanged;
-                await SaveAllChangedAsync();
-                Nodes?.Dispose();
-                foreach(var task in tasks)
-                {
-                    task?.Dispose();
-                }
-                FeeService?.Dispose();
+			{
+				State = WalletState.NotStarted;
+				(await GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
+				MemPoolJob.Synced -= MemPoolJob_SyncedAsync;
+				MemPoolJob.NewTransaction -= MemPoolJob_NewTransactionAsync;
+				Nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
+				Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
+				(await GetTrackerAsync()).BestHeightChanged -= WalletJob_BestHeightChanged;
+				await SaveAllChangedAsync();
+				Nodes?.Dispose();
+				foreach (var task in tasks)
+				{
+					task?.Dispose();
+				}
+				FeeService?.Dispose();
 				TorSmartBitClient?.Dispose();
-                try
-                {
-                    ControlPortClient?.DisconnectDisposeSocket();
-                }
-                catch (Exception)
-                {
+				try
+				{
+					ControlPortClient?.DisconnectDisposeSocket();
+				}
+				catch (Exception)
+				{
 
-                }
-            }
-        }
+				}
+				await DisposeTumblerAsync();
+			}
+		}
 
 		#region SafeTracking
 
@@ -1280,6 +1282,65 @@ namespace HiddenWallet.FullSpv
 		{
 			public bool Success;
 			public string FailingReason;
+		}
+
+		#endregion
+
+		#region ChaumianCoinJoin
+
+		public HubConnection TumblerConnection { get; private set; } = null;
+
+		public async Task SubscribeTumblerPhaseChangeAsync(string address)
+		{
+			try
+			{
+				TumblerConnection = new HubConnectionBuilder()
+						.WithUrl(address)
+						.Build();
+
+				TumblerConnection.On<string>("PhaseChange", data =>
+				{
+					Debug.WriteLine($"Received: {data}");
+				});
+
+				await TumblerConnection.StartAsync();
+
+				TumblerConnection.Closed += TumblerConnection_ClosedAsync;
+			}
+			catch(Exception ex)
+			{
+				await DisposeTumblerAsync();
+				Debug.WriteLine(ex);
+			}
+		}
+
+		private async Task TumblerConnection_ClosedAsync(Exception arg)
+		{
+			await DisposeTumblerAsync();
+		}
+
+		private async Task DisposeTumblerAsync()
+		{
+			try
+			{
+				if (TumblerConnection != null)
+				{
+					try
+					{
+						TumblerConnection.Closed -= TumblerConnection_ClosedAsync;
+					}
+					catch (Exception)
+					{
+						
+					}
+					await TumblerConnection?.DisposeAsync();
+					TumblerConnection = null;
+				}
+			}
+			catch (Exception)
+			{
+
+			}
 		}
 
 		#endregion

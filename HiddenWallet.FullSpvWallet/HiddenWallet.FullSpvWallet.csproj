@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetTor" Version="2.2.4.1" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="1.0.0-alpha2-final" />
     <PackageReference Include="QBitNinja.Client" Version="1.0.3.39" />
   </ItemGroup>
 

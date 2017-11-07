@@ -1,25 +1,7 @@
 {
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:60948/",
-      "sslPort": 0
-    }
-  },
   "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "launchUrl": "api/v1/Tumbler/client-test",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
     "HiddenWallet.ChaumianTumbler": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "api/v1/Tumbler/client-test",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

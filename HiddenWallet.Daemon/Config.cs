@@ -25,6 +25,12 @@ namespace HiddenWallet.Daemon
 		[JsonConverter(typeof(FunnyBoolConverter))]
 		public bool? CanSpendUnconfirmed { get; set; }
 
+		[JsonProperty(PropertyName = "ChaumianTumblerTestNetAddress", Order = 4)]
+		public string ChaumianTumblerTestNetAddress { get; private set; }
+
+		[JsonProperty(PropertyName = "ChaumianTumblerMainAddress", Order = 5)]
+		public string ChaumianTumblerMainAddress { get; private set; }
+
 		public Config()
 		{
 
@@ -48,6 +54,8 @@ namespace HiddenWallet.Daemon
 			WalletFilePath = Path.Combine(FullSpvWallet.Global.DataDir, "Wallets", "Wallet.json");
 			Network = Network.Main;
 			CanSpendUnconfirmed = false;
+			ChaumianTumblerTestNetAddress = "http://localhost:60949/ChaumianTumbler"; // TODO: change it when active tumbler had been set up
+			ChaumianTumblerMainAddress = "http://localhost:60949/ChaumianTumbler"; // TODO: change it when active tumbler had been set up
 
 			if (!File.Exists(path))
 			{
@@ -61,6 +69,8 @@ namespace HiddenWallet.Daemon
 				WalletFilePath = config.WalletFilePath ?? WalletFilePath;
 				Network = config.Network ?? Network;
 				CanSpendUnconfirmed = config.CanSpendUnconfirmed ?? CanSpendUnconfirmed;
+				ChaumianTumblerTestNetAddress = config.ChaumianTumblerTestNetAddress ?? ChaumianTumblerTestNetAddress;
+				ChaumianTumblerMainAddress = config.ChaumianTumblerMainAddress ?? ChaumianTumblerMainAddress;
 			}
 
 			await ToFileAsync(path, cancel);

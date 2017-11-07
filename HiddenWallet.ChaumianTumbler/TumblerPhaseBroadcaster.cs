@@ -40,7 +40,7 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			IClientProxy proxy = _context.Clients.All;
 			string json = JsonConvert.SerializeObject(broadcast);
-			proxy.InvokeAsync("phaseChange", json);
+			proxy.InvokeAsync("PhaseChange", json);
 		}
 	}
 }
