@@ -1,8 +1,8 @@
 ﻿using ConcurrentCollections;
 using HiddenWallet.ChaumianCoinJoin;
+using HiddenWallet.ChaumianCoinJoin.Models;
 using HiddenWallet.ChaumianTumbler.Clients;
 using HiddenWallet.ChaumianTumbler.Configuration;
-using HiddenWallet.ChaumianTumbler.Models;
 using HiddenWallet.Helpers;
 using HiddenWallet.WebClients.SmartBit;
 using NBitcoin;

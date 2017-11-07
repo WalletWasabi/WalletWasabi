@@ -54,8 +54,8 @@ namespace HiddenWallet.Daemon
 			WalletFilePath = Path.Combine(FullSpvWallet.Global.DataDir, "Wallets", "Wallet.json");
 			Network = Network.Main;
 			CanSpendUnconfirmed = false;
-			ChaumianTumblerTestNetAddress = "http://localhost:60949/ChaumianTumbler"; // TODO: change it when active tumbler had been set up
-			ChaumianTumblerMainAddress = "http://localhost:60949/ChaumianTumbler"; // TODO: change it when active tumbler had been set up
+			ChaumianTumblerTestNetAddress = "http://localhost:60949/"; // TODO: change it when active tumbler had been set up
+			ChaumianTumblerMainAddress = "http://localhost:60949/"; // TODO: change it when active tumbler had been set up
 
 			if (!File.Exists(path))
 			{

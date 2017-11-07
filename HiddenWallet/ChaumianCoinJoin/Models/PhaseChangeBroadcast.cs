@@ -1,4 +1,4 @@
-﻿namespace HiddenWallet.ChaumianTumbler.Models
+﻿namespace HiddenWallet.ChaumianCoinJoin.Models
 {
 	public class PhaseChangeBroadcast
 	{

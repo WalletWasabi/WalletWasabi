@@ -1,17 +1,23 @@
-﻿using HiddenWallet.FullSpv;
+﻿using HiddenWallet.ChaumianCoinJoin;
+using HiddenWallet.FullSpv;
+using HiddenWallet.KeyManagement;
 using Microsoft.AspNetCore.SignalR.Client;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 {
-    public class CoinJoinService
+	public class CoinJoinService
 	{
 		public HubConnection TumblerConnection { get; private set; }
 		public WalletJob WalletJob { get; private set; }
+		public ChaumianTumblerClient TumblerClient { get; private set; }
+		public string BaseAddress { get; private set; }
 
 		public CoinJoinService(WalletJob walletJob)
 		{
@@ -19,12 +25,20 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 			WalletJob = walletJob ?? throw new ArgumentNullException(nameof(walletJob));
 		}
 
-		public async Task SubscribePhaseChangeAsync(string address)
+		public void SetConnection(string address, HttpMessageHandler handler, bool disposeHandler = false)
+		{
+			BaseAddress = address.EndsWith('/') ? address : address + "/";
+			TumblerClient = new ChaumianTumblerClient(BaseAddress, handler, disposeHandler);
+		}
+
+		#region Notifications
+
+		public async Task SubscribePhaseChangeAsync()
 		{
 			try
 			{
 				TumblerConnection = new HubConnectionBuilder()
-						.WithUrl(address)
+						.WithUrl(BaseAddress + "ChaumianTumbler")
 						.Build();
 
 				TumblerConnection.On<string>("PhaseChange", data =>
@@ -48,6 +62,24 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 			await DisposeAsync();
 		}
 
+		#endregion
+		
+		#region Tumbling
+
+		public async Task TumbleAsync(Money amount, SafeAccount from, SafeAccount to)
+		{
+			if (amount == null) throw new ArgumentNullException(nameof(amount));
+			if (from == null) throw new ArgumentNullException(nameof(from));
+			if (to == null) throw new ArgumentNullException(nameof(to));
+			
+			// wait until blocks and mempool are synced
+
+
+			throw new NotImplementedException();
+		}
+
+		#endregion
+
 		#region Disposing
 
 		public async Task DisposeAsync()
@@ -67,6 +99,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					await TumblerConnection?.DisposeAsync();
 					TumblerConnection = null;
 				}
+				TumblerClient?.Dispose();
 			}
 			catch (Exception)
 			{

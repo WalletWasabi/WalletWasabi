@@ -100,15 +100,19 @@ namespace HiddenWallet.Daemon.Wrappers
 
 				await UpdateHistoryRelatedMembersAsync();
 
+				
 				if(Network == Network.Main)
 				{
-					await _walletJob.CoinJoinService.SubscribePhaseChangeAsync(Global.Config.ChaumianTumblerMainAddress);
+					_walletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerMainAddress, Tor.SocksPortHandler, disposeHandler: false);
 				}
 				else
 				{
-					await _walletJob.CoinJoinService.SubscribePhaseChangeAsync(Global.Config.ChaumianTumblerTestNetAddress);
+					_walletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerTestNetAddress, Tor.SocksPortHandler, disposeHandler: false);
 				}
+				await _walletJob.CoinJoinService.SubscribePhaseChangeAsync();
 			}
+
+			var status = await _walletJob.CoinJoinService.TumblerClient.GetStatusAsync(CancellationToken.None);
 		}
 
 		public async Task RecoverAsync(string password, string mnemonic, string creationTime)

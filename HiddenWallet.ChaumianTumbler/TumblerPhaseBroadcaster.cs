@@ -1,4 +1,4 @@
-﻿using HiddenWallet.ChaumianTumbler.Models;
+﻿using HiddenWallet.ChaumianCoinJoin.Models;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using System;

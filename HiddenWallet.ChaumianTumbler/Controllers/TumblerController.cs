@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using HiddenWallet.SharedApi.Models;
-using HiddenWallet.ChaumianTumbler.Models;
+using HiddenWallet.ChaumianCoinJoin.Models;
 using HiddenWallet.ChaumianCoinJoin;
 using Org.BouncyCastle.Utilities.Encoders;
 using NBitcoin;
