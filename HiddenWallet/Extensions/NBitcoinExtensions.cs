@@ -20,11 +20,5 @@ namespace NBitcoin
 			if (me == null) throw new ArgumentNullException(nameof(me));
 			me.FromBytes(HexHelpers.GetBytes(hex));
 		}
-
-		public static bool VerifyMessage(this BitcoinWitPubKeyAddress me, string message, string signature)
-		{
-			var key = PubKey.RecoverFromMessage(message, signature);
-			return key.Hash == me.Hash;
-		}
 	}
 }
