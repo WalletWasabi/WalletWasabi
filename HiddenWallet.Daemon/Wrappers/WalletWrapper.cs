@@ -102,11 +102,11 @@ namespace HiddenWallet.Daemon.Wrappers
 
 				if(Network == Network.Main)
 				{
-					await _walletJob.SubscribeTumblerPhaseChangeAsync(Global.Config.ChaumianTumblerMainAddress);
+					await _walletJob.CoinJoinService.SubscribePhaseChangeAsync(Global.Config.ChaumianTumblerMainAddress);
 				}
 				else
 				{
-					await _walletJob.SubscribeTumblerPhaseChangeAsync(Global.Config.ChaumianTumblerTestNetAddress);
+					await _walletJob.CoinJoinService.SubscribePhaseChangeAsync(Global.Config.ChaumianTumblerTestNetAddress);
 				}
 			}
 		}

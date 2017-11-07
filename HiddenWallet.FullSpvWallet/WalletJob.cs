@@ -24,6 +24,7 @@ using Nito.AsyncEx;
 using HiddenWallet.WebClients.SmartBit;
 using HiddenWallet.Helpers;
 using Microsoft.AspNetCore.SignalR.Client;
+using HiddenWallet.FullSpvWallet.ChaumianCoinJoin;
 
 namespace HiddenWallet.FullSpv
 {
@@ -41,6 +42,8 @@ namespace HiddenWallet.FullSpv
 		public DotNetTor.ControlPort.Client ControlPortClient { get; private set; }
 
 		public BlockDownloader BlockDownloader;
+
+		public CoinJoinService CoinJoinService;
 
 		public FeeService FeeService;
 
@@ -243,6 +246,8 @@ namespace HiddenWallet.FullSpv
 
 			FeeService = new FeeService(safeToTrack.Network, ControlPortClient, disposeTorControl: false, handler: handler, disposeHandler: false);
 
+			CoinJoinService = new CoinJoinService(this);
+
             if (accountsToTrack == null || accountsToTrack.Count() < 2)
 			{
 
@@ -381,7 +386,7 @@ namespace HiddenWallet.FullSpv
 				{
 
 				}
-				await DisposeTumblerAsync();
+				await CoinJoinService.DisposeAsync();
 			}
 		}
 
@@ -1282,65 +1287,6 @@ namespace HiddenWallet.FullSpv
 		{
 			public bool Success;
 			public string FailingReason;
-		}
-
-		#endregion
-
-		#region ChaumianCoinJoin
-
-		public HubConnection TumblerConnection { get; private set; } = null;
-
-		public async Task SubscribeTumblerPhaseChangeAsync(string address)
-		{
-			try
-			{
-				TumblerConnection = new HubConnectionBuilder()
-						.WithUrl(address)
-						.Build();
-
-				TumblerConnection.On<string>("PhaseChange", data =>
-				{
-					Debug.WriteLine($"Received: {data}");
-				});
-
-				await TumblerConnection.StartAsync();
-
-				TumblerConnection.Closed += TumblerConnection_ClosedAsync;
-			}
-			catch(Exception ex)
-			{
-				await DisposeTumblerAsync();
-				Debug.WriteLine(ex);
-			}
-		}
-
-		private async Task TumblerConnection_ClosedAsync(Exception arg)
-		{
-			await DisposeTumblerAsync();
-		}
-
-		private async Task DisposeTumblerAsync()
-		{
-			try
-			{
-				if (TumblerConnection != null)
-				{
-					try
-					{
-						TumblerConnection.Closed -= TumblerConnection_ClosedAsync;
-					}
-					catch (Exception)
-					{
-						
-					}
-					await TumblerConnection?.DisposeAsync();
-					TumblerConnection = null;
-				}
-			}
-			catch (Exception)
-			{
-
-			}
 		}
 
 		#endregion
