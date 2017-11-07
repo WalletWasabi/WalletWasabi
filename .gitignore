@@ -255,3 +255,4 @@ tor
 /HiddenWallet.Gui/Config.json
 /HiddenWallet.Daemon/Config.json
 /HiddenWallet.Gui/**/*.js
+/HiddenWallet.Gui/package-lock.json
