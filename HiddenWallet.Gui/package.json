@@ -7,12 +7,12 @@
     "name": "nopara73 <adam.ficsor73@gmail.com>"
   },
   "devDependencies": {
-    "electron": "^1.7.8",
-    "electron-builder": "^19.31.1"
+    "electron": "^1.7.9",
+    "electron-builder": "^19.45.4"
   },
   "dependencies": {
     "bootstrap": "^3.3.7",
-    "electron-json-storage": "^3.1.1",
+    "electron-json-storage": "^4.0.2",
     "jquery": "^3.2.1",
     "mdi": "^2.0.46"
   },
