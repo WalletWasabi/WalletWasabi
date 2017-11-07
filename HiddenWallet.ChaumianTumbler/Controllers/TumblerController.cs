@@ -273,7 +273,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					{
 						if (Global.StateMachine.Alices.Count == Global.StateMachine.Bobs.Count)
 						{
-							Global.StateMachine.UpdatePhase(TumblerPhase.OutputRegistration);
+							Global.StateMachine.UpdatePhase(TumblerPhase.Signing);
 						}
 					}
 				}
