@@ -111,8 +111,6 @@ namespace HiddenWallet.Daemon.Wrappers
 				}
 				await _walletJob.CoinJoinService.SubscribePhaseChangeAsync();
 			}
-
-			var status = await _walletJob.CoinJoinService.TumblerClient.GetStatusAsync(CancellationToken.None);
 		}
 
 		public async Task RecoverAsync(string password, string mnemonic, string creationTime)

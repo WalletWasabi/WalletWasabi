@@ -66,14 +66,19 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		
 		#region Tumbling
 
-		public async Task TumbleAsync(Money amount, SafeAccount from, SafeAccount to)
+		/// <summary>
+		/// Participates one tumbling round
+		/// </summary>
+		public async Task TumbleAsync(SafeAccount from, SafeAccount to)
 		{
-			if (amount == null) throw new ArgumentNullException(nameof(amount));
 			if (from == null) throw new ArgumentNullException(nameof(from));
 			if (to == null) throw new ArgumentNullException(nameof(to));
 			
-			// wait until blocks and mempool are synced
-
+			// if blocks are not synced yet throw
+			if(WalletJob.State < WalletState.SyncingMemPool)
+			{
+				throw new InvalidOperationException("Blocks are not synced");
+			}
 
 			throw new NotImplementedException();
 		}
