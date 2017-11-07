@@ -40,7 +40,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					MaximumInputsPerAlices = (int)Global.Config.MaximumInputsPerAlices,
 					FeePerInputs = Global.StateMachine.FeePerInputs.ToString(fplus: false, trimExcessZero: true),
 					FeePerOutputs = Global.StateMachine.FeePerOutputs.ToString(fplus: false, trimExcessZero: true),
-					Version = "v1" // client should check and if the version is newer then client should update its software
+					Version = "1" // client should check and if the version is newer then client should update its software
 				});
 			}
 			catch (Exception ex)
