@@ -48,7 +48,6 @@ namespace HiddenWallet.Tests
 				Assert.InRange(response.MediumFee.FeePerK, response.LowFee.FeePerK, response.HighFee.FeePerK);
 				Assert.InRange(response.HighFee.FeePerK, response.MediumFee.FeePerK, new Money(0.1m, MoneyUnit.BTC));
 				Assert.True(response.Height >= 491999);
-				Assert.True(response.LastForkHeight >= 491362);
 				Assert.Equal(new Uri(client.BaseAddress.ToString().Replace("http", "https") + "/blocks/" + response.Hash.ToString()), response.LatestUrl);
 				Assert.Equal(new Uri(client.BaseAddress.ToString().Replace("http", "https") + "/blocks/" + response.PreviousHash.ToString()), response.PreviousUrl);
 				if(network == Network.Main)
