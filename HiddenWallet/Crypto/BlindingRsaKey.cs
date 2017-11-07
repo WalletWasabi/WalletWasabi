@@ -65,7 +65,7 @@ namespace HiddenWallet.Crypto
 		public byte[] SignBlindedData(byte[] blindedData)
 		{
 			var signer = new RsaEngine();
-			signer.Init(forEncryption: true, parameters: KeyPair.Private);
+			signer.Init(forEncryption: false, parameters: KeyPair.Private);
 			return signer.ProcessBlock(blindedData, 0, blindedData.Length);
 		}
 
