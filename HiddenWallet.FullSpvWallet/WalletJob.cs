@@ -459,7 +459,7 @@ namespace HiddenWallet.FullSpv
 
                     TimeStamp = !transaction.Confirmed
                     ? transaction.GetFirstSeenIfMemPoolHeight() ?? DateTimeOffset.UtcNow
-                    : (await GetHeaderChainAsync()).GetBlock(transaction.Height).Header.BlockTime,
+                    : (await GetHeaderChainAsync())?.GetBlock(transaction.Height)?.Header?.BlockTime ?? DateTimeOffset.UtcNow,
 
                     Amount = Money.Zero //for now
                 };
