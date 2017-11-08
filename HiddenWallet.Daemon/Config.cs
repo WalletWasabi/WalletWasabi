@@ -1,4 +1,5 @@
 ﻿using HiddenWallet.Converters;
+using HiddenWallet.Crypto;
 using NBitcoin;
 using Newtonsoft.Json;
 using System;

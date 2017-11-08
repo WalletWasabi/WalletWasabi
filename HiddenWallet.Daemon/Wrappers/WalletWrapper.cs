@@ -103,11 +103,11 @@ namespace HiddenWallet.Daemon.Wrappers
 				
 				if(Network == Network.Main)
 				{
-					_walletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerMainAddress, Tor.SocksPortHandler, disposeHandler: false);
+					_walletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerMainAddress, Global.RsaPubKey, Tor.SocksPortHandler, disposeHandler: false);
 				}
 				else
 				{
-					_walletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerTestNetAddress, Tor.SocksPortHandler, disposeHandler: false);
+					_walletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerTestNetAddress, Global.RsaPubKey, Tor.SocksPortHandler, disposeHandler: false);
 				}
 				await _walletJob.CoinJoinService.SubscribePhaseChangeAsync();
 			}
@@ -276,6 +276,9 @@ namespace HiddenWallet.Daemon.Wrappers
 
 		public async Task<BaseResponse> BuildTransactionAsync(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType)
 		{
+			// todo: delete this code comment, it was just a test, if you see it, I forgot to delete it
+			// await _walletJob.CoinJoinService.TumbleAsync(AliceAccount, BobAccount, CancellationToken.None);
+
 			if (password != _password) throw new InvalidOperationException("Wrong password");
 			var result = await _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, (bool)Global.Config.CanSpendUnconfirmed);
 

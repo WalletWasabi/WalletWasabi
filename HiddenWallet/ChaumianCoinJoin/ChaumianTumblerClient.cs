@@ -63,6 +63,27 @@ namespace HiddenWallet.ChaumianCoinJoin
 			}
 		}
 
+		public async Task<InputsResponse> PostInputsAsync(InputsRequest request, CancellationToken cancel)
+		{
+			using (await _asyncLock.LockAsync())
+			{
+				string requestJsonString = JsonConvert.SerializeObject(request);
+				var content = new StringContent(
+					requestJsonString,
+					Encoding.UTF8,
+					"application/json");
+
+				HttpResponseMessage response =
+						await HttpClient.PostAsync("inputs", content, cancel);
+
+				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
+				string responseString = await response.Content.ReadAsStringAsync();
+				AssertSuccess(responseString);
+
+				return JsonConvert.DeserializeObject<InputsResponse>(responseString);
+			}
+		}
+
 		public async Task<InputRegistrationStatusResponse> GetInputRegistrationStatusAsync(CancellationToken cancel)
 		{
 			using (await _asyncLock.LockAsync())

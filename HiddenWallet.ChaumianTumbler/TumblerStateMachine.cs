@@ -207,7 +207,14 @@ namespace HiddenWallet.ChaumianTumbler
 					var exchangeRates = await SmartBitClient.GetExchangeRatesAsync(cancel);
 					decimal price = exchangeRates.Single(x => x.Code == "USD").Rate;
 					decimal denominationUSD = (decimal)Global.Config.DenominationUSD;
-					decimal denominationBTC = Math.Round(denominationUSD / price, 2);
+
+					decimal denominationBTC = 0;
+					var i = 1;
+					while(denominationBTC == 0 && i <= 8)
+					{
+						denominationBTC = Math.Round(denominationUSD / price, i);
+						i++;
+					}
 					Denomination = new Money(denominationBTC, MoneyUnit.BTC);
 				}
 				catch

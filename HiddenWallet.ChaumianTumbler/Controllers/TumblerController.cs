@@ -31,10 +31,12 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		{
 			try
 			{
+				Money denomination = Global.StateMachine.Denomination;
+				string denominationSting = denomination.ToString(fplus: false, trimExcessZero: true);
 				return new JsonResult(new StatusResponse
 				{
 					Phase = Global.StateMachine.Phase.ToString(),
-					Denomination = Global.StateMachine.Denomination.ToString(fplus: false, trimExcessZero: true),
+					Denomination = denominationSting,
 					AnonymitySet = Global.StateMachine.AnonymitySet,
 					TimeSpentInInputRegistrationInSeconds = (int)Global.StateMachine.TimeSpentInInputRegistration.TotalSeconds,
 					MaximumInputsPerAlices = (int)Global.Config.MaximumInputsPerAlices,
@@ -52,7 +54,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		private readonly AsyncLock InputRegistrationLock = new AsyncLock();
 		[Route("inputs")]
 		[HttpPost]
-		public async Task<IActionResult> InputsAsync(InputsRequest request)
+		public async Task<IActionResult> InputsAsync([FromBody]InputsRequest request)
 		{
 			try
 			{
@@ -209,7 +211,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 		[Route("connection-confirmation")]
 		[HttpPost]
-		public IActionResult ConnectionConfirmation(ConnectionConfirmationRequest request)
+		public IActionResult ConnectionConfirmation([FromBody]ConnectionConfirmationRequest request)
 		{
 			try
 			{
@@ -248,7 +250,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 		[Route("output")]
 		[HttpPost]
-		public IActionResult Output(OutputRequest request)
+		public IActionResult Output([FromBody]OutputRequest request)
 		{
 			try
 			{
@@ -323,7 +325,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		private readonly AsyncLock SignatureProvidedAsyncLock = new AsyncLock();
 		[Route("signature")]
 		[HttpPost]
-		public async Task<IActionResult> SignatureAsync(SignatureRequest request)
+		public async Task<IActionResult> SignatureAsync([FromBody]SignatureRequest request)
 		{
 			try
 			{
