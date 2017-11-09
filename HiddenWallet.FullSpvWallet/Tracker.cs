@@ -341,7 +341,8 @@ namespace HiddenWallet.FullSpv
 					foreach (var line in await File.ReadAllLinesAsync(tt))
 					{
 						var pieces = line.Split(':');
-						ProcessTransaction(new SmartTransaction(new Transaction(pieces[0]), new Height(pieces[1])));
+						var tx = new SmartTransaction(new Transaction(pieces[0]), new Height(pieces[1]));
+						TrackedTransactions.TryAdd(tx);
 					}
 				}
 
