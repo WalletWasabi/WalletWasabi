@@ -136,7 +136,7 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			get
 			{
-				if (_dataDir != null) return _dataDir;
+				if (!string.IsNullOrWhiteSpace(_dataDir)) return _dataDir;
 
 				_dataDir = EnvironmentHelpers.GetDataDir("ChaumianTumbler");
 
