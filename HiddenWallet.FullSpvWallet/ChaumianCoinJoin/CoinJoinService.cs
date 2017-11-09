@@ -1,4 +1,5 @@
-﻿using HiddenWallet.ChaumianCoinJoin;
+﻿using ConcurrentCollections;
+using HiddenWallet.ChaumianCoinJoin;
 using HiddenWallet.ChaumianCoinJoin.Models;
 using HiddenWallet.Crypto;
 using HiddenWallet.FullSpv;
@@ -34,6 +35,15 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 		private volatile bool _tumblingInProcess;
 		public volatile TumblerPhase Phase;
+
+		public Money Denomination { get; private set; }
+		public string UniqueAliceId { get; private set; }
+		public BitcoinAddress ActiveOutput { get; private set; }
+		public BitcoinAddress ChangeOutput { get; private set; }
+		public Money ChangeOutputExpectedValue { get; private set; }
+		public ConcurrentHashSet<BitcoinExtKey> SigningKeys { get; private set; }
+		public ConcurrentHashSet<Coin> Inputs { get; private set; }
+		public string UnblindedSignature { get; private set; }
 
 		public CoinJoinService(WalletJob walletJob)
 		{
@@ -168,21 +178,20 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					if (phase == TumblerPhase.InputRegistration)
 					{
 						StatusResponse status = await TumblerClient.GetStatusAsync(cancel);
+						// TODO: only native segwit (p2wpkh) inputs are accepted by the tumbler (later wrapped segwit (p2sh-p2wpkh) will be accepted too)
 						var getBalanceResult = await WalletJob.GetBalanceAsync(From);
 						var balance = getBalanceResult.Available.Confirmed + getBalanceResult.Available.Unconfirmed;
-						var denomination = Money.Parse(status.Denomination);
+						Denomination = Money.Parse(status.Denomination);
 						var feePerInputs = Money.Parse(status.FeePerInputs);
 						var feePerOutputs = Money.Parse(status.FeePerOutputs);
-						Money needed = denomination + (feePerInputs * getBalanceResult.UnspentCoins.Count) + (feePerOutputs * 2);
-						if (balance < needed) // TODO: only native segwit (p2wpkh) inputs are accepted by the tumbler (later wrapped segwit (p2sh-p2wpkh) will be accepted too)
-						{
-							throw new InvalidOperationException("Not enough coins");
-						}
+
 						IEnumerable<Script> unusedOutputs = await WalletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, To, HdPathType.NonHardened);
-						Script output = unusedOutputs.RandomElement(); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
-						var blindingResult = PubKey.Blind(output.ToBytes());
+						Script activeOutput = unusedOutputs.RandomElement(); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
+						var blindingResult = PubKey.Blind(activeOutput.ToBytes());
 						string blindedOutput = HexHelpers.ToString(blindingResult.BlindedData);
 
+						SigningKeys = new ConcurrentHashSet<BitcoinExtKey>();
+						Inputs = new ConcurrentHashSet<Coin>();
 						var inputs = new List<InputProofModel>();
 						var i = 0;
 						Money sumAmounts = Money.Zero;
@@ -197,49 +206,104 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 								throw new InvalidOperationException($"Maximum {status.MaximumInputsPerAlices} can be registered");
 							}
 
+							Money needed = Denomination + (feePerInputs * i) + (feePerOutputs * 2);
+							
+							Inputs.Add(coin);
 							var input = coin.Outpoint.ToHex();
 							BitcoinExtKey privateExtKey = WalletJob.Safe.FindPrivateKey(coin.ScriptPubKey.GetDestinationAddress(WalletJob.CurrentNetwork), (await WalletJob.GetTrackerAsync()).TrackedScriptPubKeys.Count, From);
+							SigningKeys.Add(privateExtKey);
 							var proof = privateExtKey.PrivateKey.SignMessage(blindedOutput);
 							inputs.Add(new InputProofModel { Input = input, Proof = proof });
 
 							sumAmounts += coin.Amount;
 							if (sumAmounts >= needed)
 							{
+								ChangeOutputExpectedValue = sumAmounts - needed;
 								break;
+							}
+
+							if (i == getBalanceResult.UnspentCoins.Count)
+							{
+								throw new InvalidOperationException("Not enough coins to participate in mix");
 							}
 						}
 
 						IEnumerable<Script> changeOutputCandidates = await WalletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, From, HdPathType.Change);
 						Script changeOutputScript = changeOutputCandidates.RandomElement(); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
-						BitcoinAddress changeOutput = changeOutputScript.GetDestinationAddress(WalletJob.CurrentNetwork);
+						ChangeOutput = changeOutputScript.GetDestinationAddress(WalletJob.CurrentNetwork);
 
 						var request = new InputsRequest
 						{
-							ChangeOutput = changeOutput.ToString(),
+							ChangeOutput = ChangeOutput.ToString(),
 							BlindedOutput = blindedOutput,
 							Inputs = inputs.ToArray()
 						};
 						var response = await TumblerClient.PostInputsAsync(request, cancel);
+						UniqueAliceId = response.UniqueId;
 						
 						// unblind the signature
 						var unblindedSignature = PubKey.UnblindSignature(HexHelpers.GetBytes(response.SignedBlindedOutput), blindingResult.BlindingFactor);
 						// verify the original data is signed
-						if (!PubKey.Verify(unblindedSignature, output.ToBytes()))
+						if (!PubKey.Verify(unblindedSignature, activeOutput.ToBytes()))
 						{
 							throw new HttpRequestException("Tumbler did not sign the blinded output properly");
 						}
+						UnblindedSignature = HexHelpers.ToString(unblindedSignature);
+						ActiveOutput = activeOutput.GetDestinationAddress(WalletJob.CurrentNetwork);
 					}
 					else if (phase == TumblerPhase.ConnectionConfirmation)
 					{
-						throw new NotImplementedException();
+						var request = new ConnectionConfirmationRequest
+						{
+							UniqueId = UniqueAliceId
+						};
+						await TumblerClient.PostConnectionConfirmationAsync(request, cancel);
 					}
 					else if (phase == TumblerPhase.OutputRegistration)
 					{
-						throw new NotImplementedException();
+						var request = new OutputRequest
+						{
+							Output = ActiveOutput.ToString(),
+							Signature = UnblindedSignature
+						};
+						await TumblerClient.PostOutputAsync(request, cancel);
 					}
 					else if (phase == TumblerPhase.Signing)
 					{
-						throw new NotImplementedException();
+						var request = new CoinJoinRequest
+						{
+							UniqueId = UniqueAliceId
+						};
+						var coinjoin = new Transaction((await TumblerClient.PostCoinJoinAsync(request, cancel)).Transaction);
+						if(!(coinjoin.Outputs.Any(x=>x.ScriptPubKey == ActiveOutput.ScriptPubKey && x.Value >= Denomination)))
+						{
+							throw new InvalidOperationException("Tumbler did not add enough value to the active output");
+						}
+						if (!(coinjoin.Outputs.Any(x => x.ScriptPubKey == ChangeOutput.ScriptPubKey && x.Value >= ChangeOutputExpectedValue)))
+						{
+							throw new InvalidOperationException("Tumbler did not add enough value to the change output");
+						}
+
+						new TransactionBuilder()
+							.AddKeys(SigningKeys.ToArray())
+							.AddCoins(Inputs)
+							.SignTransactionInPlace(coinjoin, SigHash.All);
+
+						var witnesses = new HashSet<(string Witness, int Index)>();
+						for (int i = 0; i < coinjoin.Inputs.Count; i++)
+						{
+							if(coinjoin.Inputs[i].WitScript != null)
+							{
+								witnesses.Add((coinjoin.Inputs[i].WitScript.ToString(), i));
+							}
+						}
+
+						var sigRequest = new SignatureRequest
+						{
+							UniqueId = UniqueAliceId,
+							Signatures = witnesses
+						};
+						await TumblerClient.PostSignatureAsync(sigRequest, cancel);
 					}
 					else throw new NotSupportedException("This should never happen");
 				}

@@ -385,6 +385,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 							{
 								failed = false;
 								state = CoinJoinTransactionState.Succeeded;
+								Console.WriteLine($"Propagated transaction: {Global.StateMachine.CoinJoin.GetHash()}");
 							}
 							Global.CoinJoinStore.Transactions.Add(new CoinJoinTransaction
 							{
