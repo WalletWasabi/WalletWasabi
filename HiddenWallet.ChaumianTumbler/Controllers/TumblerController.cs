@@ -64,8 +64,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				}
 
 				// Check not nulls
-				if (request.BlindedOutput == null) return new BadRequestResult();
-				if (request.ChangeOutput == null) return new BadRequestResult();
+				if (string.IsNullOrWhiteSpace(request.BlindedOutput)) return new BadRequestResult();
+				if (string.IsNullOrWhiteSpace(request.ChangeOutput)) return new BadRequestResult();
 				if (request.Inputs == null || request.Inputs.Count() == 0) return new BadRequestResult();
 
 				// Check format (parse everyting))
@@ -99,8 +99,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						}
 
 						var txOutResponse = await Global.RpcClient.SendCommandAsync(RPCOperations.gettxout, op.Hash.ToString(), op.N, true);
-						// Check if inputs are unspent
-						if (txOutResponse.Result == null)
+						// Check if inputs are unspent						
+						if (string.IsNullOrWhiteSpace(txOutResponse?.ResultString))
 						{
 							throw new ArgumentException("Provided input is not unspent");
 						}
@@ -220,7 +220,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
 				}
 
-				if (request.UniqueId == null) return new BadRequestResult();
+				if (string.IsNullOrWhiteSpace(request.UniqueId)) return new BadRequestResult();
 				Alice alice = Global.StateMachine.FindAlice(request.UniqueId, throwException: true);
 
 				if (alice.State == AliceState.ConnectionConfirmed)
@@ -259,8 +259,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
 				}
 
-				if (request.Output == null) return new BadRequestResult();
-				if (request.Signature == null) return new BadRequestResult();
+				if (string.IsNullOrWhiteSpace(request.Output)) return new BadRequestResult();
+				if (string.IsNullOrWhiteSpace(request.Signature)) return new BadRequestResult();
 
 				var output = new BitcoinWitPubKeyAddress(request.Output, expectedNetwork: Global.Config.Network);
 
@@ -301,7 +301,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
 				}
 
-				if (request.UniqueId == null) return new BadRequestResult();
+				if (string.IsNullOrWhiteSpace(request.UniqueId)) return new BadRequestResult();
 				Alice alice = Global.StateMachine.FindAlice(request.UniqueId, throwException: true);
 
 				if (alice.State == AliceState.AskedForCoinJoin)
@@ -334,7 +334,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
 				}
 
-				if (request.UniqueId == null) return new BadRequestResult();
+				if (string.IsNullOrWhiteSpace(request.UniqueId)) return new BadRequestResult();
 				if (request.Signatures == null) return new BadRequestResult();
 				if (request.Signatures.Count() == 0) return new BadRequestResult();
 				Alice alice = Global.StateMachine.FindAlice(request.UniqueId, throwException: true);
@@ -377,7 +377,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						{							
 							var res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendrawtransaction, Global.StateMachine.CoinJoin.ToHex(), true);
 							var state = CoinJoinTransactionState.Failed;
-							if (Global.StateMachine.CoinJoin.GetHash().ToString() == res.ToString())
+							if (Global.StateMachine.CoinJoin.GetHash().ToString() == res.ResultString)
 							{
 								failed = false;
 								state = CoinJoinTransactionState.Succeeded;

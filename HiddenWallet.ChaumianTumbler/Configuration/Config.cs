@@ -71,7 +71,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 
 		public async Task ToFileAsync(string path, CancellationToken cancel)
 		{
-			if (path == null) throw new ArgumentNullException(nameof(path));
+			if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException(nameof(path));
 
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
 			await File.WriteAllTextAsync(path,
@@ -82,7 +82,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 
 		public async Task LoadOrCreateDefaultFileAsync(string path, CancellationToken cancel)
 		{
-			if (path == null) throw new ArgumentNullException(nameof(path));
+			if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException(nameof(path));
 
 			Network = Network.Main;
 			BitcoinRpcUser = "user";

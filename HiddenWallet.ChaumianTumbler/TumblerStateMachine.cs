@@ -44,11 +44,11 @@ namespace HiddenWallet.ChaumianTumbler
 
 		}
 
-		public void BroadcastPhaseChange()
+		public async Task BroadcastPhaseChangeAsync()
 		{
 			AcceptRequest = true;
 			var broadcast = new PhaseChangeBroadcast { NewPhase = Phase.ToString(), Message = "" };
-			_broadcaster.Broadcast(broadcast);
+			await _broadcaster.BroadcastAsync(broadcast);
 			Console.WriteLine($"NEW PHASE: {Phase}");
 		}
 
@@ -76,12 +76,11 @@ namespace HiddenWallet.ChaumianTumbler
 							{
 								Alices = new ConcurrentHashSet<Alice>();
 								Bobs = new ConcurrentHashSet<Bob>();
-								var denominationTask = SetDenominationAsync(cancel);
-								var feeTask = SetFeesAsync(cancel);
+								await SetDenominationAsync(cancel);
+								await SetFeesAsync(cancel);
 								CalculateAnonymitySet();
-								await Task.WhenAll(denominationTask, feeTask);
 
-								BroadcastPhaseChange();
+								await BroadcastPhaseChangeAsync();
 								InputRegistrationStopwatch = new Stopwatch();
 								InputRegistrationStopwatch.Start();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
@@ -99,7 +98,7 @@ namespace HiddenWallet.ChaumianTumbler
 							}
 						case TumblerPhase.ConnectionConfirmation:
 							{
-								BroadcastPhaseChange();
+								await BroadcastPhaseChangeAsync();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.ConnectionConfirmationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
@@ -117,7 +116,7 @@ namespace HiddenWallet.ChaumianTumbler
 							}
 						case TumblerPhase.OutputRegistration:
 							{
-								BroadcastPhaseChange();
+								await BroadcastPhaseChangeAsync();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.OutputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
@@ -131,8 +130,8 @@ namespace HiddenWallet.ChaumianTumbler
 						case TumblerPhase.Signing:
 							{
 								BuildCoinJoin();
-
-								BroadcastPhaseChange();
+								
+								await BroadcastPhaseChangeAsync();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.SigningPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
@@ -153,7 +152,9 @@ namespace HiddenWallet.ChaumianTumbler
 				}
 				catch (Exception ex)
 				{
-					Console.WriteLine($"Ignoring {nameof(TumblerStateMachine)} exception: {ex}");
+					FallBackRound = true;
+					UpdatePhase(TumblerPhase.InputRegistration);
+					Console.WriteLine($"Fallback to InputRegistration, Reason: {nameof(TumblerStateMachine)} exception: {ex}");
 				}
 			}
 		}
@@ -241,10 +242,11 @@ namespace HiddenWallet.ChaumianTumbler
 			int inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m); // vSize
 			int outputSizeInBytes = Constants.OutputSizeInBytes;
 			try
-			{				
-				var result = (await Global.RpcClient.SendCommandAsync("estimatesmartfee", 1, "ECONOMICAL")).Result;
-				if (result == null) throw new ArgumentNullException();
-				var feeRateDecimal = result.Value<decimal>("feerate");
+			{
+				RPCResponse result = (await Global.RpcClient.SendCommandAsync("estimatesmartfee", 1, "ECONOMICAL"));
+				if (string.IsNullOrWhiteSpace(result?.ResultString)) throw new ArgumentException(nameof(result));
+				var resultJToken = result.Result;
+				var feeRateDecimal = resultJToken.Value<decimal>("feerate");
 				var feeRate = new FeeRate(new Money(feeRateDecimal, MoneyUnit.BTC));
 				Money feePerBytes = (feeRate.FeePerK / 1000);
 

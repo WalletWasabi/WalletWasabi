@@ -82,9 +82,9 @@ namespace HiddenWallet.ChaumianTumbler
 				{
 					throw new NotSupportedException("blockchainInfo.Error != null");
 				}
-				if (blockchainInfo.Result == null)
+				if (string.IsNullOrWhiteSpace(blockchainInfo?.ResultString))
 				{
-					throw new NotSupportedException("blockchainInfo.Result == null");
+					throw new NotSupportedException("string.IsNullOrWhiteSpace(blockchainInfo?.ResultString) == true");
 				}
 				int blocks = blockchainInfo.Result.Value<int>("blocks");
 				if (blocks == 0)
@@ -101,7 +101,7 @@ namespace HiddenWallet.ChaumianTumbler
 					throw new NotSupportedException("blocks != headers");
 				}
 
-				if (await RpcClient.SendCommandAsync("estimatesmartfee", 1, "ECONOMICAL") == null)
+				if (string.IsNullOrWhiteSpace((await RpcClient.SendCommandAsync("estimatesmartfee", 1, "ECONOMICAL"))?.ResultString))
 				{
 					throw new NotSupportedException("estimatesmartfee 1 ECONOMICAL == null");
 				}

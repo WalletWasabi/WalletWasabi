@@ -22,7 +22,7 @@ namespace HiddenWallet.ChaumianTumbler.Store
 
 		public async Task ToFileAsync(string filePath)
 		{
-			if (filePath == null) throw new ArgumentNullException(nameof(filePath));
+			if (string.IsNullOrWhiteSpace(filePath)) throw new ArgumentException(nameof(filePath));
 
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
 			await File.WriteAllTextAsync(
@@ -33,7 +33,7 @@ namespace HiddenWallet.ChaumianTumbler.Store
 
 		public async static Task<CoinJoinStore> CreateFromFileAsync(string filePath)
 		{
-			if (filePath == null) throw new ArgumentNullException(nameof(filePath));
+			if (string.IsNullOrWhiteSpace(filePath)) throw new ArgumentException(nameof(filePath));
 
 			string jsonString = await File.ReadAllTextAsync(filePath, Encoding.UTF8);
 			return JsonConvert.DeserializeObject<CoinJoinStore>(jsonString);

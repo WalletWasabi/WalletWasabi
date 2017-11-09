@@ -36,11 +36,15 @@ namespace HiddenWallet.ChaumianTumbler
 
 		public int ConnectedClientCount() => _connectedClients.Count();
 
-		public void Broadcast(PhaseChangeBroadcast broadcast)
+		public async Task BroadcastAsync(PhaseChangeBroadcast broadcast)
 		{
+			while (_context == null)
+			{
+				await Task.Delay(100);
+			}
 			IClientProxy proxy = _context.Clients.All;
 			string json = JsonConvert.SerializeObject(broadcast);
-			proxy.InvokeAsync("PhaseChange", json);
+			await proxy.InvokeAsync("PhaseChange", json);
 		}
 	}
 }
