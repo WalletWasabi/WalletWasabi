@@ -33,8 +33,10 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 		public BlindingRsaPubKey PubKey { get; private set; }
 
-		private volatile bool _tumblingInProcess;
+		public volatile bool TumblingInProcess;
 		public volatile TumblerPhase Phase;
+		public volatile Exception TumblingException;
+		public volatile bool CompletedLastPhase;
 
 		public Money Denomination { get; private set; }
 		public string UniqueAliceId { get; private set; }
@@ -47,7 +49,8 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 		public CoinJoinService(WalletJob walletJob)
 		{
-			_tumblingInProcess = false;
+			TumblingInProcess = false;
+			CompletedLastPhase = true;
 			TumblerConnection = null;
 			WalletJob = walletJob ?? throw new ArgumentNullException(nameof(walletJob));
 		}
@@ -74,13 +77,20 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					var jObject = JObject.Parse(data);
 					var phaseString = jObject.Value<string>("NewPhase");
 
+					Debug.WriteLine($"New Phase: {phaseString}");
 					Phase = TumblerPhaseHelpers.GetTumblerPhase(phaseString);
 					if (Phase != TumblerPhase.InputRegistration) // input registration is executed from tumbling function
 					{
-						await ExecutePhaseAsync(Phase, CancellationToken.None);
+						try
+						{
+							await ExecutePhaseAsync(Phase, CancellationToken.None);
+						}
+						catch
+						{
+							// handle inside
+						}
 					}
-
-					Debug.WriteLine($"New Phase: {phaseString}");
+					Debug.WriteLine($"Phase completed");
 				});
 
 				await TumblerConnection.StartAsync();
@@ -147,21 +157,31 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					await Task.Delay(100, cancel);
 				}
 
-				_tumblingInProcess = true;
+				TumblingInProcess = true;
 				await ExecutePhaseAsync(Phase, cancel);
 
 				// wait while input registration
-				while (Phase == TumblerPhase.InputRegistration)
+				while (Phase == TumblerPhase.InputRegistration && TumblingInProcess)
 				{
 					await Task.Delay(100, cancel);
 				}
 
 				// wait for input registration again, this is the end of the round (beginning of the next round)
-				while (Phase != TumblerPhase.InputRegistration)
+				while (Phase != TumblerPhase.InputRegistration && TumblingInProcess)
 				{
 					await Task.Delay(100, cancel);
 				}
-				_tumblingInProcess = false;
+
+				// if tumbling 
+				if(TumblingInProcess == false)
+				{
+					throw TumblingException;
+				}
+				else
+				{
+					TumblingInProcess = false;
+					TumblingException = null;
+				}
 			}
 			catch(OperationCanceledException)
 			{
@@ -171,10 +191,15 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 		private async Task ExecutePhaseAsync(TumblerPhase phase, CancellationToken cancel)
 		{
-			if (_tumblingInProcess)
+			while (CompletedLastPhase == false)
+			{
+				await Task.Delay(100, cancel);
+			}
+			if (TumblingInProcess)
 			{
 				try
 				{
+					CompletedLastPhase = false;
 					if (phase == TumblerPhase.InputRegistration)
 					{
 						StatusResponse status = await TumblerClient.GetStatusAsync(cancel);
@@ -207,7 +232,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 							}
 
 							Money needed = Denomination + (feePerInputs * i) + (feePerOutputs * 2);
-							
+
 							Inputs.Add(coin);
 							var input = coin.Outpoint.ToHex();
 							BitcoinExtKey privateExtKey = WalletJob.Safe.FindPrivateKey(coin.ScriptPubKey.GetDestinationAddress(WalletJob.CurrentNetwork), (await WalletJob.GetTrackerAsync()).TrackedScriptPubKeys.Count, From);
@@ -240,7 +265,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						};
 						var response = await TumblerClient.PostInputsAsync(request, cancel);
 						UniqueAliceId = response.UniqueId;
-						
+
 						// unblind the signature
 						var unblindedSignature = PubKey.UnblindSignature(HexHelpers.GetBytes(response.SignedBlindedOutput), blindingResult.BlindingFactor);
 						// verify the original data is signed
@@ -275,7 +300,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 							UniqueId = UniqueAliceId
 						};
 						var coinjoin = new Transaction((await TumblerClient.PostCoinJoinAsync(request, cancel)).Transaction);
-						if(!(coinjoin.Outputs.Any(x=>x.ScriptPubKey == ActiveOutput.ScriptPubKey && x.Value >= Denomination)))
+						if (!(coinjoin.Outputs.Any(x => x.ScriptPubKey == ActiveOutput.ScriptPubKey && x.Value >= Denomination)))
 						{
 							throw new InvalidOperationException("Tumbler did not add enough value to the active output");
 						}
@@ -292,7 +317,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						var witnesses = new HashSet<(string Witness, int Index)>();
 						for (int i = 0; i < coinjoin.Inputs.Count; i++)
 						{
-							if(coinjoin.Inputs[i].WitScript != null)
+							if (coinjoin.Inputs[i].WitScript != null)
 							{
 								witnesses.Add((coinjoin.Inputs[i].WitScript.ToString(), i));
 							}
@@ -307,11 +332,16 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					}
 					else throw new NotSupportedException("This should never happen");
 				}
-				catch
+				catch (Exception ex)
 				{
 					// if an exception happened don't tumbler anymore in this round
-					_tumblingInProcess = false;
+					TumblingInProcess = false;
+					TumblingException = ex;
 					throw;
+				}
+				finally
+				{
+					CompletedLastPhase = true;
 				}
 			}
 		}
