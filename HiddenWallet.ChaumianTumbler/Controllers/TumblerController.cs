@@ -13,6 +13,7 @@ using HiddenWallet.ChaumianTumbler.Store;
 using HiddenWallet.ChaumianTumbler.Clients;
 using Nito.AsyncEx;
 using HiddenWallet.ChaumianTumbler.Referee;
+using ConcurrentCollections;
 
 namespace HiddenWallet.ChaumianTumbler.Controllers
 {
@@ -130,7 +131,9 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						var scriptPubKey = new Script(txOutResponse.Result["scriptPubKey"].Value<string>("asm"));
 						var address = (BitcoinWitPubKeyAddress)scriptPubKey.GetDestinationAddress(network);
 						// Check if proofs are valid
-						if (!address.VerifyMessage(request.BlindedOutput, input.Proof))
+						var pubKey = PubKey.RecoverFromMessage(request.BlindedOutput, input.Proof);
+						var validProof = pubKey.Hash.ToString() == address.Hash.ToString();
+						if (!validProof)
 						{
 							throw new ArgumentException("Provided proof is invalid");
 						}
@@ -161,6 +164,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						ChangeAmount = changeAmount,
 						State = AliceState.InputsRegistered
 					};
+					alice.Inputs = new ConcurrentHashSet<(TxOut Output, OutPoint OutPoint)>();
 					foreach (var input in inputs)
 					{
 						alice.Inputs.Add(input);
