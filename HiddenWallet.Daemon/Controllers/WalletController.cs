@@ -313,5 +313,33 @@ namespace HiddenWallet.Daemon.Controllers
                 return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
             }
         }
-    }
+
+		[Route("tumbler-server")]
+		[HttpGet]
+		public IActionResult TumblerServer()
+		{
+			//return new ObjectResult(new SuccessResponse());
+			//This wil go in WalletWrapper:
+			//  public Network Network => _walletJob.Safe.Network;
+			//  var addressUri = Network == Network.Main ? Config.TumbleBitServerMainNet : Config.TumbleBitServerTestNet;
+			//  var address = "";
+			//  if (addressUri != null)
+			//  {
+			//  	address = addressUri.AbsoluteUri;
+			//  }
+
+			//Fees:
+			//var satoshiFeePerBytes = (await _walletJob.FeeJob.GetFeePerBytesAsync(FeeType.High, default(CancellationToken)).ConfigureAwait(false)).ToDecimal(MoneyUnit.Satoshi);
+
+			return new ObjectResult(new ChaumianCoinJoin.Models.StatusResponse { Success = true, Address = "To Do: set in WalletWrapper.GetTumblerServerResponseAsync", Phase = ChaumianCoinJoin.TumblerPhase.InputRegistration.ToString(), Denomination = "0.15", AnonymitySet = 12, TimeSpentInInputRegistrationInSeconds = 416, MaximumInputsPerAlices = 4, FeePerInputs = "0.00015 BTC", FeePerOutputs = "0.00015 BTC", NetworkFee = "0.002034 BTC", Version = "1" });
+			//try
+			//{
+			//	return new ObjectResult(Global.WalletWrapper.GetTumblerServerResponseAsync().Result);
+			//}
+			//catch (Exception ex)
+			//{
+			//	return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			//}
+		}
+	}
 }

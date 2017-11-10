@@ -9,6 +9,7 @@ namespace HiddenWallet.ChaumianCoinJoin.Models
 	public class StatusResponse : BaseResponse
 	{
 		public StatusResponse() => Success = true;
+		public string Address { get; set; }
 		public string Phase { get; set; }
 		public string Denomination { get; set; }
 		public int AnonymitySet { get; set; }
@@ -16,6 +17,7 @@ namespace HiddenWallet.ChaumianCoinJoin.Models
 		public int MaximumInputsPerAlices { get; set; }
 		public string FeePerInputs { get; set; }
 		public string FeePerOutputs { get; set; }
+		public string NetworkFee { get; set; }
 		public string Version { get; set; }
 	}
 }
