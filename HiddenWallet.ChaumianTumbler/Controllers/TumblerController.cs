@@ -14,6 +14,7 @@ using HiddenWallet.ChaumianTumbler.Clients;
 using Nito.AsyncEx;
 using HiddenWallet.ChaumianTumbler.Referee;
 using ConcurrentCollections;
+using System.Text;
 
 namespace HiddenWallet.ChaumianTumbler.Controllers
 {
@@ -57,6 +58,9 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		[HttpPost]
 		public async Task<IActionResult> InputsAsync([FromBody]InputsRequest request)
 		{
+			var roundId = Global.StateMachine.RoundId;
+			TumblerPhase phase = TumblerPhase.InputRegistration;
+
 			try
 			{
 				if (Global.StateMachine.Phase != TumblerPhase.InputRegistration || !Global.StateMachine.AcceptRequest)
@@ -169,6 +173,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					{
 						alice.Inputs.Add(input);
 					}
+
+					AssertPhase(roundId, phase);
 					Global.StateMachine.Alices.Add(alice);
 
 					if (Global.StateMachine.Alices.Count >= Global.StateMachine.AnonymitySet)
@@ -186,6 +192,14 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			catch (Exception ex)
 			{
 				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
+
+		private static void AssertPhase(int roundId, TumblerPhase phase)
+		{
+			if (Global.StateMachine.Phase != phase || Global.StateMachine.RoundId != roundId)
+			{
+				throw new InvalidOperationException("Phase timed out");
 			}
 		}
 
@@ -217,6 +231,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		[HttpPost]
 		public IActionResult ConnectionConfirmation([FromBody]ConnectionConfirmationRequest request)
 		{
+			var roundId = Global.StateMachine.RoundId;
+			TumblerPhase phase = TumblerPhase.ConnectionConfirmation;
 			try
 			{
 				if (Global.StateMachine.Phase != TumblerPhase.ConnectionConfirmation || !Global.StateMachine.AcceptRequest)
@@ -232,6 +248,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					throw new InvalidOperationException("Connection is already confirmed");
 				}
 
+				AssertPhase(roundId, phase);
 				alice.State = AliceState.ConnectionConfirmed;
 								
 				try
@@ -256,6 +273,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		[HttpPost]
 		public IActionResult Output([FromBody]OutputRequest request)
 		{
+			var roundId = Global.StateMachine.RoundId;
+			TumblerPhase phase = TumblerPhase.OutputRegistration;
 			try
 			{
 				if (Global.StateMachine.Phase != TumblerPhase.OutputRegistration || !Global.StateMachine.AcceptRequest)
@@ -268,10 +287,11 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				var output = new BitcoinWitPubKeyAddress(request.Output, expectedNetwork: Global.Config.Network);
 
-				if(Global.RsaKey.PubKey.Verify(HexHelpers.GetBytes(request.Signature), HexHelpers.GetBytes(request.Output)))
+				if(Global.RsaKey.PubKey.Verify(HexHelpers.GetBytes(request.Signature), Encoding.UTF8.GetBytes(request.Output)))
 				{
 					try
 					{
+						AssertPhase(roundId, phase);
 						Global.StateMachine.Bobs.Add(new Bob { Output = output });
 						return new ObjectResult(new SuccessResponse());
 					}
@@ -298,6 +318,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		[HttpGet]
 		public IActionResult CoinJoin(CoinJoinRequest request)
 		{
+			var roundId = Global.StateMachine.RoundId;
+			TumblerPhase phase = TumblerPhase.Signing;
 			try
 			{
 				if (Global.StateMachine.Phase != TumblerPhase.Signing || !Global.StateMachine.AcceptRequest)
@@ -313,6 +335,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					throw new InvalidOperationException("CoinJoin has been already asked for");
 				}
 
+				AssertPhase(roundId, phase);
 				alice.State = AliceState.AskedForCoinJoin;
 
 				return new ObjectResult(new CoinJoinResponse

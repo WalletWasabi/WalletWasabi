@@ -277,7 +277,7 @@ namespace HiddenWallet.Daemon.Wrappers
 		public async Task<BaseResponse> BuildTransactionAsync(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType)
 		{
 			// todo: delete this code comment, it was just a test, if you see it, I forgot to delete it
-			// await _walletJob.CoinJoinService.TumbleAsync(safeAccount == AliceAccount ? AliceAccount : BobAccount, safeAccount != AliceAccount ? AliceAccount : BobAccount, CancellationToken.None);
+			await _walletJob.CoinJoinService.TumbleAsync(safeAccount == AliceAccount ? AliceAccount : BobAccount, safeAccount != AliceAccount ? AliceAccount : BobAccount, CancellationToken.None);
 
 			if (password != _password) throw new InvalidOperationException("Wrong password");
 			var result = await _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, (bool)Global.Config.CanSpendUnconfirmed);

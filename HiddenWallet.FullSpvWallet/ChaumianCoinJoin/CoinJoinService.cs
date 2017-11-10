@@ -211,8 +211,8 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						var feePerOutputs = Money.Parse(status.FeePerOutputs);
 
 						IEnumerable<Script> unusedOutputs = await WalletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, To, HdPathType.NonHardened);
-						Script activeOutput = unusedOutputs.RandomElement(); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
-						var blindingResult = PubKey.Blind(activeOutput.ToBytes());
+						var activeOutput = unusedOutputs.RandomElement().GetDestinationAddress(WalletJob.CurrentNetwork); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
+						var blindingResult = PubKey.Blind(Encoding.UTF8.GetBytes(activeOutput.ToString()));
 						string blindedOutput = HexHelpers.ToString(blindingResult.BlindedData);
 
 						SigningKeys = new ConcurrentHashSet<BitcoinExtKey>();
@@ -269,12 +269,12 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						// unblind the signature
 						var unblindedSignature = PubKey.UnblindSignature(HexHelpers.GetBytes(response.SignedBlindedOutput), blindingResult.BlindingFactor);
 						// verify the original data is signed
-						if (!PubKey.Verify(unblindedSignature, activeOutput.ToBytes()))
+						if (!PubKey.Verify(unblindedSignature, Encoding.UTF8.GetBytes(activeOutput.ToString())))
 						{
 							throw new HttpRequestException("Tumbler did not sign the blinded output properly");
 						}
 						UnblindedSignature = HexHelpers.ToString(unblindedSignature);
-						ActiveOutput = activeOutput.GetDestinationAddress(WalletJob.CurrentNetwork);
+						ActiveOutput = activeOutput;
 					}
 					else if (phase == TumblerPhase.ConnectionConfirmation)
 					{

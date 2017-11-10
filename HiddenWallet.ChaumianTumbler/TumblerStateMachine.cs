@@ -18,17 +18,18 @@ namespace HiddenWallet.ChaumianTumbler
 {
     public class TumblerStateMachine : IDisposable
     {
-		public TumblerPhase Phase { get; private set; } = TumblerPhase.InputRegistration;
+		public volatile TumblerPhase Phase;
+		public volatile int RoundId;
 		public Money Denomination { get; private set; }
 		public Money FeePerInputs { get; private set; }
 		public Money FeePerOutputs { get; private set; }
 		public int AnonymitySet { get; private set; } = (int)Global.Config.MinimumAnonymitySet;
 		public TimeSpan TimeSpentInInputRegistration { get; private set; } = TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds) + TimeSpan.FromSeconds(1); // took one sec longer, so the first round will use the same anonymity set
-		public bool AcceptRequest { get; private set; } = false;
+		public volatile bool AcceptRequest;
 		public Stopwatch InputRegistrationStopwatch { get; private set; }
-		public bool FallBackRound { get; set; } = false;
+		public volatile bool FallBackRound;
 
-		public Transaction CoinJoin { get; private set; } = null;
+		public volatile Transaction CoinJoin;
 		public bool FullySignedCoinJoin => CoinJoin?.Inputs == null ? false : CoinJoin.Inputs.All(x => x.WitScript != default);
 
 		private SmartBitClient SmartBitClient { get; } = new SmartBitClient(Network.Main);
@@ -41,7 +42,11 @@ namespace HiddenWallet.ChaumianTumbler
 
 		public TumblerStateMachine()
 		{
-
+			Phase = TumblerPhase.InputRegistration;
+			RoundId = 0;
+			AcceptRequest = false;
+			FallBackRound = false;
+			CoinJoin = null;
 		}
 
 		public async Task BroadcastPhaseChangeAsync()
@@ -74,6 +79,8 @@ namespace HiddenWallet.ChaumianTumbler
 					{
 						case TumblerPhase.InputRegistration:
 							{
+								RoundId++;
+								Console.WriteLine($"New Round: {RoundId}");
 								Alices = new ConcurrentHashSet<Alice>();
 								Bobs = new ConcurrentHashSet<Bob>();
 								await SetDenominationAsync(cancel);
