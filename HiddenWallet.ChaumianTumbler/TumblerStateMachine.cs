@@ -30,6 +30,7 @@ namespace HiddenWallet.ChaumianTumbler
 		public volatile bool FallBackRound;
 
 		public volatile Transaction CoinJoin;
+		public volatile string UnsignedCoinJoinHex;
 		public bool FullySignedCoinJoin => CoinJoin?.Inputs == null ? false : CoinJoin.Inputs.All(x => x.WitScript != default);
 
 		private SmartBitClient SmartBitClient { get; } = new SmartBitClient(Network.Main);
@@ -187,6 +188,7 @@ namespace HiddenWallet.ChaumianTumbler
 				.ContinueToBuild(transaction)
 				.Shuffle()
 				.BuildTransaction(false);
+			UnsignedCoinJoinHex = CoinJoin.ToHex();
 		}
 
 		private void CalculateAnonymitySet()

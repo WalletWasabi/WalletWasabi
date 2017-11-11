@@ -41,7 +41,7 @@ namespace HiddenWallet.ChaumianTumbler.Referee
 
 		public async Task BanAliceAsync(Alice alice)
 		{
-			foreach(var utxo in alice.Inputs.Select(x=>x.OutPoint))
+			foreach (var utxo in alice.Inputs.Select(x => x.OutPoint))
 			{
 				BanUtxo(utxo);
 			}

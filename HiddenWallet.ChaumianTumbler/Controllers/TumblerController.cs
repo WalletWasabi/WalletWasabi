@@ -340,7 +340,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				return new ObjectResult(new CoinJoinResponse
 				{
-					Transaction = Global.StateMachine.CoinJoin.ToHex()
+					Transaction = Global.StateMachine.UnsignedCoinJoinHex
 				});
 			}
 			catch (Exception ex)
@@ -368,31 +368,36 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				using (await SignatureProvidedAsyncLock.LockAsync())
 				{
+					Transaction coinJoin = Global.StateMachine.CoinJoin;
 					foreach (var signatureModel in request.Signatures)
 					{
 						var witness = new WitScript(signatureModel.Witness);
-						if (Global.StateMachine.CoinJoin.Inputs.Count <= signatureModel.Index)
+						if (coinJoin.Inputs.Count <= signatureModel.Index)
 						{
 							// round fails, ban alice
 							await Global.UtxoReferee.BanAliceAsync(alice);
 							Global.StateMachine.FallBackRound = true;
 							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
 						}
-						if(Global.StateMachine.CoinJoin.Inputs[signatureModel.Index].WitScript != default)
+						if(coinJoin.Inputs[signatureModel.Index].WitScript != default)
 						{
 							// round fails, ban alice
 							await Global.UtxoReferee.BanAliceAsync(alice);
 							Global.StateMachine.FallBackRound = true;
 							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
 						}
-						Global.StateMachine.CoinJoin.Inputs[signatureModel.Index].WitScript = witness;
-						var output = alice.Inputs.Single(x => x.OutPoint == Global.StateMachine.CoinJoin.Inputs[signatureModel.Index].PrevOut).Output;
-						if(!Script.VerifyScript(output.ScriptPubKey, Global.StateMachine.CoinJoin, signatureModel.Index, output.Value, ScriptVerify.Standard, SigHash.All))
+						coinJoin.Inputs[signatureModel.Index].WitScript = witness;
+						var output = alice.Inputs.Single(x => x.OutPoint == coinJoin.Inputs[signatureModel.Index].PrevOut).Output;
+						if(!Script.VerifyScript(output.ScriptPubKey, coinJoin, signatureModel.Index, output.Value, ScriptVerify.Standard, SigHash.All))
 						{
 							// round fails, ban alice
 							await Global.UtxoReferee.BanAliceAsync(alice);
 							Global.StateMachine.FallBackRound = true;
 							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
+						}
+						else
+						{
+							Global.StateMachine.CoinJoin = coinJoin;
 						}
 					}
 
@@ -402,17 +407,17 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						var failed = true;
 						try
 						{							
-							var res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendrawtransaction, Global.StateMachine.CoinJoin.ToHex(), true);
+							var res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendrawtransaction, coinJoin.ToHex(), true);
 							var state = CoinJoinTransactionState.Failed;
-							if (Global.StateMachine.CoinJoin.GetHash().ToString() == res.ResultString)
+							if (coinJoin.GetHash().ToString() == res.ResultString)
 							{
 								failed = false;
 								state = CoinJoinTransactionState.Succeeded;
-								Console.WriteLine($"Propagated transaction: {Global.StateMachine.CoinJoin.GetHash()}");
+								Console.WriteLine($"Propagated transaction: {coinJoin.GetHash()}");
 							}
 							Global.CoinJoinStore.Transactions.Add(new CoinJoinTransaction
 							{
-								Transaction = Global.StateMachine.CoinJoin,
+								Transaction = coinJoin,
 								DateTime = DateTimeOffset.UtcNow,
 								State = state
 							});
