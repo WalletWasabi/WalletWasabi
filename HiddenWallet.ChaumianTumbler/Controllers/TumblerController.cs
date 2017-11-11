@@ -315,8 +315,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 		}
 
 		[Route("coinjoin")]
-		[HttpGet]
-		public IActionResult CoinJoin(CoinJoinRequest request)
+		[HttpPost]
+		public IActionResult CoinJoin([FromBody]CoinJoinRequest request)
 		{
 			var roundId = Global.StateMachine.RoundId;
 			TumblerPhase phase = TumblerPhase.Signing;

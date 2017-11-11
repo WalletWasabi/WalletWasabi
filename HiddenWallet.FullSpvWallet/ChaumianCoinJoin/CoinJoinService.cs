@@ -37,6 +37,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		public volatile TumblerPhase Phase;
 		public volatile Exception TumblingException;
 		public volatile bool CompletedLastPhase;
+		public volatile Transaction CoinJoin;
 
 		public Money Denomination { get; private set; }
 		public string UniqueAliceId { get; private set; }
@@ -52,6 +53,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 			TumblingInProcess = false;
 			CompletedLastPhase = true;
 			TumblerConnection = null;
+			CoinJoin = null;
 			WalletJob = walletJob ?? throw new ArgumentNullException(nameof(walletJob));
 		}
 
@@ -120,6 +122,8 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		{
 			try
 			{
+				CoinJoin = null;
+
 				From = from ?? throw new ArgumentNullException(nameof(from));
 				To = to ?? throw new ArgumentNullException(nameof(to));
 
@@ -172,8 +176,21 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					await Task.Delay(100, cancel);
 				}
 
+				if (CoinJoin != null)
+				{
+					for (int j = 0; j < 21; j++) // wait 21 sec for CJ to arrive before return
+					{
+						await Task.Delay(1000, cancel);
+						var arrived = WalletJob.MemPoolJob.Transactions.Contains(CoinJoin.GetHash());
+						if (arrived)
+						{
+							Debug.WriteLine("CoinJoin transaction arrived.");
+						}
+					}
+				}
+
 				// if tumbling 
-				if(TumblingInProcess == false)
+				if (TumblingInProcess == false)
 				{
 					throw TumblingException;
 				}
@@ -299,12 +316,12 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						{
 							UniqueId = UniqueAliceId
 						};
-						var coinjoin = new Transaction((await TumblerClient.PostCoinJoinAsync(request, cancel)).Transaction);
-						if (!(coinjoin.Outputs.Any(x => x.ScriptPubKey == ActiveOutput.ScriptPubKey && x.Value >= Denomination)))
+						CoinJoin = new Transaction((await TumblerClient.PostCoinJoinAsync(request, cancel)).Transaction);
+						if (!(CoinJoin.Outputs.Any(x => x.ScriptPubKey == ActiveOutput.ScriptPubKey && x.Value >= Denomination)))
 						{
 							throw new InvalidOperationException("Tumbler did not add enough value to the active output");
 						}
-						if (!(coinjoin.Outputs.Any(x => x.ScriptPubKey == ChangeOutput.ScriptPubKey && x.Value >= ChangeOutputExpectedValue)))
+						if (!(CoinJoin.Outputs.Any(x => x.ScriptPubKey == ChangeOutput.ScriptPubKey && x.Value >= ChangeOutputExpectedValue)))
 						{
 							throw new InvalidOperationException("Tumbler did not add enough value to the change output");
 						}
@@ -312,14 +329,14 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						new TransactionBuilder()
 							.AddKeys(SigningKeys.ToArray())
 							.AddCoins(Inputs)
-							.SignTransactionInPlace(coinjoin, SigHash.All);
+							.SignTransactionInPlace(CoinJoin, SigHash.All);
 
 						var witnesses = new HashSet<(string Witness, int Index)>();
-						for (int i = 0; i < coinjoin.Inputs.Count; i++)
+						for (int i = 0; i < CoinJoin.Inputs.Count; i++)
 						{
-							if (coinjoin.Inputs[i].WitScript != null)
+							if (CoinJoin.Inputs[i].WitScript != null)
 							{
-								witnesses.Add((coinjoin.Inputs[i].WitScript.ToString(), i));
+								witnesses.Add((CoinJoin.Inputs[i].WitScript.ToString(), i));
 							}
 						}
 
