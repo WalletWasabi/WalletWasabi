@@ -91,7 +91,7 @@ document.body.addEventListener('contextmenu', (mouseEvent: MouseEvent) => {
 window.onclick = function (mouseEvent: MouseEvent) {
     let eventTarget: HTMLElement = mouseEvent.target as HTMLElement;
 
-    if (eventTarget.className !== 'dropbtn') {
+    if (eventTarget.className.indexOf('dropbtn') == -1 ) {
 
         var dropdowns: HTMLCollectionOf<Element> = document.getElementsByClassName("dropdown-content");
 
