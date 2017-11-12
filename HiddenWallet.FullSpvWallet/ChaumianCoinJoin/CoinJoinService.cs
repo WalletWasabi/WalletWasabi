@@ -118,7 +118,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		/// <summary>
 		/// Participates one tumbling round
 		/// </summary>
-		public async Task TumbleAsync(SafeAccount from, SafeAccount to, CancellationToken cancel)
+		public async Task<uint256> TumbleAsync(SafeAccount from, SafeAccount to, CancellationToken cancel)
 		{
 			try
 			{
@@ -163,46 +163,26 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 				TumblingInProcess = true;
 				await ExecutePhaseAsync(Phase, cancel);
-
-				// wait while input registration
-				while (Phase == TumblerPhase.InputRegistration && TumblingInProcess)
+				
+				// wait while tumbling is in process
+				while (TumblingInProcess)
 				{
 					await Task.Delay(100, cancel);
-				}
-
-				// wait for input registration again, this is the end of the round (beginning of the next round)
-				while (Phase != TumblerPhase.InputRegistration && TumblingInProcess)
-				{
-					await Task.Delay(100, cancel);
-				}
-
-				if (CoinJoin != null)
-				{
-					for (int j = 0; j < 21; j++) // wait 21 sec for CJ to arrive before return
-					{
-						await Task.Delay(1000, cancel);
-						var arrived = WalletJob.MemPoolJob.Transactions.Contains(CoinJoin.GetHash());
-						if (arrived)
-						{
-							Debug.WriteLine("CoinJoin transaction arrived.");
-						}
-					}
 				}
 
 				// if tumbling 
-				if (TumblingInProcess == false)
+				if (TumblingException != null)
 				{
 					throw TumblingException;
 				}
 				else
 				{
-					TumblingInProcess = false;
-					TumblingException = null;
+					return CoinJoin?.GetHash();
 				}
 			}
 			catch(OperationCanceledException)
 			{
-				return;
+				return null;
 			}
 		}
 
@@ -346,6 +326,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 							Signatures = witnesses
 						};
 						await TumblerClient.PostSignatureAsync(sigRequest, cancel);
+						TumblingInProcess = false;
 					}
 					else throw new NotSupportedException("This should never happen");
 				}
