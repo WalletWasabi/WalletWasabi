@@ -29,8 +29,10 @@ namespace HiddenWallet.ChaumianTumbler
 			{
 				await Global.InitializeAsync();
 
+				var endPoint = "http://localhost:80/";
 				using (var host = WebHost.CreateDefaultBuilder(args)
 					.UseStartup<Startup>()
+					.UseUrls(endPoint)
 					.Build())
 				{
 					await host.RunAsync();

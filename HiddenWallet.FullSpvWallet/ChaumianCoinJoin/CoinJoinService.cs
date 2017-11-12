@@ -26,7 +26,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		public HubConnection TumblerConnection { get; private set; }
 		public WalletJob WalletJob { get; private set; }
 		public ChaumianTumblerClient TumblerClient { get; private set; }
-		public string BaseAddress { get; private set; }
+		public string NotificationBaseAddress { get; private set; }
 
 		public SafeAccount From { get; private set; }
 		public SafeAccount To { get; private set; }
@@ -57,11 +57,14 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 			WalletJob = walletJob ?? throw new ArgumentNullException(nameof(walletJob));
 		}
 
-		public void SetConnection(string address, BlindingRsaPubKey pubKey, HttpMessageHandler handler, bool disposeHandler = false)
+		public void SetConnection(string address, string notificationAddress, BlindingRsaPubKey pubKey, HttpMessageHandler handler, bool disposeHandler = false)
 		{
 			PubKey = pubKey ?? throw new ArgumentNullException(nameof(pubKey));
-			BaseAddress = address.EndsWith('/') ? address : address + "/";
-			TumblerClient = new ChaumianTumblerClient(BaseAddress, handler, disposeHandler);
+			if (address == null) throw new ArgumentNullException(address);
+			if (notificationAddress == null) throw new ArgumentNullException(notificationAddress);
+			NotificationBaseAddress = notificationAddress.Trim().EndsWith('/') ? notificationAddress.Trim() : notificationAddress.Trim() + "/";
+			var correctedAddress = address.Trim().EndsWith('/') ? address.Trim() : address.Trim() + "/";
+			TumblerClient = new ChaumianTumblerClient(correctedAddress, handler, disposeHandler);
 		}
 
 		#region Notifications
@@ -71,7 +74,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 			try
 			{
 				TumblerConnection = new HubConnectionBuilder()
-						.WithUrl(BaseAddress + "ChaumianTumbler")
+						.WithUrl(NotificationBaseAddress + "ChaumianTumbler")
 						.Build();
 
 				TumblerConnection.On<string>("PhaseChange", async data =>
@@ -141,7 +144,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					throw new InvalidOperationException("Blocks are not synced");
 				}
 
-				if(TumblerConnection == null)
+				if (TumblerConnection == null)
 				{
 					await SubscribePhaseChangeAsync();
 
@@ -283,6 +286,10 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					}
 					else if (phase == TumblerPhase.OutputRegistration)
 					{
+						Debug.WriteLine($"Changing Tor circuit");
+						await WalletJob.ControlPortClient.ChangeCircuitAsync();
+						await Task.Delay(100);
+
 						var request = new OutputRequest
 						{
 							Output = ActiveOutput.ToString(),
@@ -292,6 +299,10 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					}
 					else if (phase == TumblerPhase.Signing)
 					{
+						Debug.WriteLine($"Changing Tor circuit");
+						await WalletJob.ControlPortClient.ChangeCircuitAsync();
+						await Task.Delay(100);
+
 						var request = new CoinJoinRequest
 						{
 							UniqueId = UniqueAliceId

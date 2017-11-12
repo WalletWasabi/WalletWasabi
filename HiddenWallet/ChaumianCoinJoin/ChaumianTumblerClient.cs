@@ -24,9 +24,7 @@ namespace HiddenWallet.ChaumianCoinJoin
 			if (address == null) throw new ArgumentNullException(nameof(address));
 			if (handler == null) throw new ArgumentNullException(nameof(handler));
 
-			HttpClient = new HttpClient(handler, disposeHandler);
-			
-			HttpClient = new HttpClient
+			HttpClient = new HttpClient(handler, disposeHandler)
 			{
 				BaseAddress = new Uri(address + "api/v1/Tumbler/")
 			};

@@ -103,11 +103,11 @@ namespace HiddenWallet.Daemon.Wrappers
 				
 				if(Network == Network.Main)
 				{
-					_walletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerMainAddress, Global.RsaPubKey, Tor.SocksPortHandler, disposeHandler: false);
+					_walletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerMainAddress, Global.Config.ChaumianTumblerMainNotificationAddress, Global.RsaPubKey, Tor.SocksPortHandler, disposeHandler: false);
 				}
 				else
 				{
-					_walletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerTestNetAddress, Global.RsaPubKey, Tor.SocksPortHandler, disposeHandler: false);
+					_walletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerTestNetAddress, Global.Config.ChaumianTumblerTestNetNotificationAddress, Global.RsaPubKey, Tor.SocksPortHandler, disposeHandler: false);
 				}
 				await _walletJob.CoinJoinService.SubscribePhaseChangeAsync();
 			}

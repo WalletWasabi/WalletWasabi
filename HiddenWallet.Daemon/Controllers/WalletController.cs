@@ -331,7 +331,8 @@ namespace HiddenWallet.Daemon.Controllers
 			//Fees:
 			//var satoshiFeePerBytes = (await _walletJob.FeeJob.GetFeePerBytesAsync(FeeType.High, default(CancellationToken)).ConfigureAwait(false)).ToDecimal(MoneyUnit.Satoshi);
 
-			return new ObjectResult(new ChaumianCoinJoin.Models.StatusResponse { Success = true, Address = "To Do: set in WalletWrapper.GetTumblerServerResponseAsync", Phase = ChaumianCoinJoin.TumblerPhase.InputRegistration.ToString(), Denomination = "0.15", AnonymitySet = 12, TimeSpentInInputRegistrationInSeconds = 416, MaximumInputsPerAlices = 4, FeePerInputs = "0.00015 BTC", FeePerOutputs = "0.00015 BTC", NetworkFee = "0.002034 BTC", Version = "1" });
+			var address = Global.WalletWrapper.Network == Network.Main ? Global.Config.ChaumianTumblerMainAddress : Global.Config.ChaumianTumblerTestNetAddress;
+			return new ObjectResult(new ChaumianCoinJoin.Models.StatusResponse { Address = address, Phase = ChaumianCoinJoin.TumblerPhase.InputRegistration.ToString(), Denomination = "0.15", AnonymitySet = 12, TimeSpentInInputRegistrationInSeconds = 416, MaximumInputsPerAlices = 4, FeePerInputs = "0.00015 BTC", FeePerOutputs = "0.00015 BTC", NetworkFee = "0.002034 BTC", Version = "1" });
 			//try
 			//{
 			//	return new ObjectResult(Global.WalletWrapper.GetTumblerServerResponseAsync().Result);

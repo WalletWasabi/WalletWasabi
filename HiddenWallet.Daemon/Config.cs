@@ -32,6 +32,12 @@ namespace HiddenWallet.Daemon
 		[JsonProperty(PropertyName = "ChaumianTumblerMainAddress", Order = 5)]
 		public string ChaumianTumblerMainAddress { get; private set; }
 
+		[JsonProperty(PropertyName = "ChaumianTumblerTestNetNotificationAddress", Order = 6)]
+		public string ChaumianTumblerTestNetNotificationAddress { get; private set; }
+
+		[JsonProperty(PropertyName = "ChaumianTumblerMainNotificationAddress", Order = 7)]
+		public string ChaumianTumblerMainNotificationAddress { get; private set; }
+
 		public Config()
 		{
 
@@ -55,8 +61,10 @@ namespace HiddenWallet.Daemon
 			WalletFilePath = Path.Combine(FullSpvWallet.Global.DataDir, "Wallets", "Wallet.json");
 			Network = Network.Main;
 			CanSpendUnconfirmed = false;
-			ChaumianTumblerTestNetAddress = "http://localhost:60949/"; // TODO: change it when active tumbler had been set up
-			ChaumianTumblerMainAddress = "http://localhost:60949/"; // TODO: change it when active tumbler had been set up
+			ChaumianTumblerTestNetAddress = "http://i4dmqjdw2nljsyt3.onion/"; // TODO: change it when active tumbler had been set up
+			ChaumianTumblerMainAddress = "http://i4dmqjdw2nljsyt3.onion/"; // TODO: change it when active tumbler had been set up
+			ChaumianTumblerTestNetNotificationAddress = "http://localhost:80/"; // TODO: change it when active tumbler had been set up
+			ChaumianTumblerMainNotificationAddress = "http://localhost:80/"; // TODO: change it when active tumbler had been set up
 
 			if (!File.Exists(path))
 			{
