@@ -31,7 +31,7 @@ namespace HiddenWallet.ChaumianTumbler
 
 		public volatile Transaction CoinJoin;
 		public volatile string UnsignedCoinJoinHex;
-		public bool FullySignedCoinJoin => CoinJoin?.Inputs == null ? false : CoinJoin.Inputs.All(x => x.WitScript != default);
+		public bool FullySignedCoinJoin => CoinJoin?.Inputs == null ? false : CoinJoin.Inputs.All(x => !string.IsNullOrWhiteSpace(x.WitScript?.ToString()));
 
 		private SmartBitClient SmartBitClient { get; } = new SmartBitClient(Network.Main);
 		public ConcurrentHashSet<Alice> Alices { get; private set; }
@@ -147,6 +147,13 @@ namespace HiddenWallet.ChaumianTumbler
 								if(!FullySignedCoinJoin)
 								{
 									FallBackRound = true;
+									foreach(var alice in Alices)
+									{
+										if(alice.State != AliceState.SignedCoinJoin)
+										{
+											await Global.UtxoReferee.BanAliceAsync(alice);
+										}
+									}
 								}
 								UpdatePhase(TumblerPhase.InputRegistration);
 								CoinJoin = null;
@@ -174,6 +181,15 @@ namespace HiddenWallet.ChaumianTumbler
 			{
 				transaction.AddOutput(Denomination, bob.Output);
 			}
+			// if there are less bobs than alices add our own address (the client should refuse to sign this case and we should ban it)
+			// this happens when alice did not provide output for the mix
+			// if the wallet doesn't refuse it because of the bug and will just sign (eg. it wasn't an attack), then we can give back the money
+			for (int i = 0; i < Alices.Count - Bobs.Count; i++)
+			{
+				var donation = Global.Config.Network == Network.Main ? new BitcoinWitPubKeyAddress("bc1q6y83sgk28p5jjaac4t9mcwj2jaj9fdetvynt29", Network.Main) : new BitcoinWitPubKeyAddress("tb1q6y83sgk28p5jjaac4t9mcwj2jaj9fdetxzgc3k", Network.TestNet);
+				transaction.AddOutput(Denomination, donation);
+			}
+
 			foreach (var alice in Alices)
 			{
 				foreach (var input in alice.Inputs)

@@ -445,6 +445,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						}
 					}
 
+					alice.State = AliceState.SignedCoinJoin;
 					return new ObjectResult(new SuccessResponse());
 				}
 			}
