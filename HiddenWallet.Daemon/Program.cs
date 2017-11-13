@@ -83,7 +83,7 @@ namespace HiddenWallet.Daemon
 				try
 				{
 					// if doesn't fail tor is already running with the control port
-					await Tor.ControlPortClient.IsCircuitEstabilishedAsync();
+					await Tor.ControlPortClient.IsCircuitEstabilishedAsync(); // ToDo fix typo in DotNetTor: estabilish -> establish
 					Debug.WriteLine($"Tor is already running, using the existing instance.");
 				}
                 catch (Exception)

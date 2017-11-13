@@ -277,7 +277,11 @@ namespace HiddenWallet.Daemon.Wrappers
 		public async Task<BaseResponse> BuildTransactionAsync(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType)
 		{
 			// todo: delete this code comment, it was just a test, if you see it, I forgot to delete it
-			// await _walletJob.CoinJoinService.TumbleAsync(safeAccount == AliceAccount ? AliceAccount : BobAccount, safeAccount != AliceAccount ? AliceAccount : BobAccount, CancellationToken.None);
+			//var to = safeAccount != AliceAccount ? AliceAccount : BobAccount;
+			//IEnumerable<Script> unusedOutputs = await _walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, to, HdPathType.NonHardened);
+			//BitcoinAddress activeOutput = unusedOutputs.RandomElement().GetDestinationAddress(Network); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
+			//BitcoinWitPubKeyAddress bech32 = new BitcoinWitPubKeyAddress(activeOutput.ToString(), Network);
+			//await _walletJob.CoinJoinService.TumbleAsync(safeAccount == AliceAccount ? AliceAccount : BobAccount, bech32, CancellationToken.None);
 
 			if (password != _password) throw new InvalidOperationException("Wrong password");
 			var result = await _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, (bool)Global.Config.CanSpendUnconfirmed);

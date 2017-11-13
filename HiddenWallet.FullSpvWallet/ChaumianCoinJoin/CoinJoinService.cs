@@ -1,4 +1,5 @@
 ﻿using ConcurrentCollections;
+using DotNetTor;
 using HiddenWallet.ChaumianCoinJoin;
 using HiddenWallet.ChaumianCoinJoin.Models;
 using HiddenWallet.Crypto;
@@ -29,7 +30,6 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		public string NotificationBaseAddress { get; private set; }
 
 		public SafeAccount From { get; private set; }
-		public SafeAccount To { get; private set; }
 
 		public BlindingRsaPubKey PubKey { get; private set; }
 
@@ -41,7 +41,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 		public Money Denomination { get; private set; }
 		public string UniqueAliceId { get; private set; }
-		public BitcoinAddress ActiveOutput { get; private set; }
+		public BitcoinWitPubKeyAddress ActiveOutput { get; private set; }
 		public BitcoinAddress ChangeOutput { get; private set; }
 		public Money ChangeOutputExpectedValue { get; private set; }
 		public ConcurrentHashSet<BitcoinExtKey> SigningKeys { get; private set; }
@@ -50,10 +50,11 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 		public CoinJoinService(WalletJob walletJob)
 		{
-			TumblingInProcess = false;
 			CompletedLastPhase = true;
+			TumblingInProcess = false;
 			TumblerConnection = null;
 			CoinJoin = null;
+			TumblingException = null;
 			WalletJob = walletJob ?? throw new ArgumentNullException(nameof(walletJob));
 		}
 
@@ -83,12 +84,13 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					var phaseString = jObject.Value<string>("NewPhase");
 
 					Debug.WriteLine($"New Phase: {phaseString}");
-					Phase = TumblerPhaseHelpers.GetTumblerPhase(phaseString);
-					if (Phase != TumblerPhase.InputRegistration) // input registration is executed from tumbling function
+					var phase = TumblerPhaseHelpers.GetTumblerPhase(phaseString);
+					Phase = phase;
+					if (phase != TumblerPhase.InputRegistration) // input registration is executed from tumbling function
 					{
 						try
 						{
-							await ExecutePhaseAsync(Phase);
+							await ExecutePhaseAsync(phase);
 						}
 						catch
 						{
@@ -124,14 +126,15 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		/// <summary>
 		/// Participates one tumbling round
 		/// </summary>
-		public async Task<uint256> TumbleAsync(SafeAccount from, SafeAccount to, CancellationToken cancel)
+		public async Task<uint256> TumbleAsync(SafeAccount from, BitcoinWitPubKeyAddress to, CancellationToken cancel)
 		{
 			try
 			{
 				CoinJoin = null;
+				TumblingException = null;
 
 				From = from ?? throw new ArgumentNullException(nameof(from));
-				To = to ?? throw new ArgumentNullException(nameof(to));
+				ActiveOutput = to ?? throw new ArgumentNullException(nameof(to));
 
 				// if blocks are not synced yet throw
 				var headerHeightResult = await WalletJob.TryGetHeaderHeightAsync();
@@ -157,23 +160,34 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					}
 				}
 
-				StatusResponse status = await TumblerClient.GetStatusAsync(cancel);
+				StatusResponse status;
+				try
+				{
+					status = await TumblerClient.GetStatusAsync(cancel);
+				}
+				catch (TorException)
+				{
+					// ToDo: fix it in DotNetTor, this happens when the tumbler goes offline, then comes back up, the already established connection cannot be reused
+					status = await TumblerClient.GetStatusAsync(cancel); 
+				}
 
 				Phase = TumblerPhaseHelpers.GetTumblerPhase(status.Phase);
 				
 				// wait for input registration
 				while(Phase != TumblerPhase.InputRegistration)
 				{
+					if (TumblerConnection == null) throw new HttpRequestException("Server went offline");
 					status = null;
 					await Task.Delay(100, cancel);
 				}
 
 				TumblingInProcess = true;
-				await ExecutePhaseAsync(Phase, status, cancel);
+				await ExecutePhaseAsync(TumblerPhase.InputRegistration, status, cancel);
 				
 				// wait while tumbling is in process
 				while (TumblingInProcess)
 				{
+					if (TumblerConnection == null) throw new HttpRequestException("Server went offline");
 					await Task.Delay(100, cancel);
 				}
 
@@ -214,9 +228,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						var feePerInputs = Money.Parse(status.FeePerInputs);
 						var feePerOutputs = Money.Parse(status.FeePerOutputs);
 
-						IEnumerable<Script> unusedOutputs = await WalletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, To, HdPathType.NonHardened);
-						var activeOutput = unusedOutputs.RandomElement().GetDestinationAddress(WalletJob.CurrentNetwork); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
-						var blindingResult = PubKey.Blind(Encoding.UTF8.GetBytes(activeOutput.ToString()));
+						var blindingResult = PubKey.Blind(Encoding.UTF8.GetBytes(ActiveOutput.ToString()));
 						string blindedOutput = HexHelpers.ToString(blindingResult.BlindedData);
 
 						SigningKeys = new ConcurrentHashSet<BitcoinExtKey>();
@@ -273,12 +285,11 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						// unblind the signature
 						var unblindedSignature = PubKey.UnblindSignature(HexHelpers.GetBytes(response.SignedBlindedOutput), blindingResult.BlindingFactor);
 						// verify the original data is signed
-						if (!PubKey.Verify(unblindedSignature, Encoding.UTF8.GetBytes(activeOutput.ToString())))
+						if (!PubKey.Verify(unblindedSignature, Encoding.UTF8.GetBytes(ActiveOutput.ToString())))
 						{
 							throw new HttpRequestException("Tumbler did not sign the blinded output properly");
 						}
 						UnblindedSignature = HexHelpers.ToString(unblindedSignature);
-						ActiveOutput = activeOutput;
 					}
 					else if (phase == TumblerPhase.ConnectionConfirmation)
 					{
