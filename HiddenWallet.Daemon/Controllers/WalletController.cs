@@ -316,31 +316,48 @@ namespace HiddenWallet.Daemon.Controllers
 
 		[Route("tumbler-server")]
 		[HttpGet]
-		public IActionResult TumblerServer()
+		public async Task<IActionResult> TumblerServerAsync()
 		{
-			//return new ObjectResult(new SuccessResponse());
-			//This wil go in WalletWrapper:
-			//  public Network Network => _walletJob.Safe.Network;
-			//  var addressUri = Network == Network.Main ? Config.TumbleBitServerMainNet : Config.TumbleBitServerTestNet;
-			//  var address = "";
-			//  if (addressUri != null)
-			//  {
-			//  	address = addressUri.AbsoluteUri;
-			//  }
+			ChaumianCoinJoin.Models.StatusResponse response = await Global.WalletWrapper.GetTumblerStatusAsync();
 
-			//Fees:
-			//var satoshiFeePerBytes = (await _walletJob.FeeJob.GetFeePerBytesAsync(FeeType.High, default(CancellationToken)).ConfigureAwait(false)).ToDecimal(MoneyUnit.Satoshi);
+			if (response.Success)
+			{
+				response.Address = Global.WalletWrapper.Network == Network.Main ? Global.Config.ChaumianTumblerMainAddress : Global.Config.ChaumianTumblerTestNetAddress;
+				return new ObjectResult(response);
+			}
+			else
+			{
+				return new ObjectResult(new FailureResponse { Message = "Tumbler Status Error", Details = "" });
+			}
+		}
 
-			var address = Global.WalletWrapper.Network == Network.Main ? Global.Config.ChaumianTumblerMainAddress : Global.Config.ChaumianTumblerTestNetAddress;
-			return new ObjectResult(new ChaumianCoinJoin.Models.StatusResponse { Address = address, Phase = ChaumianCoinJoin.TumblerPhase.InputRegistration.ToString(), Denomination = "0.15", AnonymitySet = 12, TimeSpentInInputRegistrationInSeconds = 416, MaximumInputsPerAlices = 4, FeePerInputs = "0.00015 BTC", FeePerOutputs = "0.00015 BTC", NetworkFee = "0.002034 BTC", Version = "1" });
-			//try
-			//{
-			//	return new ObjectResult(Global.WalletWrapper.GetTumblerServerResponseAsync().Result);
-			//}
-			//catch (Exception ex)
-			//{
-			//	return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
-			//}
+		[Route("tumble")]
+		[HttpPost]
+		public async Task<IActionResult> TumbleAsync([FromBody]TumbleRequest request)
+		{
+			try
+			{
+				var getFrom = GetAccount(request.From, out SafeAccount fromAccount);
+				if (getFrom != null) return new ObjectResult(getFrom);
+
+				var getTo = GetAccount(request.To, out SafeAccount toAccount);
+				if (getTo != null) return new ObjectResult(getTo);
+
+				BaseResponse result = await Global.WalletWrapper.TumbleAsync(fromAccount, toAccount);
+
+				if (result.Success)
+				{
+					return new ObjectResult(new SuccessResponse());
+				}
+				else
+				{
+					return new ObjectResult(new FailureResponse { Message = "Tumbler Error", Details = "Could not submit for mixing [01]" });
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = "Tumbler Error", Details = "Could not submit for mixing [02]. " + ex.ToString() });
+			}
 		}
 	}
 }

@@ -370,6 +370,20 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 			}
 		}
 
+		public async Task<StatusResponse> GetStatusAsync(CancellationToken cancel = default)
+		{
+			try
+			{
+				StatusResponse status = await TumblerClient.GetStatusAsync(cancel);
+				return status;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+				throw ex;
+			}
+		}
+
 		#endregion
 
 		#region Disposing

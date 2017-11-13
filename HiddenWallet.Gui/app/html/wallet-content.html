@@ -55,13 +55,7 @@
     <br />
     <div id="mixer-settings-content">
         <label>Denomination:</label>
-        <span class="label label-success" style="font-size: 13px; margin-left:96px;" id="tumbler-denomination">1</span>
-        <br />
-        <label>Fee Per Input:</label>
-        <span class="label label-success" style="font-size: 13px; margin-left:101px;" id="tumbler-fee-input">2</span>
-        <br />
-        <label>Fee Per Output:</label>
-        <span class="label label-success" style="font-size: 13px; margin-left:89px;" id="tumbler-fee-output">3</span>
+        <span class="label label-success" style="font-size: 13px; margin-left:96px;" id="tumbler-denomination"></span>
         <br />
         <br />
 
@@ -77,21 +71,21 @@
         <span class="label label-danger" id="tumbling-to-wallet" style="font-size: 15px;">?</span>
         <br />
         <br />
-        <div id="not-enough-funds-to-mix" style="font-size: 13px;" class="alert alert-danger">Not enough funds to mix</div>
+        <!--<div id="not-enough-funds-to-mix" style="font-size: 13px;" class="alert alert-danger">Not enough funds to mix</div>-->
         <div id="wallet-selected">
             <form class="form-inline">
                 <label>Amount:</label>
-                <input style="margin-left:1em;" id="amount-input" class="form-control form-inline" onchange="amountChanged()" onkeypress="document.getElementById('amount-input').stepUp(1); return false;" type="number" size="11" />
+                <span class="form-control form-inline" style="font-size: 13px; margin-left:96px;" id="amount-input">?</span>
                 <label>BTC</label>
             </form>
             <hr />
 
             <label>Estimated Network Fees:</label>
-            <span style="font-size: 13px;" class="label label-success" id="tumbling-network-fees"></span>
+            <span style="font-size: 13px;" class="label label-success" id="network-fees"></span>
             <br />
             <br />
 
-            <button id="broadcast-button" class="btn btn-lg btn-success btn-block" onclick="">
+            <button id="mixing-button" class="btn btn-lg btn-success btn-block" onclick="mix()">
                 <span class="mdi mdi-tor"></span> Start Mixing
             </button>
         </div>
@@ -102,7 +96,7 @@
             <tr>
                 <th>Phase</th>
                 <th>Anonymity Set</th>
-                <th>Time in input phase</th>
+                <th>Seconds since mixing round started</th>
             </tr>
         </thead>
         <tbody id="tumbling-phase-records"></tbody>
