@@ -101,9 +101,9 @@ namespace HiddenWallet.ChaumianTumbler
 					throw new NotSupportedException("blocks != headers");
 				}
 
-				if (string.IsNullOrWhiteSpace((await RpcClient.SendCommandAsync("estimatesmartfee", 1, "ECONOMICAL"))?.ResultString))
+				if (string.IsNullOrWhiteSpace((await RpcClient.SendCommandAsync("estimatesmartfee", Config.FeeConfirmationTarget, Config.FeeEstimationMode))?.ResultString))
 				{
-					throw new NotSupportedException("estimatesmartfee 1 ECONOMICAL == null");
+					throw new NotSupportedException($"estimatesmartfee {Config.FeeConfirmationTarget} {Config.FeeEstimationMode} == null");
 				}
 			}
 			catch

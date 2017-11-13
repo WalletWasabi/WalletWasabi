@@ -250,17 +250,19 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			int inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m); // vSize
 			int outputSizeInBytes = Constants.OutputSizeInBytes;
+			
 			try
 			{
-				RPCResponse result = (await Global.RpcClient.SendCommandAsync("estimatesmartfee", 1, "ECONOMICAL"));
+				RPCResponse result = (await Global.RpcClient.SendCommandAsync("estimatesmartfee", Global.Config.FeeConfirmationTarget, Global.Config.FeeEstimationMode));
 				if (string.IsNullOrWhiteSpace(result?.ResultString)) throw new ArgumentException(nameof(result));
 				var resultJToken = result.Result;
 				var feeRateDecimal = resultJToken.Value<decimal>("feerate");
 				var feeRate = new FeeRate(new Money(feeRateDecimal, MoneyUnit.BTC));
 				Money feePerBytes = (feeRate.FeePerK / 1000);
 
-				FeePerInputs = feePerBytes * inputSizeInBytes;
-				FeePerOutputs = feePerBytes * outputSizeInBytes;
+				// make sure min relay fee (1000 sat) is hit
+				FeePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
+				FeePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
 			}
 			catch
 			{
@@ -269,8 +271,9 @@ namespace HiddenWallet.ChaumianTumbler
 				{
 					var feePerBytes = new Money((int)Global.Config.FallBackSatoshiFeePerBytes);
 
-					FeePerInputs = feePerBytes * inputSizeInBytes;
-					FeePerOutputs = feePerBytes * outputSizeInBytes;
+					// make sure min relay fee (1000 sat) is hit
+					FeePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
+					FeePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
 				}
 			}
 		}

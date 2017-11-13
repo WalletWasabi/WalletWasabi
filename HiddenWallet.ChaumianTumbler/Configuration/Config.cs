@@ -64,6 +64,12 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 		[JsonProperty(PropertyName = "FallBackSatoshiFeePerBytes")]
 		public int? FallBackSatoshiFeePerBytes { get; private set; }
 
+		[JsonProperty(PropertyName = "FeeConfirmationTarget")]
+		public int? FeeConfirmationTarget { get; private set; }
+
+		[JsonProperty(PropertyName = "FeeEstimationMode")]
+		public string FeeEstimationMode { get; private set; }
+
 		public Config()
 		{
 
@@ -99,6 +105,8 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 			SigningPhaseTimeoutInSeconds = 60;
 			MaximumInputsPerAlices = 7;
 			FallBackSatoshiFeePerBytes = 300;
+			FeeConfirmationTarget = 2;
+			FeeEstimationMode = "ECONOMICAL";
 
 			if (!File.Exists(path))
 			{
@@ -124,6 +132,8 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 				SigningPhaseTimeoutInSeconds = config.SigningPhaseTimeoutInSeconds ?? SigningPhaseTimeoutInSeconds;
 				MaximumInputsPerAlices = config.MaximumInputsPerAlices ?? MaximumInputsPerAlices;
 				FallBackSatoshiFeePerBytes = config.FallBackSatoshiFeePerBytes ?? FallBackSatoshiFeePerBytes;
+				FeeConfirmationTarget = config.FeeConfirmationTarget ?? FeeConfirmationTarget;
+				FeeEstimationMode = config.FeeEstimationMode ?? FeeEstimationMode;
 			}
 
 			await ToFileAsync(path, cancel);

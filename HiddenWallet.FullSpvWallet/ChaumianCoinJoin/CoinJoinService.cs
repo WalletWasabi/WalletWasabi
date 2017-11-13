@@ -88,7 +88,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					{
 						try
 						{
-							await ExecutePhaseAsync(Phase, CancellationToken.None);
+							await ExecutePhaseAsync(Phase);
 						}
 						catch
 						{
@@ -104,14 +104,17 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 			}
 			catch (Exception ex)
 			{
-				await DisposeAsync();
+				await TumblerConnection?.DisposeAsync();
+				TumblerConnection = null;
+
 				Debug.WriteLine(ex);
 			}
 		}
 
 		private async Task TumblerConnection_ClosedAsync(Exception arg)
 		{
-			await DisposeAsync();
+			await TumblerConnection?.DisposeAsync();
+			TumblerConnection = null;
 		}
 
 		#endregion
@@ -161,11 +164,12 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				// wait for input registration
 				while(Phase != TumblerPhase.InputRegistration)
 				{
+					status = null;
 					await Task.Delay(100, cancel);
 				}
 
 				TumblingInProcess = true;
-				await ExecutePhaseAsync(Phase, cancel);
+				await ExecutePhaseAsync(Phase, status, cancel);
 				
 				// wait while tumbling is in process
 				while (TumblingInProcess)
@@ -189,7 +193,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 			}
 		}
 
-		private async Task ExecutePhaseAsync(TumblerPhase phase, CancellationToken cancel)
+		private async Task ExecutePhaseAsync(TumblerPhase phase, StatusResponse statusJustAcquired = null, CancellationToken cancel = default)
 		{
 			while (CompletedLastPhase == false)
 			{
@@ -202,7 +206,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					CompletedLastPhase = false;
 					if (phase == TumblerPhase.InputRegistration)
 					{
-						StatusResponse status = await TumblerClient.GetStatusAsync(cancel);
+						StatusResponse status = statusJustAcquired ?? await TumblerClient.GetStatusAsync(cancel);
 						// TODO: only native segwit (p2wpkh) inputs are accepted by the tumbler (later wrapped segwit (p2sh-p2wpkh) will be accepted too)
 						var getBalanceResult = await WalletJob.GetBalanceAsync(From);
 						var balance = getBalanceResult.Available.Confirmed + getBalanceResult.Available.Unconfirmed;

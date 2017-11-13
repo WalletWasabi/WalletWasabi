@@ -80,6 +80,8 @@ namespace HiddenWallet.Daemon
 				CanSpendUnconfirmed = config.CanSpendUnconfirmed ?? CanSpendUnconfirmed;
 				ChaumianTumblerTestNetAddress = config.ChaumianTumblerTestNetAddress ?? ChaumianTumblerTestNetAddress;
 				ChaumianTumblerMainAddress = config.ChaumianTumblerMainAddress ?? ChaumianTumblerMainAddress;
+				ChaumianTumblerTestNetNotificationAddress = config.ChaumianTumblerTestNetNotificationAddress ?? ChaumianTumblerTestNetNotificationAddress;
+				ChaumianTumblerMainNotificationAddress = config.ChaumianTumblerMainNotificationAddress ?? ChaumianTumblerMainNotificationAddress;
 			}
 
 			await ToFileAsync(path, cancel);

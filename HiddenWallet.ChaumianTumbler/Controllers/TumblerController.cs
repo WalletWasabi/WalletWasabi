@@ -378,13 +378,15 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 							await Global.UtxoReferee.BanAliceAsync(alice);
 							Global.StateMachine.FallBackRound = true;
 							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
+							throw new ArgumentOutOfRangeException(nameof(signatureModel.Index));
 						}
-						if(coinJoin.Inputs[signatureModel.Index].WitScript != default)
+						if(!string.IsNullOrWhiteSpace(coinJoin.Inputs[signatureModel.Index]?.WitScript?.ToString()))
 						{
 							// round fails, ban alice
 							await Global.UtxoReferee.BanAliceAsync(alice);
 							Global.StateMachine.FallBackRound = true;
 							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
+							throw new InvalidOperationException("Input is already signed");
 						}
 						coinJoin.Inputs[signatureModel.Index].WitScript = witness;
 						var output = alice.Inputs.Single(x => x.OutPoint == coinJoin.Inputs[signatureModel.Index].PrevOut).Output;
@@ -394,6 +396,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 							await Global.UtxoReferee.BanAliceAsync(alice);
 							Global.StateMachine.FallBackRound = true;
 							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
+							throw new InvalidOperationException("Invalid witness");
 						}
 						else
 						{
@@ -404,17 +407,32 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					// check if fully signed
 					if(Global.StateMachine.FullySignedCoinJoin)
 					{
-						var failed = true;
+						Console.WriteLine("Trying to propagate coinjoin....");
+						ConcurrentHashSet<Alice> alices = Global.StateMachine.Alices;
+						Coin[] spentCoins = alices.SelectMany(x => x.Inputs.Select(y => new Coin(y.OutPoint, y.Output))).ToArray();
+						var fee = coinJoin.GetFee(spentCoins);
+						Console.WriteLine($"Fee: {fee.ToString(false, true)}");
+						var feeRate = coinJoin.GetFeeRate(spentCoins);
+						Console.WriteLine($"FeeRate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte");
+
+						var state = CoinJoinTransactionState.Failed;
 						try
 						{							
 							var res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendrawtransaction, coinJoin.ToHex(), true);
-							var state = CoinJoinTransactionState.Failed;
 							if (coinJoin.GetHash().ToString() == res.ResultString)
 							{
-								failed = false;
 								state = CoinJoinTransactionState.Succeeded;
-								Console.WriteLine($"Propagated transaction: {coinJoin.GetHash()}");
+								Console.WriteLine($"Propagated transaction: {coinJoin.GetHash()}");								
 							}
+						}
+						finally
+						{
+							if (state == CoinJoinTransactionState.Failed)
+							{
+								Global.StateMachine.FallBackRound = true;
+							}
+							else Global.StateMachine.FallBackRound = false;
+
 							Global.CoinJoinStore.Transactions.Add(new CoinJoinTransaction
 							{
 								Transaction = coinJoin,
@@ -422,14 +440,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 								State = state
 							});
 							await Global.CoinJoinStore.ToFileAsync(Global.CoinJoinStorePath);
-						}
-						finally
-						{
-							if (failed)
-							{
-								Global.StateMachine.FallBackRound = true;
-							}
-							else Global.StateMachine.FallBackRound = false;
+
 							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
 						}
 					}
