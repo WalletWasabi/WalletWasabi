@@ -313,5 +313,44 @@ namespace HiddenWallet.Daemon.Wrappers
 			if (result.Success) return new SuccessResponse();
 			else return new FailureResponse { Message = result.FailingReason, Details = "" };
 		}
+
+		public async Task<ChaumianCoinJoin.Models.StatusResponse> GetTumblerStatusAsync()
+		{
+			try
+			{
+				ChaumianCoinJoin.Models.StatusResponse result = await _walletJob.CoinJoinService.GetStatusAsync();
+				return result;
+			}
+			catch (Exception)
+			{
+				return new ChaumianCoinJoin.Models.StatusResponse { Success = false };
+			}
+		}
+
+		public async Task<BaseResponse> TumbleAsync(SafeAccount fromAccount, SafeAccount toAccount)
+		{
+			try
+			{
+				IEnumerable<Script> unusedOutputs = await _walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, toAccount, HdPathType.NonHardened);
+				BitcoinAddress activeOutput = unusedOutputs.RandomElement().GetDestinationAddress(Network); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
+				BitcoinWitPubKeyAddress bech32 = new BitcoinWitPubKeyAddress(activeOutput.ToString(), Network);
+		
+				uint256 result = await _walletJob.CoinJoinService.TumbleAsync(fromAccount, bech32, CancellationToken.None);
+			
+				if (null != result)
+				{
+					return new SuccessResponse();
+				}
+				else
+				{
+					return new FailureResponse { Message = "Failed to start Mix. An error occured. [01]", Details = "" };
+				}
+
+			}
+			catch (Exception)
+			{
+				return new FailureResponse { Message = "Failed to start Mix. An error occured. [02]", Details = "" };
+			}
+		}
 	}
 }

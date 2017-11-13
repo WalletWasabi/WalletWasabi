@@ -17,7 +17,6 @@ namespace HiddenWallet.ChaumianCoinJoin.Models
 		public int MaximumInputsPerAlices { get; set; }
 		public string FeePerInputs { get; set; }
 		public string FeePerOutputs { get; set; }
-		public string NetworkFee { get; set; }
 		public string Version { get; set; }
 	}
 }

@@ -98,10 +98,6 @@ function chooseWalletDropdown(aliceBob: string = "") {
     let chooseWallet: HTMLElement = document.getElementById("choose-wallet-dropdown");
     let chooseWalletActive: HTMLElement = document.getElementById("choose-wallet-dropdown-active");
     let tumblingTo: HTMLElement = document.getElementById("tumbling-to-wallet");
-    let notEnoughFunds: HTMLElement = document.getElementById("not-enough-funds-to-mix");
-    let walletSelected: HTMLElement = document.getElementById("wallet-selected");
-    let amount: HTMLInputElement = document.getElementById("amount-input") as HTMLInputElement;
-    let tumblingFees: HTMLElement = document.getElementById("tumbling-network-fees");
 
     let resp: any;
 
@@ -124,44 +120,8 @@ function chooseWalletDropdown(aliceBob: string = "") {
         tumblingTo.classList.remove("label-danger");
         tumblingTo.classList.add("label-success");
 
-        //todo - next 2 lines comment out and fake a value - might not be needed
-        //let maximumMixed: number = resp.Available - (resp.Available * (tumblerFeePercent / 100));
-        let maximumMixed: number = 1;
-
-        if (maximumMixed < tumblerDenomination) {
-            notEnoughFunds.style.removeProperty("display");
-            walletSelected.style.display = "none";
-        }
-        else {
-            var times = Math.floor(maximumMixed / tumblerDenomination);
-            //todo - commented out below - might not be needed:
-            //maximumMixed -= (estCycleFee * times);
-            walletSelected.style.removeProperty("display");
-            notEnoughFunds.style.display = "none";
-
-            //todo - we shouldn't be able to change this: needs to be fixed not stepped input:
-            amount.step = String(tumblerDenomination);
-            amount.min = String(tumblerDenomination);
-            amount.max = String(tumblerDenomination);
-            amount.value = String(tumblerDenomination);
-            //todo - commented out might not be needed:
-            //tumblingFees.innerText = estCycleFee + " BTC";
-        }
+        //todo - check they have enough funds to mix before submitting
     }
-}
-
-function amountChanged() {
-    let amount: HTMLInputElement = document.getElementById("amount-input") as HTMLInputElement;
-    let tumblingFees: HTMLElement = document.getElementById("tumbling-network-fees");
-
-    //todo - commented out below for now - might not be needed
-    //let cycleCount: number = Number(amount.value) / tumblerDenomination;
-    //tumblingFees.innerText = round(cycleCount * estCycleFee, 8) + " BTC";
-}
-
-function round(value: number, precision: number) {
-    let multiplier: number = Math.pow(10, precision || 0);
-    return Math.round(value * multiplier) / multiplier;
 }
 
 let tumblerAddress: string;
@@ -170,17 +130,17 @@ let tumblerDenomination: number;
 let anonymitySet: number;
 let timeSpentInputRegistration: number;
 let maxInputsPerAlice: number;
+let version: number;
+let tumblerStatus: string;
+let networkFees: string;
 let feePerInputs: string;
 let feePerOutputs: string;
-let version: number;
-let networkFees: string;
-let tumblerStatus: string;
 
 function mixerShow() {
     let contentElem: HTMLElement = document.getElementById("content");
     let walletContentFrame: HTMLIFrameElement = <HTMLIFrameElement>document.getElementById("wallet-content-frame");
     let mixerContentElem: HTMLElement = walletContentFrame.contentWindow.document.getElementById("mixer-content");
-    
+
     let resp: any;
 
     contentElem.innerHTML = mixerContentElem.outerHTML;
@@ -190,17 +150,13 @@ function mixerShow() {
     let mixerSettingsContentElem: HTMLElement = document.getElementById("mixer-settings-content");
     let denominationElem: HTMLElement = document.getElementById("tumbler-denomination");
     let anonSetElem: HTMLElement = document.getElementById("anonymity-set");
-    let inputPhaseTimeElem: HTMLElement = document.getElementById("input-phase-time");
-    let feeInputElem: HTMLElement = document.getElementById("tumbler-fee-input");
-    let feeOutputElem: HTMLElement = document.getElementById("tumbler-fee-output");
-    let networkFeesElem: HTMLElement = document.getElementById("tumbling-network-fees");
+    let networkFeesElem: HTMLElement = document.getElementById("network-fees");
     let walletSelectedElem: HTMLElement = document.getElementById("wallet-selected");
-    let notEnoughFundsElem: HTMLElement = document.getElementById("not-enough-funds-to-mix");
+    let amountElem: HTMLElement = document.getElementById("amount-input");
 
+    //todo - cursor wait around server calls?
     resp = httpGetWallet("tumbler-server");
-    
-    //TODO - handle resp.Success - show or hide resp.*?
-    //todo - return Status in tumbler-server - online/offline?
+
     if (resp.Success) {
         tumblerStatus = "ONLINE";
     }
@@ -209,7 +165,6 @@ function mixerShow() {
     }
 
     tumblerAddress = resp.Address;
-    //todo - helper to convert 0 etc to human readable:
     tumblerPhase = resp.Phase;
     tumblerDenomination = resp.Denomination;
     anonymitySet = resp.AnonymitySet;
@@ -217,8 +172,9 @@ function mixerShow() {
     maxInputsPerAlice = resp.MaximumInputsPerAlices;
     feePerInputs = resp.FeePerInputs;
     feePerOutputs = resp.FeePerOutputs;
-    networkFees = resp.NetworkFee;
+    networkFees = calculateNetworkFee(feePerInputs, feePerOutputs);
     version = resp.Version;
+
     //todo - version check and error.
 
     tumblerAddressElem.value = tumblerAddress;
@@ -239,41 +195,74 @@ function mixerShow() {
     else {
         tumblerStatusElem.classList.add("label-success");
 
-        denominationElem.innerText = tumblerDenomination.toString() + " BTC";
-        feeInputElem.innerText = feePerInputs;
-        feeOutputElem.innerText = feePerOutputs;
-        networkFeesElem.innerText = networkFees;
-        //document.getElementById("tumbler-fee").innerText = resp.FeePercent + " %";
-        //document.getElementById("tumbling-time").innerText = Math.round((resp.CycleLengthMinutes / 60) * 10) / 10 + " hours";
+        denominationElem.innerText = String(tumblerDenomination) + " BTC";
+        amountElem.innerText = String(tumblerDenomination);
+        networkFeesElem.innerText = String(networkFees);
 
-        walletSelectedElem.style.display = "none";
-        notEnoughFundsElem.style.display = "none";
+        //walletSelectedElem.style.display = "none";
 
-        //Although we are just displyaing one row for now we might want to add a row for each phase as we progress through them
+        //Although we are just displaying one row for now we might want to add a row for each phase as we progress through them
         //so it has been built to handle this in the future:
-
         let phaseRecords: HTMLElement = document.getElementById("tumbling-phase-records");
 
         //for (phase in phases) {
-            let trNode: HTMLElement = document.createElement("tr");
+        let trNode: HTMLElement = document.createElement("tr");
 
-            let tdNodePhase: HTMLElement = document.createElement("td");
-            tdNodePhase.innerText = "Input Registration";
+        let tdNodePhase: HTMLElement = document.createElement("td");
+        tdNodePhase.innerText = getPhaseName(tumblerPhase);
 
-            let tdNodeAnonSet: HTMLElement = document.createElement("td");
-            tdNodeAnonSet.innerText = String(anonymitySet);
+        let tdNodeAnonSet: HTMLElement = document.createElement("td");
+        tdNodeAnonSet.innerText = String(anonymitySet);
 
-            let tdNodeTime: HTMLElement = document.createElement("td");
-            tdNodeTime.innerText = String(timeSpentInputRegistration);
-            
-            trNode.appendChild(tdNodePhase);
-            trNode.appendChild(tdNodeAnonSet);
-            trNode.appendChild(tdNodeTime);
-            phaseRecords.appendChild(trNode);
+        let tdNodeTime: HTMLElement = document.createElement("td");
+        tdNodeTime.innerText = String(timeSpentInputRegistration);
+
+        trNode.appendChild(tdNodePhase);
+        trNode.appendChild(tdNodeAnonSet);
+        trNode.appendChild(tdNodeTime);
+        phaseRecords.appendChild(trNode);
         //}
     }
 }
 
+function calculateNetworkFee(inputFee: string, outputFee: string) {
+    var result = parseFloat(inputFee) + parseFloat(outputFee);
+
+    return result.toFixed(8);
+}
+
+interface TumbleRequest {
+    From: string;
+    To: string;
+}
+
+function mix() {
+
+    let from: HTMLElement = document.getElementById("choose-wallet-dropdown-active");
+    let to: HTMLElement = document.getElementById("tumbling-to-wallet");
+
+    var obj: TumbleRequest = { From: from.innerText, To: to.innerText };
+
+    let json: any;
+
+    let mixingButton: HTMLButtonElement = document.getElementById("mixing-button") as HTMLButtonElement;
+
+    httpPostWalletAsync("tumble", obj, function (json) {
+        if (json.Success === false) {
+            let alertMessage: string = `Couldn't start the mix: ${json.Message}`;
+
+            if (!isBlank(json.Details)) {
+                alertMessage = `${alertMessage}\n\nDetails:\n${json.Details}`;
+            }
+
+            alert(alertMessage);
+        }
+        else {
+            mixingButton.disabled = true;
+            alert("Mix submitted");
+        }
+    });
+}
 
 function updateWalletContent() {
     let walletContentFrame: HTMLIFrameElement = <HTMLIFrameElement>document.getElementById("wallet-content-frame");
@@ -305,7 +294,6 @@ function updateWalletContent() {
 
                     let extPubKey: HTMLElement = document.getElementById("extpubkey");
                     let recAddresses: HTMLElement = document.getElementById("receive-addresses");
-
 
                     let resp: any = httpGetWallet("receive/alice");
                     let i: number = 0
@@ -427,24 +415,24 @@ function buildTransaction() {
     var slowFeeChecked: boolean = (<HTMLInputElement>document.getElementById("slow-fee-radio")).checked;
 
     if (!address) {
-        alert("Couldn't build the transaciton: Wrong address!");
+        alert("Couldn't build the tansaction: Wrong address!");
         return;
     }
 
     if (!amount || Number(amount) <= 0) {
-        alert("Couldn't build the transaciton: Wrong amount!");
+        alert("Couldn't build the tansaction: Wrong amount!");
         return;
     }
 
     // if both are checked or none are checked (cannot happen)
     if ((fastFeeChecked && slowFeeChecked) || (!fastFeeChecked && !slowFeeChecked)) {
-        alert("Couldn't build the transaciton: Wrong fee type!");
+        alert("Couldn't build the tansaction: Wrong fee type!");
         return;
     }
 
     // (cannot happen)
     if (password == null) {
-        alert("Couldn't build the transaciton: Wrong fee type!");
+        alert("Couldn't build the tansaction: Wrong fee type!");
         return;
     }
 
@@ -489,7 +477,7 @@ function buildTransaction() {
 
     httpPostWalletAsync(`build-transaction/${bobOrAlice}`, obj, function (json) {
         if (json.Success === false) {
-            let alertMessage: string = `Couldn't build the transaciton: ${json.Message}`;
+            let alertMessage: string = `Couldn't build the tansaction: ${json.Message}`;
 
             if (!isBlank(json.Details)) {
                 alertMessage = `${alertMessage}
@@ -521,4 +509,33 @@ function buildTransaction() {
 
 function isBlank(str: string) {
     return (!str || /^\s*$/.test(str));
+}
+
+function getPhaseName(phase: string): string {
+    let phaseName: string;
+
+    switch (phase) {
+        case "InputRegistration": {
+            phaseName = "Input Registration";
+            break;
+        }
+        case "ConnectionConfirmation": {
+            phaseName = "Connection Confirmation";
+            break;
+        }
+        case "OutputRegistration": {
+            phaseName = "Output Registration";
+            break;
+        }
+        case "Signing": {
+            phaseName = "Signing";
+            break;
+        }
+        default: {
+            phaseName = "Unknown";
+            break;
+        }
+    }
+
+    return phaseName;
 }
