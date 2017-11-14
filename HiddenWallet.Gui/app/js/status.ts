@@ -30,6 +30,8 @@ function periodicUpdate() {
             isTumblerOnline = response.IsTumblerOnline;
         }
 
+        updateMixerContent(response);
+
         if (walletState === response.WalletState) {
             if (headerHeight === response.HeaderHeight) {
                 if (trackingHeight === response.TrackingHeight) {
@@ -132,6 +134,57 @@ function updateMixerTab(ito: boolean) {
                 tab.style.backgroundColor = "";
             }
         }
+    }
+    catch (err) {
+
+    }
+}
+
+let tumblerDenomination: string;
+let tumblerAnonymitySet: string;
+let tumblerNumberOfPeers: string;
+let tumblerFeePerRound: string;
+let tumblerWaitedInInputRegistration: number;
+let tumblerPhase: string;
+function updateMixerContent(response = null) {
+    try {
+        if (response != null) {
+            // If nothing changed return
+            if (tumblerDenomination === response.TumblerDenomination) {
+                if (tumblerAnonymitySet === response.TumblerAnonymitySet) {
+                    if (tumblerNumberOfPeers === response.TumblerNumberOfPeers) {
+                        if (tumblerFeePerRound === response.TumblerFeePerRound) {
+                            if (tumblerWaitedInInputRegistration === response.TumblerWaitedInInputRegistration) {
+                                if (tumblerPhase === response.TumblerPhase) {
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            tumblerDenomination = response.TumblerDenomination;
+            tumblerAnonymitySet = response.TumblerAnonymitySet;
+            tumblerNumberOfPeers = response.TumblerNumberOfPeers;
+            tumblerFeePerRound = response.TumblerFeePerRound;
+            tumblerWaitedInInputRegistration = response.TumblerWaitedInInputRegistration;
+            tumblerPhase = response.TumblerPhase;
+        }
+
+        let denominationElem: HTMLElement = document.getElementById("tumbler-denomination");
+        let anonymitySetElem: HTMLElement = document.getElementById("tumbler-anonymity-set");
+        let peerCountElem: HTMLElement = document.getElementById("tumbler-peer-count");
+        let tumblerFeePerRoundElem: HTMLElement = document.getElementById("tumbler-fee-per-round");
+        let timeSpentWaitingElem: HTMLElement = document.getElementById("tumbler-time-spent-waiting");
+        let currentPhaseElem: HTMLElement = document.getElementById("tumbler-current-phase");
+        
+        denominationElem.innerText = tumblerDenomination + " BTC";
+        anonymitySetElem.innerText = tumblerAnonymitySet;
+        peerCountElem.innerText = tumblerNumberOfPeers;
+        tumblerFeePerRoundElem.innerText = tumblerFeePerRound + " BTC";
+        timeSpentWaitingElem.innerText = String(Math.floor(tumblerWaitedInInputRegistration / 60)) + " minutes";
+        currentPhaseElem.innerText = tumblerPhase;
     }
     catch (err) {
 

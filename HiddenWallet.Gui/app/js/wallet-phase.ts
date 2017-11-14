@@ -44,7 +44,7 @@ function walletPhaseShow(tabItem: string = "") {
     else if (tabItem === "mixer") {
         content.setAttribute("style", "max-height: 430");
         tabs.innerHTML = mixer.outerHTML;
-        let hintTextArray = ["ZeroLink cannot steal your coins, nor deanonymize you"];
+        let hintTextArray = ["The coordinator of the mixing cannot steal your coins, nor deanonymize you", "ZeroLink's mixing technique is trustless", "There are no hidden fees. You only pay the Bitcoin network fees."];
         let randomHint = hintTextArray[Math.floor(Math.random() * hintTextArray.length)];
         writeHint(randomHint);
         menu.innerHTML = "";
@@ -125,111 +125,79 @@ function chooseWalletDropdown(aliceBob: string = "") {
     }
 }
 
-let tumblerAddress: string;
-let tumblerPhase: string;
-let tumblerDenomination: number;
-let anonymitySet: number;
-let timeSpentInputRegistration: number;
-let maxInputsPerAlice: number;
-let version: number;
-let tumblerStatus: string;
-let networkFees: string;
-let feePerInputs: string;
-let feePerOutputs: string;
-
 function mixerShow() {
-    let contentElem: HTMLElement = document.getElementById("content");
+    httpGetTumblerAsync("connection", function (json) { }); // makes sure the tumbler is initialized
     let walletContentFrame: HTMLIFrameElement = <HTMLIFrameElement>document.getElementById("wallet-content-frame");
     let mixerContentElem: HTMLElement = walletContentFrame.contentWindow.document.getElementById("mixer-content");
 
-    let resp: any;
-
+    let contentElem: HTMLElement = document.getElementById("content");
     contentElem.innerHTML = mixerContentElem.outerHTML;
 
-    let tumblerAddressElem: HTMLInputElement = document.getElementById("tumbler-address") as HTMLInputElement;
-    let tumblerStatusElem: HTMLElement = document.getElementById("tumbler-status");
     let mixerSettingsContentElem: HTMLElement = document.getElementById("mixer-settings-content");
-    let denominationElem: HTMLElement = document.getElementById("tumbler-denomination");
-    let anonSetElem: HTMLElement = document.getElementById("anonymity-set");
-    let networkFeesElem: HTMLElement = document.getElementById("network-fees");
-    let walletSelectedElem: HTMLElement = document.getElementById("wallet-selected");
-    let amountElem: HTMLElement = document.getElementById("amount-input");
 
-    //todo - cursor wait around server calls?
-    resp = httpGetWallet("tumbler-server");
+    let tumblerStatusElem: HTMLElement = document.getElementById("tumbler-status");
+    let tumblerStatusLabel: HTMLLabelElement = document.getElementById("tumbler-status-label") as HTMLLabelElement;
+    let refreshButton: HTMLButtonElement = document.getElementById("refresh-tumbler-connection-button") as HTMLButtonElement;
 
-    if (resp.Success) {
-        tumblerStatus = "ONLINE";
-    }
-    else {
-        tumblerStatus = "OFFLINE";
-    }
+    let mixerHrs: HTMLCollectionOf<Element> = document.getElementsByClassName("mixer-hr");
 
-    tumblerAddress = resp.Address;
-    tumblerPhase = resp.Phase;
-    tumblerDenomination = resp.Denomination;
-    anonymitySet = resp.AnonymitySet;
-    timeSpentInputRegistration = resp.TimeSpentInInputRegistrationInSeconds;
-    maxInputsPerAlice = resp.MaximumInputsPerAlices;
-    feePerInputs = resp.FeePerInputs;
-    feePerOutputs = resp.FeePerOutputs;
-    networkFees = calculateNetworkFee(feePerInputs, feePerOutputs);
-    version = resp.Version;
-
-    //todo - version check and error.
-
-    tumblerAddressElem.value = tumblerAddress;
-
-    tumblerStatusElem.innerText = tumblerStatus;
-
-    if (walletState.toUpperCase() === "SyncingHeaders".toUpperCase()
-        || walletState.toUpperCase() === "NotStarted".toUpperCase()
-        || (Number(blocksLeftToSync) !== 0 && Number(blocksLeftToSync) !== 1 && Number(blocksLeftToSync) !== 2)) {
-        tumblerStatusElem.innerText = "Waiting for wallet to sync...";
+    if (isTumblerOnline === false) {
         tumblerStatusElem.classList.add("label-danger");
+        tumblerStatusElem.style.display = "inline";
+        tumblerStatusLabel.style.display = "inline";
+        tumblerStatusElem.innerText = "The coordinator of the mixing is offline";
         mixerSettingsContentElem.style.display = "none";
-    }
-    else if (tumblerStatus != "online".toUpperCase()) {
-        tumblerStatusElem.classList.add("label-danger");
-        mixerSettingsContentElem.style.display = "none";
+        for (let i: number = 0; i < mixerHrs.length; i++) {
+            let hr: HTMLElement = mixerHrs[i] as HTMLElement;
+            hr.style.display = "none";
+        }
+        refreshButton.style.display = "inline";
     }
     else {
         tumblerStatusElem.classList.add("label-success");
+        tumblerStatusElem.style.display = "none"
+        tumblerStatusLabel.style.display = "none";
+        mixerSettingsContentElem.style.display = "inline";
+        for (let i: number = 0; i < mixerHrs.length; i++) {
+            let hr: HTMLElement = mixerHrs[i] as HTMLElement;
+            hr.style.display = "inline";
+        }
+        refreshButton.style.display = "none";
+        updateMixerContent();
+        
+        let walletSelectedElem: HTMLElement = document.getElementById("wallet-selected");
+        let amountElem: HTMLElement = document.getElementById("amount-input");
 
-        denominationElem.innerText = String(tumblerDenomination) + " BTC";
-        amountElem.innerText = String(tumblerDenomination);
-        networkFeesElem.innerText = String(networkFees);
-
-        //walletSelectedElem.style.display = "none";
-
-        //Although we are just displaying one row for now we might want to add a row for each phase as we progress through them
-        //so it has been built to handle this in the future:
-        let phaseRecords: HTMLElement = document.getElementById("tumbling-phase-records");
-
-        //for (phase in phases) {
-        let trNode: HTMLElement = document.createElement("tr");
-
-        let tdNodePhase: HTMLElement = document.createElement("td");
-        tdNodePhase.innerText = getPhaseName(tumblerPhase);
-
-        let tdNodeAnonSet: HTMLElement = document.createElement("td");
-        tdNodeAnonSet.innerText = String(anonymitySet);
-
-        let tdNodeTime: HTMLElement = document.createElement("td");
-        tdNodeTime.innerText = String(timeSpentInputRegistration);
-
-        trNode.appendChild(tdNodePhase);
-        trNode.appendChild(tdNodeAnonSet);
-        trNode.appendChild(tdNodeTime);
-        phaseRecords.appendChild(trNode);
-        //}
+        amountElem.innerText = String(1); 
     }
 }
 
-function calculateNetworkFee(inputFee: string, outputFee: string) {
-    var result = parseFloat(inputFee) + parseFloat(outputFee);
+function refreshTumblerConnection() {
+    
+    let containerElement: Element = document.getElementsByClassName("container").item(0);
+    let refreshTumblerConnectionButton: HTMLElement = document.getElementById("refresh-tumbler-connection-button");
 
-    return result.toFixed(8);
+    containerElement.setAttribute("style", "pointer-events:none;");
+
+    refreshTumblerConnectionButton.innerHTML = '<span class="glyphicon glyphicon-cog spinning"></span> Refreshing...';
+    
+    httpGetTumblerAsync("connection", function (json) {
+        try {
+            if (json.Success === false) {
+                isTumblerOnline = false;
+                mixerShow();
+            }
+            else {
+                isTumblerOnline = true;
+                mixerShow();
+            }
+        } catch (err) {
+
+        }        
+
+        refreshTumblerConnectionButton.innerHTML = '<span class="mdi mdi-tor"></span> Refresh';
+        containerElement.setAttribute("style", "pointer-events:all;");
+    });
 }
 
 interface TumbleRequest {

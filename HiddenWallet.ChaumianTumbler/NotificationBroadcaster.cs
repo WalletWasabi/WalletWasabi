@@ -9,18 +9,18 @@ using System.Threading.Tasks;
 
 namespace HiddenWallet.ChaumianTumbler
 {
-    public sealed class TumblerPhaseBroadcaster
+    public sealed class NotificationBroadcaster
     {
-		private readonly static Lazy<TumblerPhaseBroadcaster> _instance = new Lazy<TumblerPhaseBroadcaster>(() => new TumblerPhaseBroadcaster());
+		private readonly static Lazy<NotificationBroadcaster> _instance = new Lazy<NotificationBroadcaster>(() => new NotificationBroadcaster());
 
 		private readonly ConcurrentDictionary<string, string> _connectedClients = new ConcurrentDictionary<string, string>();
 
 		private IHubContext<TumblerHub> _context;
 		
-		private TumblerPhaseBroadcaster()
+		private NotificationBroadcaster()
  		{ }
 
-		public static TumblerPhaseBroadcaster Instance => _instance.Value;
+		public static NotificationBroadcaster Instance => _instance.Value;
 
 		public IHubContext<TumblerHub> SignalRHub
 		{
@@ -45,6 +45,17 @@ namespace HiddenWallet.ChaumianTumbler
 			IClientProxy proxy = _context.Clients.All;
 			string json = JsonConvert.SerializeObject(broadcast);
 			await proxy.InvokeAsync("PhaseChange", json);
+		}
+
+		public async Task BroadcastAsync(PeerRegisteredBroadcast broadcast)
+		{
+			while (_context == null)
+			{
+				await Task.Delay(100);
+			}
+			IClientProxy proxy = _context.Clients.All;
+			string json = JsonConvert.SerializeObject(broadcast);
+			await proxy.InvokeAsync("PeerRegistered", json);
 		}
 	}
 }

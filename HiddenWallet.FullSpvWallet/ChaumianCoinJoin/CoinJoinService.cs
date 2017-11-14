@@ -40,6 +40,9 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		public volatile Transaction CoinJoin;
 
 		public Money Denomination { get; private set; }
+		public StatusResponse StatusResponse { get; set; }
+		public int NumberOfPeers { get; private set; }
+
 		public string UniqueAliceId { get; private set; }
 		public BitcoinWitPubKeyAddress ActiveOutput { get; private set; }
 		public BitcoinAddress ChangeOutput { get; private set; }
@@ -98,6 +101,15 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						}
 					}
 					Debug.WriteLine($"Phase completed");
+				});
+
+				TumblerConnection.On<string>("PeerRegistered", data =>
+				{
+					var jObject = JObject.Parse(data);
+					var numberOfPeers = jObject.Value<int>("NewRegistration");
+					NumberOfPeers = numberOfPeers;
+
+					Debug.WriteLine($"Number of Tumbler peers: {numberOfPeers}");
 				});
 
 				await TumblerConnection.StartAsync();
@@ -170,6 +182,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					// ToDo: fix it in DotNetTor, this happens when the tumbler goes offline, then comes back up, the already established connection cannot be reused
 					status = await TumblerClient.GetStatusAsync(cancel); 
 				}
+				StatusResponse = status;
 
 				Phase = TumblerPhaseHelpers.GetTumblerPhase(status.Phase);
 				
@@ -221,6 +234,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					if (phase == TumblerPhase.InputRegistration)
 					{
 						StatusResponse status = statusJustAcquired ?? await TumblerClient.GetStatusAsync(cancel);
+						StatusResponse = status;
 						// TODO: only native segwit (p2wpkh) inputs are accepted by the tumbler (later wrapped segwit (p2sh-p2wpkh) will be accepted too)
 						var getBalanceResult = await WalletJob.GetBalanceAsync(From);
 						var balance = getBalanceResult.Available.Confirmed + getBalanceResult.Available.Unconfirmed;
@@ -367,20 +381,6 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				{
 					CompletedLastPhase = true;
 				}
-			}
-		}
-
-		public async Task<StatusResponse> GetStatusAsync(CancellationToken cancel = default)
-		{
-			try
-			{
-				StatusResponse status = await TumblerClient.GetStatusAsync(cancel);
-				return status;
-			}
-			catch (Exception ex)
-			{
-				Debug.WriteLine(ex);
-				throw ex;
 			}
 		}
 

@@ -60,8 +60,8 @@ namespace HiddenWallet.ChaumianTumbler
 				c.SwaggerEndpoint("/swagger/v1/swagger.json", "HiddenWallet.ChaumianTumbler V1");
 			});
 
-			TumblerPhaseBroadcaster tumblerPhaseBroadcast = TumblerPhaseBroadcaster.Instance;
-			tumblerPhaseBroadcast.SignalRHub = context;
+			NotificationBroadcaster notificationBroadcast = NotificationBroadcaster.Instance;
+			notificationBroadcast.SignalRHub = context;
 		}
 
 		private async void OnShutdownAsync()

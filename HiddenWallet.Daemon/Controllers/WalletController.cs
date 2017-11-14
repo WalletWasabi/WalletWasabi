@@ -314,23 +314,6 @@ namespace HiddenWallet.Daemon.Controllers
             }
         }
 
-		[Route("tumbler-server")]
-		[HttpGet]
-		public async Task<IActionResult> TumblerServerAsync()
-		{
-			ChaumianCoinJoin.Models.StatusResponse response = await Global.WalletWrapper.GetTumblerStatusAsync();
-
-			if (response.Success)
-			{
-				response.Address = Global.WalletWrapper.Network == Network.Main ? Global.Config.ChaumianTumblerMainAddress : Global.Config.ChaumianTumblerTestNetAddress;
-				return new ObjectResult(response);
-			}
-			else
-			{
-				return new ObjectResult(new FailureResponse { Message = "Tumbler Status Error", Details = "" });
-			}
-		}
-
 		[Route("tumble")]
 		[HttpPost]
 		public async Task<IActionResult> TumbleAsync([FromBody]TumbleRequest request)

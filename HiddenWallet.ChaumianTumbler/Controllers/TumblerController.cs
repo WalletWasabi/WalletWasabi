@@ -177,6 +177,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					AssertPhase(roundId, phase);
 					Global.StateMachine.Alices.Add(alice);
 
+					await Global.StateMachine.BroadcastPeerRegisteredAsync();
 					if (Global.StateMachine.Alices.Count >= Global.StateMachine.AnonymitySet)
 					{
 						Global.StateMachine.UpdatePhase(TumblerPhase.ConnectionConfirmation);

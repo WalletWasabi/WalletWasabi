@@ -44,18 +44,33 @@
 </div>
 
 <div id="mixer-content">
-    <span class="label label-info" style="font-size: 14px;">Mix coins with ZeroLink</span>
-    <hr />
-
-    <label>Tumbler</label>
-    <input id="tumbler-address" type="text" class="form-control" readonly />
+    <label>Read more:</label>
+    <span class="label label-info" style="font-size: 13px; margin-left:9.1em;">https://github.com/nopara73/ZeroLink/</span>
     <br />
-    <label>Status:</label>
+    <label id="tumbler-status-label">Status:</label>
     <span class="label" style="font-size: 13px; margin-left:11.4em;" id="tumbler-status"></span>
-    <br />
+    <hr />
+    <button id="refresh-tumbler-connection-button" class="btn btn-lg btn-success btn-block" onclick="refreshTumblerConnection()">
+        <span class="mdi mdi-tor"></span> Refresh
+    </button>
     <div id="mixer-settings-content">
-        <label>Denomination:</label>
-        <span class="label label-success" style="font-size: 13px; margin-left:96px;" id="tumbler-denomination"></span>
+        <label>Round Denomination:</label>
+        <span class="label label-success" style="font-size: 13px; margin-left:103px;" id="tumbler-denomination"></span>
+        <br />
+        <label>Minimum Anonymity Set:</label>
+        <span class="label label-success" style="font-size: 13px; margin-left:81px;" id="tumbler-anonymity-set"></span>
+        <br />
+        <label>Number Of Registered Peers:</label>
+        <span class="label label-success" style="font-size: 13px; margin-left:54px;" id="tumbler-peer-count"></span>
+        <br />
+        <label>Estimated Network Fees Per Round:</label>
+        <span class="label label-success" style="font-size: 13px; margin-left:8px;" id="tumbler-fee-per-round"></span>
+        <br />
+        <label>Waited For Peers During Last Round:</label>
+        <span class="label label-success" style="font-size: 13px; margin-left:0px;" id="tumbler-time-spent-waiting"></span>
+        <br />
+        <label>Current Phase:</label>
+        <span class="label label-success" style="font-size: 13px; margin-left:148px;" id="tumbler-current-phase"></span>
         <br />
         <br />
 
@@ -90,15 +105,4 @@
             </button>
         </div>
     </div>
-    <hr />
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Phase</th>
-                <th>Anonymity Set</th>
-                <th>Seconds since mixing round started</th>
-            </tr>
-        </thead>
-        <tbody id="tumbling-phase-records"></tbody>
-    </table>
 </div>

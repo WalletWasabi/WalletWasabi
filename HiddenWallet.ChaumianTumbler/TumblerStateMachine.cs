@@ -37,7 +37,7 @@ namespace HiddenWallet.ChaumianTumbler
 		public ConcurrentHashSet<Alice> Alices { get; private set; }
 		public ConcurrentHashSet<Bob> Bobs { get; private set; }
 
-		private TumblerPhaseBroadcaster _broadcaster = TumblerPhaseBroadcaster.Instance;
+		private NotificationBroadcaster _broadcaster = NotificationBroadcaster.Instance;
 
 		private CancellationTokenSource _ctsPhaseCancel = new CancellationTokenSource();
 
@@ -56,6 +56,14 @@ namespace HiddenWallet.ChaumianTumbler
 			var broadcast = new PhaseChangeBroadcast { NewPhase = Phase.ToString(), Message = "" };
 			await _broadcaster.BroadcastAsync(broadcast);
 			Console.WriteLine($"NEW PHASE: {Phase}");
+		}
+
+		public async Task BroadcastPeerRegisteredAsync()
+		{
+			int numberOfPeers = Alices.Count;
+			var broadcast = new PeerRegisteredBroadcast { NewRegistration = numberOfPeers, Message = ""};
+			await _broadcaster.BroadcastAsync(broadcast);
+			Console.WriteLine($"Number of peers: {numberOfPeers}");
 		}
 
 		public void UpdatePhase(TumblerPhase phase)

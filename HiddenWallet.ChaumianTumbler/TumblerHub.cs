@@ -8,13 +8,13 @@ namespace HiddenWallet.ChaumianTumbler
 	{
 		public override async Task OnConnectedAsync()
 		{
-			TumblerPhaseBroadcaster.Instance.AddConnectedClient(Context.ConnectionId);
+			NotificationBroadcaster.Instance.AddConnectedClient(Context.ConnectionId);
 			await base.OnConnectedAsync();
 		}
 
 		public override async Task OnDisconnectedAsync(Exception exception)
 		{
-			TumblerPhaseBroadcaster.Instance.RemoveConnectedClient(Context.ConnectionId);
+			NotificationBroadcaster.Instance.RemoveConnectedClient(Context.ConnectionId);
 			await base.OnDisconnectedAsync(exception);
 		}
 	}

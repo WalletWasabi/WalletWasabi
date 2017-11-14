@@ -96,7 +96,7 @@ window.onclick = function (mouseEvent: MouseEvent) {
         let dropdowns: HTMLCollectionOf<Element> = document.getElementsByClassName("dropdown-content");
 
         for (let i: number = 0; i < dropdowns.length; i++) {
-            var openDropdown: Element = dropdowns[i];
+            let openDropdown: Element = dropdowns[i];
             if (openDropdown.classList.contains('show')) {
                 openDropdown.classList.remove('show');
             }
