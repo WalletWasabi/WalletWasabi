@@ -267,11 +267,13 @@ namespace HiddenWallet.Daemon.Wrappers
 
 				var mtxc = _walletJob.MemPoolJob.Transactions.Count;
 
+				var itbo = _walletJob.CoinJoinService.TumblerConnection != null;
+
 				var cb = _changeBump;
 
-				return new StatusResponse { HeaderHeight = hh, TrackingHeight = th, ConnectedNodeCount = nc, MemPoolTransactionCount = mtxc, WalletState = ws, TorState = ts, ChangeBump = cb };
+				return new StatusResponse { HeaderHeight = hh, TrackingHeight = th, ConnectedNodeCount = nc, MemPoolTransactionCount = mtxc, WalletState = ws, TorState = ts, IsTumblerOnline = itbo, ChangeBump = cb };
 			}
-			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, ConnectedNodeCount = 0, MemPoolTransactionCount = 0, WalletState = WalletState.NotStarted.ToString(), TorState = ts, ChangeBump = 0 };
+			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, ConnectedNodeCount = 0, MemPoolTransactionCount = 0, WalletState = WalletState.NotStarted.ToString(), TorState = ts, IsTumblerOnline = false, ChangeBump = 0 };
 		}
 
 		public async Task<BaseResponse> BuildTransactionAsync(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType)

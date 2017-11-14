@@ -15,6 +15,7 @@ namespace HiddenWallet.Daemon.Models
 		public int ConnectedNodeCount { get; set; }
 		public int MemPoolTransactionCount { get; set; }
 		public string TorState { get; set; }
+		public bool IsTumblerOnline { get; set; }
 		public int ChangeBump { get; set; }
 	}
 }

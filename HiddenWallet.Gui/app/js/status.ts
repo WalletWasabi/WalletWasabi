@@ -17,12 +17,18 @@ let trackingHeight: number;
 let connectedNodeCount: number;
 let memPoolTransactionCount: number;
 let torState: string;
+let isTumblerOnline: boolean;
 
 function periodicUpdate() {
     setInterval(function statusUpdate() {
         let response: any = httpGetWallet("status");
 
         updateDecryptButton(response.TorState);
+
+        if (isTumblerOnline !== response.IsTumblerOnline) {
+            updateMixerTab(response.IsTumblerOnline);
+            isTumblerOnline = response.IsTumblerOnline;
+        }
 
         if (walletState === response.WalletState) {
             if (headerHeight === response.HeaderHeight) {
@@ -113,9 +119,28 @@ function periodicUpdate() {
     }, 1000);
 }
 
+function updateMixerTab(ito: boolean) {
+    try {
+
+        let mixerTabs: HTMLCollectionOf<Element> = document.getElementsByClassName("mixer-tab-link");
+        for (let i: number = 0; i < mixerTabs.length; i++) {
+            let tab: HTMLElement = mixerTabs[i] as HTMLElement;
+            if (ito === false) {
+                tab.style.backgroundColor = "blanchedalmond";
+            }
+            else {
+                tab.style.backgroundColor = "";
+            }
+        }
+    }
+    catch (err) {
+
+    }
+}
+
 function updateDecryptButton(ts: string) {
     try {
-        var decButton: HTMLButtonElement = document.getElementById("decrypt-wallet-button") as HTMLButtonElement;
+        let decButton: HTMLButtonElement = document.getElementById("decrypt-wallet-button") as HTMLButtonElement;
 
         if (ts.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
             if (decButton.innerText === "Waiting for Tor...") {

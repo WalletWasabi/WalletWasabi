@@ -93,7 +93,7 @@ window.onclick = function (mouseEvent: MouseEvent) {
 
     if (eventTarget.className.indexOf('dropbtn') == -1 ) {
 
-        var dropdowns: HTMLCollectionOf<Element> = document.getElementsByClassName("dropdown-content");
+        let dropdowns: HTMLCollectionOf<Element> = document.getElementsByClassName("dropdown-content");
 
         for (let i: number = 0; i < dropdowns.length; i++) {
             var openDropdown: Element = dropdowns[i];

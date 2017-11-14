@@ -44,7 +44,7 @@ function walletPhaseShow(tabItem: string = "") {
     else if (tabItem === "mixer") {
         content.setAttribute("style", "max-height: 430");
         tabs.innerHTML = mixer.outerHTML;
-        let hintTextArray = ["ZeroLink cannot steal your coins, nor deanonymize you", "Losing internet connection while mixing is dangerous if the Tumbler is malicous"];
+        let hintTextArray = ["ZeroLink cannot steal your coins, nor deanonymize you"];
         let randomHint = hintTextArray[Math.floor(Math.random() * hintTextArray.length)];
         writeHint(randomHint);
         menu.innerHTML = "";
@@ -63,6 +63,7 @@ function walletPhaseShow(tabItem: string = "") {
             return;
         });
     }
+    updateMixerTab(isTumblerOnline);
 }
 
 function walletShow(menuItem: string) {
