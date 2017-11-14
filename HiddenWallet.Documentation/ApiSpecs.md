@@ -13,3 +13,9 @@
 |GET /api/v1/wallet/history/{account} | Displays the history of the specified wallet account | None  | history[] |
 |POST /api/v1/wallet/build-transaction/{account} | Attempts to build a transaction with the specified wallet account | password, address, amount, feeType  | spendsUnconfirmed, fee, feePercentOfSent, hex, transaction |
 |POST /api/v1/wallet/send-transaction | Broadcasts a transaction | hex  | None |
+
+# Tumbler
+
+|API | Description    | Request body    | Response body   |
+|--- | ---- | ---- | ---- |
+|GET /api/v1/tumbler/connection | Attempts to establish Tumbler connection if not already established | None | None |
