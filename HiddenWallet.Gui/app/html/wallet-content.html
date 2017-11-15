@@ -44,59 +44,96 @@
 </div>
 
 <div id="mixer-content">
-    <label>Read more:</label>
-    <span class="label label-info" style="font-size: 13px; margin-left:9.1em;">https://github.com/nopara73/ZeroLink/</span>
-    <br />
-    <label id="tumbler-status-label">Status:</label>
-    <span class="label" style="font-size: 13px; margin-left:11.4em;" id="tumbler-status"></span>
-    <hr />
+    <table>
+        <tr>
+            <td style="width:270px;"><label>Read more:</label></td>
+            <td style="width:200px;"><span class="label label-info" style="font-size: 13px;">https://github.com/nopara73/ZeroLink/</span></td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td style="width:270px;"><label id="tumbler-status-label">Status:</label></td>
+            <td style="width:200px;"><span class="label" style="font-size: 13px;" id="tumbler-status"></span></td>
+        </tr>
+    </table>
+
     <button id="refresh-tumbler-connection-button" class="btn btn-lg btn-success btn-block" onclick="refreshTumblerConnection()">
         <span class="mdi mdi-tor"></span> Refresh
     </button>
-    <div id="mixer-settings-content">
-        <label>Round Denomination:</label>
-        <span class="label label-success" style="font-size: 13px; margin-left:103px;" id="tumbler-denomination"></span>
-        <br />
-        <label>Minimum Anonymity Set:</label>
-        <span class="label label-success" style="font-size: 13px; margin-left:83px;" id="tumbler-anonymity-set"></span>
-        <br />
-        <label>Number Of Registered Peers:</label>
-        <span class="label label-success" style="font-size: 13px; margin-left:56px;" id="tumbler-peer-count"></span>
-        <br />
-        <label>Estimated Network Fees Per Round:</label>
-        <span class="label label-success" style="font-size: 13px; margin-left:8px;" id="tumbler-fee-per-round"></span>
-        <br />
-        <label>Waited For Peers During Last Round:</label>
-        <span class="label label-success" style="font-size: 13px; margin-left:0px;" id="tumbler-time-spent-waiting"></span>
-        <br />
-        <label>Current Phase:</label>
-        <span class="label label-success" style="font-size: 13px; margin-left:152px;" id="tumbler-current-phase"></span>
-        <hr/>
 
-        <label>From:</label>
-        <div class="dropdown" id="choose-wallet-dropdown-div" style="padding-bottom:70px">
-            <span id="choose-wallet-dropdown-active" onclick="chooseWalletDropdown()" style="font-size: 15px; margin-left:2.2em;" class="label label-danger dropbtn"><span class="mdi mdi-arrow-down-drop-circle"></span> Select Wallet!</span>
-            <div id="choose-wallet-dropdown" class="dropdown-content">
-                <a id="wallet-dropdown-alice" onclick="chooseWalletDropdown('alice')" href="#">Alice</a>
-                <a id="wallet-dropdown-bob" onclick="chooseWalletDropdown('bob')" href="#">Bob</a>
-            </div>
-        </div>
-        <label>To:</label>
-        <span class="label label-danger" id="tumbling-to-wallet" style="font-size: 15px;">?</span>
-        <br />
+    <div id="mixer-settings-content">
+        <table>
+            <tr>
+                <td style="width:270px;"><label>Round Denomination:</label></td>
+                <td style="width:200px;"><span class="label label-success" style="font-size: 13px;" id="tumbler-denomination"></span></td>
+            </tr>
+            <tr>
+                <td><label>Minimum Anonymity Set:</label></td>
+                <td><span class="label label-success" style="font-size: 13px;" id="tumbler-anonymity-set"></span></td>
+            </tr>
+            <tr>
+                <td><label>Number Of Registered Peers:</label></td>
+                <td><span class="label label-success" style="font-size: 13px;" id="tumbler-peer-count"></span></td>
+            </tr>
+            <tr>
+                <td><label>Estimated Network Fees Per Round:</label></td>
+                <td><span class="label label-success" style="font-size: 13px;" id="tumbler-fee-per-round"></span></td>
+            </tr>
+            <tr>
+                <td><label>Waited For Peers During Last Round:</label></td>
+                <td><span class="label label-success" style="font-size: 13px;" id="tumbler-time-spent-waiting"></span></td>
+            </tr>
+            <tr>
+                <td><label>Current Phase:</label></td>
+                <td><span class="label label-success" style="font-size: 13px;" id="tumbler-current-phase"></span></td>
+            </tr>
+        </table>
+
+        <hr />
+
+        <table>
+            <tr>
+                <td style="width:270px;">
+                    <label>From:</label>
+                    <div class="dropdown" style="padding-bottom:70px; margin-left:33px;" id="choose-wallet-dropdown-div">
+                        <span id="choose-wallet-dropdown-active" onclick="chooseWalletDropdown()" style="font-size: 15px;" class="label label-danger dropbtn">
+                            <span class="mdi mdi-arrow-down-drop-circle"></span> Select Wallet!
+                        </span>
+                        <div id="choose-wallet-dropdown" class="dropdown-content">
+                            <a id="wallet-dropdown-alice" onclick="chooseWalletDropdown('alice')" href="#">Alice</a>
+                            <a id="wallet-dropdown-bob" onclick="chooseWalletDropdown('bob')" href="#">Bob</a>
+                        </div>
+                    </div>
+                </td>
+                <td style="width:200px; vertical-align:top;">
+                    <label>To:</label>
+                    <span class="label label-danger" id="tumbling-to-wallet" style="font-size: 15px; margin-left:33px;">?</span>
+                </td>
+            </tr>
+        </table>
+
         <br />
         <div id="not-enough-funds-to-mix" style="font-size: 13px;" class="alert alert-danger">Not enough funds to mix</div>
         <div id="wallet-selected">
             <form class="form-inline">
-                <label>Amount:</label>
-                <input style="margin-left:1em;" id="amount-input" class="form-control form-inline" onchange="amountChanged()" onkeypress="document.getElementById('amount-input').stepUp(1); return false;" type="number" size="11" />
-                <label>BTC</label>
+                <table>
+                    <tr>
+                        <td style="width:270px;"><label>Amount (BTC):</label></td>
+                        <td style="width:200px;"><input id="amount-input" class="form-control form-inline" onchange="amountChanged()" onkeypress="document.getElementById('amount-input').stepUp(1); return false;" type="number" size="11" /></td>
+                    </tr>
+                </table>
             </form>
+
             <hr />
 
-            <label>Estimated Network Fees:</label>
-            <span style="font-size: 13px;" class="label label-success" id="total-network-fees"></span>
-            <br />
+            <table>
+                <tr>
+                    <td style="width:270px;"><label>Estimated Network Fees:</label></td>
+                    <td style="width:200px;"><span style="font-size: 13px;" class="label label-success" id="total-network-fees"></span></td>
+                </tr>
+            </table>
+
             <br />
 
             <button id="mixing-button" class="btn btn-lg btn-success btn-block" onclick="mix()">
