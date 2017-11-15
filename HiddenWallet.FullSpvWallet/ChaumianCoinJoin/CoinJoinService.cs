@@ -4,6 +4,7 @@ using HiddenWallet.ChaumianCoinJoin;
 using HiddenWallet.ChaumianCoinJoin.Models;
 using HiddenWallet.Crypto;
 using HiddenWallet.FullSpv;
+using HiddenWallet.Helpers;
 using HiddenWallet.KeyManagement;
 using HiddenWallet.Models;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -50,6 +51,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		public ConcurrentHashSet<BitcoinExtKey> SigningKeys { get; private set; }
 		public ConcurrentHashSet<Coin> Inputs { get; private set; }
 		public string UnblindedSignature { get; private set; }
+		public string RoundHash { get; private set; }
 
 		public CoinJoinService(WalletJob walletJob)
 		{
@@ -310,7 +312,8 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						{
 							UniqueId = UniqueAliceId
 						};
-						await TumblerClient.PostConnectionConfirmationAsync(request, cancel);
+						var resp = await TumblerClient.PostConnectionConfirmationAsync(request, cancel);
+						RoundHash = resp.RoundHash;
 					}
 					else if (phase == TumblerPhase.OutputRegistration)
 					{
@@ -321,7 +324,8 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						var request = new OutputRequest
 						{
 							Output = ActiveOutput.ToString(),
-							Signature = UnblindedSignature
+							Signature = UnblindedSignature,
+							RoundHash = RoundHash
 						};
 						await TumblerClient.PostOutputAsync(request, cancel);
 					}
@@ -336,6 +340,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 							UniqueId = UniqueAliceId
 						};
 						CoinJoin = new Transaction((await TumblerClient.PostCoinJoinAsync(request, cancel)).Transaction);
+
 						if (!(CoinJoin.Outputs.Any(x => x.ScriptPubKey == ActiveOutput.ScriptPubKey && x.Value >= Denomination)))
 						{
 							throw new InvalidOperationException("Tumbler did not add enough value to the active output");
@@ -343,6 +348,10 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						if (!(CoinJoin.Outputs.Any(x => x.ScriptPubKey == ChangeOutput.ScriptPubKey && x.Value >= ChangeOutputExpectedValue)))
 						{
 							throw new InvalidOperationException("Tumbler did not add enough value to the change output");
+						}
+						if (RoundHash != NBitcoinHelpers.HashOutpoints(CoinJoin.Inputs.Select(x=>x.PrevOut)))
+						{
+							throw new InvalidOperationException("Tumbler provided invalid roundHash");
 						}
 
 						new TransactionBuilder()

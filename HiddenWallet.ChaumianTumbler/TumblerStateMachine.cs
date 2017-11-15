@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,6 +21,8 @@ namespace HiddenWallet.ChaumianTumbler
     {
 		public volatile TumblerPhase Phase;
 		public volatile int RoundId;
+		public volatile string RoundHash;
+
 		public Money Denomination { get; private set; }
 		public Money FeePerInputs { get; private set; }
 		public Money FeePerOutputs { get; private set; }
@@ -36,6 +39,7 @@ namespace HiddenWallet.ChaumianTumbler
 		private SmartBitClient SmartBitClient { get; } = new SmartBitClient(Network.Main);
 		public ConcurrentHashSet<Alice> Alices { get; private set; }
 		public ConcurrentHashSet<Bob> Bobs { get; private set; }
+		public ConcurrentHashSet<string> BlindedOutputs { get; private set; }
 
 		private NotificationBroadcaster _broadcaster = NotificationBroadcaster.Instance;
 
@@ -91,6 +95,7 @@ namespace HiddenWallet.ChaumianTumbler
 								RoundId++;
 								Console.WriteLine($"New Round: {RoundId}");
 								Alices = new ConcurrentHashSet<Alice>();
+								BlindedOutputs = new ConcurrentHashSet<string>();
 								await Global.StateMachine.BroadcastPeerRegisteredAsync();
 								Bobs = new ConcurrentHashSet<Bob>();
 								await SetDenominationAsync(cancel);
@@ -109,13 +114,14 @@ namespace HiddenWallet.ChaumianTumbler
 								{
 									TimeSpentInInputRegistration = InputRegistrationStopwatch.Elapsed;
 								}
-								await Global.BlindedOutputStore.ToFileAsync(Global.BlindedOutputStorePath);
 
 								UpdatePhase(TumblerPhase.ConnectionConfirmation);
 								break;
 							}
 						case TumblerPhase.ConnectionConfirmation:
 							{
+								RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(x => x.OutPoint));
+
 								await BroadcastPhaseChangeAsync();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{

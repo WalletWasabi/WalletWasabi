@@ -81,8 +81,8 @@ namespace HiddenWallet.ChaumianCoinJoin
 				return JsonConvert.DeserializeObject<InputsResponse>(responseString);
 			}
 		}
-
-		public async Task PostConnectionConfirmationAsync(ConnectionConfirmationRequest request, CancellationToken cancel)
+		
+		public async Task<ConnectionConfirmationResponse> PostConnectionConfirmationAsync(ConnectionConfirmationRequest request, CancellationToken cancel)
 		{
 			using (await _asyncLock.LockAsync())
 			{
@@ -98,6 +98,8 @@ namespace HiddenWallet.ChaumianCoinJoin
 				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
 				AssertSuccess(responseString);
+
+				return JsonConvert.DeserializeObject<ConnectionConfirmationResponse>(responseString);
 			}
 		}
 

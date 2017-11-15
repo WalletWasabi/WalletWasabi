@@ -75,9 +75,9 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				if (request.Inputs == null || request.Inputs.Count() == 0) return new BadRequestResult();
 
 				// Check format (parse everyting))
-				if(Global.BlindedOutputStore.BlindedOutputs.Contains(blindedOutputString))
+				if(Global.StateMachine.BlindedOutputs.Contains(blindedOutputString))
 				{
-					throw new ArgumentException("Blinded output has already been registered previously");
+					throw new ArgumentException("Blinded output has already been registered");
 				}
 				byte[] blindedOutput = HexHelpers.GetBytes(blindedOutputString);
 				Network network = Global.Config.Network;
@@ -164,7 +164,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					}
 
 					byte[] signature = Global.RsaKey.SignBlindedData(blindedOutput);
-					Global.BlindedOutputStore.BlindedOutputs.Add(blindedOutputString);
+					Global.StateMachine.BlindedOutputs.Add(blindedOutputString);
 
 					Guid uniqueId = Guid.NewGuid();
 
@@ -259,10 +259,10 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				AssertPhase(roundId, phase);
 				alice.State = AliceState.ConnectionConfirmed;
-								
+												
 				try
 				{
-					return new ObjectResult(new SuccessResponse());
+					return new ObjectResult(new ConnectionConfirmationResponse { RoundHash = Global.StateMachine.RoundHash});
 				}
 				finally
 				{
@@ -293,6 +293,12 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				if (string.IsNullOrWhiteSpace(request.Output)) return new BadRequestResult();
 				if (string.IsNullOrWhiteSpace(request.Signature)) return new BadRequestResult();
+				if (string.IsNullOrWhiteSpace(request.RoundHash)) return new BadRequestResult();
+
+				if(request.RoundHash != Global.StateMachine.RoundHash)
+				{
+					throw new ArgumentException("Wrong round hash provided");
+				}
 
 				var output = new BitcoinWitPubKeyAddress(request.Output, expectedNetwork: Global.Config.Network);
 

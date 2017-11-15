@@ -9,5 +9,6 @@ namespace HiddenWallet.ChaumianCoinJoin.Models
 	{
 		public string Output { get; set; }
 		public string Signature { get; set; }
+		public string RoundHash { get; set; }
 	}
 }
