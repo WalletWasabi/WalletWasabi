@@ -102,18 +102,17 @@ function chooseWalletDropdown(aliceBob: string = "") {
         document.getElementById("choose-wallet-dropdown").classList.toggle("show");
     }
     else if (aliceBob === "alice") {
-        document.getElementById("choose-wallet-dropdown-div").style.paddingBottom = "";
         document.getElementById("choose-wallet-dropdown-active").innerHTML = "Alice";
         document.getElementById("tumbling-to-wallet").innerHTML = "Bob";
         resp = httpGetWallet("balances/alice");
     }
     else if (aliceBob === "bob") {
-        document.getElementById("choose-wallet-dropdown-div").style.paddingBottom = "";
         document.getElementById("choose-wallet-dropdown-active").innerHTML = "Bob";
         document.getElementById("tumbling-to-wallet").innerHTML = "Alice";
         resp = httpGetWallet("balances/bob");
     }
     if (aliceBob === "bob" || aliceBob === "alice") {
+        document.getElementById("choose-wallet-dropdown-div").style.paddingBottom = "";
         document.getElementById("choose-wallet-dropdown-active").classList.remove("label-danger");
         document.getElementById("choose-wallet-dropdown-active").classList.add("label-success");
         document.getElementById("tumbling-to-wallet").classList.remove("label-danger");
