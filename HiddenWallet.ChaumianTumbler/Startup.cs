@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.SignalR;
 using System.IO;
 using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace HiddenWallet.ChaumianTumbler
 {
@@ -41,6 +42,11 @@ namespace HiddenWallet.ChaumianTumbler
 			{
 				app.UseDeveloperExceptionPage();
 			}
+
+			app.UseForwardedHeaders(new ForwardedHeadersOptions
+			{
+				ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+			});
 
 			app.UseSignalR(routes =>
 		   {
