@@ -39,7 +39,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		public volatile bool CompletedLastPhase;
 		public volatile Transaction CoinJoin;
 
-		public Money Denomination { get; private set; }
+		public Money Denomination => Money.Parse(StatusResponse?.Denomination ?? "0");
 		public StatusResponse StatusResponse { get; set; }
 		public int NumberOfPeers { get; private set; }
 
@@ -238,7 +238,6 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						// TODO: only native segwit (p2wpkh) inputs are accepted by the tumbler (later wrapped segwit (p2sh-p2wpkh) will be accepted too)
 						var getBalanceResult = await WalletJob.GetBalanceAsync(From);
 						var balance = getBalanceResult.Available.Confirmed + getBalanceResult.Available.Unconfirmed;
-						Denomination = Money.Parse(status.Denomination);
 						var feePerInputs = Money.Parse(status.FeePerInputs);
 						var feePerOutputs = Money.Parse(status.FeePerOutputs);
 
