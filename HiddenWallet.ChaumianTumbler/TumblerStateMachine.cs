@@ -109,6 +109,7 @@ namespace HiddenWallet.ChaumianTumbler
 								{
 									TimeSpentInInputRegistration = InputRegistrationStopwatch.Elapsed;
 								}
+								await Global.BlindedOutputStore.ToFileAsync(Global.BlindedOutputStorePath);
 
 								UpdatePhase(TumblerPhase.ConnectionConfirmation);
 								break;

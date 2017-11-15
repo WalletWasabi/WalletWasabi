@@ -21,6 +21,7 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			_dataDir = null;
 			CoinJoinStorePath = Path.Combine(DataDir, "CoinJoins.json");
+			BlindedOutputStorePath = Path.Combine(DataDir, "BlindedOutputs.json");
 			UtxoRefereePath = Path.Combine(DataDir, "BannedUtxos.json");
 
 			string configFilePath = Path.Combine(DataDir, "Config.json");
@@ -55,6 +56,15 @@ namespace HiddenWallet.ChaumianTumbler
 			else
 			{
 				CoinJoinStore = new CoinJoinStore();
+			}
+
+			if (File.Exists(BlindedOutputStorePath))
+			{
+				BlindedOutputStore = await BlindedOutputStore.CreateFromFileAsync(BlindedOutputStorePath);
+			}
+			else
+			{
+				BlindedOutputStore = new BlindedOutputStore();
 			}
 
 			if (File.Exists(UtxoRefereePath))
@@ -117,7 +127,10 @@ namespace HiddenWallet.ChaumianTumbler
 
 		public static CoinJoinStore CoinJoinStore;
 		public static string CoinJoinStorePath;
-		
+
+		public static BlindedOutputStore BlindedOutputStore;
+		public static string BlindedOutputStorePath;
+
 		public static UtxoReferee UtxoReferee;
 		public static string UtxoRefereePath;
 		public static Task UtxoRefereeJob;

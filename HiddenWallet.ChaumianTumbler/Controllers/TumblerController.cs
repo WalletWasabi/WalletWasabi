@@ -69,12 +69,17 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				}
 
 				// Check not nulls
-				if (string.IsNullOrWhiteSpace(request.BlindedOutput)) return new BadRequestResult();
+				string blindedOutputString = request.BlindedOutput.Trim();
+				if (string.IsNullOrWhiteSpace(blindedOutputString)) return new BadRequestResult();
 				if (string.IsNullOrWhiteSpace(request.ChangeOutput)) return new BadRequestResult();
 				if (request.Inputs == null || request.Inputs.Count() == 0) return new BadRequestResult();
 
 				// Check format (parse everyting))
-				byte[] blindedOutput = HexHelpers.GetBytes(request.BlindedOutput);
+				if(Global.BlindedOutputStore.BlindedOutputs.Contains(blindedOutputString))
+				{
+					throw new ArgumentException("Blinded output has already been registered previously");
+				}
+				byte[] blindedOutput = HexHelpers.GetBytes(blindedOutputString);
 				Network network = Global.Config.Network;
 				var changeOutput = new BitcoinWitPubKeyAddress(request.ChangeOutput, expectedNetwork: network);
 				if (request.Inputs.Count() > Global.Config.MaximumInputsPerAlices) throw new NotSupportedException("Too many inputs provided");
@@ -135,7 +140,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						var scriptPubKey = new Script(txOutResponse.Result["scriptPubKey"].Value<string>("asm"));
 						var address = (BitcoinWitPubKeyAddress)scriptPubKey.GetDestinationAddress(network);
 						// Check if proofs are valid
-						var pubKey = PubKey.RecoverFromMessage(request.BlindedOutput, input.Proof);
+						var pubKey = PubKey.RecoverFromMessage(blindedOutputString, input.Proof);
 						var validProof = pubKey.Hash.ToString() == address.Hash.ToString();
 						if (!validProof)
 						{
@@ -159,6 +164,8 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					}
 
 					byte[] signature = Global.RsaKey.SignBlindedData(blindedOutput);
+					Global.BlindedOutputStore.BlindedOutputs.Add(blindedOutputString);
+
 					Guid uniqueId = Guid.NewGuid();
 
 					var alice = new Alice
@@ -178,6 +185,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					Global.StateMachine.Alices.Add(alice);
 
 					await Global.StateMachine.BroadcastPeerRegisteredAsync();
+
 					if (Global.StateMachine.Alices.Count >= Global.StateMachine.AnonymitySet)
 					{
 						Global.StateMachine.UpdatePhase(TumblerPhase.ConnectionConfirmation);
