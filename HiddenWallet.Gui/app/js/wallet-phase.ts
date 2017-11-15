@@ -96,33 +96,61 @@ function walletShow(menuItem: string) {
 /* When the user clicks on the button, 
 toggle between hiding and showing the dropdown content */
 function chooseWalletDropdown(aliceBob: string = "") {
-    let chooseWallet: HTMLElement = document.getElementById("choose-wallet-dropdown");
-    let chooseWalletActive: HTMLElement = document.getElementById("choose-wallet-dropdown-active");
-    let tumblingTo: HTMLElement = document.getElementById("tumbling-to-wallet");
-
-    let resp: any;
-
+    let balances;
+    let resp;
     if (aliceBob === "") {
-        chooseWallet.classList.toggle("show");
+        document.getElementById("choose-wallet-dropdown").classList.toggle("show");
     }
     else if (aliceBob === "alice") {
-        chooseWalletActive.innerHTML = "Alice";
-        tumblingTo.innerHTML = "Bob";
+        document.getElementById("choose-wallet-dropdown-div").style.paddingBottom = "";
+        document.getElementById("choose-wallet-dropdown-active").innerHTML = "Alice";
+        document.getElementById("tumbling-to-wallet").innerHTML = "Bob";
         resp = httpGetWallet("balances/alice");
     }
     else if (aliceBob === "bob") {
-        chooseWalletActive.innerHTML = "Bob";
-        tumblingTo.innerHTML = "Alice";
+        document.getElementById("choose-wallet-dropdown-div").style.paddingBottom = "";
+        document.getElementById("choose-wallet-dropdown-active").innerHTML = "Bob";
+        document.getElementById("tumbling-to-wallet").innerHTML = "Alice";
         resp = httpGetWallet("balances/bob");
     }
     if (aliceBob === "bob" || aliceBob === "alice") {
-        chooseWalletActive.classList.remove("label-danger");
-        chooseWalletActive.classList.add("label-success");
-        tumblingTo.classList.remove("label-danger");
-        tumblingTo.classList.add("label-success");
+        document.getElementById("choose-wallet-dropdown-active").classList.remove("label-danger");
+        document.getElementById("choose-wallet-dropdown-active").classList.add("label-success");
+        document.getElementById("tumbling-to-wallet").classList.remove("label-danger");
+        document.getElementById("tumbling-to-wallet").classList.add("label-success");
 
-        //todo - check they have enough funds to mix before submitting
+        let available: number = Number(resp.Available);
+        let incoming: number = Number(resp.Incoming);
+        let maximumMixed: number = available + incoming;
+
+        if (maximumMixed < tumblerDenomination) {
+            document.getElementById("not-enough-funds-to-mix").style.removeProperty("display");
+            document.getElementById("wallet-selected").style.display = "none";
+        }
+        else {
+            let times = Math.floor(maximumMixed / tumblerDenomination);
+            maximumMixed -= (tumblerFeePerRound * times);
+            document.getElementById("wallet-selected").style.removeProperty("display");
+            document.getElementById("not-enough-funds-to-mix").style.display = "none";
+            let amountInput: HTMLInputElement = document.getElementById("amount-input") as HTMLInputElement;
+            amountInput.step = String(tumblerDenomination);
+            amountInput.min = String(tumblerDenomination);
+            amountInput.max = String(maximumMixed);
+            amountInput.value = String(tumblerDenomination);
+            document.getElementById("total-network-fees").innerText = tumblerFeePerRound + " BTC";
+        }
     }
+}
+
+function amountChanged() {
+    let amountInputElement: HTMLInputElement = document.getElementById("amount-input") as HTMLInputElement;
+    let cycleCount: number = amountInputElement.valueAsNumber / tumblerDenomination;
+    document.getElementById("total-network-fees").innerText = round(cycleCount * tumblerFeePerRound, 8) + " BTC";
+}
+
+function round(value: number, precision: number) {
+    var multiplier = Math.pow(10, precision || 0);
+    return Math.round(value * multiplier) / multiplier;
 }
 
 function mixerShow() {
@@ -166,9 +194,12 @@ function mixerShow() {
         updateMixerContent();
         
         let walletSelectedElem: HTMLElement = document.getElementById("wallet-selected");
+        let notEnoughFounds: HTMLElement = document.getElementById("not-enough-funds-to-mix");
         let amountElem: HTMLElement = document.getElementById("amount-input");
 
         amountElem.innerText = String(1); 
+        walletSelectedElem.style.display = "none";
+        notEnoughFounds.style.display = "none";
     }
 }
 

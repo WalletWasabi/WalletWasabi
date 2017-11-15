@@ -91,6 +91,7 @@ namespace HiddenWallet.ChaumianTumbler
 								RoundId++;
 								Console.WriteLine($"New Round: {RoundId}");
 								Alices = new ConcurrentHashSet<Alice>();
+								await Global.StateMachine.BroadcastPeerRegisteredAsync();
 								Bobs = new ConcurrentHashSet<Bob>();
 								await SetDenominationAsync(cancel);
 								await SetFeesAsync(cancel);

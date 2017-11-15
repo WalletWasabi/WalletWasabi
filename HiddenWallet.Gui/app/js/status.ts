@@ -140,10 +140,10 @@ function updateMixerTab(ito: boolean) {
     }
 }
 
-let tumblerDenomination: string;
+let tumblerDenomination: number;
 let tumblerAnonymitySet: string;
 let tumblerNumberOfPeers: string;
-let tumblerFeePerRound: string;
+let tumblerFeePerRound: number;
 let tumblerWaitedInInputRegistration: number;
 let tumblerPhase: string;
 function updateMixerContent(response = null) {
