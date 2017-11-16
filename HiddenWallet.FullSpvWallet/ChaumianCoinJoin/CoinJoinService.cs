@@ -57,6 +57,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		{
 			CompletedLastPhase = true;
 			TumblingInProcess = false;
+			UniqueAliceId = null;
 			TumblerConnection = null;
 			CoinJoin = null;
 			TumblingException = null;
@@ -375,6 +376,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						};
 						await TumblerClient.PostSignatureAsync(sigRequest, cancel);
 						TumblingInProcess = false;
+						UniqueAliceId = null;
 					}
 					else throw new NotSupportedException("This should never happen");
 				}
@@ -382,6 +384,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				{
 					// if an exception happened don't tumbler anymore in this round
 					TumblingInProcess = false;
+					UniqueAliceId = null;
 					TumblingException = ex;
 					throw;
 				}
@@ -389,6 +392,18 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				{
 					CompletedLastPhase = true;
 				}
+			}
+		}
+
+		/// <summary>
+		/// throws if couldn't cancel
+		/// </summary>
+		public async Task CancelMixAsync(CancellationToken cancel)
+		{
+			if (UniqueAliceId != null)
+			{
+				var request = new DisconnectionRequest { UniqueId = UniqueAliceId };
+				await TumblerClient.PostDisconnectionAsync(request, cancel);
 			}
 		}
 
@@ -400,6 +415,16 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		{
 			try
 			{
+
+				try
+				{
+					await CancelMixAsync(CancellationToken.None);
+				}
+				catch
+				{
+
+				}
+
 				if (TumblerConnection != null)
 				{
 					try
@@ -413,6 +438,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					await TumblerConnection?.DisposeAsync();
 					TumblerConnection = null;
 				}
+
 				TumblerClient?.Dispose();
 			}
 			catch (Exception)

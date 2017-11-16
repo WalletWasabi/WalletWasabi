@@ -310,18 +310,31 @@ namespace HiddenWallet.ChaumianTumbler
 			}
 		}
 
+		private object _aliceLock = new object();
 		public Alice FindAlice(string uniqueId, bool throwException)
 		{
-			Alice alice = Alices.FirstOrDefault(x => x.UniqueId == new Guid(uniqueId));
-			if (alice == default(Alice))
+			lock (_aliceLock)
 			{
-				if (throwException)
+				Alice alice = Alices.FirstOrDefault(x => x.UniqueId == new Guid(uniqueId));
+				if (alice == default(Alice))
 				{
-					throw new ArgumentException("Wrong uniqueId");
+					if (throwException)
+					{
+						throw new ArgumentException("Wrong uniqueId");
+					}
 				}
-			}
 
-			return alice;
+				return alice;
+			}
+		}
+
+		public bool TryRemoveAlice(string uniqueId)
+		{
+			lock (_aliceLock)
+			{
+				Alice alice = Alices.FirstOrDefault(x => x.UniqueId == new Guid(uniqueId));
+				return Alices.TryRemove(alice);
+			}
 		}
 
 		#region IDisposable Support

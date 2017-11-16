@@ -236,6 +236,35 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 		}
 
+		[Route("disconnection")]
+		[HttpPost]
+		public async Task<IActionResult> DisconnectionAsync([FromBody]DisconnectionRequest request)
+		{
+			try
+			{				
+				if (string.IsNullOrWhiteSpace(request.UniqueId)) return new BadRequestResult();							
+
+				using (await InputRegistrationLock.LockAsync())
+				{
+					if (Global.StateMachine.Phase != TumblerPhase.InputRegistration || !Global.StateMachine.AcceptRequest)
+					{
+						return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+					}
+
+					if(Global.StateMachine.TryRemoveAlice(request.UniqueId))
+					{
+						await Global.StateMachine.BroadcastPeerRegisteredAsync();
+					}
+				}
+
+				return new ObjectResult(new SuccessResponse());
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
+
 		[Route("connection-confirmation")]
 		[HttpPost]
 		public IActionResult ConnectionConfirmation([FromBody]ConnectionConfirmationRequest request)
