@@ -261,7 +261,20 @@ function mix() {
     let from: HTMLElement = document.getElementById("choose-wallet-dropdown-active");
     let to: HTMLElement = document.getElementById("tumbling-to-wallet");
 
-    let obj: TumbleRequest = { From: from.innerText, To: to.innerText, RoundCount: String(1) };
+    if (tumblerDenomination == undefined || tumblerDenomination == null || tumblerDenomination == 0
+        || tumblerAnonymitySet == undefined || tumblerAnonymitySet == null || tumblerAnonymitySet == "0")
+    {
+        alert("Mixing is not yet fully initialized");
+        return;
+    }
+    let amountInput: HTMLInputElement = document.getElementById("amount-input") as HTMLInputElement;
+    if (amountInput.value == undefined || amountInput.value == "0")
+    {
+        alert("Wrong amount specified");
+    }
+    let roundCount = Math.floor(amountInput.valueAsNumber / tumblerDenomination);
+
+    let obj: TumbleRequest = { From: from.innerText, To: to.innerText, RoundCount: String(roundCount) };
 
     let json: any;
 
@@ -295,8 +308,25 @@ function mix() {
 
 function cancelMix()
 {
+    if (tumblerPhase !== "InputRegistration")
+    {
+        alert("Cancelling mix is only allowed in InputRegistration phase");
+        return;
+    }
     try {
-        httpGetTumbler("cancel-mix");
+        let json = httpGetTumbler("cancel-mix");
+        if (json.Success === false) {
+            let alertMessage: string = `Couldn't build the tansaction: ${json.Message}`;
+
+            if (!isBlank(json.Details)) {
+                alertMessage = `${alertMessage}
+
+                                Details:
+                                ${json.Details}`;
+            }
+
+            alert(alertMessage);
+        }
         mixerShow();
     } catch (e) {
         alert("Couldn't cancel the mix. Reason:" +
