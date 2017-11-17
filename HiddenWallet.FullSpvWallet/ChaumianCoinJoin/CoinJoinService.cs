@@ -137,14 +137,19 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		#endregion
 
 		#region Tumbling
-		
+
+		private CancellationTokenSource CancelTumbling { get; set; }
 		/// <summary>
 		/// Participates one tumbling round
 		/// </summary>
-		public async Task<uint256> TumbleAsync(SafeAccount from, BitcoinWitPubKeyAddress to, CancellationToken cancel)
+		public async Task<uint256> TumbleAsync(SafeAccount from, BitcoinWitPubKeyAddress to, CancellationToken ctsToken)
 		{
 			try
 			{
+				CancelTumbling?.Dispose();
+				CancelTumbling = CancellationTokenSource.CreateLinkedTokenSource(ctsToken);
+				var cancel = CancelTumbling.Token;
+
 				CoinJoin = null;
 				TumblingException = null;
 
@@ -400,10 +405,12 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		/// </summary>
 		public async Task CancelMixAsync(CancellationToken cancel)
 		{
-			if (UniqueAliceId != null)
+			if (TumblerConnection != null && UniqueAliceId != null)
 			{
 				var request = new DisconnectionRequest { UniqueId = UniqueAliceId };
 				await TumblerClient.PostDisconnectionAsync(request, cancel);
+
+				CancelTumbling?.Cancel();
 			}
 		}
 
@@ -440,6 +447,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				}
 
 				TumblerClient?.Dispose();
+				CancelTumbling?.Dispose();
 			}
 			catch (Exception)
 			{

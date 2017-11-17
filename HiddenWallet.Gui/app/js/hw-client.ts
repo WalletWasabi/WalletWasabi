@@ -74,3 +74,17 @@ function httpPostWalletAsync(path: string, data: any, callback) {
     xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     xmlHttp.send(JSON.stringify(data));
 }
+
+function httpPostTumblerAsync(path: string, data: any, callback) {
+    let theUrl = "http://localhost:37120/api/v1/tumbler/" + path;
+    let xmlHttp: XMLHttpRequest = new XMLHttpRequest();
+
+    xmlHttp.onreadystatechange = function () {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(JSON.parse(xmlHttp.responseText));
+    }
+
+    xmlHttp.open("POST", theUrl, true); // true for asynchronous 
+    xmlHttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xmlHttp.send(JSON.stringify(data));
+}

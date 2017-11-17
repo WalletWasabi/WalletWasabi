@@ -162,7 +162,7 @@ function updateMixerContent(response = null) {
                         }
                     }
                 }
-            }
+            }            
 
             tumblerDenomination = response.TumblerDenomination;
             tumblerAnonymitySet = response.TumblerAnonymitySet;

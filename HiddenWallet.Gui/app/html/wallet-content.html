@@ -93,54 +93,58 @@
         </table>
 
         <hr />
-
-        <table>
-            <tr>
-                <td style="width:270px;">
-                    <label>From:</label>
-                    <div class="dropdown" style="padding-bottom:70px; margin-left:33px;" id="choose-wallet-dropdown-div">
-                        <span id="choose-wallet-dropdown-active" onclick="chooseWalletDropdown()" style="font-size: 15px;" class="label label-danger dropbtn">
-                            <span class="mdi mdi-arrow-down-drop-circle"></span> Select Wallet!
-                        </span>
-                        <div id="choose-wallet-dropdown" class="dropdown-content">
-                            <a id="wallet-dropdown-alice" onclick="chooseWalletDropdown('alice')" href="#">Alice</a>
-                            <a id="wallet-dropdown-bob" onclick="chooseWalletDropdown('bob')" href="#">Bob</a>
-                        </div>
-                    </div>
-                </td>
-                <td style="width:200px; vertical-align:top;">
-                    <label>To:</label>
-                    <span class="label label-danger" id="tumbling-to-wallet" style="font-size: 15px; margin-left:33px;">?</span>
-                </td>
-            </tr>
-        </table>
-
-        <br />
-        <div id="not-enough-funds-to-mix" style="font-size: 13px;" class="alert alert-danger">Not enough funds to mix</div>
-        <div id="wallet-selected">
-            <form class="form-inline">
-                <table>
-                    <tr>
-                        <td style="width:270px;"><label>Amount (BTC):</label></td>
-                        <td style="width:200px;"><input id="amount-input" class="form-control form-inline" style="width:150px;" onchange="amountChanged()" onkeypress="document.getElementById('amount-input').stepUp(1); return false;" type="number" size="11" /></td>
-                    </tr>
-                </table>
-            </form>
-
-            <hr />
-
-            <table>
+        <div id="mixing-input-elements">
+            <table id="tumbler-fom-to-table">
                 <tr>
-                    <td style="width:270px;"><label>Estimated Network Fees:</label></td>
-                    <td style="width:200px;"><span style="font-size: 13px;" class="label label-success" id="total-network-fees"></span></td>
+                    <td style="width:270px;">
+                        <label>From:</label>
+                        <div class="dropdown" style="padding-bottom:70px; margin-left:33px;" id="choose-wallet-dropdown-div">
+                            <span id="choose-wallet-dropdown-active" onclick="chooseWalletDropdown()" style="font-size: 15px;" class="label label-danger dropbtn">
+                                <span class="mdi mdi-arrow-down-drop-circle"></span> Select Wallet!
+                            </span>
+                            <div id="choose-wallet-dropdown" class="dropdown-content">
+                                <a id="wallet-dropdown-alice" onclick="chooseWalletDropdown('alice')" href="#">Alice</a>
+                                <a id="wallet-dropdown-bob" onclick="chooseWalletDropdown('bob')" href="#">Bob</a>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="width:200px; vertical-align:top;">
+                        <label>To:</label>
+                        <span class="label label-danger" id="tumbling-to-wallet" style="font-size: 15px; margin-left:33px;">?</span>
+                    </td>
                 </tr>
             </table>
 
             <br />
+            <div id="not-enough-funds-to-mix" style="font-size: 13px;" class="alert alert-danger">Not enough funds to mix</div>
+            <div id="wallet-selected">
+                <form class="form-inline">
+                    <table>
+                        <tr>
+                            <td style="width:270px;"><label>Amount (BTC):</label></td>
+                            <td style="width:200px;"><input id="amount-input" class="form-control form-inline" style="width:150px;" onchange="amountChanged()" onkeypress="document.getElementById('amount-input').stepUp(1); return false;" type="number" size="11" /></td>
+                        </tr>
+                    </table>
+                </form>
 
-            <button id="mixing-button" class="btn btn-lg btn-success btn-block" onclick="mix()">
-                <span class="mdi mdi-tor"></span> Start Mixing
-            </button>
+                <hr />
+
+                <table>
+                    <tr>
+                        <td style="width:270px;"><label>Estimated Network Fees:</label></td>
+                        <td style="width:200px;"><span style="font-size: 13px;" class="label label-success" id="total-network-fees"></span></td>
+                    </tr>
+                </table>
+
+                <br />
+
+                <button id="mixing-button" class="btn btn-lg btn-success btn-block" onclick="mix()">
+                    <span class="mdi mdi-tor"></span> Start Mixing
+                </button>
+            </div>
         </div>
+        <button id="cancel-mixing-button" style="display:none" class="btn btn-lg btn-danger btn-block" onclick="cancel-mix()">
+            Cancel Ongoing Mixing
+        </button>
     </div>
 </div>

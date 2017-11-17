@@ -354,30 +354,28 @@ namespace HiddenWallet.Daemon.Wrappers
 			else return new FailureResponse { Message = result.FailingReason, Details = "" };
 		}
 
-		public async Task<BaseResponse> TumbleAsync(SafeAccount fromAccount, SafeAccount toAccount)
+		/// <returns>null if didn't fail</returns>
+		public FailureResponse GetAccount(string account, out SafeAccount safeAccount)
 		{
-			try
-			{
-				IEnumerable<Script> unusedOutputs = await WalletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, toAccount, HdPathType.NonHardened);
-				BitcoinAddress activeOutput = unusedOutputs.RandomElement().GetDestinationAddress(Network); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
-				BitcoinWitPubKeyAddress bech32 = new BitcoinWitPubKeyAddress(activeOutput.ToString(), Network);
-		
-				uint256 result = await WalletJob.CoinJoinService.TumbleAsync(fromAccount, bech32, CancellationToken.None);
-			
-				if (null != result)
-				{
-					return new SuccessResponse();
-				}
-				else
-				{
-					return new FailureResponse { Message = "Failed to start Mix. An error occured. [01]", Details = "" };
-				}
+			safeAccount = null;
+			if (account == null)
+				return new FailureResponse { Message = "No request body specified" };
 
-			}
-			catch (Exception)
+			if (!IsDecrypted)
+				return new FailureResponse { Message = "Wallet isn't decrypted" };
+
+			var trimmed = account;
+			if (string.Equals(trimmed, "alice", StringComparison.OrdinalIgnoreCase))
 			{
-				return new FailureResponse { Message = "Failed to start Mix. An error occured. [02]", Details = "" };
+				safeAccount = AliceAccount;
+				return null;
 			}
+			else if (string.Equals(trimmed, "bob", StringComparison.OrdinalIgnoreCase))
+			{
+				safeAccount = BobAccount;
+				return null;
+			}
+			else return new FailureResponse { Message = "Wrong account" };
 		}
 	}
 }

@@ -153,7 +153,28 @@ function round(value: number, precision: number) {
 }
 
 function mixerShow() {
-    httpGetTumblerAsync("connection", function (json) { }); // makes sure the tumbler is initialized
+    httpGetTumblerAsync("connection", function (json)
+    {
+        try {
+            if (json.Success) {
+                let cancelMixingButton: HTMLElement = document.getElementById("cancel-mixing-button");
+                let mixingInputElements: HTMLElement = document.getElementById("mixing-input-elements");
+                if (json.IsMixOngoing)
+                {
+                    mixingInputElements.style.display = "none";
+                    cancelMixingButton.style.display = "inline";
+                }
+                else
+                {
+                    mixingInputElements.style.display = "inline";
+                    cancelMixingButton.style.display = "none";
+                }
+            }
+        } catch (err) {
+
+        }
+    }); // makes sure the tumbler is initialized
+
     let walletContentFrame: HTMLIFrameElement = <HTMLIFrameElement>document.getElementById("wallet-content-frame");
     let mixerContentElem: HTMLElement = walletContentFrame.contentWindow.document.getElementById("mixer-content");
 
@@ -233,33 +254,42 @@ function refreshTumblerConnection() {
 interface TumbleRequest {
     From: string;
     To: string;
+    RoundCount: string
 }
 
 function mix() {
-
     let from: HTMLElement = document.getElementById("choose-wallet-dropdown-active");
     let to: HTMLElement = document.getElementById("tumbling-to-wallet");
 
-    var obj: TumbleRequest = { From: from.innerText, To: to.innerText };
+    let obj: TumbleRequest = { From: from.innerText, To: to.innerText, RoundCount: String(1) };
 
     let json: any;
 
-    let mixingButton: HTMLButtonElement = document.getElementById("mixing-button") as HTMLButtonElement;
+    let mixingInputElements: HTMLElement = document.getElementById("mixing-input-elements");
+    let cancelMixingButton: HTMLElement = document.getElementById("cancel-mixing-button");
 
-    httpPostWalletAsync("tumble", obj, function (json) {
-        if (json.Success === false) {
-            let alertMessage: string = `Couldn't start the mix: ${json.Message}`;
+    mixingInputElements.style.display = "none";
+    cancelMixingButton.style.display = "inline";
 
-            if (!isBlank(json.Details)) {
-                alertMessage = `${alertMessage}\n\nDetails:\n${json.Details}`;
+    httpPostTumblerAsync("tumble", obj, function (json) {
+        try {
+            if (json.Success === false) {
+                let alertMessage: string = `Couldn't finish all requested mixing rounds: ${json.Message}`;
+
+                if (!isBlank(json.Details)) {
+                    alertMessage = `${alertMessage}
+
+                                Details:
+                                ${json.Details}`;
+                }
+
+                alert(alertMessage);
             }
+        } catch (err) {
 
-            alert(alertMessage);
         }
-        else {
-            mixingButton.disabled = true;
-            alert("Mix submitted");
-        }
+
+        mixerShow();
     });
 }
 
