@@ -30,6 +30,48 @@ namespace HiddenWallet.ChaumianCoinJoin
 			};
 		}
 
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel)
+		{
+			try
+			{
+				return await HttpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancel);
+			}
+			catch(TorException)
+			{
+				await Task.Delay(3000);
+				try
+				{
+					return await HttpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancel);
+				}
+				catch (TorException)
+				{
+					await Task.Delay(3000);
+					try
+					{
+						return await HttpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancel);
+					}
+					catch(TorException e)
+					{
+						throw;
+					}
+				}
+			}
+		}
+
+		public async Task<HttpResponseMessage> GetAsync(string requestUri, CancellationToken cancel)
+		{
+			return await SendAsync(new HttpRequestMessage(HttpMethod.Get, requestUri), cancel);
+		}
+
+		public async Task<HttpResponseMessage> PostAsync(string requestUri, HttpContent content, CancellationToken cancel)
+		{
+			var request = new HttpRequestMessage(HttpMethod.Post, requestUri)
+			{
+				Content = content
+			};
+			return await SendAsync(request, cancel);
+		}
+
 		/// <summary>
 		/// throws if unsuccessful
 		/// </summary>
@@ -37,16 +79,7 @@ namespace HiddenWallet.ChaumianCoinJoin
 		{
 			using (await _asyncLock.LockAsync())
 			{
-				HttpResponseMessage response;
-				try
-				{
-					response = await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel);
-				}
-				catch
-				{
-					await Task.Delay(3000);
-					response = await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel);
-				}
+				HttpResponseMessage response = await GetAsync("", cancel);
 
 				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
@@ -58,18 +91,7 @@ namespace HiddenWallet.ChaumianCoinJoin
 		{
 			using (await _asyncLock.LockAsync())
 			{
-				HttpResponseMessage response;
-				try
-				{
-					response =
-						await HttpClient.GetAsync("status", HttpCompletionOption.ResponseContentRead, cancel);
-				}
-				catch
-				{
-					await Task.Delay(3000);
-					response =
-						await HttpClient.GetAsync("status", HttpCompletionOption.ResponseContentRead, cancel);
-				}
+				HttpResponseMessage response = await GetAsync("status", cancel);
 
 				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
@@ -89,18 +111,7 @@ namespace HiddenWallet.ChaumianCoinJoin
 					Encoding.UTF8,
 					"application/json");
 
-				HttpResponseMessage response;
-				try
-				{
-					 response =
-						await HttpClient.PostAsync("inputs", content, cancel);
-				}
-				catch
-				{
-					await Task.Delay(3000);
-					response =
-						await HttpClient.PostAsync("inputs", content, cancel);
-				}
+				HttpResponseMessage response = await PostAsync("inputs", content, cancel);
 
 				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
@@ -120,18 +131,7 @@ namespace HiddenWallet.ChaumianCoinJoin
 					Encoding.UTF8,
 					"application/json");
 
-				HttpResponseMessage response;
-				try
-				{
-					response =
-						await HttpClient.PostAsync("connection-confirmation", content, cancel);
-				}
-				catch
-				{
-					await Task.Delay(3000);
-					response =
-						await HttpClient.PostAsync("connection-confirmation", content, cancel);
-				}
+				HttpResponseMessage response = await PostAsync("connection-confirmation", content, cancel);
 
 				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
@@ -151,18 +151,7 @@ namespace HiddenWallet.ChaumianCoinJoin
 					Encoding.UTF8,
 					"application/json");
 
-				HttpResponseMessage response;
-				try
-				{
-					response =
-						await HttpClient.PostAsync("disconnection", content, cancel);
-				}
-				catch
-				{
-					await Task.Delay(3000);
-					response =
-						await HttpClient.PostAsync("disconnection", content, cancel);
-				}
+				HttpResponseMessage response = await PostAsync("disconnection", content, cancel);
 
 				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
@@ -180,18 +169,7 @@ namespace HiddenWallet.ChaumianCoinJoin
 					Encoding.UTF8,
 					"application/json");
 
-				HttpResponseMessage response;
-				try
-				{
-					response =
-							await HttpClient.PostAsync("output", content, cancel);
-				}
-				catch
-				{
-					await Task.Delay(3000);
-					response =
-							await HttpClient.PostAsync("output", content, cancel);
-				}
+				HttpResponseMessage response = await PostAsync("output", content, cancel);
 
 				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
@@ -209,18 +187,7 @@ namespace HiddenWallet.ChaumianCoinJoin
 					Encoding.UTF8,
 					"application/json");
 
-				HttpResponseMessage response;
-				try
-				{
-					response =
-						await HttpClient.PostAsync("coinjoin", content, cancel);
-				}
-				catch
-				{
-					await Task.Delay(3000);
-					response =
-						await HttpClient.PostAsync("coinjoin", content, cancel);
-				}
+				HttpResponseMessage response = await PostAsync("coinjoin", content, cancel);
 
 				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
@@ -240,18 +207,7 @@ namespace HiddenWallet.ChaumianCoinJoin
 					Encoding.UTF8,
 					"application/json");
 
-				HttpResponseMessage response;
-				try
-				{
-					response =
-						await HttpClient.PostAsync("signature", content, cancel);
-				}
-				catch
-				{
-					await Task.Delay(3000);
-					response =
-						await HttpClient.PostAsync("signature", content, cancel);
-				}
+				HttpResponseMessage response = await PostAsync("signature", content, cancel);
 
 				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
@@ -263,18 +219,7 @@ namespace HiddenWallet.ChaumianCoinJoin
 		{
 			using (await _asyncLock.LockAsync())
 			{
-				HttpResponseMessage response;
-				try
-				{
-					response =
-						await HttpClient.GetAsync("input-registration-status", HttpCompletionOption.ResponseContentRead, cancel);
-				}
-				catch
-				{
-					await Task.Delay(3000);
-					response =
-						await HttpClient.GetAsync("input-registration-status", HttpCompletionOption.ResponseContentRead, cancel);
-				}
+				HttpResponseMessage response = await GetAsync("input-registration-status", cancel);
 
 				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();

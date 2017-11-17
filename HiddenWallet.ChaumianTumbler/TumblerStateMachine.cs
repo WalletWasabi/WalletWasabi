@@ -52,6 +52,7 @@ namespace HiddenWallet.ChaumianTumbler
 			AcceptRequest = false;
 			FallBackRound = false;
 			CoinJoin = null;
+			InputRegistrationStopwatch = new Stopwatch();
 		}
 
 		public async Task BroadcastPhaseChangeAsync()
@@ -103,8 +104,7 @@ namespace HiddenWallet.ChaumianTumbler
 								CalculateAnonymitySet();
 
 								await BroadcastPhaseChangeAsync();
-								InputRegistrationStopwatch = new Stopwatch();
-								InputRegistrationStopwatch.Start();
+								InputRegistrationStopwatch.Restart();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
 									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });

@@ -105,10 +105,14 @@ namespace HiddenWallet.Daemon.Controllers
 					BitcoinWitPubKeyAddress bech32 = new BitcoinWitPubKeyAddress(activeOutput.ToString(), Global.WalletWrapper.Network);
 
 					uint256 txid = await Global.WalletWrapper.WalletJob.CoinJoinService.TumbleAsync(fromAccount, bech32, CancelMixSource.Token);
+					if(txid == null)
+					{
+						return new ObjectResult(new FailureResponse { Message = "Coordinator failed to propagate the latest transaction", Details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
+					}
 					txIds.Add(txid);
 					if(CancelMixSource.Token.IsCancellationRequested)
 					{
-						return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
+						return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
 					}
 				}
 
@@ -116,11 +120,11 @@ namespace HiddenWallet.Daemon.Controllers
 			}
 			catch(OperationCanceledException)
 			{
-				return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
+				return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
 			}
 			catch (Exception ex)
 			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() + Environment.NewLine + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = "Successful mixes:" + Environment.NewLine + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
 			}
 			finally
 			{

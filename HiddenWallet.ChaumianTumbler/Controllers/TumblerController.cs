@@ -49,7 +49,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 			catch (Exception ex)
 			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+				return new ObjectResult(new FailureResponse { Message = ex.Message });
 			}
 		}
 
@@ -65,7 +65,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			{
 				if (Global.StateMachine.Phase != TumblerPhase.InputRegistration || !Global.StateMachine.AcceptRequest)
 				{
-					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase" });
 				}
 
 				// Check not nulls
@@ -200,7 +200,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 			catch (Exception ex)
 			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+				return new ObjectResult(new FailureResponse { Message = ex.Message });
 			}
 		}
 
@@ -220,7 +220,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			{
 				if (Global.StateMachine.Phase != TumblerPhase.InputRegistration || !Global.StateMachine.AcceptRequest)
 				{
-					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase" });
 				}
 
 				return new ObjectResult(new InputRegistrationStatusResponse()
@@ -232,7 +232,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 			catch (Exception ex)
 			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+				return new ObjectResult(new FailureResponse { Message = ex.Message });
 			}
 		}
 
@@ -248,7 +248,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				{
 					if (Global.StateMachine.Phase != TumblerPhase.InputRegistration || !Global.StateMachine.AcceptRequest)
 					{
-						return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+						return new ObjectResult(new FailureResponse { Message = "Wrong phase" });
 					}
 
 					if(Global.StateMachine.TryRemoveAlice(request.UniqueId))
@@ -261,7 +261,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 			catch (Exception ex)
 			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+				return new ObjectResult(new FailureResponse { Message = ex.Message });
 			}
 		}
 
@@ -275,7 +275,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			{
 				if (Global.StateMachine.Phase != TumblerPhase.ConnectionConfirmation || !Global.StateMachine.AcceptRequest)
 				{
-					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase" });
 				}
 
 				if (string.IsNullOrWhiteSpace(request.UniqueId)) return new BadRequestResult();
@@ -303,7 +303,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 			catch (Exception ex)
 			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+				return new ObjectResult(new FailureResponse { Message = ex.Message });
 			}
 		}
 
@@ -317,7 +317,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			{
 				if (Global.StateMachine.Phase != TumblerPhase.OutputRegistration || !Global.StateMachine.AcceptRequest)
 				{
-					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase" });
 				}
 
 				if (string.IsNullOrWhiteSpace(request.Output)) return new BadRequestResult();
@@ -354,7 +354,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 			catch (Exception ex)
 			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+				return new ObjectResult(new FailureResponse { Message = ex.Message });
 			}
 		}
 
@@ -368,7 +368,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			{
 				if (Global.StateMachine.Phase != TumblerPhase.Signing || !Global.StateMachine.AcceptRequest)
 				{
-					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase" });
 				}
 
 				if (string.IsNullOrWhiteSpace(request.UniqueId)) return new BadRequestResult();
@@ -389,7 +389,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 			catch (Exception ex)
 			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+				return new ObjectResult(new FailureResponse { Message = ex.Message });
 			}
 		}
 
@@ -402,7 +402,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			{
 				if (Global.StateMachine.Phase != TumblerPhase.Signing || !Global.StateMachine.AcceptRequest)
 				{
-					return new ObjectResult(new FailureResponse { Message = "Wrong phase", Details = "" });
+					return new ObjectResult(new FailureResponse { Message = "Wrong phase" });
 				}
 
 				if (string.IsNullOrWhiteSpace(request.UniqueId)) return new BadRequestResult();
@@ -495,7 +495,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 			catch (Exception ex)
 			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+				return new ObjectResult(new FailureResponse { Message = ex.Message });
 			}
 		}
 	}

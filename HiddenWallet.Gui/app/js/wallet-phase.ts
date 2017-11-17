@@ -284,7 +284,6 @@ function mix() {
                 if (!isBlank(json.Details)) {
                     alertMessage = `${alertMessage}
 
-                                Details:
                                 ${json.Details}`;
                 }
 

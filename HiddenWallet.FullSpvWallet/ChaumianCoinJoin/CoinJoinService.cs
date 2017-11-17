@@ -211,7 +211,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					for (int i = 0; i < 81; i++) // 1min default timeout of signing phase + 21 sec 
 					{
 						await Task.Delay(1000);
-						var arrived = WalletJob.MemPoolJob.Transactions.Contains(CoinJoin.GetHash());
+						var arrived = (await WalletJob.GetTrackerAsync()).TrackedTransactions.Any(x => x.GetHash() == CoinJoin.GetHash());
 						if (arrived)
 						{
 							Debug.WriteLine("Transaction is successfully propagated on the network.");
