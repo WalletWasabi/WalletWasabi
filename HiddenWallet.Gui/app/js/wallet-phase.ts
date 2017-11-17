@@ -293,6 +293,18 @@ function mix() {
     });
 }
 
+function cancelMix()
+{
+    try {
+        httpGetTumbler("cancel-mix");
+        mixerShow();
+    } catch (e) {
+        alert("Couldn't cancel the mix. Reason:" +
+
+            e);
+    }
+}
+
 function updateWalletContent() {
     let walletContentFrame: HTMLIFrameElement = <HTMLIFrameElement>document.getElementById("wallet-content-frame");
 

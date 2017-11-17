@@ -188,14 +188,14 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				catch (TorException)
 				{
 					// ToDo: fix it in DotNetTor, this happens when the tumbler goes offline, then comes back up, the already established connection cannot be reused
-					status = await TumblerClient.GetStatusAsync(cancel); 
+					status = await TumblerClient.GetStatusAsync(cancel);
 				}
 				StatusResponse = status;
 
 				Phase = TumblerPhaseHelpers.GetTumblerPhase(status.Phase);
-				
+
 				// wait for input registration
-				while(Phase != TumblerPhase.InputRegistration)
+				while (Phase != TumblerPhase.InputRegistration)
 				{
 					if (TumblerConnection == null) throw new HttpRequestException("Server went offline");
 					status = null;
@@ -204,7 +204,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 				TumblingInProcess = true;
 				await ExecutePhaseAsync(TumblerPhase.InputRegistration, status, cancel);
-				
+
 				// wait while tumbling is in process
 				while (TumblingInProcess)
 				{
@@ -222,9 +222,10 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					return CoinJoin?.GetHash();
 				}
 			}
-			catch(OperationCanceledException)
+			finally
 			{
-				return null;
+				TumblingInProcess = false;
+				UniqueAliceId = null;
 			}
 		}
 

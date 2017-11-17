@@ -92,6 +92,10 @@ namespace HiddenWallet.Daemon.Controllers
 
 				return new ObjectResult(new SuccessResponse());
 			}
+			catch(OperationCanceledException)
+			{
+				return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled" });
+			}
 			catch (Exception ex)
 			{
 				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
