@@ -44,14 +44,7 @@ namespace HiddenWallet.Daemon.Controllers
 						coinJoinService.StatusResponse = await coinJoinService.TumblerClient.GetStatusAsync(CancellationToken.None);
 					}
 
-					if(coinJoinService.TumblingInProcess)
-					{
-						return new ObjectResult(new ConnectionResponse { IsMixOngoing = true });
-					}
-					else
-					{
-						return new ObjectResult(new ConnectionResponse { IsMixOngoing = false });
-					}
+					return new ObjectResult(new SuccessResponse());
 				}
 			}
 			catch (Exception ex)
@@ -60,10 +53,36 @@ namespace HiddenWallet.Daemon.Controllers
 			}
 		}
 
+		[Route("ongoing-mix")]
+		[HttpGet]
+		public IActionResult OngoingMix()
+		{
+			try
+			{
+				if (IsMixOngoing)
+				{
+					return new ObjectResult(new YesNoResponse { Value = true });
+				}
+				else
+				{
+					return new ObjectResult(new YesNoResponse { Value = false });
+				}
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
+
+		// asp.net core brainfart, must keep these static
+		private static bool IsMixOngoing { get; set; }
+		private static CancellationTokenSource CancelMixSource { get; set; } = null;
 		[Route("tumble")]
 		[HttpPost]
 		public async Task<IActionResult> TumbleAsync([FromBody]TumbleRequest request)
 		{
+			List<uint256> txIds = new List<uint256>();
+			IsMixOngoing = true;
 			try
 			{
 				if (request == null || request.From == null || request.To == null || request.RoundCount == 0)
@@ -76,6 +95,8 @@ namespace HiddenWallet.Daemon.Controllers
 
 				var getTo = Global.WalletWrapper.GetAccount(request.To, out SafeAccount toAccount);
 				if (getTo != null) return new ObjectResult(getTo);
+
+				CancelMixSource = new CancellationTokenSource();
 				
 				for (int i = 0; i < request.RoundCount; i++)
 				{
@@ -83,10 +104,11 @@ namespace HiddenWallet.Daemon.Controllers
 					BitcoinAddress activeOutput = unusedOutputs.RandomElement().GetDestinationAddress(Global.WalletWrapper.Network); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
 					BitcoinWitPubKeyAddress bech32 = new BitcoinWitPubKeyAddress(activeOutput.ToString(), Global.WalletWrapper.Network);
 
-					uint256 txid = await Global.WalletWrapper.WalletJob.CoinJoinService.TumbleAsync(fromAccount, bech32, CancellationToken.None);
-					while(!Global.WalletWrapper.WalletJob.MemPoolJob.Transactions.Contains(txid))
+					uint256 txid = await Global.WalletWrapper.WalletJob.CoinJoinService.TumbleAsync(fromAccount, bech32, CancelMixSource.Token);
+					txIds.Add(txid);
+					if(CancelMixSource.Token.IsCancellationRequested)
 					{
-						await Task.Delay(100);
+						return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
 					}
 				}
 
@@ -94,11 +116,16 @@ namespace HiddenWallet.Daemon.Controllers
 			}
 			catch(OperationCanceledException)
 			{
-				return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled" });
+				return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
 			}
 			catch (Exception ex)
 			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() + Environment.NewLine + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
+			}
+			finally
+			{
+				CancelMixSource?.Dispose();
+				IsMixOngoing = false;
 			}
 		}
 
@@ -108,8 +135,11 @@ namespace HiddenWallet.Daemon.Controllers
 		{
 			try
 			{
-				CoinJoinService coinJoinService = Global.WalletWrapper.WalletJob.CoinJoinService;
-				await coinJoinService.CancelMixAsync(CancellationToken.None);
+				CancelMixSource?.Cancel();
+				while(IsMixOngoing)
+				{
+					await Task.Delay(100);
+				}
 				return new ObjectResult(new SuccessResponse());
 			}
 			catch (Exception ex)

@@ -137,19 +137,15 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		#endregion
 
 		#region Tumbling
-
-		private CancellationTokenSource CancelTumbling { get; set; }
+		
 		/// <summary>
-		/// Participates one tumbling round
+		/// Participates in one tumbling round
 		/// </summary>
-		public async Task<uint256> TumbleAsync(SafeAccount from, BitcoinWitPubKeyAddress to, CancellationToken ctsToken)
+		/// <returns>returns txid of cj, null if didn't arrived</returns>
+		public async Task<uint256> TumbleAsync(SafeAccount from, BitcoinWitPubKeyAddress to, CancellationToken cancel)
 		{
 			try
 			{
-				CancelTumbling?.Dispose();
-				CancelTumbling = CancellationTokenSource.CreateLinkedTokenSource(ctsToken);
-				var cancel = CancelTumbling.Token;
-
 				CoinJoin = null;
 				TumblingException = null;
 
@@ -180,16 +176,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					}
 				}
 
-				StatusResponse status;
-				try
-				{
-					status = await TumblerClient.GetStatusAsync(cancel);
-				}
-				catch (TorException)
-				{
-					// ToDo: fix it in DotNetTor, this happens when the tumbler goes offline, then comes back up, the already established connection cannot be reused
-					status = await TumblerClient.GetStatusAsync(cancel);
-				}
+				StatusResponse status = await TumblerClient.GetStatusAsync(cancel);				
 				StatusResponse = status;
 
 				Phase = TumblerPhaseHelpers.GetTumblerPhase(status.Phase);
@@ -209,7 +196,8 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				while (TumblingInProcess)
 				{
 					if (TumblerConnection == null) throw new HttpRequestException("Server went offline");
-					await Task.Delay(100, cancel);
+					if (Phase == TumblerPhase.InputRegistration) cancel.ThrowIfCancellationRequested();
+					await Task.Delay(100);
 				}
 
 				// if tumbling 
@@ -219,8 +207,31 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				}
 				else
 				{
-					return CoinJoin?.GetHash();
+					// wait for cj to arrive
+					for (int i = 0; i < 81; i++) // 1min default timeout of signing phase + 21 sec 
+					{
+						await Task.Delay(1000);
+						var arrived = WalletJob.MemPoolJob.Transactions.Contains(CoinJoin.GetHash());
+						if (arrived)
+						{
+							Debug.WriteLine("Transaction is successfully propagated on the network.");
+							return CoinJoin.GetHash();
+						}
+					}
+					return null;
 				}
+			}
+			catch(OperationCanceledException)
+			{
+				try
+				{
+					await CancelMixAsync(CancellationToken.None);
+				}
+				catch
+				{
+
+				}
+				throw;
 			}
 			finally
 			{
@@ -410,8 +421,6 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 			{
 				var request = new DisconnectionRequest { UniqueId = UniqueAliceId };
 				await TumblerClient.PostDisconnectionAsync(request, cancel);
-
-				CancelTumbling?.Cancel();
 			}
 		}
 
@@ -448,7 +457,6 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				}
 
 				TumblerClient?.Dispose();
-				CancelTumbling?.Dispose();
 			}
 			catch (Exception)
 			{

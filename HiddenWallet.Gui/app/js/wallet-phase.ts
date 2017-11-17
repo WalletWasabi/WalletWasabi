@@ -153,28 +153,8 @@ function round(value: number, precision: number) {
 }
 
 function mixerShow() {
-    httpGetTumblerAsync("connection", function (json)
-    {
-        try {
-            if (json.Success) {
-                let cancelMixingButton: HTMLElement = document.getElementById("cancel-mixing-button");
-                let mixingInputElements: HTMLElement = document.getElementById("mixing-input-elements");
-                if (json.IsMixOngoing)
-                {
-                    mixingInputElements.style.display = "none";
-                    cancelMixingButton.style.display = "inline";
-                }
-                else
-                {
-                    mixingInputElements.style.display = "inline";
-                    cancelMixingButton.style.display = "none";
-                }
-            }
-        } catch (err) {
-
-        }
-    }); // makes sure the tumbler is initialized
-
+    httpGetTumblerAsync("connection", function (json) { }); // makes sure status response is acquired at least one and subscribed to the tumbler
+    
     let walletContentFrame: HTMLIFrameElement = <HTMLIFrameElement>document.getElementById("wallet-content-frame");
     let mixerContentElem: HTMLElement = walletContentFrame.contentWindow.document.getElementById("mixer-content");
 
@@ -188,6 +168,18 @@ function mixerShow() {
     let refreshButton: HTMLButtonElement = document.getElementById("refresh-tumbler-connection-button") as HTMLButtonElement;
 
     let mixerHrs: HTMLCollectionOf<Element> = document.getElementsByClassName("mixer-hr");
+
+    let cancelMixingButton: HTMLElement = document.getElementById("cancel-mixing-button");
+    let mixingInputElements: HTMLElement = document.getElementById("mixing-input-elements");
+    let isMixOngoing: boolean = httpGetTumbler("ongoing-mix", true).Value;
+    if (isMixOngoing) {
+        mixingInputElements.style.display = "none";
+        cancelMixingButton.style.display = "inline";
+    }
+    else {
+        mixingInputElements.style.display = "inline";
+        cancelMixingButton.style.display = "none";
+    }
 
     if (isTumblerOnline === false) {
         tumblerStatusElem.classList.add("label-danger");
@@ -308,31 +300,35 @@ function mix() {
 
 function cancelMix()
 {
-    if (tumblerPhase !== "InputRegistration")
-    {
-        alert("Cancelling mix is only allowed in InputRegistration phase");
-        return;
-    }
-    try {
-        let json = httpGetTumbler("cancel-mix");
-        if (json.Success === false) {
-            let alertMessage: string = `Couldn't build the tansaction: ${json.Message}`;
+    let containerElement: Element = document.getElementsByClassName("container").item(0);
+    let cancelButton: HTMLElement = document.getElementById("cancel-mixing-button");
 
-            if (!isBlank(json.Details)) {
-                alertMessage = `${alertMessage}
+    containerElement.setAttribute("style", "pointer-events:none;");
+
+    cancelButton.innerHTML = '<span class="glyphicon glyphicon-cog spinning"></span> Stopping...';
+
+    httpGetTumblerAsync("cancel-mix", function (json) {
+        try {
+            if (json.Success === false) {
+                let alertMessage: string = `Couldn't cancel the mix: ${json.Message}`;
+
+                if (!isBlank(json.Details)) {
+                    alertMessage = `${alertMessage}
 
                                 Details:
                                 ${json.Details}`;
+                }
+
+                alert(alertMessage);
             }
+            mixerShow();
+        } catch (err) {
 
-            alert(alertMessage);
         }
-        mixerShow();
-    } catch (e) {
-        alert("Couldn't cancel the mix. Reason:" +
 
-            e);
-    }
+        cancelButton.innerHTML = '<span class="mdi mdi-tor"></span> Stop Mixing';
+        containerElement.setAttribute("style", "pointer-events:all;");
+    });
 }
 
 function updateWalletContent() {
