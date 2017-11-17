@@ -38,14 +38,14 @@ namespace HiddenWallet.ChaumianCoinJoin
 			}
 			catch(TorException)
 			{
-				await Task.Delay(3000);
+				await Task.Delay(1000);
 				try
 				{
 					return await HttpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancel);
 				}
 				catch (TorException)
 				{
-					await Task.Delay(3000);
+					await Task.Delay(1000);
 					try
 					{
 						return await HttpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancel);

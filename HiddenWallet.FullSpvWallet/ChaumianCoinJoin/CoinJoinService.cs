@@ -208,7 +208,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				else
 				{
 					// wait for cj to arrive
-					for (int i = 0; i < 81; i++) // 1min default timeout of signing phase + 21 sec 
+					for (int i = 0; i < (60 + 59); i++) // 1min default timeout of signing phase + 59 sec 
 					{
 						await Task.Delay(1000);
 						var arrived = (await WalletJob.GetTrackerAsync()).TrackedTransactions.Any(x => x.GetHash() == CoinJoin.GetHash());
@@ -345,7 +345,25 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 							Signature = UnblindedSignature,
 							RoundHash = RoundHash
 						};
-						await TumblerClient.PostOutputAsync(request, cancel);
+
+						// tor is buggy sometimes (once in a hundred), retry while tumbler is in this phase
+						var noTorException = false;
+						while(noTorException == false)
+						{
+							try
+							{
+								await TumblerClient.PostOutputAsync(request, cancel);
+								noTorException = true;
+							}
+							catch (TorException)
+							{
+								await Task.Delay(100, cancel);
+								if(Phase != TumblerPhase.OutputRegistration)
+								{
+									throw;
+								}
+							}
+						}
 					}
 					else if (phase == TumblerPhase.Signing)
 					{
@@ -357,7 +375,28 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						{
 							UniqueId = UniqueAliceId
 						};
-						CoinJoin = new Transaction((await TumblerClient.PostCoinJoinAsync(request, cancel)).Transaction);
+
+						CoinJoinResponse coinJoinResponse = new CoinJoinResponse();
+						// tor is buggy sometimes (once in a hundred), retry while tumbler is in this phase
+						var noTorException = false;
+						while (noTorException == false)
+						{
+							try
+							{
+								coinJoinResponse = await TumblerClient.PostCoinJoinAsync(request, cancel);
+								noTorException = true;
+							}
+							catch (TorException)
+							{
+								await Task.Delay(100, cancel);
+								if (Phase != TumblerPhase.Signing)
+								{
+									throw;
+								}
+							}
+						}
+
+						CoinJoin = new Transaction(coinJoinResponse.Transaction);
 
 						if (!(CoinJoin.Outputs.Any(x => x.ScriptPubKey == ActiveOutput.ScriptPubKey && x.Value >= Denomination)))
 						{
@@ -391,7 +430,26 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 							UniqueId = UniqueAliceId,
 							Signatures = witnesses
 						};
-						await TumblerClient.PostSignatureAsync(sigRequest, cancel);
+
+						// tor is buggy sometimes (once in a hundred), retry while tumbler is in this phase
+						noTorException = false;
+						while (noTorException == false)
+						{
+							try
+							{
+								await TumblerClient.PostSignatureAsync(sigRequest, cancel);
+								noTorException = true;
+							}
+							catch (TorException)
+							{
+								await Task.Delay(100, cancel);
+								if (Phase != TumblerPhase.Signing)
+								{
+									throw;
+								}
+							}
+						}
+
 						TumblingInProcess = false;
 						UniqueAliceId = null;
 					}
