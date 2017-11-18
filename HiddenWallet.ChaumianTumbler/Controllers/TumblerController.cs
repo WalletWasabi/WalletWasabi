@@ -118,9 +118,48 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						if (txOutResponse.Result.Value<int>("confirmations") <= 0)
 						{
 							if (!Global.CoinJoinStore.Transactions
-								.Any(x => x.State == CoinJoinTransactionState.Succeeded && x.Transaction.GetHash() == op.Hash))
+								.Any(x => x.State >= CoinJoinTransactionState.Succeeded && x.Transaction.GetHash() == op.Hash))
 							{
 								throw new ArgumentException("Provided input is not confirmed, nor spends a previous CJ transaction");
+							}
+							else
+							{
+								// after 24 unconfirmed cj in the mempool dont't let unconfirmed coinjoin to be registered
+								var unconfirmedCoinJoins = Global.CoinJoinStore.Transactions.Where(x => x.State == CoinJoinTransactionState.Succeeded);
+								if(unconfirmedCoinJoins.Count() >= 24)
+								{
+									var toFailed = new HashSet<uint256>();
+									var toConfirmed = new HashSet<uint256>();
+									foreach (var tx in unconfirmedCoinJoins)
+									{
+										RPCResponse getRawTransactionResponse = (await Global.RpcClient.SendCommandAsync("getrawtransaction", tx.Transaction.GetHash().ToString(), true));
+										if (string.IsNullOrWhiteSpace(getRawTransactionResponse?.ResultString))
+										{
+											toFailed.Add(tx.Transaction.GetHash());
+										}
+										if (getRawTransactionResponse.Result.Value<int>("confirmations") > 0)
+										{
+											toConfirmed.Add(tx.Transaction.GetHash());
+										}
+									}
+									foreach(var tx in toFailed)
+									{
+										Global.CoinJoinStore.TryUpdateState(tx, CoinJoinTransactionState.Failed);
+									}
+									foreach (var tx in toConfirmed)
+									{
+										Global.CoinJoinStore.TryUpdateState(tx, CoinJoinTransactionState.Confirmed);
+									}
+									if(toFailed.Count + toConfirmed.Count > 0)
+									{
+										await Global.CoinJoinStore.ToFileAsync(Global.CoinJoinStorePath);
+									}
+									// if couldn't remove any unconfirmed tx then refuse registration
+									if (Global.CoinJoinStore.Transactions.Count(x => x.State == CoinJoinTransactionState.Succeeded) >= 24)
+									{
+										throw new ArgumentException("Registering unconfirmed CJ transaction output is currently not allowed due to too long mempool chain");
+									}
+								}
 							}
 						}
 						// Check coinbase > 100
@@ -187,6 +226,12 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					await Global.StateMachine.BroadcastPeerRegisteredAsync();
 
 					if (Global.StateMachine.Alices.Count >= Global.StateMachine.AnonymitySet)
+					{
+						Global.StateMachine.UpdatePhase(TumblerPhase.ConnectionConfirmation);
+					}
+					TumblerStateMachine.EstimateInputAndOutputSizes(out int inputSizeInBytes, out int outputSizeInBytes);
+					int estimatedTxSize = Global.StateMachine.Alices.SelectMany(x => x.Inputs).Count() * inputSizeInBytes + 2 * outputSizeInBytes;
+					if(estimatedTxSize >= 90000) // standard transaction is < 100KB
 					{
 						Global.StateMachine.UpdatePhase(TumblerPhase.ConnectionConfirmation);
 					}

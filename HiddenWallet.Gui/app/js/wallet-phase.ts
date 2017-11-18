@@ -279,15 +279,21 @@ function mix() {
     httpPostTumblerAsync("tumble", obj, function (json) {
         try {
             if (json.Success === false) {
-                let alertMessage: string = `Couldn't finish all requested mixing rounds: ${json.Message}`;
+                let alertMessage: string = "Couldn't finish all requested mixing rounds:" + json.Message;
 
                 if (!isBlank(json.Details)) {
-                    alertMessage = `${alertMessage}
-
-                                ${json.Details}`;
+                    alertMessage = alertMessage
+                        + "\n"
+                        + "\n" + json.Details;
                 }
 
                 alert(alertMessage);
+            }
+            else
+            {
+                alert("Successful mix! Transactions:"
+                    + "\n"
+                    + "\n" + json.Transactions);
             }
         } catch (err) {
 
@@ -309,13 +315,12 @@ function cancelMix()
     httpGetTumblerAsync("cancel-mix", function (json) {
         try {
             if (json.Success === false) {
-                let alertMessage: string = `Couldn't cancel the mix: ${json.Message}`;
+                let alertMessage: string = "Couldn't cancel the mix:" + json.Message;
 
                 if (!isBlank(json.Details)) {
-                    alertMessage = `${alertMessage}
-
-                                Details:
-                                ${json.Details}`;
+                    alertMessage = alertMessage
+                        + "\n"
+                        + "\n" + json.Details;
                 }
 
                 alert(alertMessage);
@@ -543,13 +548,12 @@ function buildTransaction() {
 
     httpPostWalletAsync(`build-transaction/${bobOrAlice}`, obj, function (json) {
         if (json.Success === false) {
-            let alertMessage: string = `Couldn't build the tansaction: ${json.Message}`;
+            let alertMessage: string = "Couldn't build the tansaction:" + json.Message;
 
             if (!isBlank(json.Details)) {
-                alertMessage = `${alertMessage}
-
-                                Details:
-                                ${json.Details}`;
+                alertMessage = alertMessage
+                    + "\n"
+                    + "\n" + json.Details;
             }
 
             alert(alertMessage);

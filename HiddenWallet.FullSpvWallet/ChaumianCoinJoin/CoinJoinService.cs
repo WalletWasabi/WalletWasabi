@@ -280,7 +280,14 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 								throw new InvalidOperationException($"Maximum {status.MaximumInputsPerAlices} can be registered");
 							}
 
-							Money needed = Denomination + (feePerInputs * i) + (feePerOutputs * 2);
+							Money fee = (feePerInputs * i) + (feePerOutputs * 2);
+							// sanity check
+							if((fee.ToDecimal(MoneyUnit.Satoshi) / Denomination.ToDecimal(MoneyUnit.Satoshi)) * 100 > 5 )
+							{
+								throw new NotSupportedException($"The fee required by the coordinator is too high: {fee.ToString(false, true)} BTC");
+							}
+
+							Money needed = Denomination + fee;
 
 							Inputs.Add(coin);
 							var input = coin.Outpoint.ToHex();

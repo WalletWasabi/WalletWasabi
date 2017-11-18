@@ -8,6 +8,7 @@ namespace HiddenWallet.ChaumianTumbler.Store
     public enum CoinJoinTransactionState
     {
 		Failed,
-		Succeeded
+		Succeeded,
+		Confirmed
     }
 }

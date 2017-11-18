@@ -280,9 +280,8 @@ namespace HiddenWallet.ChaumianTumbler
 
 		private async Task SetFeesAsync(CancellationToken cancel)
 		{
-			int inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m); // vSize
-			int outputSizeInBytes = Constants.OutputSizeInBytes;
-			
+			EstimateInputAndOutputSizes(out int inputSizeInBytes, out int outputSizeInBytes);
+
 			try
 			{
 				RPCResponse result = (await Global.RpcClient.SendCommandAsync("estimatesmartfee", Global.Config.FeeConfirmationTarget, Global.Config.FeeEstimationMode));
@@ -299,7 +298,7 @@ namespace HiddenWallet.ChaumianTumbler
 			catch
 			{
 				// if fee hasn't been initialized once, fall back
-				if(FeePerInputs == null || FeePerOutputs == null)
+				if (FeePerInputs == null || FeePerOutputs == null)
 				{
 					var feePerBytes = new Money((int)Global.Config.FallBackSatoshiFeePerBytes);
 
@@ -308,6 +307,12 @@ namespace HiddenWallet.ChaumianTumbler
 					FeePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
 				}
 			}
+		}
+
+		public static void EstimateInputAndOutputSizes(out int inputSizeInBytes, out int outputSizeInBytes)
+		{
+			inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
+			outputSizeInBytes = Constants.OutputSizeInBytes;
 		}
 
 		private object _aliceLock = new object();

@@ -97,7 +97,7 @@ namespace HiddenWallet.Daemon.Controllers
 				if (getTo != null) return new ObjectResult(getTo);
 
 				CancelMixSource = new CancellationTokenSource();
-				
+
 				for (int i = 0; i < request.RoundCount; i++)
 				{
 					IEnumerable<Script> unusedOutputs = await Global.WalletWrapper.WalletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, toAccount, HdPathType.NonHardened);
@@ -105,20 +105,20 @@ namespace HiddenWallet.Daemon.Controllers
 					BitcoinWitPubKeyAddress bech32 = new BitcoinWitPubKeyAddress(activeOutput.ToString(), Global.WalletWrapper.Network);
 
 					uint256 txid = await Global.WalletWrapper.WalletJob.CoinJoinService.TumbleAsync(fromAccount, bech32, CancelMixSource.Token);
-					if(txid == null)
+					if (txid == null)
 					{
 						return new ObjectResult(new FailureResponse { Message = "Either the coordinator failed to propagate the latest transaction or it did not arrive to our mempool", Details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
 					}
 					txIds.Add(txid);
-					if(CancelMixSource.Token.IsCancellationRequested)
+					if (CancelMixSource.Token.IsCancellationRequested)
 					{
 						return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
 					}
 				}
 
-				return new ObjectResult(new SuccessResponse());
+				return new ObjectResult(new TumbleResponse() { Transactions = string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
 			}
-			catch(OperationCanceledException)
+			catch (OperationCanceledException)
 			{
 				return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
 			}
