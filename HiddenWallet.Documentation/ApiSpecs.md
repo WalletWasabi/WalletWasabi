@@ -20,5 +20,5 @@
 |--- | ---- | ---- | ---- |
 |GET /api/v1/tumbler/connection | Attempts to establish Tumbler connection if not already established | None | None |
 |GET /api/v1/tumbler/ongoing-mix | Tells if mix is currently ongoing or not | None | value |
-|POST /api/v1/tumbler/tumble | Tries to participate in the specified number of rounds | from, to, roundCount | None |
+|POST /api/v1/tumbler/tumble | Tries to participate in the specified number of rounds | from, to, roundCount | Transactions |
 |GET /api/v1/tumbler/cancel-mix | Tries to cancel the mix | None | None |
