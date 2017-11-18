@@ -287,7 +287,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 								throw new NotSupportedException($"The fee required by the coordinator is too high: {fee.ToString(false, true)} BTC");
 							}
 
-							Money needed = Denomination + fee;
+							Money needed = Denomination + fee + new Money(549); // 546 satoshi is dust
 
 							Inputs.Add(coin);
 							var input = coin.Outpoint.ToHex();

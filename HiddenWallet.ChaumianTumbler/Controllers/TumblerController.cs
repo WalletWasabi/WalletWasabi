@@ -197,9 +197,9 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					}
 					Money feeToPay = (inputs.Count() * Global.StateMachine.FeePerInputs + 2 * Global.StateMachine.FeePerOutputs);
 					Money changeAmount = amount - (Global.StateMachine.Denomination + feeToPay);
-					if (changeAmount < Money.Zero)
+					if (changeAmount < Money.Zero + new Money(548)) // 546 is dust
 					{
-						throw new ArgumentException("Total provided inputs must be > denomination + fee");
+						throw new ArgumentException("Total provided inputs must be > denomination + fee + dust");
 					}
 
 					byte[] signature = Global.RsaKey.SignBlindedData(blindedOutput);
