@@ -107,6 +107,7 @@ function updateWalletContent() {
 
                     let extPubKey: HTMLElement = document.getElementById("extpubkey");
                     let recAddresses: HTMLElement = document.getElementById("receive-addresses");
+                    let tradAddress: HTMLElement = document.getElementById("traditional-address");
 
 
                     let resp: any = httpGetWallet("receive/alice");
@@ -119,6 +120,8 @@ function updateWalletContent() {
                         node.appendChild(textNode);
                         recAddresses.appendChild(node);
                     }
+
+                    tradAddress.innerText = resp.TraditionalAddress;
 
                     extPubKey.innerText = resp.ExtPubKey;
                 }
@@ -167,6 +170,7 @@ function updateWalletContent() {
                     content.innerHTML = recContent.outerHTML;
                     let extPubKey: HTMLElement = document.getElementById("extpubkey");
                     let recAddresses: HTMLElement = document.getElementById("receive-addresses");
+                    let tradAddress: HTMLElement = document.getElementById("traditional-address");
 
                     let resp: any = httpGetWallet("receive/bob");
                     let i: number = 0
@@ -179,6 +183,8 @@ function updateWalletContent() {
 
                         recAddresses.appendChild(node);
                     }
+
+                    tradAddress.innerText = resp.TraditionalAddress;
 
                     extPubKey.innerText = resp.ExtPubKey;
                 }

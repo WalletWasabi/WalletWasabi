@@ -197,6 +197,9 @@ namespace HiddenWallet.Daemon.Wrappers
 				if (ub[i] != null) _receiveResponseBob.Addresses[i] = ub[i].GetDestinationAddress(network).ToString();
 				else _receiveResponseBob.Addresses[i] = "";
 			}
+
+			_receiveResponseAlice.TraditionalAddress = (await _walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2PublicKeyHash, AliceAccount, HdPathType.Receive)).FirstOrDefault().GetDestinationAddress(network).ToString();
+			_receiveResponseBob.TraditionalAddress = (await _walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2PublicKeyHash, BobAccount, HdPathType.Receive)).FirstOrDefault().GetDestinationAddress(network).ToString();
 		}
 		private void _walletJob_StateChanged(object sender, EventArgs e)
 		{
