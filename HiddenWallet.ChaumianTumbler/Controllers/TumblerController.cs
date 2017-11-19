@@ -53,7 +53,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 		}
 
-		private readonly AsyncLock InputRegistrationLock = new AsyncLock();
+		private static readonly AsyncLock InputRegistrationLock = new AsyncLock();
 		[Route("inputs")]
 		[HttpPost]
 		public async Task<IActionResult> InputsAsync([FromBody]InputsRequest request)
@@ -438,7 +438,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 		}
 
-		private readonly AsyncLock SignatureProvidedAsyncLock = new AsyncLock();
+		private static readonly AsyncLock SignatureProvidedAsyncLock = new AsyncLock();
 		[Route("signature")]
 		[HttpPost]
 		public async Task<IActionResult> SignatureAsync([FromBody]SignatureRequest request)
