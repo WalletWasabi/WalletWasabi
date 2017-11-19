@@ -403,6 +403,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 		}
 
+		private static readonly AsyncLock CoinJoinAsyncLock = new AsyncLock();
 		[Route("coinjoin")]
 		[HttpPost]
 		public IActionResult CoinJoin([FromBody]CoinJoinRequest request)
@@ -417,15 +418,19 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				}
 
 				if (string.IsNullOrWhiteSpace(request.UniqueId)) return new BadRequestResult();
-				Alice alice = Global.StateMachine.FindAlice(request.UniqueId, throwException: true);
 
-				if (alice.State == AliceState.AskedForCoinJoin)
+				using (CoinJoinAsyncLock.Lock())
 				{
-					throw new InvalidOperationException("CoinJoin has been already asked for");
-				}
+					Alice alice = Global.StateMachine.FindAlice(request.UniqueId, throwException: true);
 
+					if (alice.State == AliceState.AskedForCoinJoin)
+					{
+						throw new InvalidOperationException("CoinJoin has been already asked for");
+					}
+
+					alice.State = AliceState.AskedForCoinJoin;
+				}
 				AssertPhase(roundId, phase);
-				alice.State = AliceState.AskedForCoinJoin;
 
 				return new ObjectResult(new CoinJoinResponse
 				{

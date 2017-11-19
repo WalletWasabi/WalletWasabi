@@ -437,7 +437,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						var witnesses = new HashSet<(string Witness, int Index)>();
 						for (int i = 0; i < CoinJoin.Inputs.Count; i++)
 						{
-							if (CoinJoin.Inputs[i].WitScript != null)
+							if (!string.IsNullOrEmpty(CoinJoin.Inputs[i].WitScript.ToString()))
 							{
 								witnesses.Add((CoinJoin.Inputs[i].WitScript.ToString(), i));
 							}
