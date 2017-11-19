@@ -17,12 +17,11 @@ namespace HiddenWallet.ChaumianCoinJoin
 		public static TumblerPhase GetTumblerPhase(string phase)
 		{
 			if (phase == null) throw new ArgumentNullException(nameof(phase));
-
-			if (phase == "FallBack" + phase.ToString()) return TumblerPhase.InputRegistration;
-
+			
 			foreach (TumblerPhase p in Enum.GetValues(typeof(TumblerPhase)))
 			{
-				if (phase.Equals(p.ToString(), StringComparison.OrdinalIgnoreCase))
+				if (phase.Equals(p.ToString(), StringComparison.OrdinalIgnoreCase)
+					|| phase.Equals("FallBack" + p.ToString(), StringComparison.OrdinalIgnoreCase))
 				{
 					return p;
 				}
