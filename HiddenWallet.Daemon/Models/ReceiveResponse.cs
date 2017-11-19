@@ -10,6 +10,7 @@ namespace HiddenWallet.Daemon.Models
 	{
 		public ReceiveResponse() => Success = true;
 		public string[] Addresses { get; set; }
+		public string TraditionalAddress { get; set; }
 		public string ExtPubKey { get; set; }
 	}
 }
