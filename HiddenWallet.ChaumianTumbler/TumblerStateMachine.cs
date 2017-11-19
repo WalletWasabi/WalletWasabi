@@ -59,6 +59,10 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			AcceptRequest = true;
 			var broadcast = new PhaseChangeBroadcast { NewPhase = Phase.ToString(), Message = "" };
+			if (FallBackRound && Phase == TumblerPhase.InputRegistration)
+			{
+				broadcast = new PhaseChangeBroadcast { NewPhase = "FallBack" + Phase.ToString(), Message = "" };
+			}
 			await _broadcaster.BroadcastAsync(broadcast);
 			Console.WriteLine($"NEW PHASE: {Phase}");
 		}

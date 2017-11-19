@@ -2,7 +2,7 @@
 
 | Type | Response   |
 |------| -----------|
-| new-phase  | Phase: InputRegistration/ ConnectionConfirmation/ OutputRegistration/ Signing |
+| new-phase  | Phase: FallBackInputRegistration, InputRegistration/ ConnectionConfirmation/ OutputRegistration/ Signing |
 | new-registration  | NumberOfPeers |
 
 

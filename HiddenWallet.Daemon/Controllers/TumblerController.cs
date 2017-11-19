@@ -104,7 +104,18 @@ namespace HiddenWallet.Daemon.Controllers
 					BitcoinAddress activeOutput = unusedOutputs.RandomElement().GetDestinationAddress(Global.WalletWrapper.Network); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
 					BitcoinWitPubKeyAddress bech32 = new BitcoinWitPubKeyAddress(activeOutput.ToString(), Global.WalletWrapper.Network);
 
-					uint256 txid = await Global.WalletWrapper.WalletJob.CoinJoinService.TumbleAsync(fromAccount, bech32, CancelMixSource.Token);
+					uint256 txid = null;
+					try
+					{
+						txid = await Global.WalletWrapper.WalletJob.CoinJoinService.TumbleAsync(fromAccount, bech32, CancelMixSource.Token);
+					}
+					catch (InvalidOperationException e) when (e.Message == "Round aborted")
+					{
+						// register for the next round
+						i--;
+						continue;
+					}
+
 					if (txid == null)
 					{
 						return new ObjectResult(new FailureResponse { Message = "Either the coordinator failed to propagate the latest transaction or it did not arrive to our mempool", Details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });

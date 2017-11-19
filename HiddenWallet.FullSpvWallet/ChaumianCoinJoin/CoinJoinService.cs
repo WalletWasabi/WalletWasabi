@@ -39,6 +39,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		public volatile Exception TumblingException;
 		public volatile bool CompletedLastPhase;
 		public volatile Transaction CoinJoin;
+		private volatile bool _abortOngoingRound;
 
 		public Money Denomination => Money.Parse(StatusResponse?.Denomination ?? "0");
 		public StatusResponse StatusResponse { get; set; }
@@ -88,6 +89,11 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				{
 					var jObject = JObject.Parse(data);
 					var phaseString = jObject.Value<string>("NewPhase");
+
+					if(phaseString.StartsWith("FallBack", StringComparison.OrdinalIgnoreCase))
+					{
+						_abortOngoingRound = true;
+					}
 
 					Debug.WriteLine($"New Phase: {phaseString}");
 					var phase = TumblerPhaseHelpers.GetTumblerPhase(phaseString);
@@ -172,7 +178,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 					if (TumblerConnection == null)
 					{
-						throw new HttpRequestException("Tumbler is offline");
+						throw new HttpRequestException("Coordinator is offline");
 					}
 				}
 
@@ -184,7 +190,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				// wait for input registration
 				while (Phase != TumblerPhase.InputRegistration)
 				{
-					if (TumblerConnection == null) throw new HttpRequestException("Server went offline");
+					if (TumblerConnection == null) throw new HttpRequestException("Coordinator went offline");
 					status = null;
 					await Task.Delay(100, cancel);
 				}
@@ -193,10 +199,15 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				await ExecutePhaseAsync(TumblerPhase.InputRegistration, status, cancel);
 
 				// wait while tumbling is in process
+				_abortOngoingRound = false;
 				while (TumblingInProcess)
 				{
 					if (TumblerConnection == null) throw new HttpRequestException("Server went offline");
 					if (Phase == TumblerPhase.InputRegistration) cancel.ThrowIfCancellationRequested();
+					if (_abortOngoingRound)
+					{
+						throw new InvalidOperationException("Round aborted"); // keep it inact, will check later
+					}
 					await Task.Delay(100);
 				}
 
