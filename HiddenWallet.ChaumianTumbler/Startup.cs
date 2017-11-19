@@ -42,12 +42,7 @@ namespace HiddenWallet.ChaumianTumbler
 			{
 				app.UseDeveloperExceptionPage();
 			}
-
-			app.UseForwardedHeaders(new ForwardedHeadersOptions
-			{
-				ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-			});
-
+			
 			app.UseSignalR(routes =>
 		   {
 			   routes.MapHub<TumblerHub>("chaumianTumbler");
