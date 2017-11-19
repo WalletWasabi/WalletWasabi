@@ -8,6 +8,8 @@ Privacy focused, soon [ZeroLink](https://github.com/nopara73/ZeroLink) compliant
   
 ## Support
 
+### [Contributions Spent On](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet.Documentation/DonationsSpentOn.md)
+
 186n7me3QKajQZJnUsVsezVhVrSwyFCCZ  
 [![QR Code](http://i.imgur.com/grc5fBP.png)](https://www.smartbit.com.au/address/186n7me3QKajQZJnUsVsezVhVrSwyFCCZ)
   
