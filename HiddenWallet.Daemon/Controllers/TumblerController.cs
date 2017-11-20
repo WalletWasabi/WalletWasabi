@@ -31,7 +31,7 @@ namespace HiddenWallet.Daemon.Controllers
 				CoinJoinService coinJoinService = Global.WalletWrapper.WalletJob.CoinJoinService;
 				if (coinJoinService.TumblerConnection == null)
 				{
-					await coinJoinService.SubscribePhaseChangeAsync();
+					await coinJoinService.SubscribeNotificationsAsync();
 				}
 				if (coinJoinService.TumblerConnection == null)
 				{

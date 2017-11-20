@@ -19,15 +19,24 @@ namespace HiddenWallet.ChaumianCoinJoin
 		public Uri BaseAddress => HttpClient.BaseAddress;
 		private readonly AsyncLock _asyncLock = new AsyncLock();
 
-		public ChaumianTumblerClient(string address, HttpMessageHandler handler, bool disposeHandler = false)
+		public ChaumianTumblerClient(string address, HttpMessageHandler handler = null, bool disposeHandler = false)
 		{
 			if (address == null) throw new ArgumentNullException(nameof(address));
-			if (handler == null) throw new ArgumentNullException(nameof(handler));
 
-			HttpClient = new HttpClient(handler, disposeHandler)
+			if(handler == null)
 			{
-				BaseAddress = new Uri(address + "api/v1/Tumbler/")
-			};
+				HttpClient = new HttpClient()
+				{
+					BaseAddress = new Uri(address + "api/v1/Tumbler/")
+				};
+			}
+			else
+			{
+				HttpClient = new HttpClient(handler, disposeHandler)
+				{
+					BaseAddress = new Uri(address + "api/v1/Tumbler/")
+				};
+			}
 		}
 
 		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel)

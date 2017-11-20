@@ -109,7 +109,7 @@ namespace HiddenWallet.Daemon.Wrappers
 				{
 					WalletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerTestNetAddress, Global.Config.ChaumianTumblerTestNetNotificationAddress, Global.RsaPubKey, Tor.SocksPortHandler, disposeHandler: false);
 				}
-				await WalletJob.CoinJoinService.SubscribePhaseChangeAsync();
+				await WalletJob.CoinJoinService.SubscribeNotificationsAsync();
 			}
 		}
 

@@ -77,7 +77,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 		#region Notifications
 
-		public async Task SubscribePhaseChangeAsync()
+		public async Task SubscribeNotificationsAsync()
 		{
 			try
 			{
@@ -122,6 +122,14 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				});
 
 				await TumblerConnection.StartAsync();
+
+				if(StatusResponse == null)
+				{
+					using (var clearnetClient = new ChaumianTumblerClient(NotificationBaseAddress))
+					{
+						StatusResponse = await TumblerClient.GetStatusAsync(CancellationToken.None);
+					}
+				}
 
 				TumblerConnection.Closed += TumblerConnection_ClosedAsync;
 			}
@@ -174,7 +182,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 				if (TumblerConnection == null)
 				{
-					await SubscribePhaseChangeAsync();
+					await SubscribeNotificationsAsync();
 
 					if (TumblerConnection == null)
 					{

@@ -296,15 +296,13 @@ namespace HiddenWallet.FullSpv
 				{
 					var path = Path.Combine(trackerFolderPath, MerkleChainFileName);
 
-					if(File.Exists(path))
+					// remove legacy backup file
+					if(File.Exists(path + "_backup"))
 					{
-						const string backupName = MerkleChainFileName + "_backup";
-						var backupPath = Path.Combine(trackerFolderPath, backupName);
-						File.Copy(path, backupPath, overwrite: true);
-						File.Delete(path);
+						File.Delete(path + "_backup");
 					}
 
-					using(FileStream stream = File.OpenWrite(path))
+					using(FileStream stream = File.Open(path, FileMode.Create, FileAccess.Write))
 					{
 						var toFile = MerkleChain.First().ToBytes();
 						await stream.WriteAsync(toFile, 0, toFile.Length);
