@@ -63,7 +63,7 @@ namespace HiddenWallet.Daemon
 			CanSpendUnconfirmed = false;
 			ChaumianTumblerTestNetAddress = "http://uitzert24go64ure.onion/";
 			ChaumianTumblerMainAddress = "http://i4dmqjdw2nljsyt3.onion/"; // TODO: change it when active tumbler had been set up
-			ChaumianTumblerTestNetNotificationAddress = "http://hiddenwallet.org/";
+			ChaumianTumblerTestNetNotificationAddress = "http://hiddenwallet.org:81/";
 			ChaumianTumblerMainNotificationAddress = "http://localhost:80/"; // TODO: change it when active tumbler had been set up
 
 			if (!File.Exists(path))
