@@ -28,14 +28,11 @@ namespace HiddenWallet.ChaumianTumbler
 			try
 			{
 				await Global.InitializeAsync();
-				
+
+				var endPoint = "http://0.0.0.0:5000/";
 				using (var host = WebHost.CreateDefaultBuilder(args)
 					.UseStartup<Startup>()
-					.UseKestrel(options =>
-					{
-						// listen to requests from outside the local machine   
-						options.Listen(System.Net.IPAddress.Any, 80);
-					})
+					.UseUrls(endPoint)
 					.Build())
 				{
 					await host.RunAsync();
