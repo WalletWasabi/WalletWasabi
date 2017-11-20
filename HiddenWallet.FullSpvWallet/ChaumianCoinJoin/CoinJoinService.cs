@@ -128,6 +128,19 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					using (var clearnetClient = new ChaumianTumblerClient(NotificationBaseAddress))
 					{
 						StatusResponse = await TumblerClient.GetStatusAsync(CancellationToken.None);
+						Phase = TumblerPhaseHelpers.GetTumblerPhase(StatusResponse.Phase);
+						if (Phase == TumblerPhase.InputRegistration)
+						{
+							try
+							{
+								var inputRegistrationResponse = await TumblerClient.GetInputRegistrationStatusAsync(CancellationToken.None);
+								NumberOfPeers = inputRegistrationResponse.RegisteredPeerCount;
+							}
+							catch
+							{
+								// in this case the tumbler already changed phase
+							}
+						}
 					}
 				}
 
@@ -373,15 +386,15 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						};
 
 						// tor is buggy sometimes (once in a hundred), retry while tumbler is in this phase
-						var noTorException = false;
-						while(noTorException == false)
+						var noException = false;
+						while(noException == false)
 						{
 							try
 							{
 								await TumblerClient.PostOutputAsync(request, cancel);
-								noTorException = true;
+								noException = true;
 							}
-							catch (TorException)
+							catch
 							{
 								await Task.Delay(100, cancel);
 								if(Phase != TumblerPhase.OutputRegistration)
@@ -404,15 +417,15 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 						CoinJoinResponse coinJoinResponse = new CoinJoinResponse();
 						// tor is buggy sometimes (once in a hundred), retry while tumbler is in this phase
-						var noTorException = false;
-						while (noTorException == false)
+						var noException = false;
+						while (noException == false)
 						{
 							try
 							{
 								coinJoinResponse = await TumblerClient.PostCoinJoinAsync(request, cancel);
-								noTorException = true;
+								noException = true;
 							}
-							catch (TorException)
+							catch
 							{
 								await Task.Delay(100, cancel);
 								if (Phase != TumblerPhase.Signing)
@@ -458,15 +471,15 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						};
 
 						// tor is buggy sometimes (once in a hundred), retry while tumbler is in this phase
-						noTorException = false;
-						while (noTorException == false)
+						noException = false;
+						while (noException == false)
 						{
 							try
 							{
 								await TumblerClient.PostSignatureAsync(sigRequest, cancel);
-								noTorException = true;
+								noException = true;
 							}
-							catch (TorException)
+							catch
 							{
 								await Task.Delay(100, cancel);
 								if (Phase != TumblerPhase.Signing)
