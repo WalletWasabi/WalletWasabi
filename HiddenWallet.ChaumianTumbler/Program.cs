@@ -29,7 +29,7 @@ namespace HiddenWallet.ChaumianTumbler
 			{
 				await Global.InitializeAsync();
 
-				var endPoint = "http://0.0.0.0:5000/";
+				var endPoint = "http://0.0.0.0:37126/";
 				using (var host = WebHost.CreateDefaultBuilder(args)
 					.UseStartup<Startup>()
 					.UseUrls(endPoint)
