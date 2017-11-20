@@ -48,7 +48,7 @@ namespace HiddenWallet.ChaumianTumbler
 				ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 			});
 
-			app.UseWebSockets()
+			app.UseWebSockets();
 
 			app.UseSignalR(routes =>
 		   {
