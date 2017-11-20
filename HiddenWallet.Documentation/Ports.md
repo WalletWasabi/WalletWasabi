@@ -9,6 +9,7 @@ HiddenWallet's ports (3712x) are chosen within a long range of unassigned IANA p
 |37123 | NTumbleBit server |
 |37124 | Tor socks port used by NTumbleBit |
 |37125 | Tor control port used by NTumbleBit |
+|37126 | Chaumian Tumbler |
 |9050  | Default Tor socks port |
 |9051  | Default Tor control port |
 |9150  | Tor socks port used by Tor Browser |
