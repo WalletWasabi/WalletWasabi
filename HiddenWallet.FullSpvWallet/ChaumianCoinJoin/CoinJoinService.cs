@@ -300,12 +300,24 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						Inputs = new ConcurrentHashSet<Coin>();
 						var inputs = new List<InputProofModel>();
 						var i = 0;
+						var needSegwitify = false;
 						Money sumAmounts = Money.Zero;
 						foreach (Coin coin in getBalanceResult.UnspentCoins
 							.OrderByDescending(x => x.Value) // look at confirmed ones first
 							.OrderByDescending(x => x.Key.Amount) // look at the biggest amounts first, TODO: this is sub-optimal (CCJ unconfirmed change should be the same category as confirmed and not CCJ change unconfirmed should not be here)
 							.Select(x => x.Key))
 						{
+							BitcoinAddress destinationAddress = coin.ScriptPubKey.GetDestinationAddress(WalletJob.CurrentNetwork);
+							try
+							{
+								new BitcoinWitPubKeyAddress(destinationAddress.ToString(), WalletJob.CurrentNetwork);
+							}
+							catch
+							{
+								needSegwitify = true;
+								continue;
+							}
+							
 							i++;
 							if (i > status.MaximumInputsPerAlices)
 							{
@@ -323,7 +335,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 							Inputs.Add(coin);
 							var input = coin.Outpoint.ToHex();
-							BitcoinExtKey privateExtKey = WalletJob.Safe.FindPrivateKey(coin.ScriptPubKey.GetDestinationAddress(WalletJob.CurrentNetwork), (await WalletJob.GetTrackerAsync()).TrackedScriptPubKeys.Count, From);
+							BitcoinExtKey privateExtKey = WalletJob.Safe.FindPrivateKey(destinationAddress, (await WalletJob.GetTrackerAsync()).TrackedScriptPubKeys.Count, From);
 							SigningKeys.Add(privateExtKey);
 							var proof = privateExtKey.PrivateKey.SignMessage(blindedOutput);
 							inputs.Add(new InputProofModel { Input = input, Proof = proof });
@@ -337,7 +349,14 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 							if (i == getBalanceResult.UnspentCoins.Count)
 							{
-								throw new InvalidOperationException("Not enough coins to participate in mix");
+								if(needSegwitify)
+								{
+									throw new InvalidOperationException("Mixing requires segregated witness inputs. Please segwitify your non-segwit balance");
+								}
+								else
+								{
+									throw new InvalidOperationException("Not enough coins to participate in mix");
+								}
 							}
 						}
 
