@@ -123,7 +123,12 @@ namespace HiddenWallet.Daemon.Controllers
 					txIds.Add(txid);
 					if (CancelMixSource.Token.IsCancellationRequested)
 					{
-						return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
+						string details = "";
+						if(txIds.Count > 0)
+						{
+							details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString()));
+						}
+						return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = details });
 					}
 				}
 
@@ -131,11 +136,21 @@ namespace HiddenWallet.Daemon.Controllers
 			}
 			catch (OperationCanceledException)
 			{
-				return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
+				string details = "";
+				if (txIds.Count > 0)
+				{
+					details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString()));
+				}
+				return new ObjectResult(new FailureResponse { Message = "Mixing was cancelled", Details = details });
 			}
 			catch (Exception ex)
 			{
-				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = "Successful mixes:" + Environment.NewLine + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString())) });
+				string details = "";
+				if (txIds.Count > 0)
+				{
+					details = "Successful mixes:" + Environment.NewLine + string.Join(Environment.NewLine, txIds.Select(a => a.ToString()));
+				}
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = details });
 			}
 			finally
 			{
