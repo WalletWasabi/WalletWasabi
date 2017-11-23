@@ -144,7 +144,7 @@ let tumblerDenomination: number;
 let tumblerAnonymitySet: string;
 let tumblerNumberOfPeers: string;
 let tumblerFeePerRound: number;
-let tumblerWaitedInInputRegistration: number;
+let tumblerWaitedInInputRegistration: string;
 let tumblerPhase: string;
 function updateMixerContent(response = null) {
     try {
@@ -183,7 +183,7 @@ function updateMixerContent(response = null) {
         anonymitySetElem.innerText = tumblerAnonymitySet;
         peerCountElem.innerText = tumblerNumberOfPeers;
         tumblerFeePerRoundElem.innerText = tumblerFeePerRound + " BTC";
-        timeSpentWaitingElem.innerText = String(Math.floor(tumblerWaitedInInputRegistration / 60)) + " minutes";
+        timeSpentWaitingElem.innerText = tumblerWaitedInInputRegistration + " minutes";
         currentPhaseElem.innerText = tumblerPhase;
     }
     catch (err) {

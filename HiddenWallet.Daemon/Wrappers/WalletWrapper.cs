@@ -292,7 +292,12 @@ namespace HiddenWallet.Daemon.Wrappers
 
 				}
 
-				var twiir = tumblerStatus?.TimeSpentInInputRegistrationInSeconds ?? 0;
+				int twiir;
+				if (tumblerStatus == null) twiir = 0;
+				else
+				{
+					twiir = (int)TimeSpan.FromSeconds(Convert.ToDouble(tumblerStatus.TimeSpentInInputRegistrationInSeconds)).TotalMinutes;
+				}
 
 				var tp = WalletJob.CoinJoinService?.Phase.ToString() ?? "";
 
