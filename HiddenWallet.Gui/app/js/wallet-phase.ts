@@ -513,6 +513,13 @@ function buildTransaction() {
         return;
     }
 
+    // if mix is ongoing don't let transaction to be built
+    let isMixOngoing: boolean = httpGetTumbler("ongoing-mix", true).Value;
+    if (isMixOngoing) {
+        alert("Cannot build transaction, while mixing is in process!");
+        return;
+    }
+
     let feeType: string;
 
     if (fastFeeChecked) {
