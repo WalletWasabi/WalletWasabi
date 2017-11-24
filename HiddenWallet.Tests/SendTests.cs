@@ -53,9 +53,7 @@ namespace HiddenWallet.Tests
                     Debug.WriteLine(r.TransactionId);
                 }
 
-				var record = (await walletJob.GetSafeHistoryAsync(account)).FirstOrDefault();
-				Debug.WriteLine(record.Confirmed);
-				Debug.WriteLine(record.Amount);
+				# region Basic
 
 				var receive = (await walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive)).FirstOrDefault();
 
@@ -114,6 +112,8 @@ namespace HiddenWallet.Tests
 
 				bal = (await walletJob.GetBalanceAsync(account)).Available;
 				amountToSend = (bal.Confirmed + bal.Unconfirmed) / 2;
+
+				#endregion
 
 				#region LowFee
 
@@ -208,9 +208,7 @@ namespace HiddenWallet.Tests
 					}
 				}
 				Assert.True(foundReceive);
-
-				#endregion
-
+				
 				Assert.InRange(res.Fee, Money.Zero, res.Fee);
 				Assert.InRange(res.Fee, res.Fee, res.Fee);
 
@@ -232,7 +230,11 @@ namespace HiddenWallet.Tests
 				Debug.WriteLine("TrackedTransactions collection changed");
 				Assert.Contains((await walletJob.GetTrackerAsync()).TrackedTransactions, x => x.Transaction.GetHash() == res.Transaction.GetHash());
 				Debug.WriteLine("Transaction arrived");
-				
+
+				#endregion
+
+				#region MaxAmount
+
 				receive = (await walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive)).FirstOrDefault();
 
 				bal = (await walletJob.GetBalanceAsync(account)).Available;
@@ -243,14 +245,11 @@ namespace HiddenWallet.Tests
 				Assert.True(res.Success);
 				Assert.Empty(res.FailingReason);
 				Assert.Equal(receive, res.ActiveOutput.ScriptPubKey);
-				Assert.Equal(amountToSend, res.ActiveOutput.Value);
-				Assert.NotNull(res.ChangeOutput);
-				Assert.Contains(res.Transaction.Outputs, x => x.Value == res.ChangeOutput.Value);
+				Assert.Null(res.ChangeOutput);
 				Debug.WriteLine($"Fee: {res.Fee}");
 				Debug.WriteLine($"FeePercentOfSent: {res.FeePercentOfSent} %");
 				Debug.WriteLine($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
 				Debug.WriteLine($"Active Output: {res.ActiveOutput.Value.ToString(false, true)} {res.ActiveOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Debug.WriteLine($"Change Output: {res.ChangeOutput.Value.ToString(false, true)} {res.ChangeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Debug.WriteLine($"TxId: {res.Transaction.GetHash()}");
 
 				foundReceive = false;
@@ -283,6 +282,8 @@ namespace HiddenWallet.Tests
 				Debug.WriteLine("TrackedTransactions collection changed");
 				Assert.Contains((await walletJob.GetTrackerAsync()).TrackedTransactions, x => x.Transaction.GetHash() == res.Transaction.GetHash());
 				Debug.WriteLine("Transaction arrived");
+
+				#endregion
 			}
 			finally
 			{
