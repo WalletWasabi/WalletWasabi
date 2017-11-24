@@ -899,7 +899,7 @@ namespace HiddenWallet.FullSpv
 		/// <param name="account"></param>
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary</param>
 		/// <returns></returns>
-		public async Task<BuildTransactionResult> BuildTransactionAsync(Script scriptPubKeyToSend, Money amount, FeeType feeType, SafeAccount account = null, bool allowUnconfirmed = false)
+		public async Task<BuildTransactionResult> BuildTransactionAsync(Script scriptPubKeyToSend, Money amount, FeeType feeType, SafeAccount account = null, bool allowUnconfirmed = false, bool subtractFeeFromAmount = false, Script customChangeScriptPubKey = null)
 		{
 			try
 			{
@@ -907,7 +907,12 @@ namespace HiddenWallet.FullSpv
 
 				// 1. Get the script pubkey of the change.
 				Debug.WriteLine("Select change address...");
-				Script changeScriptPubKey = (await GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Change)).FirstOrDefault();
+				Script changeScriptPubKey;
+				if (customChangeScriptPubKey != null)
+				{
+					changeScriptPubKey = customChangeScriptPubKey;
+				}
+				else changeScriptPubKey = (await GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Change)).FirstOrDefault();
 
 				// 2. Find all coins I can spend from the account
 				// 3. How much money we can spend?
@@ -954,6 +959,17 @@ namespace HiddenWallet.FullSpv
 				{
 					inNum = unspentCoins.Count;
 				}
+				else if(subtractFeeFromAmount)
+				{
+					try
+					{
+						inNum = SelectCoinsToSpend(unspentCoins, amount).Count;
+					}
+					catch (InsufficientBalanceException)
+					{
+						return NotEnoughFundsBuildTransactionResult;
+					}
+				}
 				else
 				{
 					const int expectedMinTxSize = 1 * 41 + 1 * 33 + 10;
@@ -987,6 +1003,14 @@ namespace HiddenWallet.FullSpv
 					else
 						amountToSend = spendableConfirmedAmount;
 					amountToSend -= fee;
+				}
+				else if(subtractFeeFromAmount)
+				{
+					amountToSend = amount - fee;
+					if(amountToSend < Money.Zero)
+					{
+						return NotEnoughFundsBuildTransactionResult;
+					}
 				}
 				else
 				{
