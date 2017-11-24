@@ -330,37 +330,47 @@ namespace HiddenWallet.Tests
 				Debug.WriteLine($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
 				Debug.WriteLine($"Active Output: {res.ActiveOutput.Value.ToString(false, true)} {res.ActiveOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Debug.WriteLine($"TxId: {res.Transaction.GetHash()}");
+				
+				Assert.Single(res.Transaction.Outputs);
+				var maxBuiltTxOutput = res.Transaction.Outputs.Single();
+				Assert.Equal(receive, maxBuiltTxOutput.ScriptPubKey);
+				Assert.Equal(bal.Confirmed + bal.Unconfirmed - res.Fee, maxBuiltTxOutput.Value);
 
-				foundReceive = false;
-				Assert.InRange(res.Transaction.Outputs.Count, 1, 2);
-				foreach (var output in res.Transaction.Outputs)
-				{
-					if (output.ScriptPubKey == receive)
-					{
-						foundReceive = true;
-						Assert.Equal(bal.Confirmed + bal.Unconfirmed - res.Fee, output.Value);
-					}
-				}
-				Assert.True(foundReceive);
+				#endregion
 
-				_txProbArrived = false;
-				_prevCount = (await walletJob.GetTrackerAsync()).TrackedTransactions.Count;
-				_currentWalletJob = walletJob;
-				(await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
+				#region InputSelection
 
-				sendRes = await walletJob.SendTransactionAsync(res.Transaction);
-				Assert.True(sendRes.Success);
-				Assert.Empty(sendRes.FailingReason);
+				receive = (await walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive)).FirstOrDefault();
 
-				while (_txProbArrived == false)
-				{
-					Debug.WriteLine("Waiting for transaction...");
-					await Task.Delay(1000);
-				}
+				bal = (await walletJob.GetBalanceAsync(account)).Available;
 
-				Debug.WriteLine("TrackedTransactions collection changed");
-				Assert.Contains((await walletJob.GetTrackerAsync()).TrackedTransactions, x => x.Transaction.GetHash() == res.Transaction.GetHash());
-				Debug.WriteLine("Transaction arrived");
+				var inputCountBefore = res.SpentCoins.Count();
+				res = await walletJob.BuildTransactionAsync(receive, Money.Zero, FeeType.Low, account,
+					allowUnconfirmed: true,
+					allowedInputs: res.SpentCoins.Where((x, i) => i == 0 || i % 2 == 0).Select(x=>x.Outpoint));
+
+				Assert.True(inputCountBefore >= res.SpentCoins.Count());
+				Assert.Equal(res.SpentCoins.Count(), res.Transaction.Inputs.Count);
+				Assert.True(res.Success);
+				Assert.Empty(res.FailingReason);
+				Assert.Equal(receive, res.ActiveOutput.ScriptPubKey);
+				Assert.Null(res.ChangeOutput);
+				Debug.WriteLine($"Fee: {res.Fee}");
+				Debug.WriteLine($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Debug.WriteLine($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Debug.WriteLine($"Active Output: {res.ActiveOutput.Value.ToString(false, true)} {res.ActiveOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Debug.WriteLine($"TxId: {res.Transaction.GetHash()}");
+				
+				Assert.Single(res.Transaction.Outputs);
+
+				res = await walletJob.BuildTransactionAsync(receive, Money.Zero, FeeType.Low, account,
+					allowUnconfirmed: true,
+					allowedInputs: new[] { res.SpentCoins.Select(x => x.Outpoint).First() });
+
+				Assert.Single(res.Transaction.Inputs);
+				Assert.Single(res.Transaction.Outputs);
+				Assert.Single(res.SpentCoins);
+				Assert.Null(res.ChangeOutput);
 
 				#endregion
 			}
