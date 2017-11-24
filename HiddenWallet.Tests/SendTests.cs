@@ -115,6 +115,85 @@ namespace HiddenWallet.Tests
 
 				#endregion
 
+				#region SubtractFeeFromAmount
+
+				receive = (await walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive)).FirstOrDefault();
+
+				getBalanceResult = await walletJob.GetBalanceAsync(account);
+				bal = getBalanceResult.Available;
+				amountToSend = (bal.Confirmed + bal.Unconfirmed) / 2;
+				res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
+					allowUnconfirmed: true,
+					subtractFeeFromAmount: true);
+
+				Assert.True(res.Success);
+				Assert.Empty(res.FailingReason);
+				Assert.Equal(receive, res.ActiveOutput.ScriptPubKey);
+				Assert.Equal(amountToSend - res.Fee, res.ActiveOutput.Value);
+				Assert.NotNull(res.ChangeOutput);
+				Assert.Contains(res.Transaction.Outputs, x => x.Value == res.ChangeOutput.Value);
+				Debug.WriteLine($"Fee: {res.Fee}");
+				Debug.WriteLine($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Debug.WriteLine($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Debug.WriteLine($"Active Output: {res.ActiveOutput.Value.ToString(false, true)} {res.ActiveOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Debug.WriteLine($"Change Output: {res.ChangeOutput.Value.ToString(false, true)} {res.ChangeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Debug.WriteLine($"TxId: {res.Transaction.GetHash()}");
+
+				foundReceive = false;
+				Assert.InRange(res.Transaction.Outputs.Count, 1, 2);
+				foreach (var output in res.Transaction.Outputs)
+				{
+					if (output.ScriptPubKey == receive)
+					{
+						foundReceive = true;
+						Assert.Equal(amountToSend - res.Fee, output.Value);
+					}
+				}
+				Assert.True(foundReceive);
+				
+				#endregion
+
+				#region CustomChange
+
+				receive = (await walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive)).FirstOrDefault();
+				var customChange = new Key().ScriptPubKey;
+
+				getBalanceResult = await walletJob.GetBalanceAsync(account);
+				bal = getBalanceResult.Available;
+				amountToSend = (bal.Confirmed + bal.Unconfirmed) / 2;
+				res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
+					allowUnconfirmed: true,
+					subtractFeeFromAmount: true,
+					customChangeScriptPubKey: customChange);
+
+				Assert.True(res.Success);
+				Assert.Empty(res.FailingReason);
+				Assert.Equal(receive, res.ActiveOutput.ScriptPubKey);
+				Assert.Equal(amountToSend - res.Fee, res.ActiveOutput.Value);
+				Assert.NotNull(res.ChangeOutput);
+				Assert.Equal(customChange, res.ChangeOutput.ScriptPubKey);
+				Assert.Contains(res.Transaction.Outputs, x => x.Value == res.ChangeOutput.Value);
+				Debug.WriteLine($"Fee: {res.Fee}");
+				Debug.WriteLine($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Debug.WriteLine($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Debug.WriteLine($"Active Output: {res.ActiveOutput.Value.ToString(false, true)} {res.ActiveOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Debug.WriteLine($"Change Output: {res.ChangeOutput.Value.ToString(false, true)} {res.ChangeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Debug.WriteLine($"TxId: {res.Transaction.GetHash()}");
+
+				foundReceive = false;
+				Assert.InRange(res.Transaction.Outputs.Count, 1, 2);
+				foreach (var output in res.Transaction.Outputs)
+				{
+					if (output.ScriptPubKey == receive)
+					{
+						foundReceive = true;
+						Assert.Equal(amountToSend - res.Fee, output.Value);
+					}
+				}
+				Assert.True(foundReceive);
+
+				#endregion
+
 				#region LowFee
 
 				res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
