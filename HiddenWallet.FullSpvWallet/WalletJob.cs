@@ -1089,6 +1089,13 @@ namespace HiddenWallet.FullSpv
 					};
 
 				successfulResult.Transaction = tx;
+				successfulResult.ActiveOutput = new TxOut(amountToSend, scriptPubKeyToSend);
+				var totalOut = tx.Outputs.Sum(x => x.Value);
+				if (totalOut != amountToSend)
+				{
+					successfulResult.ChangeOutput = new TxOut(totalOut - amountToSend, changeScriptPubKey);
+				}
+				else successfulResult.ChangeOutput = null;
 				return successfulResult;
 			}
 			catch (Exception ex)
@@ -1200,6 +1207,8 @@ namespace HiddenWallet.FullSpv
 			public bool SpendsUnconfirmed;
 			public Money Fee;
 			public decimal FeePercentOfSent;
+			public TxOut ActiveOutput;
+			public TxOut ChangeOutput;
 		}
 		public struct AvailableAmount
 		{
