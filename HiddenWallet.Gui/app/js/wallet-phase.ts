@@ -312,7 +312,7 @@ function buildTransaction() {
             const remote = require('electron').remote;
             const window = remote.getCurrentWindow();
             const BrowserWindow = remote.BrowserWindow;
-            let broadcastWindow = new BrowserWindow({ width: 600, height: 400, frame: false, resizable: false, alwaysOnTop: true, parent: window, icon: __dirname + '/app/assets/TumbleBit.png' });
+            let broadcastWindow = new BrowserWindow({ width: 600, height: 500, frame: false, resizable: false, alwaysOnTop: true, parent: window, icon: __dirname + '/app/assets/TumbleBit.png' });
             broadcastWindow.show();
             broadcastWindow.focus();
             broadcastWindow.loadURL(`file://${__dirname}/app/html/broadcast-transaction-window.html`);

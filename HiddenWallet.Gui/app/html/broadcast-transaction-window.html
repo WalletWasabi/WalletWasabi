@@ -13,18 +13,34 @@
     <div class="container">
         <h4><span class="label label-success">Transaction built successfully</span></h4>
         <h4>
+            <span class="label label-info">Spending</span>
+            <span class="label label-success" id="number-of-inputs"></span>
+            <span class="label label-info" id="coins-label"></span>
+        </h4>
+        <h4>
+            <span class="label label-info">Sending</span>
+            <span class="label label-success" id="active-output-amount"></span>
+            <span class="label label-info">BTC to</span>
+            <span class="label label-success" id="active-output-address"></span>
+        </h4>
+        <h4>
+            <span class="label label-info">Receiving</span>
+            <span class="label label-success" id="change-output-amount"></span>
+            <span class="label label-info">BTC change</span>
+        </h4>
+        <h4>
             <span class="label label-info">Fee:</span>
-            <span class="label" id="fee"></span>
+            <span class="label label-success" id="fee"></span>
             <span class="label label-info">BTC</span>
         </h4>
         <h4>
             <span class="label label-info">Fee percentage of sending amount:</span>
-            <span class="label" id="fee-percent-of-sent"></span>
+            <span class="label label-success" id="fee-percent-of-sent"></span>
             <span class="label label-info">%</span>
         </h4>
         <h4>
             <span class="label label-info">Does it spend unconfirmed output?</span>
-            <span class="label" id="spends-unconfirmed"></span>
+            <span class="label label-success" id="spends-unconfirmed"></span>
         </h4>
         <h4><span class="label label-info">Programmer nonsense:</span> </h4>
         <textarea id= "transaction" rows="9" cols="76" disabled></textarea><br />
@@ -33,6 +49,7 @@
             <span class="mdi mdi-tor"></span> Broadcast
         </button>
     </div>
+    <script src="../js/copypaste.js"></script>
     <script src="../js/broadcast-window.js"></script>
     <script src="../js/hw-client.js"></script>
 </body>

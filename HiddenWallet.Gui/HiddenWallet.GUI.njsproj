@@ -4,6 +4,11 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Name>HiddenWallet.Gui</Name>
     <RootNamespace>HiddenWallet.GUI</RootNamespace>
+    <EnableTypeScript>true</EnableTypeScript>
+    <TypeScriptSourceMap>true</TypeScriptSourceMap>
+    <TypeScriptModuleKind>CommonJS</TypeScriptModuleKind>
+    <ToolsVersionPromptShown>0.0</ToolsVersionPromptShown>
+    <TypeScriptToolsVersion>2.3</TypeScriptToolsVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -58,6 +63,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="app\js\broadcast-window.ts" />
     <TypeScriptCompile Include="app\js\cleanup.ts" />
+    <TypeScriptCompile Include="app\js\copypaste.ts" />
     <TypeScriptCompile Include="app\js\decryption-phase.ts" />
     <TypeScriptCompile Include="app\js\default.ts" />
     <TypeScriptCompile Include="app\js\hw-client.ts" />

@@ -272,12 +272,30 @@ namespace HiddenWallet.Daemon.Wrappers
 
 			if (result.Success)
 			{
+				var inputs = new List<TransactionInputModel>();
+				foreach(Coin coin in result.SpentCoins)
+				{
+					inputs.Add(new TransactionInputModel
+					{
+						Amount = coin.Amount.ToString(false, true),
+						Address = coin.ScriptPubKey.GetDestinationAddress(Network).ToString(),
+						Hash = coin.Outpoint.Hash.ToString(),
+						Index = (int)coin.Outpoint.N
+					});
+				}
+
 				return new BuildTransactionResponse
 				{
 					SpendsUnconfirmed = result.SpendsUnconfirmed,
 					Fee = result.Fee.ToString(false, true),
 					FeePercentOfSent = result.FeePercentOfSent.ToString("0.##"),
 					Hex = result.Transaction.ToHex(),
+					ActiveOutputAddress = result.ActiveOutput.ScriptPubKey.GetDestinationAddress(Network).ToString(),
+					ActiveOutputAmount = result.ActiveOutput.Value.ToString(false, true),
+					ChangeOutputAddress = result.ChangeOutput?.ScriptPubKey?.GetDestinationAddress(Network)?.ToString() ?? "",
+					ChangeOutputAmount = result.ChangeOutput?.Value?.ToString(false, true) ?? "0",
+					NumberOfInputs = result.SpentCoins.Count(),
+					Inputs = inputs.ToArray(),
 					Transaction = result.Transaction.ToString()
 				};
 			}
