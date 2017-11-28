@@ -60,7 +60,6 @@ namespace HiddenWallet.Daemon
 			});
 
 			NotificationBroadcaster notificationBroadcast = NotificationBroadcaster.Instance;
-			Console.WriteLine("HERE");
 			notificationBroadcast.SignalRHub = context;
 		}
 
