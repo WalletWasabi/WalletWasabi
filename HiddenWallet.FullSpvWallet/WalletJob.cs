@@ -350,13 +350,6 @@ namespace HiddenWallet.FullSpv
             }
         }
 
-		private void MemPoolJob_MempoolChanged(object sender, string count)
-		{
-			{
-				OnMempoolChanged(count);
-			}
-		}
-
 		private async void MemPoolJob_SyncedAsync(object sender, EventArgs e)
         {
             State = WalletState.Synced;
@@ -375,7 +368,14 @@ namespace HiddenWallet.FullSpv
             Debug.WriteLine("MemPool updated");
         }
 
-        public async Task StartAsync(CancellationToken ctsToken)
+		private void MemPoolJob_MempoolChanged(object sender, string count)
+		{
+			{
+				OnMempoolChanged(count);
+			}
+		}
+
+		public async Task StartAsync(CancellationToken ctsToken)
         {
             var tasks = new HashSet<Task>();
             try
