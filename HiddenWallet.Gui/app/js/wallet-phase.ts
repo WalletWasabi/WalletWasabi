@@ -220,11 +220,12 @@ function setAmountToAll() {
     amount.value = "all";
 }
 
-interface Transaction {
+interface BuildTransactionRequest {
     Password: string;
     Address: string;
     Amount: string;
     FeeType: string;
+    DonateChange: boolean;
 }
 
 function buildTransaction() {
@@ -266,7 +267,7 @@ function buildTransaction() {
         feeType = "low";
     }
 
-    var obj: Transaction = { Password: password, Address: address, Amount: amount, FeeType: feeType };
+    let buildTransactionRequest: BuildTransactionRequest = { Password: password, Address: address, Amount: amount, FeeType: feeType, DonateChange: false };
 
     let json: any;
     let tabs: HTMLElement = document.getElementById("tabs");
@@ -295,7 +296,7 @@ function buildTransaction() {
 
     buildTXButton.innerHTML = '<span class="glyphicon glyphicon-cog spinning"></span> Building...';
 
-    httpPostWalletAsync(`build-transaction/${bobOrAlice}`, obj, function (json) {
+    httpPostWalletAsync(`build-transaction/${bobOrAlice}`, buildTransactionRequest, function (json) {
         if (json.Success === false) {
             let alertMessage: string = `Couldn't build the transaciton: ${json.Message}`;
 
@@ -312,13 +313,13 @@ function buildTransaction() {
             const remote = require('electron').remote;
             const window = remote.getCurrentWindow();
             const BrowserWindow = remote.BrowserWindow;
-            let broadcastWindow = new BrowserWindow({ width: 600, height: 500, frame: false, resizable: false, alwaysOnTop: true, parent: window, icon: __dirname + '/app/assets/TumbleBit.png' });
+            let broadcastWindow = new BrowserWindow({ width: 800, height: 600, frame: false, resizable: false, alwaysOnTop: false, parent: window, icon: __dirname + '/app/assets/TumbleBit.png' });
             broadcastWindow.show();
             broadcastWindow.focus();
             broadcastWindow.loadURL(`file://${__dirname}/app/html/broadcast-transaction-window.html`);
 
             broadcastWindow.webContents.on('did-finish-load', () => {
-                broadcastWindow.webContents.send('broadcast-response', json);
+                broadcastWindow.webContents.send('broadcast-response', json, bobOrAlice, buildTransactionRequest);
             })
         }
 

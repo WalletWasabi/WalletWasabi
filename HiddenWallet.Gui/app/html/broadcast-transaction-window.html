@@ -11,7 +11,57 @@
 </head>
 <body>
     <div class="container">
-        <h4><span class="label label-success">Transaction built successfully</span></h4>
+        <h4><span class="label label-success">Transaction built successfully!</span></h4>
+        <hr />
+        <button class="btn btn-sm btn-primary btn-inline" onclick="window.parent.focus(); window.close();">Cancel</button>
+        <button class="btn btn-sm btn-primary btn-inline" onclick="showTransaction()">Show Transaction</button>
+        <button class="btn btn-sm btn-primary btn-inline" onclick="copyHex()">Copy Hex</button>
+        <button id="broadcast-button" class="btn btn-sm btn-inline" onclick="broadcastTransaction()">
+            <span class="mdi mdi-tor"></span> Broadcast Transaction
+        </button>
+        <button id="rebuild-button" class="btn btn-sm btn-success btn-inline" onclick="rebuildTransaction()" style="display:none">
+            <span class="mdi mdi-tor"></span> Rebuild Transaction
+        </button>
+        <hr />
+        <div id="privacy-improvement-area" style="overflow-y: scroll; height:230px; border: 1px solid #2D2D30; padding: 5px;" hidden>
+            <h4><span class="label label-danger">Privacy Improvement Suggestion</span></h4>
+            <div id="multiple-coins-content" hidden>
+                <hr />
+                <h4>
+                    <span>
+                        <small>
+                            This transaction requires joining together multiple unspent transaction outputs. This is used by Blockchain analysis to link together your wallet addresses.
+                            Consider lowering the number of coins you are spending:
+                        </small>
+                    </span>
+                </h4>
+                <div id="coin-selection-checkboxes">
+                </div>
+            </div>
+            <div id="change-content" hidden>
+                <hr />
+                <h4>
+                    <span>
+                        <small>
+                            This transaction generates a change output.
+                            When you later spend this change output, that transaction will be connected to this transaction of yours.
+                            More importantly: If you later join this change output together with your other unspent transaction outputs, this would be used by Blockchain analysis to link together your wallet addresses.
+                        </small>
+                    </span>
+                    <small>
+                        <label class="radio" id="keep-change-radio-label">
+                            <input onchange="actOnChangeRadio()" id="keep-change-radio" type="radio" name="change-radio" checked style="vertical-align: middle; margin: 0px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Keep the change output
+                        </label>
+                        <label class="radio" id="spend-whole-coin-radio-label">
+                            <input onchange="actOnChangeRadio()" id="spend-whole-coin-radio" type="radio" name="change-radio" style="vertical-align: middle; margin: 0px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="spend-whole-coin-radio-span"></span>
+                        </label>
+                        <label class="radio" id="donate-change-radio-label">
+                            <input onchange="actOnChangeRadio()" id="donate-change-radio" type="radio" name="change-radio" style="vertical-align: middle; margin: 0px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="donate-change-radio-span"></span>
+                        </label>
+                    </small>
+                </h4>
+            </div>
+        </div>
         <h4>
             <span class="label label-info">Spending</span>
             <span class="label label-success" id="number-of-inputs"></span>
@@ -41,13 +91,7 @@
         <h4>
             <span class="label label-info">Does it spend unconfirmed output?</span>
             <span class="label label-success" id="spends-unconfirmed"></span>
-        </h4>
-        <h4><span class="label label-info">Programmer nonsense:</span> </h4>
-        <textarea id= "transaction" rows="9" cols="76" disabled></textarea><br />
-        <button class="btn btn-sm btn-primary btn-inline" onclick="closeWindow()">Cancel</button>
-        <button id="broadcast-button" class="btn btn-sm btn-success btn-inline" onclick="broadcastTransaction()">
-            <span class="mdi mdi-tor"></span> Broadcast
-        </button>
+        </h4>   
     </div>
     <script src="../js/copypaste.js"></script>
     <script src="../js/broadcast-window.js"></script>

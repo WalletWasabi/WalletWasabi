@@ -900,7 +900,7 @@ namespace HiddenWallet.FullSpv
 				AssertAccount(account);
 
 				// 1. Get the script pubkey of the change.
-				Script changeScriptPubKey = await GetChangeScriptPubKey(account, customChangeScriptPubKey);
+				Script changeScriptPubKey = await GetChangeScriptPubKeyAsync(account, customChangeScriptPubKey);
 
 				// 2. Find all coins I can spend from the account
 				// 3. How much money we can spend?
@@ -1110,7 +1110,7 @@ namespace HiddenWallet.FullSpv
 			}
 		}
 
-		private async Task<Script> GetChangeScriptPubKey(SafeAccount account, Script customChangeScriptPubKey)
+		private async Task<Script> GetChangeScriptPubKeyAsync(SafeAccount account, Script customChangeScriptPubKey)
 		{
 			Debug.WriteLine("Select change address...");
 			Script changeScriptPubKey;

@@ -265,10 +265,10 @@ namespace HiddenWallet.Daemon.Wrappers
 			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, ConnectedNodeCount = 0, MemPoolTransactionCount = 0, WalletState = WalletState.NotStarted.ToString(), TorState = ts, ChangeBump = 0 };
 		}
 
-		public async Task<BaseResponse> BuildTransactionAsync(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType)
+		public async Task<BaseResponse> BuildTransactionAsync(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType, bool subtractFeeFromAmount, Script customChangeScriptPubKey, IEnumerable<OutPoint> allowedInputs)
 		{
 			if (password != _password) throw new InvalidOperationException("Wrong password");
-			var result = await _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, (bool)Global.Config.CanSpendUnconfirmed);
+			var result = await _walletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, (bool)Global.Config.CanSpendUnconfirmed, subtractFeeFromAmount, customChangeScriptPubKey, allowedInputs);
 
 			if (result.Success)
 			{
