@@ -58,7 +58,7 @@ namespace HiddenWallet.Daemon.Wrappers
 
 		public WalletWrapper()
 		{
-
+			
 		}
 
 #region SafeOperations
@@ -88,9 +88,19 @@ namespace HiddenWallet.Daemon.Wrappers
 				_password = password;
 
                 WalletJob = new WalletJob();
+
 				await WalletJob.InitializeAsync(Tor.SocksPortHandler, Tor.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
 
 				WalletJob.StateChanged += _walletJob_StateChanged;
+
+				WalletJob.MempoolChanged += _walletJob_MempoolChanged;
+
+				WalletJob.HeaderHeightChanged += _walletJob_HeaderHeightChanged;
+				
+				WalletJob.TrackerHeightAnnounce += _walletJob_TrackerHeightAnnounce;
+
+				WalletJob.ConnectedNodeCountAnnounce += _walletJob_ConnectedNodeCountAnnounce;
+
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
 
 				_receiveResponseAlice.ExtPubKey = WalletJob.Safe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: AliceAccount).ToWif();
@@ -139,6 +149,8 @@ namespace HiddenWallet.Daemon.Wrappers
 			{
 				_changeBump++;
 			}
+
+			NotificationBroadcaster.Instance.BroadcastChangeBump();
 		}
 
 		private async Task UpdateHistoryRelatedMembersAsync()
@@ -216,8 +228,28 @@ namespace HiddenWallet.Daemon.Wrappers
 		private void _walletJob_StateChanged(object sender, EventArgs e)
 		{
 			_walletState = WalletJob.State.ToString();
+			NotificationBroadcaster.Instance.BroadcastWalletState(_walletState);
 		}
 
+		private void _walletJob_MempoolChanged(object sender, string count)
+		{
+			NotificationBroadcaster.Instance.BroadcastMempool(count);
+		}
+
+		private void _walletJob_TrackerHeightAnnounce(object sender, string trackerHeight)
+		{
+			NotificationBroadcaster.Instance.BroadcastTrackerHeight(trackerHeight);
+		}
+
+		private void _walletJob_HeaderHeightChanged(object sender, string headerHeight)
+		{
+			NotificationBroadcaster.Instance.BroadcastHeaderHeight(headerHeight);
+		}
+
+		private void _walletJob_ConnectedNodeCountAnnounce(object sender, string nodeCount)
+		{
+			NotificationBroadcaster.Instance.BroadcastNodeCount(nodeCount);
+		}
 		#endregion
 
 		private volatile bool _endCalled = false;
@@ -229,6 +261,10 @@ namespace HiddenWallet.Daemon.Wrappers
 			if (WalletJob != null)
 			{
 				WalletJob.StateChanged -= _walletJob_StateChanged;
+				WalletJob.MempoolChanged -= _walletJob_MempoolChanged;
+				WalletJob.HeaderHeightChanged -= _walletJob_HeaderHeightChanged;
+				WalletJob.TrackerHeightAnnounce -= _walletJob_TrackerHeightAnnounce;
+				WalletJob.ConnectedNodeCountAnnounce -= _walletJob_ConnectedNodeCountAnnounce;
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
 			}
 
@@ -247,9 +283,9 @@ namespace HiddenWallet.Daemon.Wrappers
 			if (WalletJob != null)
 			{
 				var hh = 0;
-                var result = await WalletJob.TryGetHeaderHeightAsync();
-                var headerHeight = result.Height;
-                if (result.Success)
+				var result = await WalletJob.TryGetHeaderHeightAsync();
+				var headerHeight = result.Height;
+				if (result.Success)
 				{
 					if (headerHeight.Type == HeightType.Chain)
 					{
@@ -275,7 +311,7 @@ namespace HiddenWallet.Daemon.Wrappers
 				var tbd = (WalletJob.CoinJoinService?.Denomination ?? Money.Zero).ToString(false, true);
 
 				var tumblerStatus = WalletJob.CoinJoinService?.StatusResponse;
-				
+
 				var tas = tumblerStatus?.AnonymitySet ?? 0;
 
 				var tnop = WalletJob.CoinJoinService?.NumberOfPeers ?? 0;
@@ -394,6 +430,24 @@ namespace HiddenWallet.Daemon.Wrappers
 				return null;
 			}
 			else return new FailureResponse { Message = "Wrong account" };
+		}
+
+		public async Task<int> GetHeaderHeightAsync()
+		{
+			int hh = 0;
+			if (WalletJob != null)
+			{
+				var result = await WalletJob.TryGetHeaderHeightAsync();
+				var headerHeight = result.Height;
+				if (result.Success)
+				{
+					if (headerHeight.Type == HeightType.Chain)
+					{
+						hh = headerHeight.Value;
+					}
+				}
+			}
+			return hh;
 		}
 	}
 }

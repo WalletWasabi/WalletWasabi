@@ -46,7 +46,7 @@ namespace HiddenWallet.FullSpv
 		public CoinJoinService CoinJoinService;
 
 		public FeeService FeeService;
-
+		
 		private Height _creationHeight;
 		public async Task<Height> GetCreationHeightAsync()
 		{
@@ -111,6 +111,9 @@ namespace HiddenWallet.FullSpv
 		public event EventHandler ConnectedNodeCountChanged;
 		private void OnConnectedNodeCountChanged() => ConnectedNodeCountChanged?.Invoke(this, EventArgs.Empty);
 
+		public event EventHandler<string> ConnectedNodeCountAnnounce;
+		private void OnConnectedNodeCountAnnounce(string nodeCount) => ConnectedNodeCountAnnounce?.Invoke(this, nodeCount);
+
 		private WalletState _state;
 		public WalletState State
 		{
@@ -124,8 +127,17 @@ namespace HiddenWallet.FullSpv
 		}
 		public event EventHandler StateChanged;
 		private void OnStateChanged() => StateChanged?.Invoke(this, EventArgs.Empty);
+		
+		public event EventHandler<string> MempoolChanged;
+		private void OnMempoolChanged(string mempoolCount) => MempoolChanged?.Invoke(this, mempoolCount);
 
-        private readonly AsyncLock _asyncLockSave = new AsyncLock();
+		public event EventHandler<string> TrackerHeightAnnounce;
+		private void OnTrackerHeightAnnounce(string trackerHeight) => TrackerHeightAnnounce?.Invoke(this, trackerHeight);
+
+		public event EventHandler<string> HeaderHeightChanged;
+		private void OnHeaderHeightChanged(string headerHeight) => HeaderHeightChanged?.Invoke(this, headerHeight);
+
+		private readonly AsyncLock _asyncLockSave = new AsyncLock();
 		private NodeConnectionParameters _connectionParameters;
 		public NodesGroup Nodes { get; private set; }
 
@@ -288,10 +300,14 @@ namespace HiddenWallet.FullSpv
             MemPoolJob.Synced += MemPoolJob_SyncedAsync;
             MemPoolJob.NewTransaction += MemPoolJob_NewTransactionAsync;
 
-            Nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
+			MemPoolJob.MempoolChanged += MemPoolJob_MempoolChanged;
+
+			Nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
             Nodes.ConnectedNodes.Added += ConnectedNodes_Added;
 
             (await GetTrackerAsync()).BestHeightChanged += WalletJob_BestHeightChanged;
+
+			(await GetTrackerAsync()).BestHeightChanged += WalletJob_HeightsChangedAsync;
 		}
 
 		private async void TrackedTransactions_CollectionChangedAsync(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -301,18 +317,30 @@ namespace HiddenWallet.FullSpv
 
         private void WalletJob_BestHeightChanged(object sender, EventArgs e)
         {
-            OnBestHeightChanged();
+			OnBestHeightChanged();
         }
+		
+		private async void WalletJob_HeightsChangedAsync(object sender, EventArgs e)
+		{
+			var tracker = (await GetTrackerAsync());
+			var headerHeight = (await GetHeaderChainAsync()).Height;
+			var trackerBestHeight = tracker.BestHeight;
+			OnHeaderHeightChanged(headerHeight.ToString());
+			OnTrackerHeightAnnounce(trackerBestHeight.ToString());
+		}
 
-        private void ConnectedNodes_Added(object sender, NodeEventArgs e)
+		private void ConnectedNodes_Added(object sender, NodeEventArgs e)
         {
-            OnConnectedNodeCountChanged();
-        }
+			OnConnectedNodeCountChanged();
+			OnConnectedNodeCountAnnounce(Nodes.ConnectedNodes.Count().ToString());
+
+		}
 
         private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
         {
-            OnConnectedNodeCountChanged();
-        }
+			OnConnectedNodeCountChanged();
+			OnConnectedNodeCountAnnounce(Nodes.ConnectedNodes.Count().ToString());
+		}
 
         private async void MemPoolJob_NewTransactionAsync(object sender, NewTransactionEventArgs e)
         {
@@ -322,7 +350,14 @@ namespace HiddenWallet.FullSpv
             }
         }
 
-        private async void MemPoolJob_SyncedAsync(object sender, EventArgs e)
+		private void MemPoolJob_MempoolChanged(object sender, string count)
+		{
+			{
+				OnMempoolChanged(count);
+			}
+		}
+
+		private async void MemPoolJob_SyncedAsync(object sender, EventArgs e)
         {
             State = WalletState.Synced;
 
@@ -369,6 +404,8 @@ namespace HiddenWallet.FullSpv
 				MemPoolJob.NewTransaction -= MemPoolJob_NewTransactionAsync;
 				Nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
 				Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
+				MemPoolJob.MempoolChanged -= MemPoolJob_MempoolChanged;
+				(await GetTrackerAsync()).BestHeightChanged -= WalletJob_HeightsChangedAsync;
 				(await GetTrackerAsync()).BestHeightChanged -= WalletJob_BestHeightChanged;
 				await SaveAllChangedAsync();
 				Nodes?.Dispose();

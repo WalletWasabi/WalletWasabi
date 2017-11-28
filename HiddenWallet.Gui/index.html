@@ -11,8 +11,11 @@
     <link rel="stylesheet" href="app/css/justified-nav.css">
     <link rel="stylesheet" href="app/css/default.css" />
     <link rel="stylesheet" media="all" href="node_modules/mdi/css/materialdesignicons.min.css" />
+
+    <script src="app/js/signalr-client-1.0.0-alpha2-final.min.js"></script>
+    <script src="app/js/status-client.js"></script>
 </head>
-<body onload="decryptionPhaseShow(); periodicUpdate();">
+<body onload="decryptionPhaseShow(); periodicUpdate(); signalrStatusUpdate();">
     <iframe id="decryption-phase-menu-frame" src="app/html/decryption-phase-menu.html" style="display:none"></iframe>
     <iframe id="wallet-menu-frame" src="app/html/wallet-menu.html" style="display:none"></iframe>
     <iframe id="decryption-phase-content-frame" src="app/html/decryption-phase-content.html" style="display:none"></iframe>
@@ -38,8 +41,8 @@
         <hr id="after-menu-hr"/>
         <div id="content"> </div>
     </div>
-    <div id="status" style="position:absolute; bottom:1px; width: 100%;"></div>
-
+    <div id="status" style="position:absolute; bottom:0px; width: 100%;"></div>
+    
     <script src="app/js/hw-client.js"></script>
     <script src="app/js/default.js"></script>
     <script src="app/js/copypaste.js"></script>

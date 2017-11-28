@@ -26,6 +26,8 @@ namespace HiddenWallet.Daemon
 		{
 			var ctsToken = CircuitEstabilishingJobCancel.Token;
 			State = TorState.NotStarted;
+			TryBroadcast();
+
 			while (true)
 			{
 				try
@@ -40,15 +42,17 @@ namespace HiddenWallet.Daemon
 						if (estabilished)
 						{
 							State = TorState.CircuitEstabilished;
+							TryBroadcast();
 						}
 						else
 						{
 							State = TorState.EstabilishingCircuit;
+							TryBroadcast();
 						}
 					}
 					catch (Exception ex)
 					{
-						if (ex is TimeoutException ||ex.InnerException is TimeoutException)
+						if (ex is TimeoutException || ex.InnerException is TimeoutException)
 						{
 							// Tor messed up something internally, this sometimes happens when it creates new datadir (at first launch)
 							// Restarting to solves the issue
@@ -57,7 +61,7 @@ namespace HiddenWallet.Daemon
 						if (ctsToken.IsCancellationRequested) return;
 					}
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					Debug.WriteLine("Ignoring Tor exception:");
 					Debug.WriteLine(ex);
@@ -92,6 +96,7 @@ namespace HiddenWallet.Daemon
 			{
 				Debug.WriteLine(ex);
 				State = TorState.NotStarted;
+				TryBroadcast();
 			}
 		}
 
@@ -99,10 +104,23 @@ namespace HiddenWallet.Daemon
 		{
 			CircuitEstabilishingJobCancel.Cancel();
 			State = TorState.NotStarted;
+			TryBroadcast();
 			if (TorProcess != null && !TorProcess.HasExited)
 			{
 				Console.WriteLine("Terminating Tor process");
 				TorProcess.Kill();
+			}
+		}
+
+		private static void TryBroadcast()
+		{
+			try
+			{
+				NotificationBroadcaster.Instance.BroadcastTorState(State.ToString());
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
 			}
 		}
 

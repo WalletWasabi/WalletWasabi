@@ -1,34 +1,4 @@
-﻿/*
-SIGNALR WORK IN PROGRESS:
-
-Wallet:
-[x]  Connection/Tor status
-        NotStarted
-        EstabilishingCircuit
-        CircuitEstabilished
-[x]  walletState:
-        NotStarted
-        SyncingHeaders
-        SyncingBlocks
-        SyncingMemPool
-        Synced
-[x]  connectedNodeCount
-[x]  headerHeight
-[x]  trackerHeight
-[x]  blocksLeft (HeaderHeight - TrackingHeight)
-[x]  memPoolTransactionCount
-[x]  Change Bump
-
-Mixer:
-[ ]  tumblerDenomination
-[ ]  tumblerAnonymitySet
-[ ]  tumblerNumberOfPeers
-[ ]  tumblerFeePerRound
-[ ]  tumblerWaitedInInputRegistration
-[ ]  tumblerPhase
-*/
-
-var mempool = "";
+﻿var mempool = "";
 var trackerHeight = 0;
 var headerHeight = 0;
 var blocksLeft = "";
@@ -40,6 +10,7 @@ var progress = "10";
 let connection;
 
 function signalrStatusUpdate() {
+
     connection = new signalR.HubConnection('http://localhost:37120/daemonHub');
 
     var headerTimer;
@@ -100,6 +71,7 @@ function signalrStatusUpdate() {
 }
 
 function statusSignalRShow() {
+
     var status = document.getElementById("status");
 
     let text = "";
@@ -168,6 +140,7 @@ function statusSignalRShow() {
 }
 
 function updateDecryptButton(ts) {
+
     try {
         let decButton = document.getElementById("decrypt-wallet-button");
 
