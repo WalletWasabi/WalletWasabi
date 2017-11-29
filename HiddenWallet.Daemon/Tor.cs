@@ -19,14 +19,13 @@ namespace HiddenWallet.Daemon
 		public static string TorArguments => $"SOCKSPort {SOCKSPort} ControlPort {ControlPort} HashedControlPassword {HashedControlPassword} DataDirectory {DataDirectory}";
 		public static SocksPortHandler SocksPortHandler = new SocksPortHandler("127.0.0.1", socksPort: SOCKSPort);
 		public static DotNetTor.ControlPort.Client ControlPortClient = new DotNetTor.ControlPort.Client("127.0.0.1", controlPort: ControlPort, password: "ILoveBitcoin21");
-		public static TorState State = TorState.NotStarted;
+		private static TorState _state = TorState.NotStarted;
 		public static CancellationTokenSource CircuitEstabilishingJobCancel = new CancellationTokenSource();
 
 		public static async Task MakeSureCircuitEstabilishedAsync()
 		{
 			var ctsToken = CircuitEstabilishingJobCancel.Token;
 			State = TorState.NotStarted;
-			TryBroadcast();
 
 			while (true)
 			{
@@ -42,12 +41,10 @@ namespace HiddenWallet.Daemon
 						if (estabilished)
 						{
 							State = TorState.CircuitEstabilished;
-							TryBroadcast();
 						}
 						else
 						{
 							State = TorState.EstabilishingCircuit;
-							TryBroadcast();
 						}
 					}
 					catch (Exception ex)
@@ -96,7 +93,6 @@ namespace HiddenWallet.Daemon
 			{
 				Debug.WriteLine(ex);
 				State = TorState.NotStarted;
-				TryBroadcast();
 			}
 		}
 
@@ -104,7 +100,6 @@ namespace HiddenWallet.Daemon
 		{
 			CircuitEstabilishingJobCancel.Cancel();
 			State = TorState.NotStarted;
-			TryBroadcast();
 			if (TorProcess != null && !TorProcess.HasExited)
 			{
 				Console.WriteLine("Terminating Tor process");
@@ -121,6 +116,19 @@ namespace HiddenWallet.Daemon
 			catch (Exception e)
 			{
 				Console.WriteLine(e.Message);
+			}
+		}
+
+		public static TorState State
+		{
+			get { return _state; }
+			set
+			{
+				if (value != _state)
+				{
+					_state = value;
+					try { TryBroadcast(); } catch { }
+				}
 			}
 		}
 
