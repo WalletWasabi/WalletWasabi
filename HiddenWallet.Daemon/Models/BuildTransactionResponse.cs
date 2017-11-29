@@ -14,5 +14,11 @@ namespace HiddenWallet.Daemon.Models
 		public string FeePercentOfSent { get; set; }
 		public string Hex { get; set; }
 		public string Transaction { get; set; }
+		public string ActiveOutputAddress { get; set; }
+		public string ActiveOutputAmount { get; set; }
+		public string ChangeOutputAddress { get; set; }
+		public string ChangeOutputAmount { get; set; }
+		public int NumberOfInputs { get; set; }
+		public TransactionInputModel[] Inputs { get; set; }
 	}
 }

@@ -322,19 +322,36 @@ namespace HiddenWallet.Daemon.Wrappers
 			else return new StatusResponse { HeaderHeight = 0, TrackingHeight = 0, ConnectedNodeCount = 0, MemPoolTransactionCount = 0, WalletState = WalletState.NotStarted.ToString(), TorState = ts, IsTumblerOnline = false, TumblerDenomination = "0", TumblerAnonymitySet = 0, TumblerNumberOfPeers = 0, TumblerFeePerRound = "0", TumblerWaitedInInputRegistration = 0, TumblerPhase = "", ChangeBump = 0 };
 		}
 
-		public async Task<BaseResponse> BuildTransactionAsync(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType)
+		public async Task<BaseResponse> BuildTransactionAsync(string password, SafeAccount safeAccount, BitcoinAddress address, Money amount, FeeType feeType, bool subtractFeeFromAmount, Script customChangeScriptPubKey, IEnumerable<OutPoint> allowedInputs)
 		{
 			if (password != _password) throw new InvalidOperationException("Wrong password");
-			var result = await WalletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, (bool)Global.Config.CanSpendUnconfirmed);
-
+			var result = await WalletJob.BuildTransactionAsync(address.ScriptPubKey, amount, feeType, safeAccount, (bool)Global.Config.CanSpendUnconfirmed, subtractFeeFromAmount, customChangeScriptPubKey, allowedInputs);
 			if (result.Success)
 			{
+				var inputs = new List<TransactionInputModel>();
+				foreach(Coin coin in result.SpentCoins)
+				{
+					inputs.Add(new TransactionInputModel
+					{
+						Amount = coin.Amount.ToString(false, true),
+						Address = coin.ScriptPubKey.GetDestinationAddress(Network).ToString(),
+						Hash = coin.Outpoint.Hash.ToString(),
+						Index = (int)coin.Outpoint.N
+					});
+				}
+
 				return new BuildTransactionResponse
 				{
 					SpendsUnconfirmed = result.SpendsUnconfirmed,
 					Fee = result.Fee.ToString(false, true),
 					FeePercentOfSent = result.FeePercentOfSent.ToString("0.##"),
 					Hex = result.Transaction.ToHex(),
+					ActiveOutputAddress = result.ActiveOutput.ScriptPubKey.GetDestinationAddress(Network).ToString(),
+					ActiveOutputAmount = result.ActiveOutput.Value.ToString(false, true),
+					ChangeOutputAddress = result.ChangeOutput?.ScriptPubKey?.GetDestinationAddress(Network)?.ToString() ?? "",
+					ChangeOutputAmount = result.ChangeOutput?.Value?.ToString(false, true) ?? "0",
+					NumberOfInputs = result.SpentCoins.Count(),
+					Inputs = inputs.ToArray(),
 					Transaction = result.Transaction.ToString()
 				};
 			}

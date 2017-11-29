@@ -898,31 +898,32 @@ namespace HiddenWallet.FullSpv
 
 		#region TransactionSending
 
-		/// <summary>
-		///
-		/// </summary>
-		/// <param name="scriptPubKeyToSend"></param>
 		/// <param name="amount">If Money.Zero then spend all available amount</param>
-		/// <param name="feeType"></param>
-		/// <param name="account"></param>
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary</param>
-		/// <returns></returns>
-		public async Task<BuildTransactionResult> BuildTransactionAsync(Script scriptPubKeyToSend, Money amount, FeeType feeType, SafeAccount account = null, bool allowUnconfirmed = false)
+		/// <param name="allowedInputs">Only these inputs allowed to build the transaction. The specified account must contain it.</param>
+		public async Task<BuildTransactionResult> BuildTransactionAsync(Script scriptPubKeyToSend, Money amount, FeeType feeType, SafeAccount account = null, bool allowUnconfirmed = false, bool subtractFeeFromAmount = false, Script customChangeScriptPubKey = null, IEnumerable<OutPoint> allowedInputs = null)
 		{
 			try
 			{
 				AssertAccount(account);
 
 				// 1. Get the script pubkey of the change.
-				Debug.WriteLine("Select change address...");
-				Script changeScriptPubKey = (await GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Change)).FirstOrDefault();
+				Script changeScriptPubKey = await GetChangeScriptPubKeyAsync(account, customChangeScriptPubKey);
 
 				// 2. Find all coins I can spend from the account
 				// 3. How much money we can spend?
 				Debug.WriteLine("Calculating available amount...");
-                var getBalanceResult = await GetBalanceAsync(account);
-                var unspentCoins = getBalanceResult.UnspentCoins;
-                AvailableAmount balance = getBalanceResult.Available;
+				(AvailableAmount Available, IDictionary<Coin, bool> UnspentCoins) getBalanceResult;
+				if (allowedInputs != null)
+				{
+					getBalanceResult = await GetBalanceAsync(allowedInputs, account);
+				}
+				else
+				{
+					getBalanceResult = await GetBalanceAsync(account);
+				}
+				var unspentCoins = getBalanceResult.UnspentCoins;
+				AvailableAmount balance = getBalanceResult.Available;
 				Money spendableConfirmedAmount = balance.Confirmed;
 				Money spendableUnconfirmedAmount =
 					allowUnconfirmed ? balance.Unconfirmed : Money.Zero;
@@ -940,12 +941,12 @@ namespace HiddenWallet.FullSpv
 				Money feePerBytes = null;
 				try
 				{
-                    using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1)))
-                    {
-                        var feeRate = await FeeService.GetFeeRateAsync(feeType, cancellationTokenSource.Token);
-                        feePerBytes = (feeRate.FeePerK / 1000);
-                    }
-                }
+					using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1)))
+					{
+						var feeRate = await FeeService.GetFeeRateAsync(feeType, cancellationTokenSource.Token);
+						feePerBytes = (feeRate.FeePerK / 1000);
+					}
+				}
 				catch (Exception ex)
 				{
 					Debug.WriteLine(ex.Message);
@@ -962,6 +963,17 @@ namespace HiddenWallet.FullSpv
 				{
 					inNum = unspentCoins.Count;
 				}
+				else if (subtractFeeFromAmount)
+				{
+					try
+					{
+						inNum = SelectCoinsToSpend(unspentCoins, amount).Count;
+					}
+					catch (InsufficientBalanceException)
+					{
+						return NotEnoughFundsBuildTransactionResult;
+					}
+				}
 				else
 				{
 					const int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
@@ -975,13 +987,13 @@ namespace HiddenWallet.FullSpv
 					}
 				}
 
-                // https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
-                // https://bitcoin.stackexchange.com/a/46379/26859
-                int outNum = spendAll ? 1 : 2; // 1 address to send + 1 for change
+				// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
+				// https://bitcoin.stackexchange.com/a/46379/26859
+				int outNum = spendAll ? 1 : 2; // 1 address to send + 1 for change
 				var origTxSize = inNum * Constants.P2pkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10;
-                var newTxSize = inNum * Constants.P2wpkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10; // BEWARE: This assumes segwit only inputs!
-                var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
-                Debug.WriteLine($"Estimated tx size: {vSize} bytes");
+				var newTxSize = inNum * Constants.P2wpkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10; // BEWARE: This assumes segwit only inputs!
+				var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
+				Debug.WriteLine($"Estimated tx size: {vSize} bytes");
 				Money fee = feePerBytes * vSize;
 				Debug.WriteLine($"Fee: {fee.ToDecimal(MoneyUnit.BTC):0.#############################}btc");
 				successfulResult.Fee = fee;
@@ -995,6 +1007,14 @@ namespace HiddenWallet.FullSpv
 					else
 						amountToSend = spendableConfirmedAmount;
 					amountToSend -= fee;
+				}
+				else if (subtractFeeFromAmount)
+				{
+					amountToSend = amount - fee;
+					if (amountToSend < Money.Zero)
+					{
+						return NotEnoughFundsBuildTransactionResult;
+					}
 				}
 				else
 				{
@@ -1049,9 +1069,9 @@ namespace HiddenWallet.FullSpv
 				var signingKeys = new HashSet<ISecret>();
 				foreach (var coin in coinsToSpend)
 				{
-                    var signingKey = Safe.FindPrivateKey(coin.ScriptPubKey.GetDestinationAddress(Safe.Network), (await GetTrackerAsync()).TrackedScriptPubKeys.Count, account);
-                    signingKeys.Add(signingKey);
-                }
+					var signingKey = Safe.FindPrivateKey(coin.ScriptPubKey.GetDestinationAddress(Safe.Network), (await GetTrackerAsync()).TrackedScriptPubKeys.Count, account);
+					signingKeys.Add(signingKey);
+				}
 
 				// 9. Build the transaction
 				Debug.WriteLine("Signing transaction...");
@@ -1062,7 +1082,7 @@ namespace HiddenWallet.FullSpv
 					.Send(scriptPubKeyToSend, amountToSend)
 					.SetChange(changeScriptPubKey)
 					.SendFees(fee)
-                    .Shuffle()
+					.Shuffle()
 					.BuildTransaction(true);
 
 				if (!builder.Verify(tx))
@@ -1073,6 +1093,19 @@ namespace HiddenWallet.FullSpv
 					};
 
 				successfulResult.Transaction = tx;
+				successfulResult.ActiveOutput = new TxOut(amountToSend, scriptPubKeyToSend);
+				var totalOut = tx.Outputs.Sum(x => x.Value);
+				if (spendAll)
+				{
+					successfulResult.ChangeOutput = null;
+				}
+				else if (totalOut != amountToSend)
+				{
+					successfulResult.ChangeOutput = new TxOut(totalOut - amountToSend, changeScriptPubKey);
+				}
+				else successfulResult.ChangeOutput = null;
+
+				successfulResult.SpentCoins = coinsToSpend;
 				return successfulResult;
 			}
 			catch (Exception ex)
@@ -1083,6 +1116,18 @@ namespace HiddenWallet.FullSpv
 					FailingReason = ex.ToString()
 				};
 			}
+		}
+
+		private async Task<Script> GetChangeScriptPubKeyAsync(SafeAccount account, Script customChangeScriptPubKey)
+		{
+			Debug.WriteLine("Select change address...");
+			Script changeScriptPubKey;
+			if (customChangeScriptPubKey != null)
+			{
+				changeScriptPubKey = customChangeScriptPubKey;
+			}
+			else changeScriptPubKey = (await GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Change)).FirstOrDefault();
+			return changeScriptPubKey;
 		}
 
 		private static BuildTransactionResult NotEnoughFundsBuildTransactionResult =>
@@ -1144,6 +1189,26 @@ namespace HiddenWallet.FullSpv
 			return haveEnough;
 		}
 
+		public async Task<(AvailableAmount Available, IDictionary<Coin, bool> UnspentCoins)> GetBalanceAsync(IEnumerable<OutPoint> inputs, SafeAccount account = null)
+		{
+			// 1. Find all coins I can spend from the account
+			Debug.WriteLine("Finding all unspent coins...");
+			var unspentCoins = await GetUnspentCoinsAsync(account);
+
+			// 2. filter out to the inputs
+			var filteredUnspentCoins = new Dictionary<Coin, bool>();
+			foreach (var elem in unspentCoins)
+			{
+				if(inputs.Any(x=>x.Hash == elem.Key.Outpoint.Hash && x.N == elem.Key.Outpoint.N))
+				{
+					filteredUnspentCoins.Add(elem.Key, elem.Value);
+				}
+			}
+
+			// 2. How much money we can spend?
+			return CalculateBalance(filteredUnspentCoins);
+		}
+
 		public async Task<(AvailableAmount Available, IDictionary<Coin, bool> UnspentCoins)> GetBalanceAsync(SafeAccount account = null)
 		{
 			// 1. Find all coins I can spend from the account
@@ -1151,6 +1216,11 @@ namespace HiddenWallet.FullSpv
 			var unspentCoins = await GetUnspentCoinsAsync(account);
 
 			// 2. How much money we can spend?
+			return CalculateBalance(unspentCoins);
+		}
+
+		private static (AvailableAmount Available, IDictionary<Coin, bool> UnspentCoins) CalculateBalance(IDictionary<Coin, bool> unspentCoins)
+		{
 			var confirmedAvailableAmount = Money.Zero;
 			var unconfirmedAvailableAmount = Money.Zero;
 			foreach (var elem in unspentCoins)
@@ -1166,14 +1236,13 @@ namespace HiddenWallet.FullSpv
 				}
 			}
 
-            return
-                (new AvailableAmount
-            {
-                Confirmed = confirmedAvailableAmount,
-                Unconfirmed = unconfirmedAvailableAmount
-            },
-            unspentCoins);
-
+			return
+				(new AvailableAmount
+				{
+					Confirmed = confirmedAvailableAmount,
+					Unconfirmed = unconfirmedAvailableAmount
+				},
+			unspentCoins);
 		}
 
 		public struct BuildTransactionResult
@@ -1184,6 +1253,9 @@ namespace HiddenWallet.FullSpv
 			public bool SpendsUnconfirmed;
 			public Money Fee;
 			public decimal FeePercentOfSent;
+			public TxOut ActiveOutput;
+			public TxOut ChangeOutput;
+			public IEnumerable<ICoin> SpentCoins { get; internal set; }
 		}
 		public struct AvailableAmount
 		{

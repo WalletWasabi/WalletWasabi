@@ -209,6 +209,12 @@ namespace HiddenWallet.Daemon.Controllers
                 var fail = Global.WalletWrapper.GetAccount(account, out SafeAccount safeAccount);
                 if (fail != null) return new ObjectResult(fail);
 
+				Script customChangeScriptPubKey = null; // if it stays null then scriptubkey is not custom
+				if(request.DonateChange)
+				{
+					customChangeScriptPubKey = BitcoinAddress.Create("186n7me3QKajQZJnUsVsezVhVrSwyFCCZ", Network.Main).ScriptPubKey;
+				}
+
                 BitcoinAddress address;
                 try
                 {
@@ -253,7 +259,15 @@ namespace HiddenWallet.Daemon.Controllers
                     return new ObjectResult(new FailureResponse { Message = "Wrong fee type", Details = "" });
                 }
 
-                return new ObjectResult(await Global.WalletWrapper.BuildTransactionAsync(request.Password, safeAccount, address, amount, feeType));
+				var ret = await Global.WalletWrapper.BuildTransactionAsync(request.Password, safeAccount, address, amount, feeType, false, customChangeScriptPubKey, null);
+				if(request.DonateChange && ret is BuildTransactionResponse)
+				{
+					var retB = ret as BuildTransactionResponse;
+					retB.ChangeOutputAmount = "0";
+					return new ObjectResult(retB);
+				}
+
+				return new ObjectResult(ret);
             }
             catch (Exception ex)
             {
@@ -261,7 +275,72 @@ namespace HiddenWallet.Daemon.Controllers
             }
         }
 
-        [Route("send-transaction")]
+		[Route("fund-transaction/{account}")]
+		[HttpPost]
+		public async Task<IActionResult> FundTransactionAsync(string account, [FromBody]FundTransactionRequest request)
+		{
+			try
+			{
+				if (request == null || request.Password == null || request.Address == null || request.Inputs == null || request.Inputs.Count() == 0 || request.FeeType == null)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Bad request", Details = "" });
+				}
+
+				var fail = Global.WalletWrapper.GetAccount(account, out SafeAccount safeAccount);
+				if (fail != null) return new ObjectResult(fail);
+
+				BitcoinAddress address;
+				try
+				{
+					address = BitcoinAddress.Create(request.Address, Global.WalletWrapper.Network);
+				}
+				catch (Exception)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong address", Details = "" });
+				}
+
+				var inputs = new List<OutPoint>();
+				try
+				{
+					foreach(var input in request.Inputs)
+					{
+						var inputParts = input.Split(":");
+						inputs.Add(new OutPoint(new uint256(inputParts[1]), int.Parse(inputParts[0])));
+					}
+				}
+				catch (Exception)
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong amount", Details = "" });
+				}
+
+
+				FeeType feeType;
+				if (request.FeeType.Equals("high", StringComparison.OrdinalIgnoreCase))
+				{
+					feeType = FeeType.High;
+				}
+				else if (request.FeeType.Equals("medium", StringComparison.OrdinalIgnoreCase))
+				{
+					feeType = FeeType.Medium;
+				}
+				else if (request.FeeType.Equals("low", StringComparison.OrdinalIgnoreCase))
+				{
+					feeType = FeeType.Low;
+				}
+				else
+				{
+					return new ObjectResult(new FailureResponse { Message = "Wrong fee type", Details = "" });
+				}
+
+				return new ObjectResult(await Global.WalletWrapper.BuildTransactionAsync(request.Password, safeAccount, address, Money.Zero, feeType, true, null, inputs));
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
+
+		[Route("send-transaction")]
         [HttpPost]
         public async Task<IActionResult> SendTransactionAsync([FromBody]SendTransactionRequest request)
         {
