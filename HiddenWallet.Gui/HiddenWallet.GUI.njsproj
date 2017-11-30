@@ -74,6 +74,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="app\js\signalr-client-1.0.0-alpha2-final.min.js" />
+    <Compile Include="app\js\status-client.d.ts">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="app\js\status-client.js">
       <SubType>Code</SubType>
     </Compile>

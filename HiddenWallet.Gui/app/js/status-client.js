@@ -56,7 +56,7 @@ function signalrStatusUpdate() {
     connection.on('torStateChanged', data => {
         console.log("Tor State: " + data);
         torState = data;
-        updateDecryptButton(data);
+        updateDecryptButton();
         statusSignalRShow();
     });
 
@@ -141,29 +141,31 @@ function statusSignalRShow() {
     }
 }
 
-function updateDecryptButton(ts) {
+function updateDecryptButton() {
 
     try {
         let decButton = document.getElementById("decrypt-wallet-button");
 
-        if (ts.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
-            if (decButton.innerText === "Waiting for Tor...") {
-                decButton.innerText = "Decrypt";
+        if (null != decButton) {
+            if (torState.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
+                if (decButton.innerText === "Waiting for Tor...") {
+                    decButton.innerText = "Decrypt";
+                }
+
+                if (decButton.hasAttribute("disabled")) {
+                    decButton.removeAttribute("disabled");
+                }
             }
 
-            if (decButton.hasAttribute("disabled")) {
-                decButton.removeAttribute("disabled");
+            if (torState.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
+                decButton.innerText = "Waiting for Tor...";
+                decButton.disabled = true;
             }
-        }
 
-        if (ts.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
-            decButton.innerText = "Waiting for Tor...";
-            decButton.disabled = true;
-        }
-
-        if (ts.toUpperCase() === "NotStarted".toUpperCase()) {
-            decButton.innerText = "Waiting for Tor...";
-            decButton.disabled = true;
+            if (torState.toUpperCase() === "NotStarted".toUpperCase()) {
+                decButton.innerText = "Waiting for Tor...";
+                decButton.disabled = true;
+            }
         }
     }
     catch (err) {

@@ -1,3 +1,5 @@
+/// <reference path="status-client.d.ts" />
+
 function blockUntilApiReady() {
     try {
         httpGetWallet("test", false);
@@ -57,6 +59,7 @@ function decryptionPhaseShow(menuItem: string = "") {
 
         if (walletExists === true) {
             content.innerHTML = decContent.innerHTML;
+            updateDecryptButton();
         }
         else {
             content.innerHTML = '<div class="alert alert-warning" role="alert"><strong>No wallet found!</strong> Generate or recover your wallet before decrypting it!</div>';
