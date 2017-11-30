@@ -1,4 +1,4 @@
-﻿var mempool = "";
+﻿var mempool = 0;
 var trackerHeight = 0;
 var headerHeight = 0;
 var blocksLeft = "";
@@ -16,19 +16,17 @@ function signalrStatusUpdate() {
     var headerTimer;
     
     connection.on('mempoolChanged', data => {
-        mempool = data;
+        mempool = parseInt(data);
         statusSignalRShow();
     });
 
     connection.on('trackerHeightChanged', data => {
         trackerHeight = parseInt(data);
-        blocksLeft = (headerHeight - trackerHeight).toString();
         statusSignalRShow();
     });
 
     connection.on('headerHeightChanged', data => {
         headerHeight = parseInt(data);
-        blocksLeft = (headerHeight - trackerHeight).toString();
         statusSignalRShow();
     });
 
@@ -75,7 +73,8 @@ function statusSignalRShow() {
     var status = document.getElementById("status");
 
     let text = "";
-
+    let blocksLeftDisplay = "";
+    let mempoolDisplay = "";
     let connectionText = "Connecting...";
 
     if (parseInt(nodeCount) !== 0) {
@@ -84,7 +83,10 @@ function statusSignalRShow() {
 
     if (trackerHeight !== 0) {
         blocksLeft = (headerHeight - trackerHeight).toString();
+        blocksLeftDisplay = ", Blocks left: " + blocksLeft.toString()
     }
+    
+    mempoolDisplay = ", MemPool txs: " + mempool.toString();
 
     if (walletState.toUpperCase() === "NotStarted".toUpperCase()) {
         progressType = "info";
@@ -98,17 +100,17 @@ function statusSignalRShow() {
 
     if (walletState.toUpperCase() === "SyncingBlocks".toUpperCase()) {
         progressType = "striped active";
-        text = walletState + ", " + connectionText + ", Headers: " + headerHeight.toString() + ", Blocks left: " + blocksLeft.toString();
+        text = walletState + ", " + connectionText + ", Headers: " + headerHeight.toString() + blocksLeftDisplay;
     }
 
     if (walletState.toUpperCase() === "SyncingMemPool".toUpperCase()) {
         progressType = "success"; 
-        text = connectionText + ", Headers: " + headerHeight.toString() + ", Blocks left: " + blocksLeft.toString() + ", MemPool txs: " + mempool.toString();
+        text = connectionText + ", Headers: " + headerHeight.toString() + blocksLeftDisplay + mempoolDisplay;
     }
 
     if (walletState.toUpperCase() === "Synced".toUpperCase()) {
         progressType = "success";
-        text = walletState + ", " + connectionText + ", Headers: " + headerHeight.toString() + ", Blocks left: " + blocksLeft.toString() + ", MemPool txs: " + mempool.toString();
+        text = walletState + ", " + connectionText + ", Headers: " + headerHeight.toString() + blocksLeftDisplay + mempoolDisplay;
     }
 
     if (parseInt(nodeCount) === 0 && walletState.toUpperCase() !== "NotStarted".toUpperCase()) {
