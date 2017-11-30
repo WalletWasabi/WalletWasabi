@@ -24,9 +24,13 @@ Privacy focused, soon [ZeroLink](https://github.com/nopara73/ZeroLink) compliant
 
 ## Screenshots 
 
-![BuildTransaction](https://i.imgur.com/EUX4zT4.png)  
-
-![History](https://i.imgur.com/IQ0M37R.png)    
+---
+![](https://i.imgur.com/Uba2Hdl.png)  
+---
+![](https://i.imgur.com/OMIYAT8.png)
+---
+![](https://i.imgur.com/xvizcmu.png)
+---
 
 ## Configuration
 
