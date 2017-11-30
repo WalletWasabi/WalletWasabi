@@ -368,11 +368,10 @@ function broadcastTransaction() {
     let containerElement: Element = document.getElementsByClassName("container").item(0);
 
     containerElement.setAttribute("style", "pointer-events:none;");
-
     broadcastButton.innerHTML = '<span class="glyphicon glyphicon-refresh spinning"></span> Broadcasting...';
 
     var obj: BroadcastTransaction = { Hex: hex, QuickSend: false };
-
+    
     httpPostWalletAsync("send-transaction", obj, function (json) {
         let result: any = httpPostWallet("send-transaction", obj);
 
@@ -390,8 +389,11 @@ function broadcastTransaction() {
 
 Details: ${result.Details}`;
 
+                alert(failText);
+
+                broadcastButton.innerHTML = '<span class="mdi mdi-tor"></span> Try Broadcast Again';
+                containerElement.setAttribute("style", "pointer-events:all;");
             }
-            alert(failText);
         }
     });
 }
