@@ -179,8 +179,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						var scriptPubKey = new Script(txOutResponse.Result["scriptPubKey"].Value<string>("asm"));
 						var address = (BitcoinWitPubKeyAddress)scriptPubKey.GetDestinationAddress(network);
 						// Check if proofs are valid
-						var pubKey = PubKey.RecoverFromMessage(blindedOutputString, input.Proof);
-						var validProof = pubKey.Hash.ToString() == address.Hash.ToString();
+						var validProof = address.VerifyMessage(blindedOutputString, input.Proof);
 						if (!validProof)
 						{
 							throw new ArgumentException("Provided proof is invalid");

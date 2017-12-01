@@ -102,11 +102,11 @@ function periodicUpdate() {
             text = "Connecting. . .";
         }
 
-        if (torState.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
+        if (torState.toUpperCase() === "CircuitEstablished".toUpperCase()) {
             statusShow(100, text, progressType);
         }
 
-        if (torState.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
+        if (torState.toUpperCase() === "EstablishingCircuit".toUpperCase()) {
             statusShow(100, "Establishing Tor circuit...", progressType);
         }
 
@@ -195,7 +195,7 @@ function updateDecryptButton(ts: string) {
     try {
         let decButton: HTMLButtonElement = document.getElementById("decrypt-wallet-button") as HTMLButtonElement;
 
-        if (ts.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
+        if (ts.toUpperCase() === "CircuitEstablished".toUpperCase()) {
             if (decButton.innerText === "Waiting for Tor...") {
                 decButton.innerText = "Decrypt";
             }
@@ -205,7 +205,7 @@ function updateDecryptButton(ts: string) {
             }
         }
 
-        if (ts.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
+        if (ts.toUpperCase() === "EstablishingCircuit".toUpperCase()) {
             decButton.innerText = "Waiting for Tor...";
             decButton.disabled = true;
         }

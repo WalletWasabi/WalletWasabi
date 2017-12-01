@@ -83,7 +83,7 @@ namespace HiddenWallet.Daemon
 				try
 				{
 					// if doesn't fail tor is already running with the control port
-					await Tor.ControlPortClient.IsCircuitEstabilishedAsync(); // ToDo fix typo in DotNetTor: estabilish -> establish
+					await Tor.ControlPortClient.IsCircuitEstablishedAsync(); // ToDo fix typo in DotNetTor: establish -> establish
 					Debug.WriteLine($"Tor is already running, using the existing instance.");
 				}
                 catch (Exception)
@@ -99,7 +99,7 @@ namespace HiddenWallet.Daemon
                     }
                 }
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                Tor.MakeSureCircuitEstabilishedAsync();
+                Tor.MakeSureCircuitEstablishedAsync();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				
 				Global.WalletWrapper = new WalletWrapper();
