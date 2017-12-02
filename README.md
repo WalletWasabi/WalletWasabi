@@ -40,10 +40,10 @@ After first running the software, it will generate a `Config.json` file for you:
 {
   "WalletFilePath": "Wallets\\Wallet.json",
   "Network": "Main",
-  "CanSpendUnconfirmed": "False"
+  "CanSpendUnconfirmed": "True"
 }
 ```  
-For testing, set the network to `"TestNet"` and enable the spending of unconfirmed transactions by setting its value to `"True"`.  
+For testing, set the network to `"TestNet"`.  
 If you've already generated a wallet on the mainnet, then you want to change the default wallet file path, too, for example to `"WalletTestNet.json"`.  
 Since testnet coins have no value, you can acquire them freely and quickly: http://lmgtfy.com/?q=get+testnet+faucet  
 
