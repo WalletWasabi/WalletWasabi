@@ -74,7 +74,7 @@ namespace HiddenWallet.Daemon.Controllers
 
             try
             {
-                await Global.WalletWrapper.LoadAsync(request.Password);
+                await Global.WalletWrapper.LoadAsync(request.Password, Global.Config.Network);
 
                 return new ObjectResult(new SuccessResponse());
             }

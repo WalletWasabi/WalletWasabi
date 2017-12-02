@@ -172,11 +172,10 @@ namespace HiddenWallet.KeyManagement
 				walletFilePath,
 				encryptedBitcoinPrivateKeyString,
 				chainCodeString,
-				networkString,
 				creationTimeString);
 		}
 
-		public static async Task<Safe> LoadAsync(string password, string walletFilePath)
+		public static async Task<Safe> LoadAsync(string password, string walletFilePath, Network network)
 		{
 			if (!File.Exists(walletFilePath))
 				throw new ArgumentException($"No wallet file found at {walletFilePath}");
@@ -188,15 +187,26 @@ namespace HiddenWallet.KeyManagement
 
 			var chainCode = Convert.FromBase64String(chainCodeString);
 
-			Network network;
-			var networkString = walletFileRawContent.Network;
-			network = networkString == Network.Main.ToString() ? Network.Main : Network.TestNet;
-
 			DateTimeOffset creationTime = DateTimeOffset.ParseExact(walletFileRawContent.CreationTime, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
 
 			var safe = new Safe(password, walletFilePath, network, creationTime);
+			
+			Key privateKey = null;
+			foreach (var n in Network.GetNetworks())
+			{				
+				try
+				{
+					privateKey = Key.Parse(encryptedBitcoinPrivateKeyString, password, n);
+					break;
+				}
+				catch
+				{
 
-			var privateKey = Key.Parse(encryptedBitcoinPrivateKeyString, password, safe.Network);
+				}
+			}
+			// if private key still null throw the 
+			privateKey = privateKey ?? Key.Parse(encryptedBitcoinPrivateKeyString, password, safe.Network);
+
 			var seedExtKey = new ExtKey(privateKey, chainCode);
 			safe.SetSeed(seedExtKey);
 

@@ -28,7 +28,7 @@ namespace HiddenWallet.Tests
 				var result = await Safe.CreateAsync(password, path, network);
                 var safe = result.Safe;
                 var mnemonic = result.Mnemonic;
-				var loadedSafe = await Safe.LoadAsync(password, path);
+				var loadedSafe = await Safe.LoadAsync(password, path, network);
 
 				var wantedCreation = DateTimeOffset.ParseExact("1998-01-01", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
 				var recoverdSafe = await Safe.RecoverAsync(mnemonic, password, recoveredPath, network, wantedCreation);
@@ -76,7 +76,7 @@ namespace HiddenWallet.Tests
 			var result = await Safe.CreateAsync(password, path, network);
             var safe = result.Safe;
             var mnemonic = result.Mnemonic;
-			var loadedSafe = await Safe.LoadAsync(password, path);
+			var loadedSafe = await Safe.LoadAsync(password, path, network);
 			var recoverdSafe = await Safe.RecoverAsync(mnemonic, password, "Wallets/RecoveredTestWallet.json", network, Safe.EarliestPossibleCreationTime);
 
 			try

@@ -29,7 +29,7 @@ namespace HiddenWallet.Tests
 			Network network = Network.Main;
 			string path = $"Wallets/Empty{network}.json";
 			const string password = "";
-			Safe safe = File.Exists(path) ? await Safe.LoadAsync(password, path) : (await Safe.CreateAsync(password, path, network)).Safe;
+			Safe safe = File.Exists(path) ? await Safe.LoadAsync(password, path, network) : (await Safe.CreateAsync(password, path, network)).Safe;
 
             Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
 
@@ -120,7 +120,7 @@ namespace HiddenWallet.Tests
 			const string password = "";
 			// I change it because I am using a very old wallet to test
 			Safe.EarliestPossibleCreationTime = DateTimeOffset.ParseExact("2016-12-18", "yyyy-MM-dd", CultureInfo.InvariantCulture);
-			Safe safe = await Safe.LoadAsync(password, path);
+			Safe safe = await Safe.LoadAsync(password, path, network);
 			Assert.Equal(network, safe.Network);
 			Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
 

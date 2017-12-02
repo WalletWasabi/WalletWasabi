@@ -24,7 +24,7 @@ namespace HiddenWallet.Tests
 			SafeAccount account = new SafeAccount(1);
 			string path = Path.Combine(Helpers.CommittedWalletsFolderPath, $"Sending{network}.json");
 			const string password = "";
-			Safe safe = await Safe.LoadAsync(password, path);
+			Safe safe = await Safe.LoadAsync(password, path, network);
 			Assert.Equal(network, safe.Network);
 			Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
 
@@ -428,7 +428,7 @@ namespace HiddenWallet.Tests
 			SafeAccount account = new SafeAccount(1);
 			string path = Path.Combine(Helpers.CommittedWalletsFolderPath, $"Sending{network}.json");
 			const string password = "";
-			Safe safe = await Safe.LoadAsync(password, path);
+			Safe safe = await Safe.LoadAsync(password, path, network);
 			Assert.Equal(network, safe.Network);
 			Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
 

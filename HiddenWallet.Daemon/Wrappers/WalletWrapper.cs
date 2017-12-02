@@ -72,9 +72,9 @@ namespace HiddenWallet.Daemon.Wrappers
 			};
 		}
 
-		public async Task LoadAsync(string password)
+		public async Task LoadAsync(string password, Network network)
 		{
-			Safe safe = await Safe.LoadAsync(password, Global.Config.WalletFilePath);
+			Safe safe = await Safe.LoadAsync(password, Global.Config.WalletFilePath, network);
 			if (safe.Network != Global.Config.Network) throw new NotSupportedException("Network in the config file differs from the network in the wallet file");
 
 			if (!_walletJobTask.IsCompleted)
