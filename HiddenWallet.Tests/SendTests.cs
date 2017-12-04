@@ -53,8 +53,9 @@ namespace HiddenWallet.Tests
                     Debug.WriteLine(r.TransactionId);
                 }
 
-				# region Basic
+				#region Basic
 
+				Debug.WriteLine((await walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2PublicKeyHash, account, HdPathType.Receive)).FirstOrDefault().GetDestinationAddress(Network.TestNet).ToString());
 				var receive = (await walletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, account, HdPathType.Receive)).FirstOrDefault();
 
                 var getBalanceResult = await walletJob.GetBalanceAsync(account);
@@ -62,18 +63,21 @@ namespace HiddenWallet.Tests
                 Money amountToSend = (bal.Confirmed + bal.Unconfirmed) / 2;
 				var res = await walletJob.BuildTransactionAsync(receive, amountToSend, FeeType.Low, account,
 					allowUnconfirmed: true);
-
+				
 				Assert.True(res.Success);
 				Assert.Empty(res.FailingReason);
 				Assert.Equal(receive, res.ActiveOutput.ScriptPubKey);
 				Assert.Equal(amountToSend, res.ActiveOutput.Value);
-				Assert.NotNull(res.ChangeOutput);
-				Assert.Contains(res.Transaction.Outputs, x =>x.Value == res.ChangeOutput.Value);
+				if (res.SpentCoins.Sum(x => x.Amount as Money) - res.ActiveOutput.Value == res.Fee) // this happens when change is too small
+				{
+					Assert.NotNull(res.ChangeOutput);
+					Assert.Contains(res.Transaction.Outputs, x => x.Value == res.ChangeOutput.Value);
+					Debug.WriteLine($"Change Output: {res.ChangeOutput.Value.ToString(false, true)} {res.ChangeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				}
 				Debug.WriteLine($"Fee: {res.Fee}");
 				Debug.WriteLine($"FeePercentOfSent: {res.FeePercentOfSent} %");
 				Debug.WriteLine($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
 				Debug.WriteLine($"Active Output: {res.ActiveOutput.Value.ToString(false, true)} {res.ActiveOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Debug.WriteLine($"Change Output: {res.ChangeOutput.Value.ToString(false, true)} {res.ChangeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Debug.WriteLine($"TxId: {res.Transaction.GetHash()}");
 				
 				var foundReceive = false;
