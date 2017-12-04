@@ -28,45 +28,45 @@ namespace HiddenWallet.KeyManagement
             return GetBitcoinExtKey(index, hdPathType, account).PrivateKey.PubKey;
         }
 
-        private ConcurrentDictionary<(AddressType Type, int Index, HdPathType HdPathType, SafeAccount Account), BitcoinAddress> _safeCache = new ConcurrentDictionary<(AddressType Type, int Index, HdPathType HdPathType, SafeAccount Account), BitcoinAddress>();
+        private ConcurrentDictionary<(AddressType Type, int Index, HdPathType HdPathType, SafeAccount Account), Script> _safeCache = new ConcurrentDictionary<(AddressType Type, int Index, HdPathType HdPathType, SafeAccount Account), Script>();
         // GetP2wpkh pubKey.WitHash.ScriptPubKey.GetDestinationAddress(Network);
         // GetP2pkhAddress pubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
         // GetP2shOverP2wpkhAddress pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
-        public BitcoinAddress GetAddress(AddressType type, int index, HdPathType hdPathType = HdPathType.Receive, SafeAccount account  = null)
+        public Script GetScriptPubKey(AddressType type, int index, HdPathType hdPathType = HdPathType.Receive, SafeAccount account  = null)
         {
-            BitcoinAddress cachedAddress = _safeCache.FirstOrDefault(x => x.Key.Type == type && x.Key.Index == index && x.Key.HdPathType == hdPathType && x.Key.Account == account).Value;
-            if (cachedAddress != null) return cachedAddress;
+            Script cachedScriptPubKey = _safeCache.FirstOrDefault(x => x.Key.Type == type && x.Key.Index == index && x.Key.HdPathType == hdPathType && x.Key.Account == account).Value;
+            if (cachedScriptPubKey != null) return cachedScriptPubKey;
 
             PubKey pubKey = GetPubKey(index, hdPathType, account);
-            BitcoinAddress address = null;
+            Script scriptPubKey = null;
             if (type == AddressType.Pay2WitnessPublicKeyHash)
             {
-                address= pubKey.WitHash.ScriptPubKey.GetDestinationAddress(Network);
+                scriptPubKey= pubKey.WitHash.ScriptPubKey;
             }
             else if (type == AddressType.Pay2PublicKeyHash)
             {
-                address = pubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
+                scriptPubKey = pubKey.Hash.ScriptPubKey;
             }
             else if (type == AddressType.Pay2ScriptHashOverPay2WitnessPublicKeyHash)
             {
-                address = pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey.GetDestinationAddress(Network);
+                scriptPubKey = pubKey.WitHash.ScriptPubKey.Hash.ScriptPubKey;
             }
             else throw new NotSupportedException(type.ToString());
             
-            _safeCache.TryAdd((type, index, hdPathType, account), address);
-            return address;
+            _safeCache.TryAdd((type, index, hdPathType, account), scriptPubKey);
+            return scriptPubKey;
         }
 
-        public IList<BitcoinAddress> GetFirstNAddresses(AddressType type, int addressCount, HdPathType hdPathType = HdPathType.Receive, SafeAccount account = null)
+        public IList<Script> GetFirstNScriptPubKey(AddressType type, int addressCount, HdPathType hdPathType = HdPathType.Receive, SafeAccount account = null)
 		{
-			var addresses = new List<BitcoinAddress>();
+			var scriptPubKeys = new List<Script>();
 
             for (var i = 0; i < addressCount; i++)
             {
-                addresses.Add(GetAddress(type, i, hdPathType, account));
+                scriptPubKeys.Add(GetScriptPubKey(type, i, hdPathType, account));
             }
 
-            return addresses;
+            return scriptPubKeys;
 		}
 
 		// Let's generate a unique id from seedpublickey
@@ -213,22 +213,22 @@ namespace HiddenWallet.KeyManagement
 			return safe;
 		}
 
-		public BitcoinExtKey FindPrivateKey(BitcoinAddress address, int stopSearchAfterIteration = 100000, SafeAccount account = null)
+		public BitcoinExtKey FindPrivateKey(Script scriptPubKey, int stopSearchAfterIteration = 100000, SafeAccount account = null)
 		{
             foreach (AddressType type in Enum.GetValues(typeof(AddressType)))
             {
                 for (int i = 0; i < stopSearchAfterIteration; i++)
                 {
-                    if (GetAddress(type, i, HdPathType.Receive, account) == address)
+                    if (GetScriptPubKey(type, i, HdPathType.Receive, account) == scriptPubKey)
                         return GetBitcoinExtKey(i, HdPathType.Receive, account);
-                    if (GetAddress(type, i, HdPathType.Change, account) == address)
+                    if (GetScriptPubKey(type, i, HdPathType.Change, account) == scriptPubKey)
                         return GetBitcoinExtKey(i, HdPathType.Change, account);
-                    if (GetAddress(type, i, HdPathType.NonHardened, account) == address)
+                    if (GetScriptPubKey(type, i, HdPathType.NonHardened, account) == scriptPubKey)
                         return GetBitcoinExtKey(i, HdPathType.NonHardened, account);
                 }
             }
 
-            throw new KeyNotFoundException(address.ToString());
+            throw new KeyNotFoundException(scriptPubKey.ToString());
 		}
 
 		public BitcoinExtKey GetBitcoinExtKey(int? index = null, HdPathType hdPathType = HdPathType.Receive, SafeAccount account = null)

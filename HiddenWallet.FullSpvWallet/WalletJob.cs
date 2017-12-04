@@ -424,7 +424,7 @@ namespace HiddenWallet.FullSpv
                 var cleanCount = 0;
                 while (true)
                 {
-                    Script scriptPubkey = account == null ? Safe.GetAddress(addressType, i, hdPathType).ScriptPubKey : Safe.GetAddress(addressType, i, hdPathType, account).ScriptPubKey;
+                    Script scriptPubkey = account == null ? Safe.GetScriptPubKey(addressType, i, hdPathType) : Safe.GetScriptPubKey(addressType, i, hdPathType, account);
 
                     (await GetTrackerAsync()).TrackedScriptPubKeys.Add(scriptPubkey);
 
@@ -544,7 +544,7 @@ namespace HiddenWallet.FullSpv
 		public async Task<HashSet<Script>> GetTrackedScriptPubKeysBySafeAccountAsync(SafeAccount account = null)
         {
             var maxTracked = (await GetTrackerAsync()).TrackedScriptPubKeys.Count;
-            var allPossiblyTrackedAddresses = new HashSet<BitcoinAddress>();
+            var allPossiblyTrackedScriptPubKeys = new HashSet<Script>();
 
             var addressTypes = new HashSet<AddressType>
             {
@@ -553,25 +553,25 @@ namespace HiddenWallet.FullSpv
             };
             foreach (AddressType addressType in addressTypes)
             {
-                foreach (var address in Safe.GetFirstNAddresses(addressType, maxTracked, HdPathType.Receive, account))
+                foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.Receive, account))
                 {
-                    allPossiblyTrackedAddresses.Add(address);
+					allPossiblyTrackedScriptPubKeys.Add(address);
                 }
-                foreach (var address in Safe.GetFirstNAddresses(addressType, maxTracked, HdPathType.Change, account))
+                foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.Change, account))
                 {
-                    allPossiblyTrackedAddresses.Add(address);
+					allPossiblyTrackedScriptPubKeys.Add(address);
                 }
-                foreach (var address in Safe.GetFirstNAddresses(addressType, maxTracked, HdPathType.NonHardened, account))
+                foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.NonHardened, account))
                 {
-                    allPossiblyTrackedAddresses.Add(address);
+					allPossiblyTrackedScriptPubKeys.Add(address);
                 }
             }
 
             var actuallyTrackedScriptPubKeys = new HashSet<Script>();
-            foreach (var address in allPossiblyTrackedAddresses)
+            foreach (var scriptPubKey in allPossiblyTrackedScriptPubKeys)
             {
-                if ((await GetTrackerAsync()).TrackedScriptPubKeys.Any(x => x == address.ScriptPubKey))
-                    actuallyTrackedScriptPubKeys.Add(address.ScriptPubKey);
+                if ((await GetTrackerAsync()).TrackedScriptPubKeys.Contains(scriptPubKey))
+                    actuallyTrackedScriptPubKeys.Add(scriptPubKey);
             }
 
             return actuallyTrackedScriptPubKeys;
@@ -1069,7 +1069,7 @@ namespace HiddenWallet.FullSpv
 				var signingKeys = new HashSet<ISecret>();
 				foreach (var coin in coinsToSpend)
 				{
-					var signingKey = Safe.FindPrivateKey(coin.ScriptPubKey.GetDestinationAddress(Safe.Network), (await GetTrackerAsync()).TrackedScriptPubKeys.Count, account);
+					var signingKey = Safe.FindPrivateKey(coin.ScriptPubKey, (await GetTrackerAsync()).TrackedScriptPubKeys.Count, account);
 					signingKeys.Add(signingKey);
 				}
 
@@ -1145,7 +1145,7 @@ namespace HiddenWallet.FullSpv
             int i = 0;
             while (true)
             {
-                Script scriptPubkey = account == null ? Safe.GetAddress(type, i, hdPathType).ScriptPubKey : Safe.GetAddress(type, i, hdPathType, account).ScriptPubKey;
+                Script scriptPubkey = account == null ? Safe.GetScriptPubKey(type, i, hdPathType) : Safe.GetScriptPubKey(type, i, hdPathType, account);
                 if ((await GetTrackerAsync()).IsClean(scriptPubkey))
                 {
                     scriptPubKeys.Add(scriptPubkey);

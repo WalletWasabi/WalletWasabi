@@ -307,10 +307,10 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 							.OrderByDescending(x => x.Key.Amount) // look at the biggest amounts first, TODO: this is sub-optimal (CCJ unconfirmed change should be the same category as confirmed and not CCJ change unconfirmed should not be here)
 							.Select(x => x.Key))
 						{
-							BitcoinAddress destinationAddress = coin.ScriptPubKey.GetDestinationAddress(WalletJob.CurrentNetwork);
+							Script destinationScriptPubKey = coin.ScriptPubKey;
 							try
 							{
-								new BitcoinWitPubKeyAddress(destinationAddress.ToString(), WalletJob.CurrentNetwork);
+								new BitcoinWitPubKeyAddress(destinationScriptPubKey.GetDestinationAddress(WalletJob.CurrentNetwork).ToString(), WalletJob.CurrentNetwork);
 							}
 							catch
 							{
@@ -335,7 +335,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 							Inputs.Add(coin);
 							var input = coin.Outpoint.ToHex();
-							BitcoinExtKey privateExtKey = WalletJob.Safe.FindPrivateKey(destinationAddress, (await WalletJob.GetTrackerAsync()).TrackedScriptPubKeys.Count, From);
+							BitcoinExtKey privateExtKey = WalletJob.Safe.FindPrivateKey(destinationScriptPubKey, (await WalletJob.GetTrackerAsync()).TrackedScriptPubKeys.Count, From);
 							SigningKeys.Add(privateExtKey);
 							var proof = privateExtKey.PrivateKey.SignMessage(blindedOutput);
 							inputs.Add(new InputProofModel { Input = input, Proof = proof });

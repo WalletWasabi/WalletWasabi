@@ -39,12 +39,12 @@ namespace HiddenWallet.Tests
 				{
                     foreach (AddressType addressType in Enum.GetValues(typeof(AddressType)))
                     {
-                        Assert.Equal(safe.GetAddress(addressType, 3, account: alice), recoverdSafe.GetAddress(addressType, 3, account: alice));
-                        Assert.Equal(safe.GetAddress(addressType, 4, HdPathType.NonHardened, account: alice), recoverdSafe.GetAddress(addressType, 4, HdPathType.NonHardened, account: alice));
-                        Assert.NotEqual(safe.GetAddress(addressType, 4, HdPathType.Change, account: alice), recoverdSafe.GetAddress(addressType, 4, HdPathType.NonHardened, account: alice));
-                        Assert.NotEqual(safe.GetAddress(addressType, 3, HdPathType.NonHardened, account: alice), recoverdSafe.GetAddress(addressType, 4, HdPathType.NonHardened, account: alice));
-                        Assert.NotEqual(safe.GetAddress(addressType, 4, HdPathType.NonHardened, account: alice), recoverdSafe.GetAddress(addressType, 4, HdPathType.NonHardened, account: bob));
-                        Assert.NotEqual(safe.GetAddress(addressType, 4, account: alice), safe.GetAddress(addressType, 4));
+                        Assert.Equal(safe.GetScriptPubKey(addressType, 3, account: alice), recoverdSafe.GetScriptPubKey(addressType, 3, account: alice));
+                        Assert.Equal(safe.GetScriptPubKey(addressType, 4, HdPathType.NonHardened, account: alice), recoverdSafe.GetScriptPubKey(addressType, 4, HdPathType.NonHardened, account: alice));
+                        Assert.NotEqual(safe.GetScriptPubKey(addressType, 4, HdPathType.Change, account: alice), recoverdSafe.GetScriptPubKey(addressType, 4, HdPathType.NonHardened, account: alice));
+                        Assert.NotEqual(safe.GetScriptPubKey(addressType, 3, HdPathType.NonHardened, account: alice), recoverdSafe.GetScriptPubKey(addressType, 4, HdPathType.NonHardened, account: alice));
+                        Assert.NotEqual(safe.GetScriptPubKey(addressType, 4, HdPathType.NonHardened, account: alice), recoverdSafe.GetScriptPubKey(addressType, 4, HdPathType.NonHardened, account: bob));
+                        Assert.NotEqual(safe.GetScriptPubKey(addressType, 4, account: alice), safe.GetScriptPubKey(addressType, 4));
                     }
 
 					Assert.Equal(DateTimeOffset.UtcNow.Date, safe.CreationTime.Date);
@@ -87,7 +87,7 @@ namespace HiddenWallet.Tests
 				Assert.Equal(loadedSafe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: new SafeAccount(1)), recoverdSafe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: new SafeAccount(1)));
                 foreach (AddressType addressType in Enum.GetValues(typeof(AddressType)))
                 {
-                    Assert.Equal(loadedSafe.GetAddress(addressType, index), recoverdSafe.GetAddress(addressType, index));
+                    Assert.Equal(loadedSafe.GetScriptPubKey(addressType, index), recoverdSafe.GetScriptPubKey(addressType, index));
                 }
 				Assert.Equal(loadedSafe.GetBitcoinExtKey(index), recoverdSafe.GetBitcoinExtKey(index));
 			}

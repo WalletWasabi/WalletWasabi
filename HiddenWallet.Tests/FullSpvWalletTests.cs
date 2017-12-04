@@ -165,9 +165,9 @@ namespace HiddenWallet.Tests
 
                 // 0. Query all operations, grouped our used safe addresses
                 int MinUnusedKeyNum = 74;
-                Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerAddresses = await Helpers.QueryOperationsPerSafeAddressesAsync(new QBitNinjaClient(safe.Network), safe, MinUnusedKeyNum);
+                Dictionary<Script, List<BalanceOperation>> operationsPerScriptPubKeys = await Helpers.QueryOperationsPerSafeScriptPubKeysAsync(new QBitNinjaClient(safe.Network), safe, MinUnusedKeyNum);
 
-				Dictionary<uint256, List<BalanceOperation>> operationsPerTransactions = QBitNinjaJutsus.GetOperationsPerTransactions(operationsPerAddresses);
+				Dictionary<uint256, List<BalanceOperation>> operationsPerTransactions = QBitNinjaJutsus.GetOperationsPerTransactions(operationsPerScriptPubKeys);
 
 				// 3. Create history records from the transactions
 				// History records is arbitrary data we want to show to the user
