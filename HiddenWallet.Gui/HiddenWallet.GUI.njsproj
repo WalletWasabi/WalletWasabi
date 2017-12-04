@@ -68,7 +68,6 @@
     <TypeScriptCompile Include="app\js\default.ts" />
     <TypeScriptCompile Include="app\js\hw-client.ts" />
     <TypeScriptCompile Include="app\js\settings.ts" />
-    <TypeScriptCompile Include="app\js\status.ts" />
     <TypeScriptCompile Include="app\js\wallet-phase.ts" />
     <TypeScriptCompile Include="main.ts" />
   </ItemGroup>

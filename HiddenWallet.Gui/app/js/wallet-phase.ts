@@ -1,3 +1,5 @@
+/// <reference path="status-client.d.ts" />
+
 function walletPhaseShow(tabItem: string = "") {
 
     let tabsFrame: HTMLIFrameElement = <HTMLIFrameElement>document.getElementById("wallet-phase-tabs-frame");
@@ -63,7 +65,7 @@ function walletPhaseShow(tabItem: string = "") {
             return;
         });
     }
-    updateMixerTab(isTumblerOnline);
+    updateMixerTab();
 }
 
 function walletShow(menuItem: string) {
@@ -152,7 +154,7 @@ function round(value: number, precision: number) {
 
 function mixerShow() {
     httpGetTumblerAsync("connection", function (json) { }); // makes sure status response is acquired at least one and subscribed to the tumbler
-    
+
     let walletContentFrame: HTMLIFrameElement = <HTMLIFrameElement>document.getElementById("wallet-content-frame");
     let mixerContentElem: HTMLElement = walletContentFrame.contentWindow.document.getElementById("mixer-content");
 
@@ -201,7 +203,6 @@ function mixerShow() {
             hr.style.display = "inline";
         }
         refreshButton.style.display = "none";
-        updateMixerContent();
         
         let walletSelectedElem: HTMLElement = document.getElementById("wallet-selected");
         let notEnoughFounds: HTMLElement = document.getElementById("not-enough-funds-to-mix");
@@ -210,6 +211,7 @@ function mixerShow() {
         amountElem.innerText = String(1); 
         walletSelectedElem.style.display = "none";
         notEnoughFounds.style.display = "none";
+        tumblerStatusBroadcastRequest();
     }
 }
 

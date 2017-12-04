@@ -1,4 +1,5 @@
 ﻿using HiddenWallet.ChaumianCoinJoin.Models;
+using HiddenWallet.Daemon.Models;
 using HiddenWallet.Models;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
@@ -75,6 +76,13 @@ namespace HiddenWallet.Daemon
 			{
 				Console.WriteLine("IHubContext not set yet. Tor Status Broadcast failed.");
 			}
+		}
+
+		public void BroadcastTumblerStatus(TumblerStatusResponse status)
+		{
+			IClientProxy proxy = _context.Clients.All;
+			string json = JsonConvert.SerializeObject(status);
+			proxy.InvokeAsync("mixerStatusChanged", json);
 		}
 	}
 }

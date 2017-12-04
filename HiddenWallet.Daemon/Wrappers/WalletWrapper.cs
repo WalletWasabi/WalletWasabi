@@ -101,6 +101,8 @@ namespace HiddenWallet.Daemon.Wrappers
 
 				WalletJob.ConnectedNodeCountAnnounce += _walletJob_ConnectedNodeCountAnnounce;
 
+				WalletJob.CoinJoinStatusChanged += _walletJob_CoinJoinStatusChanged;
+
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
 
 				_receiveResponseAlice.ExtPubKey = WalletJob.Safe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: AliceAccount).ToWif();
@@ -250,7 +252,70 @@ namespace HiddenWallet.Daemon.Wrappers
 		{
 			NotificationBroadcaster.Instance.BroadcastNodeCount(nodeCount);
 		}
+
+		private void _walletJob_CoinJoinStatusChanged(object sender, EventArgs e)
+		{
+			TumblerStatusResponse status = GetTumblerStatusResponse();
+			NotificationBroadcaster.Instance.BroadcastTumblerStatus(status);
+		}
 		#endregion
+
+		public TumblerStatusResponse GetTumblerStatusResponse()
+		{
+			if (WalletJob != null)
+			{
+				var itbo = WalletJob.CoinJoinService?.TumblerConnection != null;
+
+				var tbd = (WalletJob.CoinJoinService?.Denomination ?? Money.Zero).ToString(false, true);
+
+				var tumblerStatus = WalletJob.CoinJoinService?.StatusResponse;
+
+				var tas = tumblerStatus?.AnonymitySet ?? 0;
+
+				var tnop = WalletJob.CoinJoinService?.NumberOfPeers ?? 0;
+
+				string tfr = "0";
+				try
+				{
+					var feePerInputs = Money.Parse(tumblerStatus?.FeePerInputs);
+					var feePerOutputs = Money.Parse(tumblerStatus?.FeePerOutputs);
+					tfr = (feePerInputs + 2 * feePerOutputs).ToString(false, true);
+				}
+				catch
+				{
+
+				}
+
+				int twiir;
+
+				if (tumblerStatus == null)
+				{
+					twiir = 0;
+				}
+				else
+				{
+					twiir = (int)TimeSpan.FromSeconds(Convert.ToDouble(tumblerStatus.TimeSpentInInputRegistrationInSeconds)).TotalMinutes;
+				}
+
+				var tp = WalletJob.CoinJoinService?.Phase.ToString() ?? "";
+
+				TumblerStatusResponse status = new TumblerStatusResponse
+				{
+					IsTumblerOnline = itbo,
+					TumblerDenomination = tbd,
+					TumblerAnonymitySet = tas,
+					TumblerNumberOfPeers = tnop,
+					TumblerFeePerRound = tfr,
+					TumblerWaitedInInputRegistration = twiir,
+					TumblerPhase = tp
+				};
+				return status;
+			}
+			else
+			{
+				return new TumblerStatusResponse { Success = false, IsTumblerOnline = false };
+			}
+		}
 
 		private volatile bool _endCalled = false;
 		public async Task EndAsync()
@@ -265,6 +330,7 @@ namespace HiddenWallet.Daemon.Wrappers
 				WalletJob.HeaderHeightChanged -= _walletJob_HeaderHeightChanged;
 				WalletJob.TrackerHeightAnnounce -= _walletJob_TrackerHeightAnnounce;
 				WalletJob.ConnectedNodeCountAnnounce -= _walletJob_ConnectedNodeCountAnnounce;
+				WalletJob.CoinJoinStatusChanged -= _walletJob_CoinJoinStatusChanged;
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
 			}
 

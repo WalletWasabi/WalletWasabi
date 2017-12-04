@@ -114,6 +114,9 @@ namespace HiddenWallet.FullSpv
 		public event EventHandler<string> ConnectedNodeCountAnnounce;
 		private void OnConnectedNodeCountAnnounce(string nodeCount) => ConnectedNodeCountAnnounce?.Invoke(this, nodeCount);
 
+		public event EventHandler CoinJoinStatusChanged;
+		public void OnCoinJoinStatusChanged() => CoinJoinStatusChanged?.Invoke(this, EventArgs.Empty);
+
 		private WalletState _state;
 		public WalletState State
 		{
