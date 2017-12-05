@@ -65,7 +65,7 @@ namespace HiddenWallet.Daemon.Controllers
 
         [Route("load")]
         [HttpPost]
-        public async Task<IActionResult> LoadAsync([FromBody]PasswordModel request)
+        public async Task<IActionResult> LoadAsync([FromBody]LoadModel request)
         {
             if (request == null || request.Password == null)
             {
@@ -74,7 +74,14 @@ namespace HiddenWallet.Daemon.Controllers
 
             try
             {
-                await Global.WalletWrapper.LoadAsync(request.Password, Global.Config.Network);
+				Network network = Global.Config.Network;
+				if(!string.IsNullOrWhiteSpace(request.Network))
+				{
+					network = Network.GetNetwork(request.Network);
+					await Global.Config.SetNetworkAsync(network);
+				}
+
+                await Global.WalletWrapper.LoadAsync(request.Password, network);
 
                 return new ObjectResult(new SuccessResponse());
             }
@@ -84,7 +91,25 @@ namespace HiddenWallet.Daemon.Controllers
             }
         }
 
-        [Route("wallet-exists")]
+		[Route("is-mainnet")]
+		[HttpGet]
+		public IActionResult IsMainnet()
+		{
+			try
+			{
+				if (Global.Config.Network == Network.Main)
+				{
+					return new ObjectResult(new YesNoResponse { Value = true });
+				}
+				return new ObjectResult(new YesNoResponse { Value = false });
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
+
+		[Route("wallet-exists")]
         [HttpGet]
         public IActionResult WalletExists()
         {

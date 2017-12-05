@@ -38,6 +38,8 @@ namespace HiddenWallet.Daemon
 		[JsonProperty(PropertyName = "ChaumianTumblerMainNotificationAddress", Order = 7)]
 		public string ChaumianTumblerMainNotificationAddress { get; private set; }
 
+		private string ConfigPath { get; set; }
+
 		public Config()
 		{
 
@@ -45,7 +47,7 @@ namespace HiddenWallet.Daemon
 
 		public async Task ToFileAsync(string path, CancellationToken cancel)
 		{
-			if (path == null) throw new ArgumentNullException(nameof(path));
+			ConfigPath = string.IsNullOrWhiteSpace(path) ? throw new ArgumentNullException(nameof(path)) : path;
 
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
 			await File.WriteAllTextAsync(path,
@@ -57,6 +59,7 @@ namespace HiddenWallet.Daemon
 		public async Task LoadOrCreateDefaultFileAsync(string path, CancellationToken cancel)
 		{
 			if (path == null) throw new ArgumentNullException(nameof(path));
+			
 
 			WalletFilePath = Path.Combine(FullSpvWallet.Global.DataDir, "Wallets", "Wallet.json");
 			Network = Network.Main;
@@ -85,6 +88,18 @@ namespace HiddenWallet.Daemon
 			}
 
 			await ToFileAsync(path, cancel);
+		}
+
+		public async Task SetNetworkAsync(Network network)
+		{
+			if (network == null) throw new ArgumentNullException(nameof(network));
+			if (network == Network)
+			{
+				return;
+			}
+
+			Network = network;
+			await ToFileAsync(ConfigPath, CancellationToken.None);
 		}
 	}
 }
