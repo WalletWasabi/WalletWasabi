@@ -32,20 +32,6 @@ Privacy focused, soon [ZeroLink](https://github.com/nopara73/ZeroLink) compliant
 ![](https://i.imgur.com/xvizcmu.png)
 ---
 
-## Configuration
-
-HiddenWallet is working in your APPDATA folder on Windows and in your HOME folder on Linux and OSX.  
-After first running the software, it will generate a `Config.json` file for you:  
-```
-{
-  "WalletFilePath": "Wallets\\Wallet.json",
-  "Network": "Main",
-  "CanSpendUnconfirmed": "True"
-}
-```  
-For testing, set the network to `"TestNet"`.  
-Since testnet coins have no value, you can acquire them freely and quickly: http://lmgtfy.com/?q=get+testnet+faucet  
-
 ## Building From Source Code  
   
 ### Requirements:  
