@@ -64,6 +64,16 @@ function decryptionPhaseShow(menuItem: string = "") {
         else {
             content.innerHTML = '<div class="alert alert-warning" role="alert"><strong>No wallet found!</strong> Generate or recover your wallet before decrypting it!</div>';
         }
+
+        let isMainnet: boolean = httpGetWallet("is-mainnet").Value;
+        let networkToggleButton: HTMLInputElement = document.getElementById("network-toggle-button") as HTMLInputElement;
+        if (isMainnet === true)
+        {
+            networkToggleButton.checked = true;
+        }
+        else {
+            networkToggleButton.checked = false;
+        }
     }
     else if (menuItem === "generate") {
         menu.innerHTML = decPhaseMenuFrame.contentWindow.document.getElementById("generate-active").innerHTML;
@@ -181,16 +191,28 @@ function recoverWallet() {
 
 interface DecryptWallet {
     Password: string;
+    Network: string
 }
 
 function decryptWallet() {
     let password: string = (<HTMLInputElement>document.getElementById("inputPassword")).value;
 
     let decWalletButton: HTMLElement = document.getElementById("decrypt-wallet-button");
-
+    
     let containerElement: Element = document.getElementsByClassName("container").item(0);
 
-    var obj: DecryptWallet = { Password: password };
+    let networkToggleButton: HTMLInputElement = document.getElementById("network-toggle-button") as HTMLInputElement;
+
+    let network: string;
+    if (networkToggleButton.checked)
+    {
+        network = "Main";
+    }
+    else {
+        network = "TestNet";
+    }
+
+    var obj: DecryptWallet = { Password: password, Network: network };
 
     containerElement.setAttribute("style", "pointer-events:none;");
     decWalletButton.innerHTML = '<span class="glyphicon glyphicon-cog spinning"></span> Initializing...';

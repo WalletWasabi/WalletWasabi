@@ -169,16 +169,16 @@ function mixerShow() {
 
     let mixerHrs: HTMLCollectionOf<Element> = document.getElementsByClassName("mixer-hr");
 
-    let cancelMixingButton: HTMLElement = document.getElementById("cancel-mixing-button");
+    let mixingInProcessDiv: HTMLElement = document.getElementById("mixing-in-process-div");
     let mixingInputElements: HTMLElement = document.getElementById("mixing-input-elements");
     let isMixOngoing: boolean = httpGetTumbler("ongoing-mix", true).Value;
     if (isMixOngoing) {
         mixingInputElements.style.display = "none";
-        cancelMixingButton.style.display = "inline";
+        mixingInProcessDiv.style.display = "inline";
     }
     else {
         mixingInputElements.style.display = "inline";
-        cancelMixingButton.style.display = "none";
+        mixingInProcessDiv.style.display = "none";
     }
 
     if (isTumblerOnline === false) {
@@ -271,10 +271,10 @@ function mix() {
     let json: any;
 
     let mixingInputElements: HTMLElement = document.getElementById("mixing-input-elements");
-    let cancelMixingButton: HTMLElement = document.getElementById("cancel-mixing-button");
+    let mixingInProcessDiv: HTMLElement = document.getElementById("mixing-in-process-div");
 
     mixingInputElements.style.display = "none";
-    cancelMixingButton.style.display = "inline";
+    mixingInProcessDiv.style.display = "inline";
 
     httpPostTumblerAsync("tumble", obj, function (json) {
         try {

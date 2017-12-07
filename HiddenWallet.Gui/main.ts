@@ -89,12 +89,7 @@ function startApi() {
 }
 
 // loads module and registers app specific cleanup callback...
-const cleanup = require('./app/js/cleanup').Cleanup(myCleanup);
-
-// defines app specific callback...
-function myCleanup() {
-    writeLog('exit');
-};
+const cleanup = require('./app/js/cleanup').Cleanup();
 
 function writeLog(msg) {
     console.log(msg);
