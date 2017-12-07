@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+//I am just adding this line so I can push a commit (!)
 
 namespace HiddenWallet.Daemon
 {
@@ -19,13 +20,14 @@ namespace HiddenWallet.Daemon
 		public static string TorArguments => $"SOCKSPort {SOCKSPort} ControlPort {ControlPort} HashedControlPassword {HashedControlPassword} DataDirectory {DataDirectory}";
 		public static SocksPortHandler SocksPortHandler = new SocksPortHandler("127.0.0.1", socksPort: SOCKSPort);
 		public static DotNetTor.ControlPort.Client ControlPortClient = new DotNetTor.ControlPort.Client("127.0.0.1", controlPort: ControlPort, password: "ILoveBitcoin21");
-		public static TorState State = TorState.NotStarted;
+		private static TorState _state = TorState.NotStarted;
 		public static CancellationTokenSource CircuitEstablishingJobCancel = new CancellationTokenSource();
 
 		public static async Task MakeSureCircuitEstablishedAsync()
 		{
 			var ctsToken = CircuitEstablishingJobCancel.Token;
 			State = TorState.NotStarted;
+
 			while (true)
 			{
 				try
@@ -48,7 +50,7 @@ namespace HiddenWallet.Daemon
 					}
 					catch (Exception ex)
 					{
-						if (ex is TimeoutException ||ex.InnerException is TimeoutException)
+						if (ex is TimeoutException || ex.InnerException is TimeoutException)
 						{
 							// Tor messed up something internally, this sometimes happens when it creates new datadir (at first launch)
 							// Restarting to solves the issue
@@ -57,7 +59,7 @@ namespace HiddenWallet.Daemon
 						if (ctsToken.IsCancellationRequested) return;
 					}
 				}
-				catch(Exception ex)
+				catch (Exception ex)
 				{
 					Debug.WriteLine("Ignoring Tor exception:");
 					Debug.WriteLine(ex);
@@ -103,6 +105,31 @@ namespace HiddenWallet.Daemon
 			{
 				Console.WriteLine("Terminating Tor process");
 				TorProcess.Kill();
+			}
+		}
+
+		private static void TryBroadcast()
+		{
+			try
+			{
+				NotificationBroadcaster.Instance.BroadcastTorState(State.ToString());
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
+			}
+		}
+
+		public static TorState State
+		{
+			get { return _state; }
+			set
+			{
+				if (value != _state)
+				{
+					_state = value;
+					try { TryBroadcast(); } catch { }
+				}
 			}
 		}
 

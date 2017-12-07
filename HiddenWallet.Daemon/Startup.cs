@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.AspNetCore.SignalR;
 
 namespace HiddenWallet.Daemon
 {
@@ -23,6 +24,8 @@ namespace HiddenWallet.Daemon
         public void ConfigureServices(IServiceCollection services)
         {
 			// Add framework services.
+			services.AddSignalR(); //Must come before .AddMvc()
+
 			services.AddMvc().AddJsonOptions(options =>
 			{
 				//return json format with Camel Case
@@ -36,8 +39,13 @@ namespace HiddenWallet.Daemon
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app)
+		public void Configure(IApplicationBuilder app, IHubContext<DaemonHub> context)
         {
+			app.UseSignalR(routes =>
+			{
+				routes.MapHub<DaemonHub>("daemonHub");
+			}); //Must come before .UseMvc()
+
 			app.UseMvc();
 
 			var applicationLifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
@@ -50,6 +58,9 @@ namespace HiddenWallet.Daemon
 			{
 				c.SwaggerEndpoint("/swagger/v1/swagger.json", "HiddenWalletAPI V1");
 			});
+
+			NotificationBroadcaster notificationBroadcast = NotificationBroadcaster.Instance;
+			notificationBroadcast.SignalRHub = context;
 		}
 
 		private async void OnShutdownAsync()

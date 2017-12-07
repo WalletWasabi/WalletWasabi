@@ -69,9 +69,20 @@
     <TypeScriptCompile Include="app\js\default.ts" />
     <TypeScriptCompile Include="app\js\hw-client.ts" />
     <TypeScriptCompile Include="app\js\settings.ts" />
-    <TypeScriptCompile Include="app\js\status.ts" />
+    <TypeScriptCompile Include="app\js\status.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="app\js\wallet-phase.ts" />
     <TypeScriptCompile Include="main.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="app\js\signalr-client-1.0.0-alpha2-final.min.js" />
+    <Compile Include="app\js\status-client.d.ts">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="app\js\status-client.js">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
