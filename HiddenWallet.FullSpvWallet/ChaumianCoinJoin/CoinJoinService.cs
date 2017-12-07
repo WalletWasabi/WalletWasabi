@@ -43,7 +43,25 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 		public Money Denomination => Money.Parse(StatusResponse?.Denomination ?? "0");
 		public StatusResponse StatusResponse { get; set; }
-		public int NumberOfPeers { get; private set; }
+
+		private int _peerCount;
+		public int PeerCount
+		{
+			get
+			{
+				return _peerCount;
+			}
+			set
+			{
+				if(value != _peerCount)
+				{
+					_peerCount = value;
+					OnPeerCountChanged(value);
+				}
+			}
+		}
+		public event EventHandler<int> PeerCountChanged;
+		public void OnPeerCountChanged(int peerCount) => PeerCountChanged?.Invoke(this, peerCount);
 
 		public string UniqueAliceId { get; private set; }
 		public BitcoinWitPubKeyAddress ActiveOutput { get; private set; }
@@ -116,7 +134,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				{
 					var jObject = JObject.Parse(data);
 					var numberOfPeers = jObject.Value<int>("NewRegistration");
-					NumberOfPeers = numberOfPeers;
+					PeerCount = numberOfPeers;
 
 					Debug.WriteLine($"Number of Tumbler peers: {numberOfPeers}");
 				});
@@ -134,7 +152,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 							try
 							{
 								var inputRegistrationResponse = await TumblerClient.GetInputRegistrationStatusAsync(CancellationToken.None);
-								NumberOfPeers = inputRegistrationResponse.RegisteredPeerCount;
+								PeerCount = inputRegistrationResponse.RegisteredPeerCount;
 							}
 							catch
 							{
@@ -288,13 +306,13 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						StatusResponse status = statusJustAcquired ?? await TumblerClient.GetStatusAsync(cancel);
 						StatusResponse = status;
 						// TODO: only native segwit (p2wpkh) inputs are accepted by the tumbler (later wrapped segwit (p2sh-p2wpkh) will be accepted too)
-						var getBalanceResult = await WalletJob.GetBalanceAsync(From);
-						var balance = getBalanceResult.Available.Confirmed + getBalanceResult.Available.Unconfirmed;
+						var (Available, UnspentCoins) = await WalletJob.GetBalanceAsync(From);
+						var balance = Available.Confirmed + Available.Unconfirmed;
 						var feePerInputs = Money.Parse(status.FeePerInputs);
 						var feePerOutputs = Money.Parse(status.FeePerOutputs);
 
-						var blindingResult = PubKey.Blind(Encoding.UTF8.GetBytes(ActiveOutput.ToString()));
-						string blindedOutput = HexHelpers.ToString(blindingResult.BlindedData);
+						var (BlindingFactor, BlindedData) = PubKey.Blind(Encoding.UTF8.GetBytes(ActiveOutput.ToString()));
+						string blindedOutput = HexHelpers.ToString(BlindedData);
 
 						SigningKeys = new ConcurrentHashSet<BitcoinExtKey>();
 						Inputs = new ConcurrentHashSet<Coin>();
@@ -302,7 +320,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						var i = 0;
 						var needSegwitify = false;
 						Money sumAmounts = Money.Zero;
-						foreach (Coin coin in getBalanceResult.UnspentCoins
+						foreach (Coin coin in UnspentCoins
 							.OrderByDescending(x => x.Value) // look at confirmed ones first
 							.OrderByDescending(x => x.Key.Amount) // look at the biggest amounts first, TODO: this is sub-optimal (CCJ unconfirmed change should be the same category as confirmed and not CCJ change unconfirmed should not be here)
 							.Select(x => x.Key))
@@ -347,7 +365,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 								break;
 							}
 
-							if (i == getBalanceResult.UnspentCoins.Count)
+							if (i == UnspentCoins.Count)
 							{
 								if(needSegwitify)
 								{
@@ -374,7 +392,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						UniqueAliceId = response.UniqueId;
 
 						// unblind the signature
-						var unblindedSignature = PubKey.UnblindSignature(HexHelpers.GetBytes(response.SignedBlindedOutput), blindingResult.BlindingFactor);
+						var unblindedSignature = PubKey.UnblindSignature(HexHelpers.GetBytes(response.SignedBlindedOutput), BlindingFactor);
 						// verify the original data is signed
 						if (!PubKey.Verify(unblindedSignature, Encoding.UTF8.GetBytes(ActiveOutput.ToString())))
 						{

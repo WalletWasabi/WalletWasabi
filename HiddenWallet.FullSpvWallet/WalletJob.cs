@@ -84,13 +84,16 @@ namespace HiddenWallet.FullSpv
             }
         }
 
-        public async Task<Height> GetBestHeightAsync()
+		public event EventHandler<Height> HeaderHeightChanged;
+		private void OnHeaderHeightChanged(Height height) => HeaderHeightChanged?.Invoke(this, height);
+
+		public async Task<Height> GetBestHeightAsync()
         {
             var tracker = (await GetTrackerAsync());
             return (await GetHeaderChainAsync()).Height < tracker.BestHeight ? Height.Unknown : tracker.BestHeight;
         }
-		public event EventHandler BestHeightChanged;
-		private void OnBestHeightChanged() => BestHeightChanged?.Invoke(this, EventArgs.Empty);
+		public event EventHandler<int> BestHeightChanged;
+		private void OnBestHeightChanged(int height) => BestHeightChanged?.Invoke(this, height);
 
 		public int ConnectedNodeCount
 		{
@@ -108,8 +111,8 @@ namespace HiddenWallet.FullSpv
 				return Nodes.MaximumNodeConnection;
 			}
 		}
-		public event EventHandler ConnectedNodeCountChanged;
-		private void OnConnectedNodeCountChanged() => ConnectedNodeCountChanged?.Invoke(this, EventArgs.Empty);
+		public event EventHandler<int> ConnectedNodeCountChanged;
+		private void OnConnectedNodeCountChanged(int count) => ConnectedNodeCountChanged?.Invoke(this, count);
 
 		private WalletState _state;
 		public WalletState State
@@ -195,7 +198,7 @@ namespace HiddenWallet.FullSpv
 			return height;
 		}
 
-		private async Task<ConcurrentChain> GetHeaderChainAsync()
+		public async Task<ConcurrentChain> GetHeaderChainAsync()
 		{
             if (_connectionParameters != null)
             {
@@ -290,8 +293,6 @@ namespace HiddenWallet.FullSpv
 
             Nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
             Nodes.ConnectedNodes.Added += ConnectedNodes_Added;
-
-            (await GetTrackerAsync()).BestHeightChanged += WalletJob_BestHeightChanged;
 		}
 
 		private async void TrackedTransactions_CollectionChangedAsync(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -299,19 +300,14 @@ namespace HiddenWallet.FullSpv
             await UpdateSafeTrackingAsync();
         }
 
-        private void WalletJob_BestHeightChanged(object sender, EventArgs e)
-        {
-            OnBestHeightChanged();
-        }
-
         private void ConnectedNodes_Added(object sender, NodeEventArgs e)
         {
-            OnConnectedNodeCountChanged();
+            OnConnectedNodeCountChanged(ConnectedNodeCount);
         }
 
         private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
         {
-            OnConnectedNodeCountChanged();
+            OnConnectedNodeCountChanged(ConnectedNodeCount);
         }
 
         private async void MemPoolJob_NewTransactionAsync(object sender, NewTransactionEventArgs e)
@@ -353,7 +349,8 @@ namespace HiddenWallet.FullSpv
                 tasks = new HashSet<Task>
             {
                 PeriodicSaveAsync(TimeSpan.FromMinutes(3), ctsToken),
-                BlockDownloadingJobAsync(ctsToken),
+				HeaderHeightMonitorAsync(TimeSpan.FromSeconds(1), ctsToken),
+				BlockDownloadingJobAsync(ctsToken),
                 MemPoolJob.StartAsync(ctsToken),
                 BlockDownloader.StartAsync(ctsToken),
                 FeeService.StartAsync(ctsToken)
@@ -369,7 +366,6 @@ namespace HiddenWallet.FullSpv
 				MemPoolJob.NewTransaction -= MemPoolJob_NewTransactionAsync;
 				Nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
 				Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
-				(await GetTrackerAsync()).BestHeightChanged -= WalletJob_BestHeightChanged;
 				await SaveAllChangedAsync();
 				Nodes?.Dispose();
 				foreach (var task in tasks)
@@ -443,6 +439,35 @@ namespace HiddenWallet.FullSpv
 		#endregion
 
 		#region Misc
+		
+		private async Task HeaderHeightMonitorAsync(TimeSpan delay, CancellationToken ctsToken)
+		{
+			Height headerHeight = Height.Unknown;
+			while (true)
+			{
+				try
+				{
+					if (ctsToken.IsCancellationRequested) return;
+
+					var heightResult = await TryGetHeaderHeightAsync();
+					if (heightResult.Success)
+					{
+						if (heightResult.Height != headerHeight)
+						{
+							headerHeight = heightResult.Height;
+							OnHeaderHeightChanged(headerHeight);
+						}
+					}
+
+					await Task.Delay(delay, ctsToken).ContinueWith(tsk => { });
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine($"Ignoring {nameof(HeaderHeightMonitorAsync)} exception:");
+					Debug.WriteLine(ex);
+				}
+			}
+		}
 
 		/// <summary>
 		///
@@ -522,10 +547,10 @@ namespace HiddenWallet.FullSpv
 
 			foreach (var spk in trackedScriptPubkeys)
 			{
-                var result = await TryFindAllChainAndMemPoolTransactionsAsync(spk);
-                var rec = result.ReceivedTransactions;
-                var spent = result.SpentTransactions;
-                if (result.Success)
+                var (Success, ReceivedTransactions, SpentTransactions) = await TryFindAllChainAndMemPoolTransactionsAsync(spk);
+                var rec = ReceivedTransactions;
+                var spent = SpentTransactions;
+                if (Success)
 				{
 					foreach (var tx in rec)
 					{

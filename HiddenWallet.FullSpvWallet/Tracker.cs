@@ -94,11 +94,11 @@ namespace HiddenWallet.FullSpv
 			{
 				if (_bestHeight == value) return;
 				_bestHeight = value;
-				OnBestHeightChanged();
+				OnBestHeightChanged(value);
 			}
 		}
-		public event EventHandler BestHeightChanged;
-		private void OnBestHeightChanged() => BestHeightChanged?.Invoke(this, EventArgs.Empty);
+		public event EventHandler<Height> BestHeightChanged;
+		private void OnBestHeightChanged(Height height) => BestHeightChanged?.Invoke(this, height);
 
 		public int BlockCount => MerkleChain.Count;
 
