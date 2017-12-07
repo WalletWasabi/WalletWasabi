@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-	<RuntimeIdentifiers>win7-x64;win8-x64;win81-x64;win10-x64;osx.10.10-x64;osx.10.11-x64;osx.10.12-x64;ubuntu.14.04-x64;ubuntu.14.10-x64;ubuntu.15.04-x64;ubuntu.15.10-x64;ubuntu.16.04-x64;ubuntu.16.10-x64;debian.8-x64;linuxmint.17-x64;linuxmint.17.1-x64;linuxmint.17.2-x64;linuxmint.17.3-x64;linuxmint.18-x64;win7-x86;win8-x86;win81-x86;win10-x86</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;win-x86;linux-x64;osx-x64</RuntimeIdentifiers>
     <Version>0.5.3</Version>
     <AssemblyVersion>0.5.3.0</AssemblyVersion>
     <FileVersion>0.5.3.0</FileVersion>
@@ -27,8 +27,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.0.0-alpha2-final" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="1.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.0.0-alpha2-final" />
   </ItemGroup>
 
   <ItemGroup>
