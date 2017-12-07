@@ -400,15 +400,15 @@ namespace HiddenWallet.Tests
             Debug.WriteLine($"{nameof(walletJob.State)}: {walletJob.State}");
         }
 
-        private void WalletJob_ConnectedNodeCountChanged(object sender, EventArgs e)
+        private void WalletJob_ConnectedNodeCountChanged(object sender, int nodeCount)
         {
             var walletJob = sender as WalletJob;
-            if (walletJob.MaxConnectedNodeCount == walletJob.ConnectedNodeCount)
+            if (walletJob.MaxConnectedNodeCount == nodeCount)
             {
                 Debug.WriteLine(
                     $"{nameof(WalletJob.MaxConnectedNodeCount)} reached: {walletJob.MaxConnectedNodeCount}");
             }
-            else Debug.WriteLine($"{nameof(WalletJob.ConnectedNodeCount)}: {walletJob.ConnectedNodeCount}");
+            else Debug.WriteLine($"{nameof(nodeCount)}: {nodeCount}");
         }
 
         bool _txProbArrived;

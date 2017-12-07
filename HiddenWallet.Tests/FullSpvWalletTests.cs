@@ -98,16 +98,16 @@ namespace HiddenWallet.Tests
             _syncedOnce = walletJob.State == WalletState.Synced;
         }
 
-		private void WalletJob_ConnectedNodeCountChanged(object sender, EventArgs e)
+		private void WalletJob_ConnectedNodeCountChanged(object sender, int nodeCount)
 		{
             var walletJob = sender as WalletJob;
-			if (walletJob.MaxConnectedNodeCount == walletJob.ConnectedNodeCount)
+			if (walletJob.MaxConnectedNodeCount == nodeCount)
 			{
 				_fullyConnected = true;
 				Debug.WriteLine(
 					$"{nameof(walletJob.MaxConnectedNodeCount)} reached: {walletJob.MaxConnectedNodeCount}");
 			}
-			else Debug.WriteLine($"{nameof(walletJob.ConnectedNodeCount)}: {walletJob.ConnectedNodeCount}");
+			else Debug.WriteLine($"{nameof(nodeCount)}: {nodeCount}");
 		}
 
 		// test with a long time used testnet wallet, with exotic, including tumblebit transactions
@@ -200,14 +200,14 @@ namespace HiddenWallet.Tests
 
 				HashSet<WalletHistoryRecord> qBitFoundItToo = new HashSet<WalletHistoryRecord>();
 				// Assert all record found by qbit also found by spv and they are identical
-				foreach (var record in qBitHistoryRecords)
+				foreach (var (FirstSeen, Amount, Confirmations, TxId) in qBitHistoryRecords)
 				{
-					WalletHistoryRecord found = fullSpvHistoryRecords.FirstOrDefault(x => x.TransactionId == record.TxId);
+					WalletHistoryRecord found = fullSpvHistoryRecords.FirstOrDefault(x => x.TransactionId == TxId);
 
                     Assert.NotEqual(default, found);
-                    Assert.Equal(record.FirstSeen, found.TimeStamp);
-                    Assert.Equal(record.Confirmations > 0, found.Confirmed);
-                    Assert.Equal(record.Amount, found.Amount);
+                    Assert.Equal(FirstSeen, found.TimeStamp);
+                    Assert.Equal(Confirmations > 0, found.Confirmed);
+                    Assert.Equal(Amount, found.Amount);
 					qBitFoundItToo.Add(found);
 				}
 

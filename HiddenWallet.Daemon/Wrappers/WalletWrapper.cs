@@ -90,7 +90,14 @@ namespace HiddenWallet.Daemon.Wrappers
                 WalletJob = new WalletJob();
 				await WalletJob.InitializeAsync(Tor.SocksPortHandler, Tor.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
 
-				WalletJob.StateChanged += _walletJob_StateChanged;
+				WalletJob.StateChanged += WalletJob_StateChanged;
+				WalletJob.MemPoolJob.NewTransaction += MemPoolJob_NewTransaction;
+				WalletJob.HeaderHeightChanged += WalletJob_HeaderHeightChanged;
+				(await WalletJob.GetTrackerAsync()).BestHeightChanged += WalletWrapper_BestHeightChanged;
+				WalletJob.ConnectedNodeCountChanged += WalletJob_ConnectedNodeCountChanged;
+				WalletJob.CoinJoinService.PeerCountChanged += CoinJoinService_PeerCountChanged;
+
+
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
 
 				_receiveResponseAlice.ExtPubKey = WalletJob.Safe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: AliceAccount).ToWif();
@@ -111,6 +118,38 @@ namespace HiddenWallet.Daemon.Wrappers
 				}
 				await WalletJob.CoinJoinService.SubscribeNotificationsAsync();
 			}
+		}
+
+		private void WalletWrapper_BestHeightChanged(object sender, Height height)
+		{
+			NotificationBroadcaster.Instance.BroadcastTrackerHeight(height.Value.ToString());
+		}
+
+		private void WalletJob_StateChanged(object sender, EventArgs e)
+		{
+			_walletState = WalletJob.State.ToString();
+			NotificationBroadcaster.Instance.BroadcastWalletState(_walletState);
+		}
+
+		private void WalletJob_ConnectedNodeCountChanged(object sender, int count)
+		{
+			NotificationBroadcaster.Instance.BroadcastNodeCount(count.ToString());
+		}
+
+		private void WalletJob_HeaderHeightChanged(object sender, Height headerHeight)
+		{
+			NotificationBroadcaster.Instance.BroadcastHeaderHeight(headerHeight.Value.ToString());
+		}
+
+		private void MemPoolJob_NewTransaction(object sender, NewTransactionEventArgs e)
+		{
+			NotificationBroadcaster.Instance.BroadcastMempool(e.MempoolTxCount.ToString());
+		}
+
+		private void CoinJoinService_PeerCountChanged(object sender, int peerCount)
+		{
+			TumblerStatusResponse status = GetTumblerStatusResponse();
+			NotificationBroadcaster.Instance.BroadcastTumblerStatus(status);
 		}
 
 		public async Task RecoverAsync(string password, string mnemonic, string creationTime)
@@ -139,6 +178,7 @@ namespace HiddenWallet.Daemon.Wrappers
 			{
 				_changeBump++;
 			}
+			NotificationBroadcaster.Instance.BroadcastChangeBump();
 		}
 
 		private async Task UpdateHistoryRelatedMembersAsync()
@@ -187,8 +227,8 @@ namespace HiddenWallet.Daemon.Wrappers
 			_historyResponseBob.History = hrb.ToArray();
 
             // balances
-            var getBalanceResult = await WalletJob.GetBalanceAsync(AliceAccount);
-            var aa = getBalanceResult.Available;
+            var (Available, UnspentCoins) = await WalletJob.GetBalanceAsync(AliceAccount);
+            var aa = Available;
             var getBalanceResult2 = await WalletJob.GetBalanceAsync(BobAccount);
             var ab = getBalanceResult2.Available;
 			_availableAlice = aa.Confirmed;
@@ -213,10 +253,6 @@ namespace HiddenWallet.Daemon.Wrappers
 			_receiveResponseAlice.TraditionalAddress = (await WalletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2PublicKeyHash, AliceAccount, HdPathType.Receive)).FirstOrDefault().GetDestinationAddress(network).ToString();
 			_receiveResponseBob.TraditionalAddress = (await WalletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2PublicKeyHash, BobAccount, HdPathType.Receive)).FirstOrDefault().GetDestinationAddress(network).ToString();
 		}
-		private void _walletJob_StateChanged(object sender, EventArgs e)
-		{
-			_walletState = WalletJob.State.ToString();
-		}
 
 		#endregion
 
@@ -228,7 +264,12 @@ namespace HiddenWallet.Daemon.Wrappers
 			Console.WriteLine("Gracefully shutting down...");
 			if (WalletJob != null)
 			{
-				WalletJob.StateChanged -= _walletJob_StateChanged;
+				WalletJob.StateChanged -= WalletJob_StateChanged;
+				WalletJob.MemPoolJob.NewTransaction -= MemPoolJob_NewTransaction;
+				WalletJob.HeaderHeightChanged -= WalletJob_HeaderHeightChanged;
+				(await WalletJob.GetTrackerAsync()).BestHeightChanged -= WalletWrapper_BestHeightChanged;
+				WalletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChanged;
+				WalletJob.CoinJoinService.PeerCountChanged -= CoinJoinService_PeerCountChanged;
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
 			}
 
@@ -239,6 +280,63 @@ namespace HiddenWallet.Daemon.Wrappers
 
             _cts?.Dispose();
             _walletJobTask?.Dispose();
+		}
+
+		public TumblerStatusResponse GetTumblerStatusResponse()
+		{
+			if (WalletJob != null)
+			{
+				var itbo = WalletJob.CoinJoinService?.TumblerConnection != null;
+
+				var tbd = (WalletJob.CoinJoinService?.Denomination ?? Money.Zero).ToString(false, true);
+
+				var tumblerStatus = WalletJob.CoinJoinService?.StatusResponse;
+
+				var tas = tumblerStatus?.AnonymitySet ?? 0;
+
+				var tnop = WalletJob.CoinJoinService?.PeerCount ?? 0;
+
+				string tfr = "0";
+				try
+				{
+					var feePerInputs = Money.Parse(tumblerStatus?.FeePerInputs);
+					var feePerOutputs = Money.Parse(tumblerStatus?.FeePerOutputs);
+					tfr = (feePerInputs + 2 * feePerOutputs).ToString(false, true);
+				}
+				catch
+				{
+
+				}
+
+				int twiir;
+
+				if (tumblerStatus == null)
+				{
+					twiir = 0;
+				}
+				else
+				{
+					twiir = (int)TimeSpan.FromSeconds(Convert.ToDouble(tumblerStatus.TimeSpentInInputRegistrationInSeconds)).TotalMinutes;
+				}
+
+				var tp = WalletJob.CoinJoinService?.Phase.ToString() ?? "";
+
+				TumblerStatusResponse status = new TumblerStatusResponse
+				{
+					IsTumblerOnline = itbo,
+					TumblerDenomination = tbd,
+					TumblerAnonymitySet = tas,
+					TumblerNumberOfPeers = tnop,
+					TumblerFeePerRound = tfr,
+					TumblerWaitedInInputRegistration = twiir,
+					TumblerPhase = tp
+				};
+				return status;
+			}
+			else
+			{
+				return new TumblerStatusResponse { Success = false, IsTumblerOnline = false };
+			}
 		}
 
 		public async Task<StatusResponse> GetStatusResponseAsync()
@@ -278,7 +376,7 @@ namespace HiddenWallet.Daemon.Wrappers
 				
 				var tas = tumblerStatus?.AnonymitySet ?? 0;
 
-				var tnop = WalletJob.CoinJoinService?.NumberOfPeers ?? 0;
+				var tnop = WalletJob.CoinJoinService?.PeerCount ?? 0;
 
 				string tfr = "0";
 				try

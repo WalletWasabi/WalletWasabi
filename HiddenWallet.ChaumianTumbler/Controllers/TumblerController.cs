@@ -462,18 +462,18 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				using (await SignatureProvidedAsyncLock.LockAsync())
 				{
 					Transaction coinJoin = Global.StateMachine.CoinJoin;
-					foreach (var signatureModel in request.Signatures)
+					foreach (var (Witness, Index) in request.Signatures)
 					{
-						var witness = new WitScript(signatureModel.Witness);
-						if (coinJoin.Inputs.Count <= signatureModel.Index)
+						var witness = new WitScript(Witness);
+						if (coinJoin.Inputs.Count <= Index)
 						{
 							// round fails, ban alice
 							await Global.UtxoReferee.BanAliceAsync(alice);
 							Global.StateMachine.FallBackRound = true;
 							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
-							throw new ArgumentOutOfRangeException(nameof(signatureModel.Index));
+							throw new ArgumentOutOfRangeException(nameof(Index));
 						}
-						if(!string.IsNullOrWhiteSpace(coinJoin.Inputs[signatureModel.Index]?.WitScript?.ToString()))
+						if(!string.IsNullOrWhiteSpace(coinJoin.Inputs[Index]?.WitScript?.ToString()))
 						{
 							// round fails, ban alice
 							await Global.UtxoReferee.BanAliceAsync(alice);
@@ -481,9 +481,9 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
 							throw new InvalidOperationException("Input is already signed");
 						}
-						coinJoin.Inputs[signatureModel.Index].WitScript = witness;
-						var output = alice.Inputs.Single(x => x.OutPoint == coinJoin.Inputs[signatureModel.Index].PrevOut).Output;
-						if(!Script.VerifyScript(output.ScriptPubKey, coinJoin, signatureModel.Index, output.Value, ScriptVerify.Standard, SigHash.All))
+						coinJoin.Inputs[Index].WitScript = witness;
+						var output = alice.Inputs.Single(x => x.OutPoint == coinJoin.Inputs[Index].PrevOut).Output;
+						if(!Script.VerifyScript(output.ScriptPubKey, coinJoin, Index, output.Value, ScriptVerify.Standard, SigHash.All))
 						{
 							// round fails, ban alice
 							await Global.UtxoReferee.BanAliceAsync(alice);

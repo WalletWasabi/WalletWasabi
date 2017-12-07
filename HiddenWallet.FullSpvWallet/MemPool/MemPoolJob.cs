@@ -13,10 +13,12 @@ namespace HiddenWallet.FullSpv.MemPool
 	public class NewTransactionEventArgs : EventArgs
 	{
 		public Transaction Transaction { get; }
+		public int MempoolTxCount { get; }
 
-		public NewTransactionEventArgs(Transaction transaction)
+		public NewTransactionEventArgs(Transaction transaction, int mempoolTxCount)
 		{
 			Transaction = transaction;
+			MempoolTxCount = mempoolTxCount;
 		}
 	}
 	public class MemPoolJob
@@ -26,7 +28,7 @@ namespace HiddenWallet.FullSpv.MemPool
 		private ConcurrentHashSet<uint256> _notNeededTransactions = new ConcurrentHashSet<uint256>();
 
         public event EventHandler<NewTransactionEventArgs> NewTransaction;
-		private void OnNewTransaction(Transaction transaction) => NewTransaction?.Invoke(this, new NewTransactionEventArgs(transaction));
+		private void OnNewTransaction(Transaction transaction) => NewTransaction?.Invoke(this, new NewTransactionEventArgs(transaction, Transactions.Count));
 
 	    public bool SyncedOnce { get; private set; } = false;
 		public event EventHandler Synced;

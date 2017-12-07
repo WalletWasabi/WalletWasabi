@@ -22,13 +22,13 @@ namespace HiddenWallet.Tests
 			// generate blinding factor with pubkey
 			// blind message
 			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			var blindingResult = key.PubKey.Blind(message);
+			var (BlindingFactor, BlindedData) = key.PubKey.Blind(message);
 
 			// sign the blinded message
-			var signature = key.SignBlindedData(blindingResult.BlindedData);
+			var signature = key.SignBlindedData(BlindedData);
 
 			// unblind the signature
-			var unblindedSignature = key.PubKey.UnblindSignature(signature, blindingResult.BlindingFactor);
+			var unblindedSignature = key.PubKey.UnblindSignature(signature, BlindingFactor);
 
 			// verify the original data is signed
 			Assert.True(key.PubKey.Verify(unblindedSignature, message));
@@ -51,13 +51,13 @@ namespace HiddenWallet.Tests
 			// generate blinding factor with pubkey
 			// blind message
 			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			var blindingResult = pubKey2.Blind(message);
+			var (BlindingFactor, BlindedData) = pubKey2.Blind(message);
 
 			// sign the blinded message
-			var signature = key.SignBlindedData(blindingResult.BlindedData);
+			var signature = key.SignBlindedData(BlindedData);
 
 			// unblind the signature
-			var unblindedSignature = key2.PubKey.UnblindSignature(signature, blindingResult.BlindingFactor);
+			var unblindedSignature = key2.PubKey.UnblindSignature(signature, BlindingFactor);
 
 			// verify the original data is signed
 			Assert.True(key2.PubKey.Verify(unblindedSignature, message));
