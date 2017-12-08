@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "electron": "^1.7.9",
-    "electron-builder": "^19.47.1"
+    "electron-builder": "^19.48.2"
   },
   "dependencies": {
     "bootstrap": "^3.3.7",
