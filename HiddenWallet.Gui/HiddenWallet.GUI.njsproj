@@ -72,7 +72,6 @@
     <TypeScriptCompile Include="app\js\status-client.d.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="app\js\status.ts" />
     <TypeScriptCompile Include="app\js\wallet-phase.ts" />
     <TypeScriptCompile Include="main.ts" />
   </ItemGroup>
