@@ -98,7 +98,9 @@ function statusSignalRShow() {
 
     if (trackerHeight !== 0) {
         blocksLeft = (headerHeight - trackerHeight).toString();
-        blocksLeftDisplay = ", Blocks left: " + blocksLeft.toString();
+        if (blocksLeft !== "0") {
+            blocksLeftDisplay = ", Blocks left: " + blocksLeft.toString();
+        }
     }
 
     mempoolDisplay = ", MemPool txs: " + mempool.toString();
