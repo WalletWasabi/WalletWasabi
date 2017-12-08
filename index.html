@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HiddenWallet</title>
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="app/css/justified-nav.css">
+    <link rel="stylesheet" href="app/css/default.css" />
+    <link rel="stylesheet" media="all" href="node_modules/mdi/css/materialdesignicons.min.css" />
+</head>
+<body onload="decryptionPhaseShow(); periodicUpdate();">
+    <iframe id="decryption-phase-menu-frame" src="app/html/decryption-phase-menu.html" style="display:none"></iframe>
+    <iframe id="wallet-menu-frame" src="app/html/wallet-menu.html" style="display:none"></iframe>
+    <iframe id="decryption-phase-content-frame" src="app/html/decryption-phase-content.html" style="display:none"></iframe>
+    <iframe id="wallet-phase-tabs-frame" src="app/html/wallet-phase-tabs.html" style="display:none"></iframe>
+    <iframe id="wallet-content-frame" src="app/html/wallet-content.html" style="display:none"></iframe>
+    <div id="title-bar">
+        <div id="title"> </div>
+        <div id="title-bar-btns">
+            <button id="hide-btn" type="button">
+                <span class="glyphicon glyphicon-eye-close"></span>
+            </button>
+            <button id="close-btn" type="button">
+                <span class="glyphicon glyphicon-off"></span>
+            </button>
+        </div>
+    </div>
+    <div id="below-title-bar" class="container">
+        <h4><span id="hint" class="label label-info"></span></h4>
+        <div id="tabs"> </div>
+        <div id="balances"> </div>
+        <br id="before-menu-br" />
+        <div id="menu"> </div>
+        <hr id="after-menu-hr"/>
+        <div id="content"> </div>
+    </div>
+    <div id="status" style="position:absolute; bottom:1px; width: 100%;"></div>
+
+    <script src="app/js/hw-client.js"></script>
+    <script src="app/js/default.js"></script>
+    <script src="app/js/copypaste.js"></script>
+    <script src="app/js/settings.js"></script>
+    <script src="app/js/status.js"></script>
+    <script src="app/js/decryption-phase.js"></script>
+    <script src="app/js/wallet-phase.js"></script>
+</body>
+</html>

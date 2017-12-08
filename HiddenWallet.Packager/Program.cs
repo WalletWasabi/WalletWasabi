@@ -27,10 +27,7 @@ namespace HiddenWallet.Packager
             // https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
             string[] targets =
             {
-                "win7-x64",
-                "win8-x64",
-                "win81-x64",
-                "win10-x64",
+                "win-x64"
             };
             await UpdateCsprojAsync(daemonProjectDirectory, targets);
 
@@ -92,7 +89,7 @@ namespace HiddenWallet.Packager
                 WorkingDirectory = guiProjectDirectory
             };
             var pNpmRunDist = Process.Start(psiNpmRunDist);
-            pNpmRunDist.StandardInput.WriteLine("npm run pack & exit");
+            pNpmRunDist.StandardInput.WriteLine("tsc && npm run pack && exit");
             pNpmRunDist.WaitForExit();
 
             foreach (var file in Directory.GetFiles(distDir))
