@@ -16,8 +16,8 @@ namespace HiddenWallet.Daemon
 
 		public async Task GetHeaderHeightAsync()
 		{
-			int hh = await Global.WalletWrapper.GetHeaderHeightAsync();
-			NotificationBroadcaster.Instance.BroadcastHeaderHeight(hh.ToString());
+			var (Success, Height) = await Global.WalletWrapper.WalletJob.TryGetHeaderHeightAsync();
+			NotificationBroadcaster.Instance.BroadcastHeaderHeight(Height.Value.ToString());
 		}
 
 		public void TumblerStatusBroadcastRequest()

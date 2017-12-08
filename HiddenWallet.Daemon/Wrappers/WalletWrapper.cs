@@ -496,23 +496,5 @@ namespace HiddenWallet.Daemon.Wrappers
 			}
 			else return new FailureResponse { Message = "Wrong account" };
 		}
-
-		public async Task<int> GetHeaderHeightAsync()
-		{
-			int hh = 0;
-			if (WalletJob != null)
-			{
-				var result = await WalletJob.TryGetHeaderHeightAsync();
-				var headerHeight = result.Height;
-				if (result.Success)
-				{
-					if (headerHeight.Type == HeightType.Chain)
-					{
-						hh = headerHeight.Value;
-					}
-				}
-			}
-			return hh;
-		}
 	}
 }
