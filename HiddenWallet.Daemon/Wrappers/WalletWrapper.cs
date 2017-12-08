@@ -200,8 +200,8 @@ namespace HiddenWallet.Daemon.Wrappers
 			_historyResponseBob.History = hrb.ToArray();
 
             // balances
-            var getBalanceResult = await WalletJob.GetBalanceAsync(AliceAccount);
-            var aa = getBalanceResult.Available;
+            var (Available, UnspentCoins) = await WalletJob.GetBalanceAsync(AliceAccount);
+            var aa = Available;
             var getBalanceResult2 = await WalletJob.GetBalanceAsync(BobAccount);
             var ab = getBalanceResult2.Available;
 			_availableAlice = aa.Confirmed;

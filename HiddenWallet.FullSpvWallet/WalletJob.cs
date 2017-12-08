@@ -560,10 +560,10 @@ public async Task StartAsync(CancellationToken ctsToken)
 
 			foreach (var spk in trackedScriptPubkeys)
 			{
-                var result = await TryFindAllChainAndMemPoolTransactionsAsync(spk);
-                var rec = result.ReceivedTransactions;
-                var spent = result.SpentTransactions;
-                if (result.Success)
+                var (Success, ReceivedTransactions, SpentTransactions) = await TryFindAllChainAndMemPoolTransactionsAsync(spk);
+                var rec = ReceivedTransactions;
+                var spent = SpentTransactions;
+                if (Success)
 				{
 					foreach (var tx in rec)
 					{
