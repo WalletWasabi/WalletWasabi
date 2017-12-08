@@ -3,6 +3,8 @@
   "version": "0.6.0",
   "description": "HiddenWallet.Gui",
   "main": "main.js",
+  "repository": "https://github.com/nopara73/HiddenWallet/",
+  "license": "MIT",
   "author": {
     "name": "nopara73 <adam.ficsor73@gmail.com>"
   },
@@ -18,7 +20,7 @@
   },
   "scripts": {
     "start": "electron .",
-    "pack": "build --dir",
+    "pack": "build --dir -wl",
     "dist": "build"
   },
   "build": {

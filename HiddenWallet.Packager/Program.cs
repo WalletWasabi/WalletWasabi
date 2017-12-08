@@ -25,9 +25,11 @@ namespace HiddenWallet.Packager
             var version = packageJson.SelectToken("version").Value<string>();
 
             // https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
+			// by the packager currently only windows and linux suppported and only x64
             string[] targets =
             {
-                "win-x64"
+                "win-x64",
+				"linux-x64"
             };
             await UpdateCsprojAsync(daemonProjectDirectory, targets);
 
@@ -50,21 +52,24 @@ namespace HiddenWallet.Packager
                 }
                 Directory.CreateDirectory(currDistDir);
 
-                var torFolderPath = Path.Combine(currDistDir, "tor");
-                Console.WriteLine("Replacing tor...");
-                if (Directory.Exists(torFolderPath))
-                {
-                    await DeleteDirectoryRecursivelyAsync(torFolderPath);
-                }
-                try
-                {
-                    ZipFile.ExtractToDirectory(Path.Combine(packagerProjectDirectory, "tor.zip"), currDistDir);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    await Task.Delay(100);
-                    ZipFile.ExtractToDirectory(Path.Combine(packagerProjectDirectory, "tor.zip"), currDistDir);
-                }
+				if(target.StartsWith("win", StringComparison.OrdinalIgnoreCase))
+				{
+					var torFolderPath = Path.Combine(currDistDir, "tor");
+					Console.WriteLine("Replacing tor...");
+					if (Directory.Exists(torFolderPath))
+					{
+						await DeleteDirectoryRecursivelyAsync(torFolderPath);
+					}
+					try
+					{
+						ZipFile.ExtractToDirectory(Path.Combine(packagerProjectDirectory, "tor.zip"), currDistDir);
+					}
+					catch (UnauthorizedAccessException)
+					{
+						await Task.Delay(100);
+						ZipFile.ExtractToDirectory(Path.Combine(packagerProjectDirectory, "tor.zip"), currDistDir);
+					}
+				}                
 
                 var psiPublish = new ProcessStartInfo
                 {
@@ -103,7 +108,14 @@ namespace HiddenWallet.Packager
                 string targetWithoutArch = target.Remove(target.Length - 4);
 
                 string currentDistributionDirectory = Path.Combine(distDir, "HiddenWallet-" + version + "-" + targetWithoutArch);
-                CloneDirectory(Path.Combine(distDir, "win-unpacked"), currentDistributionDirectory);
+				if(target.StartsWith("win"))
+				{
+					CloneDirectory(Path.Combine(distDir, "win-unpacked"), currentDistributionDirectory);
+				}
+				else
+				{
+					CloneDirectory(Path.Combine(distDir, "linux-unpacked"), currentDistributionDirectory);
+				}
                 string currTargDir = Path.Combine(currentDistributionDirectory, "resources\\HiddenWallet.Daemon\\bin\\dist\\current-target");
                 Directory.CreateDirectory(currTargDir);
                 var apiTargetDir = Path.Combine(daemonProjectDirectory, "bin\\dist", target);
@@ -113,9 +125,10 @@ namespace HiddenWallet.Packager
                 await DeleteDirectoryRecursivelyAsync(currentDistributionDirectory);
             }
 
-            await DeleteDirectoryRecursivelyAsync(Path.Combine(distDir, "win-unpacked"));
+			await DeleteDirectoryRecursivelyAsync(Path.Combine(distDir, "win-unpacked"));
+			await DeleteDirectoryRecursivelyAsync(Path.Combine(distDir, "linux-unpacked"));
 
-            Console.WriteLine("Finished. Press key to exit...");
+			Console.WriteLine("Finished. Press key to exit...");
             Console.ReadKey();
         }
 
