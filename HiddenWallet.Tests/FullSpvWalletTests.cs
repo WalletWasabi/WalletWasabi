@@ -98,16 +98,16 @@ namespace HiddenWallet.Tests
             _syncedOnce = walletJob.State == WalletState.Synced;
         }
 
-		private void WalletJob_ConnectedNodeCountChanged(object sender, EventArgs e)
+		private void WalletJob_ConnectedNodeCountChanged(object sender, int nodeCount)
 		{
             var walletJob = sender as WalletJob;
-			if (walletJob.MaxConnectedNodeCount == walletJob.ConnectedNodeCount)
+			if (walletJob.MaxConnectedNodeCount == nodeCount)
 			{
 				_fullyConnected = true;
 				Debug.WriteLine(
 					$"{nameof(walletJob.MaxConnectedNodeCount)} reached: {walletJob.MaxConnectedNodeCount}");
 			}
-			else Debug.WriteLine($"{nameof(walletJob.ConnectedNodeCount)}: {walletJob.ConnectedNodeCount}");
+			else Debug.WriteLine($"{nameof(nodeCount)}: {nodeCount}");
 		}
 
 		// test with a long time used testnet wallet, with exotic, including tumblebit transactions

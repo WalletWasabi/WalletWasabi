@@ -74,10 +74,10 @@ function signalrStatusUpdate() {
 
     connection.start().then(function () {
         console.log("Connected to SignalR on Daemon");
-        connection.invoke('GetTorStatus');
+        connection.invoke('GetTorStatusAsync');
     }).then(function () {
         console.log("Tumbler Status Request");
-        connection.invoke('TumblerStatusBroadcastRequest'); //Request that the status is broadcast
+        connection.invoke('TumblerStatusBroadcastRequestAsync'); //Request that the status is broadcast
     }).catch(error => {
         console.error(error.message);
     });
@@ -195,7 +195,7 @@ function getHeaderHeight() {
 }
 
 function tumblerStatusBroadcastRequest() {
-    connection.invoke('TumblerStatusBroadcastRequest');
+    connection.invoke('TumblerStatusBroadcastRequestAsync');
 }
 
 function updateMixerTab() {

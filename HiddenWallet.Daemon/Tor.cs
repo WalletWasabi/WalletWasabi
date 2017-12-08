@@ -32,7 +32,9 @@ namespace HiddenWallet.Daemon
 					_state = value;
 					try
 					{
-						NotificationBroadcaster.Instance.BroadcastTorState(State.ToString());
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+						NotificationBroadcaster.Instance.BroadcastTorStateAsync(State.ToString());
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 					}
 					catch (Exception ex)
 					{

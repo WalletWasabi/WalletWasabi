@@ -1,6 +1,7 @@
 ﻿using HiddenWallet.ChaumianCoinJoin.Models;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -16,7 +17,9 @@ namespace HiddenWallet.ChaumianTumbler
 		private readonly ConcurrentDictionary<string, string> _connectedClients = new ConcurrentDictionary<string, string>();
 
 		private IHubContext<TumblerHub> _context;
-		
+
+		private static AsyncLock AsyncLock = new AsyncLock();
+
 		private NotificationBroadcaster()
  		{ }
 
@@ -38,24 +41,32 @@ namespace HiddenWallet.ChaumianTumbler
 
 		public async Task BroadcastAsync(PhaseChangeBroadcast broadcast)
 		{
-			while (_context == null)
+			using (await AsyncLock.LockAsync())
 			{
-				await Task.Delay(100);
+				await DelayUntilContextNullAsync();
+				IClientProxy proxy = _context.Clients.All;
+				string json = JsonConvert.SerializeObject(broadcast);
+				await proxy.InvokeAsync("PhaseChange", json);
 			}
-			IClientProxy proxy = _context.Clients.All;
-			string json = JsonConvert.SerializeObject(broadcast);
-			await proxy.InvokeAsync("PhaseChange", json);
 		}
 
 		public async Task BroadcastAsync(PeerRegisteredBroadcast broadcast)
+		{
+			using (await AsyncLock.LockAsync())
+			{
+				await DelayUntilContextNullAsync();
+				IClientProxy proxy = _context.Clients.All;
+				string json = JsonConvert.SerializeObject(broadcast);
+				await proxy.InvokeAsync("PeerRegistered", json);
+			}
+		}
+
+		private async Task DelayUntilContextNullAsync()
 		{
 			while (_context == null)
 			{
 				await Task.Delay(100);
 			}
-			IClientProxy proxy = _context.Clients.All;
-			string json = JsonConvert.SerializeObject(broadcast);
-			await proxy.InvokeAsync("PeerRegistered", json);
 		}
 	}
 }

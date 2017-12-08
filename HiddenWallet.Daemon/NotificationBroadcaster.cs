@@ -3,6 +3,7 @@ using HiddenWallet.Daemon.Models;
 using HiddenWallet.Models;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace HiddenWallet.Daemon
 
 		private IHubContext<DaemonHub> _context;
 
+		private static AsyncLock AsyncLock = new AsyncLock();
+
 		private NotificationBroadcaster() { }
 
 		public static NotificationBroadcaster Instance => _instance.Value;
@@ -29,60 +32,93 @@ namespace HiddenWallet.Daemon
 			}
 		}
 
-		public void BroadcastMempool(string mempoolCount)
+		public async Task BroadcastMempoolAsync(string mempoolCount)
 		{
-			IClientProxy proxy = _context.Clients.All;
-			proxy.InvokeAsync("mempoolChanged", mempoolCount);
-		}
-
-		public void BroadcastTrackerHeight(string trackerHeight)
-		{
-			IClientProxy proxy = _context.Clients.All;
-			proxy.InvokeAsync("trackerHeightChanged", trackerHeight);
-		}
-
-		public void BroadcastHeaderHeight(string headerHeight)
-		{
-			IClientProxy proxy = _context.Clients.All;
-			proxy.InvokeAsync("headerHeightChanged", headerHeight);
-		}
-
-		public void BroadcastNodeCount(string nodeCount)
-		{
-			IClientProxy proxy = _context.Clients.All;
-			proxy.InvokeAsync("nodeCountChanged", nodeCount);
-		}
-
-		public void BroadcastWalletState(string state)
-		{
-			IClientProxy proxy = _context.Clients.All;
-			proxy.InvokeAsync("walletStateChanged", state);
-		}
-
-		public void BroadcastChangeBump()
-		{
-			IClientProxy proxy = _context.Clients.All;
-			proxy.InvokeAsync("changeBump");
-		}
-
-		public void BroadcastTorState(string state)
-		{
-			if (_context != null)
+			using (await AsyncLock.LockAsync())
 			{
+				await DelayUntilContextNullAsync();
 				IClientProxy proxy = _context.Clients.All;
-				proxy.InvokeAsync("torStateChanged", state);
-			}
-			else
-			{
-				Console.WriteLine("IHubContext not set yet. Tor Status Broadcast failed.");
+				await proxy.InvokeAsync("mempoolChanged", mempoolCount);
 			}
 		}
 
-		public void BroadcastTumblerStatus(TumblerStatusResponse status)
+		public async Task BroadcastTrackerHeightAsync(string trackerHeight)
 		{
-			IClientProxy proxy = _context.Clients.All;
-			string json = JsonConvert.SerializeObject(status);
-			proxy.InvokeAsync("mixerStatusChanged", json);
+			using (await AsyncLock.LockAsync())
+			{
+				await DelayUntilContextNullAsync();
+				IClientProxy proxy = _context.Clients.All;
+				await proxy.InvokeAsync("trackerHeightChanged", trackerHeight);
+			}
+		}
+
+		public async Task BroadcastHeaderHeightAsync(string headerHeight)
+		{
+			using (await AsyncLock.LockAsync())
+			{
+				await DelayUntilContextNullAsync();
+				IClientProxy proxy = _context.Clients.All;
+				await proxy.InvokeAsync("headerHeightChanged", headerHeight);
+			}
+		}
+
+		public async Task BroadcastNodeCountAsync(string nodeCount)
+		{
+			using (await AsyncLock.LockAsync())
+			{
+				await DelayUntilContextNullAsync();
+				IClientProxy proxy = _context.Clients.All;
+				await proxy.InvokeAsync("nodeCountChanged", nodeCount);
+			}
+		}
+
+		public async Task BroadcastWalletStateAsync(string state)
+		{
+			using (await AsyncLock.LockAsync())
+			{
+				await DelayUntilContextNullAsync();
+				IClientProxy proxy = _context.Clients.All;
+				await proxy.InvokeAsync("walletStateChanged", state);
+			}
+		}
+
+		public async Task BroadcastChangeBumpAsync()
+		{
+			using (await AsyncLock.LockAsync())
+			{
+				await DelayUntilContextNullAsync();
+				IClientProxy proxy = _context.Clients.All;
+				await proxy.InvokeAsync("changeBump");
+			}
+		}
+
+		public async Task BroadcastTorStateAsync(string state)
+		{
+			using (await AsyncLock.LockAsync())
+			{
+				await DelayUntilContextNullAsync();
+				IClientProxy proxy = _context.Clients.All;
+				await proxy.InvokeAsync("torStateChanged", state);
+			}
+		}
+
+		public async Task BroadcastTumblerStatusAsync(TumblerStatusResponse status)
+		{
+			using (await AsyncLock.LockAsync())
+			{
+				await DelayUntilContextNullAsync();
+				IClientProxy proxy = _context.Clients.All;
+				string json = JsonConvert.SerializeObject(status);
+				await proxy.InvokeAsync("mixerStatusChanged", json);
+			}
+		}
+
+		private async Task DelayUntilContextNullAsync()
+		{
+			while (_context == null)
+			{
+				await Task.Delay(100);
+			}
 		}
 	}
 }

@@ -8,22 +8,22 @@ namespace HiddenWallet.Daemon
 {
 	public class DaemonHub : Hub
 	{
-		public void GetTorStatus()
+		public async Task GetTorStatusAsync()
 		{
 			string status = Tor.State.ToString();
-			NotificationBroadcaster.Instance.BroadcastTorState(status);
+			await NotificationBroadcaster.Instance.BroadcastTorStateAsync(status);
 		}
 
 		public async Task GetHeaderHeightAsync()
 		{
 			var (Success, Height) = await Global.WalletWrapper.WalletJob.TryGetHeaderHeightAsync();
-			NotificationBroadcaster.Instance.BroadcastHeaderHeight(Height.Value.ToString());
+			await NotificationBroadcaster.Instance.BroadcastHeaderHeightAsync(Height.Value.ToString());
 		}
 
-		public void TumblerStatusBroadcastRequest()
+		public async Task TumblerStatusBroadcastRequestAsync()
 		{
 			TumblerStatusResponse status = Global.WalletWrapper.GetTumblerStatusResponse();
-			NotificationBroadcaster.Instance.BroadcastTumblerStatus(status);
+			await NotificationBroadcaster.Instance.BroadcastTumblerStatusAsync(status);
 		}
 	}
 }

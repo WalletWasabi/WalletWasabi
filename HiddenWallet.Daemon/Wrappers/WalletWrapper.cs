@@ -90,12 +90,12 @@ namespace HiddenWallet.Daemon.Wrappers
 				WalletJob = new WalletJob();
 				await WalletJob.InitializeAsync(Tor.SocksPortHandler, Tor.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
 
-				WalletJob.StateChanged += WalletJob_StateChanged;
-				WalletJob.MemPoolJob.NewTransaction += MemPoolJob_NewTransaction;
-				WalletJob.HeaderHeightChanged += WalletJob_HeaderHeightChanged;
-				(await WalletJob.GetTrackerAsync()).BestHeightChanged += WalletWrapper_BestHeightChanged;
-				WalletJob.ConnectedNodeCountChanged += WalletJob_ConnectedNodeCountChanged;
-				WalletJob.CoinJoinService.PeerCountChanged += CoinJoinService_PeerCountChanged;
+				WalletJob.StateChanged += WalletJob_StateChangedAsync;
+				WalletJob.MemPoolJob.NewTransaction += MemPoolJob_NewTransactionAsync;
+				WalletJob.HeaderHeightChanged += WalletJob_HeaderHeightChangedAsync;
+				(await WalletJob.GetTrackerAsync()).BestHeightChanged += WalletWrapper_BestHeightChangedAsync;
+				WalletJob.ConnectedNodeCountChanged += WalletJob_ConnectedNodeCountChangedAsync;
+				WalletJob.CoinJoinService.PeerCountChanged += CoinJoinService_PeerCountChangedAsync;
 
 
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
@@ -120,36 +120,36 @@ namespace HiddenWallet.Daemon.Wrappers
 			}
 		}
 
-		private void WalletWrapper_BestHeightChanged(object sender, Height height)
+		private async void WalletWrapper_BestHeightChangedAsync(object sender, Height height)
 		{
-			NotificationBroadcaster.Instance.BroadcastTrackerHeight(height.Value.ToString());
+			await NotificationBroadcaster.Instance.BroadcastTrackerHeightAsync(height.Value.ToString());
 		}
 
-		private void WalletJob_StateChanged(object sender, EventArgs e)
+		private async void WalletJob_StateChangedAsync(object sender, EventArgs e)
 		{
 			_walletState = WalletJob.State.ToString();
-			NotificationBroadcaster.Instance.BroadcastWalletState(_walletState);
+			await NotificationBroadcaster.Instance.BroadcastWalletStateAsync(_walletState);
 		}
 
-		private void WalletJob_ConnectedNodeCountChanged(object sender, int count)
+		private async void WalletJob_ConnectedNodeCountChangedAsync(object sender, int count)
 		{
-			NotificationBroadcaster.Instance.BroadcastNodeCount(count.ToString());
+			await NotificationBroadcaster.Instance.BroadcastNodeCountAsync(count.ToString());
 		}
 
-		private void WalletJob_HeaderHeightChanged(object sender, Height headerHeight)
+		private async void WalletJob_HeaderHeightChangedAsync(object sender, Height headerHeight)
 		{
-			NotificationBroadcaster.Instance.BroadcastHeaderHeight(headerHeight.Value.ToString());
+			await NotificationBroadcaster.Instance.BroadcastHeaderHeightAsync(headerHeight.Value.ToString());
 		}
 
-		private void MemPoolJob_NewTransaction(object sender, NewTransactionEventArgs e)
+		private async void MemPoolJob_NewTransactionAsync(object sender, NewTransactionEventArgs e)
 		{
-			NotificationBroadcaster.Instance.BroadcastMempool(e.MempoolTxCount.ToString());
+			await NotificationBroadcaster.Instance.BroadcastMempoolAsync(e.MempoolTxCount.ToString());
 		}
 
-		private void CoinJoinService_PeerCountChanged(object sender, int peerCount)
+		private async void CoinJoinService_PeerCountChangedAsync(object sender, int peerCount)
 		{
 			TumblerStatusResponse status = GetTumblerStatusResponse();
-			NotificationBroadcaster.Instance.BroadcastTumblerStatus(status);
+			await NotificationBroadcaster.Instance.BroadcastTumblerStatusAsync(status);
 		}
 
 		public async Task RecoverAsync(string password, string mnemonic, string creationTime)
@@ -178,7 +178,7 @@ namespace HiddenWallet.Daemon.Wrappers
 			{
 				_changeBump++;
 			}
-			NotificationBroadcaster.Instance.BroadcastChangeBump();
+			await NotificationBroadcaster.Instance.BroadcastChangeBumpAsync();
 		}
 
 		private async Task UpdateHistoryRelatedMembersAsync()
@@ -265,12 +265,12 @@ namespace HiddenWallet.Daemon.Wrappers
 			Console.WriteLine("Gracefully shutting down...");
 			if (WalletJob != null)
 			{
-				WalletJob.StateChanged -= WalletJob_StateChanged;
-				WalletJob.MemPoolJob.NewTransaction -= MemPoolJob_NewTransaction;
-				WalletJob.HeaderHeightChanged -= WalletJob_HeaderHeightChanged;
-				(await WalletJob.GetTrackerAsync()).BestHeightChanged -= WalletWrapper_BestHeightChanged;
-				WalletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChanged;
-				WalletJob.CoinJoinService.PeerCountChanged -= CoinJoinService_PeerCountChanged;
+				WalletJob.StateChanged -= WalletJob_StateChangedAsync;
+				WalletJob.MemPoolJob.NewTransaction -= MemPoolJob_NewTransactionAsync;
+				WalletJob.HeaderHeightChanged -= WalletJob_HeaderHeightChangedAsync;
+				(await WalletJob.GetTrackerAsync()).BestHeightChanged -= WalletWrapper_BestHeightChangedAsync;
+				WalletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChangedAsync;
+				WalletJob.CoinJoinService.PeerCountChanged -= CoinJoinService_PeerCountChangedAsync;
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
 			}
 
