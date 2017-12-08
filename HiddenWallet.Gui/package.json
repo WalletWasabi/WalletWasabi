@@ -25,6 +25,11 @@
   },
   "build": {
     "appId": "hidden.wallet",
+    "productName": "HiddenWallet",
+    "copyright": "MIT",
+    "mac": {
+      "category": "public.app-category.finance"
+    },
     "directories": {
       "output": "../dist"
     }
