@@ -34,7 +34,7 @@ namespace HiddenWallet.Daemon
 
 					try
 					{
-						var established = await ControlPortClient.IsCircuitEstablishedAsync().WithTimeoutAsync(TimeSpan.FromSeconds(3));
+						var established = await ControlPortClient.IsCircuitEstablishedAsync().WithTimeoutAsync(TimeSpan.FromSeconds(21));
 						if (ctsToken.IsCancellationRequested) return;
 
 						if (established)
