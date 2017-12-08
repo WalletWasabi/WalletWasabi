@@ -30,6 +30,11 @@ namespace HiddenWallet.Tests
 			string path = $"Wallets/Empty{network}.json";
 			const string password = "";
 			Safe safe = File.Exists(path) ? await Safe.LoadAsync(password, path, network) : (await Safe.CreateAsync(password, path, network)).Safe;
+			if(safe.CreationTime < DateTimeOffset.UtcNow - TimeSpan.FromDays(3))
+			{
+				File.Delete(path);
+				safe = (await Safe.CreateAsync(password, path, network)).Safe;
+			}
 
             Debug.WriteLine($"Unique Safe ID: {safe.UniqueId}");
 
