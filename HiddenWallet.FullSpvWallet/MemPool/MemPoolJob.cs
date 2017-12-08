@@ -32,6 +32,9 @@ namespace HiddenWallet.FullSpv.MemPool
 		public event EventHandler Synced;
 		private void OnSynced() => Synced?.Invoke(this, EventArgs.Empty);
 
+		public event EventHandler<string> MempoolChanged;
+		private void OnMempoolChanged(string mempoolCount) => MempoolChanged?.Invoke(this, mempoolCount);
+
 		public bool ForcefullyStopped { get; set; } = false;
 		internal bool Enabled { get; set; } = true;
 		private bool ShouldNotRunYet => !Enabled || ForcefullyStopped || WalletJob.Nodes.ConnectedNodes.Count <= 3;
@@ -233,6 +236,7 @@ namespace HiddenWallet.FullSpv.MemPool
 			{
 				Transactions.TryRemove(tx);
 			}
+			OnMempoolChanged(Transactions.Count.ToString());
 		}
 
 		public bool TryAddNewTransaction(Transaction tx)
@@ -245,6 +249,7 @@ namespace HiddenWallet.FullSpv.MemPool
 			{
 				if (Transactions.Add(hash))
 				{
+					OnMempoolChanged(Transactions.Count.ToString());
 					OnNewTransaction(tx);
 					return true;
 				}

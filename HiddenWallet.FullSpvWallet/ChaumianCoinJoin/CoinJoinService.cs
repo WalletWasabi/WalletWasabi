@@ -43,8 +43,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 		public Money Denomination => Money.Parse(StatusResponse?.Denomination ?? "0");
 		public StatusResponse StatusResponse { get; set; }
-		public int NumberOfPeers { get; private set; }
-
+		
 		public string UniqueAliceId { get; private set; }
 		public BitcoinWitPubKeyAddress ActiveOutput { get; private set; }
 		public BitcoinAddress ChangeOutput { get; private set; }
@@ -53,6 +52,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		public ConcurrentHashSet<Coin> Inputs { get; private set; }
 		public string UnblindedSignature { get; private set; }
 		public string RoundHash { get; private set; }
+		private int _numberOfPeers;
 
 		public CoinJoinService(WalletJob walletJob)
 		{
@@ -73,6 +73,19 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 			NotificationBaseAddress = notificationAddress.Trim().EndsWith('/') ? notificationAddress.Trim() : notificationAddress.Trim() + "/";
 			var correctedAddress = address.Trim().EndsWith('/') ? address.Trim() : address.Trim() + "/";
 			TumblerClient = new ChaumianTumblerClient(correctedAddress, handler, disposeHandler);
+		}
+
+		public int NumberOfPeers
+		{
+			get { return _numberOfPeers; }
+			private set
+			{
+				if (value != _numberOfPeers)
+				{
+					_numberOfPeers = value;
+					WalletJob.OnCoinJoinStatusChanged();
+				}
+			}
 		}
 
 		#region Notifications
