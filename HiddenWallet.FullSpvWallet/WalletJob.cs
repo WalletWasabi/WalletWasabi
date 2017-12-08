@@ -37,7 +37,7 @@ namespace HiddenWallet.FullSpv
 		public Safe Safe { get; private set; }
 		public bool TracksDefaultSafe { get; private set; }
 		public ConcurrentHashSet<SafeAccount> SafeAccounts { get; private set; }
-		
+
 		public SmartBitClient TorSmartBitClient { get; private set; }
 		public DotNetTor.ControlPort.Client ControlPortClient { get; private set; }
 
@@ -50,10 +50,10 @@ namespace HiddenWallet.FullSpv
 		private Height _creationHeight;
 		public async Task<Height> GetCreationHeightAsync()
 		{
-            // it's enough to estimate once
-            if (_creationHeight != Height.Unknown) return _creationHeight;
-            else return _creationHeight = await FindSafeCreationHeightAsync();
-        }
+			// it's enough to estimate once
+			if (_creationHeight != Height.Unknown) return _creationHeight;
+			else return _creationHeight = await FindSafeCreationHeightAsync();
+		}
 		private async Task<Height> FindSafeCreationHeightAsync()
 		{
 			try
@@ -78,19 +78,22 @@ namespace HiddenWallet.FullSpv
 				// when the current tip time is lower than the creation time of the safe let's estimate that to be the creation height
 				return new Height(currTip.Height);
 			}
-            catch (Exception)
-            {
-                return Height.Unknown;
-            }
-        }
+			catch (Exception)
+			{
+				return Height.Unknown;
+			}
+		}
 
-        public async Task<Height> GetBestHeightAsync()
-        {
-            var tracker = (await GetTrackerAsync());
-            return (await GetHeaderChainAsync()).Height < tracker.BestHeight ? Height.Unknown : tracker.BestHeight;
-        }
-		public event EventHandler BestHeightChanged;
-		private void OnBestHeightChanged() => BestHeightChanged?.Invoke(this, EventArgs.Empty);
+		public event EventHandler<Height> HeaderHeightChanged;
+		private void OnHeaderHeightChanged(Height height) => HeaderHeightChanged?.Invoke(this, height);
+
+		public async Task<Height> GetBestHeightAsync()
+		{
+			var tracker = (await GetTrackerAsync());
+			return (await GetHeaderChainAsync()).Height < tracker.BestHeight ? Height.Unknown : tracker.BestHeight;
+		}
+		public event EventHandler<int> BestHeightChanged;
+		private void OnBestHeightChanged(int height) => BestHeightChanged?.Invoke(this, height);
 
 		public int ConnectedNodeCount
 		{
@@ -108,14 +111,8 @@ namespace HiddenWallet.FullSpv
 				return Nodes.MaximumNodeConnection;
 			}
 		}
-		public event EventHandler ConnectedNodeCountChanged;
-		private void OnConnectedNodeCountChanged() => ConnectedNodeCountChanged?.Invoke(this, EventArgs.Empty);
-
-		public event EventHandler<string> ConnectedNodeCountAnnounce;
-		private void OnConnectedNodeCountAnnounce(string nodeCount) => ConnectedNodeCountAnnounce?.Invoke(this, nodeCount);
- 
-		public event EventHandler CoinJoinStatusChanged;
-		public void OnCoinJoinStatusChanged() => CoinJoinStatusChanged?.Invoke(this, EventArgs.Empty);
+		public event EventHandler<int> ConnectedNodeCountChanged;
+		private void OnConnectedNodeCountChanged(int count) => ConnectedNodeCountChanged?.Invoke(this, count);
 
 		private WalletState _state;
 		public WalletState State
@@ -130,15 +127,6 @@ namespace HiddenWallet.FullSpv
 		}
 		public event EventHandler StateChanged;
 		private void OnStateChanged() => StateChanged?.Invoke(this, EventArgs.Empty);
-
-		public event EventHandler<string> MempoolChanged;
-		private void OnMempoolChanged(string mempoolCount) => MempoolChanged?.Invoke(this, mempoolCount);
- 
-		public event EventHandler<string> TrackerHeightAnnounce;
-		private void OnTrackerHeightAnnounce(string trackerHeight) => TrackerHeightAnnounce?.Invoke(this, trackerHeight);
-
-		public event EventHandler<string> HeaderHeightChanged;
-		private void OnHeaderHeightChanged(string headerHeight) => HeaderHeightChanged?.Invoke(this, headerHeight);
 
 		private readonly AsyncLock _asyncLockSave = new AsyncLock();
 		private NodeConnectionParameters _connectionParameters;
@@ -162,47 +150,47 @@ namespace HiddenWallet.FullSpv
 				await _tracker.LoadAsync(_trackerFolderPath);
 				await EnsureNoMissingRelevantBlocksAsync();
 			}
-            catch (Exception)
-            {
-                // Sync blockchain:
-                _tracker = new Tracker(Safe.Network);
-            }
+			catch (Exception)
+			{
+				// Sync blockchain:
+				_tracker = new Tracker(Safe.Network);
+			}
 
-            return _tracker;
+			return _tracker;
 		}
 
-        public MemPoolJob MemPoolJob { get; private set; }
+		public MemPoolJob MemPoolJob { get; private set; }
 
-        public AddressManager GetAddressManager()
-        {
-            if (_connectionParameters != null)
-            {
-                foreach (var behavior in _connectionParameters.TemplateBehaviors)
-                {
-                    if (behavior is AddressManagerBehavior addressManagerBehavior)
-                        return addressManagerBehavior.AddressManager;
-                }
-            }
+		public AddressManager GetAddressManager()
+		{
+			if (_connectionParameters != null)
+			{
+				foreach (var behavior in _connectionParameters.TemplateBehaviors)
+				{
+					if (behavior is AddressManagerBehavior addressManagerBehavior)
+						return addressManagerBehavior.AddressManager;
+				}
+			}
 
-            using (_asyncLockSave.Lock())
-            {
-                try
-                {
-                    return AddressManager.LoadPeerFile(_addressManagerFilePath);
-                }
-                catch (Exception)
-                {
-                    return new AddressManager();
-                }
-            }
-        }
+			using (_asyncLockSave.Lock())
+			{
+				try
+				{
+					return AddressManager.LoadPeerFile(_addressManagerFilePath);
+				}
+				catch (Exception)
+				{
+					return new AddressManager();
+				}
+			}
+		}
 
 		public async Task<int> GetBlockConfirmationsAsync(uint256 blockId)
 		{
 			var height = 0;
-			foreach(var header in (await GetHeaderChainAsync()).ToEnumerable(fromTip: true))
+			foreach (var header in (await GetHeaderChainAsync()).ToEnumerable(fromTip: true))
 			{
-				if(header.HashBlock == blockId)
+				if (header.HashBlock == blockId)
 				{
 					height = header.Height;
 				}
@@ -210,39 +198,39 @@ namespace HiddenWallet.FullSpv
 			return height;
 		}
 
-		private async Task<ConcurrentChain> GetHeaderChainAsync()
+		public async Task<ConcurrentChain> GetHeaderChainAsync()
 		{
-            if (_connectionParameters != null)
-            {
-                foreach (var behavior in _connectionParameters.TemplateBehaviors)
-                {
-                    if (behavior is ChainBehavior chainBehavior)
-                        return chainBehavior.Chain;
-                }
-            }
+			if (_connectionParameters != null)
+			{
+				foreach (var behavior in _connectionParameters.TemplateBehaviors)
+				{
+					if (behavior is ChainBehavior chainBehavior)
+						return chainBehavior.Chain;
+				}
+			}
 
-            var chain = new ConcurrentChain(CurrentNetwork);
-            using (await _asyncLockSave.LockAsync())
-            {
-                try
-                {
-                    chain.Load(await File.ReadAllBytesAsync(_headerChainFilePath));
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
+			var chain = new ConcurrentChain(CurrentNetwork);
+			using (await _asyncLockSave.LockAsync())
+			{
+				try
+				{
+					chain.Load(await File.ReadAllBytesAsync(_headerChainFilePath));
+				}
+				catch
+				{
+					// ignored
+				}
+			}
 
-            return chain;
-        }
+			return chain;
+		}
 
-        #endregion
+		#endregion
 
-        public WalletJob()
-        {
+		public WalletJob()
+		{
 
-        }
+		}
 
 		public async Task InitializeAsync(SocksPortHandler handler, DotNetTor.ControlPort.Client controlPortClient, Safe safeToTrack, bool trackDefaultSafe = true, params SafeAccount[] accountsToTrack)
 		{
@@ -251,11 +239,11 @@ namespace HiddenWallet.FullSpv
 
 			Safe = safeToTrack;
 			CurrentNetwork = safeToTrack.Network;
-            MemPoolJob = new MemPoolJob(this)
-            {
-                Enabled = false
-            };
-			
+			MemPoolJob = new MemPoolJob(this)
+			{
+				Enabled = false
+			};
+
 			ControlPortClient = controlPortClient;
 			TorSmartBitClient = new SmartBitClient(safeToTrack.Network, handler, false);
 
@@ -263,7 +251,7 @@ namespace HiddenWallet.FullSpv
 
 			CoinJoinService = new CoinJoinService(this);
 
-            if (accountsToTrack == null || accountsToTrack.Count() < 2)
+			if (accountsToTrack == null || accountsToTrack.Count() < 2)
 			{
 
 			}
@@ -279,7 +267,7 @@ namespace HiddenWallet.FullSpv
 
 			Directory.CreateDirectory(WorkFolderPath);
 
-            (await GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
+			(await GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
 
 			_connectionParameters = new NodeConnectionParameters();
 			//So we find nodes faster
@@ -290,114 +278,87 @@ namespace HiddenWallet.FullSpv
 
 			await UpdateSafeTrackingAsync();
 
-            Nodes = new NodesGroup(Safe.Network, _connectionParameters,
-                new NodeRequirement
-                {
-                    RequiredServices = NodeServices.Network,
-                    MinVersion = ProtocolVersion.SENDHEADERS_VERSION
-                })
-            {
-                NodeConnectionParameters = _connectionParameters
-            };
+			Nodes = new NodesGroup(Safe.Network, _connectionParameters,
+				new NodeRequirement
+				{
+					RequiredServices = NodeServices.Network,
+					MinVersion = ProtocolVersion.SENDHEADERS_VERSION
+				})
+			{
+				NodeConnectionParameters = _connectionParameters
+			};
 
-            MemPoolJob.Synced += MemPoolJob_SyncedAsync;
-            MemPoolJob.NewTransaction += MemPoolJob_NewTransactionAsync;
+			MemPoolJob.Synced += MemPoolJob_SyncedAsync;
+			MemPoolJob.NewTransaction += MemPoolJob_NewTransactionAsync;
 
-            Nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
-            Nodes.ConnectedNodes.Added += ConnectedNodes_Added;
-			MemPoolJob.MempoolChanged += MemPoolJob_MempoolChanged;
 			Nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
-
-			(await GetTrackerAsync()).BestHeightChanged += WalletJob_BestHeightChanged;
-			(await GetTrackerAsync()).BestHeightChanged += WalletJob_HeightsChangedAsync;
+			Nodes.ConnectedNodes.Added += ConnectedNodes_Added;
 		}
 
 		private async void TrackedTransactions_CollectionChangedAsync(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            await UpdateSafeTrackingAsync();
-        }
-
-        private void WalletJob_BestHeightChanged(object sender, EventArgs e)
-        {
-            OnBestHeightChanged();
-		}
-
-		private async void WalletJob_HeightsChangedAsync(object sender, EventArgs e)
 		{
-			var tracker = (await GetTrackerAsync());
-			var headerHeight = (await GetHeaderChainAsync()).Height;
-			var trackerBestHeight = tracker.BestHeight;
-			OnHeaderHeightChanged(headerHeight.ToString());
-			OnTrackerHeightAnnounce(trackerBestHeight.ToString());
+			await UpdateSafeTrackingAsync();
 		}
 
-	private void ConnectedNodes_Added(object sender, NodeEventArgs e)
-        {
-            OnConnectedNodeCountChanged();
-			OnConnectedNodeCountAnnounce(Nodes.ConnectedNodes.Count().ToString());
-		}
-
-        private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
-        {
-            OnConnectedNodeCountChanged();
-			OnConnectedNodeCountAnnounce(Nodes.ConnectedNodes.Count().ToString());
-		}
-
-        private async void MemPoolJob_NewTransactionAsync(object sender, NewTransactionEventArgs e)
-        {
-            if ((await GetTrackerAsync()).ProcessTransaction(new SmartTransaction(e.Transaction, Height.MemPool)))
-            {
-                await UpdateSafeTrackingAsync();
-            }
-        }
-
-        private async void MemPoolJob_SyncedAsync(object sender, EventArgs e)
-        {
-            State = WalletState.Synced;
-
-            var trackedMemPoolTransactions = (await GetTrackerAsync()).TrackedTransactions.Where(x => x.Height == Height.MemPool);
-            foreach (var tx in trackedMemPoolTransactions)
-            {
-                // If we are tracking a tx that is malleated or fall out of mempool (too long to confirm) then stop tracking
-                if (!MemPoolJob.Transactions.Contains(tx.GetHash()))
-                {
-                    (await GetTrackerAsync()).TrackedTransactions.TryRemove(tx);
-                    Debug.WriteLine($"Transaction fall out of MemPool: {tx.GetHash()}");
-                }
-            }
-
-            Debug.WriteLine("MemPool updated");
-        }
-
-		private void MemPoolJob_MempoolChanged(object sender, string count)
+		private void ConnectedNodes_Added(object sender, NodeEventArgs e)
 		{
+			OnConnectedNodeCountChanged(ConnectedNodeCount);
+		}
+
+		private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
+		{
+			OnConnectedNodeCountChanged(ConnectedNodeCount);
+		}
+
+		private async void MemPoolJob_NewTransactionAsync(object sender, NewTransactionEventArgs e)
+		{
+			if ((await GetTrackerAsync()).ProcessTransaction(new SmartTransaction(e.Transaction, Height.MemPool)))
 			{
-				OnMempoolChanged(count);
+				await UpdateSafeTrackingAsync();
 			}
 		}
 
-public async Task StartAsync(CancellationToken ctsToken)
-        {
-            var tasks = new HashSet<Task>();
-            try
-            {
-                State = WalletState.SyncingHeaders;
-                Nodes.Connect();
+		private async void MemPoolJob_SyncedAsync(object sender, EventArgs e)
+		{
+			State = WalletState.Synced;
 
-                BlockDownloader = new BlockDownloader(this);
+			var trackedMemPoolTransactions = (await GetTrackerAsync()).TrackedTransactions.Where(x => x.Height == Height.MemPool);
+			foreach (var tx in trackedMemPoolTransactions)
+			{
+				// If we are tracking a tx that is malleated or fall out of mempool (too long to confirm) then stop tracking
+				if (!MemPoolJob.Transactions.Contains(tx.GetHash()))
+				{
+					(await GetTrackerAsync()).TrackedTransactions.TryRemove(tx);
+					Debug.WriteLine($"Transaction fall out of MemPool: {tx.GetHash()}");
+				}
+			}
 
-                tasks = new HashSet<Task>
-            {
-                PeriodicSaveAsync(TimeSpan.FromMinutes(3), ctsToken),
-                BlockDownloadingJobAsync(ctsToken),
-                MemPoolJob.StartAsync(ctsToken),
-                BlockDownloader.StartAsync(ctsToken),
-                FeeService.StartAsync(ctsToken)
-            };
+			Debug.WriteLine("MemPool updated");
+		}
 
-                await Task.WhenAll(tasks);
-            }
-            finally
+		public async Task StartAsync(CancellationToken ctsToken)
+		{
+			var tasks = new HashSet<Task>();
+			try
+			{
+				State = WalletState.SyncingHeaders;
+				Nodes.Connect();
+
+				BlockDownloader = new BlockDownloader(this);
+
+				tasks = new HashSet<Task>
+			{
+				PeriodicSaveAsync(TimeSpan.FromMinutes(3), ctsToken),
+				HeaderHeightMonitorAsync(TimeSpan.FromSeconds(1), ctsToken),
+				BlockDownloadingJobAsync(ctsToken),
+				MemPoolJob.StartAsync(ctsToken),
+				BlockDownloader.StartAsync(ctsToken),
+				FeeService.StartAsync(ctsToken)
+			};
+
+				await Task.WhenAll(tasks);
+			}
+			finally
 			{
 				State = WalletState.NotStarted;
 				(await GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
@@ -405,9 +366,6 @@ public async Task StartAsync(CancellationToken ctsToken)
 				MemPoolJob.NewTransaction -= MemPoolJob_NewTransactionAsync;
 				Nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
 				Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
-				MemPoolJob.MempoolChanged -= MemPoolJob_MempoolChanged;
-				(await GetTrackerAsync()).BestHeightChanged -= WalletJob_HeightsChangedAsync;
-				(await GetTrackerAsync()).BestHeightChanged -= WalletJob_BestHeightChanged;
 				await SaveAllChangedAsync();
 				Nodes?.Dispose();
 				foreach (var task in tasks)
@@ -434,9 +392,9 @@ public async Task StartAsync(CancellationToken ctsToken)
 		public int MaxCleanAddressCount { get; set; } = 20;
 		private async Task UpdateSafeTrackingAsync()
 		{
-            await UpdateSafeTrackingByHdPathTypeAsync(HdPathType.Receive);
-            await UpdateSafeTrackingByHdPathTypeAsync(HdPathType.Change);
-            await UpdateSafeTrackingByHdPathTypeAsync(HdPathType.NonHardened);
+			await UpdateSafeTrackingByHdPathTypeAsync(HdPathType.Receive);
+			await UpdateSafeTrackingByHdPathTypeAsync(HdPathType.Change);
+			await UpdateSafeTrackingByHdPathTypeAsync(HdPathType.NonHardened);
 		}
 
 		private async Task UpdateSafeTrackingByHdPathTypeAsync(HdPathType hdPathType)
@@ -449,38 +407,67 @@ public async Task StartAsync(CancellationToken ctsToken)
 			}
 		}
 
-        private async Task UpdateSafeTrackingByPathAsync(HdPathType hdPathType, SafeAccount account = null)
-        {
-            var addressTypes = new HashSet<AddressType>
-            {
-                AddressType.Pay2PublicKeyHash,
-                AddressType.Pay2WitnessPublicKeyHash
-            };
-            foreach (AddressType addressType in addressTypes)
-            {
-                int i = 0;
-                var cleanCount = 0;
-                while (true)
-                {
-                    Script scriptPubkey = account == null ? Safe.GetScriptPubKey(addressType, i, hdPathType) : Safe.GetScriptPubKey(addressType, i, hdPathType, account);
+		private async Task UpdateSafeTrackingByPathAsync(HdPathType hdPathType, SafeAccount account = null)
+		{
+			var addressTypes = new HashSet<AddressType>
+			{
+				AddressType.Pay2PublicKeyHash,
+				AddressType.Pay2WitnessPublicKeyHash
+			};
+			foreach (AddressType addressType in addressTypes)
+			{
+				int i = 0;
+				var cleanCount = 0;
+				while (true)
+				{
+					Script scriptPubkey = account == null ? Safe.GetScriptPubKey(addressType, i, hdPathType) : Safe.GetScriptPubKey(addressType, i, hdPathType, account);
 
-                    (await GetTrackerAsync()).TrackedScriptPubKeys.Add(scriptPubkey);
+					(await GetTrackerAsync()).TrackedScriptPubKeys.Add(scriptPubkey);
 
-                    // if clean elevate cleancount and if max reached don't look for more
-                    if ((await GetTrackerAsync()).IsClean(scriptPubkey))
-                    {
-                        cleanCount++;
-                        if (cleanCount > MaxCleanAddressCount) break;
-                    }
+					// if clean elevate cleancount and if max reached don't look for more
+					if ((await GetTrackerAsync()).IsClean(scriptPubkey))
+					{
+						cleanCount++;
+						if (cleanCount > MaxCleanAddressCount) break;
+					}
 
-                    i++;
-                }
-            }
-        }
+					i++;
+				}
+			}
+		}
 
 		#endregion
 
 		#region Misc
+
+		private async Task HeaderHeightMonitorAsync(TimeSpan delay, CancellationToken ctsToken)
+		{
+			Height headerHeight = Height.Unknown;
+			while (true)
+			{
+				try
+				{
+					if (ctsToken.IsCancellationRequested) return;
+
+					var heightResult = await TryGetHeaderHeightAsync();
+					if (heightResult.Success)
+					{
+						if (heightResult.Height != headerHeight)
+						{
+							headerHeight = heightResult.Height;
+							OnHeaderHeightChanged(headerHeight);
+						}
+					}
+
+					await Task.Delay(delay, ctsToken).ContinueWith(tsk => { });
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine($"Ignoring {nameof(HeaderHeightMonitorAsync)} exception:");
+					Debug.WriteLine(ex);
+				}
+			}
+		}
 
 		/// <summary>
 		///
@@ -498,20 +485,20 @@ public async Task StartAsync(CancellationToken ctsToken)
 
 			foreach (SmartTransaction transaction in transactions)
 			{
-                WalletHistoryRecord record = new WalletHistoryRecord
-                {
-                    TransactionId = transaction.GetHash(),
-                    BlockHeight = transaction.Height,
+				WalletHistoryRecord record = new WalletHistoryRecord
+				{
+					TransactionId = transaction.GetHash(),
+					BlockHeight = transaction.Height,
 
-                    TimeStamp = !transaction.Confirmed
-                    ? transaction.GetFirstSeenIfMemPoolHeight() ?? DateTimeOffset.UtcNow
-                    : (await GetHeaderChainAsync())?.GetBlock(transaction.Height)?.Header?.BlockTime ?? DateTimeOffset.UtcNow,
+					TimeStamp = !transaction.Confirmed
+					? transaction.GetFirstSeenIfMemPoolHeight() ?? DateTimeOffset.UtcNow
+					: (await GetHeaderChainAsync())?.GetBlock(transaction.Height)?.Header?.BlockTime ?? DateTimeOffset.UtcNow,
 
-                    Amount = Money.Zero //for now
-                };
+					Amount = Money.Zero //for now
+				};
 
-                // how much came to our scriptpubkeys
-                foreach (var output in transaction.Transaction.Outputs)
+				// how much came to our scriptpubkeys
+				foreach (var output in transaction.Transaction.Outputs)
 				{
 					if (scriptPubKeys.Contains(output.ScriptPubKey))
 						record.Amount += output.Value;
@@ -560,10 +547,10 @@ public async Task StartAsync(CancellationToken ctsToken)
 
 			foreach (var spk in trackedScriptPubkeys)
 			{
-                var (Success, ReceivedTransactions, SpentTransactions) = await TryFindAllChainAndMemPoolTransactionsAsync(spk);
-                var rec = ReceivedTransactions;
-                var spent = SpentTransactions;
-                if (Success)
+				var (Success, ReceivedTransactions, SpentTransactions) = await TryFindAllChainAndMemPoolTransactionsAsync(spk);
+				var rec = ReceivedTransactions;
+				var spent = SpentTransactions;
+				if (Success)
 				{
 					foreach (var tx in rec)
 					{
@@ -580,40 +567,40 @@ public async Task StartAsync(CancellationToken ctsToken)
 		}
 
 		public async Task<HashSet<Script>> GetTrackedScriptPubKeysBySafeAccountAsync(SafeAccount account = null)
-        {
-            var maxTracked = (await GetTrackerAsync()).TrackedScriptPubKeys.Count;
-            var allPossiblyTrackedScriptPubKeys = new HashSet<Script>();
+		{
+			var maxTracked = (await GetTrackerAsync()).TrackedScriptPubKeys.Count;
+			var allPossiblyTrackedScriptPubKeys = new HashSet<Script>();
 
-            var addressTypes = new HashSet<AddressType>
-            {
-                AddressType.Pay2PublicKeyHash,
-                AddressType.Pay2WitnessPublicKeyHash
-            };
-            foreach (AddressType addressType in addressTypes)
-            {
-                foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.Receive, account))
-                {
+			var addressTypes = new HashSet<AddressType>
+			{
+				AddressType.Pay2PublicKeyHash,
+				AddressType.Pay2WitnessPublicKeyHash
+			};
+			foreach (AddressType addressType in addressTypes)
+			{
+				foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.Receive, account))
+				{
 					allPossiblyTrackedScriptPubKeys.Add(address);
-                }
-                foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.Change, account))
-                {
+				}
+				foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.Change, account))
+				{
 					allPossiblyTrackedScriptPubKeys.Add(address);
-                }
-                foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.NonHardened, account))
-                {
+				}
+				foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.NonHardened, account))
+				{
 					allPossiblyTrackedScriptPubKeys.Add(address);
-                }
-            }
+				}
+			}
 
-            var actuallyTrackedScriptPubKeys = new HashSet<Script>();
-            foreach (var scriptPubKey in allPossiblyTrackedScriptPubKeys)
-            {
-                if ((await GetTrackerAsync()).TrackedScriptPubKeys.Contains(scriptPubKey))
-                    actuallyTrackedScriptPubKeys.Add(scriptPubKey);
-            }
+			var actuallyTrackedScriptPubKeys = new HashSet<Script>();
+			foreach (var scriptPubKey in allPossiblyTrackedScriptPubKeys)
+			{
+				if ((await GetTrackerAsync()).TrackedScriptPubKeys.Contains(scriptPubKey))
+					actuallyTrackedScriptPubKeys.Add(scriptPubKey);
+			}
 
-            return actuallyTrackedScriptPubKeys;
-        }
+			return actuallyTrackedScriptPubKeys;
+		}
 
 		/// <summary>
 		///
@@ -674,11 +661,11 @@ public async Task StartAsync(CancellationToken ctsToken)
 
 				header = (await GetHeaderChainAsync()).GetBlock(height);
 			}
-            catch (Exception)
-            {
-                header = null;
-            }
-            return header;
+			catch (Exception)
+			{
+				header = null;
+			}
+			return header;
 		}
 
 		public async Task<(bool Success, Height Height)> TryGetHeaderHeightAsync()
@@ -692,18 +679,18 @@ public async Task StartAsync(CancellationToken ctsToken)
 				height = new Height((await GetHeaderChainAsync()).Height);
 				return (true, height);
 			}
-            catch (Exception)
-            {
-                return (false, height);
-            }
-        }
+			catch (Exception)
+			{
+				return (false, height);
+			}
+		}
 
 		#endregion
 
 		#region BlockDownloading
 		private async Task BlockDownloadingJobAsync(CancellationToken ctsToken)
 		{
-            MemPoolJob.Enabled = false;
+			MemPoolJob.Enabled = false;
 			while (true)
 			{
 				try
@@ -743,14 +730,14 @@ public async Task StartAsync(CancellationToken ctsToken)
 						if ((await GetHeaderChainAsync()).Height <= trackerBestHeight)
 						{
 							State = MemPoolJob.SyncedOnce ? WalletState.Synced : WalletState.SyncingMemPool;
-                            MemPoolJob.Enabled = true;
+							MemPoolJob.Enabled = true;
 							await Task.Delay(100, ctsToken).ContinueWith(tsk => { });
 							continue;
 						}
 						// else sync blocks
 						else
 						{
-                            MemPoolJob.Enabled = false;
+							MemPoolJob.Enabled = false;
 							State = WalletState.SyncingBlocks;
 							// if unprocessed buffer hit the headerchain height
 							// or unprocessed buffer is full
@@ -818,7 +805,7 @@ public async Task StartAsync(CancellationToken ctsToken)
 						continue;
 					}
 
-                    (await GetTrackerAsync()).AddOrReplaceBlock(height, block);
+					(await GetTrackerAsync()).AddOrReplaceBlock(height, block);
 					MemPoolJob.RemoveTransactions(block.Transactions.Select(x => x.GetHash()));
 
 					if (downloadMissing)
@@ -865,7 +852,7 @@ public async Task StartAsync(CancellationToken ctsToken)
 		{
 			BlockDownloader.Clear();
 			(await GetHeaderChainAsync()).SetTip((await GetHeaderChainAsync()).Tip.Previous);
-            (await GetTrackerAsync()).ReorgOne();
+			(await GetTrackerAsync()).ReorgOne();
 			await SaveAllChangedAsync();
 		}
 		#endregion
@@ -896,8 +883,8 @@ public async Task StartAsync(CancellationToken ctsToken)
 
 		private async Task SaveAllChangedAsync()
 		{
-            using (await _asyncLockSave.LockAsync())
-            {
+			using (await _asyncLockSave.LockAsync())
+			{
 				(GetAddressManager()).SavePeerFile(_addressManagerFilePath, Safe.Network);
 				Debug.WriteLine($"Saved {nameof(AddressManager)}");
 
@@ -929,7 +916,7 @@ public async Task StartAsync(CancellationToken ctsToken)
 		{
 			using (var fs = File.Open(_headerChainFilePath, FileMode.Create))
 			{
-                (await GetHeaderChainAsync()).WriteTo(fs);
+				(await GetHeaderChainAsync()).WriteTo(fs);
 			}
 		}
 		#endregion
@@ -1179,20 +1166,20 @@ public async Task StartAsync(CancellationToken ctsToken)
 		{
 			AssertAccount(account);
 
-            var scriptPubKeys = new HashSet<Script>();
-            int i = 0;
-            while (true)
-            {
-                Script scriptPubkey = account == null ? Safe.GetScriptPubKey(type, i, hdPathType) : Safe.GetScriptPubKey(type, i, hdPathType, account);
-                if ((await GetTrackerAsync()).IsClean(scriptPubkey))
-                {
-                    scriptPubKeys.Add(scriptPubkey);
-                    if (scriptPubKeys.Count >= MaxCleanAddressCount)
-                        return scriptPubKeys;
-                }
-                i++;
-            }
-        }
+			var scriptPubKeys = new HashSet<Script>();
+			int i = 0;
+			while (true)
+			{
+				Script scriptPubkey = account == null ? Safe.GetScriptPubKey(type, i, hdPathType) : Safe.GetScriptPubKey(type, i, hdPathType, account);
+				if ((await GetTrackerAsync()).IsClean(scriptPubkey))
+				{
+					scriptPubKeys.Add(scriptPubkey);
+					if (scriptPubKeys.Count >= MaxCleanAddressCount)
+						return scriptPubKeys;
+				}
+				i++;
+			}
+		}
 
 		internal HashSet<Coin> SelectCoinsToSpend(IDictionary<Coin, bool> unspentCoins, Money totalOutAmount)
 		{
@@ -1237,7 +1224,7 @@ public async Task StartAsync(CancellationToken ctsToken)
 			var filteredUnspentCoins = new Dictionary<Coin, bool>();
 			foreach (var elem in unspentCoins)
 			{
-				if(inputs.Any(x=>x.Hash == elem.Key.Outpoint.Hash && x.N == elem.Key.Outpoint.N))
+				if (inputs.Any(x => x.Hash == elem.Key.Outpoint.Hash && x.N == elem.Key.Outpoint.N))
 				{
 					filteredUnspentCoins.Add(elem.Key, elem.Value);
 				}
@@ -1371,10 +1358,10 @@ public async Task StartAsync(CancellationToken ctsToken)
 			{
 				Debug.WriteLine($"Changing Tor circuit: {tx.GetHash()}");
 				await ControlPortClient.ChangeCircuitAsync();
-				
+
 				await Task.Delay(100);
 				await TorSmartBitClient.PushTransactionAsync(tx, CancellationToken.None);
-				
+
 				for (int i = 0; i < 21; i++)
 				{
 					await Task.Delay(1000);
@@ -1386,7 +1373,7 @@ public async Task StartAsync(CancellationToken ctsToken)
 					}
 				}
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				failureResult.FailingReason += $" Details: {ex.ToString()}";
 			}

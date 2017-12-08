@@ -43,7 +43,26 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 		public Money Denomination => Money.Parse(StatusResponse?.Denomination ?? "0");
 		public StatusResponse StatusResponse { get; set; }
-		
+
+		private int _peerCount;
+		public int PeerCount
+		{
+			get
+			{
+				return _peerCount;
+			}
+			set
+			{
+				if (value != _peerCount)
+				{
+					_peerCount = value;
+					OnPeerCountChanged(value);
+				}
+			}
+		}
+		public event EventHandler<int> PeerCountChanged;
+		public void OnPeerCountChanged(int peerCount) => PeerCountChanged?.Invoke(this, peerCount);
+
 		public string UniqueAliceId { get; private set; }
 		public BitcoinWitPubKeyAddress ActiveOutput { get; private set; }
 		public BitcoinAddress ChangeOutput { get; private set; }
@@ -52,7 +71,6 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		public ConcurrentHashSet<Coin> Inputs { get; private set; }
 		public string UnblindedSignature { get; private set; }
 		public string RoundHash { get; private set; }
-		private int _numberOfPeers;
 
 		public CoinJoinService(WalletJob walletJob)
 		{
@@ -75,19 +93,6 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 			TumblerClient = new ChaumianTumblerClient(correctedAddress, handler, disposeHandler);
 		}
 
-		public int NumberOfPeers
-		{
-			get { return _numberOfPeers; }
-			private set
-			{
-				if (value != _numberOfPeers)
-				{
-					_numberOfPeers = value;
-					WalletJob.OnCoinJoinStatusChanged();
-				}
-			}
-		}
-
 		#region Notifications
 
 		public async Task SubscribeNotificationsAsync()
@@ -103,7 +108,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					var jObject = JObject.Parse(data);
 					var phaseString = jObject.Value<string>("NewPhase");
 
-					if(phaseString.StartsWith("FallBack", StringComparison.OrdinalIgnoreCase))
+					if (phaseString.StartsWith("FallBack", StringComparison.OrdinalIgnoreCase))
 					{
 						_abortOngoingRound = true;
 					}
@@ -129,14 +134,14 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				{
 					var jObject = JObject.Parse(data);
 					var numberOfPeers = jObject.Value<int>("NewRegistration");
-					NumberOfPeers = numberOfPeers;
+					PeerCount = numberOfPeers;
 
 					Debug.WriteLine($"Number of Tumbler peers: {numberOfPeers}");
 				});
 
 				await TumblerConnection.StartAsync();
 
-				if(StatusResponse == null)
+				if (StatusResponse == null)
 				{
 					using (var clearnetClient = new ChaumianTumblerClient(NotificationBaseAddress))
 					{
@@ -147,7 +152,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 							try
 							{
 								var inputRegistrationResponse = await TumblerClient.GetInputRegistrationStatusAsync(CancellationToken.None);
-								NumberOfPeers = inputRegistrationResponse.RegisteredPeerCount;
+								PeerCount = inputRegistrationResponse.RegisteredPeerCount;
 							}
 							catch
 							{
@@ -177,7 +182,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		#endregion
 
 		#region Tumbling
-		
+
 		/// <summary>
 		/// Participates in one tumbling round
 		/// </summary>
@@ -216,7 +221,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					}
 				}
 
-				StatusResponse status = await TumblerClient.GetStatusAsync(cancel);				
+				StatusResponse status = await TumblerClient.GetStatusAsync(cancel);
 				StatusResponse = status;
 
 				Phase = TumblerPhaseHelpers.GetTumblerPhase(status.Phase);
@@ -266,7 +271,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					return null;
 				}
 			}
-			catch(OperationCanceledException)
+			catch (OperationCanceledException)
 			{
 				try
 				{
@@ -330,7 +335,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 								needSegwitify = true;
 								continue;
 							}
-							
+
 							i++;
 							if (i > status.MaximumInputsPerAlices)
 							{
@@ -339,7 +344,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 							Money fee = (feePerInputs * i) + (feePerOutputs * 2);
 							// sanity check
-							if((fee.ToDecimal(MoneyUnit.Satoshi) / Denomination.ToDecimal(MoneyUnit.Satoshi)) * 100 > 5 )
+							if ((fee.ToDecimal(MoneyUnit.Satoshi) / Denomination.ToDecimal(MoneyUnit.Satoshi)) * 100 > 5)
 							{
 								throw new NotSupportedException($"The fee required by the coordinator is too high: {fee.ToString(false, true)} BTC");
 							}
@@ -362,7 +367,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 							if (i == UnspentCoins.Count)
 							{
-								if(needSegwitify)
+								if (needSegwitify)
 								{
 									throw new InvalidOperationException("Mixing requires segregated witness inputs. Please segwitify your non-segwit balance");
 								}
@@ -419,7 +424,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 
 						// tor is buggy sometimes (once in a hundred), retry while tumbler is in this phase
 						var noException = false;
-						while(noException == false)
+						while (noException == false)
 						{
 							try
 							{
@@ -429,7 +434,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 							catch
 							{
 								await Task.Delay(100, cancel);
-								if(Phase != TumblerPhase.OutputRegistration)
+								if (Phase != TumblerPhase.OutputRegistration)
 								{
 									throw;
 								}
@@ -477,7 +482,7 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 						{
 							throw new InvalidOperationException("Tumbler did not add enough value to the change output");
 						}
-						if (RoundHash != NBitcoinHelpers.HashOutpoints(CoinJoin.Inputs.Select(x=>x.PrevOut)))
+						if (RoundHash != NBitcoinHelpers.HashOutpoints(CoinJoin.Inputs.Select(x => x.PrevOut)))
 						{
 							throw new InvalidOperationException("Tumbler provided invalid roundHash");
 						}
