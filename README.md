@@ -24,24 +24,13 @@ Privacy focused, soon [ZeroLink](https://github.com/nopara73/ZeroLink) compliant
 
 ## Screenshots 
 
-![BuildTransaction](https://i.imgur.com/EUX4zT4.png)  
-
-![History](https://i.imgur.com/IQ0M37R.png)    
-
-## Configuration
-
-HiddenWallet is working in your APPDATA folder on Windows and in your HOME folder on Linux and OSX.  
-After first running the software, it will generate a `Config.json` file for you:  
-```
-{
-  "WalletFilePath": "Wallets\\Wallet.json",
-  "Network": "Main",
-  "CanSpendUnconfirmed": "False"
-}
-```  
-For testing, set the network to `"TestNet"` and enable the spending of unconfirmed transactions by setting its value to `"True"`.  
-If you've already generated a wallet on the mainnet, then you want to change the default wallet file path, too, for example to `"WalletTestNet.json"`.  
-Since testnet coins have no value, you can acquire them freely and quickly: http://lmgtfy.com/?q=get+testnet+faucet  
+---
+![](https://i.imgur.com/Uba2Hdl.png)  
+---
+![](https://i.imgur.com/OMIYAT8.png)
+---
+![](https://i.imgur.com/xvizcmu.png)
+---
 
 ## Building From Source Code  
   
@@ -56,8 +45,7 @@ Since testnet coins have no value, you can acquire them freely and quickly: http
 1. `git clone https://github.com/nopara73/HiddenWallet.git`
 2. `cd HiddenWallet/HiddenWallet.Daemon`  
 3. `dotnet restore`  
-4. `dotnet publish -r win10-x64 --output bin/dist/current-target`. Find your platform identifier [here](https://github.com/dotnet/docs/blob/master/docs/core/rid-catalog.md#windows-rids) and replace `win7-x64`.
-If you get an error here, don't worry, just add your platform identifier to the `<RuntimeIdentifiers>` tag in the `HiddenWallet.Daemon/HiddenWallet.Daemon.csproj` file).  
+4. `dotnet publish -r win-x64 --output bin/dist/current-target`. Depending on your platform replace `win-x64` with `win-x86`, `linux-x64` or `osx-x64`.  
 5. (Only on Windows) - Copy and unzip `HiddenWallet.Packager/tor.zip` to `HiddenWallet.Daemon/bin/dist/current-target` directory. (Quick note on unzipping: the final path to tor.exe has to be: `current-target/tor/Tor/tor.exe` and not: `current-target/tor/tor/Tor/tor.exe`.)
 6. `cd ../HiddenWallet.Gui`
 7. `npm install`

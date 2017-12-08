@@ -62,32 +62,32 @@ namespace HiddenWallet.Tests
 		    }
 	    }
 
-	    public static async Task<Dictionary<BitcoinAddress, List<BalanceOperation>>> QueryOperationsPerSafeAddressesAsync(QBitNinjaClient client, Safe safe, int minUnusedKeys = 7, HdPathType? hdPathType = null)
+	    public static async Task<Dictionary<Script, List<BalanceOperation>>> QueryOperationsPerSafeScriptPubKeysAsync(QBitNinjaClient client, Safe safe, int minUnusedKeys = 7, HdPathType? hdPathType = null)
 	    {
 		    if (hdPathType == null)
 		    {
-			    var t1 = QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.Receive);
-			    var t2 = QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.Change);
-			    var t3 = QueryOperationsPerSafeAddressesAsync(client, safe, minUnusedKeys, HdPathType.NonHardened);
+			    var t1 = QueryOperationsPerSafeScriptPubKeysAsync(client, safe, minUnusedKeys, HdPathType.Receive);
+			    var t2 = QueryOperationsPerSafeScriptPubKeysAsync(client, safe, minUnusedKeys, HdPathType.Change);
+			    var t3 = QueryOperationsPerSafeScriptPubKeysAsync(client, safe, minUnusedKeys, HdPathType.NonHardened);
 
 			    await Task.WhenAll(t1, t2, t3);
 
-			    Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerReceiveAddresses = await t1;
-			    Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerChangeAddresses = await t2;
-			    Dictionary<BitcoinAddress, List<BalanceOperation>> operationsPerNonHardenedAddresses = await t3;
+			    Dictionary<Script, List<BalanceOperation>> operationsPerReceiveScriptPubKeys = await t1;
+			    Dictionary<Script, List<BalanceOperation>> operationsPerChangeScriptPubKeys = await t2;
+			    Dictionary<Script, List<BalanceOperation>> operationsPerNonHardenedScriptPubKeys = await t3;
 
-			    var operationsPerAllAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
-			    foreach (var elem in operationsPerReceiveAddresses)
-				    operationsPerAllAddresses.Add(elem.Key, elem.Value);
-			    foreach (var elem in operationsPerChangeAddresses)
-				    operationsPerAllAddresses.Add(elem.Key, elem.Value);
-			    foreach (var elem in operationsPerNonHardenedAddresses)
-				    operationsPerAllAddresses.Add(elem.Key, elem.Value);
+			    var operationsPerAllScriptPubKeys = new Dictionary<Script, List<BalanceOperation>>();
+			    foreach (var elem in operationsPerReceiveScriptPubKeys)
+					operationsPerAllScriptPubKeys.Add(elem.Key, elem.Value);
+			    foreach (var elem in operationsPerChangeScriptPubKeys)
+					operationsPerAllScriptPubKeys.Add(elem.Key, elem.Value);
+			    foreach (var elem in operationsPerNonHardenedScriptPubKeys)
+					operationsPerAllScriptPubKeys.Add(elem.Key, elem.Value);
 
-			    return operationsPerAllAddresses;
+			    return operationsPerAllScriptPubKeys;
 		    }
 
-            var addresses = new List<BitcoinAddress>();
+            var scriptPubKeys = new List<Script>();
             var addressTypes = new HashSet<AddressType>
             {
                 AddressType.Pay2PublicKeyHash,
@@ -95,27 +95,26 @@ namespace HiddenWallet.Tests
             };
             foreach (AddressType addressType in addressTypes)
             { 
-		        foreach(var address in safe.GetFirstNAddresses(addressType, minUnusedKeys, hdPathType.GetValueOrDefault()))
+		        foreach(var scriptPubKey in safe.GetFirstNScriptPubKey(addressType, minUnusedKeys, hdPathType.GetValueOrDefault()))
                 {
-                    addresses.Add(address);
+					scriptPubKeys.Add(scriptPubKey);
                 }
             }
-            //var addresses = FakeData.FakeSafe.GetFirstNAddresses(minUnusedKeys);
 
-            var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
+            var operationsPerScriptPubKeys = new Dictionary<Script, List<BalanceOperation>>();
 		    var unusedKeyCount = 0;
-		    foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses))
+		    foreach (var elem in await QueryOperationsPerScriptPubKeysAsync(client, scriptPubKeys))
 		    {
-			    operationsPerAddresses.Add(elem.Key, elem.Value);
+				operationsPerScriptPubKeys.Add(elem.Key, elem.Value);
 			    if (elem.Value.Count == 0) unusedKeyCount++;
 		    }
 
-		    Debug.WriteLine($"{operationsPerAddresses.Count} {hdPathType} keys are processed.");
+		    Debug.WriteLine($"{operationsPerScriptPubKeys.Count} {hdPathType} keys are processed.");
 
 		    var startIndex = minUnusedKeys;
 		    while (unusedKeyCount < minUnusedKeys)
 		    {
-			    addresses = new List<BitcoinAddress>();
+				scriptPubKeys = new List<Script>();
 			    for (int i = startIndex; i < startIndex + minUnusedKeys; i++)
 			    {
                     addressTypes = new HashSet<AddressType>
@@ -125,47 +124,46 @@ namespace HiddenWallet.Tests
                     };
                     foreach (AddressType addressType in addressTypes)
                     {
-                        addresses.Add(safe.GetAddress(addressType, i, hdPathType.GetValueOrDefault()));
+						scriptPubKeys.Add(safe.GetScriptPubKey(addressType, i, hdPathType.GetValueOrDefault()));
                     }
-				    //addresses.Add(FakeData.FakeSafe.GetAddress(i));
 			    }
-			    foreach (var elem in await QueryOperationsPerAddressesAsync(client, addresses))
+			    foreach (var elem in await QueryOperationsPerScriptPubKeysAsync(client, scriptPubKeys))
 			    {
-				    operationsPerAddresses.Add(elem.Key, elem.Value);
+					operationsPerScriptPubKeys.Add(elem.Key, elem.Value);
 				    if (elem.Value.Count == 0) unusedKeyCount++;
 			    }
 
-			    Debug.WriteLine($"{operationsPerAddresses.Count} {hdPathType} keys are processed.");
+			    Debug.WriteLine($"{operationsPerScriptPubKeys.Count} {hdPathType} keys are processed.");
 			    startIndex += minUnusedKeys;
 		    }
 
-		    return operationsPerAddresses;
+		    return operationsPerScriptPubKeys;
 	    }
 
-	    public static async Task<Dictionary<BitcoinAddress, List<BalanceOperation>>> QueryOperationsPerAddressesAsync(QBitNinjaClient client, IEnumerable<BitcoinAddress> addresses)
+	    public static async Task<Dictionary<Script, List<BalanceOperation>>> QueryOperationsPerScriptPubKeysAsync(QBitNinjaClient client, IEnumerable<Script> scriptPubKeys)
 	    {
-		    var operationsPerAddresses = new Dictionary<BitcoinAddress, List<BalanceOperation>>();
+		    var operationsPerScriptPubKeysAsync = new Dictionary<Script, List<BalanceOperation>>();
 
-		    var addressList = addresses.ToList();
+		    var scriptPubKeyList = scriptPubKeys.ToList();
 		    var balanceModelList = new List<BalanceModel>();
 
-		    foreach (var balance in await GetBalancesAsync(client, addressList, unspentOnly: false))
+		    foreach (var balance in await GetBalancesAsync(client, scriptPubKeyList, unspentOnly: false))
 		    {
 			    balanceModelList.Add(balance);
 		    }
 
 		    for (var i = 0; i < balanceModelList.Count; i++)
 		    {
-			    operationsPerAddresses.Add(addressList[i], balanceModelList[i].Operations);
+				operationsPerScriptPubKeysAsync.Add(scriptPubKeyList[i], balanceModelList[i].Operations);
 		    }
 
-		    return operationsPerAddresses;
+		    return operationsPerScriptPubKeysAsync;
 	    }
 
-	    public static async Task<IEnumerable<BalanceModel>> GetBalancesAsync(QBitNinjaClient client, IEnumerable<BitcoinAddress> addresses, bool unspentOnly)
+	    public static async Task<IEnumerable<BalanceModel>> GetBalancesAsync(QBitNinjaClient client, IEnumerable<Script> scriptPubKeys, bool unspentOnly)
 	    {
 			var results = new HashSet<BalanceModel>();
-			foreach (var dest in addresses)
+			foreach (var dest in scriptPubKeys)
 			{
 				results.Add(await client.GetBalance(dest, unspentOnly));
 			}

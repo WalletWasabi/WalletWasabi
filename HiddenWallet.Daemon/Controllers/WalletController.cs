@@ -8,6 +8,7 @@ using HiddenWallet.KeyManagement;
 using NBitcoin;
 using System.Globalization;
 using HiddenWallet.FullSpv.Fees;
+using HiddenWallet.SharedApi.Models;
 
 namespace HiddenWallet.Daemon.Controllers
 {
@@ -64,7 +65,7 @@ namespace HiddenWallet.Daemon.Controllers
 
         [Route("load")]
         [HttpPost]
-        public async Task<IActionResult> LoadAsync([FromBody]PasswordModel request)
+        public async Task<IActionResult> LoadAsync([FromBody]LoadModel request)
         {
             if (request == null || request.Password == null)
             {
@@ -73,7 +74,14 @@ namespace HiddenWallet.Daemon.Controllers
 
             try
             {
-                await Global.WalletWrapper.LoadAsync(request.Password);
+				Network network = Global.Config.Network;
+				if(!string.IsNullOrWhiteSpace(request.Network))
+				{
+					network = Network.GetNetwork(request.Network);
+					await Global.Config.SetNetworkAsync(network);
+				}
+
+                await Global.WalletWrapper.LoadAsync(request.Password, network);
 
                 return new ObjectResult(new SuccessResponse());
             }
@@ -83,7 +91,25 @@ namespace HiddenWallet.Daemon.Controllers
             }
         }
 
-        [Route("wallet-exists")]
+		[Route("is-mainnet")]
+		[HttpGet]
+		public IActionResult IsMainnet()
+		{
+			try
+			{
+				if (Global.Config.Network == Network.Main)
+				{
+					return new ObjectResult(new YesNoResponse { Value = true });
+				}
+				return new ObjectResult(new YesNoResponse { Value = false });
+			}
+			catch (Exception ex)
+			{
+				return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
+			}
+		}
+
+		[Route("wallet-exists")]
         [HttpGet]
         public IActionResult WalletExists()
         {
@@ -145,7 +171,7 @@ namespace HiddenWallet.Daemon.Controllers
         {
             try
             {
-                var fail = GetAccount(account, out SafeAccount safeAccount);
+                var fail = Global.WalletWrapper.GetAccount(account, out SafeAccount safeAccount);
                 if (fail != null) return new ObjectResult(fail);
 
                 return new ObjectResult(new BalancesResponse
@@ -160,37 +186,13 @@ namespace HiddenWallet.Daemon.Controllers
             }
         }
 
-        /// <returns>null if didn't fail</returns>
-        private FailureResponse GetAccount(string account, out SafeAccount safeAccount)
-        {
-            safeAccount = null;
-            if (account == null)
-                return new FailureResponse { Message = "No request body specified" };
-
-            if (!Global.WalletWrapper.IsDecrypted)
-                return new FailureResponse { Message = "Wallet isn't decrypted" };
-
-            var trimmed = account;
-            if (string.Equals(trimmed, "alice", StringComparison.OrdinalIgnoreCase))
-            {
-                safeAccount = Global.WalletWrapper.AliceAccount;
-                return null;
-            }
-            else if (string.Equals(trimmed, "bob", StringComparison.OrdinalIgnoreCase))
-            {
-                safeAccount = Global.WalletWrapper.BobAccount;
-                return null;
-            }
-            else return new FailureResponse { Message = "Wrong account" };
-        }
-
         [Route("receive/{account}")]
         [HttpGet]
         public IActionResult Receive(string account)
         {
             try
             {
-                var fail = GetAccount(account, out SafeAccount safeAccount);
+                var fail = Global.WalletWrapper.GetAccount(account, out SafeAccount safeAccount);
                 if (fail != null) return new ObjectResult(fail);
 
                 return new ObjectResult(Global.WalletWrapper.GetReceiveResponse(safeAccount));
@@ -207,7 +209,7 @@ namespace HiddenWallet.Daemon.Controllers
         {
             try
             {
-                var fail = GetAccount(account, out SafeAccount safeAccount);
+                var fail = Global.WalletWrapper.GetAccount(account, out SafeAccount safeAccount);
                 if (fail != null) return new ObjectResult(fail);
 
                 return new ObjectResult(Global.WalletWrapper.GetHistoryResponse(safeAccount));
@@ -229,7 +231,7 @@ namespace HiddenWallet.Daemon.Controllers
                     return new ObjectResult(new FailureResponse { Message = "Bad request", Details = "" });
                 }
 
-                var fail = GetAccount(account, out SafeAccount safeAccount);
+                var fail = Global.WalletWrapper.GetAccount(account, out SafeAccount safeAccount);
                 if (fail != null) return new ObjectResult(fail);
 
 				Script customChangeScriptPubKey = null; // if it stays null then scriptubkey is not custom
@@ -309,7 +311,7 @@ namespace HiddenWallet.Daemon.Controllers
 					return new ObjectResult(new FailureResponse { Message = "Bad request", Details = "" });
 				}
 
-				var fail = GetAccount(account, out SafeAccount safeAccount);
+				var fail = Global.WalletWrapper.GetAccount(account, out SafeAccount safeAccount);
 				if (fail != null) return new ObjectResult(fail);
 
 				BitcoinAddress address;
@@ -390,6 +392,6 @@ namespace HiddenWallet.Daemon.Controllers
             {
                 return new ObjectResult(new FailureResponse { Message = ex.Message, Details = ex.ToString() });
             }
-        }
-    }
+        }		
+	}
 }

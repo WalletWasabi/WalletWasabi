@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using HiddenWallet.Models;
 using NBitcoin;
 using Xunit;
+using HiddenWallet.Crypto;
+using System.Text;
 
 namespace HiddenWallet.Tests
 {
-	public class TrackingTests
+	public class EncodingTests
 	{
 		[Fact]
 		public void TrackingBlockTest()
@@ -36,6 +38,27 @@ namespace HiddenWallet.Tests
 			var txid1 = tb2.GetMatchedTransactions().FirstOrDefault();
 			var txid2 = same2.GetMatchedTransactions().FirstOrDefault();
 			Assert.Equal(txid1, txid2);
+		}
+
+		[Fact]
+		public void CanEncodeDecodeBlinding()
+		{
+			var key = new BlindingRsaKey();
+			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
+			byte[] blindedData = key.PubKey.Blind(message).BlindedData;
+			string encoded = HexHelpers.ToString(blindedData);
+			byte[] decoded = HexHelpers.GetBytes(encoded);
+			Assert.Equal(blindedData, decoded);
+		}
+
+		[Fact]
+		public void CanEncodeDecodeOutpoint()
+		{
+			var outPoint = new OutPoint(new Transaction().GetHash(), 0);
+			string encoded = outPoint.ToHex();
+			var decoded = new OutPoint();
+			decoded.FromHex(encoded);
+			Assert.Equal(outPoint, decoded);
 		}
 	}
 }

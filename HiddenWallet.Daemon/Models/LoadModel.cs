@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace HiddenWallet.Daemon.Models
 {
-    public class BaseResponse
-    {
-		public bool Success { get; set; }
+    public class LoadModel
+	{
+		public string Password { get; set; }
+		public string Network { get; set; }
 	}
 }

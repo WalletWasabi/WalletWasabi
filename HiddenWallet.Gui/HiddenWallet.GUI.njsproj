@@ -8,7 +8,7 @@
     <TypeScriptSourceMap>true</TypeScriptSourceMap>
     <TypeScriptModuleKind>CommonJS</TypeScriptModuleKind>
     <ToolsVersionPromptShown>0.0</ToolsVersionPromptShown>
-    <TypeScriptToolsVersion>2.3</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>2.5</TypeScriptToolsVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -40,6 +40,7 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="app\css\justified-nav.css" />
+    <Content Include="app\css\slider.css" />
     <Content Include="app\html\broadcast-transaction-window.html" />
     <Content Include="app\html\decryption-phase-content.html" />
     <Content Include="app\html\decryption-phase-menu.html" />

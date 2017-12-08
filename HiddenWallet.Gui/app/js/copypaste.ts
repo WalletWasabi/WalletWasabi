@@ -34,20 +34,3 @@ document.body.addEventListener('contextmenu', (mouseEvent: MouseEvent) => {
         }
     }
 });
-
-// Close the dropdown menu if the user clicks outside of it
-window.onclick = function (mouseEvent: MouseEvent) {
-    let eventTarget: HTMLElement = mouseEvent.target as HTMLElement;
-
-    if (eventTarget.className !== 'dropbtn') {
-
-        var dropdowns: HTMLCollectionOf<Element> = document.getElementsByClassName("dropdown-content");
-
-        for (let i: number = 0; i < dropdowns.length; i++) {
-            var openDropdown: Element = dropdowns[i];
-            if (openDropdown.classList.contains('show')) {
-                openDropdown.classList.remove('show');
-            }
-        }
-    }
-}

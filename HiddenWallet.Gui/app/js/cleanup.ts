@@ -1,19 +1,7 @@
-// Object to capture process exits and call app specific cleanup function
+// Object to capture process exits
 
-function noOp() { };
-
-exports.Cleanup = function Cleanup(callback) {
-
-    // attach user callback to the process event emitter
-    // if no callback, it will still exit gracefully on Ctrl-C
-    callback = callback || noOp;
-
-    (process as NodeJS.EventEmitter).on('cleanup', callback);
-
-    (process as NodeJS.EventEmitter).on('exit', function () {
-        process.emit('cleanup');
-    });
-
+exports.Cleanup = function Cleanup() {
+    
     // catch ctrl+c event and exit normally
     (process as NodeJS.EventEmitter).on('SIGINT', function () {
         console.log('Ctrl-C...');

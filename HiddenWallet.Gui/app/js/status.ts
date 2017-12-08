@@ -17,12 +17,20 @@ let trackingHeight: number;
 let connectedNodeCount: number;
 let memPoolTransactionCount: number;
 let torState: string;
+let isTumblerOnline: boolean;
 
 function periodicUpdate() {
     setInterval(function statusUpdate() {
         let response: any = httpGetWallet("status");
 
         updateDecryptButton(response.TorState);
+
+        if (isTumblerOnline !== response.IsTumblerOnline) {
+            updateMixerTab(response.IsTumblerOnline);
+            isTumblerOnline = response.IsTumblerOnline;
+        }
+
+        updateMixerContent(response);
 
         if (walletState === response.WalletState) {
             if (headerHeight === response.HeaderHeight) {
@@ -94,11 +102,11 @@ function periodicUpdate() {
             text = "Connecting. . .";
         }
 
-        if (torState.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
+        if (torState.toUpperCase() === "CircuitEstablished".toUpperCase()) {
             statusShow(100, text, progressType);
         }
 
-        if (torState.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
+        if (torState.toUpperCase() === "EstablishingCircuit".toUpperCase()) {
             statusShow(100, "Establishing Tor circuit...", progressType);
         }
 
@@ -113,11 +121,81 @@ function periodicUpdate() {
     }, 1000);
 }
 
+function updateMixerTab(ito: boolean) {
+    try {
+
+        let mixerTabs: HTMLCollectionOf<Element> = document.getElementsByClassName("mixer-tab-link");
+        for (let i: number = 0; i < mixerTabs.length; i++) {
+            let tab: HTMLElement = mixerTabs[i] as HTMLElement;
+            if (ito === false) {
+                tab.style.backgroundColor = "blanchedalmond";
+            }
+            else {
+                tab.style.backgroundColor = "";
+            }
+        }
+    }
+    catch (err) {
+
+    }
+}
+
+let tumblerDenomination: number;
+let tumblerAnonymitySet: string;
+let tumblerNumberOfPeers: string;
+let tumblerFeePerRound: number;
+let tumblerWaitedInInputRegistration: string;
+let tumblerPhase: string;
+function updateMixerContent(response = null) {
+    try {
+        if (response != null) {
+            // If nothing changed return
+            if (tumblerDenomination === response.TumblerDenomination) {
+                if (tumblerAnonymitySet === response.TumblerAnonymitySet) {
+                    if (tumblerNumberOfPeers === response.TumblerNumberOfPeers) {
+                        if (tumblerFeePerRound === response.TumblerFeePerRound) {
+                            if (tumblerWaitedInInputRegistration === response.TumblerWaitedInInputRegistration) {
+                                if (tumblerPhase === response.TumblerPhase) {
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }            
+
+            tumblerDenomination = response.TumblerDenomination;
+            tumblerAnonymitySet = response.TumblerAnonymitySet;
+            tumblerNumberOfPeers = response.TumblerNumberOfPeers;
+            tumblerFeePerRound = response.TumblerFeePerRound;
+            tumblerWaitedInInputRegistration = response.TumblerWaitedInInputRegistration;
+            tumblerPhase = response.TumblerPhase;
+        }
+
+        let denominationElem: HTMLElement = document.getElementById("tumbler-denomination");
+        let anonymitySetElem: HTMLElement = document.getElementById("tumbler-anonymity-set");
+        let peerCountElem: HTMLElement = document.getElementById("tumbler-peer-count");
+        let tumblerFeePerRoundElem: HTMLElement = document.getElementById("tumbler-fee-per-round");
+        let timeSpentWaitingElem: HTMLElement = document.getElementById("tumbler-time-spent-waiting");
+        let currentPhaseElem: HTMLElement = document.getElementById("tumbler-current-phase");
+        
+        denominationElem.innerText = tumblerDenomination + " BTC";
+        anonymitySetElem.innerText = tumblerAnonymitySet;
+        peerCountElem.innerText = tumblerNumberOfPeers;
+        tumblerFeePerRoundElem.innerText = tumblerFeePerRound + " BTC";
+        timeSpentWaitingElem.innerText = tumblerWaitedInInputRegistration + " minutes";
+        currentPhaseElem.innerText = tumblerPhase;
+    }
+    catch (err) {
+
+    }
+}
+
 function updateDecryptButton(ts: string) {
     try {
-        var decButton: HTMLButtonElement = document.getElementById("decrypt-wallet-button") as HTMLButtonElement;
+        let decButton: HTMLButtonElement = document.getElementById("decrypt-wallet-button") as HTMLButtonElement;
 
-        if (ts.toUpperCase() === "CircuitEstabilished".toUpperCase()) {
+        if (ts.toUpperCase() === "CircuitEstablished".toUpperCase()) {
             if (decButton.innerText === "Waiting for Tor...") {
                 decButton.innerText = "Decrypt";
             }
@@ -127,7 +205,7 @@ function updateDecryptButton(ts: string) {
             }
         }
 
-        if (ts.toUpperCase() === "EstabilishingCircuit".toUpperCase()) {
+        if (ts.toUpperCase() === "EstablishingCircuit".toUpperCase()) {
             decButton.innerText = "Waiting for Tor...";
             decButton.disabled = true;
         }

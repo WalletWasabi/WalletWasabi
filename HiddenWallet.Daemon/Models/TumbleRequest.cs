@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 
 namespace HiddenWallet.Daemon.Models
 {
-    public class SuccessResponse : BaseResponse
-    {
-		public SuccessResponse() => Success = true;
+    public class TumbleRequest
+	{
+		public int RoundCount { get; set; }
+		public string From { get; set; }
+		public string To { get; set; }
 	}
 }

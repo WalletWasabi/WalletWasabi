@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "HiddenWallet.ChaumianTumbler": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "http://localhost:60949/"
+    }
+  }
+}

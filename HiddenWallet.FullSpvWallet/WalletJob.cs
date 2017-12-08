@@ -22,6 +22,9 @@ using HiddenWallet.FullSpv.MemPool;
 using HiddenWallet.FullSpv.Fees;
 using Nito.AsyncEx;
 using HiddenWallet.WebClients.SmartBit;
+using HiddenWallet.Helpers;
+using Microsoft.AspNetCore.SignalR.Client;
+using HiddenWallet.FullSpvWallet.ChaumianCoinJoin;
 
 namespace HiddenWallet.FullSpv
 {
@@ -39,6 +42,8 @@ namespace HiddenWallet.FullSpv
 		public DotNetTor.ControlPort.Client ControlPortClient { get; private set; }
 
 		public BlockDownloader BlockDownloader;
+
+		public CoinJoinService CoinJoinService;
 
 		public FeeService FeeService;
 
@@ -241,6 +246,8 @@ namespace HiddenWallet.FullSpv
 
 			FeeService = new FeeService(safeToTrack.Network, ControlPortClient, disposeTorControl: false, handler: handler, disposeHandler: false);
 
+			CoinJoinService = new CoinJoinService(this);
+
             if (accountsToTrack == null || accountsToTrack.Count() < 2)
 			{
 
@@ -287,7 +294,7 @@ namespace HiddenWallet.FullSpv
             (await GetTrackerAsync()).BestHeightChanged += WalletJob_BestHeightChanged;
 		}
 
-        private async void TrackedTransactions_CollectionChangedAsync(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private async void TrackedTransactions_CollectionChangedAsync(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             await UpdateSafeTrackingAsync();
         }
@@ -355,32 +362,33 @@ namespace HiddenWallet.FullSpv
                 await Task.WhenAll(tasks);
             }
             finally
-            {
-                State = WalletState.NotStarted;
-                (await GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
-                MemPoolJob.Synced -= MemPoolJob_SyncedAsync;
-                MemPoolJob.NewTransaction -= MemPoolJob_NewTransactionAsync;
-                Nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
-                Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
-                (await GetTrackerAsync()).BestHeightChanged -= WalletJob_BestHeightChanged;
-                await SaveAllChangedAsync();
-                Nodes?.Dispose();
-                foreach(var task in tasks)
-                {
-                    task?.Dispose();
-                }
-                FeeService?.Dispose();
+			{
+				State = WalletState.NotStarted;
+				(await GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
+				MemPoolJob.Synced -= MemPoolJob_SyncedAsync;
+				MemPoolJob.NewTransaction -= MemPoolJob_NewTransactionAsync;
+				Nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
+				Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
+				(await GetTrackerAsync()).BestHeightChanged -= WalletJob_BestHeightChanged;
+				await SaveAllChangedAsync();
+				Nodes?.Dispose();
+				foreach (var task in tasks)
+				{
+					task?.Dispose();
+				}
+				FeeService?.Dispose();
 				TorSmartBitClient?.Dispose();
-                try
-                {
-                    ControlPortClient?.DisconnectDisposeSocket();
-                }
-                catch (Exception)
-                {
+				try
+				{
+					ControlPortClient?.DisconnectDisposeSocket();
+				}
+				catch (Exception)
+				{
 
-                }
-            }
-        }
+				}
+				await CoinJoinService.DisposeAsync();
+			}
+		}
 
 		#region SafeTracking
 
@@ -416,7 +424,7 @@ namespace HiddenWallet.FullSpv
                 var cleanCount = 0;
                 while (true)
                 {
-                    Script scriptPubkey = account == null ? Safe.GetAddress(addressType, i, hdPathType).ScriptPubKey : Safe.GetAddress(addressType, i, hdPathType, account).ScriptPubKey;
+                    Script scriptPubkey = account == null ? Safe.GetScriptPubKey(addressType, i, hdPathType) : Safe.GetScriptPubKey(addressType, i, hdPathType, account);
 
                     (await GetTrackerAsync()).TrackedScriptPubKeys.Add(scriptPubkey);
 
@@ -536,7 +544,7 @@ namespace HiddenWallet.FullSpv
 		public async Task<HashSet<Script>> GetTrackedScriptPubKeysBySafeAccountAsync(SafeAccount account = null)
         {
             var maxTracked = (await GetTrackerAsync()).TrackedScriptPubKeys.Count;
-            var allPossiblyTrackedAddresses = new HashSet<BitcoinAddress>();
+            var allPossiblyTrackedScriptPubKeys = new HashSet<Script>();
 
             var addressTypes = new HashSet<AddressType>
             {
@@ -545,25 +553,25 @@ namespace HiddenWallet.FullSpv
             };
             foreach (AddressType addressType in addressTypes)
             {
-                foreach (var address in Safe.GetFirstNAddresses(addressType, maxTracked, HdPathType.Receive, account))
+                foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.Receive, account))
                 {
-                    allPossiblyTrackedAddresses.Add(address);
+					allPossiblyTrackedScriptPubKeys.Add(address);
                 }
-                foreach (var address in Safe.GetFirstNAddresses(addressType, maxTracked, HdPathType.Change, account))
+                foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.Change, account))
                 {
-                    allPossiblyTrackedAddresses.Add(address);
+					allPossiblyTrackedScriptPubKeys.Add(address);
                 }
-                foreach (var address in Safe.GetFirstNAddresses(addressType, maxTracked, HdPathType.NonHardened, account))
+                foreach (var address in Safe.GetFirstNScriptPubKey(addressType, maxTracked, HdPathType.NonHardened, account))
                 {
-                    allPossiblyTrackedAddresses.Add(address);
+					allPossiblyTrackedScriptPubKeys.Add(address);
                 }
             }
 
             var actuallyTrackedScriptPubKeys = new HashSet<Script>();
-            foreach (var address in allPossiblyTrackedAddresses)
+            foreach (var scriptPubKey in allPossiblyTrackedScriptPubKeys)
             {
-                if ((await GetTrackerAsync()).TrackedScriptPubKeys.Any(x => x == address.ScriptPubKey))
-                    actuallyTrackedScriptPubKeys.Add(address.ScriptPubKey);
+                if ((await GetTrackerAsync()).TrackedScriptPubKeys.Contains(scriptPubKey))
+                    actuallyTrackedScriptPubKeys.Add(scriptPubKey);
             }
 
             return actuallyTrackedScriptPubKeys;
@@ -968,7 +976,7 @@ namespace HiddenWallet.FullSpv
 				}
 				else
 				{
-					const int expectedMinTxSize = 1 * 41 + 1 * 33 + 10;
+					const int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
 					try
 					{
 						inNum = SelectCoinsToSpend(unspentCoins, amount + feePerBytes * expectedMinTxSize).Count;
@@ -982,8 +990,8 @@ namespace HiddenWallet.FullSpv
 				// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
 				// https://bitcoin.stackexchange.com/a/46379/26859
 				int outNum = spendAll ? 1 : 2; // 1 address to send + 1 for change
-				var origTxSize = inNum * 146 + outNum * 33 + 10;
-				var newTxSize = inNum * 41 + outNum * 33 + 10; // BEWARE: This assumes segwit only inputs!
+				var origTxSize = inNum * Constants.P2pkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10;
+				var newTxSize = inNum * Constants.P2wpkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10; // BEWARE: This assumes segwit only inputs!
 				var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
 				Debug.WriteLine($"Estimated tx size: {vSize} bytes");
 				Money fee = feePerBytes * vSize;
@@ -1061,7 +1069,7 @@ namespace HiddenWallet.FullSpv
 				var signingKeys = new HashSet<ISecret>();
 				foreach (var coin in coinsToSpend)
 				{
-					var signingKey = Safe.FindPrivateKey(coin.ScriptPubKey.GetDestinationAddress(Safe.Network), (await GetTrackerAsync()).TrackedScriptPubKeys.Count, account);
+					var signingKey = Safe.FindPrivateKey(coin.ScriptPubKey, (await GetTrackerAsync()).TrackedScriptPubKeys.Count, account);
 					signingKeys.Add(signingKey);
 				}
 
@@ -1137,7 +1145,7 @@ namespace HiddenWallet.FullSpv
             int i = 0;
             while (true)
             {
-                Script scriptPubkey = account == null ? Safe.GetAddress(type, i, hdPathType).ScriptPubKey : Safe.GetAddress(type, i, hdPathType, account).ScriptPubKey;
+                Script scriptPubkey = account == null ? Safe.GetScriptPubKey(type, i, hdPathType) : Safe.GetScriptPubKey(type, i, hdPathType, account);
                 if ((await GetTrackerAsync()).IsClean(scriptPubkey))
                 {
                     scriptPubKeys.Add(scriptPubkey);

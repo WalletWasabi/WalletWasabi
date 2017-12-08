@@ -1,4 +1,5 @@
 ﻿using HiddenWallet.Converters;
+using HiddenWallet.Crypto;
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
@@ -25,6 +26,20 @@ namespace HiddenWallet.Daemon
 		[JsonConverter(typeof(FunnyBoolConverter))]
 		public bool? CanSpendUnconfirmed { get; set; }
 
+		[JsonProperty(PropertyName = "ChaumianTumblerTestNetAddress", Order = 4)]
+		public string ChaumianTumblerTestNetAddress { get; private set; }
+
+		[JsonProperty(PropertyName = "ChaumianTumblerMainAddress", Order = 5)]
+		public string ChaumianTumblerMainAddress { get; private set; }
+
+		[JsonProperty(PropertyName = "ChaumianTumblerTestNetNotificationAddress", Order = 6)]
+		public string ChaumianTumblerTestNetNotificationAddress { get; private set; }
+
+		[JsonProperty(PropertyName = "ChaumianTumblerMainNotificationAddress", Order = 7)]
+		public string ChaumianTumblerMainNotificationAddress { get; private set; }
+
+		private string ConfigPath { get; set; }
+
 		public Config()
 		{
 
@@ -32,7 +47,7 @@ namespace HiddenWallet.Daemon
 
 		public async Task ToFileAsync(string path, CancellationToken cancel)
 		{
-			if (path == null) throw new ArgumentNullException(nameof(path));
+			ConfigPath = string.IsNullOrWhiteSpace(path) ? throw new ArgumentNullException(nameof(path)) : path;
 
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
 			await File.WriteAllTextAsync(path,
@@ -44,10 +59,15 @@ namespace HiddenWallet.Daemon
 		public async Task LoadOrCreateDefaultFileAsync(string path, CancellationToken cancel)
 		{
 			if (path == null) throw new ArgumentNullException(nameof(path));
+			
 
 			WalletFilePath = Path.Combine(FullSpvWallet.Global.DataDir, "Wallets", "Wallet.json");
 			Network = Network.Main;
-			CanSpendUnconfirmed = false;
+			CanSpendUnconfirmed = true;
+			ChaumianTumblerTestNetAddress = "http://uitzert24go64ure.onion/";
+			ChaumianTumblerMainAddress = "http://i4dmqjdw2nljsyt3.onion/"; // TODO: change it when active tumbler had been set up
+			ChaumianTumblerTestNetNotificationAddress = "http://139.59.208.212:37126/";
+			ChaumianTumblerMainNotificationAddress = "http://localhost:37126/"; // TODO: change it when active tumbler had been set up
 
 			if (!File.Exists(path))
 			{
@@ -61,9 +81,25 @@ namespace HiddenWallet.Daemon
 				WalletFilePath = config.WalletFilePath ?? WalletFilePath;
 				Network = config.Network ?? Network;
 				CanSpendUnconfirmed = config.CanSpendUnconfirmed ?? CanSpendUnconfirmed;
+				ChaumianTumblerTestNetAddress = config.ChaumianTumblerTestNetAddress ?? ChaumianTumblerTestNetAddress;
+				ChaumianTumblerMainAddress = config.ChaumianTumblerMainAddress ?? ChaumianTumblerMainAddress;
+				ChaumianTumblerTestNetNotificationAddress = config.ChaumianTumblerTestNetNotificationAddress ?? ChaumianTumblerTestNetNotificationAddress;
+				ChaumianTumblerMainNotificationAddress = config.ChaumianTumblerMainNotificationAddress ?? ChaumianTumblerMainNotificationAddress;
 			}
 
 			await ToFileAsync(path, cancel);
+		}
+
+		public async Task SetNetworkAsync(Network network)
+		{
+			if (network == null) throw new ArgumentNullException(nameof(network));
+			if (network == Network)
+			{
+				return;
+			}
+
+			Network = network;
+			await ToFileAsync(ConfigPath, CancellationToken.None);
 		}
 	}
 }
