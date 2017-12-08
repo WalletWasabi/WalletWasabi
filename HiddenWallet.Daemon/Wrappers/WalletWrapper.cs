@@ -91,6 +91,17 @@ namespace HiddenWallet.Daemon.Wrappers
 				await WalletJob.InitializeAsync(Tor.SocksPortHandler, Tor.ControlPortClient, safe, trackDefaultSafe: false, accountsToTrack: new SafeAccount[] { AliceAccount, BobAccount });
 
 				WalletJob.StateChanged += _walletJob_StateChanged;
+
+				WalletJob.MempoolChanged += _walletJob_MempoolChanged;
+				
+				WalletJob.HeaderHeightChanged += _walletJob_HeaderHeightChanged;
+				
+				WalletJob.TrackerHeightAnnounce += _walletJob_TrackerHeightAnnounce;
+				
+				WalletJob.ConnectedNodeCountAnnounce += _walletJob_ConnectedNodeCountAnnounce;
+				
+				WalletJob.CoinJoinStatusChanged += _walletJob_CoinJoinStatusChanged;
+
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
 
 				_receiveResponseAlice.ExtPubKey = WalletJob.Safe.GetBitcoinExtPubKey(index: null, hdPathType: HdPathType.NonHardened, account: AliceAccount).ToWif();
@@ -139,6 +150,8 @@ namespace HiddenWallet.Daemon.Wrappers
 			{
 				_changeBump++;
 			}
+
+			NotificationBroadcaster.Instance.BroadcastChangeBump();
 		}
 
 		private async Task UpdateHistoryRelatedMembersAsync()
@@ -216,9 +229,92 @@ namespace HiddenWallet.Daemon.Wrappers
 		private void _walletJob_StateChanged(object sender, EventArgs e)
 		{
 			_walletState = WalletJob.State.ToString();
+			NotificationBroadcaster.Instance.BroadcastWalletState(_walletState);
 		}
 
+		private void _walletJob_MempoolChanged(object sender, string count)
+		{
+			NotificationBroadcaster.Instance.BroadcastMempool(count);
+		}
+
+		private void _walletJob_TrackerHeightAnnounce(object sender, string trackerHeight)
+		{
+			NotificationBroadcaster.Instance.BroadcastTrackerHeight(trackerHeight);
+		}
+
+		private void _walletJob_HeaderHeightChanged(object sender, string headerHeight)
+		{
+			NotificationBroadcaster.Instance.BroadcastHeaderHeight(headerHeight);
+		}
+
+		private void _walletJob_ConnectedNodeCountAnnounce(object sender, string nodeCount)
+		{
+			NotificationBroadcaster.Instance.BroadcastNodeCount(nodeCount);
+		}
+
+		private void _walletJob_CoinJoinStatusChanged(object sender, EventArgs e)
+		{
+			TumblerStatusResponse status = GetTumblerStatusResponse();
+			NotificationBroadcaster.Instance.BroadcastTumblerStatus(status);
+		}
 		#endregion
+
+		public TumblerStatusResponse GetTumblerStatusResponse()
+		{
+			if (WalletJob != null)
+			{
+				var itbo = WalletJob.CoinJoinService?.TumblerConnection != null;
+
+				var tbd = (WalletJob.CoinJoinService?.Denomination ?? Money.Zero).ToString(false, true);
+
+				var tumblerStatus = WalletJob.CoinJoinService?.StatusResponse;
+
+				var tas = tumblerStatus?.AnonymitySet ?? 0;
+
+				var tnop = WalletJob.CoinJoinService?.NumberOfPeers ?? 0;
+
+				string tfr = "0";
+				try
+				{
+					var feePerInputs = Money.Parse(tumblerStatus?.FeePerInputs);
+					var feePerOutputs = Money.Parse(tumblerStatus?.FeePerOutputs);
+					tfr = (feePerInputs + 2 * feePerOutputs).ToString(false, true);
+				}
+				catch
+				{
+
+				}
+
+				int twiir;
+
+				if (tumblerStatus == null)
+				{
+					twiir = 0;
+				}
+				else
+				{
+					twiir = (int)TimeSpan.FromSeconds(Convert.ToDouble(tumblerStatus.TimeSpentInInputRegistrationInSeconds)).TotalMinutes;
+				}
+
+				var tp = WalletJob.CoinJoinService?.Phase.ToString() ?? "";
+
+				TumblerStatusResponse status = new TumblerStatusResponse
+				{
+					IsTumblerOnline = itbo,
+					TumblerDenomination = tbd,
+					TumblerAnonymitySet = tas,
+					TumblerNumberOfPeers = tnop,
+					TumblerFeePerRound = tfr,
+					TumblerWaitedInInputRegistration = twiir,
+					TumblerPhase = tp
+				};
+				return status;
+			}
+			else
+			{
+				return new TumblerStatusResponse { Success = false, IsTumblerOnline = false };
+			}
+		}
 
 		private volatile bool _endCalled = false;
 		public async Task EndAsync()
@@ -229,6 +325,11 @@ namespace HiddenWallet.Daemon.Wrappers
 			if (WalletJob != null)
 			{
 				WalletJob.StateChanged -= _walletJob_StateChanged;
+				WalletJob.MempoolChanged -= _walletJob_MempoolChanged;
+				WalletJob.HeaderHeightChanged -= _walletJob_HeaderHeightChanged;
+				WalletJob.TrackerHeightAnnounce -= _walletJob_TrackerHeightAnnounce;
+				WalletJob.ConnectedNodeCountAnnounce -= _walletJob_ConnectedNodeCountAnnounce;
+				WalletJob.CoinJoinStatusChanged -= _walletJob_CoinJoinStatusChanged;
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
 			}
 
@@ -394,6 +495,24 @@ namespace HiddenWallet.Daemon.Wrappers
 				return null;
 			}
 			else return new FailureResponse { Message = "Wrong account" };
+		}
+
+		public async Task<int> GetHeaderHeightAsync()
+		{
+			int hh = 0;
+			if (WalletJob != null)
+			{
+				var result = await WalletJob.TryGetHeaderHeightAsync();
+				var headerHeight = result.Height;
+				if (result.Success)
+				{
+					if (headerHeight.Type == HeightType.Chain)
+					{
+						hh = headerHeight.Value;
+					}
+				}
+			}
+			return hh;
 		}
 	}
 }

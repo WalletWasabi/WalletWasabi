@@ -19,8 +19,8 @@ namespace HiddenWallet.Daemon
 		public static string TorArguments => $"SOCKSPort {SOCKSPort} ControlPort {ControlPort} HashedControlPassword {HashedControlPassword} DataDirectory {DataDirectory}";
 		public static SocksPortHandler SocksPortHandler = new SocksPortHandler("127.0.0.1", socksPort: SOCKSPort);
 		public static DotNetTor.ControlPort.Client ControlPortClient = new DotNetTor.ControlPort.Client("127.0.0.1", controlPort: ControlPort, password: "ILoveBitcoin21");
-		public static TorState State = TorState.NotStarted;
 		public static CancellationTokenSource CircuitEstablishingJobCancel = new CancellationTokenSource();
+		private static TorState _state = TorState.NotStarted;
 
 		public static async Task MakeSureCircuitEstablishedAsync()
 		{
@@ -111,6 +111,31 @@ namespace HiddenWallet.Daemon
 			NotStarted,
 			EstablishingCircuit,
 			CircuitEstablished
+		}
+
+		private static void TryBroadcast()
+		{
+			try
+			{
+				NotificationBroadcaster.Instance.BroadcastTorState(State.ToString());
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
+			}
+		}
+
+		public static TorState State
+		{
+			get { return _state; }
+			set
+			{
+				if (value != _state)
+				{
+					_state = value;
+					try { TryBroadcast(); } catch { }
+				}
+			}
 		}
 	}
 }
