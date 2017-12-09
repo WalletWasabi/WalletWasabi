@@ -101,8 +101,8 @@ namespace HiddenWallet.Daemon.Controllers
 				for (int i = 0; i < request.RoundCount; i++)
 				{
 					IEnumerable<Script> unusedOutputs = await Global.WalletWrapper.WalletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, toAccount, HdPathType.NonHardened);
-					BitcoinAddress activeOutput = unusedOutputs.RandomElement().GetDestinationAddress(Global.WalletWrapper.Network); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
-					BitcoinWitPubKeyAddress bech32 = new BitcoinWitPubKeyAddress(activeOutput.ToString(), Global.WalletWrapper.Network);
+					BitcoinAddress activeOutput = unusedOutputs.RandomElement().GetDestinationAddress(Global.WalletWrapper.WalletJob.CurrentNetwork); // TODO: this is sub-optimal, it'd be better to not which had been already registered and not reregister it
+					BitcoinWitPubKeyAddress bech32 = new BitcoinWitPubKeyAddress(activeOutput.ToString(), Global.WalletWrapper.WalletJob.CurrentNetwork);
 
 					uint256 txid = null;
 					try

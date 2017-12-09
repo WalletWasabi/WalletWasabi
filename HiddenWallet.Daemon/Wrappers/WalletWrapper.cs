@@ -17,6 +17,9 @@ using static HiddenWallet.FullSpv.WalletJob;
 using DotNetTor.SocksPort;
 using HiddenWallet.FullSpv.Fees;
 using HiddenWallet.SharedApi.Models;
+using HiddenWallet.Crypto;
+using System.Text;
+using Org.BouncyCastle.Math;
 
 namespace HiddenWallet.Daemon.Wrappers
 {
@@ -36,9 +39,7 @@ namespace HiddenWallet.Daemon.Wrappers
 
 		public bool WalletExists => File.Exists(Global.Config.WalletFilePath);
 		public bool IsDecrypted => !_walletJobTask.IsCompleted && _password != null;
-
-		public Network Network => WalletJob.Safe.Network;
-
+		
 		private Money _availableAlice = Money.Zero;
 		private Money _availableBob = Money.Zero;
 		private Money _incomingAlice = Money.Zero;
@@ -106,18 +107,47 @@ namespace HiddenWallet.Daemon.Wrappers
 				_walletJobTask = WalletJob.StartAsync(_cts.Token);
 
 				await UpdateHistoryRelatedMembersAsync();
-
-
-				if (Network == Network.Main)
-				{
-					WalletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerMainAddress, Global.Config.ChaumianTumblerMainNotificationAddress, Global.RsaPubKey, Tor.SocksPortHandler, disposeHandler: false);
-				}
-				else
-				{
-					WalletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerTestNetAddress, Global.Config.ChaumianTumblerTestNetNotificationAddress, Global.RsaPubKey, Tor.SocksPortHandler, disposeHandler: false);
-				}
-				await WalletJob.CoinJoinService.SubscribeNotificationsAsync();
+				await InitializeCoinJoinServiceAsync(network);
 			}
+		}
+
+		private async Task InitializeCoinJoinServiceAsync(Network network)
+		{
+			string rsaPath;
+			if (network == Network.Main)
+			{
+				rsaPath = Path.Combine(FullSpvWallet.Global.DataDir, "RsaPubKeyMain.json");
+			}
+			else
+			{
+				rsaPath = Path.Combine(FullSpvWallet.Global.DataDir, "RsaPubKeyTestNet.json");
+			}
+
+			BlindingRsaPubKey rsaPubKey;
+			if (File.Exists(rsaPath))
+			{
+				string rsaPubKeyJson = await File.ReadAllTextAsync(rsaPath, Encoding.UTF8);
+				rsaPubKey = BlindingRsaPubKey.CreateFromJson(rsaPubKeyJson);
+			}
+			else
+			{
+				// TODO: change these default values to the default testnet and mainnet server's keys
+				var modulus = new BigInteger("23765292524202909590312633661559508105372542245888884022732405845352867619510400148700590630819909854245443768683013002454300998561366066863075543900854183218255556958603829744574143217473373221883959779439395079947766381668459828953701726054394843911847063235903761918014727346563249795000296937701840334243492972569641205615480654015909880231725449975599905030093854844840930446509242634799081158992191062980583060919718404098183279802755923836822248873360647411342760279712271227024615021525054883324946175934075264032794034681653369283673040524060792800105336875314739176592340110027306283977215862005685674572993");
+				var exponent = new BigInteger("65537");
+				rsaPubKey = new BlindingRsaPubKey(modulus, exponent);
+				await File.WriteAllTextAsync(rsaPath, rsaPubKey.ToJson(), Encoding.UTF8);
+				Console.WriteLine($"Created RSA key at: {rsaPath}");
+			}
+
+			if (network == Network.Main)
+			{
+				WalletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerMainAddress, Global.Config.ChaumianTumblerMainNotificationAddress, rsaPubKey, Tor.SocksPortHandler, disposeHandler: false);
+			}
+			else
+			{
+				WalletJob.CoinJoinService.SetConnection(Global.Config.ChaumianTumblerTestNetAddress, Global.Config.ChaumianTumblerTestNetNotificationAddress, rsaPubKey, Tor.SocksPortHandler, disposeHandler: false);
+			}
+			await WalletJob.CoinJoinService.SubscribeNotificationsAsync();
 		}
 
 		private async void WalletWrapper_BestHeightChangedAsync(object sender, Height height)
@@ -435,7 +465,7 @@ namespace HiddenWallet.Daemon.Wrappers
 					inputs.Add(new TransactionInputModel
 					{
 						Amount = coin.Amount.ToString(false, true),
-						Address = coin.ScriptPubKey.GetDestinationAddress(Network).ToString(),
+						Address = coin.ScriptPubKey.GetDestinationAddress(WalletJob.CurrentNetwork).ToString(),
 						Hash = coin.Outpoint.Hash.ToString(),
 						Index = (int)coin.Outpoint.N
 					});
@@ -447,9 +477,9 @@ namespace HiddenWallet.Daemon.Wrappers
 					Fee = result.Fee.ToString(false, true),
 					FeePercentOfSent = result.FeePercentOfSent.ToString("0.##"),
 					Hex = result.Transaction.ToHex(),
-					ActiveOutputAddress = result.ActiveOutput.ScriptPubKey.GetDestinationAddress(Network).ToString(),
+					ActiveOutputAddress = result.ActiveOutput.ScriptPubKey.GetDestinationAddress(WalletJob.CurrentNetwork).ToString(),
 					ActiveOutputAmount = result.ActiveOutput.Value.ToString(false, true),
-					ChangeOutputAddress = result.ChangeOutput?.ScriptPubKey?.GetDestinationAddress(Network)?.ToString() ?? "",
+					ChangeOutputAddress = result.ChangeOutput?.ScriptPubKey?.GetDestinationAddress(WalletJob.CurrentNetwork)?.ToString() ?? "",
 					ChangeOutputAmount = result.ChangeOutput?.Value?.ToString(false, true) ?? "0",
 					NumberOfInputs = result.SpentCoins.Count(),
 					Inputs = inputs.ToArray(),

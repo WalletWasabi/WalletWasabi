@@ -243,7 +243,7 @@ namespace HiddenWallet.Daemon.Controllers
                 BitcoinAddress address;
                 try
                 {
-                    address = BitcoinAddress.Create(request.Address, Global.WalletWrapper.Network);
+                    address = BitcoinAddress.Create(request.Address, Global.WalletWrapper.WalletJob.CurrentNetwork);
                 }
                 catch (Exception)
                 {
@@ -317,7 +317,7 @@ namespace HiddenWallet.Daemon.Controllers
 				BitcoinAddress address;
 				try
 				{
-					address = BitcoinAddress.Create(request.Address, Global.WalletWrapper.Network);
+					address = BitcoinAddress.Create(request.Address, Global.WalletWrapper.WalletJob.CurrentNetwork);
 				}
 				catch (Exception)
 				{

@@ -12,6 +12,5 @@ namespace HiddenWallet.Daemon
 	{
 		public static WalletWrapper WalletWrapper;
 		public static Config Config;
-		public static BlindingRsaPubKey RsaPubKey;
 	}
 }
