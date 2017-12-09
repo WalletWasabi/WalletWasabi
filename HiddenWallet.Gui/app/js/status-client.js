@@ -84,9 +84,6 @@ function signalrStatusUpdate() {
 }
 
 function statusSignalRShow() {
-
-    var status = document.getElementById("status");
-
     let text = "";
     let blocksLeftDisplay = "";
     let mempoolDisplay = "";
@@ -150,12 +147,18 @@ function statusSignalRShow() {
         progressType = "danger";
     }
 
+    var progressBarDivElem = document.getElementById("progress-bar-div");
     if (progressType === "") {
-        status.innerHTML = '<div class="progress" style="margin:0"><div class="progress-bar" role="progressbar" style="width:' + progress + '%;"><span><strong>' + text + '</strong></span></div></div>';
+        progressBarDivElem.className = "progress-bar";
     }
     else {
-        status.innerHTML = '<div class="progress" style="margin:0"><div class="progress-bar progress-bar-' + progressType + ' role="progressbar" style="width:' + progress + '%;"><span><strong>' + text + '</strong></span></div></div>';
+        progressBarDivElem.className = "progress-bar progress-bar-" + progressType;
     }
+
+    var progressBarTextElem = document.getElementById("progress-bar-text");
+    progressBarTextElem.innerText = text;
+    
+    progressBarDivElem.style.width = progress + "%";
 }
 
 function updateDecryptButton() {
