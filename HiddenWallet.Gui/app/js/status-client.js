@@ -256,13 +256,60 @@ function updateMixerContent() {
                 var tumblerFeePerRoundElem = document.getElementById("tumbler-fee-per-round");
                 var timeSpentWaitingElem = document.getElementById("tumbler-time-spent-waiting");
                 var currentPhaseElem = document.getElementById("tumbler-current-phase");
+
+                var phaseProgressBarDiv = document.getElementById("phase-progress-bar-div");
+                var percentProgressBarDiv = document.getElementById("peercount-progress-bar-div");
                 if (null !== currentPhaseElem) {
                     denominationElem.innerText = tumblerDenomination + " BTC";
-                    anonymitySetElem.innerText = tumblerAnonymitySet;
-                    peerCountElem.innerText = tumblerNumberOfPeers;
                     tumblerFeePerRoundElem.innerText = tumblerFeePerRound + " BTC";
                     timeSpentWaitingElem.innerText = tumblerWaitedInInputRegistration + " minutes";
+
+                    anonymitySetElem.innerText = tumblerAnonymitySet;
+                    peerCountElem.innerText = tumblerNumberOfPeers;
+
+                    let total = parseInt(tumblerAnonymitySet);
+                    let actual = parseInt(tumblerNumberOfPeers);
+                    let perc = "";
+                    if (isNaN(total) || isNaN(actual)) {
+                        perc = "0";
+                    } else {
+                        perc = Math.round((actual / total) * 100);
+                    }
+
+                    if (perc === 100) {
+                        percentProgressBarDiv.className = "progress-bar progress-bar-success";
+                    }
+                    else if (perc > 80)
+                    {
+                        percentProgressBarDiv.className = "progress-bar progress-bar-success progress-bar-striped active";
+                    }
+                    else if (perc > 50) {
+                        percentProgressBarDiv.className = "progress-bar progress-bar-info progress-bar-striped active";
+                    }
+                    else {
+                        percentProgressBarDiv.className = "progress-bar progress-bar-info";
+                    }
+
+                    percentProgressBarDiv.style.width = perc + "%";
+
                     currentPhaseElem.innerText = tumblerPhase;
+
+                    if (tumblerPhase == "InputRegistration") {
+                        phaseProgressBarDiv.className = "progress-bar progress-bar-info";
+                        phaseProgressBarDiv.style.width = "0%";
+                    }
+                    if (tumblerPhase == "ConnectionConfirmation") {
+                        phaseProgressBarDiv.className = "progress-bar progress-bar-info progress-bar-striped active";
+                        phaseProgressBarDiv.style.width = "70%";
+                    }
+                    if (tumblerPhase == "OutputRegistration") {
+                        phaseProgressBarDiv.className = "progress-bar progress-bar-success progress-bar-striped active";
+                        phaseProgressBarDiv.style.width = "80%";
+                    }
+                    if (tumblerPhase == "Signing") {
+                        phaseProgressBarDiv.className = "progress-bar progress-bar-success progress-bar-striped active";
+                        phaseProgressBarDiv.style.width = "98%";
+                    }
                 }
             }
         }
