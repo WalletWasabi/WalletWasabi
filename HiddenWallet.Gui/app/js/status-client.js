@@ -68,7 +68,6 @@ function signalrStatusUpdate() {
 
     signalRConnection.on('mixerStatusChanged', data => {
         mixerStatusResult = JSON.parse(data);
-        isTumblerOnline = mixerStatusResult.IsTumblerOnline;
         updateMixerTab();
         updateMixerContent();
     });
@@ -220,9 +219,11 @@ function updateMixerTab() {
             for (var i = 0; i < mixerTabs.length; i++) {
                 var tab = mixerTabs[i];
                 if (json.Success === false) {
+                    isTumblerOnline = false;
                     tab.style.backgroundColor = "blanchedalmond";
                 }
                 else {
+                    isTumblerOnline = true;
                     tab.style.backgroundColor = "";
                 }
             }
