@@ -214,21 +214,23 @@ function tumblerStatusBroadcastRequest() {
 }
 
 function updateMixerTab() {
-    try {
-        var mixerTabs = document.getElementsByClassName("mixer-tab-link");
-        for (var i = 0; i < mixerTabs.length; i++) {
-            var tab = mixerTabs[i];
-            if (isTumblerOnline === false) {
-                tab.style.backgroundColor = "blanchedalmond";
-            }
-            else {
-                tab.style.backgroundColor = "";
+    httpGetTumblerAsync("connection", function (json) {
+        try {
+            var mixerTabs = document.getElementsByClassName("mixer-tab-link");
+            for (var i = 0; i < mixerTabs.length; i++) {
+                var tab = mixerTabs[i];
+                if (json.Success === false) {
+                    tab.style.backgroundColor = "blanchedalmond";
+                }
+                else {
+                    tab.style.backgroundColor = "";
+                }
             }
         }
-    }
-    catch (err) {
-        console.info(err.message);
-    }
+        catch (err) {
+            console.info(err.message);
+        }
+    });
 }
 
 var tumblerDenomination;
