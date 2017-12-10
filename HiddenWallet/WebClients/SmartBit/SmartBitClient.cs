@@ -40,7 +40,7 @@ namespace HiddenWallet.WebClients.SmartBit
 
 		public async Task PushTransactionAsync(Transaction transaction, CancellationToken cancel)
 		{
-			using (await _asyncLock.LockAsync())
+			using (await _asyncLock.LockAsync(cancel))
 			{
 				var content = new StringContent(
 					new JObject(new JProperty("hex", transaction.ToHex())).ToString(),
@@ -58,7 +58,7 @@ namespace HiddenWallet.WebClients.SmartBit
 
 		public async Task<IEnumerable<SmartBitExchangeRate>> GetExchangeRatesAsync(CancellationToken cancel)
 		{
-			using (await _asyncLock.LockAsync())
+			using (await _asyncLock.LockAsync(cancel))
 			using (HttpResponseMessage response =
 					await HttpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel))
 			{

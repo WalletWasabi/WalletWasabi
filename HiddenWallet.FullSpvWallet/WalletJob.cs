@@ -12,8 +12,6 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using Newtonsoft.Json.Linq;
-using QBitNinja.Client;
-using QBitNinja.Client.Models;
 using DotNetTor.SocksPort;
 using DotNetTor;
 using HiddenWallet.Models;
@@ -1360,8 +1358,8 @@ namespace HiddenWallet.FullSpv
 				await ControlPortClient.ChangeCircuitAsync();
 
 				await Task.Delay(100);
-				await TorSmartBitClient.PushTransactionAsync(tx, CancellationToken.None);
 
+				await TorSmartBitClient.PushTransactionAsync(tx, CancellationToken.None);
 				for (int i = 0; i < 21; i++)
 				{
 					await Task.Delay(1000);

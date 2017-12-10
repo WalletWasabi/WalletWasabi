@@ -12,6 +12,7 @@ var mixerStatusResult;
 var isTumblerOnline = false;
 
 function signalrStatusUpdate() {
+    initializeStatus();
 
     connection = new signalR.HubConnection('http://localhost:37120/daemonHub');
 
@@ -80,7 +81,18 @@ function signalrStatusUpdate() {
         connection.invoke('TumblerStatusBroadcastRequestAsync'); //Request that the status is broadcast
     }).catch(error => {
         console.error(error.message);
-    });
+        });
+}
+
+function initializeStatus() {
+    let response = httpGetWallet("status");
+
+    walletState = response.WalletState;
+    headerHeight = parseInt(response.HeaderHeight);
+    trackerHeight = parseInt(response.TrackingHeight);
+    nodeCount = parseInt(response.ConnectedNodeCount);
+    mempool = parseInt(response.MemPoolTransactionCount);
+    torState = response.TorState;
 }
 
 function statusSignalRShow() {
