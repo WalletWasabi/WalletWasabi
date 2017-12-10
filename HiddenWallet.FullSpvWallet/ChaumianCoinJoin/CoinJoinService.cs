@@ -35,7 +35,22 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 		public BlindingRsaPubKey PubKey { get; private set; }
 
 		public volatile bool TumblingInProcess;
-		public volatile TumblerPhase Phase;
+		private volatile TumblerPhase _phase;
+		public TumblerPhase Phase
+		{
+			get
+			{
+				return _phase;
+			}
+			set
+			{
+				if (value != _phase)
+				{
+					_phase = value;
+					OnParametersChanged(PeerCount, value);
+				}
+			}
+		}
 		public volatile Exception TumblingException;
 		public volatile bool CompletedLastPhase;
 		public volatile Transaction CoinJoin;
@@ -56,12 +71,12 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 				if (value != _peerCount)
 				{
 					_peerCount = value;
-					OnPeerCountChanged(value);
+					OnParametersChanged(value, Phase);
 				}
 			}
 		}
-		public event EventHandler<int> PeerCountChanged;
-		public void OnPeerCountChanged(int peerCount) => PeerCountChanged?.Invoke(this, peerCount);
+		public event EventHandler<(int PeerCount, TumblerPhase Phase)> ParametersChanged;
+		public void OnParametersChanged(int peerCount, TumblerPhase phase) => ParametersChanged?.Invoke(this, (peerCount, phase));
 
 		public string UniqueAliceId { get; private set; }
 		public BitcoinWitPubKeyAddress ActiveOutput { get; private set; }

@@ -96,7 +96,7 @@ namespace HiddenWallet.Daemon.Wrappers
 				WalletJob.HeaderHeightChanged += WalletJob_HeaderHeightChangedAsync;
 				(await WalletJob.GetTrackerAsync()).BestHeightChanged += WalletWrapper_BestHeightChangedAsync;
 				WalletJob.ConnectedNodeCountChanged += WalletJob_ConnectedNodeCountChangedAsync;
-				WalletJob.CoinJoinService.PeerCountChanged += CoinJoinService_PeerCountChangedAsync;
+				WalletJob.CoinJoinService.ParametersChanged += CoinJoinService_ParametersChangedAsync;
 
 
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
@@ -109,6 +109,12 @@ namespace HiddenWallet.Daemon.Wrappers
 				await UpdateHistoryRelatedMembersAsync();
 				await InitializeCoinJoinServiceAsync(network);
 			}
+		}
+
+		private async void CoinJoinService_ParametersChangedAsync(object sender, (int PeerCount, ChaumianCoinJoin.TumblerPhase Phase) e)
+		{
+			TumblerStatusResponse status = GetTumblerStatusResponse();
+			await NotificationBroadcaster.Instance.BroadcastTumblerStatusAsync(status);
 		}
 
 		private async Task InitializeCoinJoinServiceAsync(Network network)
@@ -174,12 +180,6 @@ namespace HiddenWallet.Daemon.Wrappers
 		private async void MemPoolJob_NewTransactionAsync(object sender, NewTransactionEventArgs e)
 		{
 			await NotificationBroadcaster.Instance.BroadcastMempoolAsync(e.MempoolTxCount.ToString());
-		}
-
-		private async void CoinJoinService_PeerCountChangedAsync(object sender, int peerCount)
-		{
-			TumblerStatusResponse status = GetTumblerStatusResponse();
-			await NotificationBroadcaster.Instance.BroadcastTumblerStatusAsync(status);
 		}
 
 		public async Task RecoverAsync(string password, string mnemonic, string creationTime)
@@ -300,7 +300,7 @@ namespace HiddenWallet.Daemon.Wrappers
 				WalletJob.HeaderHeightChanged -= WalletJob_HeaderHeightChangedAsync;
 				(await WalletJob.GetTrackerAsync()).BestHeightChanged -= WalletWrapper_BestHeightChangedAsync;
 				WalletJob.ConnectedNodeCountChanged -= WalletJob_ConnectedNodeCountChangedAsync;
-				WalletJob.CoinJoinService.PeerCountChanged -= CoinJoinService_PeerCountChangedAsync;
+				WalletJob.CoinJoinService.ParametersChanged -= CoinJoinService_ParametersChangedAsync;
 				(await WalletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged -= TrackedTransactions_CollectionChangedAsync;
 			}
 
