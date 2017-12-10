@@ -7,38 +7,38 @@ var walletState = "NotStarted";
 var torState = "NotStarted";
 var progressType = "success";
 var progress = "10";
-var connection;
+var signalRConnection;
 var mixerStatusResult;
 var isTumblerOnline = false;
 
 function signalrStatusUpdate() {
     initializeStatus();
 
-    connection = new signalR.HubConnection('http://localhost:37120/daemonHub');
+    signalRConnection = new signalR.HubConnection('http://localhost:37120/daemonHub');
 
     var headerTimer;
 
-    connection.on('mempoolChanged', data => {
+    signalRConnection.on('mempoolChanged', data => {
         mempool = parseInt(data);
         statusSignalRShow();
     });
 
-    connection.on('trackerHeightChanged', data => {
+    signalRConnection.on('trackerHeightChanged', data => {
         trackerHeight = parseInt(data);
         statusSignalRShow();
     });
 
-    connection.on('headerHeightChanged', data => {
+    signalRConnection.on('headerHeightChanged', data => {
         headerHeight = parseInt(data);
         statusSignalRShow();
     });
 
-    connection.on('nodeCountChanged', data => {
+    signalRConnection.on('nodeCountChanged', data => {
         nodeCount = parseInt(data);
         statusSignalRShow();
     });
 
-    connection.on('walletStateChanged', data => {
+    signalRConnection.on('walletStateChanged', data => {
         walletState = data;
 
         if (walletState.toUpperCase() === "SyncingHeaders".toUpperCase()) {
@@ -55,30 +55,30 @@ function signalrStatusUpdate() {
         statusSignalRShow();
     });
 
-    connection.on('changeBump', data => {
+    signalRConnection.on('changeBump', data => {
         updateWalletContent();
     });
 
-    connection.on('torStateChanged', data => {
+    signalRConnection.on('torStateChanged', data => {
         console.log("Tor State: " + data);
         torState = data;
         updateDecryptButton();
         statusSignalRShow();
     });
 
-    connection.on('mixerStatusChanged', data => {
+    signalRConnection.on('mixerStatusChanged', data => {
         mixerStatusResult = JSON.parse(data);
         isTumblerOnline = mixerStatusResult.IsTumblerOnline;
         updateMixerTab();
         updateMixerContent();
     });
 
-    connection.start().then(function () {
+    signalRConnection.start().then(function () {
         console.log("Connected to SignalR on Daemon");
-        connection.invoke('GetTorStatusAsync');
+        signalRConnection.invoke('GetTorStatusAsync');
     }).then(function () {
         console.log("Tumbler Status Request");
-        connection.invoke('TumblerStatusBroadcastRequestAsync'); //Request that the status is broadcast
+        signalRConnection.invoke('TumblerStatusBroadcastRequestAsync'); //Request that the status is broadcast
     }).catch(error => {
         console.error(error.message);
         });
@@ -206,11 +206,11 @@ function updateDecryptButton() {
 }
 
 function getHeaderHeight() {
-    connection.invoke('GetHeaderHeightAsync');
+    signalRConnection.invoke('GetHeaderHeightAsync');
 }
 
 function tumblerStatusBroadcastRequest() {
-    connection.invoke('TumblerStatusBroadcastRequestAsync');
+    signalRConnection.invoke('TumblerStatusBroadcastRequestAsync');
 }
 
 function updateMixerTab() {

@@ -1,4 +1,6 @@
-﻿const packageJson = require('./package.json');
+﻿/// <reference path="status-client.d.ts" />
+
+const packageJson = require('./package.json');
 
 let title: string = `HiddenWallet ${packageJson.version} - ${packageJson.author.name}  (EXPERIMENTAL)`;
 
@@ -15,6 +17,10 @@ document.title = title;
         let hideButton: HTMLElement = document.getElementById("hide-btn");
 
         closeButton.addEventListener("click", function (e) {
+            try {
+                signalRConnection.stop();
+            } catch (e) { }
+
             const window = remote.getCurrentWindow();
             const BrowserWindow = remote.BrowserWindow;
             var shutDownWindow = new BrowserWindow({ width: 300, height: 60, frame: true, resizable: false, title: "HiddenWallet", icon: __dirname + '/app/assets/TumbleBit.png' });
@@ -33,6 +39,9 @@ document.title = title;
         });
 
         hideButton.addEventListener("click", function (e) {
+            try {
+                signalRConnection.stop();
+            } catch (e) { }
             const window = remote.getCurrentWindow();
             window.close();
         });

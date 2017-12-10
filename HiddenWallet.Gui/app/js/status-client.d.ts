@@ -8,3 +8,4 @@ declare var tumblerNumberOfPeers: any;
 declare var tumblerFeePerRound: any;
 declare var tumblerWaitedInInputRegistration: any;
 declare var tumblerPhase: any;
+declare var signalRConnection: any;
