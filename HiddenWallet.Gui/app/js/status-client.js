@@ -45,6 +45,10 @@ function signalrStatusUpdate() {
             headerTimer = setInterval(getHeaderHeight, 1000);
         }
 
+        if (walletState.toUpperCase() === "SyncingBlocks".toUpperCase()) {
+            initializeStatus();
+        }
+
         if (walletState.toUpperCase() === "Synced".toUpperCase()) {
             clearInterval(headerTimer);
         }
