@@ -45,7 +45,7 @@ Privacy focused, soon [ZeroLink](https://github.com/nopara73/ZeroLink) compliant
 1. `git clone https://github.com/nopara73/HiddenWallet.git`
 2. `cd HiddenWallet/HiddenWallet.Daemon`  
 3. `dotnet restore`  
-4. `dotnet publish -r win-x64 --output bin/dist/current-target`. Depending on your platform replace `win-x64` with `win-x86`, `linux-x64` or `osx-x64`.  
+4. `dotnet publish -c Release -r win-x64 --output bin/dist/current-target`. Depending on your platform replace `win-x64` with `win-x86`, `linux-x64` or `osx-x64`.  
 5. (Only on Windows) - Copy and unzip `HiddenWallet.Packager/tor.zip` to `HiddenWallet.Daemon/bin/dist/current-target` directory. (Quick note on unzipping: the final path to tor.exe has to be: `current-target/tor/Tor/tor.exe` and not: `current-target/tor/tor/Tor/tor.exe`.)
 6. `cd ../HiddenWallet.Gui`
 7. `npm install`
