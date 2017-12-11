@@ -97,7 +97,7 @@ namespace HiddenWallet.Tests
                 _currentWalletJob = walletJob;
                 (await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
 
-				var sendRes = await walletJob.SendTransactionAsync(res.Transaction, CancellationToken.None);
+				var sendRes = await walletJob.SendTransactionAsync(res.Transaction);
 				Assert.True(sendRes.Success);
 				Assert.Empty(sendRes.FailingReason);
 
@@ -300,7 +300,7 @@ namespace HiddenWallet.Tests
 				_currentWalletJob = walletJob;
 				(await walletJob.GetTrackerAsync()).TrackedTransactions.CollectionChanged += TrackedTransactions_CollectionChangedAsync;
 
-				sendRes = await walletJob.SendTransactionAsync(res.Transaction, CancellationToken.None);
+				sendRes = await walletJob.SendTransactionAsync(res.Transaction);
 				Assert.True(sendRes.Success);
 				Assert.Empty(sendRes.FailingReason);
 
