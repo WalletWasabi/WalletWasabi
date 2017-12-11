@@ -74,7 +74,7 @@ namespace HiddenWallet.Packager
                 var psiPublish = new ProcessStartInfo
                 {
                     FileName = "dotnet",
-                    Arguments = $"publish -r {target} --output bin/dist/{target}",
+                    Arguments = $"publish -c Release -r {target} --output bin/dist/{target}",
                     WorkingDirectory = daemonProjectDirectory
                 };
                 var pPublish = Process.Start(psiPublish);

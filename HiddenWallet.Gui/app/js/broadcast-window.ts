@@ -373,21 +373,19 @@ function broadcastTransaction() {
     var obj: BroadcastTransaction = { Hex: hex, QuickSend: false };
     
     httpPostWalletAsync("send-transaction", obj, function (json) {
-        let result: any = httpPostWallet("send-transaction", obj);
-
-        if (result.Success) {
+        if (json.Success) {
             alert("SUCCESS! Transaction is successfully broadcasted!");
             window.parent.focus();
             window.close();
         }
         else {
-            let failText = "FAIL! " + result.Message;
+            let failText = "FAIL! " + json.Message;
 
-            if (result.Details) {
+            if (json.Details) {
                 failText =
                     `${failText} 
 
-Details: ${result.Details}`;
+Details: ${json.Details}`;
 
                 alert(failText);
 

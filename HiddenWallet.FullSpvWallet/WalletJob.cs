@@ -1359,7 +1359,18 @@ namespace HiddenWallet.FullSpv
 
 				await Task.Delay(100);
 
-				await TorSmartBitClient.PushTransactionAsync(tx, CancellationToken.None);
+				bool cancelled = false;
+				try
+				{
+					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21)))
+					{
+						await TorSmartBitClient.PushTransactionAsync(tx, cts.Token);
+					}
+				}
+				catch(OperationCanceledException)
+				{
+					cancelled = true;
+				}
 				for (int i = 0; i < 21; i++)
 				{
 					await Task.Delay(1000);
@@ -1369,6 +1380,11 @@ namespace HiddenWallet.FullSpv
 						Debug.WriteLine("Transaction is successfully propagated on the network.");
 						return successfulResult;
 					}
+				}
+
+				if (cancelled)
+				{
+					failureResult.FailingReason += $" Details: Took too long to broadcast. The transaction might not have been successfully broadcasted. Check the Transaction ID in a block explorer. Transaction Id: {tx.GetHash()}";
 				}
 			}
 			catch (Exception ex)
