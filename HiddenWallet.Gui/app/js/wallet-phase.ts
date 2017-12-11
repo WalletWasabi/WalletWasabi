@@ -279,12 +279,18 @@ function mix() {
     httpPostTumblerAsync("tumble", obj, function (json) {
         try {
             if (json.Success === false) {
-                let alertMessage: string = "Couldn't finish all requested mixing rounds: " + json.Message;
+                let alertMessage: string = "Couldn't finish all requested mixing rounds";
 
-                if (!isBlank(json.Details)) {
-                    alertMessage = alertMessage
-                        + "\n"
-                        + "\n" + json.Details;
+                try {
+                    alertMessage += ": " + json.Message;
+
+                    if (!isBlank(json.Details)) {
+                        alertMessage = alertMessage
+                            + "\n"
+                            + "\n" + json.Details;
+                    }
+                } catch {
+
                 }
 
                 alert(alertMessage);
@@ -315,13 +321,18 @@ function cancelMix()
     httpGetTumblerAsync("cancel-mix", function (json) {
         try {
             if (json.Success === false) {
-                let alertMessage: string = "Couldn't cancel the mix: " + json.Message;
+                let alertMessage: string = "Couldn't cancel the mix";
 
-                if (!isBlank(json.Details)) {
-                    alertMessage = alertMessage
-                        + "\n"
-                        + "\n" + json.Details;
-                }
+                try {
+                    alertMessage += ": " + json.Message;
+                    if (!isBlank(json.Details)) {
+                        alertMessage = alertMessage
+                            + "\n"
+                            + "\n" + json.Details;
+                    }
+                } catch {
+
+                }               
 
                 alert(alertMessage);
             }
@@ -562,12 +573,18 @@ function buildTransaction() {
 
     httpPostWalletAsync(`build-transaction/${bobOrAlice}`, buildTransactionRequest, function (json) {
         if (json.Success === false) {
-            let alertMessage: string = "Couldn't build the tansaction: " + json.Message;
+            let alertMessage: string = "Couldn't build the tansaction"
 
-            if (!isBlank(json.Details)) {
-                alertMessage = alertMessage
-                    + "\n"
-                    + "\n" + json.Details;
+            try {
+                alertMessage += ": " + json.Message;
+
+                if (!isBlank(json.Details)) {
+                    alertMessage = alertMessage
+                        + "\n"
+                        + "\n" + json.Details;
+                }
+            } catch {
+
             }
 
             alert(alertMessage);

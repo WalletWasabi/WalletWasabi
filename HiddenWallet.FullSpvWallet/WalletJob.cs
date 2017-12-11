@@ -38,6 +38,7 @@ namespace HiddenWallet.FullSpv
 
 		public SmartBitClient TorSmartBitClient { get; private set; }
 		public DotNetTor.ControlPort.Client ControlPortClient { get; private set; }
+		private SocksPortHandler SocksPortHandler { get; set; }
 
 		public BlockDownloader BlockDownloader;
 
@@ -243,6 +244,7 @@ namespace HiddenWallet.FullSpv
 			};
 
 			ControlPortClient = controlPortClient;
+			SocksPortHandler = handler;
 			TorSmartBitClient = new SmartBitClient(safeToTrack.Network, handler, false);
 
 			FeeService = new FeeService(safeToTrack.Network, ControlPortClient, disposeTorControl: false, handler: handler, disposeHandler: false);
@@ -372,6 +374,14 @@ namespace HiddenWallet.FullSpv
 				}
 				FeeService?.Dispose();
 				TorSmartBitClient?.Dispose();
+				try
+				{
+					SocksPortHandler.Dispose();
+				}
+				catch
+				{
+					// cannot happen
+				}
 				try
 				{
 					ControlPortClient?.DisconnectDisposeSocket();

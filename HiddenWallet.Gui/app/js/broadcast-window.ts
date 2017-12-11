@@ -342,14 +342,19 @@ function rebuildTransaction() {
 
     httpPostWalletAsync(`${buildFund}-transaction/${previousBobOrAlice}`, request, function (json) {
         if (json.Success === false) {
-            let alertMessage: string = `Couldn't rebuild the transaciton: ${json.Message}`;
+            let alertMessage: string = "Couldn't rebuild the transaciton";
 
-            if (!isBlank(json.Details)) {
-                alertMessage = `${alertMessage}
+            try {
+                alertMessage += ": " + json.Message;
+                if (!isBlank(json.Details)) {
+                    alertMessage = `${alertMessage}
 
                                 Details:
                                 ${json.Details}`;
-            }
+                }
+            } catch {
+
+            }            
 
             alert(alertMessage);
         }
@@ -379,19 +384,22 @@ function broadcastTransaction() {
             window.close();
         }
         else {
-            let failText = "FAIL! " + json.Message;
+            let alertMessage = "FAIL! ";
 
-            if (json.Details) {
-                failText =
-                    `${failText} 
+            try {
+                alertMessage = alertMessage + json.Message;
+                if (json.Details) {
+                    alertMessage =
+                        `${alertMessage} 
 
 Details: ${json.Details}`;
+                }
+            } catch{ }
 
-                alert(failText);
+            alert(alertMessage);
 
-                broadcastButton.innerHTML = '<span class="mdi mdi-tor"></span> Try Broadcast Again';
-                containerElement.setAttribute("style", "pointer-events:all;");
-            }
+            broadcastButton.innerHTML = '<span class="mdi mdi-tor"></span> Try Broadcast Again';
+            containerElement.setAttribute("style", "pointer-events:all;");
         }
     });
 }

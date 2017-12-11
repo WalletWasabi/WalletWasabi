@@ -128,7 +128,14 @@ function generateWallet() {
 
         httpPostWalletAsync("create", obj, function (json) {
             if (json.Success == false) {
-                alert("Could not generate wallet, details:\n\n" + json.Message);
+                let alertMessage = "Could not generate wallet";
+                try {
+                    alertMessage += ", details:\n\n" + json.Message;
+                } catch {
+
+                }
+                alert(alertMessage);
+
                 genWalletButton.innerHTML = "Generate";
             }
             else {
@@ -177,7 +184,14 @@ function recoverWallet() {
 
         httpPostWalletAsync("recover", obj, function (json) {
             if (json.Success == false) {
-                alert("Could not recover wallet, details:\n\n" + json.Message);
+                let alertMessage = "Could not recover wallet";
+                try {
+                    alertMessage += ", details:\n\n" + json.Message;
+                } catch {
+
+                }
+                alert(alertMessage);
+
                 recWalletButton.innerHTML = "Recover";
             }
             else {
@@ -219,7 +233,13 @@ function decryptWallet() {
 
     httpPostWalletAsync("load", obj, function (json) {
         if (json.Success == false) {
-            alert("Could not decrypt wallet, details:\n\n" + json.Message);
+            let alertMessage = "Could not decrypt wallet";
+            try {
+                alertMessage += ", details:\n\n" + json.Message;
+            } catch {
+
+            }
+            alert(alertMessage);
             decWalletButton.innerHTML = "Decrypt";
         }
         else {
