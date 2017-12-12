@@ -97,6 +97,8 @@ namespace HiddenWallet.ChaumianTumbler
 					{
 						case TumblerPhase.InputRegistration:
 							{
+								await Global.InitializeConfigAsync();
+
 								RoundId++;
 								Console.WriteLine($"New Round: {RoundId}");
 								Alices = new ConcurrentHashSet<Alice>();

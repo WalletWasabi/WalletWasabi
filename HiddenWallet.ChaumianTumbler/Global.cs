@@ -23,9 +23,7 @@ namespace HiddenWallet.ChaumianTumbler
 			CoinJoinStorePath = Path.Combine(DataDir, "CoinJoins.json");
 			UtxoRefereePath = Path.Combine(DataDir, "BannedUtxos.json");
 
-			string configFilePath = Path.Combine(DataDir, "Config.json");
-			Config = new Config();
-			await Config.LoadOrCreateDefaultFileAsync(configFilePath, CancellationToken.None);
+			await InitializeConfigAsync();
 
 			string rsaPath = Path.Combine(DataDir, "RsaKey.json");
 			if (File.Exists(rsaPath))
@@ -71,6 +69,13 @@ namespace HiddenWallet.ChaumianTumbler
 			StateMachine = new TumblerStateMachine();
 			StateMachineJobCancel = new CancellationTokenSource();
 			StateMachineJob = StateMachine.StartAsync(StateMachineJobCancel.Token);
+		}
+
+		public static async Task InitializeConfigAsync()
+		{
+			string configFilePath = Path.Combine(DataDir, "Config.json");
+			Config = new Config();
+			await Config.LoadOrCreateDefaultFileAsync(configFilePath, CancellationToken.None);
 		}
 
 		private static async Task AssertRpcNodeFullyInitializedAsync()
