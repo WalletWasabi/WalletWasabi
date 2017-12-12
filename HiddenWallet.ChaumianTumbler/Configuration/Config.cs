@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HiddenWallet.ChaumianTumbler.Configuration;
+using NBitcoin.RPC;
 
 namespace HiddenWallet.ChaumianTumbler.Configuration
 {
@@ -68,7 +69,8 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 		public int? FeeConfirmationTarget { get; private set; }
 
 		[JsonProperty(PropertyName = "FeeEstimationMode")]
-		public string FeeEstimationMode { get; private set; }
+		[JsonConverter(typeof(EstimateSmartFeeModeConverter))]
+		public EstimateSmartFeeMode FeeEstimationMode { get; private set; }
 
 		public Config()
 		{
@@ -106,7 +108,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 			MaximumInputsPerAlices = 7;
 			FallBackSatoshiFeePerBytes = 300;
 			FeeConfirmationTarget = 2;
-			FeeEstimationMode = "ECONOMICAL";
+			FeeEstimationMode = EstimateSmartFeeMode.Economical;
 
 			if (!File.Exists(path))
 			{
@@ -133,7 +135,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 				MaximumInputsPerAlices = config.MaximumInputsPerAlices ?? MaximumInputsPerAlices;
 				FallBackSatoshiFeePerBytes = config.FallBackSatoshiFeePerBytes ?? FallBackSatoshiFeePerBytes;
 				FeeConfirmationTarget = config.FeeConfirmationTarget ?? FeeConfirmationTarget;
-				FeeEstimationMode = config.FeeEstimationMode ?? FeeEstimationMode;
+				FeeEstimationMode = config.FeeEstimationMode;
 			}
 
 			await ToFileAsync(path, cancel);

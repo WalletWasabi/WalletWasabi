@@ -118,10 +118,8 @@ namespace HiddenWallet.ChaumianTumbler
 					throw new NotSupportedException("blocks != headers");
 				}
 
-				if (string.IsNullOrWhiteSpace((await RpcClient.SendCommandAsync("estimatesmartfee", Config.FeeConfirmationTarget, Config.FeeEstimationMode))?.ResultString))
-				{
-					throw new NotSupportedException($"estimatesmartfee {Config.FeeConfirmationTarget} {Config.FeeEstimationMode} == null");
-				}
+				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync((int)Global.Config.FeeConfirmationTarget, Global.Config.FeeEstimationMode);
+				if (estimateSmartFeeResponse == null) throw new NotSupportedException($"estimatesmartfee {Config.FeeConfirmationTarget} {Config.FeeEstimationMode} == null");
 			}
 			catch
 			{

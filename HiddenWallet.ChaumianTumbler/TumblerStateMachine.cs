@@ -293,11 +293,9 @@ namespace HiddenWallet.ChaumianTumbler
 
 			try
 			{
-				RPCResponse result = (await Global.RpcClient.SendCommandAsync("estimatesmartfee", Global.Config.FeeConfirmationTarget, Global.Config.FeeEstimationMode));
-				if (string.IsNullOrWhiteSpace(result?.ResultString)) throw new ArgumentException(nameof(result));
-				var resultJToken = result.Result;
-				var feeRateDecimal = resultJToken.Value<decimal>("feerate");
-				var feeRate = new FeeRate(new Money(feeRateDecimal, MoneyUnit.BTC));
+				var estimateSmartFeeResponse = await Global.RpcClient.TryEstimateSmartFeeAsync((int)Global.Config.FeeConfirmationTarget, Global.Config.FeeEstimationMode);
+				if (estimateSmartFeeResponse == null) throw new InvalidOperationException("FeeRate is not yet initialized");
+				var feeRate = estimateSmartFeeResponse.FeeRate;
 				Money feePerBytes = (feeRate.FeePerK / 1000);
 
 				// make sure min relay fee (1000 sat) is hit
