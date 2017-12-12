@@ -342,9 +342,13 @@ namespace HiddenWallet.ChaumianTumbler
 
 		public bool TryRemoveAlice(string uniqueId)
 		{
+			return TryRemoveAlice(new Guid(uniqueId));
+		}
+		public bool TryRemoveAlice(Guid uniqueId)
+		{
 			lock (_aliceLock)
 			{
-				Alice alice = Alices.FirstOrDefault(x => x.UniqueId == new Guid(uniqueId));
+				Alice alice = Alices.FirstOrDefault(x => x.UniqueId == uniqueId);
 				return Alices.TryRemove(alice);
 			}
 		}

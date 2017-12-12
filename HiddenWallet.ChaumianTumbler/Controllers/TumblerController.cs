@@ -53,37 +53,12 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 			}
 		}
 
-		private static ConcurrentHashSet<(IActionResult Response, InputsRequest Request)> SuccessfulInputRequestCache { get; set; }
-		private volatile int _currentInputRequestCacheRound;
-
 		private static readonly AsyncLock InputRegistrationLock = new AsyncLock();
 		[Route("inputs")]
 		[HttpPost]
 		public async Task<IActionResult> InputsAsync([FromBody]InputsRequest request)
 		{
 			var roundId = Global.StateMachine.RoundId;
-			
-			// if wasnt initialized initialize
-			if (SuccessfulInputRequestCache == null)
-			{
-				SuccessfulInputRequestCache = new ConcurrentHashSet<(IActionResult, InputsRequest)>();
-				_currentInputRequestCacheRound = roundId;
-			}
-
-			// if different round, initialize
-			if (_currentInputRequestCacheRound != roundId)
-			{
-				SuccessfulInputRequestCache = new ConcurrentHashSet<(IActionResult, InputsRequest)>();
-				_currentInputRequestCacheRound = roundId;
-			}
-
-			foreach(var cacheRecord in SuccessfulInputRequestCache)
-			{
-				if (cacheRecord.Request.IsSame(request))
-				{
-					return cacheRecord.Response;
-				}
-			}
 
 			TumblerPhase phase = TumblerPhase.InputRegistration;
 
@@ -111,6 +86,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				if (request.Inputs.Count() > Global.Config.MaximumInputsPerAlices) throw new NotSupportedException("Too many inputs provided");
 				var inputs = new HashSet<(TxOut Output, OutPoint OutPoint)>();
 
+				var alicesToRemove = new HashSet<Guid>();
 				using (await InputRegistrationLock.LockAsync())
 				{
 					foreach (InputProofModel input in request.Inputs)
@@ -121,9 +97,12 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						{
 							throw new ArgumentException("Attempting to register an input twice is not permitted");
 						}
-						if (Global.StateMachine.Alices.SelectMany(x => x.Inputs).Any(x => x.OutPoint.Hash == op.Hash && x.OutPoint.N == op.N))
+						foreach(var a in Global.StateMachine.Alices)
 						{
-							throw new ArgumentException("Input is already registered by another Alice");
+							if(a.Inputs.Any(x => x.OutPoint.Hash == op.Hash && x.OutPoint.N == op.N))
+							{
+								alicesToRemove.Add(a.UniqueId); // input is already registered by this alice, remove it if all the checks are completed fine
+							}
 						}
 
 						BannedUtxo banned = Global.UtxoReferee.Utxos.FirstOrDefault(x => x.Utxo.Hash == op.Hash && x.Utxo.N == op.N);
@@ -247,6 +226,13 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					}
 
 					AssertPhase(roundId, phase);
+					foreach(var aliceToRemove in alicesToRemove)
+					{
+						if (Global.StateMachine.TryRemoveAlice(aliceToRemove))
+						{
+							await Global.StateMachine.BroadcastPeerRegisteredAsync();
+						}
+					}
 					Global.StateMachine.Alices.Add(alice);
 
 					await Global.StateMachine.BroadcastPeerRegisteredAsync();
@@ -267,7 +253,6 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 						UniqueId = uniqueId.ToString(),
 						SignedBlindedOutput = HexHelpers.ToString(signature)
 					});
-					SuccessfulInputRequestCache.Add((ret, request));
 					return ret;
 				}
 			}
