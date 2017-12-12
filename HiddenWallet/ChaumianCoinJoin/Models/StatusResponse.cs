@@ -9,7 +9,6 @@ namespace HiddenWallet.ChaumianCoinJoin.Models
 	public class StatusResponse : BaseResponse
 	{
 		public StatusResponse() => Success = true;
-		public string Address { get; set; }
 		public string Phase { get; set; }
 		public string Denomination { get; set; }
 		public int AnonymitySet { get; set; }
