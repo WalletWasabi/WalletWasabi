@@ -52,13 +52,38 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				return new ObjectResult(new FailureResponse { Message = ex.Message });
 			}
 		}
-		
+
+		private static ConcurrentHashSet<(IActionResult Response, InputsRequest Request)> SuccessfulInputRequestCache { get; set; }
+		private volatile int _currentInputRequestCacheRound;
+
 		private static readonly AsyncLock InputRegistrationLock = new AsyncLock();
 		[Route("inputs")]
 		[HttpPost]
 		public async Task<IActionResult> InputsAsync([FromBody]InputsRequest request)
 		{
 			var roundId = Global.StateMachine.RoundId;
+			
+			// if wasnt initialized initialize
+			if (SuccessfulInputRequestCache == null)
+			{
+				SuccessfulInputRequestCache = new ConcurrentHashSet<(IActionResult, InputsRequest)>();
+				_currentInputRequestCacheRound = roundId;
+			}
+
+			// if different round, initialize
+			if (_currentInputRequestCacheRound != roundId)
+			{
+				SuccessfulInputRequestCache = new ConcurrentHashSet<(IActionResult, InputsRequest)>();
+				_currentInputRequestCacheRound = roundId;
+			}
+
+			foreach(var cacheRecord in SuccessfulInputRequestCache)
+			{
+				if (cacheRecord.Request.IsSame(request))
+				{
+					return cacheRecord.Response;
+				}
+			}
 
 			TumblerPhase phase = TumblerPhase.InputRegistration;
 
@@ -235,12 +260,14 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 					{
 						Global.StateMachine.UpdatePhase(TumblerPhase.ConnectionConfirmation);
 					}
-
-					return new ObjectResult(new InputsResponse()
+					
+					var ret = new ObjectResult(new InputsResponse()
 					{
 						UniqueId = uniqueId.ToString(),
 						SignedBlindedOutput = HexHelpers.ToString(signature)
 					});
+					SuccessfulInputRequestCache.Add((ret, request));
+					return ret;
 				}
 			}
 			catch (Exception ex)
