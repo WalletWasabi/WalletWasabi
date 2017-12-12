@@ -98,6 +98,7 @@ namespace HiddenWallet.ChaumianTumbler
 						case TumblerPhase.InputRegistration:
 							{
 								await Global.InitializeConfigAsync();
+								await Global.InitializeUtxoRefereeAsync();
 
 								RoundId++;
 								Console.WriteLine($"New Round: {RoundId}");

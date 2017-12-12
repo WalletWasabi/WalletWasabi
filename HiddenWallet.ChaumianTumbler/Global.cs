@@ -21,7 +21,6 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			_dataDir = null;
 			CoinJoinStorePath = Path.Combine(DataDir, "CoinJoins.json");
-			UtxoRefereePath = Path.Combine(DataDir, "BannedUtxos.json");
 
 			await InitializeConfigAsync();
 
@@ -55,6 +54,23 @@ namespace HiddenWallet.ChaumianTumbler
 				CoinJoinStore = new CoinJoinStore();
 			}
 
+			await InitializeUtxoRefereeAsync();
+
+			StateMachine = new TumblerStateMachine();
+			StateMachineJobCancel = new CancellationTokenSource();
+			StateMachineJob = StateMachine.StartAsync(StateMachineJobCancel.Token);
+		}
+
+		public static async Task InitializeUtxoRefereeAsync()
+		{
+			UtxoRefereeJobCancel?.Cancel();
+			if (UtxoRefereeJob != null)
+			{
+				await UtxoRefereeJob;
+				UtxoRefereeJobCancel?.Dispose();
+			}
+
+			UtxoRefereePath = Path.Combine(DataDir, "BannedUtxos.json");
 			if (File.Exists(UtxoRefereePath))
 			{
 				UtxoReferee = await UtxoReferee.CreateFromFileAsync(UtxoRefereePath);
@@ -65,10 +81,6 @@ namespace HiddenWallet.ChaumianTumbler
 			}
 			UtxoRefereeJobCancel = new CancellationTokenSource();
 			UtxoRefereeJob = UtxoReferee.StartAsync(UtxoRefereeJobCancel.Token);
-
-			StateMachine = new TumblerStateMachine();
-			StateMachineJobCancel = new CancellationTokenSource();
-			StateMachineJob = StateMachine.StartAsync(StateMachineJobCancel.Token);
 		}
 
 		public static async Task InitializeConfigAsync()
