@@ -9,7 +9,6 @@ namespace HiddenWallet.ChaumianTumbler.Clients
     {
 		InputsRegistered,
 		ConnectionConfirmed,
-		AskedForCoinJoin,
 		SignedCoinJoin
     }
 }

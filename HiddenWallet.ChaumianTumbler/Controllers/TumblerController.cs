@@ -52,13 +52,14 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				return new ObjectResult(new FailureResponse { Message = ex.Message });
 			}
 		}
-
+		
 		private static readonly AsyncLock InputRegistrationLock = new AsyncLock();
 		[Route("inputs")]
 		[HttpPost]
 		public async Task<IActionResult> InputsAsync([FromBody]InputsRequest request)
 		{
 			var roundId = Global.StateMachine.RoundId;
+
 			TumblerPhase phase = TumblerPhase.InputRegistration;
 
 			try
@@ -327,7 +328,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				if (alice.State == AliceState.ConnectionConfirmed)
 				{
-					throw new InvalidOperationException("Connection is already confirmed");
+					return new ObjectResult(new ConnectionConfirmationResponse { RoundHash = Global.StateMachine.RoundHash });
 				}
 
 				AssertPhase(roundId, phase);
@@ -374,13 +375,20 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				}
 
 				var output = new BitcoinWitPubKeyAddress(request.Output, expectedNetwork: Global.Config.Network);
+				// if not already registered
+				if (Global.StateMachine.Bobs.Any(x => x.Output == output))
+				{
+					return new ObjectResult(new SuccessResponse());
+				}
 
-				if(Global.RsaKey.PubKey.Verify(HexHelpers.GetBytes(request.Signature), Encoding.UTF8.GetBytes(request.Output)))
+				if (Global.RsaKey.PubKey.Verify(HexHelpers.GetBytes(request.Signature), Encoding.UTF8.GetBytes(request.Output)))
 				{
 					try
 					{
 						AssertPhase(roundId, phase);
+						
 						Global.StateMachine.Bobs.Add(new Bob { Output = output });
+						
 						return new ObjectResult(new SuccessResponse());
 					}
 					finally
@@ -401,8 +409,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 				return new ObjectResult(new FailureResponse { Message = ex.Message });
 			}
 		}
-
-		private static readonly AsyncLock CoinJoinAsyncLock = new AsyncLock();
+		
 		[Route("coinjoin")]
 		[HttpPost]
 		public IActionResult CoinJoin([FromBody]CoinJoinRequest request)
@@ -418,17 +425,7 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 
 				if (string.IsNullOrWhiteSpace(request.UniqueId)) return new BadRequestResult();
 
-				using (CoinJoinAsyncLock.Lock())
-				{
-					Alice alice = Global.StateMachine.FindAlice(request.UniqueId, throwException: true);
-
-					if (alice.State == AliceState.AskedForCoinJoin)
-					{
-						throw new InvalidOperationException("CoinJoin has been already asked for");
-					}
-
-					alice.State = AliceState.AskedForCoinJoin;
-				}
+				Global.StateMachine.FindAlice(request.UniqueId, throwException: true);
 				AssertPhase(roundId, phase);
 
 				return new ObjectResult(new CoinJoinResponse
@@ -472,14 +469,6 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 							Global.StateMachine.FallBackRound = true;
 							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
 							throw new ArgumentOutOfRangeException(nameof(Index));
-						}
-						if(!string.IsNullOrWhiteSpace(coinJoin.Inputs[Index]?.WitScript?.ToString()))
-						{
-							// round fails, ban alice
-							await Global.UtxoReferee.BanAliceAsync(alice);
-							Global.StateMachine.FallBackRound = true;
-							Global.StateMachine.UpdatePhase(TumblerPhase.InputRegistration);
-							throw new InvalidOperationException("Input is already signed");
 						}
 						coinJoin.Inputs[Index].WitScript = witness;
 						var output = alice.Inputs.Single(x => x.OutPoint == coinJoin.Inputs[Index].PrevOut).Output;
