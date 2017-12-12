@@ -238,12 +238,14 @@ namespace HiddenWallet.ChaumianTumbler
 			if (TimeSpentInInputRegistration > TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds))
 			{
 				// decrement this round's desired anonymity set relative to the previous desired anonymity set,
-				AnonymitySet = Math.Max(min, AnonymitySet - 1);
+				var tmpAnonSet = Math.Max(min, AnonymitySet - 1);
+				AnonymitySet = Math.Min(max, tmpAnonSet); // it happens if anonset constrains are modified on the fly
 			}
 			else
 			{
 				// otherwise increment it
-				AnonymitySet = Math.Min(max, AnonymitySet + 1);
+				var tmpAnonSet = Math.Min(max, AnonymitySet + 1);
+				AnonymitySet = Math.Max(min, tmpAnonSet); // it happens if anonset constrains are modified on the fly
 			}
 		}
 
