@@ -134,14 +134,14 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 							throw new ArgumentException($"Input is banned for {banLeft} minutes");
 						}
 
-						var txOutResponse = await Global.RpcClient.SendCommandAsync(RPCOperations.gettxout, op.Hash.ToString(), op.N, true);
+						var getTxOutResponse = await Global.RpcClient.GetTxOutAsync(op.Hash, (int)op.N, true);
 						// Check if inputs are unspent						
-						if (string.IsNullOrWhiteSpace(txOutResponse?.ResultString))
+						if (getTxOutResponse == null)
 						{
 							throw new ArgumentException("Provided input is not unspent");
 						}
 						// Check if inputs are unconfirmed, if so check if they are part of previous CoinJoin
-						if (txOutResponse.Result.Value<int>("confirmations") <= 0)
+						if (getTxOutResponse.Confirmations <= 0)
 						{
 							if (!Global.CoinJoinStore.Transactions
 								.Any(x => x.State >= CoinJoinTransactionState.Succeeded && x.Transaction.GetHash() == op.Hash))
@@ -189,28 +189,29 @@ namespace HiddenWallet.ChaumianTumbler.Controllers
 							}
 						}
 						// Check coinbase > 100
-						if (txOutResponse.Result.Value<int>("confirmations") < 100)
+						if (getTxOutResponse.Confirmations < 100)
 						{
-							if (txOutResponse.Result.Value<bool>("coinbase"))
+							if (getTxOutResponse.IsCoinBase)
 							{
 								throw new ArgumentException("Provided input is unspendable");
 							}
 						}
 						// Check if inputs are native segwit
-						if (txOutResponse.Result["scriptPubKey"].Value<string>("type") != "witness_v0_keyhash")
+						if (getTxOutResponse.ScriptPubKeyType != "witness_v0_keyhash")
 						{
 							throw new ArgumentException("Provided input is not witness_v0_keyhash");
 						}
-						var value = txOutResponse.Result.Value<decimal>("value");
-						var scriptPubKey = new Script(txOutResponse.Result["scriptPubKey"].Value<string>("asm"));
-						var address = (BitcoinWitPubKeyAddress)scriptPubKey.GetDestinationAddress(network);
+
+						var txout = getTxOutResponse.TxOut;
+
+						var address = (BitcoinWitPubKeyAddress)txout.ScriptPubKey.GetDestinationAddress(network);
 						// Check if proofs are valid
 						var validProof = address.VerifyMessage(blindedOutputString, input.Proof);
 						if (!validProof)
 						{
 							throw new ArgumentException("Provided proof is invalid");
 						}
-						var txout = new TxOut(new Money(value, MoneyUnit.BTC), scriptPubKey);
+
 						inputs.Add((txout, op));
 					}
 
