@@ -284,7 +284,7 @@ function mix() {
                 try {
                     alertMessage += ": " + json.Message;
 
-                    if (!isBlank(json.Details)) {
+                    if (json.Details) {
                         alertMessage = alertMessage
                             + "\n"
                             + "\n" + json.Details;
@@ -325,7 +325,7 @@ function cancelMix()
 
                 try {
                     alertMessage += ": " + json.Message;
-                    if (!isBlank(json.Details)) {
+                    if (json.Details) {
                         alertMessage = alertMessage
                             + "\n"
                             + "\n" + json.Details;
@@ -578,7 +578,7 @@ function buildTransaction() {
             try {
                 alertMessage += ": " + json.Message;
 
-                if (!isBlank(json.Details)) {
+                if (json.Details) {
                     alertMessage = alertMessage
                         + "\n"
                         + "\n" + json.Details;
@@ -606,10 +606,6 @@ function buildTransaction() {
         buildTXButton.innerHTML = '<span class="mdi mdi-tor"></span> Build Transaction';
         containerElement.setAttribute("style", "pointer-events:all;");
     });
-}
-
-function isBlank(str: string) {
-    return (!str || /^\s*$/.test(str));
 }
 
 function getPhaseName(phase: string): string {

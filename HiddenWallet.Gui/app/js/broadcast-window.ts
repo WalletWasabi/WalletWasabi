@@ -346,11 +346,10 @@ function rebuildTransaction() {
 
             try {
                 alertMessage += ": " + json.Message;
-                if (!isBlank(json.Details)) {
-                    alertMessage = `${alertMessage}
-
-                                Details:
-                                ${json.Details}`;
+                if (json.Details) {
+                    alertMessage = alertMessage
+                        + "\n"
+                        + "\n" + json.Details;
                 }
             } catch {
 
@@ -389,10 +388,9 @@ function broadcastTransaction() {
             try {
                 alertMessage = alertMessage + json.Message;
                 if (json.Details) {
-                    alertMessage =
-                        `${alertMessage} 
-
-Details: ${json.Details}`;
+                    alertMessage = alertMessage
+                        + "\n"
+                        + "\n" + json.Details;
                 }
             } catch{ }
 
