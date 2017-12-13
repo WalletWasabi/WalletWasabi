@@ -275,6 +275,11 @@ namespace HiddenWallet.FullSpvWallet.ChaumianCoinJoin
 					// wait for cj to arrive
 					for (int i = 0; i < (60 + 120); i++) // 1min default timeout of signing phase + 120 sec
 					{
+						if (_abortOngoingRound)
+						{
+							throw new InvalidOperationException("Round aborted"); // keep it inact, will check later
+						}
+
 						await Task.Delay(1000);
 						var arrived = (await WalletJob.GetTrackerAsync()).TrackedTransactions.Any(x => x.GetHash() == CoinJoin.GetHash());
 						if (arrived)
