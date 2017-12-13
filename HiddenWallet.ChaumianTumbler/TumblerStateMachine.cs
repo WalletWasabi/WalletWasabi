@@ -26,8 +26,8 @@ namespace HiddenWallet.ChaumianTumbler
 		public Money Denomination { get; private set; }
 		public Money FeePerInputs { get; private set; }
 		public Money FeePerOutputs { get; private set; }
-		public int AnonymitySet { get; private set; } = (int)Global.Config.MinimumAnonymitySet;
-		public TimeSpan TimeSpentInInputRegistration { get; private set; } = TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds) + TimeSpan.FromSeconds(1); // took one sec longer, so the first round will use the same anonymity set
+		public int AnonymitySet { get; private set; } = (int)Global.Config.StartingAnonymitySet;
+		public TimeSpan TimeSpentInInputRegistration { get; private set; } = TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds);
 		public volatile bool AcceptRequest;
 		public Stopwatch InputRegistrationStopwatch { get; private set; }
 		public volatile bool FallBackRound;
@@ -235,7 +235,12 @@ namespace HiddenWallet.ChaumianTumbler
 			var min = (int)Global.Config.MinimumAnonymitySet;
 			var max = (int)Global.Config.MaximumAnonymitySet;
 			// If the previous non-fallback Input Registration phase took more than three minutes
-			if (TimeSpentInInputRegistration > TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds))
+			if(TimeSpentInInputRegistration == TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds))
+			{
+				var tmpAnonSet = Math.Min(max, AnonymitySet);
+				AnonymitySet = Math.Max(min, tmpAnonSet);
+			}
+			else if (TimeSpentInInputRegistration > TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds))
 			{
 				// decrement this round's desired anonymity set relative to the previous desired anonymity set,
 				var tmpAnonSet = Math.Max(min, AnonymitySet - 1);
@@ -293,7 +298,7 @@ namespace HiddenWallet.ChaumianTumbler
 
 			try
 			{
-				var estimateSmartFeeResponse = await Global.RpcClient.TryEstimateSmartFeeAsync((int)Global.Config.FeeConfirmationTarget, Global.Config.FeeEstimationMode);
+				var estimateSmartFeeResponse = await Global.RpcClient.TryEstimateSmartFeeAsync((int)Global.Config.FeeConfirmationTarget, (EstimateSmartFeeMode)Global.Config.FeeEstimationMode);
 				if (estimateSmartFeeResponse == null) throw new InvalidOperationException("FeeRate is not yet initialized");
 				var feeRate = estimateSmartFeeResponse.FeeRate;
 				Money feePerBytes = (feeRate.FeePerK / 1000);

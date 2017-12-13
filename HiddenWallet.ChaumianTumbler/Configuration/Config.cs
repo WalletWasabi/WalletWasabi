@@ -44,6 +44,9 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 		[JsonProperty(PropertyName = "MaximumAnonymitySet")]
 		public int? MaximumAnonymitySet { get; private set; }
 
+		[JsonProperty(PropertyName = "StartingAnonymitySet")]
+		public int? StartingAnonymitySet { get; private set; }
+
 		[JsonProperty(PropertyName = "AverageInputRegistrationTimeInSeconds")]
 		public int? AverageTimeToSpendInInputRegistrationInSeconds { get; private set; }
 
@@ -70,7 +73,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 
 		[JsonProperty(PropertyName = "FeeEstimationMode")]
 		[JsonConverter(typeof(EstimateSmartFeeModeConverter))]
-		public EstimateSmartFeeMode FeeEstimationMode { get; private set; }
+		public EstimateSmartFeeMode? FeeEstimationMode { get; private set; }
 
 		public Config()
 		{
@@ -100,6 +103,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 			DenominationBTC = new Money(1m, MoneyUnit.BTC);
 			MinimumAnonymitySet = 3;
 			MaximumAnonymitySet = 100; // for now, in theory 300-400 should be fine, too
+			StartingAnonymitySet = 7;
 			AverageTimeToSpendInInputRegistrationInSeconds = 180; // 3min
 			InputRegistrationPhaseTimeoutInSeconds = 86400; // one day
 			ConnectionConfirmationPhaseTimeoutInSeconds = 60;
@@ -107,8 +111,8 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 			SigningPhaseTimeoutInSeconds = 60;
 			MaximumInputsPerAlices = 7;
 			FallBackSatoshiFeePerBytes = 300;
-			FeeConfirmationTarget = 2;
-			FeeEstimationMode = EstimateSmartFeeMode.Economical;
+			FeeConfirmationTarget = 144;
+			FeeEstimationMode = EstimateSmartFeeMode.Conservative;
 
 			if (!File.Exists(path))
 			{
@@ -127,6 +131,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 				DenominationBTC = config.DenominationBTC ?? DenominationBTC;
 				MinimumAnonymitySet = config.MinimumAnonymitySet ?? MinimumAnonymitySet;
 				MaximumAnonymitySet = config.MaximumAnonymitySet ?? MaximumAnonymitySet;
+				StartingAnonymitySet = config.StartingAnonymitySet ?? StartingAnonymitySet;
 				AverageTimeToSpendInInputRegistrationInSeconds = config.AverageTimeToSpendInInputRegistrationInSeconds ?? AverageTimeToSpendInInputRegistrationInSeconds;
 				InputRegistrationPhaseTimeoutInSeconds = config.InputRegistrationPhaseTimeoutInSeconds ?? InputRegistrationPhaseTimeoutInSeconds;
 				ConnectionConfirmationPhaseTimeoutInSeconds = config.ConnectionConfirmationPhaseTimeoutInSeconds ?? ConnectionConfirmationPhaseTimeoutInSeconds;
@@ -135,7 +140,7 @@ namespace HiddenWallet.ChaumianTumbler.Configuration
 				MaximumInputsPerAlices = config.MaximumInputsPerAlices ?? MaximumInputsPerAlices;
 				FallBackSatoshiFeePerBytes = config.FallBackSatoshiFeePerBytes ?? FallBackSatoshiFeePerBytes;
 				FeeConfirmationTarget = config.FeeConfirmationTarget ?? FeeConfirmationTarget;
-				FeeEstimationMode = config.FeeEstimationMode;
+				FeeEstimationMode = config.FeeEstimationMode ?? FeeEstimationMode;
 			}
 
 			await ToFileAsync(path, cancel);

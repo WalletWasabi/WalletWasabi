@@ -118,7 +118,7 @@ namespace HiddenWallet.ChaumianTumbler
 					throw new NotSupportedException("blocks != headers");
 				}
 
-				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync((int)Global.Config.FeeConfirmationTarget, Global.Config.FeeEstimationMode);
+				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync((int)Global.Config.FeeConfirmationTarget, (EstimateSmartFeeMode)Global.Config.FeeEstimationMode);
 				if (estimateSmartFeeResponse == null) throw new NotSupportedException($"estimatesmartfee {Config.FeeConfirmationTarget} {Config.FeeEstimationMode} == null");
 			}
 			catch
