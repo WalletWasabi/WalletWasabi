@@ -114,7 +114,15 @@ namespace HiddenWallet.ChaumianTumbler
 								InputRegistrationStopwatch.Restart();
 								using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancel, _ctsPhaseCancel.Token))
 								{
-									await Task.Delay(TimeSpan.FromSeconds((int)Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token).ContinueWith(t => { });
+									while(Alices.Count < Global.Config.MinimumAnonymitySet)
+									{
+										var timeoutTask = Task.Delay(TimeSpan.FromSeconds((int)Global.Config.InputRegistrationPhaseTimeoutInSeconds), cts.Token);
+										await timeoutTask.ContinueWith(t => { });
+										if (timeoutTask.Status == TaskStatus.RanToCompletion)
+										{
+											AnonymitySet = Math.Max((int)Global.Config.MinimumAnonymitySet, Alices.Count);
+										}
+									}									
 								}
 								InputRegistrationStopwatch.Stop();
 								if (FallBackRound == false)
@@ -234,12 +242,12 @@ namespace HiddenWallet.ChaumianTumbler
 		{
 			var min = (int)Global.Config.MinimumAnonymitySet;
 			var max = (int)Global.Config.MaximumAnonymitySet;
-			// If the previous non-fallback Input Registration phase took more than three minutes
 			if(TimeSpentInInputRegistration == TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds))
 			{
 				var tmpAnonSet = Math.Min(max, AnonymitySet);
 				AnonymitySet = Math.Max(min, tmpAnonSet);
 			}
+			// If the previous non-fallback Input Registration phase took more than AverageTimeToSpendInInputRegistrationInSeconds
 			else if (TimeSpentInInputRegistration > TimeSpan.FromSeconds((int)Global.Config.AverageTimeToSpendInInputRegistrationInSeconds))
 			{
 				// decrement this round's desired anonymity set relative to the previous desired anonymity set,
