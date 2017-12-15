@@ -36,7 +36,7 @@ You are not allowed to eat it just yet.
 
 If you are using Windows or Linux, you can directly download the [binary release from here](https://github.com/nopara73/HiddenWallet/releases), if you prefer to build it from source code or you are on OSX, then [check out this guide](https://github.com/nopara73/HiddenWallet/blob/master/README.md#building-from-source-code). Don't be afraid of building the software by hand. It is really simple.  
 
-### Step 2.1 Get Tor to you PATH on Linux.
+### Step 2.1 Get Tor to your PATH on Linux.
 
 Get Tor on your system: `sudo apt install tor`
 
