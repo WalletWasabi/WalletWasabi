@@ -15,6 +15,8 @@ For OSX you need to build from the source code, [see instructions below](https:/
   
 **Important Note:** Until the stable version is out, one should not use it on the mainnet, but only on the testnet for testing purposes. Please give me a lot of work by opening GitHub issues or send me an email to `adam.ficsor73@gmail.com`.
   
+## [Testing The ZeroLink Mixer](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet.Documentation/TestingTheZeroLinkMixer.md)
+  
 ## Status & Roadmap
 1. [Full Block Downloading SPV](https://medium.com/@nopara73/bitcoin-privacy-landscape-in-2017-zero-to-hero-guidelines-and-research-a10d30f1e034) - **Ready, unstable.**  This feature provides full node level privacy against network analysis with SPV security.  
 2. [ZeroLink mixer implementation](https://github.com/nopara73/ZeroLink/) - **Ready, unstable.** ZeroLink is a Bitcoin Fungibility Framework, it includes Wallet Privacy requirements and a mixing technique: Chaumian CoinJoin.   
