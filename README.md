@@ -1,10 +1,10 @@
-## Releases  
-[Download for Windows.](https://github.com/nopara73/HiddenWallet/releases)  
-For Linux and OSX you need to build from the source code, [see instructions below](https://github.com/nopara73/HiddenWallet#building-from-source-code).
-
 # Hidden Wallet
 
 Privacy focused, soon [ZeroLink](https://github.com/nopara73/ZeroLink) compliant Bitcoin wallet.  
+
+## Releases  
+[Download for Windows and Linux.](https://github.com/nopara73/HiddenWallet/releases)  
+For OSX you need to build from the source code, [see instructions below](https://github.com/nopara73/HiddenWallet#building-from-source-code).
   
 ## Support
 
@@ -17,9 +17,10 @@ Privacy focused, soon [ZeroLink](https://github.com/nopara73/ZeroLink) compliant
   
 ## Status & Roadmap
 1. [Full Block Downloading SPV](https://medium.com/@nopara73/bitcoin-privacy-landscape-in-2017-zero-to-hero-guidelines-and-research-a10d30f1e034) - **Ready, unstable.**  This feature provides full node level privacy against network analysis with SPV security.  
-2. [ZeroLink compliance](https://github.com/nopara73/ZeroLink/) - **Next up.** ZeroLink is a Bitcoin Fungibility Framework, it includes Wallet Privacy requirements and a mixing technique: Chaumian CoinJoin.   
-3. [Transaction Filtered Block Downloading](https://medium.com/@nopara73/full-node-level-privacy-even-for-mobile-wallets-transaction-filtered-full-block-downloading-wallet-16ef1847c21)  - 10-100x performance increase, while still keeping full node level privacy against network analysis, but replacing SPV security to trusted full node security.  
-4. Release stable version.  
+2. [ZeroLink compliance](https://github.com/nopara73/ZeroLink/) - **Ready, unstable.** ZeroLink is a Bitcoin Fungibility Framework, it includes Wallet Privacy requirements and a mixing technique: Chaumian CoinJoin.   
+against network analysis, but replacing SPV security to trusted full node security.  
+3. Release stable version. (A. Build stable ZeroLink Tumbler. B. Replace the Backend with Bitcoin Core. C. Redesign the GUI.)
+4. [Transaction Filtered Block Downloading?](https://medium.com/@nopara73/full-node-level-privacy-even-for-mobile-wallets-transaction-filtered-full-block-downloading-wallet-16ef1847c21)  - 10-100x performance increase, while still keeping full node level privacy 
 5. TumbleBit Paymen Hub Mode? JoinMarket integration? Stealth addresses support?
 
 ## Screenshots 
