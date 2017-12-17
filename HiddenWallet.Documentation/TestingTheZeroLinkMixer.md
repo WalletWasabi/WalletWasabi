@@ -63,7 +63,7 @@ Depending on your internet speed, this may take from 3 to 20 minutes. Go grab a 
 
 ### Step 6. Get some testnet coins.
 
-Bitcoin testnet coins are worthless, just goole "get bitcoin testnet faucet" and you'll find a site that gives you some. You need at least 0.1 TBTC.  
+Bitcoin testnet coins are worthless, just google "get bitcoin testnet faucet" and you'll find a site that gives you some. You need at least 0.1 TBTC.  
 As you may have noticed, the wallet uses bech32, native segregated witness addresses. You can only register such inputs for mixing, however it creates another problem. Many wallets don't support bech32 just yet. Here's the workaround:  
 
 Under the *[Advanced: Traditional Address]* label you can fund your wallet through a tranditional address, as the following illustration shows:
