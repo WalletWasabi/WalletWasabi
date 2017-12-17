@@ -66,13 +66,18 @@ function decryptionPhaseShow(menuItem: string = "") {
         }
 
         let isMainnet: boolean = httpGetWallet("is-mainnet").Value;
-        let networkToggleButton: HTMLInputElement = document.getElementById("network-toggle-button") as HTMLInputElement;
+
+        let networkRadioButtonTestnet: HTMLInputElement = document.getElementById("network-radio-testnet") as HTMLInputElement;
+        let networkRadioButtonMainnet: HTMLInputElement = document.getElementById("network-radio-mainnet") as HTMLInputElement;
+
         if (isMainnet === true)
         {
-            networkToggleButton.checked = true;
+            networkRadioButtonMainnet.checked = true;
+            networkRadioButtonTestnet.checked = false;
         }
         else {
-            networkToggleButton.checked = false;
+            networkRadioButtonTestnet.checked = true;
+            networkRadioButtonMainnet.checked = false;
         }
     }
     else if (menuItem === "generate") {
@@ -212,17 +217,19 @@ function decryptWallet() {
     let password: string = (<HTMLInputElement>document.getElementById("inputPassword")).value;
 
     let decWalletButton: HTMLElement = document.getElementById("decrypt-wallet-button");
-    
+
     let containerElement: Element = document.getElementsByClassName("container").item(0);
 
-    let networkToggleButton: HTMLInputElement = document.getElementById("network-toggle-button") as HTMLInputElement;
+    let networkRadioButtonTestnet: HTMLInputElement = document.getElementById("network-radio-testnet") as HTMLInputElement;
+    let networkRadioButtonMainnet: HTMLInputElement = document.getElementById("network-radio-mainnet") as HTMLInputElement;
 
     let network: string;
-    if (networkToggleButton.checked)
+    if (networkRadioButtonMainnet.checked)
     {
         network = "Main";
     }
-    else {
+    else if (networkRadioButtonTestnet.checked)
+    {
         network = "TestNet";
     }
 
