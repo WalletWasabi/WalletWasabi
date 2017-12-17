@@ -20,7 +20,7 @@ namespace HiddenWallet.Packager
             var guiProjectDirectory = Path.Combine(packagerProjectDirectory, "..\\HiddenWallet.Gui");
             var solutionDirectory = Path.Combine(packagerProjectDirectory, "..\\");
 
-            var packageJsonString = await File.ReadAllTextAsync(Path.Combine(guiProjectDirectory, "package.json"));
+			var packageJsonString = await File.ReadAllTextAsync(Path.Combine(guiProjectDirectory, "package.json"));
             JToken packageJson = JObject.Parse(packageJsonString);
             var version = packageJson.SelectToken("version").Value<string>();
 
@@ -127,6 +127,22 @@ namespace HiddenWallet.Packager
 
 			await DeleteDirectoryRecursivelyAsync(Path.Combine(distDir, "win-unpacked"));
 			await DeleteDirectoryRecursivelyAsync(Path.Combine(distDir, "linux-unpacked"));
+
+			Console.WriteLine("Signing archieves...");
+			var distFiles = Directory.GetFiles(distDir);
+
+			foreach (var distFile in distFiles)
+			{
+				var psiSignProcess = new ProcessStartInfo
+				{
+					FileName = "cmd",
+					RedirectStandardInput = true,
+					WorkingDirectory = distDir
+				};
+				var signProcess = Process.Start(psiSignProcess);
+				signProcess.StandardInput.WriteLine($"gpg --armor --detach-sign {distFile} && exit");
+				signProcess.WaitForExit();
+			}
 
 			Console.WriteLine("Finished. Press key to exit...");
             Console.ReadKey();
