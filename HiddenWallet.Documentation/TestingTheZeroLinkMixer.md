@@ -46,7 +46,13 @@ Unzip the downloaded archive, step into the directory and launch it.
 
 ![](https://i.imgur.com/aYd7xZc.png)
 
-On windows look for `HiddenWallet.exe` and double click on it, on Linux execute the file called `hiddenwallet`: `sudo ./hiddenwallet`.
+On windows look for `HiddenWallet.exe` and double click on it.  
+
+On Linux:
+
+1. `sudo chmod -R a+rwx ./HiddenWallet-0.6.3-linux`
+2. `cd HiddenWallet-0.6.3-linux`
+3. `./hiddenwallet`
 
 ### Step 4. Generate and decrypt your wallet
 
