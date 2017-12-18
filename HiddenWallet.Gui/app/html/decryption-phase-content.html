@@ -1,17 +1,15 @@
 <div class="jumbotron" id="decrypt-content">
     <div align="right">
-        <div class="radio-group">
-
-            <input type="radio" id="network-radio-mainnet" name="selector" autocomplete="off">
-            <label for="network-radio-mainnet">Main Network</label>
-
-            <input type="radio" id="network-radio-testnet" name="selector" autocomplete="off">
-            <label for="network-radio-testnet">Test Network</label>
-
-        </div>
+        <label class="switch">
+            <input type="checkbox" id="network-toggle-button">
+            <span class="slider">
+                <span class="on">Main Network</span>
+                <span class="off">Test Network</span>
+            </span>
+        </label>
     </div>
     <input type="password" id="inputPassword" class="form-control" placeholder="Password" />
-    <br />
+    <br />    
     <button id="decrypt-wallet-button" disabled class="btn btn-lg btn-primary btn-block" onclick="decryptWallet()">Decrypt</button>
 </div>
 

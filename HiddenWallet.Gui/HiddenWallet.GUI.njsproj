@@ -40,7 +40,7 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="app\css\justified-nav.css" />
-    <Content Include="app\css\radiobutton.css" />
+    <Content Include="app\css\slider.css" />
     <Content Include="app\html\broadcast-transaction-window.html" />
     <Content Include="app\html\decryption-phase-content.html" />
     <Content Include="app\html\decryption-phase-menu.html" />
