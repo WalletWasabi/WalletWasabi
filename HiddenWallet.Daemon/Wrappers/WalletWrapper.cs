@@ -258,14 +258,12 @@ namespace HiddenWallet.Daemon.Wrappers
 			_historyResponseBob.History = hrb.ToArray();
 
 			// balances
-			var (Available, UnspentCoins) = await WalletJob.GetBalanceAsync(AliceAccount);
-			var aa = Available;
-			var getBalanceResult2 = await WalletJob.GetBalanceAsync(BobAccount);
-			var ab = getBalanceResult2.Available;
-			_availableAlice = aa.Confirmed;
-			_incomingAlice = aa.Unconfirmed;
-			_availableBob = ab.Confirmed;
-			_incomingBob = ab.Unconfirmed;
+			var (AvailableAlice, UnspentCoinsAlice) = await WalletJob.GetBalanceAsync(AliceAccount);
+			var (AvailableBob, UnspentCoinsBob) = await WalletJob.GetBalanceAsync(BobAccount);
+			_availableAlice = AvailableAlice.Confirmed;
+			_incomingAlice = AvailableAlice.Unconfirmed;
+			_availableBob = AvailableBob.Confirmed;
+			_incomingBob = AvailableBob.Unconfirmed;
 
 			// receive
 			var ua = (await WalletJob.GetUnusedScriptPubKeysAsync(AddressType.Pay2WitnessPublicKeyHash, AliceAccount, HdPathType.Receive)).ToArray();
