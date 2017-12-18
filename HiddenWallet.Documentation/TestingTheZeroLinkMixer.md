@@ -58,7 +58,7 @@ On Linux:
 
 When you start the program you will need to generate a wallet. Note, you don't need to give a password, you can just leave it empty for convenience. When you are ready, it will take you to the decryption phase:  
 
-![](https://i.imgur.com/ALNZLPX.png)
+![](https://i.imgur.com/dp0q1nC.png)
 
 Make sure the network is testnet, as the illustration shows, if the wallet tells you: it is establishing the Tor circuit, be patient. The first time it will take from 10 seconds to up to few minutes. You are not allowed to touch the Pizza while waiting.
 Finally decrypt your wallet.
