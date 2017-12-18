@@ -50,8 +50,8 @@ On windows look for `HiddenWallet.exe` and double click on it.
 
 On Linux:
 
-1. `sudo chmod -R a+rwx ./HiddenWallet-0.6.3-linux`
-2. `cd HiddenWallet-0.6.3-linux`
+1. `sudo chmod -R a+rwx ./HiddenWallet-0.6.4-linux`
+2. `cd HiddenWallet-0.6.4-linux`
 3. `./hiddenwallet`
 
 ### Step 4. Generate and decrypt your wallet
