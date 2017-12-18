@@ -26,7 +26,10 @@ namespace HiddenWallet.WebClients.SmartBit
 			{
 				HttpClient = new HttpClient(handler, disposeHandler);
 			}
-			HttpClient = new HttpClient();
+			else
+			{
+				HttpClient = new HttpClient();
+			}
 			if (network == Network.Main)
 			{
 				HttpClient.BaseAddress = new Uri("https://api.smartbit.com.au/v1/");
