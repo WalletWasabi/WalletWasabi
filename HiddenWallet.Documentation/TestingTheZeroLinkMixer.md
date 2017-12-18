@@ -82,6 +82,8 @@ You get the money here, then send it to a bech32 address in your wallet:
 
 Click on the max button, so it will sweep all the funds you have in the wallet to the address you specify.  
 
+You MUST do this step and transfer the funds from the faucet to a bech32 address within HiddenWallet as the mixer will only accept inputs from bech32 addresses.
+
 ### Step 7: Eat your Pizza!
 
 While waiting your transactions to be confirmed. You deserve it, you are almost ready.
