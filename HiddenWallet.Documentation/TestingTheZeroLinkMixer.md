@@ -2,7 +2,7 @@
 
 ## General
 
-[ZeroLink](https://github.com/nopara73/ZeroLink/) is a wallet privacy framework for round based mixing techniques, like CoinShuffle and TumbleBit's Classic Tumbler mode. It makes sure the user does not get deanonymized by other means, unrelated to the mix, like network analysis. ZeroLink also defines its own mixing techniuqe: Chaumian CoinJoin. It is a massive scale CoinJoin implementation, where the coordinator of the mix is trustless, a round runs within seconds, it cannot steal from the user, nor breach its privacy.  
+[ZeroLink](https://github.com/nopara73/ZeroLink/) is a wallet privacy framework for round based mixing techniques, like CoinShuffle and TumbleBit's Classic Tumbler mode. It makes sure the user does not get deanonymized by other means, unrelated to the mix, like network analysis. ZeroLink also defines its own mixing technique: Chaumian CoinJoin. It is a massive scale CoinJoin implementation, where the coordinator of the mix is trustless, a round runs within seconds, it cannot steal from the user, nor breach its privacy.  
 
 ## Specific
 
@@ -10,10 +10,10 @@ This document guides you through the process on how to help test HiddenWallet's 
 
 ### Time Of Testing
 
-Anonymity likes company. In order to achieve a mix with reasonable anonymity set we need to coordinate the test to happen in a specific time. However you don't have to be present, you can simply start mixing right now and let it run, wait for your peers to join to the mix.  
+Anonymity likes company. In order to achieve a mix with a reasonable anonymity set we need to coordinate the test to happen in a specific time. However you don't have to be present, you can simply start mixing right now, leave HiddenWallet running and wait for your peers to join the mix.  
 A mixing round will kick in if:
 - 100 users joined to the mix.  
-- **Dec. 20 (Wednesday), 10 PM London time** AND at least 21 users joined to the mix.  
+- **Dec. 20 (Wednesday), 10 PM London time** is reached AND at least 21 users have joined the mix.  
 
 *For convenience: Dec. 20 (Wednesday), 10 PM London is 5:00 PM in New York, 2PM in San Francisco and Dec. 21 (Thursday) 6 AM in Taipei.*
 
@@ -92,6 +92,6 @@ Finally go the Mixer tab and start mixing:
 
 ![](https://i.imgur.com/X4Ut0U7.png)
 
-All you have left to do is to wait for other users to sign up for the mix, or Dec. 20 to come.
+All you have left to do is to wait for other users to sign up for the mix, or Dec. 20 to come. Thank you for participating!
 
 ![](https://i.imgur.com/OFeShT6.png)
