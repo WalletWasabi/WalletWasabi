@@ -52,7 +52,7 @@ On Linux:
 
 1. `sudo chmod -R a+rwx ./HiddenWallet-0.6.3-linux`
 2. `cd HiddenWallet-0.6.3-linux`
-3. `sudo ./hiddenwallet`
+3. `./hiddenwallet`
 
 ### Step 4. Generate and decrypt your wallet
 
