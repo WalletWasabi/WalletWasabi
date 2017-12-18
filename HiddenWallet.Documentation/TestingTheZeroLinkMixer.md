@@ -2,7 +2,7 @@
 
 ## General
 
-ZeroLink is a wallet privacy framework for round based mixing techniques, like CoinShuffle and TumbleBit's Classic Tumbler mode. It makes sure the user does not get deanonymized by other means, unrelated to the mix, like network analysis. ZeroLink also defines its own mixing techniuqe: Chaumian CoinJoin. It is a massive scale CoinJoin implementation, where the coordinator of the mix is trustless, a round runs within seconds, it cannot steal from the user, nor breach its privacy.  
+[ZeroLink](https://github.com/nopara73/ZeroLink/) is a wallet privacy framework for round based mixing techniques, like CoinShuffle and TumbleBit's Classic Tumbler mode. It makes sure the user does not get deanonymized by other means, unrelated to the mix, like network analysis. ZeroLink also defines its own mixing techniuqe: Chaumian CoinJoin. It is a massive scale CoinJoin implementation, where the coordinator of the mix is trustless, a round runs within seconds, it cannot steal from the user, nor breach its privacy.  
 
 ## Specific
 
