@@ -24,10 +24,14 @@ namespace HiddenWallet.WebClients.BlockCypher
         public BlockCypherClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
         {
             Network = network ?? throw new ArgumentNullException(nameof(network));
-            if (handler != null) {
-                HttpClient = new HttpClient(handler, disposeHandler);
-            }
-            HttpClient = new HttpClient();
+			if (handler != null)
+			{
+				HttpClient = new HttpClient(handler, disposeHandler);
+			}
+			else
+			{
+				HttpClient = new HttpClient();
+			}
             if (network == Network.Main)
             {
                 HttpClient.BaseAddress = new Uri("http://api.blockcypher.com/v1/btc/main");
