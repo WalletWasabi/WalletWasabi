@@ -2,7 +2,7 @@
 
 ## General
 
-ZeroLink is a wallet privacy framework for round based mixing techniques, like CoinShuffle and TumbleBit's Classic Tumbler mode. It makes sure the user does not get deanonymized by other means, unrelated to the mix, like network analysis. ZeroLink also defines its own mixing techniuqe: Chaumian CoinJoin. It is a massive scale CoinJoin implementation, where the coordinator of the mix is trustless, a round runs within seconds, it cannot steal from the user, nor breach its privacy.  
+[ZeroLink](https://github.com/nopara73/ZeroLink/) is a wallet privacy framework for round based mixing techniques, like CoinShuffle and TumbleBit's Classic Tumbler mode. It makes sure the user does not get deanonymized by other means, unrelated to the mix, like network analysis. ZeroLink also defines its own mixing technique: Chaumian CoinJoin. It is a massive scale CoinJoin implementation, where the coordinator of the mix is trustless, a round runs within seconds, it cannot steal from the user, nor breach its privacy.  
 
 ## Specific
 
@@ -10,10 +10,10 @@ This document guides you through the process on how to help test HiddenWallet's 
 
 ### Time Of Testing
 
-Anonymity likes company. In order to achieve a mix with reasonable anonymity set we need to coordinate the test to happen in a specific time. However you don't have to be present, you can simply start mixing right now and let it run, wait for your peers to join to the mix.  
+Anonymity likes company. In order to achieve a mix with a reasonable anonymity set we need to coordinate the test to happen in a specific time. However you don't have to be present, you can simply start mixing right now, leave HiddenWallet running and wait for your peers to join the mix.  
 A mixing round will kick in if:
 - 100 users joined to the mix.  
-- **Dec. 20 (Wednesday), 10 PM London time** AND at least 21 users joined to the mix.  
+- **Dec. 20 (Wednesday), 10 PM London time** is reached AND at least 21 users have joined the mix.  
 
 *For convenience: Dec. 20 (Wednesday), 10 PM London is 5:00 PM in New York, 2PM in San Francisco and Dec. 21 (Thursday) 6 AM in Taipei.*
 
@@ -52,13 +52,13 @@ On Linux:
 
 1. `sudo chmod -R a+rwx ./HiddenWallet-0.6.3-linux`
 2. `cd HiddenWallet-0.6.3-linux`
-3. `sudo ./hiddenwallet`
+3. `./hiddenwallet`
 
 ### Step 4. Generate and decrypt your wallet
 
 When you start the program you will need to generate a wallet. Note, you don't need to give a password, you can just leave it empty for convenience. When you are ready, it will take you to the decryption phase:  
 
-![](https://i.imgur.com/dp0q1nC.png)
+![](https://i.imgur.com/ALNZLPX.png)
 
 Make sure the network is testnet, as the illustration shows, if the wallet tells you: it is establishing the Tor circuit, be patient. The first time it will take from 10 seconds to up to few minutes. You are not allowed to touch the Pizza while waiting.
 Finally decrypt your wallet.
@@ -82,6 +82,8 @@ You get the money here, then send it to a bech32 address in your wallet:
 
 Click on the max button, so it will sweep all the funds you have in the wallet to the address you specify.  
 
+You MUST do this step and transfer the funds from the faucet to a bech32 address within HiddenWallet as the mixer will only accept inputs from bech32 addresses.
+
 ### Step 7: Eat your Pizza!
 
 While waiting your transactions to be confirmed. You deserve it, you are almost ready.
@@ -92,6 +94,6 @@ Finally go the Mixer tab and start mixing:
 
 ![](https://i.imgur.com/X4Ut0U7.png)
 
-All you have left to do is to wait for other users to sign up for the mix, or Dec. 20 to come.
+All you have left to do is to wait for other users to sign up for the mix, or Dec. 20 to come. Thank you for participating!
 
 ![](https://i.imgur.com/OFeShT6.png)
