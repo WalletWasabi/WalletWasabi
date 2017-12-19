@@ -1,0 +1,27 @@
+/* hides default radiobutton style */
+input[type=radio].decryption-phase {
+  position: absolute;
+  visibility: hidden;
+  display: none;
+}
+
+label.decryption-phase {
+  display: inline-block;
+  cursor: pointer;
+  padding: 5px 10px;
+  color: #868e96;
+}
+
+input[type=radio]:checked.decryption-phase + label.decryption-phase{
+  color: #007bff;
+}
+
+label.decryption-phase + input[type=radio].decryption-phase + label.decryption-phase {
+  border-left: solid 2px #c2c6ca;
+}
+
+.radio-group.decryption-phase {
+  display: inline-block;
+  margin: 20px 0px 20px 0px;
+  overflow: hidden;
+}
