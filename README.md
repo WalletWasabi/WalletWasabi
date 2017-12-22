@@ -39,7 +39,7 @@ against network analysis, but replacing SPV security to trusted full node securi
 - [Git](https://git-scm.com/downloads)  
 - [.NET Core](https://www.microsoft.com/net/core)  
 - [Node.js](https://nodejs.org/en/download/)
-- Tor: On Linux and OSX make sure "tor" is in your PATH!
+- Tor: On Linux (`apt-get install tor`) and OSX (`brew install tor`) make sure "tor" is in your PATH! , 
   
 ### Step By Step
   
@@ -53,7 +53,6 @@ against network analysis, but replacing SPV security to trusted full node securi
 8. `npm install -g typescript`
 9. `tsc`
 10. `npm start`
-11. Check out the [Configuration section](https://github.com/nopara73/HiddenWallet#configuration) above.
 
 ### Running The Tests
 
