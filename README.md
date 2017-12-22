@@ -53,7 +53,6 @@ against network analysis, but replacing SPV security to trusted full node securi
 8. `npm install -g typescript`
 9. `tsc`
 10. `npm start`
-11. Check out the [Configuration section](https://github.com/nopara73/HiddenWallet#configuration) above.
 
 ### Running The Tests
 
