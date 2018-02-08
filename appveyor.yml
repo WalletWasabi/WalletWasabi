@@ -1,0 +1,9 @@
+configuration:
+  - Release
+  
+build_script:
+  - dotnet build
+
+test_script:
+  - cd MagicalCryptoWallet.Tests
+  - dotnet test
