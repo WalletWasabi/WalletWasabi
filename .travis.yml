@@ -1,0 +1,13 @@
+language: csharp
+mono: none
+dotnet: 2.0.0
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty     
+    - os: osx
+
+script:
+  - cd MagicalCryptoWallet.Tests
+  - dotnet test
