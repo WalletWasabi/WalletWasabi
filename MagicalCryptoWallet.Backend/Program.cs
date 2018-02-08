@@ -12,9 +12,11 @@ namespace MagicalCryptoWallet.Backend
 {
     public class Program
     {
-        public static void Main(string[] args)
-        {
-            BuildWebHost(args).Run();
+#pragma warning disable IDE1006 // Naming Styles
+		public static async Task Main(string[] args)
+#pragma warning restore IDE1006 // Naming Styles
+		{
+            await BuildWebHost(args).RunAsync();
         }
 
         public static IWebHost BuildWebHost(string[] args) =>
