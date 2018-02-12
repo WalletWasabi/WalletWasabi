@@ -15,11 +15,11 @@
 |POST fees | Get fees based on Bitcoin Core's `estimatesmartfee` output. | ConfirmationTargets[] | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
 |POST broadcast | Attempts to broadcast a transaction. | Hex |  |
 |GET exchange-rates | Gets exchange rates for one Bitcoin. | Hex | ExchangeRates[] contains Ticker and ExchangeRate pairs. Example: ![](https://i.imgur.com/Id9cqxq.png) |
-|POST filters | Gets block filters after the specified block hashes. If BlockHashes are not specified, the whole FilterTable is served. | (optional) BlockHashes[] | LastValidBlockHash, FilterTable[] contains BlockHash and Filter pairs. Example: ![](https://i.imgur.com/67Iswf5.png) |
+|POST filters | Gets block filters from the specified block hashes. | BlockHashes[] | LastValidBlockHash, FilterTable[] contains BlockHash and Filter pairs. Example: ![](https://i.imgur.com/67Iswf5.png) |
 
 ### POST filters
 
-  At initial syncronization the wallet must download the whole filter table by issuing `POST /api/v1/btc/blockchain/filters` request without specifying `BlockHashes`.  
+  At initial syncronization the wallet must download the whole filter table by issuing `POST /api/v1/btc/blockchain/filters` request with a hardcoded block hash, which is the hash of the block where the first native segwit transaction happened. (ToDo: find it)  
   Filters are Golomb Rice filters of all the input and output native segregated witness `scriptPubKeys`. Thus wallets using this API can only handle `p2wpkh` scripts, therefore `p2pkh`, `p2sh`, `p2sh` over `p2wph` scripts are not supported. This restriction significantly lowers the size of the `FilterTable`, with that speeds up the wallet.
   The first filter is served from the block, where the first native segregated witness transaction happened ever.  
   When a client acquires a filter, it checks against its own keys and downloads the needed blocks from the Bitcoin P2P network, if needed. 
