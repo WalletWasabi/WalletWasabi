@@ -1,4 +1,5 @@
-﻿using MagicalCryptoWallet.Helpers;
+﻿using MagicalCryptoWallet.Exceptions;
+using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.Http.Models;
 using MagicalCryptoWallet.Logging;
 using Nito.AsyncEx;
@@ -34,6 +35,23 @@ namespace MagicalCryptoWallet.TorSocks5
 			TorSocks5EndPoint = torSocks5EndPoint ?? new IPEndPoint(IPAddress.Loopback, 9050);
 			TorSocks5Client = null;
 			IsolateStream = isolateStream;
+		}
+
+		public static async Task<bool> IsTorRunning(IPEndPoint torSocks5EndPoint = null)
+		{
+			using (var client = new TorSocks5Client(torSocks5EndPoint))
+			{
+				try
+				{
+					await client.ConnectAsync();
+					await client.HandshakeAsync();
+				}
+				catch(ConnectionException)
+				{
+					return false;
+				}
+				return true;
+			}
 		}
 
 		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent content = null)

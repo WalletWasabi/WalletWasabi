@@ -287,6 +287,13 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
+		[Fact]
+		public async Task TorRunningAsync()
+		{
+			Assert.True(await TorHttpClient.IsTorRunning());
+			Assert.False(await TorHttpClient.IsTorRunning(new IPEndPoint(IPAddress.Loopback, 9054)));
+		}
+
 		private static async Task<List<string>> QBitTestAsync(TorHttpClient client, int times, bool alterRequests = false)
 		{
 			var relativetUri = "/whatisit/what%20is%20my%20future";
