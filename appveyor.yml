@@ -4,8 +4,10 @@ configuration:
 before_build:
   - appveyor DownloadFile https://www.torproject.org/dist/torbrowser/7.5/tor-win32-0.3.2.9.zip
   - 7z x tor-win32-0.3.2.9.zip
-  - echo RunAsDaemon 1 > Tor\torrc
-  - Tor\tor.exe --defaults-torrc Tor\torrc
+  - cd Tor
+  - tor RunAsDaemon 1
+  - cd ..
+  - timeout 5
   
 build_script:
   - dotnet build
