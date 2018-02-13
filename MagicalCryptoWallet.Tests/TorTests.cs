@@ -53,6 +53,17 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
+		[Fact]
+		public async Task TestMicrosoftNCSIAsync()
+		{
+			using (var client = new TorHttpClient(new Uri("http://www.msftncsi.com/")))
+			{
+				var response = await client.SendAsync(HttpMethod.Get, "ncsi.txt");
+				var content = await response.Content.ReadAsStringAsync();
+				Assert.Equal("Microsoft NCSI", content);
+			}
+		}
+
 		private static async Task<List<string>> QBitTestAsync(TorHttpClient client, int times, bool alterRequests = false)
 		{
 			var relativetUri = "/whatisit/what%20is%20my%20future";
