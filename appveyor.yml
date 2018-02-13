@@ -2,9 +2,9 @@ configuration:
   - Release
   
 before_build:
-  - curl -fsS -o tor.zip https://www.torproject.org/dist/torbrowser/7.5/tor-win32-0.3.2.9.zip
+  - curl -fsS -o tor-win32-0.3.2.9.zip https://www.torproject.org/dist/torbrowser/7.5/tor-win32-0.3.2.9.zip
   - dir
-  - 7z x tor.zip
+  - 7z x tor-win32-0.3.2.9.zip
   - Tor\tor.exe RunAsDaemon 1
   
 build_script:
