@@ -15,18 +15,50 @@
 
 It is expected for the proposed timeline to take roughly 1.5 times longer.
 
-| Status                  | Name                 | Time Frame | Dependencies                                    | Expertise                           | Description                                                                                                                                                    |
-|-------------------------|----------------------|------------|-------------------------------------------------|-------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| <ul><li> [ ] </li></ul> | Wallet Back End      | 2 weeks    |                                                 | NBitcoin, Bitcoin Core RPC, ASP.NET | Build back end for the wallet based on [the specification](https://github.com/nopara73/MagicalCryptoWallet/blob/master/MagicalCryptoWallet.Backend/README.md). |
-| <ul><li> [ ] </li></ul> | Small Tor Library    | 1 week     |                                                 | Tor, .NET Core, cross platform      | Build a small Tor library based on DotNetTor, that removes features those are unrelated to the wallet and makes the rest more stable.                          |
-| <ul><li> [ ] </li></ul> | Key Manager          | 1 week     |                                                 | NBitcoin                            | Build a new, high performance key manager with accounts, labelling, etc...                                                                                     |
-| <ul><li> [ ] </li></ul> | Wallet Client        | 1 month    | Wallet Back End, Small Tor Library, Key Manager | NBitcoin                            | Build a high performance client that can work with the new back end, which is built for client side filtering.                                                 |
-| <ul><li> [ ] </li></ul> | ZeroLink v2 Revision | 1 month    |                                                 | Bitcoin privacy, cryptography       | Revise ZeroLink, based on technological advancements.                                                                                                          |
-| <ul><li> [ ] </li></ul> | ZeroLink Coordinator | 2 weeks    | ZeroLink v2 Revision                            | NBitcoin, Bitcoin Core RPC          | Revise the ZeroLink Coordinator code based on ZeroLink v2 Revision.                                                                                            |
-| <ul><li> [ ] </li></ul> | ZeroLink Client      | 2 weeks    | ZeroLink v2 Revision, ZeroLink Coordinator      | NBitcoin                            | Revise the ZeroLink Client code based on ZeroLink v2 Revision.                                                                                                 |
-| <ul><li> [ ] </li></ul> | GUI                  | 1 month    | ALL previous items                              | Electron, front end                 | Redesign the user experience and build it.                                                                                                                     |
-| <ul><li> [ ] </li></ul> | Documentation        | 1 week     | ALL previous items                              | Bitcoin                             | Create documentation.                                                                                                                                          |
-| <ul><li> [ ] </li></ul> | Internal Testing     | 2 weeks    | ALL previous items, except Documentation        | Bitcoin or .NET or front end        | Test the software and fix the bugs (if there is any haha).                                                                                                     |
-| <ul><li> [ ] </li></ul> | Deploy To Mainnet    | 2 weeks    | ALL previous items, except Documentation        | .NET Core, ASP.NET Core deployment  | Deploy the software to Bitcoin Mainnet.                                                                                                                        |
-| <ul><li> [ ] </li></ul> | Mainnet Beta Testing | 2 weeks    | ALL previous items                              | More User The Better                | It's rather a marketing phase. The goal is to get at least 1 round done with > 100 user.                                                                       |
-| <ul><li> [ ] </li></ul> | Maintanence          | ∞          | ALL previous items                              | NBitcoin                            |                                                                                                                                                                |
+- [ ] **1. Wallet Back End.** *2 weeks. NBitcoin, Bitcoin Core RPC, ASP.NET.* Build back end for the wallet based on [the specification](https://github.com/nopara73/MagicalCryptoWallet/blob/master/MagicalCryptoWallet.Backend/README.md).
+- [ ] **2. Small Tor Library.** *1 week. Tor, .NET Core, cross platform.* Build a small Tor library based on DotNetTor, that removes features those are unrelated to the wallet and makes the rest more stable.
+- [ ] **3. Key Manager.** *1 week. NBitcoin.* Build a new, high performance key manager with accounts, labelling, etc...
+- [ ] **4. Wallet Client.** *1 month. NBitcoin.* Build a high performance client that can work with the new back end, which is built for client side filtering.
+
+  Depends on:
+  - [ ] Wallet Back End
+  - [ ] Small Tor Library
+  - [ ] Key Manager
+  
+- [ ] **5. ZeroLink v2 Revision.** *1 month. Bitcoin privacy, cryptography.* Revise ZeroLink, based on technological advancements.
+- [ ] **6. ZeroLink Coordinator.** *2 weeks. NBitcoin, Bitcoin Core RPC.* Revise the ZeroLink Coordinator code based on ZeroLink v2 Revision.
+
+  Depends on:
+  - [ ] ZeroLink v2 Revision
+  
+- [ ] **7. ZeroLink Client.** *2 weeks. NBitcoin.* Revise the ZeroLink Client code based on ZeroLink v2 Revision.
+
+  Depends on:
+  - [ ] ZeroLink v2 Revision
+  - [ ] ZeroLink Coordinator
+  
+- [ ] **8. GUI.** *1 month. Electron, front end, Bitcoin.* Redesign the user experience and build it.
+
+  Depends on:
+  - [ ] ALL previous items
+  
+- [ ] **9. Documentation.** *1 week. Bitcoin.* Create documentation.
+
+  Depends on:
+  - [ ] ALL previous items
+  
+- [ ] **10. Internal Testing.** *2 weeks. Bitcoin or .NET or front end.* Test the software and fix the bugs (if there is any haha).
+
+  Depends on:
+  - [ ] ALL previous items, except Documentation
+  
+- [ ] **11. Deploy To Mainnet.** *2 weeks. .NET Core, ASP.NET Core deployment.* Deploy the software to Bitcoin Mainnet.
+
+  Depends on:
+  - [ ] ALL previous items, except Documentation
+  
+- [ ] **12. Mainnet Beta Testing.** *2 weeks.* It's rather a marketing phase. The goal is to get at least 1 round done with > 100 user.
+
+  Depends on:
+  - [ ] ALL previous items
+  
