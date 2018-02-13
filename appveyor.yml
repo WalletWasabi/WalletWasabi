@@ -5,7 +5,7 @@ before_build:
   - appveyor DownloadFile https://www.torproject.org/dist/torbrowser/7.5/tor-win32-0.3.2.9.zip
   - 7z x tor-win32-0.3.2.9.zip
   - cd Tor
-  - tor RunAsDaemon 1 --GeoIPFile GeoIP --GeoIPv6File GeoIPv6
+  - tor RunAsDaemon 1
   - cd ..
   - timeout 5
   
