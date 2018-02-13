@@ -21,9 +21,7 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
 - [ ] **4. Wallet Client.** *1 month. NBitcoin.* Build a high performance client that can work with the new back end, which is built for client side filtering.
 
   Depends on:
-  - [ ] Wallet Back End
-  - [ ] Small Tor Library
-  - [ ] Key Manager
+  - [ ] ALL previous items
   
 - [ ] **5. ZeroLink v2 Revision.** *1 month. Bitcoin privacy, cryptography.* Revise ZeroLink, based on technological advancements.
 - [ ] **6. ZeroLink Coordinator.** *2 weeks. NBitcoin, Bitcoin Core RPC.* Revise the ZeroLink Coordinator code based on ZeroLink v2 Revision.
