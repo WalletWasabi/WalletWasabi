@@ -100,7 +100,8 @@ namespace MagicalCryptoWallet.TorSocks5
 					await TcpClient.ConnectAsync(TorSocks5EndPoint.Address, TorSocks5EndPoint.Port);
 				}
 				// ex.Message must be checked, because I'm having difficulty catching SocketExceptionFactory+ExtendedSocketException
-				catch (Exception ex) when (ex.Message.StartsWith("No connection could be made because the target machine actively refused it"))
+				catch (Exception ex) when (ex.Message.StartsWith("No connection could be made because the target machine actively refused it")
+				|| ex.Message.StartsWith("Connection refused"))
 				{
 					throw new ConnectionException($"Couldn't connect to Tor SOCKSPort at {TorSocks5EndPoint.Address}:{TorSocks5EndPoint.Port}. Is Tor running?", ex);
 				}
