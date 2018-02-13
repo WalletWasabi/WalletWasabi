@@ -243,6 +243,50 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
+		[Fact]
+		public async Task DoesntIsolateStreamsAsync()
+		{
+			using (var c1 = new TorHttpClient(new Uri("http://api.ipify.org")))
+			using (var c2 = new TorHttpClient(new Uri("http://api.ipify.org")))
+			using (var c3 = new TorHttpClient(new Uri("http://api.ipify.org")))
+			{
+				var t1 = c1.SendAsync(HttpMethod.Get, "");
+				var t2 = c2.SendAsync(HttpMethod.Get, "");
+				var t3 = c3.SendAsync(HttpMethod.Get, "");
+
+				var ips = new HashSet<IPAddress>
+				{
+					IPAddress.Parse(await (await t1).Content.ReadAsStringAsync()),
+					IPAddress.Parse(await (await t2).Content.ReadAsStringAsync()),
+					IPAddress.Parse(await (await t3).Content.ReadAsStringAsync())
+				};
+
+				Assert.True(ips.Count < 3);
+			}
+		}
+
+		[Fact]
+		public async Task IsolatesStreamsAsync()
+		{
+			using (var c1 = new TorHttpClient(new Uri("http://api.ipify.org"), isolateStream: true))
+			using (var c2 = new TorHttpClient(new Uri("http://api.ipify.org"), isolateStream: true))
+			using (var c3 = new TorHttpClient(new Uri("http://api.ipify.org"), isolateStream: true))
+			{
+				var t1 = c1.SendAsync(HttpMethod.Get, "");
+				var t2 = c2.SendAsync(HttpMethod.Get, "");
+				var t3 = c3.SendAsync(HttpMethod.Get, "");
+
+				var ips = new HashSet<IPAddress>
+				{
+					IPAddress.Parse(await (await t1).Content.ReadAsStringAsync()),
+					IPAddress.Parse(await (await t2).Content.ReadAsStringAsync()),
+					IPAddress.Parse(await (await t3).Content.ReadAsStringAsync())
+				};
+
+				Assert.True(ips.Count >= 2); // very rarely it fails to isolate
+			}
+		}
+
 		private static async Task<List<string>> QBitTestAsync(TorHttpClient client, int times, bool alterRequests = false)
 		{
 			var relativetUri = "/whatisit/what%20is%20my%20future";
