@@ -69,6 +69,15 @@ namespace MagicalCryptoWallet.Tests
 		}
 
 		[Fact]
+		public async Task CanDoRequestManyDifferentAsync()
+		{
+			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja")))
+			{
+				await QBitTestAsync(client, 10, alterRequests: true);
+			}
+		}
+
+		[Fact]
 		public async Task CanRequestChunkEncodedAsync()
 		{
 			using (var client = new TorHttpClient(new Uri("https://jigsaw.w3.org/")))
