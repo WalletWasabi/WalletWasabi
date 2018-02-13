@@ -17,7 +17,7 @@ namespace System.IO
 			var left = count;
 			while(left != 0)
 			{
-				var read = await stream.ReadAsync(buffer, count - left, left, ctsToken).ConfigureAwait(false);
+				var read = await stream.ReadAsync(buffer, count - left, left, ctsToken);
 				left -= read;
 			}
 			return count - left;

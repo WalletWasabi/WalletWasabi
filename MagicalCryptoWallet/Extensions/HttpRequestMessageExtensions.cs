@@ -31,20 +31,20 @@ namespace System.Net.Http
 			//					[message - body]
 			
 			var position = 0;
-			string startLine = await HttpMessageHelper.ReadStartLineAsync(requestStream, ctsToken).ConfigureAwait(false);
+			string startLine = await HttpMessageHelper.ReadStartLineAsync(requestStream, ctsToken);
 			position += startLine.Length;
 
 			var requestLine = RequestLine.CreateNew(startLine);
 			var request = new HttpRequestMessage(requestLine.Method, requestLine.URI);
 
-			string headers = await HttpMessageHelper.ReadHeadersAsync(requestStream, ctsToken).ConfigureAwait(false);
+			string headers = await HttpMessageHelper.ReadHeadersAsync(requestStream, ctsToken);
 			position += headers.Length + 2;
 
 			var headerSection = HeaderSection.CreateNew(headers);
 			var headerStruct = headerSection.ToHttpRequestHeaders();
 
 			HttpMessageHelper.AssertValidHeaders(headerStruct.RequestHeaders, headerStruct.ContentHeaders);
-			request.Content = await HttpMessageHelper.GetContentAsync(requestStream, headerStruct, ctsToken).ConfigureAwait(false);
+			request.Content = await HttpMessageHelper.GetContentAsync(requestStream, headerStruct, ctsToken);
 
 			HttpMessageHelper.CopyHeaders(headerStruct.RequestHeaders, request.Headers);
 			if (request.Content != null)
@@ -96,7 +96,7 @@ namespace System.Net.Http
 					headers += headerSection.ToString(endWithTwoCRLF: false);
 				}
 				
-				messageBody = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
+				messageBody = await me.Content.ReadAsStringAsync();
 			}
 
 			return startLine + headers + CRLF + messageBody;

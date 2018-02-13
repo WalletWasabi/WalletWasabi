@@ -31,20 +31,20 @@ namespace System.Net.Http
 			//					[message - body]
 			
 			var position = 0;
-			string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream).ConfigureAwait(false);
+			string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream);
 			position += startLine.Length;
 
 			var statusLine = StatusLine.CreateNew(startLine);
 			var response = new HttpResponseMessage(statusLine.StatusCode);
 
-			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream).ConfigureAwait(false);
+			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream);
 			position += headers.Length + 2;
 
 			var headerSection = HeaderSection.CreateNew(headers);
 			var headerStruct = headerSection.ToHttpResponseHeaders();
 
 			HttpMessageHelper.AssertValidHeaders(headerStruct.ResponseHeaders, headerStruct.ContentHeaders);
-			response.Content = await HttpMessageHelper.GetContentAsync(responseStream, headerStruct, requestMethod, statusLine).ConfigureAwait(false);
+			response.Content = await HttpMessageHelper.GetContentAsync(responseStream, headerStruct, requestMethod, statusLine);
 
 			HttpMessageHelper.CopyHeaders(headerStruct.ResponseHeaders, response.Headers);
 			if (response.Content != null)
@@ -56,7 +56,7 @@ namespace System.Net.Http
 
 		public static async Task<Stream> ToStreamAsync(this HttpResponseMessage me)
 		{
-			return new MemoryStream(Encoding.UTF8.GetBytes(await me.ToHttpStringAsync().ConfigureAwait(false)));
+			return new MemoryStream(Encoding.UTF8.GetBytes(await me.ToHttpStringAsync()));
 		}
 		public static async Task<string> ToHttpStringAsync(this HttpResponseMessage me)
 		{
@@ -78,7 +78,7 @@ namespace System.Net.Http
 					headers += headerSection.ToString(endWithTwoCRLF: false);
 				}
 
-				messageBody = await me.Content.ReadAsStringAsync().ConfigureAwait(false);
+				messageBody = await me.Content.ReadAsStringAsync();
 			}
 
 			return startLine + headers + CRLF + messageBody;
