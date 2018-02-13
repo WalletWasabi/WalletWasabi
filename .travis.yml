@@ -7,7 +7,13 @@ matrix:
     - os: linux
       dist: trusty     
     - os: osx
+    
+before_install:
+  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -qq update && sudo apt-get install -y tor; else brew install tor; fi
+  - echo $(sudo killall -q tor)
+  - tor RunAsDaemon 1
 
 script:
   - cd MagicalCryptoWallet.Tests
+  - sleep 5
   - dotnet test
