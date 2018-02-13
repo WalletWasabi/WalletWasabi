@@ -15,5 +15,5 @@ before_install:
 
 script:
   - cd MagicalCryptoWallet.Tests
-  - sleep 5
   - dotnet test
+  - sleep 5
