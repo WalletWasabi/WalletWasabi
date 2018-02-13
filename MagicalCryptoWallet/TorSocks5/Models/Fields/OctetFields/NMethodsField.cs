@@ -1,7 +1,6 @@
 ﻿using MagicalCryptoWallet.Bases;
-using System;
+using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields;
-using DotNetEssentials;
 
 namespace MagicalCryptoWallet.TorSocks5.Models.Fields.OctetFields
 {

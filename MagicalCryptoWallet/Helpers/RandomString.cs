@@ -1,4 +1,4 @@
-﻿using DotNetEssentials;
+﻿using MagicalCryptoWallet.Helpers;
 using System.Linq;
 
 namespace System

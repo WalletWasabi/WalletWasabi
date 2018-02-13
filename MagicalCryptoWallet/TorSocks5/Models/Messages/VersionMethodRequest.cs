@@ -3,7 +3,7 @@ using MagicalCryptoWallet.TorSocks5.Models.Fields.OctetFields;
 using System;
 using System.Linq;
 using MagicalCryptoWallet.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields;
-using DotNetEssentials;
+using MagicalCryptoWallet.Helpers;
 
 namespace MagicalCryptoWallet.TorSocks5.Models.Messages
 {

@@ -1,5 +1,4 @@
-﻿using MagicalCryptoWallet.Http;
-using MagicalCryptoWallet.Http.Models;
+﻿using MagicalCryptoWallet.Http.Models;
 using System.IO;
 using System.Linq;
 using System.Threading;

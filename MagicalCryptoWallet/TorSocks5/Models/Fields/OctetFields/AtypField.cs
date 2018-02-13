@@ -1,6 +1,5 @@
-﻿using DotNetEssentials;
-using MagicalCryptoWallet.Bases;
-using System;
+﻿using MagicalCryptoWallet.Bases;
+using MagicalCryptoWallet.Helpers;
 using System.Net;
 using System.Net.Sockets;
 

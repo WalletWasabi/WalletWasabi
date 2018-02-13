@@ -1,7 +1,6 @@
-﻿using DotNetEssentials;
-using MagicalCryptoWallet.Bases;
+﻿using MagicalCryptoWallet.Bases;
+using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.TorSocks5.Models.Fields.OctetFields;
-using System;
 
 namespace MagicalCryptoWallet.TorSocks5.Models.Messages
 {

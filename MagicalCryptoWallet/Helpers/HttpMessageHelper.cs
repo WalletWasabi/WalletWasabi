@@ -1,6 +1,4 @@
-﻿using DotNetEssentials.Logging;
-using MagicalCryptoWallet.Http;
-using MagicalCryptoWallet.Http.Models;
+﻿using MagicalCryptoWallet.Http.Models;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

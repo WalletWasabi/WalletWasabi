@@ -10,8 +10,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetEssentials" Version="1.0.7" />
     <PackageReference Include="NBitcoin" Version="4.0.0.54" />
+    <PackageReference Include="Nito.AsyncEx" Version="4.0.1" />
   </ItemGroup>
 
 </Project>

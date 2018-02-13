@@ -1,7 +1,7 @@
 ﻿using System;
 using static MagicalCryptoWallet.Http.Constants;
 using System.Net;
-using DotNetEssentials.Logging;
+using MagicalCryptoWallet.Logging;
 
 namespace MagicalCryptoWallet.Http.Models
 {

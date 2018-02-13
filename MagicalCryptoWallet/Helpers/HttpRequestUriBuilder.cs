@@ -1,5 +1,4 @@
 ﻿using MagicalCryptoWallet.Http.Models;
-using System;
 
 namespace System.Net.Http
 {

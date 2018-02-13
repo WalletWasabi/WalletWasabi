@@ -1,6 +1,5 @@
-﻿using DotNetEssentials;
-using MagicalCryptoWallet.Bases;
-using System;
+﻿using MagicalCryptoWallet.Bases;
+using MagicalCryptoWallet.Helpers;
 using System.Text;
 
 namespace MagicalCryptoWallet.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
