@@ -1,6 +1,7 @@
 ﻿using MagicalCryptoWallet.TorSocks5;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -156,6 +157,89 @@ namespace MagicalCryptoWallet.Tests
 				var responseContentString = await message.Content.ReadAsStringAsync();
 
 				Assert.Equal("{\"success\":true,\"transaction\":{\"Version\":\"1\",\"LockTime\":\"0\",\"Vin\":[{\"TxId\":null,\"Vout\":null,\"ScriptSig\":null,\"CoinBase\":\"03a58605204d696e656420627920416e74506f6f6c20757361311f10b53620558903d80272a70c0000724c0600\",\"TxInWitness\":null,\"Sequence\":\"4294967295\"}],\"Vout\":[{\"Value\":25.21865743,\"N\":0,\"ScriptPubKey\":{\"Asm\":\"OP_DUP OP_HASH160 2ef12bd2ac1416406d0e132e5bc8d0b02df3861b OP_EQUALVERIFY OP_CHECKSIG\",\"Hex\":\"76a9142ef12bd2ac1416406d0e132e5bc8d0b02df3861b88ac\",\"ReqSigs\":1,\"Type\":\"pubkeyhash\",\"Addresses\":[\"15HCzh8AoKRnTWMtmgAsT9TKUPrQ6oh9HQ\"]}}],\"TxId\":\"a02b9bd4264ab5d7c43ee18695141452b23b230b2a8431b28bbe446bf2b2f595\"}}", responseContentString);
+			}
+		}
+
+		[Fact]
+		public async Task CanDoBasicRequestAsync()
+		{
+			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja/")))
+			{
+				HttpResponseMessage message = await client.SendAsync(HttpMethod.Get, "whatisit/what%20is%20my%20futur");
+				var content = await message.Content.ReadAsStringAsync();
+
+				Assert.Equal("\"Good question Holmes !\"", content);
+			}
+		}
+
+		[Fact]
+		private async Task TorIpIsNotTheRealOneAsync()
+		{
+			var requestUri = "https://api.ipify.org/";
+			IPAddress realIp;
+			IPAddress torIp;
+
+			// 1. Get real IP
+			using (var httpClient = new HttpClient())
+			{
+				var content = await (await httpClient.GetAsync(requestUri)).Content.ReadAsStringAsync();
+				var gotIp = IPAddress.TryParse(content.Replace("\n", ""), out realIp);
+				Assert.True(gotIp);
+			}
+
+			// 2. Get Tor IP
+			using (var client = new TorHttpClient(new Uri(requestUri)))
+			{
+				var content = await (await client.SendAsync(HttpMethod.Get, "")).Content.ReadAsStringAsync();
+				var gotIp = IPAddress.TryParse(content.Replace("\n", ""), out torIp);
+				Assert.True(gotIp);
+			}
+
+			Assert.NotEqual(realIp, torIp);
+		}
+
+		[Fact]
+		public async Task CanDoHttpsAsync()
+		{
+			using (var client = new TorHttpClient(new Uri("https://slack.com")))
+			{
+				var content =
+					await (await client.SendAsync(HttpMethod.Get, "api/api.test")).Content.ReadAsStringAsync();
+
+				Assert.Equal("{\"ok\":true}", content);
+			}
+		}
+
+		[Fact]
+		public async Task CanDoIpAddressAsync()
+		{
+			using (var client = new TorHttpClient(new Uri("http://172.217.6.142")))
+			{
+				var content = await (await client.SendAsync(HttpMethod.Get, "")).Content.ReadAsStringAsync();
+
+				Assert.NotEmpty(content);
+			}
+		}
+
+		[Fact]
+		public async Task CanRequestInRowAsync()
+		{
+			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja")))
+			{
+				await (await client.SendAsync(HttpMethod.Get, "/transactions/38d4cfeb57d6685753b7a3b3534c3cb576c34ca7344cd4582f9613ebf0c2b02a?format=json&headeronly=true")).Content.ReadAsStringAsync();
+				await (await client.SendAsync(HttpMethod.Get, "/balances/15sYbVpRh6dyWycZMwPdxJWD4xbfxReeHe?unspentonly=true")).Content.ReadAsStringAsync();
+				await (await client.SendAsync(HttpMethod.Get, "balances/akEBcY5k1dn2yeEdFnTMwdhVbHxtgHb6GGi?from=tip&until=336000")).Content.ReadAsStringAsync();
+			}
+		}
+
+		[Fact]
+		public async Task CanRequestOnionAsync()
+		{
+			using (var client = new TorHttpClient(new Uri("http://msydqstlz2kzerdg.onion/")))
+			{
+				var content = await (await client.SendAsync(HttpMethod.Get, "")).Content.ReadAsStringAsync();
+
+				Assert.Contains("Learn more about Ahmia and its team", content);
 			}
 		}
 
