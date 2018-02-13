@@ -14,6 +14,6 @@ before_install:
   - tor RunAsDaemon 1
 
 script:
+  - sleep 5
   - cd MagicalCryptoWallet.Tests
   - dotnet test
-  - sleep 5
