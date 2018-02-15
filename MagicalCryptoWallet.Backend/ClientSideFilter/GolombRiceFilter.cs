@@ -107,26 +107,34 @@ namespace MagicalCryptoWallet.Backend
 			var bitStream = new BitStream(Data);
 			var sr = new GRCodedStreamReader(bitStream, P, 0);
 
-			while (lastValue1 != lastValue2)
+			try
 			{
-				if (lastValue1 > lastValue2)
+				while (lastValue1 != lastValue2)
 				{
-					if (i < hs.Count)
+					if (lastValue1 > lastValue2)
 					{
-						lastValue2 = hs[i];
-						i++;
+						if (i < hs.Count)
+						{
+							lastValue2 = hs[i];
+							i++;
+						}
+						else
+						{
+							return false;
+						}
 					}
-					else
+					else if (lastValue2 > lastValue1)
 					{
-						return false;
+						var val = sr.Read();
+						lastValue1 = val;
 					}
-				}
-				else if (lastValue2 > lastValue1)
-				{
-					var val = sr.Read();
-					lastValue1 = val;
 				}
 			}
+			catch (ArgumentOutOfRangeException) // end-of-stream 
+			{
+				return false;
+			}
+
 			return true;
 		}
 
