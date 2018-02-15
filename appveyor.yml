@@ -24,4 +24,4 @@ test_script:
   - dotnet test
 
 on_finish:
-  - ps: Stop-Process -Id TorProcess.Id
+  - ps: Stop-Process -Id $TorProcess.Id
