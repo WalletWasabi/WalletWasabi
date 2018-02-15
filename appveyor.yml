@@ -11,7 +11,7 @@ cache:
 install:
   - if not exist Tor\tor.exe appveyor DownloadFile https://www.torproject.org/dist/torbrowser/7.5/tor-win32-0.3.2.9.zip
   - 7z x tor-win32-0.3.2.9.zip
-  - ps: $TorProcess = Start-Process tor\tor.exe -PassThru -ArgumentList "RunAsDaemon 1"
+  - ps: $TorProcess = Start-Process tor\tor.exe -PassThru
 
 before_build:
   - ps: Start-Sleep -s 5
