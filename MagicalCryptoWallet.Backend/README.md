@@ -15,14 +15,14 @@
 |POST fees | Get fees based on Bitcoin Core's `estimatesmartfee` output. | ConfirmationTargets[] | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
 |POST broadcast | Attempts to broadcast a transaction. | Hex |  |
 |GET exchange-rates | Gets exchange rates for one Bitcoin. |  | ExchangeRates[] contains Ticker and ExchangeRate pairs. Example: ![](https://i.imgur.com/Id9cqxq.png) |
-|POST filters | Gets block filters from the specified block hashes. | BlockHashes[] | LastValidBlockHash, FilterTable[] contains BlockHash and Filter pairs. Example: ![](https://i.imgur.com/67Iswf5.png) |
+|GET filters/{blockHash} | Gets block filters from the specified block hash. |  | An array of blockHash : filter pairs. |
 
 ### POST filters
 
-  At initial syncronization the wallet must download the whole filter table by issuing `POST /api/v1/btc/blockchain/filters` request with a hardcoded block hash, which is the hash of the block where the first native segwit transaction happened. (ToDo: find it)  
+  At initial syncronization the wallet must specify the hash of the first block that contains native segwit output. This hash must be hard coded into the client. (ToDo: find the hash.)  
   Filters are Golomb Rice filters of all the input and output native segregated witness `scriptPubKeys`. Thus wallets using this API can only handle `p2wpkh` scripts, therefore `p2pkh`, `p2sh`, `p2sh` over `p2wph` scripts are not supported. This restriction significantly lowers the size of the `FilterTable`, with that speeds up the wallet.
-  The first filter is served from the block, where the first native segregated witness transaction happened ever.  
   When a client acquires a filter, it checks against its own keys and downloads the needed blocks from the Bitcoin P2P network, if needed. 
   
-  In order to wallets properly be able to handle blockchain reorgs, wallets, those already acquired the initial filter table and wishes to be in sync must specify a `BlockHashes` array, where it specifies the last block hashes it acquired. The server then answers with the last valid block hash, and the consequent missing filter table.  
-  Unless something unprecedentedly huge reorganization happens, for example User Activated Soft Fork, wallets may specify 6 to 100 block hashes.
+#### Handling Reorgs
+
+  If the answer to the `filters` request is not found, then the client steps back one block and queries the filters with that previous hash. This can happen multiple times. This will only happen when blockchain reorganization happened. 
