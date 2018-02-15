@@ -6,6 +6,7 @@ namespace MagicalCryptoWallet.Backend
 	public class BlockFilterBuilder
 	{
 		private const int P = 20;
+		private static readonly PayToWitPubKeyHashTemplate P2wpkh = PayToWitPubKeyHashTemplate.Instance;
 
 		public GolombRiceFilter Build(Block block)
 		{
@@ -18,13 +19,12 @@ namespace MagicalCryptoWallet.Backend
 			{
 				foreach (var txOutput in tx.Outputs)
 				{
-					var witDestination = PayToWitTemplate.Instance.ExtractScriptPubKeyParameters(txOutput.ScriptPubKey);
-					var isValidPayToWitness = witDestination != null;
+					var isValidPayToWitness = P2wpkh.CheckScriptPubKey(txOutput.ScriptPubKey);
 
 					if (isValidPayToWitness)
 					{
-						var scriptPubKeyBytes = txOutput.ScriptPubKey.ToBytes();
-						buffer.Add(scriptPubKeyBytes);
+						var witKeyId = P2wpkh.ExtractScriptPubKeyParameters(txOutput.ScriptPubKey);
+						buffer.Add(witKeyId.ToBytes());
 					}
 				}
 			}
