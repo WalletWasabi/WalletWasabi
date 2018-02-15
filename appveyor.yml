@@ -1,13 +1,20 @@
 configuration:
   - Release
-  
-before_build:
-  - appveyor DownloadFile https://www.torproject.org/dist/torbrowser/7.5/tor-win32-0.3.2.9.zip
+
+# Do not build feature branch with open Pull Requests
+skip_branch_with_pr: true
+
+cache:
+- '%USERPROFILE%\.nuget\packages -> **\*.csproj'
+- Tor
+
+install:
+  - if not exist Tor\tor.exe appveyor DownloadFile https://www.torproject.org/dist/torbrowser/7.5/tor-win32-0.3.2.9.zip
   - 7z x tor-win32-0.3.2.9.zip
-  - cd Tor
-  - START /B "" tor > somefile.txt
-  - cd ..
-  - timeout 5
+  - ps: $TorProcess = Start-Process tor\tor.exe -PassThru
+
+before_build:
+  - ps: Start-Sleep -s 5
   
 build_script:
   - dotnet build
@@ -15,3 +22,6 @@ build_script:
 test_script:
   - cd MagicalCryptoWallet.Tests
   - dotnet test
+
+on_finish:
+  - ps: Stop-Process -Id $TorProcess.Id
