@@ -14,7 +14,7 @@
 |--- | ---- | ---- | ---- |
 |POST fees | Get fees based on Bitcoin Core's `estimatesmartfee` output. | ConfirmationTargets[] | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
 |POST broadcast | Attempts to broadcast a transaction. | Hex |  |
-|GET exchange-rates | Gets exchange rates for one Bitcoin. | Hex | ExchangeRates[] contains Ticker and ExchangeRate pairs. Example: ![](https://i.imgur.com/Id9cqxq.png) |
+|GET exchange-rates | Gets exchange rates for one Bitcoin. |  | ExchangeRates[] contains Ticker and ExchangeRate pairs. Example: ![](https://i.imgur.com/Id9cqxq.png) |
 |POST filters | Gets block filters from the specified block hashes. | BlockHashes[] | LastValidBlockHash, FilterTable[] contains BlockHash and Filter pairs. Example: ![](https://i.imgur.com/67Iswf5.png) |
 
 ### POST filters
