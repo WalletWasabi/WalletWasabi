@@ -6,13 +6,13 @@
   Requests have the following format: `/api/v1/{coin}/{controller}/`.
   Currently supported coins: `btc`.
   
-  For example requesting fees: `GET /api/v1/btc/blockchain/fees`.
+  For example requesting fees: `GET /api/v1/btc/blockchain/exchange-rates`.
 
 ### Controller: Blockchain, Coin: BTC
 
 |API | Description | Request | Response |
 |--- | ---- | ---- | ---- |
-|POST fees | Get fees based on Bitcoin Core's `estimatesmartfee` output. | ConfirmationTargets[] | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
+|GET fees?{comma separated confirmationTargets} | Get fees for the requested confirmation targets based on Bitcoin Core's `estimatesmartfee` output. |  | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
 |POST broadcast | Attempts to broadcast a transaction. | Hex |  |
 |GET exchange-rates | Gets exchange rates for one Bitcoin. |  | ExchangeRates[] contains Ticker and ExchangeRate pairs. Example: ![](https://i.imgur.com/Id9cqxq.png) |
 |GET filters/{blockHash} | Gets block filters from the specified block hash. |  | An array of blockHash : filter pairs. |
