@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MagicalCryptoWallet.Backend.Models;
 using MagicalCryptoWallet.Backend.Models.Responses;
+using MagicalCryptoWallet.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
@@ -14,20 +15,32 @@ namespace MagicalCryptoWallet.Backend.Controllers
     public class BlockchainController : Controller
 	{
 		[HttpGet("fees")]
-		public IDictionary<int, FeeEstimationPair> GetFees(IEnumerable<int> confirmationTargets) // ToDo: make it comma separated, currently: ?confirmationTargets=1&confirmationTargets=2
+		public IActionResult GetFees(IEnumerable<int> confirmationTargets) // ToDo: make it comma separated, currently: ?confirmationTargets=1&confirmationTargets=2
 		{
+			if (confirmationTargets == null || confirmationTargets.Count() == 0 || confirmationTargets.Any(x => x < 2 || x > 1008))
+			{
+				return BadRequest();
+			}
+			
 			var feeEstimations = new SortedDictionary<int, FeeEstimationPair>();
 			foreach (var target in confirmationTargets)
 			{
 				feeEstimations.Add(target, new FeeEstimationPair() { Conservative = 200, Economical = 199 });
 			}
 
-			return feeEstimations;
+			return Ok(feeEstimations);
 		}
 
 		[HttpPost("broadcast")]
 		public IActionResult Broadcast([FromBody]string hex)
 		{
+			if(string.IsNullOrWhiteSpace(hex))
+			{
+				return BadRequest();
+			}
+
+			// if fail return BadRequest?
+
 			return Ok();
 		}
 
@@ -44,15 +57,21 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		}
 
 		[HttpGet("filters/{blockHash}")]
-		public IEnumerable<BlockHashFilterPair> GetFilters(uint256 blockHash)
+		public IActionResult GetFilters(uint256 blockHash)
 		{
+			if (blockHash == null)
+			{
+				return BadRequest();
+			}
+
+			// if blockHash is not found, return NotFound
 			var filters = new List<BlockHashFilterPair>
 			{
 				new BlockHashFilterPair(){BlockHash = uint256.Zero, FilterHex = "foo"},
 				new BlockHashFilterPair(){BlockHash = uint256.One, FilterHex = "bar"},
 			};
 
-			return filters;
+			return Ok(filters);
 		}
 	}
 }
