@@ -21,7 +21,7 @@ namespace MagicalCryptoWallet.Backend
 		void Put(TKey key, TItem item);
 	}
 
-	public class GcsFilterRepository : IKeyValueStore<uint256, GolombRiceFilter>
+	public class GcsFilterRepository : IKeyValueStore<uint256, GolombRiceFilter>, IDisposable
 	{
 		private readonly IKeyValueRandomAccessStore<uint256, GolombRiceFilter> _store;
 		private readonly IKeyValueStore<uint256, int> _index;
@@ -35,6 +35,18 @@ namespace MagicalCryptoWallet.Backend
 			_index = index;
 		}
 
+		public static GcsFilterRepository Open(string folderPath)
+		{
+			var dataDirectory = new DirectoryInfo(folderPath);
+			var filterStream = DirectoryStream.Open(dataDirectory, "filter-????.dat");
+			var indexStream = DirectoryStream.Open(dataDirectory, "index-????.dat");
+			var filterStore = new GcsFilterStore(filterStream);
+			var indexStore = new GcsFilterIndex(indexStream);
+			var fastIndexStore = new PreloadedFilterIndex(indexStore);
+			var repo = new GcsFilterRepository(filterStore, fastIndexStore);
+			return repo;
+		}
+
 		public GolombRiceFilter Get(uint256 key)
 		{
 			var offset = _index.Get(key);
@@ -46,10 +58,34 @@ namespace MagicalCryptoWallet.Backend
 			var pos = _store.Put(key, filter);
 			_index.Put(key, pos);
 		}
+
+		#region IDisposable Support
+		private bool _disposedValue = false; 
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				((IDisposable)_store)?.Dispose();
+				((IDisposable)_index)?.Dispose();
+				_disposedValue = true;
+			}
+		}
+
+		~GcsFilterRepository() {
+		   Dispose(false);
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 
 
-	public abstract class Store<T> : IEnumerable<T>
+	public abstract class Store<T> : IEnumerable<T>, IDisposable
 	{
 		private readonly Stream _stream;
 
@@ -96,6 +132,28 @@ namespace MagicalCryptoWallet.Backend
 		{
 			return GetEnumerator();
 		}
+
+		#region IDisposable Support
+		private bool _disposedValue = false; 
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					_stream.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+		#endregion
 	}
 
 
@@ -176,7 +234,7 @@ namespace MagicalCryptoWallet.Backend
 		}
 	}
 
-	public class PreloadedFilterIndex : IKeyValueStore<uint256, int>
+	public class PreloadedFilterIndex : IKeyValueStore<uint256, int>, IDisposable
 	{
 		private readonly GcsFilterIndex _index;
 		private readonly Dictionary<uint256, int> _cache;
@@ -206,6 +264,35 @@ namespace MagicalCryptoWallet.Backend
 			_index.Put(key, offset);
 			_cache[key] = offset;
 		}
+
+		#region IDisposable Support
+		private bool disposedValue = false; // Para detectar llamadas redundantes
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposedValue)
+			{
+				if (disposing)
+				{
+				}
+
+				_index.Dispose();
+				_cache.Clear();
+
+				disposedValue = true;
+			}
+		}
+
+		~PreloadedFilterIndex() {
+		   Dispose(false);
+		}
+
+		void IDisposable.Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 
 	public class GcsFilterIndexEntry

@@ -36,53 +36,37 @@ namespace MagicalCryptoWallet.Tests
 			}
 
 			var blocks = new List<GolombRiceFilter>(blockCount);
-			using (var filterStream = DirectoryStream.Open(dataDirectory, "filter-????.dat"))
+			using (var repo = GcsFilterRepository.Open("./data"))
 			{
-				using (var indexStream = DirectoryStream.Open(dataDirectory, "index-????.dat"))
+				for (var i = 0; i < blockCount; i++)
 				{
-					var filterStore = new GcsFilterStore(filterStream);
-					var indexStore = new GcsFilterIndex(indexStream);
-					var fastIndexStore = new PreloadedFilterIndex(indexStore);
-					var repo = new GcsFilterRepository(filterStore, fastIndexStore);
-
-					for (var i = 0; i < blockCount; i++)
+					var txouts = new List<byte[]>(txoutCountPerBlock);
+					for (var j = 0; j < txoutCountPerBlock; j++)
 					{
-						var txouts = new List<byte[]>(txoutCountPerBlock);
-						for (var j = 0; j < txoutCountPerBlock; j++)
-						{
-							var pushDataBuffer = new byte[avgTxoutPushDataSize];
-							random.NextBytes(pushDataBuffer);
-							txouts.Add(pushDataBuffer);
-						}
-
-						var filter = GolombRiceFilter.Build(key, P, txouts);
-						blocks.Add(filter);
-						repo.Put(Hashes.Hash256(filter.Data.ToByteArray()), filter);
+						var pushDataBuffer = new byte[avgTxoutPushDataSize];
+						random.NextBytes(pushDataBuffer);
+						txouts.Add(pushDataBuffer);
 					}
+
+					var filter = GolombRiceFilter.Build(key, P, txouts);
+					blocks.Add(filter);
+					repo.Put(Hashes.Hash256(filter.Data.ToByteArray()), filter);
 				}
 			}
 
-			using (var filterStream = DirectoryStream.Open(dataDirectory, "filter-????.dat"))
+			using (var repo = GcsFilterRepository.Open("./data"))
 			{
-				using (var indexStream = DirectoryStream.Open(dataDirectory, "index-????.dat"))
+				var blockIndexes = Enumerable.Range(0, blockCount).ToList();
+				blockIndexes.Shuffle();
+
+				foreach (var blkIndx in blockIndexes)
 				{
-					var filterStore = new GcsFilterStore(filterStream);
-					var indexStore = new GcsFilterIndex(indexStream);
-					var fastIndexStore = new PreloadedFilterIndex(indexStore);
-					var repo = new GcsFilterRepository(filterStore, fastIndexStore);
-
-					var blockIndexes = Enumerable.Range(0, blockCount).ToList();
-					blockIndexes.Shuffle();
-
-					foreach (var blkIndx in blockIndexes)
-					{
-						var block = blocks[blkIndx];
-						var blockFilter = block;
-						var blockFilterId = Hashes.Hash256(blockFilter.Data.ToByteArray());
-						var savedFilter = repo.Get(blockFilterId);
-						var savedFilterId = Hashes.Hash256(savedFilter.Data.ToByteArray());
-						Assert.Equal(blockFilterId, savedFilterId);
-					}
+					var block = blocks[blkIndx];
+					var blockFilter = block;
+					var blockFilterId = Hashes.Hash256(blockFilter.Data.ToByteArray());
+					var savedFilter = repo.Get(blockFilterId);
+					var savedFilterId = Hashes.Hash256(savedFilter.Data.ToByteArray());
+					Assert.Equal(blockFilterId, savedFilterId);
 				}
 			}
 		}
