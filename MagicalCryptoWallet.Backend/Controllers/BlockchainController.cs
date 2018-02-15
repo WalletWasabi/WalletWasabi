@@ -11,9 +11,17 @@ using NBitcoin;
 
 namespace MagicalCryptoWallet.Backend.Controllers
 {
+	/// <summary>
+	/// To interact with the Bitcoin blockchain.
+	/// </summary>
     [Route("api/v1/btc/[controller]")]
     public class BlockchainController : Controller
 	{
+		/// <summary>
+		/// Get fees for the requested confirmation targets based on Bitcoin Core's estimatesmartfee output.
+		/// </summary>
+		/// <param name="confirmationTargets">Confirmation target in blocks. (2 - 1008)</param>
+		/// <returns>ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: </returns>
 		[HttpGet("fees")]
 		public IActionResult GetFees(IEnumerable<int> confirmationTargets) // ToDo: make it comma separated, currently: ?confirmationTargets=1&confirmationTargets=2
 		{
@@ -31,6 +39,11 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			return Ok(feeEstimations);
 		}
 
+		/// <summary>
+		/// Attempts to broadcast a transaction.
+		/// </summary>
+		/// <param name="hex">The hex string of the raw transaction.</param>
+		/// <returns>200 Ok</returns>
 		[HttpPost("broadcast")]
 		public IActionResult Broadcast([FromBody]string hex)
 		{
@@ -39,11 +52,15 @@ namespace MagicalCryptoWallet.Backend.Controllers
 				return BadRequest();
 			}
 
-			// if fail return BadRequest?
+			// ToDo: if fail return BadRequest?
 
 			return Ok();
 		}
 
+		/// <summary>
+		/// Gets exchange rates for one Bitcoin.
+		/// </summary>
+		/// <returns>ExchangeRates[] contains ticker and exchange rate pairs.</returns>
 		[HttpGet("exchange-rates")]
 		public IEnumerable<ExchangeRate> GetExchangeRates()
 		{
@@ -56,10 +73,15 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			return exchangeRates;
 		}
 
+		/// <summary>
+		/// Gets block filters from the specified block hash.
+		/// </summary>
+		/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
+		/// <returns>An array of block hash : filter pairs.</returns>
 		[HttpGet("filters/{blockHash}")]
-		public IActionResult GetFilters(uint256 blockHash)
+		public IActionResult GetFilters(string bestKnownBlockHash)
 		{
-			if (blockHash == null)
+			if (string.IsNullOrWhiteSpace(bestKnownBlockHash))
 			{
 				return BadRequest();
 			}
@@ -67,8 +89,8 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			// if blockHash is not found, return NotFound
 			var filters = new List<BlockHashFilterPair>
 			{
-				new BlockHashFilterPair(){BlockHash = uint256.Zero, FilterHex = "foo"},
-				new BlockHashFilterPair(){BlockHash = uint256.One, FilterHex = "bar"},
+				new BlockHashFilterPair(){BlockHash = "asdasdasd", FilterHex = "foo"},
+				new BlockHashFilterPair(){BlockHash = "asdsadasdad", FilterHex = "bar"},
 			};
 
 			return Ok(filters);

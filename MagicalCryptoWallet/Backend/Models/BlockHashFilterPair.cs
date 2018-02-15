@@ -7,7 +7,7 @@ namespace MagicalCryptoWallet.Backend.Models
 {
     public class BlockHashFilterPair
     {
-		public uint256 BlockHash { get; set; }
+		public string BlockHash { get; set; }
 		public string FilterHex { get; set; }
 	}
 }
