@@ -20,6 +20,12 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// <summary>
 		/// Get fees for the requested confirmation targets based on Bitcoin Core's estimatesmartfee output.
 		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		///     GET /fees?2,144,1008
+		///
+		/// </remarks>
 		/// <param name="confirmationTargets">Confirmation target in blocks. (2 - 1008)</param>
 		/// <returns>ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: </returns>
 		[HttpGet("fees")]
@@ -42,6 +48,13 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// <summary>
 		/// Attempts to broadcast a transaction.
 		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		///     POST /broadcast
+		///     "483045022100dbd9f153ed42e15284051183a83aa8b4574b680c17085bb94a40fdb8cdcabee00220245a9eda9bab181b336a136b243a45b32216fb16c649eae1e8a58158ecd790a4012102a03b3919772c3a6729a604765a4450df242fe41d8f27d17db722f67afad726f3"
+		///
+		/// </remarks>
 		/// <param name="hex">The hex string of the raw transaction.</param>
 		/// <returns>200 Ok</returns>
 		[HttpPost("broadcast")]
@@ -76,9 +89,15 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// <summary>
 		/// Gets block filters from the specified block hash.
 		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		///     GET /filters/00000000000000000044d076d9c43b5888551027ec70043211365301665da2e8
+		///
+		/// </remarks>
 		/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
 		/// <returns>An array of block hash : filter pairs.</returns>
-		[HttpGet("filters/{blockHash}")]
+		[HttpGet("filters/{bestKnownBlockHash}")]
 		public IActionResult GetFilters(string bestKnownBlockHash)
 		{
 			if (string.IsNullOrWhiteSpace(bestKnownBlockHash))

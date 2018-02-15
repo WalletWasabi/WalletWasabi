@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -31,6 +32,11 @@ namespace MagicalCryptoWallet.Backend
 					Contact = new Contact { Name = "nopara73", Email = "adam.ficsor73@gmail.com", Url = "https://twitter.com/nopara73" },
 					License = new License { Name = "Use under MIT", Url = "https://github.com/nopara73/MagicalCryptoWallet/blob/master/LICENSE.md" }
 				});
+
+				// Set the comments path for the Swagger JSON and UI.
+				var basePath = AppContext.BaseDirectory;
+				var xmlPath = Path.Combine(basePath, "MagicalCryptoWallet.Backend.xml");
+				c.IncludeXmlComments(xmlPath);
 			});
 		}
 
