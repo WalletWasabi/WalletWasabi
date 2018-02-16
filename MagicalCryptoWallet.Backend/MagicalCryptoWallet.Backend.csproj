@@ -2,14 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>1701;1702;1705;1591;1573</NoWarn>
+    <Version>1.0</Version>
+    <Product>MagicalCryptoApi</Product>
+    <Copyright>MIT</Copyright>
+    <PackageTags>hiddenwallet, wallet, bitcoin, hbitcoin, nbitcoin, magicalcryptowallet, magicalwallet, tor, chaum, chaumian, zerolink, coinjoin, fungibility, privacy, anonymity</PackageTags>
+    <RepositoryType>Git</RepositoryType>
+    <RepositoryUrl>https://github.com/nopara73/MagicalCryptoWallet/</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="1.1.0" />
   </ItemGroup>
 
@@ -21,8 +26,12 @@
     <ProjectReference Include="..\MagicalCryptoWallet\MagicalCryptoWallet.csproj" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <LangVersion>latest</LangVersion>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp2.0\MagicalCryptoWallet.Backend.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netcoreapp2.0\MagicalCryptoWallet.Backend.xml</DocumentationFile>
   </PropertyGroup>
 
 </Project>

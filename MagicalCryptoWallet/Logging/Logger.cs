@@ -27,7 +27,7 @@ namespace MagicalCryptoWallet.Logging
 		private static readonly object Lock = new object();
 
 		/// <summary>
-		/// MB
+		/// KB
 		/// </summary>
 		public static long MaximumLogFileSize { get; private set; } = 10000; // approx 10 MB
 

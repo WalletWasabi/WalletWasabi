@@ -61,7 +61,6 @@ namespace MagicalCryptoWallet.Backend
 
 		private volatile Stream _currentStream;
 		private volatile int _currentStreamIndex;
-		private long _length = -1;
 		private long _position;
 
 		protected void SetStreams(IEnumerable<Stream> streams)
