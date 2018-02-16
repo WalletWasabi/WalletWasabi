@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MagicalCryptoWallet.Backend.Models;
-using MagicalCryptoWallet.Backend.Models.Responses;
 using MagicalCryptoWallet.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,13 +26,24 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		///
 		/// </remarks>
 		/// <param name="confirmationTargets">Confirmation target in blocks. (2 - 1008)</param>
-		/// <returns>ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: </returns>
+		/// <returns>Array of fee estimations for the requested confirmation targets. A fee estimation contains estimation mode (Conservative/Economical) and byte per satoshi pairs.</returns>
+		/// <response code="200">Returns array of fee estimations for the requested confirmation targets.</response>
+		/// <response code="400">If invalid conformation targets were specified. (2 - 1008 integers)</response>
 		[HttpGet("fees")]
+		[ProducesResponseType(200)] // Note: If you add typeof(SortedDictionary<int, FeeEstimationPair>) then swagger UI will visualize incorrectly.
+		[ProducesResponseType(400)]
+		[Produces("application/json")]
 		public IActionResult GetFees(IEnumerable<int> confirmationTargets) // ToDo: make it comma separated, currently: ?confirmationTargets=1&confirmationTargets=2
 		{
-			if (confirmationTargets == null || confirmationTargets.Count() == 0 || confirmationTargets.Any(x => x < 2 || x > 1008))
+			// Default answer without spefifying confirmationTargets
+			if(confirmationTargets == null || confirmationTargets.Count() == 0)
 			{
-				return BadRequest();
+				confirmationTargets = new List<int> { 2, 144, 1008 };
+			}
+
+			if (confirmationTargets.Any(x => x < 2 || x > 1008))
+			{
+				return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
 			}
 			
 			var feeEstimations = new SortedDictionary<int, FeeEstimationPair>();
@@ -56,25 +66,33 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		///
 		/// </remarks>
 		/// <param name="hex">The hex string of the raw transaction.</param>
-		/// <returns>200 Ok</returns>
+		/// <returns>200 Ok on successful broadcast or 400 BadRequest on failure.</returns>
+		/// <response code="200">If broadcast is successful.</response>
+		/// <response code="400">If broadcast fails.</response>
 		[HttpPost("broadcast")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400)]
+		[Produces("application/json")]
 		public IActionResult Broadcast([FromBody]string hex)
 		{
 			if(string.IsNullOrWhiteSpace(hex))
 			{
-				return BadRequest();
+				return BadRequest("Invalid hex.");
 			}
 
-			// ToDo: if fail return BadRequest?
+			// ToDo: If fail return BadRequest with the RPC error details.
 
-			return Ok();
+			return Ok("Transaction is successfully broadcasted.");
 		}
 
 		/// <summary>
 		/// Gets exchange rates for one Bitcoin.
 		/// </summary>
 		/// <returns>ExchangeRates[] contains ticker and exchange rate pairs.</returns>
+		/// <response code="200">Returns an array of exchange rates.</response>
 		[HttpGet("exchange-rates")]
+		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]
+		[Produces("application/json")]
 		public IEnumerable<ExchangeRate> GetExchangeRates()
 		{
 			var exchangeRates = new List<ExchangeRate>
@@ -97,14 +115,20 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// </remarks>
 		/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
 		/// <returns>An array of block hash : filter pairs.</returns>
+		/// <response code="200">An array of block hash and filter pairs.</response>
+		/// <response code="400">The provided hash was malformed.</response>
+		/// <response code="404">If the hash is not found. This happens at blockhain reorg.</response>
 		[HttpGet("filters/{bestKnownBlockHash}")]
+		[ProducesResponseType(typeof(IList<BlockHashFilterPair>), 200)] // ToDo: make reutn type more compact, eg: {hash}{filter}\n
+		[ProducesResponseType(400)]
+		[ProducesResponseType(404)]
 		public IActionResult GetFilters(string bestKnownBlockHash)
 		{
 			if (string.IsNullOrWhiteSpace(bestKnownBlockHash))
 			{
-				return BadRequest();
+				return BadRequest("Invalid block hash provided.");
 			}
-
+			
 			// if blockHash is not found, return NotFound
 			var filters = new List<BlockHashFilterPair>
 			{
