@@ -41,7 +41,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 				confirmationTargets = new List<int> { 2, 144, 1008 };
 			}
 
-			if (confirmationTargets.Any(x => x < 2 || x > 1008))
+			if (confirmationTargets.Any(x => x < 2 || x > 1008) || !ModelState.IsValid)
 			{
 				return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
 			}
@@ -75,7 +75,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		[Produces("application/json")]
 		public IActionResult Broadcast([FromBody]string hex)
 		{
-			if(string.IsNullOrWhiteSpace(hex))
+			if(string.IsNullOrWhiteSpace(hex) || !ModelState.IsValid)
 			{
 				return BadRequest("Invalid hex.");
 			}
@@ -124,7 +124,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		[ProducesResponseType(404)]
 		public IActionResult GetFilters(string bestKnownBlockHash)
 		{
-			if (string.IsNullOrWhiteSpace(bestKnownBlockHash))
+			if (string.IsNullOrWhiteSpace(bestKnownBlockHash) || !ModelState.IsValid)
 			{
 				return BadRequest("Invalid block hash provided.");
 			}
