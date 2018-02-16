@@ -37,7 +37,7 @@ namespace MagicalCryptoWallet.TorSocks5
 			IsolateStream = isolateStream;
 		}
 
-		public static async Task<bool> IsTorRunning(IPEndPoint torSocks5EndPoint = null)
+		public static async Task<bool> IsTorRunningAsync(IPEndPoint torSocks5EndPoint = null)
 		{
 			using (var client = new TorSocks5Client(torSocks5EndPoint))
 			{

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using MagicalCryptoWallet.Logging;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace MagicalCryptoWallet.Backend
 {
@@ -16,12 +16,28 @@ namespace MagicalCryptoWallet.Backend
 		public static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
-            await BuildWebHost(args).RunAsync();
-        }
+			try
+			{
+				Logger.SetMinimumLevel(LogLevel.Debug);
+				Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
+				Logger.SetFilePath("Logs.txt");
 
-        public static IWebHost BuildWebHost(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .Build();
+				await Global.InitializeAsync();
+
+				var endPoint = "http://localhost:37127/";
+
+				using (var host = WebHost.CreateDefaultBuilder(args)
+					.UseStartup<Startup>()
+					.UseUrls(endPoint)
+					.Build())
+				{
+					await host.RunAsync();
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<Program>(ex);
+			}
+		}
     }
 }

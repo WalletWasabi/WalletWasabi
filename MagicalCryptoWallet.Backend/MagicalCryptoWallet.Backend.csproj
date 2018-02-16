@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
+    <NoWarn>1701;1702;1705;1591;1573</NoWarn>
     <Version>1.0</Version>
     <Product>MagicalCryptoApi</Product>
     <Copyright>MIT</Copyright>

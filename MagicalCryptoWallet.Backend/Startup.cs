@@ -53,5 +53,5 @@ namespace MagicalCryptoWallet.Backend
 
 			app.UseMvc();
         }
-    }
+	}
 }
