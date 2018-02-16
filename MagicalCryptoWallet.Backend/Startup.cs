@@ -29,7 +29,6 @@ namespace MagicalCryptoWallet.Backend
 					Title = "Magical Crypto API",
 					Description = "Privacy oriented Bitcoin Web API",
 					TermsOfService = "None",
-					Contact = new Contact { Name = "nopara73", Email = "adam.ficsor73@gmail.com", Url = "https://twitter.com/nopara73" },
 					License = new License { Name = "Use under MIT", Url = "https://github.com/nopara73/MagicalCryptoWallet/blob/master/LICENSE.md" }
 				});
 
