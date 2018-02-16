@@ -13,7 +13,8 @@ namespace MagicalCryptoWallet.Backend.Controllers
 	/// <summary>
 	/// To interact with the Bitcoin blockchain.
 	/// </summary>
-    [Route("api/v1/btc/[controller]")]
+	[Produces("application/json")]
+	[Route("api/v1/btc/[controller]")]
     public class BlockchainController : Controller
 	{
 		/// <summary>
@@ -22,32 +23,32 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// <remarks>
 		/// Sample request:
 		///
-		///     GET /fees?2,144,1008
+		///     GET /fees/2,144,1008
 		///
 		/// </remarks>
-		/// <param name="confirmationTargets">Confirmation target in blocks. (2 - 1008)</param>
+		/// <param name="confirmationTargets">Confirmation targets in blocks wit comma separation. (2 - 1008)</param>
 		/// <returns>Array of fee estimations for the requested confirmation targets. A fee estimation contains estimation mode (Conservative/Economical) and byte per satoshi pairs.</returns>
 		/// <response code="200">Returns array of fee estimations for the requested confirmation targets.</response>
 		/// <response code="400">If invalid conformation targets were specified. (2 - 1008 integers)</response>
-		[HttpGet("fees")]
+		[HttpGet("fees/{confirmationTargets}")]
 		[ProducesResponseType(200)] // Note: If you add typeof(SortedDictionary<int, FeeEstimationPair>) then swagger UI will visualize incorrectly.
 		[ProducesResponseType(400)]
-		[Produces("application/json")]
-		public IActionResult GetFees(IEnumerable<int> confirmationTargets) // ToDo: make it comma separated, currently: ?confirmationTargets=1&confirmationTargets=2
+		public IActionResult GetFees(string confirmationTargets)
 		{
-			// Default answer without spefifying confirmationTargets
-			if(confirmationTargets == null || confirmationTargets.Count() == 0)
+			if(string.IsNullOrWhiteSpace(confirmationTargets) || !ModelState.IsValid)
 			{
-				confirmationTargets = new List<int> { 2, 144, 1008 };
+				return BadRequest($"Invalid {nameof(confirmationTargets)} are specified.");
 			}
 
-			if (confirmationTargets.Any(x => x < 2 || x > 1008) || !ModelState.IsValid)
+			var confirmationTargetsInts = Array.ConvertAll(confirmationTargets.Split(',', StringSplitOptions.RemoveEmptyEntries), x => int.Parse(x));					
+
+			if (confirmationTargetsInts.Any(x => x < 2 || x > 1008))
 			{
 				return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
 			}
 			
 			var feeEstimations = new SortedDictionary<int, FeeEstimationPair>();
-			foreach (var target in confirmationTargets)
+			foreach (var target in confirmationTargetsInts)
 			{
 				feeEstimations.Add(target, new FeeEstimationPair() { Conservative = 200, Economical = 199 });
 			}
@@ -72,7 +73,6 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		[HttpPost("broadcast")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
-		[Produces("application/json")]
 		public IActionResult Broadcast([FromBody]string hex)
 		{
 			if(string.IsNullOrWhiteSpace(hex) || !ModelState.IsValid)
@@ -91,8 +91,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// <returns>ExchangeRates[] contains ticker and exchange rate pairs.</returns>
 		/// <response code="200">Returns an array of exchange rates.</response>
 		[HttpGet("exchange-rates")]
-		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]
-		[Produces("application/json")]
+		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]		
 		public IEnumerable<ExchangeRate> GetExchangeRates()
 		{
 			var exchangeRates = new List<ExchangeRate>
@@ -119,7 +118,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// <response code="400">The provided hash was malformed.</response>
 		/// <response code="404">If the hash is not found. This happens at blockhain reorg.</response>
 		[HttpGet("filters/{bestKnownBlockHash}")]
-		[ProducesResponseType(typeof(IList<BlockHashFilterPair>), 200)] // ToDo: make reutn type more compact, eg: {hash}{filter}\n
+		[ProducesResponseType(200)] // Note: If you add typeof(IList<string>) then swagger UI visualization will be ugly.
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
 		public IActionResult GetFilters(string bestKnownBlockHash)
@@ -130,10 +129,11 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			}
 			
 			// if blockHash is not found, return NotFound
-			var filters = new List<BlockHashFilterPair>
+			var filters = new List<string>
 			{
-				new BlockHashFilterPair(){BlockHash = "asdasdasd", FilterHex = "foo"},
-				new BlockHashFilterPair(){BlockHash = "asdsadasdad", FilterHex = "bar"},
+				"00000000000000000019dfb706e432fa16494338a583af9ca643e4cfcf466af3IamAFilterThereIsNoSeparationBecauseBlockHashIsConstantSize",
+				"000000000000000000273f2cafd24f69b72b4b694bb9ab7e4c5df17cf9486b34IamAFilterThereIsNoSeparationBecauseBlockHashIsConstantSize2",
+				"0000000000000000005a1ff56e464de63be843f6f335c9a32c478c318c6d084eIamAFilterThereIsNoSeparationBecauseBlockHashIsConstantSize3"
 			};
 
 			return Ok(filters);
