@@ -1,5 +1,7 @@
 # API Specification
 
+**ATTENTION:** This document describes the initial specification. The final implementation may significantly differ.
+
 ## HTTP
 
   Requests and Responses are JSON.
