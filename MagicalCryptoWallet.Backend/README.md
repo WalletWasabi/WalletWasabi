@@ -1,6 +1,6 @@
 # API Specification
 
-**ATTENTION:** This document describes the initial specification. The final implementation may significantly differ.
+**ATTENTION:** This document describes the initial specification. The actual implementation may significantly differ.
 
 ## HTTP
 
