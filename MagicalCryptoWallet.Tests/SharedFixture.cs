@@ -12,7 +12,7 @@ namespace MagicalCryptoWallet.Tests
 			// Initialize tests...
 
 			Logger.SetMinimumLevel(LogLevel.Debug);
-			Logger.SetModes(LogMode.Debug, LogMode.File);
+			Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 			Logger.SetFilePath("TestLogs.txt");
 		}
 

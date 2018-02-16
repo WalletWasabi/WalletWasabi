@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using MagicalCryptoWallet.Backend;
+using MagicalCryptoWallet.Logging;
 using Xunit;
 
 
@@ -49,7 +50,7 @@ namespace MagicalCryptoWallet.Tests
 
 				blocks.Add((filter, txouts));
 			}
-			Console.WriteLine("Block filter generation time (): {0}ms", sw.ElapsedMilliseconds);
+			Logger.LogInfo<PerformanceTest>($"Block filter generation time (): {sw.ElapsedMilliseconds}ms.");
 			sw.Reset();
 
 
@@ -74,8 +75,7 @@ namespace MagicalCryptoWallet.Tests
 
 			sw.Stop();
 
-			Console.WriteLine("MatchAny time (false positives): {0}ms", sw.ElapsedMilliseconds);
-			Console.WriteLine("   False positives             : {0}", falsePositiveCount);
+			Logger.LogInfo<PerformanceTest>($"MatchAny time (false positives): {sw.ElapsedMilliseconds}ms.\n   False positives             : {falsePositiveCount}.");
 			Assert.True(falsePositiveCount < 5);
 
 			// Filter has to mat existing values
@@ -92,8 +92,7 @@ namespace MagicalCryptoWallet.Tests
 
 			sw.Stop();
 
-			Console.WriteLine("MatchAny time (false Negatives): {0}ms", sw.ElapsedMilliseconds);
-			Console.WriteLine("   False negatives             : {0}", falseNegativeCount);
+			Logger.LogInfo<PerformanceTest>($"MatchAny time (false Negatives): {0}ms {sw.ElapsedMilliseconds}ms.\n   False negatives             : {falseNegativeCount}.");
 			Assert.Equal(0, falseNegativeCount);
 		}
 	}
