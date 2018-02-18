@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using MagicalCryptoWallet.Backend.Models;
 using MagicalCryptoWallet.Helpers;
@@ -135,6 +136,33 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]		
 		public IEnumerable<ExchangeRate> GetExchangeRates()
 		{
+			using (var client = new HttpClient())
+			{
+				try
+				{
+
+				}
+				catch
+				{
+					try
+					{
+
+					}
+					catch
+					{
+						try
+						{
+
+						}
+						catch
+						{
+
+							throw;
+						}
+					}
+				}
+			}
+
 			var exchangeRates = new List<ExchangeRate>
 			{
 				new ExchangeRate() { Rate = 10000m, Ticker = "USD" },
