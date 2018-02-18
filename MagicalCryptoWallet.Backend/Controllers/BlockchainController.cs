@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using MagicalCryptoWallet.Backend.Models;
 using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.Logging;
+using MagicalCryptoWallet.WebClients.SmartBit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
@@ -21,6 +23,8 @@ namespace MagicalCryptoWallet.Backend.Controllers
     public class BlockchainController : Controller
 	{
 		private static RPCClient RpcClient => Global.RpcClient;
+
+		private static Network Network => Global.Config.Network;
 
 		/// <summary>
 		/// Get fees for the requested confirmation targets based on Bitcoin Core's estimatesmartfee output.
@@ -133,43 +137,23 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// <returns>ExchangeRates[] contains ticker and exchange rate pairs.</returns>
 		/// <response code="200">Returns an array of exchange rates.</response>
 		[HttpGet("exchange-rates")]
-		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]		
-		public IEnumerable<ExchangeRate> GetExchangeRates()
+		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]
+		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			using (var client = new HttpClient())
+			// ToDo: Implement caching for instant answers
+			// ToDo: Implement redundancy, call another API if SmartBit fails
+			using (var client = new SmartBitClient(Network, disposeHandler: true))
 			{
-				try
+				var rates = await client.GetExchangeRatesAsync(CancellationToken.None);
+				var rate = rates.Single(x => x.Code == "USD");
+
+				var exchangeRates = new List<ExchangeRate>
 				{
+					new ExchangeRate() { Rate = rate.Rate, Ticker = "USD" },
+				};
 
-				}
-				catch
-				{
-					try
-					{
-
-					}
-					catch
-					{
-						try
-						{
-
-						}
-						catch
-						{
-
-							throw;
-						}
-					}
-				}
+				return exchangeRates;
 			}
-
-			var exchangeRates = new List<ExchangeRate>
-			{
-				new ExchangeRate() { Rate = 10000m, Ticker = "USD" },
-				new ExchangeRate() { Rate = 7777.123m, Ticker = "CNY" }
-			};
-
-			return exchangeRates;
 		}
 
 		/// <summary>
