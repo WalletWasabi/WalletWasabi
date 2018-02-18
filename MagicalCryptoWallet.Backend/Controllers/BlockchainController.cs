@@ -7,6 +7,7 @@ using MagicalCryptoWallet.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
+using NBitcoin.RPC;
 
 namespace MagicalCryptoWallet.Backend.Controllers
 {
@@ -17,6 +18,8 @@ namespace MagicalCryptoWallet.Backend.Controllers
 	[Route("api/v1/btc/[controller]")]
     public class BlockchainController : Controller
 	{
+		private static RPCClient RpcClient => Global.RpcClient;
+
 		/// <summary>
 		/// Get fees for the requested confirmation targets based on Bitcoin Core's estimatesmartfee output.
 		/// </summary>
@@ -33,7 +36,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		[HttpGet("fees/{confirmationTargets}")]
 		[ProducesResponseType(200)] // Note: If you add typeof(SortedDictionary<int, FeeEstimationPair>) then swagger UI will visualize incorrectly.
 		[ProducesResponseType(400)]
-		public IActionResult GetFees(string confirmationTargets)
+		public async Task<IActionResult> GetFeesAsync(string confirmationTargets)
 		{
 			if(string.IsNullOrWhiteSpace(confirmationTargets) || !ModelState.IsValid)
 			{
@@ -48,9 +51,19 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			}
 			
 			var feeEstimations = new SortedDictionary<int, FeeEstimationPair>();
-			foreach (var target in confirmationTargetsInts)
+			foreach (int target in confirmationTargetsInts)
 			{
-				feeEstimations.Add(target, new FeeEstimationPair() { Conservative = 200, Economical = 199 });
+				// ToDo: This is the most naive way to implement this, some caching should be implemented.
+				var conservativeResponse = await RpcClient.EstimateSmartFeeAsync(target, EstimateSmartFeeMode.Conservative);
+				var economicalResponse = await RpcClient.EstimateSmartFeeAsync(target, EstimateSmartFeeMode.Economical);
+				var conservativeFee = conservativeResponse.FeeRate.FeePerK.Satoshi / 1000;
+				var economicalFee = economicalResponse.FeeRate.FeePerK.Satoshi / 1000;
+
+				// Sanity check, some miners don't mine transactions under 5 satoshi/bytes.
+				conservativeFee = Math.Max(conservativeFee, 5);
+				economicalFee = Math.Max(economicalFee, 5);
+
+				feeEstimations.Add(target, new FeeEstimationPair() { Conservative = conservativeFee, Economical = economicalFee });
 			}
 
 			return Ok(feeEstimations);

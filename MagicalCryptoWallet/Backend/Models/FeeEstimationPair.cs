@@ -11,8 +11,8 @@ namespace MagicalCryptoWallet.Backend.Models
     public class FeeEstimationPair
 	{
 		[Required]
-		public int Economical { get; set; }
+		public long Economical { get; set; }
 		[Required]
-		public int Conservative { get; set; }
+		public long Conservative { get; set; }
 	}
 }
