@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MagicalCryptoWallet.Backend.Models;
 using MagicalCryptoWallet.Helpers;
+using MagicalCryptoWallet.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
@@ -79,7 +80,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// Sample request:
 		///
 		///     POST /broadcast
-		///     "483045022100dbd9f153ed42e15284051183a83aa8b4574b680c17085bb94a40fdb8cdcabee00220245a9eda9bab181b336a136b243a45b32216fb16c649eae1e8a58158ecd790a4012102a03b3919772c3a6729a604765a4450df242fe41d8f27d17db722f67afad726f3"
+		///     "01000000014b6b6fced23fa0d772f83fd849ce2f4e8fa51ea49cc12710ebcdc722d74c87f5000000006a47304402206bf1118e381342d0387e47807c83d2c1e919e2e3792f2673579a9ce87a380db002207e471504f96d7830dc9cbb7442332d747a25dcfd5d1530feea92b8a302aa57f4012102a40230b345856cc18ca1d745e7ea52319a012753b050e24d7be64ca0b978fb3effffffff0235662803000000001976a9146adfacaab3dc7c51b3300c4256b184f95cc48f4288acd0dd0600000000001976a91411ff558b1790b8d57cb25b9c07094591cfd2051c88ac00000000"
 		///
 		/// </remarks>
 		/// <param name="hex">The hex string of the raw transaction.</param>
@@ -89,14 +90,38 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		[HttpPost("broadcast")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
-		public IActionResult Broadcast([FromBody]string hex)
+		public async Task<IActionResult> BroadcastAsync([FromBody]string hex)
 		{
 			if(string.IsNullOrWhiteSpace(hex) || !ModelState.IsValid)
 			{
 				return BadRequest("Invalid hex.");
 			}
 
-			// ToDo: If fail return BadRequest with the RPC error details.
+			Transaction transaction;
+			try
+			{
+				transaction = new Transaction(hex);
+			}
+			catch(Exception ex)
+			{
+				Logger.LogDebug<BlockchainController>(ex);
+				return BadRequest("Invalid hex.");
+			}
+
+			try
+			{
+
+				await RpcClient.SendRawTransactionAsync(transaction);
+			}
+			catch(RPCException ex) when (ex.Message.Contains("already in block chain", StringComparison.InvariantCultureIgnoreCase))
+			{
+				return Ok("Transaction is already in the blockchain.");
+			}
+			catch(RPCException ex)
+			{
+				Logger.LogDebug<BlockchainController>(ex);
+				return BadRequest(ex.Message);
+			}
 
 			return Ok("Transaction is successfully broadcasted.");
 		}
