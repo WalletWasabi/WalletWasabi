@@ -140,8 +140,8 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			// ToDo: Implement caching for instant answers
-			// ToDo: Implement redundancy, call another API if SmartBit fails
+			// ToDo: Implement caching for instant answers.
+			// ToDo: Implement redundancy, call another API if SmartBit fails, if that fails, call another one.
 			using (var client = new SmartBitClient(Network, disposeHandler: true))
 			{
 				var rates = await client.GetExchangeRatesAsync(CancellationToken.None);
