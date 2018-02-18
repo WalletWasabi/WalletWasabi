@@ -53,7 +53,10 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			var feeEstimations = new SortedDictionary<int, FeeEstimationPair>();
 			foreach (int target in confirmationTargetsInts)
 			{
-				// ToDo: This is the most naive way to implement this, some caching should be implemented.
+				// ToDo: This is the most naive way to implement this.
+				// 1. Use the sanity check that under 5 satoshi per bytes should not be displayed.
+				// 2. Use the RPCResponse.Blocks output to avoid redundant RPC queries.
+				// 3. Implement caching.
 				var conservativeResponse = await RpcClient.EstimateSmartFeeAsync(target, EstimateSmartFeeMode.Conservative);
 				var economicalResponse = await RpcClient.EstimateSmartFeeAsync(target, EstimateSmartFeeMode.Economical);
 				var conservativeFee = conservativeResponse.FeeRate.FeePerK.Satoshi / 1000;
