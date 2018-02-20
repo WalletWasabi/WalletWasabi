@@ -5,8 +5,15 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-	public class FastBitArrayTest
+	public class FastBitArrayTest : IClassFixture<SharedFixture>
 	{
+		private SharedFixture SharedFixture { get; }
+
+		public FastBitArrayTest(SharedFixture fixture)
+		{
+			SharedFixture = fixture;
+		}
+
 		[Fact]
 		public void GetBitsTest()
 		{

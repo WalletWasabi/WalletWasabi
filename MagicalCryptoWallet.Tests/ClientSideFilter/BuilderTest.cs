@@ -5,8 +5,15 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-	public class BuilderTest
+	public class BuilderTest : IClassFixture<SharedFixture>
 	{
+		private SharedFixture SharedFixture { get; }
+
+		public BuilderTest(SharedFixture fixture)
+		{
+			SharedFixture = fixture;
+		}
+
 		[Fact]
 		public void BuildFilterAndMatchValues()
 		{

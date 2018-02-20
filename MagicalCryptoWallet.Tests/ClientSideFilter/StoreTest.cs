@@ -6,8 +6,15 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-	public class StoreTest
+	public class StoreTest : IClassFixture<SharedFixture>
 	{
+		private SharedFixture SharedFixture { get; }
+
+		public StoreTest(SharedFixture fixture)
+		{
+			SharedFixture = fixture;
+		}
+
 		[Fact]
 		public void Test1()
 		{

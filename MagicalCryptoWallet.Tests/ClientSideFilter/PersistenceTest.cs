@@ -10,8 +10,15 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-	public class PersistenceTest
+	public class PersistenceTest : IClassFixture<SharedFixture>
 	{
+		private SharedFixture SharedFixture { get; }
+
+		public PersistenceTest(SharedFixture fixture)
+		{
+			SharedFixture = fixture;
+		}
+
 		[Fact]
 		public void CreateStore()
 		{
