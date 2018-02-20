@@ -2,8 +2,6 @@ language: csharp
 mono: none
 dotnet: 2.0.0
 
-install: travis_wait mvn install
-
 notifications:
   email: false
 
@@ -21,4 +19,4 @@ before_install:
 
 script:
   - sleep 5
-  - dotnet test MagicalCryptoWallet.Tests/MagicalCryptoWallet.Tests.csproj
+  - travis_wait dotnet test MagicalCryptoWallet.Tests/MagicalCryptoWallet.Tests.csproj
