@@ -2,6 +2,8 @@ language: csharp
 mono: none
 dotnet: 2.0.0
 
+install: travis_wait mvn install
+
 notifications:
   email: false
 
