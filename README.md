@@ -15,6 +15,8 @@
 
 It is expected for the proposed timeline to take roughly 1.5 times longer.
 
+### 1. Wallet Stage
+
 - [ ] **1. Wallet Back End.** *2 weeks. NBitcoin, Bitcoin Core RPC, ASP.NET.* Build back end for the wallet based on [the specification](https://github.com/nopara73/MagicalCryptoWallet/blob/master/MagicalCryptoWallet.Backend/README.md).
 - [x] **2. Small Tor Library.** *1 week. Tor, .NET Core, cross platform.* Build a small Tor library based on DotNetTor, that removes features those are unrelated to the wallet and makes the rest more stable.
 - [ ] **3. Key Manager.** *1 week. NBitcoin.* Build a new, high performance key manager with accounts, labelling, etc...
@@ -23,6 +25,8 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
   Depends on:
   - [ ] ALL previous items
   
+### 2. Privacy Stage
+
 - [ ] **5. ZeroLink v2 Revision.** *1 month. Bitcoin privacy, cryptography.* Revise ZeroLink, based on technological advancements.
 - [ ] **6. ZeroLink Coordinator.** *2 weeks. NBitcoin, Bitcoin Core RPC.* Revise the ZeroLink Coordinator code based on ZeroLink v2 Revision.
 
@@ -34,11 +38,15 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
   Depends on:
   - [ ] ZeroLink v2 Revision
   - [ ] ZeroLink Coordinator
-  
+
+### 3. User Experience Stage
+
 - [ ] **8. GUI.** *1 month. Electron, front end, Bitcoin.* Redesign the user experience and build it.
 
   Depends on:
   - [ ] ALL previous items
+  
+### 4. Deployment Stage
   
 - [ ] **9. Documentation.** *1 week. Bitcoin.* Create documentation.
 
