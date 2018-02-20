@@ -31,7 +31,7 @@ namespace MagicalCryptoWallet.KeyManagement
 
 		// BIP44-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
-		private KeyPath _accountKeyPath;
+		private static readonly KeyPath AccountKeyPath = new KeyPath("m/44'/0'/0'");
 
 		private readonly object HdPubKeysLock;
 
@@ -54,7 +54,6 @@ namespace MagicalCryptoWallet.KeyManagement
 			_extPubKey = null;
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeysLock = new object();
-			_accountKeyPath = new KeyPath("m/44'/0'/0'");
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
@@ -66,7 +65,6 @@ namespace MagicalCryptoWallet.KeyManagement
 			_extPubKey = null;
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeysLock = new object();
-			_accountKeyPath = new KeyPath("m/44'/0'/0'");
 
 			if (password == null)
 			{
@@ -77,7 +75,7 @@ namespace MagicalCryptoWallet.KeyManagement
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
-			MasterPubKey = extKey.Derive(_accountKeyPath).PrivateKey.PubKey;
+			MasterPubKey = extKey.Derive(AccountKeyPath).PrivateKey.PubKey;
 		}
 
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password)
@@ -91,7 +89,7 @@ namespace MagicalCryptoWallet.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.PrivateKey.PubKey);
+			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).PrivateKey.PubKey);
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password)
@@ -105,7 +103,7 @@ namespace MagicalCryptoWallet.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.PrivateKey.PubKey);
+			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).PrivateKey.PubKey);
 		}
 
 		public void ToFile(string filePath)
@@ -162,7 +160,7 @@ namespace MagicalCryptoWallet.KeyManagement
 					path = relevantHdPubKeys.OrderBy(x => x.GetIndex()).Last().GetNonHardenedKeyPath().Increment();
 				}
 
-				var fullPath = _accountKeyPath.Derive(path);
+				var fullPath = AccountKeyPath.Derive(path);
 				var pubKey = ExtPubKey.Derive(path).PubKey;
 
 				var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
