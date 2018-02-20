@@ -73,7 +73,7 @@ namespace MagicalCryptoWallet.TorSocks5
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<TorHttpClient>(ex);
+					Logger.LogDebug<TorHttpClient>(ex);
 
 					TorSocks5Client?.Dispose(); // rebuild the connection and retry
 					TorSocks5Client = null;
