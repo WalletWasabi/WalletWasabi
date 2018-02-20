@@ -98,22 +98,25 @@ namespace MagicalCryptoWallet.Tests
 			string password = "password";
 			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password);
 
-			var filePath = "tmpWalletDir/tmpWallet.json";
-			var dir = Path.GetDirectoryName(filePath);
-			if (File.Exists(filePath))
-			{
-				File.Delete(filePath);
-			}
-			if(Directory.Exists(dir))
-			{
-				Directory.Delete(dir);
-			}
+			var filePath = "WalletDir/Wallet.json";
+			DeleteFileAndDirectoryIfExists(filePath);
 
 			Assert.Throws<FileNotFoundException>(() => KeyManager.FromFile(filePath));
 			
 			manager.ToFile(filePath);
 
 			manager.ToFile(filePath); // assert it doesn't throw
+
+			var random = new Random();
+
+			for (int i = 0; i < 1000; i++)
+			{
+				var isInternal = random.Next(2) == 0;
+				var label = RandomString.Generate(21);
+				var keyState = (KeyState)random.Next(3);
+				manager.GenerateNewKey(label, keyState, isInternal);
+			}
+			manager.ToFile(filePath);
 
 			Assert.True(File.Exists(filePath));			
 
@@ -124,13 +127,51 @@ namespace MagicalCryptoWallet.Tests
 			Assert.Equal(manager.MasterPubKey, sameManager.MasterPubKey);
 			Assert.Equal(manager.ExtPubKey, sameManager.ExtPubKey);
 
+			DeleteFileAndDirectoryIfExists(filePath);
+		}
+
+		[Fact]
+		public void CanGenerateKeys()
+		{
+			string password = "password";
+			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password);
+
+			var random = new Random();
+
+			var k1 = manager.GenerateNewKey("", KeyState.Clean, true);
+			var k2 = manager.GenerateNewKey(null, KeyState.Clean, true);
+			Assert.Equal("", k1.Label);
+			Assert.Equal("", k2.Label);
+
+			for (int i = 0; i < 1000; i++)
+			{
+				var isInternal = random.Next(2) == 0;
+				var label = RandomString.Generate(21);
+				var keyState = (KeyState)random.Next(3);
+				var generatedKey = manager.GenerateNewKey(label, keyState, isInternal);
+
+				Assert.Equal(isInternal, generatedKey.IsInternal());
+				Assert.Equal(label, generatedKey.Label);
+				Assert.Equal(keyState, generatedKey.KeyState);
+				Assert.StartsWith("44'/0'/0'", generatedKey.FullKeyPath.ToString());
+			}
+		}
+
+		private static void DeleteFileAndDirectoryIfExists(string filePath)
+		{
+			var dir = Path.GetDirectoryName(filePath);
+
 			if (File.Exists(filePath))
 			{
 				File.Delete(filePath);
 			}
+			
 			if (Directory.Exists(dir))
 			{
-				Directory.Delete(dir);
+				if(Directory.GetFiles(dir).Length == 0)
+				{
+					Directory.Delete(dir);
+				}
 			}
 		}
 	}

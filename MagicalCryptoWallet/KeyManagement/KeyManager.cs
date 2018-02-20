@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace MagicalCryptoWallet.KeyManagement
@@ -15,15 +16,24 @@ namespace MagicalCryptoWallet.KeyManagement
     {
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(BitcoinEncryptedSecretNoECConverter))]
-		public BitcoinEncryptedSecretNoEC EncryptedSecret { get; private set; }
+		public BitcoinEncryptedSecretNoEC EncryptedSecret { get; }
 
 		[JsonProperty(Order = 2)]
 		[JsonConverter(typeof(ByteArrayConverter))]
-		public byte[] ChainCode { get; private set; }
+		public byte[] ChainCode { get; }
 
 		[JsonProperty(Order = 3)]
 		[JsonConverter(typeof(PubKeyConverter))]
-		public PubKey MasterPubKey { get; private set; }
+		public PubKey MasterPubKey { get; }
+
+		[JsonProperty(Order = 4)]
+		private List<HdPubKey> HdPubKeys { get; }
+
+		// BIP44-ish derivation scheme
+		// m / purpose' / coin_type' / account' / change / address_index
+		private KeyPath _accountKeyPath;
+
+		private readonly object HdPubKeysLock;
 
 		private ExtPubKey _extPubKey;
 		public ExtPubKey ExtPubKey
@@ -42,6 +52,9 @@ namespace MagicalCryptoWallet.KeyManagement
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, PubKey masterPubKey)
 		{
 			_extPubKey = null;
+			HdPubKeys = new List<HdPubKey>();
+			HdPubKeysLock = new object();
+			_accountKeyPath = new KeyPath("m/44'/0'/0'");
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
@@ -51,6 +64,9 @@ namespace MagicalCryptoWallet.KeyManagement
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password)
 		{
 			_extPubKey = null;
+			HdPubKeys = new List<HdPubKey>();
+			HdPubKeysLock = new object();
+			_accountKeyPath = new KeyPath("m/44'/0'/0'");
 
 			if (password == null)
 			{
@@ -59,7 +75,9 @@ namespace MagicalCryptoWallet.KeyManagement
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
-			MasterPubKey = encryptedSecret.GetKey(password).PubKey;
+			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
+
+			MasterPubKey = extKey.Derive(_accountKeyPath).PrivateKey.PubKey;
 		}
 
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password)
@@ -98,9 +116,9 @@ namespace MagicalCryptoWallet.KeyManagement
 			if (directoryPath != null) Directory.CreateDirectory(directoryPath);
 
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			File.WriteAllText(filePath,
-			jsonString,
-			Encoding.UTF8);
+				File.WriteAllText(filePath,
+				jsonString,
+				Encoding.UTF8);
 		}
 
 		public static KeyManager FromFile(string filePath)
@@ -114,6 +132,44 @@ namespace MagicalCryptoWallet.KeyManagement
 
 			string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
 			return JsonConvert.DeserializeObject<KeyManager>(jsonString);
+		}
+
+		public HdPubKey GenerateNewKey(string label, KeyState keyState, bool isInternal)
+		{
+			// BIP44-ish derivation scheme
+			// m / purpose' / coin_type' / account' / change / address_index
+			lock (HdPubKeysLock)
+			{
+				var change = isInternal ? 1 : 0;
+
+				IEnumerable<HdPubKey> relevantHdPubKeys;
+				if (isInternal)
+				{
+					relevantHdPubKeys = HdPubKeys.Where(x => x.IsInternal());
+				}
+				else
+				{
+					relevantHdPubKeys = HdPubKeys.Where(x => !x.IsInternal());
+				}
+
+				KeyPath path;
+				if (relevantHdPubKeys.Count() == 0)
+				{
+					path = new KeyPath($"{change}/0");
+				}
+				else
+				{
+					path = relevantHdPubKeys.OrderBy(x => x.GetIndex()).Last().GetNonHardenedKeyPath().Increment();
+				}
+
+				var fullPath = _accountKeyPath.Derive(path);
+				var pubKey = ExtPubKey.Derive(path).PubKey;
+
+				var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
+				HdPubKeys.Add(hdPubKey);
+
+				return hdPubKey;
+			}
 		}
 	}
 }
