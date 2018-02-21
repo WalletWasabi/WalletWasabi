@@ -72,6 +72,11 @@ namespace MagicalCryptoWallet.Services
 			};
 		}
 
+		public void Start()
+		{
+			Nodes.Connect();
+		}
+
 		#endregion
 
 
