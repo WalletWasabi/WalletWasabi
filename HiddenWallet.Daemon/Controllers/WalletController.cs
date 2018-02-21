@@ -237,7 +237,7 @@ namespace HiddenWallet.Daemon.Controllers
 				Script customChangeScriptPubKey = null; // if it stays null then scriptubkey is not custom
 				if(request.DonateChange)
 				{
-					customChangeScriptPubKey = BitcoinAddress.Create("186n7me3QKajQZJnUsVsezVhVrSwyFCCZ", Network.Main).ScriptPubKey;
+					customChangeScriptPubKey = BitcoinAddress.Create("bc1q32xe73texphk3cgu33cyw7dajky9u76qltcv6m", Network.Main).ScriptPubKey;
 				}
 
                 BitcoinAddress address;
