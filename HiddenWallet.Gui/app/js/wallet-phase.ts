@@ -83,7 +83,7 @@ function walletShow(menuItem: string) {
         menu.innerHTML = receiveActive.outerHTML;
     }
     else if (menuItem === 'send') {
-        writeHint('Would you consider feeding the developer with some pizza? 186n7me3QKajQZJnUsVsezVhVrSwyFCCZ');
+        writeHint('Would you consider feeding the developer with some pizza? bc1q32xe73texphk3cgu33cyw7dajky9u76qltcv6m');
         menu.innerHTML = sendActive.outerHTML;
         content.innerHTML = sendContent.outerHTML;
     }
