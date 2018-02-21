@@ -10,8 +10,8 @@ For OSX you need to build from the source code, [see instructions below](https:/
 
 ### [Contributions Spent On](https://github.com/nopara73/HiddenWallet/blob/master/HiddenWallet.Documentation/DonationsSpentOn.md)
 
-186n7me3QKajQZJnUsVsezVhVrSwyFCCZ  
-[![QR Code](http://i.imgur.com/grc5fBP.png)](https://www.smartbit.com.au/address/186n7me3QKajQZJnUsVsezVhVrSwyFCCZ)
+bc1q32xe73texphk3cgu33cyw7dajky9u76qltcv6m  
+[![QR Code](https://i.imgur.com/8JGnzJ7.png)](https://chainflyer.bitflyer.jp/Address/bc1q32xe73texphk3cgu33cyw7dajky9u76qltcv6m)
   
 **Important Note:** Until the stable version is out, one should not use it on the mainnet, but only on the testnet for testing purposes. Please give me a lot of work by opening GitHub issues or send me an email to `adam.ficsor73@gmail.com`.
   
