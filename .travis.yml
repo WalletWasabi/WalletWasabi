@@ -19,4 +19,4 @@ before_install:
 
 script:
   - sleep 5
-  - travis_wait dotnet test MagicalCryptoWallet.Tests/MagicalCryptoWallet.Tests.csproj --verbosity normal
+  - dotnet test MagicalCryptoWallet.Tests/MagicalCryptoWallet.Tests.csproj --verbosity normal
