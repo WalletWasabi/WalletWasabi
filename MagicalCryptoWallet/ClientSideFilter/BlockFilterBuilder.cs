@@ -29,7 +29,7 @@ namespace MagicalCryptoWallet.Backend
 				}
 			}
 
-			return GolombRiceFilter.Build(key, P, buffer);
+			return GolombRiceFilter.Build(key, buffer, P);
 		}
 	}
 }
