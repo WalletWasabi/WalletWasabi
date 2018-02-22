@@ -51,9 +51,11 @@ namespace MagicalCryptoWallet.Services
 			try
 			{
 				AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
+				Logger.LogInfo<WalletService>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 			}
-			catch (Exception ex) // ToDo: find out what the specific exception that is thrown and catch that
+			catch (FileNotFoundException ex)
 			{
+				Logger.LogInfo<WalletService>($"{nameof(AddressManager)} did not exist. Created at `{AddressManagerFilePath}`.");
 				Logger.LogTrace<WalletService>(ex);
 				AddressManager = new AddressManager();
 			}
@@ -92,6 +94,8 @@ namespace MagicalCryptoWallet.Services
 				{
 					try
 					{
+						AddressManager.SavePeerFile(AddressManagerFilePath, Network);
+						Logger.LogInfo<WalletService>($"Saved {nameof(AddressManager)} to `{AddressManagerFilePath}`.");
 						Nodes?.Dispose();
 					}
 					catch (Exception ex)

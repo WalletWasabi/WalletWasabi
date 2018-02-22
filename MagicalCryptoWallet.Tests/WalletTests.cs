@@ -24,7 +24,7 @@ namespace MagicalCryptoWallet.Tests
 		{
 			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
 			var dataFolder = Path.Combine(SharedFixture.DataDir, nameof(BasicWalletTestAsync));
-			using (var wallet = new WalletService(dataFolder, Network.TestNet, manager))
+			using (var wallet = new WalletService(dataFolder, Network.Main, manager))
 			{
 				wallet.Start();
 				await Task.Delay(1000);

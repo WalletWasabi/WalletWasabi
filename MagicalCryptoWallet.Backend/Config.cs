@@ -49,7 +49,7 @@ namespace MagicalCryptoWallet.Backend
 
 			if (!File.Exists(path))
 			{
-				Logger.LogInfo<Config>($"Config file did not exist. Created at path: `{path}`.");
+				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{path}`.");
 			}
 			else
 			{

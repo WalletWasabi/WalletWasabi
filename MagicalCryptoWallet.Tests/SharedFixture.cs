@@ -28,7 +28,7 @@ namespace MagicalCryptoWallet.Tests
 
 			Logger.SetMinimumLevel(LogLevel.Info);
 			Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
-			Logger.SetFilePath("TestLogs.txt");
+			Logger.SetFilePath(Path.Combine(DataDir, "Logs.txt"));
 		}
 
 		public void Dispose()
