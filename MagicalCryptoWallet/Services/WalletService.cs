@@ -25,14 +25,16 @@ namespace MagicalCryptoWallet.Services
 		public NodeConnectionParameters ConnectionParameters { get; }
 
 		public string AddressManagerFilePath { get; }
-
+		
 		// ToDo: I am accessing it a different way than HiddenWallet/Nicolas's SPV sample
 		// He has a GetAddressManager(), which always looks for AddressManager inside ConnectionParameters.TemplateBehaviors
 		// Not sure if I had a reason to do this, or I just used Nicolas's legacy
 		// ToDo: Does it work with RegTest? Or at least acts like it does.
-		public AddressManager AddressManager { get; private set; }
+		public AddressManager AddressManager { get; set; }
 
-		public NodesGroup Nodes { get; private set; }
+		public NodesGroup Nodes { get; set; }
+
+		public MemPoolService MemPoolService { get; }
 
 		#endregion
 
@@ -62,6 +64,8 @@ namespace MagicalCryptoWallet.Services
 
 			//So we find nodes faster
 			ConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(AddressManager));
+			MemPoolService = new MemPoolService();
+			ConnectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
 
 			Nodes = new NodesGroup(Network, ConnectionParameters,
 				new NodeRequirement

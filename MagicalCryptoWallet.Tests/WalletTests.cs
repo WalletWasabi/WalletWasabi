@@ -1,5 +1,6 @@
 ﻿using MagicalCryptoWallet.KeyManagement;
 using MagicalCryptoWallet.Logging;
+using MagicalCryptoWallet.Models;
 using MagicalCryptoWallet.Services;
 using NBitcoin;
 using NBitcoin.Protocol;
@@ -23,21 +24,37 @@ namespace MagicalCryptoWallet.Tests
 		}
 
 		[Fact]
-		public async Task CanConnectToNodesTestAsync()
+		public async Task TestServicesAsync()
 		{
 			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
-			var dataFolder = Path.Combine(SharedFixture.DataDir, nameof(CanConnectToNodesTestAsync));
+			var dataFolder = Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync));
 			using (var wallet = new WalletService(dataFolder, Network.Main, manager))
 			{
 
-				wallet.Nodes.ConnectedNodes.Added += ConnectedNodes_Added;
-				wallet.Nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
-				wallet.Start();
-				// Using the interlocked, not because it makes sense in this context, but to
-				// set an example that these values are often concurrency sensitive
-				while (Interlocked.Read(ref _nodeCount) < 3) 
+				try
 				{
-					await Task.Delay(100);
+					wallet.Nodes.ConnectedNodes.Added += ConnectedNodes_Added;
+					wallet.Nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
+					wallet.MemPoolService.TransactionReceived += MemPoolService_TransactionReceived;
+
+					wallet.Start();
+					// Using the interlocked, not because it makes sense in this context, but to
+					// set an example that these values are often concurrency sensitive
+					while (Interlocked.Read(ref _nodeCount) < 3)
+					{
+						await Task.Delay(100); // ToDo: timeout after a few minutes
+					}
+
+					while (Interlocked.Read(ref _mempoolTransactionCount) < 7)
+					{
+						await Task.Delay(100); // ToDo: timeout after a few minutes
+					}
+				}
+				finally
+				{
+					wallet.Nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
+					wallet.Nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
+					wallet.MemPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
 				}
 			}
 		}
@@ -55,6 +72,13 @@ namespace MagicalCryptoWallet.Tests
 			Interlocked.Decrement(ref _nodeCount);
 			// Trace is fine here, building the connections is more exciting than removing them.
 			Logger.LogTrace<WalletTests>($"Node count:{Interlocked.Read(ref _nodeCount)}"); 
+		}
+
+		private long _mempoolTransactionCount = 0;
+		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
+		{
+			Interlocked.Increment(ref _mempoolTransactionCount);
+			Logger.LogInfo<WalletTests>($"Mempool transaction received: {e.GetHash()}.");
 		}
 	}
 }
