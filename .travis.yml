@@ -12,8 +12,9 @@ matrix:
     - os: osx
     
 before_install:
+  - if [ $TRAVIS_OS_NAME = osx ]; then rvm get head; fi
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -qq update && sudo apt-get install -y tor; else brew install tor; fi
-  - if [ $TRAVIS_OS_NAME = osx ]; then ulimit -S -n 4096 && rvm get stable; fi
+  - if [ $TRAVIS_OS_NAME = osx ]; then ulimit -S -n 4096; fi
   - echo $(sudo killall tor)
   - tor RunAsDaemon 1
 
