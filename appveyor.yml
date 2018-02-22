@@ -21,7 +21,7 @@ build_script:
 
 test_script:
   - cd MagicalCryptoWallet.Tests
-  - dotnet test --verbosity normal
+  - dotnet test
 
 on_finish:
   - ps: Stop-Process -Id $TorProcess.Id
