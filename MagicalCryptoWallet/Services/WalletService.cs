@@ -68,7 +68,7 @@ namespace MagicalCryptoWallet.Services
 				new NodeRequirement
 				{
 					RequiredServices = NodeServices.Network,
-					MinVersion = ProtocolVersion.SENDHEADERS_VERSION
+					MinVersion = ProtocolVersion.WITNESS_VERSION
 				});
 		}
 
