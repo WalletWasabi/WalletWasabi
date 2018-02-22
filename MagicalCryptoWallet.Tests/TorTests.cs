@@ -104,17 +104,6 @@ namespace MagicalCryptoWallet.Tests
 		}
 
 		[Fact]
-		public async Task TestMicrosoftNCSIAsync()
-		{
-			using (var client = new TorHttpClient(new Uri("http://www.msftncsi.com/")))
-			{
-				var response = await client.SendAsync(HttpMethod.Get, "ncsi.txt");
-				var content = await response.Content.ReadAsStringAsync();
-				Assert.Equal("Microsoft NCSI", content);
-			}
-		}
-
-		[Fact]
 		public async Task CanDoBasicPostRequestAsync()
 		{
 			using (var client = new TorHttpClient(new Uri("http://httpbin.org")))
