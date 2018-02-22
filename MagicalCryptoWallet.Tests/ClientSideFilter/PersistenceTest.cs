@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using GMagicalCryptoWallet.Tests;
 using MagicalCryptoWallet.Backend;
+using NBitcoin;
 using NBitcoin.Crypto;
 using Xunit;
 
@@ -55,7 +56,7 @@ namespace MagicalCryptoWallet.Tests
 						txouts.Add(pushDataBuffer);
 					}
 
-					var filter = GolombRiceFilter.Build(key, P, txouts);
+					var filter = GolombRiceFilter.Build(key, txouts, P);
 					blocks.Add(filter);
 					repo.Put(Hashes.Hash256(filter.Data.ToByteArray()), filter);
 				}
