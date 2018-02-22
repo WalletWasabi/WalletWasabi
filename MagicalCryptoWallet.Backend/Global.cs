@@ -19,7 +19,7 @@ namespace MagicalCryptoWallet.Backend
 			{
 				if (!string.IsNullOrWhiteSpace(_dataDir)) return _dataDir;
 
-				_dataDir = EnvironmentHelpers.GetDataDir("MagicalCryptoWalletBackend");
+				_dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("MagicalCryptoWallet","Backend"));
 
 				return _dataDir;
 			}
@@ -79,10 +79,10 @@ namespace MagicalCryptoWallet.Backend
 
 				if (blocks != headers)
 				{
-					throw new NotSupportedException("Bitcoin Core is not fully syncronized.");
+					throw new NotSupportedException("Bitcoin Core is not fully synchronized.");
 				}
 
-				Logger.LogInfo<RPCClient>("Bitcoin Core is fully syncronized.");
+				Logger.LogInfo<RPCClient>("Bitcoin Core is fully synchronized.");
 
 				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative);
 				if (estimateSmartFeeResponse == null) throw new NotSupportedException($"Bitcoin Core cannot estimate network fees yet.");

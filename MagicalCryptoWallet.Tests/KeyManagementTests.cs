@@ -97,8 +97,8 @@ namespace MagicalCryptoWallet.Tests
 		{
 			string password = "password";
 			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password);
-
-			var filePath = "WalletDir/Wallet.json";
+			
+			var filePath = Path.Combine(SharedFixture.DataDir, nameof(CanSerialize), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
 
 			Assert.Throws<FileNotFoundException>(() => KeyManager.FromFile(filePath));

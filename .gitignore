@@ -260,3 +260,4 @@ paket-files/
 __pycache__/
 *.pyc
 /MagicalCryptoWallet.Backend/Logs.txt
+/MagicalCryptoWallet.Backend/Log.txt
