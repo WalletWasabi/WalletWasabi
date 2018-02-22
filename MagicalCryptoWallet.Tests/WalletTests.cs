@@ -43,7 +43,7 @@ namespace MagicalCryptoWallet.Tests
 					var times = 0;
 					while (Interlocked.Read(ref _nodeCount) < 3)
 					{
-						if(times > 1800) // 3 minutes
+						if(times > 4200) // 7 minutes
 						{
 							throw new TimeoutException($"Connection test timed out.");
 						}
