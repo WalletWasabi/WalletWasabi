@@ -26,9 +26,6 @@ namespace MagicalCryptoWallet.Services
 
 		public string AddressManagerFilePath { get; }
 		
-		// ToDo: I am accessing it a different way than HiddenWallet/Nicolas's SPV sample
-		// He has a GetAddressManager(), which always looks for AddressManager inside ConnectionParameters.TemplateBehaviors
-		// Not sure if I had a reason to do this, or I just used Nicolas's legacy
 		// ToDo: Does it work with RegTest? Or at least acts like it does.
 		public AddressManager AddressManager { get; set; }
 
