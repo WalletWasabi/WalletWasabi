@@ -54,7 +54,7 @@ namespace MagicalCryptoWallet.Services
 			}
 			catch (FileNotFoundException ex)
 			{
-				Logger.LogInfo<WalletService>($"{nameof(AddressManager)} did not exist. Created at `{AddressManagerFilePath}`.");
+				Logger.LogInfo<WalletService>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
 				Logger.LogTrace<WalletService>(ex);
 				AddressManager = new AddressManager();
 			}
@@ -69,10 +69,7 @@ namespace MagicalCryptoWallet.Services
 				{
 					RequiredServices = NodeServices.Network,
 					MinVersion = ProtocolVersion.SENDHEADERS_VERSION
-				})
-			{
-				NodeConnectionParameters = ConnectionParameters
-			};
+				});
 		}
 
 		public void Start()
