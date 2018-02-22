@@ -40,14 +40,26 @@ namespace MagicalCryptoWallet.Tests
 					wallet.Start();
 					// Using the interlocked, not because it makes sense in this context, but to
 					// set an example that these values are often concurrency sensitive
+					var times = 0;
 					while (Interlocked.Read(ref _nodeCount) < 3)
 					{
-						await Task.Delay(100); // ToDo: timeout after a few minutes
+						if(times > 1800) // 3 minutes
+						{
+							throw new TimeoutException($"Connection test timed out.");
+						}
+						await Task.Delay(100);
+						times++;
 					}
 
+					times = 0;
 					while (Interlocked.Read(ref _mempoolTransactionCount) < 7)
 					{
-						await Task.Delay(100); // ToDo: timeout after a few minutes
+						if (times > 1800) // 3 minutes
+						{
+							throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
+						}
+						await Task.Delay(100);
+						times++;
 					}
 				}
 				finally
