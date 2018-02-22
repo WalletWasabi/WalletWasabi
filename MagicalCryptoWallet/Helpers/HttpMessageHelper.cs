@@ -439,7 +439,6 @@ namespace System.Net.Http
 		
 		private static async Task<byte[]> ReadBytesTillLengthAsync(Stream stream, long? length, CancellationToken ctsToken)
 		{
-			// TODO make it work with long
 			try
 			{
 				Convert.ToInt32(length);

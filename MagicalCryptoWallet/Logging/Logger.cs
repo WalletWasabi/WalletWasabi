@@ -352,19 +352,19 @@ namespace MagicalCryptoWallet.Logging
 		/// <summary>
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
-		/// Example: "Request received for path /api/todo"
+		/// Example: "Request received for path /api/my-controller"
 		/// </summary>
 		public static void LogInfo<T>(string message) => Log<T>(LogLevel.Info, message);
         /// <summary>
         /// For tracking the general flow of the application.
         /// These logs typically have some long-term value.
-        /// Example: "Request received for path /api/todo"
+        /// Example: "Request received for path /api/my-controller"
         /// </summary>
         public static void LogInfo(string message, Type category) => Log(LogLevel.Info, message, category);
         /// <summary>
         /// For tracking the general flow of the application.
         /// These logs typically have some long-term value.
-        /// Example: "Request received for path /api/todo"
+        /// Example: "Request received for path /api/my-controller"
         /// </summary>
         public static void LogInfo(string message, string category = "") => Log(LogLevel.Info, message, category);
 
@@ -375,7 +375,7 @@ namespace MagicalCryptoWallet.Logging
 		/// 
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
-		/// Example: "Request received for path /api/todo"
+		/// Example: "Request received for path /api/my-controller"
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Info level.
 		/// </summary>
 		public static void LogInfo<T>(Exception ex, LogLevel toStringLevel = LogLevel.Trace) => Log<T>(ex, LogLevel.Info, toStringLevel);
@@ -386,7 +386,7 @@ namespace MagicalCryptoWallet.Logging
 		/// 
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
-		/// Example: "Request received for path /api/todo"
+		/// Example: "Request received for path /api/my-controller"
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Info level.
 		/// </summary>
 		public static void LogInfo(Exception ex, LogLevel toStringLevel = LogLevel.Trace, Type category = null) => Log(ex, LogLevel.Info, toStringLevel, category);
@@ -397,7 +397,7 @@ namespace MagicalCryptoWallet.Logging
 		/// 
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
-		/// Example: "Request received for path /api/todo"
+		/// Example: "Request received for path /api/my-controller"
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Info level.
 		/// </summary>
 		public static void LogInfo(Exception ex, LogLevel toStringLevel = LogLevel.Trace, string category = "") => Log(ex, LogLevel.Info, toStringLevel, category);

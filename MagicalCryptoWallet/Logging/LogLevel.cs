@@ -17,7 +17,7 @@
         /// <summary>
         /// For tracking the general flow of the application.
         /// These logs typically have some long-term value.
-        /// Example: "Request received for path /api/todo"
+        /// Example: "Request received for path /api/my-controller"
         /// </summary>
         Info,
         /// <summary>
