@@ -173,11 +173,11 @@ namespace MagicalCryptoWallet.Backend
 				return null;
 			var entryCount = reader.ReadInt32();
 			var bitArrayLen = reader.ReadInt32();
-			var byteArrayLen = FastBitArray.GetArrayLength(bitArrayLen, 8);
+			var byteArrayLen = GetArrayLength(bitArrayLen, 8);
 			var data = reader.ReadBytes(byteArrayLen);
 			var bitArray = new FastBitArray(data);
 			bitArray.Length = bitArrayLen;
-			return new GolombRiceFilter (bitArray, 20, entryCount);
+			return new GolombRiceFilter (bitArray, entryCount);
 		}
 
 		protected override void Write(BinaryWriter writer, GolombRiceFilter filter)
@@ -200,6 +200,16 @@ namespace MagicalCryptoWallet.Backend
 		{
 			return Put(filter);
 		}
+
+
+		private static int GetArrayLength(int n, int div)
+		{
+			if (n <= 0)
+			{
+				return 0;
+			}
+			return (n - 1) / div + 1;
+		}		
 	}
 
 

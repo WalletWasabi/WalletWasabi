@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using MagicalCryptoWallet.Backend;
+using NBitcoin;
 using Xunit;
 
 namespace MagicalCryptoWallet.Tests
@@ -20,8 +21,8 @@ namespace MagicalCryptoWallet.Tests
 		{
 			var stream = new MemoryStream();
 			var filterStore = new GcsFilterStore(stream);
-			filterStore.Put(new GolombRiceFilter(new FastBitArray(), 20, 10));
-			filterStore.Put(new GolombRiceFilter(new FastBitArray(), 20, 35));
+			filterStore.Put(new GolombRiceFilter(new FastBitArray(), 10, 20));
+			filterStore.Put(new GolombRiceFilter(new FastBitArray(), 35, 20));
 
 			stream.Seek(0, SeekOrigin.Begin);
 			var filters = filterStore.ToArray();
