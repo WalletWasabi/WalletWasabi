@@ -80,7 +80,7 @@ namespace MagicalCryptoWallet.Crypto
 			using (var memoryStream = new MemoryStream(cipherTextBytesWithSaltAndIv))
 			{
 				var cipherLength = 0;
-				using (var reader = new BinaryReader(memoryStream))
+				using (var reader = new BinaryReader(memoryStream, Encoding.UTF8, true))
 				{
 					var salt = reader.ReadBytes(Keysize / 8);
 					iv = reader.ReadBytes(Keysize / 8);
@@ -109,10 +109,10 @@ namespace MagicalCryptoWallet.Crypto
 				{
 					using (var decryptor = aes.CreateDecryptor(key, iv))
 					{
-						memoryStream.Seek(cipherLength, SeekOrigin.End);
+						memoryStream.Seek(-cipherLength, SeekOrigin.End);
 						using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
 						{
-							var plainTextBytes = new byte[memoryStream.Length - memoryStream.Position];
+							var plainTextBytes = new byte[cipherLength];
 							var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
 							memoryStream.Close();
 							cryptoStream.Close();
