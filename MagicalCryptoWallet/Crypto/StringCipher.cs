@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using NBitcoin.DataEncoders;
 
 namespace MagicalCryptoWallet.Crypto
 {
@@ -21,17 +22,20 @@ namespace MagicalCryptoWallet.Crypto
 			// Salt and IV is randomly generated each time, but is preprended to encrypted cipher text
 			// so that the same Salt and IV values can be used when decrypting.  
 			var saltStringBytes = Generate128BitsOfRandomEntropy();
-			var ivStringBytes = Generate128BitsOfRandomEntropy();
+			//Console.WriteLine($"saltStringBytes: {Encoders.Hex.EncodeData(saltStringBytes)}");
+			//var ivStringBytes = Generate128BitsOfRandomEntropy();
+			//Console.WriteLine($"ivStringBytes: {Encoders.Hex.EncodeData(ivStringBytes)}");
 			var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
 			using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations))
 			{
 				var keyBytes = password.GetBytes(Keysize / 8);
-				using (var symmetricKey = new RijndaelManaged())
+				using (var symmetricKey = new AesManaged())
 				{
+					symmetricKey.GenerateIV();
 					symmetricKey.BlockSize = 128;
 					symmetricKey.Mode = CipherMode.CBC;
 					symmetricKey.Padding = PaddingMode.PKCS7;
-					using (var encryptor = symmetricKey.CreateEncryptor(keyBytes, ivStringBytes))
+					using (var encryptor = symmetricKey.CreateEncryptor(keyBytes, symmetricKey.IV))
 					{
 						using (var memoryStream = new MemoryStream())
 						{
@@ -41,7 +45,7 @@ namespace MagicalCryptoWallet.Crypto
 								cryptoStream.FlushFinalBlock();
 								// Create the final bytes as a concatenation of the random salt bytes, the random iv bytes and the cipher bytes.
 								var cipherTextBytes = saltStringBytes;
-								cipherTextBytes = cipherTextBytes.Concat(ivStringBytes).ToArray();
+								cipherTextBytes = cipherTextBytes.Concat(symmetricKey.IV).ToArray();
 								cipherTextBytes = cipherTextBytes.Concat(memoryStream.ToArray()).ToArray();
 								memoryStream.Close();
 								cryptoStream.Close();
@@ -68,8 +72,9 @@ namespace MagicalCryptoWallet.Crypto
 			using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations))
 			{
 				var keyBytes = password.GetBytes(Keysize / 8);
-				using (var symmetricKey = new RijndaelManaged())
+				using (var symmetricKey = new AesManaged())
 				{
+					symmetricKey.IV = ivStringBytes;
 					symmetricKey.BlockSize = 128;
 					symmetricKey.Mode = CipherMode.CBC;
 					symmetricKey.Padding = PaddingMode.PKCS7;
@@ -90,6 +95,16 @@ namespace MagicalCryptoWallet.Crypto
 				}
 			}
 		}
+
+		// private static int c = 0;
+		// private static byte[] Generate128BitsOfRandomEntropy()
+		// {
+		// 	var s = (c % 2 == 0) 
+		// 		? "ad8d01ed34fcd39e30d06dfa3e7dd9f5"
+		// 		: "054afcb1e13a0d258ae423ed2f535f3c";
+		// 	c++;
+		// 	return Encoders.Hex.DecodeData(s);
+		// }
 
 		private static byte[] Generate128BitsOfRandomEntropy()
 		{
