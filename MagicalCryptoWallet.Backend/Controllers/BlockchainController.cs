@@ -59,20 +59,27 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			var feeEstimations = new SortedDictionary<int, FeeEstimationPair>();
 			foreach (int target in confirmationTargetsInts)
 			{
-				// ToDo: This is the most naive way to implement this.
-				// 1. Use the sanity check that under 5 satoshi per bytes should not be displayed.
-				// 2. Use the RPCResponse.Blocks output to avoid redundant RPC queries.
-				// 3. Implement caching.
-				var conservativeResponse = await RpcClient.EstimateSmartFeeAsync(target, EstimateSmartFeeMode.Conservative);
-				var economicalResponse = await RpcClient.EstimateSmartFeeAsync(target, EstimateSmartFeeMode.Economical);
-				var conservativeFee = conservativeResponse.FeeRate.FeePerK.Satoshi / 1000;
-				var economicalFee = economicalResponse.FeeRate.FeePerK.Satoshi / 1000;
+				if (Network != Network.RegTest)
+				{
+					// ToDo: This is the most naive way to implement this.
+					// 1. Use the sanity check that under 5 satoshi per bytes should not be displayed.
+					// 2. Use the RPCResponse.Blocks output to avoid redundant RPC queries.
+					// 3. Implement caching.
+					var conservativeResponse = await RpcClient.EstimateSmartFeeAsync(target, EstimateSmartFeeMode.Conservative);
+					var economicalResponse = await RpcClient.EstimateSmartFeeAsync(target, EstimateSmartFeeMode.Economical);
+					var conservativeFee = conservativeResponse.FeeRate.FeePerK.Satoshi / 1000;
+					var economicalFee = economicalResponse.FeeRate.FeePerK.Satoshi / 1000;
 
-				// Sanity check, some miners don't mine transactions under 5 satoshi/bytes.
-				conservativeFee = Math.Max(conservativeFee, 5);
-				economicalFee = Math.Max(economicalFee, 5);
+					// Sanity check, some miners don't mine transactions under 5 satoshi/bytes.
+					conservativeFee = Math.Max(conservativeFee, 5);
+					economicalFee = Math.Max(economicalFee, 5);
 
-				feeEstimations.Add(target, new FeeEstimationPair() { Conservative = conservativeFee, Economical = economicalFee });
+					feeEstimations.Add(target, new FeeEstimationPair() { Conservative = conservativeFee, Economical = economicalFee });
+				}
+				else // RegTest cannot estimate fees, so fill up with dummy data
+				{
+					feeEstimations.Add(target, new FeeEstimationPair() { Conservative = 6 + target, Economical = 5 + target });
+				}
 			}
 
 			return Ok(feeEstimations);

@@ -1,5 +1,6 @@
 ﻿using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.Logging;
+using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
@@ -37,12 +38,26 @@ namespace MagicalCryptoWallet.Backend
 
 			await InitializeConfigAsync();
 
-			RpcClient = new RPCClient(
-				credentials: new RPCCredentialString
-				{
-					UserPassword = new NetworkCredential(Config.BitcoinRpcUser, Config.BitcoinRpcPassword)
-				},
-				network: Config.Network);
+			if (Config.Network != Network.RegTest)
+			{
+				RpcClient = new RPCClient(
+					credentials: new RPCCredentialString
+					{
+						UserPassword = new NetworkCredential(Config.BitcoinRpcUser, Config.BitcoinRpcPassword)
+					},
+					network: Config.Network);
+			}
+			else // Bitcoin Core 0.16 changed the RegTest port, NBitcoin is not up to date with it yet:
+			{
+				RpcClient = new RPCClient(
+				   credentials: new RPCCredentialString
+				   {
+					   UserPassword = new NetworkCredential(Config.BitcoinRpcUser, Config.BitcoinRpcPassword)
+				   },
+				   host: "http://127.0.0.1:18443/",
+				   network: Config.Network);
+			}
+
 			await AssertRpcNodeFullyInitializedAsync();
 		}
 
@@ -66,13 +81,13 @@ namespace MagicalCryptoWallet.Backend
 				}
 
 				int blocks = blockchainInfo.Result.Value<int>("blocks");
-				if (blocks == 0)
+				if (blocks == 0 && Config.Network != Network.RegTest)
 				{
 					throw new NotSupportedException("blocks == 0");
 				}
 
 				int headers = blockchainInfo.Result.Value<int>("headers");
-				if (headers == 0)
+				if (headers == 0 && Config.Network != Network.RegTest)
 				{
 					throw new NotSupportedException("headers == 0");
 				}
@@ -84,9 +99,29 @@ namespace MagicalCryptoWallet.Backend
 
 				Logger.LogInfo<RPCClient>("Bitcoin Core is fully synchronized.");
 
-				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative);
-				if (estimateSmartFeeResponse == null) throw new NotSupportedException($"Bitcoin Core cannot estimate network fees yet.");
-				Logger.LogInfo<RPCClient>("Bitcoin Core fee estimation is working.");
+				if (Config.Network != Network.RegTest) // RegTest cannot estimate fees.
+				{
+					var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative);
+					if (estimateSmartFeeResponse == null) throw new NotSupportedException($"Bitcoin Core cannot estimate network fees yet.");
+					Logger.LogInfo<RPCClient>("Bitcoin Core fee estimation is working.");
+				}
+				else // Make sure there's at least 101 block, if not generate it
+				{
+					if (blocks < 101)
+					{
+						var generateBlocksResponse = await RpcClient.GenerateAsync(101);
+						if (generateBlocksResponse == null) throw new NotSupportedException($"Bitcoin Core cannot cannot generate blocks on the RegTest.");
+
+						blockchainInfoRequest = new RPCRequest(RPCOperations.getblockchaininfo, parameters: null);
+						blockchainInfo = await RpcClient.SendCommandAsync(blockchainInfoRequest, throwIfRPCError: true);
+						blocks = blockchainInfo.Result.Value<int>("blocks");
+						if (blocks == 0)
+						{
+							throw new NotSupportedException("blocks == 0");
+						}
+						Logger.LogInfo<RPCClient>($"Generated 101 block on RegTest. Number of blocks {blocks}.");
+					}
+				}
 
 			}
 			catch(WebException)
