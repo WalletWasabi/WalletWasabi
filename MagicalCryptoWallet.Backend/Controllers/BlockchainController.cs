@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using MagicalCryptoWallet.Backend.Models;
 using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.Logging;
+using MagicalCryptoWallet.WebClients;
 using MagicalCryptoWallet.WebClients.SmartBit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -161,8 +162,9 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			if (!_cache.TryGetValue(nameof(GetExchangeRatesAsync), out exchangeRates))
 			{
 				var exchangeRateProviders = new IExchangeRateProvider[]{
-					new SmartBitExchangeRateProvider(new SmartBitClient(Network, disposeHandler: true)),
+					new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main, disposeHandler: true)),
 					new BlockchainInfoExchangeRateProvider()
+					// TODO: More Providers. Which ones?
 				};
 
 				foreach(var provider in exchangeRateProviders)

@@ -9,15 +9,15 @@ using MagicalCryptoWallet.Backend.Models;
 using MagicalCryptoWallet.WebClients.SmartBit;
 using Newtonsoft.Json;
 
-namespace MagicalCryptoWallet.Backend
+namespace MagicalCryptoWallet.WebClients
 {
-	interface IExchangeRateProvider
+	public interface IExchangeRateProvider
 	{
 		Task<List<ExchangeRate>> GetExchangeRateAsync();
 	}
 
 
-	class SmartBitExchangeRateProvider : IExchangeRateProvider
+	public class SmartBitExchangeRateProvider : IExchangeRateProvider
 	{
 		private SmartBitClient _client;
 
@@ -40,7 +40,7 @@ namespace MagicalCryptoWallet.Backend
 		}
 	}
 
-	class BlockchainInfoExchangeRateProvider : IExchangeRateProvider
+	public class BlockchainInfoExchangeRateProvider : IExchangeRateProvider
 	{
 		class BlockchainInfoExchangeRate{
 			public decimal Last { get; set; }
