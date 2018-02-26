@@ -21,7 +21,10 @@
 
 ### POST filters
 
-  At initial syncronization the wallet must specify the hash of the first block that contains native segwit output. This hash must be hard coded into the client. (ToDo: find the hash.)  
+  At initial syncronization the wallet must specify the hash of the first block that contains native segwit output. This hash must be hard coded into the client.  
+  - First block with P2WPKH: dfcec48bb8491856c353306ab5febeb7e99e4d783eedf3de98f3ee0812b92bad
+  - First block with P2WPKH on TestNet: b29fbe96bf737000f8e3536e9b4681a01b1ca6be3ac4bd1f8269cdbd465e6700
+  
   Filters are Golomb Rice filters of all the input and output native segregated witness `scriptPubKeys`. Thus wallets using this API can only handle `p2wpkh` scripts, therefore `p2pkh`, `p2sh`, `p2sh` over `p2wph` scripts are not supported. This restriction significantly lowers the size of the `FilterTable`, with that speeds up the wallet.
   When a client acquires a filter, it checks against its own keys and downloads the needed blocks from the Bitcoin P2P network, if needed. 
   
