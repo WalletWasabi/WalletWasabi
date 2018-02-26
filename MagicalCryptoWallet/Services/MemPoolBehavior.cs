@@ -76,7 +76,6 @@ namespace MagicalCryptoWallet.Services
 			foreach (var inv in invPayload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
 			{
 				// if we already have it continue;
-				// ToDo: Make sure TransactionHashes don't overflow
 				if(!MemPoolService.TransactionHashes.Add(inv.Hash))
 				{
 					continue;
