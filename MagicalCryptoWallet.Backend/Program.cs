@@ -18,9 +18,9 @@ namespace MagicalCryptoWallet.Backend
 		{
 			try
 			{
+				Logger.SetFilePath(Path.Combine(Global.DataDir, "Logs.txt"));
 				Logger.SetMinimumLevel(LogLevel.Info);
 				Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
-				Logger.SetFilePath(Path.Combine(Global.DataDir,"Logs.txt"));
 
 				await Global.InitializeAsync();
 
