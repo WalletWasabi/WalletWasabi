@@ -10,6 +10,7 @@ using MagicalCryptoWallet.Logging;
 using MagicalCryptoWallet.WebClients.SmartBit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
 
@@ -22,6 +23,13 @@ namespace MagicalCryptoWallet.Backend.Controllers
 	[Route("api/v1/btc/[controller]")]
     public class BlockchainController : Controller
 	{
+    	private readonly IMemoryCache _cache;
+
+		public BlockchainController(IMemoryCache memoryCache)
+		{
+			_cache = memoryCache;
+		}
+
 		private static RPCClient RpcClient => Global.RpcClient;
 
 		private static Network Network => Global.Config.Network;
@@ -145,22 +153,36 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// <response code="200">Returns an array of exchange rates.</response>
 		[HttpGet("exchange-rates")]
 		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]
+		[ResponseCache(Duration = 60, Location=ResponseCacheLocation.Client)]
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			// ToDo: Implement caching for instant answers.
-			// ToDo: Implement redundancy, call another API if SmartBit fails, if that fails, call another one.
-			using (var client = new SmartBitClient(Network, disposeHandler: true))
-			{
-				var rates = await client.GetExchangeRatesAsync(CancellationToken.None);
-				var rate = rates.Single(x => x.Code == "USD");
+			 List<ExchangeRate> exchangeRates;
 
-				var exchangeRates = new List<ExchangeRate>
-				{
-					new ExchangeRate() { Rate = rate.Rate, Ticker = "USD" },
+			if (!_cache.TryGetValue(nameof(GetExchangeRatesAsync), out exchangeRates))
+			{
+				var exchangeRateProviders = new IExchangeRateProvider[]{
+					new SmartBitExchangeRateProvider(new SmartBitClient(Network, disposeHandler: true)),
+					new BlockchainInfoExchangeRateProvider()
 				};
 
-				return exchangeRates;
+				foreach(var provider in exchangeRateProviders)
+				{
+					try
+					{
+						exchangeRates = await provider.GetExchangeRateAsync();
+						break;
+					}catch(Exception){
+						// Ignore it and try with the next one
+					}
+				}
+
+				var cacheEntryOptions = new MemoryCacheEntryOptions()
+					.SetSlidingExpiration(TimeSpan.FromSeconds(10));
+
+				_cache.Set(nameof(GetExchangeRatesAsync), exchangeRates, cacheEntryOptions);
 			}
+
+			return exchangeRates;
 		}
 
 		/// <summary>

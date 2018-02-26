@@ -13,12 +13,13 @@ using Swashbuckle.AspNetCore.Swagger;
 
 namespace MagicalCryptoWallet.Backend
 {
-    public class Startup
-    {
+	public class Startup
+	{
 		// This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddMvc();
+		public void ConfigureServices(IServiceCollection services)
+		{
+			services.AddMemoryCache();
+			services.AddMvc();
 
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>
@@ -39,9 +40,9 @@ namespace MagicalCryptoWallet.Backend
 			});
 		}
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-        {
+		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+		{
 			// Enable middleware to serve generated Swagger as a JSON endpoint.
 			app.UseSwagger();
 
@@ -52,6 +53,6 @@ namespace MagicalCryptoWallet.Backend
 			});
 
 			app.UseMvc();
-        }
+		}
 	}
 }
