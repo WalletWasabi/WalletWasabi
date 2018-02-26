@@ -6,6 +6,7 @@ skip_branch_with_pr: true
 
 cache:
 - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
+- '%APPDATA%\MagicalCryptoWallet'
 - Tor
 
 install:
