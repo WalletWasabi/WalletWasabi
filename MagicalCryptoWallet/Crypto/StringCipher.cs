@@ -17,6 +17,112 @@ namespace MagicalCryptoWallet.Crypto
 		// This constant determines the number of iterations for the password bytes generation function.
 		private const int DerivationIterations = 1000;
 
+		public static string Encrypt(string plainText, string passPhrase)
+		{
+			// Salt is randomly generated each time, but is preprended to encrypted cipher text
+			// so that the same Salt value can be used when decrypting.  
+			byte[] salt = Generate128BitsOfRandomEntropy();
+			byte[] iv=null;		
+			byte[] cipherTextBytes = null;
+			byte[] key=null;
+			var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
+
+			using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
+			{
+				key = password.GetBytes(Keysize / 8);
+				using (var aes = CreateAES())
+				{
+					aes.GenerateIV();
+					iv = aes.IV;
+					using (var encryptor = aes.CreateEncryptor(key, iv))
+					{
+						using (var memoryStream = new MemoryStream())
+						{
+							using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
+							{
+								cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
+								cryptoStream.FlushFinalBlock();
+								cryptoStream.Close();
+							}
+							cipherTextBytes = memoryStream.ToArray();
+						}
+					}
+				}
+			}
+
+			using(var memoryStream = new MemoryStream())
+			{
+				using(var writer = new BinaryWriter(memoryStream))
+				{
+					writer.Write(salt);
+					writer.Write(iv);
+					using (var hmac = new HMACSHA256(key))
+					{
+						var authenticationCode = hmac.ComputeHash(cipherTextBytes);
+						writer.Write(authenticationCode);
+					}
+					writer.Write(cipherTextBytes);
+					writer.Flush();
+				}
+
+				var cipherTextWithAuthBytes = memoryStream.ToArray();
+				memoryStream.Close();
+				return Convert.ToBase64String(cipherTextWithAuthBytes);
+			}
+		}
+
+		public static string Decrypt(string cipherText, string passPhrase)
+		{
+			var cipherTextBytesWithSaltAndIv = Convert.FromBase64String(cipherText);
+			byte[] key=null;
+			byte[] iv=null;		
+
+			using (var memoryStream = new MemoryStream(cipherTextBytesWithSaltAndIv))
+			{
+				var cipherLength = 0;
+				using (var reader = new BinaryReader(memoryStream))
+				{
+					var salt = reader.ReadBytes(Keysize / 8);
+					iv = reader.ReadBytes(Keysize / 8);
+					var authenticationCode = reader.ReadBytes(32);
+					cipherLength = (int)(memoryStream.Length-memoryStream.Position);
+					var cipher = reader.ReadBytes(cipherLength);
+
+					using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
+					{
+						key = password.GetBytes(Keysize / 8);
+					}
+
+					using (var hmac = new HMACSHA256(key))
+					{
+						var calculatedAuthenticationCode = hmac.ComputeHash(cipher);
+						for(var i=0; i< calculatedAuthenticationCode.Length; i++){
+							if(calculatedAuthenticationCode[i] != authenticationCode[i])
+							{
+								throw new CryptographicException("Message Authentication failed. Message has been modified or wrong password");
+							}
+						}
+					}
+				}
+
+				using (var aes = CreateAES())
+				{
+					using (var decryptor = aes.CreateDecryptor(key, iv))
+					{
+						memoryStream.Seek(cipherLength, SeekOrigin.End);
+						using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+						{
+							var plainTextBytes = new byte[memoryStream.Length - memoryStream.Position];
+							var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
+							memoryStream.Close();
+							cryptoStream.Close();
+							return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
+						}
+					}
+				}
+			}
+		}
+
 		private static AesManaged CreateAES()
 		{
 			var aes = new AesManaged();
@@ -25,74 +131,6 @@ namespace MagicalCryptoWallet.Crypto
 			aes.Padding = PaddingMode.PKCS7;
 			return aes;
 		}
-
-		public static string Encrypt(string plainText, string passPhrase)
-		{
-			// Salt is randomly generated each time, but is preprended to encrypted cipher text
-			// so that the same Salt value can be used when decrypting.  
-			var saltStringBytes = Generate128BitsOfRandomEntropy();
-
-			var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
-			using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations))
-			{
-				var keyBytes = password.GetBytes(Keysize / 8);
-				using (var aes = CreateAES())
-				{
-					aes.GenerateIV();
-					using (var encryptor = aes.CreateEncryptor(keyBytes, aes.IV))
-					{
-						using (var memoryStream = new MemoryStream())
-						{
-							memoryStream.Write(saltStringBytes, 0, saltStringBytes.Length);
-							memoryStream.Write(aes.IV, 0, aes.IV.Length);
-							using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
-							{
-								cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
-								cryptoStream.FlushFinalBlock();
-								cryptoStream.Close();
-							}
-							var cipherTextBytes = memoryStream.ToArray();
-							memoryStream.Close();
-							return Convert.ToBase64String(cipherTextBytes);
-						}
-					}
-				}
-			}
-		}
-
-		public static string Decrypt(string cipherText, string passPhrase)
-		{
-			var cipherTextBytesWithSaltAndIv = Convert.FromBase64String(cipherText);
-
-			using (var memoryStream = new MemoryStream(cipherTextBytesWithSaltAndIv))
-			{
-				using (var reader = new BinaryReader(memoryStream))
-				{
-					var saltStringBytes = reader.ReadBytes(Keysize / 8);
-
-					using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations))
-					{
-						var keyBytes = password.GetBytes(Keysize / 8);
-						using (var aes = CreateAES())
-						{
-							var ivStringBytes = reader.ReadBytes(Keysize / 8);
-							using (var decryptor = aes.CreateDecryptor(keyBytes, ivStringBytes))
-							{
-								using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
-								{
-									var plainTextBytes = new byte[memoryStream.Length - memoryStream.Position];
-									var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
-									memoryStream.Close();
-									cryptoStream.Close();
-									return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
 
 		private static byte[] Generate128BitsOfRandomEntropy()
 		{
