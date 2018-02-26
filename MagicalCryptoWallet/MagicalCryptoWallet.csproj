@@ -19,7 +19,6 @@
     <PackageReference Include="ConcurrentHashSet" Version="1.0.2" />
     <PackageReference Include="NBitcoin" Version="4.0.0.56" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
