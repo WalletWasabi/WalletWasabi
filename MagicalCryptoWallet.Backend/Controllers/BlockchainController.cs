@@ -170,7 +170,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 				}
 
 				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetSlidingExpiration(TimeSpan.FromSeconds(10));
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
 
 				_cache.Set(nameof(GetExchangeRatesAsync), exchangeRates, cacheEntryOptions);
 			}
