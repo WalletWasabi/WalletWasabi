@@ -61,11 +61,19 @@ namespace MagicalCryptoWallet.Backend.Controllers
 				return BadRequest($"Invalid {nameof(confirmationTargets)} are specified.");
 			}
 
-			var confirmationTargetsInts = Array.ConvertAll(confirmationTargets.Split(',', StringSplitOptions.RemoveEmptyEntries), x => int.Parse(x));					
-
-			if (confirmationTargetsInts.Any(x => x < 2 || x > 1008))
+			var confirmationTargetsInts = new HashSet<int>();
+			foreach(var targetParam in confirmationTargets.Split(',', StringSplitOptions.RemoveEmptyEntries))
 			{
-				return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
+				if(int.TryParse(targetParam, out var target))
+				{
+					if(target >= 2 && target <= 1008)
+					{
+						if(confirmationTargetsInts.Contains(target)) 
+							continue;
+						confirmationTargetsInts.Add(target);					
+					}
+					return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
+				}
 			}
 
 			var feeEstimations = new SortedDictionary<int, FeeEstimationPair>();
