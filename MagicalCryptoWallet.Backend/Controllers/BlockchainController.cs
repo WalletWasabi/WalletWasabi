@@ -66,8 +66,9 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			{
 				return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
 			}
-			
+
 			var feeEstimations = new SortedDictionary<int, FeeEstimationPair>();
+
 			foreach (int target in confirmationTargetsInts)
 			{
 				if (Network != Network.RegTest)
@@ -76,8 +77,8 @@ namespace MagicalCryptoWallet.Backend.Controllers
 					// 1. Use the sanity check that under 5 satoshi per bytes should not be displayed.
 					// 2. Use the RPCResponse.Blocks output to avoid redundant RPC queries.
 					// 3. Implement caching.
-					var conservativeResponse = await RpcClient.EstimateSmartFeeAsync(target, EstimateSmartFeeMode.Conservative);
-					var economicalResponse = await RpcClient.EstimateSmartFeeAsync(target, EstimateSmartFeeMode.Economical);
+					var conservativeResponse = await GetEstimateSmartFeeAsync(target, EstimateSmartFeeMode.Conservative);
+					var economicalResponse = await GetEstimateSmartFeeAsync(target, EstimateSmartFeeMode.Economical);
 					var conservativeFee = conservativeResponse.FeeRate.FeePerK.Satoshi / 1000;
 					var economicalFee = economicalResponse.FeeRate.FeePerK.Satoshi / 1000;
 
@@ -212,6 +213,25 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			};
 
 			return Ok(filters);
+		}
+
+		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
+		{
+			EstimateSmartFeeResponse feeResponse=null;
+
+			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{Enum.GetName(typeof(EstimateSmartFeeMode), mode)}";
+
+			if (!_cache.TryGetValue(cacheKey, out feeResponse))
+			{
+				feeResponse = await RpcClient.EstimateSmartFeeAsync(target, mode);
+
+				var cacheEntryOptions = new MemoryCacheEntryOptions()
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
+
+				_cache.Set(cacheKey, feeResponse, cacheEntryOptions);
+			}
+
+			return feeResponse;
 		}
 	}
 }
