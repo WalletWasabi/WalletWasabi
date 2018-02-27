@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using MagicalCryptoWallet.Backend.Models;
 using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.Logging;
+using MagicalCryptoWallet.WebClients;
 using MagicalCryptoWallet.WebClients.SmartBit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
 
@@ -20,8 +22,17 @@ namespace MagicalCryptoWallet.Backend.Controllers
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/v1/btc/[controller]")]
-    public class BlockchainController : Controller
+	public class BlockchainController : Controller
 	{
+		private readonly IMemoryCache _cache;
+		private readonly IExchangeRateProvider _exchangeRateProvider;
+
+		public BlockchainController(IMemoryCache memoryCache, IExchangeRateProvider exchangeRateProvider)
+		{
+			_cache = memoryCache;
+			_exchangeRateProvider = exchangeRateProvider;
+		}
+
 		private static RPCClient RpcClient => Global.RpcClient;
 
 		private static Network Network => Global.Config.Network;
@@ -145,22 +156,26 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// <response code="200">Returns an array of exchange rates.</response>
 		[HttpGet("exchange-rates")]
 		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]
+		[ResponseCache(Duration = 60, Location=ResponseCacheLocation.Client)]
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			// ToDo: Implement caching for instant answers.
-			// ToDo: Implement redundancy, call another API if SmartBit fails, if that fails, call another one.
-			using (var client = new SmartBitClient(Network, disposeHandler: true))
+			List<ExchangeRate> exchangeRates;
+
+			if (!_cache.TryGetValue(nameof(GetExchangeRatesAsync), out exchangeRates))
 			{
-				var rates = await client.GetExchangeRatesAsync(CancellationToken.None);
-				var rate = rates.Single(x => x.Code == "USD");
+				exchangeRates = await _exchangeRateProvider.GetExchangeRateAsync();
 
-				var exchangeRates = new List<ExchangeRate>
-				{
-					new ExchangeRate() { Rate = rate.Rate, Ticker = "USD" },
-				};
+				if(exchangeRates == null){
+					throw new HttpRequestException("BTC/USD exchange rate is not available.");
+				}
 
-				return exchangeRates;
+				var cacheEntryOptions = new MemoryCacheEntryOptions()
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
+
+				_cache.Set(nameof(GetExchangeRatesAsync), exchangeRates, cacheEntryOptions);
 			}
+
+			return exchangeRates;
 		}
 
 		/// <summary>
