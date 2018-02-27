@@ -53,6 +53,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		[HttpGet("fees/{confirmationTargets}")]
 		[ProducesResponseType(200)] // Note: If you add typeof(SortedDictionary<int, FeeEstimationPair>) then swagger UI will visualize incorrectly.
 		[ProducesResponseType(400)]
+		[ResponseCache(Duration = 60, Location=ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetFeesAsync(string confirmationTargets)
 		{
 			if(string.IsNullOrWhiteSpace(confirmationTargets) || !ModelState.IsValid)
