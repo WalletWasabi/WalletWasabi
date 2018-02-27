@@ -54,7 +54,7 @@ namespace MagicalCryptoWallet.Backend
 				   {
 					   UserPassword = new NetworkCredential(Config.BitcoinRpcUser, Config.BitcoinRpcPassword)
 				   },
-				   host: "http://127.0.0.1:18443/",
+				   host: "http://127.0.0.1:18332/",
 				   network: Config.Network);
 			}
 

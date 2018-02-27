@@ -22,13 +22,15 @@ namespace MagicalCryptoWallet.Backend.Controllers
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/v1/btc/[controller]")]
-    public class BlockchainController : Controller
+	public class BlockchainController : Controller
 	{
-    	private readonly IMemoryCache _cache;
+		private readonly IMemoryCache _cache;
+		private readonly IExchangeRateProvider _exchangeRateProvider;
 
-		public BlockchainController(IMemoryCache memoryCache)
+		public BlockchainController(IMemoryCache memoryCache, IExchangeRateProvider exchangeRateProvider)
 		{
 			_cache = memoryCache;
+			_exchangeRateProvider = exchangeRateProvider;
 		}
 
 		private static RPCClient RpcClient => Global.RpcClient;
@@ -157,25 +159,14 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		[ResponseCache(Duration = 60, Location=ResponseCacheLocation.Client)]
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			 List<ExchangeRate> exchangeRates;
+			List<ExchangeRate> exchangeRates;
 
 			if (!_cache.TryGetValue(nameof(GetExchangeRatesAsync), out exchangeRates))
 			{
-				var exchangeRateProviders = new IExchangeRateProvider[]{
-					new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main, disposeHandler: true)),
-					new BlockchainInfoExchangeRateProvider()
-					// TODO: More Providers. Which ones?
-				};
+				exchangeRates = await _exchangeRateProvider.GetExchangeRateAsync();
 
-				foreach(var provider in exchangeRateProviders)
-				{
-					try
-					{
-						exchangeRates = await provider.GetExchangeRateAsync();
-						break;
-					}catch(Exception){
-						// Ignore it and try with the next one
-					}
+				if(exchangeRates == null){
+					throw new HttpRequestException("BTC/USD exchange rate is not available.");
 				}
 
 				var cacheEntryOptions = new MemoryCacheEntryOptions()

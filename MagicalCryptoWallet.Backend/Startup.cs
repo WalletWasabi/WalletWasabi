@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using MagicalCryptoWallet.WebClients;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -38,6 +39,8 @@ namespace MagicalCryptoWallet.Backend
 				var xmlPath = Path.Combine(basePath, "MagicalCryptoWallet.Backend.xml");
 				c.IncludeXmlComments(xmlPath);
 			});
+
+			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider() );
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
