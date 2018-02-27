@@ -66,13 +66,12 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			{
 				if(int.TryParse(targetParam, out var target))
 				{
-					if(target >= 2 && target <= 1008)
-					{
-						if(confirmationTargetsInts.Contains(target)) 
-							continue;
-						confirmationTargetsInts.Add(target);					
-					}
-					return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
+					if(target < 2 || target > 1008)
+						return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
+
+					if(confirmationTargetsInts.Contains(target)) 
+						continue;
+					confirmationTargetsInts.Add(target);
 				}
 			}
 
@@ -80,7 +79,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 
 			foreach (int target in confirmationTargetsInts)
 			{
-				if (Network != Network.RegTest)
+				if (Network == Network.RegTest)
 				{
 					// ToDo: This is the most naive way to implement this.
 					// 1. Use the sanity check that under 5 satoshi per bytes should not be displayed.
