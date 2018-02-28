@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 
 namespace MagicalCryptoWallet.Services
 {
-    public class WalletService : IDisposable
-    {
+	public class WalletService
+	{
 		#region MembersAndProperties
 
 		public Network Network { get; }
@@ -22,14 +22,7 @@ namespace MagicalCryptoWallet.Services
 
 		public string WorkFolderPath { get; }
 
-		public NodeConnectionParameters ConnectionParameters { get; }
-
-		public string AddressManagerFilePath { get; }
-		
-		// ToDo: Does it work with RegTest? Or at least acts like it does.
-		public AddressManager AddressManager { get; set; }
-
-		public NodesGroup Nodes { get; set; }
+		public NodesGroup Nodes { get; }
 
 		public MemPoolService MemPoolService { get; }
 
@@ -37,86 +30,15 @@ namespace MagicalCryptoWallet.Services
 
 		#region ConstructorsAndInitializers
 
-		public WalletService(string workFolderPath, Network network, KeyManager keyManager)
+		public WalletService(string workFolderPath, Network network, KeyManager keyManager, NodesGroup nodes, MemPoolService mempoolService)
 		{
 			WorkFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath);
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
+			Nodes = Guard.NotNull(nameof(nodes), nodes);
+			MemPoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 
-			AddressManagerFilePath = Path.Combine(WorkFolderPath, $"AddressManager{Network}.dat");
-			ConnectionParameters = new NodeConnectionParameters();
 			Directory.CreateDirectory(WorkFolderPath);
-
-			try
-			{
-				AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
-				Logger.LogInfo<WalletService>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
-			}
-			catch (FileNotFoundException ex)
-			{
-				Logger.LogInfo<WalletService>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-				Logger.LogTrace<WalletService>(ex);
-				AddressManager = new AddressManager();
-			}
-
-			//So we find nodes faster
-			ConnectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(AddressManager));
-			MemPoolService = new MemPoolService();
-			ConnectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
-
-			Nodes = new NodesGroup(Network, ConnectionParameters,
-				new NodeRequirement
-				{
-					RequiredServices = NodeServices.Network,
-					MinVersion = ProtocolVersion.WITNESS_VERSION
-				});
-		}
-
-		public void Start()
-		{
-			Nodes.Connect();
-		}
-
-		#endregion
-
-
-		#region Disposing
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					try
-					{
-						AddressManager.SavePeerFile(AddressManagerFilePath, Network);
-						Logger.LogInfo<WalletService>($"Saved {nameof(AddressManager)} to `{AddressManagerFilePath}`.");
-						Nodes?.Dispose();
-					}
-					catch (Exception ex)
-					{
-						Logger.LogWarning<WalletService>(ex);
-					}
-				}
-
-				_disposedValue = true;
-			}
-		}
-		
-		// ~WalletService() {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-			// GC.SuppressFinalize(this);
 		}
 
 		#endregion
