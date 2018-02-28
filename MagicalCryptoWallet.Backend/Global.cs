@@ -38,25 +38,12 @@ namespace MagicalCryptoWallet.Backend
 
 			await InitializeConfigAsync();
 
-			if (Config.Network != Network.RegTest)
-			{
-				RpcClient = new RPCClient(
+			RpcClient = new RPCClient(
 					credentials: new RPCCredentialString
 					{
 						UserPassword = new NetworkCredential(Config.BitcoinRpcUser, Config.BitcoinRpcPassword)
 					},
 					network: Config.Network);
-			}
-			else // Bitcoin Core 0.16 changed the RegTest port, NBitcoin is not up to date with it yet:
-			{
-				RpcClient = new RPCClient(
-				   credentials: new RPCCredentialString
-				   {
-					   UserPassword = new NetworkCredential(Config.BitcoinRpcUser, Config.BitcoinRpcPassword)
-				   },
-				   host: "http://127.0.0.1:18443/",
-				   network: Config.Network);
-			}
 
 			await AssertRpcNodeFullyInitializedAsync();
 		}

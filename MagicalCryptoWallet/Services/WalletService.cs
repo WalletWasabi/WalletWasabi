@@ -44,11 +44,7 @@ namespace MagicalCryptoWallet.Services
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 
 			AddressManagerFilePath = Path.Combine(WorkFolderPath, $"AddressManager{Network}.dat");
-			ConnectionParameters = new NodeConnectionParameters()
-			{
-				ReceiveBufferSize = 100 * 5000,
-				SendBufferSize = 100 * 1000
-			};
+			ConnectionParameters = new NodeConnectionParameters();
 			Directory.CreateDirectory(WorkFolderPath);
 
 			try
