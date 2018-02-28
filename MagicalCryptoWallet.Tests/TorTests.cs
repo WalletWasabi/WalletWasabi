@@ -224,11 +224,14 @@ namespace MagicalCryptoWallet.Tests
 		[Fact]
 		public async Task CanRequestOnionAsync()
 		{
-			using (var client = new TorHttpClient(new Uri("http://msydqstlz2kzerdg.onion/")))
+			using (var client = new TorHttpClient(new Uri("https://www.facebookcorewwwi.onion/")))
 			{
-				var content = await (await client.SendAsync(HttpMethod.Get, "")).Content.ReadAsStringAsync();
+				HttpResponseMessage response = await client.SendAsync(HttpMethod.Get, "");
+				var content = await response.Content.ReadAsStringAsync();
 
-				Assert.Contains("Learn more about Ahmia and its team", content);
+				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+				Assert.Contains("facebook", content, StringComparison.OrdinalIgnoreCase);
 			}
 		}
 
