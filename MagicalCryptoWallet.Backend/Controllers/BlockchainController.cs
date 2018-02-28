@@ -79,7 +79,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 
 			foreach (int target in confirmationTargetsInts)
 			{
-				if (Network == Network.RegTest)
+				if (Network != Network.RegTest)
 				{
 					// ToDo: This is the most naive way to implement this.
 					// 1. Use the sanity check that under 5 satoshi per bytes should not be displayed.
