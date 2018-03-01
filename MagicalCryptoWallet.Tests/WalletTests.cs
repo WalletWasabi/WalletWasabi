@@ -109,9 +109,9 @@ namespace MagicalCryptoWallet.Tests
 						}
 
 						times = 0;
-						while (Interlocked.Read(ref _mempoolTransactionCount) < 7)
+						while (Interlocked.Read(ref _mempoolTransactionCount) < 3)
 						{
-							if (times > 1800) // 3 minutes
+							if (times > 3000) // 3 minutes
 							{
 								throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
 							}
