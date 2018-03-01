@@ -2,6 +2,7 @@
 using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.Http.Models;
 using MagicalCryptoWallet.Logging;
+using MagicalCryptoWallet.TorSocks5.Models.Fields.OctetFields;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -73,12 +74,25 @@ namespace MagicalCryptoWallet.TorSocks5
 				}
 				catch (Exception ex)
 				{
-					Logger.LogDebug<TorHttpClient>(ex);
+					Logger.LogTrace<TorHttpClient>(ex);
 
 					TorSocks5Client?.Dispose(); // rebuild the connection and retry
 					TorSocks5Client = null;
 
-					return await SendAsync(request);
+					try
+					{
+						return await SendAsync(request);
+					}
+					// If we get ttlexpired then retry again linux sometimes do this.
+					catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
+					{
+						Logger.LogTrace<TorHttpClient>(ex);
+
+						TorSocks5Client?.Dispose(); // rebuild the connection and retry
+						TorSocks5Client = null;
+
+						return await SendAsync(request);
+					}
 				}
 			}
 		}
