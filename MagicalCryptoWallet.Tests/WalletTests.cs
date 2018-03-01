@@ -131,6 +131,7 @@ namespace MagicalCryptoWallet.Tests
 								await Task.Delay(100);
 								times++;
 							}
+							Logger.LogInfo<WalletTests>($"Full block is downloaded: {hash}.");
 						}
 					}
 					finally
