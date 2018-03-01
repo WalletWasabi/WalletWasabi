@@ -1,5 +1,7 @@
 ﻿using MagicalCryptoWallet.WebClients.BlockCypher;
+using MagicalCryptoWallet.WebClients.BlockCypher.Models;
 using MagicalCryptoWallet.WebClients.SmartBit;
+using MagicalCryptoWallet.WebClients.SmartBit.Models;
 using NBitcoin;
 using System;
 using System.Collections.Generic;
@@ -22,7 +24,16 @@ namespace MagicalCryptoWallet.Tests
 			var network = Network.GetNetwork(networkString);
 			using (var client = new SmartBitClient(network))
 			{
-				var rates = (await client.GetExchangeRatesAsync(CancellationToken.None));
+				IEnumerable<SmartBitExchangeRate> rates = null;
+				try
+				{
+					rates = await client.GetExchangeRatesAsync(CancellationToken.None);
+				}
+				catch // stupid CI internet conenction sometimes fails
+				{
+					await Task.Delay(3000);
+					rates = await client.GetExchangeRatesAsync(CancellationToken.None);
+				}
 
 				Assert.Contains("AUD", rates.Select(x => x.Code));
 				Assert.Contains("USD", rates.Select(x => x.Code));
@@ -39,7 +50,16 @@ namespace MagicalCryptoWallet.Tests
 			var network = Network.GetNetwork(networkString);
 			using (var client = new BlockCypherClient(network))
 			{
-				var response = await client.GetGeneralInformationAsync(CancellationToken.None);
+				BlockCypherGeneralInformation response = null;
+				try
+				{
+					response = await client.GetGeneralInformationAsync(CancellationToken.None);
+				}
+				catch // stupid CI internet conenction sometimes fails
+				{
+					await Task.Delay(3000);
+					response = await client.GetGeneralInformationAsync(CancellationToken.None);
+				}
 				Assert.NotNull(response.Hash);
 				Assert.NotNull(response.LastForkHash);
 				Assert.NotNull(response.PreviousHash);
