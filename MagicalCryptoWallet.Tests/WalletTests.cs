@@ -30,6 +30,23 @@ namespace MagicalCryptoWallet.Tests
 		public async Task TestServicesAsync(string networkString)
 		{
 			var network = Network.GetNetwork(networkString);
+			var blocksToDownload = new HashSet<uint256>();
+			if(network == Network.Main)
+			{
+				blocksToDownload.Add(new uint256("00000000000000000037c2de35bd85f3e57f14ddd741ce6cee5b28e51473d5d0"));
+				blocksToDownload.Add(new uint256("000000000000000000115315a43cb0cdfc4ea54a0e92bed127f4e395e718d8f9"));
+				blocksToDownload.Add(new uint256("00000000000000000011b5b042ad0522b69aae36f7de796f563c895714bbd629"));
+			}
+			else if(network == Network.TestNet)
+			{
+				blocksToDownload.Add(new uint256("0000000097a664c4084b49faa6fd4417055cb8e5aac480abc31ddc57a8208524"));
+				blocksToDownload.Add(new uint256("000000009ed5b82259ecd2aa4cd1f119db8da7a70e7ea78d9c9f603e01f93bcc"));
+				blocksToDownload.Add(new uint256("00000000e6da8c2da304e9f5ad99c079df2c3803b49efded3061ecaf206ddc66"));
+			}
+			else
+			{
+				throw new NotSupportedException(network.ToString());
+			}
 
 			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
 			var dataFolder = Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync));
@@ -38,6 +55,7 @@ namespace MagicalCryptoWallet.Tests
 			var addressManagerFilePath = Path.Combine(SharedFixture.DataDir, $"AddressManager{network}.dat");
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager addressManager = null;
+			BlockDownloader downloader = null;
 			try
 			{
 				try
@@ -63,6 +81,12 @@ namespace MagicalCryptoWallet.Tests
 						MinVersion = ProtocolVersion.WITNESS_VERSION
 					}))
 				{
+					downloader = new BlockDownloader(nodes);
+					downloader.Start();
+					foreach(var hash in blocksToDownload)
+					{
+						downloader.TryQueToDownload(hash);
+					}
 					var wallet = new WalletService(dataFolder, network, manager, nodes, memPoolService);
 					try
 					{
@@ -94,6 +118,20 @@ namespace MagicalCryptoWallet.Tests
 							await Task.Delay(100);
 							times++;
 						}
+
+						foreach(var hash in blocksToDownload)
+						{
+							times = 0;
+							while (downloader.TryGetBlock(hash) == null)
+							{
+								if (times > 1800) // 3 minutes
+								{
+									throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
+								}
+								await Task.Delay(100);
+								times++;
+							}
+						}
 					}
 					finally
 					{
@@ -105,6 +143,10 @@ namespace MagicalCryptoWallet.Tests
 			}
 			finally
 			{
+				if (downloader != null)
+				{
+					await downloader.StopAsync();
+				}
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
 				Logger.LogInfo<WalletTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 			}
