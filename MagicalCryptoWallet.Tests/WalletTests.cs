@@ -126,7 +126,7 @@ namespace MagicalCryptoWallet.Tests
 							{
 								if (times > 1800) // 3 minutes
 								{
-									throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
+									throw new TimeoutException($"{nameof(BlockDownloader)} test timed out.");
 								}
 								await Task.Delay(100);
 								times++;
