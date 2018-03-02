@@ -166,14 +166,9 @@ namespace MagicalCryptoWallet.Services
 			);
 		}
 
-		public async Task StopAsync()
+		public void Stop()
 		{
 			Interlocked.Exchange(ref _running, 0);
-
-			while(IsRunning)
-			{
-				await Task.Delay(10);
-			}
 		}
 
 		public void TryQueToDownload(uint256 hash)

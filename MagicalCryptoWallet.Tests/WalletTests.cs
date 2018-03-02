@@ -144,10 +144,7 @@ namespace MagicalCryptoWallet.Tests
 			}
 			finally
 			{
-				if (downloader != null)
-				{
-					await downloader.StopAsync();
-				}
+				downloader?.Stop();
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
 				Logger.LogInfo<WalletTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 			}
