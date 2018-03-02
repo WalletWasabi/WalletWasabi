@@ -83,7 +83,7 @@ namespace MagicalCryptoWallet.TorSocks5
 					{
 						return await SendAsync(request);
 					}
-					// If we get ttlexpired then retry again linux sometimes do this.
+					// If we get ttlexpired then wait and retry again linux often do this.
 					catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
 					{
 						Logger.LogTrace<TorHttpClient>(ex);
@@ -91,6 +91,7 @@ namespace MagicalCryptoWallet.TorSocks5
 						TorSocks5Client?.Dispose(); // rebuild the connection and retry
 						TorSocks5Client = null;
 
+						await Task.Delay(1000);
 						return await SendAsync(request);
 					}
 				}
