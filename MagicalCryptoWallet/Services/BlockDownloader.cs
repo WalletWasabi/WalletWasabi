@@ -188,7 +188,7 @@ namespace MagicalCryptoWallet.Services
 			Interlocked.Exchange(ref _running, 0);
 		}
 
-		public void TryQueToDownload(uint256 hash)
+		public void QueToDownload(uint256 hash)
 		{
 			using (BlocksFolderLock.Lock())
 			using (BlocksToDownloadLock.Lock())
@@ -206,9 +206,33 @@ namespace MagicalCryptoWallet.Services
 				}
 			}
 		}
-		
+
+		/// <remarks>
+		/// Use it at reorgs.
+		/// </remarks>
+		public void TryRemove(uint256 hash)
+		{
+			using (BlocksFolderLock.Lock())
+			using (BlocksToDownloadLock.Lock())
+			{
+				if(BlocksToDownload.Contains(hash))
+				{
+					BlocksToDownload.Remove(hash);
+				}
+
+				var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
+				var fileNames = filePaths.Select(x => Path.GetFileName(x));
+				var hashes = fileNames.Select(x => new uint256(x));
+
+				if (hashes.Contains(hash))
+				{
+					File.Delete(Path.Combine(BlocksFolderPath, hash.ToString()));
+				}
+			}
+		}
+
 		/// <returns>null if don't have, ques it if not qued</returns>
-		public Block TryGetBlock(uint256 hash)
+		public Block GetBlock(uint256 hash)
 		{
 			using (BlocksFolderLock.Lock())
 			{
@@ -224,7 +248,7 @@ namespace MagicalCryptoWallet.Services
 				}
 			}
 
-			TryQueToDownload(hash);
+			QueToDownload(hash);
 			return default;
 		}
 	}

@@ -87,7 +87,7 @@ namespace MagicalCryptoWallet.Tests
 					downloader.Start();
 					foreach(var hash in blocksToDownload)
 					{
-						downloader.TryQueToDownload(hash);
+						downloader.QueToDownload(hash);
 					}
 					var wallet = new WalletService(dataFolder, network, manager, nodes, memPoolService);
 					try
@@ -124,7 +124,7 @@ namespace MagicalCryptoWallet.Tests
 						foreach(var hash in blocksToDownload)
 						{
 							times = 0;
-							while (downloader.TryGetBlock(hash) == null)
+							while (downloader.GetBlock(hash) == null)
 							{
 								if (times > 1800) // 3 minutes
 								{
@@ -148,7 +148,14 @@ namespace MagicalCryptoWallet.Tests
 			finally
 			{
 				downloader?.Stop();
+
+				// So next test will download the block.
+				foreach (var hash in blocksToDownload) 
+				{
+					downloader.TryRemove(hash);
+				}
 				Directory.Delete(blocksFolderPath, recursive: true);
+
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
 				Logger.LogInfo<WalletTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 			}
