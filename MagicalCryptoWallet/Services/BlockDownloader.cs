@@ -8,6 +8,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -20,10 +21,11 @@ namespace MagicalCryptoWallet.Services
 	{
 		public NodesGroup Nodes { get; }
 
+		public string BlocksFolderPath { get; }
+		private AsyncLock BlocksFolderLock { get; }
+
 		private List<uint256> BlocksToDownload { get; }
 		private AsyncLock BlocksToDownloadLock { get; }
-		private Dictionary<uint256, Block> DownloadedBlocks { get; }
-		private AsyncLock DownloadedBlocksLock { get; }
 
 		private long _running;
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
@@ -41,21 +43,35 @@ namespace MagicalCryptoWallet.Services
 		{
 			get
 			{
-				using (DownloadedBlocksLock.Lock())
+				using (BlocksFolderLock.Lock())
 				{
-					return DownloadedBlocks.Count;
+					return Directory.EnumerateFiles(BlocksFolderPath).Count();
 				}
 			}
 		}
 
-		public BlockDownloader(NodesGroup nodes)
+		public BlockDownloader(NodesGroup nodes, string blocksFolderPath)
 		{
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
+			BlocksFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(blocksFolderPath), blocksFolderPath, trim: true);
+
 			_running = 0;
 			BlocksToDownload = new List<uint256>();
 			BlocksToDownloadLock = new AsyncLock();
-			DownloadedBlocks = new Dictionary<uint256, Block>();
-			DownloadedBlocksLock = new AsyncLock();
+			BlocksFolderLock = new AsyncLock();
+
+			if (Directory.Exists(BlocksFolderPath))
+			{
+				foreach(var blockFilePath in Directory.EnumerateFiles(BlocksFolderPath))
+				{
+					var blockBytes = File.ReadAllBytes(blockFilePath);
+					var block = new Block(blockBytes);
+				}
+			}
+			else
+			{
+				Directory.CreateDirectory(BlocksFolderPath);
+			}
 		}
 
 		public void Start()
@@ -150,11 +166,12 @@ namespace MagicalCryptoWallet.Services
 							continue;
 						}
 
-						using (DownloadedBlocksLock.Lock())
+						using (BlocksFolderLock.Lock())
 						using (BlocksToDownloadLock.Lock())
 						{
-							DownloadedBlocks.Add(hash, block);
 							BlocksToDownload.Remove(hash);
+							var path = Path.Combine(BlocksFolderPath, hash.ToString());
+							await File.WriteAllBytesAsync(path, block.ToBytes());
 						}
 					}
 					catch (Exception ex)
@@ -173,10 +190,14 @@ namespace MagicalCryptoWallet.Services
 
 		public void TryQueToDownload(uint256 hash)
 		{
-			using (DownloadedBlocksLock.Lock())
+			using (BlocksFolderLock.Lock())
 			using (BlocksToDownloadLock.Lock())
 			{
-				if (!DownloadedBlocks.ContainsKey(hash))
+				var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
+				var fileNames = filePaths.Select(x => Path.GetFileName(x));
+				var hashes = fileNames.Select(x => new uint256(x));
+
+				if (!hashes.Contains(hash))
 				{
 					if (!BlocksToDownload.Contains(hash))
 					{
@@ -189,12 +210,17 @@ namespace MagicalCryptoWallet.Services
 		/// <returns>null if don't have, ques it if not qued</returns>
 		public Block TryGetBlock(uint256 hash)
 		{
-			using (DownloadedBlocksLock.Lock())
+			using (BlocksFolderLock.Lock())
 			{
-				var block = DownloadedBlocks.SingleOrDefault(x => x.Key == hash).Value;
-				if(block != default(Block))
+				foreach(var filePath in Directory.EnumerateFiles(BlocksFolderPath))
 				{
-					return block;
+					var fileName = Path.GetFileName(filePath);
+					if(hash == new uint256(fileName))
+					{
+						var blockBytes = File.ReadAllBytes(filePath);
+						var block = new Block(blockBytes);
+						return block;
+					}
 				}
 			}
 

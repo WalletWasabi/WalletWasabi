@@ -53,6 +53,7 @@ namespace MagicalCryptoWallet.Tests
 			Directory.CreateDirectory(SharedFixture.DataDir);
 
 			var addressManagerFilePath = Path.Combine(SharedFixture.DataDir, $"AddressManager{network}.dat");
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, $"Blocks{network}");
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager addressManager = null;
 			BlockDownloader downloader = null;
@@ -81,7 +82,8 @@ namespace MagicalCryptoWallet.Tests
 						MinVersion = ProtocolVersion.WITNESS_VERSION
 					}))
 				{
-					downloader = new BlockDownloader(nodes);
+					downloader = new BlockDownloader(nodes, blocksFolderPath);
+					Assert.True(Directory.Exists(blocksFolderPath));
 					downloader.Start();
 					foreach(var hash in blocksToDownload)
 					{
@@ -131,6 +133,7 @@ namespace MagicalCryptoWallet.Tests
 								await Task.Delay(100);
 								times++;
 							}
+							Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
 							Logger.LogInfo<WalletTests>($"Full block is downloaded: {hash}.");
 						}
 					}
@@ -145,6 +148,7 @@ namespace MagicalCryptoWallet.Tests
 			finally
 			{
 				downloader?.Stop();
+				Directory.Delete(blocksFolderPath, recursive: true);
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
 				Logger.LogInfo<WalletTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 			}
