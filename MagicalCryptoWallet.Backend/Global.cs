@@ -1,5 +1,6 @@
 ﻿using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.Logging;
+using MagicalCryptoWallet.Services;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
@@ -30,6 +31,8 @@ namespace MagicalCryptoWallet.Backend
 
 		public static RPCClient RpcClient { get; private set; }
 
+		public static IndexBuilderService IndexBuilderService { get; private set; }
+
 		public static Config Config { get; private set; }
 
 		public async static Task InitializeAsync()
@@ -46,6 +49,11 @@ namespace MagicalCryptoWallet.Backend
 					network: Config.Network);
 
 			await AssertRpcNodeFullyInitializedAsync();
+
+			var indexFilePath = Path.Combine(DataDir, $"Index{RpcClient.Network}.dat");
+			var utxoSetFilePath = Path.Combine(DataDir, $"UtxoSet{RpcClient.Network}.dat");
+			IndexBuilderService = new IndexBuilderService(RpcClient, indexFilePath, utxoSetFilePath);
+			IndexBuilderService.Syncronize();
 		}
 
 		public static async Task InitializeConfigAsync()

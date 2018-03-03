@@ -12,8 +12,10 @@ namespace MagicalCryptoWallet.Backend
 		{
 			var key = block.GetHash().ToBytes();
 
-			var buffer = new List<byte[]>();
-			buffer.Add(key);
+			var buffer = new List<byte[]>
+			{
+				key
+			};
 
 			foreach (var tx in block.Transactions)
 			{
