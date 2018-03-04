@@ -2,12 +2,14 @@
 using MagicalCryptoWallet.Logging;
 using MagicalCryptoWallet.Models;
 using MagicalCryptoWallet.Services;
+using MagicalCryptoWallet.Tests.NodeBuilding;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -192,6 +194,22 @@ namespace MagicalCryptoWallet.Tests
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
 			Logger.LogInfo<WalletTests>($"Mempool transaction received: {e.GetHash()}.");
+		}
+
+		[Fact]
+		public async Task NodeBuilderTestAsync()
+		{
+			using (var builder = NodeBuilder.Create())
+			{
+				var client = builder.CreateNode().CreateRESTClient();
+				builder.StartAll();
+				builder.Nodes[0].Generate(1);
+				var block = builder.Nodes[0].CreateRPCClient().GetBestBlockHash();
+				var txId = builder.Nodes[0].CreateRPCClient().GetBlock(block).Transactions[0].GetHash();
+				var tx = await client.GetTransactionAsync(txId);
+				Assert.True(tx.IsCoinBase);
+				Assert.Equal(Money.Coins(50), tx.TotalOut);
+			}
 		}
 	}
 }
