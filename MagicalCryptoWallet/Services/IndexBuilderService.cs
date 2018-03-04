@@ -127,6 +127,7 @@ namespace MagicalCryptoWallet.Services
 							if (Index.Count != 0)
 							{
 								height = Index.Last().BlockHeight.Value + 1;
+								prevHash = Index.Last().BlockHash;
 							}
 						}
 
