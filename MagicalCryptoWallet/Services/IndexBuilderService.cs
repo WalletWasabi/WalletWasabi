@@ -151,8 +151,12 @@ namespace MagicalCryptoWallet.Services
 								using (await IndexLock.LockAsync())
 								{
 									Index.RemoveAt(Index.Count - 1);
-									continue;
 								}
+
+								// remove last line
+								var lines = File.ReadAllLines(IndexFilePath);
+								File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+								continue;
 							}
 						}
 
