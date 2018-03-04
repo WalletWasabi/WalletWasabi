@@ -149,6 +149,7 @@ namespace MagicalCryptoWallet.Services
 							// ToDo: IMPORTANT! The Bech32UtxoSet MUST be recovered to its previous state, too!
 							if (prevHash != block.Header.HashPrevBlock) // reorg
 							{
+								Logger.LogInfo<IndexBuilderService>($"REORG Invalid Block: {prevHash}");
 								using (await IndexLock.LockAsync())
 								{
 									Index.RemoveAt(Index.Count - 1);

@@ -52,7 +52,8 @@ namespace MagicalCryptoWallet.Tests
 			var dataFolder = Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync));
 			Directory.CreateDirectory(SharedFixture.DataDir);
 
-			var addressManagerFilePath = Path.Combine(SharedFixture.DataDir, $"AddressManager{network}.dat");
+			var addressManagerFolderPath = Path.Combine(SharedFixture.DataDir, "AddressManager");
+			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, $"Blocks{network}");
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager addressManager = null;
@@ -63,6 +64,12 @@ namespace MagicalCryptoWallet.Tests
 				{
 					addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
 					Logger.LogInfo<WalletService>($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
+				}
+				catch(DirectoryNotFoundException ex)
+				{
+					Logger.LogInfo<WalletService>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace<WalletService>(ex);
+					addressManager = new AddressManager();
 				}
 				catch (FileNotFoundException ex)
 				{
@@ -152,10 +159,14 @@ namespace MagicalCryptoWallet.Tests
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload) 
 				{
-					downloader.TryRemove(hash);
+					downloader?.TryRemove(hash);
 				}
-				Directory.Delete(blocksFolderPath, recursive: true);
+				if (Directory.Exists(blocksFolderPath))
+				{
+					Directory.Delete(blocksFolderPath, recursive: true);
+				}
 
+				Directory.CreateDirectory(Path.GetDirectoryName(addressManagerFilePath));
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
 				Logger.LogInfo<WalletTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 			}
