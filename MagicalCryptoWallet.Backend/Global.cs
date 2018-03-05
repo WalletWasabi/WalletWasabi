@@ -34,19 +34,33 @@ namespace MagicalCryptoWallet.Backend
 		public static IndexBuilderService IndexBuilderService { get; private set; }
 
 		public static Config Config { get; private set; }
-
-		public async static Task InitializeAsync()
+		
+		public async static Task InitializeAsync(Network network = null, string rpcuser = null, string rpcpassword = null, RPCClient rpc = null)
 		{
 			_dataDir = null;
 
-			await InitializeConfigAsync();
+			if (network != null || rpcuser != null || rpcpassword != null)
+			{
+				Config = new Config(network, rpcuser, rpcpassword);
+			}
+			else
+			{
+				await InitializeConfigAsync();
+			}
 
-			RpcClient = new RPCClient(
-					credentials: new RPCCredentialString
-					{
-						UserPassword = new NetworkCredential(Config.BitcoinRpcUser, Config.BitcoinRpcPassword)
-					},
-					network: Config.Network);
+			if(rpc != null)
+			{
+				RpcClient = rpc;
+			}
+			else
+			{
+				RpcClient = new RPCClient(
+						credentials: new RPCCredentialString
+						{
+							UserPassword = new NetworkCredential(Config.BitcoinRpcUser, Config.BitcoinRpcPassword)
+						},
+						network: Config.Network);
+			}
 
 			await AssertRpcNodeFullyInitializedAsync();
 			
