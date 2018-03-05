@@ -1,4 +1,5 @@
 ﻿using MagicalCryptoWallet.Converters;
+using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.Logging;
 using NBitcoin;
 using Newtonsoft.Json;
@@ -27,6 +28,13 @@ namespace MagicalCryptoWallet.Backend
 		public Config()
 		{
 
+		}
+
+		public Config(Network network, string rpcuser, string rpcpassword)
+		{
+			Network = Guard.NotNull(nameof(network), network);
+			BitcoinRpcUser = Guard.NotNullOrEmptyOrWhitespace(nameof(rpcuser), rpcuser);
+			BitcoinRpcPassword = Guard.NotNull(nameof(rpcpassword), rpcpassword);
 		}
 
 		public async Task ToFileAsync(string path)

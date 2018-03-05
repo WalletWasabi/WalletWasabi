@@ -1,5 +1,9 @@
-﻿using MagicalCryptoWallet.Helpers;
+﻿using MagicalCryptoWallet.Backend;
+using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.Logging;
+using MagicalCryptoWallet.Tests.NodeBuilding;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,9 +26,19 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
+		public string BackendEndPoint { get; internal set; }
+
+		public IWebHost BackendHost { get; internal set; }
+
+		public NodeBuilder BackEndNodeBuilder { get; internal set; }
+
 		public SharedFixture()
 		{
 			// Initialize tests...
+
+			BackendEndPoint = null;
+			BackendHost = null;
+			BackEndNodeBuilder = null;
 
 			Logger.SetFilePath(Path.Combine(DataDir, "Logs.txt"));
 			Logger.SetMinimumLevel(LogLevel.Info);
@@ -34,6 +48,10 @@ namespace MagicalCryptoWallet.Tests
 		public void Dispose()
 		{
 			// Cleanup tests...
+
+			BackendHost?.StopAsync();
+			BackendHost?.Dispose();
+			BackEndNodeBuilder?.Dispose();
 		}
 	}
 }

@@ -53,7 +53,7 @@ namespace MagicalCryptoWallet.Tests
 		{
 			var count = 0;
 			var errorCount = 0;
-			while(count < 10000)
+			while(count < 3)
 			{
 				var password = "password";
 				var plainText = "juan carlos";
