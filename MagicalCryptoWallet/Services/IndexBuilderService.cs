@@ -212,19 +212,29 @@ namespace MagicalCryptoWallet.Services
 
 						if (prevHash != null)
 						{
-							if (prevHash != block.Header.HashPrevBlock) // reorg
+							// In case of reorg:
+							if (prevHash != block.Header.HashPrevBlock)
 							{
 								Logger.LogInfo<IndexBuilderService>($"REORG Invalid Block: {prevHash}");
+								// 1. Rollback index
 								using (await IndexLock.LockAsync())
 								{
 									Index.RemoveAt(Index.Count - 1);
 								}
 
-								// Remove last line.
+								// 2. Serialize Index. (Remove last line.)
 								var lines = File.ReadAllLines(IndexFilePath);
 								File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+
+								// 3. Rollback Bech32UtxoSet
 								Bech32UtxoSetHistory.Rollback(Bech32UtxoSet); // The Bech32UtxoSet MUST be recovered to its previous state.
-								continue; // Skip the current block.
+
+								// 4. Serialize Bech32UtxoSet.
+								await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
+									.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+
+								// 5. Skip the current block.
+								continue;
 							}
 						}
 
