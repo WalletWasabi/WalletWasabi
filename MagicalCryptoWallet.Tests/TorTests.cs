@@ -150,18 +150,6 @@ namespace MagicalCryptoWallet.Tests
 		}
 
 		[Fact]
-		public async Task CanDoBasicRequestAsync()
-		{
-			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja/")))
-			{
-				HttpResponseMessage message = await client.SendAsync(HttpMethod.Get, "whatisit/what%20is%20my%20futur");
-				var content = await message.Content.ReadAsStringAsync();
-
-				Assert.Equal("\"Good question Holmes !\"", content);
-			}
-		}
-
-		[Fact]
 		private async Task TorIpIsNotTheRealOneAsync()
 		{
 			var requestUri = "https://api.ipify.org/";
