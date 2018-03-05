@@ -18,13 +18,13 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-	public class BackendTests : IClassFixture<SharedFixture>
+	public class RegTests : IClassFixture<SharedFixture>
 	{
 		private SharedFixture Fixture { get; }
 
 		private CoreNode SharedRegTestNode { get; }
 
-		public BackendTests(SharedFixture fixture)
+		public RegTests(SharedFixture fixture)
 		{
 			Fixture = fixture;
 

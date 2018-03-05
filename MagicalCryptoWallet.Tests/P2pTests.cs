@@ -19,11 +19,11 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-    public class WalletTests : IClassFixture<SharedFixture>
+    public class P2pTests : IClassFixture<SharedFixture>
 	{
 		private SharedFixture SharedFixture { get; }
 
-		public WalletTests(SharedFixture fixture)
+		public P2pTests(SharedFixture fixture)
 		{
 			SharedFixture = fixture;
 		}
@@ -67,18 +67,18 @@ namespace MagicalCryptoWallet.Tests
 				try
 				{
 					addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
-					Logger.LogInfo<WalletService>($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
+					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
 				}
 				catch(DirectoryNotFoundException ex)
 				{
-					Logger.LogInfo<WalletService>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<WalletService>(ex);
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace<AddressManager>(ex);
 					addressManager = new AddressManager();
 				}
 				catch (FileNotFoundException ex)
 				{
-					Logger.LogInfo<WalletService>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<WalletService>(ex);
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace<AddressManager>(ex);
 					addressManager = new AddressManager();
 				}
 
@@ -100,7 +100,7 @@ namespace MagicalCryptoWallet.Tests
 					{
 						downloader.QueToDownload(hash);
 					}
-					var wallet = new WalletService(dataFolder, network, manager, nodes, memPoolService);
+
 					try
 					{
 						nodes.ConnectedNodes.Added += ConnectedNodes_Added;
@@ -145,7 +145,7 @@ namespace MagicalCryptoWallet.Tests
 								times++;
 							}
 							Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
-							Logger.LogInfo<WalletTests>($"Full block is downloaded: {hash}.");
+							Logger.LogInfo<P2pTests>($"Full block is downloaded: {hash}.");
 						}
 					}
 					finally
@@ -172,7 +172,7 @@ namespace MagicalCryptoWallet.Tests
 
 				Directory.CreateDirectory(Path.GetDirectoryName(addressManagerFilePath));
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
-				Logger.LogInfo<WalletTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
+				Logger.LogInfo<P2pTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 			}
 		}
 
@@ -181,21 +181,21 @@ namespace MagicalCryptoWallet.Tests
 		{
 			var nodes = sender as NodesCollection;
 			Interlocked.Increment(ref _nodeCount);
-			Logger.LogInfo<WalletTests>($"Node count:{Interlocked.Read(ref _nodeCount)}");
+			Logger.LogInfo<P2pTests>($"Node count:{Interlocked.Read(ref _nodeCount)}");
 		}
 		private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
 		{
 			var nodes = sender as NodesCollection;
 			Interlocked.Decrement(ref _nodeCount);
 			// Trace is fine here, building the connections is more exciting than removing them.
-			Logger.LogTrace<WalletTests>($"Node count:{Interlocked.Read(ref _nodeCount)}"); 
+			Logger.LogTrace<P2pTests>($"Node count:{Interlocked.Read(ref _nodeCount)}"); 
 		}
 
 		private long _mempoolTransactionCount = 0;
 		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
-			Logger.LogInfo<WalletTests>($"Mempool transaction received: {e.GetHash()}.");
+			Logger.LogInfo<P2pTests>($"Mempool transaction received: {e.GetHash()}.");
 		}
 
 		[Fact]
