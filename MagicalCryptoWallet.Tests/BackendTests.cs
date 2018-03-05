@@ -47,6 +47,8 @@ namespace MagicalCryptoWallet.Tests
 					.Build();
 				Fixture.BackendHost.RunAsync();
 				Logger.LogInfo<SharedFixture>($"Started Backend webhost: {Fixture.BackendEndPoint}");
+
+				Task.Delay(3000).GetAwaiter().GetResult(); // Wait for server to initialize (Without this OSX CI will fail)
 			}
 		}
 
