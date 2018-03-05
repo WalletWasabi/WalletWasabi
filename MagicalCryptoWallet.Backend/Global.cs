@@ -49,7 +49,7 @@ namespace MagicalCryptoWallet.Backend
 					network: Config.Network);
 
 			await AssertRpcNodeFullyInitializedAsync();
-
+			
 			var indexBuilderServiceDir = Path.Combine(DataDir, nameof(IndexBuilderService));
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
