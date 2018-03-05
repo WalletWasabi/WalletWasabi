@@ -150,7 +150,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				{"rpcpassword", Creds.Password},
 				{"whitebind", "127.0.0.1:" + _ports[0].ToString()},
 				{"rpcport", _ports[1].ToString()},
-				{"printtoconsole", "1"},
+				{"printtoconsole", "0"}, // Set it to one if don't mind loud debug logs
 				{"keypool", "10"}
 			};
 			config.Import(ConfigParameters);
