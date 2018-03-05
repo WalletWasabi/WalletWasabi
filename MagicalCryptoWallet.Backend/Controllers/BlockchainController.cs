@@ -168,13 +168,13 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		[ResponseCache(Duration = 60, Location=ResponseCacheLocation.Client)]
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			List<ExchangeRate> exchangeRates;
 
-			if (!_cache.TryGetValue(nameof(GetExchangeRatesAsync), out exchangeRates))
+			if (!_cache.TryGetValue(nameof(GetExchangeRatesAsync), out List<ExchangeRate> exchangeRates))
 			{
 				exchangeRates = await _exchangeRateProvider.GetExchangeRateAsync();
 
-				if(exchangeRates == null){
+				if (exchangeRates == null)
+				{
 					throw new HttpRequestException("BTC/USD exchange rate is not available.");
 				}
 
@@ -197,8 +197,8 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		///
 		/// </remarks>
 		/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
-		/// <returns>An array of block hash : filter pairs.</returns>
-		/// <response code="200">An array of block hash and filter pairs.</response>
+		/// <returns>An array of block hash : element count : filter pairs.</returns>
+		/// <response code="200">An array of block hash : element count : filter pairs.</response>
 		/// <response code="400">The provided hash was malformed.</response>
 		/// <response code="404">If the hash is not found. This happens at blockhain reorg.</response>
 		[HttpGet("filters/{bestKnownBlockHash}")]
@@ -211,25 +211,24 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			{
 				return BadRequest("Invalid block hash provided.");
 			}
+
+			var knownHash = new uint256(bestKnownBlockHash);
 			
-			// if blockHash is not found, return NotFound
-			var filters = new List<string>
+			var filters = Global.IndexBuilderService.GetFilters(knownHash);
+			if(filters.Count() == 0)
 			{
-				"00000000000000000019dfb706e432fa16494338a583af9ca643e4cfcf466af3IamAFilterThereIsNoSeparationBecauseBlockHashIsConstantSize",
-				"000000000000000000273f2cafd24f69b72b4b694bb9ab7e4c5df17cf9486b34IamAFilterThereIsNoSeparationBecauseBlockHashIsConstantSize2",
-				"0000000000000000005a1ff56e464de63be843f6f335c9a32c478c318c6d084eIamAFilterThereIsNoSeparationBecauseBlockHashIsConstantSize3"
-			};
+				return NotFound($"Provided {nameof(bestKnownBlockHash)} is not found: {bestKnownBlockHash}.");
+			}
 
 			return Ok(filters);
 		}
 
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
 		{
-			EstimateSmartFeeResponse feeResponse=null;
 
 			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{Enum.GetName(typeof(EstimateSmartFeeMode), mode)}";
 
-			if (!_cache.TryGetValue(cacheKey, out feeResponse))
+			if (!_cache.TryGetValue(cacheKey, out EstimateSmartFeeResponse feeResponse))
 			{
 				feeResponse = await RpcClient.EstimateSmartFeeAsync(target, mode);
 
