@@ -18,7 +18,7 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-    public class BackendTests : IClassFixture<SharedFixture>
+	public class BackendTests : IClassFixture<SharedFixture>
 	{
 		private SharedFixture Fixture { get; }
 
@@ -30,7 +30,6 @@ namespace MagicalCryptoWallet.Tests
 
 			if (Fixture.BackEndNodeBuilder == null)
 			{
-
 				Fixture.BackEndNodeBuilder = NodeBuilder.Create();
 				Fixture.BackEndNodeBuilder.CreateNode();
 				Fixture.BackEndNodeBuilder.StartAll();
@@ -62,7 +61,7 @@ namespace MagicalCryptoWallet.Tests
 			var firstHash = Global.RpcClient.GetBlockHash(0);
 			while (true)
 			{
-				using (var client = new HttpClient() { BaseAddress = new Uri(Fixture.BackendEndPoint)})
+				using (var client = new HttpClient() { BaseAddress = new Uri(Fixture.BackendEndPoint) })
 				using (var request = await client.GetAsync("/api/v1/btc/Blockchain/filters/" + firstHash))
 				{
 					var content = await request.Content.ReadAsStringAsync();
