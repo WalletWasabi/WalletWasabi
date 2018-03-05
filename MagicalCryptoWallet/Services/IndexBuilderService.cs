@@ -24,7 +24,67 @@ namespace MagicalCryptoWallet.Services
 		private List<FilterModel> Index { get; }
 		private AsyncLock IndexLock { get; }
 
-		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
+		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; } //Change to observable concurrent dictionary? https://www.nuget.org/packages/ParallelExtensionsExtras/
+
+		
+
+		internal static class ActionHistoryHelper
+		{
+			public enum Operation
+			{
+				Add,
+				Remove
+			}
+			private static readonly List<ActionItem> ActionHistory = new List<ActionItem>();
+
+			public class ActionItem
+			{
+				public Operation Action { get; }
+				public OutPoint OutPoint { get; }
+				public Script Script { get; }
+
+				public ActionItem(Operation action, OutPoint outPoint, Script script )
+				{
+					Action = action;
+					OutPoint = outPoint;
+					Script = script;
+				}
+			}
+
+			public static void ClearActionHistory()
+			{
+				ActionHistory.Clear();
+			}
+
+			public static void StoreAction(ActionItem actionItem)
+			{
+				ActionHistory.Add(actionItem);
+			}
+			public static void StoreAction(Operation action, OutPoint outpoint, Script script)
+			{
+				StoreAction(new ActionItem(action, outpoint, script));
+			}
+
+			public static void Rollback(Dictionary<OutPoint, Script> toRollBack)
+			{
+				for (var i = ActionHistory.Count-1; i >= 0; i--)
+				{
+					ActionItem act = ActionHistory[i];
+					switch (act.Action)
+					{
+						case Operation.Add:
+								toRollBack.Remove(act.OutPoint);	
+							break;
+						case Operation.Remove:
+								toRollBack.Add(act.OutPoint,act.Script);
+							break;
+						default:
+							throw new ArgumentOutOfRangeException();
+					}
+				}
+				ActionHistory.Clear();
+			}
+		}
 
 		public Height StartingHeight // First possible bech32 transaction ever.
 		{
@@ -146,7 +206,6 @@ namespace MagicalCryptoWallet.Services
 
 						if (prevHash != null)
 						{
-							// ToDo: IMPORTANT! The Bech32UtxoSet MUST be recovered to its previous state, too!
 							if (prevHash != block.Header.HashPrevBlock) // reorg
 							{
 								Logger.LogInfo<IndexBuilderService>($"REORG Invalid Block: {prevHash}");
@@ -158,9 +217,12 @@ namespace MagicalCryptoWallet.Services
 								// remove last line
 								var lines = File.ReadAllLines(IndexFilePath);
 								File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
-								continue;
+								ActionHistoryHelper.Rollback(Bech32UtxoSet); //The Bech32UtxoSet MUST be recovered to its previous state
+								continue; //skip the current block
 							}
 						}
+
+						ActionHistoryHelper.ClearActionHistory(); //reset history.
 
 						var scripts = new HashSet<Script>();
 
@@ -171,7 +233,9 @@ namespace MagicalCryptoWallet.Services
 								var output = tx.Outputs[i];
 								if (!output.ScriptPubKey.IsPayToScriptHash && output.ScriptPubKey.IsWitness)
 								{
-									Bech32UtxoSet.Add(new OutPoint(tx.GetHash(), i), output.ScriptPubKey);
+									var outpoint = new OutPoint(tx.GetHash(), i);
+									Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
+									ActionHistoryHelper.StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
 									scripts.Add(output.ScriptPubKey);
 								}
 							}
@@ -181,7 +245,9 @@ namespace MagicalCryptoWallet.Services
 								var found = Bech32UtxoSet.SingleOrDefault(x => x.Key == input.PrevOut);
 								if (found.Key != default)
 								{
+									Script val=Bech32UtxoSet[input.PrevOut];
 									Bech32UtxoSet.Remove(input.PrevOut);
+									ActionHistoryHelper.StoreAction(ActionHistoryHelper.Operation.Remove, input.PrevOut, val);
 									scripts.Add(found.Value);
 								}
 							}
