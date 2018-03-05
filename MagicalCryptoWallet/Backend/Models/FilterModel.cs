@@ -23,6 +23,8 @@ namespace MagicalCryptoWallet.Backend.Models
 				builder.Append(":");
 				builder.Append(Filter.N);
 				builder.Append(":");
+				builder.Append(Filter.Data.Length);
+				builder.Append(":");
 				builder.Append(ByteHelpers.ToHex(Filter.Data.ToByteArray()));
 			}
 
@@ -46,7 +48,9 @@ namespace MagicalCryptoWallet.Backend.Models
 			else
 			{
 				var n = int.Parse(parts[1]);
-				var fba = new FastBitArray(ByteHelpers.FromHex(parts[2]));
+				var fba = new FastBitArray(ByteHelpers.FromHex(parts[3]));
+				fba.Length = int.Parse(parts[2]);
+
 				var filter = new GolombRiceFilter(fba, n);
 
 				return new FilterModel
