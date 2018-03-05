@@ -1,10 +1,12 @@
 ﻿using MagicalCryptoWallet.Backend;
 using MagicalCryptoWallet.Backend.Models;
 using MagicalCryptoWallet.Logging;
+using MagicalCryptoWallet.Services;
 using MagicalCryptoWallet.Tests.NodeBuilding;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using NBitcoin;
+using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System;
@@ -143,6 +145,71 @@ namespace MagicalCryptoWallet.Tests
 				Assert.False(res.IsSuccessStatusCode);
 				Assert.Equal(System.Net.HttpStatusCode.BadRequest, res.StatusCode);
 				Assert.Equal("\"Invalid hex.\"", await res.Content.ReadAsStringAsync());
+			}
+		}
+
+		[Fact]
+		public async Task DownloaderAsync()
+		{
+			var blocksToDownload = new HashSet<uint256>();
+			for (int i = 0; i < 101; i++)
+			{
+				var hash = await Global.RpcClient.GetBlockHashAsync(i);
+				blocksToDownload.Add(hash);
+			}
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(DownloaderAsync), $"Blocks");
+			BlockDownloader downloader = null;
+			try
+			{
+				var connectionParameters = new NodeConnectionParameters();
+				using (var nodes = new NodesGroup(Global.Config.Network, connectionParameters,
+					new NodeRequirement
+					{
+						RequiredServices = NodeServices.Network,
+						MinVersion = ProtocolVersion.WITNESS_VERSION
+					}))
+				{
+					nodes.ConnectedNodes.Add(SharedRegTestNode.CreateNodeClient());
+
+					downloader = new BlockDownloader(nodes, blocksFolderPath);
+					downloader.Start();
+					foreach (var hash in blocksToDownload)
+					{
+						downloader.QueToDownload(hash);
+					}
+
+					nodes.Connect();
+
+					foreach (var hash in blocksToDownload)
+					{
+						var times = 0;
+						while (downloader.GetBlock(hash) == null)
+						{
+							if (times > 300) // 30 seconds
+							{
+								throw new TimeoutException($"{nameof(BlockDownloader)} test timed out.");
+							}
+							await Task.Delay(100);
+							times++;
+						}
+						Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
+					}
+					Logger.LogInfo<P2pTests>($"All RegTest block is downloaded.");
+				}
+			}
+			finally
+			{
+				downloader?.Stop();
+
+				// So next test will download the block.
+				foreach (var hash in blocksToDownload)
+				{
+					downloader?.TryRemove(hash);
+				}
+				if (Directory.Exists(blocksFolderPath))
+				{
+					Directory.Delete(blocksFolderPath, recursive: true);
+				}
 			}
 		}
 	}
