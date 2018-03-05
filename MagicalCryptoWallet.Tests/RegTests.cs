@@ -66,8 +66,8 @@ namespace MagicalCryptoWallet.Tests
 				using (var client = new HttpClient() { BaseAddress = new Uri(Fixture.BackendEndPoint) })
 				using (var request = await client.GetAsync("/api/v1/btc/Blockchain/filters/" + firstHash))
 				{
-					var content = await request.Content.ReadAsStringAsync();
-					var filterCount = content.Split(',').Count();
+					var filters = await request.Content.ReadAsJsonAsync<List<string>>();
+					var filterCount = filters.Count();
 					if (filterCount >= 101)
 					{
 						break;
@@ -88,7 +88,7 @@ namespace MagicalCryptoWallet.Tests
 			{
 				Assert.True(res.IsSuccessStatusCode);
 
-				var exchangeRates = await res.ReadAsAsync<List<ExchangeRate>>();
+				var exchangeRates = await res.Content.ReadAsJsonAsync<List<ExchangeRate>>();
 				Assert.Single(exchangeRates);
 
 				var rate = exchangeRates[0];
@@ -144,15 +144,6 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Equal(System.Net.HttpStatusCode.BadRequest, res.StatusCode);
 				Assert.Equal("\"Invalid hex.\"", await res.Content.ReadAsStringAsync());
 			}
-		}
-	}
-
-	static class HttpResponseMessageExtensions
-	{
-		public static async Task<T> ReadAsAsync<T>(this HttpResponseMessage me)
-		{
-			var jsonString = await me.Content.ReadAsStringAsync();
-			return JsonConvert.DeserializeObject<T>(jsonString);
 		}
 	}
 }
