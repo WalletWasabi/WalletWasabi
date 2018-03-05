@@ -1,6 +1,7 @@
 ﻿using MagicalCryptoWallet.Backend;
 using MagicalCryptoWallet.Backend.Models;
 using MagicalCryptoWallet.Logging;
+using MagicalCryptoWallet.Models;
 using MagicalCryptoWallet.Services;
 using MagicalCryptoWallet.Tests.NodeBuilding;
 using Microsoft.AspNetCore;
@@ -15,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -161,9 +163,8 @@ namespace MagicalCryptoWallet.Tests
 			BlockDownloader downloader = null;
 			try
 			{
-				var connectionParameters = new NodeConnectionParameters();
-				using (var nodes = new NodesGroup(Global.Config.Network, connectionParameters,
-					new NodeRequirement
+				using (var nodes = new NodesGroup(Global.Config.Network,
+					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
 						MinVersion = ProtocolVersion.WITNESS_VERSION
@@ -211,6 +212,61 @@ namespace MagicalCryptoWallet.Tests
 					Directory.Delete(blocksFolderPath, recursive: true);
 				}
 			}
+		}
+
+		[Fact]
+		public async Task MempoolAsync()
+		{
+			var connectionParameters = new NodeConnectionParameters();
+			var memPoolService = new MemPoolService();
+			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
+			using (var nodes = new NodesGroup(Global.Config.Network, connectionParameters,
+				new NodeRequirement
+				{
+					RequiredServices = NodeServices.Network,
+					MinVersion = ProtocolVersion.WITNESS_VERSION
+				}))
+			{
+				nodes.ConnectedNodes.Add(SharedRegTestNode.CreateNodeClient());
+
+				try
+				{
+					memPoolService.TransactionReceived += MemPoolService_TransactionReceived;
+
+					nodes.Connect();
+
+					// Using the interlocked, not because it makes sense in this context, but to
+					// set an example that these values are often concurrency sensitive
+					for (int i = 0; i < 10; i ++)
+					{
+						var addr = await Global.RpcClient.GetNewAddressAsync();
+						var res = await Global.RpcClient.SendToAddressAsync(addr, new Money(0.01m, MoneyUnit.BTC));
+						Assert.NotNull(res);
+					}
+
+					var times = 0;
+					while (Interlocked.Read(ref _mempoolTransactionCount) < 1)
+					{
+						if (times > 100) // 10 seconds
+						{
+							throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
+						}
+						await Task.Delay(100);
+						times++;
+					}
+				}
+				finally
+				{
+					memPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
+				}
+			}
+		}
+
+		private long _mempoolTransactionCount = 0;
+		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
+		{
+			Interlocked.Increment(ref _mempoolTransactionCount);
+			Logger.LogDebug<P2pTests>($"Mempool transaction received: {e.GetHash()}.");
 		}
 	}
 }

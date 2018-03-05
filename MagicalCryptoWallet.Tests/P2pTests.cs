@@ -52,10 +52,6 @@ namespace MagicalCryptoWallet.Tests
 				throw new NotSupportedException(network.ToString());
 			}
 
-			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
-			var dataFolder = Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync));
-			Directory.CreateDirectory(SharedFixture.DataDir);
-
 			var addressManagerFolderPath = Path.Combine(SharedFixture.DataDir, "AddressManager");
 			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, $"Blocks{network}");
@@ -195,7 +191,7 @@ namespace MagicalCryptoWallet.Tests
 		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
-			Logger.LogInfo<P2pTests>($"Mempool transaction received: {e.GetHash()}.");
+			Logger.LogDebug<P2pTests>($"Mempool transaction received: {e.GetHash()}.");
 		}
 
 		[Fact]
