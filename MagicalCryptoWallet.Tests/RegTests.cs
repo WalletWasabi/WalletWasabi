@@ -8,6 +8,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using NBitcoin;
 using NBitcoin.Protocol;
+using NBitcoin.Protocol.Behaviors;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System;
@@ -26,7 +27,7 @@ namespace MagicalCryptoWallet.Tests
 	{
 		private SharedFixture Fixture { get; }
 
-		private CoreNode SharedRegTestNode { get; }
+		private static CoreNode SharedRegTestNode { get; set; }
 
 		public RegTests(SharedFixture fixture)
 		{
@@ -104,6 +105,7 @@ namespace MagicalCryptoWallet.Tests
 		[Fact]
 		public async void BroadcastWithOutMinFeeAsync()
 		{
+			await Global.RpcClient.GenerateAsync(1);
 			var utxos = await Global.RpcClient.ListUnspentAsync();
 			var utxo = utxos[0];
 			var addr = await Global.RpcClient.GetNewAddressAsync();
@@ -125,6 +127,7 @@ namespace MagicalCryptoWallet.Tests
 		[Fact]
 		public async void BroadcastReplayTxAsync()
 		{
+			await Global.RpcClient.GenerateAsync(1);
 			var utxos = await Global.RpcClient.ListUnspentAsync();
 			var utxo = utxos[0];
 			var tx = await Global.RpcClient.GetRawTransactionAsync(utxo.OutPoint.Hash);
@@ -217,48 +220,38 @@ namespace MagicalCryptoWallet.Tests
 		[Fact]
 		public async Task MempoolAsync()
 		{
-			var connectionParameters = new NodeConnectionParameters();
 			var memPoolService = new MemPoolService();
-			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
-			using (var nodes = new NodesGroup(Global.Config.Network, connectionParameters,
-				new NodeRequirement
-				{
-					RequiredServices = NodeServices.Network,
-					MinVersion = ProtocolVersion.WITNESS_VERSION
-				}))
+			Node node = SharedRegTestNode.CreateNodeClient();
+			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+			node.VersionHandshake();
+
+			try
 			{
-				nodes.ConnectedNodes.Add(SharedRegTestNode.CreateNodeClient());
-
-				try
+				memPoolService.TransactionReceived += MemPoolService_TransactionReceived;
+				
+				// Using the interlocked, not because it makes sense in this context, but to
+				// set an example that these values are often concurrency sensitive
+				for (int i = 0; i < 10; i++)
 				{
-					memPoolService.TransactionReceived += MemPoolService_TransactionReceived;
-
-					nodes.Connect();
-
-					// Using the interlocked, not because it makes sense in this context, but to
-					// set an example that these values are often concurrency sensitive
-					for (int i = 0; i < 10; i ++)
-					{
-						var addr = await Global.RpcClient.GetNewAddressAsync();
-						var res = await Global.RpcClient.SendToAddressAsync(addr, new Money(0.01m, MoneyUnit.BTC));
-						Assert.NotNull(res);
-					}
-
-					var times = 0;
-					while (Interlocked.Read(ref _mempoolTransactionCount) < 1)
-					{
-						if (times > 100) // 10 seconds
-						{
-							throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
-						}
-						await Task.Delay(100);
-						times++;
-					}
+					var addr = await Global.RpcClient.GetNewAddressAsync();
+					var res = await Global.RpcClient.SendToAddressAsync(addr, new Money(0.01m, MoneyUnit.BTC));
+					Assert.NotNull(res);
 				}
-				finally
+
+				var times = 0;
+				while (Interlocked.Read(ref _mempoolTransactionCount) < 10)
 				{
-					memPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
+					if (times > 100) // 10 seconds
+					{
+						throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
+					}
+					await Task.Delay(100);
+					times++;
 				}
+			}
+			finally
+			{
+				memPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
 			}
 		}
 
