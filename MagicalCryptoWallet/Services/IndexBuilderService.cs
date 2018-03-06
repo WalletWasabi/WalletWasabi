@@ -238,6 +238,8 @@ namespace MagicalCryptoWallet.Services
 							}
 						}
 
+						Bech32UtxoSetHistory.ClearActionHistory(); //reset history.
+
 						var scripts = new HashSet<Script>();
 
 						foreach (var tx in block.Transactions)
