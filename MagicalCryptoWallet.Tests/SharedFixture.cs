@@ -30,7 +30,9 @@ namespace MagicalCryptoWallet.Tests
 
 		public IWebHost BackendHost { get; internal set; }
 
-		public NodeBuilder BackEndNodeBuilder { get; internal set; }
+		public NodeBuilder BackendNodeBuilder { get; internal set; }
+
+		public CoreNode BackendRegTestNode { get; internal set; }
 
 		public SharedFixture()
 		{
@@ -38,7 +40,8 @@ namespace MagicalCryptoWallet.Tests
 
 			BackendEndPoint = null;
 			BackendHost = null;
-			BackEndNodeBuilder = null;
+			BackendNodeBuilder = null;
+			BackendRegTestNode = null;
 
 			Logger.SetFilePath(Path.Combine(DataDir, "Logs.txt"));
 			Logger.SetMinimumLevel(LogLevel.Info);
@@ -51,7 +54,8 @@ namespace MagicalCryptoWallet.Tests
 
 			BackendHost?.StopAsync();
 			BackendHost?.Dispose();
-			BackEndNodeBuilder?.Dispose();
+			BackendRegTestNode?.Kill(cleanFolder: true);
+			BackendNodeBuilder?.Dispose();
 		}
 	}
 }

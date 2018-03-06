@@ -27,20 +27,18 @@ namespace MagicalCryptoWallet.Tests
 	{
 		private SharedFixture Fixture { get; }
 
-		private static CoreNode SharedRegTestNode { get; set; }
-
 		public RegTests(SharedFixture fixture)
 		{
 			Fixture = fixture;
 
-			if (Fixture.BackEndNodeBuilder == null)
+			if (Fixture.BackendNodeBuilder == null)
 			{
-				Fixture.BackEndNodeBuilder = NodeBuilder.Create();
-				Fixture.BackEndNodeBuilder.CreateNode();
-				Fixture.BackEndNodeBuilder.StartAll();
-				SharedRegTestNode = Fixture.BackEndNodeBuilder.Nodes[0];
-				SharedRegTestNode.Generate(101);
-				var rpc = SharedRegTestNode.CreateRPCClient();
+				Fixture.BackendNodeBuilder = NodeBuilder.Create();
+				Fixture.BackendNodeBuilder.CreateNode();
+				Fixture.BackendNodeBuilder.StartAll();
+				Fixture.BackendRegTestNode = Fixture.BackendNodeBuilder.Nodes[0];
+				Fixture.BackendRegTestNode.Generate(101);
+				var rpc = Fixture.BackendRegTestNode.CreateRPCClient();
 
 				var authString = rpc.Authentication.Split(':');
 				Global.InitializeAsync(rpc.Network, authString[0], authString[1], rpc).GetAwaiter().GetResult();
@@ -173,7 +171,7 @@ namespace MagicalCryptoWallet.Tests
 						MinVersion = ProtocolVersion.WITNESS_VERSION
 					}))
 				{
-					nodes.ConnectedNodes.Add(SharedRegTestNode.CreateNodeClient());
+					nodes.ConnectedNodes.Add(Fixture.BackendRegTestNode.CreateNodeClient());
 
 					downloader = new BlockDownloader(nodes, blocksFolderPath);
 					downloader.Start();
@@ -221,7 +219,7 @@ namespace MagicalCryptoWallet.Tests
 		public async Task MempoolAsync()
 		{
 			var memPoolService = new MemPoolService();
-			Node node = SharedRegTestNode.CreateNodeClient();
+			Node node = Fixture.BackendRegTestNode.CreateNodeClient();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 			node.VersionHandshake();
 
