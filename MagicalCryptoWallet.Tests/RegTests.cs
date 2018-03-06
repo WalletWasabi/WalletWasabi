@@ -226,7 +226,7 @@ namespace MagicalCryptoWallet.Tests
 			try
 			{
 				memPoolService.TransactionReceived += MemPoolService_TransactionReceived;
-				
+
 				// Using the interlocked, not because it makes sense in this context, but to
 				// set an example that these values are often concurrency sensitive
 				for (int i = 0; i < 10; i++)
