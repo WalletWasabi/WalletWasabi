@@ -201,10 +201,12 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
 		/// <returns>An array of block hash : element count : filter pairs.</returns>
 		/// <response code="200">An array of block hash : element count : filter pairs.</response>
+		/// <response code="204">When the provided hash is the tip.</response>
 		/// <response code="400">The provided hash was malformed.</response>
 		/// <response code="404">If the hash is not found. This happens at blockhain reorg.</response>
 		[HttpGet("filters/{bestKnownBlockHash}")]
 		[ProducesResponseType(200)] // Note: If you add typeof(IList<string>) then swagger UI visualization will be ugly.
+		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
 		public IActionResult GetFilters(string bestKnownBlockHash)
@@ -216,11 +218,16 @@ namespace MagicalCryptoWallet.Backend.Controllers
 
 			var knownHash = new uint256(bestKnownBlockHash);
 
-			IEnumerable<string> filters = Global.IndexBuilderService.GetFilters(knownHash);
+			IEnumerable<string> filters = Global.IndexBuilderService.GetFilters(knownHash, out bool found);
+
+			if(!found)
+			{
+				return NotFound($"Provided {nameof(bestKnownBlockHash)} is not found: {bestKnownBlockHash}.");
+			}
 
 			if(filters.Count() == 0)
 			{
-				return NotFound($"Provided {nameof(bestKnownBlockHash)} is not found: {bestKnownBlockHash} or it is the tip.");
+				return NoContent();
 			}
 
 			return Ok(filters);

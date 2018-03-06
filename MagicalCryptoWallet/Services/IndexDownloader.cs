@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -98,120 +99,66 @@ namespace MagicalCryptoWallet.Services
 						// If stop was requested return.
 						if (IsRunning == false) return;
 
-						//int height = StartingHeight.Value;
-						//uint256 prevHash = null;
-						//using (await IndexLock.LockAsync())
-						//{
-						//	if (Index.Count != 0)
-						//	{
-						//		height = Index.Last().BlockHeight.Value + 1;
-						//		prevHash = Index.Last().BlockHash;
-						//	}
-						//}
+						FilterModel bestKnownFilter;
+						using (await IndexLock.LockAsync())
+						{
+							if(Index.Count == 0)
+							{
+								bestKnownFilter = StartingFilter;
+							}
+							else
+							{
+								bestKnownFilter = Index.Last();
+							}
+						}
 
-						//Block block = null;
-						//try
-						//{
-						//	block = await RpcClient.GetBlockAsync(height);
-						//}
-						//catch (RPCException) // if the block didn't come yet
-						//{
-						//	// ToDO: If this happens, we should do `waitforblock` RPC instead of periodically asking.
-						//	// In that case we must also make sure the correct error message comes.
-						//	await Task.Delay(1000);
-						//	continue;
-						//}
+						var response = await Client.SendAsync(HttpMethod.Get, $"/api/v1/btc/Blockchain/filters/{bestKnownFilter.BlockHash}");
 
-						//if (prevHash != null)
-						//{
-						//	// In case of reorg:
-						//	if (prevHash != block.Header.HashPrevBlock)
-						//	{
-						//		Logger.LogInfo<IndexBuilderService>($"REORG Invalid Block: {prevHash}");
-						//		// 1. Rollback index
-						//		using (await IndexLock.LockAsync())
-						//		{
-						//			Index.RemoveAt(Index.Count - 1);
-						//		}
+						if(response.StatusCode == HttpStatusCode.NoContent)
+						{
+							continue;
+						}
+						if(response.StatusCode == HttpStatusCode.OK)
+						{
+							var filters = await response.Content.ReadAsJsonAsync<List<string>>();
 
-						//		// 2. Serialize Index. (Remove last line.)
-						//		var lines = File.ReadAllLines(IndexFilePath);
-						//		File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+							for(int i = 0; i < filters.Count; i++)
+							{
+								var filterModel = FilterModel.FromLine(filters[i], new Height(bestKnownFilter.BlockHeight.Value + i + 1));
+								
+								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
+								using (await IndexLock.LockAsync())
+								{
+									Index.Add(filterModel);
+								}
+							}
 
-						//		// 3. Rollback Bech32UtxoSet
-						//		Bech32UtxoSetHistory.Rollback(Bech32UtxoSet); // The Bech32UtxoSet MUST be recovered to its previous state.
+							Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight} to {Index.Last().BlockHeight}.");
 
-						//		// 4. Serialize Bech32UtxoSet.
-						//		await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-						//			.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+							continue;
+						}
+						else if(response.StatusCode == HttpStatusCode.NotFound)
+						{
+							// Reorg happened
+							Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {bestKnownFilter.BlockHash}");
+							// 1. Rollback index
+							using (await IndexLock.LockAsync())
+							{
+								Index.RemoveAt(Index.Count - 1);
+							}
 
-						//		// 5. Skip the current block.
-						//		continue;
-						//	}
-						//}
+							// 2. Serialize Index. (Remove last line.)
+							var lines = File.ReadAllLines(IndexFilePath);
+							File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
 
-						//Bech32UtxoSetHistory.ClearActionHistory(); //reset history.
-
-						//var scripts = new HashSet<Script>();
-
-						//foreach (var tx in block.Transactions)
-						//{
-						//	for (int i = 0; i < tx.Outputs.Count; i++)
-						//	{
-						//		var output = tx.Outputs[i];
-						//		if (!output.ScriptPubKey.IsPayToScriptHash && output.ScriptPubKey.IsWitness)
-						//		{
-						//			var outpoint = new OutPoint(tx.GetHash(), i);
-						//			Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
-						//			Bech32UtxoSetHistory.StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
-						//			scripts.Add(output.ScriptPubKey);
-						//		}
-						//	}
-
-						//	foreach (var input in tx.Inputs)
-						//	{
-						//		var found = Bech32UtxoSet.SingleOrDefault(x => x.Key == input.PrevOut);
-						//		if (found.Key != default)
-						//		{
-						//			Script val = Bech32UtxoSet[input.PrevOut];
-						//			Bech32UtxoSet.Remove(input.PrevOut);
-						//			Bech32UtxoSetHistory.StoreAction(ActionHistoryHelper.Operation.Remove, input.PrevOut, val);
-						//			scripts.Add(found.Value);
-						//		}
-						//	}
-						//}
-
-						//// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
-						//// The parameter k MUST be set to the first 16 bytes of the hash of the block for which the filter 
-						//// is constructed.This ensures the key is deterministic while still varying from block to block.
-						//var key = block.GetHash().ToBytes().Take(16).ToArray();
-
-						//GolombRiceFilter filter = null;
-						//if (scripts.Count != 0)
-						//{
-						//	filter = GolombRiceFilter.Build(key, scripts.Select(x => x.ToCompressedBytes()));
-						//}
-
-						//var filterModel = new FilterModel
-						//{
-						//	BlockHash = block.GetHash(),
-						//	BlockHeight = new Height(height),
-						//	Filter = filter
-						//};
-
-						//await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
-						//using (await IndexLock.LockAsync())
-						//{
-						//	Index.Add(filterModel);
-						//}
-						//if (File.Exists(Bech32UtxoSetFilePath))
-						//{
-						//	File.Delete(Bech32UtxoSetFilePath);
-						//}
-						//await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-						//	.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
-
-						//Logger.LogInfo<IndexBuilderService>($"Created filter for block: {height}.");
+							// 3. Skip the last valid block.
+							continue;
+						}
+						else
+						{
+							var error = await response.Content.ReadAsStringAsync();
+							throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {error}");
+						}
 					}
 					catch (Exception ex)
 					{

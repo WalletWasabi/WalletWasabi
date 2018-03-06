@@ -237,7 +237,7 @@ namespace MagicalCryptoWallet.Services
 								continue;
 							}
 						}
-
+						
 						Bech32UtxoSetHistory.ClearActionHistory(); //reset history.
 
 						var scripts = new HashSet<Script>();
@@ -309,16 +309,17 @@ namespace MagicalCryptoWallet.Services
 			});
 		}
 
-		public IEnumerable<string> GetFilters(uint256 bestKnownBlockHash)
+		public IEnumerable<string> GetFilters(uint256 bestKnownBlockHash, out bool found)
 		{
 			using (IndexLock.Lock())
 			{
-				var found = false;
+				found = false;
+				var filters = new List<string>();
 				foreach (var filter in Index)
 				{
 					if (found)
 					{
-						yield return filter.ToLine();
+						filters.Add(filter.ToLine());
 					}
 					else
 					{
@@ -328,6 +329,8 @@ namespace MagicalCryptoWallet.Services
 						}
 					}
 				}
+
+				return filters;
 			}
 		}
 
