@@ -217,7 +217,7 @@ namespace MagicalCryptoWallet.Tests
 					// Test initial syncronization.
 					var times = 0;
 					uint256 firstHash = await rpc.GetBlockHashAsync(0);
-					while (indexBuilderService.GetFilters(firstHash, out bool found6).Count() != 101)
+					while (indexBuilderService.GetFilterLinesExcluding(firstHash, out bool found6).Count() != 101)
 					{
 						if (times > 500) // 30 sec
 						{
@@ -230,7 +230,7 @@ namespace MagicalCryptoWallet.Tests
 					// Test later syncronization.
 					regtestNode.Generate(10);
 					times = 0;
-					while (indexBuilderService.GetFilters(firstHash, out bool found5).Count() != 111)
+					while (indexBuilderService.GetFilterLinesExcluding(firstHash, out bool found5).Count() != 111)
 					{
 						Assert.True(found5);
 						if (times > 500) // 30 sec
@@ -243,16 +243,16 @@ namespace MagicalCryptoWallet.Tests
 
 					// Test correct number of filters is received.
 					var hundredthHash = await rpc.GetBlockHashAsync(100);
-					Assert.Equal(11, indexBuilderService.GetFilters(hundredthHash, out bool found).Count());
+					Assert.Equal(11, indexBuilderService.GetFilterLinesExcluding(hundredthHash, out bool found).Count());
 					Assert.True(found);
 					var bestHash = await rpc.GetBestBlockHashAsync();
-					Assert.Empty(indexBuilderService.GetFilters(bestHash, out bool found2));
+					Assert.Empty(indexBuilderService.GetFilterLinesExcluding(bestHash, out bool found2));
 					Assert.True(found2);
-					Assert.Empty(indexBuilderService.GetFilters(uint256.Zero, out bool found3));
+					Assert.Empty(indexBuilderService.GetFilterLinesExcluding(uint256.Zero, out bool found3));
 					Assert.False(found3);
 
 					// Test filter block hashes are correct.
-					var filters = indexBuilderService.GetFilters(firstHash, out bool found4).ToArray();
+					var filters = indexBuilderService.GetFilterLinesExcluding(firstHash, out bool found4).ToArray();
 					Assert.True(found4);
 					for (int i = 0; i < 111; i++)
 					{

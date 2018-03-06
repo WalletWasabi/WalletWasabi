@@ -57,12 +57,6 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
-		[Fact]
-		public async Task FilterInitializationAsync()
-		{
-			await AssertFiltersInitializedAsync();
-		}
-
 		private async Task AssertFiltersInitializedAsync()
 		{
 			var firstHash = Global.RpcClient.GetBlockHash(0);
@@ -261,6 +255,66 @@ namespace MagicalCryptoWallet.Tests
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
 			Logger.LogDebug<P2pTests>($"Mempool transaction received: {e.GetHash()}.");
+		}
+
+		[Fact]
+		public async Task FilterDownloaderTestAsync()
+		{
+			await AssertFiltersInitializedAsync();
+
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{Global.RpcClient.Network}.dat");
+
+			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
+			try
+			{
+				downloader.Syncronize(requestInterval: TimeSpan.FromSeconds(1));
+
+				// Test initial syncronization.
+				
+				var times = 0;
+				int filterCount;
+				while ((filterCount = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).Count()) < 102)
+				{
+					if (times > 500) // 30 sec
+					{
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {102}, got only: {filterCount}.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+
+				// Test later syncronization.
+				Fixture.BackendRegTestNode.Generate(10);
+				times = 0;
+				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < 112)
+				{
+					if (times > 500) // 30 sec
+					{
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {112}, got only: {filterCount}.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+
+				// Test correct number of filters is received.
+				var hundredthHash = await Global.RpcClient.GetBlockHashAsync(100);
+				Assert.Equal(100, downloader.GetFiltersIncluding(hundredthHash).First().BlockHeight.Value);
+
+				// Test filter block hashes are correct.
+				var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
+				for (int i = 0; i < 111; i++)
+				{
+					var expectedHash = await Global.RpcClient.GetBlockHashAsync(i);
+					var filter = filters[i];
+					Assert.Equal(i, filter.BlockHeight.Value);
+					Assert.Equal(expectedHash, filter.BlockHash);
+					Assert.Null(filter.Filter);
+				}
+			}
+			finally
+			{
+				downloader.Stop();
+			}
 		}
 	}
 }

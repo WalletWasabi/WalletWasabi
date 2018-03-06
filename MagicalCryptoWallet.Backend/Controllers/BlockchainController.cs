@@ -218,7 +218,7 @@ namespace MagicalCryptoWallet.Backend.Controllers
 
 			var knownHash = new uint256(bestKnownBlockHash);
 
-			IEnumerable<string> filters = Global.IndexBuilderService.GetFilters(knownHash, out bool found);
+			IEnumerable<string> filters = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, out bool found);
 
 			if(!found)
 			{

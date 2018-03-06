@@ -72,6 +72,8 @@ namespace MagicalCryptoWallet.Services
 				if (Network == Network.RegTest)
 				{
 					File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
+					Index.Add(StartingFilter);
+					File.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 				}
 				else
 				{
@@ -84,10 +86,16 @@ namespace MagicalCryptoWallet.Services
 					}
 				}
 			}
+			else
+			{
+				Index.Add(StartingFilter);
+				File.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+			}
 		}
 
-		public void Syncronize()
+		public void Syncronize(TimeSpan requestInterval)
 		{
+			Guard.NotNull(nameof(requestInterval), requestInterval);
 			Interlocked.Exchange(ref _running, 1);
 
 			Task.Run(async () =>
@@ -102,14 +110,7 @@ namespace MagicalCryptoWallet.Services
 						FilterModel bestKnownFilter;
 						using (await IndexLock.LockAsync())
 						{
-							if(Index.Count == 0)
-							{
-								bestKnownFilter = StartingFilter;
-							}
-							else
-							{
-								bestKnownFilter = Index.Last();
-							}
+							bestKnownFilter = Index.Last();
 						}
 
 						var response = await Client.SendAsync(HttpMethod.Get, $"/api/v1/btc/Blockchain/filters/{bestKnownFilter.BlockHash}");
@@ -121,19 +122,26 @@ namespace MagicalCryptoWallet.Services
 						if(response.StatusCode == HttpStatusCode.OK)
 						{
 							var filters = await response.Content.ReadAsJsonAsync<List<string>>();
-
-							for(int i = 0; i < filters.Count; i++)
+							using (await IndexLock.LockAsync())
 							{
-								var filterModel = FilterModel.FromLine(filters[i], new Height(bestKnownFilter.BlockHeight.Value + i + 1));
-								
-								await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
-								using (await IndexLock.LockAsync())
+								for (int i = 0; i < filters.Count; i++)
 								{
+									var filterModel = FilterModel.FromLine(filters[i], new Height(bestKnownFilter.BlockHeight.Value + i + 1));
+
 									Index.Add(filterModel);
 								}
-							}
 
-							Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight} to {Index.Last().BlockHeight}.");
+								if(filters.Count == 1) // minor optimization
+								{
+									await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
+								}
+								else
+								{
+									await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
+								}
+
+								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
+							}
 
 							continue;
 						}
@@ -162,11 +170,11 @@ namespace MagicalCryptoWallet.Services
 					}
 					catch (Exception ex)
 					{
-						Logger.LogDebug<IndexDownloader>(ex);
+						Logger.LogError<IndexDownloader>(ex);
 					}
 					finally
 					{
-						await Task.Delay(TimeSpan.FromSeconds(30)); // Ask for new index every 30 seconds.
+						await Task.Delay(requestInterval); // Ask for new index every 30 seconds.
 					}
 				}
 			});
@@ -175,6 +183,46 @@ namespace MagicalCryptoWallet.Services
 		public void Stop()
 		{
 			Interlocked.Exchange(ref _running, 0);
+		}
+
+		public IEnumerable<FilterModel> GetFiltersIncluding(uint256 blockHash)
+		{
+			using (IndexLock.Lock())
+			{
+				var found = false;
+				foreach (var filter in Index)
+				{
+					if (filter.BlockHash == blockHash)
+					{
+						found = true;
+					}
+
+					if (found)
+					{
+						yield return filter;
+					}
+				}
+			}
+		}
+
+		public IEnumerable<FilterModel> GetFiltersIncluding(Height height)
+		{
+			using (IndexLock.Lock())
+			{
+				var found = false;
+				foreach (var filter in Index)
+				{
+					if (filter.BlockHeight == height)
+					{
+						found = true;
+					}
+
+					if (found)
+					{
+						yield return filter;
+					}
+				}
+			}
 		}
 	}
 }

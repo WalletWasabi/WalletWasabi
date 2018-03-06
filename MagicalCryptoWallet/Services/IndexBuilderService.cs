@@ -309,7 +309,7 @@ namespace MagicalCryptoWallet.Services
 			});
 		}
 
-		public IEnumerable<string> GetFilters(uint256 bestKnownBlockHash, out bool found)
+		public IEnumerable<string> GetFilterLinesExcluding(uint256 bestKnownBlockHash, out bool found)
 		{
 			using (IndexLock.Lock())
 			{
