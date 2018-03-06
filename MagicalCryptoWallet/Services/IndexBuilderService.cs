@@ -91,28 +91,28 @@ namespace MagicalCryptoWallet.Services
 			}
 		}
 
-		public Height StartingHeight // First possible bech32 transaction ever.
+		public static Height GetStartingHeight(Network network) // First possible bech32 transaction ever.
 		{
-			get
+			if (network == Network.Main)
 			{
-				if (RpcClient.Network == Network.Main)
-				{
-					return new Height(481824);
-				}
-				else if (RpcClient.Network == Network.TestNet)
-				{
-					return new Height(828575);
-				}
-				else if (RpcClient.Network == Network.RegTest)
-				{
-					return new Height(0);
-				}
-				else
-				{
-					throw new NotSupportedException($"{RpcClient.Network} is not supported.");
-				}
+				return new Height(481824);
+			}
+			else if (network == Network.TestNet)
+			{
+				return new Height(828575);
+			}
+			else if (network == Network.RegTest)
+			{
+				return new Height(0);
+			}
+			else
+			{
+				throw new NotSupportedException($"{network} is not supported.");
 			}
 		}
+		public Height StartingHeight => GetStartingHeight(RpcClient.Network);
+		public static FilterModel GetStartingFilter(Network network) => IndexDownloader.GetStartingFilter(network);
+		public FilterModel StartingFilter => GetStartingFilter(RpcClient.Network);
 
 		private long _running;
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
@@ -237,7 +237,7 @@ namespace MagicalCryptoWallet.Services
 								continue;
 							}
 						}
-
+						
 						Bech32UtxoSetHistory.ClearActionHistory(); //reset history.
 
 						var scripts = new HashSet<Script>();
@@ -309,16 +309,17 @@ namespace MagicalCryptoWallet.Services
 			});
 		}
 
-		public IEnumerable<string> GetFilters(uint256 bestKnownBlockHash)
+		public IEnumerable<string> GetFilterLinesExcluding(uint256 bestKnownBlockHash, out bool found)
 		{
 			using (IndexLock.Lock())
 			{
-				var found = false;
+				found = false;
+				var filters = new List<string>();
 				foreach (var filter in Index)
 				{
 					if (found)
 					{
-						yield return filter.ToLine();
+						filters.Add(filter.ToLine());
 					}
 					else
 					{
@@ -328,6 +329,8 @@ namespace MagicalCryptoWallet.Services
 						}
 					}
 				}
+
+				return filters;
 			}
 		}
 

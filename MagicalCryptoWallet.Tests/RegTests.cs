@@ -4,6 +4,7 @@ using MagicalCryptoWallet.Logging;
 using MagicalCryptoWallet.Models;
 using MagicalCryptoWallet.Services;
 using MagicalCryptoWallet.Tests.NodeBuilding;
+using MagicalCryptoWallet.TorSocks5;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using NBitcoin;
@@ -15,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -55,21 +57,16 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
-		[Fact]
-		public async Task FilterInitializationAsync()
-		{
-			await AssertFiltersInitializedAsync();
-		}
-
 		private async Task AssertFiltersInitializedAsync()
 		{
 			var firstHash = Global.RpcClient.GetBlockHash(0);
 			while (true)
 			{
-				using (var client = new HttpClient() { BaseAddress = new Uri(Fixture.BackendEndPoint) })
-				using (var request = await client.GetAsync("/api/v1/btc/Blockchain/filters/" + firstHash))
+				using (var client = new TorHttpClient(new Uri(Fixture.BackendEndPoint)))
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/Blockchain/filters/" + firstHash))
 				{
-					var filters = await request.Content.ReadAsJsonAsync<List<string>>();
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var filters = await response.Content.ReadAsJsonAsync<List<string>>();
 					var filterCount = filters.Count();
 					if (filterCount >= 101)
 					{
@@ -86,12 +83,12 @@ namespace MagicalCryptoWallet.Tests
 		[Fact]
 		public async void GetExchangeRatesAsyncAsync()
 		{
-			using (var client = new HttpClient() { BaseAddress = new Uri(Fixture.BackendEndPoint) })
-			using (var res = await client.GetAsync("/api/v1/btc/Blockchain/exchange-rates"))
+			using (var client = new TorHttpClient(new Uri(Fixture.BackendEndPoint)))
+			using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/Blockchain/exchange-rates"))
 			{
-				Assert.True(res.IsSuccessStatusCode);
+				Assert.True(response.IsSuccessStatusCode);
 
-				var exchangeRates = await res.Content.ReadAsJsonAsync<List<ExchangeRate>>();
+				var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate>>();
 				Assert.Single(exchangeRates);
 
 				var rate = exchangeRates[0];
@@ -113,12 +110,12 @@ namespace MagicalCryptoWallet.Tests
 			var signedTx = await Global.RpcClient.SignRawTransactionAsync(tx);
 
 			var content = new StringContent($"'{signedTx.ToHex()}'", Encoding.UTF8, "application/json");
-			using (var client = new HttpClient() { BaseAddress = new Uri(Fixture.BackendEndPoint) })
-			using (var res = await client.PostAsync("/api/v1/btc/Blockchain/broadcast", content))
+			using (var client = new TorHttpClient(new Uri(Fixture.BackendEndPoint)))
+			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
 			{
 
-				Assert.False(res.IsSuccessStatusCode);
-				Assert.Equal(System.Net.HttpStatusCode.BadRequest, res.StatusCode);
+				Assert.False(response.IsSuccessStatusCode);
+				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 			}
 		}
 
@@ -130,11 +127,11 @@ namespace MagicalCryptoWallet.Tests
 			var utxo = utxos[0];
 			var tx = await Global.RpcClient.GetRawTransactionAsync(utxo.OutPoint.Hash);
 			var content = new StringContent($"'{tx.ToHex()}'", Encoding.UTF8, "application/json");
-			using (var client = new HttpClient() { BaseAddress = new Uri(Fixture.BackendEndPoint) })
-			using (var res = await client.PostAsync("/api/v1/btc/Blockchain/broadcast", content))
+			using (var client = new TorHttpClient(new Uri(Fixture.BackendEndPoint)))
+			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
 			{
-				Assert.True(res.IsSuccessStatusCode);
-				Assert.Equal("\"Transaction is already in the blockchain.\"", await res.Content.ReadAsStringAsync());
+				Assert.True(response.IsSuccessStatusCode);
+				Assert.Equal("\"Transaction is already in the blockchain.\"", await response.Content.ReadAsStringAsync());
 			}
 		}
 
@@ -142,12 +139,12 @@ namespace MagicalCryptoWallet.Tests
 		public async void BroadcastInvalidTxAsync()
 		{
 			var content = new StringContent($"''", Encoding.UTF8, "application/json");
-			using (var client = new HttpClient() { BaseAddress = new Uri(Fixture.BackendEndPoint) })
-			using (var res = await client.PostAsync("/api/v1/btc/Blockchain/broadcast", content))
+			using (var client = new TorHttpClient(new Uri(Fixture.BackendEndPoint)))
+			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
 			{
-				Assert.False(res.IsSuccessStatusCode);
-				Assert.Equal(System.Net.HttpStatusCode.BadRequest, res.StatusCode);
-				Assert.Equal("\"Invalid hex.\"", await res.Content.ReadAsStringAsync());
+				Assert.False(response.IsSuccessStatusCode);
+				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+				Assert.Equal("\"Invalid hex.\"", await response.Content.ReadAsStringAsync());
 			}
 		}
 
@@ -226,7 +223,7 @@ namespace MagicalCryptoWallet.Tests
 			try
 			{
 				memPoolService.TransactionReceived += MemPoolService_TransactionReceived;
-				
+
 				// Using the interlocked, not because it makes sense in this context, but to
 				// set an example that these values are often concurrency sensitive
 				for (int i = 0; i < 10; i++)
@@ -258,6 +255,66 @@ namespace MagicalCryptoWallet.Tests
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
 			Logger.LogDebug<P2pTests>($"Mempool transaction received: {e.GetHash()}.");
+		}
+
+		[Fact]
+		public async Task FilterDownloaderTestAsync()
+		{
+			await AssertFiltersInitializedAsync();
+
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{Global.RpcClient.Network}.dat");
+
+			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
+			try
+			{
+				downloader.Syncronize(requestInterval: TimeSpan.FromSeconds(1));
+
+				// Test initial syncronization.
+				
+				var times = 0;
+				int filterCount;
+				while ((filterCount = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).Count()) < 102)
+				{
+					if (times > 500) // 30 sec
+					{
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {102}, got only: {filterCount}.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+
+				// Test later syncronization.
+				Fixture.BackendRegTestNode.Generate(10);
+				times = 0;
+				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < 112)
+				{
+					if (times > 500) // 30 sec
+					{
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {112}, got only: {filterCount}.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+
+				// Test correct number of filters is received.
+				var hundredthHash = await Global.RpcClient.GetBlockHashAsync(100);
+				Assert.Equal(100, downloader.GetFiltersIncluding(hundredthHash).First().BlockHeight.Value);
+
+				// Test filter block hashes are correct.
+				var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
+				for (int i = 0; i < 111; i++)
+				{
+					var expectedHash = await Global.RpcClient.GetBlockHashAsync(i);
+					var filter = filters[i];
+					Assert.Equal(i, filter.BlockHeight.Value);
+					Assert.Equal(expectedHash, filter.BlockHash);
+					Assert.Null(filter.Filter);
+				}
+			}
+			finally
+			{
+				downloader.Stop();
+			}
 		}
 	}
 }

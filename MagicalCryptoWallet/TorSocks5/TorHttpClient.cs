@@ -33,7 +33,14 @@ namespace MagicalCryptoWallet.TorSocks5
 		public TorHttpClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null, bool isolateStream = false)
 		{
 			DestinationUri = Guard.NotNull(nameof(baseUri), baseUri);
-			TorSocks5EndPoint = torSocks5EndPoint ?? new IPEndPoint(IPAddress.Loopback, 9050);
+			if(DestinationUri.IsLoopback)
+			{
+				TorSocks5EndPoint = null;
+			}
+			else
+			{
+				TorSocks5EndPoint = torSocks5EndPoint ?? new IPEndPoint(IPAddress.Loopback, 9050);
+			}
 			TorSocks5Client = null;
 			IsolateStream = isolateStream;
 		}

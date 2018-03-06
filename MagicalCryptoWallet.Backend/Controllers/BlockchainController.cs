@@ -193,16 +193,20 @@ namespace MagicalCryptoWallet.Backend.Controllers
 		/// <remarks>
 		/// Sample request:
 		///
-		///     GET /filters/00000000000000000044d076d9c43b5888551027ec70043211365301665da2e8
+		///     Main: GET /filters/0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893
+		///     TestNet: GET /filters/00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a
+		///     RegTest: GET /filters/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
 		///
 		/// </remarks>
 		/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
 		/// <returns>An array of block hash : element count : filter pairs.</returns>
 		/// <response code="200">An array of block hash : element count : filter pairs.</response>
+		/// <response code="204">When the provided hash is the tip.</response>
 		/// <response code="400">The provided hash was malformed.</response>
 		/// <response code="404">If the hash is not found. This happens at blockhain reorg.</response>
 		[HttpGet("filters/{bestKnownBlockHash}")]
 		[ProducesResponseType(200)] // Note: If you add typeof(IList<string>) then swagger UI visualization will be ugly.
+		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
 		public IActionResult GetFilters(string bestKnownBlockHash)
@@ -213,11 +217,17 @@ namespace MagicalCryptoWallet.Backend.Controllers
 			}
 
 			var knownHash = new uint256(bestKnownBlockHash);
-			
-			var filters = Global.IndexBuilderService.GetFilters(knownHash);
-			if(filters.Count() == 0)
+
+			IEnumerable<string> filters = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, out bool found);
+
+			if(!found)
 			{
 				return NotFound($"Provided {nameof(bestKnownBlockHash)} is not found: {bestKnownBlockHash}.");
+			}
+
+			if(filters.Count() == 0)
+			{
+				return NoContent();
 			}
 
 			return Ok(filters);
