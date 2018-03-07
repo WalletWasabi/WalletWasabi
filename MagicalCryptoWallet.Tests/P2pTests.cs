@@ -35,13 +35,13 @@ namespace MagicalCryptoWallet.Tests
 		{
 			var network = Network.GetNetwork(networkString);
 			var blocksToDownload = new HashSet<uint256>();
-			if(network == Network.Main)
+			if (network == Network.Main)
 			{
 				blocksToDownload.Add(new uint256("00000000000000000037c2de35bd85f3e57f14ddd741ce6cee5b28e51473d5d0"));
 				blocksToDownload.Add(new uint256("000000000000000000115315a43cb0cdfc4ea54a0e92bed127f4e395e718d8f9"));
 				blocksToDownload.Add(new uint256("00000000000000000011b5b042ad0522b69aae36f7de796f563c895714bbd629"));
 			}
-			else if(network == Network.TestNet)
+			else if (network == Network.TestNet)
 			{
 				blocksToDownload.Add(new uint256("0000000097a664c4084b49faa6fd4417055cb8e5aac480abc31ddc57a8208524"));
 				blocksToDownload.Add(new uint256("000000009ed5b82259ecd2aa4cd1f119db8da7a70e7ea78d9c9f603e01f93bcc"));
@@ -60,104 +60,96 @@ namespace MagicalCryptoWallet.Tests
 			BlockDownloader downloader = null;
 			try
 			{
-				try
-				{
-					addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
-					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
-				}
-				catch(DirectoryNotFoundException ex)
-				{
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<AddressManager>(ex);
-					addressManager = new AddressManager();
-				}
-				catch (FileNotFoundException ex)
-				{
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<AddressManager>(ex);
-					addressManager = new AddressManager();
-				}
+				addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
+				Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
+			}
+			catch (DirectoryNotFoundException ex)
+			{
+				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
+				Logger.LogTrace<AddressManager>(ex);
+				addressManager = new AddressManager();
+			}
+			catch (FileNotFoundException ex)
+			{
+				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
+				Logger.LogTrace<AddressManager>(ex);
+				addressManager = new AddressManager();
+			}
 
-				connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-				var memPoolService = new MemPoolService();
-				connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
+			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
+			var memPoolService = new MemPoolService();
+			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
 
-				using (var nodes = new NodesGroup(network, connectionParameters,
-					new NodeRequirement
-					{
-						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion.WITNESS_VERSION
-					}))
+			var nodes = new NodesGroup(network, connectionParameters,
+				new NodeRequirement
 				{
-					downloader = new BlockDownloader(nodes, blocksFolderPath);
-					Assert.True(Directory.Exists(blocksFolderPath));
-					downloader.Start();
-					foreach(var hash in blocksToDownload)
+					RequiredServices = NodeServices.Network,
+					MinVersion = ProtocolVersion.WITNESS_VERSION
+				});
+			downloader = new BlockDownloader(nodes, blocksFolderPath);
+			Assert.True(Directory.Exists(blocksFolderPath));
+			downloader.Start();
+			foreach (var hash in blocksToDownload)
+			{
+				downloader.QueToDownload(hash);
+			}
+
+			try
+			{
+				nodes.ConnectedNodes.Added += ConnectedNodes_Added;
+				nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
+				memPoolService.TransactionReceived += MemPoolService_TransactionReceived;
+
+				nodes.Connect();
+				// Using the interlocked, not because it makes sense in this context, but to
+				// set an example that these values are often concurrency sensitive
+				var times = 0;
+				while (Interlocked.Read(ref _nodeCount) < 3)
+				{
+					if (times > 4200) // 7 minutes
 					{
-						downloader.QueToDownload(hash);
+						throw new TimeoutException($"Connection test timed out.");
 					}
+					await Task.Delay(100);
+					times++;
+				}
 
-					try
+				times = 0;
+				while (Interlocked.Read(ref _mempoolTransactionCount) < 3)
+				{
+					if (times > 3000) // 3 minutes
 					{
-						nodes.ConnectedNodes.Added += ConnectedNodes_Added;
-						nodes.ConnectedNodes.Removed += ConnectedNodes_Removed;
-						memPoolService.TransactionReceived += MemPoolService_TransactionReceived;
-
-						nodes.Connect();
-						// Using the interlocked, not because it makes sense in this context, but to
-						// set an example that these values are often concurrency sensitive
-						var times = 0;
-						while (Interlocked.Read(ref _nodeCount) < 3)
-						{
-							if (times > 4200) // 7 minutes
-							{
-								throw new TimeoutException($"Connection test timed out.");
-							}
-							await Task.Delay(100);
-							times++;
-						}
-
-						times = 0;
-						while (Interlocked.Read(ref _mempoolTransactionCount) < 3)
-						{
-							if (times > 3000) // 3 minutes
-							{
-								throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
-							}
-							await Task.Delay(100);
-							times++;
-						}
-
-						foreach(var hash in blocksToDownload)
-						{
-							times = 0;
-							while (downloader.GetBlock(hash) == null)
-							{
-								if (times > 1800) // 3 minutes
-								{
-									throw new TimeoutException($"{nameof(BlockDownloader)} test timed out.");
-								}
-								await Task.Delay(100);
-								times++;
-							}
-							Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
-							Logger.LogInfo<P2pTests>($"Full block is downloaded: {hash}.");
-						}
+						throw new TimeoutException($"{nameof(MemPoolService)} test timed out.");
 					}
-					finally
+					await Task.Delay(100);
+					times++;
+				}
+
+				foreach (var hash in blocksToDownload)
+				{
+					times = 0;
+					while (downloader.GetBlock(hash) == null)
 					{
-						nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
-						nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
-						memPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
+						if (times > 1800) // 3 minutes
+						{
+							throw new TimeoutException($"{nameof(BlockDownloader)} test timed out.");
+						}
+						await Task.Delay(100);
+						times++;
 					}
+					Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
+					Logger.LogInfo<P2pTests>($"Full block is downloaded: {hash}.");
 				}
 			}
 			finally
 			{
+				nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
+				nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
+				memPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
 				downloader?.Stop();
 
 				// So next test will download the block.
-				foreach (var hash in blocksToDownload) 
+				foreach (var hash in blocksToDownload)
 				{
 					downloader?.TryRemove(hash);
 				}
@@ -169,6 +161,7 @@ namespace MagicalCryptoWallet.Tests
 				Directory.CreateDirectory(Path.GetDirectoryName(addressManagerFilePath));
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
 				Logger.LogInfo<P2pTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
+				nodes?.Dispose();
 			}
 		}
 

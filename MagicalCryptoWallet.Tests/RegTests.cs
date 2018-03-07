@@ -80,6 +80,8 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
+		#region BackendTests
+
 		[Fact]
 		public async void GetExchangeRatesAsyncAsync()
 		{
@@ -148,6 +150,10 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
+		#endregion
+
+		#region ServicesTests
+
 		[Fact]
 		public async Task DownloaderAsync()
 		{
@@ -159,42 +165,40 @@ namespace MagicalCryptoWallet.Tests
 			}
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(DownloaderAsync), $"Blocks");
 			BlockDownloader downloader = null;
+			var nodes = new NodesGroup(Global.Config.Network,
+					 requirements: new NodeRequirement
+					 {
+						 RequiredServices = NodeServices.Network,
+						 MinVersion = ProtocolVersion.WITNESS_VERSION
+					 });
 			try
 			{
-				using (var nodes = new NodesGroup(Global.Config.Network,
-					requirements: new NodeRequirement
-					{
-						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion.WITNESS_VERSION
-					}))
+				nodes.ConnectedNodes.Add(Fixture.BackendRegTestNode.CreateNodeClient());
+
+				downloader = new BlockDownloader(nodes, blocksFolderPath);
+				downloader.Start();
+				foreach (var hash in blocksToDownload)
 				{
-					nodes.ConnectedNodes.Add(Fixture.BackendRegTestNode.CreateNodeClient());
-
-					downloader = new BlockDownloader(nodes, blocksFolderPath);
-					downloader.Start();
-					foreach (var hash in blocksToDownload)
-					{
-						downloader.QueToDownload(hash);
-					}
-
-					nodes.Connect();
-
-					foreach (var hash in blocksToDownload)
-					{
-						var times = 0;
-						while (downloader.GetBlock(hash) == null)
-						{
-							if (times > 300) // 30 seconds
-							{
-								throw new TimeoutException($"{nameof(BlockDownloader)} test timed out.");
-							}
-							await Task.Delay(100);
-							times++;
-						}
-						Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
-					}
-					Logger.LogInfo<P2pTests>($"All RegTest block is downloaded.");
+					downloader.QueToDownload(hash);
 				}
+
+				nodes.Connect();
+
+				foreach (var hash in blocksToDownload)
+				{
+					var times = 0;
+					while (downloader.GetBlock(hash) == null)
+					{
+						if (times > 300) // 30 seconds
+						{
+							throw new TimeoutException($"{nameof(BlockDownloader)} test timed out.");
+						}
+						await Task.Delay(100);
+						times++;
+					}
+					Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
+				}
+				Logger.LogInfo<P2pTests>($"All RegTest block is downloaded.");
 			}
 			finally
 			{
@@ -209,6 +213,8 @@ namespace MagicalCryptoWallet.Tests
 				{
 					Directory.Delete(blocksFolderPath, recursive: true);
 				}
+
+				nodes?.Dispose();
 			}
 		}
 
@@ -222,7 +228,7 @@ namespace MagicalCryptoWallet.Tests
 
 			try
 			{
-				memPoolService.TransactionReceived += MemPoolService_TransactionReceived;
+				memPoolService.TransactionReceived += MempoolAsync_MemPoolService_TransactionReceived;
 
 				// Using the interlocked, not because it makes sense in this context, but to
 				// set an example that these values are often concurrency sensitive
@@ -246,12 +252,12 @@ namespace MagicalCryptoWallet.Tests
 			}
 			finally
 			{
-				memPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
+				memPoolService.TransactionReceived -= MempoolAsync_MemPoolService_TransactionReceived;
 			}
 		}
 
 		private long _mempoolTransactionCount = 0;
-		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
+		private void MempoolAsync_MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
 			Logger.LogDebug<P2pTests>($"Mempool transaction received: {e.GetHash()}.");
@@ -316,5 +322,76 @@ namespace MagicalCryptoWallet.Tests
 				downloader.Stop();
 			}
 		}
+
+		#endregion
+
+		#region ClientTests
+
+		[Fact]
+		public async Task WalletTestsAsync()
+		{
+			// Make sure fitlers are created on the server side.
+			await AssertFiltersInitializedAsync();
+
+			// Create the services.
+			// 1. Create connection service.
+			var nodes = new NodesGroup(Global.Config.Network,
+					requirements: new NodeRequirement
+					{
+						RequiredServices = NodeServices.Network,
+						MinVersion = ProtocolVersion.WITNESS_VERSION
+					});
+			nodes.ConnectedNodes.Add(Fixture.BackendRegTestNode.CreateNodeClient());
+
+			// 2. Create block downloader service.
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
+			BlockDownloader blockDownloader = new BlockDownloader(nodes, blocksFolderPath);
+
+			// 3. Create mempool service.
+			var memPoolService = new MemPoolService();
+			memPoolService.TransactionReceived += WalletTestsAsync_MemPoolService_TransactionReceived;
+			Node node = Fixture.BackendRegTestNode.CreateNodeClient();
+			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+
+			// 4. Create index downloader service.
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{Global.RpcClient.Network}.dat");
+			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
+
+			try
+			{
+				nodes.Connect(); // Start connection service.
+				blockDownloader.Start(); // Start block downloader service.
+				node.VersionHandshake(); // Start mempool service.
+				indexDownloader.Syncronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
+
+
+
+			}
+			finally
+			{
+				// Dispose index downloader service.
+				indexDownloader?.Stop();
+
+				// Dispose mempool service.
+				memPoolService.TransactionReceived -= WalletTestsAsync_MemPoolService_TransactionReceived;
+
+				// Dispose downloader service
+				blockDownloader?.Stop();
+				if (Directory.Exists(blocksFolderPath))
+				{
+					Directory.Delete(blocksFolderPath, recursive: true);
+				}
+
+				// Dispose connection service.
+				nodes?.Dispose();
+			}
+		}
+
+		private void WalletTestsAsync_MemPoolService_TransactionReceived(object sender, SmartTransaction e)
+		{
+
+		}
+
+		#endregion
 	}
 }
