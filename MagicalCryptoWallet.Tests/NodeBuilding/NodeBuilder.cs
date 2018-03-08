@@ -1,35 +1,26 @@
-﻿using NBitcoin;
-using NBitcoin.Crypto;
-using NBitcoin.DataEncoders;
-using NBitcoin.Protocol;
-using NBitcoin.RPC;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MagicalCryptoWallet.Tests.NodeBuilding
 {
-	public class NodeBuilder : IDisposable
+    public class NodeBuilder : IDisposable
 	{
-		public static NodeBuilder Create([CallerMemberName]string caller = null, string version = "0.16.0")
+		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.16.0")
 		{
 			var directory = Path.Combine(SharedFixture.DataDir, caller);
 			version = version ?? "0.16.0";
-			var path = EnsureDownloaded(version);
+			var path = await EnsureDownloaded(version);
 			try
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDust(directory);
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(directory);
 			}
 			catch (DirectoryNotFoundException)
 			{
@@ -38,7 +29,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			return new NodeBuilder(directory, path);
 		}
 
-		private static string EnsureDownloaded(string version)
+		private static async Task<string> EnsureDownloaded(string version)
 		{
 			//is a file
 			if (version.Length >= 2 && version[1] == ':')
@@ -57,8 +48,8 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				string url = string.Format("https://bitcoin.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
 				HttpClient client = new HttpClient();
 				client.Timeout = TimeSpan.FromMinutes(10.0);
-				var data = client.GetByteArrayAsync(url).GetAwaiter().GetResult();
-				File.WriteAllBytes(zip, data);
+				var data = await client.GetByteArrayAsync(url);
+				await File.WriteAllBytesAsync(zip, data);
 				ZipFile.ExtractToDirectory(zip, new FileInfo(zip).Directory.FullName);
 			}
 			else
@@ -74,8 +65,8 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				string url = string.Format("https://bitcoin.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
 				HttpClient client = new HttpClient();
 				client.Timeout = TimeSpan.FromMinutes(10.0);
-				var data = client.GetByteArrayAsync(url).GetAwaiter().GetResult();
-				File.WriteAllBytes(zip, data);
+				var data = await client.GetByteArrayAsync(url);
+				await File.WriteAllBytesAsync(zip, data);
 				Process.Start("tar", "-zxvf " + zip + " -C " + SharedFixture.DataDir).WaitForExit();
 			}
 			File.Delete(zip);
@@ -119,13 +110,13 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			}
 		}
 
-		public CoreNode CreateNode(bool start = false)
+		public async Task<CoreNode> CreateNodeAsync(bool start = false)
 		{
 			var child = Path.Combine(_root, _last.ToString());
 			_last++;
 			try
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDust(child);
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(child);
 			}
 			catch (DirectoryNotFoundException)
 			{
@@ -133,13 +124,18 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			var node = new CoreNode(child, this);
 			Nodes.Add(node);
 			if (start)
-				node.Start();
+			{
+				await node.StartAsync();
+			}
 			return node;
 		}
 
-		public void StartAll()
+		public Task StartAllAsync()
 		{
-			Task.WaitAll(Nodes.Where(n => n.State == CoreNodeState.Stopped).Select(n => n.StartAsync()).ToArray());
+			var startNodesTaskList = Nodes
+				.Where(n => n.State == CoreNodeState.Stopped)
+				.Select(n => n.StartAsync()).ToArray();
+			return Task.WhenAll(startNodesTaskList);
 		}
 
 		public void Dispose()

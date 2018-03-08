@@ -35,9 +35,9 @@ namespace MagicalCryptoWallet.Tests
 
 			if (Fixture.BackendNodeBuilder == null)
 			{
-				Fixture.BackendNodeBuilder = NodeBuilder.Create();
-				Fixture.BackendNodeBuilder.CreateNode();
-				Fixture.BackendNodeBuilder.StartAll();
+				Fixture.BackendNodeBuilder = NodeBuilder.CreateAsync().Result;
+				Fixture.BackendNodeBuilder.CreateNodeAsync().Wait();
+				Fixture.BackendNodeBuilder.StartAllAsync().Wait();
 				Fixture.BackendRegTestNode = Fixture.BackendNodeBuilder.Nodes[0];
 				Fixture.BackendRegTestNode.Generate(101);
 				var rpc = Fixture.BackendRegTestNode.CreateRPCClient();
@@ -50,16 +50,17 @@ namespace MagicalCryptoWallet.Tests
 					.UseStartup<Startup>()
 					.UseUrls(Fixture.BackendEndPoint)
 					.Build();
-				Fixture.BackendHost.RunAsync();
+				var hostInitializationTask = Fixture.BackendHost.RunAsync();
 				Logger.LogInfo<SharedFixture>($"Started Backend webhost: {Fixture.BackendEndPoint}");
 
-				Task.Delay(3000).GetAwaiter().GetResult(); // Wait for server to initialize (Without this OSX CI will fail)
+				var delayTask = Task.Delay(3000);
+				Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
 			}
 		}
 
 		private async Task AssertFiltersInitializedAsync()
 		{
-			var firstHash = Global.RpcClient.GetBlockHash(0);
+			var firstHash = await Global.RpcClient.GetBlockHashAsync(0);
 			while (true)
 			{
 				using (var client = new TorHttpClient(new Uri(Fixture.BackendEndPoint)))
