@@ -59,7 +59,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			_Builder = builder;
 			_folder = folder;
 			_state = CoreNodeState.Stopped;
-			CleanFolder().Wait();
+			CleanFolder().GetAwaiter().GetResult();
 			Directory.CreateDirectory(folder);
 			DataDir = Path.Combine(folder, "data");
 			Directory.CreateDirectory(DataDir);
@@ -291,7 +291,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				}
 				_state = CoreNodeState.Killed;
 				if (cleanFolder)
-					CleanFolder().Wait();
+					CleanFolder().GetAwaiter().GetResult();;
 			}
 		}
 
