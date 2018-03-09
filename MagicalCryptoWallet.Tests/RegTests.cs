@@ -323,6 +323,68 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
+
+
+		[Fact]
+		public async Task FilterReorgTestAsync()
+		{			
+			await AssertFiltersInitializedAsync();
+
+			var node0 = Fixture.BackendRegTestNode;
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{Global.RpcClient.Network}.dat");
+
+			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
+			try
+			{
+				downloader.Syncronize(requestInterval: TimeSpan.FromSeconds(1));
+
+				// Test initial syncronization.
+				
+				var times = 0;
+				int filterCount;
+				while ((filterCount = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).Count()) < 102)
+				{
+					if (times > 500) // 30 sec
+					{
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {102}, got only: {filterCount}.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+
+				// Test syncronization after fork.
+				var node1 = Fixture.BackendNodeBuilder.CreateNode(start: true);
+				await node1.CreateRPCClient().GenerateAsync(120);
+				await node1.SyncAsync(node0);
+
+				times = 0;
+				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < 120)
+				{
+					if (times > 240) // 2 min
+					{
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {120}, got only: {filterCount}.");
+					}
+					await Task.Delay(500);
+					times++;
+				}
+
+				// Test filter block hashes are correct after fork.
+				var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
+				for (int i = 0; i < 120; i++)
+				{
+					var expectedHash = await Global.RpcClient.GetBlockHashAsync(i);
+					var filter = filters[i];
+					Assert.Equal(i, filter.BlockHeight.Value);
+					Assert.Equal(expectedHash, filter.BlockHash);
+					Assert.Null(filter.Filter);
+				}
+			}
+			finally
+			{
+				downloader.Stop();
+			}
+		}
+
 		#endregion
 
 		#region ClientTests
