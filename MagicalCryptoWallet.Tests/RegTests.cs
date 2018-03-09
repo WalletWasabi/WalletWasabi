@@ -360,11 +360,11 @@ namespace MagicalCryptoWallet.Tests
 				times = 0;
 				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < 120)
 				{
-					if (times > 240) // 2 min
+					if (times > 240) // 4 min
 					{
 						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {120}, got only: {filterCount}.");
 					}
-					await Task.Delay(500);
+					await Task.Delay(1000);
 					times++;
 				}
 
