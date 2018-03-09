@@ -330,7 +330,7 @@ namespace MagicalCryptoWallet.Tests
 		{			
 			await AssertFiltersInitializedAsync();
 
-			var node0 = Fixture.BackendRegTestNode;
+			var node = Fixture.BackendRegTestNode;
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{Global.RpcClient.Network}.dat");
 
 			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
@@ -353,16 +353,16 @@ namespace MagicalCryptoWallet.Tests
 				}
 
 				// Test syncronization after fork.
-				var node1 = Fixture.BackendNodeBuilder.CreateNode(start: true);
-				await node1.CreateRPCClient().GenerateAsync(120);
-				await node1.SyncAsync(node0);
+				var tip = await Global.RpcClient.GetBestBlockHashAsync();
+				await Global.RpcClient.InvalidateBlockAsync(tip);
+				await Global.RpcClient.GenerateAsync(5);
 
 				times = 0;
-				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < 120)
+				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < 116)
 				{
 					if (times > 240) // 4 min
 					{
-						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {120}, got only: {filterCount}.");
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {116}, got only: {filterCount}.");
 					}
 					await Task.Delay(1000);
 					times++;
@@ -370,7 +370,7 @@ namespace MagicalCryptoWallet.Tests
 
 				// Test filter block hashes are correct after fork.
 				var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
-				for (int i = 0; i < 120; i++)
+				for (int i = 0; i < 116; i++)
 				{
 					var expectedHash = await Global.RpcClient.GetBlockHashAsync(i);
 					var filter = filters[i];
