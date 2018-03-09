@@ -35,7 +35,7 @@ namespace MagicalCryptoWallet.Tests
 
 			if (Fixture.BackendNodeBuilder == null)
 			{
-				Fixture.BackendNodeBuilder = NodeBuilder.CreateAsync().Result;
+				Fixture.BackendNodeBuilder = NodeBuilder.CreateAsync().GetAwaiter().GetResult();
 				Fixture.BackendNodeBuilder.CreateNodeAsync().GetAwaiter().GetResult();;
 				Fixture.BackendNodeBuilder.StartAllAsync().GetAwaiter().GetResult();;
 				Fixture.BackendRegTestNode = Fixture.BackendNodeBuilder.Nodes[0];
