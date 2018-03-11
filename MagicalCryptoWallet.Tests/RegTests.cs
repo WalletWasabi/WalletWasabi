@@ -364,8 +364,7 @@ namespace MagicalCryptoWallet.Tests
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Syncronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
 
-
-
+				// ToDo: Write the actual tests here.
 			}
 			finally
 			{

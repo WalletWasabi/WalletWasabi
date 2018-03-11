@@ -55,7 +55,6 @@ namespace MagicalCryptoWallet.Models
 		{
 			bool rc = false;
 
-
 			if (obj is SmartTransaction st)
 			{
 				rc = GetHash().Equals(st.GetHash());
