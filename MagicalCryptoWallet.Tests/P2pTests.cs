@@ -190,10 +190,10 @@ namespace MagicalCryptoWallet.Tests
 		[Fact]
 		public async Task FilterBuilderTestAsync()
 		{
-			using (var builder = NodeBuilder.Create())
+			using (var builder = await NodeBuilder.CreateAsync())
 			{
-				builder.CreateNode();
-				builder.StartAll();
+				await builder.CreateNodeAsync();
+				await builder.StartAllAsync();
 				CoreNode regtestNode = builder.Nodes[0];
 				regtestNode.Generate(101);
 				RPCClient rpc = regtestNode.CreateRPCClient();

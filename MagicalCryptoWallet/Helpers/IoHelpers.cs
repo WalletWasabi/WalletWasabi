@@ -10,7 +10,7 @@ namespace System.IO
     public static class IoHelpers
     {
 		// http://stackoverflow.com/a/14933880/2061103
-		public static void DeleteRecursivelyWithMagicDust(string destinationDir)
+		public static async Task DeleteRecursivelyWithMagicDustAsync(string destinationDir)
 		{
 			const int magicDust = 10;
 			for (var gnomes = 1; gnomes <= magicDust; gnomes++)
@@ -31,7 +31,7 @@ namespace System.IO
 					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
-					Thread.Sleep(100);
+					await Task.Delay(100);
 					continue;
 				}
 				catch (UnauthorizedAccessException)
@@ -42,7 +42,7 @@ namespace System.IO
 					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
-					Thread.Sleep(100);
+					await Task.Delay(100);
 					continue;
 				}
 				return;

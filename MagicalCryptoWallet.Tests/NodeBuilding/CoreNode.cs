@@ -10,13 +10,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace MagicalCryptoWallet.Tests.NodeBuilding
 {
-	public class CoreNode
+    public class CoreNode
 	{
 		private readonly NodeBuilder _Builder;
 		private string _folder;
@@ -60,7 +59,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			_Builder = builder;
 			_folder = folder;
 			_state = CoreNodeState.Stopped;
-			CleanFolder();
+			CleanFolder().GetAwaiter().GetResult();
 			Directory.CreateDirectory(folder);
 			DataDir = Path.Combine(folder, "data");
 			Directory.CreateDirectory(DataDir);
@@ -72,15 +71,15 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			FindPorts(_ports);
 		}
 
-		private void CleanFolder()
+		private async Task CleanFolder()
 		{
 			try
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDust(_folder);
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(_folder);
 			}
 			catch (DirectoryNotFoundException) { }
 		}
-
+    
 		public async Task SyncAsync(CoreNode node, bool keepConnection = false)
 		{
 			var rpc = CreateRPCClient();
@@ -113,10 +112,6 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			{
 				return _ports[0];
 			}
-		}
-		public void Start()
-		{
-			StartAsync().GetAwaiter().GetResult();
 		}
 
 		private readonly NetworkCredential Creds;
@@ -299,7 +294,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				}
 				_state = CoreNodeState.Killed;
 				if (cleanFolder)
-					CleanFolder();
+					CleanFolder().GetAwaiter().GetResult();;
 			}
 		}
 
