@@ -14,6 +14,11 @@ namespace MagicalCryptoWallet.Backend.Models
 		public uint256 BlockHash { get; set; }
 		public GolombRiceFilter Filter { get; set; }
 
+		// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
+		// The parameter k MUST be set to the first 16 bytes of the hash of the block for which the filter 
+		// is constructed.This ensures the key is deterministic while still varying from block to block.
+		public byte[] FilterKey => BlockHash.ToBytes().Take(16).ToArray();
+
 		public string ToLine()
 		{
 			var builder = new StringBuilder();

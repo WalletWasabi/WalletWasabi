@@ -199,7 +199,10 @@ namespace MagicalCryptoWallet.Services
 
 		public async Task StopAsync()
 		{
-			Interlocked.Exchange(ref _running, 2);
+			if (IsRunning)
+			{
+				Interlocked.Exchange(ref _running, 2);
+			}
 			while (IsStopping)
 			{
 				await Task.Delay(50);

@@ -336,6 +336,8 @@ namespace MagicalCryptoWallet.Tests
 		{			
 			await AssertFiltersInitializedAsync();
 
+			_filterReorgTestAsync_ReorgCount = 0;
+
 			var node = Fixture.BackendRegTestNode;
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{Global.RpcClient.Network}.dat");
 
@@ -343,6 +345,8 @@ namespace MagicalCryptoWallet.Tests
 			try
 			{
 				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(1));
+
+				downloader.Reorged += FilterReorgTestAsync_Downloader_Reorged;
 
 				// Test initial syncronization.
 				
@@ -360,11 +364,15 @@ namespace MagicalCryptoWallet.Tests
 
 				// Test syncronization after fork.
 				var tip = await Global.RpcClient.GetBestBlockHashAsync();
-				await Global.RpcClient.InvalidateBlockAsync(tip);
+				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
+				tip = await Global.RpcClient.GetBestBlockHashAsync();
+				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 2
+
 				await Global.RpcClient.GenerateAsync(5);
+				var bestHeight = await Global.RpcClient.GetBlockCountAsync();
 
 				times = 0;
-				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < 116)
+				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < bestHeight)
 				{
 					if (times > 2400) // 4 min
 					{
@@ -376,22 +384,37 @@ namespace MagicalCryptoWallet.Tests
 
 				// Test filter block hashes are correct after fork.
 				var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
-				for (int i = 0; i < 116; i++)
+				for (int i = 0; i <= bestHeight; i++)
 				{
 					var expectedHash = await Global.RpcClient.GetBlockHashAsync(i);
 					var filter = filters[i];
 					Assert.Equal(i, filter.BlockHeight.Value);
 					Assert.Equal(expectedHash, filter.BlockHash);
-					Assert.Null(filter.Filter);
+					if (i < 101) // Later other tests may fill the filter.
+					{
+						Assert.Null(filter.Filter);
+					}
 				}
+
+				// Assert reorg happened exactly as many times as we reorged.
+				Assert.Equal(2, Interlocked.Read(ref _filterReorgTestAsync_ReorgCount));
 			}
 			finally
 			{
+				downloader.Reorged -= FilterReorgTestAsync_Downloader_Reorged;
+
 				if (downloader != null)
 				{
 					await downloader.StopAsync();
 				}
 			}
+		}
+
+		private long _filterReorgTestAsync_ReorgCount;
+		private void FilterReorgTestAsync_Downloader_Reorged(object sender, uint256 e)
+		{
+			Assert.NotNull(e);
+			Interlocked.Increment(ref _filterReorgTestAsync_ReorgCount);
 		}
 
 		#endregion
@@ -403,6 +426,8 @@ namespace MagicalCryptoWallet.Tests
 		{
 			// Make sure fitlers are created on the server side.
 			await AssertFiltersInitializedAsync();
+
+			var network = Global.RpcClient.Network;
 
 			// Create the services.
 			// 1. Create connection service.
@@ -434,13 +459,50 @@ namespace MagicalCryptoWallet.Tests
 			// 6. Create wallet service.
 			var wallet = new WalletService(keyManager, blockDownloader, indexDownloader);
 
+			// Get some money, make it confirm.
+			var key = keyManager.GenerateNewKey("", KeyState.Clean, isInternal: false);
+			await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1, MoneyUnit.BTC));
+			await Global.RpcClient.GenerateAsync(1);
+
 			try
 			{
 				nodes.Connect(); // Start connection service.
 				blockDownloader.Synchronize(); // Start block downloader service.
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
+
+				// Wait until the filter our previous transaction is present.
+				var times = 0;
+				while (1 != indexDownloader.GetFiltersIncluding(indexDownloader.StartingFilter.BlockHash).Where(x => x.Filter != null).Count())
+				{
+					if (times > 300) // 30 seconds
+					{
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+				Assert.Equal(1, blockDownloader.NumberOfBlocksToDownload + blockDownloader.NumberOfDownloadedBlocks);
+
+				wallet.Initialize(); // Initialize wallet service.
 				wallet.Synchronize(); // Start wallet service.
+
+				// Get some money, make it confirm.
+				key = keyManager.GenerateNewKey("", KeyState.Clean, isInternal: false);
+				await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1, MoneyUnit.BTC));
+				await Global.RpcClient.GenerateAsync(1);
+
+				times = 0;
+				while (2 != indexDownloader.GetFiltersIncluding(indexDownloader.StartingFilter.BlockHash).Where(x => x.Filter != null).Count())
+				{
+					if (times > 300) // 30 seconds
+					{
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+				Assert.Equal(2, blockDownloader.NumberOfBlocksToDownload + blockDownloader.NumberOfDownloadedBlocks);
 			}
 			finally
 			{

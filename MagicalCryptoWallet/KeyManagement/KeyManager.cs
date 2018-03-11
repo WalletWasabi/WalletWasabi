@@ -169,5 +169,30 @@ namespace MagicalCryptoWallet.KeyManagement
 				return hdPubKey;
 			}
 		}
+
+		public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null)
+		{
+			// BIP44-ish derivation scheme
+			// m / purpose' / coin_type' / account' / change / address_index
+			lock (HdPubKeysLock)
+			{
+				if (keyState == null && isInternal == null)
+				{
+					return HdPubKeys;
+				}
+				else if (keyState != null && isInternal == null)
+				{
+					return HdPubKeys.Where(x => x.KeyState == keyState);
+				}
+				else if (keyState == null && isInternal != null)
+				{
+					return HdPubKeys.Where(x => x.IsInternal() == isInternal);
+				}
+				else // Neither of them null.
+				{
+					return HdPubKeys.Where(x => x.KeyState == keyState && x.IsInternal() == isInternal);
+				}
+			}
+		}
 	}
 }

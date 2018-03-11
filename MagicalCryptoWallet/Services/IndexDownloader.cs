@@ -30,6 +30,12 @@ namespace MagicalCryptoWallet.Services
 		public static Height GetStartingHeight(Network network) => IndexBuilderService.GetStartingHeight(network);
 		public Height StartingHeight => GetStartingHeight(Network);
 
+		public event EventHandler<uint256> Reorged;
+		private void OnReorg(uint256 invalidBlockHash) => Reorged?.Invoke(this, invalidBlockHash);
+
+		public event EventHandler<FilterModel> NewFilter;
+		private void OnNewFilter(FilterModel filter) => NewFilter?.Invoke(this, filter);
+
 		public static FilterModel GetStartingFilter(Network network)
 		{
 			if (network == Network.Main)
@@ -135,6 +141,7 @@ namespace MagicalCryptoWallet.Services
 										var filterModel = FilterModel.FromLine(filters[i], new Height(bestKnownFilter.BlockHeight.Value + i + 1));
 
 										Index.Add(filterModel);
+										OnNewFilter(filterModel);
 									}
 
 									if (filters.Count == 1) // minor optimization
@@ -154,12 +161,15 @@ namespace MagicalCryptoWallet.Services
 							else if (response.StatusCode == HttpStatusCode.NotFound)
 							{
 								// Reorg happened
-								Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {bestKnownFilter.BlockHash}");
+								var reorgedHash = bestKnownFilter.BlockHash;
+								Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
 								// 1. Rollback index
 								using (await IndexLock.LockAsync())
 								{
 									Index.RemoveAt(Index.Count - 1);
 								}
+
+								OnReorg(reorgedHash);
 
 								// 2. Serialize Index. (Remove last line.)
 								var lines = File.ReadAllLines(IndexFilePath);
@@ -196,10 +206,21 @@ namespace MagicalCryptoWallet.Services
 
 		public async Task StopAsync()
 		{
-			Interlocked.Exchange(ref _running, 2);
+			if (IsRunning)
+			{
+				Interlocked.Exchange(ref _running, 2);
+			}
 			while (IsStopping)
 			{
 				await Task.Delay(50);
+			}
+		}
+
+		public FilterModel GetBestFilter()
+		{
+			using (IndexLock.Lock())
+			{
+				return Index.Last();
 			}
 		}
 

@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using MagicalCryptoWallet.Backend;
 using NBitcoin;
+using NBitcoin.DataEncoders;
 using Xunit;
 
 namespace MagicalCryptoWallet.Tests
