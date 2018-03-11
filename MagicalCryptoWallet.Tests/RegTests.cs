@@ -323,8 +323,6 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
-
-
 		[Fact]
 		public async Task FilterReorgTestAsync()
 		{			
