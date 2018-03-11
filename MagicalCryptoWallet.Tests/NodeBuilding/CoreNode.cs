@@ -59,7 +59,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			_Builder = builder;
 			_folder = folder;
 			_state = CoreNodeState.Stopped;
-			CleanFolder().GetAwaiter().GetResult();
+			CleanFolderAsync().GetAwaiter().GetResult();
 			Directory.CreateDirectory(folder);
 			DataDir = Path.Combine(folder, "data");
 			Directory.CreateDirectory(DataDir);
@@ -71,7 +71,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			FindPorts(_ports);
 		}
 
-		private async Task CleanFolder()
+		private async Task CleanFolderAsync()
 		{
 			try
 			{
@@ -82,8 +82,8 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
     
 		public async Task SyncAsync(CoreNode node, bool keepConnection = false)
 		{
-			var rpc = CreateRPCClient();
-			var rpc1 = node.CreateRPCClient();
+			var rpc = CreateRpcClient();
+			var rpc1 = node.CreateRpcClient();
 			rpc.AddNode(node.Endpoint, true);
 			while (await rpc.GetBestBlockHashAsync() != await rpc1.GetBestBlockHashAsync())
 			{
@@ -115,7 +115,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 		}
 
 		private readonly NetworkCredential Creds;
-		public RPCClient CreateRPCClient()
+		public RPCClient CreateRpcClient()
 		{
 			return new RPCClient(Creds, new Uri("http://127.0.0.1:" + _ports[1] + "/"), Network.RegTest);
 		}
@@ -162,7 +162,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			{
 				try
 				{
-					await CreateRPCClient().GetBlockHashAsync(0).ConfigureAwait(false);
+					await CreateRpcClient().GetBlockHashAsync(0).ConfigureAwait(false);
 					_state = CoreNodeState.Running;
 					break;
 				}
@@ -202,7 +202,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 		private Money _fee = Money.Coins(0.0001m);
 		public Transaction GiveMoney(Script destination, Money amount, bool broadcast = true)
 		{
-			var rpc = CreateRPCClient();
+			var rpc = CreateRpcClient();
 			TransactionBuilder builder = new TransactionBuilder();
 			builder.AddKeys(rpc.ListSecrets().OfType<ISecret>().ToArray());
 			builder.AddCoins(rpc.ListUnspent().Where(c => !_locked.Contains(c.OutPoint)).Select(c => c.AsCoin()));
@@ -230,8 +230,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			}
 
 		}
-
-#if !NOSOCKET
+		
 		public void Broadcast(Transaction transaction)
 		{
 			using (var node = CreateNodeClient())
@@ -242,16 +241,10 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				node.PingPong();
 			}
 		}
-#else
-        public void Broadcast(Transaction transaction)
-        {
-            var rpc = CreateRPCClient();
-            rpc.SendRawTransaction(transaction);
-        }
-#endif
+
 		public void SelectMempoolTransactions()
 		{
-			var rpc = CreateRPCClient();
+			var rpc = CreateRpcClient();
 			var txs = rpc.GetRawMempool();
 
 			var tasks = txs.Select(t => rpc.GetRawTransactionAsync(t)).ToArray();
@@ -267,7 +260,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 
 		public void Split(Money amount, int parts)
 		{
-			var rpc = CreateRPCClient();
+			var rpc = CreateRpcClient();
 			TransactionBuilder builder = new TransactionBuilder();
 			builder.AddKeys(rpc.ListSecrets().OfType<ISecret>().ToArray());
 			builder.AddCoins(rpc.ListUnspent().Select(c => c.AsCoin()));
@@ -294,7 +287,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				}
 				_state = CoreNodeState.Killed;
 				if (cleanFolder)
-					CleanFolder().GetAwaiter().GetResult();;
+					CleanFolderAsync().GetAwaiter().GetResult();;
 			}
 		}
 
@@ -306,7 +299,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 
 		public void SetMinerSecret(BitcoinSecret secret)
 		{
-			CreateRPCClient().ImportPrivKey(secret);
+			CreateRpcClient().ImportPrivKey(secret);
 			MinerSecret = secret;
 		}
 
@@ -318,7 +311,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 
 		public Block[] Generate(int blockCount, bool includeUnbroadcasted = true, bool broadcast = true)
 		{
-			var rpc = CreateRPCClient();
+			var rpc = CreateRpcClient();
 			var blocks = rpc.Generate(blockCount);
 			rpc = rpc.PrepareBatch();
 			var tasks = blocks.Select(b => rpc.GetBlockAsync(b)).ToArray();

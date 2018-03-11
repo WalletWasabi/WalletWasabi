@@ -40,7 +40,7 @@ namespace MagicalCryptoWallet.Tests
 				Fixture.BackendNodeBuilder.StartAllAsync().GetAwaiter().GetResult();;
 				Fixture.BackendRegTestNode = Fixture.BackendNodeBuilder.Nodes[0];
 				Fixture.BackendRegTestNode.Generate(101);
-				var rpc = Fixture.BackendRegTestNode.CreateRPCClient();
+				var rpc = Fixture.BackendRegTestNode.CreateRpcClient();
 
 				var authString = rpc.Authentication.Split(':');
 				Global.InitializeAsync(rpc.Network, authString[0], authString[1], rpc).GetAwaiter().GetResult();

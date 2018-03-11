@@ -196,7 +196,7 @@ namespace MagicalCryptoWallet.Tests
 				await builder.StartAllAsync();
 				CoreNode regtestNode = builder.Nodes[0];
 				regtestNode.Generate(101);
-				RPCClient rpc = regtestNode.CreateRPCClient();
+				RPCClient rpc = regtestNode.CreateRpcClient();
 
 				var indexBuilderServiceDir = Path.Combine(SharedFixture.DataDir, nameof(IndexBuilderService));
 				var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
