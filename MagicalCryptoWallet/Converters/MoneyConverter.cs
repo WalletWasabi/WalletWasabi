@@ -1,4 +1,4 @@
-﻿using MagicalCryptoWallet.Models;
+﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -6,25 +6,28 @@ using System.Text;
 
 namespace MagicalCryptoWallet.Converters
 {
-	public class HeightConverter : JsonConverter
+	public class MoneyConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(Height);
+			return objectType == typeof(Money);
 		}
 
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			var value = long.Parse(reader.Value.ToString());
-			return new Height((int)value);
+			var serialized = (string)reader.Value;
+
+			return Money.Parse(serialized);
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((Height)value).Value.ToString());
+			var money = (Money)value;
+
+			writer.WriteValue(money.ToString(fplus: false, trimExcessZero: true));
 		}
 	}
 }
