@@ -146,7 +146,10 @@ namespace MagicalCryptoWallet.Tests
 				nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
 				nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
 				memPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
-				downloader?.Stop();
+				if(downloader != null)
+				{
+					await downloader.StopAsync();
+				}
 
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
@@ -257,7 +260,10 @@ namespace MagicalCryptoWallet.Tests
 				}
 				finally
 				{
-					indexBuilderService.Stop();
+					if (indexBuilderService != null)
+					{
+						await indexBuilderService.StopAsync();
+					}
 				}
 			}
 		}

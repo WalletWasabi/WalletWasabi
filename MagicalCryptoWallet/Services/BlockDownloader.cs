@@ -27,8 +27,12 @@ namespace MagicalCryptoWallet.Services
 		private List<uint256> BlocksToDownload { get; }
 		private AsyncLock BlocksToDownloadLock { get; }
 
+		/// <summary>
+		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
+		/// </summary>
 		private long _running;
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 		public int NumberOfBlocksToDownload
 		{
 			get
@@ -80,112 +84,126 @@ namespace MagicalCryptoWallet.Services
 
 			Task.Run(async () =>
 			{
-				while (IsRunning)
+				try
 				{
-					try
+					while (IsRunning)
 					{
-						// If stop was requested return.
-						if (IsRunning == false) return;
-
-						// If no connection, wait then continue.
-						if (Nodes.ConnectedNodes.Count == 0)
-						{
-							await Task.Delay(10);
-							continue;
-						}
-						if (IsRunning == false) return;
-
-						uint256 hash = null;
-						// If nothing to download, wait then continue.
-						using (BlocksToDownloadLock.Lock())
-						{
-							if (BlocksToDownload.Count == 0)
-							{
-								await Task.Delay(100);
-								continue;
-							}
-							else
-							{
-								hash = BlocksToDownload.First();
-							}
-						}
-						if (IsRunning == false) return;
-
-						Node node = Nodes.ConnectedNodes.RandomElement();
-						if (node == default(Node))
-						{
-							await Task.Delay(10);
-							continue;
-						}
-						if (!node.IsConnected)
-						{
-							await Task.Delay(10);
-							continue;
-						}
-
-						Block block = null;
-
 						try
 						{
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(32))) // ADSL	512 kbit/s	00:00:32
-							{
-								block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
-							}
+							// If stop was requested return.
+							if (IsRunning == false) return;
 
-							if(block == null)
+							// If no connection, wait then continue.
+							if (Nodes.ConnectedNodes.Count == 0)
 							{
-								Logger.LogInfo<BlockDownloader>($"Disconnected node, because couldn't parse received block.");
-								node.DisconnectAsync("Couldn't parse block.");
+								await Task.Delay(10);
+								continue;
+							}
+							if (IsRunning == false) return;
+
+							uint256 hash = null;
+							// If nothing to download, wait then continue.
+							using (BlocksToDownloadLock.Lock())
+							{
+								if (BlocksToDownload.Count == 0)
+								{
+									await Task.Delay(100);
+									continue;
+								}
+								else
+								{
+									hash = BlocksToDownload.First();
+								}
+							}
+							if (IsRunning == false) return;
+
+							Node node = Nodes.ConnectedNodes.RandomElement();
+							if (node == default(Node))
+							{
+								await Task.Delay(10);
+								continue;
+							}
+							if (!node.IsConnected)
+							{
+								await Task.Delay(10);
 								continue;
 							}
 
-							if(!block.Check())
+							Block block = null;
+
+							try
 							{
-								Logger.LogInfo<BlockDownloader>($"Disconnected node, because block invalid block received.");
-								node.DisconnectAsync("Invalid block received.");
+								using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(32))) // ADSL	512 kbit/s	00:00:32
+								{
+									block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
+								}
+
+								if (block == null)
+								{
+									Logger.LogInfo<BlockDownloader>($"Disconnected node, because couldn't parse received block.");
+									node.DisconnectAsync("Couldn't parse block.");
+									continue;
+								}
+
+								if (!block.Check())
+								{
+									Logger.LogInfo<BlockDownloader>($"Disconnected node, because block invalid block received.");
+									node.DisconnectAsync("Invalid block received.");
+									continue;
+								}
+							}
+							catch (TimeoutException)
+							{
+								Logger.LogInfo<BlockDownloader>($"Disconnected node, because block download took too long.");
+								node.DisconnectAsync("Block download took too long.");
 								continue;
 							}
-						}
-						catch (TimeoutException)
-						{
-							Logger.LogInfo<BlockDownloader>($"Disconnected node, because block download took too long.");
-							node.DisconnectAsync("Block download took too long.");
-							continue;
-						}
-						catch (OperationCanceledException)
-						{
-							Logger.LogInfo<BlockDownloader>($"Disconnected node, because block download took too long.");
-							node.DisconnectAsync("Block download took too long.");
-							continue;
+							catch (OperationCanceledException)
+							{
+								Logger.LogInfo<BlockDownloader>($"Disconnected node, because block download took too long.");
+								node.DisconnectAsync("Block download took too long.");
+								continue;
+							}
+							catch (Exception ex)
+							{
+								Logger.LogDebug<BlockDownloader>(ex);
+								Logger.LogInfo<BlockDownloader>($"Disconnected node, because block download failed: {ex.Message}");
+								node.DisconnectAsync("Block download failed.");
+								continue;
+							}
+
+							using (BlocksFolderLock.Lock())
+							using (BlocksToDownloadLock.Lock())
+							{
+								BlocksToDownload.Remove(hash);
+								var path = Path.Combine(BlocksFolderPath, hash.ToString());
+								await File.WriteAllBytesAsync(path, block.ToBytes());
+							}
 						}
 						catch (Exception ex)
 						{
 							Logger.LogDebug<BlockDownloader>(ex);
-							Logger.LogInfo<BlockDownloader>($"Disconnected node, because block download failed: {ex.Message}");
-							node.DisconnectAsync("Block download failed.");
-							continue;
-						}
-
-						using (BlocksFolderLock.Lock())
-						using (BlocksToDownloadLock.Lock())
-						{
-							BlocksToDownload.Remove(hash);
-							var path = Path.Combine(BlocksFolderPath, hash.ToString());
-							await File.WriteAllBytesAsync(path, block.ToBytes());
 						}
 					}
-					catch (Exception ex)
+				}
+				finally
+				{
+					if (IsStopping)
 					{
-						Logger.LogDebug<BlockDownloader>(ex);
+						Interlocked.Exchange(ref _running, 3);
 					}
 				}
 			}
 			);
 		}
 
-		public void Stop()
+		public async Task StopAsync()
 		{
-			Interlocked.Exchange(ref _running, 0);
+			Interlocked.Exchange(ref _running, 2);
+			while (IsStopping)
+			{
+				await Task.Delay(50);
+			}
 		}
 
 		public void QueToDownload(uint256 hash)

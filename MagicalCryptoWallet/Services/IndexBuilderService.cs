@@ -114,8 +114,12 @@ namespace MagicalCryptoWallet.Services
 		public static FilterModel GetStartingFilter(Network network) => IndexDownloader.GetStartingFilter(network);
 		public FilterModel StartingFilter => GetStartingFilter(RpcClient.Network);
 
+		/// <summary>
+		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
+		/// </summary>
 		private long _running;
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
 		public IndexBuilderService(RPCClient rpc, string indexFilePath, string bech32UtxoSetFilePath)
 		{
@@ -179,139 +183,149 @@ namespace MagicalCryptoWallet.Services
 
 			Task.Run(async () =>
 			{
-				while (IsRunning)
+				try
 				{
-					try
+					while (IsRunning)
 					{
-						// If stop was requested return.
-						if (IsRunning == false) return;
-
-						int height = StartingHeight.Value;
-						uint256 prevHash = null;
-						using (await IndexLock.LockAsync())
-						{
-							if (Index.Count != 0)
-							{
-								height = Index.Last().BlockHeight.Value + 1;
-								prevHash = Index.Last().BlockHash;
-							}
-						}
-
-						Block block = null;
 						try
 						{
-							block = await RpcClient.GetBlockAsync(height);
-						}
-						catch (RPCException) // if the block didn't come yet
-						{
-							// ToDO: If this happens, we should do `waitforblock` RPC instead of periodically asking.
-							// In that case we must also make sure the correct error message comes.
-							await Task.Delay(1000);
-							continue;
-						}
+							// If stop was requested return.
+							if (IsRunning == false) return;
 
-						if (prevHash != null)
-						{
-							// In case of reorg:
-							if (prevHash != block.Header.HashPrevBlock)
+							int height = StartingHeight.Value;
+							uint256 prevHash = null;
+							using (await IndexLock.LockAsync())
 							{
-								Logger.LogInfo<IndexBuilderService>($"REORG Invalid Block: {prevHash}");
-								// 1. Rollback index
-								using (await IndexLock.LockAsync())
+								if (Index.Count != 0)
 								{
-									Index.RemoveLast();
+									height = Index.Last().BlockHeight.Value + 1;
+									prevHash = Index.Last().BlockHash;
 								}
+							}
 
-								// 2. Serialize Index. (Remove last line.)
-								var lines = File.ReadAllLines(IndexFilePath);
-								File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
-
-								// 3. Rollback Bech32UtxoSet
-								if (Bech32UtxoSetHistory.Count != 0)
-								{
-									Bech32UtxoSetHistory.Last().Rollback(Bech32UtxoSet); // The Bech32UtxoSet MUST be recovered to its previous state.
-									Bech32UtxoSetHistory.RemoveLast();
-
-									// 4. Serialize Bech32UtxoSet.
-									await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-										.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
-								}
-
-								// 5. Skip the current block.
+							Block block = null;
+							try
+							{
+								block = await RpcClient.GetBlockAsync(height);
+							}
+							catch (RPCException) // if the block didn't come yet
+							{
+								// ToDO: If this happens, we should do `waitforblock` RPC instead of periodically asking.
+								// In that case we must also make sure the correct error message comes.
+								await Task.Delay(1000);
 								continue;
 							}
-						}
 
-						if(Bech32UtxoSetHistory.Count >= 100)
-						{
-							Bech32UtxoSetHistory.RemoveFirst();
-						}
-						Bech32UtxoSetHistory.Add(new ActionHistoryHelper());
-
-						var scripts = new HashSet<Script>();
-
-						foreach (var tx in block.Transactions)
-						{
-							for (int i = 0; i < tx.Outputs.Count; i++)
+							if (prevHash != null)
 							{
-								var output = tx.Outputs[i];
-								if (!output.ScriptPubKey.IsPayToScriptHash && output.ScriptPubKey.IsWitness)
+								// In case of reorg:
+								if (prevHash != block.Header.HashPrevBlock)
 								{
-									var outpoint = new OutPoint(tx.GetHash(), i);
-									Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
-									Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
-									scripts.Add(output.ScriptPubKey);
+									Logger.LogInfo<IndexBuilderService>($"REORG Invalid Block: {prevHash}");
+									// 1. Rollback index
+									using (await IndexLock.LockAsync())
+									{
+										Index.RemoveLast();
+									}
+
+									// 2. Serialize Index. (Remove last line.)
+									var lines = File.ReadAllLines(IndexFilePath);
+									File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+
+									// 3. Rollback Bech32UtxoSet
+									if (Bech32UtxoSetHistory.Count != 0)
+									{
+										Bech32UtxoSetHistory.Last().Rollback(Bech32UtxoSet); // The Bech32UtxoSet MUST be recovered to its previous state.
+										Bech32UtxoSetHistory.RemoveLast();
+
+										// 4. Serialize Bech32UtxoSet.
+										await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
+											.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+									}
+
+									// 5. Skip the current block.
+									continue;
 								}
 							}
 
-							foreach (var input in tx.Inputs)
+							if (Bech32UtxoSetHistory.Count >= 100)
 							{
-								var found = Bech32UtxoSet.SingleOrDefault(x => x.Key == input.PrevOut);
-								if (found.Key != default)
+								Bech32UtxoSetHistory.RemoveFirst();
+							}
+							Bech32UtxoSetHistory.Add(new ActionHistoryHelper());
+
+							var scripts = new HashSet<Script>();
+
+							foreach (var tx in block.Transactions)
+							{
+								for (int i = 0; i < tx.Outputs.Count; i++)
 								{
-									Script val = Bech32UtxoSet[input.PrevOut];
-									Bech32UtxoSet.Remove(input.PrevOut);
-									Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Remove, input.PrevOut, val);
-									scripts.Add(found.Value);
+									var output = tx.Outputs[i];
+									if (!output.ScriptPubKey.IsPayToScriptHash && output.ScriptPubKey.IsWitness)
+									{
+										var outpoint = new OutPoint(tx.GetHash(), i);
+										Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
+										Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
+										scripts.Add(output.ScriptPubKey);
+									}
+								}
+
+								foreach (var input in tx.Inputs)
+								{
+									var found = Bech32UtxoSet.SingleOrDefault(x => x.Key == input.PrevOut);
+									if (found.Key != default)
+									{
+										Script val = Bech32UtxoSet[input.PrevOut];
+										Bech32UtxoSet.Remove(input.PrevOut);
+										Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Remove, input.PrevOut, val);
+										scripts.Add(found.Value);
+									}
 								}
 							}
+
+							// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
+							// The parameter k MUST be set to the first 16 bytes of the hash of the block for which the filter 
+							// is constructed.This ensures the key is deterministic while still varying from block to block.
+							var key = block.GetHash().ToBytes().Take(16).ToArray();
+
+							GolombRiceFilter filter = null;
+							if (scripts.Count != 0)
+							{
+								filter = GolombRiceFilter.Build(key, scripts.Select(x => x.ToCompressedBytes()));
+							}
+
+							var filterModel = new FilterModel
+							{
+								BlockHash = block.GetHash(),
+								BlockHeight = new Height(height),
+								Filter = filter
+							};
+
+							await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
+							using (await IndexLock.LockAsync())
+							{
+								Index.Add(filterModel);
+							}
+							if (File.Exists(Bech32UtxoSetFilePath))
+							{
+								File.Delete(Bech32UtxoSetFilePath);
+							}
+							await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
+								.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+
+							Logger.LogInfo<IndexBuilderService>($"Created filter for block: {height}.");
 						}
-
-						// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
-						// The parameter k MUST be set to the first 16 bytes of the hash of the block for which the filter 
-						// is constructed.This ensures the key is deterministic while still varying from block to block.
-						var key = block.GetHash().ToBytes().Take(16).ToArray();
-
-						GolombRiceFilter filter = null;
-						if (scripts.Count != 0)
+						catch (Exception ex)
 						{
-							filter = GolombRiceFilter.Build(key, scripts.Select(x => x.ToCompressedBytes()));
+							Logger.LogDebug<IndexBuilderService>(ex);
 						}
-
-						var filterModel = new FilterModel
-						{
-							BlockHash = block.GetHash(),
-							BlockHeight = new Height(height),
-							Filter = filter
-						};
-
-						await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
-						using (await IndexLock.LockAsync())
-						{
-							Index.Add(filterModel);
-						}
-						if (File.Exists(Bech32UtxoSetFilePath))
-						{
-							File.Delete(Bech32UtxoSetFilePath);
-						}
-						await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-							.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
-
-						Logger.LogInfo<IndexBuilderService>($"Created filter for block: {height}.");
 					}
-					catch (Exception ex)
+				}
+				finally
+				{
+					if (IsStopping)
 					{
-						Logger.LogDebug<IndexBuilderService>(ex);
+						Interlocked.Exchange(ref _running, 3);
 					}
 				}
 			});
@@ -342,9 +356,13 @@ namespace MagicalCryptoWallet.Services
 			}
 		}
 
-		public void Stop()
+		public async Task StopAsync()
 		{
-			Interlocked.Exchange(ref _running, 0);
+			Interlocked.Exchange(ref _running, 2);
+			while (IsStopping)
+			{
+				await Task.Delay(50);
+			}
 		}
 	}
 }

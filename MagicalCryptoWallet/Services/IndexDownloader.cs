@@ -51,8 +51,12 @@ namespace MagicalCryptoWallet.Services
 		}
 		public FilterModel StartingFilter => GetStartingFilter(Network);
 
+		/// <summary>
+		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
+		/// </summary>
 		private long _running;
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
+		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
 		public IndexDownloader(Network network, string indexFilePath, Uri indexHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
@@ -100,89 +104,103 @@ namespace MagicalCryptoWallet.Services
 
 			Task.Run(async () =>
 			{
-				while (IsRunning)
+				try
 				{
-					try
+					while (IsRunning)
 					{
-						// If stop was requested return.
-						if (IsRunning == false) return;
-
-						FilterModel bestKnownFilter;
-						using (await IndexLock.LockAsync())
+						try
 						{
-							bestKnownFilter = Index.Last();
-						}
+							// If stop was requested return.
+							if (IsRunning == false) return;
 
-						var response = await Client.SendAsync(HttpMethod.Get, $"/api/v1/btc/Blockchain/filters/{bestKnownFilter.BlockHash}");
-
-						if(response.StatusCode == HttpStatusCode.NoContent)
-						{
-							continue;
-						}
-						if(response.StatusCode == HttpStatusCode.OK)
-						{
-							var filters = await response.Content.ReadAsJsonAsync<List<string>>();
+							FilterModel bestKnownFilter;
 							using (await IndexLock.LockAsync())
 							{
-								for (int i = 0; i < filters.Count; i++)
-								{
-									var filterModel = FilterModel.FromLine(filters[i], new Height(bestKnownFilter.BlockHeight.Value + i + 1));
-
-									Index.Add(filterModel);
-								}
-
-								if(filters.Count == 1) // minor optimization
-								{
-									await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
-								}
-								else
-								{
-									await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
-								}
-
-								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
+								bestKnownFilter = Index.Last();
 							}
 
-							continue;
-						}
-						else if(response.StatusCode == HttpStatusCode.NotFound)
-						{
-							// Reorg happened
-							Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {bestKnownFilter.BlockHash}");
-							// 1. Rollback index
-							using (await IndexLock.LockAsync())
+							var response = await Client.SendAsync(HttpMethod.Get, $"/api/v1/btc/Blockchain/filters/{bestKnownFilter.BlockHash}");
+
+							if (response.StatusCode == HttpStatusCode.NoContent)
 							{
-								Index.RemoveAt(Index.Count - 1);
+								continue;
 							}
+							if (response.StatusCode == HttpStatusCode.OK)
+							{
+								var filters = await response.Content.ReadAsJsonAsync<List<string>>();
+								using (await IndexLock.LockAsync())
+								{
+									for (int i = 0; i < filters.Count; i++)
+									{
+										var filterModel = FilterModel.FromLine(filters[i], new Height(bestKnownFilter.BlockHeight.Value + i + 1));
 
-							// 2. Serialize Index. (Remove last line.)
-							var lines = File.ReadAllLines(IndexFilePath);
-							File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+										Index.Add(filterModel);
+									}
 
-							// 3. Skip the last valid block.
-							continue;
+									if (filters.Count == 1) // minor optimization
+									{
+										await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
+									}
+									else
+									{
+										await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
+									}
+
+									Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
+								}
+
+								continue;
+							}
+							else if (response.StatusCode == HttpStatusCode.NotFound)
+							{
+								// Reorg happened
+								Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {bestKnownFilter.BlockHash}");
+								// 1. Rollback index
+								using (await IndexLock.LockAsync())
+								{
+									Index.RemoveAt(Index.Count - 1);
+								}
+
+								// 2. Serialize Index. (Remove last line.)
+								var lines = File.ReadAllLines(IndexFilePath);
+								File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+
+								// 3. Skip the last valid block.
+								continue;
+							}
+							else
+							{
+								var error = await response.Content.ReadAsStringAsync();
+								throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {error}");
+							}
 						}
-						else
+						catch (Exception ex)
 						{
-							var error = await response.Content.ReadAsStringAsync();
-							throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {error}");
+							Logger.LogError<IndexDownloader>(ex);
+						}
+						finally
+						{
+							await Task.Delay(requestInterval); // Ask for new index in every requestInterval.
 						}
 					}
-					catch (Exception ex)
+				}
+				finally
+				{
+					if (IsStopping)
 					{
-						Logger.LogError<IndexDownloader>(ex);
-					}
-					finally
-					{
-						await Task.Delay(requestInterval); // Ask for new index every 30 seconds.
+						Interlocked.Exchange(ref _running, 3);
 					}
 				}
 			});
 		}
 
-		public void Stop()
+		public async Task StopAsync()
 		{
-			Interlocked.Exchange(ref _running, 0);
+			Interlocked.Exchange(ref _running, 2);
+			while (IsStopping)
+			{
+				await Task.Delay(50);
+			}
 		}
 
 		public IEnumerable<FilterModel> GetFiltersIncluding(uint256 blockHash)

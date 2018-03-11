@@ -58,12 +58,15 @@ namespace MagicalCryptoWallet.Backend
 			app.UseMvc();
 
 			var applicationLifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
-			applicationLifetime.ApplicationStopping.Register(OnShutdown);
+			applicationLifetime.ApplicationStopping.Register(OnShutdownAsync);
 		}
 
-		private void OnShutdown()
+		private async void OnShutdownAsync()
 		{
-			Global.IndexBuilderService?.Stop();
+			if(Global.IndexBuilderService != null)
+			{
+				await Global.IndexBuilderService.StopAsync();
+			}
 		}
 	}
 }

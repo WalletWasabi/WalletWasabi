@@ -203,7 +203,10 @@ namespace MagicalCryptoWallet.Tests
 			}
 			finally
 			{
-				downloader?.Stop();
+				if(downloader != null)
+				{
+					await downloader.StopAsync();
+				}
 
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
@@ -277,7 +280,7 @@ namespace MagicalCryptoWallet.Tests
 				downloader.Syncronize(requestInterval: TimeSpan.FromSeconds(1));
 
 				// Test initial syncronization.
-				
+
 				var times = 0;
 				int filterCount;
 				while ((filterCount = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).Count()) < 102)
@@ -320,7 +323,10 @@ namespace MagicalCryptoWallet.Tests
 			}
 			finally
 			{
-				downloader.Stop();
+				if (downloader != null)
+				{
+					await downloader.StopAsync();
+				}
 			}
 		}
 
@@ -380,7 +386,10 @@ namespace MagicalCryptoWallet.Tests
 			}
 			finally
 			{
-				downloader.Stop();
+				if (downloader != null)
+				{
+					await downloader.StopAsync();
+				}
 			}
 		}
 
@@ -425,18 +434,25 @@ namespace MagicalCryptoWallet.Tests
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Syncronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
 
-				// ToDo: Write the actual tests here.
+				// ToDo: Write the actual tests here. Wall
+				
 			}
 			finally
 			{
 				// Dispose index downloader service.
-				indexDownloader?.Stop();
+				if (indexDownloader != null)
+				{
+					await indexDownloader.StopAsync();
+				}
 
 				// Dispose mempool service.
 				memPoolService.TransactionReceived -= WalletTestsAsync_MemPoolService_TransactionReceived;
 
 				// Dispose downloader service
-				blockDownloader?.Stop();
+				if(blockDownloader != null)
+				{
+					await blockDownloader.StopAsync();
+				}
 				if (Directory.Exists(blocksFolderPath))
 				{
 					Directory.Delete(blocksFolderPath, recursive: true);
