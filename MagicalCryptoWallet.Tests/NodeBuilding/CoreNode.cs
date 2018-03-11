@@ -80,20 +80,22 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			}
 			catch (DirectoryNotFoundException) { }
 		}
-#if !NOSOCKET
-		public void Sync(CoreNode node, bool keepConnection = false)
+
+		public async Task SyncAsync(CoreNode node, bool keepConnection = false)
 		{
 			var rpc = CreateRPCClient();
 			var rpc1 = node.CreateRPCClient();
 			rpc.AddNode(node.Endpoint, true);
-			while (rpc.GetBestBlockHash() != rpc1.GetBestBlockHash())
+			while (await rpc.GetBestBlockHashAsync() != await rpc1.GetBestBlockHashAsync())
 			{
-				Thread.Sleep(200);
+				await Task.Delay(200);
 			}
 			if (!keepConnection)
+			{
 				rpc.RemoveNode(node.Endpoint);
+			}
 		}
-#endif
+
 		private CoreNodeState _state;
 		public CoreNodeState State
 		{
@@ -144,6 +146,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			{
 				{"regtest", "1"},
 				{"rest", "1"},
+				{"listenonion", "0"},
 				{"server", "1"},
 				{"txindex", "0"},
 				{"rpcuser", Creds.UserName},
@@ -157,7 +160,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			File.WriteAllText(_config, config.ToString());
 			lock (_l)
 			{
-				_process = Process.Start(new FileInfo(_Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=net");
+				_process = Process.Start(new FileInfo(_Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
 				_state = CoreNodeState.Starting;
 			}
 			while (true)
@@ -365,7 +368,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			return new TransactionSignature(ecdsa, sig.SigHash);
 		}
 
-		public void BroadcastBlocks(Block[] blocks)
+		public void BroadcastBlocks(IEnumerable<Block> blocks)
 		{
 			using (var node = CreateNodeClient())
 			{
@@ -374,7 +377,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			}
 		}
 
-		public void BroadcastBlocks(Block[] blocks, Node node)
+		public void BroadcastBlocks(IEnumerable<Block> blocks, Node node)
 		{
 			foreach (var block in blocks)
 			{
@@ -389,6 +392,17 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			SelectMempoolTransactions();
 			return Generate(blockCount, includeMempool);
 		}
+
+		public void MineBlock(Block block)
+		{
+			block.UpdateMerkleRoot();
+			uint nonce = 0;
+			while (!block.CheckProofOfWork(Network.RegTest.Consensus))
+			{
+				block.Header.Nonce = ++nonce;
+			}
+		}
+		
 
 		private class TransactionNode
 		{
