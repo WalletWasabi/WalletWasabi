@@ -358,11 +358,11 @@ namespace MagicalCryptoWallet.Tests
 				times = 0;
 				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < 116)
 				{
-					if (times > 240) // 4 min
+					if (times > 2400) // 4 min
 					{
 						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {116}, got only: {filterCount}.");
 					}
-					await Task.Delay(1000);
+					await Task.Delay(100);
 					times++;
 				}
 
