@@ -97,7 +97,7 @@ namespace MagicalCryptoWallet.Services
 			}
 		}
 
-		public void Syncronize(TimeSpan requestInterval)
+		public void Synchronize(TimeSpan requestInterval)
 		{
 			Guard.NotNull(nameof(requestInterval), requestInterval);
 			Interlocked.Exchange(ref _running, 1);

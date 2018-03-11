@@ -68,7 +68,7 @@ namespace MagicalCryptoWallet.Backend
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
 			IndexBuilderService = new IndexBuilderService(RpcClient, indexFilePath, utxoSetFilePath);
-			IndexBuilderService.Syncronize();
+			IndexBuilderService.Synchronize();
 		}
 
 		public static async Task InitializeConfigAsync()

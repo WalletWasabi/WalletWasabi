@@ -1,5 +1,6 @@
 ﻿using MagicalCryptoWallet.Backend;
 using MagicalCryptoWallet.Backend.Models;
+using MagicalCryptoWallet.KeyManagement;
 using MagicalCryptoWallet.Logging;
 using MagicalCryptoWallet.Models;
 using MagicalCryptoWallet.Services;
@@ -177,7 +178,7 @@ namespace MagicalCryptoWallet.Tests
 				nodes.ConnectedNodes.Add(Fixture.BackendRegTestNode.CreateNodeClient());
 
 				downloader = new BlockDownloader(nodes, blocksFolderPath);
-				downloader.Start();
+				downloader.Synchronize();
 				foreach (var hash in blocksToDownload)
 				{
 					downloader.QueToDownload(hash);
@@ -277,7 +278,7 @@ namespace MagicalCryptoWallet.Tests
 			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
 			try
 			{
-				downloader.Syncronize(requestInterval: TimeSpan.FromSeconds(1));
+				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(1));
 
 				// Test initial syncronization.
 
@@ -341,7 +342,7 @@ namespace MagicalCryptoWallet.Tests
 			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
 			try
 			{
-				downloader.Syncronize(requestInterval: TimeSpan.FromSeconds(1));
+				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(1));
 
 				// Test initial syncronization.
 				
@@ -427,18 +428,26 @@ namespace MagicalCryptoWallet.Tests
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{Global.RpcClient.Network}.dat");
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
 
+			// 5. Create key manager service.
+			var keyManager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
+
+			// 6. Create wallet service.
+			var wallet = new WalletService(keyManager, blockDownloader, indexDownloader);
+
 			try
 			{
 				nodes.Connect(); // Start connection service.
-				blockDownloader.Start(); // Start block downloader service.
+				blockDownloader.Synchronize(); // Start block downloader service.
 				node.VersionHandshake(); // Start mempool service.
-				indexDownloader.Syncronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-
-				// ToDo: Write the actual tests here. Wall
-				
+				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
+				wallet.Synchronize(); // Start wallet service.
 			}
 			finally
 			{
+				if(wallet != null)
+				{
+					await wallet.StopAsync();
+				}
 				// Dispose index downloader service.
 				if (indexDownloader != null)
 				{

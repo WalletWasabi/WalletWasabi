@@ -78,7 +78,7 @@ namespace MagicalCryptoWallet.Services
 			}
 		}
 
-		public void Start()
+		public void Synchronize()
 		{
 			Interlocked.Exchange(ref _running, 1);
 

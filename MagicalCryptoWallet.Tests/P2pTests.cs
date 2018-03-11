@@ -88,7 +88,7 @@ namespace MagicalCryptoWallet.Tests
 				});
 			downloader = new BlockDownloader(nodes, blocksFolderPath);
 			Assert.True(Directory.Exists(blocksFolderPath));
-			downloader.Start();
+			downloader.Synchronize();
 			foreach (var hash in blocksToDownload)
 			{
 				downloader.QueToDownload(hash);
@@ -208,7 +208,7 @@ namespace MagicalCryptoWallet.Tests
 				var indexBuilderService = new IndexBuilderService(rpc, indexFilePath, utxoSetFilePath);
 				try
 				{
-					indexBuilderService.Syncronize();
+					indexBuilderService.Synchronize();
 
 					// Test initial syncronization.
 					var times = 0;
