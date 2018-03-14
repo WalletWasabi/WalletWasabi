@@ -26,6 +26,9 @@ namespace MagicalCryptoWallet.Services
 
 		private List<uint256> BlocksToDownload { get; }
 		private AsyncLock BlocksToDownloadLock { get; }
+		
+		public event EventHandler<Block> NewBlock;
+		private void OnNewBlock(Block block) => NewBlock?.Invoke(this, block);
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -33,24 +36,29 @@ namespace MagicalCryptoWallet.Services
 		private long _running;
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
-		public int NumberOfBlocksToDownload
+
+		public int CountBlocksToDownload()
 		{
-			get
+			using (BlocksToDownloadLock.Lock())
 			{
-				using (BlocksToDownloadLock.Lock())
-				{
-					return BlocksToDownload.Count;
-				}
+				return BlocksToDownload.Count;
 			}
 		}
-		public int NumberOfDownloadedBlocks
+
+		public int CountDownloadedBlocks()
 		{
-			get
+			using (BlocksFolderLock.Lock())
 			{
-				using (BlocksFolderLock.Lock())
-				{
-					return Directory.EnumerateFiles(BlocksFolderPath).Count();
-				}
+				return Directory.EnumerateFiles(BlocksFolderPath).Count();
+			}
+		}
+
+		public int CountBlocks()
+		{
+			using (BlocksToDownloadLock.Lock())
+			using (BlocksFolderLock.Lock())
+			{
+				return Directory.EnumerateFiles(BlocksFolderPath).Count() + BlocksToDownload.Count;
 			}
 		}
 
@@ -176,6 +184,7 @@ namespace MagicalCryptoWallet.Services
 							using (BlocksToDownloadLock.Lock())
 							{
 								BlocksToDownload.Remove(hash);
+								OnNewBlock(block);
 								var path = Path.Combine(BlocksFolderPath, hash.ToString());
 								await File.WriteAllBytesAsync(path, block.ToBytes());
 							}
@@ -209,21 +218,28 @@ namespace MagicalCryptoWallet.Services
 			}
 		}
 
-		public void QueToDownload(uint256 hash)
+		public void QueueToDownload(uint256 hash)
 		{
-			using (BlocksFolderLock.Lock())
 			using (BlocksToDownloadLock.Lock())
 			{
-				var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
-				var fileNames = filePaths.Select(x => Path.GetFileName(x));
-				var hashes = fileNames.Select(x => new uint256(x));
-
-				if (!hashes.Contains(hash))
+				if (BlocksToDownload.Contains(hash))
 				{
-					if (!BlocksToDownload.Contains(hash))
+					return;
+				}
+
+				using (BlocksFolderLock.Lock())
+				{
+
+					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
+					var fileNames = filePaths.Select(x => Path.GetFileName(x));
+					var hashes = fileNames.Select(x => new uint256(x));
+
+					if (hashes.Contains(hash))
 					{
-						BlocksToDownload.Add(hash);
+						return;
 					}
+
+					BlocksToDownload.Add(hash);
 				}
 			}
 		}
@@ -269,7 +285,7 @@ namespace MagicalCryptoWallet.Services
 				}
 			}
 
-			QueToDownload(hash);
+			QueueToDownload(hash);
 			return default;
 		}
 	}

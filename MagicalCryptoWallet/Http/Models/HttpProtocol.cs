@@ -49,12 +49,12 @@ namespace MagicalCryptoWallet.Http.Models
 		public override bool Equals(object obj) => obj is HttpProtocol && this == (HttpProtocol)obj;
 		public bool Equals(HttpProtocol other) => this == other;
 		public override int GetHashCode() => ToString().GetHashCode();
-		public static bool operator ==(HttpProtocol x, HttpProtocol y) => x.ToString() == y.ToString();
+		public static bool operator ==(HttpProtocol x, HttpProtocol y) => x?.ToString() == y?.ToString();
 		public static bool operator !=(HttpProtocol x, HttpProtocol y) => !(x == y);
 
 		public bool Equals(string other) => ToString() == other;
-		public static bool operator ==(string x, HttpProtocol y) => x == y.ToString();
-		public static bool operator ==(HttpProtocol x, string y) => x.ToString() == y;
+		public static bool operator ==(string x, HttpProtocol y) => x == y?.ToString();
+		public static bool operator ==(HttpProtocol x, string y) => x?.ToString() == y;
 		public static bool operator !=(string x, HttpProtocol y) => !(x == y);
 		public static bool operator !=(HttpProtocol x, string y) => !(x == y);
 

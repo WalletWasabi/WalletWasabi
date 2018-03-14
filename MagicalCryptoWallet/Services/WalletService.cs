@@ -21,7 +21,13 @@ namespace MagicalCryptoWallet.Services
 		public BlockDownloader BlockDownloader { get; }
 		public IndexDownloader IndexDownloader { get; }
 
-		public AsyncLock HandleFiltersLock { get; }
+		private AsyncLock HandleFiltersLock { get; }
+
+		public SortedDictionary<Height, uint256> WalletBlocks { get; }
+		private HashSet<uint256> ProcessedBlocks { get; }
+		private AsyncLock WalletBlocksLock { get; }
+
+		public ConcurrentHashSet<SmartCoin> KnownCoins { get; }
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -36,36 +42,78 @@ namespace MagicalCryptoWallet.Services
 			BlockDownloader = Guard.NotNull(nameof(blockDownloader), blockDownloader);
 			IndexDownloader = Guard.NotNull(nameof(indexDownloader), indexDownloader);
 
+			WalletBlocks = new SortedDictionary<Height, uint256>();
+			ProcessedBlocks = new HashSet<uint256>();
+			WalletBlocksLock = new AsyncLock();
 			HandleFiltersLock = new AsyncLock();
+
+			KnownCoins = new ConcurrentHashSet<SmartCoin>();
+
 			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
 			IndexDownloader.Reorged += IndexDownloader_Reorged;
+			BlockDownloader.NewBlock += BlockDownloader_NewBlock;
+		}
+
+		private void BlockDownloader_NewBlock(object sender, Block block)
+		{
+			using (WalletBlocksLock.Lock())
+			{
+				//Todo!
+
+				if(ProcessedBlocks.Contains(block.GetHash()))
+				{
+					return;
+				}
+
+				if(block.GetHash() == WalletBlocks.Last().Value) // If this is the latest block then no need to look through everything.
+				{
+
+					ProcessedBlocks.Add(block.GetHash());
+				}
+				else // Do a deep reindexing.
+				{
+					ProcessedBlocks.Clear();
+				}
+			}
 		}
 
 		private void IndexDownloader_Reorged(object sender, uint256 invalidBlockHash)
 		{
 			using (HandleFiltersLock.Lock())
+			using (WalletBlocksLock.Lock())
 			{
+				var elem = WalletBlocks.SingleOrDefault(x => x.Value == invalidBlockHash);
 				BlockDownloader.TryRemove(invalidBlockHash);
-				// ToDo: It must do more.
+				WalletBlocks.RemoveByValue(invalidBlockHash);
+				ProcessedBlocks.Remove(invalidBlockHash);
+				if (elem.Key != null)
+				{
+					foreach(var toRemove in KnownCoins.Where(x => x.Height == elem.Key).ToHashSet())
+					{
+						KnownCoins.TryRemove(toRemove);
+					}
+				}
 			}
 		}
 
 		private void IndexDownloader_NewFilter(object sender, FilterModel filterModel)
 		{
 			using (HandleFiltersLock.Lock())
+			using (WalletBlocksLock.Lock())
 			{
-				if (filterModel.Filter != null)
+				if (filterModel.Filter != null && !WalletBlocks.ContainsValue(filterModel.BlockHash))
 				{
 					var matchFound = filterModel.Filter.MatchAny(KeyManager.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()), filterModel.FilterKey);
 					if (matchFound)
 					{
-						BlockDownloader.QueToDownload(filterModel.BlockHash);
+						BlockDownloader.QueueToDownload(filterModel.BlockHash);
+						WalletBlocks.AddOrReplace(filterModel.BlockHeight, filterModel.BlockHash);
 					}
 				}
 			}
 		}
 
-		public void Initialize()
+		public async Task InitializeAsync()
 		{
 			if (!BlockDownloader.IsRunning)
 			{
@@ -76,15 +124,66 @@ namespace MagicalCryptoWallet.Services
 				throw new NotSupportedException($"{nameof(IndexDownloader)} is not running.");
 			}
 
-			// Go through the filters and que to download the matches.
-			var filters = IndexDownloader.GetFiltersIncluding(IndexDownloader.StartingFilter.BlockHeight);
-
-			foreach (var filterModel in filters.Where(x => x.Filter != null)) // Filter can be null if there is no bech32 tx.
+			using (HandleFiltersLock.Lock())
+			using (WalletBlocksLock.Lock())
 			{
-				var matchFound = filterModel.Filter.MatchAny(KeyManager.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()), filterModel.FilterKey);
-				if (matchFound)
+				// Go through the filters and que to download the matches.
+				var filters = IndexDownloader.GetFiltersIncluding(IndexDownloader.StartingFilter.BlockHeight);
+
+				foreach (var filterModel in filters.Where(x => x.Filter != null && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
 				{
-					BlockDownloader.QueToDownload(filterModel.BlockHash);
+					var matchFound = filterModel.Filter.MatchAny(KeyManager.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()), filterModel.FilterKey);
+					if (matchFound)
+					{
+						BlockDownloader.QueueToDownload(filterModel.BlockHash);
+						WalletBlocks.AddOrReplace(filterModel.BlockHeight, filterModel.BlockHash);
+					}
+				}
+
+				foreach (var relevantBlock in WalletBlocks)
+				{
+					Block block = null;
+					while ((block = BlockDownloader.GetBlock(relevantBlock.Value)) == null) // Wait until not downloaded.
+					{
+						await Task.Delay(100);
+					}
+
+					var keys = KeyManager.GetKeys().ToList();
+
+					foreach (var tx in block.Transactions)
+					{
+						// If transaction received to any of the wallet keys:
+						for (var i = 0; i < tx.Outputs.Count; i++)
+						{
+							var output = tx.Outputs[i];
+							HdPubKey foundKey = keys.SingleOrDefault(x => x.GetP2wpkhScript() == output.ScriptPubKey);
+							if (foundKey != default)
+							{
+								foundKey.KeyState = KeyState.Used;
+								var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), relevantBlock.Key, foundKey.Label, null);
+
+								// Make sure there's always 21 clean keys generated and indexed.
+								while (KeyManager.GetKeys(KeyState.Clean, foundKey.IsInternal()).Count() < 21)
+								{
+									KeyManager.GenerateNewKey("", KeyState.Clean, foundKey.IsInternal());
+								}
+							}
+						}
+
+						// If spends any of our coin
+						for (var i = 0; i < tx.Inputs.Count; i++)
+						{
+							var input = tx.Inputs[i];
+
+							var foundCoin = KnownCoins.SingleOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
+							if (foundCoin != null)
+							{
+								foundCoin.SpenderTransactionId = tx.GetHash();
+							}
+						}
+					}
+
+					ProcessedBlocks.Add(block.GetHash());
 				}
 			}
 		}
@@ -114,7 +213,7 @@ namespace MagicalCryptoWallet.Services
 								continue;
 							}
 
-							await Task.Delay(1000); // dummmy wait for now
+							await Task.Delay(1000); // dummmy wait for now (TODO)
 						}
 						catch (Exception ex)
 						{
@@ -135,6 +234,7 @@ namespace MagicalCryptoWallet.Services
 
 		public async Task StopAsync()
 		{
+			BlockDownloader.NewBlock -= BlockDownloader_NewBlock;
 			IndexDownloader.NewFilter -= IndexDownloader_NewFilter;
 			IndexDownloader.Reorged -= IndexDownloader_Reorged;
 			if (IsRunning)

@@ -91,7 +91,7 @@ namespace MagicalCryptoWallet.Tests
 			downloader.Synchronize();
 			foreach (var hash in blocksToDownload)
 			{
-				downloader.QueToDownload(hash);
+				downloader.QueueToDownload(hash);
 			}
 
 			try

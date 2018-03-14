@@ -203,6 +203,22 @@ namespace MagicalCryptoWallet.Services
 				}
 			});
 		}
+		
+		public Height GetHeight(uint256 blockHash)
+		{
+			using (IndexLock.Lock())
+			{
+				var single = Index.Single(x => x.BlockHash == blockHash);
+				if(single != null)
+				{
+					return single.BlockHeight;
+				}
+				else
+				{
+					return Height.Unknown;
+				}
+			}
+		}
 
 		public async Task StopAsync()
 		{

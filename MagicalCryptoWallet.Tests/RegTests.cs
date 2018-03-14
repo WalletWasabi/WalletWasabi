@@ -181,7 +181,7 @@ namespace MagicalCryptoWallet.Tests
 				downloader.Synchronize();
 				foreach (var hash in blocksToDownload)
 				{
-					downloader.QueToDownload(hash);
+					downloader.QueueToDownload(hash);
 				}
 
 				nodes.Connect();
@@ -537,9 +537,9 @@ namespace MagicalCryptoWallet.Tests
 					await Task.Delay(100);
 					times++;
 				}
-				Assert.Equal(1, blockDownloader.NumberOfBlocksToDownload + blockDownloader.NumberOfDownloadedBlocks);
 
-				wallet.Initialize(); // Initialize wallet service.
+				await wallet.InitializeAsync(); // Initialize wallet service.
+				Assert.Equal(1, blockDownloader.CountBlocks());
 				wallet.Synchronize(); // Start wallet service.
 
 				// Get some money, make it confirm.
@@ -557,7 +557,7 @@ namespace MagicalCryptoWallet.Tests
 					await Task.Delay(100);
 					times++;
 				}
-				Assert.Equal(2, blockDownloader.NumberOfBlocksToDownload + blockDownloader.NumberOfDownloadedBlocks);
+				Assert.Equal(2, blockDownloader.CountBlocks());
 			}
 			finally
 			{
