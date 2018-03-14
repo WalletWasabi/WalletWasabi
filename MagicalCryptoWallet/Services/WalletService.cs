@@ -17,17 +17,17 @@ using Nito.AsyncEx;
 
 namespace MagicalCryptoWallet.Services
 {
-	public class WalletService
+	public class WalletService : IDisposable
 	{
 		public KeyManager KeyManager { get; }
-		public BlockDownloader BlockDownloader { get; }
 		public IndexDownloader IndexDownloader { get; }
 
 		public NodesGroup Nodes { get; }
 		public string BlocksFolderPath { get; }
-		private AsyncLock BlocksFolderLock { get; }
 
 		private AsyncLock HandleFiltersLock { get; }
+		private AsyncLock BlockDownloadLock { get; }
+		private AsyncLock BlockFolderLock { get; }
 
 		public SortedDictionary<Height, uint256> WalletBlocks { get; }
 		private HashSet<uint256> ProcessedBlocks { get; }
@@ -56,16 +56,17 @@ namespace MagicalCryptoWallet.Services
 			KnownCoins = new ConcurrentHashSet<SmartCoin>();
 
 			BlocksFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(blocksFolderPath), blocksFolderPath, trim: true);
-			BlocksFolderLock = new AsyncLock();
+			BlockFolderLock = new AsyncLock();
+			BlockDownloadLock = new AsyncLock();
 
 			_running = 0;
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
-				foreach (var blockFilePath in Directory.EnumerateFiles(BlocksFolderPath))
+				if(IndexDownloader.Network == Network.RegTest)
 				{
-					var blockBytes = File.ReadAllBytes(blockFilePath);
-					var block = new Block(blockBytes);
+					Directory.Delete(BlocksFolderPath, true);
+					Directory.CreateDirectory(BlocksFolderPath);
 				}
 			}
 			else
@@ -73,12 +74,11 @@ namespace MagicalCryptoWallet.Services
 				Directory.CreateDirectory(BlocksFolderPath);
 			}
 
-			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
-			IndexDownloader.Reorged += IndexDownloader_Reorged;
-			BlockDownloader.NewBlock += BlockDownloader_NewBlock;
+			IndexDownloader.NewFilter += IndexDownloader_NewFilterAsync;
+			IndexDownloader.Reorged += IndexDownloader_ReorgedAsync;
 		}
 
-		private void BlockDownloader_NewBlock(object sender, Block block)
+		private void ProcessBlock(Block block)
 		{
 			using (WalletBlocksLock.Lock())
 			{
@@ -101,13 +101,13 @@ namespace MagicalCryptoWallet.Services
 			}
 		}
 
-		private void IndexDownloader_Reorged(object sender, uint256 invalidBlockHash)
+		private async void IndexDownloader_ReorgedAsync(object sender, uint256 invalidBlockHash)
 		{
 			using (HandleFiltersLock.Lock())
 			using (WalletBlocksLock.Lock())
 			{
 				var elem = WalletBlocks.SingleOrDefault(x => x.Value == invalidBlockHash);
-				BlockDownloader.TryRemove(invalidBlockHash);
+				await DeleteBlockAsync(invalidBlockHash);
 				WalletBlocks.RemoveByValue(invalidBlockHash);
 				ProcessedBlocks.Remove(invalidBlockHash);
 				if (elem.Key != null)
@@ -120,29 +120,20 @@ namespace MagicalCryptoWallet.Services
 			}
 		}
 
-		private void IndexDownloader_NewFilter(object sender, FilterModel filterModel)
+		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
 		{
 			using (HandleFiltersLock.Lock())
 			using (WalletBlocksLock.Lock())
 			{
 				if (filterModel.Filter != null && !WalletBlocks.ContainsValue(filterModel.BlockHash))
 				{
-					var matchFound = filterModel.Filter.MatchAny(KeyManager.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()), filterModel.FilterKey);
-					if (matchFound)
-					{
-						BlockDownloader.QueueToDownload(filterModel.BlockHash);
-						WalletBlocks.AddOrReplace(filterModel.BlockHeight, filterModel.BlockHash);
-					}
+					await ProcessFilterModelAsync(filterModel, CancellationToken.None);
 				}
 			}
 		}
 
-		public async Task InitializeAsync()
+		public async Task InitializeAsync(CancellationToken cancel)
 		{
-			if (!BlockDownloader.IsRunning)
-			{
-				throw new NotSupportedException($"{nameof(BlockDownloader)} is not running.");
-			}
 			if (!IndexDownloader.IsRunning)
 			{
 				throw new NotSupportedException($"{nameof(IndexDownloader)} is not running.");
@@ -156,119 +147,215 @@ namespace MagicalCryptoWallet.Services
 
 				foreach (var filterModel in filters.Where(x => x.Filter != null && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
 				{
-					var matchFound = filterModel.Filter.MatchAny(KeyManager.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()), filterModel.FilterKey);
-					if (matchFound)
-					{
-						BlockDownloader.QueueToDownload(filterModel.BlockHash);
-						WalletBlocks.AddOrReplace(filterModel.BlockHeight, filterModel.BlockHash);
-					}
-				}
-
-				foreach (var relevantBlock in WalletBlocks)
-				{
-					Block block = null;
-					while ((block = BlockDownloader.GetBlock(relevantBlock.Value)) == null) // Wait until not downloaded.
-					{
-						await Task.Delay(100);
-					}
-
-					var keys = KeyManager.GetKeys().ToList();
-
-					foreach (var tx in block.Transactions)
-					{
-						// If transaction received to any of the wallet keys:
-						for (var i = 0; i < tx.Outputs.Count; i++)
-						{
-							var output = tx.Outputs[i];
-							HdPubKey foundKey = keys.SingleOrDefault(x => x.GetP2wpkhScript() == output.ScriptPubKey);
-							if (foundKey != default)
-							{
-								foundKey.KeyState = KeyState.Used;
-								var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), relevantBlock.Key, foundKey.Label, null);
-
-								// Make sure there's always 21 clean keys generated and indexed.
-								while (KeyManager.GetKeys(KeyState.Clean, foundKey.IsInternal()).Count() < 21)
-								{
-									KeyManager.GenerateNewKey("", KeyState.Clean, foundKey.IsInternal());
-								}
-							}
-						}
-
-						// If spends any of our coin
-						for (var i = 0; i < tx.Inputs.Count; i++)
-						{
-							var input = tx.Inputs[i];
-
-							var foundCoin = KnownCoins.SingleOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
-							if (foundCoin != null)
-							{
-								foundCoin.SpenderTransactionId = tx.GetHash();
-							}
-						}
-					}
-
-					ProcessedBlocks.Add(block.GetHash());
+					await ProcessFilterModelAsync(filterModel, cancel);
 				}
 			}
 		}
 
-		public void Synchronize()
+		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
 		{
-			Interlocked.Exchange(ref _running, 1);
-
-			Task.Run(async () =>
+			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()), filterModel.FilterKey);
+			if (matchFound)
 			{
-				try
+				Block block = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
+				var keys = KeyManager.GetKeys().ToList();
+
+				foreach (var tx in block.Transactions)
 				{
-					while (IsRunning)
+					// If transaction received to any of the wallet keys:
+					for (var i = 0; i < tx.Outputs.Count; i++)
 					{
+						var output = tx.Outputs[i];
+						HdPubKey foundKey = keys.SingleOrDefault(x => x.GetP2wpkhScript() == output.ScriptPubKey);
+						if (foundKey != default)
+						{
+							foundKey.KeyState = KeyState.Used;
+							var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), filterModel.BlockHeight, foundKey.Label, null);
+
+							// Make sure there's always 21 clean keys generated and indexed.
+							while (KeyManager.GetKeys(KeyState.Clean, foundKey.IsInternal()).Count() < 21)
+							{
+								KeyManager.GenerateNewKey("", KeyState.Clean, foundKey.IsInternal());
+							}
+						}
+					}
+
+					// If spends any of our coin
+					for (var i = 0; i < tx.Inputs.Count; i++)
+					{
+						var input = tx.Inputs[i];
+
+						var foundCoin = KnownCoins.SingleOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
+						if (foundCoin != null)
+						{
+							foundCoin.SpenderTransactionId = tx.GetHash();
+						}
+					}
+				}
+
+				ProcessedBlocks.Add(block.GetHash());
+
+				WalletBlocks.AddOrReplace(filterModel.BlockHeight, filterModel.BlockHash);
+			}
+		}
+
+		/// <exception cref="OperationCanceledException"></exception>
+		public async Task<Block> GetOrDownloadBlockAsync(uint256 hash, CancellationToken cancel)
+		{
+			// Try get the block
+			using (await BlockFolderLock.LockAsync())
+			{
+				foreach (var filePath in Directory.EnumerateFiles(BlocksFolderPath))
+				{
+					var fileName = Path.GetFileName(filePath);
+					if (hash == new uint256(fileName))
+					{
+						var blockBytes = await File.ReadAllBytesAsync(filePath);
+						return new Block(blockBytes);
+					}
+				}
+			}
+			cancel.ThrowIfCancellationRequested();
+
+			// Download the block
+			Block block = null;
+			using (await BlockDownloadLock.LockAsync())
+			{
+				while(true)
+				{
+					cancel.ThrowIfCancellationRequested();
+					try
+					{
+						// If no connection, wait then continue.
+						while (Nodes.ConnectedNodes.Count == 0)
+						{
+							await Task.Delay(100);
+						}
+
+						Node node = Nodes.ConnectedNodes.RandomElement();
+						if (node == default(Node))
+						{
+							await Task.Delay(100);
+							continue;
+						}
+
+						if (!node.IsConnected && !(IndexDownloader.Network != Network.RegTest))
+						{
+							await Task.Delay(100);
+							continue;
+						}
+
 						try
 						{
-							if (!BlockDownloader.IsRunning)
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(32))) // ADSL	512 kbit/s	00:00:32
 							{
-								Logger.LogError<WalletService>($"{nameof(BlockDownloader)} is not running.");
-								await Task.Delay(1000);
-								continue;
+								block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
 							}
-							if (!IndexDownloader.IsRunning)
+
+							if (block == null)
 							{
-								Logger.LogError<WalletService>($"{nameof(IndexDownloader)} is not running.");
-								await Task.Delay(1000);
+								Logger.LogInfo<WalletService>($"Disconnected node, because couldn't parse received block.");
+								node.DisconnectAsync("Couldn't parse block.");
 								continue;
 							}
 
-							await Task.Delay(1000); // dummmy wait for now (TODO)
+							if (!block.Check())
+							{
+								Logger.LogInfo<WalletService>($"Disconnected node, because block invalid block received.");
+								node.DisconnectAsync("Invalid block received.");
+								continue;
+							}
+						}
+						catch (TimeoutException)
+						{
+							Logger.LogInfo<WalletService>($"Disconnected node, because block download took too long.");
+							node.DisconnectAsync("Block download took too long.");
+							continue;
+						}
+						catch (OperationCanceledException)
+						{
+							Logger.LogInfo<WalletService>($"Disconnected node, because block download took too long.");
+							node.DisconnectAsync("Block download took too long.");
+							continue;
 						}
 						catch (Exception ex)
 						{
 							Logger.LogDebug<WalletService>(ex);
+							Logger.LogInfo<WalletService>($"Disconnected node, because block download failed: {ex.Message}");
+							node.DisconnectAsync("Block download failed.");
+							continue;
 						}
+
+						break; // If got this far break, then we have the block, it's valid. Break.
 					}
-				}
-				finally
-				{
-					if (IsStopping)
+					catch (Exception ex)
 					{
-						Interlocked.Exchange(ref _running, 3);
+						Logger.LogDebug<WalletService>(ex);
 					}
 				}
 			}
-			);
+			// Save the block
+			using (await BlockFolderLock.LockAsync())
+			{
+				var path = Path.Combine(BlocksFolderPath, hash.ToString());
+				await File.WriteAllBytesAsync(path, block.ToBytes());
+			}
+
+			return block;
 		}
 
-		public async Task StopAsync()
+		/// <remarks>
+		/// Use it at reorgs.
+		/// </remarks>
+		public async Task DeleteBlockAsync(uint256 hash)
 		{
-			BlockDownloader.NewBlock -= BlockDownloader_NewBlock;
-			IndexDownloader.NewFilter -= IndexDownloader_NewFilter;
-			IndexDownloader.Reorged -= IndexDownloader_Reorged;
-			if (IsRunning)
+			using (await BlockFolderLock.LockAsync())
 			{
-				Interlocked.Exchange(ref _running, 2);
-			}
-			while (IsStopping)
-			{
-				await Task.Delay(50);
+				var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
+				var fileNames = filePaths.Select(x => Path.GetFileName(x));
+				var hashes = fileNames.Select(x => new uint256(x));
+
+				if (hashes.Contains(hash))
+				{
+					File.Delete(Path.Combine(BlocksFolderPath, hash.ToString()));
+				}
 			}
 		}
+
+		public async Task<int> CountBlocksAsync()
+		{
+			using (await BlockFolderLock.LockAsync())
+			{
+				return Directory.EnumerateFiles(BlocksFolderPath).Count();
+			}
+		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					IndexDownloader.NewFilter -= IndexDownloader_NewFilterAsync;
+					IndexDownloader.Reorged -= IndexDownloader_ReorgedAsync;
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+			// GC.SuppressFinalize(this);
+		}
+
+		#endregion
 	}
 }

@@ -76,7 +76,10 @@ namespace MagicalCryptoWallet.Services
 			_running = 0;
 
 			var indexDir = Path.GetDirectoryName(IndexFilePath);
-			Directory.CreateDirectory(indexDir);
+			if (!string.IsNullOrEmpty(indexDir))
+			{
+				Directory.CreateDirectory(indexDir);
+			}
 			if (File.Exists(IndexFilePath))
 			{
 				if (Network == Network.RegTest)
