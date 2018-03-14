@@ -23,7 +23,7 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
 - [ ] **4. Wallet Client.** *1 month. NBitcoin.* Build a high performance client that can work with the new back end, which is built for client side filtering.
 
   Depends on:
-  - [ ] ALL previous items
+  - [x] ALL previous items
   
 ### 2. Privacy Stage
 
