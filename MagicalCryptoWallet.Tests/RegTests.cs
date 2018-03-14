@@ -293,7 +293,7 @@ namespace MagicalCryptoWallet.Tests
 			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
 			try
 			{
-				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(1));
+				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3));
 
 				downloader.Reorged += ReorgTestAsync_Downloader_Reorged;
 
@@ -304,7 +304,7 @@ namespace MagicalCryptoWallet.Tests
 				var times = 0;
 				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < blockCountIncludingGenesis)
 				{
-					if (times > 500) // 30 sec
+					if (times > 1000) // 60 sec
 					{
 						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {blockCountIncludingGenesis}, got only: {filterCount}.");
 					}
@@ -340,7 +340,7 @@ namespace MagicalCryptoWallet.Tests
 				times = 0;
 				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < blockCountIncludingGenesis)
 				{
-					if (times > 500) // 30 sec
+					if (times > 1000) // 60 sec
 					{
 						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {blockCountIncludingGenesis}, got only: {filterCount}.");
 					}
