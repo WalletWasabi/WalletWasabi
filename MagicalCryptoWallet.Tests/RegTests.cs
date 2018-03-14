@@ -376,7 +376,7 @@ namespace MagicalCryptoWallet.Tests
 				{
 					if (times > 500) // 30 sec
 					{
-						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {116}, got only: {filterCount}.");
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {bestHeight}, got only: {filterCount}.");
 					}
 					await Task.Delay(100);
 					times++;
