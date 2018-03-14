@@ -339,7 +339,7 @@ namespace MagicalCryptoWallet.Tests
 			_filterReorgTestAsync_ReorgCount = 0;
 
 			var node = Fixture.BackendRegTestNode;
-			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{Global.RpcClient.Network}.dat");
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterReorgTestAsync), $"Index{Global.RpcClient.Network}.dat");
 
 			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
 			try
@@ -450,7 +450,7 @@ namespace MagicalCryptoWallet.Tests
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 4. Create index downloader service.
-			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{Global.RpcClient.Network}.dat");
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Index{Global.RpcClient.Network}.dat");
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
 
 			// 5. Create key manager service.
