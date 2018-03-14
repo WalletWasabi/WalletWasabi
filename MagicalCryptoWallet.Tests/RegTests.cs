@@ -363,8 +363,14 @@ namespace MagicalCryptoWallet.Tests
 					times++;
 				}
 
-				// Test syncronization after fork.
+				var indexLines = await File.ReadAllLinesAsync(indexFilePath);
+				var lastFilter = indexLines.Last();
 				var tip = await Global.RpcClient.GetBestBlockHashAsync();
+				Assert.StartsWith(tip.ToString(), indexLines.Last());
+				var tipBlock = await Global.RpcClient.GetBlockHeaderAsync(tip);
+				Assert.Contains(tipBlock.HashPrevBlock.ToString(), indexLines.TakeLast(2).First());
+
+				// Test syncronization after fork.
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
 				tip = await Global.RpcClient.GetBestBlockHashAsync();
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 2
@@ -383,6 +389,10 @@ namespace MagicalCryptoWallet.Tests
 					times++;
 				}
 
+				indexLines = await File.ReadAllLinesAsync(indexFilePath);
+				Assert.DoesNotContain(tip.ToString(), indexLines);
+				Assert.DoesNotContain(tipBlock.HashPrevBlock.ToString(), indexLines);
+
 				// Test filter block hashes are correct after fork.
 				var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
 				for (int i = 0; i < blockCountIncludingGenesis; i++)
@@ -395,6 +405,16 @@ namespace MagicalCryptoWallet.Tests
 					{
 						Assert.Null(filter.Filter);
 					}
+				}
+
+				// Test the serialization, too.
+				tip = await Global.RpcClient.GetBestBlockHashAsync();
+				var blockHash = tip;
+				for (var i = 0; i < indexLines.Length; i++)
+				{
+					var block = await Global.RpcClient.GetBlockHeaderAsync(blockHash);
+					Assert.Contains(blockHash.ToString(), indexLines[indexLines.Length - i - 1]);
+					blockHash = block.HashPrevBlock;
 				}
 
 				// Assert reorg happened exactly as many times as we reorged.
