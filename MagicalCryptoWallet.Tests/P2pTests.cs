@@ -79,14 +79,14 @@ namespace MagicalCryptoWallet.Tests
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
 			var memPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
-
+			
 			var nodes = new NodesGroup(network, connectionParameters,
 				new NodeRequirement
 				{
 					RequiredServices = NodeServices.Network,
 					MinVersion = ProtocolVersion.WITNESS_VERSION
 				});
-			downloader = new BlockDownloader(nodes, blocksFolderPath);
+			downloader = new BlockDownloader(network, nodes, blocksFolderPath);
 			Assert.True(Directory.Exists(blocksFolderPath));
 			downloader.Synchronize();
 			foreach (var hash in blocksToDownload)
