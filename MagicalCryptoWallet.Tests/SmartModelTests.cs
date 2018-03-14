@@ -71,7 +71,7 @@ namespace MagicalCryptoWallet.Tests
 			Assert.Equal(coin.Height, deserialized.Height);
 			Assert.Equal(coin.Amount, deserialized.Amount);
 			Assert.Equal(coin.Index, deserialized.Index);
-			Assert.Equal(coin.IsSpent, deserialized.IsSpent);
+			Assert.Equal(coin.Unspent, deserialized.Unspent);
 			Assert.Equal(coin.Label, deserialized.Label);
 			Assert.Equal(coin.ScriptPubKey, deserialized.ScriptPubKey);
 			Assert.Equal(coin.SpenderTransactionId, deserialized.SpenderTransactionId);

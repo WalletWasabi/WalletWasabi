@@ -33,7 +33,7 @@ namespace MagicalCryptoWallet.Services
 		private HashSet<uint256> ProcessedBlocks { get; }
 		private AsyncLock WalletBlocksLock { get; }
 
-		public ConcurrentHashSet<SmartCoin> KnownCoins { get; }
+		public ConcurrentHashSet<SmartCoin> Coins { get; }
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -53,7 +53,7 @@ namespace MagicalCryptoWallet.Services
 			WalletBlocksLock = new AsyncLock();
 			HandleFiltersLock = new AsyncLock();
 
-			KnownCoins = new ConcurrentHashSet<SmartCoin>();
+			Coins = new ConcurrentHashSet<SmartCoin>();
 
 			BlocksFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(blocksFolderPath), blocksFolderPath, trim: true);
 			BlockFolderLock = new AsyncLock();
@@ -78,29 +78,6 @@ namespace MagicalCryptoWallet.Services
 			IndexDownloader.Reorged += IndexDownloader_ReorgedAsync;
 		}
 
-		private void ProcessBlock(Block block)
-		{
-			using (WalletBlocksLock.Lock())
-			{
-				//Todo!
-
-				if(ProcessedBlocks.Contains(block.GetHash()))
-				{
-					return;
-				}
-
-				if(block.GetHash() == WalletBlocks.Last().Value) // If this is the latest block then no need to look through everything.
-				{
-
-					ProcessedBlocks.Add(block.GetHash());
-				}
-				else // Do a deep reindexing.
-				{
-					ProcessedBlocks.Clear();
-				}
-			}
-		}
-
 		private async void IndexDownloader_ReorgedAsync(object sender, uint256 invalidBlockHash)
 		{
 			using (HandleFiltersLock.Lock())
@@ -112,12 +89,25 @@ namespace MagicalCryptoWallet.Services
 				ProcessedBlocks.Remove(invalidBlockHash);
 				if (elem.Key != null)
 				{
-					foreach(var toRemove in KnownCoins.Where(x => x.Height == elem.Key).ToHashSet())
+					foreach(var toRemove in Coins.Where(x => x.Height == elem.Key).ToHashSet())
 					{
-						KnownCoins.TryRemove(toRemove);
+						RemoveCoinRecursively(toRemove);
 					}
 				}
 			}
+		}
+
+		private void RemoveCoinRecursively(SmartCoin toRemove)
+		{
+			if(toRemove.SpenderTransactionId != null)
+			{
+				foreach(var toAlsoRemove in Coins.Where(x=>x.TransactionId == toRemove.SpenderTransactionId).ToHashSet())
+				{
+					RemoveCoinRecursively(toAlsoRemove);
+				}
+			}
+
+			Coins.TryRemove(toRemove);
 		}
 
 		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
@@ -154,49 +144,76 @@ namespace MagicalCryptoWallet.Services
 
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
 		{
-			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()), filterModel.FilterKey);
-			if (matchFound)
+			if (ProcessedBlocks.Contains(filterModel.BlockHash))
 			{
-				Block block = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
-				var keys = KeyManager.GetKeys().ToList();
+				return;
+			}
 
-				foreach (var tx in block.Transactions)
+			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()), filterModel.FilterKey);
+			if (!matchFound)
+			{
+				return;
+			}
+
+			Block currentBlock = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
+
+			WalletBlocks.AddOrReplace(filterModel.BlockHeight, filterModel.BlockHash);
+
+			if (currentBlock.GetHash() == WalletBlocks.Last().Value) // If this is the latest block then no need for deep gothrough.
+			{
+				ProcessBlock(filterModel.BlockHeight, currentBlock);
+			}
+			else // must go through all the blocks in order
+			{
+				foreach(var blockRef in WalletBlocks)
 				{
-					// If transaction received to any of the wallet keys:
-					for (var i = 0; i < tx.Outputs.Count; i++)
+					var block = await GetOrDownloadBlockAsync(blockRef.Value, CancellationToken.None);
+					ProcessedBlocks.Clear();
+					Coins.Clear();
+					ProcessBlock(blockRef.Key, block);
+				}
+			}
+		}
+
+		private void ProcessBlock(Height height, Block block)
+		{
+			var keys = KeyManager.GetKeys().ToList();
+
+			foreach (var tx in block.Transactions)
+			{
+				// If transaction received to any of the wallet keys:
+				for (var i = 0; i < tx.Outputs.Count; i++)
+				{
+					var output = tx.Outputs[i];
+					HdPubKey foundKey = keys.SingleOrDefault(x => x.GetP2wpkhScript() == output.ScriptPubKey);
+					if (foundKey != default)
 					{
-						var output = tx.Outputs[i];
-						HdPubKey foundKey = keys.SingleOrDefault(x => x.GetP2wpkhScript() == output.ScriptPubKey);
-						if (foundKey != default)
+						foundKey.KeyState = KeyState.Used;
+						var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), height, foundKey.Label, null);
+						Coins.Add(coin);
+
+						// Make sure there's always 21 clean keys generated and indexed.
+						while (KeyManager.GetKeys(KeyState.Clean, foundKey.IsInternal()).Count() < 21)
 						{
-							foundKey.KeyState = KeyState.Used;
-							var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), filterModel.BlockHeight, foundKey.Label, null);
-
-							// Make sure there's always 21 clean keys generated and indexed.
-							while (KeyManager.GetKeys(KeyState.Clean, foundKey.IsInternal()).Count() < 21)
-							{
-								KeyManager.GenerateNewKey("", KeyState.Clean, foundKey.IsInternal());
-							}
-						}
-					}
-
-					// If spends any of our coin
-					for (var i = 0; i < tx.Inputs.Count; i++)
-					{
-						var input = tx.Inputs[i];
-
-						var foundCoin = KnownCoins.SingleOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
-						if (foundCoin != null)
-						{
-							foundCoin.SpenderTransactionId = tx.GetHash();
+							KeyManager.GenerateNewKey("", KeyState.Clean, foundKey.IsInternal());
 						}
 					}
 				}
 
-				ProcessedBlocks.Add(block.GetHash());
+				// If spends any of our coin
+				for (var i = 0; i < tx.Inputs.Count; i++)
+				{
+					var input = tx.Inputs[i];
 
-				WalletBlocks.AddOrReplace(filterModel.BlockHeight, filterModel.BlockHash);
+					var foundCoin = Coins.SingleOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
+					if (foundCoin != null)
+					{
+						foundCoin.SpenderTransactionId = tx.GetHash();
+					}
+				}
 			}
+
+			ProcessedBlocks.Add(block.GetHash());
 		}
 
 		/// <exception cref="OperationCanceledException"></exception>

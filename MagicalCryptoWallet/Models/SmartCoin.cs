@@ -45,7 +45,7 @@ namespace MagicalCryptoWallet.Models
 		[JsonProperty(Order = 8)]
 		public TxoRef[] SpentOutputs { get; }
 
-		public bool IsSpent => SpenderTransactionId == null;
+		public bool Unspent => SpenderTransactionId == null;
 
 		[JsonConstructor]
 		public SmartCoin(uint256 transactionId, int index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, string label = "", uint256 spenderTransactionId = null)

@@ -445,8 +445,8 @@ namespace MagicalCryptoWallet.Tests
 			var wallet = new WalletService(keyManager, indexDownloader, nodes, blocksFolderPath);
 
 			// Get some money, make it confirm.
-			var key = keyManager.GenerateNewKey("", KeyState.Clean, isInternal: false);
-			await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
+			var key = keyManager.GenerateNewKey("foo Label", KeyState.Clean, isInternal: false);
+			var txid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
 			await Global.RpcClient.GenerateAsync(1);
 
 			try
@@ -472,6 +472,18 @@ namespace MagicalCryptoWallet.Tests
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
 				Assert.Equal(1, await wallet.CountBlocksAsync());
+				Assert.Single(wallet.Coins);
+				var firstCoin = wallet.Coins.Single();
+				Assert.Equal(new Money(0.1m, MoneyUnit.BTC), firstCoin.Amount);
+				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, firstCoin.Height);
+				Assert.InRange(firstCoin.Index, 0, 1);
+				Assert.True(firstCoin.Unspent);
+				Assert.Equal("foo Label", firstCoin.Label);
+				Assert.Equal(key.GetP2wpkhScript(), firstCoin.ScriptPubKey);
+				Assert.Null(firstCoin.SpenderTransactionId);
+				Assert.NotNull(firstCoin.SpentOutputs);
+				Assert.NotEmpty(firstCoin.SpentOutputs);
+				Assert.Equal(txid, firstCoin.TransactionId);
 
 				// Get some money, make it confirm.
 				key = keyManager.GenerateNewKey("", KeyState.Clean, isInternal: false);
