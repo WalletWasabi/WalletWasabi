@@ -461,7 +461,7 @@ namespace MagicalCryptoWallet.Tests
 
 			// Get some money, make it confirm.
 			var key = keyManager.GenerateNewKey("", KeyState.Clean, isInternal: false);
-			await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1, MoneyUnit.BTC));
+			await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
 			await Global.RpcClient.GenerateAsync(1);
 
 			try
@@ -489,7 +489,7 @@ namespace MagicalCryptoWallet.Tests
 
 				// Get some money, make it confirm.
 				key = keyManager.GenerateNewKey("", KeyState.Clean, isInternal: false);
-				await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1, MoneyUnit.BTC));
+				await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
 				await Global.RpcClient.GenerateAsync(1);
 
 				times = 0;
