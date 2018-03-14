@@ -177,7 +177,7 @@ namespace MagicalCryptoWallet.Tests
 			{
 				nodes.ConnectedNodes.Add(Fixture.BackendRegTestNode.CreateNodeClient());
 
-				downloader = new BlockDownloader(nodes, blocksFolderPath);
+				downloader = new BlockDownloader(Global.Config.Network, nodes, blocksFolderPath);
 				downloader.Synchronize();
 				foreach (var hash in blocksToDownload)
 				{
@@ -496,7 +496,7 @@ namespace MagicalCryptoWallet.Tests
 
 			// 2. Create block downloader service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
-			BlockDownloader blockDownloader = new BlockDownloader(nodes, blocksFolderPath);
+			BlockDownloader blockDownloader = new BlockDownloader(network, nodes, blocksFolderPath);
 
 			// 3. Create mempool service.
 			var memPoolService = new MemPoolService();

@@ -20,6 +20,7 @@ namespace MagicalCryptoWallet.Services
 	public class BlockDownloader
 	{
 		public NodesGroup Nodes { get; }
+		public Network Network { get; }
 
 		public string BlocksFolderPath { get; }
 		private AsyncLock BlocksFolderLock { get; }
@@ -62,9 +63,10 @@ namespace MagicalCryptoWallet.Services
 			}
 		}
 
-		public BlockDownloader(NodesGroup nodes, string blocksFolderPath)
+		public BlockDownloader(Network network, NodesGroup nodes, string blocksFolderPath)
 		{
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
+			Network = Guard.NotNull(nameof(network), network);
 			BlocksFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(blocksFolderPath), blocksFolderPath, trim: true);
 
 			_running = 0;
@@ -74,10 +76,10 @@ namespace MagicalCryptoWallet.Services
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
-				foreach(var blockFilePath in Directory.EnumerateFiles(BlocksFolderPath))
+				if(network == Network.RegTest)
 				{
-					var blockBytes = File.ReadAllBytes(blockFilePath);
-					var block = new Block(blockBytes);
+					Directory.Delete(blocksFolderPath, true);
+					Directory.CreateDirectory(blocksFolderPath);
 				}
 			}
 			else
@@ -131,9 +133,9 @@ namespace MagicalCryptoWallet.Services
 								await Task.Delay(10);
 								continue;
 							}
-							if (!node.IsConnected)
+							if (!node.IsConnected && !(Network != Network.RegTest))
 							{
-								await Task.Delay(10);
+								await Task.Delay(100);
 								continue;
 							}
 
