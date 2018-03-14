@@ -48,8 +48,8 @@ namespace MagicalCryptoWallet.Models
 
 		#region Equality
 
-		public bool Equals(SmartTransaction other) => GetHash().Equals(other.GetHash());
-		public bool Equals(Transaction other) => GetHash().Equals(other.GetHash());
+		public bool Equals(SmartTransaction other) => GetHash().Equals(other?.GetHash());
+		public bool Equals(Transaction other) => GetHash().Equals(other?.GetHash());
 
 		public override bool Equals(object obj)
 		{

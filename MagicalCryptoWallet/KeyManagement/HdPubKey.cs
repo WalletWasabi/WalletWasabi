@@ -116,7 +116,7 @@ namespace MagicalCryptoWallet.KeyManagement
 		}
 		public static bool operator ==(HdPubKey x, HdPubKey y)
 		{
-			return x.GetPubKeyHash() == y.GetPubKeyHash();
+			return x?.GetPubKeyHash() == y?.GetPubKeyHash();
 		}
 		public static bool operator !=(HdPubKey x, HdPubKey y)
 		{

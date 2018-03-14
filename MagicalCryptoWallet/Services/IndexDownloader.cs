@@ -76,7 +76,10 @@ namespace MagicalCryptoWallet.Services
 			_running = 0;
 
 			var indexDir = Path.GetDirectoryName(IndexFilePath);
-			Directory.CreateDirectory(indexDir);
+			if (!string.IsNullOrEmpty(indexDir))
+			{
+				Directory.CreateDirectory(indexDir);
+			}
 			if (File.Exists(IndexFilePath))
 			{
 				if (Network == Network.RegTest)
@@ -202,6 +205,22 @@ namespace MagicalCryptoWallet.Services
 					}
 				}
 			});
+		}
+		
+		public Height GetHeight(uint256 blockHash)
+		{
+			using (IndexLock.Lock())
+			{
+				var single = Index.Single(x => x.BlockHash == blockHash);
+				if(single != null)
+				{
+					return single.BlockHeight;
+				}
+				else
+				{
+					return Height.Unknown;
+				}
+			}
 		}
 
 		public async Task StopAsync()

@@ -24,5 +24,39 @@ namespace System.Linq
 			}
 			return current;
 		}
+
+		// https://stackoverflow.com/a/2992364
+		public static void RemoveByValue<TKey, TValue>(this Dictionary<TKey, TValue> me, TValue value)
+		{
+			var itemsToRemove = new List<TKey>();
+
+			foreach (var pair in me)
+			{
+				if (pair.Value.Equals(value))
+					itemsToRemove.Add(pair.Key);
+			}
+
+			foreach (TKey item in itemsToRemove)
+			{
+				me.Remove(item);
+			}
+		}
+
+		// https://stackoverflow.com/a/2992364
+		public static void RemoveByValue<TKey, TValue>(this SortedDictionary<TKey, TValue> me, TValue value)
+		{
+			var itemsToRemove = new List<TKey>();
+
+			foreach (var pair in me)
+			{
+				if (pair.Value.Equals(value))
+					itemsToRemove.Add(pair.Key);
+			}
+
+			foreach (TKey item in itemsToRemove)
+			{
+				me.Remove(item);
+			}
+		}
 	}
 }

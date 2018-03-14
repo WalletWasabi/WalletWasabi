@@ -65,7 +65,7 @@ namespace MagicalCryptoWallet.Models
 		public override bool Equals(object obj) => obj is SmartCoin && this == (SmartCoin)obj;
 		public bool Equals(SmartCoin other) => this == other;
 		public override int GetHashCode() => TransactionId.GetHashCode() ^ Index;
-		public static bool operator ==(SmartCoin x, SmartCoin y) => y.TransactionId == x.TransactionId && y.Index == x.Index;
+		public static bool operator ==(SmartCoin x, SmartCoin y) => y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
 		public static bool operator !=(SmartCoin x, SmartCoin y) => !(x == y);
 
 		#endregion

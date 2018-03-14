@@ -57,7 +57,6 @@ namespace MagicalCryptoWallet.Tests
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, $"Blocks{network}");
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager addressManager = null;
-			BlockDownloader downloader = null;
 			try
 			{
 				addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
@@ -86,13 +85,12 @@ namespace MagicalCryptoWallet.Tests
 					RequiredServices = NodeServices.Network,
 					MinVersion = ProtocolVersion.WITNESS_VERSION
 				});
-			downloader = new BlockDownloader(nodes, blocksFolderPath);
+			WalletService walletService = new WalletService(
+				KeyManager.CreateNew(out Mnemonic mnemonic, "password"),
+				new IndexDownloader(network, "foo.txt", new Uri("http://localhost:12345")),
+				nodes,
+				blocksFolderPath);
 			Assert.True(Directory.Exists(blocksFolderPath));
-			downloader.Synchronize();
-			foreach (var hash in blocksToDownload)
-			{
-				downloader.QueToDownload(hash);
-			}
 
 			try
 			{
@@ -127,35 +125,28 @@ namespace MagicalCryptoWallet.Tests
 
 				foreach (var hash in blocksToDownload)
 				{
-					times = 0;
-					while (downloader.GetBlock(hash) == null)
+					using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3)))
 					{
-						if (times > 1800) // 3 minutes
-						{
-							throw new TimeoutException($"{nameof(BlockDownloader)} test timed out.");
-						}
-						await Task.Delay(100);
-						times++;
+						var block = await walletService.GetOrDownloadBlockAsync(hash, cts.Token);
+						Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
+						Logger.LogInfo<P2pTests>($"Full block is downloaded: {hash}.");
 					}
-					Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
-					Logger.LogInfo<P2pTests>($"Full block is downloaded: {hash}.");
 				}
+
 			}
 			finally
 			{
 				nodes.ConnectedNodes.Added -= ConnectedNodes_Added;
 				nodes.ConnectedNodes.Removed -= ConnectedNodes_Removed;
 				memPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
-				if(downloader != null)
-				{
-					await downloader.StopAsync();
-				}
 
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
 				{
-					downloader?.TryRemove(hash);
+					await walletService?.DeleteBlockAsync(hash);
 				}
+				walletService?.Dispose();
+
 				if (Directory.Exists(blocksFolderPath))
 				{
 					Directory.Delete(blocksFolderPath, recursive: true);
@@ -180,7 +171,7 @@ namespace MagicalCryptoWallet.Tests
 			var nodes = sender as NodesCollection;
 			Interlocked.Decrement(ref _nodeCount);
 			// Trace is fine here, building the connections is more exciting than removing them.
-			Logger.LogTrace<P2pTests>($"Node count:{Interlocked.Read(ref _nodeCount)}"); 
+			Logger.LogTrace<P2pTests>($"Node count:{Interlocked.Read(ref _nodeCount)}");
 		}
 
 		private long _mempoolTransactionCount = 0;

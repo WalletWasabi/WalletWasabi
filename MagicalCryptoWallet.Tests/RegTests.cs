@@ -157,73 +157,6 @@ namespace MagicalCryptoWallet.Tests
 		#region ServicesTests
 
 		[Fact]
-		public async Task DownloaderAsync()
-		{
-			var blocksToDownload = new HashSet<uint256>();
-			for (int i = 0; i < 101; i++)
-			{
-				var hash = await Global.RpcClient.GetBlockHashAsync(i);
-				blocksToDownload.Add(hash);
-			}
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(DownloaderAsync), $"Blocks");
-			BlockDownloader downloader = null;
-			var nodes = new NodesGroup(Global.Config.Network,
-					 requirements: new NodeRequirement
-					 {
-						 RequiredServices = NodeServices.Network,
-						 MinVersion = ProtocolVersion.WITNESS_VERSION
-					 });
-			try
-			{
-				nodes.ConnectedNodes.Add(Fixture.BackendRegTestNode.CreateNodeClient());
-
-				downloader = new BlockDownloader(nodes, blocksFolderPath);
-				downloader.Synchronize();
-				foreach (var hash in blocksToDownload)
-				{
-					downloader.QueToDownload(hash);
-				}
-
-				nodes.Connect();
-
-				foreach (var hash in blocksToDownload)
-				{
-					var times = 0;
-					while (downloader.GetBlock(hash) == null)
-					{
-						if (times > 300) // 30 seconds
-						{
-							throw new TimeoutException($"{nameof(BlockDownloader)} test timed out.");
-						}
-						await Task.Delay(100);
-						times++;
-					}
-					Assert.True(File.Exists(Path.Combine(blocksFolderPath, hash.ToString())));
-				}
-				Logger.LogInfo<P2pTests>($"All RegTest block is downloaded.");
-			}
-			finally
-			{
-				if(downloader != null)
-				{
-					await downloader.StopAsync();
-				}
-
-				// So next test will download the block.
-				foreach (var hash in blocksToDownload)
-				{
-					downloader?.TryRemove(hash);
-				}
-				if (Directory.Exists(blocksFolderPath))
-				{
-					Directory.Delete(blocksFolderPath, recursive: true);
-				}
-
-				nodes?.Dispose();
-			}
-		}
-
-		[Fact]
 		public async Task MempoolAsync()
 		{
 			var memPoolService = new MemPoolService();
@@ -494,25 +427,22 @@ namespace MagicalCryptoWallet.Tests
 					});
 			nodes.ConnectedNodes.Add(Fixture.BackendRegTestNode.CreateNodeClient());
 
-			// 2. Create block downloader service.
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
-			BlockDownloader blockDownloader = new BlockDownloader(nodes, blocksFolderPath);
-
-			// 3. Create mempool service.
+			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
 			memPoolService.TransactionReceived += WalletTestsAsync_MemPoolService_TransactionReceived;
 			Node node = Fixture.BackendRegTestNode.CreateNodeClient();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
-			// 4. Create index downloader service.
+			// 3. Create index downloader service.
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Index{Global.RpcClient.Network}.dat");
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
 
-			// 5. Create key manager service.
+			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
 
-			// 6. Create wallet service.
-			var wallet = new WalletService(keyManager, blockDownloader, indexDownloader);
+			// 5. Create wallet service.
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
+			var wallet = new WalletService(keyManager, indexDownloader, nodes, blocksFolderPath);
 
 			// Get some money, make it confirm.
 			var key = keyManager.GenerateNewKey("", KeyState.Clean, isInternal: false);
@@ -522,7 +452,6 @@ namespace MagicalCryptoWallet.Tests
 			try
 			{
 				nodes.Connect(); // Start connection service.
-				blockDownloader.Synchronize(); // Start block downloader service.
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
 
@@ -537,10 +466,12 @@ namespace MagicalCryptoWallet.Tests
 					await Task.Delay(100);
 					times++;
 				}
-				Assert.Equal(1, blockDownloader.NumberOfBlocksToDownload + blockDownloader.NumberOfDownloadedBlocks);
 
-				wallet.Initialize(); // Initialize wallet service.
-				wallet.Synchronize(); // Start wallet service.
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
+				Assert.Equal(1, await wallet.CountBlocksAsync());
 
 				// Get some money, make it confirm.
 				key = keyManager.GenerateNewKey("", KeyState.Clean, isInternal: false);
@@ -557,14 +488,11 @@ namespace MagicalCryptoWallet.Tests
 					await Task.Delay(100);
 					times++;
 				}
-				Assert.Equal(2, blockDownloader.NumberOfBlocksToDownload + blockDownloader.NumberOfDownloadedBlocks);
+				Assert.Equal(2, await wallet.CountBlocksAsync());
 			}
 			finally
 			{
-				if(wallet != null)
-				{
-					await wallet.StopAsync();
-				}
+				wallet?.Dispose();
 				// Dispose index downloader service.
 				if (indexDownloader != null)
 				{
@@ -573,16 +501,6 @@ namespace MagicalCryptoWallet.Tests
 
 				// Dispose mempool service.
 				memPoolService.TransactionReceived -= WalletTestsAsync_MemPoolService_TransactionReceived;
-
-				// Dispose downloader service
-				if(blockDownloader != null)
-				{
-					await blockDownloader.StopAsync();
-				}
-				if (Directory.Exists(blocksFolderPath))
-				{
-					Directory.Delete(blocksFolderPath, recursive: true);
-				}
 
 				// Dispose connection service.
 				nodes?.Dispose();
