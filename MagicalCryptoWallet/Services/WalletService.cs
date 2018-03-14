@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -11,6 +12,7 @@ using MagicalCryptoWallet.KeyManagement;
 using MagicalCryptoWallet.Logging;
 using MagicalCryptoWallet.Models;
 using NBitcoin;
+using NBitcoin.Protocol;
 using Nito.AsyncEx;
 
 namespace MagicalCryptoWallet.Services
@@ -20,6 +22,10 @@ namespace MagicalCryptoWallet.Services
 		public KeyManager KeyManager { get; }
 		public BlockDownloader BlockDownloader { get; }
 		public IndexDownloader IndexDownloader { get; }
+
+		public NodesGroup Nodes { get; }
+		public string BlocksFolderPath { get; }
+		private AsyncLock BlocksFolderLock { get; }
 
 		private AsyncLock HandleFiltersLock { get; }
 
@@ -36,10 +42,10 @@ namespace MagicalCryptoWallet.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		public WalletService(KeyManager keyManager, BlockDownloader blockDownloader, IndexDownloader indexDownloader)
+		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, NodesGroup nodes, string blocksFolderPath)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			BlockDownloader = Guard.NotNull(nameof(blockDownloader), blockDownloader);
+			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			IndexDownloader = Guard.NotNull(nameof(indexDownloader), indexDownloader);
 
 			WalletBlocks = new SortedDictionary<Height, uint256>();
@@ -48,6 +54,24 @@ namespace MagicalCryptoWallet.Services
 			HandleFiltersLock = new AsyncLock();
 
 			KnownCoins = new ConcurrentHashSet<SmartCoin>();
+
+			BlocksFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(blocksFolderPath), blocksFolderPath, trim: true);
+			BlocksFolderLock = new AsyncLock();
+
+			_running = 0;
+
+			if (Directory.Exists(BlocksFolderPath))
+			{
+				foreach (var blockFilePath in Directory.EnumerateFiles(BlocksFolderPath))
+				{
+					var blockBytes = File.ReadAllBytes(blockFilePath);
+					var block = new Block(blockBytes);
+				}
+			}
+			else
+			{
+				Directory.CreateDirectory(BlocksFolderPath);
+			}
 
 			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
 			IndexDownloader.Reorged += IndexDownloader_Reorged;
