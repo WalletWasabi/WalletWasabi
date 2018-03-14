@@ -336,6 +336,22 @@ namespace MagicalCryptoWallet.Tests
 		{			
 			await AssertFiltersInitializedAsync();
 
+			var network = Network.RegTest;
+			var keyManager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
+
+			// Mine some coins, make a few bech32 transactions then make it confirm.
+			await Global.RpcClient.GenerateAsync(1);
+			var key = keyManager.GenerateNewKey("", KeyState.Clean, isInternal: false);
+			var tx2 = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
+			key = keyManager.GenerateNewKey("", KeyState.Clean, isInternal: false);
+			var tx3 = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
+			var tx4 = await Global.RpcClient.SendToAddressAsync(key.GetP2pkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
+			var tx5 = await Global.RpcClient.SendToAddressAsync(key.GetP2shOverP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
+			var tx1Res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendtoaddress, key.GetP2wpkhAddress(network).ToString(), new Money(0.1m, MoneyUnit.BTC).ToString(false, true), "", "", false, true);
+			var tx1 = new uint256(tx1Res.ResultString);
+
+			await Global.RpcClient.GenerateAsync(2); // Generate two, so we can test for two reorg
+
 			_reorgTestAsync_ReorgCount = 0;
 
 			var node = Fixture.BackendRegTestNode;
@@ -370,10 +386,20 @@ namespace MagicalCryptoWallet.Tests
 				var tipBlock = await Global.RpcClient.GetBlockHeaderAsync(tip);
 				Assert.Contains(tipBlock.HashPrevBlock.ToString(), indexLines.TakeLast(2).First());
 
+				var utxoPath = Global.IndexBuilderService.Bech32UtxoSetFilePath;
+				var utxoLines = await File.ReadAllTextAsync(utxoPath);
+				Assert.Contains(tx1.ToString(), utxoLines);
+				Assert.Contains(tx2.ToString(), utxoLines);
+				Assert.Contains(tx3.ToString(), utxoLines);
+				Assert.DoesNotContain(tx4.ToString(), utxoLines); // make sure only bech is recorded
+				Assert.DoesNotContain(tx5.ToString(), utxoLines); // make sure only bech is recorded
+
 				// Test syncronization after fork.
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
 				tip = await Global.RpcClient.GetBestBlockHashAsync();
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 2
+				var tx1bumpRes = await Global.RpcClient.SendCommandAsync("bumpfee", tx1.ToString()); // RBF it
+				var tx1bump = new uint256(tx1bumpRes.Result["txid"].ToString());
 
 				await Global.RpcClient.GenerateAsync(5);
 				blockCountIncludingGenesis = await Global.RpcClient.GetBlockCountAsync() + 1;
@@ -388,6 +414,14 @@ namespace MagicalCryptoWallet.Tests
 					await Task.Delay(100);
 					times++;
 				}
+
+				utxoLines = await File.ReadAllTextAsync(utxoPath);
+				Assert.Contains(tx1bump.ToString(), utxoLines); // assert the tx1bump is the correct tx
+				Assert.DoesNotContain(tx1.ToString(), utxoLines); // assert tx1 is abandoned (despite it confirmed previously)
+				Assert.Contains(tx2.ToString(), utxoLines);
+				Assert.Contains(tx3.ToString(), utxoLines);
+				Assert.DoesNotContain(tx4.ToString(), utxoLines);
+				Assert.DoesNotContain(tx5.ToString(), utxoLines);
 
 				indexLines = await File.ReadAllLinesAsync(indexFilePath);
 				Assert.DoesNotContain(tip.ToString(), indexLines);
