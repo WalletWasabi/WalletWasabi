@@ -185,6 +185,9 @@ namespace MagicalCryptoWallet.Services
 			{
 				try
 				{
+					var blockCount = await RpcClient.GetBlockCountAsync();
+					var isIIB = true; // Initial Index Building phase
+
 					while (IsRunning)
 					{
 						try
@@ -203,6 +206,11 @@ namespace MagicalCryptoWallet.Services
 								}
 							}
 
+							if (blockCount - height <= 100)
+							{
+								isIIB = false;
+							}
+
 							Block block = null;
 							try
 							{
@@ -210,8 +218,6 @@ namespace MagicalCryptoWallet.Services
 							}
 							catch (RPCException) // if the block didn't come yet
 							{
-								// ToDO: If this happens, we should do `waitforblock` RPC instead of periodically asking.
-								// In that case we must also make sure the correct error message comes.
 								await Task.Delay(1000);
 								continue;
 							}
@@ -219,7 +225,7 @@ namespace MagicalCryptoWallet.Services
 							if (prevHash != null)
 							{
 								// In case of reorg:
-								if (prevHash != block.Header.HashPrevBlock)
+								if (prevHash != block.Header.HashPrevBlock && !isIIB) // There is no reorg in IIB
 								{
 									Logger.LogInfo<IndexBuilderService>($"REORG Invalid Block: {prevHash}");
 									// 1. Rollback index
@@ -248,11 +254,14 @@ namespace MagicalCryptoWallet.Services
 								}
 							}
 
-							if (Bech32UtxoSetHistory.Count >= 100)
+							if (!isIIB)
 							{
-								Bech32UtxoSetHistory.RemoveFirst();
+								if (Bech32UtxoSetHistory.Count >= 100)
+								{
+									Bech32UtxoSetHistory.RemoveFirst();
+								}
+								Bech32UtxoSetHistory.Add(new ActionHistoryHelper());
 							}
-							Bech32UtxoSetHistory.Add(new ActionHistoryHelper());
 
 							var scripts = new HashSet<Script>();
 
@@ -265,7 +274,10 @@ namespace MagicalCryptoWallet.Services
 									{
 										var outpoint = new OutPoint(tx.GetHash(), i);
 										Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
-										Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
+										if (!isIIB)
+										{
+											Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
+										}
 										scripts.Add(output.ScriptPubKey);
 									}
 								}
@@ -277,7 +289,10 @@ namespace MagicalCryptoWallet.Services
 									{
 										Script val = Bech32UtxoSet[input.PrevOut];
 										Bech32UtxoSet.Remove(input.PrevOut);
-										Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Remove, input.PrevOut, val);
+										if (!isIIB)
+										{
+											Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Remove, input.PrevOut, val);
+										}
 										scripts.Add(found.Value);
 									}
 								}
