@@ -332,31 +332,32 @@ namespace MagicalCryptoWallet.Tests
 		}
 
 		[Fact]
-		public async Task FilterReorgTestAsync()
+		public async Task ReorgTestAsync()
 		{			
 			await AssertFiltersInitializedAsync();
 
-			_filterReorgTestAsync_ReorgCount = 0;
+			_reorgTestAsync_ReorgCount = 0;
 
 			var node = Fixture.BackendRegTestNode;
-			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterReorgTestAsync), $"Index{Global.RpcClient.Network}.dat");
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(ReorgTestAsync), $"Index{Global.RpcClient.Network}.dat");
 
 			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
 			try
 			{
 				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(1));
 
-				downloader.Reorged += FilterReorgTestAsync_Downloader_Reorged;
+				downloader.Reorged += ReorgTestAsync_Downloader_Reorged;
 
-				// Test initial syncronization.
-				
-				var times = 0;
+				// Test initial syncronization.				
+				var blockCountIncludingGenesis = await Global.RpcClient.GetBlockCountAsync() + 1;
+
 				int filterCount;
-				while ((filterCount = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).Count()) < 102)
+				var times = 0;
+				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < blockCountIncludingGenesis)
 				{
 					if (times > 500) // 30 sec
 					{
-						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {102}, got only: {filterCount}.");
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {blockCountIncludingGenesis}, got only: {filterCount}.");
 					}
 					await Task.Delay(100);
 					times++;
@@ -369,14 +370,14 @@ namespace MagicalCryptoWallet.Tests
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 2
 
 				await Global.RpcClient.GenerateAsync(5);
-				var bestHeight = await Global.RpcClient.GetBlockCountAsync();
+				blockCountIncludingGenesis = await Global.RpcClient.GetBlockCountAsync() + 1;
 
 				times = 0;
-				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < bestHeight)
+				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < blockCountIncludingGenesis)
 				{
 					if (times > 500) // 30 sec
 					{
-						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {bestHeight}, got only: {filterCount}.");
+						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {blockCountIncludingGenesis}, got only: {filterCount}.");
 					}
 					await Task.Delay(100);
 					times++;
@@ -384,7 +385,7 @@ namespace MagicalCryptoWallet.Tests
 
 				// Test filter block hashes are correct after fork.
 				var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
-				for (int i = 0; i <= bestHeight; i++)
+				for (int i = 0; i < blockCountIncludingGenesis; i++)
 				{
 					var expectedHash = await Global.RpcClient.GetBlockHashAsync(i);
 					var filter = filters[i];
@@ -397,11 +398,11 @@ namespace MagicalCryptoWallet.Tests
 				}
 
 				// Assert reorg happened exactly as many times as we reorged.
-				Assert.Equal(2, Interlocked.Read(ref _filterReorgTestAsync_ReorgCount));
+				Assert.Equal(2, Interlocked.Read(ref _reorgTestAsync_ReorgCount));
 			}
 			finally
 			{
-				downloader.Reorged -= FilterReorgTestAsync_Downloader_Reorged;
+				downloader.Reorged -= ReorgTestAsync_Downloader_Reorged;
 
 				if (downloader != null)
 				{
@@ -410,11 +411,11 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
-		private long _filterReorgTestAsync_ReorgCount;
-		private void FilterReorgTestAsync_Downloader_Reorged(object sender, uint256 e)
+		private long _reorgTestAsync_ReorgCount;
+		private void ReorgTestAsync_Downloader_Reorged(object sender, uint256 e)
 		{
 			Assert.NotNull(e);
-			Interlocked.Increment(ref _filterReorgTestAsync_ReorgCount);
+			Interlocked.Increment(ref _reorgTestAsync_ReorgCount);
 		}
 
 		#endregion
