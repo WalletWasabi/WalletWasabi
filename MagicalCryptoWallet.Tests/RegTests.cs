@@ -436,7 +436,7 @@ namespace MagicalCryptoWallet.Tests
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
-			var wallet = new WalletService(keyManager, indexDownloader, nodes, blocksFolderPath);
+			var wallet = new WalletService(keyManager, indexDownloader, memPoolService, nodes, blocksFolderPath);
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
@@ -570,6 +570,17 @@ namespace MagicalCryptoWallet.Tests
 
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "foo label"));
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
+
+				// TEST MEMPOOL
+				var txid5 = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
+				await Task.Delay(1000); // Wait tx to arrive and get processed.
+				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid5));
+				var mempoolCoin = wallet.Coins.Where(x => x.TransactionId == txid5).Single();
+				Assert.Equal(Height.MemPool, mempoolCoin.Height);
+
+				await Global.RpcClient.GenerateAsync(1);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromMinutes(1), indexDownloader);
+				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, mempoolCoin.Height);
 			}
 			finally
 			{

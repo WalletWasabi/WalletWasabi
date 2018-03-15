@@ -94,7 +94,7 @@ namespace MagicalCryptoWallet.Services
 		private void ProcessTxPayload(TxPayload transactionPayload)
 		{
 			var transaction = transactionPayload.Object as Transaction;
-			MemPoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.Unknown));
+			MemPoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.MemPool));
 		}
 
 		public override object Clone()

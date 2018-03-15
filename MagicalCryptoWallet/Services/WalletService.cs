@@ -21,6 +21,7 @@ namespace MagicalCryptoWallet.Services
 	{
 		public KeyManager KeyManager { get; }
 		public IndexDownloader IndexDownloader { get; }
+		public MemPoolService MemPool { get; }
 
 		public NodesGroup Nodes { get; }
 		public string BlocksFolderPath { get; }
@@ -42,11 +43,12 @@ namespace MagicalCryptoWallet.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, NodesGroup nodes, string blocksFolderPath)
+		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, MemPoolService memPool, NodesGroup nodes, string blocksFolderPath)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			IndexDownloader = Guard.NotNull(nameof(indexDownloader), indexDownloader);
+			MemPool = Guard.NotNull(nameof(memPool), memPool);
 
 			WalletBlocks = new SortedDictionary<Height, uint256>();
 			ProcessedBlocks = new HashSet<uint256>();
@@ -78,6 +80,12 @@ namespace MagicalCryptoWallet.Services
 
 			IndexDownloader.NewFilter += IndexDownloader_NewFilterAsync;
 			IndexDownloader.Reorged += IndexDownloader_ReorgedAsync;
+			MemPool.TransactionReceived += MemPool_TransactionReceived;
+		}
+
+		private void MemPool_TransactionReceived(object sender, SmartTransaction tx)
+		{
+			ProcessTransaction(tx, keys: null);
 		}
 
 		private async void IndexDownloader_ReorgedAsync(object sender, uint256 invalidBlockHash)
@@ -202,17 +210,21 @@ namespace MagicalCryptoWallet.Services
 		/// <summary>
 		/// Make sure there's always clean keys generated and indexed.
 		/// </summary>
-		private void AssertCleanKeysIndexed(int howMany = 21, bool? isInternal = null)
+		private bool AssertCleanKeysIndexed(int howMany = 21, bool? isInternal = null)
 		{
+			var generated = false;
+
 			if (isInternal == null)
 			{
 				while (KeyManager.GetKeys(KeyState.Clean, true).Count() < howMany)
 				{
 					KeyManager.GenerateNewKey("", KeyState.Clean, true);
+					generated = true;
 				}
 				while (KeyManager.GetKeys(KeyState.Clean, false).Count() < howMany)
 				{
 					KeyManager.GenerateNewKey("", KeyState.Clean, false);
+					generated = true;
 				}
 			}
 			else
@@ -220,8 +232,10 @@ namespace MagicalCryptoWallet.Services
 				while (KeyManager.GetKeys(KeyState.Clean, isInternal).Count() < howMany)
 				{
 					KeyManager.GenerateNewKey("", KeyState.Clean, (bool)isInternal);
+					generated = true;
 				}
 			}
+			return generated;
 		}
 
 		private void ProcessBlock(Height height, Block block)
@@ -230,36 +244,67 @@ namespace MagicalCryptoWallet.Services
 
 			foreach (var tx in block.Transactions)
 			{
-				// If transaction received to any of the wallet keys:
-				for (var i = 0; i < tx.Outputs.Count; i++)
-				{
-					var output = tx.Outputs[i];
-					HdPubKey foundKey = keys.SingleOrDefault(x => x.GetP2wpkhScript() == output.ScriptPubKey);
-					if (foundKey != default)
-					{
-						foundKey.KeyState = KeyState.Used;
-						var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), height, foundKey.Label, null);
-						Coins.Add(coin);
+				ProcessTransaction(new SmartTransaction(tx, height), keys);
+			}
 
-						// Make sure there's always 21 clean keys generated and indexed.
-						AssertCleanKeysIndexed(21, foundKey.IsInternal());
+			ProcessedBlocks.Add(block.GetHash());
+		}
+
+		private void ProcessTransaction(SmartTransaction tx, List<HdPubKey> keys = null)
+		{
+			// If key list is not provided refresh the key list.
+			if(keys == null)
+			{
+				keys = KeyManager.GetKeys().ToList();
+			}
+
+			// If transaction received to any of the wallet keys:
+			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
+			{
+				var output = tx.Transaction.Outputs[i];
+				HdPubKey foundKey = keys.SingleOrDefault(x => x.GetP2wpkhScript() == output.ScriptPubKey);
+				if (foundKey != default)
+				{
+					// If we already had it, just update the height. Maybe got from mempool to block or reorged.
+					var foundCoin = Coins.SingleOrDefault(x => x.TransactionId == tx.GetHash() && x.Index == i);
+					if(foundCoin != default)
+					{
+						// If tx height is mempool then don't, otherwise update the height.
+						if (tx.Height == Height.MemPool)
+						{
+							continue;
+						}
+						else
+						{
+							foundCoin.Height = tx.Height;
+							continue;
+						}
 					}
-				}
 
-				// If spends any of our coin
-				for (var i = 0; i < tx.Inputs.Count; i++)
-				{
-					var input = tx.Inputs[i];
+					foundKey.KeyState = KeyState.Used;
+					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, foundKey.Label, null);
+					Coins.Add(coin);
 
-					var foundCoin = Coins.SingleOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
-					if (foundCoin != null)
+					// Make sure there's always 21 clean keys generated and indexed.
+					if(AssertCleanKeysIndexed(21, foundKey.IsInternal()))
 					{
-						foundCoin.SpenderTransactionId = tx.GetHash();
+						// If it generated a new key refresh the keys:
+						keys = KeyManager.GetKeys().ToList();
 					}
 				}
 			}
 
-			ProcessedBlocks.Add(block.GetHash());
+			// If spends any of our coin
+			for (var i = 0; i < tx.Transaction.Inputs.Count; i++)
+			{
+				var input = tx.Transaction.Inputs[i];
+
+				var foundCoin = Coins.SingleOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
+				if (foundCoin != null)
+				{
+					foundCoin.SpenderTransactionId = tx.GetHash();
+				}
+			}			
 		}
 
 		/// <exception cref="OperationCanceledException"></exception>
@@ -405,6 +450,7 @@ namespace MagicalCryptoWallet.Services
 				{
 					IndexDownloader.NewFilter -= IndexDownloader_NewFilterAsync;
 					IndexDownloader.Reorged -= IndexDownloader_ReorgedAsync;
+					MemPool.TransactionReceived -= MemPool_TransactionReceived;
 				}
 
 				_disposedValue = true;
