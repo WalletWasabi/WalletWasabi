@@ -8,8 +8,6 @@ notifications:
 matrix:
   include:
     - os: linux
-      dist: precise   
-    - os: linux
       dist: trusty     
     - os: osx
 
