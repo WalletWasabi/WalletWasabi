@@ -36,6 +36,9 @@ namespace MagicalCryptoWallet.Services
 
 		public ConcurrentHashSet<SmartCoin> Coins { get; }
 
+		public event EventHandler<FilterModel> NewFilterProcessed;
+		private void OnNewFilterProcessed(FilterModel filter) => NewFilterProcessed?.Invoke(this, filter);
+
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
@@ -130,6 +133,7 @@ namespace MagicalCryptoWallet.Services
 					await ProcessFilterModelAsync(filterModel, CancellationToken.None);
 				}
 			}
+			OnNewFilterProcessed(filterModel);
 		}
 
 		public async Task InitializeAsync(CancellationToken cancel)
