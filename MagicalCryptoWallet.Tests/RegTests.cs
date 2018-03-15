@@ -298,7 +298,7 @@ namespace MagicalCryptoWallet.Tests
 				downloader.Reorged += ReorgTestAsync_Downloader_Reorged;
 
 				// Test initial syncronization.	
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(60), downloader);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
 
 				var indexLines = await File.ReadAllLinesAsync(indexFilePath);
 				var lastFilter = indexLines.Last();
@@ -323,7 +323,7 @@ namespace MagicalCryptoWallet.Tests
 				var tx1bump = new uint256(tx1bumpRes.Result["txid"].ToString());
 
 				await Global.RpcClient.GenerateAsync(5);
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(60), downloader);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
 
 				utxoLines = await File.ReadAllTextAsync(utxoPath);
 				Assert.Contains(tx1bump.ToString(), utxoLines); // assert the tx1bump is the correct tx
@@ -525,11 +525,11 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
 
 				// REORG TESTS
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(60), indexDownloader);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader);
 				var tx4Res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendtoaddress, key2.GetP2wpkhAddress(network).ToString(), new Money(0.03m, MoneyUnit.BTC).ToString(false, true), "", "", false, true);
 				var txid4 = new uint256(tx4Res.ResultString);
 				await Global.RpcClient.GenerateAsync(2);
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(60), indexDownloader);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader);
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid4));
 				var tip = await Global.RpcClient.GetBestBlockHashAsync();
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
@@ -538,7 +538,7 @@ namespace MagicalCryptoWallet.Tests
 				var tx4bumpRes = await Global.RpcClient.SendCommandAsync("bumpfee", txid4.ToString()); // RBF it
 				var tx4bump = new uint256(tx4bumpRes.Result["txid"].ToString());
 				await Global.RpcClient.GenerateAsync(3);
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(60), indexDownloader);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader);
 
 				Assert.Equal(4, await wallet.CountBlocksAsync());
 
