@@ -297,20 +297,8 @@ namespace MagicalCryptoWallet.Tests
 
 				downloader.Reorged += ReorgTestAsync_Downloader_Reorged;
 
-				// Test initial syncronization.				
-				var blockCountIncludingGenesis = await Global.RpcClient.GetBlockCountAsync() + 1;
-
-				int filterCount;
-				var times = 0;
-				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < blockCountIncludingGenesis)
-				{
-					if (times > 1000) // 60 sec
-					{
-						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {blockCountIncludingGenesis}, got only: {filterCount}.");
-					}
-					await Task.Delay(100);
-					times++;
-				}
+				// Test initial syncronization.	
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(60), downloader);
 
 				var indexLines = await File.ReadAllLinesAsync(indexFilePath);
 				var lastFilter = indexLines.Last();
@@ -335,18 +323,7 @@ namespace MagicalCryptoWallet.Tests
 				var tx1bump = new uint256(tx1bumpRes.Result["txid"].ToString());
 
 				await Global.RpcClient.GenerateAsync(5);
-				blockCountIncludingGenesis = await Global.RpcClient.GetBlockCountAsync() + 1;
-
-				times = 0;
-				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < blockCountIncludingGenesis)
-				{
-					if (times > 1000) // 60 sec
-					{
-						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {blockCountIncludingGenesis}, got only: {filterCount}.");
-					}
-					await Task.Delay(100);
-					times++;
-				}
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(60), downloader);
 
 				utxoLines = await File.ReadAllTextAsync(utxoPath);
 				Assert.Contains(tx1bump.ToString(), utxoLines); // assert the tx1bump is the correct tx
@@ -362,6 +339,7 @@ namespace MagicalCryptoWallet.Tests
 
 				// Test filter block hashes are correct after fork.
 				var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
+				var blockCountIncludingGenesis = await Global.RpcClient.GetBlockCountAsync() + 1;
 				for (int i = 0; i < blockCountIncludingGenesis; i++)
 				{
 					var expectedHash = await Global.RpcClient.GetBlockHashAsync(i);
@@ -395,6 +373,23 @@ namespace MagicalCryptoWallet.Tests
 				{
 					await downloader.StopAsync();
 				}
+			}
+		}
+
+		private async Task WaitForIndexesToSyncAsync(TimeSpan timeout, IndexDownloader downloader)
+		{
+			var blockCountIncludingGenesis = await Global.RpcClient.GetBlockCountAsync() + 1;
+
+			var times = 0;
+			int filterCount;
+			while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < blockCountIncludingGenesis)
+			{
+				if (times > timeout.TotalSeconds)
+				{
+					throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {blockCountIncludingGenesis}, got only: {filterCount}.");
+				}
+				await Task.Delay(TimeSpan.FromSeconds(1));
+				times++;
 			}
 		}
 
@@ -456,16 +451,7 @@ namespace MagicalCryptoWallet.Tests
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
 
 				// Wait until the filter our previous transaction is present.
-				var times = 0;
-				while (1 != indexDownloader.GetFiltersIncluding(indexDownloader.StartingFilter.BlockHash).Where(x => x.Filter != null).Count())
-				{
-					if (times > 300) // 30 seconds
-					{
-						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out.");
-					}
-					await Task.Delay(100);
-					times++;
-				}
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(30), indexDownloader);
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
@@ -494,18 +480,10 @@ namespace MagicalCryptoWallet.Tests
 				await Global.RpcClient.GenerateAsync(1);
 				var txid3 = await Global.RpcClient.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.02m, MoneyUnit.BTC));
 				await Global.RpcClient.GenerateAsync(1);
-				await Global.RpcClient.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.03m, MoneyUnit.BTC));
+				var tx4Res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendtoaddress, key2.GetP2wpkhAddress(network).ToString(), new Money(0.03m, MoneyUnit.BTC).ToString(false, true), "", "", false, true);
+				var txid4 = new uint256(tx4Res.ResultString);
 
-				times = 0;
-				while (3 != indexDownloader.GetFiltersIncluding(indexDownloader.StartingFilter.BlockHash).Where(x => x.Filter != null).Count())
-				{
-					if (times > 300) // 30 seconds
-					{
-						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out.");
-					}
-					await Task.Delay(100);
-					times++;
-				}
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(30), indexDownloader);
 				Assert.Equal(3, await wallet.CountBlocksAsync());
 
 				Assert.Equal(3, wallet.Coins.Count);
@@ -546,10 +524,20 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
 				Assert.Equal(44, keyManager.GetKeys().Count());
 
-				Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).OrderBy(x => x.GetIndex()).First().Label);
-				Assert.Equal("bar label", keyManager.GetKeys(KeyState.Used, false).OrderBy(x => x.GetIndex()).Last().Label);
+				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "foo label"));
+				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
 
-				// ToDo: test reorg
+				// REORG TESTS
+				await Global.RpcClient.GenerateAsync(1);
+				var tip = await Global.RpcClient.GetBestBlockHashAsync();
+				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
+				tip = await Global.RpcClient.GetBestBlockHashAsync();
+				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 2
+				var tx4bumpRes = await Global.RpcClient.SendCommandAsync("bumpfee", txid4.ToString()); // RBF it
+				var tx4bump = new uint256(tx4bumpRes.Result["txid"].ToString());
+
+				await Global.RpcClient.GenerateAsync(5);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(60), indexDownloader);
 			}
 			finally
 			{
