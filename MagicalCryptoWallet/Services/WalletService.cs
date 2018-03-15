@@ -59,6 +59,8 @@ namespace MagicalCryptoWallet.Services
 			BlockFolderLock = new AsyncLock();
 			BlockDownloadLock = new AsyncLock();
 
+			AssertCleanKeysIndexed(21);
+
 			_running = 0;
 
 			if (Directory.Exists(BlocksFolderPath))
@@ -178,7 +180,7 @@ namespace MagicalCryptoWallet.Services
 		public HdPubKey GetReceiveKey(string label)
 		{
 			// ToDo, put this correction pattern into the Guard class: Guard.Correct(string ...)
-			if(string.IsNullOrWhiteSpace(label))
+			if (string.IsNullOrWhiteSpace(label))
 			{
 				label = "";
 			}
@@ -188,16 +190,38 @@ namespace MagicalCryptoWallet.Services
 			}
 
 			// Make sure there's always 21 clean keys generated and indexed.
-			while (KeyManager.GetKeys(KeyState.Clean, false).Count() < 21)
-			{
-				KeyManager.GenerateNewKey("", KeyState.Clean, false);
-			}
+			AssertCleanKeysIndexed(21, false);
 
 			var ret = KeyManager.GetKeys(KeyState.Clean, false).RandomElement();
 
 			ret.Label = label;
 
 			return ret;
+		}
+
+		/// <summary>
+		/// Make sure there's always clean keys generated and indexed.
+		/// </summary>
+		private void AssertCleanKeysIndexed(int howMany = 21, bool? isInternal = null)
+		{
+			if (isInternal == null)
+			{
+				while (KeyManager.GetKeys(KeyState.Clean, true).Count() < howMany)
+				{
+					KeyManager.GenerateNewKey("", KeyState.Clean, true);
+				}
+				while (KeyManager.GetKeys(KeyState.Clean, false).Count() < howMany)
+				{
+					KeyManager.GenerateNewKey("", KeyState.Clean, false);
+				}
+			}
+			else
+			{
+				while (KeyManager.GetKeys(KeyState.Clean, isInternal).Count() < howMany)
+				{
+					KeyManager.GenerateNewKey("", KeyState.Clean, (bool)isInternal);
+				}
+			}
 		}
 
 		private void ProcessBlock(Height height, Block block)
@@ -218,10 +242,7 @@ namespace MagicalCryptoWallet.Services
 						Coins.Add(coin);
 
 						// Make sure there's always 21 clean keys generated and indexed.
-						while (KeyManager.GetKeys(KeyState.Clean, foundKey.IsInternal()).Count() < 21)
-						{
-							KeyManager.GenerateNewKey("", KeyState.Clean, foundKey.IsInternal());
-						}
+						AssertCleanKeysIndexed(21, foundKey.IsInternal());
 					}
 				}
 

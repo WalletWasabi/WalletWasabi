@@ -445,7 +445,7 @@ namespace MagicalCryptoWallet.Tests
 			var wallet = new WalletService(keyManager, indexDownloader, nodes, blocksFolderPath);
 
 			// Get some money, make it confirm.
-			var key = wallet.GetReceiveKey("foo Label");
+			var key = wallet.GetReceiveKey("foo label");
 			var txid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
 			await Global.RpcClient.GenerateAsync(1);
 
@@ -472,28 +472,32 @@ namespace MagicalCryptoWallet.Tests
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
 				Assert.Equal(1, await wallet.CountBlocksAsync());
+
 				Assert.Single(wallet.Coins);
 				var firstCoin = wallet.Coins.Single();
 				Assert.Equal(new Money(0.1m, MoneyUnit.BTC), firstCoin.Amount);
 				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0, 1);
 				Assert.True(firstCoin.Unspent);
-				Assert.Equal("foo Label", firstCoin.Label);
+				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal(key.GetP2wpkhScript(), firstCoin.ScriptPubKey);
 				Assert.Null(firstCoin.SpenderTransactionId);
 				Assert.NotNull(firstCoin.SpentOutputs);
 				Assert.NotEmpty(firstCoin.SpentOutputs);
 				Assert.Equal(txid, firstCoin.TransactionId);
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false));
-				Assert.Equal("foo Label", keyManager.GetKeys(KeyState.Used, false).Single().Label);
+				Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).Single().Label);
 
 				// Get some money, make it confirm.
-				key = wallet.GetReceiveKey("");
-				await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
+				var key2 = wallet.GetReceiveKey("bar label");
+				var txid2 = await Global.RpcClient.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.01m, MoneyUnit.BTC));
 				await Global.RpcClient.GenerateAsync(1);
+				var txid3 = await Global.RpcClient.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.02m, MoneyUnit.BTC));
+				await Global.RpcClient.GenerateAsync(1);
+				await Global.RpcClient.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.03m, MoneyUnit.BTC));
 
 				times = 0;
-				while (2 != indexDownloader.GetFiltersIncluding(indexDownloader.StartingFilter.BlockHash).Where(x => x.Filter != null).Count())
+				while (3 != indexDownloader.GetFiltersIncluding(indexDownloader.StartingFilter.BlockHash).Where(x => x.Filter != null).Count())
 				{
 					if (times > 300) // 30 seconds
 					{
@@ -502,7 +506,50 @@ namespace MagicalCryptoWallet.Tests
 					await Task.Delay(100);
 					times++;
 				}
-				Assert.Equal(2, await wallet.CountBlocksAsync());
+				Assert.Equal(3, await wallet.CountBlocksAsync());
+
+				Assert.Equal(3, wallet.Coins.Count);
+				firstCoin = wallet.Coins.OrderBy(x => x.Height).First();
+				var secondCoin = wallet.Coins.OrderBy(x => x.Height).Take(2).Last();
+				var thirdCoin = wallet.Coins.OrderBy(x => x.Height).Last();
+				Assert.Equal(new Money(0.01m, MoneyUnit.BTC), secondCoin.Amount);
+				Assert.Equal(new Money(0.02m, MoneyUnit.BTC), thirdCoin.Amount);
+				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 2, firstCoin.Height.Value);
+				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 1, secondCoin.Height.Value);
+				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, thirdCoin.Height);
+				Assert.True(thirdCoin.Unspent);
+				Assert.Equal("foo label", firstCoin.Label);
+				Assert.Equal("bar label", secondCoin.Label);
+				Assert.Equal("bar label", thirdCoin.Label);
+				Assert.Equal(key.GetP2wpkhScript(), firstCoin.ScriptPubKey);
+				Assert.Equal(key2.GetP2wpkhScript(), secondCoin.ScriptPubKey);
+				Assert.Equal(key2.GetP2wpkhScript(), thirdCoin.ScriptPubKey);
+				Assert.Null(thirdCoin.SpenderTransactionId);
+				Assert.NotNull(firstCoin.SpentOutputs);
+				Assert.NotNull(secondCoin.SpentOutputs);
+				Assert.NotNull(thirdCoin.SpentOutputs);
+				Assert.NotEmpty(firstCoin.SpentOutputs);
+				Assert.NotEmpty(secondCoin.SpentOutputs);
+				Assert.NotEmpty(thirdCoin.SpentOutputs);
+				Assert.Equal(txid, firstCoin.TransactionId);
+				Assert.Equal(txid2, secondCoin.TransactionId);
+				Assert.Equal(txid3, thirdCoin.TransactionId);
+
+				Assert.Equal(2, keyManager.GetKeys(KeyState.Used, false).Count());
+				Assert.Empty(keyManager.GetKeys(KeyState.Used, true));
+				Assert.Equal(2, keyManager.GetKeys(KeyState.Used).Count());
+				Assert.Empty(keyManager.GetKeys(KeyState.Locked, false));
+				Assert.Empty(keyManager.GetKeys(KeyState.Locked, true));
+				Assert.Empty(keyManager.GetKeys(KeyState.Locked));
+				Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, true).Count());
+				Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, false).Count());
+				Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
+				Assert.Equal(44, keyManager.GetKeys().Count());
+
+				Assert.Equal("foo label", keyManager.GetKeys(KeyState.Used, false).OrderBy(x => x.GetIndex()).First().Label);
+				Assert.Equal("bar label", keyManager.GetKeys(KeyState.Used, false).OrderBy(x => x.GetIndex()).Last().Label);
+
+				// ToDo: test reorg
 			}
 			finally
 			{
