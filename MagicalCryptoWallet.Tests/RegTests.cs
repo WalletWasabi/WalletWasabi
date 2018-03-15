@@ -378,15 +378,14 @@ namespace MagicalCryptoWallet.Tests
 
 		private async Task WaitForIndexesToSyncAsync(TimeSpan timeout, IndexDownloader downloader)
 		{
-			var blockCountIncludingGenesis = await Global.RpcClient.GetBlockCountAsync() + 1;
+			var bestHash = await Global.RpcClient.GetBestBlockHashAsync();
 
 			var times = 0;
-			int filterCount;
-			while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < blockCountIncludingGenesis)
+			while (downloader.GetFiltersIncluding(new Height(0)).SingleOrDefault(x => x.BlockHash == bestHash) == null)
 			{
 				if (times > timeout.TotalSeconds)
 				{
-					throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {blockCountIncludingGenesis}, got only: {filterCount}.");
+					throw new TimeoutException($"{nameof(IndexDownloader)} test timed out.");
 				}
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
@@ -480,8 +479,6 @@ namespace MagicalCryptoWallet.Tests
 				await Global.RpcClient.GenerateAsync(1);
 				var txid3 = await Global.RpcClient.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.02m, MoneyUnit.BTC));
 				await Global.RpcClient.GenerateAsync(1);
-				var tx4Res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendtoaddress, key2.GetP2wpkhAddress(network).ToString(), new Money(0.03m, MoneyUnit.BTC).ToString(false, true), "", "", false, true);
-				var txid4 = new uint256(tx4Res.ResultString);
 
 				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(30), indexDownloader);
 				Assert.Equal(3, await wallet.CountBlocksAsync());
@@ -528,16 +525,51 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
 
 				// REORG TESTS
-				await Global.RpcClient.GenerateAsync(1);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(60), indexDownloader);
+				var tx4Res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendtoaddress, key2.GetP2wpkhAddress(network).ToString(), new Money(0.03m, MoneyUnit.BTC).ToString(false, true), "", "", false, true);
+				var txid4 = new uint256(tx4Res.ResultString);
+				await Global.RpcClient.GenerateAsync(2);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(60), indexDownloader);
+				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid4));
 				var tip = await Global.RpcClient.GetBestBlockHashAsync();
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
 				tip = await Global.RpcClient.GetBestBlockHashAsync();
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 2
 				var tx4bumpRes = await Global.RpcClient.SendCommandAsync("bumpfee", txid4.ToString()); // RBF it
 				var tx4bump = new uint256(tx4bumpRes.Result["txid"].ToString());
-
-				await Global.RpcClient.GenerateAsync(5);
+				await Global.RpcClient.GenerateAsync(3);
 				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(60), indexDownloader);
+
+				Assert.Equal(4, await wallet.CountBlocksAsync());
+
+				Assert.Equal(4, wallet.Coins.Count);
+				Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txid4));
+				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == tx4bump));
+				var rbfCoin = wallet.Coins.Where(x => x.TransactionId == tx4bump).Single();
+
+				Assert.Equal(new Money(0.03m, MoneyUnit.BTC), rbfCoin.Amount);
+				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 2, rbfCoin.Height.Value);
+				Assert.True(rbfCoin.Unspent);
+				Assert.Equal("bar label", rbfCoin.Label);
+				Assert.Equal(key2.GetP2wpkhScript(), rbfCoin.ScriptPubKey);
+				Assert.Null(rbfCoin.SpenderTransactionId);
+				Assert.NotNull(rbfCoin.SpentOutputs);
+				Assert.NotEmpty(rbfCoin.SpentOutputs);
+				Assert.Equal(tx4bump, rbfCoin.TransactionId);
+
+				Assert.Equal(2, keyManager.GetKeys(KeyState.Used, false).Count());
+				Assert.Empty(keyManager.GetKeys(KeyState.Used, true));
+				Assert.Equal(2, keyManager.GetKeys(KeyState.Used).Count());
+				Assert.Empty(keyManager.GetKeys(KeyState.Locked, false));
+				Assert.Empty(keyManager.GetKeys(KeyState.Locked, true));
+				Assert.Empty(keyManager.GetKeys(KeyState.Locked));
+				Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, true).Count());
+				Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, false).Count());
+				Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
+				Assert.Equal(44, keyManager.GetKeys().Count());
+
+				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "foo label"));
+				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
 			}
 			finally
 			{
