@@ -445,7 +445,7 @@ namespace MagicalCryptoWallet.Tests
 			var wallet = new WalletService(keyManager, indexDownloader, nodes, blocksFolderPath);
 
 			// Get some money, make it confirm.
-			var key = keyManager.GenerateNewKey("foo Label", KeyState.Clean, isInternal: false);
+			var key = wallet.GetReceiveKey("foo Label");
 			var txid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
 			await Global.RpcClient.GenerateAsync(1);
 
@@ -484,9 +484,11 @@ namespace MagicalCryptoWallet.Tests
 				Assert.NotNull(firstCoin.SpentOutputs);
 				Assert.NotEmpty(firstCoin.SpentOutputs);
 				Assert.Equal(txid, firstCoin.TransactionId);
+				Assert.Single(keyManager.GetKeys(KeyState.Used, false));
+				Assert.Equal("foo Label", keyManager.GetKeys(KeyState.Used, false).First().Label);
 
 				// Get some money, make it confirm.
-				key = keyManager.GenerateNewKey("", KeyState.Clean, isInternal: false);
+				key = wallet.GetReceiveKey("");
 				await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
 				await Global.RpcClient.GenerateAsync(1);
 
