@@ -485,7 +485,7 @@ namespace MagicalCryptoWallet.Tests
 				Assert.NotEmpty(firstCoin.SpentOutputs);
 				Assert.Equal(txid, firstCoin.TransactionId);
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false));
-				Assert.Equal("foo Label", keyManager.GetKeys(KeyState.Used, false).First().Label);
+				Assert.Equal("foo Label", keyManager.GetKeys(KeyState.Used, false).Single().Label);
 
 				// Get some money, make it confirm.
 				key = wallet.GetReceiveKey("");
