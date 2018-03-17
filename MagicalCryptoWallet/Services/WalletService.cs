@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +13,7 @@ using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.KeyManagement;
 using MagicalCryptoWallet.Logging;
 using MagicalCryptoWallet.Models;
+using MagicalCryptoWallet.TorSocks5;
 using NBitcoin;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
@@ -440,6 +443,132 @@ namespace MagicalCryptoWallet.Services
 			{
 				return Directory.EnumerateFiles(BlocksFolderPath).Count();
 			}
+		}
+
+		/// <param name="toSend">If Money.Zero then spend all available amount. Don't generate change.</param>
+		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
+		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
+		/// <param name="subtractFeeFromAmountIndex">If null, fee is substracted from the change. Otherwise it denotes the index in the toSend array.</param>
+		/// <exception cref="ArgumentException"></exception>
+		/// <exception cref="ArgumentNullException"></exception>
+		/// <exception cref="ArgumentOutOfRangeException"></exception>
+		public async Task BuildTransactionAsync(string password, IEnumerable<(Script script, Money money)> toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
+		{
+			password = password ?? ""; // Correction.
+			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
+			int sendAllCount = toSend.Count(x => x.money == Money.Zero);
+			if (sendAllCount > 1)
+			{
+				throw new ArgumentException($"Only one {nameof(toSend)} element can contain Money.Zero. Money.Zero means add the change to the value of this output.");
+			}
+			if (sendAllCount == 1 && customChange != null)
+			{
+				throw new ArgumentException($"{nameof(customChange)} and send all to destination cannot be specified the same time.");
+			}
+			Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 0, 1008); // Allow 0 and 1, and correct later.
+			if (feeTarget < 2) // Correct 0 and 1 to 2.
+			{
+				feeTarget = 2;
+			}
+			if (subtractFeeFromAmountIndex != null) // If not null, make sure not out of range. If null fee is substracted from the change.
+			{
+				if (subtractFeeFromAmountIndex < 0)
+				{
+					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} cannot be smaller than 0.");
+				}
+				if (subtractFeeFromAmountIndex > toSend.Count() - 1)
+				{
+					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} can be maximum {nameof(toSend)}.Count() - 1. {nameof(subtractFeeFromAmountIndex)}: {subtractFeeFromAmountIndex}, {nameof(toSend)}.Count() - 1: {toSend.Count() - 1}.");
+				}
+			}
+
+			// Get allowed coins to spend.
+			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
+			if (allowedInputs != null && allowedInputs.Count() != 0) // If allowedInputs are specified then select the coins from them.
+			{
+				if (allowUnconfirmed)
+				{
+					allowedSmartCoinInputs = Coins.Where(x => allowedInputs.Count(y => y.TransactionId == x.TransactionId && y.Index == x.Index) > 0).ToList();
+				}
+				else
+				{
+					allowedSmartCoinInputs = Coins.Where(x => x.Height.IsConfirmed && allowedInputs.Count(y => y.TransactionId == x.TransactionId && y.Index == x.Index) > 0).ToList();
+				}
+			}
+			else
+			{
+				if (allowUnconfirmed)
+				{
+					allowedSmartCoinInputs = Coins.ToList();
+				}
+				else
+				{
+					allowedSmartCoinInputs = Coins.Where(x => x.Height.IsConfirmed).ToList();
+				}
+			}
+
+			// 1. Get the possible changes.
+			List<Script> allowedChanges;
+			if (customChange == null)
+			{
+				AssertCleanKeysIndexed(21, true);
+				allowedChanges = KeyManager.GetKeys(KeyState.Clean, true).Select(x => x.GetP2wpkhScript()).ToList();
+			}
+			else
+			{
+				allowedChanges = new List<Script> { customChange };
+			}
+
+			// 2. Find all coins I can spend from the account
+			// 3. How much money we can spend?
+			Money spendableConfirmedAmount = Coins.Where(x => x.Height.IsConfirmed).Sum(x => x.Amount);
+			Logger.LogInfo<WalletService>($"Spendable confirmed amount: {spendableConfirmedAmount}.");
+			Money spendableUnconfirmedAmount;
+			if (allowUnconfirmed)
+			{
+				spendableUnconfirmedAmount = Coins.Sum(x => x.Amount);
+				Logger.LogInfo<WalletService>($"Spendable unconfirmed amount: {spendableUnconfirmedAmount}.");
+			}
+			else
+			{
+				spendableUnconfirmedAmount = Money.Zero;
+			}
+
+			// 4. Get and calculate fee
+			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
+			Money feePerBytes = null;
+			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
+			using (var response = await torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
+			{
+				if (response.StatusCode != HttpStatusCode.OK) // Try again.
+				{
+					using (var response2 = await torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
+					{
+						await Task.Delay(1000);
+						if (response2.StatusCode != HttpStatusCode.OK)
+						{
+							throw new HttpRequestException($"Couldn't query network fees. Reason: {response2.StatusCode.ToReasonString()}");
+						}
+						else
+						{
+							using (var content = response.Content)
+							{
+								var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
+								feePerBytes = new Money(json.Single().Value.Conservative);
+							}
+						}
+					}
+				}
+				else
+				{
+					using (var content = response.Content)
+					{
+						var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
+						feePerBytes = new Money(json.Single().Value.Conservative);
+					}
+				}
+			}
+			
 		}
 
 		#region IDisposable Support

@@ -246,7 +246,7 @@ namespace MagicalCryptoWallet.Tests
 
 				// Test filter block hashes are correct.
 				var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
-				for (int i = 0; i < 111; i++)
+				for (int i = 0; i < 101; i++)
 				{
 					var expectedHash = await Global.RpcClient.GetBlockHashAsync(i);
 					var filter = filters[i];
@@ -630,6 +630,77 @@ namespace MagicalCryptoWallet.Tests
 		private void WalletTestsAsync_MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 
+		}
+
+		[Fact]
+		public async Task SendingTestsAsync()
+		{
+			// Make sure fitlers are created on the server side.
+			await AssertFiltersInitializedAsync();
+
+			var network = Global.RpcClient.Network;
+
+			// Create the services.
+			// 1. Create connection service.
+			var nodes = new NodesGroup(Global.Config.Network,
+					requirements: new NodeRequirement
+					{
+						RequiredServices = NodeServices.Network,
+						MinVersion = ProtocolVersion.WITNESS_VERSION
+					});
+			nodes.ConnectedNodes.Add(Fixture.BackendRegTestNode.CreateNodeClient());
+
+			// 2. Create mempool service.
+			var memPoolService = new MemPoolService();
+			Node node = Fixture.BackendRegTestNode.CreateNodeClient();
+			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+
+			// 3. Create index downloader service.
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendingTestsAsync), $"Index{Global.RpcClient.Network}.dat");
+			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
+
+			// 4. Create key manager service.
+			var keyManager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
+
+			// 5. Create wallet service.
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendingTestsAsync), $"Blocks");
+			var wallet = new WalletService(keyManager, indexDownloader, memPoolService, nodes, blocksFolderPath);
+			wallet.NewFilterProcessed += IncrementFilterProcessed;
+
+			// Get some money, make it confirm.
+			var key = wallet.GetReceiveKey("foo label");
+			var txid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
+			await Global.RpcClient.GenerateAsync(1);
+
+			try
+			{
+				nodes.Connect(); // Start connection service.
+				node.VersionHandshake(); // Start mempool service.
+				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
+
+				// Wait until the filter our previous transaction is present.
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(30), indexDownloader, true);
+
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
+
+				await wallet.BuildTransactionAsync("", new [] { (new Script(), Money.Zero) }, 3, false);
+			}
+			finally
+			{
+				wallet.NewFilterProcessed -= IncrementFilterProcessed;
+				wallet?.Dispose();
+				// Dispose index downloader service.
+				if (indexDownloader != null)
+				{
+					await indexDownloader.StopAsync();
+				}
+
+				// Dispose connection service.
+				nodes?.Dispose();
+			}
 		}
 
 		#endregion

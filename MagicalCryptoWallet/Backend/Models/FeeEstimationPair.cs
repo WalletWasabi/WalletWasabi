@@ -6,7 +6,7 @@ using System.Text;
 namespace MagicalCryptoWallet.Backend.Models
 {
 	/// <summary>
-	/// satoshi per bytes
+	/// Satoshi per bytes.
 	/// </summary>
     public class FeeEstimationPair
 	{
