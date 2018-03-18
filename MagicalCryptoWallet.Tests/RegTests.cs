@@ -600,7 +600,15 @@ namespace MagicalCryptoWallet.Tests
 
 				await Global.RpcClient.GenerateAsync(1);
 				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, mempoolCoin.Height);
+				var res = await Global.RpcClient.GetTxOutAsync(mempoolCoin.TransactionId, mempoolCoin.Index, true);
+				if (res.Confirmations == 0) // Sometimes it doesn't confirm it in this block.
+				{
+					Assert.Equal(Height.MemPool, mempoolCoin.Height);
+				}
+				else
+				{
+					Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, mempoolCoin.Height);
+				}
 			}
 			finally
 			{
