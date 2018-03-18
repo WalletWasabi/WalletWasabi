@@ -298,7 +298,7 @@ namespace MagicalCryptoWallet.Tests
 				downloader.Reorged += ReorgTestAsync_Downloader_Reorged;
 
 				// Test initial synchronization.	
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader, false);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
 
 				var indexLines = await File.ReadAllLinesAsync(indexFilePath);
 				var lastFilter = indexLines.Last();
@@ -323,7 +323,7 @@ namespace MagicalCryptoWallet.Tests
 				var tx1bump = new uint256(tx1bumpRes.Result["txid"].ToString());
 
 				await Global.RpcClient.GenerateAsync(5);
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader, false);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
 
 				utxoLines = await File.ReadAllTextAsync(utxoPath);
 				Assert.Contains(tx1bump.ToString(), utxoLines); // assert the tx1bump is the correct tx
@@ -376,17 +376,13 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
-		private async Task WaitForIndexesToSyncAsync(TimeSpan timeout, IndexDownloader downloader, bool noticesProcessedIndex)
+		private async Task WaitForIndexesToSyncAsync(TimeSpan timeout, IndexDownloader downloader)
 		{
-			_filterProcessed = 0;
-			var hadIt = true;
-
 			var bestHash = await Global.RpcClient.GetBestBlockHashAsync();
 
 			var times = 0;
 			while (downloader.GetFiltersIncluding(new Height(0)).SingleOrDefault(x => x.BlockHash == bestHash) == null)
 			{
-				hadIt = false;
 				if (times > timeout.TotalSeconds)
 				{
 					throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Filter wasn't downloaded.");
@@ -395,20 +391,7 @@ namespace MagicalCryptoWallet.Tests
 				times++;
 			}
 
-			if(hadIt && noticesProcessedIndex)
-			{
-				while (Interlocked.Read(ref _filterProcessed) != 0)
-				{
-					hadIt = false;
-					if (times > timeout.TotalSeconds)
-					{
-						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Filter wasn't processed.");
-					}
-					await Task.Delay(TimeSpan.FromSeconds(1));
-					times++;
-				}
-
-			}
+			await Task.Delay(3000);
 		}
 
 		private long _reorgTestAsync_ReorgCount;
@@ -456,7 +439,6 @@ namespace MagicalCryptoWallet.Tests
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
 			var wallet = new WalletService(keyManager, indexDownloader, memPoolService, nodes, blocksFolderPath);
-			wallet.NewFilterProcessed += IncrementFilterProcessed;
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
@@ -470,7 +452,7 @@ namespace MagicalCryptoWallet.Tests
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
 
 				// Wait until the filter our previous transaction is present.
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader);
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
@@ -500,7 +482,7 @@ namespace MagicalCryptoWallet.Tests
 				var txid3 = await Global.RpcClient.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.02m, MoneyUnit.BTC));
 				await Global.RpcClient.GenerateAsync(1);
 
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader);
 				Assert.Equal(3, await wallet.CountBlocksAsync());
 
 				Assert.Equal(3, wallet.Coins.Count);
@@ -545,11 +527,11 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
 
 				// REORG TESTS
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader);
 				var tx4Res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendtoaddress, key2.GetP2wpkhAddress(network).ToString(), new Money(0.03m, MoneyUnit.BTC).ToString(false, true), "", "", false, true);
 				var txid4 = new uint256(tx4Res.ResultString);
 				await Global.RpcClient.GenerateAsync(2);
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader);
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid4));
 				var tip = await Global.RpcClient.GetBestBlockHashAsync();
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
@@ -558,7 +540,7 @@ namespace MagicalCryptoWallet.Tests
 				var tx4bumpRes = await Global.RpcClient.SendCommandAsync("bumpfee", txid4.ToString()); // RBF it
 				var tx4bump = new uint256(tx4bumpRes.Result["txid"].ToString());
 				await Global.RpcClient.GenerateAsync(3);
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader);
 
 				Assert.Equal(4, await wallet.CountBlocksAsync());
 
@@ -599,7 +581,7 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Equal(Height.MemPool, mempoolCoin.Height);
 
 				await Global.RpcClient.GenerateAsync(1);
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader);
 				var res = await Global.RpcClient.GetTxOutAsync(mempoolCoin.TransactionId, mempoolCoin.Index, true);
 				if (res.Confirmations == 0) // Sometimes it doesn't confirm it in this block.
 				{
@@ -612,7 +594,6 @@ namespace MagicalCryptoWallet.Tests
 			}
 			finally
 			{
-				wallet.NewFilterProcessed -= IncrementFilterProcessed;
 				wallet?.Dispose();
 				// Dispose index downloader service.
 				if (indexDownloader != null)
@@ -626,12 +607,6 @@ namespace MagicalCryptoWallet.Tests
 				// Dispose connection service.
 				nodes?.Dispose();
 			}
-		}
-
-		private long _filterProcessed;
-		private void IncrementFilterProcessed(object sender, FilterModel e)
-		{
-			Interlocked.Increment(ref _filterProcessed);
 		}
 
 		private void WalletTestsAsync_MemPoolService_TransactionReceived(object sender, SmartTransaction e)
@@ -672,7 +647,6 @@ namespace MagicalCryptoWallet.Tests
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendingTestsAsync), $"Blocks");
 			var wallet = new WalletService(keyManager, indexDownloader, memPoolService, nodes, blocksFolderPath);
-			wallet.NewFilterProcessed += IncrementFilterProcessed;
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
@@ -686,18 +660,29 @@ namespace MagicalCryptoWallet.Tests
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
 
 				// Wait until the filter our previous transaction is present.
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader);
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
 
-				await wallet.BuildTransactionAsync("password", new [] { (new Script(), Money.Zero) }, 3, false);
+				var scp = new Key().ScriptPubKey;
+				var res2 = await wallet.BuildTransactionAsync("password", new [] { (scp, new Money(0.05m, MoneyUnit.BTC)) }, 5, false);
+
+				Assert.NotNull(res2.Transaction);
+				Assert.Single(res2.ExternalOutputs);
+				Assert.Equal(scp, res2.ExternalOutputs.Single().ScriptPubKey);
+				Assert.Single(res2.InternalOutputs);
+				Assert.True(res2.Fee > new Money(5*100)); // since there is a sanity check of 5sat/b in the server
+				Assert.InRange(res2.FeePercentOfSent, 0, 1);
+				Assert.Single(res2.SpentCoins);
+				Assert.Equal(key.GetP2wpkhScript(), res2.SpentCoins.Single().ScriptPubKey);
+				Assert.Equal(new Money(0.1m, MoneyUnit.BTC), res2.SpentCoins.Single().Amount);
+				Assert.False(res2.SpendsUnconfirmed);
 			}
 			finally
 			{
-				wallet.NewFilterProcessed -= IncrementFilterProcessed;
 				wallet?.Dispose();
 				// Dispose index downloader service.
 				if (indexDownloader != null)

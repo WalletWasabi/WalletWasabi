@@ -680,11 +680,27 @@ namespace MagicalCryptoWallet.Services
 				throw new InvalidTxException(tx, checkResults);
 			}
 
-			IEnumerable<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Count(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index) > 0);
+			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Count(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index) > 0).ToList();
 
+			TxoRef[] spentOutputs = spentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).ToArray();
 
+			var externalOutputs = new List<SmartCoin>();
+			var internalOutputs = new List<SmartCoin>();
+			for (var i = 0; i < tx.Outputs.Count; i++)
+			{
+				TxOut output = tx.Outputs[i];
+				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, spentOutputs, Height.Unknown);
+				if (KeyManager.GetKeys(KeyState.Clean, isInternal: true).Select(x => x.GetP2wpkhScript()).Contains(coin.ScriptPubKey))
+				{
+					internalOutputs.Add(coin);
+				}
+				else
+				{
+					externalOutputs.Add(coin);
+				}
+			}
 
-			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), spendsUnconfirmed, fee, feePc, new List<SmartCoin>(), new List<SmartCoin>(), spentCoins);
+			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), spendsUnconfirmed, fee, feePc, externalOutputs, internalOutputs, spentCoins);
 		}
 
 		private IEnumerable<SmartCoin> SelectCoinsToSpend(IEnumerable<SmartCoin> unspentCoins, Money totalOutAmount)
