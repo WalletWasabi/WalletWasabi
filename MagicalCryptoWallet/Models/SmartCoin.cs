@@ -46,6 +46,7 @@ namespace MagicalCryptoWallet.Models
 		public TxoRef[] SpentOutputs { get; }
 
 		public bool Unspent => SpenderTransactionId == null;
+		public bool Confirmed => Height != Height.MemPool && Height != Height.Unknown;
 
 		[JsonConstructor]
 		public SmartCoin(uint256 transactionId, int index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, string label = "", uint256 spenderTransactionId = null)
@@ -58,6 +59,11 @@ namespace MagicalCryptoWallet.Models
 			Height = height;
 			Label = string.IsNullOrWhiteSpace(label) ? "" : label.Trim();
 			SpenderTransactionId = spenderTransactionId;
+		}
+
+		public Coin ToCoin()
+		{
+			return new Coin(TransactionId, (uint)Index, Amount, ScriptPubKey);
 		}
 
 		#region EqualityAndComparison

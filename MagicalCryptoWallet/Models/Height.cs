@@ -24,8 +24,6 @@ namespace MagicalCryptoWallet.Models
 		public static Height MemPool => new Height(HeightType.MemPool);
 		public static Height Unknown => new Height(HeightType.Unknown);
 
-		public bool IsConfirmed => this != MemPool && this != Unknown;
-
 		public Height(int height)
 		{
 			if (height < 0) throw new ArgumentException($"{nameof(height)} : {height} cannot be < 0");

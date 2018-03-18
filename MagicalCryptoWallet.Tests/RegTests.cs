@@ -397,11 +397,10 @@ namespace MagicalCryptoWallet.Tests
 
 			if(hadIt && noticesProcessedIndex)
 			{
-				times = 0;
 				while (Interlocked.Read(ref _filterProcessed) != 0)
 				{
 					hadIt = false;
-					if (times > 7)
+					if (times > timeout.TotalSeconds)
 					{
 						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Filter wasn't processed.");
 					}
@@ -471,7 +470,7 @@ namespace MagicalCryptoWallet.Tests
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
 
 				// Wait until the filter our previous transaction is present.
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(30), indexDownloader, true);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
@@ -501,7 +500,7 @@ namespace MagicalCryptoWallet.Tests
 				var txid3 = await Global.RpcClient.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.02m, MoneyUnit.BTC));
 				await Global.RpcClient.GenerateAsync(1);
 
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(30), indexDownloader, true);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
 				Assert.Equal(3, await wallet.CountBlocksAsync());
 
 				Assert.Equal(3, wallet.Coins.Count);
@@ -600,7 +599,7 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Equal(Height.MemPool, mempoolCoin.Height);
 
 				await Global.RpcClient.GenerateAsync(1);
-				await WaitForIndexesToSyncAsync(TimeSpan.FromMinutes(1), indexDownloader, true);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
 				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, mempoolCoin.Height);
 			}
 			finally
@@ -679,14 +678,14 @@ namespace MagicalCryptoWallet.Tests
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
 
 				// Wait until the filter our previous transaction is present.
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(30), indexDownloader, true);
+				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), indexDownloader, true);
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
 
-				await wallet.BuildTransactionAsync("", new [] { (new Script(), Money.Zero) }, 3, false);
+				await wallet.BuildTransactionAsync("password", new [] { (new Script(), Money.Zero) }, 3, false);
 			}
 			finally
 			{

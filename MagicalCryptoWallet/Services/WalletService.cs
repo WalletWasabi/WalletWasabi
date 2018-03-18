@@ -9,12 +9,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using ConcurrentCollections;
 using MagicalCryptoWallet.Backend.Models;
+using MagicalCryptoWallet.Exceptions;
 using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.KeyManagement;
 using MagicalCryptoWallet.Logging;
 using MagicalCryptoWallet.Models;
 using MagicalCryptoWallet.TorSocks5;
 using NBitcoin;
+using NBitcoin.Policy;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
 
@@ -445,23 +447,23 @@ namespace MagicalCryptoWallet.Services
 			}
 		}
 
-		/// <param name="toSend">If Money.Zero then spend all available amount. Don't generate change.</param>
+		/// <param name="toSend">If Money.Zero then spends all available amount. Doesn't generate change.</param>
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
 		/// <param name="subtractFeeFromAmountIndex">If null, fee is substracted from the change. Otherwise it denotes the index in the toSend array.</param>
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public async Task BuildTransactionAsync(string password, IEnumerable<(Script script, Money money)> toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
+		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, (Script script, Money amount)[] toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
 		{
 			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
-			int sendAllCount = toSend.Count(x => x.money == Money.Zero);
-			if (sendAllCount > 1)
+			int spendAllCount = toSend.Count(x => x.amount == Money.Zero);
+			if (spendAllCount > 1)
 			{
 				throw new ArgumentException($"Only one {nameof(toSend)} element can contain Money.Zero. Money.Zero means add the change to the value of this output.");
 			}
-			if (sendAllCount == 1 && customChange != null)
+			if (spendAllCount == 1 && customChange != null)
 			{
 				throw new ArgumentException($"{nameof(customChange)} and send all to destination cannot be specified the same time.");
 			}
@@ -476,9 +478,9 @@ namespace MagicalCryptoWallet.Services
 				{
 					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} cannot be smaller than 0.");
 				}
-				if (subtractFeeFromAmountIndex > toSend.Count() - 1)
+				if (subtractFeeFromAmountIndex > toSend.Length - 1)
 				{
-					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} can be maximum {nameof(toSend)}.Count() - 1. {nameof(subtractFeeFromAmountIndex)}: {subtractFeeFromAmountIndex}, {nameof(toSend)}.Count() - 1: {toSend.Count() - 1}.");
+					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} can be maximum {nameof(toSend)}.Length - 1. {nameof(subtractFeeFromAmountIndex)}: {subtractFeeFromAmountIndex}, {nameof(toSend)}.Length - 1: {toSend.Length - 1}.");
 				}
 			}
 
@@ -488,22 +490,22 @@ namespace MagicalCryptoWallet.Services
 			{
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.Where(x => allowedInputs.Count(y => y.TransactionId == x.TransactionId && y.Index == x.Index) > 0).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && allowedInputs.Count(y => y.TransactionId == x.TransactionId && y.Index == x.Index) > 0).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => x.Height.IsConfirmed && allowedInputs.Count(y => y.TransactionId == x.TransactionId && y.Index == x.Index) > 0).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && x.Confirmed && allowedInputs.Count(y => y.TransactionId == x.TransactionId && y.Index == x.Index) > 0).ToList();
 				}
 			}
 			else
 			{
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.ToList();
+					allowedSmartCoinInputs = Coins.Where(x => x.Unspent).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => x.Height.IsConfirmed).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && x.Confirmed).ToList();
 				}
 			}
 
@@ -521,12 +523,12 @@ namespace MagicalCryptoWallet.Services
 
 			// 2. Find all coins I can spend from the account
 			// 3. How much money we can spend?
-			Money spendableConfirmedAmount = Coins.Where(x => x.Height.IsConfirmed).Sum(x => x.Amount);
+			Money spendableConfirmedAmount = Coins.Where(x => x.Unspent && x.Confirmed).Sum(x => x.Amount);
 			Logger.LogInfo<WalletService>($"Spendable confirmed amount: {spendableConfirmedAmount}.");
 			Money spendableUnconfirmedAmount;
 			if (allowUnconfirmed)
 			{
-				spendableUnconfirmedAmount = Coins.Sum(x => x.Amount);
+				spendableUnconfirmedAmount = Coins.Where(x=> x.Unspent).Sum(x => x.Amount);
 				Logger.LogInfo<WalletService>($"Spendable unconfirmed amount: {spendableUnconfirmedAmount}.");
 			}
 			else
@@ -566,9 +568,157 @@ namespace MagicalCryptoWallet.Services
 						var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
 						feePerBytes = new Money(json.Single().Value.Conservative);
 					}
+				}				
+			}
+
+			bool spendAll = spendAllCount == 1;
+			int inNum;
+			if (spendAll)
+			{
+				inNum = allowedSmartCoinInputs.Count();
+			}
+			else if (subtractFeeFromAmountIndex != null)
+			{
+				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Sum(x => x.amount)).Count();
+			}
+			else
+			{
+				int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
+				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Sum(x => x.amount) + feePerBytes * expectedMinTxSize).Count();
+			}
+
+			// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
+			// https://bitcoin.stackexchange.com/a/46379/26859
+			int outNum = spendAll ? toSend.Length : toSend.Length + 1; // number of addresses to send + 1 for change
+			var origTxSize = inNum * Constants.P2pkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10;
+			var newTxSize = inNum * Constants.P2wpkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10; // BEWARE: This assumes segwit only inputs!
+			var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
+			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} bytes.");
+			Money fee = feePerBytes * vSize;
+			Logger.LogInfo<WalletService>($"Fee: {fee.ToString(fplus: false, trimExcessZero: true)}");
+
+			// 5. How much to spend?
+			long toSendAmountSumInSatoshis = toSend.Sum(x => x.amount); // Does it work if I simply go with Money class here? Is that copied by reference of value?
+			var realToSend = toSend.ToList();
+			for (int i = 0; i < realToSend.Count; i++)
+			{
+				var item = realToSend[i];
+				if (item.amount == Money.Zero)
+				{
+					item.amount = spendableConfirmedAmount;
+					if (allowUnconfirmed)
+					{
+						item.amount += spendableUnconfirmedAmount;
+					}
+					if (subtractFeeFromAmountIndex == null)
+					{
+						item.amount -= fee;
+					}
+					item.amount -= new Money(toSendAmountSumInSatoshis);
+				}
+
+				if (subtractFeeFromAmountIndex == i)
+				{
+					item.amount -= fee;
+				}
+
+				if (item.amount < Money.Zero)
+				{
+					throw new InsufficientBalanceException();
 				}
 			}
-			
+
+			realToSend.RemoveAll(x => x.amount == Money.Zero);
+
+			// 6. Do some checks
+			Money totalOutgoingAmount = realToSend.Sum(x => x.amount) + fee;
+			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmount.ToDecimal(MoneyUnit.BTC);
+
+			if (feePc > 1)
+			{
+				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount."
+					+ Environment.NewLine + $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC."
+					+ Environment.NewLine + $"Fee:\t\t {fee.ToString(fplus: false, trimExcessZero: true)} BTC.");
+			}
+
+			var confirmedAvailableAmount = spendableConfirmedAmount - spendableUnconfirmedAmount;
+			var spendsUnconfirmed = false;
+			if (confirmedAvailableAmount < totalOutgoingAmount)
+			{
+				spendsUnconfirmed = true;
+				Logger.LogInfo<WalletService>("Unconfirmed transaction are being spent.");
+			}
+
+			// 7. Select coins
+			Logger.LogInfo<WalletService>("Selecting coins...");
+			IEnumerable<SmartCoin> coinsToSpend = SelectCoinsToSpend(allowedSmartCoinInputs, totalOutgoingAmount);
+
+			// 8. Get signing keys
+			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(password, coinsToSpend.Select(x => x.ScriptPubKey));
+
+			// 9. Build the transaction
+			Logger.LogInfo<WalletService>("Signing transaction...");
+			var builder = new TransactionBuilder();
+			builder = builder
+				.AddCoins(coinsToSpend.Select(x => x.ToCoin()))
+				.AddKeys(signingKeys.ToArray());
+
+			foreach((Script scriptPubKey, Money amount) output in realToSend)
+			{
+				builder = builder.Send(output.scriptPubKey, output.amount);
+			}
+
+			var tx = builder
+				.SetChange(allowedChanges.RandomElement())
+				.SendFees(fee)
+				.Shuffle()
+				.BuildTransaction(true);
+
+			TransactionPolicyError[] checkResults = builder.Check(tx, fee);
+			if (checkResults.Length > 0)
+			{
+				throw new InvalidTxException(tx, checkResults);
+			}
+
+			IEnumerable<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Count(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index) > 0);
+
+
+
+			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), spendsUnconfirmed, fee, feePc, new List<SmartCoin>(), new List<SmartCoin>(), spentCoins);
+		}
+
+		private IEnumerable<SmartCoin> SelectCoinsToSpend(IEnumerable<SmartCoin> unspentCoins, Money totalOutAmount)
+		{
+			var coinsToSpend = new HashSet<SmartCoin>();
+			var unspentConfirmedCoins = new List<SmartCoin>();
+			var unspentUnconfirmedCoins = new List<SmartCoin>();
+			foreach (var coin in unspentCoins)
+				if (coin.Confirmed) unspentConfirmedCoins.Add(coin);
+				else unspentUnconfirmedCoins.Add(coin);
+
+			bool haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentConfirmedCoins);
+			if (!haveEnough)
+				haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
+			if (!haveEnough)
+				throw new InsufficientBalanceException();
+
+			return coinsToSpend;
+		}
+
+		private bool SelectCoins(ref HashSet<SmartCoin> coinsToSpend, Money totalOutAmount, IEnumerable<SmartCoin> unspentCoins)
+		{
+			var haveEnough = false;
+			foreach (var coin in unspentCoins.OrderByDescending(x => x.Amount))
+			{
+				coinsToSpend.Add(coin);
+				// if doesn't reach amount, continue adding next coin
+				if (coinsToSpend.Sum(x => x.Amount) < totalOutAmount) continue;
+
+				haveEnough = true;
+				break;
+			}
+
+			return haveEnough;
 		}
 
 		#region IDisposable Support

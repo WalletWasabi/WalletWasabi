@@ -19,6 +19,7 @@ dotnet_style_collection_initializer = true : warning
 dotnet_style_explicit_tuple_names = true : warning
 
 csharp_style_inlined_variable_declaration = true : warning
+csharp_style_deconstructed_variable_declaration = false : warning
 
 csharp_prefer_simple_default_expression = true : warning
 

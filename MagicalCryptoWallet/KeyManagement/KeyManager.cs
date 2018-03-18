@@ -1,6 +1,7 @@
 ﻿using MagicalCryptoWallet.Converters;
 using MagicalCryptoWallet.Helpers;
 using MagicalCryptoWallet.JsonConverters;
+using MagicalCryptoWallet.Models;
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
@@ -13,7 +14,7 @@ namespace MagicalCryptoWallet.KeyManagement
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class KeyManager
-    {
+	{
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(BitcoinEncryptedSecretNoECConverter))]
 		public BitcoinEncryptedSecretNoEC EncryptedSecret { get; }
@@ -23,8 +24,8 @@ namespace MagicalCryptoWallet.KeyManagement
 		public byte[] ChainCode { get; }
 
 		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(PubKeyConverter))]
-		public PubKey MasterPubKey { get; }
+		[JsonConverter(typeof(ExtPubKeyConverter))]
+		public ExtPubKey ExtPubKey { get; }
 
 		[JsonProperty(Order = 4)]
 		private List<HdPubKey> HdPubKeys { get; }
@@ -35,34 +36,19 @@ namespace MagicalCryptoWallet.KeyManagement
 
 		private readonly object HdPubKeysLock;
 
-		private ExtPubKey _extPubKey;
-		public ExtPubKey ExtPubKey
-		{
-			get
-			{
-				if(_extPubKey == null)
-				{
-					_extPubKey = new ExtPubKey(MasterPubKey, ChainCode);
-				}
-				return _extPubKey;
-			}
-		}
-
 		[JsonConstructor]
-		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, PubKey masterPubKey)
+		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey)
 		{
-			_extPubKey = null;
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeysLock = new object();
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
-			MasterPubKey = Guard.NotNull(nameof(masterPubKey), masterPubKey);
+			ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
 		}
 
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password)
 		{
-			_extPubKey = null;
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeysLock = new object();
 
@@ -75,12 +61,12 @@ namespace MagicalCryptoWallet.KeyManagement
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
-			MasterPubKey = extKey.Derive(AccountKeyPath).PrivateKey.PubKey;
+			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
 		}
 
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password)
 		{
-			if(password == null)
+			if (password == null)
 			{
 				password = "";
 			}
@@ -89,7 +75,7 @@ namespace MagicalCryptoWallet.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).PrivateKey.PubKey);
+			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter());
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password)
@@ -103,7 +89,7 @@ namespace MagicalCryptoWallet.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).PrivateKey.PubKey);
+			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter());
 		}
 
 		public void ToFile(string filePath)
@@ -114,16 +100,16 @@ namespace MagicalCryptoWallet.KeyManagement
 			if (directoryPath != null) Directory.CreateDirectory(directoryPath);
 
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-				File.WriteAllText(filePath,
-				jsonString,
-				Encoding.UTF8);
+			File.WriteAllText(filePath,
+			jsonString,
+			Encoding.UTF8);
 		}
 
 		public static KeyManager FromFile(string filePath)
 		{
 			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
 
-			if(!File.Exists(filePath))
+			if (!File.Exists(filePath))
 			{
 				throw new FileNotFoundException($"Walle file not found at: `{filePath}`.");
 			}
@@ -192,6 +178,27 @@ namespace MagicalCryptoWallet.KeyManagement
 				{
 					return HdPubKeys.Where(x => x.KeyState == keyState && x.IsInternal() == isInternal);
 				}
+			}
+		}
+
+		public IEnumerable<ExtKey> GetSecrets(string password, IEnumerable<Script> scripts)
+		{
+			Key secret = EncryptedSecret.GetKey(password);
+			var extKey = new ExtKey(secret, ChainCode);
+			var extKeys = new List<ExtKey>();
+
+			lock (HdPubKeysLock)
+			{
+				foreach (HdPubKey key in HdPubKeys.Where(x => 
+					scripts.Contains(x.GetP2wpkhScript())
+					|| scripts.Contains(x.GetP2shOverP2wpkhScript())
+					|| scripts.Contains(x.GetP2pkhScript())
+					|| scripts.Contains(x.GetP2pkScript())))
+				{
+					ExtKey ek = extKey.Derive(key.FullKeyPath);
+					extKeys.Add(ek);
+				}
+				return extKeys;
 			}
 		}
 	}
