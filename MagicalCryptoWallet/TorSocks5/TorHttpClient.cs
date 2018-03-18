@@ -27,7 +27,7 @@ namespace MagicalCryptoWallet.TorSocks5
 
 		public TorSocks5Client TorSocks5Client { get; private set; }
 
-		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything syncronous, so slow, but at least stable
+		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable
 
 		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
 		public TorHttpClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null, bool isolateStream = false)

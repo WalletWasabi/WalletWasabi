@@ -202,7 +202,7 @@ namespace MagicalCryptoWallet.Tests
 				{
 					indexBuilderService.Synchronize();
 
-					// Test initial syncronization.
+					// Test initial synchronization.
 					var times = 0;
 					uint256 firstHash = await rpc.GetBlockHashAsync(0);
 					while (indexBuilderService.GetFilterLinesExcluding(firstHash, out bool found6).Count() != 101)
@@ -215,7 +215,7 @@ namespace MagicalCryptoWallet.Tests
 						times++;
 					}
 
-					// Test later syncronization.
+					// Test later synchronization.
 					regtestNode.Generate(10);
 					times = 0;
 					while (indexBuilderService.GetFilterLinesExcluding(firstHash, out bool found5).Count() != 111)

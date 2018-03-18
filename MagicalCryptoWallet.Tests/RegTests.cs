@@ -213,7 +213,7 @@ namespace MagicalCryptoWallet.Tests
 			{
 				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(1));
 
-				// Test initial syncronization.
+				// Test initial synchronization.
 
 				var times = 0;
 				int filterCount;
@@ -227,7 +227,7 @@ namespace MagicalCryptoWallet.Tests
 					times++;
 				}
 
-				// Test later syncronization.
+				// Test later synchronization.
 				Fixture.BackendRegTestNode.Generate(10);
 				times = 0;
 				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < 112)
@@ -297,7 +297,7 @@ namespace MagicalCryptoWallet.Tests
 
 				downloader.Reorged += ReorgTestAsync_Downloader_Reorged;
 
-				// Test initial syncronization.	
+				// Test initial synchronization.	
 				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader, false);
 
 				var indexLines = await File.ReadAllLinesAsync(indexFilePath);
@@ -315,7 +315,7 @@ namespace MagicalCryptoWallet.Tests
 				Assert.DoesNotContain(tx4.ToString(), utxoLines); // make sure only bech is recorded
 				Assert.DoesNotContain(tx5.ToString(), utxoLines); // make sure only bech is recorded
 
-				// Test syncronization after fork.
+				// Test synchronization after fork.
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
 				tip = await Global.RpcClient.GetBestBlockHashAsync();
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 2
