@@ -12,18 +12,18 @@ namespace MagicalCryptoWallet.Models
 		public bool SpendsUnconfirmed { get; }
 		public Money Fee { get; }
 		public decimal FeePercentOfSent { get; }
-		public IEnumerable<SmartCoin> ExternalOutputs { get; }
-		public IEnumerable<SmartCoin> InternalOutputs { get; }
+		public IEnumerable<SmartCoin> OuterWalletOutputs { get; }
+		public IEnumerable<SmartCoin> InnerWalletOutputs { get; }
 		public IEnumerable<SmartCoin> SpentCoins { get; }
 
-		public BuildTransactionResult(SmartTransaction transaction, bool spendsUnconfirmed, Money fee, decimal feePercentOfSent, IEnumerable<SmartCoin> externalOutputs, IEnumerable<SmartCoin> internalOutputs, IEnumerable<SmartCoin> spentCoins)
+		public BuildTransactionResult(SmartTransaction transaction, bool spendsUnconfirmed, Money fee, decimal feePercentOfSent, IEnumerable<SmartCoin> outerWalletOutputs, IEnumerable<SmartCoin> innerWalletOutputs, IEnumerable<SmartCoin> spentCoins)
 		{
 			Transaction = Guard.NotNull(nameof(transaction), transaction);
 			SpendsUnconfirmed = spendsUnconfirmed;
 			Fee = fee ?? Money.Zero;
 			FeePercentOfSent = feePercentOfSent;
-			ExternalOutputs = externalOutputs ?? new List<SmartCoin>();
-			InternalOutputs = internalOutputs ?? new List<SmartCoin>();
+			OuterWalletOutputs = outerWalletOutputs ?? new List<SmartCoin>();
+			InnerWalletOutputs = innerWalletOutputs ?? new List<SmartCoin>();
 			SpentCoins = Guard.NotNullOrEmpty(nameof(spentCoins), spentCoins);
 		}
 	}

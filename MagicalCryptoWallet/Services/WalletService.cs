@@ -577,10 +577,6 @@ namespace MagicalCryptoWallet.Services
 			{
 				inNum = allowedSmartCoinInputs.Count();
 			}
-			else if (subtractFeeFromAmountIndex != null)
-			{
-				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Sum(x => x.amount)).Count();
-			}
 			else
 			{
 				int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
@@ -599,36 +595,39 @@ namespace MagicalCryptoWallet.Services
 
 			// 5. How much to spend?
 			long toSendAmountSumInSatoshis = toSend.Sum(x => x.amount); // Does it work if I simply go with Money class here? Is that copied by reference of value?
-			var realToSend = toSend.ToList();
-			for (int i = 0; i < realToSend.Count; i++)
+			var realToSend = new (Script script, Money amount)[toSend.Length];
+			for (int i = 0; i < toSend.Length; i++) // clone
 			{
-				var item = realToSend[i];
-				if (item.amount == Money.Zero)
+				realToSend[i] = (
+					new Script(toSend[i].script.ToString()),
+					new Money(toSend[i].amount.Satoshi));
+			}
+			for (int i = 0; i < realToSend.Length; i++)
+			{
+				if (realToSend[i].amount == Money.Zero)
 				{
-					item.amount = spendableConfirmedAmount;
+					realToSend[i].amount = spendableConfirmedAmount;
 					if (allowUnconfirmed)
 					{
-						item.amount += spendableUnconfirmedAmount;
+						realToSend[i].amount += spendableUnconfirmedAmount;
 					}
 					if (subtractFeeFromAmountIndex == null)
 					{
-						item.amount -= fee;
+						realToSend[i].amount -= fee;
 					}
-					item.amount -= new Money(toSendAmountSumInSatoshis);
+					realToSend[i].amount -= new Money(toSendAmountSumInSatoshis);
 				}
 
 				if (subtractFeeFromAmountIndex == i)
 				{
-					item.amount -= fee;
+					realToSend[i].amount -= fee;
 				}
 
-				if (item.amount < Money.Zero)
+				if (realToSend[i].amount <= Money.Zero)
 				{
 					throw new InsufficientBalanceException();
 				}
 			}
-
-			realToSend.RemoveAll(x => x.amount == Money.Zero);
 
 			// 6. Do some checks
 			Money totalOutgoingAmount = realToSend.Sum(x => x.amount) + fee;
@@ -684,25 +683,25 @@ namespace MagicalCryptoWallet.Services
 
 			TxoRef[] spentOutputs = spentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).ToArray();
 
-			var externalOutputs = new List<SmartCoin>();
-			var internalOutputs = new List<SmartCoin>();
+			var outerWalletOutputs = new List<SmartCoin>();
+			var innerWalletOutputs = new List<SmartCoin>();
 			for (var i = 0; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, spentOutputs, Height.Unknown);
-				if (KeyManager.GetKeys(KeyState.Clean, isInternal: true).Select(x => x.GetP2wpkhScript()).Contains(coin.ScriptPubKey))
+				if (KeyManager.GetKeys(KeyState.Clean).Select(x => x.GetP2wpkhScript()).Contains(coin.ScriptPubKey))
 				{
-					internalOutputs.Add(coin);
+					innerWalletOutputs.Add(coin);
 				}
 				else
 				{
-					externalOutputs.Add(coin);
+					outerWalletOutputs.Add(coin);
 				}
 			}
 
 			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
 
-			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), spendsUnconfirmed, fee, feePc, externalOutputs, internalOutputs, spentCoins);
+			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), spendsUnconfirmed, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 
 		private IEnumerable<SmartCoin> SelectCoinsToSpend(IEnumerable<SmartCoin> unspentCoins, Money totalOutAmount)

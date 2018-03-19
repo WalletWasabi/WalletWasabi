@@ -672,9 +672,9 @@ namespace MagicalCryptoWallet.Tests
 				var res2 = await wallet.BuildTransactionAsync("password", new[] { (scp, new Money(0.05m, MoneyUnit.BTC)) }, 5, false);
 
 				Assert.NotNull(res2.Transaction);
-				Assert.Single(res2.ExternalOutputs);
-				Assert.Equal(scp, res2.ExternalOutputs.Single().ScriptPubKey);
-				Assert.Single(res2.InternalOutputs);
+				Assert.Single(res2.OuterWalletOutputs);
+				Assert.Equal(scp, res2.OuterWalletOutputs.Single().ScriptPubKey);
+				Assert.Single(res2.InnerWalletOutputs);
 				Assert.True(res2.Fee > new Money(5 * 100)); // since there is a sanity check of 5sat/b in the server
 				Assert.InRange(res2.FeePercentOfSent, 0, 1);
 				Assert.Single(res2.SpentCoins);
@@ -684,27 +684,30 @@ namespace MagicalCryptoWallet.Tests
 
 				await wallet.SendTransactionAsync(res2.Transaction);
 
-				Assert.Contains(res2.InternalOutputs.Single(), wallet.Coins);
+				Assert.Contains(res2.InnerWalletOutputs.Single(), wallet.Coins);
 
 				#region Basic
 
 				Script receive = wallet.GetReceiveKey("basic1").GetP2wpkhScript();
-
 				Money amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
 				var res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 1008, allowUnconfirmed: true);
 
-				Assert.Equal(receive, res.ExternalOutputs.Single().ScriptPubKey);
-				Assert.Equal(amountToSend, res.ExternalOutputs.Single().Amount);
-				if (res.SpentCoins.Sum(x => x.Amount) - res.ExternalOutputs.Sum(x=>x.Amount) == res.Fee) // this happens when change is too small
+				Assert.Equal(2, res.InnerWalletOutputs.Count());
+				Assert.Empty(res.OuterWalletOutputs);
+				var activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
+				var changeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey != receive);
+
+				Assert.Equal(receive, activeOutput.ScriptPubKey);
+				Assert.Equal(amountToSend, activeOutput.Amount);
+				if (res.SpentCoins.Sum(x => x.Amount) - activeOutput.Amount == res.Fee) // this happens when change is too small
 				{
-					Assert.NotEmpty(res.InternalOutputs);
-					Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == res.ExternalOutputs.Single().Amount);
-					Logger.LogInfo<RegTests>($"Change Output: {res.InternalOutputs.Single().Amount.ToString(false, true)} {res.InternalOutputs.Single().ScriptPubKey.GetDestinationAddress(network)}");
+					Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == activeOutput.Amount);
+					Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				}
 				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
 				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
 				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
-				Logger.LogInfo<RegTests>($"Active Output: {res.ExternalOutputs.Single().Amount.ToString(false, true)} {res.ExternalOutputs.Single().ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
 
 				var foundReceive = false;
@@ -721,9 +724,40 @@ namespace MagicalCryptoWallet.Tests
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
-				receive = wallet.GetReceiveKey("basic2").GetP2wpkhScript();
+				#endregion
 
+				#region SubtractFeeFromAmount
+				
+				receive = wallet.GetReceiveKey("basic2").GetP2wpkhScript();
 				amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
+
+				Assert.Equal(2, res.InnerWalletOutputs.Count());
+				Assert.Empty(res.OuterWalletOutputs);
+				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
+				changeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey != receive);
+
+				Assert.Equal(receive, activeOutput.ScriptPubKey);
+				Assert.Equal(amountToSend - res.Fee, activeOutput.Amount);
+				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
+				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
+				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+
+				foundReceive = false;
+				Assert.InRange(res.Transaction.Transaction.Outputs.Count, 1, 2);
+				foreach (var output in res.Transaction.Transaction.Outputs)
+				{
+					if (output.ScriptPubKey == receive)
+					{
+						foundReceive = true;
+						Assert.Equal(amountToSend - res.Fee, output.Value);
+					}
+				}
+				Assert.True(foundReceive);
 
 				#endregion
 			}
