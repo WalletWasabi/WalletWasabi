@@ -8,7 +8,8 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-	public class StoreTest : IClassFixture<SharedFixture>
+	[Collection("Shared collection")]
+	public class StoreTest
 	{
 		private SharedFixture SharedFixture { get; }
 

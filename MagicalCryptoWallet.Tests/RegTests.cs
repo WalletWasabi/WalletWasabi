@@ -26,37 +26,14 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-	public class RegTests : IClassFixture<SharedFixture>
+	[Collection("Shared collection")]
+	public class RegTests
 	{
 		private SharedFixture Fixture { get; }
 
 		public RegTests(SharedFixture fixture)
 		{
 			Fixture = fixture;
-
-			if (Fixture.BackendNodeBuilder == null)
-			{
-				Fixture.BackendNodeBuilder = NodeBuilder.CreateAsync().GetAwaiter().GetResult();
-				Fixture.BackendNodeBuilder.CreateNodeAsync().GetAwaiter().GetResult();;
-				Fixture.BackendNodeBuilder.StartAllAsync().GetAwaiter().GetResult();;
-				Fixture.BackendRegTestNode = Fixture.BackendNodeBuilder.Nodes[0];
-				Fixture.BackendRegTestNode.Generate(101);
-				var rpc = Fixture.BackendRegTestNode.CreateRpcClient();
-
-				var authString = rpc.Authentication.Split(':');
-				Global.InitializeAsync(rpc.Network, authString[0], authString[1], rpc).GetAwaiter().GetResult();
-
-				Fixture.BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
-				Fixture.BackendHost = WebHost.CreateDefaultBuilder()
-					.UseStartup<Startup>()
-					.UseUrls(Fixture.BackendEndPoint)
-					.Build();
-				var hostInitializationTask = Fixture.BackendHost.RunAsync();
-				Logger.LogInfo<SharedFixture>($"Started Backend webhost: {Fixture.BackendEndPoint}");
-
-				var delayTask = Task.Delay(3000);
-				Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
-			}
 		}
 
 		private async Task AssertFiltersInitializedAsync()
