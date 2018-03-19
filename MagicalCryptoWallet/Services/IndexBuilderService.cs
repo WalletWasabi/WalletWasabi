@@ -328,7 +328,14 @@ namespace MagicalCryptoWallet.Services
 							await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
 								.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
 
-							Logger.LogInfo<IndexBuilderService>($"Created filter for block: {height}.");
+							if (blockCount - height <= 3 || height % 100 == 0) // If not close to the tip, just log debug.
+							{
+								Logger.LogInfo<IndexBuilderService>($"Created filter for block: {height}.");
+							}
+							else
+							{
+								Logger.LogDebug<IndexBuilderService>($"Created filter for block: {height}.");
+							}
 						}
 						catch (Exception ex)
 						{
