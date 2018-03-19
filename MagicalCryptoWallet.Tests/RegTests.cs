@@ -453,7 +453,7 @@ namespace MagicalCryptoWallet.Tests
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await Global.RpcClient.GetBlockCountAsync();
-				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(90), blockCount);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
@@ -484,7 +484,7 @@ namespace MagicalCryptoWallet.Tests
 				var txid3 = await Global.RpcClient.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.02m, MoneyUnit.BTC));
 				await Global.RpcClient.GenerateAsync(1);
 
-				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(90), 2);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
 				Assert.Equal(3, await wallet.CountBlocksAsync());
 
 				Assert.Equal(3, wallet.Coins.Count);
@@ -533,7 +533,7 @@ namespace MagicalCryptoWallet.Tests
 				var txid4 = new uint256(tx4Res.ResultString);
 				_filtersProcessedByWalletCount = 0;
 				await Global.RpcClient.GenerateAsync(2);
-				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(90), 2);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid4));
 				var tip = await Global.RpcClient.GetBestBlockHashAsync();
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
@@ -543,7 +543,7 @@ namespace MagicalCryptoWallet.Tests
 				var tx4bump = new uint256(tx4bumpRes.Result["txid"].ToString());
 				_filtersProcessedByWalletCount = 0;
 				await Global.RpcClient.GenerateAsync(3);
-				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(90), 3);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 
 				Assert.Equal(4, await wallet.CountBlocksAsync());
 
@@ -585,7 +585,7 @@ namespace MagicalCryptoWallet.Tests
 
 				_filtersProcessedByWalletCount = 0;
 				await Global.RpcClient.GenerateAsync(1);
-				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(90), 1);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 				var res = await Global.RpcClient.GetTxOutAsync(mempoolCoin.TransactionId, mempoolCoin.Index, true);
 				if (res.Confirmations == 0) // Sometimes it doesn't confirm it in this block.
 				{
@@ -688,7 +688,7 @@ namespace MagicalCryptoWallet.Tests
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await Global.RpcClient.GetBlockCountAsync();
-				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(90), blockCount);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
