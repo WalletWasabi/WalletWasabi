@@ -1,4 +1,5 @@
-﻿using MagicalCryptoWallet.WebClients.BlockCypher;
+﻿using MagicalCryptoWallet.Logging;
+using MagicalCryptoWallet.WebClients.BlockCypher;
 using MagicalCryptoWallet.WebClients.BlockCypher.Models;
 using MagicalCryptoWallet.WebClients.SmartBit;
 using MagicalCryptoWallet.WebClients.SmartBit.Models;
@@ -28,20 +29,16 @@ namespace MagicalCryptoWallet.Tests
 		[InlineData("main")]
 		public async Task SmartBitTestsAsync(string networkString)
 		{
+			if(!await TestAsync("https://api.smartbit.com.au/v1/blockchain/stats"))
+			{
+				return; // If website doesn't work, don't bother failing.
+			}
+
 			var network = Network.GetNetwork(networkString);
 			using (var client = new SmartBitClient(network))
 			{
-				IEnumerable<SmartBitExchangeRate> rates = null;
-				try
-				{
-					rates = await client.GetExchangeRatesAsync(CancellationToken.None);
-				}
-				catch // stupid CI internet conenction sometimes fails
-				{
-					await Task.Delay(3000);
-					rates = await client.GetExchangeRatesAsync(CancellationToken.None);
-				}
-
+				IEnumerable<SmartBitExchangeRate> rates = rates = await client.GetExchangeRatesAsync(CancellationToken.None);
+				
 				Assert.Contains("AUD", rates.Select(x => x.Code));
 				Assert.Contains("USD", rates.Select(x => x.Code));
 
@@ -54,6 +51,11 @@ namespace MagicalCryptoWallet.Tests
 		[InlineData("main")]
 		public async Task BlockCypherTestsAsync(string networkString)
 		{
+			if (!await TestAsync("https://api.blockcypher.com/v1/btc/main"))
+			{
+				return; // If website doesn't work, don't bother failing.
+			}
+
 			var network = Network.GetNetwork(networkString);
 			using (var client = new BlockCypherClient(network))
 			{
@@ -87,6 +89,26 @@ namespace MagicalCryptoWallet.Tests
 				}
 				Assert.True(response.PeerCount > 0);
 			}
+		}
+
+		private async Task<bool> TestAsync(string uri)
+		{
+			try
+			{
+				using (var client = new HttpClient())
+				using (var res = client.GetAsync(uri))
+				{
+					if (res.IsCompletedSuccessfully)
+					{
+						return true;
+					}
+				}
+			}
+			catch
+			{
+				Logger.LogWarning<ExternalApiTests>($"Uri wasn't reachable: {uri}");
+			}
+			return false;
 		}
 	}
 }
