@@ -165,14 +165,14 @@ namespace MagicalCryptoWallet.Tests
 		{
 			var nodes = sender as NodesCollection;
 			Interlocked.Increment(ref _nodeCount);
-			Logger.LogInfo<P2pTests>($"Node count:{Interlocked.Read(ref _nodeCount)}");
+			Logger.LogInfo<P2pTests>($"Node count: {Interlocked.Read(ref _nodeCount)}.");
 		}
 		private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
 		{
 			var nodes = sender as NodesCollection;
 			Interlocked.Decrement(ref _nodeCount);
 			// Trace is fine here, building the connections is more exciting than removing them.
-			Logger.LogTrace<P2pTests>($"Node count:{Interlocked.Read(ref _nodeCount)}");
+			Logger.LogTrace<P2pTests>($"Node count: {Interlocked.Read(ref _nodeCount)}.");
 		}
 
 		private long _mempoolTransactionCount = 0;
