@@ -26,14 +26,17 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-	[Collection("Shared collection")]
-	public class RegTests
+	[Collection("RegTest collection")]
+	public class RegTests: IClassFixture<SharedFixture>
 	{
-		private SharedFixture Fixture { get; }
+		private SharedFixture SharedFixture { get; }
 
-		public RegTests(SharedFixture fixture)
+		private RegTestFixture RegTestFixture { get; }
+
+		public RegTests(SharedFixture sharedFixture, RegTestFixture regTestFixture)
 		{
-			Fixture = fixture;
+			SharedFixture = sharedFixture;
+			RegTestFixture = regTestFixture;
 		}
 
 		private async Task AssertFiltersInitializedAsync()
@@ -41,7 +44,7 @@ namespace MagicalCryptoWallet.Tests
 			var firstHash = await Global.RpcClient.GetBlockHashAsync(0);
 			while (true)
 			{
-				using (var client = new TorHttpClient(new Uri(Fixture.BackendEndPoint)))
+				using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/Blockchain/filters/" + firstHash))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -64,7 +67,7 @@ namespace MagicalCryptoWallet.Tests
 		[Fact]
 		public async void GetExchangeRatesAsyncAsync()
 		{
-			using (var client = new TorHttpClient(new Uri(Fixture.BackendEndPoint)))
+			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/Blockchain/exchange-rates"))
 			{
 				Assert.True(response.IsSuccessStatusCode);
@@ -91,7 +94,7 @@ namespace MagicalCryptoWallet.Tests
 			var signedTx = await Global.RpcClient.SignRawTransactionAsync(tx);
 
 			var content = new StringContent($"'{signedTx.ToHex()}'", Encoding.UTF8, "application/json");
-			using (var client = new TorHttpClient(new Uri(Fixture.BackendEndPoint)))
+			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
 			{
 
@@ -108,7 +111,7 @@ namespace MagicalCryptoWallet.Tests
 			var utxo = utxos[0];
 			var tx = await Global.RpcClient.GetRawTransactionAsync(utxo.OutPoint.Hash);
 			var content = new StringContent($"'{tx.ToHex()}'", Encoding.UTF8, "application/json");
-			using (var client = new TorHttpClient(new Uri(Fixture.BackendEndPoint)))
+			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
 			{
 				Assert.True(response.IsSuccessStatusCode);
@@ -120,7 +123,7 @@ namespace MagicalCryptoWallet.Tests
 		public async void BroadcastInvalidTxAsync()
 		{
 			var content = new StringContent($"''", Encoding.UTF8, "application/json");
-			using (var client = new TorHttpClient(new Uri(Fixture.BackendEndPoint)))
+			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
 			{
 				Assert.False(response.IsSuccessStatusCode);
@@ -137,7 +140,7 @@ namespace MagicalCryptoWallet.Tests
 		public async Task MempoolAsync()
 		{
 			var memPoolService = new MemPoolService();
-			Node node = Fixture.BackendRegTestNode.CreateNodeClient();
+			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 			node.VersionHandshake();
 
@@ -185,7 +188,7 @@ namespace MagicalCryptoWallet.Tests
 
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{Global.RpcClient.Network}.dat");
 
-			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
+			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
 				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(1));
@@ -205,7 +208,7 @@ namespace MagicalCryptoWallet.Tests
 				}
 
 				// Test later synchronization.
-				Fixture.BackendRegTestNode.Generate(10);
+				RegTestFixture.BackendRegTestNode.Generate(10);
 				times = 0;
 				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < 112)
 				{
@@ -264,10 +267,10 @@ namespace MagicalCryptoWallet.Tests
 
 			_reorgTestAsync_ReorgCount = 0;
 
-			var node = Fixture.BackendRegTestNode;
+			var node = RegTestFixture.BackendRegTestNode;
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(ReorgTestAsync), $"Index{Global.RpcClient.Network}.dat");
 
-			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
+			var downloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
 				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3));
@@ -396,17 +399,17 @@ namespace MagicalCryptoWallet.Tests
 						RequiredServices = NodeServices.Network,
 						MinVersion = ProtocolVersion.WITNESS_VERSION
 					});
-			nodes.ConnectedNodes.Add(Fixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
 			memPoolService.TransactionReceived += WalletTestsAsync_MemPoolService_TransactionReceived;
-			Node node = Fixture.BackendRegTestNode.CreateNodeClient();
+			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create index downloader service.
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Index{Global.RpcClient.Network}.dat");
-			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
+			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
@@ -632,16 +635,16 @@ namespace MagicalCryptoWallet.Tests
 						RequiredServices = NodeServices.Network,
 						MinVersion = ProtocolVersion.WITNESS_VERSION
 					});
-			nodes.ConnectedNodes.Add(Fixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = Fixture.BackendRegTestNode.CreateNodeClient();
+			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create index downloader service.
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendingTestsAsync), $"Index{Global.RpcClient.Network}.dat");
-			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(Fixture.BackendEndPoint));
+			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");

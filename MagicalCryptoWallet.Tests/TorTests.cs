@@ -11,14 +11,13 @@ using Xunit;
 namespace MagicalCryptoWallet.Tests
 {
 	// Tor must be running
-	[Collection("Shared collection")]
-	public class TorTests
+	public class TorTests : IClassFixture<SharedFixture>
 	{
 		private SharedFixture SharedFixture { get; }
 
-		public TorTests(SharedFixture fixture)
+		public TorTests(SharedFixture sharedFixture)
 		{
-			SharedFixture = fixture;
+			SharedFixture = sharedFixture;
 		}
 
 		[Fact]

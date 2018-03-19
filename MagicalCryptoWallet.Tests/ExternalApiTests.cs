@@ -14,8 +14,15 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-	public class ExternalApiTests
+	public class ExternalApiTests : IClassFixture<SharedFixture>
 	{
+		public SharedFixture SharedFixture { get; }
+
+		public ExternalApiTests(SharedFixture sharedFixture)
+		{
+			SharedFixture = sharedFixture;
+		}
+
 		[Theory]
 		[InlineData("test")]
 		[InlineData("main")]

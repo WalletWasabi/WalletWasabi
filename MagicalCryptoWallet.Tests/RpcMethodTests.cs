@@ -6,14 +6,13 @@ using Xunit;
 
 namespace MagicalCryptoWallet.Tests
 {
-	[Collection("Shared collection")]
-	public class RpcMethodTests
+	public class RpcMethodTests : IClassFixture<SharedFixture>
 	{
 		private SharedFixture SharedFixture { get; }
 
-		public RpcMethodTests(SharedFixture fixture)
+		public RpcMethodTests(SharedFixture sharedFixture)
 		{
-			SharedFixture = fixture;
+			SharedFixture = sharedFixture;
 		}
 		
 		#region RpcMethodTests
