@@ -165,7 +165,7 @@ namespace MagicalCryptoWallet.Tests
 		{
 			var nodes = sender as NodesCollection;
 			Interlocked.Increment(ref _nodeCount);
-			if(Interlocked.Read(ref _nodeCount) == 8)
+			if (Interlocked.Read(ref _nodeCount) == 8)
 			{
 				Logger.LogTrace<P2pTests>($"Max node count reached: {Interlocked.Read(ref _nodeCount)}.");
 			}

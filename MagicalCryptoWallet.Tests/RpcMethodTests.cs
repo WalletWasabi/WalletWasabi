@@ -14,13 +14,13 @@ namespace MagicalCryptoWallet.Tests
 		{
 			SharedFixture = sharedFixture;
 		}
-		
+
 		#region RpcMethodTests
 
 		[Fact]
 		public async Task CanWaitForNewBlockFromRpcAsync()
 		{
-			using(var builder = await NodeBuilder.CreateAsync())
+			using (var builder = await NodeBuilder.CreateAsync())
 			{
 				var rpc = (await builder.CreateNodeAsync()).CreateRpcClient();
 				await builder.StartAllAsync();
@@ -35,7 +35,7 @@ namespace MagicalCryptoWallet.Tests
 		[Fact]
 		public async Task CanWaitForBlockFromRpcAsync()
 		{
-			using(var builder = await NodeBuilder.CreateAsync())
+			using (var builder = await NodeBuilder.CreateAsync())
 			{
 				var rpc = (await builder.CreateNodeAsync()).CreateRpcClient();
 				await builder.StartAllAsync();

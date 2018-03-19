@@ -27,7 +27,7 @@ using Xunit;
 namespace MagicalCryptoWallet.Tests
 {
 	[Collection("RegTest collection")]
-	public class RegTests: IClassFixture<SharedFixture>
+	public class RegTests : IClassFixture<SharedFixture>
 	{
 		private SharedFixture SharedFixture { get; }
 
@@ -246,7 +246,7 @@ namespace MagicalCryptoWallet.Tests
 
 		[Fact]
 		public async Task ReorgTestAsync()
-		{			
+		{
 			await AssertFiltersInitializedAsync();
 
 			var network = Network.RegTest;
@@ -676,13 +676,13 @@ namespace MagicalCryptoWallet.Tests
 				}
 
 				var scp = new Key().ScriptPubKey;
-				var res2 = await wallet.BuildTransactionAsync("password", new [] { (scp, new Money(0.05m, MoneyUnit.BTC)) }, 5, false);
+				var res2 = await wallet.BuildTransactionAsync("password", new[] { (scp, new Money(0.05m, MoneyUnit.BTC)) }, 5, false);
 
 				Assert.NotNull(res2.Transaction);
 				Assert.Single(res2.ExternalOutputs);
 				Assert.Equal(scp, res2.ExternalOutputs.Single().ScriptPubKey);
 				Assert.Single(res2.InternalOutputs);
-				Assert.True(res2.Fee > new Money(5*100)); // since there is a sanity check of 5sat/b in the server
+				Assert.True(res2.Fee > new Money(5 * 100)); // since there is a sanity check of 5sat/b in the server
 				Assert.InRange(res2.FeePercentOfSent, 0, 1);
 				Assert.Single(res2.SpentCoins);
 				Assert.Equal(key.GetP2wpkhScript(), res2.SpentCoins.Single().ScriptPubKey);

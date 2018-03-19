@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace MagicalCryptoWallet.Tests.NodeBuilding
 {
-    public class CoreNode
+	public class CoreNode
 	{
 		private readonly NodeBuilder _Builder;
 		private string _folder;
@@ -79,7 +79,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			}
 			catch (DirectoryNotFoundException) { }
 		}
-    
+
 		public async Task SyncAsync(CoreNode node, bool keepConnection = false)
 		{
 			var rpc = CreateRpcClient();
@@ -230,7 +230,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			}
 
 		}
-		
+
 		public void Broadcast(Transaction transaction)
 		{
 			using (var node = CreateNodeClient())
@@ -287,7 +287,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				}
 				_state = CoreNodeState.Killed;
 				if (cleanFolder)
-					CleanFolderAsync().GetAwaiter().GetResult();;
+					CleanFolderAsync().GetAwaiter().GetResult(); ;
 			}
 		}
 
@@ -390,7 +390,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				block.Header.Nonce = ++nonce;
 			}
 		}
-		
+
 
 		private class TransactionNode
 		{

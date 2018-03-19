@@ -88,12 +88,12 @@ namespace MagicalCryptoWallet.Tests
 		{
 			string password = "password";
 			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password);
-			
+
 			var filePath = Path.Combine(SharedFixture.DataDir, nameof(CanSerialize), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
 
 			Assert.Throws<FileNotFoundException>(() => KeyManager.FromFile(filePath));
-			
+
 			manager.ToFile(filePath);
 
 			manager.ToFile(filePath); // assert it doesn't throw
@@ -109,7 +109,7 @@ namespace MagicalCryptoWallet.Tests
 			}
 			manager.ToFile(filePath);
 
-			Assert.True(File.Exists(filePath));			
+			Assert.True(File.Exists(filePath));
 
 			var sameManager = KeyManager.FromFile(filePath);
 
@@ -155,10 +155,10 @@ namespace MagicalCryptoWallet.Tests
 			{
 				File.Delete(filePath);
 			}
-			
+
 			if (Directory.Exists(dir))
 			{
-				if(Directory.GetFiles(dir).Length == 0)
+				if (Directory.GetFiles(dir).Length == 0)
 				{
 					Directory.Delete(dir);
 				}

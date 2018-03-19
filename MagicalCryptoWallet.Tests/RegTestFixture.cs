@@ -10,9 +10,8 @@ using System.Threading.Tasks;
 
 namespace MagicalCryptoWallet.Tests
 {
-    public class RegTestFixture : IDisposable
+	public class RegTestFixture : IDisposable
 	{
-
 		public string BackendEndPoint { get; internal set; }
 
 		public IWebHost BackendHost { get; internal set; }

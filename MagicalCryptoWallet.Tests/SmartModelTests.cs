@@ -37,7 +37,7 @@ namespace MagicalCryptoWallet.Tests
 			// If the txid or the index differs, equality should think it's a different coin.
 			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, label, txId);
 			var differentOutput = tx.Outputs[1];
-			var differentSpentOutputs = new []
+			var differentSpentOutputs = new[]
 			{
 				new TxoRef(txId, 0)
 			};

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace MagicalCryptoWallet.Tests.NodeBuilding
 {
-    public class NodeBuilder : IDisposable
+	public class NodeBuilder : IDisposable
 	{
 		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.16.0")
 		{
@@ -41,7 +41,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			string bitcoind;
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				bitcoind = Path.Combine(SharedFixture.DataDir,$"bitcoin-{version}", "bin", "bitcoind.exe");
+				bitcoind = Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}", "bin", "bitcoind.exe");
 				if (File.Exists(bitcoind))
 					return bitcoind;
 				zip = Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-win32.zip");
@@ -151,5 +151,5 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 		{
 			_disposables.Add(group);
 		}
-	}	
+	}
 }

@@ -8,7 +8,6 @@ using NBitcoin;
 using NBitcoin.Crypto;
 using Xunit;
 
-
 namespace MagicalCryptoWallet.Tests
 {
 	public class PersistenceTest : IClassFixture<SharedFixture>
@@ -30,7 +29,7 @@ namespace MagicalCryptoWallet.Tests
 			const int txoutCountPerBlock = maxBlockSize / avgTxSize;
 			const int avgTxoutPushDataSize = 20; // P2PKH scripts has 20 bytes.
 
-			var key = new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+			var key = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
 			// Generation of data to be added into the filter
 			var random = new Random();

@@ -53,7 +53,7 @@ namespace MagicalCryptoWallet.Tests
 		{
 			var count = 0;
 			var errorCount = 0;
-			while(count < 3)
+			while (count < 3)
 			{
 				var password = "password";
 				var plainText = "juan carlos";
@@ -65,12 +65,13 @@ namespace MagicalCryptoWallet.Tests
 					var t = StringCipher.Decrypt(encypted, "WRONG-PASSWORD");
 					errorCount++;
 				}
-				catch(CryptographicException ex){
+				catch (CryptographicException ex)
+				{
 					Assert.StartsWith("Message Authentication failed", ex.Message);
 				}
 				count++;
 			}
-			var rate = (double)errorCount/(double)count;
+			var rate = (double)errorCount / (double)count;
 			Assert.True(rate < 0.000001 && rate > -0.000001);
 
 		}
