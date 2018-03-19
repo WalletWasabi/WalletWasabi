@@ -708,6 +708,10 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Equal(key.GetP2wpkhScript(), res2.SpentCoins.Single().ScriptPubKey);
 				Assert.Equal(new Money(0.1m, MoneyUnit.BTC), res2.SpentCoins.Single().Amount);
 				Assert.False(res2.SpendsUnconfirmed);
+
+				await wallet.SendTransactionAsync(res2.Transaction);
+
+				Assert.Contains(res2.InternalOutputs.Single(), wallet.Coins);
 			}
 			finally
 			{
