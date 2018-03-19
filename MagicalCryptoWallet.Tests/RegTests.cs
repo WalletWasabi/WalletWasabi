@@ -621,7 +621,7 @@ namespace MagicalCryptoWallet.Tests
 			{
 				if (times > timeout.TotalSeconds)
 				{
-					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter wasn't processed.");
+					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter wasn't processed. Needed: {numberOfFiltersToWaitFor}, got only: {_filtersProcessedByWalletCount}.");
 				}
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
