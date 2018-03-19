@@ -565,7 +565,7 @@ namespace MagicalCryptoWallet.Tests
 
 				_filtersProcessedByWalletCount = 0;
 				await Global.RpcClient.GenerateAsync(2);
-				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
 				var res = await Global.RpcClient.GetTxOutAsync(mempoolCoin.TransactionId, mempoolCoin.Index, true);
 				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, mempoolCoin.Height);
 			}
