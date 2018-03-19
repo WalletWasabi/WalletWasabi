@@ -564,17 +564,10 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Equal(Height.MemPool, mempoolCoin.Height);
 
 				_filtersProcessedByWalletCount = 0;
-				await Global.RpcClient.GenerateAsync(1);
+				await Global.RpcClient.GenerateAsync(2);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 				var res = await Global.RpcClient.GetTxOutAsync(mempoolCoin.TransactionId, mempoolCoin.Index, true);
-				if (res.Confirmations == 0) // Sometimes it doesn't confirm it in this block.
-				{
-					Assert.Equal(Height.MemPool, mempoolCoin.Height);
-				}
-				else
-				{
-					Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, mempoolCoin.Height);
-				}
+				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, mempoolCoin.Height);
 			}
 			finally
 			{
@@ -620,7 +613,7 @@ namespace MagicalCryptoWallet.Tests
 		}
 
 		[Fact]
-		public async Task SendingTestsAsync()
+		public async Task BasicSendingTestsAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
 		{
 			// Make sure fitlers are created on the server side.
 			await AssertFiltersInitializedAsync();
@@ -643,14 +636,14 @@ namespace MagicalCryptoWallet.Tests
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create index downloader service.
-			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendingTestsAsync), $"Index{Global.RpcClient.Network}.dat");
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(BasicSendingTestsAsync), $"Index{Global.RpcClient.Network}.dat");
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
 
 			// 5. Create wallet service.
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendingTestsAsync), $"Blocks");
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(BasicSendingTestsAsync), $"Blocks");
 			var wallet = new WalletService(keyManager, indexDownloader, memPoolService, nodes, blocksFolderPath);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -692,6 +685,47 @@ namespace MagicalCryptoWallet.Tests
 				await wallet.SendTransactionAsync(res2.Transaction);
 
 				Assert.Contains(res2.InternalOutputs.Single(), wallet.Coins);
+
+				#region Basic
+
+				Script receive = wallet.GetReceiveKey("basic1").GetP2wpkhScript();
+
+				Money amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
+				var res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 1008, allowUnconfirmed: true);
+
+				Assert.Equal(receive, res.ExternalOutputs.Single().ScriptPubKey);
+				Assert.Equal(amountToSend, res.ExternalOutputs.Single().Amount);
+				if (res.SpentCoins.Sum(x => x.Amount) - res.ExternalOutputs.Sum(x=>x.Amount) == res.Fee) // this happens when change is too small
+				{
+					Assert.NotEmpty(res.InternalOutputs);
+					Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == res.ExternalOutputs.Single().Amount);
+					Logger.LogInfo<RegTests>($"Change Output: {res.InternalOutputs.Single().Amount.ToString(false, true)} {res.InternalOutputs.Single().ScriptPubKey.GetDestinationAddress(network)}");
+				}
+				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
+				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"Active Output: {res.ExternalOutputs.Single().Amount.ToString(false, true)} {res.ExternalOutputs.Single().ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+
+				var foundReceive = false;
+				Assert.InRange(res.Transaction.Transaction.Outputs.Count, 1, 2);
+				foreach (var output in res.Transaction.Transaction.Outputs)
+				{
+					if (output.ScriptPubKey == receive)
+					{
+						foundReceive = true;
+						Assert.Equal(amountToSend, output.Value);
+					}
+				}
+				Assert.True(foundReceive);
+
+				await wallet.SendTransactionAsync(res.Transaction);
+
+				receive = wallet.GetReceiveKey("basic2").GetP2wpkhScript();
+
+				amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
+
+				#endregion
 			}
 			finally
 			{

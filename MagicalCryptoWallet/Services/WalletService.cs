@@ -700,6 +700,8 @@ namespace MagicalCryptoWallet.Services
 				}
 			}
 
+			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
+
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), spendsUnconfirmed, fee, feePc, externalOutputs, internalOutputs, spentCoins);
 		}
 
@@ -754,6 +756,8 @@ namespace MagicalCryptoWallet.Services
 			}
 
 			ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));
+			
+			Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted: {transaction.GetHash()}.");
 		}
 
 		#region IDisposable Support
