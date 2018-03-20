@@ -20,7 +20,7 @@ namespace MagicalCryptoWallet.Tests
 		}
 
 		[Fact]
-		public void CreateStore()
+		public void CreateStoreTest()
 		{
 			const byte P = 20;
 			const int blockCount = 100;
@@ -33,7 +33,7 @@ namespace MagicalCryptoWallet.Tests
 
 			// Generation of data to be added into the filter
 			var random = new Random();
-			var dataDirectory = new DirectoryInfo("./data");
+			var dataDirectory = new DirectoryInfo(Path.Combine(SharedFixture.DataDir, nameof(CreateStoreTest)));
 			if (dataDirectory.Exists)
 			{
 				foreach (var fileInfo in dataDirectory.GetFiles())
@@ -43,7 +43,7 @@ namespace MagicalCryptoWallet.Tests
 			}
 
 			var blocks = new List<GolombRiceFilter>(blockCount);
-			using (var repo = GcsFilterRepository.Open("./data"))
+			using (var repo = GcsFilterRepository.Open(Path.Combine(SharedFixture.DataDir, nameof(CreateStoreTest))))
 			{
 				for (var i = 0; i < blockCount; i++)
 				{
@@ -61,7 +61,7 @@ namespace MagicalCryptoWallet.Tests
 				}
 			}
 
-			using (var repo = GcsFilterRepository.Open("./data"))
+			using (var repo = GcsFilterRepository.Open(Path.Combine(SharedFixture.DataDir, nameof(CreateStoreTest))))
 			{
 				var blockIndexes = Enumerable.Range(0, blockCount).ToList();
 				blockIndexes.Shuffle();

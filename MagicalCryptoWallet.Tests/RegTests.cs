@@ -649,8 +649,8 @@ namespace MagicalCryptoWallet.Tests
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
-			var txid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
-			await Global.RpcClient.GenerateAsync(1);
+			var txid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
+			await Global.RpcClient.GenerateAsync(2);
 
 			try
 			{
@@ -679,7 +679,7 @@ namespace MagicalCryptoWallet.Tests
 				Assert.InRange(res2.FeePercentOfSent, 0, 1);
 				Assert.Single(res2.SpentCoins);
 				Assert.Equal(key.GetP2wpkhScript(), res2.SpentCoins.Single().ScriptPubKey);
-				Assert.Equal(new Money(0.1m, MoneyUnit.BTC), res2.SpentCoins.Single().Amount);
+				Assert.Equal(new Money(1m, MoneyUnit.BTC), res2.SpentCoins.Single().Amount);
 				Assert.False(res2.SpendsUnconfirmed);
 
 				await wallet.SendTransactionAsync(res2.Transaction);

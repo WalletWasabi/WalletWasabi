@@ -18,16 +18,9 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 	public class CoreNode
 	{
 		private readonly NodeBuilder _Builder;
-		private string _folder;
-		public string Folder
-		{
-			get
-			{
-				return _folder;
-			}
-		}
+        public string Folder { get; }
 
-		public IPEndPoint Endpoint
+        public IPEndPoint Endpoint
 		{
 			get
 			{
@@ -35,37 +28,22 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			}
 		}
 
-		public string Config
-		{
-			get
-			{
-				return _config;
-			}
-		}
+        public string Config { get; }
 
-		private readonly NodeConfigParameters _ConfigParameters = new NodeConfigParameters();
-		private string _config;
-
-		public NodeConfigParameters ConfigParameters
-		{
-			get
-			{
-				return _ConfigParameters;
-			}
-		}
+		public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
 
 		public CoreNode(string folder, NodeBuilder builder)
 		{
 			_Builder = builder;
-			_folder = folder;
-			_state = CoreNodeState.Stopped;
+			Folder = folder;
+			State = CoreNodeState.Stopped;
 			CleanFolderAsync().GetAwaiter().GetResult();
 			Directory.CreateDirectory(folder);
 			DataDir = Path.Combine(folder, "data");
 			Directory.CreateDirectory(DataDir);
 			var pass = Encoders.Hex.EncodeData(RandomUtils.GetBytes(20));
 			Creds = new NetworkCredential(pass, pass);
-			_config = Path.Combine(DataDir, "bitcoin.conf");
+			Config = Path.Combine(DataDir, "bitcoin.conf");
 			ConfigParameters.Import(builder.ConfigParameters);
 			_ports = new int[2];
 			FindPorts(_ports);
@@ -75,7 +53,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 		{
 			try
 			{
-				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(_folder);
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder);
 			}
 			catch (DirectoryNotFoundException) { }
 		}
@@ -94,17 +72,9 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				rpc.RemoveNode(node.Endpoint);
 			}
 		}
+        public CoreNodeState State { get; private set; }
 
-		private CoreNodeState _state;
-		public CoreNodeState State
-		{
-			get
-			{
-				return _state;
-			}
-		}
-
-		private int[] _ports;
+        private int[] _ports;
 
 		public int ProtocolPort
 		{
@@ -124,7 +94,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 		{
 			return new RestClient(new Uri("http://127.0.0.1:" + _ports[1] + "/"));
 		}
-#if !NOSOCKET
+
 		public Node CreateNodeClient()
 		{
 			return Node.Connect(Network.RegTest, "127.0.0.1:" + _ports[0]);
@@ -133,7 +103,6 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 		{
 			return Node.Connect(Network.RegTest, "127.0.0.1:" + _ports[0], parameters);
 		}
-#endif
 
 		public async Task StartAsync()
 		{
@@ -152,18 +121,18 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				{"keypool", "10"}
 			};
 			config.Import(ConfigParameters);
-			File.WriteAllText(_config, config.ToString());
+			File.WriteAllText(Config, config.ToString());
 			lock (_l)
 			{
 				_process = Process.Start(new FileInfo(_Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
-				_state = CoreNodeState.Starting;
+				State = CoreNodeState.Starting;
 			}
 			while (true)
 			{
 				try
 				{
 					await CreateRpcClient().GetBlockHashAsync(0).ConfigureAwait(false);
-					_state = CoreNodeState.Running;
+					State = CoreNodeState.Running;
 					break;
 				}
 				catch { }
@@ -285,7 +254,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 					_process.Kill();
 					_process.WaitForExit();
 				}
-				_state = CoreNodeState.Killed;
+				State = CoreNodeState.Killed;
 				if (cleanFolder)
 					CleanFolderAsync().GetAwaiter().GetResult(); ;
 			}
@@ -346,9 +315,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				}
 			return transaction;
 		}
-
-
-
+		
 		private TransactionSignature MakeHighS(TransactionSignature sig)
 		{
 			var curveOrder = new NBitcoin.BouncyCastle.Math.BigInteger("115792089237316195423570985008687907852837564279074904382605163141518161494337", 10);
@@ -390,7 +357,6 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				block.Header.Nonce = ++nonce;
 			}
 		}
-
 
 		private class TransactionNode
 		{

@@ -87,7 +87,7 @@ namespace MagicalCryptoWallet.Tests
 				});
 			WalletService walletService = new WalletService(
 				KeyManager.CreateNew(out Mnemonic mnemonic, "password"),
-				new IndexDownloader(network, "foo.txt", new Uri("http://localhost:12345")),
+				new IndexDownloader(network, Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345")),
 				memPoolService,
 				nodes,
 				blocksFolderPath);

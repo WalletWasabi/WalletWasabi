@@ -17,7 +17,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 		{
 			var directory = Path.Combine(SharedFixture.DataDir, caller);
 			version = version ?? "0.16.0";
-			var path = await EnsureDownloaded(version);
+			var path = await EnsureDownloadedAsync(version);
 			try
 			{
 				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(directory);
@@ -29,7 +29,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 			return new NodeBuilder(directory, path);
 		}
 
-		private static async Task<string> EnsureDownloaded(string version)
+		private static async Task<string> EnsureDownloadedAsync(string version)
 		{
 			//is a file
 			if (version.Length >= 2 && version[1] == ':')
@@ -89,26 +89,8 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 				return _bitcoind;
 			}
 		}
-
-
-		private readonly List<CoreNode> _Nodes = new List<CoreNode>();
-		public List<CoreNode> Nodes
-		{
-			get
-			{
-				return _Nodes;
-			}
-		}
-
-
-		private readonly NodeConfigParameters _ConfigParameters = new NodeConfigParameters();
-		public NodeConfigParameters ConfigParameters
-		{
-			get
-			{
-				return _ConfigParameters;
-			}
-		}
+        public List<CoreNode> Nodes { get; } = new List<CoreNode>();
+        public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
 
 		public async Task<CoreNode> CreateNodeAsync(bool start = false)
 		{
