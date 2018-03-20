@@ -526,11 +526,6 @@ namespace MagicalCryptoWallet.Services
 				allowedChanges = new List<Script> { customChange };
 			}
 
-			// 2. Find all coins I can spend from the account
-			// 3. How much money we can spend?
-			Money spendableConfirmedAmount = allowedSmartCoinInputs.Where(x => x.Confirmed).Sum(x => x.Amount);
-			Logger.LogInfo<WalletService>($"Spendable confirmed amount: {spendableConfirmedAmount}.");
-			Money spendableUnconfirmedAmount = allowedSmartCoinInputs.Where(x => !x.Confirmed).Sum(x => x.Amount);
 
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
@@ -600,18 +595,16 @@ namespace MagicalCryptoWallet.Services
 			}
 			for (int i = 0; i < realToSend.Length; i++)
 			{
-				if (realToSend[i].amount == Money.Zero)
+				if (realToSend[i].amount == Money.Zero) // means spend all
 				{
-					realToSend[i].amount = spendableConfirmedAmount;
-					if (allowUnconfirmed)
-					{
-						realToSend[i].amount += spendableUnconfirmedAmount;
-					}
-					if (subtractFeeFromAmountIndex == null)
+					realToSend[i].amount = allowedSmartCoinInputs.Sum(x => x.Amount);
+
+					realToSend[i].amount -= new Money(toSendAmountSumInSatoshis);
+
+					if(subtractFeeFromAmountIndex == null)
 					{
 						realToSend[i].amount -= fee;
 					}
-					realToSend[i].amount -= new Money(toSendAmountSumInSatoshis);
 				}
 
 				if (subtractFeeFromAmountIndex == i)
@@ -619,11 +612,15 @@ namespace MagicalCryptoWallet.Services
 					realToSend[i].amount -= fee;
 				}
 
-				if (realToSend[i].amount <= Money.Zero)
+				if (realToSend[i].amount < Money.Zero)
 				{
-					throw new InsufficientBalanceException();
+					throw new InsufficientBalanceException(Money.Zero, realToSend[i].amount);
 				}
 			}
+
+			var toRemoveList = new List<(Script script, Money money)>(realToSend);
+			toRemoveList.RemoveAll(x => x.money == Money.Zero);
+			realToSend = toRemoveList.ToArray();
 
 			// 6. Do some checks
 			Money totalOutgoingAmount = realToSend.Sum(x => x.amount) + fee;
@@ -636,7 +633,7 @@ namespace MagicalCryptoWallet.Services
 					+ Environment.NewLine + $"Fee:\t\t {fee.ToString(fplus: false, trimExcessZero: true)} BTC.");
 			}
 
-			var confirmedAvailableAmount = spendableConfirmedAmount - spendableUnconfirmedAmount;
+			var confirmedAvailableAmount = allowedSmartCoinInputs.Where(x => x.Confirmed).Sum(x => x.Amount);
 			var spendsUnconfirmed = false;
 			if (confirmedAvailableAmount < totalOutgoingAmount)
 			{
@@ -713,7 +710,7 @@ namespace MagicalCryptoWallet.Services
 			if (!haveEnough)
 				haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
 			if (!haveEnough)
-				throw new InsufficientBalanceException();
+				throw new InsufficientBalanceException(totalOutAmount, unspentConfirmedCoins.Sum(x => x.Amount) + unspentUnconfirmedCoins.Sum(x => x.Amount));
 
 			return coinsToSpend;
 		}
