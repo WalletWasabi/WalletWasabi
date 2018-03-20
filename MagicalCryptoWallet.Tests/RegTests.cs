@@ -669,7 +669,7 @@ namespace MagicalCryptoWallet.Tests
 				}
 
 				var scp = new Key().ScriptPubKey;
-				var res2 = await wallet.BuildTransactionAsync("password", new[] { (scp, new Money(0.05m, MoneyUnit.BTC)) }, 5, false);
+				var res2 = await wallet.BuildTransactionAsync("password", new[] { (scp, new Money(0.05m, MoneyUnit.BTC), "foo") }, 5, false);
 
 				Assert.NotNull(res2.Transaction);
 				Assert.Single(res2.OuterWalletOutputs);
@@ -690,7 +690,7 @@ namespace MagicalCryptoWallet.Tests
 
 				Script receive = wallet.GetReceiveKey("Basic").GetP2wpkhScript();
 				Money amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
-				var res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 1008, allowUnconfirmed: true);
+				var res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -730,7 +730,7 @@ namespace MagicalCryptoWallet.Tests
 				
 				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").GetP2wpkhScript();
 				amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -763,7 +763,7 @@ namespace MagicalCryptoWallet.Tests
 
 				#region LowFee
 
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 1008, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -796,7 +796,7 @@ namespace MagicalCryptoWallet.Tests
 
 				#region MediumFee
 
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 144, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend, "foo") }, 144, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -829,7 +829,7 @@ namespace MagicalCryptoWallet.Tests
 
 				#region HighFee
 
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 2, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend, "foo") }, 2, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -868,7 +868,7 @@ namespace MagicalCryptoWallet.Tests
 				#region MaxAmount
 
 				receive = wallet.GetReceiveKey("MaxAmount").GetP2wpkhScript();
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero) }, 1008, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero, "foo") }, 1008, allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
@@ -896,7 +896,7 @@ namespace MagicalCryptoWallet.Tests
 				receive = wallet.GetReceiveKey("InputSelection").GetP2wpkhScript();
 
 				var inputCountBefore = res.SpentCoins.Count();
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero) }, 1008,
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero, "foo") }, 1008,
 					allowUnconfirmed: true,
 					allowedInputs: wallet.Coins.Where(x=>x.Unspent).Select(x=>new TxoRef(x.TransactionId, x.Index)).Take(1));
 
@@ -916,7 +916,7 @@ namespace MagicalCryptoWallet.Tests
 
 				Assert.Single(res.Transaction.Transaction.Outputs);
 
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero) }, 1008, 
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero, "foo") }, 1008, 
 					allowUnconfirmed: true,
 					allowedInputs: new[] { res.SpentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).First() });
 
@@ -927,6 +927,40 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Single(res.Transaction.Transaction.Inputs);
 				Assert.Single(res.Transaction.Transaction.Outputs);
 				Assert.Single(res.SpentCoins);
+
+				#endregion
+
+				#region Labeling
+
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero, "my label") }, 1008,
+					allowUnconfirmed: true);
+
+				Assert.Single(res.InnerWalletOutputs);
+				Assert.Equal("change of (my label)", res.InnerWalletOutputs.Single().Label);
+
+				amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 3;
+				res = await wallet.BuildTransactionAsync("password", new[] {
+					(new Key().ScriptPubKey, amountToSend, "outgoing"),
+					(new Key().ScriptPubKey, amountToSend, "outgoing2")
+				}, 1008,
+					allowUnconfirmed: true);
+
+				Assert.Single(res.InnerWalletOutputs);
+				Assert.Equal(2, res.OuterWalletOutputs.Count());
+				Assert.Equal("change of (outgoing, outgoing2)", res.InnerWalletOutputs.Single().Label);
+
+				await wallet.SendTransactionAsync(res.Transaction);
+
+				Assert.Contains("change of (outgoing, outgoing2)", wallet.Coins.Where(x=>x.Height == Height.MemPool).Select(x => x.Label));
+				Assert.Contains("change of (outgoing, outgoing2)", keyManager.GetKeys().Select(x => x.Label));
+
+				_filtersProcessedByWalletCount = 0;
+				await Global.RpcClient.GenerateAsync(1);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
+
+				var bestHeight = wallet.IndexDownloader.GetBestFilter().BlockHeight;
+				Assert.Contains("change of (outgoing, outgoing2)", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
+				Assert.Contains("change of (outgoing, outgoing2)", keyManager.GetKeys().Select(x => x.Label));
 
 				#endregion
 			}

@@ -454,7 +454,7 @@ namespace MagicalCryptoWallet.Services
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, (Script script, Money amount)[] toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
+		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, (Script script, Money amount, string label)[] toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
 		{
 			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
@@ -513,20 +513,7 @@ namespace MagicalCryptoWallet.Services
 					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && x.Confirmed).ToList();
 				}
 			}
-
-			// 1. Get the possible changes.
-			List<Script> allowedChanges;
-			if (customChange == null)
-			{
-				AssertCleanKeysIndexed(21, true);
-				allowedChanges = KeyManager.GetKeys(KeyState.Clean, true).Select(x => x.GetP2wpkhScript()).ToList();
-			}
-			else
-			{
-				allowedChanges = new List<Script> { customChange };
-			}
-
-
+			
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 			Money feePerBytes = null;
@@ -586,12 +573,13 @@ namespace MagicalCryptoWallet.Services
 
 			// 5. How much to spend?
 			long toSendAmountSumInSatoshis = toSend.Sum(x => x.amount); // Does it work if I simply go with Money class here? Is that copied by reference of value?
-			var realToSend = new (Script script, Money amount)[toSend.Length];
+			var realToSend = new (Script script, Money amount, string label)[toSend.Length];
 			for (int i = 0; i < toSend.Length; i++) // clone
 			{
 				realToSend[i] = (
 					new Script(toSend[i].script.ToString()),
-					new Money(toSend[i].amount.Satoshi));
+					new Money(toSend[i].amount.Satoshi),
+					toSend[i].label);
 			}
 			for (int i = 0; i < realToSend.Length; i++)
 			{
@@ -618,9 +606,32 @@ namespace MagicalCryptoWallet.Services
 				}
 			}
 
-			var toRemoveList = new List<(Script script, Money money)>(realToSend);
+			var toRemoveList = new List<(Script script, Money money, string label)>(realToSend);
 			toRemoveList.RemoveAll(x => x.money == Money.Zero);
 			realToSend = toRemoveList.ToArray();
+			
+			// 1. Get the possible changes.
+			Script changeScriptPubKey;
+			var sb = new StringBuilder();
+			foreach (var item in realToSend)
+			{
+				sb.Append(item.label ?? "?");
+				sb.Append(", ");
+			}
+			var changeLabel = $"change of ({sb.ToString().TrimEnd(',', ' ')})";
+
+			if (customChange == null)
+			{
+				AssertCleanKeysIndexed(21, true);
+				var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
+
+				changeHdPubKey.Label = changeLabel;
+				changeScriptPubKey = changeHdPubKey.GetP2wpkhScript();
+			}
+			else
+			{
+				changeScriptPubKey = customChange;
+			}
 
 			// 6. Do some checks
 			Money totalOutgoingAmount = realToSend.Sum(x => x.amount) + fee;
@@ -655,13 +666,13 @@ namespace MagicalCryptoWallet.Services
 				.AddCoins(coinsToSpend.Select(x => x.ToCoin()))
 				.AddKeys(signingKeys.ToArray());
 
-			foreach((Script scriptPubKey, Money amount) output in realToSend)
+			foreach((Script scriptPubKey, Money amount, string label) output in realToSend)
 			{
 				builder = builder.Send(output.scriptPubKey, output.amount);
 			}
 
 			var tx = builder
-				.SetChange(allowedChanges.RandomElement())
+				.SetChange(changeScriptPubKey)
 				.SendFees(fee)
 				.Shuffle()
 				.BuildTransaction(true);
@@ -684,7 +695,8 @@ namespace MagicalCryptoWallet.Services
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, spentOutputs, Height.Unknown);
 				if (KeyManager.GetKeys(KeyState.Clean).Select(x => x.GetP2wpkhScript()).Contains(coin.ScriptPubKey))
 				{
-					innerWalletOutputs.Add(coin);
+					coin.Label = changeLabel;
+					innerWalletOutputs.Add(coin);					
 				}
 				else
 				{
