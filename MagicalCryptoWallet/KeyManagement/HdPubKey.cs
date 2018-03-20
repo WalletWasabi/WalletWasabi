@@ -29,7 +29,7 @@ namespace MagicalCryptoWallet.KeyManagement
 		{
 			PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 			FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
-			label = Guard.Correct(label);
+			Label = Guard.Correct(label);
 			KeyState = keyState;
 		}
 
