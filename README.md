@@ -20,7 +20,7 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
 - [x] **1. Wallet Back End.** *2 weeks. NBitcoin, Bitcoin Core RPC, ASP.NET.* Build back end for the wallet based on [the specification](https://github.com/nopara73/MagicalCryptoWallet/blob/master/MagicalCryptoWallet.Backend/README.md).
 - [x] **2. Small Tor Library.** *1 week. Tor, .NET Core, cross platform.* Build a small Tor library based on DotNetTor, that removes features those are unrelated to the wallet and makes the rest more stable.
 - [x] **3. Key Manager.** *1 week. NBitcoin.* Build a new, high performance key manager with accounts, labelling, etc...
-- [ ] **4. Wallet Client.** *1 month. NBitcoin.* Build a high performance client that can work with the new back end, which is built for client side filtering.
+- [x] **4. Wallet Client.** *1 month. NBitcoin.* Build a high performance client that can work with the new back end, which is built for client side filtering.
 
   Depends on:
   - [x] ALL previous items
