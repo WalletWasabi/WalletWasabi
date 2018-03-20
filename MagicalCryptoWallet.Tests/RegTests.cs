@@ -887,6 +887,8 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Equal(receive, maxBuiltTxOutput.ScriptPubKey);
 				Assert.Equal(wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
 
+				await wallet.SendTransactionAsync(res.Transaction);
+
 				#endregion
 
 				#region InputSelection
