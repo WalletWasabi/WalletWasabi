@@ -196,15 +196,7 @@ namespace MagicalCryptoWallet.Services
 
 		public HdPubKey GetReceiveKey(string label)
 		{
-			// ToDo, put this correction pattern into the Guard class: Guard.Correct(string ...)
-			if (string.IsNullOrWhiteSpace(label))
-			{
-				label = "";
-			}
-			else
-			{
-				label = label.Trim();
-			}
+			label = Guard.Correct(label);
 
 			// Make sure there's always 21 clean keys generated and indexed.
 			AssertCleanKeysIndexed(21, false);

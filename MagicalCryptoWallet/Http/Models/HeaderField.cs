@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using MagicalCryptoWallet.Helpers;
 using static MagicalCryptoWallet.Http.Constants;
 
 namespace MagicalCryptoWallet.Http.Models
@@ -65,9 +66,7 @@ namespace MagicalCryptoWallet.Http.Models
 				if (name != name.Trim()) throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
 
 				var value = reader.ReadToEnd();
-				// correction
-				if (value == null) value = "";
-				value = value.Trim(); // better to use without whitespaces
+				value = Guard.Correct(value);
 
 
 				return new HeaderField(name, value);
