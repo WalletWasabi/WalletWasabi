@@ -96,9 +96,9 @@ namespace MagicalCryptoWallet.Tests
 			try
 			{
 				using (var client = new HttpClient())
-				using (var res = client.GetAsync(uri))
+				using (var res = await client.GetAsync(uri))
 				{
-					if (res.IsCompletedSuccessfully)
+					if (res.IsSuccessStatusCode)
 					{
 						return true;
 					}

@@ -613,7 +613,7 @@ namespace MagicalCryptoWallet.Tests
 		}
 
 		[Fact]
-		public async Task BasicSendingTestsAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
+		public async Task SendTestsFromHiddenWalletAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
 		{
 			// Make sure fitlers are created on the server side.
 			await AssertFiltersInitializedAsync();
@@ -636,14 +636,14 @@ namespace MagicalCryptoWallet.Tests
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create index downloader service.
-			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(BasicSendingTestsAsync), $"Index{Global.RpcClient.Network}.dat");
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Index{Global.RpcClient.Network}.dat");
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
 
 			// 5. Create wallet service.
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(BasicSendingTestsAsync), $"Blocks");
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
 			var wallet = new WalletService(keyManager, indexDownloader, memPoolService, nodes, blocksFolderPath);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -688,7 +688,7 @@ namespace MagicalCryptoWallet.Tests
 
 				#region Basic
 
-				Script receive = wallet.GetReceiveKey("basic1").GetP2wpkhScript();
+				Script receive = wallet.GetReceiveKey("Basic").GetP2wpkhScript();
 				Money amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
 				var res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 1008, allowUnconfirmed: true);
 
@@ -728,7 +728,7 @@ namespace MagicalCryptoWallet.Tests
 
 				#region SubtractFeeFromAmount
 				
-				receive = wallet.GetReceiveKey("basic2").GetP2wpkhScript();
+				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").GetP2wpkhScript();
 				amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
 				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
@@ -758,6 +758,173 @@ namespace MagicalCryptoWallet.Tests
 					}
 				}
 				Assert.True(foundReceive);
+
+				#endregion
+
+				#region LowFee
+
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 1008, allowUnconfirmed: true);
+
+				Assert.Equal(2, res.InnerWalletOutputs.Count());
+				Assert.Empty(res.OuterWalletOutputs);
+				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
+				changeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey != receive);
+
+				Assert.Equal(receive, activeOutput.ScriptPubKey);
+				Assert.Equal(amountToSend, activeOutput.Amount);
+				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
+				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
+				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+
+				foundReceive = false;
+				Assert.InRange(res.Transaction.Transaction.Outputs.Count, 1, 2);
+				foreach (var output in res.Transaction.Transaction.Outputs)
+				{
+					if (output.ScriptPubKey == receive)
+					{
+						foundReceive = true;
+						Assert.Equal(amountToSend, output.Value);
+					}
+				}
+				Assert.True(foundReceive);
+
+				#endregion
+
+				#region MediumFee
+
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 144, allowUnconfirmed: true);
+
+				Assert.Equal(2, res.InnerWalletOutputs.Count());
+				Assert.Empty(res.OuterWalletOutputs);
+				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
+				changeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey != receive);
+
+				Assert.Equal(receive, activeOutput.ScriptPubKey);
+				Assert.Equal(amountToSend, activeOutput.Amount);
+				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
+				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
+				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+
+				foundReceive = false;
+				Assert.InRange(res.Transaction.Transaction.Outputs.Count, 1, 2);
+				foreach (var output in res.Transaction.Transaction.Outputs)
+				{
+					if (output.ScriptPubKey == receive)
+					{
+						foundReceive = true;
+						Assert.Equal(amountToSend, output.Value);
+					}
+				}
+				Assert.True(foundReceive);
+
+				#endregion
+
+				#region HighFee
+
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend) }, 2, allowUnconfirmed: true);
+
+				Assert.Equal(2, res.InnerWalletOutputs.Count());
+				Assert.Empty(res.OuterWalletOutputs);
+				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
+				changeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey != receive);
+
+				Assert.Equal(receive, activeOutput.ScriptPubKey);
+				Assert.Equal(amountToSend, activeOutput.Amount);
+				Assert.Contains(res.Transaction.Transaction.Outputs, x => x.Value == changeOutput.Amount);
+				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
+				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"Change Output: {changeOutput.Amount.ToString(false, true)} {changeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+
+				foundReceive = false;
+				Assert.InRange(res.Transaction.Transaction.Outputs.Count, 1, 2);
+				foreach (var output in res.Transaction.Transaction.Outputs)
+				{
+					if (output.ScriptPubKey == receive)
+					{
+						foundReceive = true;
+						Assert.Equal(amountToSend, output.Value);
+					}
+				}
+				Assert.True(foundReceive);
+
+				Assert.InRange(res.Fee, Money.Zero, res.Fee);
+				Assert.InRange(res.Fee, res.Fee, res.Fee);
+				
+				await wallet.SendTransactionAsync(res.Transaction);
+
+				#endregion
+
+				#region MaxAmount
+
+				receive = wallet.GetReceiveKey("MaxAmount").GetP2wpkhScript();
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero) }, 1008, allowUnconfirmed: true);
+
+				Assert.Single(res.InnerWalletOutputs);
+				Assert.Empty(res.OuterWalletOutputs);
+				activeOutput = res.InnerWalletOutputs.Single();
+
+				Assert.Equal(receive, activeOutput.ScriptPubKey);
+
+				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
+				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+
+				Assert.Single(res.Transaction.Transaction.Outputs);
+				var maxBuiltTxOutput = res.Transaction.Transaction.Outputs.Single();
+				Assert.Equal(receive, maxBuiltTxOutput.ScriptPubKey);
+				Assert.Equal(wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
+
+				#endregion
+
+				#region InputSelection
+
+				receive = wallet.GetReceiveKey("InputSelection").GetP2wpkhScript();
+
+				var inputCountBefore = res.SpentCoins.Count();
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero) }, 1008,
+					allowUnconfirmed: true,
+					allowedInputs: res.SpentCoins.Where((x, i) => i == 0 || i % 2 == 0).Select(x => new TxoRef(x.TransactionId, x.Index)));
+
+				Assert.Single(res.InnerWalletOutputs);
+				Assert.Empty(res.OuterWalletOutputs);
+				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
+
+				Assert.True(inputCountBefore >= res.SpentCoins.Count());
+				Assert.Equal(res.SpentCoins.Count(), res.Transaction.Transaction.Inputs.Count);
+
+				Assert.Equal(receive, activeOutput.ScriptPubKey);
+				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
+				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+
+				Assert.Single(res.Transaction.Transaction.Outputs);
+
+				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero) }, 1008, 
+					allowUnconfirmed: true,
+					allowedInputs: new[] { res.SpentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).First() });
+
+				Assert.Single(res.InnerWalletOutputs);
+				Assert.Empty(res.OuterWalletOutputs);
+				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
+
+				Assert.Single(res.Transaction.Transaction.Inputs);
+				Assert.Single(res.Transaction.Transaction.Outputs);
+				Assert.Single(res.SpentCoins);
 
 				#endregion
 			}

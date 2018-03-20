@@ -486,8 +486,13 @@ namespace MagicalCryptoWallet.Services
 
 			// Get allowed coins to spend.
 			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
-			if (allowedInputs != null && allowedInputs.Count() != 0) // If allowedInputs are specified then select the coins from them.
+			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
+				if(allowedInputs.Count() == 0)
+				{
+					throw new NotSupportedException($"{nameof(allowedInputs)} is not null, but empty.");
+				}
+
 				if (allowUnconfirmed)
 				{
 					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && allowedInputs.Count(y => y.TransactionId == x.TransactionId && y.Index == x.Index) > 0).ToList();
@@ -523,18 +528,9 @@ namespace MagicalCryptoWallet.Services
 
 			// 2. Find all coins I can spend from the account
 			// 3. How much money we can spend?
-			Money spendableConfirmedAmount = Coins.Where(x => x.Unspent && x.Confirmed).Sum(x => x.Amount);
+			Money spendableConfirmedAmount = allowedSmartCoinInputs.Where(x => x.Confirmed).Sum(x => x.Amount);
 			Logger.LogInfo<WalletService>($"Spendable confirmed amount: {spendableConfirmedAmount}.");
-			Money spendableUnconfirmedAmount;
-			if (allowUnconfirmed)
-			{
-				spendableUnconfirmedAmount = Coins.Where(x=> x.Unspent).Sum(x => x.Amount);
-				Logger.LogInfo<WalletService>($"Spendable unconfirmed amount: {spendableUnconfirmedAmount}.");
-			}
-			else
-			{
-				spendableUnconfirmedAmount = Money.Zero;
-			}
+			Money spendableUnconfirmedAmount = allowedSmartCoinInputs.Where(x => !x.Confirmed).Sum(x => x.Amount);
 
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
