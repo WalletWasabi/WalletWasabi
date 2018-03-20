@@ -896,7 +896,7 @@ namespace MagicalCryptoWallet.Tests
 				var inputCountBefore = res.SpentCoins.Count();
 				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero) }, 1008,
 					allowUnconfirmed: true,
-					allowedInputs: res.SpentCoins.Where((x, i) => i == 0 || i % 2 == 0).Select(x => new TxoRef(x.TransactionId, x.Index)));
+					allowedInputs: wallet.Coins.Where(x=>x.Unspent).Select(x=>new TxoRef(x.TransactionId, x.Index)).Take(1));
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
