@@ -124,5 +124,12 @@ namespace MagicalCryptoWallet.Helpers
 
 			return (int)value;
 		}
-	}
+
+        public static string Correct(string str)
+        {
+			return string.IsNullOrWhiteSpace(str)
+				? string.Empty
+				: str.Trim();
+        }
+    }
 }

@@ -57,7 +57,7 @@ namespace MagicalCryptoWallet.Models
 			Amount = Guard.NotNull(nameof(amount), amount);
 			SpentOutputs = Guard.NotNull(nameof(spentOutputs), spentOutputs);
 			Height = height;
-			Label = string.IsNullOrWhiteSpace(label) ? "" : label.Trim();
+			Label = Guard.Correct(label);
 			SpenderTransactionId = spenderTransactionId;
 		}
 
