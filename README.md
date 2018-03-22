@@ -1,4 +1,4 @@
-# Hidden Wallet
+![](https://i.imgur.com/gqJUjEy.jpg)
 
 Privacy focused, soon [ZeroLink](https://github.com/nopara73/ZeroLink) compliant Bitcoin wallet.  
 
