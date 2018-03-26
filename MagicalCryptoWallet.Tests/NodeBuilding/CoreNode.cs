@@ -97,11 +97,11 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 
 		public Node CreateNodeClient()
 		{
-			return Node.Connect(Network.RegTest, "127.0.0.1:" + _ports[0]);
+			return Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback,_ports[0]));
 		}
 		public Node CreateNodeClient(NodeConnectionParameters parameters)
 		{
-			return Node.Connect(Network.RegTest, "127.0.0.1:" + _ports[0], parameters);
+			return Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback,_ports[0]), parameters);
 		}
 
 		public async Task StartAsync()

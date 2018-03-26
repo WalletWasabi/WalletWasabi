@@ -448,7 +448,7 @@ namespace MagicalCryptoWallet.Services
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
 		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, (Script script, Money amount, string label)[] toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
 		{
-			password = password ?? ""; // Correction.
+			password = Guard.Correct(password);
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
 			int spendAllCount = toSend.Count(x => x.amount == Money.Zero);
 			if (spendAllCount > 1)
@@ -480,18 +480,18 @@ namespace MagicalCryptoWallet.Services
 			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
 			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
-				if(allowedInputs.Count() == 0)
+				if(!allowedInputs.Any())
 				{
 					throw new NotSupportedException($"{nameof(allowedInputs)} is not null, but empty.");
 				}
 
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && allowedInputs.Count(y => y.TransactionId == x.TransactionId && y.Index == x.Index) > 0).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && x.Confirmed && allowedInputs.Count(y => y.TransactionId == x.TransactionId && y.Index == x.Index) > 0).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 			}
 			else
@@ -510,35 +510,16 @@ namespace MagicalCryptoWallet.Services
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 			Money feePerBytes = null;
 			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
-			using (var response = await torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
+			using (var response = await torClient.SendAndRetryAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
 			{
-				if (response.StatusCode != HttpStatusCode.OK) // Try again.
+				if (!response.IsSuccessStatusCode)
+					throw new HttpRequestException($"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
+
+				using (var content = response.Content)
 				{
-					using (var response2 = await torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
-					{
-						await Task.Delay(1000);
-						if (response2.StatusCode != HttpStatusCode.OK)
-						{
-							throw new HttpRequestException($"Couldn't query network fees. Reason: {response2.StatusCode.ToReasonString()}");
-						}
-						else
-						{
-							using (var content = response.Content)
-							{
-								var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
-								feePerBytes = new Money(json.Single().Value.Conservative);
-							}
-						}
-					}
+					var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
+					feePerBytes = new Money(json.Single().Value.Conservative);
 				}
-				else
-				{
-					using (var content = response.Content)
-					{
-						var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
-						feePerBytes = new Money(json.Single().Value.Conservative);
-					}
-				}				
 			}
 
 			bool spendAll = spendAllCount == 1;
@@ -675,7 +656,7 @@ namespace MagicalCryptoWallet.Services
 				throw new InvalidTxException(tx, checkResults);
 			}
 
-			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Count(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index) > 0).ToList();
+			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 
 			TxoRef[] spentOutputs = spentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).ToArray();
 
@@ -688,7 +669,7 @@ namespace MagicalCryptoWallet.Services
 				if (KeyManager.GetKeys(KeyState.Clean).Select(x => x.GetP2wpkhScript()).Contains(coin.ScriptPubKey))
 				{
 					coin.Label = changeLabel;
-					innerWalletOutputs.Add(coin);					
+					innerWalletOutputs.Add(coin);
 				}
 				else
 				{
