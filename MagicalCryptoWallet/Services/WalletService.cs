@@ -439,6 +439,20 @@ namespace MagicalCryptoWallet.Services
 			}
 		}
 
+		public class Operation
+		{
+			public Script Script { get; }
+			public Money Amount { get; }
+			public string Label { get; }
+
+			public Operation(Script script, Money amount, string label="")
+			{
+				Script = Guard.NotNull(nameof(script), script);
+				Amount = Guard.NotNull(nameof(amount), amount);
+				Label = label;
+			}
+		}
+
 		/// <param name="toSend">If Money.Zero then spends all available amount. Doesn't generate change.</param>
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
@@ -446,11 +460,15 @@ namespace MagicalCryptoWallet.Services
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, (Script script, Money amount, string label)[] toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
+		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, Operation[] toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
 		{
 			password = Guard.Correct(password);
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
-			int spendAllCount = toSend.Count(x => x.amount == Money.Zero);
+			if(toSend.Any(x=>x==null))
+			{
+				throw new ArgumentException($"All {nameof(toSend)} element must be not null.");
+			}
+			int spendAllCount = toSend.Count(x => x.Amount == Money.Zero);
 			if (spendAllCount > 1)
 			{
 				throw new ArgumentException($"Only one {nameof(toSend)} element can contain Money.Zero. Money.Zero means add the change to the value of this output.");
@@ -531,7 +549,7 @@ namespace MagicalCryptoWallet.Services
 			else
 			{
 				int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
-				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Sum(x => x.amount) + feePerBytes * expectedMinTxSize).Count();
+				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Sum(x => x.Amount) + feePerBytes * expectedMinTxSize).Count();
 			}
 
 			// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
@@ -545,14 +563,14 @@ namespace MagicalCryptoWallet.Services
 			Logger.LogInfo<WalletService>($"Fee: {fee.ToString(fplus: false, trimExcessZero: true)}");
 
 			// 5. How much to spend?
-			long toSendAmountSumInSatoshis = toSend.Sum(x => x.amount); // Does it work if I simply go with Money class here? Is that copied by reference of value?
+			long toSendAmountSumInSatoshis = toSend.Sum(x => x.Amount); // Does it work if I simply go with Money class here? Is that copied by reference of value?
 			var realToSend = new (Script script, Money amount, string label)[toSend.Length];
 			for (int i = 0; i < toSend.Length; i++) // clone
 			{
 				realToSend[i] = (
-					new Script(toSend[i].script.ToString()),
-					new Money(toSend[i].amount.Satoshi),
-					toSend[i].label);
+					new Script(toSend[i].Script.ToString()),
+					new Money(toSend[i].Amount.Satoshi),
+					toSend[i].Label);
 			}
 			for (int i = 0; i < realToSend.Length; i++)
 			{
