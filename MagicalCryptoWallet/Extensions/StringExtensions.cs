@@ -4,7 +4,28 @@
     {
 		public static bool Equals(this string source, string value, StringComparison comparisonType, bool trimmed)
 		{
-			return source.Trim().Equals(value.Trim(), comparisonType);
+			if(comparisonType == StringComparison.Ordinal)
+			{
+				if(trimmed)
+				{
+					return string.CompareOrdinal(source.Trim(), value.Trim()) == 0;
+				}
+				else
+				{
+					return string.CompareOrdinal(source, value) == 0;
+				}
+			}
+			else
+			{
+				if(trimmed)
+				{
+					return source.Trim().Equals(value.Trim(), comparisonType);
+				}
+				else
+				{
+					return source.Equals(value, comparisonType);
+				}
+			}
 		}
 
 		public static bool Contains(this string source, string toCheck, StringComparison comp)
