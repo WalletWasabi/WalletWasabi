@@ -134,7 +134,7 @@ namespace MagicalCryptoWallet.TorSocks5
 				await TorSocks5Client.ConnectToDestinationAsync(host, request.RequestUri.Port);
 
 				Stream stream = TorSocks5Client.TcpClient.GetStream();
-				if (request.RequestUri.Scheme.Equals("https", StringComparison.Ordinal))
+				if (request.RequestUri.Scheme == "https")
 				{
 					SslStream sslStream;
 					// On Linux and OSX ignore certificate, because of a .NET Core bug
