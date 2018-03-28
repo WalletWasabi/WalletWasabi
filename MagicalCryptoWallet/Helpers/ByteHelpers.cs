@@ -85,8 +85,7 @@ namespace System
 			return result;
 		}
 
-		// https://stackoverflow.com/a/5919521/2061103
-		// https://stackoverflow.com/a/10048895/2061103
+		// https://stackoverflow.com/a/24343727/2061103
 		/// <summary>
 		/// Fastest byte array to hex implementation in C#
 		/// </summary>
