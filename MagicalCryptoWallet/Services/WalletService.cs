@@ -468,6 +468,13 @@ namespace MagicalCryptoWallet.Services
 			{
 				throw new ArgumentException($"All {nameof(toSend)} element must be not null.");
 			}
+
+			var sum = toSend.Sum(x => x.Amount);
+			if(sum < 0 || sum > 2099999997690000)
+			{
+				throw new ArgumentOutOfRangeException($"{nameof(toSend)} sum cannot be smaller than 0 or greater than 2099999997690000.");
+			}
+			
 			int spendAllCount = toSend.Count(x => x.Amount == Money.Zero);
 			if (spendAllCount > 1)
 			{
@@ -500,7 +507,7 @@ namespace MagicalCryptoWallet.Services
 			{
 				if(!allowedInputs.Any())
 				{
-					throw new NotSupportedException($"{nameof(allowedInputs)} is not null, but empty.");
+					throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
 				}
 
 				if (allowUnconfirmed)

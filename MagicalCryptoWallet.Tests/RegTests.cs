@@ -1,5 +1,6 @@
 ﻿using MagicalCryptoWallet.Backend;
 using MagicalCryptoWallet.Backend.Models;
+using MagicalCryptoWallet.Exceptions;
 using MagicalCryptoWallet.KeyManagement;
 using MagicalCryptoWallet.Logging;
 using MagicalCryptoWallet.Models;
@@ -1015,9 +1016,102 @@ namespace MagicalCryptoWallet.Tests
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
+			var validOperationList = new[]{ new WalletService.Operation(scp, Money.Coins(1)) };
+			var invalidOperationList = new[]{ new WalletService.Operation(scp, Money.Coins(10 * 1000 * 1000)), new WalletService.Operation(scp, Money.Coins(12 * 1000 * 1000)) };
+			var overflowOperationList = new[]{ 
+				new WalletService.Operation(scp, Money.Satoshis(long.MaxValue)), 
+				new WalletService.Operation(scp, Money.Satoshis(long.MaxValue)),
+				new WalletService.Operation(scp, Money.Satoshis(5))
+				};
+
+			// toSend cannot be null
 			await Assert.ThrowsAsync<ArgumentNullException>( async ()=> await wallet.BuildTransactionAsync(null, null, 0) );
+
+			// toSend cannot have a null element
 			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, new[]{ (WalletService.Operation)null }, 0) );
+
+			// toSend cannot have a zero elements
 			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, new WalletService.Operation[0], 0) );
+
+			// feeTarget has to be in the range 0 to 1008
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>( async ()=> await wallet.BuildTransactionAsync(null, validOperationList, -10) );
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>( async ()=> await wallet.BuildTransactionAsync(null, validOperationList , 2000) );
+
+			// subtractFeeFromAmountIndex has to be valid
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>( async ()=> await wallet.BuildTransactionAsync(null, validOperationList, 2, false, -10) );
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>( async ()=> await wallet.BuildTransactionAsync(null, validOperationList, 2, false, 1) );
+
+			// toSend amount sum has to be in range 0 to 2099999997690000
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>( async ()=> await wallet.BuildTransactionAsync(null, invalidOperationList, 2) );
+
+			// toSend ammount sum has to be less than ulong.MaxValue
+			await Assert.ThrowsAsync<OverflowException>( async ()=> await wallet.BuildTransactionAsync(null, overflowOperationList, 2) );
+
+			// allowedInputs cannot be empty
+			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, validOperationList, 2, false, null, null, new TxoRef[0]) );
+
+
+			// Get some money, make it confirm.
+			var key = wallet.GetReceiveKey("foo label");
+			var txid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
+
+			// Generate some coins
+			await Global.RpcClient.GenerateAsync(2);
+
+			try
+			{
+				nodes.Connect(); // Start connection service.
+				node.VersionHandshake(); // Start mempool service.
+				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
+
+				// Wait until the filter our previous transaction is present.
+				var blockCount = await Global.RpcClient.GetBlockCountAsync();
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
+
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
+
+				// No enough money
+				var operations = new[]{ new WalletService.Operation(scp, Money.Coins(2m)) };
+				await Assert.ThrowsAsync<InsufficientBalanceException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
+
+				var txid2 = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
+				await Assert.ThrowsAsync<InsufficientBalanceException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2, true) );
+
+
+				// Only one operation with Zero money
+				operations = new[]{ 
+					new WalletService.Operation(scp, Money.Zero),
+					new WalletService.Operation(scp, Money.Zero) };
+				await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
+
+				// `Custom change` and `spend all` cannot be specified at the same time
+				await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2, false, null, Script.Empty) );
+
+				operations = new[]{ new WalletService.Operation(scp, Money.Coins(0.5m)) };
+				var btx =  await wallet.BuildTransactionAsync("password", operations, 2);
+				
+				operations = new[]{ new WalletService.Operation(scp, Money.Coins(0.00005m)) };
+				btx =  await wallet.BuildTransactionAsync("password", operations, 2, false, 0);
+				Assert.True( btx.FeePercentOfSent > 20 );
+				Assert.Equal( 1, btx.SpentCoins.Count() );
+				Assert.Equal( txid, btx.SpentCoins.First().TransactionId );
+				Assert.Equal( false, btx.Transaction.Transaction.RBF ); // Is this okay
+
+
+
+			}
+			finally
+			{
+				wallet?.Dispose();
+				// Dispose index downloader service.
+				await indexDownloader?.StopAsync();
+				// Dispose connection service.
+				nodes?.Dispose();
+			}
+			
 		}
 		#endregion
 	}
