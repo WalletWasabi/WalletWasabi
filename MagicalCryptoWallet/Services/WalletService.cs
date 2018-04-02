@@ -468,6 +468,10 @@ namespace MagicalCryptoWallet.Services
 			{
 				throw new ArgumentException($"All {nameof(toSend)} element must be not null.");
 			}
+			if(toSend.Any(x=>x.Amount < Money.Zero ))
+			{
+				throw new ArgumentException($"All {nameof(toSend)} element must be greater or equal to zero.");
+			}
 
 			var sum = toSend.Sum(x => x.Amount);
 			if(sum < 0 || sum > 2099999997690000)
