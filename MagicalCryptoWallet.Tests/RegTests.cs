@@ -1044,12 +1044,22 @@ namespace MagicalCryptoWallet.Tests
 			// toSend amount sum has to be in range 0 to 2099999997690000
 			await Assert.ThrowsAsync<ArgumentOutOfRangeException>( async ()=> await wallet.BuildTransactionAsync(null, invalidOperationList, 2) );
 
+			// toSend negative sum amount
+			var operations = new[]{ 
+				new WalletService.Operation(scp, -10000) };
+			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
+
+			// toSend negative operation amount
+			operations = new[]{ 
+				new WalletService.Operation(scp,  20000),
+				new WalletService.Operation(scp, -10000) };
+			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
+
 			// toSend ammount sum has to be less than ulong.MaxValue
 			await Assert.ThrowsAsync<OverflowException>( async ()=> await wallet.BuildTransactionAsync(null, overflowOperationList, 2) );
 
 			// allowedInputs cannot be empty
 			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, validOperationList, 2, false, null, null, new TxoRef[0]) );
-
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
