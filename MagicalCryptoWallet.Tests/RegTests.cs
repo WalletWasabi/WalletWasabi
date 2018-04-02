@@ -1083,6 +1083,12 @@ namespace MagicalCryptoWallet.Tests
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
 
+				// subtract Fee from amount index with no enough money 
+				operations = new[]{ 
+					new WalletService.Operation(scp,  Money.Satoshis(1m)),
+					new WalletService.Operation(scp, Money.Coins(0.5m)) };
+				await Assert.ThrowsAsync<InsufficientBalanceException>( async ()=> await wallet.BuildTransactionAsync("password", operations, 2, false, 0) );
+
 				// No enough money (only one confirmed coin, no unconfirmed allowed)
 				operations = new[]{ new WalletService.Operation(scp, Money.Coins(1.5m)) };
 				await Assert.ThrowsAsync<InsufficientBalanceException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
@@ -1113,7 +1119,7 @@ namespace MagicalCryptoWallet.Tests
 				await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2, false, null, Script.Empty) );
 
 				operations = new[]{ new WalletService.Operation(scp, Money.Coins(0.5m)) };
-				var btx =  await wallet.BuildTransactionAsync("password", operations, 2);
+				btx =  await wallet.BuildTransactionAsync("password", operations, 2);
 				
 				operations = new[]{ new WalletService.Operation(scp, Money.Coins(0.00005m)) };
 				btx =  await wallet.BuildTransactionAsync("password", operations, 2, false, 0);
@@ -1121,9 +1127,6 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Equal( 1, btx.SpentCoins.Count() );
 				Assert.Equal( txid, btx.SpentCoins.First().TransactionId );
 				Assert.Equal( false, btx.Transaction.Transaction.RBF ); // Is this okay
-
-
-
 			}
 			finally
 			{
