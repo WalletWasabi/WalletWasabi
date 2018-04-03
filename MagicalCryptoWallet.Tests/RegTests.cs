@@ -1,5 +1,6 @@
 ﻿using MagicalCryptoWallet.Backend;
 using MagicalCryptoWallet.Backend.Models;
+using MagicalCryptoWallet.Exceptions;
 using MagicalCryptoWallet.KeyManagement;
 using MagicalCryptoWallet.Logging;
 using MagicalCryptoWallet.Models;
@@ -669,7 +670,7 @@ namespace MagicalCryptoWallet.Tests
 				}
 
 				var scp = new Key().ScriptPubKey;
-				var res2 = await wallet.BuildTransactionAsync("password", new[] { (scp, new Money(0.05m, MoneyUnit.BTC), "foo") }, 5, false);
+				var res2 = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(scp, new Money(0.05m, MoneyUnit.BTC), "foo") }, 5, false);
 
 				Assert.NotNull(res2.Transaction);
 				Assert.Single(res2.OuterWalletOutputs);
@@ -690,7 +691,7 @@ namespace MagicalCryptoWallet.Tests
 
 				Script receive = wallet.GetReceiveKey("Basic").GetP2wpkhScript();
 				Money amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
-				var res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
+				var res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -730,7 +731,7 @@ namespace MagicalCryptoWallet.Tests
 				
 				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").GetP2wpkhScript();
 				amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
+				res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -763,7 +764,7 @@ namespace MagicalCryptoWallet.Tests
 
 				#region LowFee
 
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -796,7 +797,7 @@ namespace MagicalCryptoWallet.Tests
 
 				#region MediumFee
 
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend, "foo") }, 144, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 144, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -829,7 +830,7 @@ namespace MagicalCryptoWallet.Tests
 
 				#region HighFee
 
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, amountToSend, "foo") }, 2, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 2, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -868,7 +869,7 @@ namespace MagicalCryptoWallet.Tests
 				#region MaxAmount
 
 				receive = wallet.GetReceiveKey("MaxAmount").GetP2wpkhScript();
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero, "foo") }, 1008, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008, allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
@@ -896,7 +897,7 @@ namespace MagicalCryptoWallet.Tests
 				receive = wallet.GetReceiveKey("InputSelection").GetP2wpkhScript();
 
 				var inputCountBefore = res.SpentCoins.Count();
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero, "foo") }, 1008,
+				res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
 					allowUnconfirmed: true,
 					allowedInputs: wallet.Coins.Where(x=>x.Unspent).Select(x=>new TxoRef(x.TransactionId, x.Index)).Take(1));
 
@@ -916,7 +917,7 @@ namespace MagicalCryptoWallet.Tests
 
 				Assert.Single(res.Transaction.Transaction.Outputs);
 
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero, "foo") }, 1008, 
+				res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008, 
 					allowUnconfirmed: true,
 					allowedInputs: new[] { res.SpentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).First() });
 
@@ -932,7 +933,7 @@ namespace MagicalCryptoWallet.Tests
 
 				#region Labeling
 
-				res = await wallet.BuildTransactionAsync("password", new[] { (receive, Money.Zero, "my label") }, 1008,
+				res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, Money.Zero, "my label") }, 1008,
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
@@ -940,8 +941,8 @@ namespace MagicalCryptoWallet.Tests
 
 				amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 3;
 				res = await wallet.BuildTransactionAsync("password", new[] {
-					(new Key().ScriptPubKey, amountToSend, "outgoing"),
-					(new Key().ScriptPubKey, amountToSend, "outgoing2")
+					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing"),
+					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing2")
 				}, 1008,
 					allowUnconfirmed: true);
 
@@ -979,6 +980,164 @@ namespace MagicalCryptoWallet.Tests
 			}
 		}
 
+		[Fact]
+		public async Task BuildTransactionValidationsTest()
+		{
+			// Make sure fitlers are created on the server side.
+			await AssertFiltersInitializedAsync();
+
+			var network = Global.RpcClient.Network;
+
+			// Create the services.
+			// 1. Create connection service.
+			var nodes = new NodesGroup(Global.Config.Network,
+					requirements: new NodeRequirement
+					{
+						RequiredServices = NodeServices.Network,
+						MinVersion = ProtocolVersion.WITNESS_VERSION
+					});
+			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			
+			// 2. Create mempool service.
+			var memPoolService = new MemPoolService();
+			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+
+			// 3. Create index downloader service.
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Index{Global.RpcClient.Network}.dat");
+			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+
+			// 4. Create key manager service.
+			var keyManager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
+			
+			// 5. Create wallet service.
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
+			var wallet = new WalletService(keyManager, indexDownloader, memPoolService, nodes, blocksFolderPath);
+			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
+
+			var scp = new Key().ScriptPubKey;
+			var validOperationList = new[]{ new WalletService.Operation(scp, Money.Coins(1)) };
+			var invalidOperationList = new[]{ new WalletService.Operation(scp, Money.Coins(10 * 1000 * 1000)), new WalletService.Operation(scp, Money.Coins(12 * 1000 * 1000)) };
+			var overflowOperationList = new[]{ 
+				new WalletService.Operation(scp, Money.Satoshis(long.MaxValue)), 
+				new WalletService.Operation(scp, Money.Satoshis(long.MaxValue)),
+				new WalletService.Operation(scp, Money.Satoshis(5))
+				};
+
+			// toSend cannot be null
+			await Assert.ThrowsAsync<ArgumentNullException>( async ()=> await wallet.BuildTransactionAsync(null, null, 0) );
+
+			// toSend cannot have a null element
+			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, new[]{ (WalletService.Operation)null }, 0) );
+
+			// toSend cannot have a zero elements
+			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, new WalletService.Operation[0], 0) );
+
+			// feeTarget has to be in the range 0 to 1008
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>( async ()=> await wallet.BuildTransactionAsync(null, validOperationList, -10) );
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>( async ()=> await wallet.BuildTransactionAsync(null, validOperationList , 2000) );
+
+			// subtractFeeFromAmountIndex has to be valid
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>( async ()=> await wallet.BuildTransactionAsync(null, validOperationList, 2, false, -10) );
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>( async ()=> await wallet.BuildTransactionAsync(null, validOperationList, 2, false, 1) );
+
+			// toSend amount sum has to be in range 0 to 2099999997690000
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>( async ()=> await wallet.BuildTransactionAsync(null, invalidOperationList, 2) );
+
+			// toSend negative sum amount
+			var operations = new[]{ 
+				new WalletService.Operation(scp, -10000) };
+			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
+
+			// toSend negative operation amount
+			operations = new[]{ 
+				new WalletService.Operation(scp,  20000),
+				new WalletService.Operation(scp, -10000) };
+			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
+
+			// toSend ammount sum has to be less than ulong.MaxValue
+			await Assert.ThrowsAsync<OverflowException>( async ()=> await wallet.BuildTransactionAsync(null, overflowOperationList, 2) );
+
+			// allowedInputs cannot be empty
+			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, validOperationList, 2, false, null, null, new TxoRef[0]) );
+
+			// Get some money, make it confirm.
+			var key = wallet.GetReceiveKey("foo label");
+			var txid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
+
+			// Generate some coins
+			await Global.RpcClient.GenerateAsync(2);
+
+			try
+			{
+				nodes.Connect(); // Start connection service.
+				node.VersionHandshake(); // Start mempool service.
+				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
+
+				// Wait until the filter our previous transaction is present.
+				var blockCount = await Global.RpcClient.GetBlockCountAsync();
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
+
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
+
+				// subtract Fee from amount index with no enough money 
+				operations = new[]{ 
+					new WalletService.Operation(scp,  Money.Satoshis(1m)),
+					new WalletService.Operation(scp, Money.Coins(0.5m)) };
+				await Assert.ThrowsAsync<InsufficientBalanceException>( async ()=> await wallet.BuildTransactionAsync("password", operations, 2, false, 0) );
+
+				// No enough money (only one confirmed coin, no unconfirmed allowed)
+				operations = new[]{ new WalletService.Operation(scp, Money.Coins(1.5m)) };
+				await Assert.ThrowsAsync<InsufficientBalanceException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
+
+				// No enough money (only one confirmed coin, unconfirmed allowed)
+				await Assert.ThrowsAsync<InsufficientBalanceException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2, true) );
+
+				// Add new money with no confirmation
+				var txid2 = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
+				await Task.Delay(1000); // Wait tx to arrive and get processed.
+
+				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
+				await Assert.ThrowsAsync<InsufficientBalanceException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2, false) );
+				
+				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are allowed)
+				var btx = await wallet.BuildTransactionAsync("password", operations, 2, true);
+				Assert.Equal(2, btx.SpentCoins.Count());
+				Assert.Equal(1, btx.SpentCoins.Count(c=>c.Confirmed == true));
+				Assert.Equal(1, btx.SpentCoins.Count(c=>c.Confirmed == false));
+
+				// Only one operation with Zero money
+				operations = new[]{ 
+					new WalletService.Operation(scp, Money.Zero),
+					new WalletService.Operation(scp, Money.Zero) };
+				await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
+
+				// `Custom change` and `spend all` cannot be specified at the same time
+				await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2, false, null, Script.Empty) );
+
+				operations = new[]{ new WalletService.Operation(scp, Money.Coins(0.5m)) };
+				btx =  await wallet.BuildTransactionAsync("password", operations, 2);
+				
+				operations = new[]{ new WalletService.Operation(scp, Money.Coins(0.00005m)) };
+				btx =  await wallet.BuildTransactionAsync("password", operations, 2, false, 0);
+				Assert.True( btx.FeePercentOfSent > 20 );
+				Assert.Equal( 1, btx.SpentCoins.Count() );
+				Assert.Equal( txid, btx.SpentCoins.First().TransactionId );
+				Assert.Equal( false, btx.Transaction.Transaction.RBF ); // Is this okay
+			}
+			finally
+			{
+				wallet?.Dispose();
+				// Dispose index downloader service.
+				await indexDownloader?.StopAsync();
+				// Dispose connection service.
+				nodes?.Dispose();
+			}
+			
+		}
 		#endregion
 	}
 }

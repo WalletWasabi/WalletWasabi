@@ -439,6 +439,20 @@ namespace MagicalCryptoWallet.Services
 			}
 		}
 
+		public class Operation
+		{
+			public Script Script { get; }
+			public Money Amount { get; }
+			public string Label { get; }
+
+			public Operation(Script script, Money amount, string label="")
+			{
+				Script = Guard.NotNull(nameof(script), script);
+				Amount = Guard.NotNull(nameof(amount), amount);
+				Label = label;
+			}
+		}
+
 		/// <param name="toSend">If Money.Zero then spends all available amount. Doesn't generate change.</param>
 		/// <param name="allowUnconfirmed">Allow to spend unconfirmed transactions, if necessary.</param>
 		/// <param name="allowedInputs">Only these inputs allowed to be used to build the transaction. The wallet must know the corresponding private keys.</param>
@@ -446,11 +460,26 @@ namespace MagicalCryptoWallet.Services
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, (Script script, Money amount, string label)[] toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
+		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, Operation[] toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
 		{
 			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
-			int spendAllCount = toSend.Count(x => x.amount == Money.Zero);
+			if(toSend.Any(x=>x==null))
+			{
+				throw new ArgumentException($"All {nameof(toSend)} element must be not null.");
+			}
+			if(toSend.Any(x=>x.Amount < Money.Zero ))
+			{
+				throw new ArgumentException($"All {nameof(toSend)} element must be greater or equal to zero.");
+			}
+
+			var sum = toSend.Sum(x => x.Amount);
+			if(sum < 0 || sum > 2099999997690000)
+			{
+				throw new ArgumentOutOfRangeException($"{nameof(toSend)} sum cannot be smaller than 0 or greater than 2099999997690000.");
+			}
+			
+			int spendAllCount = toSend.Count(x => x.Amount == Money.Zero);
 			if (spendAllCount > 1)
 			{
 				throw new ArgumentException($"Only one {nameof(toSend)} element can contain Money.Zero. Money.Zero means add the change to the value of this output.");
@@ -480,18 +509,18 @@ namespace MagicalCryptoWallet.Services
 			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
 			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
-				if(allowedInputs.Count() == 0)
+				if(!allowedInputs.Any())
 				{
-					throw new NotSupportedException($"{nameof(allowedInputs)} is not null, but empty.");
+					throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
 				}
 
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && allowedInputs.Count(y => y.TransactionId == x.TransactionId && y.Index == x.Index) > 0).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && x.Confirmed && allowedInputs.Count(y => y.TransactionId == x.TransactionId && y.Index == x.Index) > 0).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 			}
 			else
@@ -510,35 +539,16 @@ namespace MagicalCryptoWallet.Services
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 			Money feePerBytes = null;
 			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
-			using (var response = await torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
+			using (var response = await torClient.SendAndRetryAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
 			{
-				if (response.StatusCode != HttpStatusCode.OK) // Try again.
+				if (!response.IsSuccessStatusCode)
+					throw new HttpRequestException($"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
+
+				using (var content = response.Content)
 				{
-					using (var response2 = await torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
-					{
-						await Task.Delay(1000);
-						if (response2.StatusCode != HttpStatusCode.OK)
-						{
-							throw new HttpRequestException($"Couldn't query network fees. Reason: {response2.StatusCode.ToReasonString()}");
-						}
-						else
-						{
-							using (var content = response.Content)
-							{
-								var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
-								feePerBytes = new Money(json.Single().Value.Conservative);
-							}
-						}
-					}
+					var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
+					feePerBytes = new Money(json.Single().Value.Conservative);
 				}
-				else
-				{
-					using (var content = response.Content)
-					{
-						var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
-						feePerBytes = new Money(json.Single().Value.Conservative);
-					}
-				}				
 			}
 
 			bool spendAll = spendAllCount == 1;
@@ -550,7 +560,7 @@ namespace MagicalCryptoWallet.Services
 			else
 			{
 				int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
-				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Sum(x => x.amount) + feePerBytes * expectedMinTxSize).Count();
+				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Sum(x => x.Amount) + feePerBytes * expectedMinTxSize).Count();
 			}
 
 			// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
@@ -564,14 +574,14 @@ namespace MagicalCryptoWallet.Services
 			Logger.LogInfo<WalletService>($"Fee: {fee.ToString(fplus: false, trimExcessZero: true)}");
 
 			// 5. How much to spend?
-			long toSendAmountSumInSatoshis = toSend.Sum(x => x.amount); // Does it work if I simply go with Money class here? Is that copied by reference of value?
+			long toSendAmountSumInSatoshis = toSend.Sum(x => x.Amount); // Does it work if I simply go with Money class here? Is that copied by reference of value?
 			var realToSend = new (Script script, Money amount, string label)[toSend.Length];
 			for (int i = 0; i < toSend.Length; i++) // clone
 			{
 				realToSend[i] = (
-					new Script(toSend[i].script.ToString()),
-					new Money(toSend[i].amount.Satoshi),
-					toSend[i].label);
+					new Script(toSend[i].Script.ToString()),
+					new Money(toSend[i].Amount.Satoshi),
+					toSend[i].Label);
 			}
 			for (int i = 0; i < realToSend.Length; i++)
 			{
@@ -675,7 +685,7 @@ namespace MagicalCryptoWallet.Services
 				throw new InvalidTxException(tx, checkResults);
 			}
 
-			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Count(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index) > 0).ToList();
+			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 
 			TxoRef[] spentOutputs = spentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).ToArray();
 
@@ -688,7 +698,7 @@ namespace MagicalCryptoWallet.Services
 				if (KeyManager.GetKeys(KeyState.Clean).Select(x => x.GetP2wpkhScript()).Contains(coin.ScriptPubKey))
 				{
 					coin.Label = changeLabel;
-					innerWalletOutputs.Add(coin);					
+					innerWalletOutputs.Add(coin);
 				}
 				else
 				{
