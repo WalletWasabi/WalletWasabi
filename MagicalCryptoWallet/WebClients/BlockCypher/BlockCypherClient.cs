@@ -6,6 +6,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -48,7 +49,7 @@ namespace MagicalCryptoWallet.WebClients.BlockCypher
 			using (HttpResponseMessage response =
 					 await HttpClient.GetAsync("", HttpCompletionOption.ResponseContentRead, cancel))
 			{ 
-				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
+				if (response.StatusCode != HttpStatusCode.OK) throw new HttpRequestException(response.StatusCode.ToString());
 
 				string jsonString = await response.Content.ReadAsStringAsync();
 				return JsonConvert.DeserializeObject<BlockCypherGeneralInformation>(jsonString);

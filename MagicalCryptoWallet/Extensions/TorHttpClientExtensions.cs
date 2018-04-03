@@ -1,4 +1,5 @@
 
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using MagicalCryptoWallet.TorSocks5;
@@ -11,7 +12,7 @@ public static class TorHttpClientExtensions
         while(retry-- > 0)
         {
             response = await client.SendAsync(method, relativeUri, content);
-            if(response.IsSuccessStatusCode)
+            if(response.StatusCode == HttpStatusCode.OK)
             {
                 break;
             }

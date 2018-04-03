@@ -543,7 +543,7 @@ namespace MagicalCryptoWallet.Services
 			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
 			using (var response = await torClient.SendAndRetryAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
 			{
-				if (!response.IsSuccessStatusCode)
+				if (response.StatusCode != HttpStatusCode.OK)
 					throw new HttpRequestException($"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
 
 				using (var content = response.Content)

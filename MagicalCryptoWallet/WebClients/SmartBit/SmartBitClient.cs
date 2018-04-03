@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -53,7 +54,7 @@ namespace MagicalCryptoWallet.WebClients.SmartBit
 				HttpResponseMessage response =
 						await HttpClient.PostAsync("blockchain/pushtx", content, cancel);
 
-				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
+				if (response.StatusCode != HttpStatusCode.OK) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
 				AssertSuccess(responseString);
 			}
@@ -66,7 +67,7 @@ namespace MagicalCryptoWallet.WebClients.SmartBit
 					await HttpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel))
 			{
 
-				if (!response.IsSuccessStatusCode) throw new HttpRequestException(response.StatusCode.ToString());
+				if (response.StatusCode != HttpStatusCode.OK) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
 				AssertSuccess(responseString);
 

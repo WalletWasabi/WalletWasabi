@@ -71,7 +71,7 @@ namespace MagicalCryptoWallet.Tests
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/Blockchain/exchange-rates"))
 			{
-				Assert.True(response.IsSuccessStatusCode);
+				Assert.True(response.StatusCode == HttpStatusCode.OK);
 
 				var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate>>();
 				Assert.Single(exchangeRates);
@@ -99,7 +99,7 @@ namespace MagicalCryptoWallet.Tests
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
 			{
 
-				Assert.False(response.IsSuccessStatusCode);
+				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 			}
 		}
@@ -115,7 +115,7 @@ namespace MagicalCryptoWallet.Tests
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
 			{
-				Assert.True(response.IsSuccessStatusCode);
+				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal("\"Transaction is already in the blockchain.\"", await response.Content.ReadAsStringAsync());
 			}
 		}
@@ -127,7 +127,7 @@ namespace MagicalCryptoWallet.Tests
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
 			{
-				Assert.False(response.IsSuccessStatusCode);
+				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 				Assert.Equal("\"Invalid hex.\"", await response.Content.ReadAsStringAsync());
 			}
@@ -1028,7 +1028,7 @@ namespace MagicalCryptoWallet.Tests
 			await Assert.ThrowsAsync<ArgumentNullException>(async () => await wallet.BuildTransactionAsync(null, null, 0));
 
 			// toSend cannot have a null element
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, new[] { (WalletService.Operation)null }, 0));
+			await Assert.ThrowsAsync<ArgumentNullException>(async () => await wallet.BuildTransactionAsync(null, new[] { (WalletService.Operation)null }, 0));
 
 			// toSend cannot have a zero elements
 			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, new WalletService.Operation[0], 0));

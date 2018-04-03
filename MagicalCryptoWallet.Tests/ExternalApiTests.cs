@@ -7,6 +7,7 @@ using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -98,7 +99,7 @@ namespace MagicalCryptoWallet.Tests
 				using (var client = new HttpClient())
 				using (var res = await client.GetAsync(uri))
 				{
-					if (res.IsSuccessStatusCode)
+					if (res.StatusCode == HttpStatusCode.OK)
 					{
 						return true;
 					}
