@@ -75,7 +75,7 @@ namespace MagicalCryptoWallet.Services
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
-				if(IndexDownloader.Network == Network.RegTest)
+				if (IndexDownloader.Network == Network.RegTest)
 				{
 					Directory.Delete(BlocksFolderPath, true);
 					Directory.CreateDirectory(BlocksFolderPath);
@@ -107,7 +107,7 @@ namespace MagicalCryptoWallet.Services
 				ProcessedBlocks.Remove(invalidBlockHash);
 				if (elem.Key != null)
 				{
-					foreach(var toRemove in Coins.Where(x => x.Height == elem.Key).ToHashSet())
+					foreach (var toRemove in Coins.Where(x => x.Height == elem.Key).ToHashSet())
 					{
 						RemoveCoinRecursively(toRemove);
 					}
@@ -117,9 +117,9 @@ namespace MagicalCryptoWallet.Services
 
 		private void RemoveCoinRecursively(SmartCoin toRemove)
 		{
-			if(toRemove.SpenderTransactionId != null)
+			if (toRemove.SpenderTransactionId != null)
 			{
-				foreach(var toAlsoRemove in Coins.Where(x=>x.TransactionId == toRemove.SpenderTransactionId).ToHashSet())
+				foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).ToHashSet())
 				{
 					RemoveCoinRecursively(toAlsoRemove);
 				}
@@ -184,7 +184,7 @@ namespace MagicalCryptoWallet.Services
 			}
 			else // must go through all the blocks in order
 			{
-				foreach(var blockRef in WalletBlocks)
+				foreach (var blockRef in WalletBlocks)
 				{
 					var block = await GetOrDownloadBlockAsync(blockRef.Value, CancellationToken.None);
 					ProcessedBlocks.Clear();
@@ -254,7 +254,7 @@ namespace MagicalCryptoWallet.Services
 		private void ProcessTransaction(SmartTransaction tx, List<HdPubKey> keys = null)
 		{
 			// If key list is not provided refresh the key list.
-			if(keys == null)
+			if (keys == null)
 			{
 				keys = KeyManager.GetKeys().ToList();
 			}
@@ -268,7 +268,7 @@ namespace MagicalCryptoWallet.Services
 				{
 					// If we already had it, just update the height. Maybe got from mempool to block or reorged.
 					var foundCoin = Coins.SingleOrDefault(x => x.TransactionId == tx.GetHash() && x.Index == i);
-					if(foundCoin != default)
+					if (foundCoin != default)
 					{
 						// If tx height is mempool then don't, otherwise update the height.
 						if (tx.Height == Height.MemPool)
@@ -287,7 +287,7 @@ namespace MagicalCryptoWallet.Services
 					Coins.Add(coin);
 
 					// Make sure there's always 21 clean keys generated and indexed.
-					if(AssertCleanKeysIndexed(21, foundKey.IsInternal()))
+					if (AssertCleanKeysIndexed(21, foundKey.IsInternal()))
 					{
 						// If it generated a new key refresh the keys:
 						keys = KeyManager.GetKeys().ToList();
@@ -305,7 +305,7 @@ namespace MagicalCryptoWallet.Services
 				{
 					foundCoin.SpenderTransactionId = tx.GetHash();
 				}
-			}			
+			}
 		}
 
 		/// <exception cref="OperationCanceledException"></exception>
@@ -330,7 +330,7 @@ namespace MagicalCryptoWallet.Services
 			Block block = null;
 			using (await BlockDownloadLock.LockAsync())
 			{
-				while(true)
+				while (true)
 				{
 					cancel.ThrowIfCancellationRequested();
 					try
@@ -445,7 +445,7 @@ namespace MagicalCryptoWallet.Services
 			public Money Amount { get; }
 			public string Label { get; }
 
-			public Operation(Script script, Money amount, string label="")
+			public Operation(Script script, Money amount, string label = "")
 			{
 				Script = Guard.NotNull(nameof(script), script);
 				Amount = Guard.NotNull(nameof(amount), amount);
@@ -464,21 +464,21 @@ namespace MagicalCryptoWallet.Services
 		{
 			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
-			if(toSend.Any(x=>x==null))
+			if (toSend.Any(x => x == null))
 			{
 				throw new ArgumentException($"All {nameof(toSend)} element must be not null.");
 			}
-			if(toSend.Any(x=>x.Amount < Money.Zero ))
+			if (toSend.Any(x => x.Amount < Money.Zero))
 			{
 				throw new ArgumentException($"All {nameof(toSend)} element must be greater or equal to zero.");
 			}
 
 			var sum = toSend.Sum(x => x.Amount);
-			if(sum < 0 || sum > 2099999997690000)
+			if (sum < 0 || sum > 2099999997690000)
 			{
 				throw new ArgumentOutOfRangeException($"{nameof(toSend)} sum cannot be smaller than 0 or greater than 2099999997690000.");
 			}
-			
+
 			int spendAllCount = toSend.Count(x => x.Amount == Money.Zero);
 			if (spendAllCount > 1)
 			{
@@ -509,7 +509,7 @@ namespace MagicalCryptoWallet.Services
 			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
 			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
-				if(!allowedInputs.Any())
+				if (!allowedInputs.Any())
 				{
 					throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
 				}
@@ -534,7 +534,7 @@ namespace MagicalCryptoWallet.Services
 					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && x.Confirmed).ToList();
 				}
 			}
-			
+
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 			Money feePerBytes = null;
@@ -575,7 +575,7 @@ namespace MagicalCryptoWallet.Services
 
 			// 5. How much to spend?
 			long toSendAmountSumInSatoshis = toSend.Sum(x => x.Amount); // Does it work if I simply go with Money class here? Is that copied by reference of value?
-			var realToSend = new (Script script, Money amount, string label)[toSend.Length];
+			var realToSend = new(Script script, Money amount, string label)[toSend.Length];
 			for (int i = 0; i < toSend.Length; i++) // clone
 			{
 				realToSend[i] = (
@@ -591,7 +591,7 @@ namespace MagicalCryptoWallet.Services
 
 					realToSend[i].amount -= new Money(toSendAmountSumInSatoshis);
 
-					if(subtractFeeFromAmountIndex == null)
+					if (subtractFeeFromAmountIndex == null)
 					{
 						realToSend[i].amount -= fee;
 					}
@@ -611,7 +611,7 @@ namespace MagicalCryptoWallet.Services
 			var toRemoveList = new List<(Script script, Money money, string label)>(realToSend);
 			toRemoveList.RemoveAll(x => x.money == Money.Zero);
 			realToSend = toRemoveList.ToArray();
-			
+
 			// 1. Get the possible changes.
 			Script changeScriptPubKey;
 			var sb = new StringBuilder();
@@ -668,7 +668,7 @@ namespace MagicalCryptoWallet.Services
 				.AddCoins(coinsToSpend.Select(x => x.ToCoin()))
 				.AddKeys(signingKeys.ToArray());
 
-			foreach((Script scriptPubKey, Money amount, string label) output in realToSend)
+			foreach ((Script scriptPubKey, Money amount, string label) output in realToSend)
 			{
 				builder = builder.Send(output.scriptPubKey, output.amount);
 			}
@@ -751,7 +751,7 @@ namespace MagicalCryptoWallet.Services
 			using (var content = new StringContent($"'{transaction.Transaction.ToHex()}'", Encoding.UTF8, "application/json"))
 			using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
 			{
-				if(response.StatusCode == HttpStatusCode.BadRequest)
+				if (response.StatusCode == HttpStatusCode.BadRequest)
 				{
 					throw new HttpRequestException($"Couldn't broadcast transaction. Reason: {await response.Content.ReadAsStringAsync()}");
 				}
@@ -762,7 +762,7 @@ namespace MagicalCryptoWallet.Services
 			}
 
 			ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));
-			
+
 			Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted: {transaction.GetHash()}.");
 		}
 
