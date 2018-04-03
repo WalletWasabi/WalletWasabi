@@ -541,7 +541,7 @@ namespace MagicalCryptoWallet.Services
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 			Money feePerBytes = null;
 			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
-			using (var response = await torClient.SendAndRetryAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
+			using (var response = await torClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 					throw new HttpRequestException($"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
