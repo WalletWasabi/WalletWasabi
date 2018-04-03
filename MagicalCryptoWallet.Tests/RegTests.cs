@@ -981,7 +981,7 @@ namespace MagicalCryptoWallet.Tests
 		}
 
 		[Fact]
-		public async Task BuildTransactionValidationsTest()
+		public async Task BuildTransactionValidationsTestAsync()
 		{
 			// Make sure fitlers are created on the server side.
 			await AssertFiltersInitializedAsync();
@@ -1124,9 +1124,9 @@ namespace MagicalCryptoWallet.Tests
 				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.00005m), "") };
 				btx = await wallet.BuildTransactionAsync("password", operations, 2, false, 0);
 				Assert.True(btx.FeePercentOfSent > 20);
-				Assert.Equal(1, btx.SpentCoins.Count());
+				Assert.Single(btx.SpentCoins);
 				Assert.Equal(txid, btx.SpentCoins.First().TransactionId);
-				Assert.Equal(false, btx.Transaction.Transaction.RBF); // Is this okay
+				Assert.False(btx.Transaction.Transaction.RBF); // Is this okay
 			}
 			finally
 			{
