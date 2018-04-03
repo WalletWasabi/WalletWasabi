@@ -1016,12 +1016,12 @@ namespace MagicalCryptoWallet.Tests
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
-			var validOperationList = new[]{ new WalletService.Operation(scp, Money.Coins(1)) };
-			var invalidOperationList = new[]{ new WalletService.Operation(scp, Money.Coins(10 * 1000 * 1000)), new WalletService.Operation(scp, Money.Coins(12 * 1000 * 1000)) };
+			var validOperationList = new[]{ new WalletService.Operation(scp, Money.Coins(1), "") };
+			var invalidOperationList = new[]{ new WalletService.Operation(scp, Money.Coins(10 * 1000 * 1000), ""), new WalletService.Operation(scp, Money.Coins(12 * 1000 * 1000), "") };
 			var overflowOperationList = new[]{ 
-				new WalletService.Operation(scp, Money.Satoshis(long.MaxValue)), 
-				new WalletService.Operation(scp, Money.Satoshis(long.MaxValue)),
-				new WalletService.Operation(scp, Money.Satoshis(5))
+				new WalletService.Operation(scp, Money.Satoshis(long.MaxValue), ""), 
+				new WalletService.Operation(scp, Money.Satoshis(long.MaxValue), ""),
+				new WalletService.Operation(scp, Money.Satoshis(5), "")
 				};
 
 			// toSend cannot be null
@@ -1046,13 +1046,13 @@ namespace MagicalCryptoWallet.Tests
 
 			// toSend negative sum amount
 			var operations = new[]{ 
-				new WalletService.Operation(scp, -10000) };
+				new WalletService.Operation(scp, -10000, "") };
 			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
 
 			// toSend negative operation amount
 			operations = new[]{ 
-				new WalletService.Operation(scp,  20000),
-				new WalletService.Operation(scp, -10000) };
+				new WalletService.Operation(scp,  20000, ""),
+				new WalletService.Operation(scp, -10000, "") };
 			await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
 
 			// toSend ammount sum has to be less than ulong.MaxValue
@@ -1085,12 +1085,12 @@ namespace MagicalCryptoWallet.Tests
 
 				// subtract Fee from amount index with no enough money 
 				operations = new[]{ 
-					new WalletService.Operation(scp,  Money.Satoshis(1m)),
-					new WalletService.Operation(scp, Money.Coins(0.5m)) };
+					new WalletService.Operation(scp,  Money.Satoshis(1m), ""),
+					new WalletService.Operation(scp, Money.Coins(0.5m), "") };
 				await Assert.ThrowsAsync<InsufficientBalanceException>( async ()=> await wallet.BuildTransactionAsync("password", operations, 2, false, 0) );
 
 				// No enough money (only one confirmed coin, no unconfirmed allowed)
-				operations = new[]{ new WalletService.Operation(scp, Money.Coins(1.5m)) };
+				operations = new[]{ new WalletService.Operation(scp, Money.Coins(1.5m), "") };
 				await Assert.ThrowsAsync<InsufficientBalanceException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
 
 				// No enough money (only one confirmed coin, unconfirmed allowed)
@@ -1111,17 +1111,17 @@ namespace MagicalCryptoWallet.Tests
 
 				// Only one operation with Zero money
 				operations = new[]{ 
-					new WalletService.Operation(scp, Money.Zero),
-					new WalletService.Operation(scp, Money.Zero) };
+					new WalletService.Operation(scp, Money.Zero, ""),
+					new WalletService.Operation(scp, Money.Zero, "") };
 				await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2) );
 
 				// `Custom change` and `spend all` cannot be specified at the same time
 				await Assert.ThrowsAsync<ArgumentException>( async ()=> await wallet.BuildTransactionAsync(null, operations, 2, false, null, Script.Empty) );
 
-				operations = new[]{ new WalletService.Operation(scp, Money.Coins(0.5m)) };
+				operations = new[]{ new WalletService.Operation(scp, Money.Coins(0.5m), "") };
 				btx =  await wallet.BuildTransactionAsync("password", operations, 2);
 				
-				operations = new[]{ new WalletService.Operation(scp, Money.Coins(0.00005m)) };
+				operations = new[]{ new WalletService.Operation(scp, Money.Coins(0.00005m), "") };
 				btx =  await wallet.BuildTransactionAsync("password", operations, 2, false, 0);
 				Assert.True( btx.FeePercentOfSent > 20 );
 				Assert.Equal( 1, btx.SpentCoins.Count() );

@@ -445,11 +445,11 @@ namespace MagicalCryptoWallet.Services
 			public Money Amount { get; }
 			public string Label { get; }
 
-			public Operation(Script script, Money amount, string label = "")
+			public Operation(Script script, Money amount, string label)
 			{
 				Script = Guard.NotNull(nameof(script), script);
 				Amount = Guard.NotNull(nameof(amount), amount);
-				Label = label;
+				Label = label ?? "";
 			}
 		}
 
