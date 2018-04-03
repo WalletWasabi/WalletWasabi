@@ -466,17 +466,19 @@ namespace MagicalCryptoWallet.Services
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
 			if (toSend.Any(x => x == null))
 			{
-				throw new ArgumentException($"All {nameof(toSend)} element must be not null.");
+				throw new ArgumentNullException($"{nameof(toSend)} cannot contain null element.");
 			}
 			if (toSend.Any(x => x.Amount < Money.Zero))
 			{
-				throw new ArgumentException($"All {nameof(toSend)} element must be greater or equal to zero.");
+				throw new ArgumentException($"{nameof(toSend)} cannot contain negative element.");
 			}
 
-			var sum = toSend.Sum(x => x.Amount);
+			long sum = toSend.Sum(x => x.Amount);
 			if (sum < 0 || sum > 2099999997690000)
 			{
-				throw new ArgumentOutOfRangeException($"{nameof(toSend)} sum cannot be smaller than 0 or greater than 2099999997690000.");
+				// https://en.bitcoin.it/wiki/Bitcoin
+				// There are a maximum of 2,099,999,997,690,000 Bitcoin elements (called satoshis), which are currently most commonly measured in units of 100,000,000 known as BTC. Stated another way, no more than 21 million BTC can ever be created.
+				throw new ArgumentOutOfRangeException($"{nameof(toSend)} sum cannot be smaller than 0 or greater than 2099999997690000."); 
 			}
 
 			int spendAllCount = toSend.Count(x => x.Amount == Money.Zero);
