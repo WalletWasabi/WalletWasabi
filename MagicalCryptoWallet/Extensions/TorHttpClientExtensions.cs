@@ -11,6 +11,7 @@ public static class TorHttpClientExtensions
 		HttpResponseMessage response = null;
 		while (retry-- > 0)
 		{
+			response?.Dispose();
 			response = await client.SendAsync(method, relativeUri, content);
 			if (response.StatusCode == expectedCode)
 			{
