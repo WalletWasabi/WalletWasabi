@@ -462,7 +462,7 @@ namespace MagicalCryptoWallet.Services
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
 		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, Operation[] toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
 		{
-			password = Guard.Correct(password);
+			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
 			if(toSend.Any(x=>x==null))
 			{
