@@ -27,8 +27,8 @@ namespace MagicalCryptoWallet.Models
 		public Height(int height)
 		{
 			if (height < 0) throw new ArgumentException($"{nameof(height)} : {height} cannot be < 0");
-			if (height == int.MaxValue) Type = HeightType.Unknown;
-			else if (height == int.MaxValue - 1) Type = HeightType.MemPool;
+			if (height == Unknown.Value) Type = HeightType.Unknown;
+			else if (height == MemPool.Value) Type = HeightType.MemPool;
 			else Type = HeightType.Chain;
 			_value = height;
 		}
@@ -47,9 +47,9 @@ namespace MagicalCryptoWallet.Models
 		{
 			if (type == HeightType.Chain) throw new NotSupportedException($"For {type} height must be specified");
 			Type = type;
-			if (Type == HeightType.MemPool)
-				_value = int.MaxValue - 1;
-			else _value = int.MaxValue; // HeightType.Unknown
+			_value = (Type == HeightType.MemPool)
+				? MemPool.Value
+				: Unknown.Value;
 		}
 
 		public override string ToString()
@@ -75,9 +75,7 @@ namespace MagicalCryptoWallet.Models
 		public int CompareTo(Height other) => Value.CompareTo(other.Value);
 		public int CompareTo(int other)
 		{
-			if (Value > other) return -1;
-			if (Value == other) return 0;
-			return 1;
+			return Value.CompareTo(other);
 		}
 
 		public static bool operator >(Height x, Height y) => x.Value > y.Value;
