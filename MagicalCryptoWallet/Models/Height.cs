@@ -29,13 +29,13 @@ namespace MagicalCryptoWallet.Models
 		/// Gets a new Height instance for mempool
 		/// </summary>
 		/// <returns></returns>
-		public static Height MemPool => new Height(HeightType.MemPool);
+		public readonly static Height MemPool = new Height(HeightType.MemPool);
 
 		/// <summary>
 		/// Gets a new Height instance for unknown (no chain, no mempool)
 		/// </summary>
 		/// <returns></returns>
-		public static Height Unknown => new Height(HeightType.Unknown);
+		public readonly static Height Unknown = new Height(HeightType.Unknown);
 
 		/// <summary>
 		/// Creates and initializes a new Height instance
@@ -83,6 +83,16 @@ namespace MagicalCryptoWallet.Models
 			_value = (Type == HeightType.MemPool)
 				? MemPool.Value
 				: Unknown.Value;
+		}
+
+		/// <summary>
+		/// Constructor for copy 
+		/// </summary>
+		/// <param name="height">The height to be copied.</param>
+		public Height(Height height)
+		{
+			_value = height._value;
+			Type = height.Type;
 		}
 
 		/// <summary>
