@@ -273,6 +273,41 @@ namespace MagicalCryptoWallet.Models
 		public static bool operator <=(Height x, int y) => x.Value <= y;
 
 		#endregion
+
+
+		#region MathOperations
+
+		public static Height operator ++(Height me)
+		{
+			return new Height( me.Value + 1 );
+		}
+
+		public static Height operator --(Height me)
+		{
+			return new Height( me.Value - 1 );
+		}
+
+		public static Height operator +(int value, Height height)
+		{
+			return new Height( height.Value + value );
+		}
+
+		public static Height operator -(int value, Height height)
+		{
+			return new Height( value - height.Value );
+		}
+
+		public static Height operator +(Height height, int value)
+		{
+			return new Height( height.Value + value );
+		}
+
+		public static Height operator -(Height height, int value)
+		{
+			return new Height( height.Value - value );
+		}
+
+		#endregion
 	}
 
 	public enum HeightType
