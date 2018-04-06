@@ -277,31 +277,59 @@ namespace MagicalCryptoWallet.Models
 
 		#region MathOperations
 
+		/// <summary>
+		/// Increments the height value by 1 
+		/// </summary>
+		/// <param name="me">The instance to be used as base value.</param>
 		public static Height operator ++(Height me)
 		{
 			return new Height( me.Value + 1 );
 		}
 
+		/// <summary>
+		/// Decrements the height value by 1 
+		/// </summary>
+		/// <param name="me">The instance to be used as base value.</param>
 		public static Height operator --(Height me)
 		{
 			return new Height( me.Value - 1 );
 		}
 
+		/// <summary>
+		/// Unary or binary operator for adding a value to height.
+		/// </summary>
+		/// <param name="value">The Int32 value.</param>
+		/// <param name="height">The height value to be added.</param>
 		public static Height operator +(int value, Height height)
 		{
 			return new Height( height.Value + value );
 		}
 
+		/// <summary>
+		/// Unary or binary operator for substracting a value to height.
+		/// </summary>
+		/// <param name="value">The Int32 value.</param>
+		/// <param name="height">The height value to be substracted from.</param>
 		public static Height operator -(int value, Height height)
 		{
 			return new Height( value - height.Value );
 		}
 
+		/// <summary>
+		/// Unary or binary operator for adding a value to height.
+		/// </summary>
+		/// <param name="height">The height value to be added.</param>
+		/// <param name="value">The Int32 value.</param>
 		public static Height operator +(Height height, int value)
 		{
 			return new Height( height.Value + value );
 		}
 
+		/// <summary>
+		/// Unary or binary operator for substracting a value to height.
+		/// </summary>
+		/// <param name="height">The height value to be substracted from.</param>
+		/// <param name="value">The Int32 value.</param>
 		public static Height operator -(Height height, int value)
 		{
 			return new Height( height.Value - value );
