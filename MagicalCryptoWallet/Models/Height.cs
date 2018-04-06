@@ -85,6 +85,24 @@ namespace MagicalCryptoWallet.Models
 				: Unknown.Value;
 		}
 
+		/// <summary>
+		/// Implicit conversion from Int32 to Height.
+		/// </summary>
+		/// <param name="value">Int32 to convert to Height instance.</param>
+		public static implicit operator Height(int value)
+		{
+			return new Height(value);
+		}
+
+		/// <summary>
+		/// Implicit conversion from Height to Int32 value.
+		/// </summary>
+		/// <param name="height">Height value to convert to Int32.</param>
+		public static implicit operator int(Height height)
+		{
+			return height.Value;
+		}
+
 		/// <inheritdoc/>
 		public override string ToString()
 		{
