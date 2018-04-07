@@ -144,10 +144,10 @@ namespace MagicalCryptoWallet.Services
 				}
 				else
 				{
-					int height = StartingHeight.Value;
+					var height = StartingHeight;
 					foreach (var line in File.ReadAllLines(IndexFilePath))
 					{
-						var filter = FilterModel.FromLine(line, new Height(height));
+						var filter = FilterModel.FromLine(line, height);
 						height++;
 						Index.Add(filter);
 					}
@@ -195,18 +195,19 @@ namespace MagicalCryptoWallet.Services
 							// If stop was requested return.
 							if (IsRunning == false) return;
 
-							int height = StartingHeight.Value;
+							var height = StartingHeight;
 							uint256 prevHash = null;
 							using (await IndexLock.LockAsync())
 							{
 								if (Index.Count != 0)
 								{
-									height = Index.Last().BlockHeight.Value + 1;
-									prevHash = Index.Last().BlockHash;
+									var lastIndex = Index.Last();
+									height = lastIndex.BlockHeight + 1;
+									prevHash = lastIndex.BlockHash;
 								}
 							}
 
-							if (blockCount - height <= 100)
+							if (blockCount - (int)height <= 100)
 							{
 								isIIB = false;
 							}
@@ -312,7 +313,7 @@ namespace MagicalCryptoWallet.Services
 							var filterModel = new FilterModel
 							{
 								BlockHash = block.GetHash(),
-								BlockHeight = new Height(height),
+								BlockHeight = height,
 								Filter = filter
 							};
 
