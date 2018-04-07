@@ -83,20 +83,15 @@ namespace MagicalCryptoWallet.Backend
 			try
 			{
 				var blockchainInfoRequest = new RPCRequest(RPCOperations.getblockchaininfo, parameters: null);
-				RPCResponse blockchainInfo = await RpcClient.SendCommandAsync(blockchainInfoRequest, throwIfRPCError: true);
+				var blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
 				
-				if (string.IsNullOrWhiteSpace(blockchainInfo?.ResultString)) // should never happen
-				{
-					throw new NotSupportedException("string.IsNullOrWhiteSpace(blockchainInfo?.ResultString) == true");
-				}
-
-				int blocks = blockchainInfo.Result.Value<int>("blocks");
+				var blocks = blockchainInfo.Blocks;
 				if (blocks == 0 && Config.Network != Network.RegTest)
 				{
 					throw new NotSupportedException("blocks == 0");
 				}
 
-				int headers = blockchainInfo.Result.Value<int>("headers");
+				var headers = blockchainInfo.Headers;
 				if (headers == 0 && Config.Network != Network.RegTest)
 				{
 					throw new NotSupportedException("headers == 0");
@@ -123,8 +118,8 @@ namespace MagicalCryptoWallet.Backend
 						if (generateBlocksResponse == null) throw new NotSupportedException($"Bitcoin Core cannot cannot generate blocks on the RegTest.");
 
 						blockchainInfoRequest = new RPCRequest(RPCOperations.getblockchaininfo, parameters: null);
-						blockchainInfo = await RpcClient.SendCommandAsync(blockchainInfoRequest, throwIfRPCError: true);
-						blocks = blockchainInfo.Result.Value<int>("blocks");
+						blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
+						blocks = blockchainInfo.Blocks;
 						if (blocks == 0)
 						{
 							throw new NotSupportedException("blocks == 0");
@@ -132,7 +127,6 @@ namespace MagicalCryptoWallet.Backend
 						Logger.LogInfo<RPCClient>($"Generated 101 block on RegTest. Number of blocks {blocks}.");
 					}
 				}
-
 			}
 			catch(WebException)
 			{
