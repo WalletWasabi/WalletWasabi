@@ -352,7 +352,7 @@ namespace MagicalCryptoWallet.Tests.NodeBuilding
 		{
 			block.UpdateMerkleRoot();
 			uint nonce = 0;
-			while (!block.CheckProofOfWork(Network.RegTest.Consensus))
+			while (!block.CheckProofOfWork())
 			{
 				block.Header.Nonce = ++nonce;
 			}

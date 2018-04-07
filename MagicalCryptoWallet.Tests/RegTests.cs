@@ -30,6 +30,7 @@ namespace MagicalCryptoWallet.Tests
 	[Collection("RegTest collection")]
 	public class RegTests : IClassFixture<SharedFixture>
 	{
+		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 		private SharedFixture SharedFixture { get; }
 
 		private RegTestFixture RegTestFixture { get; }
@@ -261,8 +262,7 @@ namespace MagicalCryptoWallet.Tests
 			var tx3 = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
 			var tx4 = await Global.RpcClient.SendToAddressAsync(key.GetP2pkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
 			var tx5 = await Global.RpcClient.SendToAddressAsync(key.GetP2shOverP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
-			var tx1Res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendtoaddress, key.GetP2wpkhAddress(network).ToString(), new Money(0.1m, MoneyUnit.BTC).ToString(false, true), "", "", false, true);
-			var tx1 = new uint256(tx1Res.ResultString);
+			var tx1 = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC), replaceable: true);
 
 			await Global.RpcClient.GenerateAsync(2); // Generate two, so we can test for two reorg
 
@@ -300,14 +300,13 @@ namespace MagicalCryptoWallet.Tests
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
 				tip = await Global.RpcClient.GetBestBlockHashAsync();
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 2
-				var tx1bumpRes = await Global.RpcClient.SendCommandAsync("bumpfee", tx1.ToString()); // RBF it
-				var tx1bump = new uint256(tx1bumpRes.Result["txid"].ToString());
+				var tx1bumpRes = await Global.RpcClient.BumpFeeAsync(tx1); // RBF it
 
 				await Global.RpcClient.GenerateAsync(5);
 				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
 
 				utxoLines = await File.ReadAllTextAsync(utxoPath);
-				Assert.Contains(tx1bump.ToString(), utxoLines); // assert the tx1bump is the correct tx
+				Assert.Contains(tx1bumpRes.TransactionId.ToString(), utxoLines); // assert the tx1bump is the correct tx
 				Assert.DoesNotContain(tx1.ToString(), utxoLines); // assert tx1 is abandoned (despite it confirmed previously)
 				Assert.Contains(tx2.ToString(), utxoLines);
 				Assert.Contains(tx3.ToString(), utxoLines);
@@ -398,7 +397,7 @@ namespace MagicalCryptoWallet.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion.WITNESS_VERSION
+						MinVersion = ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -510,8 +509,7 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
 
 				// REORG TESTS
-				var tx4Res = await Global.RpcClient.SendCommandAsync(RPCOperations.sendtoaddress, key2.GetP2wpkhAddress(network).ToString(), new Money(0.03m, MoneyUnit.BTC).ToString(false, true), "", "", false, true);
-				var txid4 = new uint256(tx4Res.ResultString);
+				var txid4 = await Global.RpcClient.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.03m, MoneyUnit.BTC), replaceable: true);
 				_filtersProcessedByWalletCount = 0;
 				await Global.RpcClient.GenerateAsync(2);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
@@ -520,8 +518,7 @@ namespace MagicalCryptoWallet.Tests
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
 				tip = await Global.RpcClient.GetBestBlockHashAsync();
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 2
-				var tx4bumpRes = await Global.RpcClient.SendCommandAsync("bumpfee", txid4.ToString()); // RBF it
-				var tx4bump = new uint256(tx4bumpRes.Result["txid"].ToString());
+				var tx4bumpRes = await Global.RpcClient.BumpFeeAsync(txid4); // RBF it
 				_filtersProcessedByWalletCount = 0;
 				await Global.RpcClient.GenerateAsync(3);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
@@ -530,8 +527,8 @@ namespace MagicalCryptoWallet.Tests
 
 				Assert.Equal(4, wallet.Coins.Count);
 				Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txid4));
-				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == tx4bump));
-				var rbfCoin = wallet.Coins.Where(x => x.TransactionId == tx4bump).Single();
+				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId));
+				var rbfCoin = wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId).Single();
 
 				Assert.Equal(new Money(0.03m, MoneyUnit.BTC), rbfCoin.Amount);
 				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 2, rbfCoin.Height.Value);
@@ -541,7 +538,7 @@ namespace MagicalCryptoWallet.Tests
 				Assert.Null(rbfCoin.SpenderTransactionId);
 				Assert.NotNull(rbfCoin.SpentOutputs);
 				Assert.NotEmpty(rbfCoin.SpentOutputs);
-				Assert.Equal(tx4bump, rbfCoin.TransactionId);
+				Assert.Equal(tx4bumpRes.TransactionId, rbfCoin.TransactionId);
 
 				Assert.Equal(2, keyManager.GetKeys(KeyState.Used, false).Count());
 				Assert.Empty(keyManager.GetKeys(KeyState.Used, true));
@@ -627,7 +624,7 @@ namespace MagicalCryptoWallet.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion.WITNESS_VERSION
+						MinVersion = ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -994,7 +991,7 @@ namespace MagicalCryptoWallet.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion.WITNESS_VERSION
+						MinVersion = ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
