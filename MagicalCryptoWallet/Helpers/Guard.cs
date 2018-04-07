@@ -117,19 +117,23 @@ namespace MagicalCryptoWallet.Helpers
 			return (int)value;
 		}
 
-		public static int InRangeAndNotNull(string parameterName, int? value, int smallest, int greatest)
+		public static T InRangeAndNotNull<T>(string parameterName, T value, T smallest, T greatest) where T: IComparable
 		{
-			MinimumAndNotNull(parameterName, value, smallest);
-			MaximumAndNotNull(parameterName, value, greatest);
+			NotNull(parameterName, value);
+			if( value.CompareTo(smallest) < 0)
+				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter cannot be less than {smallest}.");
 
-			return (int)value;
+			if( value.CompareTo(greatest) > 0)
+				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter cannot be greater than {greatest}.");
+
+			return value;
 		}
 
-        public static string Correct(string str)
-        {
+		public static string Correct(string str)
+		{
 			return string.IsNullOrWhiteSpace(str)
 				? string.Empty
 				: str.Trim();
-        }
-    }
+		}
+	}
 }
