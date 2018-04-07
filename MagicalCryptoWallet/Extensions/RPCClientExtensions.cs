@@ -34,16 +34,6 @@ namespace NBitcoin.RPC
 				Hash = uint256.Parse(resp.Result["hash"].ToString())
 			};
 		}
-
-		/// <summary>
-		/// Permanently marks a block as invalid, as if it violated a consensus rule.
-		/// </summary>
-		/// <param name="blockhash">the hash of the block to mark as invalid</param>
-		public static async Task InvalidateBlockAsync(this RPCClient rpc, uint256 blockhash)
-		{
-			await rpc.SendCommandAsync("invalidateblock", blockhash.ToString()).ConfigureAwait(false);
-			return;
-		}
 	}
 
 	public class BlockInfo
