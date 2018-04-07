@@ -21,6 +21,7 @@ namespace MagicalCryptoWallet.Tests
 {
 	public class P2pTests : IClassFixture<SharedFixture>
 	{
+		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 		private SharedFixture SharedFixture { get; }
 
 		public P2pTests(SharedFixture sharedFixture)
@@ -83,7 +84,7 @@ namespace MagicalCryptoWallet.Tests
 				new NodeRequirement
 				{
 					RequiredServices = NodeServices.Network,
-					MinVersion = ProtocolVersion.WITNESS_VERSION
+					MinVersion = ProtocolVersion_WITNESS_VERSION
 				});
 			WalletService walletService = new WalletService(
 				KeyManager.CreateNew(out Mnemonic mnemonic, "password"),

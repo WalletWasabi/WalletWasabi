@@ -30,6 +30,7 @@ namespace MagicalCryptoWallet.Tests
 	[Collection("RegTest collection")]
 	public class RegTests : IClassFixture<SharedFixture>
 	{
+		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 		private SharedFixture SharedFixture { get; }
 
 		private RegTestFixture RegTestFixture { get; }
@@ -398,7 +399,7 @@ namespace MagicalCryptoWallet.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion.WITNESS_VERSION
+						MinVersion = ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -627,7 +628,7 @@ namespace MagicalCryptoWallet.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion.WITNESS_VERSION
+						MinVersion = ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -994,7 +995,7 @@ namespace MagicalCryptoWallet.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion.WITNESS_VERSION
+						MinVersion = ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
