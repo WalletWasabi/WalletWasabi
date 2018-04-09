@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using WalletWasabi.Crypto;
+using System.Text;
 
 namespace WalletWasabi.Backend
 {
@@ -31,6 +33,8 @@ namespace WalletWasabi.Backend
 
 		public static RPCClient RpcClient { get; private set; }
 
+		public static BlindingRsaKey RsaKey { get; private set; }
+
 		public static IndexBuilderService IndexBuilderService { get; private set; }
 
 		public static Config Config { get; private set; }
@@ -39,6 +43,7 @@ namespace WalletWasabi.Backend
 		{
 			_dataDir = null;
 
+			// Initialize Config
 			if (network != null || rpcuser != null || rpcpassword != null)
 			{
 				Config = new Config(network, rpcuser, rpcpassword);
@@ -47,8 +52,23 @@ namespace WalletWasabi.Backend
 			{
 				await InitializeConfigAsync();
 			}
+			
+			// Initialize RsaKey
+			string rsaKeyPath = Path.Combine(DataDir, "RsaKey.json");
+			if (File.Exists(rsaKeyPath))
+			{
+				string rsaKeyJson = await File.ReadAllTextAsync(rsaKeyPath, encoding: Encoding.UTF8);
+				RsaKey = BlindingRsaKey.CreateFromJson(rsaKeyJson);
+			}
+			else
+			{
+				RsaKey = new BlindingRsaKey();
+				await File.WriteAllTextAsync(rsaKeyPath, RsaKey.ToJson(), encoding: Encoding.UTF8);
+				Logger.LogInfo($"Created RSA key at: {rsaKeyPath}", nameof(Global));
+			}
 
-			if(rpc != null)
+			// Initialize RPC
+			if (rpc != null)
 			{
 				RpcClient = rpc;
 			}
@@ -61,9 +81,9 @@ namespace WalletWasabi.Backend
 						},
 						network: Config.Network);
 			}
-
 			await AssertRpcNodeFullyInitializedAsync();
-			
+
+			// Initialize index building
 			var indexBuilderServiceDir = Path.Combine(DataDir, nameof(IndexBuilderService));
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
