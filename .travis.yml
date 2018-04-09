@@ -18,7 +18,7 @@ branches:
 
 cache:
   directories:
-  - $HOME/.magicalcryptowallet/
+  - $HOME/.walletwasabi/
   - $HOME/.nuget/packages 
 
 before_install:
@@ -30,4 +30,4 @@ before_install:
 
 script:
   - sleep 5
-  - travis_wait dotnet test MagicalCryptoWallet.Tests/MagicalCryptoWallet.Tests.csproj
+  - travis_wait dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj

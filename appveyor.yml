@@ -6,7 +6,7 @@ skip_branch_with_pr: true
 
 cache:
 - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
-- '%APPDATA%\MagicalCryptoWallet'
+- '%APPDATA%\WalletWasabi'
 - Tor
 
 install:
@@ -21,7 +21,7 @@ build_script:
   - dotnet build
 
 test_script:
-  - cd MagicalCryptoWallet.Tests
+  - cd WalletWasabi.Tests
   - dotnet test
 
 on_finish:

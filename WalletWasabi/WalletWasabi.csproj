@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>1701;1702;1705;1591;1573</NoWarn>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netcoreapp2.0\WalletWasabi.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp2.0\WalletWasabi.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Backend\Models\Responses\**" />
+    <EmbeddedResource Remove="Backend\Models\Responses\**" />
+    <None Remove="Backend\Models\Responses\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ConcurrentHashSet" Version="1.0.2" />
+    <PackageReference Include="NBitcoin" Version="4.1.0.4" />
+    <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.2" />
+  </ItemGroup>
+
+</Project>
