@@ -7,8 +7,8 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 | :---- | :------ |
 [![Windows build status][1]][2] | [![Linux & OSX build status][3]][4] |
 
-[1]: https://ci.appveyor.com/api/projects/status/5om770ij8gnykqab?svg=true
-[2]: https://ci.appveyor.com/project/nopara73/walletwasabi
+[1]: https://ci.appveyor.com/api/projects/status/70j293muovayg516?svg=true
+[2]: https://ci.appveyor.com/project/zkSNACKs/walletwasabi
 [3]: https://travis-ci.org/zkSNACKs/WalletWasabi.svg?branch=master
 [4]: https://travis-ci.org/zkSNACKs/WalletWasabi
 
