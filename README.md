@@ -1,4 +1,4 @@
-![](https://i.imgur.com/aSlAfNA.png)
+![](https://i.imgur.com/4GO7nnY.png)
 
 Wallet Wasabi, formerly known as HiddenWallet is a [ZeroLink](https://github.com/nopara73/ZeroLink) compliant Bitcoin wallet. We are dedicated to restore Bitcoin's fungibility and provide the highest possible privacy for our users.  
 HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zkSNACKs/WalletWasabi/tree/hiddenwallet-v0.6) branch of this repository.
