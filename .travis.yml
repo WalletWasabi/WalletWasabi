@@ -1,0 +1,33 @@
+language: csharp
+mono: none
+dotnet: 2.0.2
+
+notifications:
+  email: false
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty     
+    - os: osx
+    
+# branches to build 
+branches:
+  only:
+    - master
+
+cache:
+  directories:
+  - $HOME/.magicalcryptowallet/
+  - $HOME/.nuget/packages 
+
+before_install:
+  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -qq update && sudo apt-get install -y tor; else brew install tor; fi
+  - if [ $TRAVIS_OS_NAME = osx ]; then ulimit -S -n 4096; fi
+  - echo $(sudo killall tor)
+  - sleep 5
+  - tor RunAsDaemon 1
+
+script:
+  - sleep 5
+  - travis_wait dotnet test MagicalCryptoWallet.Tests/MagicalCryptoWallet.Tests.csproj
