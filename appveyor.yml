@@ -10,8 +10,8 @@ cache:
 - Tor
 
 install:
-  - if not exist Tor\tor.exe appveyor DownloadFile https://www.torproject.org/dist/torbrowser/7.5/tor-win32-0.3.2.9.zip
-  - if not exist Tor\tor.exe 7z x tor-win32-0.3.2.9.zip
+  - if not exist Tor\tor.exe appveyor DownloadFile https://dist.torproject.org/torbrowser/7.5.3/tor-win32-0.3.2.10.zip
+  - if not exist Tor\tor.exe 7z x tor-win32-0.3.2.10.zip
   - ps: $TorProcess = Start-Process tor\tor.exe -PassThru
 
 before_build:
