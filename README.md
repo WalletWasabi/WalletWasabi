@@ -1,4 +1,7 @@
-# Magical Crypto Wallet
+![](https://i.imgur.com/4FbNky1.png)
+
+Wallet Wasabi, formerly known as HiddenWallet is a [ZeroLink](https://github.com/nopara73/ZeroLink) compliant Bitcoin wallet. We are dedicated to restore Bitcoin's fungibility and provide the highest possible privacy for our users.  
+HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zkSNACKs/WalletWasabi/tree/hiddenwallet-v0.6) branch of this repository.
 
 | Windows | Linux & OSX
 | :---- | :------ |
@@ -17,7 +20,7 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
 
 ### 1. Wallet Stage
 
-- [x] **1. Wallet Back End.** *2 weeks. NBitcoin, Bitcoin Core RPC, ASP.NET.* Build back end for the wallet based on [the specification](https://github.com/nopara73/MagicalCryptoWallet/blob/master/MagicalCryptoWallet.Backend/README.md).
+- [x] **1. Wallet Back End.** *2 weeks. NBitcoin, Bitcoin Core RPC, ASP.NET.* Build back end.
 - [x] **2. Small Tor Library.** *1 week. Tor, .NET Core, cross platform.* Build a small Tor library based on DotNetTor, that removes features those are unrelated to the wallet and makes the rest more stable.
 - [x] **3. Key Manager.** *1 week. NBitcoin.* Build a new, high performance key manager with accounts, labelling, etc...
 - [x] **4. Wallet Client.** *1 month. NBitcoin.* Build a high performance client that can work with the new back end, which is built for client side filtering.
