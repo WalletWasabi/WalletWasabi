@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Internal;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,20 +14,25 @@ namespace WalletWasabi.Tests.NodeBuilding
 {
 	public class NodeBuilder : IDisposable
 	{
+		public static readonly AsyncLock Lock = new AsyncLock();
+
 		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.16.0")
 		{
-			var directory = Path.Combine(SharedFixture.DataDir, caller);
-			version = version ?? "0.16.0";
-			var path = await EnsureDownloadedAsync(version);
-			try
+			using (await Lock.LockAsync())
 			{
-				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(directory);
+				var directory = Path.Combine(SharedFixture.DataDir, caller);
+				version = version ?? "0.16.0";
+				var path = await EnsureDownloadedAsync(version);
+				try
+				{
+					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(directory);
+				}
+				catch (DirectoryNotFoundException)
+				{
+				}
+				Directory.CreateDirectory(directory);
+				return new NodeBuilder(directory, path);
 			}
-			catch (DirectoryNotFoundException)
-			{
-			}
-			Directory.CreateDirectory(directory);
-			return new NodeBuilder(directory, path);
 		}
 
 		private static async Task<string> EnsureDownloadedAsync(string version)
