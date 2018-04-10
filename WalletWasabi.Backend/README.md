@@ -12,12 +12,12 @@
 
 ### Controller: Blockchain, Coin: BTC
 
-|API | Description | Request | Response |
-|--- | ---- | ---- | ---- |
-|GET fees?{comma separated confirmationTargets} | Gets fees for the requested confirmation targets based on Bitcoin Core's `estimatesmartfee` output. |  | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
-|POST broadcast | Attempts to broadcast a transaction. | Hex |  |
-|GET exchange-rates | Gets exchange rates for one Bitcoin. |  | ExchangeRates[] contains Ticker and ExchangeRate pairs. Example: ![](https://i.imgur.com/Id9cqxq.png) |
-|GET filters/{blockHash} | Gets block filters from the specified block hash. |  | An array of blockHash : filter pairs. |
+| API | Description | Request | Response |
+| --- | ---- | ---- | ---- |
+| GET fees?{comma separated confirmationTargets} | Gets fees for the requested confirmation targets based on Bitcoin Core's `estimatesmartfee` output. |  | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
+| POST broadcast | Attempts to broadcast a transaction. | Hex |  |
+| GET exchange-rates | Gets exchange rates for one Bitcoin. |  | ExchangeRates[] contains Ticker and ExchangeRate pairs. Example: ![](https://i.imgur.com/Id9cqxq.png) |
+| GET filters/{blockHash} | Gets block filters from the specified block hash. |  | An array of blockHash : filter pairs. |
 
 #### POST filters
 
@@ -34,9 +34,12 @@
 
 ### Controller: ChaumianCoinJoin, Coin: BTC
 
-|API | Description | Request | Response |
-|--- | ---- | ---- | ---- |
-|GET status | Satoshi gets various status information. | | CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, ForcedRoundStartMinutesLeft, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFee, Version |
-|POST inputs | Alice registers her inputs. | Inputs[(Input, Proof)], BlindedOutput, ChangeOutputs[] | SignedBlindedOutput, UniqueId |
-|POST confirmation | Alice must confirm her participation periodically in InputRegistration phase and confirm once in ConnectionConfirmation phase. | UniqueId | RoundId if the phase is already ConnectionConfirmation. |
-|POST unconfirmation | Alice can revoke her registration without penalty if the current phase is InputRegistration. | UniqueId | |
+| API | Description | Request | Response |
+| --- | ---- | ---- | ---- |
+| GET status | Satoshi gets various status information. | | CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, ForcedRoundStartMinutesLeft, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFee, Version |
+| POST inputs | Alice registers her inputs. | Inputs[(Input, Proof)], BlindedOutput, ChangeOutputs[] | SignedBlindedOutput, UniqueId |
+| POST confirmation | Alice must confirm her participation periodically in InputRegistration phase and confirm once in ConnectionConfirmation phase. | UniqueId | RoundHash if the phase is already ConnectionConfirmation. |
+| POST unconfirmation | Alice can revoke her registration without penalty if the current phase is InputRegistration. | UniqueId | |
+| POST outputs | Bob registers his output. | Output, Signature, RoundHash | |
+| GET coinjoin | Alice asks for the final CoinJoin transaction. | UniqueId | Transaction |
+| POST signatures | Alice posts her partial signatures. | UniqueId, Signatures[(Witness, Index)] | |
