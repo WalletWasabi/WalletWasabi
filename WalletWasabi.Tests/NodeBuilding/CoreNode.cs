@@ -288,6 +288,62 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return tasks.Select(b => b.GetAwaiter().GetResult()).ToArray();
 		}
 
+		public async Task<Block[]> GenerateEmptyBlocks(int height, BitcoinAddress minerAddress, int blockCount)
+		{
+			var rpc = CreateRpcClient();
+			var bestBlock = await rpc.GetBlockAsync(height);
+			ConcurrentChain chain = null;
+			var blocks = new List<Block>();
+			var now = MockTime == null ? DateTimeOffset.UtcNow : MockTime.Value;
+			using(var node = CreateNodeClient())
+			{
+				node.VersionHandshake();
+				chain = node.GetChain();
+				for(var i = 0; i < blockCount; i++)
+				{
+					uint nonce = 0;
+					var block = rpc.Network.Consensus.ConsensusFactory.CreateBlock();
+					block.Header.HashPrevBlock = chain.Tip.HashBlock;
+					block.Header.Bits = block.Header.GetWorkRequired(rpc.Network, chain.Tip);
+					block.Header.UpdateTime(now, rpc.Network, chain.Tip);
+					var coinbase = new Transaction();
+					coinbase.AddInput(TxIn.CreateCoinbase(chain.Height + 1));
+					coinbase.AddOutput(new TxOut(rpc.Network.GetReward(chain.Height + 1), minerAddress));
+					block.AddTransaction(coinbase);
+					block.UpdateMerkleRoot();
+					while(!block.CheckProofOfWork())
+						block.Header.Nonce = ++nonce;
+					blocks.Add(block);
+					chain.SetTip(block.Header);
+				}
+				BroadcastBlocks(blocks.ToArray(), node);
+			}
+			return blocks.ToArray();
+		}
+
+		public async Task<Block[]> GenerateEmptyBlock(int height, BitcoinAddress minerAddress, int blockCount)
+		{
+			var now = DateTimeOffset.UtcNow;
+			var rpc = CreateRpcClient();
+			var curBlock = await rpc.GetBlockAsync(height);
+			
+			var blocks = new List<Block>(blockCount);
+			
+			for (var i = 0; i < blockCount; i++)
+			{
+				var prevBlock = curBlock;
+				var blockTime = now + TimeSpan.FromMinutes(i + 1);
+				curBlock = curBlock.CreateNextBlockWithCoinbase(minerAddress, height + i + 1, blockTime);
+				curBlock.Header.Bits = curBlock.Header.GetWorkRequired(rpc.Network, new ChainedBlock(prevBlock.Header, height + i + 1));
+
+				MineBlock(curBlock);
+				blocks.Add(curBlock);
+			}
+
+			BroadcastBlocks(blocks);
+			return blocks.ToArray();
+		}
+		
 		private List<uint256> _toMalleate = new List<uint256>();
 		public void Malleate(uint256 txId)
 		{
@@ -341,7 +397,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 			node.PingPong();
 		}
-
+		
 		public Block[] FindBlock(int blockCount = 1, bool includeMempool = true)
 		{
 			SelectMempoolTransactions();
