@@ -36,5 +36,5 @@
 
 |API | Description | Request | Response |
 |--- | ---- | ---- | ---- |
-|GET phase | Gets the current phase. | | Phase |
-|GET status | Gets various status information. | | Denomination, AnonymitySet, TimeSpentInInputRegistrationInSeconds, MaximumInputsPerAlices, FeePerInputs, FeePerOutputs, Version |
+|GET status | Satoshi gets various status information. | | CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, ForcedRoundStartMinutesLeft, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFee, Version |
+|POST inputs | Alice registers her inputs. | Inputs[(Input, Proof)], BlindedOutput, ChangeOutputs[] | |
