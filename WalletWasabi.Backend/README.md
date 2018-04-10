@@ -14,12 +14,12 @@
 
 |API | Description | Request | Response |
 |--- | ---- | ---- | ---- |
-|GET fees?{comma separated confirmationTargets} | Get fees for the requested confirmation targets based on Bitcoin Core's `estimatesmartfee` output. |  | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
+|GET fees?{comma separated confirmationTargets} | Gets fees for the requested confirmation targets based on Bitcoin Core's `estimatesmartfee` output. |  | ConfirmationTarget[] contains estimation mode and byte per satoshi pairs. Example: ![](https://i.imgur.com/Ggmif3R.png) |
 |POST broadcast | Attempts to broadcast a transaction. | Hex |  |
 |GET exchange-rates | Gets exchange rates for one Bitcoin. |  | ExchangeRates[] contains Ticker and ExchangeRate pairs. Example: ![](https://i.imgur.com/Id9cqxq.png) |
 |GET filters/{blockHash} | Gets block filters from the specified block hash. |  | An array of blockHash : filter pairs. |
 
-### POST filters
+#### POST filters
 
   At initial synchronization the wallet must specify the hash of the first block that contains native segwit output. This hash must be hard coded into the client.  
   - First block with P2WPKH: dfcec48bb8491856c353306ab5febeb7e99e4d783eedf3de98f3ee0812b92bad
@@ -31,3 +31,10 @@
 #### Handling Reorgs
 
   If the answer to the `filters` request is not found, then the client steps back one block and queries the filters with that previous hash. This can happen multiple times. This will only happen when blockchain reorganization happened. 
+
+### Controller: ChaumianCoinJoin, Coin: BTC
+
+|API | Description | Request | Response |
+|--- | ---- | ---- | ---- |
+|GET phase | Gets the current phase. | | Phase |
+|GET status | Gets various status information. | | Denomination, AnonymitySet, TimeSpentInInputRegistrationInSeconds, MaximumInputsPerAlices, FeePerInputs, FeePerOutputs, Version |
