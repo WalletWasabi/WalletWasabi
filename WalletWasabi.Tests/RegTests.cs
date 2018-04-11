@@ -47,7 +47,7 @@ namespace WalletWasabi.Tests
 			while (true)
 			{
 				using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/Blockchain/filters/" + firstHash))
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/blockchain/filters/" + firstHash))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 					var filters = await response.Content.ReadAsJsonAsync<List<string>>();
@@ -70,7 +70,7 @@ namespace WalletWasabi.Tests
 		public async void GetExchangeRatesAsyncAsync()
 		{
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-			using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/Blockchain/exchange-rates"))
+			using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/offchain/exchange-rates"))
 			{
 				Assert.True(response.StatusCode == HttpStatusCode.OK);
 
@@ -97,7 +97,7 @@ namespace WalletWasabi.Tests
 
 			var content = new StringContent($"'{signedTx.ToHex()}'", Encoding.UTF8, "application/json");
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
+			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
 
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
@@ -114,7 +114,7 @@ namespace WalletWasabi.Tests
 			var tx = await Global.RpcClient.GetRawTransactionAsync(utxo.OutPoint.Hash);
 			var content = new StringContent($"'{tx.ToHex()}'", Encoding.UTF8, "application/json");
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
+			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
 				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal("\"Transaction is already in the blockchain.\"", await response.Content.ReadAsStringAsync());
@@ -126,7 +126,7 @@ namespace WalletWasabi.Tests
 		{
 			var content = new StringContent($"''", Encoding.UTF8, "application/json");
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
+			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

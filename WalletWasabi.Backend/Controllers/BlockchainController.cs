@@ -18,19 +18,17 @@ using NBitcoin.RPC;
 namespace WalletWasabi.Backend.Controllers
 {
 	/// <summary>
-	/// To interact with the Bitcoin blockchain.
+	/// To interact with the Bitcoin Blockchain.
 	/// </summary>
 	[Produces("application/json")]
 	[Route("api/v1/btc/[controller]")]
 	public class BlockchainController : Controller
 	{
-		private readonly IMemoryCache _cache;
-		private readonly IExchangeRateProvider _exchangeRateProvider;
+		private IMemoryCache Cache { get; }
 
-		public BlockchainController(IMemoryCache memoryCache, IExchangeRateProvider exchangeRateProvider)
+		public BlockchainController(IMemoryCache memoryCache)
 		{
-			_cache = memoryCache;
-			_exchangeRateProvider = exchangeRateProvider;
+			Cache = memoryCache;
 		}
 
 		private static RPCClient RpcClient => Global.RpcClient;
@@ -81,10 +79,9 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				if (Network != Network.RegTest)
 				{
-					// ToDo: This is the most naive way to implement this.
 					// 1. Use the sanity check that under 5 satoshi per bytes should not be displayed.
 					// 2. Use the RPCResponse.Blocks output to avoid redundant RPC queries.
-					// 3. Implement caching.
+					// 3. Use caching.
 					var conservativeResponse = await GetEstimateSmartFeeAsync(target, EstimateSmartFeeMode.Conservative);
 					var economicalResponse = await GetEstimateSmartFeeAsync(target, EstimateSmartFeeMode.Economical);
 					var conservativeFee = conservativeResponse.FeeRate.FeePerK.Satoshi / 1000;
@@ -157,36 +154,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			return Ok("Transaction is successfully broadcasted.");
 		}
-
-		/// <summary>
-		/// Gets exchange rates for one Bitcoin.
-		/// </summary>
-		/// <returns>ExchangeRates[] contains ticker and exchange rate pairs.</returns>
-		/// <response code="200">Returns an array of exchange rates.</response>
-		[HttpGet("exchange-rates")]
-		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]
-		[ResponseCache(Duration = 60, Location=ResponseCacheLocation.Client)]
-		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
-		{
-
-			if (!_cache.TryGetValue(nameof(GetExchangeRatesAsync), out List<ExchangeRate> exchangeRates))
-			{
-				exchangeRates = await _exchangeRateProvider.GetExchangeRateAsync();
-
-				if (exchangeRates == null)
-				{
-					throw new HttpRequestException("BTC/USD exchange rate is not available.");
-				}
-
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
-
-				_cache.Set(nameof(GetExchangeRatesAsync), exchangeRates, cacheEntryOptions);
-			}
-
-			return exchangeRates;
-		}
-
+		
 		/// <summary>
 		/// Gets block filters from the specified block hash.
 		/// </summary>
@@ -235,17 +203,16 @@ namespace WalletWasabi.Backend.Controllers
 
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
 		{
-
 			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{Enum.GetName(typeof(EstimateSmartFeeMode), mode)}";
 
-			if (!_cache.TryGetValue(cacheKey, out EstimateSmartFeeResponse feeResponse))
+			if (!Cache.TryGetValue(cacheKey, out EstimateSmartFeeResponse feeResponse))
 			{
 				feeResponse = await RpcClient.EstimateSmartFeeAsync(target, mode);
 
 				var cacheEntryOptions = new MemoryCacheEntryOptions()
 					.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
 
-				_cache.Set(cacheKey, feeResponse, cacheEntryOptions);
+				Cache.Set(cacheKey, feeResponse, cacheEntryOptions);
 			}
 
 			return feeResponse;
