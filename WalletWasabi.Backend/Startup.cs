@@ -29,9 +29,8 @@ namespace WalletWasabi.Backend
 				{
 					Version = "v1",
 					Title = "Wallet Wasabi API",
-					Description = "Privacy oriented Bitcoin Web API",
-					TermsOfService = "None",
-					License = new License { Name = "Use under MIT", Url = "https://github.com/nopara73/WalletWasabi/blob/master/LICENSE.md" }
+					Description = "Privacy oriented Bitcoin Web API.",
+					License = new License { Name = "Use under MIT.", Url = "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md" }
 				});
 
 				// Set the comments path for the Swagger JSON and UI.
