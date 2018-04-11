@@ -111,7 +111,24 @@ namespace WalletWasabi.Logging
 				{
 					if (Modes.Contains(LogMode.Console))
 					{
-						Console.Write(finalLogMessage);
+						lock (Console.Out)
+						{
+							var color = Console.ForegroundColor;
+							switch (level)
+							{
+								case LogLevel.Warning:
+									color = ConsoleColor.Yellow;
+									break;
+								case LogLevel.Error:
+								case LogLevel.Critical:
+									color = ConsoleColor.Red;
+									break;
+							}
+
+							Console.ForegroundColor = color;
+							Console.Write(finalLogMessage);
+							Console.ResetColor();
+						}
 					}
 
 					if (Modes.Contains(LogMode.Console))
