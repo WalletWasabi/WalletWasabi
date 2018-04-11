@@ -320,7 +320,7 @@ namespace WalletWasabi.Services
 					if (hash == new uint256(fileName))
 					{
 						var blockBytes = await File.ReadAllBytesAsync(filePath);
-						return new Block(blockBytes);
+						return new Block(blockBytes, IndexDownloader.Network.Consensus);
 					}
 				}
 			}
@@ -749,7 +749,7 @@ namespace WalletWasabi.Services
 		{
 			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
 			using (var content = new StringContent($"'{transaction.Transaction.ToHex()}'", Encoding.UTF8, "application/json"))
-			using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/Blockchain/broadcast", content))
+			using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
 				if (response.StatusCode == HttpStatusCode.BadRequest)
 				{
