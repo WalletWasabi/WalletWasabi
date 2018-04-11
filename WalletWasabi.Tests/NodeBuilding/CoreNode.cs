@@ -288,7 +288,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return tasks.Select(b => b.GetAwaiter().GetResult()).ToArray();
 		}
 
-		public async Task<Block[]> GenerateEmptyBlocks(int height, BitcoinAddress minerAddress, int blockCount)
+		public async Task<Block[]> GenerateEmptyBlocksAsync(int height, BitcoinAddress minerAddress, int blockCount)
 		{
 			var rpc = CreateRpcClient();
 			var bestBlock = await rpc.GetBlockAsync(height);
@@ -321,7 +321,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return blocks.ToArray();
 		}
 
-		public async Task<Block[]> GenerateEmptyBlock(int height, BitcoinAddress minerAddress, int blockCount)
+		public async Task<Block[]> GenerateEmptyBlockAsync(int height, BitcoinAddress minerAddress, int blockCount)
 		{
 			var now = DateTimeOffset.UtcNow;
 			var rpc = CreateRpcClient();

@@ -1236,7 +1236,7 @@ namespace WalletWasabi.Tests
 				// Test synchronization after fork with different transactions.
 				// Create a fork that invalidates the blocks containing the funding transaction
 				_filtersProcessedByWalletCount = 0;
-				var winningFork = await RegTestFixture.BackendRegTestNode.GenerateEmptyBlocks(100,
+				var winningFork = await RegTestFixture.BackendRegTestNode.GenerateEmptyBlocksAsync(100,
 					new Key().PubKey.GetAddress(Global.RpcClient.Network), 10);
 
 				tip = await Global.RpcClient.GetBestBlockHashAsync();
