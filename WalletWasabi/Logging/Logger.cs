@@ -18,7 +18,7 @@ namespace WalletWasabi.Logging
 
         public static string FilePath { get; private set; } = "Log.txt";
 
-        public static string EntrySeparator { get; private set; } = "\n\n";
+        public static string EntrySeparator { get; private set; } = Environment.NewLine;
 
         public static string FileEntryEncryptionPassword { get; private set; } = null;
 
