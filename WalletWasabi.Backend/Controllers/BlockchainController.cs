@@ -26,14 +26,14 @@ namespace WalletWasabi.Backend.Controllers
 	{
 		private IMemoryCache Cache { get; }
 
+		private static RPCClient RpcClient => Global.RpcClient;
+
+		private static Network Network => Global.Config.Network;
+
 		public BlockchainController(IMemoryCache memoryCache)
 		{
 			Cache = memoryCache;
 		}
-
-		private static RPCClient RpcClient => Global.RpcClient;
-
-		private static Network Network => Global.Config.Network;
 
 		/// <summary>
 		/// Get fees for the requested confirmation targets based on Bitcoin Core's estimatesmartfee output.
@@ -174,7 +174,7 @@ namespace WalletWasabi.Backend.Controllers
 		/// <response code="404">If the hash is not found. This happens at blockhain reorg.</response>
 		[HttpGet("filters/{bestKnownBlockHash}")]
 		[ProducesResponseType(200)] // Note: If you add typeof(IList<string>) then swagger UI visualization will be ugly.
-		[ProducesResponseType(200)]
+		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
 		public IActionResult GetFilters(string bestKnownBlockHash)
