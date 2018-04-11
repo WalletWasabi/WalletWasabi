@@ -1172,7 +1172,7 @@ namespace WalletWasabi.Tests
 			var wallet = new WalletService(keyManager, indexDownloader, memPoolService, nodes, blocksFolderPath);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
-			Assert.Equal(0, wallet.Coins.Count);
+			Assert.Empty(wallet.Coins);
 
 			// Generate script
 			var scp = new Key().ScriptPubKey;
@@ -1198,7 +1198,7 @@ namespace WalletWasabi.Tests
 				{
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
-				Assert.Equal(1, wallet.Coins.Count);
+				Assert.Single(wallet.Coins);
 
 				// Send money before reorg.
 				var operations = new[]{
