@@ -120,5 +120,37 @@ namespace WalletWasabi.Backend.Controllers
 				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
 			}
 		}
+
+		/// <summary>
+		/// Alice registers her inputs.
+		/// </summary>
+		/// <returns>SignedBlindedOutput, UniqueId</returns>
+		/// <response code="200">SignedBlindedOutput, UniqueId</response>
+		[HttpPost("inputs")]
+		[ProducesResponseType(200)]
+		public IActionResult PostInputs()
+		{
+			return Ok();
+		}
+
+		/// <summary>
+		/// Bob registers his output.
+		/// </summary>
+		[HttpPost("output")]
+		[ProducesResponseType(204)]
+		public IActionResult PostOutput()
+		{
+			return NoContent();
+		}
+
+		/// <summary>
+		/// Alice posts her partial signatures.
+		/// </summary>
+		[HttpPost("signatures")]
+		[ProducesResponseType(204)]
+		public IActionResult PostSignatures()
+		{
+			return NoContent();
+		}
 	}
 }
