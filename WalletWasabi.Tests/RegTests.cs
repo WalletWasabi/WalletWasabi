@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1138,7 +1139,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		public async Task BuildTransactionValidations2TestAsync()
+		public async Task BuildTransactionReorgsTestAsync()
 		{
 			// Make sure fitlers are created on the server side.
 			await AssertFiltersInitializedAsync();
@@ -1173,13 +1174,14 @@ namespace WalletWasabi.Tests
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
-
+			var baseTip = await Global.RpcClient.GetBestBlockHashAsync();
+			
 			// Generate script
 			var scp = new Key().ScriptPubKey;
 			
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
-			var txid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
+			var fundingTxid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
 
 			// Generate some coins
 			await Global.RpcClient.GenerateAsync(2);
@@ -1235,19 +1237,31 @@ namespace WalletWasabi.Tests
 				
 				// Test synchronization after fork with different transactions.
 				// Create a fork that invalidates the blocks containing the funding transaction
-				_filtersProcessedByWalletCount = 0;
+				await Global.RpcClient.InvalidateBlockAsync(baseTip);
 				var winningFork = await RegTestFixture.BackendRegTestNode.GenerateEmptyBlocksAsync(100,
 					new Key().PubKey.GetAddress(Global.RpcClient.Network), 10);
 
 				tip = await Global.RpcClient.GetBestBlockHashAsync();
 				Assert.Equal(tip, winningFork.Last().GetHash());
 				
+				_filtersProcessedByWalletCount = 0;
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
+				
+				var curBlockHash = await Global.RpcClient.GetBestBlockHashAsync();
+				blockCount = await Global.RpcClient.GetBlockCountAsync();
 
-				// When we creates a winning fork, those transactions setted in the orphand blocks
-				// do not exist any more
-				var coin = wallet.Coins.First();
-				//var txCoin = await Global.RpcClient.GetRawTransactionAsync(coin.TransactionId, true);
+				// Make sure the funding transaction is not in any block of the chain
+				while (curBlockHash != Global.RpcClient.Network.GenesisHash)
+				{
+					var block = await Global.RpcClient.GetBlockAsync(curBlockHash);
+
+					if (block.Transactions.Any(tx => tx.GetHash() == fundingTxid))
+					{
+						throw new Exception($"Transaction found in block at heigh {blockCount}  hash: {block.GetHash()}");
+					}
+					curBlockHash = block.Header.HashPrevBlock;
+					blockCount--;
+				}
 				
 				// There shouldn't be any `confirmed` coin
 				Assert.Equal(0, wallet.Coins.Count(x=>x.Confirmed)); 
