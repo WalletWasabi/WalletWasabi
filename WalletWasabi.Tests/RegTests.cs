@@ -1264,7 +1264,26 @@ namespace WalletWasabi.Tests
 				}
 				
 				// There shouldn't be any `confirmed` coin
-				Assert.Equal(0, wallet.Coins.Count(x=>x.Confirmed)); 
+				Assert.Empty(wallet.Coins.Where(x=>x.Confirmed)); 
+
+				// Get some money, make it confirm.
+				// this is necesary because we are in a fork now.
+				fundingTxid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC), replaceable: true);
+				await Task.Delay(1000); // Waits for the funding transaction get to the mempool.
+				Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
+
+				var fundingBumpTxid = await Global.RpcClient.BumpFeeAsync(fundingTxid);
+				await Task.Delay(2000); // Waits for the funding transaction get to the mempool.
+				Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
+				Assert.Single(wallet.Coins.Where(x => x.TransactionId == fundingBumpTxid.TransactionId));
+
+				// Confirm the coin
+				await Global.RpcClient.GenerateAsync(1);
+				_filtersProcessedByWalletCount = 0;
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
+
+				// There shouldn't be any `confirmed` coin
+				Assert.Single(wallet.Coins.Where(x=>x.Confirmed && x.TransactionId == fundingBumpTxid.TransactionId));
 			}
 			finally
 			{
