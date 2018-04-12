@@ -259,6 +259,37 @@ namespace WalletWasabi.Services
 				keys = KeyManager.GetKeys().ToList();
 			}
 
+			// Check double spending tx (invalid transactions has to be rejected)
+			var spentTxOuts = Coins.SelectMany(x=>x.SpentOutputs);
+			var txSpendingOutputs = tx.Transaction.Inputs.ToTxoRefs();
+
+			var alreadySpentOutputs = spentTxOuts.Intersect(txSpendingOutputs).ToArray();
+
+			// if the received tx spends any already-spent outputs and this is a RBF tx 
+			// then remove the coins in order to replace them for those in the new tx (RBF) 
+			if (alreadySpentOutputs.Any())
+			{
+				if (tx.Transaction.RBF)
+				{
+					foreach (var spentOutput in alreadySpentOutputs)
+					{
+						var coinsToreplace = Coins.Where(x => x.SpentOutputs.Contains(spentOutput)).ToArray();
+						for (var j = 0; j < coinsToreplace.Length; j++)
+						{
+							if (!Coins.TryRemove(coinsToreplace[j]))
+							{
+								// what here? retry?
+							}
+						}
+					}
+				}
+				else // tx is double spending at least one output
+				{
+					// just discard it
+					return;
+				}
+			}
+			
 			// If transaction received to any of the wallet keys:
 			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
 			{
@@ -281,7 +312,7 @@ namespace WalletWasabi.Services
 							continue;
 						}
 					}
-
+					
 					foundKey.KeyState = KeyState.Used;
 					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, foundKey.Label, null);
 					Coins.Add(coin);
