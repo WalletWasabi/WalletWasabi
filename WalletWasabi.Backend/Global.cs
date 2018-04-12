@@ -37,6 +37,8 @@ namespace WalletWasabi.Backend
 
 		public static IndexBuilderService IndexBuilderService { get; private set; }
 
+		public static CcjCoordinator Coordinator { get; private set; }
+
 		public static Config Config { get; private set; }
 		
 		public async static Task InitializeAsync(Network network = null, string rpcuser = null, string rpcpassword = null, RPCClient rpc = null)
@@ -89,6 +91,9 @@ namespace WalletWasabi.Backend
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
 			IndexBuilderService = new IndexBuilderService(RpcClient, indexFilePath, utxoSetFilePath);
 			IndexBuilderService.Synchronize();
+
+			Coordinator = new CcjCoordinator();
+			Coordinator.Start();
 		}
 
 		public static async Task InitializeConfigAsync()

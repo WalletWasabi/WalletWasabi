@@ -268,6 +268,11 @@ namespace WalletWasabi.Services
 
 							foreach (var tx in block.Transactions)
 							{
+								// If stop was requested return.
+								// Because this tx iteration can take even minutes
+								// It doesn't need to be accessed with a thread safe fasion with Interlocked through IsRunning, this may have some performance benefit
+								if (_running != 1) return; 
+
 								for (int i = 0; i < tx.Outputs.Count; i++)
 								{
 									var output = tx.Outputs[i];
