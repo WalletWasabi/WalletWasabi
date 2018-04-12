@@ -1,3 +1,3 @@
 # Contributing to Wallet Wasabi
 
-Use tabs, never spaces!
+Use tabs for indentation, NOT SPACES!
