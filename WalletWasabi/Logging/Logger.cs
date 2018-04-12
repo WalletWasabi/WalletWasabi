@@ -18,7 +18,7 @@ namespace WalletWasabi.Logging
 
         public static string FilePath { get; private set; } = "Log.txt";
 
-        public static string EntrySeparator { get; private set; } = "\n\n";
+        public static string EntrySeparator { get; private set; } = Environment.NewLine;
 
         public static string FileEntryEncryptionPassword { get; private set; } = null;
 
@@ -105,13 +105,30 @@ namespace WalletWasabi.Logging
                 message = string.IsNullOrWhiteSpace(message) ? "" : message;
                 category = string.IsNullOrWhiteSpace(category) ? "" : category;
 
-                var finalLogMessage = $"{level.ToString().ToUpperInvariant()} {category} {DateTimeOffset.UtcNow}\n{message}{EntrySeparator}";
+                var finalLogMessage = $"{DateTime.UtcNow:u} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
 
 				lock (Lock)
 				{
 					if (Modes.Contains(LogMode.Console))
 					{
-						Console.Write(finalLogMessage);
+						lock (Console.Out)
+						{
+							var color = Console.ForegroundColor;
+							switch (level)
+							{
+								case LogLevel.Warning:
+									color = ConsoleColor.Yellow;
+									break;
+								case LogLevel.Error:
+								case LogLevel.Critical:
+									color = ConsoleColor.Red;
+									break;
+							}
+
+							Console.ForegroundColor = color;
+							Console.Write(finalLogMessage);
+							Console.ResetColor();
+						}
 					}
 
 					if (Modes.Contains(LogMode.Console))
