@@ -294,11 +294,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 			var bestBlock = await rpc.GetBlockAsync(height);
 			ConcurrentChain chain = null;
 			var blocks = new List<Block>();
-			var now = MockTime == null ? DateTimeOffset.UtcNow : MockTime.Value;
+			var now = MockTime ?? DateTimeOffset.UtcNow;
 			using(var node = CreateNodeClient())
 			{
 				node.VersionHandshake();
-				chain = node.GetChain();
+				chain = node.GetChain(bestBlock.Header.GetHash());
+
 				for(var i = 0; i < blockCount; i++)
 				{
 					uint nonce = 0;
