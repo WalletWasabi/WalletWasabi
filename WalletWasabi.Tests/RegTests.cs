@@ -1241,12 +1241,9 @@ namespace WalletWasabi.Tests
 				// Test synchronization after fork with different transactions.
 				// Create a fork that invalidates the blocks containing the funding transaction
 				_filtersProcessedByWalletCount = 0;
-				var bc1 = Global.RpcClient.GetBlockCount();
 				await Global.RpcClient.InvalidateBlockAsync(baseTip);
-				var bc2 = Global.RpcClient.GetBlockCount();
 				await Global.RpcClient.SendCommandAsync("abandontransaction", fundingTxid.ToString());
 				await Global.RpcClient.GenerateAsync(10);
-				var bc3 = Global.RpcClient.GetBlockCount();
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
 
 				var curBlockHash = await Global.RpcClient.GetBestBlockHashAsync();
