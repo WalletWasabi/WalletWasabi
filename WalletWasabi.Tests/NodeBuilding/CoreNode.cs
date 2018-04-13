@@ -287,7 +287,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			rpc.SendBatch();
 			return tasks.Select(b => b.GetAwaiter().GetResult()).ToArray();
 		}
-
+		
 		private List<uint256> _toMalleate = new List<uint256>();
 		public void Malleate(uint256 txId)
 		{
@@ -341,7 +341,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 			node.PingPong();
 		}
-
+		
 		public Block[] FindBlock(int blockCount = 1, bool includeMempool = true)
 		{
 			SelectMempoolTransactions();

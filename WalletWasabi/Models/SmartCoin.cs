@@ -45,11 +45,15 @@ namespace WalletWasabi.Models
 		[JsonProperty(Order = 8)]
 		public TxoRef[] SpentOutputs { get; }
 
+		[JsonProperty(Order = 9)]
+		[JsonConverter(typeof(FunnyBoolConverter))]
+		public bool RBF { get; }
+
 		public bool Unspent => SpenderTransactionId == null;
 		public bool Confirmed => Height != Height.MemPool && Height != Height.Unknown;
 
 		[JsonConstructor]
-		public SmartCoin(uint256 transactionId, int index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, string label = "", uint256 spenderTransactionId = null)
+		public SmartCoin(uint256 transactionId, int index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, string label = "", uint256 spenderTransactionId = null)
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
@@ -59,6 +63,7 @@ namespace WalletWasabi.Models
 			Height = height;
 			Label = Guard.Correct(label);
 			SpenderTransactionId = spenderTransactionId;
+			RBF = rbf;
 		}
 
 		public Coin ToCoin()

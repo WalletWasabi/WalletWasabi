@@ -16,10 +16,12 @@ using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1135,6 +1137,163 @@ namespace WalletWasabi.Tests
 			}
 
 		}
+
+		[Fact]
+		public async Task BuildTransactionReorgsTestAsync()
+		{
+			// Make sure fitlers are created on the server side.
+			await AssertFiltersInitializedAsync();
+
+			var network = Global.RpcClient.Network;
+
+			// Create the services.
+			// 1. Create connection service.
+			var nodes = new NodesGroup(Global.Config.Network,
+					requirements: new NodeRequirement
+					{
+						RequiredServices = NodeServices.Network,
+						MinVersion = ProtocolVersion_WITNESS_VERSION
+					});
+			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+
+			// 2. Create mempool service.
+			var memPoolService = new MemPoolService();
+			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+
+			// 3. Create index downloader service.
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Index{Global.RpcClient.Network}.dat");
+			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+
+			// 4. Create key manager service.
+			var keyManager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
+
+			// 5. Create wallet service.
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
+			var wallet = new WalletService(keyManager, indexDownloader, memPoolService, nodes, blocksFolderPath);
+			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
+
+			Assert.Empty(wallet.Coins);
+			var baseTip = await Global.RpcClient.GetBestBlockHashAsync();
+			
+			// Generate script
+			var scp = new Key().ScriptPubKey;
+			
+			// Get some money, make it confirm.
+			var key = wallet.GetReceiveKey("foo label");
+			var fundingTxid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
+
+			// Generate some coins
+			await Global.RpcClient.GenerateAsync(2);
+
+			try
+			{
+				nodes.Connect(); // Start connection service.
+				node.VersionHandshake(); // Start mempool service.
+				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
+
+				// Wait until the filter our previous transaction is present.
+				var blockCount = await Global.RpcClient.GetBlockCountAsync();
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
+
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
+				Assert.Single(wallet.Coins);
+
+				// Send money before reorg.
+				var operations = new[]{
+					new WalletService.Operation(scp, Money.Coins(0.011m), "") };
+				var btx1 = await wallet.BuildTransactionAsync("password", operations, 2);
+				await wallet.SendTransactionAsync(btx1.Transaction);
+
+				operations = new[]{
+					new WalletService.Operation(scp, Money.Coins(0.012m), "") };
+				var btx2 = await wallet.BuildTransactionAsync("password", operations, 2, allowUnconfirmed: true);
+				await wallet.SendTransactionAsync(btx2.Transaction);
+
+				// Test synchronization after fork.
+				// Invalidate the blocks containing the funding transaction
+				var tip = await Global.RpcClient.GetBestBlockHashAsync();
+				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 1
+				tip = await Global.RpcClient.GetBestBlockHashAsync();
+				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 2
+
+				// Generate three new blocks (replace the previous invalidated ones)
+				_filtersProcessedByWalletCount = 0;
+				await Global.RpcClient.GenerateAsync(3);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
+
+				// Send money after reorg.
+				// When we invalidate a block, those transactions setted in the invalidated block
+				// are reintroduced when we generate a new block though the rpc call 
+				operations = new[]{
+					new WalletService.Operation(scp, Money.Coins(0.013m), "") };
+				var btx3 = await wallet.BuildTransactionAsync("password", operations, 2);
+				await wallet.SendTransactionAsync(btx3.Transaction);
+
+				operations = new[]{
+					new WalletService.Operation(scp, Money.Coins(0.014m), "") };
+				var btx4 = await wallet.BuildTransactionAsync("password", operations, 2, allowUnconfirmed: true);
+				await wallet.SendTransactionAsync(btx4.Transaction);
+
+				// Test synchronization after fork with different transactions.
+				// Create a fork that invalidates the blocks containing the funding transaction
+				_filtersProcessedByWalletCount = 0;
+				await Global.RpcClient.InvalidateBlockAsync(baseTip);
+				await Global.RpcClient.SendCommandAsync("abandontransaction", fundingTxid.ToString());
+				await Global.RpcClient.GenerateAsync(10);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
+
+				var curBlockHash = await Global.RpcClient.GetBestBlockHashAsync();
+				blockCount = await Global.RpcClient.GetBlockCountAsync();
+
+				// Make sure the funding transaction is not in any block of the chain
+				while (curBlockHash != Global.RpcClient.Network.GenesisHash)
+				{
+					var block = await Global.RpcClient.GetBlockAsync(curBlockHash);
+
+					if (block.Transactions.Any(tx => tx.GetHash() == fundingTxid))
+					{
+						throw new Exception($"Transaction found in block at heigh {blockCount}  hash: {block.GetHash()}");
+					}
+					curBlockHash = block.Header.HashPrevBlock;
+					blockCount--;
+				}
+				
+				// There shouldn't be any `confirmed` coin
+				Assert.Empty(wallet.Coins.Where(x=>x.Confirmed)); 
+
+				// Get some money, make it confirm.
+				// this is necesary because we are in a fork now.
+				fundingTxid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC), replaceable: true);
+				await Task.Delay(1000); // Waits for the funding transaction get to the mempool.
+				Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
+
+				var fundingBumpTxid = await Global.RpcClient.BumpFeeAsync(fundingTxid);
+				await Task.Delay(2000); // Waits for the funding transaction get to the mempool.
+				Assert.Single(wallet.Coins.Where(x => !x.Confirmed));
+				Assert.Single(wallet.Coins.Where(x => x.TransactionId == fundingBumpTxid.TransactionId));
+
+				// Confirm the coin
+				_filtersProcessedByWalletCount = 0;
+				await Global.RpcClient.GenerateAsync(1);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
+
+				// There shouldn't be any `confirmed` coin
+				Assert.Single(wallet.Coins.Where(x=>x.Confirmed && x.TransactionId == fundingBumpTxid.TransactionId));
+			}
+			finally
+			{
+				wallet?.Dispose();
+				// Dispose index downloader service.
+				await indexDownloader?.StopAsync();
+				// Dispose connection service.
+				nodes?.Dispose();
+			}
+		}
+		
 		#endregion
 	}
 }

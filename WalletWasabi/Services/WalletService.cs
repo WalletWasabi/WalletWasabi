@@ -253,37 +253,83 @@ namespace WalletWasabi.Services
 
 		private void ProcessTransaction(SmartTransaction tx, List<HdPubKey> keys = null)
 		{
+			//iterate tx
+			//	if already have the coin
+			//		if NOT mempool
+			//			update height
+
+			//if double spend
+			//	if mempool
+			//		if all double spent coins are mempool and RBF
+			//			remove double spent coins(if other coin spends it, remove that too and so on) // will add later if they came to our keys
+			//		else 
+			//			return
+			//	else // new confirmation always enjoys priority
+			//		remove double spent coins recursively(if other coin spends it, remove that too and so on)// will add later if they came to our keys
+
+			//iterate tx
+			//	if came to our keys
+			//		add coin
+
 			// If key list is not provided refresh the key list.
 			if (keys == null)
 			{
 				keys = KeyManager.GetKeys().ToList();
-			}
+			}			
 
-			// If transaction received to any of the wallet keys:
 			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
 			{
+				// If we already had it, just update the height. Maybe got from mempool to block or reorged.
+				var foundCoin = Coins.SingleOrDefault(x => x.TransactionId == tx.GetHash() && x.Index == i);
+				if (foundCoin != default)
+				{
+					// If tx height is mempool then don't, otherwise update the height.
+					if (tx.Height != Height.MemPool)
+					{
+						foundCoin.Height = tx.Height;
+					}
+				}
+			}
+
+			// If double spend:
+			IEnumerable<SmartCoin> doubleSpends = Coins.Where(x => tx.Transaction.Inputs.Any(y => x.SpentOutputs.Select(z => z.ToOutPoint()).Contains(y.PrevOut)));
+			if(doubleSpends.Count() > 0)
+			{
+				if (tx.Height == Height.MemPool)
+				{
+					// if all double spent coins are mempool and RBF
+					if (doubleSpends.All(x => x.Height == Height.MemPool && x.RBF))
+					{
+						// remove double spent coins(if other coin spends it, remove that too and so on) // will add later if they came to our keys
+						foreach (var doubleSpentCoin in doubleSpends)
+						{
+							RemoveCoinRecursively(doubleSpentCoin);
+						}
+					}
+					else
+					{
+						return;
+					}
+				}
+				else // new confirmation always enjoys priority
+				{
+					// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
+					foreach(var doubleSpentCoin in doubleSpends)
+					{
+						RemoveCoinRecursively(doubleSpentCoin);
+					}
+				}
+			}
+
+			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
+			{
+				// If transaction received to any of the wallet keys:
 				var output = tx.Transaction.Outputs[i];
 				HdPubKey foundKey = keys.SingleOrDefault(x => x.GetP2wpkhScript() == output.ScriptPubKey);
 				if (foundKey != default)
 				{
-					// If we already had it, just update the height. Maybe got from mempool to block or reorged.
-					var foundCoin = Coins.SingleOrDefault(x => x.TransactionId == tx.GetHash() && x.Index == i);
-					if (foundCoin != default)
-					{
-						// If tx height is mempool then don't, otherwise update the height.
-						if (tx.Height == Height.MemPool)
-						{
-							continue;
-						}
-						else
-						{
-							foundCoin.Height = tx.Height;
-							continue;
-						}
-					}
-
 					foundKey.KeyState = KeyState.Used;
-					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, foundKey.Label, null);
+					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, foundKey.Label, null);
 					Coins.Add(coin);
 
 					// Make sure there's always 21 clean keys generated and indexed.
@@ -694,7 +740,7 @@ namespace WalletWasabi.Services
 			for (var i = 0; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, spentOutputs, Height.Unknown);
+				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, spentOutputs, Height.Unknown, tx.RBF);
 				if (KeyManager.GetKeys(KeyState.Clean).Select(x => x.GetP2wpkhScript()).Contains(coin.ScriptPubKey))
 				{
 					coin.Label = changeLabel;
