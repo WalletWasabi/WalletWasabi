@@ -192,7 +192,7 @@ namespace WalletWasabi.Logging
             }
         }
 
-        private static void Log<T>(LogLevel level, string message) => Log(level, message, typeof(T).ToString());
+        private static void Log<T>(LogLevel level, string message) => Log(level, message, typeof(T).Name);
 
 		#endregion
 
