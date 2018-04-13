@@ -33,16 +33,16 @@ namespace WalletWasabi.Tests
 			var height = Height.MemPool;
 			var label = "foo";
 
-			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, label, txId);
+			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, label, txId);
 			// If the txid or the index differs, equality should think it's a different coin.
-			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, label, txId);
+			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, label, txId);
 			var differentOutput = tx.Outputs[1];
 			var differentSpentOutputs = new[]
 			{
 				new TxoRef(txId, 0)
 			};
 			// If the txid and the index is the same, equality should think it's the same coin.
-			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, "boo", null);
+			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, tx.RBF, "boo", null);
 
 			Assert.Equal(coin, sameCoin);
 			Assert.NotEqual(coin, differentCoin);
@@ -61,7 +61,7 @@ namespace WalletWasabi.Tests
 			var height = Height.MemPool;
 			var label = "foo";
 
-			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, label, txId);
+			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, label, txId);
 
 			var serialized = JsonConvert.SerializeObject(coin);
 			Debug.WriteLine(serialized);

@@ -1181,7 +1181,7 @@ namespace WalletWasabi.Tests
 			
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
-			var fundingTxid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
+			var fundingTxid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
 
 			// Generate some coins
 			await Global.RpcClient.GenerateAsync(2);
@@ -1204,12 +1204,14 @@ namespace WalletWasabi.Tests
 
 				// Send money before reorg.
 				var operations = new[]{
-					new WalletService.Operation(scp, Money.Coins(0.5m), "") };
-				var btx = await wallet.BuildTransactionAsync("password", operations, 2);
+					new WalletService.Operation(scp, Money.Coins(0.011m), "") };
+				var btx1 = await wallet.BuildTransactionAsync("password", operations, 2);
+				await wallet.SendTransactionAsync(btx1.Transaction);
 
 				operations = new[]{
-					new WalletService.Operation(scp, Money.Coins(0.5m), "") };
-				btx = await wallet.BuildTransactionAsync("password", operations, 2);
+					new WalletService.Operation(scp, Money.Coins(0.012m), "") };
+				var btx2 = await wallet.BuildTransactionAsync("password", operations, 2, allowUnconfirmed: true);
+				await wallet.SendTransactionAsync(btx2.Transaction);
 
 				// Test synchronization after fork.
 				// Invalidate the blocks containing the funding transaction
@@ -1218,7 +1220,7 @@ namespace WalletWasabi.Tests
 				tip = await Global.RpcClient.GetBestBlockHashAsync();
 				await Global.RpcClient.InvalidateBlockAsync(tip); // Reorg 2
 
-				// Generate two new blocks (replace the previous invalidated ones)
+				// Generate three new blocks (replace the previous invalidated ones)
 				_filtersProcessedByWalletCount = 0;
 				await Global.RpcClient.GenerateAsync(3);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
@@ -1227,26 +1229,26 @@ namespace WalletWasabi.Tests
 				// When we invalidate a block, those transactions setted in the invalidated block
 				// are reintroduced when we generate a new block though the rpc call 
 				operations = new[]{
-					new WalletService.Operation(scp, Money.Coins(0.5m), "") };
-				btx = await wallet.BuildTransactionAsync("password", operations, 2);
+					new WalletService.Operation(scp, Money.Coins(0.013m), "") };
+				var btx3 = await wallet.BuildTransactionAsync("password", operations, 2);
+				await wallet.SendTransactionAsync(btx3.Transaction);
 
 				operations = new[]{
-					new WalletService.Operation(scp, Money.Coins(0.5m), "") };
-				btx = await wallet.BuildTransactionAsync("password", operations, 2);
+					new WalletService.Operation(scp, Money.Coins(0.014m), "") };
+				var btx4 = await wallet.BuildTransactionAsync("password", operations, 2, allowUnconfirmed: true);
+				await wallet.SendTransactionAsync(btx4.Transaction);
 
-				
 				// Test synchronization after fork with different transactions.
 				// Create a fork that invalidates the blocks containing the funding transaction
-				await Global.RpcClient.InvalidateBlockAsync(baseTip);
-				var winningFork = await RegTestFixture.BackendRegTestNode.GenerateEmptyBlocksAsync(100,
-					new Key().PubKey.GetAddress(Global.RpcClient.Network), 10);
-
-				tip = await Global.RpcClient.GetBestBlockHashAsync();
-				Assert.Equal(tip, winningFork.Last().GetHash());
-				
 				_filtersProcessedByWalletCount = 0;
+				var bc1 = Global.RpcClient.GetBlockCount();
+				await Global.RpcClient.InvalidateBlockAsync(baseTip);
+				var bc2 = Global.RpcClient.GetBlockCount();
+				await Global.RpcClient.SendCommandAsync("abandontransaction", fundingTxid.ToString());
+				await Global.RpcClient.GenerateAsync(10);
+				var bc3 = Global.RpcClient.GetBlockCount();
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
-				
+
 				var curBlockHash = await Global.RpcClient.GetBestBlockHashAsync();
 				blockCount = await Global.RpcClient.GetBlockCountAsync();
 
@@ -1278,8 +1280,8 @@ namespace WalletWasabi.Tests
 				Assert.Single(wallet.Coins.Where(x => x.TransactionId == fundingBumpTxid.TransactionId));
 
 				// Confirm the coin
-				await Global.RpcClient.GenerateAsync(1);
 				_filtersProcessedByWalletCount = 0;
+				await Global.RpcClient.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 				// There shouldn't be any `confirmed` coin
@@ -1293,7 +1295,6 @@ namespace WalletWasabi.Tests
 				// Dispose connection service.
 				nodes?.Dispose();
 			}
-
 		}
 		
 		#endregion
