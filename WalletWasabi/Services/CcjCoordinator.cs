@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace WalletWasabi.Services
 			RoundsListLock = new AsyncLock();
 		}
 
-		public async Task StartNewRoundAsync(Money denomination)
+		public async Task StartNewRoundAsync(RPCClient rpc, Money denomination, int confirmationTarget, decimal coordinatorFeePercent)
 		{
 			using (await RoundsListLock.LockAsync())
 			{
@@ -31,7 +32,7 @@ namespace WalletWasabi.Services
 					throw new InvalidOperationException("Maximum two concurrently running round is allowed the same time.");
 				}
 				
-				var round = new CcjRound(denomination);
+				var round = new CcjRound(rpc, denomination, confirmationTarget, coordinatorFeePercent);
 				await round.ExecuteNextPhaseAsync();
 				Rounds.Add(round);
 			}

@@ -15,19 +15,27 @@ namespace WalletWasabi.Backend
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class CcjRoundConfig
-    {
+	{
 		[JsonProperty(PropertyName = "Denomination")]
 		[JsonConverter(typeof(MoneyConverter))]
 		public Money Denomination { get; private set; }
+
+		[JsonProperty(PropertyName = "ConfirmationTarget")]
+		public int? ConfirmationTarget { get; private set; }
+
+		[JsonProperty(PropertyName = "CoordinatorFeePercent")]
+		public decimal? CoordinatorFeePercent { get; private set; }
 
 		public CcjRoundConfig()
 		{
 
 		}
 
-		public CcjRoundConfig(Money denomination)
+		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent)
 		{
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
+			ConfirmationTarget = Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
+			CoordinatorFeePercent = Guard.NotNull(nameof(coordinatorFeePercent), coordinatorFeePercent);
 		}
 
 		public async Task ToFileAsync(string path)
@@ -45,6 +53,8 @@ namespace WalletWasabi.Backend
 			if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException(nameof(path));
 
 			Denomination = new Money(0.1m, MoneyUnit.BTC);
+			ConfirmationTarget = 144; // 1 day
+			CoordinatorFeePercent = 0.1m;
 
 			if (!File.Exists(path))
 			{
@@ -56,6 +66,8 @@ namespace WalletWasabi.Backend
 				var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
 
 				Denomination = config.Denomination ?? Denomination;
+				ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
+				CoordinatorFeePercent = config.CoordinatorFeePercent ?? CoordinatorFeePercent;
 			}
 
 			await ToFileAsync(path);
@@ -71,7 +83,15 @@ namespace WalletWasabi.Backend
 			string jsonString = await File.ReadAllTextAsync(path, Encoding.UTF8);
 			var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
 
-			if(Denomination != config.Denomination)
+			if (Denomination != config.Denomination)
+			{
+				return true;
+			}
+			if (ConfirmationTarget != config.ConfirmationTarget)
+			{
+				return true;
+			}
+			if (CoordinatorFeePercent != config.CoordinatorFeePercent)
 			{
 				return true;
 			}
