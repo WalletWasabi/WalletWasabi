@@ -26,16 +26,20 @@ namespace WalletWasabi.Backend
 		[JsonProperty(PropertyName = "CoordinatorFeePercent")]
 		public decimal? CoordinatorFeePercent { get; private set; }
 
+		[JsonProperty(PropertyName = "AnonymitySet")]
+		public int? AnonymitySet { get; private set; }
+
 		public CcjRoundConfig()
 		{
 
 		}
 
-		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent)
+		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet)
 		{
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
 			ConfirmationTarget = Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
 			CoordinatorFeePercent = Guard.NotNull(nameof(coordinatorFeePercent), coordinatorFeePercent);
+			AnonymitySet = Guard.NotNull(nameof(anonymitySet), anonymitySet);
 		}
 
 		public async Task ToFileAsync(string path)
@@ -55,6 +59,7 @@ namespace WalletWasabi.Backend
 			Denomination = new Money(0.1m, MoneyUnit.BTC);
 			ConfirmationTarget = 144; // 1 day
 			CoordinatorFeePercent = 0.1m;
+			AnonymitySet = 100;
 
 			if (!File.Exists(path))
 			{
@@ -68,6 +73,7 @@ namespace WalletWasabi.Backend
 				Denomination = config.Denomination ?? Denomination;
 				ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
 				CoordinatorFeePercent = config.CoordinatorFeePercent ?? CoordinatorFeePercent;
+				AnonymitySet = config.AnonymitySet ?? AnonymitySet;
 			}
 
 			await ToFileAsync(path);
@@ -92,6 +98,10 @@ namespace WalletWasabi.Backend
 				return true;
 			}
 			if (CoordinatorFeePercent != config.CoordinatorFeePercent)
+			{
+				return true;
+			}
+			if (AnonymitySet != config.AnonymitySet)
 			{
 				return true;
 			}

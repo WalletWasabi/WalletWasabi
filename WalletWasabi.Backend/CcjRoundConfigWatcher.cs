@@ -57,7 +57,7 @@ namespace WalletWasabi.Backend
 
 								await RoundConfig.LoadOrCreateDefaultFileAsync(RoundConfigFilePath);
 
-								await Coordinator.StartNewRoundAsync(Global.RpcClient, RoundConfig.Denomination, (int)RoundConfig.ConfirmationTarget, (decimal) RoundConfig.CoordinatorFeePercent);
+								await Coordinator.StartNewRoundAsync(Global.RpcClient, RoundConfig.Denomination, (int)RoundConfig.ConfirmationTarget, (decimal) RoundConfig.CoordinatorFeePercent, (int)RoundConfig.AnonymitySet);
 							}
 						}
 						catch (TaskCanceledException ex)

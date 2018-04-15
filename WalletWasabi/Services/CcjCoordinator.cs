@@ -23,7 +23,7 @@ namespace WalletWasabi.Services
 			RoundsListLock = new AsyncLock();
 		}
 
-		public async Task StartNewRoundAsync(RPCClient rpc, Money denomination, int confirmationTarget, decimal coordinatorFeePercent)
+		public async Task StartNewRoundAsync(RPCClient rpc, Money denomination, int confirmationTarget, decimal coordinatorFeePercent, int anonymitySet)
 		{
 			using (await RoundsListLock.LockAsync())
 			{
@@ -32,7 +32,7 @@ namespace WalletWasabi.Services
 					throw new InvalidOperationException("Maximum two concurrently running round is allowed the same time.");
 				}
 				
-				var round = new CcjRound(rpc, denomination, confirmationTarget, coordinatorFeePercent);
+				var round = new CcjRound(rpc, denomination, confirmationTarget, coordinatorFeePercent, anonymitySet);
 				await round.ExecuteNextPhaseAsync();
 				Rounds.Add(round);
 			}

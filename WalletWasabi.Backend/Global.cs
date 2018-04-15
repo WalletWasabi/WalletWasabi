@@ -99,7 +99,7 @@ namespace WalletWasabi.Backend
 			IndexBuilderService.Synchronize();
 
 			Coordinator = new CcjCoordinator();
-			await Coordinator.StartNewRoundAsync(RpcClient, RoundConfig.Denomination, (int)RoundConfig.ConfirmationTarget, (decimal)RoundConfig.CoordinatorFeePercent);
+			await Coordinator.StartNewRoundAsync(RpcClient, RoundConfig.Denomination, (int)RoundConfig.ConfirmationTarget, (decimal)RoundConfig.CoordinatorFeePercent, (int)RoundConfig.AnonymitySet);
 
 			RoundConfigWatcher = new CcjRoundConfigWatcher(RoundConfig, RoundConfigFilePath, Coordinator);
 			RoundConfigWatcher.Start(TimeSpan.FromSeconds(10)); // Every 10 seconds check the config
