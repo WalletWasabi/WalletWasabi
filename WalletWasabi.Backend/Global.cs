@@ -93,7 +93,7 @@ namespace WalletWasabi.Backend
 			IndexBuilderService.Synchronize();
 
 			Coordinator = new CcjCoordinator();
-			Coordinator.Start();
+			await Coordinator.StartNewRoundAsync();
 		}
 
 		public static async Task InitializeConfigAsync()

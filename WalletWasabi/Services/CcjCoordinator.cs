@@ -1,68 +1,77 @@
-﻿using System;
+﻿using Nito.AsyncEx;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.ChaumianCoinJoin;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services
 {
 	public class CcjCoordinator
-    {
-		/// <summary>
-		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
-		/// </summary>
-		private long _running;
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
+	{
+		private List<CcjRound> Rounds { get; }
+		private AsyncLock RoundsListLock { get; }
 
 		public CcjCoordinator()
 		{
-			_running = 0;
+			Rounds = new List<CcjRound>();
+			RoundsListLock = new AsyncLock();
 		}
 
-		public void Start()
+		public async Task StartNewRoundAsync()
 		{
-			Interlocked.Exchange(ref _running, 1);
-
-			Task.Run(async () =>
+			using (RoundsListLock.Lock())
 			{
-				try
+				if (Rounds.Count(x => x.Status == CcjRoundStatus.Running) > 1)
 				{
-					while (IsRunning)
-					{
-						try
-						{
-							// If stop was requested return.
-							if (IsRunning == false) return;
-
-							await Task.Delay(1000); // just dummy for now
-						}
-						catch (Exception ex)
-						{
-							Logger.LogDebug<CcjCoordinator>(ex);
-						}
-					}
+					throw new InvalidOperationException("Maximum two concurrently running round is allowed the same time.");
 				}
-				finally
-				{
-					if (IsStopping)
-					{
-						Interlocked.Exchange(ref _running, 3);
-					}
-				}
-			});
-		}
-
-		public async Task StopAsync()
-		{
-			if (IsRunning)
-			{
-				Interlocked.Exchange(ref _running, 2);
+				var round = new CcjRound();
+				await round.ExecuteNextPhaseAsync();
+				Rounds.Add(round);
 			}
-			while (IsStopping)
+		}
+
+		public CcjRound GetLastSuccessfulRound()
+		{
+			using (RoundsListLock.Lock())
 			{
-				await Task.Delay(50);
+				return Rounds.LastOrDefault(x => x.Status == CcjRoundStatus.Succeded);
+			}
+		}
+
+		public CcjRound GetLastFailedRound()
+		{
+			using (RoundsListLock.Lock())
+			{
+				return Rounds.LastOrDefault(x => x.Status == CcjRoundStatus.Failed);
+			}
+		}
+
+		public CcjRound GetLastRound()
+		{
+			using (RoundsListLock.Lock())
+			{
+				return Rounds.LastOrDefault(x => x.Status != CcjRoundStatus.Running);
+			}
+		}
+
+		public CcjRound GetCurrentRound()
+		{
+			using (RoundsListLock.Lock())
+			{
+				return Rounds.First(x => x.Status == CcjRoundStatus.Running); // not FirstOrDefault, it must always exist
+			}
+		}
+
+		public CcjRound GetNextRound()
+		{
+			using (RoundsListLock.Lock())
+			{
+				return Rounds.LastOrDefault(x => x.Status == CcjRoundStatus.Running);
 			}
 		}
 	}

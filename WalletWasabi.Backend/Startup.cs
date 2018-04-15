@@ -74,11 +74,6 @@ namespace WalletWasabi.Backend
 				var t = Global.IndexBuilderService.StopAsync();
 				stopTasks.Add(t);
 			}
-			if (Global.Coordinator != null)
-			{
-				var t = Global.Coordinator.StopAsync();
-				stopTasks.Add(t);
-			}
 
 			await Task.WhenAll(stopTasks);
 		}
