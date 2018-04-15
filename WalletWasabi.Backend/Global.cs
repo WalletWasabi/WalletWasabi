@@ -31,6 +31,8 @@ namespace WalletWasabi.Backend
 
 		public static string ConfigFilePath { get; private set; }
 
+		public static string RoundConfigFilePath { get; private set; }
+
 		public static RPCClient RpcClient { get; private set; }
 
 		public static BlindingRsaKey RsaKey { get; private set; }
@@ -39,8 +41,12 @@ namespace WalletWasabi.Backend
 
 		public static CcjCoordinator Coordinator { get; private set; }
 
+		public static CcjRoundConfigWatcher RoundConfigWatcher { get; private set; }
+
 		public static Config Config { get; private set; }
-		
+
+		public static CcjRoundConfig RoundConfig { get; private set; }
+
 		public async static Task InitializeAsync(Network network = null, string rpcuser = null, string rpcpassword = null, RPCClient rpc = null)
 		{
 			_dataDir = null;
@@ -52,7 +58,7 @@ namespace WalletWasabi.Backend
 			}
 			else
 			{
-				await InitializeConfigAsync();
+				await InitializeConfigsAsync();
 			}
 			
 			// Initialize RsaKey
@@ -93,14 +99,20 @@ namespace WalletWasabi.Backend
 			IndexBuilderService.Synchronize();
 
 			Coordinator = new CcjCoordinator();
-			await Coordinator.StartNewRoundAsync();
+			await Coordinator.StartNewRoundAsync(RoundConfig.Denomination);
+
+			RoundConfigWatcher = new CcjRoundConfigWatcher(RoundConfig, RoundConfigFilePath, Coordinator);
+			RoundConfigWatcher.Start(TimeSpan.FromSeconds(10)); // Every 10 seconds check the config
 		}
 
-		public static async Task InitializeConfigAsync()
+		public static async Task InitializeConfigsAsync()
 		{
 			ConfigFilePath = Path.Combine(DataDir, "Config.json");
+			RoundConfigFilePath = Path.Combine(DataDir, "CcjRoundConfig.json");
 			Config = new Config();
 			await Config.LoadOrCreateDefaultFileAsync(ConfigFilePath);
+			RoundConfig = new CcjRoundConfig();
+			await RoundConfig.LoadOrCreateDefaultFileAsync(RoundConfigFilePath);
 		}
 
 		private static async Task AssertRpcNodeFullyInitializedAsync()

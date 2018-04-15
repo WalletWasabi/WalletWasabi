@@ -75,6 +75,12 @@ namespace WalletWasabi.Backend
 				stopTasks.Add(t);
 			}
 
+			if(Global.RoundConfigWatcher != null)
+			{
+				var t = Global.RoundConfigWatcher.StopAsync();
+				stopTasks.Add(t);
+			}
+
 			await Task.WhenAll(stopTasks);
 		}
 	}

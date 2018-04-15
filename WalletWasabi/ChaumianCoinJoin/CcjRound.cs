@@ -1,21 +1,27 @@
-﻿using Nito.AsyncEx;
+﻿using NBitcoin;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.ChaumianCoinJoin
 {
 	public class CcjRound
 	{
+		public Money Denomination { get; }
+
 		public CcjRoundPhase Phase { get; private set; }
 		private static AsyncLock PhaseExecutionLock { get; } = new AsyncLock();
 
 		public CcjRoundStatus Status { get; private set; }
 
-		public CcjRound()
+		public CcjRound(Money denomination)
 		{
+			Denomination = Guard.NotNull(nameof(denomination), denomination);
+
 			Phase = CcjRoundPhase.InputRegistration;
 			Status = CcjRoundStatus.NotStarted;
 		}
@@ -29,6 +35,10 @@ namespace WalletWasabi.ChaumianCoinJoin
 					if (Status == CcjRoundStatus.NotStarted)
 					{
 						Status = CcjRoundStatus.Running;
+					}
+					else if(Status != CcjRoundStatus.Running) // Failed or succeeded, swallow
+					{
+						return;
 					}
 					else if (Phase == CcjRoundPhase.InputRegistration)
 					{
@@ -53,6 +63,14 @@ namespace WalletWasabi.ChaumianCoinJoin
 					Status = CcjRoundStatus.Failed;
 					throw;
 				}
+			}
+		}
+
+		public void Fail()
+		{
+			using (PhaseExecutionLock.Lock())
+			{
+				Status = CcjRoundStatus.Failed;
 			}
 		}
 	}
