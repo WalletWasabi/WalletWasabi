@@ -28,6 +28,9 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public string RoundHash { get; private set; }
 
+		public Transaction UnsignedCoinJoin { get; private set; }
+		public Transaction SignedCoinJoin { get; private set; }
+
 		private List<Alice> Alices { get; }
 		private AsyncLock AlicesLock { get; }
 		private List<Bob> Bobs { get; }
@@ -53,6 +56,9 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 			RoundHash = null;
 
+			UnsignedCoinJoin = null;
+			SignedCoinJoin = null;
+
 			Alices = new List<Alice>();
 			AlicesLock = new AsyncLock();
 			Bobs = new List<Bob>();
@@ -62,6 +68,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 		public async Task ExecuteNextPhaseAsync()
 		{
 			using (await PhaseExecutionLock.LockAsync())
+			using (await AlicesLock.LockAsync())
+			using (await BobsLock.LockAsync())
 			{
 				try
 				{
@@ -115,6 +123,40 @@ namespace WalletWasabi.ChaumianCoinJoin
 					else if (Phase == CcjRoundPhase.OutputRegistration)
 					{
 						// Build CoinJoin
+
+						// 1. Set new denomination: minor optimization.
+						Money newDenomination = Alices.Min(x => x.OutputSum);
+						var transaction = new Transaction();
+
+						// 2. Add Bob outputs.
+						foreach (Bob bob in Bobs)
+						{
+							transaction.AddOutput(newDenomination, bob.ActiveOutputScript);
+						}
+
+						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
+						for (int i = 0; i < Alices.Count - Bobs.Count; i++)
+						{
+							var donation = Constants.GetFailedZeroLinkDosAttackAddress(RpcClient.Network);
+							transaction.AddOutput(Denomination, donation);
+						}
+
+						// 4. Add the inputs and the changes of Alices.
+						foreach (Alice alice in Alices)
+						{
+							foreach (var input in alice.Inputs)
+							{
+								transaction.AddInput(new TxIn(input.Key));
+							}
+							transaction.AddOutput(alice.GetChangeAmount(newDenomination), alice.ChangeOutputScript);
+						}
+
+						// 5. Create the unsigned transaction.
+						var builder = new TransactionBuilder();
+						UnsignedCoinJoin = builder
+							.ContinueToBuild(transaction)
+							.Shuffle()
+							.BuildTransaction(false);
 
 						Phase = CcjRoundPhase.Signing;
 					}
