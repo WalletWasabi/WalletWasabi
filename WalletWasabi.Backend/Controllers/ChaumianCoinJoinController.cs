@@ -23,8 +23,8 @@ namespace WalletWasabi.Backend.Controllers
 		/// <summary>
 		/// Satoshi gets various status information.
 		/// </summary>
-		/// <returns>CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, ForcedRoundStartMinutesLeft, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFee, Version</returns>
-		/// <response code="200">CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, ForcedRoundStartMinutesLeft, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFee, Version</response>
+		/// <returns>CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFee, Version</returns>
+		/// <response code="200">CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFee, Version</response>
 		[HttpGet("status")]
 		[ProducesResponseType(200)]
 		public IActionResult GetStatus()

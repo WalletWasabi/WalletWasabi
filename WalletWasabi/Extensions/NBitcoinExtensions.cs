@@ -1,5 +1,7 @@
 using WalletWasabi.Models;
 using System.Collections.Generic;
+using System;
+using WalletWasabi.Helpers;
 
 namespace NBitcoin
 {
@@ -21,6 +23,17 @@ namespace NBitcoin
 			{
 				yield return input.PrevOut.ToTxoRef();
 			}
+		}
+
+		public static string ToHex(this IBitcoinSerializable me)
+		{
+			return ByteHelpers.ToHex(me.ToBytes());
+		}
+
+		public static void FromHex(this IBitcoinSerializable me, string hex)
+		{
+			Guard.NotNullOrEmptyOrWhitespace(nameof(hex), hex);
+			me.FromBytes(ByteHelpers.FromHex(hex));
 		}
 	}
 }

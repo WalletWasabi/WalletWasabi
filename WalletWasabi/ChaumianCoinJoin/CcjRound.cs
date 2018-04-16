@@ -3,7 +3,9 @@ using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -12,6 +14,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 {
 	public class CcjRound
 	{
+		public static long RoundCount;
+
 		public RPCClient RpcClient { get; }
 
 		public Money Denomination { get; }
@@ -22,6 +26,13 @@ namespace WalletWasabi.ChaumianCoinJoin
 		public Money FeePerInputs { get; private set; }
 		public Money FeePerOutputs { get; private set; }
 
+		public string RoundHash { get; private set; }
+
+		private List<Alice> Alices { get; }
+		private AsyncLock AlicesLock { get; }
+		private List<Bob> Bobs { get; }
+		private AsyncLock BobsLock { get; }
+
 		public CcjRoundPhase Phase { get; private set; }
 		private static AsyncLock PhaseExecutionLock { get; } = new AsyncLock();
 
@@ -29,6 +40,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public CcjRound(RPCClient rpc, Money denomination, int confirmationTarget, decimal coordinatorFeePercent, int anonymitySet)
 		{
+			Interlocked.Increment(ref RoundCount);
+
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
 			ConfirmationTarget = confirmationTarget;
@@ -37,6 +50,13 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 			Phase = CcjRoundPhase.InputRegistration;
 			Status = CcjRoundStatus.NotStarted;
+
+			RoundHash = null;
+
+			Alices = new List<Alice>();
+			AlicesLock = new AsyncLock();
+			Bobs = new List<Bob>();
+			BobsLock = new AsyncLock();
 		}
 
 		public async Task ExecuteNextPhaseAsync()
@@ -47,8 +67,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 				{
 					if (Status == CcjRoundStatus.NotStarted) // So start the input registration phase
 					{
-						Status = CcjRoundStatus.Running;
-
+						// Calculate fees
 						var inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
 						var outputSizeInBytes = Constants.OutputSizeInBytes;
 						try
@@ -77,7 +96,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 							Logger.LogError<CcjRound>(ex);
 						}
 
-
+						Status = CcjRoundStatus.Running;
 					}
 					else if (Status != CcjRoundStatus.Running) // Failed or succeeded, swallow
 					{
@@ -85,6 +104,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 					}
 					else if (Phase == CcjRoundPhase.InputRegistration)
 					{
+						RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(y => y.Key));
+
 						Phase = CcjRoundPhase.ConnectionConfirmation;
 					}
 					else if (Phase == CcjRoundPhase.ConnectionConfirmation)
@@ -93,6 +114,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 					}
 					else if (Phase == CcjRoundPhase.OutputRegistration)
 					{
+						// Build CoinJoin
+
 						Phase = CcjRoundPhase.Signing;
 					}
 					else
