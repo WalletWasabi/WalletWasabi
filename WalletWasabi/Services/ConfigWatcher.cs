@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 
-namespace WalletWasabi.Backend
+namespace WalletWasabi.Services
 {
-    public class CcjRoundConfigWatcher
-    {
+	public class ConfigWatcher
+	{
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
@@ -20,20 +20,18 @@ namespace WalletWasabi.Backend
 
 		private CancellationTokenSource Stop { get; }
 
-		public CcjRoundConfig RoundConfig { get; }
-		public CcjCoordinator Coordinator { get; }
+		public IConfig Config { get; }
 
-		public CcjRoundConfigWatcher(CcjRoundConfig roundConfig, CcjCoordinator coordinator)
+		public ConfigWatcher(IConfig config)
 		{
-			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
-			roundConfig.AssertFilePathSet();
-			Coordinator = Guard.NotNull(nameof(coordinator), coordinator);
+			Config = Guard.NotNull(nameof(config), config);
+			config.AssertFilePathSet();
 
 			_running = 0;
 			Stop = new CancellationTokenSource();
 		}
 
-		public void Start(TimeSpan period)
+		public void Start(TimeSpan period, Func<Task> toDoWhenChangedAsync)
 		{
 			Interlocked.Exchange(ref _running, 1);
 
@@ -50,22 +48,20 @@ namespace WalletWasabi.Backend
 
 							await Task.Delay(period, Stop.Token);
 
-							if (await RoundConfig.CheckFileChangeAsync())
+							if (await Config.CheckFileChangeAsync())
 							{
-								Coordinator.FailAllRoundsInInputRegistration();
+								await Config.LoadOrCreateDefaultFileAsync();
 
-								await RoundConfig.LoadOrCreateDefaultFileAsync();
-
-								await Coordinator.StartNewRoundAsync(Global.RpcClient, RoundConfig.Denomination, (int)RoundConfig.ConfirmationTarget, (decimal) RoundConfig.CoordinatorFeePercent, (int)RoundConfig.AnonymitySet);
+								await toDoWhenChangedAsync();
 							}
 						}
 						catch (TaskCanceledException ex)
 						{
-							Logger.LogTrace<CcjRoundConfigWatcher>(ex);
+							Logger.LogTrace<ConfigWatcher>(ex);
 						}
 						catch (Exception ex)
 						{
-							Logger.LogDebug<CcjRoundConfigWatcher>(ex);
+							Logger.LogDebug<ConfigWatcher>(ex);
 						}
 					}
 				}

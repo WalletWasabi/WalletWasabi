@@ -37,7 +37,7 @@ namespace WalletWasabi.Backend
 
 		public static CcjCoordinator Coordinator { get; private set; }
 
-		public static CcjRoundConfigWatcher RoundConfigWatcher { get; private set; }
+		public static ConfigWatcher RoundConfigWatcher { get; private set; }
 
 		public static Config Config { get; private set; }
 
@@ -103,9 +103,23 @@ namespace WalletWasabi.Backend
 
 			Coordinator = new CcjCoordinator();
 			await Coordinator.StartNewRoundAsync(RpcClient, RoundConfig.Denomination, (int)RoundConfig.ConfirmationTarget, (decimal)RoundConfig.CoordinatorFeePercent, (int)RoundConfig.AnonymitySet);
+			
+			RoundConfigWatcher = new ConfigWatcher(RoundConfig);
+			RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), OnConfigChangedAsync); // Every 10 seconds check the config
+		}
 
-			RoundConfigWatcher = new CcjRoundConfigWatcher(RoundConfig, Coordinator);
-			RoundConfigWatcher.Start(TimeSpan.FromSeconds(10)); // Every 10 seconds check the config
+		private static async Task OnConfigChangedAsync()
+		{
+			try
+			{
+				Coordinator.FailAllRoundsInInputRegistration();
+
+				await Coordinator.StartNewRoundAsync(RpcClient, RoundConfig.Denomination, (int)RoundConfig.ConfirmationTarget, (decimal)RoundConfig.CoordinatorFeePercent, (int)RoundConfig.AnonymitySet);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug<ConfigWatcher>(ex);
+			}
 		}
 
 		private static async Task AssertRpcNodeFullyInitializedAsync()
