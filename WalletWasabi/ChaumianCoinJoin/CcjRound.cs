@@ -65,7 +65,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 			BobsLock = new AsyncLock();
 		}
 
-		public async Task ExecuteNextPhaseAsync()
+		/// <returns>The next phase or null, if the round is not running.</returns>
+		public async Task<CcjRoundPhase?> ExecuteNextPhaseAsync()
 		{
 			using (await PhaseExecutionLock.LockAsync())
 			using (await AlicesLock.LockAsync())
@@ -105,20 +106,23 @@ namespace WalletWasabi.ChaumianCoinJoin
 						}
 
 						Status = CcjRoundStatus.Running;
+						return CcjRoundPhase.InputRegistration;
 					}
 					else if (Status != CcjRoundStatus.Running) // Failed or succeeded, swallow
 					{
-						return;
+						return null;
 					}
 					else if (Phase == CcjRoundPhase.InputRegistration)
 					{
 						RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(y => y.Key));
 
 						Phase = CcjRoundPhase.ConnectionConfirmation;
+						return CcjRoundPhase.ConnectionConfirmation;
 					}
 					else if (Phase == CcjRoundPhase.ConnectionConfirmation)
 					{
 						Phase = CcjRoundPhase.OutputRegistration;
+						return CcjRoundPhase.OutputRegistration;
 					}
 					else if (Phase == CcjRoundPhase.OutputRegistration)
 					{
@@ -159,6 +163,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 							.BuildTransaction(false);
 
 						Phase = CcjRoundPhase.Signing;
+						return CcjRoundPhase.Signing;
 					}
 					else
 					{

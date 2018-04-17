@@ -9,13 +9,17 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Converters;
 using WalletWasabi.Helpers;
+using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Backend
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class CcjRoundConfig
+	public class CcjRoundConfig : IConfig
 	{
+		/// <inheritdoc />
+		public string FilePath { get; private set; }
+
 		[JsonProperty(PropertyName = "Denomination")]
 		[JsonConverter(typeof(MoneyConverter))]
 		public Money Denomination { get; private set; }
@@ -29,45 +33,49 @@ namespace WalletWasabi.Backend
 		[JsonProperty(PropertyName = "AnonymitySet")]
 		public int? AnonymitySet { get; private set; }
 
-		public CcjRoundConfig()
+		public CcjRoundConfig(string filePath)
 		{
-
+			SetFilePath(filePath);
 		}
 
+		[JsonConstructor]
 		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet)
 		{
+			FilePath = null;
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
 			ConfirmationTarget = Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
 			CoordinatorFeePercent = Guard.NotNull(nameof(coordinatorFeePercent), coordinatorFeePercent);
 			AnonymitySet = Guard.NotNull(nameof(anonymitySet), anonymitySet);
 		}
 
-		public async Task ToFileAsync(string path)
+		/// <inheritdoc />
+		public async Task ToFileAsync()
 		{
-			if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException(nameof(path));
+			AssertFilePathSet();
 
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			await File.WriteAllTextAsync(path,
+			await File.WriteAllTextAsync(FilePath,
 			jsonString,
 			Encoding.UTF8);
 		}
 
-		public async Task LoadOrCreateDefaultFileAsync(string path)
+		/// <inheritdoc />
+		public async Task LoadOrCreateDefaultFileAsync()
 		{
-			if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException(nameof(path));
+			AssertFilePathSet();
 
 			Denomination = new Money(0.1m, MoneyUnit.BTC);
 			ConfirmationTarget = 144; // 1 day
 			CoordinatorFeePercent = 0.1m;
 			AnonymitySet = 100;
 
-			if (!File.Exists(path))
+			if (!File.Exists(FilePath))
 			{
-				Logger.LogInfo<CcjRoundConfig>($"{nameof(CcjRoundConfig)} file did not exist. Created at path: `{path}`.");
+				Logger.LogInfo<CcjRoundConfig>($"{nameof(CcjRoundConfig)} file did not exist. Created at path: `{FilePath}`.");
 			}
 			else
 			{
-				string jsonString = await File.ReadAllTextAsync(path, Encoding.UTF8);
+				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 				var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
 
 				Denomination = config.Denomination ?? Denomination;
@@ -76,17 +84,20 @@ namespace WalletWasabi.Backend
 				AnonymitySet = config.AnonymitySet ?? AnonymitySet;
 			}
 
-			await ToFileAsync(path);
+			await ToFileAsync();
 		}
 
-		public async Task<bool> CheckFileChangeAsync(string path)
+		/// <inheritdoc />
+		public async Task<bool> CheckFileChangeAsync()
 		{
-			if (!File.Exists(path))
+			AssertFilePathSet();
+
+			if (!File.Exists(FilePath))
 			{
-				throw new FileNotFoundException($"{nameof(CcjRoundConfig)} file did not exist at path: `{path}`.");
+				throw new FileNotFoundException($"{nameof(CcjRoundConfig)} file did not exist at path: `{FilePath}`.");
 			}
 
-			string jsonString = await File.ReadAllTextAsync(path, Encoding.UTF8);
+			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 			var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
 
 			if (Denomination != config.Denomination)
@@ -107,6 +118,18 @@ namespace WalletWasabi.Backend
 			}
 
 			return false;
+		}
+		
+		/// <inheritdoc />
+		public void SetFilePath(string path)
+		{
+			FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(path), path, trim: true);
+		}
+
+		/// <inheritdoc />
+		public void AssertFilePathSet()
+		{
+			if (FilePath == null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
 		}
 	}
 }

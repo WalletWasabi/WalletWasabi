@@ -18,20 +18,19 @@ namespace WalletWasabi.Backend
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		private CancellationTokenSource StopWaiting { get; }
+		private CancellationTokenSource Stop { get; }
 
 		public CcjRoundConfig RoundConfig { get; }
-		public string RoundConfigFilePath { get; }
 		public CcjCoordinator Coordinator { get; }
 
-		public CcjRoundConfigWatcher(CcjRoundConfig roundConfig, string roundConfigFilePath, CcjCoordinator coordinator)
+		public CcjRoundConfigWatcher(CcjRoundConfig roundConfig, CcjCoordinator coordinator)
 		{
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
+			roundConfig.AssertFilePathSet();
 			Coordinator = Guard.NotNull(nameof(coordinator), coordinator);
-			RoundConfigFilePath = Guard.NotNull(nameof(roundConfigFilePath), roundConfigFilePath);
 
 			_running = 0;
-			StopWaiting = new CancellationTokenSource();
+			Stop = new CancellationTokenSource();
 		}
 
 		public void Start(TimeSpan period)
@@ -49,13 +48,13 @@ namespace WalletWasabi.Backend
 							// If stop was requested return.
 							if (IsRunning == false) return;
 
-							await Task.Delay(period, StopWaiting.Token);
+							await Task.Delay(period, Stop.Token);
 
-							if (await RoundConfig.CheckFileChangeAsync(RoundConfigFilePath))
+							if (await RoundConfig.CheckFileChangeAsync())
 							{
-								Coordinator.FailRoundsInInputRegistration();
+								Coordinator.FailAllRoundsInInputRegistration();
 
-								await RoundConfig.LoadOrCreateDefaultFileAsync(RoundConfigFilePath);
+								await RoundConfig.LoadOrCreateDefaultFileAsync();
 
 								await Coordinator.StartNewRoundAsync(Global.RpcClient, RoundConfig.Denomination, (int)RoundConfig.ConfirmationTarget, (decimal) RoundConfig.CoordinatorFeePercent, (int)RoundConfig.AnonymitySet);
 							}
@@ -86,12 +85,12 @@ namespace WalletWasabi.Backend
 			{
 				Interlocked.Exchange(ref _running, 2);
 			}
-			StopWaiting?.Cancel();
+			Stop?.Cancel();
 			while (IsStopping)
 			{
 				await Task.Delay(50);
 			}
-			StopWaiting?.Dispose();
+			Stop?.Dispose();
 		}
 	}
 }

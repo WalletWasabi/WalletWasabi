@@ -29,10 +29,6 @@ namespace WalletWasabi.Backend
 			}
 		}
 
-		public static string ConfigFilePath { get; private set; }
-
-		public static string RoundConfigFilePath { get; private set; }
-
 		public static RPCClient RpcClient { get; private set; }
 
 		public static BlindingRsaKey RsaKey { get; private set; }
@@ -51,21 +47,22 @@ namespace WalletWasabi.Backend
 		{
 			_dataDir = null;
 
-			ConfigFilePath = Path.Combine(DataDir, "Config.json");
+			var configFilePath = Path.Combine(DataDir, "Config.json");
 			// Initialize Config
 			if (network != null || rpcuser != null || rpcpassword != null)
 			{
 				Config = new Config(network, rpcuser, rpcpassword);
+				Config.SetFilePath(configFilePath);
 			}
 			else
 			{
-				Config = new Config();
-				await Config.LoadOrCreateDefaultFileAsync(ConfigFilePath);
+				Config = new Config(configFilePath);
+				await Config.LoadOrCreateDefaultFileAsync();
 			}
 
-			RoundConfigFilePath = Path.Combine(DataDir, "CcjRoundConfig.json");
-			RoundConfig = new CcjRoundConfig();
-			await RoundConfig.LoadOrCreateDefaultFileAsync(RoundConfigFilePath);
+			var roundConfigFilePath = Path.Combine(DataDir, "CcjRoundConfig.json");
+			RoundConfig = new CcjRoundConfig(roundConfigFilePath);
+			await RoundConfig.LoadOrCreateDefaultFileAsync();
 
 			// Initialize RsaKey
 			string rsaKeyPath = Path.Combine(DataDir, "RsaKey.json");
@@ -107,7 +104,7 @@ namespace WalletWasabi.Backend
 			Coordinator = new CcjCoordinator();
 			await Coordinator.StartNewRoundAsync(RpcClient, RoundConfig.Denomination, (int)RoundConfig.ConfirmationTarget, (decimal)RoundConfig.CoordinatorFeePercent, (int)RoundConfig.AnonymitySet);
 
-			RoundConfigWatcher = new CcjRoundConfigWatcher(RoundConfig, RoundConfigFilePath, Coordinator);
+			RoundConfigWatcher = new CcjRoundConfigWatcher(RoundConfig, Coordinator);
 			RoundConfigWatcher.Start(TimeSpan.FromSeconds(10)); // Every 10 seconds check the config
 		}
 
@@ -163,7 +160,7 @@ namespace WalletWasabi.Backend
 			}
 			catch(WebException)
 			{
-				Logger.LogInfo($"Bitcoin Core is not running, or incorrect RPC credentials or network is given in the config file: `{ConfigFilePath}`.");
+				Logger.LogInfo($"Bitcoin Core is not running, or incorrect RPC credentials or network is given in the config file: `{Config.FilePath}`.");
 				throw;
 			}
 		}

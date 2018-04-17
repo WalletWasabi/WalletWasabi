@@ -38,7 +38,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public void FailRoundsInInputRegistration()
+		public void FailAllRoundsInInputRegistration()
 		{
 			using (RoundsListLock.Lock())
 			{
