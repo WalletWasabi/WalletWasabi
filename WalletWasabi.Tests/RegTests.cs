@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -25,6 +26,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Org.BouncyCastle.Asn1.IsisMtt.X509;
 using Xunit;
 
 namespace WalletWasabi.Tests
@@ -1135,7 +1137,6 @@ namespace WalletWasabi.Tests
 				// Dispose connection service.
 				nodes?.Dispose();
 			}
-
 		}
 
 		[Fact]
@@ -1281,7 +1282,6 @@ namespace WalletWasabi.Tests
 				await Global.RpcClient.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
-				// There shouldn't be any `confirmed` coin
 				Assert.Single(wallet.Coins.Where(x=>x.Confirmed && x.TransactionId == fundingBumpTxid.TransactionId));
 			}
 			finally
@@ -1293,7 +1293,138 @@ namespace WalletWasabi.Tests
 				nodes?.Dispose();
 			}
 		}
-		
+
+		[Fact]
+		public async Task SpendUnconfirmedTxTestAsync()
+		{
+			// Make sure fitlers are created on the server side.
+			await AssertFiltersInitializedAsync();
+
+			var network = Global.RpcClient.Network;
+
+			// Create the services.
+			// 1. Create connection service.
+			var nodes = new NodesGroup(Global.Config.Network,
+				requirements: new NodeRequirement
+				{
+					RequiredServices = NodeServices.Network,
+					MinVersion = ProtocolVersion_WITNESS_VERSION
+				});
+			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+
+			// 2. Create mempool service.
+			var memPoolService = new MemPoolService();
+			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+
+			// 3. Create index downloader service.
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync),
+				$"Index{Global.RpcClient.Network}.dat");
+			var indexDownloader =
+				new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+
+			// 4. Create key manager service.
+			var keyManager = KeyManager.CreateNew(out Mnemonic mnemonic, "password");
+
+			// 5. Create wallet service.
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
+			var wallet = new WalletService(keyManager, indexDownloader, memPoolService, nodes, blocksFolderPath);
+			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
+
+			Assert.Empty(wallet.Coins);
+
+			// Get some money, make it confirm.
+			var key = wallet.GetReceiveKey("foo label");
+
+			try
+			{
+				nodes.Connect(); // Start connection service.
+				node.VersionHandshake(); // Start mempool service.
+				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
+
+				// Wait until the filter our previous transaction is present.
+				var blockCount = await Global.RpcClient.GetBlockCountAsync();
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
+
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
+
+				Assert.Empty(wallet.Coins);
+
+
+				// Get some money, make it confirm.
+				// this is necesary because we are in a fork now.
+				var tx0Id = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC),
+					replaceable: true);
+				while(wallet.Coins.Count == 0)
+					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
+				Assert.Equal(1, wallet.Coins.Count);
+
+				// Spend the unconfirmed coin (send it to ourself)
+				var operations = new[] {new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "")};
+				var tx1Res = await wallet.BuildTransactionAsync("password", operations, 2, allowUnconfirmed: true);
+				await wallet.SendTransactionAsync(tx1Res.Transaction);
+
+				while(wallet.Coins.Count != 3)
+					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
+				
+				// There is a coin created by the latest spending transaction
+				Assert.True(wallet.Coins.Any(x=>x.TransactionId == tx1Res.Transaction.GetHash()));
+
+				// There is a coin destroyed
+				Assert.Equal(1, wallet.Coins.Count(x=>!x.Unspent && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
+
+				// There is at least one coin created from the destruction of the first coin
+				Assert.True(wallet.Coins.Any(x => x.SpentOutputs.Any(o => o.TransactionId == tx0Id)));
+
+				var totalWallet = wallet.Coins.Where(c => c.Unspent).Sum(c => c.Amount);
+				Assert.Equal((1 * Money.COIN)-tx1Res.Fee.Satoshi, totalWallet );
+				
+				
+				// Spend the unconfirmed and unspent coin (send it to ourself)
+				operations = new[] {new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "")};
+				var tx2Res = await wallet.BuildTransactionAsync("password", operations, 2, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0 );
+				await wallet.SendTransactionAsync(tx2Res.Transaction);
+
+				while(wallet.Coins.Count != 4)
+					await Task.Delay(500); // Waits for the transaction get to the mempool.
+				
+				// There is a coin created by the latest spending transaction
+				Assert.True(wallet.Coins.Any(x=>x.TransactionId == tx2Res.Transaction.GetHash()));
+
+				// There is a coin destroyed
+				Assert.Equal(1, wallet.Coins.Count(x=>!x.Unspent && x.SpenderTransactionId == tx2Res.Transaction.GetHash()));
+
+				// There is at least one coin created from the destruction of the first coin
+				Assert.True(wallet.Coins.Any(x => x.SpentOutputs.Any(o => o.TransactionId == tx1Res.Transaction.GetHash())));
+
+				totalWallet = wallet.Coins.Where(c => c.Unspent).Sum(c => c.Amount);
+				Assert.Equal((1 * Money.COIN)-tx1Res.Fee.Satoshi - tx2Res.Fee.Satoshi, totalWallet );
+
+				var blockId = (await Global.RpcClient.GenerateAsync(1)).Single();
+
+				// Verify transactions are confirmed in the blockchain
+				var block = await Global.RpcClient.GetBlockAsync(blockId);
+				Assert.True(block.Transactions.Any(x=>x.GetHash() == tx2Res.Transaction.GetHash()));
+				Assert.True(block.Transactions.Any(x=>x.GetHash() == tx1Res.Transaction.GetHash()));
+				Assert.True(block.Transactions.Any(x=>x.GetHash() == tx0Id));
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
+				
+				Assert.True(wallet.Coins.All(x=>x.Confirmed));				
+			}
+			finally
+			{
+				wallet?.Dispose();
+				// Dispose index downloader service.
+				await indexDownloader?.StopAsync();
+				// Dispose connection service.
+				nodes?.Dispose();
+			}
+		}
+
 		#endregion
+			
 	}
 }
