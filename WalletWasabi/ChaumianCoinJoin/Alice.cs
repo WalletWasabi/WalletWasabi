@@ -21,7 +21,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public Script ChangeOutputScript { get; }
 
-		public Money GetChangeAmount(Money denomination) => OutputSum - denomination;
+		public Money GetChangeAmount(Money denomination, Money coordinatorFee) => OutputSum - denomination - coordinatorFee;
 
 		public Alice(Dictionary<OutPoint, TxOut> inputs, Money feeToPay, Script changeOutputScript)
 		{

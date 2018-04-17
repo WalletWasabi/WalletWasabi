@@ -20,7 +20,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public Money Denomination { get; }
 		public int ConfirmationTarget { get; }
-		public Money CoordinatorFee { get; }
+		public decimal CoordinatorFeePercent { get; }
 		public int AnonymitySet { get; private set; }
 
 		public Money FeePerInputs { get; private set; }
@@ -50,7 +50,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 			Denomination = config.Denomination;
 			ConfirmationTarget = (int)config.ConfirmationTarget;
-			CoordinatorFee = new Money(((decimal)config.CoordinatorFeePercent * 0.01m) * decimal.Parse(Denomination.ToString(false, true)), MoneyUnit.BTC);
+			CoordinatorFeePercent = (decimal)CoordinatorFeePercent;
 			AnonymitySet = (int)config.AnonymitySet;
 
 			Phase = CcjRoundPhase.InputRegistration;
@@ -140,12 +140,16 @@ namespace WalletWasabi.ChaumianCoinJoin
 							transaction.AddOutput(newDenomination, bob.ActiveOutputScript);
 						}
 
+						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(RpcClient.Network);
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
 						for (int i = 0; i < Alices.Count - Bobs.Count; i++)
-						{
-							var donation = Constants.GetFailedZeroLinkDosAttackAddress(RpcClient.Network);
-							transaction.AddOutput(Denomination, donation);
+						{							
+							transaction.AddOutput(newDenomination, coordinatorAddress);
 						}
+
+						// 4. Add Coordinator fee.
+						Money coordinatorFeePerAlice = new Money((CoordinatorFeePercent * 0.01m) * decimal.Parse(newDenomination.ToString(false, true)), MoneyUnit.BTC);
+						transaction.AddOutput(Alices.Count * coordinatorFeePerAlice, coordinatorAddress);
 
 						// 4. Add the inputs and the changes of Alices.
 						foreach (Alice alice in Alices)
@@ -154,7 +158,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 							{
 								transaction.AddInput(new TxIn(input.Key));
 							}
-							transaction.AddOutput(alice.GetChangeAmount(newDenomination), alice.ChangeOutputScript);
+							transaction.AddOutput(alice.GetChangeAmount(newDenomination, coordinatorFeePerAlice), alice.ChangeOutputScript);
 						}
 
 						// 5. Create the unsigned transaction.
