@@ -11,6 +11,7 @@ using System.Net;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using System.Text;
+using WalletWasabi.ChaumianCoinJoin;
 
 namespace WalletWasabi.Backend
 {
@@ -43,26 +44,11 @@ namespace WalletWasabi.Backend
 
 		public static CcjRoundConfig RoundConfig { get; private set; }
 
-		public async static Task InitializeAsync(Network network = null, string rpcuser = null, string rpcpassword = null, RPCClient rpc = null)
+		public async static Task InitializeAsync(Config config, CcjRoundConfig roundConfig,  RPCClient rpc)
 		{
-			_dataDir = null;
-
-			var configFilePath = Path.Combine(DataDir, "Config.json");
-			// Initialize Config
-			if (network != null || rpcuser != null || rpcpassword != null)
-			{
-				Config = new Config(network, rpcuser, rpcpassword);
-				Config.SetFilePath(configFilePath);
-			}
-			else
-			{
-				Config = new Config(configFilePath);
-				await Config.LoadOrCreateDefaultFileAsync();
-			}
-
-			var roundConfigFilePath = Path.Combine(DataDir, "CcjRoundConfig.json");
-			RoundConfig = new CcjRoundConfig(roundConfigFilePath);
-			await RoundConfig.LoadOrCreateDefaultFileAsync();
+			Config = Guard.NotNull(nameof(config), config);
+			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
+			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 
 			// Initialize RsaKey
 			string rsaKeyPath = Path.Combine(DataDir, "RsaKey.json");
@@ -78,20 +64,6 @@ namespace WalletWasabi.Backend
 				Logger.LogInfo($"Created RSA key at: {rsaKeyPath}", nameof(Global));
 			}
 
-			// Initialize RPC
-			if (rpc != null)
-			{
-				RpcClient = rpc;
-			}
-			else
-			{
-				RpcClient = new RPCClient(
-						credentials: new RPCCredentialString
-						{
-							UserPassword = new NetworkCredential(Config.BitcoinRpcUser, Config.BitcoinRpcPassword)
-						},
-						network: Config.Network);
-			}
 			await AssertRpcNodeFullyInitializedAsync();
 
 			// Initialize index building
@@ -101,11 +73,14 @@ namespace WalletWasabi.Backend
 			IndexBuilderService = new IndexBuilderService(RpcClient, indexFilePath, utxoSetFilePath);
 			IndexBuilderService.Synchronize();
 
-			Coordinator = new CcjCoordinator();
-			await Coordinator.StartNewRoundAsync(RpcClient, RoundConfig.Denomination, (int)RoundConfig.ConfirmationTarget, (decimal)RoundConfig.CoordinatorFeePercent, (int)RoundConfig.AnonymitySet);
-			
-			RoundConfigWatcher = new ConfigWatcher(RoundConfig);
-			RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), OnConfigChangedAsync); // Every 10 seconds check the config
+			Coordinator = new CcjCoordinator(RpcClient);
+			await Coordinator.StartNewRoundAsync(roundConfig);
+
+			if (roundConfig.FilePath != null)
+			{
+				RoundConfigWatcher = new ConfigWatcher(RoundConfig);
+				RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), OnConfigChangedAsync); // Every 10 seconds check the config
+			}
 		}
 
 		private static async Task OnConfigChangedAsync()
@@ -114,7 +89,7 @@ namespace WalletWasabi.Backend
 			{
 				Coordinator.FailAllRoundsInInputRegistration();
 
-				await Coordinator.StartNewRoundAsync(RpcClient, RoundConfig.Denomination, (int)RoundConfig.ConfirmationTarget, (decimal)RoundConfig.CoordinatorFeePercent, (int)RoundConfig.AnonymitySet);
+				await Coordinator.StartNewRoundAsync(RoundConfig);
 			}
 			catch (Exception ex)
 			{

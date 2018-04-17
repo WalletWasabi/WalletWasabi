@@ -7,6 +7,9 @@ using WalletWasabi.Logging;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using NBitcoin.RPC;
+using System.Net;
+using WalletWasabi.ChaumianCoinJoin;
 
 namespace WalletWasabi.Backend
 {
@@ -22,7 +25,22 @@ namespace WalletWasabi.Backend
 				Logger.SetMinimumLevel(LogLevel.Info);
 				Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 
-				await Global.InitializeAsync();
+				var configFilePath = Path.Combine(Global.DataDir, "Config.json");
+				var config = new Config(configFilePath);
+				await config.LoadOrCreateDefaultFileAsync();
+
+				var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
+				var roundConfig = new CcjRoundConfig(roundConfigFilePath);
+				await roundConfig.LoadOrCreateDefaultFileAsync();
+
+				var rpc = new RPCClient(
+						credentials: new RPCCredentialString
+						{
+							UserPassword = new NetworkCredential(config.BitcoinRpcUser, config.BitcoinRpcPassword)
+						},
+						network: config.Network);
+
+				await Global.InitializeAsync(config, roundConfig, rpc);
 
 				var endPoint = "http://localhost:37127/";
 

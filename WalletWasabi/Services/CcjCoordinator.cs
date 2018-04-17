@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services
@@ -17,13 +18,17 @@ namespace WalletWasabi.Services
 		private List<CcjRound> Rounds { get; }
 		private AsyncLock RoundsListLock { get; }
 
-		public CcjCoordinator()
+		public RPCClient RpcClient { get; }
+
+		public CcjCoordinator(RPCClient rpc)
 		{
+			RpcClient = Guard.NotNull(nameof(rpc), rpc);
+
 			Rounds = new List<CcjRound>();
 			RoundsListLock = new AsyncLock();
 		}
 
-		public async Task StartNewRoundAsync(RPCClient rpc, Money denomination, int confirmationTarget, decimal coordinatorFeePercent, int anonymitySet)
+		public async Task StartNewRoundAsync(CcjRoundConfig roundConfig)
 		{
 			using (await RoundsListLock.LockAsync())
 			{
@@ -32,7 +37,7 @@ namespace WalletWasabi.Services
 					throw new InvalidOperationException("Maximum two concurrently running round is allowed the same time.");
 				}
 				
-				var round = new CcjRound(rpc, denomination, confirmationTarget, coordinatorFeePercent, anonymitySet);
+				var round = new CcjRound(RpcClient, roundConfig);
 				await round.ExecuteNextPhaseAsync();
 				Rounds.Add(round);
 			}

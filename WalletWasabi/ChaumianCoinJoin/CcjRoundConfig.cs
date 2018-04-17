@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using NBitcoin;
+﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -12,7 +11,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Backend
+namespace WalletWasabi.ChaumianCoinJoin
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class CcjRoundConfig : IConfig

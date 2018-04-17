@@ -41,15 +41,17 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public CcjRoundStatus Status { get; private set; }
 
-		public CcjRound(RPCClient rpc, Money denomination, int confirmationTarget, decimal coordinatorFeePercent, int anonymitySet)
+		public CcjRound(RPCClient rpc, CcjRoundConfig config)
 		{
 			Interlocked.Increment(ref RoundCount);
 
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
-			Denomination = Guard.NotNull(nameof(denomination), denomination);
-			ConfirmationTarget = confirmationTarget;
-			CoordinatorFee = new Money((coordinatorFeePercent * 0.01m) * decimal.Parse(Denomination.ToString(false, true)), MoneyUnit.BTC);
-			AnonymitySet = anonymitySet;
+			Guard.NotNull(nameof(config), config);
+
+			Denomination = config.Denomination;
+			ConfirmationTarget = (int)config.ConfirmationTarget;
+			CoordinatorFee = new Money(((decimal)config.CoordinatorFeePercent * 0.01m) * decimal.Parse(Denomination.ToString(false, true)), MoneyUnit.BTC);
+			AnonymitySet = (int)config.AnonymitySet;
 
 			Phase = CcjRoundPhase.InputRegistration;
 			Status = CcjRoundStatus.NotStarted;

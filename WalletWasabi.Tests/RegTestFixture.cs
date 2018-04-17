@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using NBitcoin;
+using WalletWasabi.ChaumianCoinJoin;
 
 namespace WalletWasabi.Tests
 {
@@ -30,7 +32,12 @@ namespace WalletWasabi.Tests
 			var rpc = BackendRegTestNode.CreateRpcClient();
 
 			var authString = rpc.Authentication.Split(':');
-			Global.InitializeAsync(rpc.Network, authString[0], authString[1], rpc).GetAwaiter().GetResult();
+
+			var config = new Config(rpc.Network, authString[0], authString[1]);
+
+			var roundConfig = new CcjRoundConfig(new Money(0.1m, MoneyUnit.BTC), 144, 0.1m, 100);
+
+			Global.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
 
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
 			BackendHost = WebHost.CreateDefaultBuilder()
