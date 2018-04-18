@@ -125,7 +125,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 						// Build CoinJoin
 
 						// 1. Set new denomination: minor optimization.
-						Money newDenomination = Alices.Min(x => x.OutputSum);
+						Money newDenomination = Alices.Min(x => x.OutputSumWithoutCoordinatorFeeAndDenomination);
 						var transaction = new Transaction();
 
 						// 2. Add Bob outputs.
