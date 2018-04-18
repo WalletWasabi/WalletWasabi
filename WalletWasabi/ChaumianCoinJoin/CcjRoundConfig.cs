@@ -20,7 +20,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 		public string FilePath { get; private set; }
 
 		[JsonProperty(PropertyName = "Denomination")]
-		[JsonConverter(typeof(MoneyConverter))]
+		[JsonConverter(typeof(MoneyBtcConverter))]
 		public Money Denomination { get; private set; }
 
 		[JsonProperty(PropertyName = "ConfirmationTarget")]
@@ -44,12 +44,17 @@ namespace WalletWasabi.ChaumianCoinJoin
 		[JsonProperty(PropertyName = "SigningTimeout")]
 		public long? SigningTimeout { get; private set; }
 
+
+		public CcjRoundConfig()
+		{
+
+		}
+
 		public CcjRoundConfig(string filePath)
 		{
 			SetFilePath(filePath);
 		}
 
-		[JsonConstructor]
 		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout)
 		{
 			FilePath = null;

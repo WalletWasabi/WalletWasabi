@@ -48,7 +48,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 			Denomination = config.Denomination;
 			ConfirmationTarget = (int)config.ConfirmationTarget;
-			CoordinatorFeePercent = (decimal)CoordinatorFeePercent;
+			CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 			AnonymitySet = (int)config.AnonymitySet;
 
 			Phase = CcjRoundPhase.InputRegistration;
@@ -226,9 +226,16 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
-		public int CountAlices()
+		public int CountAlices(bool syncronized = true)
 		{
-			using (RoundSyncronizerLock.Lock())
+			if (syncronized)
+			{
+				using (RoundSyncronizerLock.Lock())
+				{
+					return Alices.Count;
+				}
+			}
+			else
 			{
 				return Alices.Count;
 			}
@@ -242,11 +249,18 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
-		public int CountBobs()
+		public int CountBobs(bool syncronized = true)
 		{
-			using (RoundSyncronizerLock.Lock())
+			if (syncronized)
 			{
-				return Bobs.Count;
+				using (RoundSyncronizerLock.Lock())
+				{
+					return Bobs.Count;
+				}
+			}
+			else
+			{
+				return Alices.Count;
 			}
 		}
 

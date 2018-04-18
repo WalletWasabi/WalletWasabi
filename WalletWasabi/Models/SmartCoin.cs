@@ -28,7 +28,7 @@ namespace WalletWasabi.Models
 		public Script ScriptPubKey { get; }
 
 		[JsonProperty(Order = 4)]
-		[JsonConverter(typeof(MoneyConverter))]
+		[JsonConverter(typeof(MoneyBtcConverter))]
 		public Money Amount { get; }
 
 		[JsonProperty(Order = 5)]

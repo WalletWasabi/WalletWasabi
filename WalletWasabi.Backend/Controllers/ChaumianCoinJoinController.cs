@@ -5,7 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using NBitcoin.RPC;
+using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.ChaumianCoinJoin;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Backend.Controllers
 {
@@ -20,16 +23,31 @@ namespace WalletWasabi.Backend.Controllers
 
 		private static Network Network => Global.Config.Network;
 
+		private static CcjCoordinator Coordinator => Global.Coordinator;
+
 		/// <summary>
 		/// Satoshi gets various status information.
 		/// </summary>
-		/// <returns>CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFee, Version</returns>
-		/// <response code="200">CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFee, Version</response>
+		/// <returns>CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFeePercent, Version</returns>
+		/// <response code="200">CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFeePercent, Version</response>
 		[HttpGet("status")]
 		[ProducesResponseType(200)]
 		public IActionResult GetStatus()
 		{
-			return Ok();
+			CcjRound round = Coordinator.GetCurrentRound();
+			var response = new CcjStatusResponse
+			{
+				CurrentPhase = round.Phase,
+				Denomination = round.Denomination,
+				RegisteredPeerCount = round.CountAlices(syncronized: false),
+				RequiredPeerCount = round.AnonymitySet,
+				MaximumInputCountPerPeer = 7, // Constant for now. If we want to do something with it later, we'll put it to the config file.
+				FeePerInputs = round.FeePerInputs,
+				FeePerOutputs = round.FeePerOutputs,
+				CoordinatorFeePercent = round.CoordinatorFeePercent,
+				Version = 1
+			};
+			return Ok(response);
 		}
 
 		/// <summary>

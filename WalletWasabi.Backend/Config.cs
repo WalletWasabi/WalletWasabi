@@ -29,12 +29,16 @@ namespace WalletWasabi.Backend
 		[JsonProperty(PropertyName = "BitcoinRpcPassword")]
 		public string BitcoinRpcPassword { get; private set; }
 
+		public Config()
+		{
+
+		}
+
 		public Config(string filePath)
 		{
 			SetFilePath(filePath);
 		}
 
-		[JsonConstructor]
 		public Config(Network network, string bitcoinRpcUser, string bitcoinRpcPassword)
 		{
 			Network = Guard.NotNull(nameof(network), network);

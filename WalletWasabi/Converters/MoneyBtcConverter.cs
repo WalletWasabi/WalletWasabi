@@ -6,10 +6,7 @@ using System.Text;
 
 namespace WalletWasabi.Converters
 {
-	/// <summary>
-	/// BTC, not Satoshi
-	/// </summary>
-	public class MoneyConverter : JsonConverter
+	public class MoneyBtcConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
