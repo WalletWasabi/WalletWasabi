@@ -87,7 +87,7 @@ namespace WalletWasabi.Tests
 					MinVersion = ProtocolVersion_WITNESS_VERSION
 				});
 			WalletService walletService = new WalletService(
-				KeyManager.CreateNew(out Mnemonic mnemonic, "password"),
+				KeyManager.CreateNew(out Mnemonic _, "password"),
 				new IndexDownloader(network, Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345")),
 				memPoolService,
 				nodes,
@@ -211,7 +211,7 @@ namespace WalletWasabi.Tests
 					// Test initial synchronization.
 					var times = 0;
 					uint256 firstHash = await rpc.GetBlockHashAsync(0);
-					while (indexBuilderService.GetFilterLinesExcluding(firstHash, out bool found6).Count() != 101)
+					while (indexBuilderService.GetFilterLinesExcluding(firstHash, out bool _).Count() != 101)
 					{
 						if (times > 500) // 30 sec
 						{
