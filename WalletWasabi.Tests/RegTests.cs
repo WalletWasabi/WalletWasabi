@@ -1360,7 +1360,7 @@ namespace WalletWasabi.Tests
 					replaceable: true);
 				while(wallet.Coins.Count == 0)
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
-				Assert.Equal(1, wallet.Coins.Count);
+				Assert.Single(wallet.Coins);
 
 				// Spend the unconfirmed coin (send it to ourself)
 				var operations = new[] {new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "")};
@@ -1371,13 +1371,13 @@ namespace WalletWasabi.Tests
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
 				
 				// There is a coin created by the latest spending transaction
-				Assert.True(wallet.Coins.Any(x=>x.TransactionId == tx1Res.Transaction.GetHash()));
+				Assert.Contains(wallet.Coins, x =>x.TransactionId == tx1Res.Transaction.GetHash());
 
 				// There is a coin destroyed
 				Assert.Equal(1, wallet.Coins.Count(x=>!x.Unspent && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
-				Assert.True(wallet.Coins.Any(x => x.SpentOutputs.Any(o => o.TransactionId == tx0Id)));
+				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.TransactionId == tx0Id));
 
 				var totalWallet = wallet.Coins.Where(c => c.Unspent).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN)-tx1Res.Fee.Satoshi, totalWallet );
@@ -1392,13 +1392,13 @@ namespace WalletWasabi.Tests
 					await Task.Delay(500); // Waits for the transaction get to the mempool.
 				
 				// There is a coin created by the latest spending transaction
-				Assert.True(wallet.Coins.Any(x=>x.TransactionId == tx2Res.Transaction.GetHash()));
+				Assert.Contains(wallet.Coins, x =>x.TransactionId == tx2Res.Transaction.GetHash());
 
 				// There is a coin destroyed
 				Assert.Equal(1, wallet.Coins.Count(x=>!x.Unspent && x.SpenderTransactionId == tx2Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
-				Assert.True(wallet.Coins.Any(x => x.SpentOutputs.Any(o => o.TransactionId == tx1Res.Transaction.GetHash())));
+				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.TransactionId == tx1Res.Transaction.GetHash()));
 
 				totalWallet = wallet.Coins.Where(c => c.Unspent).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN)-tx1Res.Fee.Satoshi - tx2Res.Fee.Satoshi, totalWallet );
@@ -1407,9 +1407,9 @@ namespace WalletWasabi.Tests
 
 				// Verify transactions are confirmed in the blockchain
 				var block = await Global.RpcClient.GetBlockAsync(blockId);
-				Assert.True(block.Transactions.Any(x=>x.GetHash() == tx2Res.Transaction.GetHash()));
-				Assert.True(block.Transactions.Any(x=>x.GetHash() == tx1Res.Transaction.GetHash()));
-				Assert.True(block.Transactions.Any(x=>x.GetHash() == tx0Id));
+				Assert.Contains(block.Transactions, x =>x.GetHash() == tx2Res.Transaction.GetHash());
+				Assert.Contains(block.Transactions, x =>x.GetHash() == tx1Res.Transaction.GetHash());
+				Assert.Contains(block.Transactions, x =>x.GetHash() == tx0Id);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 				
 				Assert.True(wallet.Coins.All(x=>x.Confirmed));				
