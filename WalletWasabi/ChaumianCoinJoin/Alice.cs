@@ -9,6 +9,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 {
     public class Alice
     {
+		public DateTimeOffset LastSeen { get; set; }
+
 		public Guid UniqueId { get; }
 
 		public Money InputSum { get; }
@@ -37,6 +39,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 				throw new ArgumentOutOfRangeException(nameof(changeOutputScript), byteCount, $"Can be maximum 33 bytes.");
 			}
 			ChangeOutputScript = changeOutputScript;
+
+			LastSeen = DateTimeOffset.UtcNow;
 
 			UniqueId = Guid.NewGuid();
 

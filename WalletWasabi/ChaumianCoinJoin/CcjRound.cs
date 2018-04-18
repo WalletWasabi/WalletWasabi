@@ -32,12 +32,10 @@ namespace WalletWasabi.ChaumianCoinJoin
 		public Transaction SignedCoinJoin { get; private set; }
 
 		private List<Alice> Alices { get; }
-		private AsyncLock AlicesLock { get; }
 		private List<Bob> Bobs { get; }
-		private AsyncLock BobsLock { get; }
 
 		public CcjRoundPhase Phase { get; private set; }
-		private static AsyncLock PhaseExecutionLock { get; } = new AsyncLock();
+		private static AsyncLock RoundSyncronizerLock { get; } = new AsyncLock();
 
 		public CcjRoundStatus Status { get; private set; }
 
@@ -62,17 +60,13 @@ namespace WalletWasabi.ChaumianCoinJoin
 			SignedCoinJoin = null;
 
 			Alices = new List<Alice>();
-			AlicesLock = new AsyncLock();
 			Bobs = new List<Bob>();
-			BobsLock = new AsyncLock();
 		}
 
 		/// <returns>The next phase or null, if the round is not running.</returns>
 		public async Task<CcjRoundPhase?> ExecuteNextPhaseAsync()
 		{
-			using (await PhaseExecutionLock.LockAsync())
-			using (await AlicesLock.LockAsync())
-			using (await BobsLock.LockAsync())
+			using (await RoundSyncronizerLock.LockAsync())
 			{
 				try
 				{
@@ -187,9 +181,51 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public void Fail()
 		{
-			using (PhaseExecutionLock.Lock())
+			using (RoundSyncronizerLock.Lock())
 			{
 				Status = CcjRoundStatus.Failed;
+			}
+		}
+
+		public void SetAliceTimeout(Guid uniqueId, TimeSpan timeout)
+		{
+			// 1. Find Alice and set its LastSeen propery.
+			var foundAlice = false;
+			var started = DateTimeOffset.UtcNow;
+			using (RoundSyncronizerLock.Lock())
+			{
+				Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
+				foundAlice = alice != default(Alice);
+				if (foundAlice)
+				{
+					alice.LastSeen = started;
+				}
+			}
+
+			if (foundAlice)
+			{
+				Task.Run(async () =>
+				{
+					// 2. Delay asyncronously to the requested timeout
+					await Task.Delay(timeout);
+
+					using (await RoundSyncronizerLock.LockAsync())
+					{
+						// 3. If the round is still running and the phase is still InputRegistration
+						if (Status == CcjRoundStatus.Running && Phase == CcjRoundPhase.InputRegistration)
+						{
+							Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
+							if (alice != default(Alice))
+							{
+								// 4. If LastSeen isn't changed by then, remove Alice.
+								if (alice.LastSeen == started)
+								{
+									Alices.Remove(alice);
+								}
+							}
+						}
+					}
+				});
 			}
 		}
 	}
