@@ -141,21 +141,38 @@ namespace WalletWasabi.ChaumianCoinJoin
 							transaction.AddOutput(newDenomination, coordinatorAddress);
 						}
 
-						// 4. Add Coordinator fee.
+						// 4. Start building Coordinator fee.
 						Money coordinatorFeePerAlice = new Money((CoordinatorFeePercent * 0.01m) * decimal.Parse(newDenomination.ToString(false, true)), MoneyUnit.BTC);
-						transaction.AddOutput(Alices.Count * coordinatorFeePerAlice, coordinatorAddress);
+						Money coordinatorFee = Alices.Count * coordinatorFeePerAlice;
 
-						// 4. Add the inputs and the changes of Alices.
+						// 5. Add the inputs and the changes of Alices.
 						foreach (Alice alice in Alices)
 						{
 							foreach (var input in alice.Inputs)
 							{
 								transaction.AddInput(new TxIn(input.Key));
 							}
-							transaction.AddOutput(alice.GetChangeAmount(newDenomination, coordinatorFeePerAlice), alice.ChangeOutputScript);
+							Money changeAmount = alice.GetChangeAmount(newDenomination, coordinatorFeePerAlice);
+							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
+							{
+								Money minimumOutputAmount = new Money(0.0001m, MoneyUnit.BTC); // If the change would be less than about $1 then add it to the coordinator.
+								Money onePercentOfDenomination = new Money(newDenomination.ToDecimal(MoneyUnit.BTC) * 0.01m, MoneyUnit.BTC); // If the change is less than about 1% of the denomination then add it to the coordinator fee.
+								Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
+								if (changeAmount < minimumChangeAmount)
+								{
+									coordinatorFee += changeAmount;
+								}
+								else
+								{
+									transaction.AddOutput(changeAmount, alice.ChangeOutputScript);
+								}
+							}
 						}
 
-						// 5. Create the unsigned transaction.
+						// 6. Add Coordinator fee.
+						transaction.AddOutput(coordinatorFee, coordinatorAddress);
+
+						// 7. Create the unsigned transaction.
 						var builder = new TransactionBuilder();
 						UnsignedCoinJoin = builder
 							.ContinueToBuild(transaction)
