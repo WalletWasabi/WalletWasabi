@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests
 
 			var config = new Config(rpc.Network, authString[0], authString[1]);
 
-			var roundConfig = new CcjRoundConfig(new Money(0.1m, MoneyUnit.BTC), 144, 0.1m, 100);
+			var roundConfig = new CcjRoundConfig(new Money(0.1m, MoneyUnit.BTC), 144, 0.1m, 100, 120, 60, 60, 60);
 
 			Global.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
 

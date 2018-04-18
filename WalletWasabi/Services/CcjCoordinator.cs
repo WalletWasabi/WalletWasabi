@@ -38,7 +38,53 @@ namespace WalletWasabi.Services
 				}
 				
 				var round = new CcjRound(RpcClient, roundConfig);
-				await round.ExecuteNextPhaseAsync();
+				await round.ExecuteNextPhaseAsync(TimeSpan.FromSeconds((long)roundConfig.InputRegistrationTimeout), async () => 
+				{
+					// This will happen outside the lock.
+
+					// Only fail if less two one Alice is registered.
+					// Don't ban anyone, it's ok if they lost connection.
+					int aliceCountAfterInputRegistrationTimeout = round.CountAlices();
+					if (aliceCountAfterInputRegistrationTimeout < 2)
+					{
+						round.Fail();
+						await StartNewRoundAsync(roundConfig);
+					}
+					else
+					{
+						round.UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+						// Progress to the next phase, which will be ConnectionConfirmation
+						await round.ExecuteNextPhaseAsync(TimeSpan.FromSeconds((long)roundConfig.ConnectionConfirmationTimeout), async () =>
+						{
+							// Only fail if less two one Alice is registered.
+							// Don't ban anyone, it's ok if they lost connection.
+							round.RemoveAlicesByState(AliceState.InputsRegistered);
+							int aliceCountAfterConnectionConfirmationTimeout = round.CountAlices();
+							if (aliceCountAfterConnectionConfirmationTimeout < 2)
+							{
+								round.Fail();
+								await StartNewRoundAsync(roundConfig);
+							}
+							else
+							{
+								round.UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
+								// Progress to the next phase, which will be ConnectionConfirmation
+								await round.ExecuteNextPhaseAsync(TimeSpan.FromSeconds((long)roundConfig.OutputRegistrationTimeout), async () =>
+								{
+									// Output registration never fails.
+									// We don't know which Alice to ban.
+									// Therefore proceed to signing, and whichever Alice doesn't sign ban.
+									await round.ExecuteNextPhaseAsync(TimeSpan.FromSeconds((long)roundConfig.SigningTimeout), async () =>
+									{
+										round.Fail();
+										await StartNewRoundAsync(roundConfig);
+										// ToDo: Ban Alices those states are not SignedCoinJoin
+									});
+								});
+							}
+						});
+					}
+				});
 				Rounds.Add(round);
 			}
 		}

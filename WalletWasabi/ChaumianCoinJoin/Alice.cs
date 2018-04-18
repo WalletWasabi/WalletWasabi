@@ -25,6 +25,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public Money GetChangeAmount(Money denomination, Money coordinatorFee) => OutputSumWithoutCoordinatorFeeAndDenomination - denomination - coordinatorFee;
 
+		public AliceState State { get; set; }
+
 		public Alice(Dictionary<OutPoint, TxOut> inputs, Money feeToPay, Script changeOutputScript)
 		{
 			Guard.NotNullOrEmpty(nameof(inputs), inputs);
@@ -47,6 +49,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 			InputSum = inputs.Sum(x => x.Value.Value);
 
 			OutputSumWithoutCoordinatorFeeAndDenomination = InputSum - FeeToPay;
+
+			State = AliceState.InputsRegistered;
 		}
     }
 }

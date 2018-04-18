@@ -32,19 +32,35 @@ namespace WalletWasabi.ChaumianCoinJoin
 		[JsonProperty(PropertyName = "AnonymitySet")]
 		public int? AnonymitySet { get; private set; }
 
+		[JsonProperty(PropertyName = "InputRegistrationTimeout")]
+		public long? InputRegistrationTimeout { get; private set; }
+
+		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout")]
+		public long? ConnectionConfirmationTimeout { get; private set; }
+
+		[JsonProperty(PropertyName = "OutputRegistrationTimeout")]
+		public long? OutputRegistrationTimeout { get; private set; }
+
+		[JsonProperty(PropertyName = "SigningTimeout")]
+		public long? SigningTimeout { get; private set; }
+
 		public CcjRoundConfig(string filePath)
 		{
 			SetFilePath(filePath);
 		}
 
 		[JsonConstructor]
-		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet)
+		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout)
 		{
 			FilePath = null;
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
 			ConfirmationTarget = Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
 			CoordinatorFeePercent = Guard.NotNull(nameof(coordinatorFeePercent), coordinatorFeePercent);
 			AnonymitySet = Guard.NotNull(nameof(anonymitySet), anonymitySet);
+			InputRegistrationTimeout = Guard.NotNull(nameof(inputRegistrationTimeout), inputRegistrationTimeout);
+			ConnectionConfirmationTimeout = Guard.NotNull(nameof(connectionConfirmationTimeout), connectionConfirmationTimeout);
+			OutputRegistrationTimeout = Guard.NotNull(nameof(outputRegistrationTimeout), outputRegistrationTimeout);
+			SigningTimeout = Guard.NotNull(nameof(signingTimeout), signingTimeout);
 		}
 
 		/// <inheritdoc />
@@ -67,6 +83,10 @@ namespace WalletWasabi.ChaumianCoinJoin
 			ConfirmationTarget = 144; // 1 day
 			CoordinatorFeePercent = 0.1m;
 			AnonymitySet = 100;
+			InputRegistrationTimeout = 604800; // One week
+			ConnectionConfirmationTimeout = 60;
+			OutputRegistrationTimeout = 60;
+			SigningTimeout = 60;
 
 			if (!File.Exists(FilePath))
 			{
@@ -81,6 +101,10 @@ namespace WalletWasabi.ChaumianCoinJoin
 				ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
 				CoordinatorFeePercent = config.CoordinatorFeePercent ?? CoordinatorFeePercent;
 				AnonymitySet = config.AnonymitySet ?? AnonymitySet;
+				InputRegistrationTimeout = config.InputRegistrationTimeout ?? InputRegistrationTimeout;
+				ConnectionConfirmationTimeout = config.ConnectionConfirmationTimeout ?? ConnectionConfirmationTimeout;
+				OutputRegistrationTimeout = config.OutputRegistrationTimeout ?? OutputRegistrationTimeout;
+				SigningTimeout = config.SigningTimeout ?? SigningTimeout;
 			}
 
 			await ToFileAsync();
@@ -112,6 +136,22 @@ namespace WalletWasabi.ChaumianCoinJoin
 				return true;
 			}
 			if (AnonymitySet != config.AnonymitySet)
+			{
+				return true;
+			}
+			if (InputRegistrationTimeout != config.InputRegistrationTimeout)
+			{
+				return true;
+			}
+			if (ConnectionConfirmationTimeout != config.ConnectionConfirmationTimeout)
+			{
+				return true;
+			}
+			if (OutputRegistrationTimeout != config.OutputRegistrationTimeout)
+			{
+				return true;
+			}
+			if (SigningTimeout != config.SigningTimeout)
 			{
 				return true;
 			}

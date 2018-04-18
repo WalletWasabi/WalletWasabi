@@ -64,8 +64,10 @@ namespace WalletWasabi.ChaumianCoinJoin
 		}
 
 		/// <returns>The next phase or null, if the round is not running.</returns>
-		public async Task<CcjRoundPhase?> ExecuteNextPhaseAsync()
+		public async Task<CcjRoundPhase?> ExecuteNextPhaseAsync(TimeSpan timeout, Func<Task> toDoOnSamePhaseDoAfterTimeout)
 		{
+			CcjRoundPhase? ret = null;
+
 			using (await RoundSyncronizerLock.LockAsync())
 			{
 				try
@@ -102,23 +104,23 @@ namespace WalletWasabi.ChaumianCoinJoin
 						}
 
 						Status = CcjRoundStatus.Running;
-						return CcjRoundPhase.InputRegistration;
+						ret = CcjRoundPhase.InputRegistration;
 					}
 					else if (Status != CcjRoundStatus.Running) // Failed or succeeded, swallow
 					{
-						return null;
+						ret = null;
 					}
 					else if (Phase == CcjRoundPhase.InputRegistration)
 					{
 						RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(y => y.Key));
 
 						Phase = CcjRoundPhase.ConnectionConfirmation;
-						return CcjRoundPhase.ConnectionConfirmation;
+						ret = CcjRoundPhase.ConnectionConfirmation;
 					}
 					else if (Phase == CcjRoundPhase.ConnectionConfirmation)
 					{
 						Phase = CcjRoundPhase.OutputRegistration;
-						return CcjRoundPhase.OutputRegistration;
+						ret = CcjRoundPhase.OutputRegistration;
 					}
 					else if (Phase == CcjRoundPhase.OutputRegistration)
 					{
@@ -137,7 +139,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(RpcClient.Network);
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
 						for (int i = 0; i < Alices.Count - Bobs.Count; i++)
-						{							
+						{
 							transaction.AddOutput(newDenomination, coordinatorAddress);
 						}
 
@@ -180,7 +182,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 							.BuildTransaction(false);
 
 						Phase = CcjRoundPhase.Signing;
-						return CcjRoundPhase.Signing;
+						ret = CcjRoundPhase.Signing;
 					}
 					else
 					{
@@ -194,6 +196,26 @@ namespace WalletWasabi.ChaumianCoinJoin
 					throw;
 				}
 			}
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+			Task.Run(async () =>
+			{
+				// Delay asyncronously to the requested timeout.
+				await Task.Delay(timeout);
+
+				var runFailureToDo = false;
+				using (await RoundSyncronizerLock.LockAsync())
+				{
+					runFailureToDo = runFailureToDo = Status == CcjRoundStatus.Running && Phase == ret;					
+				}
+				if(runFailureToDo)
+				{
+					await toDoOnSamePhaseDoAfterTimeout(); // outside the lock so to avoid deadlock
+				}
+			});
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+
+			return ret;
 		}
 
 		public void Fail()
@@ -201,6 +223,38 @@ namespace WalletWasabi.ChaumianCoinJoin
 			using (RoundSyncronizerLock.Lock())
 			{
 				Status = CcjRoundStatus.Failed;
+			}
+		}
+
+		public int CountAlices()
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				return Alices.Count;
+			}
+		}
+
+		public void RemoveAlicesByState(AliceState state)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				Alices.RemoveAll(x => x.State == state);
+			}
+		}
+
+		public int CountBobs()
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				return Bobs.Count;
+			}
+		}
+
+		public void UpdateAnonymitySet(int anonymitySet)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				AnonymitySet = anonymitySet;
 			}
 		}
 
