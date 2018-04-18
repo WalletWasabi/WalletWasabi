@@ -1403,8 +1403,9 @@ namespace WalletWasabi.Tests
 				totalWallet = wallet.Coins.Where(c => c.Unspent).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN)-tx1Res.Fee.Satoshi - tx2Res.Fee.Satoshi, totalWallet );
 
+				_filtersProcessedByWalletCount = 0;
 				var blockId = (await Global.RpcClient.GenerateAsync(1)).Single();
-
+				
 				// Verify transactions are confirmed in the blockchain
 				var block = await Global.RpcClient.GetBlockAsync(blockId);
 				Assert.Contains(block.Transactions, x =>x.GetHash() == tx2Res.Transaction.GetHash());
