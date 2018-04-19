@@ -29,7 +29,7 @@ namespace WalletWasabi.Logging
 		/// <summary>
 		/// KB
 		/// </summary>
-		public static long MaximumLogFileSize { get; private set; } = 10000; // approx 10 MB
+		public static long MaximumLogFileSize { get; private set; } = 10_000; // approx 10 MB
 
 		#endregion
 
@@ -105,7 +105,7 @@ namespace WalletWasabi.Logging
                 message = string.IsNullOrWhiteSpace(message) ? "" : message;
                 category = string.IsNullOrWhiteSpace(category) ? "" : category;
 
-                var finalLogMessage = $"{DateTime.UtcNow:u} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
+                var finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd hh:mm:ss} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
 
 				lock (Lock)
 				{
