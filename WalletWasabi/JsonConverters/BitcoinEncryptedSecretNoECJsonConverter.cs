@@ -4,29 +4,26 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Converters
+namespace WalletWasabi.JsonConverters
 {
-    public class OutPointConverter : JsonConverter
+	public class BitcoinEncryptedSecretNoECJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(OutPoint);
+			return objectType == typeof(BitcoinEncryptedSecretNoEC);
 		}
 
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			var value = (string)reader.Value;
-			var op = new OutPoint();
-			op.FromHex(value);
-			return op;
+			return new BitcoinEncryptedSecretNoEC((string)reader.Value);
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((OutPoint)value).ToHex());
+			writer.WriteValue(((BitcoinEncryptedSecretNoEC)value).ToWif());
 		}
 	}
 }

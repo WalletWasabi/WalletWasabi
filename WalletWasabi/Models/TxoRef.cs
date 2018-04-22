@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Converters;
+﻿using WalletWasabi.JsonConverters;
 using WalletWasabi.Helpers;
 using NBitcoin;
 using Newtonsoft.Json;
@@ -15,7 +15,7 @@ namespace WalletWasabi.Models
 	public class TxoRef : IEquatable<TxoRef>, IEquatable<OutPoint>
 	{
 		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(Uint256Converter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 TransactionId { get; }
 
 		[JsonProperty(Order = 2)]

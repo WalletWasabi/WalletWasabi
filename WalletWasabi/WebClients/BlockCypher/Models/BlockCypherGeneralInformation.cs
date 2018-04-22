@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Converters;
+﻿using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 using NBitcoin;
 using Newtonsoft.Json;
@@ -15,27 +15,27 @@ namespace WalletWasabi.WebClients.BlockCypher.Models
 		public string Name { get; set; }
 
 		[JsonProperty(PropertyName = "height")]
-		[JsonConverter(typeof(HeightConverter))]
+		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height Height { get; set; }
 
 		[JsonProperty(PropertyName = "hash")]
-		[JsonConverter(typeof(Uint256Converter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 Hash { get; set; }
 
 		[JsonProperty(PropertyName = "time")]
-		[JsonConverter(typeof(BlockCypherDateTimeOffsetConverter))]
+		[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
 		public DateTimeOffset Time { get; set; }
 
 		[JsonProperty(PropertyName = "latest_url")]
-		[JsonConverter(typeof(BlockCypherUriConverter))]
+		[JsonConverter(typeof(BlockCypherUriJsonConverter))]
 		public Uri LatestUrl { get; set; }
 
 		[JsonProperty(PropertyName = "previous_hash")]
-		[JsonConverter(typeof(Uint256Converter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 PreviousHash { get; set; }
 
 		[JsonProperty(PropertyName = "previous_url")]
-		[JsonConverter(typeof(BlockCypherUriConverter))]
+		[JsonConverter(typeof(BlockCypherUriJsonConverter))]
 		public Uri PreviousUrl { get; set; }
 
 		[JsonProperty(PropertyName = "peer_count")]
@@ -45,23 +45,23 @@ namespace WalletWasabi.WebClients.BlockCypher.Models
 		public long UnconfirmedCount { get; set; }
 
 		[JsonProperty(PropertyName = "high_fee_per_kb")]
-		[JsonConverter(typeof(FeeRatePerKbConverter))]
+		[JsonConverter(typeof(FeeRatePerKbJsonConverter))]
 		public FeeRate HighFee { get; set; }
 
 		[JsonProperty(PropertyName = "medium_fee_per_kb")]
-		[JsonConverter(typeof(FeeRatePerKbConverter))]
+		[JsonConverter(typeof(FeeRatePerKbJsonConverter))]
 		public FeeRate MediumFee { get; set; }
 
 		[JsonProperty(PropertyName = "low_fee_per_kb")]
-		[JsonConverter(typeof(FeeRatePerKbConverter))]
+		[JsonConverter(typeof(FeeRatePerKbJsonConverter))]
 		public FeeRate LowFee { get; set; }
 
 		[JsonProperty(PropertyName = "last_fork_height")]
-		[JsonConverter(typeof(HeightConverter))]
+		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height LastForkHeight { get; set; }
 
 		[JsonProperty(PropertyName = "last_fork_hash")]
-		[JsonConverter(typeof(Uint256Converter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 LastForkHash { get; set; }
     }
 }

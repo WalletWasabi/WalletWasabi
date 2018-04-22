@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Converters
+namespace WalletWasabi.JsonConverters
 {
-	public class HeightConverter : JsonConverter
+	public class HeightJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

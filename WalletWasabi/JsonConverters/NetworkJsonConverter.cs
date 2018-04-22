@@ -4,13 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Converters
+namespace WalletWasabi.JsonConverters
 {
 	/// <summary>
 	/// Converter used to convert <see cref="Network"/> to and from JSON.
 	/// </summary>
 	/// <seealso cref="Newtonsoft.Json.JsonConverter" />
-	public class NetworkConverter : JsonConverter
+	public class NetworkJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

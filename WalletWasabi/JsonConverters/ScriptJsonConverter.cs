@@ -4,26 +4,30 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Converters
+namespace WalletWasabi.JsonConverters
 {
-	public class Uint256Converter : JsonConverter
+	public class ScriptJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(uint256);
+			return objectType == typeof(Script);
 		}
 
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			return new uint256(((string)reader.Value).Trim());
+			var serialized = (string)reader.Value;
+
+			return new Script(serialized);
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((uint256)value).ToString());
+			var script = (Script)value;
+
+			writer.WriteValue(script.ToString());
 		}
 	}
 }

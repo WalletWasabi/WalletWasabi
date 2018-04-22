@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Converters;
+﻿using WalletWasabi.JsonConverters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using NBitcoin;
@@ -20,7 +20,7 @@ namespace WalletWasabi.Backend
 		public string FilePath { get; private set; }
 
 		[JsonProperty(PropertyName = "Network")]
-		[JsonConverter(typeof(NetworkConverter))]
+		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; private set; }
 
 		[JsonProperty(PropertyName = "BitcoinRpcUser")]

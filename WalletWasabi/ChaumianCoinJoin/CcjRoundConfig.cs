@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.Converters;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
@@ -20,7 +20,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 		public string FilePath { get; private set; }
 
 		[JsonProperty(PropertyName = "Denomination")]
-		[JsonConverter(typeof(MoneyBtcConverter))]
+		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money Denomination { get; private set; }
 
 		[JsonProperty(PropertyName = "ConfirmationTarget")]

@@ -65,8 +65,8 @@ namespace WalletWasabi.Backend.Controllers
 		/// <summary>
 		/// Alice registers her inputs.
 		/// </summary>
-		/// <returns>SignedBlindedOutput, UniqueId</returns>
-		/// <response code="200">SignedBlindedOutput, UniqueId</response>
+		/// <returns>BlindedOutputSignature, UniqueId</returns>
+		/// <response code="200">BlindedOutputSignature, UniqueId</response>
 		/// <response code="400">If request is invalid.</response>
 		/// <response code="503">If the round status changed while fulfilling the request.</response>
 		[HttpPost("inputs")]
@@ -193,7 +193,18 @@ namespace WalletWasabi.Backend.Controllers
 						return StatusCode(StatusCodes.Status503ServiceUnavailable, "The state of the round changed while handling the request. Try again.");
 					}
 
-					return Ok();
+					// Progress round if needed.
+					if(round.CountAlices() >= round.AnonymitySet)
+					{
+						await round.ExecuteNextPhaseAsync();
+					}
+
+					var resp = new InputsResponse
+					{
+						UniqueId = alice.UniqueId,
+						BlindedOutputSignature = signature
+					};
+					return Ok(resp);
 				}
 				catch(Exception ex)
 				{

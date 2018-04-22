@@ -1,29 +1,32 @@
-﻿using Newtonsoft.Json;
+﻿using NBitcoin;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Converters
+namespace WalletWasabi.JsonConverters
 {
-	class BlockCypherUriConverter : JsonConverter
+    public class ExtPubKeyJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(Uri);
+			return objectType == typeof(ExtPubKey);
 		}
 
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			var value = ((string)reader.Value).Trim();
-			return new Uri(value, UriKind.Absolute);
+			var hex = (string)reader.Value;
+			return new ExtPubKey(ByteHelpers.FromHex(hex));
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((Uri)value).ToString());
+			var epk = (ExtPubKey)value;
+			var hex = ByteHelpers.ToHex(epk.ToBytes());
+			writer.WriteValue(hex);
 		}
 	}
 }

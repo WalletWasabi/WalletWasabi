@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Converters;
+﻿using WalletWasabi.JsonConverters;
 using WalletWasabi.Helpers;
 using NBitcoin;
 using NBitcoin.JsonConverters;
@@ -13,7 +13,7 @@ namespace WalletWasabi.KeyManagement
 	public class HdPubKey : IEquatable<HdPubKey>
 	{
 		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(PubKeyConverter))]
+		[JsonConverter(typeof(PubKeyJsonConverter))]
 		public PubKey PubKey { get; }
 
 		[JsonProperty(Order = 2)]

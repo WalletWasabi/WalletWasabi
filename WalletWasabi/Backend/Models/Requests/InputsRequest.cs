@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using WalletWasabi.Converters;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Requests
 {
@@ -14,7 +14,7 @@ namespace WalletWasabi.Backend.Models.Requests
 		public IEnumerable<InputProofModel> Inputs { get; set; }
 
 		[Required]
-		[JsonConverter(typeof(ByteArrayConverter))]
+		[JsonConverter(typeof(ByteArrayJsonConverter))]
 		public byte[] BlindedOutput { get; set; }
 
 		[Required]

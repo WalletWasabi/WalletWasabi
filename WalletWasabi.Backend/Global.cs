@@ -73,23 +73,25 @@ namespace WalletWasabi.Backend
 			IndexBuilderService = new IndexBuilderService(RpcClient, indexFilePath, utxoSetFilePath);
 			IndexBuilderService.Synchronize();
 
-			Coordinator = new CcjCoordinator(RpcClient);
-			await Coordinator.StartNewRoundAsync(roundConfig);
+			Coordinator = new CcjCoordinator(RpcClient, roundConfig);
+			await Coordinator.MakeSureTwoRunningRoundsAsync();
 
 			if (roundConfig.FilePath != null)
 			{
 				RoundConfigWatcher = new ConfigWatcher(RoundConfig);
-				RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), async() => {
+				RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), () => {
 					try
 					{
-						Coordinator.FailAllRoundsInInputRegistration();
+						Coordinator.UpdateRoundConfig(RoundConfig);
 
-						await Coordinator.StartNewRoundAsync(RoundConfig);
+						Coordinator.FailAllRoundsInInputRegistration();
 					}
 					catch (Exception ex)
 					{
 						Logger.LogDebug<ConfigWatcher>(ex);
 					}
+
+					return Task.CompletedTask;
 				}); // Every 10 seconds check the config
 			}
 		}

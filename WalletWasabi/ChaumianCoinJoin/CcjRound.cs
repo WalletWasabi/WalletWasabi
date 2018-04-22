@@ -34,12 +34,53 @@ namespace WalletWasabi.ChaumianCoinJoin
 		private List<Alice> Alices { get; }
 		private List<Bob> Bobs { get; }
 
-		public CcjRoundPhase Phase { get; private set; }
 		private static AsyncLock RoundSyncronizerLock { get; } = new AsyncLock();
 
-		public CcjRoundStatus Status { get; private set; }
+		private CcjRoundPhase _phase;
+		public CcjRoundPhase Phase
+		{
+			get => _phase;
 
-		public TimeSpan AliceRegistrationTimeout { get; set; }
+			private set
+			{
+				if (_phase != value)
+				{
+					_phase = value;
+					OnPhaseChanged(value);
+				}
+			}
+		}
+
+		public event EventHandler<CcjRoundPhase> PhaseChanged;
+		private void OnPhaseChanged(CcjRoundPhase phase) => PhaseChanged?.Invoke(this, phase);
+
+		private CcjRoundStatus _status;
+		public CcjRoundStatus Status
+		{
+			get => _status;
+
+			private set
+			{
+				if (_status != value)
+				{
+					_status = value;
+					OnStatusChanged(value);
+				}
+			}
+		}
+
+		public event EventHandler<CcjRoundStatus> StatusChanged;
+		private void OnStatusChanged(CcjRoundStatus status) => StatusChanged?.Invoke(this, status);
+
+		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
+
+		public TimeSpan InputRegistrationTimeout { get; }
+
+		public TimeSpan ConnectionConfirmationTimeout { get; }
+
+		public TimeSpan OutputRegistrationTimeout { get; }
+
+		public TimeSpan SigningTimeout { get; }
 
 		public CcjRound(RPCClient rpc, CcjRoundConfig config)
 		{
@@ -52,7 +93,10 @@ namespace WalletWasabi.ChaumianCoinJoin
 			ConfirmationTarget = (int)config.ConfirmationTarget;
 			CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 			AnonymitySet = (int)config.AnonymitySet;
-			AliceRegistrationTimeout = TimeSpan.FromSeconds((long)config.ConnectionConfirmationTimeout);
+			InputRegistrationTimeout = TimeSpan.FromSeconds((long)config.InputRegistrationTimeout);
+			ConnectionConfirmationTimeout = TimeSpan.FromSeconds((long)config.ConnectionConfirmationTimeout);
+			OutputRegistrationTimeout = TimeSpan.FromSeconds((long)config.OutputRegistrationTimeout);
+			SigningTimeout = TimeSpan.FromSeconds((long)config.SigningTimeout);
 
 			Phase = CcjRoundPhase.InputRegistration;
 			Status = CcjRoundStatus.NotStarted;
@@ -67,7 +111,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 		}
 
 		/// <returns>The next phase or null, if the round is not running.</returns>
-		public async Task<CcjRoundPhase?> ExecuteNextPhaseAsync(TimeSpan timeout, Func<Task> toDoOnSamePhaseDoAfterTimeout)
+		public async Task<CcjRoundPhase?> ExecuteNextPhaseAsync()
 		{
 			CcjRoundPhase? ret = null;
 
@@ -203,17 +247,91 @@ namespace WalletWasabi.ChaumianCoinJoin
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			Task.Run(async () =>
 			{
+				TimeSpan timeout;
+				switch (ret)
+				{
+					case CcjRoundPhase.InputRegistration:
+						timeout = InputRegistrationTimeout;
+						break;
+					case CcjRoundPhase.ConnectionConfirmation:
+						timeout = ConnectionConfirmationTimeout;
+						break;
+					case CcjRoundPhase.OutputRegistration:
+						timeout = OutputRegistrationTimeout;
+						break;
+					case CcjRoundPhase.Signing:
+						timeout = SigningTimeout;
+						break;
+					default: throw new InvalidOperationException("This is impossible to happen.");
+				}
+
 				// Delay asyncronously to the requested timeout.
 				await Task.Delay(timeout);
 
 				var runFailureToDo = false;
 				using (await RoundSyncronizerLock.LockAsync())
 				{
-					runFailureToDo = runFailureToDo = Status == CcjRoundStatus.Running && Phase == ret;					
+					runFailureToDo = Status == CcjRoundStatus.Running && Phase == ret;
 				}
-				if(runFailureToDo)
+				if (runFailureToDo)
 				{
-					await toDoOnSamePhaseDoAfterTimeout(); // outside the lock so to avoid deadlock
+					// This will happen outside the lock.
+					Task.Run(async () =>
+					{
+						switch (ret)
+						{
+							case CcjRoundPhase.InputRegistration:
+								{
+									// Only fail if less two one Alice is registered.
+									// Don't ban anyone, it's ok if they lost connection.
+									int aliceCountAfterInputRegistrationTimeout = CountAlices();
+									if (aliceCountAfterInputRegistrationTimeout < 2)
+									{
+										Fail();
+									}
+									else
+									{
+										UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+										// Progress to the next phase, which will be ConnectionConfirmation
+										await ExecuteNextPhaseAsync();
+									}
+								}
+								break;
+							case CcjRoundPhase.ConnectionConfirmation:
+								{
+									// Only fail if less two one Alice is registered.
+									// Don't ban anyone, it's ok if they lost connection.
+									RemoveAlicesBy(AliceState.InputsRegistered);
+									int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
+									if (aliceCountAfterConnectionConfirmationTimeout < 2)
+									{
+										Fail();
+									}
+									else
+									{
+										UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
+										// Progress to the next phase, which will be OutputRegistration
+										await ExecuteNextPhaseAsync();
+									}
+								}
+								break;
+							case CcjRoundPhase.OutputRegistration:
+								{
+									// Output registration never fails.
+									// We don't know which Alice to ban.
+									// Therefore proceed to signing, and whichever Alice doesn't sign ban.
+									await ExecuteNextPhaseAsync();
+								}
+								break;
+							case CcjRoundPhase.Signing:
+								{
+									Fail();
+									// ToDo: Ban Alices those states are not SignedCoinJoin
+								}
+								break;
+							default: throw new InvalidOperationException("This is impossible to happen.");
+						}
+					});
 				}
 			});
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -284,9 +402,9 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 			using (RoundSyncronizerLock.Lock())
 			{
-				foreach(Alice alice in Alices)
+				foreach (Alice alice in Alices)
 				{
-					if(ByteHelpers.CompareFastUnsafe(alice.BlindedOutput, blindedOutput))
+					if (ByteHelpers.CompareFastUnsafe(alice.BlindedOutput, blindedOutput))
 					{
 						alices.Add(alice);
 					}

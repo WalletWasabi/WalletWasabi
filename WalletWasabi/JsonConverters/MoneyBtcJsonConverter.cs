@@ -4,14 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Converters
+namespace WalletWasabi.JsonConverters
 {
-	public class ScriptConverter : JsonConverter
+	public class MoneyBtcJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(Script);
+			return objectType == typeof(Money);
 		}
 
 		/// <inheritdoc />
@@ -19,15 +19,15 @@ namespace WalletWasabi.Converters
 		{
 			var serialized = (string)reader.Value;
 
-			return new Script(serialized);
+			return Money.Parse(serialized);
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			var script = (Script)value;
+			var money = (Money)value;
 
-			writer.WriteValue(script.ToString());
+			writer.WriteValue(money.ToString(fplus: false, trimExcessZero: true));
 		}
 	}
 }

@@ -4,26 +4,27 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Converters
+namespace WalletWasabi.JsonConverters
 {
-	public class BitcoinEncryptedSecretNoECConverter : JsonConverter
+	public class FeeRatePerKbJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(BitcoinEncryptedSecretNoEC);
+			return objectType == typeof(FeeRate);
 		}
 
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			return new BitcoinEncryptedSecretNoEC((string)reader.Value);
+			var value = ((long)reader.Value);
+			return new FeeRate(new Money(value));
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((BitcoinEncryptedSecretNoEC)value).ToWif());
+			writer.WriteValue(((FeeRate)value).FeePerK.Satoshi.ToString());
 		}
 	}
 }

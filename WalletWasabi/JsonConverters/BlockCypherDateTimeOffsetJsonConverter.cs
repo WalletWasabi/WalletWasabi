@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace WalletWasabi.Converters
+namespace WalletWasabi.JsonConverters
 {
-	public class BlockCypherDateTimeOffsetConverter : JsonConverter
+	public class BlockCypherDateTimeOffsetJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

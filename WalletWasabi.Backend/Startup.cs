@@ -67,6 +67,8 @@ namespace WalletWasabi.Backend
 
 		private async Task CleanupAsync()
 		{
+			Global.Coordinator?.Dispose();
+
 			var stopTasks = new List<Task>();
 
 			if(Global.IndexBuilderService != null)

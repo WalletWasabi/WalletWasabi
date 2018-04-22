@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Converters;
+﻿using WalletWasabi.JsonConverters;
 using WalletWasabi.Helpers;
 using NBitcoin;
 using NBitcoin.JsonConverters;
@@ -17,36 +17,36 @@ namespace WalletWasabi.Models
 	public class SmartCoin : IEquatable<SmartCoin>
 	{
 		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(Uint256Converter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 TransactionId { get; }
 
 		[JsonProperty(Order = 2)]
 		public int Index { get; }
 
 		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(ScriptConverter))]
+		[JsonConverter(typeof(JsonConverters.ScriptJsonConverter))]
 		public Script ScriptPubKey { get; }
 
 		[JsonProperty(Order = 4)]
-		[JsonConverter(typeof(MoneyBtcConverter))]
+		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money Amount { get; }
 
 		[JsonProperty(Order = 5)]
-		[JsonConverter(typeof(HeightConverter))]
+		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height Height { get; set; }
 
 		[JsonProperty(Order = 6)]
 		public string Label { get; set; }
 
 		[JsonProperty(Order = 7)]
-		[JsonConverter(typeof(Uint256Converter))]
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 SpenderTransactionId { get; set; }
 
 		[JsonProperty(Order = 8)]
 		public TxoRef[] SpentOutputs { get; }
 
 		[JsonProperty(Order = 9)]
-		[JsonConverter(typeof(FunnyBoolConverter))]
+		[JsonConverter(typeof(FunnyBoolJsonConverter))]
 		public bool RBF { get; }
 
 		public bool Unspent => SpenderTransactionId == null;

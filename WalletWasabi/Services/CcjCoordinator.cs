@@ -13,79 +13,64 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services
 {
-	public class CcjCoordinator
+	public class CcjCoordinator : IDisposable
 	{
 		private List<CcjRound> Rounds { get; }
 		private AsyncLock RoundsListLock { get; }
 
 		public RPCClient RpcClient { get; }
 
-		public CcjCoordinator(RPCClient rpc)
+		public CcjRoundConfig RoundConfig { get; private set; }
+
+		public CcjCoordinator(RPCClient rpc, CcjRoundConfig roundConfig)
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
+			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
 
 			Rounds = new List<CcjRound>();
 			RoundsListLock = new AsyncLock();
 		}
 
-		public async Task StartNewRoundAsync(CcjRoundConfig roundConfig)
+		public void UpdateRoundConfig(CcjRoundConfig roundConfig)
+		{
+			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
+		}
+
+		public async Task MakeSureTwoRunningRoundsAsync()
 		{
 			using (await RoundsListLock.LockAsync())
 			{
-				if (Rounds.Count(x => x.Status == CcjRoundStatus.Running) > 1)
+				int runningRoundCount = Rounds.Count(x => x.Status == CcjRoundStatus.Running);
+				if (runningRoundCount == 0)
 				{
-					throw new InvalidOperationException("Maximum two concurrently running round is allowed the same time.");
-				}
-				
-				var round = new CcjRound(RpcClient, roundConfig);
-				await round.ExecuteNextPhaseAsync(TimeSpan.FromSeconds((long)roundConfig.InputRegistrationTimeout), async () => 
-				{
-					// This will happen outside the lock.
+					var round = new CcjRound(RpcClient, RoundConfig);
+					round.StatusChanged += Round_StatusChangedAsync;
+					await round.ExecuteNextPhaseAsync();
+					Rounds.Add(round);
 
-					// Only fail if less two one Alice is registered.
-					// Don't ban anyone, it's ok if they lost connection.
-					int aliceCountAfterInputRegistrationTimeout = round.CountAlices();
-					if (aliceCountAfterInputRegistrationTimeout < 2)
-					{
-						round.Fail();
-						await StartNewRoundAsync(roundConfig);
-					}
-					else
-					{
-						round.UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
-						// Progress to the next phase, which will be ConnectionConfirmation
-						await round.ExecuteNextPhaseAsync(TimeSpan.FromSeconds((long)roundConfig.ConnectionConfirmationTimeout), async () =>
-						{
-							// Only fail if less two one Alice is registered.
-							// Don't ban anyone, it's ok if they lost connection.
-							round.RemoveAlicesBy(AliceState.InputsRegistered);
-							int aliceCountAfterConnectionConfirmationTimeout = round.CountAlices();
-							if (aliceCountAfterConnectionConfirmationTimeout < 2)
-							{
-								round.Fail();
-								await StartNewRoundAsync(roundConfig);
-							}
-							else
-							{
-								round.UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
-								// Progress to the next phase, which will be ConnectionConfirmation
-								await round.ExecuteNextPhaseAsync(TimeSpan.FromSeconds((long)roundConfig.OutputRegistrationTimeout), async () =>
-								{
-									// Output registration never fails.
-									// We don't know which Alice to ban.
-									// Therefore proceed to signing, and whichever Alice doesn't sign ban.
-									await round.ExecuteNextPhaseAsync(TimeSpan.FromSeconds((long)roundConfig.SigningTimeout), async () =>
-									{
-										round.Fail();
-										await StartNewRoundAsync(roundConfig);
-										// ToDo: Ban Alices those states are not SignedCoinJoin
-									});
-								});
-							}
-						});
-					}
-				});
-				Rounds.Add(round);
+					var round2 = new CcjRound(RpcClient, RoundConfig);
+					round2.StatusChanged += Round_StatusChangedAsync;
+					await round2.ExecuteNextPhaseAsync();
+					Rounds.Add(round2);
+				}
+				else if(runningRoundCount == 1)
+				{
+					var round = new CcjRound(RpcClient, RoundConfig);
+					round.StatusChanged += Round_StatusChangedAsync;
+					await round.ExecuteNextPhaseAsync();
+					Rounds.Add(round);
+				}
+			}
+		}
+
+		private async void Round_StatusChangedAsync(object sender, CcjRoundStatus status)
+		{
+			var round = sender as CcjRound;
+			// If finished start a new round.
+			if (status == CcjRoundStatus.Failed || status == CcjRoundStatus.Succeded)
+			{
+				round.StatusChanged -= Round_StatusChangedAsync;
+				await MakeSureTwoRunningRoundsAsync();
 			}
 		}
 
@@ -94,6 +79,17 @@ namespace WalletWasabi.Services
 			using (RoundsListLock.Lock())
 			{
 				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration))
+				{
+					r.Fail();
+				}
+			}
+		}
+
+		public void FailAllRunningRounds()
+		{
+			using (RoundsListLock.Lock())
+			{
+				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running))
 				{
 					r.Fail();
 				}
@@ -147,5 +143,42 @@ namespace WalletWasabi.Services
 				return Rounds.LastOrDefault(x => x.Status == CcjRoundStatus.Running);
 			}
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					using (RoundsListLock.Lock())
+					{
+						foreach(CcjRound round in Rounds)
+						{
+							round.StatusChanged -= Round_StatusChangedAsync;
+						}
+					}
+				}
+
+				_disposedValue = true;
+			}
+		}
+		
+		// ~CcjCoordinator() {
+		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+		//   Dispose(false);
+		// }
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+			// GC.SuppressFinalize(this);
+		}
+		#endregion
 	}
 }

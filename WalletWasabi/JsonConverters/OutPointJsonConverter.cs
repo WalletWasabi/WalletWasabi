@@ -4,29 +4,29 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.Converters
+namespace WalletWasabi.JsonConverters
 {
-    public class ExtPubKeyConverter : JsonConverter
+    public class OutPointJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(ExtPubKey);
+			return objectType == typeof(OutPoint);
 		}
 
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			var hex = (string)reader.Value;
-			return new ExtPubKey(ByteHelpers.FromHex(hex));
+			var value = (string)reader.Value;
+			var op = new OutPoint();
+			op.FromHex(value);
+			return op;
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			var epk = (ExtPubKey)value;
-			var hex = ByteHelpers.ToHex(epk.ToBytes());
-			writer.WriteValue(hex);
+			writer.WriteValue(((OutPoint)value).ToHex());
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿using WalletWasabi.Converters;
+﻿using WalletWasabi.JsonConverters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using NBitcoin;
@@ -15,15 +15,15 @@ namespace WalletWasabi.KeyManagement
 	public class KeyManager
 	{
 		[JsonProperty(Order = 1)]
-		[JsonConverter(typeof(BitcoinEncryptedSecretNoECConverter))]
+		[JsonConverter(typeof(BitcoinEncryptedSecretNoECJsonConverter))]
 		public BitcoinEncryptedSecretNoEC EncryptedSecret { get; }
 
 		[JsonProperty(Order = 2)]
-		[JsonConverter(typeof(ByteArrayConverter))]
+		[JsonConverter(typeof(ByteArrayJsonConverter))]
 		public byte[] ChainCode { get; }
 
 		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(ExtPubKeyConverter))]
+		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
 		public ExtPubKey ExtPubKey { get; }
 
 		[JsonProperty(Order = 4)]
