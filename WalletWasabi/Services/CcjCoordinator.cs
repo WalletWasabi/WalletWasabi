@@ -58,7 +58,7 @@ namespace WalletWasabi.Services
 						{
 							// Only fail if less two one Alice is registered.
 							// Don't ban anyone, it's ok if they lost connection.
-							round.RemoveAlicesByState(AliceState.InputsRegistered);
+							round.RemoveAlicesBy(AliceState.InputsRegistered);
 							int aliceCountAfterConnectionConfirmationTimeout = round.CountAlices();
 							if (aliceCountAfterConnectionConfirmationTimeout < 2)
 							{
@@ -129,6 +129,14 @@ namespace WalletWasabi.Services
 			using (RoundsListLock.Lock())
 			{
 				return Rounds.First(x => x.Status == CcjRoundStatus.Running); // not FirstOrDefault, it must always exist
+			}
+		}
+
+		public CcjRound GetCurrentInputRegisterableRound()
+		{
+			using (RoundsListLock.Lock())
+			{
+				return Rounds.First(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration); // not FirstOrDefault, it must always exist
 			}
 		}
 

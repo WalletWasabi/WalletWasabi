@@ -1,6 +1,5 @@
 ﻿using WalletWasabi.Converters;
 using WalletWasabi.Helpers;
-using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 using NBitcoin;
 using Newtonsoft.Json;

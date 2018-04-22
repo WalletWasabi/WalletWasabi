@@ -15,23 +15,25 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public Money InputSum { get; }
 
-		public Money FeeToPay { get; }
+		public Money NetworkFeeToPay { get; }
 
 		public Money OutputSumWithoutCoordinatorFeeAndDenomination { get; }
 
-		public Dictionary<OutPoint, TxOut> Inputs { get; }
+		public IEnumerable<(OutPoint OutPoint, TxOut Output)> Inputs { get; }
 
 		public Script ChangeOutputScript { get; }
+
+		public byte[] BlindedOutput { get; }
 
 		public Money GetChangeAmount(Money denomination, Money coordinatorFee) => OutputSumWithoutCoordinatorFeeAndDenomination - denomination - coordinatorFee;
 
 		public AliceState State { get; set; }
 
-		public Alice(Dictionary<OutPoint, TxOut> inputs, Money feeToPay, Script changeOutputScript)
+		public Alice(IEnumerable<(OutPoint OutPoint, TxOut Output)> inputs, Money networkFeeToPay, Script changeOutputScript, byte[] blindedOutput)
 		{
-			Guard.NotNullOrEmpty(nameof(inputs), inputs);
-			Inputs = inputs;
-			FeeToPay = Guard.NotNull(nameof(feeToPay), feeToPay);
+			Inputs = Guard.NotNullOrEmpty(nameof(inputs), inputs);
+			NetworkFeeToPay = Guard.NotNull(nameof(networkFeeToPay), networkFeeToPay);
+			BlindedOutput = Guard.NotNullOrEmpty(nameof(blindedOutput), blindedOutput);
 
 			Guard.NotNull(nameof(changeOutputScript), changeOutputScript);
 			// 33 bytes maximum: https://bitcoin.stackexchange.com/a/46379/26859
@@ -41,14 +43,13 @@ namespace WalletWasabi.ChaumianCoinJoin
 				throw new ArgumentOutOfRangeException(nameof(changeOutputScript), byteCount, $"Can be maximum 33 bytes.");
 			}
 			ChangeOutputScript = changeOutputScript;
-
 			LastSeen = DateTimeOffset.UtcNow;
 
 			UniqueId = Guid.NewGuid();
 
-			InputSum = inputs.Sum(x => x.Value.Value);
+			InputSum = inputs.Sum(x => x.Output.Value);
 
-			OutputSumWithoutCoordinatorFeeAndDenomination = InputSum - FeeToPay;
+			OutputSumWithoutCoordinatorFeeAndDenomination = InputSum - NetworkFeeToPay;
 
 			State = AliceState.InputsRegistered;
 		}

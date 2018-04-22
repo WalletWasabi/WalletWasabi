@@ -39,6 +39,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public CcjRoundStatus Status { get; private set; }
 
+		public TimeSpan AliceRegistrationTimeout { get; set; }
+
 		public CcjRound(RPCClient rpc, CcjRoundConfig config)
 		{
 			Interlocked.Increment(ref RoundCount);
@@ -50,6 +52,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			ConfirmationTarget = (int)config.ConfirmationTarget;
 			CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 			AnonymitySet = (int)config.AnonymitySet;
+			AliceRegistrationTimeout = TimeSpan.FromSeconds((long)config.ConnectionConfirmationTimeout);
 
 			Phase = CcjRoundPhase.InputRegistration;
 			Status = CcjRoundStatus.NotStarted;
@@ -112,7 +115,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 					}
 					else if (Phase == CcjRoundPhase.InputRegistration)
 					{
-						RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(y => y.Key));
+						RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(y => y.OutPoint));
 
 						Phase = CcjRoundPhase.ConnectionConfirmation;
 						ret = CcjRoundPhase.ConnectionConfirmation;
@@ -152,7 +155,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 						{
 							foreach (var input in alice.Inputs)
 							{
-								transaction.AddInput(new TxIn(input.Key));
+								transaction.AddInput(new TxIn(input.OutPoint));
 							}
 							Money changeAmount = alice.GetChangeAmount(newDenomination, coordinatorFeePerAlice);
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
@@ -241,11 +244,87 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
-		public void RemoveAlicesByState(AliceState state)
+		public void AddAlice(Alice alice)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				Alices.Add(alice);
+			}
+
+			StartAliceTimeout(alice.UniqueId);
+		}
+
+		public void RemoveAlicesBy(AliceState state)
 		{
 			using (RoundSyncronizerLock.Lock())
 			{
 				Alices.RemoveAll(x => x.State == state);
+			}
+		}
+
+		public void RemoveAlicesBy(Guid id)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				Alices.RemoveAll(x => x.UniqueId == id);
+			}
+		}
+
+		public void RemoveAliceIfContains(OutPoint input)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				Alices.RemoveAll(x => x.Inputs.Any(y => y.OutPoint == input));
+			}
+		}
+
+		public bool ContainsBlindedOutput(byte[] blindedOutput, out List<Alice> alices)
+		{
+			alices = new List<Alice>();
+
+			using (RoundSyncronizerLock.Lock())
+			{
+				foreach(Alice alice in Alices)
+				{
+					if(ByteHelpers.CompareFastUnsafe(alice.BlindedOutput, blindedOutput))
+					{
+						alices.Add(alice);
+					}
+				}
+			}
+
+			if (alices.Count > 0)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		public bool ContainsInput(OutPoint input, out List<Alice> alices)
+		{
+			alices = new List<Alice>();
+
+			using (RoundSyncronizerLock.Lock())
+			{
+				foreach (Alice alice in Alices)
+				{
+					if (alice.Inputs.Any(x => x.OutPoint == input))
+					{
+						alices.Add(alice);
+					}
+				}
+			}
+
+			if (alices.Count > 0)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
 			}
 		}
 
@@ -272,7 +351,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
-		public void SetAliceTimeout(Guid uniqueId, TimeSpan timeout)
+		public void StartAliceTimeout(Guid uniqueId)
 		{
 			// 1. Find Alice and set its LastSeen propery.
 			var foundAlice = false;
@@ -292,7 +371,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 				Task.Run(async () =>
 				{
 					// 2. Delay asyncronously to the requested timeout
-					await Task.Delay(timeout);
+					await Task.Delay(AliceRegistrationTimeout);
 
 					using (await RoundSyncronizerLock.LockAsync())
 					{

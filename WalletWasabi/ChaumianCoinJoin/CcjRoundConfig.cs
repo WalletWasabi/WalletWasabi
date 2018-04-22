@@ -44,7 +44,6 @@ namespace WalletWasabi.ChaumianCoinJoin
 		[JsonProperty(PropertyName = "SigningTimeout")]
 		public long? SigningTimeout { get; private set; }
 
-
 		public CcjRoundConfig()
 		{
 

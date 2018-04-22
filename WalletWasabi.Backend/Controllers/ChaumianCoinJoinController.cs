@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using NBitcoin.RPC;
+using Nito.AsyncEx;
+using WalletWasabi.Backend.Models;
+using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
@@ -25,6 +31,8 @@ namespace WalletWasabi.Backend.Controllers
 
 		private static CcjCoordinator Coordinator => Global.Coordinator;
 
+		private static BlindingRsaKey RsaKey => Global.RsaKey;
+		
 		/// <summary>
 		/// Satoshi gets various status information.
 		/// </summary>
@@ -34,20 +42,165 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		public IActionResult GetStatus()
 		{
-			CcjRound round = Coordinator.GetCurrentRound();
+			CcjRound currentRound = Coordinator.GetCurrentRound();
+			CcjRound currentInputRegistrationRound = Coordinator.GetCurrentInputRegisterableRound();
 			var response = new CcjStatusResponse
 			{
-				CurrentPhase = round.Phase,
-				Denomination = round.Denomination,
-				RegisteredPeerCount = round.CountAlices(syncronized: false),
-				RequiredPeerCount = round.AnonymitySet,
+				CurrentPhase = currentRound.Phase,
+				Denomination = currentInputRegistrationRound.Denomination,
+				RegisteredPeerCount = currentInputRegistrationRound.CountAlices(syncronized: false),
+				RequiredPeerCount = currentInputRegistrationRound.AnonymitySet,
 				MaximumInputCountPerPeer = 7, // Constant for now. If we want to do something with it later, we'll put it to the config file.
-				FeePerInputs = round.FeePerInputs,
-				FeePerOutputs = round.FeePerOutputs,
-				CoordinatorFeePercent = round.CoordinatorFeePercent,
+				RegistrationTimeout = (int)currentInputRegistrationRound.AliceRegistrationTimeout.TotalSeconds,
+				FeePerInputs = currentInputRegistrationRound.FeePerInputs,
+				FeePerOutputs = currentInputRegistrationRound.FeePerOutputs,
+				CoordinatorFeePercent = currentInputRegistrationRound.CoordinatorFeePercent,
 				Version = 1
 			};
 			return Ok(response);
+		}
+
+		private static AsyncLock InputsLock { get; } = new AsyncLock();
+
+		/// <summary>
+		/// Alice registers her inputs.
+		/// </summary>
+		/// <returns>SignedBlindedOutput, UniqueId</returns>
+		/// <response code="200">SignedBlindedOutput, UniqueId</response>
+		/// <response code="400">If request is invalid.</response>
+		/// <response code="503">If the round status changed while fulfilling the request.</response>
+		[HttpPost("inputs")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400)]
+		[ProducesResponseType(503)]
+		public async Task<IActionResult> PostInputsAsync([FromBody]InputsRequest request)
+		{
+			// Validate request.
+			if (!ModelState.IsValid
+				|| request == null
+				|| request.BlindedOutput == null
+				|| request.BlindedOutput.Length == 0
+				|| string.IsNullOrWhiteSpace(request.ChangeOutputScript)
+				|| request.Inputs == null
+				|| request.Inputs.Count() == 0
+				|| request.Inputs.Any(x=> x.Input == null
+					|| x.Input.Hash == null
+					|| x.Proof == null 
+					|| x.Proof.Length == 0))
+			{
+				return BadRequest("Invalid request.");
+			}
+
+			using (await InputsLock.LockAsync())
+			{
+				CcjRound round = Coordinator.GetCurrentInputRegisterableRound();
+
+				// Do more checks.
+				try
+				{
+					if (round.ContainsBlindedOutput(request.BlindedOutput, out List<Alice> _))
+					{
+						return BadRequest("Blinded output has already been registered.");
+					}
+
+					var changeOutput = new Script(request.ChangeOutputScript);
+					
+					var inputs = new HashSet<(OutPoint OutPoint, TxOut Output)>();
+
+					var alicesToRemove = new HashSet<Guid>();
+
+					foreach (InputProofModel inputProof in request.Inputs)
+					{
+						if (inputs.Any(x => x.OutPoint == inputProof.Input))
+						{
+							return BadRequest("Cannot register an input twice.");
+						}
+						if(round.ContainsInput(inputProof.Input, out List<Alice> tr))
+						{
+							alicesToRemove.UnionWith(tr.Select(x => x.UniqueId)); // Input is already registered by this alice, remove it later if all the checks are completed fine.
+						}
+
+						// ToDo: Refuse banned UTXO here!
+
+						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.Hash, (int)inputProof.Input.N, includeMempool: true);
+
+						// Check if inputs are unspent.				
+						if (getTxOutResponse == null)
+						{
+							return BadRequest("Provided input is not unspent.");
+						}
+
+						// ToDo: If unconfirmed, then handle the case if CoinJoin. (You can check for if the fee address in the output to decide if it was our CJ or not.)
+
+						// Check if unconfirmed.
+						if (getTxOutResponse.Confirmations == 0)
+						{
+							return BadRequest("Provided input is unconfirmed.");
+						}
+
+						// Check if immature.
+						if (getTxOutResponse.Confirmations <= 100)
+						{
+							if (getTxOutResponse.IsCoinBase)
+							{
+								return BadRequest("Provided input is immature.");
+							}
+						}
+
+						// Check if inputs are native segwit.
+						if (getTxOutResponse.ScriptPubKeyType != "witness_v0_keyhash")
+						{
+							return BadRequest("Provided input must be witness_v0_keyhash.");
+						}
+
+						TxOut txout = getTxOutResponse.TxOut;
+
+						var address = (BitcoinWitPubKeyAddress)txout.ScriptPubKey.GetDestinationAddress(Network);
+						// Check if proofs are valid.
+						bool validProof = address.VerifyMessage(ByteHelpers.ToHex(request.BlindedOutput), ByteHelpers.ToHex(inputProof.Proof));
+						if (!validProof)
+						{
+							return BadRequest("Provided proof is invalid");
+						}
+
+						inputs.Add((inputProof.Input, txout));
+					}
+
+					// Check if inputs have enough coins.
+					Money inputSum = inputs.Sum(x => x.Output.Value);
+					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs + 2 * round.FeePerOutputs);
+					Money changeAmount = inputSum - (round.Denomination + networkFeeToPay);
+					if (changeAmount < Money.Zero)
+					{
+						return BadRequest($"Not enough inputs are provided. Fee to pay: {networkFeeToPay.ToString(false, true)} BTC. Round denomination: {round.Denomination.ToString(false, true)} BTC. Only provided: {inputSum.ToString(false, true)} BTC.");
+					}
+					
+					// Make sure Alice checks work.
+					var alice = new Alice(inputs, networkFeeToPay, new Script(request.ChangeOutputScript), request.BlindedOutput);
+					
+					foreach (Guid aliceToRemove in alicesToRemove)
+					{
+						round.RemoveAlicesBy(aliceToRemove);
+					}
+					round.AddAlice(alice);
+
+					// All checks are good. Sign.
+					byte[] signature = RsaKey.SignBlindedData(request.BlindedOutput);
+
+					// Check if phase changed since.
+					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
+					{
+						return StatusCode(StatusCodes.Status503ServiceUnavailable, "The state of the round changed while handling the request. Try again.");
+					}
+
+					return Ok();
+				}
+				catch(Exception ex)
+				{
+					Logger.LogDebug<ChaumianCoinJoinController>(ex);
+					return BadRequest(ex.Message);
+				}
+			}
 		}
 
 		/// <summary>
@@ -137,18 +290,6 @@ namespace WalletWasabi.Backend.Controllers
 				Logger.LogDebug<ChaumianCoinJoinController>($"Empty uniqueId GID provided in {nameof(GetCoinJoin)} function.");
 				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
 			}
-		}
-
-		/// <summary>
-		/// Alice registers her inputs.
-		/// </summary>
-		/// <returns>SignedBlindedOutput, UniqueId</returns>
-		/// <response code="200">SignedBlindedOutput, UniqueId</response>
-		[HttpPost("inputs")]
-		[ProducesResponseType(200)]
-		public IActionResult PostInputs()
-		{
-			return Ok();
 		}
 
 		/// <summary>

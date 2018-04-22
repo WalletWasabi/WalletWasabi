@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace WalletWasabi.JsonConverters
+namespace WalletWasabi.Converters
 {
 	/// <summary>
 	/// Converter used to convert <see cref="byte"/> arrays to and from JSON.

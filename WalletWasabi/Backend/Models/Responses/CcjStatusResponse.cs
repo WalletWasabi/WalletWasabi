@@ -23,6 +23,8 @@ namespace WalletWasabi.Backend.Models.Responses
 
 		public int MaximumInputCountPerPeer { get; set; }
 
+		public int RegistrationTimeout { get; set; }
+
 		[JsonConverter(typeof(MoneySatoshiConverter))]
 		public Money FeePerInputs { get; set; }
 
