@@ -395,40 +395,6 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
-		public void AddAlice(Alice alice)
-		{
-			using (RoundSyncronizerLock.Lock())
-			{
-				Alices.Add(alice);
-			}
-
-			StartAliceTimeout(alice.UniqueId);
-		}
-
-		public void RemoveAlicesBy(AliceState state)
-		{
-			using (RoundSyncronizerLock.Lock())
-			{
-				Alices.RemoveAll(x => x.State == state);
-			}
-		}
-
-		public void RemoveAlicesBy(Guid id)
-		{
-			using (RoundSyncronizerLock.Lock())
-			{
-				Alices.RemoveAll(x => x.UniqueId == id);
-			}
-		}
-
-		public void RemoveAliceIfContains(OutPoint input)
-		{
-			using (RoundSyncronizerLock.Lock())
-			{
-				Alices.RemoveAll(x => x.Inputs.Any(y => y.OutPoint == input));
-			}
-		}
-
 		public bool ContainsBlindedOutput(byte[] blindedOutput, out List<Alice> alices)
 		{
 			alices = new List<Alice>();
@@ -494,14 +460,6 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
-		public void UpdateAnonymitySet(int anonymitySet)
-		{
-			using (RoundSyncronizerLock.Lock())
-			{
-				AnonymitySet = anonymitySet;
-			}
-		}
-
 		public void StartAliceTimeout(Guid uniqueId)
 		{
 			// 1. Find Alice and set its LastSeen propery.
@@ -509,6 +467,11 @@ namespace WalletWasabi.ChaumianCoinJoin
 			var started = DateTimeOffset.UtcNow;
 			using (RoundSyncronizerLock.Lock())
 			{
+				if(Phase != CcjRoundPhase.InputRegistration || Status != CcjRoundStatus.Running)
+				{
+					return; // Then no need to timeout alice.
+				}
+
 				Alice alice = Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
 				foundAlice = alice != default(Alice);
 				if (foundAlice)
@@ -543,5 +506,71 @@ namespace WalletWasabi.ChaumianCoinJoin
 				});
 			}
 		}
+
+		#region Modifiers
+
+		public void UpdateAnonymitySet(int anonymitySet)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				if (Phase != CcjRoundPhase.InputRegistration || Phase != CcjRoundPhase.ConnectionConfirmation)
+				{
+					throw new InvalidOperationException("Updating anonymity set is only allowed in InputRegistration and ConnectionConfirmation phases.");
+				}
+				AnonymitySet = anonymitySet;
+			}
+		}
+
+		public void AddAlice(Alice alice)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				if (Phase != CcjRoundPhase.InputRegistration)
+				{
+					throw new InvalidOperationException("Adding Alice is only allowed in InputRegistration phase.");
+				}
+				Alices.Add(alice);
+			}
+
+			StartAliceTimeout(alice.UniqueId);
+		}
+
+		public void RemoveAlicesBy(AliceState state)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				if (Phase != CcjRoundPhase.InputRegistration || Phase != CcjRoundPhase.ConnectionConfirmation)
+				{
+					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
+				}
+				Alices.RemoveAll(x => x.State == state);
+			}
+		}
+
+		public void RemoveAlicesBy(Guid id)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				if (Phase != CcjRoundPhase.InputRegistration || Phase != CcjRoundPhase.ConnectionConfirmation)
+				{
+					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
+				}
+				Alices.RemoveAll(x => x.UniqueId == id);
+			}
+		}
+
+		public void RemoveAliceIfContains(OutPoint input)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				if (Phase != CcjRoundPhase.InputRegistration || Phase != CcjRoundPhase.ConnectionConfirmation)
+				{
+					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
+				}
+				Alices.RemoveAll(x => x.Inputs.Any(y => y.OutPoint == input));
+			}
+		}
+
+		#endregion
 	}
 }
