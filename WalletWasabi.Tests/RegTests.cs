@@ -1432,6 +1432,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task ChaumianCoinJoinTestsAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
 		{
+			var rpc = Global.RpcClient;
 			var network = Global.RpcClient.Network;
 			var coordinator = Global.Coordinator;
 			Money denomination = new Money(0.2m, MoneyUnit.BTC);
@@ -1474,6 +1475,57 @@ namespace WalletWasabi.Tests
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.Equal("\"Invalid request.\"", message);
+				}
+
+				request.BlindedOutput = new byte[] { };
+				request.ChangeOutputScript = "";
+				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(), Proof = new byte[] { } } };
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.Equal("\"Invalid request.\"", message);
+				}
+
+				request.BlindedOutput = new byte[] { 1 };
+				request.ChangeOutputScript = "a";
+				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = new byte[] { 1 } } };
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.Equal("\"Provided input is not unspent.\"", message);
+				}
+
+				var addr = await rpc.GetNewAddressAsync();
+				var hash = await rpc.SendToAddressAsync(addr, new Money(0.01m, MoneyUnit.BTC));
+				var tx = await rpc.GetRawTransactionAsync(hash);
+				var index = 0;
+				for (int i = 0; i < tx.Outputs.Count; i++)
+				{
+					var output = tx.Outputs[i];
+					if (output.ScriptPubKey == addr.ScriptPubKey)
+					{
+						index = i;
+					}
+				}
+
+				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = new byte[] { 1 } } };
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.Equal("\"Provided input is unconfirmed.\"", message);
+				}
+
+				await rpc.GenerateAsync(1);
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.Equal("\"Provided input must be witness_v0_keyhash.\"", message);
 				}
 			}
 		}
