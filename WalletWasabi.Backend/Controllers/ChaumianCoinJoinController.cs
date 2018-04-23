@@ -212,6 +212,7 @@ namespace WalletWasabi.Backend.Controllers
 					{
 						return BadRequest("Invalid blinded output hex.");
 					}
+					Logger.LogDebug<ChaumianCoinJoinController>($"Blinded data hex: {request.BlindedOutputHex}");
 					Logger.LogDebug<ChaumianCoinJoinController>($"Blinded data array size: {blindedData.Length}");
 					byte[] signature = RsaKey.SignBlindedData(blindedData);
 
