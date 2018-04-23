@@ -1678,6 +1678,17 @@ namespace WalletWasabi.Tests
 					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
 					Assert.Equal(1, status.RegisteredPeerCount);
 				}
+
+				request.BlindedOutputHex = new Transaction().ToHex();
+				proof = key.SignMessage(request.BlindedOutputHex);
+				request.Inputs.First().Proof = proof;
+				request.Inputs = new List<InputProofModel> { request.Inputs.First(), request.Inputs.First() };
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.Equal("\"Cannot register an input twice.\"", message);
+				}
 			}
 		}
 
