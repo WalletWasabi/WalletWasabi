@@ -1425,7 +1425,15 @@ namespace WalletWasabi.Tests
 			}
 		}
 
+		[Fact]
+		public async Task ChaumianCoinJoinTestsAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
+		{
+			var network = Global.RpcClient.Network;
+
+
+		}
+
 		#endregion
-			
+
 	}
 }
