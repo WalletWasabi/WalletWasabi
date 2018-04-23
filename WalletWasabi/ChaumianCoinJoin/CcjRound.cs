@@ -37,16 +37,26 @@ namespace WalletWasabi.ChaumianCoinJoin
 		private static AsyncLock RoundSyncronizerLock { get; } = new AsyncLock();
 
 		private CcjRoundPhase _phase;
+		private object PhaseLock { get; }
 		public CcjRoundPhase Phase
 		{
-			get => _phase;
+			get
+			{
+				lock (PhaseLock)
+				{
+					return _phase;
+				}
+			}
 
 			private set
 			{
-				if (_phase != value)
+				lock (PhaseLock)
 				{
-					_phase = value;
-					OnPhaseChanged(value);
+					if (_phase != value)
+					{
+						_phase = value;
+						OnPhaseChanged(value);
+					}
 				}
 			}
 		}
@@ -55,16 +65,26 @@ namespace WalletWasabi.ChaumianCoinJoin
 		private void OnPhaseChanged(CcjRoundPhase phase) => PhaseChanged?.Invoke(this, phase);
 
 		private CcjRoundStatus _status;
+		private object StatusLock { get; }
 		public CcjRoundStatus Status
 		{
-			get => _status;
+			get
+			{
+				lock (StatusLock)
+				{
+					return _status;
+				}
+			}
 
 			private set
 			{
-				if (_status != value)
+				lock (StatusLock)
 				{
-					_status = value;
-					OnStatusChanged(value);
+					if (_status != value)
+					{
+						_status = value;
+						OnStatusChanged(value);
+					}
 				}
 			}
 		}
@@ -98,7 +118,9 @@ namespace WalletWasabi.ChaumianCoinJoin
 			OutputRegistrationTimeout = TimeSpan.FromSeconds((long)config.OutputRegistrationTimeout);
 			SigningTimeout = TimeSpan.FromSeconds((long)config.SigningTimeout);
 
+			PhaseLock = new object();
 			Phase = CcjRoundPhase.InputRegistration;
+			StatusLock = new object();
 			Status = CcjRoundStatus.NotStarted;
 
 			RoundHash = null;
@@ -110,17 +132,19 @@ namespace WalletWasabi.ChaumianCoinJoin
 			Bobs = new List<Bob>();
 		}
 
-		/// <returns>The next phase or null, if the round is not running.</returns>
-		public async Task<CcjRoundPhase?> ExecuteNextPhaseAsync()
+		public async Task ExecuteNextPhaseAsync(CcjRoundPhase expectedPhase)
 		{
-			CcjRoundPhase? ret = null;
-
 			using (await RoundSyncronizerLock.LockAsync())
 			{
 				try
 				{
 					if (Status == CcjRoundStatus.NotStarted) // So start the input registration phase
 					{
+						if(expectedPhase != CcjRoundPhase.InputRegistration)
+						{
+							return;
+						}
+
 						// Calculate fees
 						var inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
 						var outputSizeInBytes = Constants.OutputSizeInBytes;
@@ -151,26 +175,38 @@ namespace WalletWasabi.ChaumianCoinJoin
 						}
 
 						Status = CcjRoundStatus.Running;
-						ret = CcjRoundPhase.InputRegistration;
 					}
 					else if (Status != CcjRoundStatus.Running) // Failed or succeeded, swallow
 					{
-						ret = null;
+						return;
 					}
 					else if (Phase == CcjRoundPhase.InputRegistration)
 					{
+						if (expectedPhase != CcjRoundPhase.ConnectionConfirmation)
+						{
+							return;
+						}
+
 						RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(y => y.OutPoint));
 
 						Phase = CcjRoundPhase.ConnectionConfirmation;
-						ret = CcjRoundPhase.ConnectionConfirmation;
 					}
 					else if (Phase == CcjRoundPhase.ConnectionConfirmation)
 					{
+						if (expectedPhase != CcjRoundPhase.OutputRegistration)
+						{
+							return;
+						}
+
 						Phase = CcjRoundPhase.OutputRegistration;
-						ret = CcjRoundPhase.OutputRegistration;
 					}
 					else if (Phase == CcjRoundPhase.OutputRegistration)
 					{
+						if (expectedPhase != CcjRoundPhase.Signing)
+						{
+							return;
+						}
+
 						// Build CoinJoin
 
 						// 1. Set new denomination: minor optimization.
@@ -229,11 +265,10 @@ namespace WalletWasabi.ChaumianCoinJoin
 							.BuildTransaction(false);
 
 						Phase = CcjRoundPhase.Signing;
-						ret = CcjRoundPhase.Signing;
 					}
 					else
 					{
-						throw new InvalidOperationException("Last phase is reached.");
+						return;
 					}
 				}
 				catch (Exception ex)
@@ -248,7 +283,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			Task.Run(async () =>
 			{
 				TimeSpan timeout;
-				switch (ret)
+				switch (expectedPhase)
 				{
 					case CcjRoundPhase.InputRegistration:
 						timeout = InputRegistrationTimeout;
@@ -271,14 +306,14 @@ namespace WalletWasabi.ChaumianCoinJoin
 				var runFailureToDo = false;
 				using (await RoundSyncronizerLock.LockAsync())
 				{
-					runFailureToDo = Status == CcjRoundStatus.Running && Phase == ret;
+					runFailureToDo = Status == CcjRoundStatus.Running && Phase == expectedPhase;
 				}
 				if (runFailureToDo)
 				{
 					// This will happen outside the lock.
 					Task.Run(async () =>
 					{
-						switch (ret)
+						switch (expectedPhase)
 						{
 							case CcjRoundPhase.InputRegistration:
 								{
@@ -293,7 +328,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 									{
 										UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
 										// Progress to the next phase, which will be ConnectionConfirmation
-										await ExecuteNextPhaseAsync();
+										await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
 									}
 								}
 								break;
@@ -311,7 +346,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 									{
 										UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
 										// Progress to the next phase, which will be OutputRegistration
-										await ExecuteNextPhaseAsync();
+										await ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
 									}
 								}
 								break;
@@ -320,7 +355,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 									// Output registration never fails.
 									// We don't know which Alice to ban.
 									// Therefore proceed to signing, and whichever Alice doesn't sign ban.
-									await ExecuteNextPhaseAsync();
+									await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
 								}
 								break;
 							case CcjRoundPhase.Signing:
@@ -335,8 +370,6 @@ namespace WalletWasabi.ChaumianCoinJoin
 				}
 			});
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-
-			return ret;
 		}
 
 		public void Fail()

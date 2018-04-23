@@ -45,19 +45,19 @@ namespace WalletWasabi.Services
 				{
 					var round = new CcjRound(RpcClient, RoundConfig);
 					round.StatusChanged += Round_StatusChangedAsync;
-					await round.ExecuteNextPhaseAsync();
+					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round);
 
 					var round2 = new CcjRound(RpcClient, RoundConfig);
 					round2.StatusChanged += Round_StatusChangedAsync;
-					await round2.ExecuteNextPhaseAsync();
+					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round2);
 				}
 				else if(runningRoundCount == 1)
 				{
 					var round = new CcjRound(RpcClient, RoundConfig);
 					round.StatusChanged += Round_StatusChangedAsync;
-					await round.ExecuteNextPhaseAsync();
+					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round);
 				}
 			}

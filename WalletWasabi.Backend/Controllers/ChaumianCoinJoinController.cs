@@ -196,7 +196,7 @@ namespace WalletWasabi.Backend.Controllers
 					// Progress round if needed.
 					if(round.CountAlices() >= round.AnonymitySet)
 					{
-						await round.ExecuteNextPhaseAsync();
+						await round.ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
 					}
 
 					var resp = new InputsResponse
