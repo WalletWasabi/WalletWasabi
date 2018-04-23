@@ -1246,8 +1246,14 @@ namespace WalletWasabi.Tests
 				// Create a fork that invalidates the blocks containing the funding transaction
 				_filtersProcessedByWalletCount = 0;
 				await Global.RpcClient.InvalidateBlockAsync(baseTip);
-				await Task.Delay(1000); // Magic delay for magic RPC fail.
-				await Global.RpcClient.SendCommandAsync("abandontransaction", fundingTxid.ToString());
+				try
+				{
+					await Global.RpcClient.SendCommandAsync("abandontransaction", fundingTxid.ToString());
+				}
+				catch
+				{
+					// Magic swallow
+				}
 				await Global.RpcClient.GenerateAsync(10);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
 
