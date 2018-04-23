@@ -43,7 +43,10 @@ namespace WalletWasabi.Tests
 				Assert.Contains("AUD", rates.Select(x => x.Code));
 				Assert.Contains("USD", rates.Select(x => x.Code));
 
+				var restoreLogMinLevel = Logger.MinimumLevel;
+				Logger.SetMinimumLevel(LogLevel.Critical);
 				await Assert.ThrowsAsync<HttpRequestException>(async () => await client.PushTransactionAsync(new Transaction(), CancellationToken.None));
+				Logger.SetMinimumLevel(restoreLogMinLevel);
 			}
 		}
 

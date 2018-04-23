@@ -1029,6 +1029,8 @@ namespace WalletWasabi.Tests
 				new WalletService.Operation(scp, Money.Satoshis(5), "")
 				};
 
+			var restoreLogMinLevel = Logger.MinimumLevel;
+			Logger.SetMinimumLevel(LogLevel.Critical);
 			// toSend cannot be null
 			await Assert.ThrowsAsync<ArgumentNullException>(async () => await wallet.BuildTransactionAsync(null, null, 0));
 
@@ -1122,6 +1124,7 @@ namespace WalletWasabi.Tests
 
 				// `Custom change` and `spend all` cannot be specified at the same time
 				await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, false, null, Script.Empty));
+				Logger.SetMinimumLevel(restoreLogMinLevel);
 
 				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.5m), "") };
 				btx = await wallet.BuildTransactionAsync("password", operations, 2);

@@ -6,6 +6,7 @@ using System.IO;
 using System.Security;
 using System.Text;
 using Xunit;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Tests
 {
@@ -44,7 +45,10 @@ namespace WalletWasabi.Tests
 
 			var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.ExtPubKey);
 			var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password);
+			var restoreLogMinLevel = Logger.MinimumLevel;
+			Logger.SetMinimumLevel(LogLevel.Critical);
 			Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword"));
+			Logger.SetMinimumLevel(restoreLogMinLevel);
 
 			Assert.Equal(manager.ChainCode, sameManager.ChainCode);
 			Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
@@ -92,7 +96,10 @@ namespace WalletWasabi.Tests
 			var filePath = Path.Combine(SharedFixture.DataDir, nameof(CanSerialize), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
 
+			var restoreLogMinLevel = Logger.MinimumLevel;
+			Logger.SetMinimumLevel(LogLevel.Critical);
 			Assert.Throws<FileNotFoundException>(() => KeyManager.FromFile(filePath));
+			Logger.SetMinimumLevel(restoreLogMinLevel);
 
 			manager.ToFile(filePath);
 
