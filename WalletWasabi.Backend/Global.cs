@@ -122,13 +122,11 @@ namespace WalletWasabi.Backend
 
 				Logger.LogInfo<RPCClient>("Bitcoin Core is fully synchronized.");
 
-				if (Config.Network != Network.RegTest) // RegTest cannot estimate fees.
-				{
-					var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative);
-					if (estimateSmartFeeResponse == null) throw new NotSupportedException($"Bitcoin Core cannot estimate network fees yet.");
-					Logger.LogInfo<RPCClient>("Bitcoin Core fee estimation is working.");
-				}
-				else // Make sure there's at least 101 block, if not generate it
+				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
+				if (estimateSmartFeeResponse == null) throw new NotSupportedException($"Bitcoin Core cannot estimate network fees yet.");
+				Logger.LogInfo<RPCClient>("Bitcoin Core fee estimation is working.");
+
+				if (Config.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
 				{
 					if (blocks < 101)
 					{

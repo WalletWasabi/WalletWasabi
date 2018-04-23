@@ -34,6 +34,42 @@ namespace NBitcoin.RPC
 				Hash = uint256.Parse(resp.Result["hash"].ToString())
 			};
 		}
+
+		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this RPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
+		{
+			if(simulateIfRegTest && rpc.Network == Network.RegTest)
+			{
+				return SimulateRegTestFeeEstimation(confirmationTarget, estimateMode);
+			}
+
+			return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
+		}
+
+		public static async Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(this RPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
+		{
+			if (simulateIfRegTest && rpc.Network == Network.RegTest)
+			{
+				return SimulateRegTestFeeEstimation(confirmationTarget, estimateMode);
+			}
+
+			return await rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode);
+		}
+
+		private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget, EstimateSmartFeeMode estimateMode)
+		{
+			int staoshiPerBytes;
+			if (estimateMode == EstimateSmartFeeMode.Conservative)
+			{
+				staoshiPerBytes = 6 + confirmationTarget;
+			}
+			else // Economical
+			{
+				staoshiPerBytes = 5 + confirmationTarget;
+			}
+
+			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = new FeeRate(new Money(staoshiPerBytes * 1000, MoneyUnit.Satoshi)) };
+			return resp;
+		}
 	}
 
 	public class BlockInfo

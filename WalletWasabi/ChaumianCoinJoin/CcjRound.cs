@@ -150,7 +150,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 						var outputSizeInBytes = Constants.OutputSizeInBytes;
 						try
 						{
-							var estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative);
+							var estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
 							if (estimateSmartFeeResponse == null) throw new InvalidOperationException("FeeRate is not yet initialized");
 							var feeRate = estimateSmartFeeResponse.FeeRate;
 							Money feePerBytes = (feeRate.FeePerK / 1000);
