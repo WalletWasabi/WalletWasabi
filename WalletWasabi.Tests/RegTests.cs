@@ -30,6 +30,7 @@ using Org.BouncyCastle.Asn1.IsisMtt.X509;
 using Xunit;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Backend.Models.Requests;
 
 namespace WalletWasabi.Tests
 {
@@ -1443,6 +1444,7 @@ namespace WalletWasabi.Tests
 
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			{
+				// Basic status tests.
 				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1460,6 +1462,18 @@ namespace WalletWasabi.Tests
 					// Changes per phases.
 					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
 					Assert.Equal(0, status.RegisteredPeerCount);
+				}
+
+				// Inputs request tests
+				var request = new InputsRequest
+				{
+					BlindedOutput = null,
+					ChangeOutputScript = null,
+					Inputs = null,
+				};
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 				}
 			}
 		}
