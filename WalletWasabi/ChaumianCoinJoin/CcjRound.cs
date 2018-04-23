@@ -395,7 +395,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
-		public bool ContainsBlindedOutput(byte[] blindedOutput, out List<Alice> alices)
+		public bool ContainsBlindedOutput(string blindedOutput, out List<Alice> alices)
 		{
 			alices = new List<Alice>();
 
@@ -403,7 +403,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			{
 				foreach (Alice alice in Alices)
 				{
-					if (ByteHelpers.CompareFastUnsafe(alice.BlindedOutput, blindedOutput))
+					if (alice.BlindedOutput == blindedOutput)
 					{
 						alices.Add(alice);
 					}

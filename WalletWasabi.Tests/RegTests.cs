@@ -1479,9 +1479,9 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Invalid request.\"", message);
 				}
 
-				request.BlindedOutput = new byte[] { };
+				request.BlindedOutput = "";
 				request.ChangeOutputScript = "";
-				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(), Proof = new byte[] { } } };
+				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(), Proof = "" } };
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -1489,9 +1489,9 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Invalid request.\"", message);
 				}
 
-				request.BlindedOutput = new byte[] { 1 };
+				request.BlindedOutput = "c";
 				request.ChangeOutputScript = "a";
-				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = new byte[] { 1 } } };
+				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = "b" } };
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -1512,7 +1512,7 @@ namespace WalletWasabi.Tests
 					}
 				}
 
-				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = new byte[] { 1 } } };
+				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -1520,12 +1520,61 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Provided input is unconfirmed.\"", message);
 				}
 
-				await rpc.GenerateAsync(1);
+				var blocks = await rpc.GenerateAsync(1);
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					string message = await response.Content.ReadAsStringAsync();
 					Assert.Equal("\"Provided input must be witness_v0_keyhash.\"", message);
+				}
+
+				var blockHash = blocks.Single();
+				var block = await rpc.GetBlockAsync(blockHash);
+				var coinbase = block.Transactions.First();
+				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(coinbase.GetHash(), 0), Proof = "b" } };
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.Equal("\"Provided input is immature.\"", message);
+				}
+
+				var key = new Key();
+				var witnessAddress = key.PubKey.GetSegwitAddress(network);
+				hash = await rpc.SendToAddressAsync(witnessAddress, new Money(0.01m, MoneyUnit.BTC));
+				await rpc.GenerateAsync(1);
+				tx = await rpc.GetRawTransactionAsync(hash);
+				index = 0;
+				for (int i = 0; i < tx.Outputs.Count; i++)
+				{
+					var output = tx.Outputs[i];
+					if (output.ScriptPubKey == witnessAddress.ScriptPubKey)
+					{
+						index = i;
+					}
+				}
+				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+				}
+				var proof = key.SignMessage("foo");
+				request.Inputs.First().Proof = proof;
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.Equal("\"Provided proof is invalid.\"", message);
+				}
+
+				request.BlindedOutput = new Transaction().ToHex();
+				proof = key.SignMessage(request.BlindedOutput);
+				request.Inputs.First().Proof = proof;
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.StartsWith("\"Not enough inputs are provided. Fee to pay:", message);
 				}
 			}
 		}

@@ -78,15 +78,13 @@ namespace WalletWasabi.Backend.Controllers
 			// Validate request.
 			if (!ModelState.IsValid
 				|| request == null
-				|| request.BlindedOutput == null
-				|| request.BlindedOutput.Length == 0
+				|| string.IsNullOrWhiteSpace(request.BlindedOutput)
 				|| string.IsNullOrWhiteSpace(request.ChangeOutputScript)
 				|| request.Inputs == null
 				|| request.Inputs.Count() == 0
 				|| request.Inputs.Any(x=> x.Input == null
 					|| x.Input.Hash == null
-					|| x.Proof == null 
-					|| x.Proof.Length == 0))
+					|| string.IsNullOrWhiteSpace(x.Proof)))
 			{
 				return BadRequest("Invalid request.");
 			}
@@ -157,10 +155,10 @@ namespace WalletWasabi.Backend.Controllers
 
 						var address = (BitcoinWitPubKeyAddress)txout.ScriptPubKey.GetDestinationAddress(Network);
 						// Check if proofs are valid.
-						bool validProof = address.VerifyMessage(ByteHelpers.ToHex(request.BlindedOutput), ByteHelpers.ToHex(inputProof.Proof));
+						bool validProof = address.VerifyMessage(request.BlindedOutput, inputProof.Proof);
 						if (!validProof)
 						{
-							return BadRequest("Provided proof is invalid");
+							return BadRequest("Provided proof is invalid.");
 						}
 
 						inputs.Add((inputProof.Input, txout));
@@ -185,7 +183,7 @@ namespace WalletWasabi.Backend.Controllers
 					round.AddAlice(alice);
 
 					// All checks are good. Sign.
-					byte[] signature = RsaKey.SignBlindedData(request.BlindedOutput);
+					byte[] signature = RsaKey.SignBlindedData(ByteHelpers.FromHex(request.BlindedOutput));
 
 					// Check if phase changed since.
 					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)

@@ -23,17 +23,17 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public Script ChangeOutputScript { get; }
 
-		public byte[] BlindedOutput { get; }
+		public string BlindedOutput { get; }
 
 		public Money GetChangeAmount(Money denomination, Money coordinatorFee) => OutputSumWithoutCoordinatorFeeAndDenomination - denomination - coordinatorFee;
 
 		public AliceState State { get; set; }
 
-		public Alice(IEnumerable<(OutPoint OutPoint, TxOut Output)> inputs, Money networkFeeToPay, Script changeOutputScript, byte[] blindedOutput)
+		public Alice(IEnumerable<(OutPoint OutPoint, TxOut Output)> inputs, Money networkFeeToPay, Script changeOutputScript, string blindedOutput)
 		{
 			Inputs = Guard.NotNullOrEmpty(nameof(inputs), inputs);
 			NetworkFeeToPay = Guard.NotNull(nameof(networkFeeToPay), networkFeeToPay);
-			BlindedOutput = Guard.NotNullOrEmpty(nameof(blindedOutput), blindedOutput);
+			BlindedOutput = Guard.NotNullOrEmptyOrWhitespace(nameof(blindedOutput), blindedOutput);
 
 			Guard.NotNull(nameof(changeOutputScript), changeOutputScript);
 			// 33 bytes maximum: https://bitcoin.stackexchange.com/a/46379/26859

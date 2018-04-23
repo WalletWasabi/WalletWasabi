@@ -15,7 +15,6 @@ namespace WalletWasabi.Backend.Models
 		public OutPoint	Input { get; set; }
 
 		[Required]
-		[JsonConverter(typeof(ByteArrayJsonConverter))]
-		public byte[] Proof { get; set; }
+		public string Proof { get; set; }
 	}
 }

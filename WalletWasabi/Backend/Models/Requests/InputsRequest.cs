@@ -15,8 +15,7 @@ namespace WalletWasabi.Backend.Models.Requests
 		public IEnumerable<InputProofModel> Inputs { get; set; }
 
 		[Required]
-		[JsonConverter(typeof(ByteArrayJsonConverter))]
-		public byte[] BlindedOutput { get; set; }
+		public string BlindedOutput { get; set; }
 
 		[Required]
 		public string ChangeOutputScript { get; set; }
