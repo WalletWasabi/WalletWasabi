@@ -1451,8 +1451,8 @@ namespace WalletWasabi.Tests
 					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
 					// Never changes.
 					Assert.Equal(1, status.Version);
-					Assert.Equal(new Money(0.000068m, MoneyUnit.BTC), status.FeePerInputs);
-					Assert.Equal(new Money(0.000033m, MoneyUnit.BTC), status.FeePerOutputs);
+					Assert.True(Money.Zero < status.FeePerInputs);
+					Assert.True(Money.Zero < status.FeePerOutputs);
 					Assert.Equal(7, status.MaximumInputCountPerPeer);
 					// Changes per rounds.
 					Assert.Equal(denomination, status.Denomination);
