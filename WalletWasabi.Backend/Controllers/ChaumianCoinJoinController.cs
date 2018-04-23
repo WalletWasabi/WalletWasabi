@@ -78,7 +78,7 @@ namespace WalletWasabi.Backend.Controllers
 			// Validate request.
 			if (!ModelState.IsValid
 				|| request == null
-				|| string.IsNullOrWhiteSpace(request.BlindedOutput)
+				|| string.IsNullOrWhiteSpace(request.BlindedOutputHex)
 				|| string.IsNullOrWhiteSpace(request.ChangeOutputScript)
 				|| request.Inputs == null
 				|| request.Inputs.Count() == 0
@@ -96,7 +96,7 @@ namespace WalletWasabi.Backend.Controllers
 				// Do more checks.
 				try
 				{
-					if (round.ContainsBlindedOutput(request.BlindedOutput, out List<Alice> _))
+					if (round.ContainsBlindedOutput(request.BlindedOutputHex, out List<Alice> _))
 					{
 						return BadRequest("Blinded output has already been registered.");
 					}
@@ -155,7 +155,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						var address = (BitcoinWitPubKeyAddress)txout.ScriptPubKey.GetDestinationAddress(Network);
 						// Check if proofs are valid.
-						bool validProof = address.VerifyMessage(request.BlindedOutput, inputProof.Proof);
+						bool validProof = address.VerifyMessage(request.BlindedOutputHex, inputProof.Proof);
 						if (!validProof)
 						{
 							return BadRequest("Provided proof is invalid.");
@@ -174,7 +174,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 					
 					// Make sure Alice checks work.
-					var alice = new Alice(inputs, networkFeeToPay, new Script(request.ChangeOutputScript), request.BlindedOutput);
+					var alice = new Alice(inputs, networkFeeToPay, new Script(request.ChangeOutputScript), request.BlindedOutputHex);
 					
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{
@@ -183,7 +183,16 @@ namespace WalletWasabi.Backend.Controllers
 					round.AddAlice(alice);
 
 					// All checks are good. Sign.
-					byte[] signature = RsaKey.SignBlindedData(ByteHelpers.FromHex(request.BlindedOutput));
+					byte[] blindedData;
+					try
+					{
+						blindedData = ByteHelpers.FromHex(request.BlindedOutputHex);
+					}
+					catch
+					{
+						return BadRequest("Invalid blinded output hex.");
+					}
+					byte[] signature = RsaKey.SignBlindedData(blindedData);
 
 					// Check if phase changed since.
 					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)

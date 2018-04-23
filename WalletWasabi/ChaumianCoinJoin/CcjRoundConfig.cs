@@ -17,32 +17,32 @@ namespace WalletWasabi.ChaumianCoinJoin
 	public class CcjRoundConfig : IConfig
 	{
 		/// <inheritdoc />
-		public string FilePath { get; private set; }
+		public string FilePath { get; internal set; }
 
 		[JsonProperty(PropertyName = "Denomination")]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money Denomination { get; private set; }
+		public Money Denomination { get; internal set; }
 
 		[JsonProperty(PropertyName = "ConfirmationTarget")]
-		public int? ConfirmationTarget { get; private set; }
+		public int? ConfirmationTarget { get; internal set; }
 
 		[JsonProperty(PropertyName = "CoordinatorFeePercent")]
-		public decimal? CoordinatorFeePercent { get; private set; }
+		public decimal? CoordinatorFeePercent { get; internal set; }
 
 		[JsonProperty(PropertyName = "AnonymitySet")]
-		public int? AnonymitySet { get; private set; }
+		public int? AnonymitySet { get; internal set; }
 
 		[JsonProperty(PropertyName = "InputRegistrationTimeout")]
-		public long? InputRegistrationTimeout { get; private set; }
+		public long? InputRegistrationTimeout { get; internal set; }
 
 		[JsonProperty(PropertyName = "ConnectionConfirmationTimeout")]
-		public long? ConnectionConfirmationTimeout { get; private set; }
+		public long? ConnectionConfirmationTimeout { get; internal set; }
 
 		[JsonProperty(PropertyName = "OutputRegistrationTimeout")]
-		public long? OutputRegistrationTimeout { get; private set; }
+		public long? OutputRegistrationTimeout { get; internal set; }
 
 		[JsonProperty(PropertyName = "SigningTimeout")]
-		public long? SigningTimeout { get; private set; }
+		public long? SigningTimeout { get; internal set; }
 
 		public CcjRoundConfig()
 		{

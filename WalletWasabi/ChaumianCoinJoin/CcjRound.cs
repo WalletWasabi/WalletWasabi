@@ -395,7 +395,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
-		public bool ContainsBlindedOutput(string blindedOutput, out List<Alice> alices)
+		public bool ContainsBlindedOutput(string blindedOutputHex, out List<Alice> alices)
 		{
 			alices = new List<Alice>();
 
@@ -403,7 +403,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			{
 				foreach (Alice alice in Alices)
 				{
-					if (alice.BlindedOutput == blindedOutput)
+					if (alice.BlindedOutputHex == blindedOutputHex)
 					{
 						alices.Add(alice);
 					}
@@ -513,7 +513,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 		{
 			using (RoundSyncronizerLock.Lock())
 			{
-				if (Phase != CcjRoundPhase.InputRegistration || Phase != CcjRoundPhase.ConnectionConfirmation)
+				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Updating anonymity set is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
@@ -525,7 +525,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 		{
 			using (RoundSyncronizerLock.Lock())
 			{
-				if (Phase != CcjRoundPhase.InputRegistration)
+				if (Phase != CcjRoundPhase.InputRegistration || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Adding Alice is only allowed in InputRegistration phase.");
 				}
@@ -539,7 +539,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 		{
 			using (RoundSyncronizerLock.Lock())
 			{
-				if (Phase != CcjRoundPhase.InputRegistration || Phase != CcjRoundPhase.ConnectionConfirmation)
+				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
@@ -551,7 +551,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 		{
 			using (RoundSyncronizerLock.Lock())
 			{
-				if (Phase != CcjRoundPhase.InputRegistration || Phase != CcjRoundPhase.ConnectionConfirmation)
+				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
@@ -563,7 +563,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 		{
 			using (RoundSyncronizerLock.Lock())
 			{
-				if (Phase != CcjRoundPhase.InputRegistration || Phase != CcjRoundPhase.ConnectionConfirmation)
+				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}

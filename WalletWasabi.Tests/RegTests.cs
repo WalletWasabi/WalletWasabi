@@ -31,6 +31,7 @@ using Xunit;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.ChaumianCoinJoin;
 using WalletWasabi.Backend.Models.Requests;
+using WalletWasabi.Crypto;
 
 namespace WalletWasabi.Tests
 {
@@ -1252,7 +1253,7 @@ namespace WalletWasabi.Tests
 				}
 				catch
 				{
-					// Magic swallow
+					// Magic swallow.
 				}
 				await Global.RpcClient.GenerateAsync(10);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 10);
@@ -1474,7 +1475,7 @@ namespace WalletWasabi.Tests
 				// Inputs request tests
 				var request = new InputsRequest
 				{
-					BlindedOutput = null,
+					BlindedOutputHex = null,
 					ChangeOutputScript = null,
 					Inputs = null,
 				};
@@ -1485,7 +1486,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Invalid request.\"", message);
 				}
 
-				request.BlindedOutput = "";
+				request.BlindedOutputHex = "";
 				request.ChangeOutputScript = "";
 				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(), Proof = "" } };
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -1495,7 +1496,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Invalid request.\"", message);
 				}
 
-				request.BlindedOutput = "c";
+				request.BlindedOutputHex = "c";
 				request.ChangeOutputScript = "a";
 				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = "b" } };
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -1573,14 +1574,109 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Provided proof is invalid.\"", message);
 				}
 
-				request.BlindedOutput = new Transaction().ToHex();
-				proof = key.SignMessage(request.BlindedOutput);
+				request.BlindedOutputHex = new Transaction().ToHex();
+				proof = key.SignMessage(request.BlindedOutputHex);
 				request.Inputs.First().Proof = proof;
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					string message = await response.Content.ReadAsStringAsync();
 					Assert.StartsWith("\"Not enough inputs are provided. Fee to pay:", message);
+				}
+
+				roundConfig.Denomination = new Money(0.01m, MoneyUnit.BTC); // exactly the same as our output
+				coordinator.UpdateRoundConfig(roundConfig);
+				coordinator.FailAllRoundsInInputRegistration();
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.StartsWith("\"Not enough inputs are provided. Fee to pay:", message);
+				}
+
+				roundConfig.Denomination = new Money(0.00999999m, MoneyUnit.BTC); // one satoshi less than our output
+				coordinator.UpdateRoundConfig(roundConfig);
+				coordinator.FailAllRoundsInInputRegistration();
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.StartsWith("\"Not enough inputs are provided. Fee to pay:", message);
+				}
+
+				roundConfig.Denomination = new Money(0.008m, MoneyUnit.BTC); // one satoshi less than our output
+				coordinator.UpdateRoundConfig(roundConfig);
+				coordinator.FailAllRoundsInInputRegistration();
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
+					Assert.NotNull(inputsResp.BlindedOutputSignature);
+					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
+				}
+
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
+					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
+					Assert.Equal(1, status.RegisteredPeerCount);
+				}
+
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.Equal("\"Blinded output has already been registered.\"", message);
+				}
+
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
+					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
+					Assert.Equal(1, status.RegisteredPeerCount);
+				}
+
+				request.BlindedOutputHex = "foo";
+				proof = key.SignMessage(request.BlindedOutputHex);
+				request.Inputs.First().Proof = proof;
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.Equal("\"Invalid blinded output hex.\"", message);
+				}
+
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
+					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
+					Assert.Equal(1, status.RegisteredPeerCount);
+				}
+
+				var blindingKey = new BlindingRsaKey();
+				string script = key.ScriptPubKey.ToString();
+				byte[] messageToBlind = Encoding.UTF8.GetBytes(script);
+				var (BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(messageToBlind);
+				request.BlindedOutputHex = ByteHelpers.ToHex(BlindedData);
+				proof = key.SignMessage(request.BlindedOutputHex);
+				request.Inputs.First().Proof = proof;
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
+					Assert.NotNull(inputsResp.BlindedOutputSignature);
+					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
+				}
+
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
+					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
+					Assert.Equal(1, status.RegisteredPeerCount);
 				}
 			}
 		}
