@@ -1689,6 +1689,55 @@ namespace WalletWasabi.Tests
 					string message = await response.Content.ReadAsStringAsync();
 					Assert.Equal("\"Cannot register an input twice.\"", message);
 				}
+
+				var inputProofs = new List<InputProofModel>();
+				for (int j = 0; j < 8; j++)
+				{
+					key = new Key();
+					witnessAddress = key.PubKey.GetSegwitAddress(network);
+					hash = await rpc.SendToAddressAsync(witnessAddress, new Money(0.01m, MoneyUnit.BTC));
+					await rpc.GenerateAsync(1);
+					tx = await rpc.GetRawTransactionAsync(hash);
+					index = 0;
+					for (int i = 0; i < tx.Outputs.Count; i++)
+					{
+						var output = tx.Outputs[i];
+						if (output.ScriptPubKey == witnessAddress.ScriptPubKey)
+						{
+							index = i;
+						}
+					}
+					proof = key.SignMessage(request.BlindedOutputHex);
+					inputProofs.Add(new InputProofModel { Input = new OutPoint(hash, index) , Proof = proof });
+				}
+				await rpc.GenerateAsync(1);
+
+				request.Inputs = inputProofs;
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.Equal("\"Maximum 7 inputs can be registered.\"", message);
+				}
+
+				inputProofs.RemoveLast();
+				request.Inputs = inputProofs;
+
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
+					Assert.NotNull(inputsResp.BlindedOutputSignature);
+					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
+				}
+
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
+					Assert.Equal(CcjRoundPhase.ConnectionConfirmation, status.CurrentPhase);
+					Assert.Equal(0, status.RegisteredPeerCount);
+				}
 			}
 		}
 

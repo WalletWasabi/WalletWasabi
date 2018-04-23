@@ -89,6 +89,11 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest("Invalid request.");
 			}
 
+			if(request.Inputs.Count() > 7)
+			{
+				return BadRequest("Maximum 7 inputs can be registered.");
+			}
+
 			using (await InputsLock.LockAsync())
 			{
 				CcjRound round = Coordinator.GetCurrentInputRegisterableRound();
@@ -203,7 +208,7 @@ namespace WalletWasabi.Backend.Controllers
 					// Progress round if needed.
 					if(round.CountAlices() >= round.AnonymitySet)
 					{
-						await round.ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
+						await round.ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
 					}
 
 					var resp = new InputsResponse
