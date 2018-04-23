@@ -34,12 +34,12 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
 - [ ] **6. ZeroLink Coordinator.** *2 weeks. NBitcoin, Bitcoin Core RPC.* Revise the ZeroLink Coordinator code based on ZeroLink v2 Revision.
 
   Depends on:
-  - [ ] ZeroLink v2 Revision
+  - [x] ZeroLink Research
   
 - [ ] **7. ZeroLink Client.** *2 weeks. NBitcoin.* Revise the ZeroLink Client code based on ZeroLink v2 Revision.
 
   Depends on:
-  - [ ] ZeroLink v2 Revision
+  - [x] ZeroLink Research
   - [ ] ZeroLink Coordinator
 
 ### 3. User Experience Stage
