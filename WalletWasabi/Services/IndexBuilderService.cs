@@ -334,7 +334,9 @@ namespace WalletWasabi.Services
 							await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
 								.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
 
-							if (blockCount - height <= 3 || height % 100 == 0) // If not close to the tip, just log debug.
+							// If not close to the tip, just log debug.
+							// Use height.Value instead of simply height, because it cannot be negative height.
+							if (blockCount - height.Value <= 3 || height % 100 == 0) 
 							{
 								Logger.LogInfo<IndexBuilderService>($"Created filter for block: {height}.");
 							}
