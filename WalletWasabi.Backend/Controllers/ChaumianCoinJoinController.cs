@@ -167,7 +167,15 @@ namespace WalletWasabi.Backend.Controllers
 
 						var address = (BitcoinWitPubKeyAddress)txout.ScriptPubKey.GetDestinationAddress(Network);
 						// Check if proofs are valid.
-						bool validProof = address.VerifyMessage(request.BlindedOutputHex, inputProof.Proof);
+						bool validProof;
+						try
+						{							
+							validProof = address.VerifyMessage(request.BlindedOutputHex, inputProof.Proof);							
+						}
+						catch (FormatException ex)
+						{
+							return BadRequest($"Provided proof is invalid: {ex.Message}");
+						}
 						if (!validProof)
 						{
 							return BadRequest("Provided proof is invalid.");
