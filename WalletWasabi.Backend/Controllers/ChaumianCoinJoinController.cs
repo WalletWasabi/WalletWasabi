@@ -122,6 +122,13 @@ namespace WalletWasabi.Backend.Controllers
 						{
 							alicesToRemove.UnionWith(tr.Select(x => x.UniqueId)); // Input is already registered by this alice, remove it later if all the checks are completed fine.
 						}
+						if (Coordinator.AnyRunningRoundContainsInput(inputProof.Input, out List<Alice> tnr))
+						{
+							if(tr.Union(tnr).Count() > tr.Count())
+							{
+								return BadRequest("Input is already registered in another round.");
+							}
+						}
 
 						// ToDo: Refuse banned UTXO here!
 

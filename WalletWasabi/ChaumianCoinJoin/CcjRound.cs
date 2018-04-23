@@ -435,14 +435,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 				}
 			}
 
-			if (alices.Count > 0)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			return alices.Count > 0;
 		}
 
 		public int CountBobs(bool syncronized = true)

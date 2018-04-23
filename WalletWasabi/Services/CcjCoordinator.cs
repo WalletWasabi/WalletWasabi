@@ -144,6 +144,25 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public bool AnyRunningRoundContainsInput(OutPoint input, out List<Alice> alices)
+		{
+			using (RoundsListLock.Lock())
+			{
+				alices = new List<Alice>();
+				foreach(var round in Rounds.Where(x=>x.Status == CcjRoundStatus.Running))
+				{
+					if(round.ContainsInput(input, out List<Alice> roundAlices))
+					{
+						foreach(var alice in roundAlices)
+						{
+							alices.Add(alice);
+						}
+					}
+				}
+				return alices.Count > 0;
+			}
+		}
+
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
@@ -166,7 +185,7 @@ namespace WalletWasabi.Services
 				_disposedValue = true;
 			}
 		}
-		
+
 		// ~CcjCoordinator() {
 		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 		//   Dispose(false);
