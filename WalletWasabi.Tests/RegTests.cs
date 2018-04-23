@@ -28,6 +28,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Org.BouncyCastle.Asn1.IsisMtt.X509;
 using Xunit;
+using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.ChaumianCoinJoin;
 
 namespace WalletWasabi.Tests
 {
@@ -1430,8 +1432,36 @@ namespace WalletWasabi.Tests
 		public async Task ChaumianCoinJoinTestsAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
 		{
 			var network = Global.RpcClient.Network;
+			var coordinator = Global.Coordinator;
+			Money denomination = new Money(0.2m, MoneyUnit.BTC);
+			decimal coordinatorFeePercent = 0.2m;
+			int anonymitySet = 2;
+			int connectionConfirmationTimeout = 50;
+			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50);
+			coordinator.UpdateRoundConfig(roundConfig);
+			coordinator.FailAllRoundsInInputRegistration();
 
-
+			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
+			{
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
+					// Never changes.
+					Assert.Equal(1, status.Version);
+					Assert.Equal(new Money(0.000068m, MoneyUnit.BTC), status.FeePerInputs);
+					Assert.Equal(new Money(0.000033m, MoneyUnit.BTC), status.FeePerOutputs);
+					Assert.Equal(7, status.MaximumInputCountPerPeer);
+					// Changes per rounds.
+					Assert.Equal(denomination, status.Denomination);
+					Assert.Equal(coordinatorFeePercent, status.CoordinatorFeePercent);
+					Assert.Equal(anonymitySet, status.RequiredPeerCount);
+					Assert.Equal(connectionConfirmationTimeout, status.RegistrationTimeout);
+					// Changes per phases.
+					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
+					Assert.Equal(0, status.RegisteredPeerCount);
+				}
+			}
 		}
 
 		#endregion
