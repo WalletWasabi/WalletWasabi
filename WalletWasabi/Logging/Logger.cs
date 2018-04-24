@@ -12,6 +12,8 @@ namespace WalletWasabi.Logging
     {
 		#region PropertiesAndMembers
 
+		private static long On = 1;
+
 		public static LogLevel MinimumLevel { get; private set; } = LogLevel.Critical;
 
         public static HashSet<LogMode> Modes { get; } = new HashSet<LogMode>();
@@ -68,6 +70,10 @@ namespace WalletWasabi.Logging
 
 		#region Methods
 
+		public static void TurnOff() => Interlocked.Exchange(ref On, 0);
+		public static void TurnOn() => Interlocked.Exchange(ref On, 1);
+		public static bool IsOn() => Interlocked.Read(ref On) == 1;
+
 		public static void DecryptLogEntries(string destination)
         {
             var encrypted = File.ReadAllText(FilePath);
@@ -92,7 +98,7 @@ namespace WalletWasabi.Logging
         {
             try
             {
-                if (Modes.Count == 0)
+                if (Modes.Count == 0 || !IsOn())
                 {
                     return;
                 }

@@ -106,15 +106,14 @@ namespace WalletWasabi.Tests
 
 			var content = new StringContent($"'{signedTx.ToHex()}'", Encoding.UTF8, "application/json");
 
-			var restoreLogMinLevel = Logger.MinimumLevel;
-			Logger.SetMinimumLevel(LogLevel.Critical);
+			Logger.TurnOff();
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 			}
-			Logger.SetMinimumLevel(restoreLogMinLevel);
+			Logger.TurnOn();
 		}
 
 		[Fact]
@@ -126,15 +125,14 @@ namespace WalletWasabi.Tests
 			var tx = await Global.RpcClient.GetRawTransactionAsync(utxo.OutPoint.Hash);
 			var content = new StringContent($"'{tx.ToHex()}'", Encoding.UTF8, "application/json");
 
-			var restoreLogMinLevel = Logger.MinimumLevel;
-			Logger.SetMinimumLevel(LogLevel.Critical);
+			Logger.TurnOff();
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
 				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal("\"Transaction is already in the blockchain.\"", await response.Content.ReadAsStringAsync());
 			}
-			Logger.SetMinimumLevel(restoreLogMinLevel);
+			Logger.TurnOn();
 		}
 
 		[Fact]
@@ -142,8 +140,7 @@ namespace WalletWasabi.Tests
 		{
 			var content = new StringContent($"''", Encoding.UTF8, "application/json");
 
-			var restoreLogMinLevel = Logger.MinimumLevel;
-			Logger.SetMinimumLevel(LogLevel.Critical);
+			Logger.TurnOff();
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
@@ -151,7 +148,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 				Assert.Equal("\"Invalid hex.\"", await response.Content.ReadAsStringAsync());
 			}
-			Logger.SetMinimumLevel(restoreLogMinLevel);
+			Logger.TurnOn();
 		}
 
 		#endregion
@@ -1042,8 +1039,7 @@ namespace WalletWasabi.Tests
 				new WalletService.Operation(scp, Money.Satoshis(5), "")
 				};
 
-			var restoreLogMinLevel = Logger.MinimumLevel;
-			Logger.SetMinimumLevel(LogLevel.Critical);
+			Logger.TurnOff();
 			// toSend cannot be null
 			await Assert.ThrowsAsync<ArgumentNullException>(async () => await wallet.BuildTransactionAsync(null, null, 0));
 
@@ -1137,7 +1133,7 @@ namespace WalletWasabi.Tests
 
 				// `Custom change` and `spend all` cannot be specified at the same time
 				await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, false, null, Script.Empty));
-				Logger.SetMinimumLevel(restoreLogMinLevel);
+				Logger.TurnOn();
 
 				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.5m), "") };
 				btx = await wallet.BuildTransactionAsync("password", operations, 2);
@@ -1147,7 +1143,7 @@ namespace WalletWasabi.Tests
 				Assert.True(btx.FeePercentOfSent > 20);
 				Assert.Single(btx.SpentCoins);
 				Assert.Equal(txid, btx.SpentCoins.First().TransactionId);
-				Assert.False(btx.Transaction.Transaction.RBF); // Is this okay
+				Assert.False(btx.Transaction.Transaction.RBF);
 			}
 			finally
 			{
@@ -1196,10 +1192,10 @@ namespace WalletWasabi.Tests
 
 			Assert.Empty(wallet.Coins);
 			var baseTip = await Global.RpcClient.GetBestBlockHashAsync();
-			
+
 			// Generate script
 			var scp = new Key().ScriptPubKey;
-			
+
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
 			var fundingTxid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(0.1m, MoneyUnit.BTC));
@@ -1289,9 +1285,9 @@ namespace WalletWasabi.Tests
 					curBlockHash = block.Header.HashPrevBlock;
 					blockCount--;
 				}
-				
+
 				// There shouldn't be any `confirmed` coin
-				Assert.Empty(wallet.Coins.Where(x=>x.Confirmed)); 
+				Assert.Empty(wallet.Coins.Where(x => x.Confirmed));
 
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
@@ -1309,7 +1305,7 @@ namespace WalletWasabi.Tests
 				await Global.RpcClient.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
-				Assert.Single(wallet.Coins.Where(x=>x.Confirmed && x.TransactionId == fundingBumpTxid.TransactionId));
+				Assert.Single(wallet.Coins.Where(x => x.Confirmed && x.TransactionId == fundingBumpTxid.TransactionId));
 			}
 			finally
 			{
@@ -1385,62 +1381,62 @@ namespace WalletWasabi.Tests
 				// this is necesary because we are in a fork now.
 				var tx0Id = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC),
 					replaceable: true);
-				while(wallet.Coins.Count == 0)
+				while (wallet.Coins.Count == 0)
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
 				Assert.Single(wallet.Coins);
 
 				// Spend the unconfirmed coin (send it to ourself)
-				var operations = new[] {new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "")};
+				var operations = new[] { new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "") };
 				var tx1Res = await wallet.BuildTransactionAsync("password", operations, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(tx1Res.Transaction);
 
-				while(wallet.Coins.Count != 3)
+				while (wallet.Coins.Count != 3)
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
-				
+
 				// There is a coin created by the latest spending transaction
-				Assert.Contains(wallet.Coins, x =>x.TransactionId == tx1Res.Transaction.GetHash());
+				Assert.Contains(wallet.Coins, x => x.TransactionId == tx1Res.Transaction.GetHash());
 
 				// There is a coin destroyed
-				Assert.Equal(1, wallet.Coins.Count(x=>!x.Unspent && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
+				Assert.Equal(1, wallet.Coins.Count(x => !x.Unspent && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.TransactionId == tx0Id));
 
 				var totalWallet = wallet.Coins.Where(c => c.Unspent).Sum(c => c.Amount);
-				Assert.Equal((1 * Money.COIN)-tx1Res.Fee.Satoshi, totalWallet );
-				
-				
+				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi, totalWallet);
+
+
 				// Spend the unconfirmed and unspent coin (send it to ourself)
-				operations = new[] {new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "")};
-				var tx2Res = await wallet.BuildTransactionAsync("password", operations, 2, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0 );
+				operations = new[] { new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "") };
+				var tx2Res = await wallet.BuildTransactionAsync("password", operations, 2, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 				await wallet.SendTransactionAsync(tx2Res.Transaction);
 
-				while(wallet.Coins.Count != 4)
+				while (wallet.Coins.Count != 4)
 					await Task.Delay(500); // Waits for the transaction get to the mempool.
-				
+
 				// There is a coin created by the latest spending transaction
-				Assert.Contains(wallet.Coins, x =>x.TransactionId == tx2Res.Transaction.GetHash());
+				Assert.Contains(wallet.Coins, x => x.TransactionId == tx2Res.Transaction.GetHash());
 
 				// There is a coin destroyed
-				Assert.Equal(1, wallet.Coins.Count(x=>!x.Unspent && x.SpenderTransactionId == tx2Res.Transaction.GetHash()));
+				Assert.Equal(1, wallet.Coins.Count(x => !x.Unspent && x.SpenderTransactionId == tx2Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.TransactionId == tx1Res.Transaction.GetHash()));
 
 				totalWallet = wallet.Coins.Where(c => c.Unspent).Sum(c => c.Amount);
-				Assert.Equal((1 * Money.COIN)-tx1Res.Fee.Satoshi - tx2Res.Fee.Satoshi, totalWallet );
+				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi - tx2Res.Fee.Satoshi, totalWallet);
 
 				_filtersProcessedByWalletCount = 0;
 				var blockId = (await Global.RpcClient.GenerateAsync(1)).Single();
-				
+
 				// Verify transactions are confirmed in the blockchain
 				var block = await Global.RpcClient.GetBlockAsync(blockId);
-				Assert.Contains(block.Transactions, x =>x.GetHash() == tx2Res.Transaction.GetHash());
-				Assert.Contains(block.Transactions, x =>x.GetHash() == tx1Res.Transaction.GetHash());
-				Assert.Contains(block.Transactions, x =>x.GetHash() == tx0Id);
+				Assert.Contains(block.Transactions, x => x.GetHash() == tx2Res.Transaction.GetHash());
+				Assert.Contains(block.Transactions, x => x.GetHash() == tx1Res.Transaction.GetHash());
+				Assert.Contains(block.Transactions, x => x.GetHash() == tx0Id);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
-				
-				Assert.True(wallet.Coins.All(x=>x.Confirmed));				
+
+				Assert.True(wallet.Coins.All(x => x.Confirmed));
 			}
 			finally
 			{
@@ -1681,7 +1677,7 @@ namespace WalletWasabi.Tests
 				request.Inputs.First().Proof = proof;
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
-					if(response.StatusCode == HttpStatusCode.BadRequest) // Very rarely it fails, let's try to catch it.
+					if (response.StatusCode == HttpStatusCode.BadRequest) // Very rarely it fails, let's try to catch it.
 					{
 						Logger.LogWarning(await response.Content.ReadAsStringAsync());
 					}
@@ -1728,7 +1724,7 @@ namespace WalletWasabi.Tests
 						}
 					}
 					proof = key.SignMessage(request.BlindedOutputHashHex);
-					inputProofs.Add(new InputProofModel { Input = new OutPoint(hash, index) , Proof = proof });
+					inputProofs.Add(new InputProofModel { Input = new OutPoint(hash, index), Proof = proof });
 				}
 				await rpc.GenerateAsync(1);
 

@@ -45,10 +45,9 @@ namespace WalletWasabi.Tests
 			Assert.NotEqual(toEncrypt, encypted);
 			decrypted = StringCipher.Decrypt(encypted, password);
 			Assert.Equal(toEncrypt, decrypted);
-			var restoreLogMinLevel = Logger.MinimumLevel;
-			Logger.SetMinimumLevel(LogLevel.Critical);
+			Logger.TurnOff();
 			Assert.Throws<CryptographicException>(() => StringCipher.Decrypt(encypted, "wrongpassword"));
-			Logger.SetMinimumLevel(restoreLogMinLevel);
+			Logger.TurnOn();
 		}
 
 		[Fact]
