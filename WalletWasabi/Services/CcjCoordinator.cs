@@ -35,6 +35,8 @@ namespace WalletWasabi.Services
 		
 		public BlindingRsaKey RsaKey { get; }
 
+		public UtxoReferee UtxoReferee { get; }
+
 		public CcjCoordinator(Network network, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
@@ -50,6 +52,8 @@ namespace WalletWasabi.Services
 			CoinJoinsLock = new AsyncLock();
 
 			Directory.CreateDirectory(FolderPath);
+
+			UtxoReferee = new UtxoReferee(Network, FolderPath, RpcClient);
 
 			// Initialize RsaKey
 			string rsaKeyPath = Path.Combine(FolderPath, "RsaKey.json");
@@ -147,6 +151,15 @@ namespace WalletWasabi.Services
 					uint256 coinJoinHash = round.SignedCoinJoin.GetHash();
 					CoinJoins.Add(coinJoinHash);
 					await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() });
+				}
+			}
+			
+			// If failed in signing phase, then ban Alices those didn't sign.
+			if(status == CcjRoundStatus.Failed && round.Phase == CcjRoundPhase.Signing)
+			{
+				foreach (Alice alice in round.GetAlicesByNot(AliceState.SignedCoinJoin))
+				{
+					await UtxoReferee.BanAliceAsync(alice);
 				}
 			}
 

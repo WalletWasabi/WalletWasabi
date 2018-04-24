@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using WalletWasabi.ChaumianCoinJoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -46,7 +48,7 @@ namespace WalletWasabi.Services
 					foreach (string line in allLines)
 					{
 						var parts = line.Split(':');
-						var utxo = new OutPoint(new uint256(parts[1]), int.Parse(parts[2]));
+						var utxo = new OutPoint(new uint256(parts[2]), int.Parse(parts[1]));
 						var severity = int.Parse(parts[0]);
 
 						GetTxOutResponse getTxOutResponse = RpcClient.GetTxOut(utxo.Hash, (int)utxo.N, includeMempool: true);
@@ -74,6 +76,19 @@ namespace WalletWasabi.Services
 					File.Delete(BannedUtxosFilePath);
 				}
 			}
+		}
+
+		public async Task BanAliceAsync(Alice alice)
+		{
+			var lines = new List<string>();
+			foreach(var utxo in alice.Inputs.Select(x=>x.OutPoint))
+			{
+				BannedUtxos.TryAdd(utxo, 1);
+				string line = $"1:{utxo.N}:{utxo.Hash}";
+				lines.Add(line);
+			}
+
+			await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
 		}
 	}
 }

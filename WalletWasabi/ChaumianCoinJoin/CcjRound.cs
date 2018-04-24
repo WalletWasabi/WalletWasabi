@@ -303,12 +303,12 @@ namespace WalletWasabi.ChaumianCoinJoin
 				// Delay asyncronously to the requested timeout.
 				await Task.Delay(timeout);
 
-				var runFailureToDo = false;
+				var executeRunFailure = false;
 				using (await RoundSyncronizerLock.LockAsync())
 				{
-					runFailureToDo = Status == CcjRoundStatus.Running && Phase == expectedPhase;
+					executeRunFailure = Status == CcjRoundStatus.Running && Phase == expectedPhase;
 				}
-				if (runFailureToDo)
+				if (executeRunFailure)
 				{
 					// This will happen outside the lock.
 					Task.Run(async () =>
@@ -361,7 +361,6 @@ namespace WalletWasabi.ChaumianCoinJoin
 							case CcjRoundPhase.Signing:
 								{
 									Fail();
-									// ToDo: Ban Alices those states are not SignedCoinJoin
 								}
 								break;
 							default: throw new InvalidOperationException("This is impossible to happen.");
@@ -450,6 +449,22 @@ namespace WalletWasabi.ChaumianCoinJoin
 			else
 			{
 				return Alices.Count;
+			}
+		}
+
+		public IEnumerable<Alice> GetAlicesBy(AliceState state)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				return Alices.Where(x => x.State == state).ToList();
+			}
+		}
+
+		public IEnumerable<Alice> GetAlicesByNot(AliceState state)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				return Alices.Where(x => x.State != state).ToList();
 			}
 		}
 

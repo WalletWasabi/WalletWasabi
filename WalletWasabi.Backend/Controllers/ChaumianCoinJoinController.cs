@@ -130,7 +130,10 @@ namespace WalletWasabi.Backend.Controllers
 							}
 						}
 
-						// ToDo: Refuse banned UTXO here!
+						if(Coordinator.UtxoReferee.BannedUtxos.Keys.Contains(inputProof.Input))
+						{
+							return BadRequest($"Input is banned from participation: {inputProof.Input.N}:{inputProof.Input.Hash}.");
+						}
 
 						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.Hash, (int)inputProof.Input.N, includeMempool: true);
 
