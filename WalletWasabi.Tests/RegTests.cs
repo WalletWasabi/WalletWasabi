@@ -105,13 +105,16 @@ namespace WalletWasabi.Tests
 			var signedTx = await Global.RpcClient.SignRawTransactionAsync(tx);
 
 			var content = new StringContent($"'{signedTx.ToHex()}'", Encoding.UTF8, "application/json");
+
+			var restoreLogMinLevel = Logger.MinimumLevel;
+			Logger.SetMinimumLevel(LogLevel.Critical);
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
-
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 			}
+			Logger.SetMinimumLevel(restoreLogMinLevel);
 		}
 
 		[Fact]
@@ -122,18 +125,25 @@ namespace WalletWasabi.Tests
 			var utxo = utxos[0];
 			var tx = await Global.RpcClient.GetRawTransactionAsync(utxo.OutPoint.Hash);
 			var content = new StringContent($"'{tx.ToHex()}'", Encoding.UTF8, "application/json");
+
+			var restoreLogMinLevel = Logger.MinimumLevel;
+			Logger.SetMinimumLevel(LogLevel.Critical);
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
 				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal("\"Transaction is already in the blockchain.\"", await response.Content.ReadAsStringAsync());
 			}
+			Logger.SetMinimumLevel(restoreLogMinLevel);
 		}
 
 		[Fact]
 		public async void BroadcastInvalidTxAsync()
 		{
 			var content = new StringContent($"''", Encoding.UTF8, "application/json");
+
+			var restoreLogMinLevel = Logger.MinimumLevel;
+			Logger.SetMinimumLevel(LogLevel.Critical);
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
@@ -141,6 +151,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 				Assert.Equal("\"Invalid hex.\"", await response.Content.ReadAsStringAsync());
 			}
+			Logger.SetMinimumLevel(restoreLogMinLevel);
 		}
 
 		#endregion

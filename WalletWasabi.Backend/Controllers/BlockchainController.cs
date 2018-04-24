@@ -132,7 +132,6 @@ namespace WalletWasabi.Backend.Controllers
 
 			try
 			{
-
 				await RpcClient.SendRawTransactionAsync(transaction);
 			}
 			catch(RPCException ex) when (ex.Message.Contains("already in block chain", StringComparison.InvariantCultureIgnoreCase))
