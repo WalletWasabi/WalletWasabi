@@ -1438,13 +1438,13 @@ namespace WalletWasabi.Tests
 
 				_filtersProcessedByWalletCount = 0;
 				var blockId = (await Global.RpcClient.GenerateAsync(1)).Single();
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 				// Verify transactions are confirmed in the blockchain
 				var block = await Global.RpcClient.GetBlockAsync(blockId);
 				Assert.Contains(block.Transactions, x => x.GetHash() == tx2Res.Transaction.GetHash());
 				Assert.Contains(block.Transactions, x => x.GetHash() == tx1Res.Transaction.GetHash());
 				Assert.Contains(block.Transactions, x => x.GetHash() == tx0Id);
-				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 				Assert.True(wallet.Coins.All(x => x.Confirmed));
 			}
