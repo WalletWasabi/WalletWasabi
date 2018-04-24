@@ -17,5 +17,15 @@ namespace WalletWasabi.Helpers
 				return ByteHelpers.ToHex(hash);
 			}
 		}
+
+		public static byte[] GenerateSha256Hash(byte[] input)
+		{
+			using (var sha256 = SHA256.Create())
+			{
+				var hash = sha256.ComputeHash(input);
+
+				return hash;
+			}
+		}
 	}
 }

@@ -78,7 +78,7 @@ namespace WalletWasabi.Backend.Controllers
 			// Validate request.
 			if (!ModelState.IsValid
 				|| request == null
-				|| string.IsNullOrWhiteSpace(request.BlindedOutputHex)
+				|| string.IsNullOrWhiteSpace(request.BlindedOutputHashHex)
 				|| string.IsNullOrWhiteSpace(request.ChangeOutputScript)
 				|| request.Inputs == null
 				|| request.Inputs.Count() == 0
@@ -101,7 +101,7 @@ namespace WalletWasabi.Backend.Controllers
 				// Do more checks.
 				try
 				{
-					if (round.ContainsBlindedOutput(request.BlindedOutputHex, out List<Alice> _))
+					if (round.ContainsBlindedOutput(request.BlindedOutputHashHex, out List<Alice> _))
 					{
 						return BadRequest("Blinded output has already been registered.");
 					}
@@ -170,7 +170,7 @@ namespace WalletWasabi.Backend.Controllers
 						bool validProof;
 						try
 						{							
-							validProof = address.VerifyMessage(request.BlindedOutputHex, inputProof.Proof);							
+							validProof = address.VerifyMessage(request.BlindedOutputHashHex, inputProof.Proof);							
 						}
 						catch (FormatException ex)
 						{
@@ -194,7 +194,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 					
 					// Make sure Alice checks work.
-					var alice = new Alice(inputs, networkFeeToPay, new Script(request.ChangeOutputScript), request.BlindedOutputHex);
+					var alice = new Alice(inputs, networkFeeToPay, new Script(request.ChangeOutputScript), request.BlindedOutputHashHex);
 					
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{
@@ -206,13 +206,13 @@ namespace WalletWasabi.Backend.Controllers
 					byte[] blindedData;
 					try
 					{
-						blindedData = ByteHelpers.FromHex(request.BlindedOutputHex);
+						blindedData = ByteHelpers.FromHex(request.BlindedOutputHashHex);
 					}
 					catch
 					{
 						return BadRequest("Invalid blinded output hex.");
 					}
-					Logger.LogDebug<ChaumianCoinJoinController>($"Blinded data hex: {request.BlindedOutputHex}");
+					Logger.LogDebug<ChaumianCoinJoinController>($"Blinded data hex: {request.BlindedOutputHashHex}");
 					Logger.LogDebug<ChaumianCoinJoinController>($"Blinded data array size: {blindedData.Length}");
 					byte[] signature = RsaKey.SignBlindedData(blindedData);
 

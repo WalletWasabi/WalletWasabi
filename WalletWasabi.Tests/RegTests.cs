@@ -32,6 +32,7 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.ChaumianCoinJoin;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Crypto;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests
 {
@@ -1478,7 +1479,7 @@ namespace WalletWasabi.Tests
 				// Inputs request tests
 				var request = new InputsRequest
 				{
-					BlindedOutputHex = null,
+					BlindedOutputHashHex = null,
 					ChangeOutputScript = null,
 					Inputs = null,
 				};
@@ -1489,7 +1490,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Invalid request.\"", message);
 				}
 
-				request.BlindedOutputHex = "";
+				request.BlindedOutputHashHex = "";
 				request.ChangeOutputScript = "";
 				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(), Proof = "" } };
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -1499,7 +1500,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Invalid request.\"", message);
 				}
 
-				request.BlindedOutputHex = "c";
+				request.BlindedOutputHashHex = "c";
 				request.ChangeOutputScript = "a";
 				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = "b" } };
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -1577,8 +1578,8 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Provided proof is invalid.\"", message);
 				}
 
-				request.BlindedOutputHex = new Transaction().ToHex();
-				proof = key.SignMessage(request.BlindedOutputHex);
+				request.BlindedOutputHashHex = new Transaction().ToHex();
+				proof = key.SignMessage(request.BlindedOutputHashHex);
 				request.Inputs.First().Proof = proof;
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
@@ -1642,8 +1643,8 @@ namespace WalletWasabi.Tests
 					Assert.Equal(1, status.RegisteredPeerCount);
 				}
 
-				request.BlindedOutputHex = "foo";
-				proof = key.SignMessage(request.BlindedOutputHex);
+				request.BlindedOutputHashHex = "foo";
+				proof = key.SignMessage(request.BlindedOutputHashHex);
 				request.Inputs.First().Proof = proof;
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
@@ -1661,11 +1662,10 @@ namespace WalletWasabi.Tests
 				}
 
 				var blindingKey = new BlindingRsaKey();
-				string script = key.ScriptPubKey.ToString();
-				byte[] messageToBlind = Encoding.UTF8.GetBytes(script);
-				var (BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(messageToBlind);
-				request.BlindedOutputHex = ByteHelpers.ToHex(BlindedData);
-				proof = key.SignMessage(request.BlindedOutputHex);
+				byte[] scriptHash = HashHelpers.GenerateSha256Hash(key.ScriptPubKey.ToBytes());
+				var (BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptHash);
+				request.BlindedOutputHashHex = ByteHelpers.ToHex(BlindedData);
+				proof = key.SignMessage(request.BlindedOutputHashHex);
 				request.Inputs.First().Proof = proof;
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
@@ -1687,8 +1687,8 @@ namespace WalletWasabi.Tests
 					Assert.Equal(1, status.RegisteredPeerCount);
 				}
 
-				request.BlindedOutputHex = new Transaction().ToHex();
-				proof = key.SignMessage(request.BlindedOutputHex);
+				request.BlindedOutputHashHex = new Transaction().ToHex();
+				proof = key.SignMessage(request.BlindedOutputHashHex);
 				request.Inputs.First().Proof = proof;
 				request.Inputs = new List<InputProofModel> { request.Inputs.First(), request.Inputs.First() };
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -1715,7 +1715,7 @@ namespace WalletWasabi.Tests
 							index = i;
 						}
 					}
-					proof = key.SignMessage(request.BlindedOutputHex);
+					proof = key.SignMessage(request.BlindedOutputHashHex);
 					inputProofs.Add(new InputProofModel { Input = new OutPoint(hash, index) , Proof = proof });
 				}
 				await rpc.GenerateAsync(1);
@@ -1766,9 +1766,14 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Input is already registered in another round.\"", message);
 				}
 
-				await Task.Delay(2000);
+				// Wait until input registration times out.
+				await Task.Delay(3000);
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
+					if (response.StatusCode == HttpStatusCode.BadRequest) // Very rarely it fails, let's try to catch it.
+					{
+						Logger.LogWarning(await response.Content.ReadAsStringAsync());
+					}
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
 					Assert.NotNull(inputsResp.BlindedOutputSignature);

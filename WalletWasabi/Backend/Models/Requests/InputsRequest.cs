@@ -15,7 +15,7 @@ namespace WalletWasabi.Backend.Models.Requests
 		public IEnumerable<InputProofModel> Inputs { get; set; }
 
 		[Required]
-		public string BlindedOutputHex { get; set; }
+		public string BlindedOutputHashHex { get; set; }
 
 		[Required]
 		public string ChangeOutputScript { get; set; }
