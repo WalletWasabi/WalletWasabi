@@ -73,7 +73,7 @@ namespace WalletWasabi.Backend
 			IndexBuilderService = new IndexBuilderService(RpcClient, indexFilePath, utxoSetFilePath);
 			IndexBuilderService.Synchronize();
 
-			Coordinator = new CcjCoordinator(RpcClient, roundConfig);
+			Coordinator = new CcjCoordinator(RpcClient.Network, Path.Combine(DataDir,nameof(CcjCoordinator)), RpcClient, roundConfig);
 			await Coordinator.MakeSureTwoRunningRoundsAsync();
 
 			if (roundConfig.FilePath != null)

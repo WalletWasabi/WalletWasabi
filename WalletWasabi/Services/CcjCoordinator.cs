@@ -3,6 +3,7 @@ using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,17 +19,70 @@ namespace WalletWasabi.Services
 		private List<CcjRound> Rounds { get; }
 		private AsyncLock RoundsListLock { get; }
 
+		private List<uint256> UnconfirmedCoinJoins { get; }
+		private List<uint256> CoinJoins { get; }
+		public string CoinJoinsFilePath => Path.Combine(FolderPath, $"CoinJoins{Network}.txt");
+		private AsyncLock CoinJoinsLock { get; }
+
 		public RPCClient RpcClient { get; }
 
 		public CcjRoundConfig RoundConfig { get; private set; }
 
-		public CcjCoordinator(RPCClient rpc, CcjRoundConfig roundConfig)
+		public Network Network { get; }
+		public string FolderPath { get; }
+
+		public CcjCoordinator(Network network, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
 		{
+			Network = Guard.NotNull(nameof(network), network);
+			FolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
 
 			Rounds = new List<CcjRound>();
 			RoundsListLock = new AsyncLock();
+
+			CoinJoins = new List<uint256>();
+			UnconfirmedCoinJoins = new List<uint256>();
+			CoinJoinsLock = new AsyncLock();
+
+			Directory.CreateDirectory(FolderPath);
+			if(File.Exists(CoinJoinsFilePath))
+			{
+				try
+				{
+					var toRemove = new List<string>();
+					string[] allLines = File.ReadAllLines(CoinJoinsFilePath);
+					foreach (string line in allLines)
+					{
+						uint256 txHash = new uint256(line);
+						CoinJoins.Add(txHash);
+						RPCResponse getRawTransactionResponse = RpcClient.SendCommand(RPCOperations.getrawtransaction, txHash.ToString(), true);
+						if (string.IsNullOrWhiteSpace(getRawTransactionResponse?.ResultString))
+						{
+							toRemove.Add(txHash.ToString());
+						}
+						else
+						{
+							CoinJoins.Add(txHash);
+							if (getRawTransactionResponse.Result.Value<int>("confirmations") <= 0)
+							{
+								UnconfirmedCoinJoins.Add(txHash);
+							}
+						}
+					}
+
+					if (toRemove.Count != 0) // a little performance boost, it'll be empty almost always
+					{
+						var newAllLines = allLines.Where(x => !toRemove.Contains(x));
+						File.WriteAllLines(CoinJoinsFilePath, newAllLines);
+					}
+				}
+				catch (Exception ex)
+				{
+					Logger.LogWarning<CcjCoordinator>($"CoinJoins file got corrupted. Deleting {CoinJoinsFilePath}. {ex.GetType()}: {ex.Message}");
+					File.Delete(CoinJoinsFilePath);
+				}
+			}
 		}
 
 		public void UpdateRoundConfig(CcjRoundConfig roundConfig)
@@ -66,6 +120,18 @@ namespace WalletWasabi.Services
 		private async void Round_StatusChangedAsync(object sender, CcjRoundStatus status)
 		{
 			var round = sender as CcjRound;
+
+			// If success save the coinjoin.
+			if (status == CcjRoundStatus.Succeded)
+			{
+				using (await CoinJoinsLock.LockAsync())
+				{
+					uint256 coinJoinHash = round.SignedCoinJoin.GetHash();
+					CoinJoins.Add(coinJoinHash);
+					await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() });
+				}
+			}
+
 			// If finished start a new round.
 			if (status == CcjRoundStatus.Failed || status == CcjRoundStatus.Succeded)
 			{
@@ -160,6 +226,46 @@ namespace WalletWasabi.Services
 					}
 				}
 				return alices.Count > 0;
+			}
+		}
+
+		public bool ContainsCoinJoin(uint256 hash)
+		{
+			using (CoinJoinsLock.Lock())
+			{
+				return CoinJoins.Contains(hash);
+			}
+		}
+
+		public async Task<bool> IsUnconfirmedCoinJoinLimitReachedAsync()
+		{
+			using (await CoinJoinsLock.LockAsync())
+			{
+				if(UnconfirmedCoinJoins.Count() < 24)
+				{
+					return false;
+				}
+				else
+				{
+					foreach(var cjHash in UnconfirmedCoinJoins)
+					{
+						RPCResponse getRawTransactionResponse = await RpcClient.SendCommandAsync(RPCOperations.getrawtransaction, cjHash.ToString(), true);
+						// if failed remove from everywhere (should not happen normally)
+						if (string.IsNullOrWhiteSpace(getRawTransactionResponse?.ResultString))
+						{
+							UnconfirmedCoinJoins.Remove(cjHash);
+							CoinJoins.Remove(cjHash);
+							await File.WriteAllLinesAsync(CoinJoinsFilePath, CoinJoins.Select(x=>x.ToString()));
+						}
+						// if confirmed remove only from unconfirmed
+						if(getRawTransactionResponse.Result.Value<int>("confirmations") > 0)
+						{
+							UnconfirmedCoinJoins.Remove(cjHash);
+						}
+					}
+				}
+
+				return UnconfirmedCoinJoins.Count() >= 24;
 			}
 		}
 

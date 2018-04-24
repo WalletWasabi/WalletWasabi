@@ -143,9 +143,17 @@ namespace WalletWasabi.Backend.Controllers
 						// ToDo: If unconfirmed, then handle the case if CoinJoin. (You can check for if the fee address in the output to decide if it was our CJ or not.)
 
 						// Check if unconfirmed.
-						if (getTxOutResponse.Confirmations == 0)
+						if (getTxOutResponse.Confirmations <= 0)
 						{
-							return BadRequest("Provided input is unconfirmed.");
+							if (!Coordinator.ContainsCoinJoin(inputProof.Input.Hash))
+							{
+								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
+							}
+							// After 24 unconfirmed cj in the mempool dont't let unconfirmed coinjoin to be registered.
+							if (await Coordinator.IsUnconfirmedCoinJoinLimitReachedAsync())
+							{
+								return BadRequest("Provided input is from an unconfirmed coinjoin, but the maximum number of unconfirmed coinjoins is reached.");
+							}
 						}
 
 						// Check if immature.

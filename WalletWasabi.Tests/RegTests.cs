@@ -1529,7 +1529,7 @@ namespace WalletWasabi.Tests
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					string message = await response.Content.ReadAsStringAsync();
-					Assert.Equal("\"Provided input is unconfirmed.\"", message);
+					Assert.Equal("\"Provided input is neither confirmed, nor is from an unconfirmed coinjoin.\"", message);
 				}
 
 				var blocks = await rpc.GenerateAsync(1);
