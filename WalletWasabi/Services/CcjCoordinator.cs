@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -30,6 +31,8 @@ namespace WalletWasabi.Services
 
 		public Network Network { get; }
 		public string FolderPath { get; }
+		
+		public BlindingRsaKey RsaKey { get; }
 
 		public CcjCoordinator(Network network, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
 		{
@@ -46,6 +49,21 @@ namespace WalletWasabi.Services
 			CoinJoinsLock = new AsyncLock();
 
 			Directory.CreateDirectory(FolderPath);
+
+			// Initialize RsaKey
+			string rsaKeyPath = Path.Combine(FolderPath, "RsaKey.json");
+			if (File.Exists(rsaKeyPath))
+			{
+				string rsaKeyJson = File.ReadAllText(rsaKeyPath, encoding: Encoding.UTF8);
+				RsaKey = BlindingRsaKey.CreateFromJson(rsaKeyJson);
+			}
+			else
+			{
+				RsaKey = new BlindingRsaKey();
+				File.WriteAllText(rsaKeyPath, RsaKey.ToJson(), encoding: Encoding.UTF8);
+				Logger.LogInfo<CcjCoordinator>($"Created RSA key at: {rsaKeyPath}");
+			}
+
 			if(File.Exists(CoinJoinsFilePath))
 			{
 				try

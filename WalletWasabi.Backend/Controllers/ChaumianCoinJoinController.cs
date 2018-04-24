@@ -31,7 +31,7 @@ namespace WalletWasabi.Backend.Controllers
 
 		private static CcjCoordinator Coordinator => Global.Coordinator;
 
-		private static BlindingRsaKey RsaKey => Global.RsaKey;
+		private static BlindingRsaKey RsaKey => Coordinator.RsaKey;
 		
 		/// <summary>
 		/// Satoshi gets various status information.
