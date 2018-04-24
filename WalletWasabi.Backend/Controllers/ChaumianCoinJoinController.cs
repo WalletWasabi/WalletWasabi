@@ -140,11 +140,10 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest("Provided input is not unspent.");
 						}
 
-						// ToDo: If unconfirmed, then handle the case if CoinJoin. (You can check for if the fee address in the output to decide if it was our CJ or not.)
-
 						// Check if unconfirmed.
 						if (getTxOutResponse.Confirmations <= 0)
 						{
+							// If it spends a CJ then it may be acceptable to register.
 							if (!Coordinator.ContainsCoinJoin(inputProof.Input.Hash))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
