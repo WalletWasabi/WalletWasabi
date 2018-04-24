@@ -1468,7 +1468,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.2m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 50;
-			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50);
+			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.FailAllRoundsInInputRegistration();
 
