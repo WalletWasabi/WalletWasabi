@@ -17,9 +17,9 @@
 
   <ItemGroup>
     <PackageReference Include="ConcurrentHashSet" Version="1.0.2" />
-    <PackageReference Include="NBitcoin" Version="4.1.0.7" />
+    <PackageReference Include="NBitcoin" Version="4.1.1.1" />
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.2" />
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.1.4" />
+    <PackageReference Include="Portable.BouncyCastle" Version="1.8.2" />
   </ItemGroup>
 
 </Project>
