@@ -366,7 +366,7 @@ namespace WalletWasabi.Services
 					if (hash == new uint256(fileName))
 					{
 						var blockBytes = await File.ReadAllBytesAsync(filePath);
-						return new Block(blockBytes, IndexDownloader.Network.Consensus);
+						return Block.Load(blockBytes, IndexDownloader.Network);
 					}
 				}
 			}

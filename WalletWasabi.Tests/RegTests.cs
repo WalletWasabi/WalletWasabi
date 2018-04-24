@@ -683,7 +683,6 @@ namespace WalletWasabi.Tests
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
 
-				await Task.Delay(1000); // magic wait, CI fails from time to time
 				var scp = new Key().ScriptPubKey;
 				var res2 = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(scp, new Money(0.05m, MoneyUnit.BTC), "foo") }, 5, false);
 
