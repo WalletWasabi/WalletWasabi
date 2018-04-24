@@ -30,6 +30,7 @@ namespace WalletWasabi.Services
 		public CcjRoundConfig RoundConfig { get; private set; }
 
 		public Network Network { get; }
+
 		public string FolderPath { get; }
 		
 		public BlindingRsaKey RsaKey { get; }
@@ -73,11 +74,10 @@ namespace WalletWasabi.Services
 					foreach (string line in allLines)
 					{
 						uint256 txHash = new uint256(line);
-						CoinJoins.Add(txHash);
 						RPCResponse getRawTransactionResponse = RpcClient.SendCommand(RPCOperations.getrawtransaction, txHash.ToString(), true);
 						if (string.IsNullOrWhiteSpace(getRawTransactionResponse?.ResultString))
 						{
-							toRemove.Add(txHash.ToString());
+							toRemove.Add(line);
 						}
 						else
 						{
