@@ -3,6 +3,7 @@ using NBitcoin.RPC;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,9 +18,9 @@ namespace WalletWasabi.Services
     public class UtxoReferee
     {
 		/// <summary>
-		/// Key: banned utxo, Value: severity level
+		/// Key: banned utxo, Value: severity level, time of ban
 		/// </summary>
-		public ConcurrentDictionary<OutPoint, int> BannedUtxos { get; }
+		public ConcurrentDictionary<OutPoint, (int severity, DateTimeOffset timeOfBan)> BannedUtxos { get; }
 
 		public string BannedUtxosFilePath => Path.Combine(FolderPath, $"BannedUtxos{Network}.txt");
 
@@ -35,7 +36,7 @@ namespace WalletWasabi.Services
 			FolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 
-			BannedUtxos = new ConcurrentDictionary<OutPoint, int>();
+			BannedUtxos = new ConcurrentDictionary<OutPoint, (int severity, DateTimeOffset timeOfBan)>();
 
 			Directory.CreateDirectory(FolderPath);
 
@@ -48,8 +49,9 @@ namespace WalletWasabi.Services
 					foreach (string line in allLines)
 					{
 						var parts = line.Split(':');
-						var utxo = new OutPoint(new uint256(parts[2]), int.Parse(parts[1]));
-						var severity = int.Parse(parts[0]);
+						var utxo = new OutPoint(new uint256(parts[3]), int.Parse(parts[2]));
+						var severity = int.Parse(parts[1]);
+						var timeOfBan = DateTimeOffset.Parse(parts[0], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
 
 						GetTxOutResponse getTxOutResponse = RpcClient.GetTxOut(utxo.Hash, (int)utxo.N, includeMempool: true);
 
@@ -60,7 +62,7 @@ namespace WalletWasabi.Services
 						}
 						else
 						{
-							BannedUtxos.TryAdd(utxo, severity);
+							BannedUtxos.TryAdd(utxo, (severity, timeOfBan));
 						}
 					}
 
@@ -83,15 +85,25 @@ namespace WalletWasabi.Services
 			var lines = new List<string>();
 			foreach(var utxo in alice.Inputs.Select(x=>x.OutPoint))
 			{
-				if (BannedUtxos.TryAdd(utxo, 1))
+				DateTimeOffset utcNow = DateTimeOffset.UtcNow;
+				if (BannedUtxos.TryAdd(utxo, (1, utcNow)))
 				{
-					string line = $"1:{utxo.N}:{utxo.Hash}";
+					string line = $"{utcNow.ToString(CultureInfo.InvariantCulture)}:1:{utxo.N}:{utxo.Hash}";
 					lines.Add(line);
 				}
 			}
 
 			if (lines.Count != 0)
 			{
+				await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
+			}
+		}
+
+		public async Task UnbanAsync(OutPoint key)
+		{
+			if(BannedUtxos.TryRemove(key, out _))
+			{
+				IEnumerable<string> lines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}");
 				await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
 			}
 		}

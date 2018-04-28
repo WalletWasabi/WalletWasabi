@@ -101,7 +101,7 @@ namespace WalletWasabi.Backend.Controllers
 				// Do more checks.
 				try
 				{
-					if (round.ContainsBlindedOutput(request.BlindedOutputHashHex, out List<Alice> _))
+					if (round.ContainsBlindedOutput(request.BlindedOutputHashHex, out _))
 					{
 						return BadRequest("Blinded output has already been registered.");
 					}
@@ -130,9 +130,19 @@ namespace WalletWasabi.Backend.Controllers
 							}
 						}
 
-						if(Coordinator.UtxoReferee.BannedUtxos.Keys.Contains(inputProof.Input))
+						var bannedElem = Coordinator.UtxoReferee.BannedUtxos.SingleOrDefault(x=>x.Key == inputProof.Input);
+						if (bannedElem.Key != default)
 						{
-							return BadRequest($"Input is banned from participation: {inputProof.Input.N}:{inputProof.Input.Hash}.");
+							int maxBan = (int)TimeSpan.FromDays(30).TotalMinutes;
+							int banLeft = maxBan - (int)((DateTimeOffset.UtcNow - bannedElem.Value.timeOfBan).TotalMinutes);
+							if (banLeft > 0)
+							{
+								return BadRequest($"Input is banned from participation for {banLeft} minutes: {inputProof.Input.N}:{inputProof.Input.Hash}.");
+							}
+							else
+							{
+								await Coordinator.UtxoReferee.UnbanAsync(bannedElem.Key);
+							}
 						}
 
 						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.Hash, (int)inputProof.Input.N, includeMempool: true);

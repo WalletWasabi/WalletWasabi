@@ -269,7 +269,7 @@ namespace WalletWasabi.Tests
 			await AssertFiltersInitializedAsync();
 
 			var network = Network.RegTest;
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// Mine some coins, make a few bech32 transactions then make it confirm.
 			await Global.RpcClient.GenerateAsync(1);
@@ -429,7 +429,7 @@ namespace WalletWasabi.Tests
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
@@ -655,7 +655,7 @@ namespace WalletWasabi.Tests
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1033,7 +1033,7 @@ namespace WalletWasabi.Tests
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1193,7 +1193,7 @@ namespace WalletWasabi.Tests
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1357,7 +1357,7 @@ namespace WalletWasabi.Tests
 				new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
