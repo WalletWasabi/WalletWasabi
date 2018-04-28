@@ -1679,7 +1679,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal(1, status.RegisteredPeerCount);
 				}
 
-				var blindingKey = new BlindingRsaKey();
+				var blindingKey = Global.Coordinator.RsaKey;
 				byte[] scriptHash = HashHelpers.GenerateSha256Hash(key.ScriptPubKey.ToBytes());
 				var (BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptHash);
 				request.BlindedOutputHashHex = ByteHelpers.ToHex(BlindedData);
