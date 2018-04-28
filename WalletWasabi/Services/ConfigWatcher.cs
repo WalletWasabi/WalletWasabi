@@ -31,7 +31,7 @@ namespace WalletWasabi.Services
 			Stop = new CancellationTokenSource();
 		}
 
-		public void Start(TimeSpan period, Func<Task> toDoWhenChangedAsync)
+		public void Start(TimeSpan period, Func<Task> executeWhenChangedAsync)
 		{
 			Interlocked.Exchange(ref _running, 1);
 
@@ -52,7 +52,7 @@ namespace WalletWasabi.Services
 							{
 								await Config.LoadOrCreateDefaultFileAsync();
 
-								await toDoWhenChangedAsync();
+								await executeWhenChangedAsync();
 							}
 						}
 						catch (TaskCanceledException ex)

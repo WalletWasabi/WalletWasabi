@@ -25,7 +25,7 @@ namespace WalletWasabi.Tests
 			string password = "password";
 			var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password);
 			var manager2 = KeyManager.CreateNew(out Mnemonic mnemonic2, "");
-			var manager3 = KeyManager.CreateNew(out Mnemonic _, "P@ssw0rdé");
+			var manager3 = KeyManager.CreateNew(out _, "P@ssw0rdé");
 
 			Assert.Equal(12, mnemonic.ToString().Split(' ').Length);
 			Assert.Equal(12, mnemonic2.ToString().Split(' ').Length);
@@ -90,7 +90,7 @@ namespace WalletWasabi.Tests
 		public void CanSerialize()
 		{
 			string password = "password";
-			var manager = KeyManager.CreateNew(out Mnemonic _, password);
+			var manager = KeyManager.CreateNew(out _, password);
 
 			var filePath = Path.Combine(SharedFixture.DataDir, nameof(CanSerialize), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
@@ -129,7 +129,7 @@ namespace WalletWasabi.Tests
 		public void CanGenerateKeys()
 		{
 			string password = "password";
-			var manager = KeyManager.CreateNew(out Mnemonic _, password);
+			var manager = KeyManager.CreateNew(out _, password);
 
 			var random = new Random();
 

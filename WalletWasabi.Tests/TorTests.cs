@@ -104,38 +104,6 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		public async Task CanDoBasicPostRequestAsync()
-		{
-			using (var client = new TorHttpClient(new Uri("http://httpbin.org")))
-			{
-				HttpContent content = new FormUrlEncodedContent(new[]
-				{
-					new KeyValuePair<string, string>("foo", "bar@98")
-				});
-
-				HttpResponseMessage message = await client.SendAsync(HttpMethod.Post, "post", content);
-				var responseContentString = await message.Content.ReadAsStringAsync();
-
-				Assert.Contains("bar@98", responseContentString);
-			}
-		}
-
-		[Fact]
-		public async Task CanDoBasicPostRequestWithNonAsciiCharsAsync()
-		{
-			using (var client = new TorHttpClient(new Uri("http://httpbin.org")))
-			{
-				string json = "Hello ñ";
-				var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-				HttpResponseMessage message = await client.SendAsync(HttpMethod.Post, "post", httpContent);
-				var responseContentString = await message.Content.ReadAsStringAsync();
-
-				Assert.Contains(@"Hello \u00f1", responseContentString);
-			}
-		}
-
-		[Fact]
 		public async Task CanDoBasicPostHttpsRequestAsync()
 		{
 			using (var client = new TorHttpClient(new Uri("https://api.smartbit.com.au")))

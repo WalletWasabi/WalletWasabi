@@ -269,7 +269,7 @@ namespace WalletWasabi.Tests
 			await AssertFiltersInitializedAsync();
 
 			var network = Network.RegTest;
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// Mine some coins, make a few bech32 transactions then make it confirm.
 			await Global.RpcClient.GenerateAsync(1);
@@ -429,7 +429,7 @@ namespace WalletWasabi.Tests
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
@@ -655,7 +655,7 @@ namespace WalletWasabi.Tests
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1033,7 +1033,7 @@ namespace WalletWasabi.Tests
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1193,7 +1193,7 @@ namespace WalletWasabi.Tests
 			var indexDownloader = new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1357,7 +1357,7 @@ namespace WalletWasabi.Tests
 				new IndexDownloader(Global.RpcClient.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
-			var keyManager = KeyManager.CreateNew(out Mnemonic _, "password");
+			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1438,13 +1438,13 @@ namespace WalletWasabi.Tests
 
 				_filtersProcessedByWalletCount = 0;
 				var blockId = (await Global.RpcClient.GenerateAsync(1)).Single();
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 				// Verify transactions are confirmed in the blockchain
 				var block = await Global.RpcClient.GetBlockAsync(blockId);
 				Assert.Contains(block.Transactions, x => x.GetHash() == tx2Res.Transaction.GetHash());
 				Assert.Contains(block.Transactions, x => x.GetHash() == tx1Res.Transaction.GetHash());
 				Assert.Contains(block.Transactions, x => x.GetHash() == tx0Id);
-				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 				Assert.True(wallet.Coins.All(x => x.Confirmed));
 			}
@@ -1468,7 +1468,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.2m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 50;
-			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50);
+			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.FailAllRoundsInInputRegistration();
 
@@ -1679,9 +1679,9 @@ namespace WalletWasabi.Tests
 					Assert.Equal(1, status.RegisteredPeerCount);
 				}
 
-				var blindingPubKey = Global.RsaKey.PubKey;
+				var blindingKey = new BlindingRsaKey();
 				byte[] scriptHash = HashHelpers.GenerateSha256Hash(key.ScriptPubKey.ToBytes());
-				var (BlindingFactor, BlindedData) = blindingPubKey.Blind(scriptHash);
+				var (BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptHash);
 				request.BlindedOutputHashHex = ByteHelpers.ToHex(BlindedData);
 				proof = key.SignMessage(request.BlindedOutputHashHex);
 				request.Inputs.First().Proof = proof;

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -29,7 +30,12 @@ namespace WalletWasabi.Services
 		public CcjRoundConfig RoundConfig { get; private set; }
 
 		public Network Network { get; }
+
 		public string FolderPath { get; }
+		
+		public BlindingRsaKey RsaKey { get; }
+
+		public UtxoReferee UtxoReferee { get; }
 
 		public CcjCoordinator(Network network, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
 		{
@@ -46,6 +52,23 @@ namespace WalletWasabi.Services
 			CoinJoinsLock = new AsyncLock();
 
 			Directory.CreateDirectory(FolderPath);
+
+			UtxoReferee = new UtxoReferee(Network, FolderPath, RpcClient);
+
+			// Initialize RsaKey
+			string rsaKeyPath = Path.Combine(FolderPath, "RsaKey.json");
+			if (File.Exists(rsaKeyPath))
+			{
+				string rsaKeyJson = File.ReadAllText(rsaKeyPath, encoding: Encoding.UTF8);
+				RsaKey = BlindingRsaKey.CreateFromJson(rsaKeyJson);
+			}
+			else
+			{
+				RsaKey = new BlindingRsaKey();
+				File.WriteAllText(rsaKeyPath, RsaKey.ToJson(), encoding: Encoding.UTF8);
+				Logger.LogInfo<CcjCoordinator>($"Created RSA key at: {rsaKeyPath}");
+			}
+
 			if(File.Exists(CoinJoinsFilePath))
 			{
 				try
@@ -55,11 +78,10 @@ namespace WalletWasabi.Services
 					foreach (string line in allLines)
 					{
 						uint256 txHash = new uint256(line);
-						CoinJoins.Add(txHash);
 						RPCResponse getRawTransactionResponse = RpcClient.SendCommand(RPCOperations.getrawtransaction, txHash.ToString(), true);
 						if (string.IsNullOrWhiteSpace(getRawTransactionResponse?.ResultString))
 						{
-							toRemove.Add(txHash.ToString());
+							toRemove.Add(line);
 						}
 						else
 						{
@@ -85,6 +107,43 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public async Task ProcessBlockAsync(Block block)
+		{
+			// https://github.com/zkSNACKs/WalletWasabi/issues/145
+			// whenever a block arrives:
+			//    go through all its transactions
+			//       if a transaction spends a banned output AND it's not CJ output
+			//          ban all the outputs of the transaction
+
+			foreach(Transaction tx in block.Transactions)
+			{
+				if (RoundConfig.DosSeverity <= 1) return;
+
+				foreach(TxIn input in tx.Inputs)
+				{
+					OutPoint prevOut = input.PrevOut;
+
+					if(!AnyRunningRoundContainsInput(prevOut, out _))
+					{
+						var found = UtxoReferee.BannedUtxos.SingleOrDefault(x => x.Key == prevOut);
+						if (found.Key != default)
+						{
+							int newSeverity = found.Value.severity + 1;
+							if(RoundConfig.DosSeverity >= newSeverity)
+							{
+								await UtxoReferee.BanUtxosAsync(newSeverity, found.Value.timeOfBan, prevOut);
+							}
+							await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
+						}
+					}
+					else
+					{
+						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
+					}										
+				}
+			}
+		}
+
 		public void UpdateRoundConfig(CcjRoundConfig roundConfig)
 		{
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
@@ -97,19 +156,19 @@ namespace WalletWasabi.Services
 				int runningRoundCount = Rounds.Count(x => x.Status == CcjRoundStatus.Running);
 				if (runningRoundCount == 0)
 				{
-					var round = new CcjRound(RpcClient, RoundConfig);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round);
 
-					var round2 = new CcjRound(RpcClient, RoundConfig);
+					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
 					round2.StatusChanged += Round_StatusChangedAsync;
 					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round2);
 				}
 				else if(runningRoundCount == 1)
 				{
-					var round = new CcjRound(RpcClient, RoundConfig);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round);
@@ -129,6 +188,17 @@ namespace WalletWasabi.Services
 					uint256 coinJoinHash = round.SignedCoinJoin.GetHash();
 					CoinJoins.Add(coinJoinHash);
 					await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() });
+				}
+			}
+			
+			// If failed in signing phase, then ban Alices those didn't sign.
+			if(status == CcjRoundStatus.Failed && round.Phase == CcjRoundPhase.Signing)
+			{
+				foreach (Alice alice in round.GetAlicesByNot(AliceState.SignedCoinJoin))
+				{
+					// If its from any coinjoin, then don't ban.
+					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x=>x.OutPoint);
+					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, utxosToBan.ToArray());
 				}
 			}
 

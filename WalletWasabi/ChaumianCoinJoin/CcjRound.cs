@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.ChaumianCoinJoin
 {
@@ -102,11 +103,14 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public TimeSpan SigningTimeout { get; }
 
-		public CcjRound(RPCClient rpc, CcjRoundConfig config)
+		public UtxoReferee UtxoReferee { get; }
+
+		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config)
 		{
 			Interlocked.Increment(ref RoundCount);
 
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
+			UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
 			Guard.NotNull(nameof(config), config);
 
 			Denomination = config.Denomination;
@@ -303,12 +307,12 @@ namespace WalletWasabi.ChaumianCoinJoin
 				// Delay asyncronously to the requested timeout.
 				await Task.Delay(timeout);
 
-				var runFailureToDo = false;
+				var executeRunFailure = false;
 				using (await RoundSyncronizerLock.LockAsync())
 				{
-					runFailureToDo = Status == CcjRoundStatus.Running && Phase == expectedPhase;
+					executeRunFailure = Status == CcjRoundStatus.Running && Phase == expectedPhase;
 				}
-				if (runFailureToDo)
+				if (executeRunFailure)
 				{
 					// This will happen outside the lock.
 					Task.Run(async () =>
@@ -319,6 +323,11 @@ namespace WalletWasabi.ChaumianCoinJoin
 								{
 									// Only fail if less two one Alice is registered.
 									// Don't ban anyone, it's ok if they lost connection.
+									var alicesToBan = await RemoveAlicesIfInputsSpentAsync();
+									if (alicesToBan.Count() != 0)
+									{
+										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
+									}
 									int aliceCountAfterInputRegistrationTimeout = CountAlices();
 									if (aliceCountAfterInputRegistrationTimeout < 2)
 									{
@@ -334,9 +343,14 @@ namespace WalletWasabi.ChaumianCoinJoin
 								break;
 							case CcjRoundPhase.ConnectionConfirmation:
 								{
-									// Only fail if less two one Alice is registered.
+									// Only fail if less than two one alices are registered.
 									// Don't ban anyone, it's ok if they lost connection.
 									RemoveAlicesBy(AliceState.InputsRegistered);
+									var alicesToBan = await RemoveAlicesIfInputsSpentAsync();
+									if (alicesToBan.Count() != 0)
+									{
+										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
+									}
 									int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
 									if (aliceCountAfterConnectionConfirmationTimeout < 2)
 									{
@@ -360,8 +374,12 @@ namespace WalletWasabi.ChaumianCoinJoin
 								break;
 							case CcjRoundPhase.Signing:
 								{
+									var alicesToBan = await RemoveAlicesIfInputsSpentAsync();
+									if (alicesToBan.Count() != 0)
+									{
+										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
+									}
 									Fail();
-									// ToDo: Ban Alices those states are not SignedCoinJoin
 								}
 								break;
 							default: throw new InvalidOperationException("This is impossible to happen.");
@@ -453,6 +471,22 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
+		public IEnumerable<Alice> GetAlicesBy(AliceState state)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				return Alices.Where(x => x.State == state).ToList();
+			}
+		}
+
+		public IEnumerable<Alice> GetAlicesByNot(AliceState state)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				return Alices.Where(x => x.State != state).ToList();
+			}
+		}
+
 		public void StartAliceTimeout(Guid uniqueId)
 		{
 			// 1. Find Alice and set its LastSeen propery.
@@ -537,6 +571,34 @@ namespace WalletWasabi.ChaumianCoinJoin
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
 				Alices.RemoveAll(x => x.State == state);
+			}
+		}
+
+		public async Task<IEnumerable<Alice>> RemoveAlicesIfInputsSpentAsync()
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
+				{
+					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
+				}
+
+				var alicesRemoved = new List<Alice>();
+				foreach (Alice alice in Alices)
+				{
+					foreach (OutPoint input in alice.Inputs.Select(y => y.OutPoint))
+					{
+						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+
+						// Check if inputs are unspent.				
+						if (getTxOutResponse == null)
+						{
+							alicesRemoved.Add(alice);
+							Alices.Remove(alice);
+						}
+					}
+				}
+				return alicesRemoved;
 			}
 		}
 

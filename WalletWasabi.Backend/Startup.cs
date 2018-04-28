@@ -73,6 +73,8 @@ namespace WalletWasabi.Backend
 
 			if(Global.IndexBuilderService != null)
 			{
+				Global.IndexBuilderService.NewBlock -= Global.IndexBuilderService_NewBlockAsync;
+
 				var t = Global.IndexBuilderService.StopAsync();
 				stopTasks.Add(t);
 			}

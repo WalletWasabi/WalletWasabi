@@ -32,8 +32,6 @@ namespace WalletWasabi.Backend
 
 		public static RPCClient RpcClient { get; private set; }
 
-		public static BlindingRsaKey RsaKey { get; private set; }
-
 		public static IndexBuilderService IndexBuilderService { get; private set; }
 
 		public static CcjCoordinator Coordinator { get; private set; }
@@ -48,21 +46,7 @@ namespace WalletWasabi.Backend
 		{
 			Config = Guard.NotNull(nameof(config), config);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
-			RpcClient = Guard.NotNull(nameof(rpc), rpc);
-
-			// Initialize RsaKey
-			string rsaKeyPath = Path.Combine(DataDir, "RsaKey.json");
-			if (File.Exists(rsaKeyPath))
-			{
-				string rsaKeyJson = await File.ReadAllTextAsync(rsaKeyPath, encoding: Encoding.UTF8);
-				RsaKey = BlindingRsaKey.CreateFromJson(rsaKeyJson);
-			}
-			else
-			{
-				RsaKey = new BlindingRsaKey();
-				await File.WriteAllTextAsync(rsaKeyPath, RsaKey.ToJson(), encoding: Encoding.UTF8);
-				Logger.LogInfo($"Created RSA key at: {rsaKeyPath}", nameof(Global));
-			}
+			RpcClient = Guard.NotNull(nameof(rpc), rpc);			
 
 			await AssertRpcNodeFullyInitializedAsync();
 
@@ -71,9 +55,10 @@ namespace WalletWasabi.Backend
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
 			IndexBuilderService = new IndexBuilderService(RpcClient, indexFilePath, utxoSetFilePath);
+			Coordinator = new CcjCoordinator(RpcClient.Network, Path.Combine(DataDir, nameof(CcjCoordinator)), RpcClient, roundConfig);
+			IndexBuilderService.NewBlock += IndexBuilderService_NewBlockAsync;
 			IndexBuilderService.Synchronize();
 
-			Coordinator = new CcjCoordinator(RpcClient.Network, Path.Combine(DataDir,nameof(CcjCoordinator)), RpcClient, roundConfig);
 			await Coordinator.MakeSureTwoRunningRoundsAsync();
 
 			if (roundConfig.FilePath != null)
@@ -94,6 +79,11 @@ namespace WalletWasabi.Backend
 					return Task.CompletedTask;
 				}); // Every 10 seconds check the config
 			}
+		}
+
+		public static async void IndexBuilderService_NewBlockAsync(object sender, Block block)
+		{
+			await Coordinator.ProcessBlockAsync(block);
 		}
 
 		private static async Task AssertRpcNodeFullyInitializedAsync()

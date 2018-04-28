@@ -44,6 +44,9 @@ namespace WalletWasabi.ChaumianCoinJoin
 		[JsonProperty(PropertyName = "SigningTimeout")]
 		public long? SigningTimeout { get; internal set; }
 
+		[JsonProperty(PropertyName = "DosSeverity")]
+		public int? DosSeverity { get; internal set; }
+
 		public CcjRoundConfig()
 		{
 
@@ -54,7 +57,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			SetFilePath(filePath);
 		}
 
-		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout)
+		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity)
 		{
 			FilePath = null;
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
@@ -65,6 +68,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			ConnectionConfirmationTimeout = Guard.NotNull(nameof(connectionConfirmationTimeout), connectionConfirmationTimeout);
 			OutputRegistrationTimeout = Guard.NotNull(nameof(outputRegistrationTimeout), outputRegistrationTimeout);
 			SigningTimeout = Guard.NotNull(nameof(signingTimeout), signingTimeout);
+			DosSeverity = Guard.NotNull(nameof(dosSeverity), dosSeverity);
 		}
 
 		/// <inheritdoc />
@@ -91,6 +95,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			ConnectionConfirmationTimeout = 60;
 			OutputRegistrationTimeout = 60;
 			SigningTimeout = 60;
+			DosSeverity = 1;
 
 			if (!File.Exists(FilePath))
 			{
@@ -109,6 +114,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 				ConnectionConfirmationTimeout = config.ConnectionConfirmationTimeout ?? ConnectionConfirmationTimeout;
 				OutputRegistrationTimeout = config.OutputRegistrationTimeout ?? OutputRegistrationTimeout;
 				SigningTimeout = config.SigningTimeout ?? SigningTimeout;
+				DosSeverity = config.DosSeverity ?? DosSeverity;
 			}
 
 			await ToFileAsync();
@@ -156,6 +162,10 @@ namespace WalletWasabi.ChaumianCoinJoin
 				return true;
 			}
 			if (SigningTimeout != config.SigningTimeout)
+			{
+				return true;
+			}
+			if (DosSeverity != config.DosSeverity)
 			{
 				return true;
 			}

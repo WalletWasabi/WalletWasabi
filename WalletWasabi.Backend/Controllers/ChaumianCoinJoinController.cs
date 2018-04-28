@@ -31,7 +31,7 @@ namespace WalletWasabi.Backend.Controllers
 
 		private static CcjCoordinator Coordinator => Global.Coordinator;
 
-		private static BlindingRsaKey RsaKey => Global.RsaKey;
+		private static BlindingRsaKey RsaKey => Coordinator.RsaKey;
 		
 		/// <summary>
 		/// Satoshi gets various status information.
@@ -101,7 +101,7 @@ namespace WalletWasabi.Backend.Controllers
 				// Do more checks.
 				try
 				{
-					if (round.ContainsBlindedOutput(request.BlindedOutputHashHex, out List<Alice> _))
+					if (round.ContainsBlindedOutput(request.BlindedOutputHashHex, out _))
 					{
 						return BadRequest("Blinded output has already been registered.");
 					}
@@ -130,7 +130,20 @@ namespace WalletWasabi.Backend.Controllers
 							}
 						}
 
-						// ToDo: Refuse banned UTXO here!
+						var bannedElem = Coordinator.UtxoReferee.BannedUtxos.SingleOrDefault(x=>x.Key == inputProof.Input);
+						if (bannedElem.Key != default)
+						{
+							int maxBan = (int)TimeSpan.FromDays(30).TotalMinutes;
+							int banLeft = maxBan - (int)((DateTimeOffset.UtcNow - bannedElem.Value.timeOfBan).TotalMinutes);
+							if (banLeft > 0)
+							{
+								return BadRequest($"Input is banned from participation for {banLeft} minutes: {inputProof.Input.N}:{inputProof.Input.Hash}.");
+							}
+							else
+							{
+								await Coordinator.UtxoReferee.UnbanAsync(bannedElem.Key);
+							}
+						}
 
 						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.Hash, (int)inputProof.Input.N, includeMempool: true);
 
@@ -232,7 +245,16 @@ namespace WalletWasabi.Backend.Controllers
 					// Progress round if needed.
 					if(round.CountAlices() >= round.AnonymitySet)
 					{
-						await round.ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+						var alicesToBan = await round.RemoveAlicesIfInputsSpentAsync();
+						if (alicesToBan.Count() != 0)
+						{
+							await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
+						}
+
+						if (round.CountAlices() >= round.AnonymitySet)
+						{
+							await round.ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+						}
 					}
 
 					var resp = new InputsResponse

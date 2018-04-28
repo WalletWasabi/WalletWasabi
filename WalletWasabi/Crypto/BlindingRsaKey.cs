@@ -104,7 +104,7 @@ namespace WalletWasabi.Crypto
 
 		public static bool operator ==(BlindingRsaKey x, BlindingRsaKey y)
 		{
-			// todo add null comparisions (== must not throw from nulls)
+			// ToDo: add null comparisons for PrivateModulus, PrivateExponent, PublicModulus and PublicExponent, too, because == MUST never throw from nulls
 			return
 				x.PrivateModulus.Equals(y.PrivateModulus)
 				&& x.PrivateExponent.Equals(y.PrivateExponent)
