@@ -1788,25 +1788,11 @@ namespace WalletWasabi.Tests
 				await Task.Delay(3000);
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
-					if (response.StatusCode == HttpStatusCode.BadRequest) // Very rarely it fails, let's try to catch it.
-					{
-						Logger.LogWarning(await response.Content.ReadAsStringAsync());
-					}
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
-					Assert.NotNull(inputsResp.BlindedOutputSignature);
-					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
+					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					string message = await response.Content.ReadAsStringAsync();
+					Assert.StartsWith("\"Input is banned from participation for", message);
 				}
 
-				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
-				{
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
-					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
-					Assert.Equal(1, status.RegisteredPeerCount);
-				}
-
-				await Task.Delay(1000);
 				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);

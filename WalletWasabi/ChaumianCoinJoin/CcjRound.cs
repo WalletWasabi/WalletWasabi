@@ -317,36 +317,46 @@ namespace WalletWasabi.ChaumianCoinJoin
 					// This will happen outside the lock.
 					Task.Run(async () =>
 					{
-						switch (expectedPhase)
-						{
-							case CcjRoundPhase.InputRegistration:
+					switch (expectedPhase)
+					{
+						case CcjRoundPhase.InputRegistration:
+							{
+								// Only fail if less two one Alice is registered.
+								// Don't ban anyone, it's ok if they lost connection.
+								await RemoveAlicesIfInputsSpentAsync();
+								int aliceCountAfterInputRegistrationTimeout = CountAlices();
+								if (aliceCountAfterInputRegistrationTimeout < 2)
 								{
-									// Only fail if less two one Alice is registered.
-									// Don't ban anyone, it's ok if they lost connection.
-									await RemoveAlicesIfInputsSpentAsync();
-									int aliceCountAfterInputRegistrationTimeout = CountAlices();
-									if (aliceCountAfterInputRegistrationTimeout < 2)
-									{
-										Fail();
-									}
-									else
-									{
-										UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
-										// Progress to the next phase, which will be ConnectionConfirmation
-										await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
-									}
+									Fail();
 								}
-								break;
-							case CcjRoundPhase.ConnectionConfirmation:
+								else
+								{
+									UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+									// Progress to the next phase, which will be ConnectionConfirmation
+									await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+								}
+							}
+							break;
+						case CcjRoundPhase.ConnectionConfirmation:
 								{
 									// Only fail if less than two one alices are registered.
-									// Don't ban anyone, it's ok if they lost connection.
-									RemoveAlicesBy(AliceState.InputsRegistered);
-									var alicesToBan = await RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
-									if (alicesToBan.Count() != 0)
+									// What if an attacker registers all the time many alices, then drops out. He'll achieve only 2 alices to participate?
+									// If he registers many alices at InputRegistration
+									// AND never confirms in connection confirmation
+									// THEN connection confirmation will go with 2 alices in every round
+									// Therefore Alices those didn't confirm, nor requested dsconnection should be banned:
+									IEnumerable<Alice> alicesToBan1 = GetAlicesBy(AliceState.InputsRegistered);
+									IEnumerable<Alice> alicesToBan2 = await RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
+
+									IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.OutPoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray()).Distinct();
+
+									if (inputsToBan.Count() != 0)
 									{
-										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
+										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, inputsToBan.ToArray());
 									}
+
+									RemoveAlicesBy(alicesToBan1.Select(x => x.UniqueId).Concat(alicesToBan2.Select(y => y.UniqueId)).Distinct().ToArray());
+
 									int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
 									if (aliceCountAfterConnectionConfirmationTimeout < 2)
 									{
@@ -598,7 +608,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
-		public void RemoveAlicesBy(Guid id)
+		public void RemoveAlicesBy(params Guid[] ids)
 		{
 			using (RoundSyncronizerLock.Lock())
 			{
@@ -606,7 +616,10 @@ namespace WalletWasabi.ChaumianCoinJoin
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
-				Alices.RemoveAll(x => x.UniqueId == id);
+				foreach (var id in ids)
+				{
+					Alices.RemoveAll(x => x.UniqueId == id);
+				}
 			}
 		}
 
