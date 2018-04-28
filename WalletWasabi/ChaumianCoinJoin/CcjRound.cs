@@ -323,11 +323,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 								{
 									// Only fail if less two one Alice is registered.
 									// Don't ban anyone, it's ok if they lost connection.
-									var alicesToBan = await RemoveAlicesIfInputsSpentAsync();
-									if (alicesToBan.Count() != 0)
-									{
-										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
-									}
+									await RemoveAlicesIfInputsSpentAsync();
 									int aliceCountAfterInputRegistrationTimeout = CountAlices();
 									if (aliceCountAfterInputRegistrationTimeout < 2)
 									{
@@ -346,7 +342,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 									// Only fail if less than two one alices are registered.
 									// Don't ban anyone, it's ok if they lost connection.
 									RemoveAlicesBy(AliceState.InputsRegistered);
-									var alicesToBan = await RemoveAlicesIfInputsSpentAsync();
+									var alicesToBan = await RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 									if (alicesToBan.Count() != 0)
 									{
 										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());

@@ -245,11 +245,7 @@ namespace WalletWasabi.Backend.Controllers
 					// Progress round if needed.
 					if(round.CountAlices() >= round.AnonymitySet)
 					{
-						var alicesToBan = await round.RemoveAlicesIfInputsSpentAsync();
-						if (alicesToBan.Count() != 0)
-						{
-							await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
-						}
+						await round.RemoveAlicesIfInputsSpentAsync();
 
 						if (round.CountAlices() >= round.AnonymitySet)
 						{
