@@ -26,6 +26,9 @@ namespace WalletWasabi.Services
 
 		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
+		
+		public event EventHandler<Block> NewBlock;
+		private void OnNewBlock(Block block) => NewBlock?.Invoke(this, block);
 
 		private class ActionHistoryHelper
 		{
@@ -195,7 +198,7 @@ namespace WalletWasabi.Services
 							// If stop was requested return.
 							if (IsRunning == false) return;
 
-							var height = StartingHeight;
+							Height height = StartingHeight;
 							uint256 prevHash = null;
 							using (await IndexLock.LockAsync())
 							{
@@ -207,7 +210,7 @@ namespace WalletWasabi.Services
 								}
 							}
 
-							if (blockCount - (int)height <= 100)
+							if (blockCount - height <= 100)
 							{
 								isIIB = false;
 							}
@@ -221,6 +224,11 @@ namespace WalletWasabi.Services
 							{
 								await Task.Delay(1000);
 								continue;
+							}
+
+							if (blockCount - height <= 2)
+							{
+								OnNewBlock(block);
 							}
 
 							if (prevHash != null)

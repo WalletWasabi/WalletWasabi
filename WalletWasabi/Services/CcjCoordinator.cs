@@ -107,6 +107,43 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public async Task ProcessBlockAsync(Block block)
+		{
+			// https://github.com/zkSNACKs/WalletWasabi/issues/145
+			// whenever a block arrives:
+			//    go through all its transactions
+			//       if a transaction spends a banned output AND it's not CJ output
+			//          ban all the outputs of the transaction
+
+			foreach(Transaction tx in block.Transactions)
+			{
+				if (RoundConfig.DosSeverity <= 1) return;
+
+				foreach(TxIn input in tx.Inputs)
+				{
+					OutPoint prevOut = input.PrevOut;
+
+					if(!AnyRunningRoundContainsInput(prevOut, out _))
+					{
+						var found = UtxoReferee.BannedUtxos.SingleOrDefault(x => x.Key == prevOut);
+						if (found.Key != default)
+						{
+							int newSeverity = found.Value.severity + 1;
+							if(RoundConfig.DosSeverity >= newSeverity)
+							{
+								await UtxoReferee.BanUtxosAsync(newSeverity, found.Value.timeOfBan, prevOut);
+							}
+							await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
+						}
+					}
+					else
+					{
+						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
+					}										
+				}
+			}
+		}
+
 		public void UpdateRoundConfig(CcjRoundConfig roundConfig)
 		{
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
@@ -119,19 +156,19 @@ namespace WalletWasabi.Services
 				int runningRoundCount = Rounds.Count(x => x.Status == CcjRoundStatus.Running);
 				if (runningRoundCount == 0)
 				{
-					var round = new CcjRound(RpcClient, RoundConfig);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round);
 
-					var round2 = new CcjRound(RpcClient, RoundConfig);
+					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
 					round2.StatusChanged += Round_StatusChangedAsync;
 					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round2);
 				}
 				else if(runningRoundCount == 1)
 				{
-					var round = new CcjRound(RpcClient, RoundConfig);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round);
@@ -159,7 +196,9 @@ namespace WalletWasabi.Services
 			{
 				foreach (Alice alice in round.GetAlicesByNot(AliceState.SignedCoinJoin))
 				{
-					await UtxoReferee.BanAliceAsync(alice);
+					// If its from any coinjoin, then don't ban.
+					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x=>x.OutPoint);
+					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, utxosToBan.ToArray());
 				}
 			}
 

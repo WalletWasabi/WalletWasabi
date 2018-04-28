@@ -55,9 +55,10 @@ namespace WalletWasabi.Backend
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
 			IndexBuilderService = new IndexBuilderService(RpcClient, indexFilePath, utxoSetFilePath);
+			Coordinator = new CcjCoordinator(RpcClient.Network, Path.Combine(DataDir, nameof(CcjCoordinator)), RpcClient, roundConfig);
+			IndexBuilderService.NewBlock += IndexBuilderService_NewBlockAsync;
 			IndexBuilderService.Synchronize();
 
-			Coordinator = new CcjCoordinator(RpcClient.Network, Path.Combine(DataDir,nameof(CcjCoordinator)), RpcClient, roundConfig);
 			await Coordinator.MakeSureTwoRunningRoundsAsync();
 
 			if (roundConfig.FilePath != null)
@@ -78,6 +79,11 @@ namespace WalletWasabi.Backend
 					return Task.CompletedTask;
 				}); // Every 10 seconds check the config
 			}
+		}
+
+		public static async void IndexBuilderService_NewBlockAsync(object sender, Block block)
+		{
+			await Coordinator.ProcessBlockAsync(block);
 		}
 
 		private static async Task AssertRpcNodeFullyInitializedAsync()

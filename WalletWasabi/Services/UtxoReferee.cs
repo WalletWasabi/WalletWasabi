@@ -80,15 +80,14 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task BanAliceAsync(Alice alice)
+		public async Task BanUtxosAsync(int severity, DateTimeOffset timeOfBan, params OutPoint[] toBan)
 		{
 			var lines = new List<string>();
-			foreach(var utxo in alice.Inputs.Select(x=>x.OutPoint))
+			foreach(var utxo in toBan)
 			{
-				DateTimeOffset utcNow = DateTimeOffset.UtcNow;
-				if (BannedUtxos.TryAdd(utxo, (1, utcNow)))
+				if (BannedUtxos.TryAdd(utxo, (severity, timeOfBan)))
 				{
-					string line = $"{utcNow.ToString(CultureInfo.InvariantCulture)}:1:{utxo.N}:{utxo.Hash}";
+					string line = $"{timeOfBan.ToString(CultureInfo.InvariantCulture)}:{severity}:{utxo.N}:{utxo.Hash}";
 					lines.Add(line);
 				}
 			}

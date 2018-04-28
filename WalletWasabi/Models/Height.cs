@@ -328,9 +328,9 @@ namespace WalletWasabi.Models
 		/// </summary>
 		/// <param name="value">The Int32 value.</param>
 		/// <param name="height">The height value to be added.</param>
-		public static Height operator +(int value, Height height)
+		public static int operator +(int value, Height height)
 		{
-			return new Height( height.Value + value );
+			return height.Value + value;
 		}
 
 		/// <summary>
@@ -338,9 +338,9 @@ namespace WalletWasabi.Models
 		/// </summary>
 		/// <param name="value">The Int32 value.</param>
 		/// <param name="height">The height value to be substracted from.</param>
-		public static Height operator -(int value, Height height)
+		public static int operator -(int value, Height height)
 		{
-			return new Height( value - height.Value );
+			return value - height.Value;
 		}
 
 		/// <summary>
@@ -348,9 +348,9 @@ namespace WalletWasabi.Models
 		/// </summary>
 		/// <param name="height">The height value to be added.</param>
 		/// <param name="value">The Int32 value.</param>
-		public static Height operator +(Height height, int value)
+		public static int operator +(Height height, int value)
 		{
-			return new Height( height.Value + value );
+			return height.Value + value;
 		}
 
 		/// <summary>
@@ -358,9 +358,9 @@ namespace WalletWasabi.Models
 		/// </summary>
 		/// <param name="height">The height value to be substracted from.</param>
 		/// <param name="value">The Int32 value.</param>
-		public static Height operator -(Height height, int value)
+		public static int operator -(Height height, int value)
 		{
-			return new Height( height.Value - value );
+			return height.Value - value;
 		}
 
 		#endregion
