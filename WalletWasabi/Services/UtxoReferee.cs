@@ -83,12 +83,17 @@ namespace WalletWasabi.Services
 			var lines = new List<string>();
 			foreach(var utxo in alice.Inputs.Select(x=>x.OutPoint))
 			{
-				BannedUtxos.TryAdd(utxo, 1);
-				string line = $"1:{utxo.N}:{utxo.Hash}";
-				lines.Add(line);
+				if (BannedUtxos.TryAdd(utxo, 1))
+				{
+					string line = $"1:{utxo.N}:{utxo.Hash}";
+					lines.Add(line);
+				}
 			}
 
-			await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
+			if (lines.Count != 0)
+			{
+				await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
+			}
 		}
 	}
 }
