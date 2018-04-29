@@ -442,6 +442,14 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
+		public bool AllAlices(AliceState state)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				return Alices.All(x=>x.State == state);
+			}
+		}
+
 		public bool ContainsBlindedOutput(string blindedOutputHex, out List<Alice> alices)
 		{
 			alices = new List<Alice>();
@@ -505,6 +513,14 @@ namespace WalletWasabi.ChaumianCoinJoin
 			using (RoundSyncronizerLock.Lock())
 			{
 				return Alices.Where(x => x.State == state).ToList();
+			}
+		}
+
+		public Alice TryGetAliceBy(Guid uniqueId)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				return Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
 			}
 		}
 

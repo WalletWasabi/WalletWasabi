@@ -280,6 +280,27 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public (CcjRound round, Alice alice) TryGetRoundAndAliceBy(Guid uniqueId)
+		{
+			using (RoundsListLock.Lock())
+			{
+				Alice alice = null;
+				CcjRound round = null;
+				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running))
+				{
+					var a = round.TryGetAliceBy(uniqueId);
+					if (a != null)
+					{
+						alice = a;
+						round = r;
+						break;
+					}
+				}
+
+				return (round, alice);
+			}
+		}
+
 		public bool AnyRunningRoundContainsInput(OutPoint input, out List<Alice> alices)
 		{
 			using (RoundsListLock.Lock())
@@ -374,6 +395,7 @@ namespace WalletWasabi.Services
 			Dispose(true);
 			// GC.SuppressFinalize(this);
 		}
+
 		#endregion
 	}
 }

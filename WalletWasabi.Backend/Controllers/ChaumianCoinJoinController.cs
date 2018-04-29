@@ -269,39 +269,20 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		/// <summary>
-		/// Alice asks for the final CoinJoin transaction.
-		/// </summary>
-		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
-		/// <returns>The coinjoin Transaction.</returns>
-		/// <response code="200">Returns the coinjoin transaction.</response>
-		/// <response code="400">The provided uniqueId was malformed.</response>
-		[HttpGet("coinjoin/{uniqueId}")]
-		[ProducesResponseType(200)]
-		[ProducesResponseType(400)]
-		public IActionResult GetCoinJoin(string uniqueId)
-		{
-			CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
-			if(returnFailureResponse != null)
-			{
-				return returnFailureResponse;
-			}
-			
-			return Ok();
-		}
-
-		/// <summary>
 		/// Alice must confirm her participation periodically in InputRegistration phase and confirm once in ConnectionConfirmation phase.
 		/// </summary>
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
 		/// <returns>RoundHash if the phase is already ConnectionConfirmation.</returns>
 		/// <response code="200">RoundHash if the phase is already ConnectionConfirmation.</response>
-		/// <response code="204">If the phase is not ConnectionConfirmation.</response>
+		/// <response code="204">If the phase is InputRegistration and Alice is found.</response>
 		/// <response code="400">The provided uniqueId was malformed.</response>
+		/// <response code="404">If Alice is not found.</response>
 		[HttpPost("confirmation/{uniqueId}")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
-		public IActionResult PostConfirmation(string uniqueId)
+		[ProducesResponseType(404)]
+		public async Task<IActionResult> PostConfirmationAsync(string uniqueId)
 		{
 			CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
@@ -309,7 +290,55 @@ namespace WalletWasabi.Backend.Controllers
 				return returnFailureResponse;
 			}
 
-			return Ok();
+			var uniqueIdGuid = Guid.Parse(uniqueId);
+			var roundAlice = Coordinator.TryGetRoundAndAliceBy(uniqueIdGuid);
+			if (roundAlice.alice == null)
+			{
+				return NotFound("Alice is not registered to any running rounds.");
+			}
+
+			switch (roundAlice.round.Phase)
+			{
+				case CcjRoundPhase.InputRegistration:
+					{
+						roundAlice.round.StartAliceTimeout(uniqueIdGuid);
+						return NoContent();
+					}
+				case CcjRoundPhase.ConnectionConfirmation:
+					{
+						roundAlice.alice.State = AliceState.ConnectionConfirmed;
+
+						// Progress round if needed.
+						if (roundAlice.round.AllAlices(AliceState.ConnectionConfirmed))
+						{
+
+							IEnumerable<Alice> alicesToBan = await roundAlice.round.RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
+
+							if (alicesToBan.Count() > 0)
+							{
+								await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
+							}
+
+							int aliceCountAfterConnectionConfirmationTimeout = roundAlice.round.CountAlices();
+							if (aliceCountAfterConnectionConfirmationTimeout < 2)
+							{
+								roundAlice.round.Fail();
+							}
+							else
+							{
+								roundAlice.round.UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
+								// Progress to the next phase, which will be OutputRegistration
+								await roundAlice.round.ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
+							}
+						}
+
+						return Ok(roundAlice.round.RoundHash);
+					}
+				default: // This should never happen?
+					{
+						return NotFound();
+					}
+			}
 		}
 
 		/// <summary>
@@ -332,6 +361,27 @@ namespace WalletWasabi.Backend.Controllers
 			return NoContent();
 		}
 
+		/// <summary>
+		/// Alice asks for the final CoinJoin transaction.
+		/// </summary>
+		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
+		/// <returns>The coinjoin Transaction.</returns>
+		/// <response code="200">Returns the coinjoin transaction.</response>
+		/// <response code="400">The provided uniqueId was malformed.</response>
+		[HttpGet("coinjoin/{uniqueId}")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400)]
+		public IActionResult GetCoinJoin(string uniqueId)
+		{
+			CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
+			if(returnFailureResponse != null)
+			{
+				return returnFailureResponse;
+			}
+			
+			return Ok();
+		}
+		
 		private void CheckUniqueId(string uniqueId, out IActionResult returnFailureResponse)
 		{
 			returnFailureResponse = null;
