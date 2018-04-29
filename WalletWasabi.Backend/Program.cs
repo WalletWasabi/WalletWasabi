@@ -56,7 +56,7 @@ namespace WalletWasabi.Backend
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<Program>(ex);
+				Logger.LogCritical<Program>(ex);
 			}
 		}
     }

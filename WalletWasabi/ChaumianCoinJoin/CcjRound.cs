@@ -15,7 +15,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 {
 	public class CcjRound
 	{
-		public static long RoundCount;
+		private static long RoundCount;
+		public long RoundId { get; }
 
 		public RPCClient RpcClient { get; }
 
@@ -107,33 +108,49 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config)
 		{
-			Interlocked.Increment(ref RoundCount);
+			try
+			{
+				Interlocked.Increment(ref RoundCount);
+				RoundId = Interlocked.Read(ref RoundCount);
 
-			RpcClient = Guard.NotNull(nameof(rpc), rpc);
-			UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
-			Guard.NotNull(nameof(config), config);
+				RpcClient = Guard.NotNull(nameof(rpc), rpc);
+				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
+				Guard.NotNull(nameof(config), config);
 
-			Denomination = config.Denomination;
-			ConfirmationTarget = (int)config.ConfirmationTarget;
-			CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
-			AnonymitySet = (int)config.AnonymitySet;
-			InputRegistrationTimeout = TimeSpan.FromSeconds((long)config.InputRegistrationTimeout);
-			ConnectionConfirmationTimeout = TimeSpan.FromSeconds((long)config.ConnectionConfirmationTimeout);
-			OutputRegistrationTimeout = TimeSpan.FromSeconds((long)config.OutputRegistrationTimeout);
-			SigningTimeout = TimeSpan.FromSeconds((long)config.SigningTimeout);
+				Denomination = config.Denomination;
+				ConfirmationTarget = (int)config.ConfirmationTarget;
+				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
+				AnonymitySet = (int)config.AnonymitySet;
+				InputRegistrationTimeout = TimeSpan.FromSeconds((long)config.InputRegistrationTimeout);
+				ConnectionConfirmationTimeout = TimeSpan.FromSeconds((long)config.ConnectionConfirmationTimeout);
+				OutputRegistrationTimeout = TimeSpan.FromSeconds((long)config.OutputRegistrationTimeout);
+				SigningTimeout = TimeSpan.FromSeconds((long)config.SigningTimeout);
 
-			PhaseLock = new object();
-			Phase = CcjRoundPhase.InputRegistration;
-			StatusLock = new object();
-			Status = CcjRoundStatus.NotStarted;
+				PhaseLock = new object();
+				Phase = CcjRoundPhase.InputRegistration;
+				StatusLock = new object();
+				Status = CcjRoundStatus.NotStarted;
 
-			RoundHash = null;
+				RoundHash = null;
 
-			UnsignedCoinJoin = null;
-			SignedCoinJoin = null;
+				UnsignedCoinJoin = null;
+				SignedCoinJoin = null;
 
-			Alices = new List<Alice>();
-			Bobs = new List<Bob>();
+				Alices = new List<Alice>();
+				Bobs = new List<Bob>();
+
+				Logger.LogInfo<CcjRound>($"New round ({RoundId}) is created.\n\t" +
+					$"{nameof(Denomination)}: {Denomination.ToString(false, true)} BTC.\n\t" +
+					$"{nameof(ConfirmationTarget)}: {ConfirmationTarget}.\n\t" +
+					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}.\n\t" +
+					$"{nameof(AnonymitySet)}: {AnonymitySet}.");
+			}
+			catch(Exception ex)
+			{
+				Logger.LogError<CcjRound>($"Round ({RoundId}) creation failed.");
+				Logger.LogError<CcjRound>(ex);
+				throw;
+			}
 		}
 
 		public async Task ExecuteNextPhaseAsync(CcjRoundPhase expectedPhase)
@@ -142,6 +159,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 			{
 				try
 				{
+					Logger.LogInfo<CcjRound>($"Round ({RoundId}): Phase change requested: {expectedPhase.ToString()}.");
+
 					if (Status == CcjRoundStatus.NotStarted) // So start the input registration phase
 					{
 						if(expectedPhase != CcjRoundPhase.InputRegistration)
@@ -274,6 +293,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 					{
 						return;
 					}
+
+					Logger.LogInfo<CcjRound>($"Round ({RoundId}): Phase initialized: {expectedPhase.ToString()}.");
 				}
 				catch (Exception ex)
 				{
@@ -306,6 +327,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 				// Delay asyncronously to the requested timeout.
 				await Task.Delay(timeout);
+				Logger.LogInfo<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.");
 
 				var executeRunFailure = false;
 				using (await RoundSyncronizerLock.LockAsync())
@@ -402,6 +424,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			{
 				Status = CcjRoundStatus.Failed;
 			}
+			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Failed.");
 		}
 
 		public int CountAlices(bool syncronized = true)
@@ -532,6 +555,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 								if (alice.LastSeen == started)
 								{
 									Alices.Remove(alice);
+									Logger.LogInfo<CcjRound>($"Round ({RoundId}): Alice ({alice.UniqueId}) timed out.");
 								}
 							}
 						}
@@ -552,6 +576,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 				}
 				AnonymitySet = anonymitySet;
 			}
+			Logger.LogInfo<CcjRound>($"Round ({RoundId}): {nameof(AnonymitySet)} updated: {AnonymitySet}.");
 		}
 
 		public void AddAlice(Alice alice)
@@ -566,22 +591,32 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 
 			StartAliceTimeout(alice.UniqueId);
+
+			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Alice ({alice.UniqueId}) added.");
 		}
 
-		public void RemoveAlicesBy(AliceState state)
+		public int RemoveAlicesBy(AliceState state)
 		{
+			int numberOfRemovedAlices = 0;
 			using (RoundSyncronizerLock.Lock())
 			{
 				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
-				Alices.RemoveAll(x => x.State == state);
+				numberOfRemovedAlices = Alices.RemoveAll(x => x.State == state);
 			}
+			if (numberOfRemovedAlices != 0)
+			{
+				Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices in {state} state are removed.");
+			}
+			return numberOfRemovedAlices;
 		}
 
 		public async Task<IEnumerable<Alice>> RemoveAlicesIfInputsSpentAsync()
 		{
+			var alicesRemoved = new List<Alice>();
+
 			using (RoundSyncronizerLock.Lock())
 			{
 				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
@@ -589,7 +624,6 @@ namespace WalletWasabi.ChaumianCoinJoin
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
 
-				var alicesRemoved = new List<Alice>();
 				foreach (Alice alice in Alices)
 				{
 					foreach (OutPoint input in alice.Inputs.Select(y => y.OutPoint))
@@ -604,12 +638,19 @@ namespace WalletWasabi.ChaumianCoinJoin
 						}
 					}
 				}
-				return alicesRemoved;
 			}
+
+			foreach(var alice in alicesRemoved)
+			{
+				Logger.LogInfo<CcjRound>($"Round ({RoundId}): Alice ({alice.UniqueId}) removed.");
+			}
+
+			return alicesRemoved;
 		}
 
-		public void RemoveAlicesBy(params Guid[] ids)
+		public int RemoveAlicesBy(params Guid[] ids)
 		{
+			var numberOfRemovedAlices = 0;
 			using (RoundSyncronizerLock.Lock())
 			{
 				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
@@ -618,21 +659,31 @@ namespace WalletWasabi.ChaumianCoinJoin
 				}
 				foreach (var id in ids)
 				{
-					Alices.RemoveAll(x => x.UniqueId == id);
+					numberOfRemovedAlices = Alices.RemoveAll(x => x.UniqueId == id);
 				}
 			}
+
+			Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");
+
+			return numberOfRemovedAlices;
 		}
 
-		public void RemoveAliceIfContains(OutPoint input)
+		public int RemoveAliceIfContains(OutPoint input)
 		{
+			var numberOfRemovedAlices = 0;
+
 			using (RoundSyncronizerLock.Lock())
 			{
 				if (Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation || Status != CcjRoundStatus.Running)
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
-				Alices.RemoveAll(x => x.Inputs.Any(y => y.OutPoint == input));
+				numberOfRemovedAlices = Alices.RemoveAll(x => x.Inputs.Any(y => y.OutPoint == input));
 			}
+
+			Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");
+
+			return numberOfRemovedAlices;
 		}
 
 		#endregion

@@ -71,12 +71,18 @@ namespace WalletWasabi.Services
 						var newAllLines = allLines.Where(x => !toRemove.Contains(x));
 						File.WriteAllLines(BannedUtxosFilePath, newAllLines);
 					}
+
+					Logger.LogInfo<UtxoReferee>($"{allLines.Count()} banned UTXOs are loaded from {BannedUtxosFilePath}.");
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<UtxoReferee>($"Banned utxo file got corrupted. Deleting {BannedUtxosFilePath}. {ex.GetType()}: {ex.Message}");
+					Logger.LogWarning<UtxoReferee>($"Banned UTXO file got corrupted. Deleting {BannedUtxosFilePath}. {ex.GetType()}: {ex.Message}");
 					File.Delete(BannedUtxosFilePath);
 				}
+			}
+			else
+			{
+				Logger.LogInfo<UtxoReferee>($"No banned UTXOs are loaded from {BannedUtxosFilePath}.");
 			}
 		}
 
@@ -89,6 +95,7 @@ namespace WalletWasabi.Services
 				{
 					string line = $"{timeOfBan.ToString(CultureInfo.InvariantCulture)}:{severity}:{utxo.N}:{utxo.Hash}";
 					lines.Add(line);
+					Logger.LogInfo<UtxoReferee>($"UTXO banned with severity: {severity}. UTXO: {utxo.N}:{utxo.Hash}.");
 				}
 			}
 
@@ -98,12 +105,13 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task UnbanAsync(OutPoint key)
+		public async Task UnbanAsync(OutPoint output)
 		{
-			if(BannedUtxos.TryRemove(key, out _))
+			if(BannedUtxos.TryRemove(output, out _))
 			{
 				IEnumerable<string> lines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}");
 				await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
+				Logger.LogInfo<UtxoReferee>($"UTXO unbanned: {output.N}:{output.Hash}.");
 			}
 		}
 	}
