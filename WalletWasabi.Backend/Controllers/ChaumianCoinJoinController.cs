@@ -347,9 +347,11 @@ namespace WalletWasabi.Backend.Controllers
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
 		/// <response code="204">Alice sucessfully uncofirmed her participation.</response>
 		/// <response code="400">The provided uniqueId was malformed.</response>
+		/// <response code="403">Participation can be only unconfirmed from InputRegistration phase.</response>
 		[HttpPost("unconfirmation/{uniqueId}")]
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
+		[ProducesResponseType(403)]
 		public IActionResult PostUncorfimation(string uniqueId)
 		{
 			CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
@@ -358,7 +360,25 @@ namespace WalletWasabi.Backend.Controllers
 				return returnFailureResponse;
 			}
 
-			return NoContent();
+			var uniqueIdGuid = Guid.Parse(uniqueId);
+			var roundAlice = Coordinator.TryGetRoundAndAliceBy(uniqueIdGuid);
+			if (roundAlice.alice == null)
+			{
+				return NoContent(); // Alice wasn't even registered, fair enough.
+			}
+
+			switch (roundAlice.round.Phase)
+			{
+				case CcjRoundPhase.InputRegistration:
+					{
+						roundAlice.round.RemoveAlicesBy(uniqueIdGuid);
+						return NoContent();
+					}
+				default:
+					{
+						return Forbid("Participation can be only unconfirmed from InputRegistration phase.");
+					}
+			}
 		}
 
 		/// <summary>
