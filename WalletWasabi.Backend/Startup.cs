@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.Swagger;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Backend
 {
@@ -68,6 +69,7 @@ namespace WalletWasabi.Backend
 		private async Task CleanupAsync()
 		{
 			Global.Coordinator?.Dispose();
+			Logger.LogInfo<Startup>("Coordinator is disposed.");
 
 			var stopTasks = new List<Task>();
 
@@ -86,6 +88,8 @@ namespace WalletWasabi.Backend
 			}
 
 			await Task.WhenAll(stopTasks);
+			Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
+			Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
 		}
 	}
 }

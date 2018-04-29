@@ -28,10 +28,12 @@ namespace WalletWasabi.Backend
 				var configFilePath = Path.Combine(Global.DataDir, "Config.json");
 				var config = new Config(configFilePath);
 				await config.LoadOrCreateDefaultFileAsync();
+				Logger.LogInfo<Config>("Config is successfully initialized.");
 
 				var roundConfigFilePath = Path.Combine(Global.DataDir, "CcjRoundConfig.json");
 				var roundConfig = new CcjRoundConfig(roundConfigFilePath);
 				await roundConfig.LoadOrCreateDefaultFileAsync();
+				Logger.LogInfo<CcjRoundConfig>("RoundConfig is successfully initialized.");
 
 				var rpc = new RPCClient(
 						credentials: new RPCCredentialString
@@ -54,7 +56,7 @@ namespace WalletWasabi.Backend
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<Program>(ex);
+				Logger.LogError<Program>(ex);
 			}
 		}
     }
