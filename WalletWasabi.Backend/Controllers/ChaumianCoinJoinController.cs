@@ -291,13 +291,11 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
+			Guid uniqueIdGuid = CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
-
-			var uniqueIdGuid = Guid.Parse(uniqueId);
 
 			var roundAlice = Coordinator.TryGetRoundAndAliceBy(uniqueIdGuid);
 			if (roundAlice.alice == null)
@@ -356,19 +354,18 @@ namespace WalletWasabi.Backend.Controllers
 		/// <response code="204">Alice sucessfully uncofirmed her participation.</response>
 		/// <response code="400">The provided uniqueId was malformed.</response>
 		/// <response code="403">Participation can be only unconfirmed from InputRegistration phase.</response>
-		[HttpPost("unconfirmation/{uniqueId}")]
+		[HttpPost("unconfirmation")]
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(403)]
-		public IActionResult PostUncorfimation(string uniqueId)
+		public IActionResult PostUncorfimation([FromQuery]string uniqueId, [FromQuery]long roundId)
 		{
-			CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
+			Guid uniqueIdGuid = CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
 
-			var uniqueIdGuid = Guid.Parse(uniqueId);
 			var roundAlice = Coordinator.TryGetRoundAndAliceBy(uniqueIdGuid);
 			if (roundAlice.alice == null)
 			{
@@ -401,7 +398,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(400)]
 		public IActionResult GetCoinJoin(string uniqueId)
 		{
-			CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
+			Guid uniqueIdGuid = CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
 			if(returnFailureResponse != null)
 			{
 				return returnFailureResponse;
@@ -430,7 +427,7 @@ namespace WalletWasabi.Backend.Controllers
 			return NoContent();
 		}
 
-		private void CheckUniqueId(string uniqueId, out IActionResult returnFailureResponse)
+		private Guid CheckUniqueId(string uniqueId, out IActionResult returnFailureResponse)
 		{
 			returnFailureResponse = null;
 			if (string.IsNullOrWhiteSpace(uniqueId) || !ModelState.IsValid)
@@ -453,6 +450,8 @@ namespace WalletWasabi.Backend.Controllers
 				Logger.LogDebug<ChaumianCoinJoinController>($"Empty uniqueId GID provided in {nameof(GetCoinJoin)} function.");
 				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
 			}
+
+			return aliceGuid;
 		}
 	}
 }
