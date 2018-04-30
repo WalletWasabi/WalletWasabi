@@ -450,7 +450,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
-		public bool ContainsBlindedOutput(string blindedOutputHex, out List<Alice> alices)
+		public bool ContainsBlindedOutputScriptHex(string blindedOutputScriptHex, out List<Alice> alices)
 		{
 			alices = new List<Alice>();
 
@@ -458,7 +458,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			{
 				foreach (Alice alice in Alices)
 				{
-					if (alice.BlindedOutputHex == blindedOutputHex)
+					if (alice.BlindedOutputScriptHex == blindedOutputScriptHex)
 					{
 						alices.Add(alice);
 					}
@@ -609,6 +609,25 @@ namespace WalletWasabi.ChaumianCoinJoin
 			StartAliceTimeout(alice.UniqueId);
 
 			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Alice ({alice.UniqueId}) added.");
+		}
+
+		public void AddBob(Bob bob)
+		{
+			using (RoundSyncronizerLock.Lock())
+			{
+				if (Phase != CcjRoundPhase.OutputRegistration || Status != CcjRoundStatus.Running)
+				{
+					throw new InvalidOperationException("Adding Bob is only allowed in OutputRegistration phase.");
+				}
+				if(Bobs.Any(x=>x.ActiveOutputScript == bob.ActiveOutputScript))
+				{
+					throw new InvalidOperationException("Bob is already added.");
+				}
+
+				Bobs.Add(bob);
+			}
+
+			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Bob added.");
 		}
 
 		public int RemoveAlicesBy(AliceState state)

@@ -1501,7 +1501,7 @@ namespace WalletWasabi.Tests
 				// Inputs request tests
 				var request = new InputsRequest
 				{
-					BlindedOutputHashHex = null,
+					BlindedOutputScriptHex = null,
 					ChangeOutputScript = null,
 					Inputs = null,
 				};
@@ -1512,7 +1512,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Invalid request.\"", message);
 				}
 
-				request.BlindedOutputHashHex = "";
+				request.BlindedOutputScriptHex = "";
 				request.ChangeOutputScript = "";
 				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(), Proof = "" } };
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -1522,7 +1522,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Invalid request.\"", message);
 				}
 
-				request.BlindedOutputHashHex = "c";
+				request.BlindedOutputScriptHex = "c";
 				request.ChangeOutputScript = "a";
 				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = "b" } };
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -1600,8 +1600,8 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Provided proof is invalid.\"", message);
 				}
 
-				request.BlindedOutputHashHex = new Transaction().ToHex();
-				proof = key.SignMessage(request.BlindedOutputHashHex);
+				request.BlindedOutputScriptHex = new Transaction().ToHex();
+				proof = key.SignMessage(request.BlindedOutputScriptHex);
 				request.Inputs.First().Proof = proof;
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
@@ -1678,8 +1678,8 @@ namespace WalletWasabi.Tests
 					Assert.Equal(1, roundState.RegisteredPeerCount);
 				}
 
-				request.BlindedOutputHashHex = "foo";
-				proof = key.SignMessage(request.BlindedOutputHashHex);
+				request.BlindedOutputScriptHex = "foo";
+				proof = key.SignMessage(request.BlindedOutputScriptHex);
 				request.Inputs.First().Proof = proof;
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
@@ -1699,10 +1699,10 @@ namespace WalletWasabi.Tests
 				}
 
 				var blindingKey = Global.Coordinator.RsaKey;
-				byte[] scriptHash = HashHelpers.GenerateSha256Hash(key.ScriptPubKey.ToBytes());
-				var (BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptHash);
-				request.BlindedOutputHashHex = ByteHelpers.ToHex(BlindedData);
-				proof = key.SignMessage(request.BlindedOutputHashHex);
+				byte[] scriptBytes = key.ScriptPubKey.ToBytes();
+				var (BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptBytes);
+				request.BlindedOutputScriptHex = ByteHelpers.ToHex(BlindedData);
+				proof = key.SignMessage(request.BlindedOutputScriptHex);
 				request.Inputs.First().Proof = proof;
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
@@ -1727,8 +1727,8 @@ namespace WalletWasabi.Tests
 					Assert.Equal(1, roundState.RegisteredPeerCount);
 				}
 
-				request.BlindedOutputHashHex = new Transaction().ToHex();
-				proof = key.SignMessage(request.BlindedOutputHashHex);
+				request.BlindedOutputScriptHex = new Transaction().ToHex();
+				proof = key.SignMessage(request.BlindedOutputScriptHex);
 				request.Inputs.First().Proof = proof;
 				request.Inputs = new List<InputProofModel> { request.Inputs.First(), request.Inputs.First() };
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -1755,7 +1755,7 @@ namespace WalletWasabi.Tests
 							index = i;
 						}
 					}
-					proof = key.SignMessage(request.BlindedOutputHashHex);
+					proof = key.SignMessage(request.BlindedOutputScriptHex);
 					inputProofs.Add(new InputProofModel { Input = new OutPoint(hash, index), Proof = proof });
 				}
 				await rpc.GenerateAsync(1);

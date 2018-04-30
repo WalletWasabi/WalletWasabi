@@ -23,7 +23,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public Script ChangeOutputScript { get; }
 
-		public string BlindedOutputHex { get; }
+		public string BlindedOutputScriptHex { get; }
 
 		public Money GetChangeAmount(Money denomination, Money coordinatorFee) => OutputSumWithoutCoordinatorFeeAndDenomination - denomination - coordinatorFee;
 
@@ -33,7 +33,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 		{
 			Inputs = Guard.NotNullOrEmpty(nameof(inputs), inputs);
 			NetworkFeeToPay = Guard.NotNull(nameof(networkFeeToPay), networkFeeToPay);
-			BlindedOutputHex = Guard.NotNullOrEmptyOrWhitespace(nameof(blindedOutputHex), blindedOutputHex);
+			BlindedOutputScriptHex = Guard.NotNullOrEmptyOrWhitespace(nameof(blindedOutputHex), blindedOutputHex);
 
 			Guard.NotNull(nameof(changeOutputScript), changeOutputScript);
 			// 33 bytes maximum: https://bitcoin.stackexchange.com/a/46379/26859

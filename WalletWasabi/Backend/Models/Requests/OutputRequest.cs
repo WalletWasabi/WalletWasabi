@@ -1,24 +1,19 @@
-﻿using NBitcoin;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Text;
-using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Requests
 {
-	public class InputsRequest
-	{
+    public class OutputRequest
+    {
 		[Required]
-		public IEnumerable<InputProofModel> Inputs { get; set; }
+		public string OutputScript { get; set; }
 
 		[Required]
-		public string BlindedOutputScriptHex { get; set; }
-
-		[Required]
-		public string ChangeOutputScript { get; set; }
+		public string SignatureHex { get; set; }
 
 		public StringContent ToHttpStringContent()
 		{
