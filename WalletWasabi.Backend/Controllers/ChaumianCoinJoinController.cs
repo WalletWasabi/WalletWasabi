@@ -303,48 +303,55 @@ namespace WalletWasabi.Backend.Controllers
 				return returnFailureResponse;
 			}
 
-			var roundAlice = Coordinator.TryGetRoundAndAliceBy(uniqueIdGuid);
-			if (roundAlice.alice == null)
+			CcjRound round = Coordinator.TryGetRound(roundId);
+			if(round == null)
 			{
-				return NotFound("Alice is not registered to any running rounds.");
+				return NotFound("Round not found.");
 			}
 
-			switch (roundAlice.round.Phase)
+			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
+
+			if (round == null)
+			{
+				return NotFound("Alice not found.");
+			}
+
+			switch (round.Phase)
 			{
 				case CcjRoundPhase.InputRegistration:
 					{
-						roundAlice.round.StartAliceTimeout(uniqueIdGuid);
+						round.StartAliceTimeout(uniqueIdGuid);
 						return NoContent();
 					}
 				case CcjRoundPhase.ConnectionConfirmation:
 					{
-						roundAlice.alice.State = AliceState.ConnectionConfirmed;
+						alice.State = AliceState.ConnectionConfirmed;
 
 						// Progress round if needed.
-						if (roundAlice.round.AllAlices(AliceState.ConnectionConfirmed))
+						if (round.AllAlices(AliceState.ConnectionConfirmed))
 						{
 
-							IEnumerable<Alice> alicesToBan = await roundAlice.round.RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
+							IEnumerable<Alice> alicesToBan = await round.RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
 							if (alicesToBan.Count() > 0)
 							{
 								await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
 							}
 
-							int aliceCountAfterConnectionConfirmationTimeout = roundAlice.round.CountAlices();
+							int aliceCountAfterConnectionConfirmationTimeout = round.CountAlices();
 							if (aliceCountAfterConnectionConfirmationTimeout < 2)
 							{
-								roundAlice.round.Fail();
+								round.Fail();
 							}
 							else
 							{
-								roundAlice.round.UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
+								round.UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
 								// Progress to the next phase, which will be OutputRegistration
-								await roundAlice.round.ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
+								await round.ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
 							}
 						}
 
-						return Ok(roundAlice.round.RoundHash);
+						return Ok(round.RoundHash);
 					}
 				default: // This should never happen?
 					{
@@ -357,37 +364,53 @@ namespace WalletWasabi.Backend.Controllers
 		/// Alice can revoke her registration without penalty if the current phase is InputRegistration.
 		/// </summary>
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
+		/// <param name="roundId">Round identifier, obtained previously.</param>
+		/// <response code="200">Alice or the round was not found.</response>
 		/// <response code="204">Alice sucessfully uncofirmed her participation.</response>
 		/// <response code="400">The provided uniqueId was malformed.</response>
 		/// <response code="403">Participation can be only unconfirmed from InputRegistration phase.</response>
 		[HttpPost("unconfirmation")]
+		[ProducesResponseType(200)]
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(403)]
 		public IActionResult PostUncorfimation([FromQuery]string uniqueId, [FromQuery]long roundId)
 		{
+			if (roundId <= 0 || !ModelState.IsValid)
+			{
+				return BadRequest();
+			}
+
 			Guid uniqueIdGuid = CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
 
-			var roundAlice = Coordinator.TryGetRoundAndAliceBy(uniqueIdGuid);
-			if (roundAlice.alice == null)
+			CcjRound round = Coordinator.TryGetRound(roundId);
+			if (round == null)
 			{
-				return NoContent(); // Alice wasn't even registered, fair enough.
+				return Ok("Round not found.");
 			}
 
-			switch (roundAlice.round.Phase)
+			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
+
+			if (round == null)
+			{
+				return Ok("Alice not found.");
+			}
+
+			CcjRoundPhase phase = round.Phase;
+			switch (phase)
 			{
 				case CcjRoundPhase.InputRegistration:
 					{
-						roundAlice.round.RemoveAlicesBy(uniqueIdGuid);
+						round.RemoveAlicesBy(uniqueIdGuid);
 						return NoContent();
 					}
 				default:
 					{
-						return Forbid("Participation can be only unconfirmed from InputRegistration phase.");
+						return Forbid($"Participation can be only unconfirmed from InputRegistration phase. Current phase: {phase}.");
 					}
 			}
 		}
@@ -396,29 +419,36 @@ namespace WalletWasabi.Backend.Controllers
 		/// Alice asks for the final CoinJoin transaction.
 		/// </summary>
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
+		/// <param name="roundId">Round identifier, obtained previously.</param>
 		/// <returns>The coinjoin Transaction.</returns>
 		/// <response code="200">Returns the coinjoin transaction.</response>
 		/// <response code="400">The provided uniqueId was malformed.</response>
 		[HttpGet("coinjoin/{uniqueId}")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
-		public IActionResult GetCoinJoin(string uniqueId)
+		public IActionResult GetCoinJoin([FromQuery]string uniqueId, [FromQuery]long roundId)
 		{
+			if (roundId <= 0 || !ModelState.IsValid)
+			{
+				return BadRequest();
+			}
+
 			Guid uniqueIdGuid = CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
-			if(returnFailureResponse != null)
+			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
-			
+
 			return Ok();
 		}
 
 		/// <summary>
 		/// Bob registers his output.
 		/// </summary>
+		/// <param name="roundHash">Hash of the round, obtained previously.</param>
 		[HttpPost("output")]
 		[ProducesResponseType(204)]
-		public IActionResult PostOutput()
+		public IActionResult PostOutput([FromQuery]string roundHash)
 		{
 			return NoContent();
 		}
@@ -428,8 +458,19 @@ namespace WalletWasabi.Backend.Controllers
 		/// </summary>
 		[HttpPost("signatures")]
 		[ProducesResponseType(204)]
-		public IActionResult PostSignatures()
+		public IActionResult PostSignatures([FromQuery]string uniqueId, [FromQuery]long roundId)
 		{
+			if (roundId <= 0 || !ModelState.IsValid)
+			{
+				return BadRequest();
+			}
+
+			Guid uniqueIdGuid = CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
+			if (returnFailureResponse != null)
+			{
+				return returnFailureResponse;
+			}
+
 			return NoContent();
 		}
 

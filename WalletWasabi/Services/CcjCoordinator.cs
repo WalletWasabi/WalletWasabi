@@ -220,50 +220,7 @@ namespace WalletWasabi.Services
 				}
 			}
 		}
-
-		public void FailAllRunningRounds()
-		{
-			using (RoundsListLock.Lock())
-			{
-				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running))
-				{
-					r.Fail();
-				}
-			}
-		}
-
-		public CcjRound GetLastSuccessfulRound()
-		{
-			using (RoundsListLock.Lock())
-			{
-				return Rounds.LastOrDefault(x => x.Status == CcjRoundStatus.Succeded);
-			}
-		}
-
-		public CcjRound GetLastFailedRound()
-		{
-			using (RoundsListLock.Lock())
-			{
-				return Rounds.LastOrDefault(x => x.Status == CcjRoundStatus.Failed);
-			}
-		}
-
-		public CcjRound GetLastRound()
-		{
-			using (RoundsListLock.Lock())
-			{
-				return Rounds.LastOrDefault(x => x.Status != CcjRoundStatus.Running);
-			}
-		}
-
-		public CcjRound GetCurrentRound()
-		{
-			using (RoundsListLock.Lock())
-			{
-				return Rounds.First(x => x.Status == CcjRoundStatus.Running); // not FirstOrDefault, it must always exist
-			}
-		}
-
+		
 		public IEnumerable<CcjRound> GetRunningRounds()
 		{
 			using (RoundsListLock.Lock())
@@ -280,32 +237,11 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public CcjRound GetNextRound()
+		public CcjRound TryGetRound(long roundId)
 		{
 			using (RoundsListLock.Lock())
 			{
-				return Rounds.LastOrDefault(x => x.Status == CcjRoundStatus.Running);
-			}
-		}
-
-		public (CcjRound round, Alice alice) TryGetRoundAndAliceBy(Guid uniqueId)
-		{
-			using (RoundsListLock.Lock())
-			{
-				Alice alice = null;
-				CcjRound round = null;
-				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running))
-				{
-					var a = r.TryGetAliceBy(uniqueId);
-					if (a != null)
-					{
-						alice = a;
-						round = r;
-						break;
-					}
-				}
-
-				return (round, alice);
+				return Rounds.SingleOrDefault(x => x.RoundId == roundId);
 			}
 		}
 
