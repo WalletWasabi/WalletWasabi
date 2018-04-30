@@ -288,7 +288,7 @@ namespace WalletWasabi.Services
 				CcjRound round = null;
 				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running))
 				{
-					var a = round.TryGetAliceBy(uniqueId);
+					var a = r.TryGetAliceBy(uniqueId);
 					if (a != null)
 					{
 						alice = a;

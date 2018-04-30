@@ -273,18 +273,24 @@ namespace WalletWasabi.Backend.Controllers
 		/// Alice must confirm her participation periodically in InputRegistration phase and confirm once in ConnectionConfirmation phase.
 		/// </summary>
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
+		/// <param name="roundId">Round identifier, obtained previously.</param>
 		/// <returns>RoundHash if the phase is already ConnectionConfirmation.</returns>
 		/// <response code="200">RoundHash if the phase is already ConnectionConfirmation.</response>
 		/// <response code="204">If the phase is InputRegistration and Alice is found.</response>
 		/// <response code="400">The provided uniqueId was malformed.</response>
 		/// <response code="404">If Alice is not found.</response>
-		[HttpPost("confirmation/{uniqueId}")]
+		[HttpPost("confirmation")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
-		public async Task<IActionResult> PostConfirmationAsync(string uniqueId)
+		public async Task<IActionResult> PostConfirmationAsync([FromQuery]string uniqueId, [FromQuery]long roundId)
 		{
+			if (roundId <= 0 || !ModelState.IsValid)
+			{
+				return BadRequest();
+			}
+
 			CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
@@ -292,6 +298,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			var uniqueIdGuid = Guid.Parse(uniqueId);
+
 			var roundAlice = Coordinator.TryGetRoundAndAliceBy(uniqueIdGuid);
 			if (roundAlice.alice == null)
 			{

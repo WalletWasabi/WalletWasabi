@@ -1636,7 +1636,13 @@ namespace WalletWasabi.Tests
 					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
 					Assert.NotNull(inputsResp.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
-					Assert.Equal(9, inputsResp.RoundId);
+					Assert.Equal(10, inputsResp.RoundId);
+
+					string queryString = $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={inputsResp.UniqueId}&roundId={inputsResp.RoundId}";
+					using (var response2 = await client.SendAsync(HttpMethod.Post, queryString))
+					{
+						Assert.Equal(HttpStatusCode.NoContent, response2.StatusCode);
+					}
 				}
 
 				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
@@ -1696,7 +1702,7 @@ namespace WalletWasabi.Tests
 					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
 					Assert.NotNull(inputsResp.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
-					Assert.Equal(9, inputsResp.RoundId);
+					Assert.Equal(10, inputsResp.RoundId);
 				}
 
 				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
@@ -1757,7 +1763,7 @@ namespace WalletWasabi.Tests
 					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
 					Assert.NotNull(inputsResp.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
-					Assert.NotEqual(9, inputsResp.RoundId);
+					Assert.Equal(10, inputsResp.RoundId);
 				}
 
 				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
