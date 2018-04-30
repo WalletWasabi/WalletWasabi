@@ -13,5 +13,7 @@ namespace WalletWasabi.Backend.Models.Responses
 
 		[JsonConverter(typeof(GuidJsonConverter))]
 		public Guid UniqueId { get; set; }
+
+		public long RoundId { get; set; }
 	}
 }

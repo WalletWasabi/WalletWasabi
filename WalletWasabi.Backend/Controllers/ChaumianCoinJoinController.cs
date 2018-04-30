@@ -66,7 +66,7 @@ namespace WalletWasabi.Backend.Controllers
 		/// Alice registers her inputs.
 		/// </summary>
 		/// <returns>BlindedOutputSignature, UniqueId</returns>
-		/// <response code="200">BlindedOutputSignature, UniqueId</response>
+		/// <response code="200">BlindedOutputSignature, UniqueId, RoundId</response>
 		/// <response code="400">If request is invalid.</response>
 		/// <response code="503">If the round status changed while fulfilling the request.</response>
 		[HttpPost("inputs")]
@@ -256,7 +256,8 @@ namespace WalletWasabi.Backend.Controllers
 					var resp = new InputsResponse
 					{
 						UniqueId = alice.UniqueId,
-						BlindedOutputSignature = signature
+						BlindedOutputSignature = signature,
+						RoundId = round.RoundId
 					};
 					return Ok(resp);
 				}
@@ -401,7 +402,27 @@ namespace WalletWasabi.Backend.Controllers
 			
 			return Ok();
 		}
-		
+
+		/// <summary>
+		/// Bob registers his output.
+		/// </summary>
+		[HttpPost("output")]
+		[ProducesResponseType(204)]
+		public IActionResult PostOutput()
+		{
+			return NoContent();
+		}
+
+		/// <summary>
+		/// Alice posts her partial signatures.
+		/// </summary>
+		[HttpPost("signatures")]
+		[ProducesResponseType(204)]
+		public IActionResult PostSignatures()
+		{
+			return NoContent();
+		}
+
 		private void CheckUniqueId(string uniqueId, out IActionResult returnFailureResponse)
 		{
 			returnFailureResponse = null;
@@ -425,26 +446,6 @@ namespace WalletWasabi.Backend.Controllers
 				Logger.LogDebug<ChaumianCoinJoinController>($"Empty uniqueId GID provided in {nameof(GetCoinJoin)} function.");
 				returnFailureResponse = BadRequest("Invalid uniqueId provided.");
 			}
-		}
-
-		/// <summary>
-		/// Bob registers his output.
-		/// </summary>
-		[HttpPost("output")]
-		[ProducesResponseType(204)]
-		public IActionResult PostOutput()
-		{
-			return NoContent();
-		}
-
-		/// <summary>
-		/// Alice posts her partial signatures.
-		/// </summary>
-		[HttpPost("signatures")]
-		[ProducesResponseType(204)]
-		public IActionResult PostSignatures()
-		{
-			return NoContent();
 		}
 	}
 }
