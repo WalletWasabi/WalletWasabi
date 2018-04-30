@@ -1474,24 +1474,28 @@ namespace WalletWasabi.Tests
 
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			{
-				// Basic status tests.
-				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				// Basic states tests.
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
-					// Never changes.
-					Assert.Equal(1, status.Version);
-					Assert.Equal(new Money(0.00000544m, MoneyUnit.BTC), status.FeePerInputs);
-					Assert.Equal(new Money(0.00000264m, MoneyUnit.BTC), status.FeePerOutputs);
-					Assert.Equal(7, status.MaximumInputCountPerPeer);
-					// Changes per rounds.
-					Assert.Equal(denomination, status.Denomination);
-					Assert.Equal(coordinatorFeePercent, status.CoordinatorFeePercent);
-					Assert.Equal(anonymitySet, status.RequiredPeerCount);
-					Assert.Equal(connectionConfirmationTimeout, status.RegistrationTimeout);
-					// Changes per phases.
-					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
-					Assert.Equal(0, status.RegisteredPeerCount);
+					var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+					Assert.Equal(2, states.Count());
+					foreach (CcjRunningRoundState roundState in states)
+					{
+						// Never changes.
+						Assert.True(0 < roundState.RoundId);
+						Assert.Equal(new Money(0.00000544m, MoneyUnit.BTC), roundState.FeePerInputs);
+						Assert.Equal(new Money(0.00000264m, MoneyUnit.BTC), roundState.FeePerOutputs);
+						Assert.Equal(7, roundState.MaximumInputCountPerPeer);
+						// Changes per rounds.
+						Assert.Equal(denomination, roundState.Denomination);
+						Assert.Equal(coordinatorFeePercent, roundState.CoordinatorFeePercent);
+						Assert.Equal(anonymitySet, roundState.RequiredPeerCount);
+						Assert.Equal(connectionConfirmationTimeout, roundState.RegistrationTimeout);
+						// Changes per phases.
+						Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
+						Assert.Equal(0, roundState.RegisteredPeerCount);
+					}
 				}
 
 				// Inputs request tests
@@ -1630,6 +1634,7 @@ namespace WalletWasabi.Tests
 				roundConfig.ConnectionConfirmationTimeout = 2;
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.FailAllRoundsInInputRegistration();
+				long roundId = 0;
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -1637,6 +1642,7 @@ namespace WalletWasabi.Tests
 					Assert.NotNull(inputsResp.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
 					Assert.True(inputsResp.RoundId > 0);
+					roundId = inputsResp.RoundId;
 
 					string queryString = $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={inputsResp.UniqueId}&roundId={inputsResp.RoundId}";
 					using (var response2 = await client.SendAsync(HttpMethod.Post, queryString))
@@ -1645,12 +1651,14 @@ namespace WalletWasabi.Tests
 					}
 				}
 
-				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
-					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
-					Assert.Equal(1, status.RegisteredPeerCount);
+					var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+
+					var roundState = states.Single(x => x.RoundId == roundId);
+					Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
+					Assert.Equal(1, roundState.RegisteredPeerCount);
 				}
 
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -1660,12 +1668,14 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Blinded output has already been registered.\"", message);
 				}
 
-				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
-					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
-					Assert.Equal(1, status.RegisteredPeerCount);
+					var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+
+					var roundState = states.Single(x => x.RoundId == roundId);
+					Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
+					Assert.Equal(1, roundState.RegisteredPeerCount);
 				}
 
 				request.BlindedOutputHashHex = "foo";
@@ -1678,12 +1688,14 @@ namespace WalletWasabi.Tests
 					Assert.Equal("\"Invalid blinded output hex.\"", message);
 				}
 
-				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
-					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
-					Assert.Equal(1, status.RegisteredPeerCount);
+					var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+
+					var roundState = states.Single(x => x.RoundId == roundId);
+					Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
+					Assert.Equal(1, roundState.RegisteredPeerCount);
 				}
 
 				var blindingKey = Global.Coordinator.RsaKey;
@@ -1705,12 +1717,14 @@ namespace WalletWasabi.Tests
 					Assert.True(inputsResp.RoundId > 0);
 				}
 
-				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
-					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
-					Assert.Equal(1, status.RegisteredPeerCount);
+					var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+
+					var roundState = states.Single(x => x.RoundId == roundId);
+					Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
+					Assert.Equal(1, roundState.RegisteredPeerCount);
 				}
 
 				request.BlindedOutputHashHex = new Transaction().ToHex();
@@ -1764,26 +1778,34 @@ namespace WalletWasabi.Tests
 					Assert.NotNull(inputsResp.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
 					Assert.True(inputsResp.RoundId > 0);
+					roundId = inputsResp.RoundId;
 				}
 
-				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
-					Assert.Equal(CcjRoundPhase.ConnectionConfirmation, status.CurrentPhase);
-					Assert.Equal(0, status.RegisteredPeerCount);
+					var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+
+					var roundState = states.Single(x => x.RoundId == roundId);
+					Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
+					Assert.Equal(2, roundState.RegisteredPeerCount);
+					
+					var roundState2 = states.First(x => x.Phase == CcjRoundPhase.InputRegistration);
+					Assert.Equal(0, roundState2.RegisteredPeerCount);
 				}
 
 				roundConfig.ConnectionConfirmationTimeout = 1; // One second.
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.FailAllRoundsInInputRegistration();
 
-				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
-					Assert.Equal(CcjRoundPhase.ConnectionConfirmation, status.CurrentPhase);
-					Assert.Equal(0, status.RegisteredPeerCount);
+					var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+
+					var roundState = states.Single(x => x.RoundId == roundId);
+					Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
+					Assert.Equal(2, roundState.RegisteredPeerCount);
 				}
 
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -1802,12 +1824,15 @@ namespace WalletWasabi.Tests
 					Assert.StartsWith("\"Input is banned from participation for", message);
 				}
 
-				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/status/"))
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var status = await response.Content.ReadAsJsonAsync<CcjStatusResponse>();
-					Assert.Equal(CcjRoundPhase.InputRegistration, status.CurrentPhase);
-					Assert.Equal(0, status.RegisteredPeerCount);
+					var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+
+					foreach (var roundState in states.Where(x => x.Phase == CcjRoundPhase.InputRegistration))
+					{
+						Assert.Equal(0, roundState.RegisteredPeerCount);
+					}
 				}
 			}
 		}

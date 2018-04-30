@@ -9,10 +9,10 @@ using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Responses
 {
-    public class CcjStatusResponse
+    public class CcjRunningRoundState
     {
 		[JsonConverter(typeof(StringEnumConverter))]
-		public CcjRoundPhase CurrentPhase { get; set; }
+		public CcjRoundPhase Phase { get; set; }
 
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money Denomination { get; set; }
@@ -33,6 +33,6 @@ namespace WalletWasabi.Backend.Models.Responses
 
 		public decimal CoordinatorFeePercent { get; set; }
 
-		public int Version { get; set; }
+		public long RoundId { get; set; }
 	}
 }

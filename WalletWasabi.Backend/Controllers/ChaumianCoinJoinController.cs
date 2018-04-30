@@ -32,31 +32,37 @@ namespace WalletWasabi.Backend.Controllers
 		private static CcjCoordinator Coordinator => Global.Coordinator;
 
 		private static BlindingRsaKey RsaKey => Coordinator.RsaKey;
-		
+
 		/// <summary>
 		/// Satoshi gets various status information.
 		/// </summary>
-		/// <returns>CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFeePercent, Version</returns>
-		/// <response code="200">CurrentPhase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFeePercent, Version</response>
-		[HttpGet("status")]
+		/// <returns>List of CcjRunningRoundStatus (Phase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFeePercent)</returns>
+		/// <response code="200">List of CcjRunningRoundStatus (Phase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFeePercent)</response>
+		[HttpGet("states")]
 		[ProducesResponseType(200)]
-		public IActionResult GetStatus()
+		public IActionResult GetStates()
 		{
-			CcjRound currentRound = Coordinator.GetCurrentRound();
-			CcjRound currentInputRegistrationRound = Coordinator.GetCurrentInputRegisterableRound();
-			var response = new CcjStatusResponse
+			var response = new List<CcjRunningRoundState>();
+
+			foreach(CcjRound round in Coordinator.GetRunningRounds())
 			{
-				CurrentPhase = currentRound.Phase,
-				Denomination = currentInputRegistrationRound.Denomination,
-				RegisteredPeerCount = currentInputRegistrationRound.CountAlices(syncronized: false),
-				RequiredPeerCount = currentInputRegistrationRound.AnonymitySet,
-				MaximumInputCountPerPeer = 7, // Constant for now. If we want to do something with it later, we'll put it to the config file.
-				RegistrationTimeout = (int)currentInputRegistrationRound.AliceRegistrationTimeout.TotalSeconds,
-				FeePerInputs = currentInputRegistrationRound.FeePerInputs,
-				FeePerOutputs = currentInputRegistrationRound.FeePerOutputs,
-				CoordinatorFeePercent = currentInputRegistrationRound.CoordinatorFeePercent,
-				Version = 1
-			};
+				var state = new CcjRunningRoundState
+				{
+					Phase = round.Phase,
+					Denomination = round.Denomination,
+					RegisteredPeerCount = round.CountAlices(syncronized: false),
+					RequiredPeerCount = round.AnonymitySet,
+					MaximumInputCountPerPeer = 7, // Constant for now. If we want to do something with it later, we'll put it to the config file.
+					RegistrationTimeout = (int)round.AliceRegistrationTimeout.TotalSeconds,
+					FeePerInputs = round.FeePerInputs,
+					FeePerOutputs = round.FeePerOutputs,
+					CoordinatorFeePercent = round.CoordinatorFeePercent,
+					RoundId = round.RoundId
+				};
+
+				response.Add(state);
+			}
+
 			return Ok(response);
 		}
 
@@ -237,9 +243,9 @@ namespace WalletWasabi.Backend.Controllers
 					byte[] signature = RsaKey.SignBlindedData(blindedData);
 
 					// Check if phase changed since.
-					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
+					if (round.Status != ChaumianCoinJoin.CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
 					{
-						return StatusCode(StatusCodes.Status503ServiceUnavailable, "The state of the round changed while handling the request. Try again.");
+						return base.StatusCode(StatusCodes.Status503ServiceUnavailable, "The state of the round changed while handling the request. Try again.");
 					}
 
 					// Progress round if needed.

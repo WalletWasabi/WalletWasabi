@@ -264,6 +264,14 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public IEnumerable<CcjRound> GetRunningRounds()
+		{
+			using (RoundsListLock.Lock())
+			{
+				return Rounds.Where(x => x.Status == CcjRoundStatus.Running).ToArray();
+			}
+		}
+
 		public CcjRound GetCurrentInputRegisterableRound()
 		{
 			using (RoundsListLock.Lock())
