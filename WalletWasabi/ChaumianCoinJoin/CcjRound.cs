@@ -31,6 +31,15 @@ namespace WalletWasabi.ChaumianCoinJoin
 		public string RoundHash { get; private set; }
 
 		public Transaction UnsignedCoinJoin { get; private set; }
+		private string _unsignedCoinJoinHex;
+		public string GetUnsignedCoinJoinHex()
+		{
+			if(_unsignedCoinJoinHex == null)
+			{
+				_unsignedCoinJoinHex = UnsignedCoinJoin.ToHex();
+			}
+			return _unsignedCoinJoinHex;
+		}
 		public Transaction SignedCoinJoin { get; private set; }
 
 		private List<Alice> Alices { get; }
@@ -67,6 +76,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 		private void OnPhaseChanged(CcjRoundPhase phase) => PhaseChanged?.Invoke(this, phase);
 
 		private CcjRoundStatus _status;
+		private int _myProperty;
+
 		private object StatusLock { get; }
 		public CcjRoundStatus Status
 		{
@@ -132,6 +143,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 				Status = CcjRoundStatus.NotStarted;
 
 				RoundHash = null;
+				_unsignedCoinJoinHex = null;
 
 				UnsignedCoinJoin = null;
 				SignedCoinJoin = null;
@@ -145,7 +157,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}.\n\t" +
 					$"{nameof(AnonymitySet)}: {AnonymitySet}.");
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Logger.LogError<CcjRound>($"Round ({RoundId}) creation failed.");
 				Logger.LogError<CcjRound>(ex);
@@ -163,7 +175,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 					if (Status == CcjRoundStatus.NotStarted) // So start the input registration phase
 					{
-						if(expectedPhase != CcjRoundPhase.InputRegistration)
+						if (expectedPhase != CcjRoundPhase.InputRegistration)
 						{
 							return;
 						}
@@ -339,27 +351,27 @@ namespace WalletWasabi.ChaumianCoinJoin
 					// This will happen outside the lock.
 					Task.Run(async () =>
 					{
-					switch (expectedPhase)
-					{
-						case CcjRoundPhase.InputRegistration:
-							{
-								// Only fail if less two one Alice is registered.
-								// Don't ban anyone, it's ok if they lost connection.
-								await RemoveAlicesIfInputsSpentAsync();
-								int aliceCountAfterInputRegistrationTimeout = CountAlices();
-								if (aliceCountAfterInputRegistrationTimeout < 2)
+						switch (expectedPhase)
+						{
+							case CcjRoundPhase.InputRegistration:
 								{
-									Fail();
+									// Only fail if less two one Alice is registered.
+									// Don't ban anyone, it's ok if they lost connection.
+									await RemoveAlicesIfInputsSpentAsync();
+									int aliceCountAfterInputRegistrationTimeout = CountAlices();
+									if (aliceCountAfterInputRegistrationTimeout < 2)
+									{
+										Fail();
+									}
+									else
+									{
+										UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+										// Progress to the next phase, which will be ConnectionConfirmation
+										await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+									}
 								}
-								else
-								{
-									UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
-									// Progress to the next phase, which will be ConnectionConfirmation
-									await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
-								}
-							}
-							break;
-						case CcjRoundPhase.ConnectionConfirmation:
+								break;
+							case CcjRoundPhase.ConnectionConfirmation:
 								{
 									// Only fail if less than two one alices are registered.
 									// What if an attacker registers all the time many alices, then drops out. He'll achieve only 2 alices to participate?
@@ -446,7 +458,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 		{
 			using (RoundSyncronizerLock.Lock())
 			{
-				return Alices.All(x=>x.State == state);
+				return Alices.All(x => x.State == state);
 			}
 		}
 
@@ -539,7 +551,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 			var started = DateTimeOffset.UtcNow;
 			using (RoundSyncronizerLock.Lock())
 			{
-				if(Phase != CcjRoundPhase.InputRegistration || Status != CcjRoundStatus.Running)
+				if (Phase != CcjRoundPhase.InputRegistration || Status != CcjRoundStatus.Running)
 				{
 					return; // Then no need to timeout alice.
 				}
@@ -619,7 +631,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 				{
 					throw new InvalidOperationException("Adding Bob is only allowed in OutputRegistration phase.");
 				}
-				if(Bobs.Any(x=>x.ActiveOutputScript == bob.ActiveOutputScript))
+				if (Bobs.Any(x => x.ActiveOutputScript == bob.ActiveOutputScript))
 				{
 					throw new InvalidOperationException("Bob is already added.");
 				}
@@ -675,7 +687,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 				}
 			}
 
-			foreach(var alice in alicesRemoved)
+			foreach (var alice in alicesRemoved)
 			{
 				Logger.LogInfo<CcjRound>($"Round ({RoundId}): Alice ({alice.UniqueId}) removed.");
 			}
