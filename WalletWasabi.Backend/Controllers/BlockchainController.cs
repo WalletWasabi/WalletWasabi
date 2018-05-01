@@ -159,21 +159,32 @@ namespace WalletWasabi.Backend.Controllers
 		///
 		/// </remarks>
 		/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
+		/// <param name="count">The number of filters to return. By default we return 1000 filters and never more than 10000.</param>
 		/// <returns>An array of block hash : element count : filter pairs.</returns>
 		/// <response code="200">An array of block hash : element count : filter pairs.</response>
 		/// <response code="204">When the provided hash is the tip.</response>
-		/// <response code="400">The provided hash was malformed.</response>
+		/// <response code="400">The provided hash was malformed or the count value is out of range</response>
 		/// <response code="404">If the hash is not found. This happens at blockhain reorg.</response>
 		[HttpGet("filters/{bestKnownBlockHash}")]
 		[ProducesResponseType(200)] // Note: If you add typeof(IList<string>) then swagger UI visualization will be ugly.
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
-		public IActionResult GetFilters(string bestKnownBlockHash)
+		public IActionResult GetFilters(string bestKnownBlockHash, int count=1_000)
 		{
 			if (string.IsNullOrWhiteSpace(bestKnownBlockHash) || !ModelState.IsValid)
 			{
 				return BadRequest("Invalid block hash provided.");
+			}
+
+			// Restricts the amount of filters to be returned to about a month of filters. The estimated
+			// worst-case-data-size = max-filter-count * avg-filter-size. Taking into account that 
+			// max-filter-count = (144 filters/day * 30 days/month) and avg-filter-size = 100 bytes/filter
+			// worst-case-data-size = (144 * 30) * 100 bytes ~= 420 kb.
+			const int maxCount = (144 * 30); // 
+			if(count < 1 || count > maxCount)
+			{
+				return BadRequest($"Cannot serve less than 1 filter nor more that {maxCount} at a time.");
 			}
 
 			var knownHash = new uint256(bestKnownBlockHash);
@@ -190,7 +201,7 @@ namespace WalletWasabi.Backend.Controllers
 				return NoContent();
 			}
 
-			return Ok(filters);
+			return Ok(filters.Take(count));
 		}
 
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
