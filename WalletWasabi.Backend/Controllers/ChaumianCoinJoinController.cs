@@ -50,7 +50,7 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					Phase = round.Phase,
 					Denomination = round.Denomination,
-					RegisteredPeerCount = round.CountAlices(syncronized: false),
+					RegisteredPeerCount = round.CountAlices(syncLock: false),
 					RequiredPeerCount = round.AnonymitySet,
 					MaximumInputCountPerPeer = 7, // Constant for now. If we want to do something with it later, we'll put it to the config file.
 					RegistrationTimeout = (int)round.AliceRegistrationTimeout.TotalSeconds,
@@ -536,7 +536,7 @@ namespace WalletWasabi.Backend.Controllers
 				return NotFound("Round not found.");
 			}
 			
-			if (null == round.TryGetAliceBy(uniqueIdGuid)) // We don't care about Alice now, but let's not give the CJ to anyone who isn't participating.
+			if (round.TryGetAliceBy(uniqueIdGuid) == null) // We don't care about Alice now, but let's not give the CJ to anyone who isn't participating.
 			{
 				return NotFound("Alice not found.");
 			}
@@ -560,16 +560,31 @@ namespace WalletWasabi.Backend.Controllers
 			}
 		}
 
+		private static AsyncLock SigningLock { get; } = new AsyncLock();
+
 		/// <summary>
-		/// Alice posts her partial signatures.
+		/// Alice posts her witnesses.
 		/// </summary>
-		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
+		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
+		/// <param name="roundId">Round identifier, obtained previously.</param>
+		/// <param name="signatures">Dictionary that has an int index as its key and string witness as its value.</param>
+		/// <returns>Hx of the coinjoin transaction.</returns>
+		/// <response code="204">CoinJoin successfully signed.</response>
+		/// <response code="400">The provided uniqueId, roundId or witnesses were malformed.</response>
+		/// <response code="403">CoinJoin can only be requested from a Running round's Signing phase.</response>
+		/// <response code="404">If Alice or the round is not found.</response>
 		[HttpPost("signatures")]
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
-		public IActionResult PostSignatures([FromQuery]string uniqueId, [FromQuery]long roundId)
+		[ProducesResponseType(403)]
+		[ProducesResponseType(404)]
+		public async Task<IActionResult> PostSignaturesAsync([FromQuery]string uniqueId, [FromQuery]long roundId, [FromBody]IDictionary<int, string> signatures)
 		{
-			if (roundId <= 0 || !ModelState.IsValid)
+			if (roundId <= 0
+				|| signatures == null
+				|| signatures.Count() <= 0
+				|| signatures.Any(x => x.Key < 0 || string.IsNullOrWhiteSpace(x.Value))
+				|| !ModelState.IsValid)
 			{
 				return BadRequest();
 			}
@@ -580,7 +595,85 @@ namespace WalletWasabi.Backend.Controllers
 				return returnFailureResponse;
 			}
 
-			return NoContent();
+			CcjRound round = Coordinator.TryGetRound(roundId);
+			if (round == null)
+			{
+				return NotFound("Round not found.");
+			}
+
+			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
+			if (alice == null)
+			{
+				return NotFound("Alice not found.");
+			}
+
+			// Check if Alice provided signature to all her inputs.
+			if (signatures.Count != alice.Inputs.Count())
+			{
+				return BadRequest("Alice did not provide enough witnesses.");
+			}
+
+			if (round.Status != CcjRoundStatus.Running)
+			{
+				return Forbid("Round is not running.");
+			}
+
+			CcjRoundPhase phase = round.Phase;
+			switch (phase)
+			{
+				case CcjRoundPhase.InputRegistration:
+					{
+						using (await SigningLock.LockAsync())
+						{
+							foreach (var signaturePair in signatures)
+							{
+								int index = signaturePair.Key;
+								WitScript witness = null;
+								try
+								{
+									witness = new WitScript(signaturePair.Value);
+								}
+								catch (Exception ex)
+								{
+									return BadRequest($"Malformed witness is provided. Details: {ex.Message}");
+								}
+								int maxIndex = round.UnsignedCoinJoin.Inputs.Count - 1;
+								if (maxIndex < index)
+								{
+									return BadRequest($"Index out of range. Maximum value: {maxIndex}. Provided value: {index}");
+								}
+								
+								// Check duplicates.
+								if(string.IsNullOrWhiteSpace(round.SignedCoinJoin.Inputs[index].WitScript?.ToString())) // Not sure why WitScript?.ToString() is needed, there was something wrong in previous HiddenWallet version if I didn't do this.
+								{
+									return BadRequest($"Input is already signed.");
+								}
+
+								// Verify witness.
+								var cjCopy = new Transaction(round.UnsignedCoinJoin.ToHex());
+								cjCopy.Inputs[index].WitScript = witness;
+								TxOut output = alice.Inputs.Single(x => x.OutPoint == cjCopy.Inputs[index].PrevOut).Output;
+								if (!Script.VerifyScript(output.ScriptPubKey, cjCopy, index, output.Value, ScriptVerify.Standard, SigHash.All))
+								{
+									return BadRequest($"Invalid witness is provided.");
+								}
+
+								// Finally add it to our CJ.
+								round.SignedCoinJoin.Inputs[index].WitScript = witness;
+							}
+							
+							alice.State = AliceState.SignedCoinJoin;
+
+							await round.BroadcastCoinJoinIfFullySignedAsync();							
+						}
+
+						return NoContent();
+					}
+				default:
+					{
+						return Forbid($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
+					}
+			}
 		}
 
 		private Guid CheckUniqueId(string uniqueId, out IActionResult returnFailureResponse)

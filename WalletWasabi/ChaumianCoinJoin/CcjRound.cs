@@ -76,7 +76,6 @@ namespace WalletWasabi.ChaumianCoinJoin
 		private void OnPhaseChanged(CcjRoundPhase phase) => PhaseChanged?.Invoke(this, phase);
 
 		private CcjRoundStatus _status;
-		private int _myProperty;
 
 		private object StatusLock { get; }
 		public CcjRoundStatus Status
@@ -299,6 +298,8 @@ namespace WalletWasabi.ChaumianCoinJoin
 							.Shuffle()
 							.BuildTransaction(false);
 
+						SignedCoinJoin = new Transaction(UnsignedCoinJoin.ToHex());
+
 						Phase = CcjRoundPhase.Signing;
 					}
 					else
@@ -430,18 +431,41 @@ namespace WalletWasabi.ChaumianCoinJoin
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
-		public void Fail()
+		public void Succeed(bool syncLock = true)
 		{
-			using (RoundSyncronizerLock.Lock())
+			if (syncLock)
+			{
+				using (RoundSyncronizerLock.Lock())
+				{
+					Status = CcjRoundStatus.Succeded;
+				}
+			}
+			else
+			{
+				Status = CcjRoundStatus.Succeded;
+			}
+			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Succeeded.");
+		}
+
+		public void Fail(bool syncLock = true)
+		{
+			if (syncLock)
+			{
+				using (RoundSyncronizerLock.Lock())
+				{
+					Status = CcjRoundStatus.Failed;
+				}
+			}
+			else
 			{
 				Status = CcjRoundStatus.Failed;
 			}
 			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Failed.");
 		}
 
-		public int CountAlices(bool syncronized = true)
+		public int CountAlices(bool syncLock = true)
 		{
-			if (syncronized)
+			if (syncLock)
 			{
 				using (RoundSyncronizerLock.Lock())
 				{
@@ -593,6 +617,38 @@ namespace WalletWasabi.ChaumianCoinJoin
 		}
 
 		#region Modifiers
+
+		public async Task BroadcastCoinJoinIfFullySignedAsync()
+		{
+			using (await RoundSyncronizerLock.LockAsync())
+			{
+				// Check if fully signed.
+				if (SignedCoinJoin.Inputs.All(x => !string.IsNullOrWhiteSpace(x.WitScript?.ToString()))) // Not sure why WitScript?.ToString() is needed, there was something wrong in previous HiddenWallet version if I didn't do this.
+				{
+					Logger.LogInfo<CcjRound>($"Round ({RoundId}): Trying to broadcast coinjoin.");
+
+					try
+					{
+						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs.Select(y => new Coin(y.OutPoint, y.Output))).ToArray();
+						Money networkFee = SignedCoinJoin.GetFee(spentCoins);
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.Single(x=>x.ScriptPubKey == Constants.GetCoordinatorAddress(RpcClient.Network).ScriptPubKey).Value.ToString(false, false)} BTC.");
+						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte.");
+
+						await RpcClient.SendRawTransactionAsync(SignedCoinJoin);
+						Succeed(syncLock: false);
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError<CcjRound>($"Round ({RoundId}): Failed to broadcast the CoinJoin: {SignedCoinJoin.GetHash()}.");
+						Logger.LogError<CcjRound>(ex);
+						Fail(syncLock: false);
+					}
+				}
+			}
+		}
 
 		public void UpdateAnonymitySet(int anonymitySet)
 		{
