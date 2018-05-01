@@ -30,4 +30,4 @@ before_install:
 
 script:
   - sleep 5
-  - travis_wait dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj
+  - travis_wait dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj /p:CollectCoverage=true
