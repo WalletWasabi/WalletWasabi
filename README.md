@@ -14,6 +14,28 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 [5]: https://img.shields.io/github/license/zkSNACKs/WalletWasabi.svg
 [6]: https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md
 
+## Build & Test
+
+1. Get .NET Core.
+2. Download the Tor Experd Bundle. (Not the Tor Browser.) https://www.torproject.org/download/download
+3. Run `tor.exe`.
+4. Fire up command line:
+```
+git clone https://github.com/zkSNACKs/WalletWasabi
+cd WalletWasabi
+dotnet restore && dotnet build
+cd WalletWasabi.Tests
+dotnet test
+```
+
+### Notes:
+
+1. `dotnet test` takes about 3 minutes, the first time it'll take 1-2 minutes longer, because it downloads `bitcoind`. This daemon is used by the tests in regression test mode to simulate the Bitcoin network.  
+
+2. If you'd happen to terminate the tests immaturely, make sure you also terminate the `bitcoind` daemon process from the Task Manager, otherwise next time your tests would fail.
+
+2. Tests are using `%appdata%\WalletWasabi` folder to log and for other things, so you can delete it after you no longer wish to do anything with the software anymore.
+
 ## Roadmap
 
 **Goal:** Stability, feature minimalization.
