@@ -31,7 +31,7 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
 ### 2. Privacy Stage
 
 - [x] **5. ZeroLink Research.** *1 month. Bitcoin privacy, cryptography.* Research ZeroLink, based on technological advancements.
-- [ ] **6. ZeroLink Coordinator.** *2 weeks. NBitcoin, Bitcoin Core RPC.* Revise the ZeroLink Coordinator code based on ZeroLink v2 Revision.
+- [x] **6. ZeroLink Coordinator.** *2 weeks. NBitcoin, Bitcoin Core RPC.* Revise the ZeroLink Coordinator code based on ZeroLink v2 Revision.
 
   Depends on:
   - [x] ZeroLink Research
@@ -40,7 +40,7 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
 
   Depends on:
   - [x] ZeroLink Research
-  - [ ] ZeroLink Coordinator
+  - [x] ZeroLink Coordinator
 
 ### 3. User Experience Stage
 
