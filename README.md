@@ -40,7 +40,7 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
 
   Depends on:
   - [x] ZeroLink Research
-  - [ ] ZeroLink Coordinator
+  - [x] ZeroLink Coordinator
 
 ### 3. User Experience Stage
 
