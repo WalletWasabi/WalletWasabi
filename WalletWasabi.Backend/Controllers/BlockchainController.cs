@@ -151,34 +151,35 @@ namespace WalletWasabi.Backend.Controllers
 		/// Gets block filters from the specified block hash.
 		/// </summary>
 		/// <remarks>
-		/// Sample request:
+		/// Filter examples:
 		///
-		///     Main: GET /filters/0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893
-		///     TestNet: GET /filters/00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a
-		///     RegTest: GET /filters/0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
+		///     Main: 0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893
+		///     TestNet: 00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a
+		///     RegTest: 0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206
 		///
 		/// </remarks>
 		/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
+		/// <param name="count">The number of filters to return.</param>
 		/// <returns>An array of block hash : element count : filter pairs.</returns>
 		/// <response code="200">An array of block hash : element count : filter pairs.</response>
 		/// <response code="204">When the provided hash is the tip.</response>
-		/// <response code="400">The provided hash was malformed.</response>
+		/// <response code="400">The provided hash was malformed or the count value is out of range</response>
 		/// <response code="404">If the hash is not found. This happens at blockhain reorg.</response>
-		[HttpGet("filters/{bestKnownBlockHash}")]
+		[HttpGet("filters")]
 		[ProducesResponseType(200)] // Note: If you add typeof(IList<string>) then swagger UI visualization will be ugly.
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
-		public IActionResult GetFilters(string bestKnownBlockHash)
+		public IActionResult GetFilters([FromQuery]string bestKnownBlockHash, [FromQuery]int count)
 		{
-			if (string.IsNullOrWhiteSpace(bestKnownBlockHash) || !ModelState.IsValid)
+			if (string.IsNullOrWhiteSpace(bestKnownBlockHash) || count <= 0 || !ModelState.IsValid)
 			{
-				return BadRequest("Invalid block hash provided.");
+				return BadRequest("Invalid block hash or count is provided.");
 			}
-
+			
 			var knownHash = new uint256(bestKnownBlockHash);
 
-			IEnumerable<string> filters = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, out bool found);
+			IEnumerable<string> filters = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 			if(!found)
 			{
