@@ -369,17 +369,21 @@ namespace WalletWasabi.Services
 			});
 		}
 
-		public IEnumerable<string> GetFilterLinesExcluding(uint256 bestKnownBlockHash, out bool found)
+		public IEnumerable<string> GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
 		{
 			using (IndexLock.Lock())
 			{
-				found = false;
+				found = false; // Only build the filter list from when the known hash is found.
 				var filters = new List<string>();
 				foreach (var filter in Index)
 				{
 					if (found)
 					{
 						filters.Add(filter.ToLine());
+						if(filters.Count >= count)
+						{
+							break;
+						}
 					}
 					else
 					{
