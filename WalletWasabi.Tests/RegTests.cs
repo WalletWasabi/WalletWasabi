@@ -1872,64 +1872,64 @@ namespace WalletWasabi.Tests
 					Assert.True(inputsResp.RoundId > 0);
 					roundId = inputsResp.RoundId;
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
 				{
 					Assert.True(response.IsSuccessStatusCode);
 					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 				}
 				// Double the request.
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
 				{
 					Assert.True(response.IsSuccessStatusCode);
 					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 				}
 				// badrequests
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					Assert.Equal("", await response.Content.ReadAsStringAsync());
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					Assert.Equal("", await response.Content.ReadAsStringAsync());
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?roundId={roundId}"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					Assert.Equal("\"Invalid uniqueId provided.\"", await response.Content.ReadAsStringAsync());
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId=foo&roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId=foo&roundId={roundId}"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					Assert.Equal("\"Invalid uniqueId provided.\"", await response.Content.ReadAsStringAsync());
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={Guid.Empty}&roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={Guid.Empty}&roundId={roundId}"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					Assert.Equal("\"Invalid uniqueId provided.\"", await response.Content.ReadAsStringAsync());
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId=bar", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId=bar"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					Assert.Equal("", await response.Content.ReadAsStringAsync());
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId=0", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId=0"))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					Assert.Equal("", await response.Content.ReadAsStringAsync());
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
 				{
 					Assert.True(response.IsSuccessStatusCode);
 					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={long.MaxValue}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={long.MaxValue}"))
 				{
 					Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 					Assert.Equal("\"Round not found.\"", await response.Content.ReadAsStringAsync());
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={Guid.NewGuid()}&roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={Guid.NewGuid()}&roundId={roundId}"))
 				{
 					Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 					Assert.Equal("\"Alice not found.\"", await response.Content.ReadAsStringAsync());
@@ -1938,7 +1938,7 @@ namespace WalletWasabi.Tests
 				roundConfig.ConnectionConfirmationTimeout = 60;
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.FailAllRoundsInInputRegistration();
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
 				{
 					Assert.Equal(HttpStatusCode.Gone, response.StatusCode);
 					Assert.Equal("\"Round is not running.\"", await response.Content.ReadAsStringAsync());
@@ -1954,26 +1954,114 @@ namespace WalletWasabi.Tests
 					Assert.True(inputsResp.RoundId > 0);
 					roundId = inputsResp.RoundId;
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
 				{
 					Assert.True(response.IsSuccessStatusCode);
 					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/unconfirmation?uniqueId={uniqueAliceId}&roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/unconfirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
 				{
 					Assert.True(response.IsSuccessStatusCode);
 					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/unconfirmation?uniqueId={uniqueAliceId}&roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/unconfirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
 				{
 					Assert.True(response.IsSuccessStatusCode);
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 					Assert.Equal("\"Alice not found.\"", await response.Content.ReadAsStringAsync());
 				}
-				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}", request.ToHttpStringContent()))
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
 				{
 					Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 					Assert.Equal("\"Alice not found.\"", await response.Content.ReadAsStringAsync());
+				}
+
+				// <-------------------------->
+				// POST OUTPUT tests
+				// <-------------------------->
+
+				var key1 = new Key();
+				var key2 = new Key();
+				var outputAddress1 = key1.PubKey.GetSegwitAddress(network);
+				var outputAddress2 = key2.PubKey.GetSegwitAddress(network);
+				var hash1 = await rpc.SendToAddressAsync(outputAddress1, new Money(0.01m, MoneyUnit.BTC));
+				var hash2 = await rpc.SendToAddressAsync(outputAddress2, new Money(0.01m, MoneyUnit.BTC));
+				await rpc.GenerateAsync(1);
+				var tx1 = await rpc.GetRawTransactionAsync(hash1);
+				var tx2 = await rpc.GetRawTransactionAsync(hash2);
+				var index1 = 0;
+				for (int i = 0; i < tx1.Outputs.Count; i++)
+				{
+					var output = tx1.Outputs[i];
+					if (output.ScriptPubKey == outputAddress1.ScriptPubKey)
+					{
+						index1 = i;
+					}
+				}
+				var index2 = 0;
+				for (int i = 0; i < tx2.Outputs.Count; i++)
+				{
+					var output = tx2.Outputs[i];
+					if (output.ScriptPubKey == outputAddress2.ScriptPubKey)
+					{
+						index2 = i;
+					}
+				}
+
+				var blinded1 = blindingKey.PubKey.Blind(outputAddress1.ScriptPubKey.ToBytes());
+				var blinded2 = blindingKey.PubKey.Blind(outputAddress2.ScriptPubKey.ToBytes());
+
+				string blindedOutputScriptHex1 = ByteHelpers.ToHex(blinded1.BlindedData);
+				string blindedOutputScriptHex2 = ByteHelpers.ToHex(blinded2.BlindedData);
+				var request1 = new InputsRequest
+				{
+					BlindedOutputScriptHex = blindedOutputScriptHex1,
+					Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash1, index1), Proof = key1.SignMessage(blindedOutputScriptHex1) } },
+					ChangeOutputScript = new Key().ScriptPubKey.ToString()					
+				};
+				var request2 = new InputsRequest {
+					BlindedOutputScriptHex = blindedOutputScriptHex2,
+					Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash2, index2), Proof = key2.SignMessage(blindedOutputScriptHex2) } },
+					ChangeOutputScript = new Key().ScriptPubKey.ToString()
+				};
+
+				Guid uniqueAliceId1 = Guid.Empty;
+				Guid uniqueAliceId2 = Guid.Empty;
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request1.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
+					uniqueAliceId1 = inputsResp.UniqueId;
+					roundId = inputsResp.RoundId;
+				}
+				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request2.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
+					uniqueAliceId2 = inputsResp.UniqueId;
+					Assert.Equal(roundId, inputsResp.RoundId);
+				}
+				var roundHash = "";
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId1}&roundId={roundId}"))
+				{
+					Assert.True(response.IsSuccessStatusCode);
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					roundHash = await response.Content.ReadAsJsonAsync<string>();
+				}
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId2}&roundId={roundId}"))
+				{
+					Assert.True(response.IsSuccessStatusCode);
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var rh = await response.Content.ReadAsJsonAsync<string>();
+					Assert.Equal(roundHash, rh);
+				}
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+
+					Assert.Single(states.Where(x => x.RoundId == roundId));
+					Assert.Equal(CcjRoundPhase.OutputRegistration, states.Single(x => x.RoundId == roundId).Phase);
 				}
 			}
 		}
