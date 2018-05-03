@@ -2027,12 +2027,15 @@ namespace WalletWasabi.Tests
 
 				Guid uniqueAliceId1 = Guid.Empty;
 				Guid uniqueAliceId2 = Guid.Empty;
+				string sigHex1;
+				string sigHex2;
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request1.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
 					uniqueAliceId1 = inputsResp.UniqueId;
 					roundId = inputsResp.RoundId;
+					sigHex1 = ByteHelpers.ToHex(blindingKey.PubKey.UnblindSignature(inputsResp.BlindedOutputSignature, blinded1.BlindingFactor));
 				}
 				using (var response = await client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request2.ToHttpStringContent()))
 				{
@@ -2040,6 +2043,7 @@ namespace WalletWasabi.Tests
 					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
 					uniqueAliceId2 = inputsResp.UniqueId;
 					Assert.Equal(roundId, inputsResp.RoundId);
+					sigHex2 = ByteHelpers.ToHex(blindingKey.PubKey.UnblindSignature(inputsResp.BlindedOutputSignature, blinded2.BlindingFactor));
 				}
 				var roundHash = "";
 				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId1}&roundId={roundId}"))
@@ -2062,6 +2066,24 @@ namespace WalletWasabi.Tests
 
 					Assert.Single(states.Where(x => x.RoundId == roundId));
 					Assert.Equal(CcjRoundPhase.OutputRegistration, states.Single(x => x.RoundId == roundId).Phase);
+				}
+
+				var outputRequest1 = new OutputRequest() { OutputScript = outputAddress1.ScriptPubKey.ToString(), SignatureHex = sigHex1 };
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/output?roundHash={roundHash}", outputRequest1.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+				}
+
+				var outputRequest2 = new OutputRequest() { OutputScript = outputAddress2.ScriptPubKey.ToString(), SignatureHex = sigHex2 };
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/output?roundHash={roundHash}", outputRequest2.ToHttpStringContent()))
+				{
+					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+				}
+
+				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
+				{
+					var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+					Assert.Equal(CcjRoundPhase.Signing, states.Single(x => x.RoundId == roundId).Phase);
 				}
 			}
 		}

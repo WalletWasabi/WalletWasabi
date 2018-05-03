@@ -12,7 +12,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 
 		public Bob(Script activeOutputScript)
 		{
-			Guard.NotNull(nameof(activeOutputScript), ActiveOutputScript);
+			Guard.NotNull(nameof(activeOutputScript), activeOutputScript);
 			// 33 bytes maximum: https://bitcoin.stackexchange.com/a/46379/26859
 			int byteCount = activeOutputScript.ToBytes().Length;
 			if (byteCount > 33)
