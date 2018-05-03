@@ -2084,6 +2084,23 @@ namespace WalletWasabi.Tests
 				{
 					var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
 					Assert.Equal(CcjRoundPhase.Signing, states.Single(x => x.RoundId == roundId).Phase);
+					Assert.Equal(2, states.Single(x => x.RoundId == roundId).RegisteredPeerCount);
+					Assert.Equal(2, states.Single(x => x.RoundId == roundId).RequiredPeerCount);
+				}
+
+				Transaction unsignedCoinJoin;
+				using (var response = await client.SendAsync(HttpMethod.Get, $"/api/v1/btc/chaumiancoinjoin/coinjoin?uniqueId={uniqueAliceId1}&roundId={roundId}"))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
+					unsignedCoinJoin = new Transaction(coinjoinHex);
+				}
+
+				using (var response = await client.SendAsync(HttpMethod.Get, $"/api/v1/btc/chaumiancoinjoin/coinjoin?uniqueId={uniqueAliceId2}&roundId={roundId}"))
+				{
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
+					Assert.Equal(unsignedCoinJoin.ToHex(), coinjoinHex);
 				}
 			}
 		}

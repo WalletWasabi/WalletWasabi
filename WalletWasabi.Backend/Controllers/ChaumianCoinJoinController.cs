@@ -512,9 +512,9 @@ namespace WalletWasabi.Backend.Controllers
 		/// <returns>Hx of the coinjoin transaction.</returns>
 		/// <response code="200">Returns the coinjoin transaction.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
+		/// <response code="404">If Alice or the round is not found.</response>
 		/// <response code="409">CoinJoin can only be requested from Signing phase.</response>
 		/// <response code="410">CoinJoin can only be requested from a Running round.</response>
-		/// <response code="404">If Alice or the round is not found.</response>
 		[HttpGet("coinjoin")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
@@ -553,7 +553,7 @@ namespace WalletWasabi.Backend.Controllers
 			CcjRoundPhase phase = round.Phase;
 			switch (phase)
 			{
-				case CcjRoundPhase.InputRegistration:
+				case CcjRoundPhase.Signing:
 					{
 						return Ok(round.GetUnsignedCoinJoinHex());
 					}
@@ -627,7 +627,7 @@ namespace WalletWasabi.Backend.Controllers
 			CcjRoundPhase phase = round.Phase;
 			switch (phase)
 			{
-				case CcjRoundPhase.InputRegistration:
+				case CcjRoundPhase.Signing:
 					{
 						using (await SigningLock.LockAsync())
 						{
