@@ -1474,6 +1474,7 @@ namespace WalletWasabi.Tests
 
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			{
+				#region PostInputsGetStates
 				// <-------------------------->
 				// POST INPUTS and GET STATES tests
 				// <-------------------------->
@@ -1839,6 +1840,9 @@ namespace WalletWasabi.Tests
 					}
 				}
 
+				#endregion
+
+				#region PostConfirmationPostUnconfirmation
 				// <-------------------------->
 				// POST CONFIRMATION and POST UNCONFIRMATION tests
 				// <-------------------------->
@@ -1977,6 +1981,9 @@ namespace WalletWasabi.Tests
 					Assert.Equal("Alice not found.", await response.Content.ReadAsJsonAsync<string>());
 				}
 
+				#endregion
+
+				#region PostOutput
 				// <-------------------------->
 				// POST OUTPUT tests
 				// <-------------------------->
@@ -2093,6 +2100,13 @@ namespace WalletWasabi.Tests
 					Assert.Equal(2, states.Single(x => x.RoundId == roundId).RequiredPeerCount);
 				}
 
+				#endregion
+
+				#region GetCoinjoin
+				// <-------------------------->
+				// GET COINJOIN tests
+				// <-------------------------->
+
 				Transaction unsignedCoinJoin;
 				using (var response = await client.SendAsync(HttpMethod.Get, $"/api/v1/btc/chaumiancoinjoin/coinjoin?uniqueId={uniqueAliceId1}&roundId={roundId}"))
 				{
@@ -2114,6 +2128,13 @@ namespace WalletWasabi.Tests
 				Assert.Contains(input1, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 				Assert.Contains(input2, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 				Assert.True(2 == unsignedCoinJoin.Inputs.Count);
+
+				#endregion
+
+				#region PostSignatures
+				// <-------------------------->
+				// POST SIGNATURES tests
+				// <-------------------------->
 
 				var partSignedCj1 = new Transaction(unsignedCoinJoin.ToHex());
 				var partSignedCj2 = new Transaction(unsignedCoinJoin.ToHex());
@@ -2157,6 +2178,17 @@ namespace WalletWasabi.Tests
 
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
+
+				#endregion
+				
+				#region 100Participants
+				// <-------------------------->
+				// 100 PARTICIPANT TEST
+				// <-------------------------->
+
+				
+
+				#endregion
 			}
 		}
 
