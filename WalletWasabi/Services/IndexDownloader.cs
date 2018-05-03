@@ -14,6 +14,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Services
 {
@@ -21,7 +22,9 @@ namespace WalletWasabi.Services
     {
 		public Network Network { get; }
 
-		public TorHttpClient Client { get; }
+		public TorHttpClient TorClient { get; }
+
+		public WasabiClient Client { get; }
 
 		public string IndexFilePath { get; }
 		private List<FilterModel> Index { get; }
@@ -67,7 +70,8 @@ namespace WalletWasabi.Services
 		public IndexDownloader(Network network, string indexFilePath, Uri indexHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			Client = new TorHttpClient(indexHostUri, torSocks5EndPoint, isolateStream: false);
+			TorClient = new TorHttpClient(indexHostUri, torSocks5EndPoint, isolateStream: false);
+			Client = new WasabiClient(TorClient);
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 
 			Index = new List<FilterModel>();
@@ -128,7 +132,7 @@ namespace WalletWasabi.Services
 								bestKnownFilter = Index.Last();
 							}
 
-							var response = await Client.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/filters?bestKnownBlockHash={bestKnownFilter.BlockHash}&count=1000");
+							var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/filters/{bestKnownFilter.BlockHash}");
 
 							if (response.StatusCode == HttpStatusCode.NoContent)
 							{
