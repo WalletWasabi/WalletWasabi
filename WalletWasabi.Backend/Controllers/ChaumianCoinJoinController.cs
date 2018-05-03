@@ -284,14 +284,14 @@ namespace WalletWasabi.Backend.Controllers
 		/// <response code="200">RoundHash if the phase is already ConnectionConfirmation.</response>
 		/// <response code="204">If the phase is InputRegistration and Alice is found.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
-		/// <response code="403">Participation can be only confirmed from a Running round's InputRegistration or ConnectionConfirmation phase.</response>
 		/// <response code="404">If Alice or the round is not found.</response>
+		/// <response code="410">Participation can be only confirmed from a Running round's InputRegistration or ConnectionConfirmation phase.</response>
 		[HttpPost("confirmation")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
-		[ProducesResponseType(403)]
 		[ProducesResponseType(404)]
+		[ProducesResponseType(410)]
 		public async Task<IActionResult> PostConfirmationAsync([FromQuery]string uniqueId, [FromQuery]long roundId)
 		{
 			if (roundId <= 0 || !ModelState.IsValid)
@@ -320,7 +320,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (round.Status != CcjRoundStatus.Running)
 			{
-				return Forbid("Round is not running.");
+				return Gone("Round is not running.");
 			}
 
 			CcjRoundPhase phase = round.Phase;
@@ -362,7 +362,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 				default:
 					{
-						return Forbid($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
+						return Gone($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
 					}
 			}
 		}
@@ -375,12 +375,12 @@ namespace WalletWasabi.Backend.Controllers
 		/// <response code="200">Alice or the round was not found.</response>
 		/// <response code="204">Alice sucessfully uncofirmed her participation.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
-		/// <response code="403">Participation can be only unconfirmed from a Running round's InputRegistration phase.</response>
+		/// <response code="410">Participation can be only unconfirmed from a Running round's InputRegistration phase.</response>
 		[HttpPost("unconfirmation")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
-		[ProducesResponseType(403)]
+		[ProducesResponseType(410)]
 		public IActionResult PostUncorfimation([FromQuery]string uniqueId, [FromQuery]long roundId)
 		{
 			if (roundId <= 0 || !ModelState.IsValid)
@@ -409,7 +409,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if(round.Status != CcjRoundStatus.Running)
 			{
-				return Forbid("Round is not running.");
+				return Gone("Round is not running.");
 			}
 
 			CcjRoundPhase phase = round.Phase;
@@ -422,7 +422,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 				default:
 					{
-						return Forbid($"Participation can be only unconfirmed from InputRegistration phase. Current phase: {phase}.");
+						return Gone($"Participation can be only unconfirmed from InputRegistration phase. Current phase: {phase}.");
 					}
 			}
 		}
@@ -436,13 +436,15 @@ namespace WalletWasabi.Backend.Controllers
 		/// <returns>RoundHash if the phase is already ConnectionConfirmation.</returns>
 		/// <response code="204">Output is successfully registered.</response>
 		/// <response code="400">The provided roundHash or outpurRequest was malformed.</response>
-		/// <response code="403">Output registration can only be done from a Running round's OutputRegistration phase.</response>
+		/// <response code="409">Output registration can only be done from OutputRegistration phase.</response>
+		/// <response code="410">Output registration can only be done from a Running round.</response>
 		/// <response code="404">If round not found.</response>
 		[HttpPost("output")]
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
-		[ProducesResponseType(403)]
 		[ProducesResponseType(404)]
+		[ProducesResponseType(409)]
+		[ProducesResponseType(410)]
 		public async Task<IActionResult> PostOutputAsync([FromQuery]string roundHash, [FromBody]OutputRequest outputRequest)
 		{
 			if (string.IsNullOrWhiteSpace(roundHash)
@@ -462,13 +464,13 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (round.Status != CcjRoundStatus.Running)
 			{
-				return Forbid("Round is not running.");
+				return Gone("Round is not running.");
 			}
 
 			CcjRoundPhase phase = round.Phase;
 			if (phase != CcjRoundPhase.OutputRegistration)
 			{
-				return Forbid($"Output registration can only be done from OutputRegistration phase. Current phase: {phase}.");
+				return Conflict($"Output registration can only be done from OutputRegistration phase. Current phase: {phase}.");
 			}
 
 			var outputScript = new Script(outputRequest.OutputScript);
@@ -510,13 +512,15 @@ namespace WalletWasabi.Backend.Controllers
 		/// <returns>Hx of the coinjoin transaction.</returns>
 		/// <response code="200">Returns the coinjoin transaction.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
-		/// <response code="403">CoinJoin can only be requested from a Running round's Signing phase.</response>
+		/// <response code="409">CoinJoin can only be requested from Signing phase.</response>
+		/// <response code="410">CoinJoin can only be requested from a Running round.</response>
 		/// <response code="404">If Alice or the round is not found.</response>
 		[HttpGet("coinjoin")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
-		[ProducesResponseType(403)]
 		[ProducesResponseType(404)]
+		[ProducesResponseType(409)]
+		[ProducesResponseType(410)]
 		public IActionResult GetCoinJoin([FromQuery]string uniqueId, [FromQuery]long roundId)
 		{
 			if (roundId <= 0 || !ModelState.IsValid)
@@ -543,7 +547,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (round.Status != CcjRoundStatus.Running)
 			{
-				return Forbid("Round is not running.");
+				return Gone("Round is not running.");
 			}
 
 			CcjRoundPhase phase = round.Phase;
@@ -555,7 +559,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 				default:
 					{
-						return Forbid($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
+						return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
 					}
 			}
 		}
@@ -571,13 +575,15 @@ namespace WalletWasabi.Backend.Controllers
 		/// <returns>Hx of the coinjoin transaction.</returns>
 		/// <response code="204">CoinJoin successfully signed.</response>
 		/// <response code="400">The provided uniqueId, roundId or witnesses were malformed.</response>
-		/// <response code="403">CoinJoin can only be requested from a Running round's Signing phase.</response>
+		/// <response code="409">Signatures can only be provided from Signing phase.</response>
+		/// <response code="410">Signatures can only be provided from a Running round.</response>
 		/// <response code="404">If Alice or the round is not found.</response>
 		[HttpPost("signatures")]
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
-		[ProducesResponseType(403)]
 		[ProducesResponseType(404)]
+		[ProducesResponseType(409)]
+		[ProducesResponseType(410)]
 		public async Task<IActionResult> PostSignaturesAsync([FromQuery]string uniqueId, [FromQuery]long roundId, [FromBody]IDictionary<int, string> signatures)
 		{
 			if (roundId <= 0
@@ -615,7 +621,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (round.Status != CcjRoundStatus.Running)
 			{
-				return Forbid("Round is not running.");
+				return Gone("Round is not running.");
 			}
 
 			CcjRoundPhase phase = round.Phase;
@@ -671,7 +677,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 				default:
 					{
-						return Forbid($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
+						return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
 					}
 			}
 		}
@@ -702,5 +708,15 @@ namespace WalletWasabi.Backend.Controllers
 
 			return aliceGuid;
 		}
+
+		/// <summary>
+		/// 409
+		/// </summary>
+		private ContentResult Conflict(string content) => new ContentResult() { StatusCode = (int)HttpStatusCode.Conflict, ContentType = "application/json; charset=utf-8", Content = $"\"{content}\"" };
+
+		/// <summary>
+		/// 410
+		/// </summary>
+		private ContentResult Gone(string content) => new ContentResult() { StatusCode = (int)HttpStatusCode.Gone, ContentType = "application/json; charset=utf-8", Content = $"\"{content}\"" };
 	}
 }
