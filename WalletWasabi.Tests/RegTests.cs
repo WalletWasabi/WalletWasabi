@@ -2013,15 +2013,19 @@ namespace WalletWasabi.Tests
 
 				string blindedOutputScriptHex1 = ByteHelpers.ToHex(blinded1.BlindedData);
 				string blindedOutputScriptHex2 = ByteHelpers.ToHex(blinded2.BlindedData);
+
+				var input1 = new OutPoint(hash1, index1);
+				var input2 = new OutPoint(hash2, index2);
 				var request1 = new InputsRequest
 				{
 					BlindedOutputScriptHex = blindedOutputScriptHex1,
-					Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash1, index1), Proof = key1.SignMessage(blindedOutputScriptHex1) } },
+					Inputs = new List<InputProofModel> { new InputProofModel { Input = input1, Proof = key1.SignMessage(blindedOutputScriptHex1) } },
 					ChangeOutputScript = new Key().ScriptPubKey.ToString()					
 				};
-				var request2 = new InputsRequest {
+				var request2 = new InputsRequest
+				{
 					BlindedOutputScriptHex = blindedOutputScriptHex2,
-					Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash2, index2), Proof = key2.SignMessage(blindedOutputScriptHex2) } },
+					Inputs = new List<InputProofModel> { new InputProofModel { Input = input2, Proof = key2.SignMessage(blindedOutputScriptHex2) } },
 					ChangeOutputScript = new Key().ScriptPubKey.ToString()
 				};
 
@@ -2102,6 +2106,14 @@ namespace WalletWasabi.Tests
 					var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
 					Assert.Equal(unsignedCoinJoin.ToHex(), coinjoinHex);
 				}
+
+				Assert.Contains(outputAddress1.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(outputAddress2.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(Constants.GetCoordinatorAddress(Network.RegTest).ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
+				Assert.True(3 == unsignedCoinJoin.Outputs.Count); // Because the two input is equal, so change addresses won't be used.
+				Assert.Contains(input1, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
+				Assert.Contains(input2, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
+				Assert.True(2 == unsignedCoinJoin.Inputs.Count);
 			}
 		}
 
