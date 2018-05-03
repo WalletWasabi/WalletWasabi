@@ -128,7 +128,7 @@ namespace WalletWasabi.Services
 								bestKnownFilter = Index.Last();
 							}
 
-							var response = await Client.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/filters/{bestKnownFilter.BlockHash}");
+							var response = await Client.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/filters/?bestKnownBlockHash={bestKnownFilter.BlockHash}&count=50");
 
 							if (response.StatusCode == HttpStatusCode.NoContent)
 							{

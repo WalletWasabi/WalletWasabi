@@ -211,7 +211,7 @@ namespace WalletWasabi.Tests
 					// Test initial synchronization.
 					var times = 0;
 					uint256 firstHash = await rpc.GetBlockHashAsync(0);
-					while (indexBuilderService.GetFilterLinesExcluding(firstHash, out _).Count() != 101)
+					while (indexBuilderService.GetFilterLinesExcluding(firstHash, 102, out _).Count() != 101)
 					{
 						if (times > 500) // 30 sec
 						{
@@ -224,7 +224,7 @@ namespace WalletWasabi.Tests
 					// Test later synchronization.
 					regtestNode.Generate(10);
 					times = 0;
-					while (indexBuilderService.GetFilterLinesExcluding(firstHash, out bool found5).Count() != 111)
+					while (indexBuilderService.GetFilterLinesExcluding(firstHash, 112, out bool found5).Count() != 111)
 					{
 						Assert.True(found5);
 						if (times > 500) // 30 sec
@@ -237,16 +237,16 @@ namespace WalletWasabi.Tests
 
 					// Test correct number of filters is received.
 					var hundredthHash = await rpc.GetBlockHashAsync(100);
-					Assert.Equal(11, indexBuilderService.GetFilterLinesExcluding(hundredthHash, out bool found).Count());
+					Assert.Equal(11, indexBuilderService.GetFilterLinesExcluding(hundredthHash, 12, out bool found).Count());
 					Assert.True(found);
 					var bestHash = await rpc.GetBestBlockHashAsync();
-					Assert.Empty(indexBuilderService.GetFilterLinesExcluding(bestHash, out bool found2));
+					Assert.Empty(indexBuilderService.GetFilterLinesExcluding(bestHash, 1, out bool found2));
 					Assert.True(found2);
-					Assert.Empty(indexBuilderService.GetFilterLinesExcluding(uint256.Zero, out bool found3));
+					Assert.Empty(indexBuilderService.GetFilterLinesExcluding(uint256.Zero, 1, out bool found3));
 					Assert.False(found3);
 
 					// Test filter block hashes are correct.
-					var filters = indexBuilderService.GetFilterLinesExcluding(firstHash, out bool found4).ToArray();
+					var filters = indexBuilderService.GetFilterLinesExcluding(firstHash, 112, out bool found4).ToArray();
 					Assert.True(found4);
 					for (int i = 0; i < 111; i++)
 					{
