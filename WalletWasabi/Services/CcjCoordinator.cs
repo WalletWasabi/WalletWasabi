@@ -194,7 +194,7 @@ namespace WalletWasabi.Services
 			// If failed in signing phase, then ban Alices those didn't sign.
 			if(status == CcjRoundStatus.Failed && round.Phase == CcjRoundPhase.Signing)
 			{
-				foreach (Alice alice in round.GetAlicesByNot(AliceState.SignedCoinJoin))
+				foreach (Alice alice in round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false)) // Because the event sometimes is raised from inside the lock.
 				{
 					// If its from any coinjoin, then don't ban.
 					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x=>x.OutPoint);

@@ -1784,6 +1784,7 @@ namespace WalletWasabi.Tests
 					roundId = inputsResp.RoundId;
 				}
 
+				await Task.Delay(10);
 				using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -2109,11 +2110,53 @@ namespace WalletWasabi.Tests
 
 				Assert.Contains(outputAddress1.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
 				Assert.Contains(outputAddress2.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
-				Assert.Contains(Constants.GetCoordinatorAddress(Network.RegTest).ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
-				Assert.True(3 == unsignedCoinJoin.Outputs.Count); // Because the two input is equal, so change addresses won't be used.
+				Assert.True(2 == unsignedCoinJoin.Outputs.Count); // Because the two input is equal, so change addresses won't be used, nor coordinator fee will be taken.
 				Assert.Contains(input1, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 				Assert.Contains(input2, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 				Assert.True(2 == unsignedCoinJoin.Inputs.Count);
+
+				var partSignedCj1 = new Transaction(unsignedCoinJoin.ToHex());
+				var partSignedCj2 = new Transaction(unsignedCoinJoin.ToHex());
+				new TransactionBuilder()
+							.AddKeys(key1)
+							.AddCoins(new Coin(tx1, input1.N))
+							.SignTransactionInPlace(partSignedCj1, SigHash.All);
+				new TransactionBuilder()
+							.AddKeys(key2)
+							.AddCoins(new Coin(tx2, input2.N))
+							.SignTransactionInPlace(partSignedCj2, SigHash.All);
+
+				var myDic1 = new Dictionary<int, string>();
+				var myDic2 = new Dictionary<int, string>();
+
+				for(int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
+				{
+					var input = unsignedCoinJoin.Inputs[i];
+					if (input.PrevOut == input1)
+					{
+						myDic1.Add(i, partSignedCj1.Inputs[i].WitScript.ToString());
+					}
+					if (input.PrevOut == input2)
+					{
+						myDic2.Add(i, partSignedCj2.Inputs[i].WitScript.ToString());
+					}
+				}
+
+				var jsonSigs1 = JsonConvert.SerializeObject(myDic1, Formatting.None);
+				var jsonSigs2 = JsonConvert.SerializeObject(myDic2, Formatting.None);
+				var sigReqCont1 = new StringContent(jsonSigs1, Encoding.UTF8, "application/json");
+				var sigReqCont2 = new StringContent(jsonSigs2, Encoding.UTF8, "application/json");
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/signatures?uniqueId={uniqueAliceId1}&roundId={roundId}", sigReqCont1))
+				{
+					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+				}
+				using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/signatures?uniqueId={uniqueAliceId2}&roundId={roundId}", sigReqCont2))
+				{
+					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+				}
+
+				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
+				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 			}
 		}
 

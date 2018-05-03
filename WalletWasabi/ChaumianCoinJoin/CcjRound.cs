@@ -286,10 +286,17 @@ namespace WalletWasabi.ChaumianCoinJoin
 									transaction.AddOutput(changeAmount, alice.ChangeOutputScript);
 								}
 							}
+							else
+							{
+								coordinatorFee -= coordinatorFeePerAlice;
+							}
 						}
 
-						// 6. Add Coordinator fee.
-						transaction.AddOutput(coordinatorFee, coordinatorAddress);
+						// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
+						if (coordinatorFee > new Money(0.0003m, MoneyUnit.BTC))
+						{
+							transaction.AddOutput(coordinatorFee, coordinatorAddress);
+						}
 
 						// 7. Create the unsigned transaction.
 						var builder = new TransactionBuilder();
@@ -560,9 +567,16 @@ namespace WalletWasabi.ChaumianCoinJoin
 			}
 		}
 
-		public IEnumerable<Alice> GetAlicesByNot(AliceState state)
+		public IEnumerable<Alice> GetAlicesByNot(AliceState state, bool syncLock = true)
 		{
-			using (RoundSyncronizerLock.Lock())
+			if (syncLock)
+			{
+				using (RoundSyncronizerLock.Lock())
+				{
+					return Alices.Where(x => x.State != state).ToList();
+				}
+			}
+			else
 			{
 				return Alices.Where(x => x.State != state).ToList();
 			}
@@ -632,7 +646,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs.Select(y => new Coin(y.OutPoint, y.Output))).ToArray();
 						Money networkFee = SignedCoinJoin.GetFee(spentCoins);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.Single(x=>x.ScriptPubKey == Constants.GetCoordinatorAddress(RpcClient.Network).ScriptPubKey).Value.ToString(false, false)} BTC.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x=>x.ScriptPubKey == Constants.GetCoordinatorAddress(RpcClient.Network).ScriptPubKey)?.Value?.ToString(false, false)?? "0"} BTC.");
 						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte.");
 
