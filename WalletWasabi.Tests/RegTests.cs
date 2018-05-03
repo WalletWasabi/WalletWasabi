@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests
 			while (true)
 			{
 				using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-				using (var response = await client.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/filters/?bestKnownBlockHash={firstHash}&count=102"))
+				using (var response = await client.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/filters?bestKnownBlockHash={firstHash}&count=1000"))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 					var filters = await response.Content.ReadAsJsonAsync<List<string>>();
