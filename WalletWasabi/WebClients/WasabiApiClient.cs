@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,11 +13,11 @@ using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.WebClients
 {
-    public class WasabiClient : IDisposable
+    public class WasabiApiClient : IDisposable
     {
         public readonly TorHttpClient _torClient;
 
-        public WasabiClient(TorHttpClient torClient)
+        public WasabiApiClient(TorHttpClient torClient)
         {
             _torClient = torClient;
         }

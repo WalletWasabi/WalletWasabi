@@ -586,7 +586,7 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 			Money feePerBytes = null;
 			using (var torClient = new TorHttpClient(IndexDownloader.TorClient.DestinationUri, IndexDownloader.TorClient.TorSocks5EndPoint, isolateStream: true))
-			using (var client = new WasabiClient( torClient ))
+			using (var client = new WasabiApiClient( torClient ))
 			{
 				feePerBytes = (await client.GetFeePerByteAsync(feeTarget)).Single();
 			}

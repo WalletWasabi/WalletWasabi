@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests
 			while (true)
 			{
 				using (var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-				using (var client = new WasabiClient(torClient))
+				using (var client = new WasabiApiClient(torClient))
 				{
 					var filters = await client.GetFiltersAsync(firstHash, 200);
 					var filterCount = filters.Count();
@@ -106,7 +106,7 @@ namespace WalletWasabi.Tests
 
 			Logger.TurnOff();
 			using (var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-			using (var client = new WasabiClient(torClient))
+			using (var client = new WasabiApiClient(torClient))
 			{
 				var ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.BroadcastAsync(signedTx));
 				Assert.EndsWith("relay fee not met", ex.Message);
@@ -124,7 +124,7 @@ namespace WalletWasabi.Tests
 
 			Logger.TurnOff();
 			using (var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-			using (var client = new WasabiClient(torClient))
+			using (var client = new WasabiApiClient(torClient))
 			{
 //				Assert.Equal("Transaction is already in the blockchain.", await response.Content.ReadAsJsonAsync<string>());
 				await client.BroadcastAsync(tx);
@@ -137,7 +137,7 @@ namespace WalletWasabi.Tests
 		{
 			Logger.TurnOff();
 			using (var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-			using (var client = new WasabiClient(torClient))
+			using (var client = new WasabiApiClient(torClient))
 			{
 				try
 				{
@@ -1488,7 +1488,7 @@ namespace WalletWasabi.Tests
 			coordinator.FailAllRoundsInInputRegistration();			
 
 			using (var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-			using (var client = new WasabiClient(torClient))
+			using (var client = new WasabiApiClient(torClient))
 			{
 				#region PostInputsGetStates
 				// <-------------------------->
