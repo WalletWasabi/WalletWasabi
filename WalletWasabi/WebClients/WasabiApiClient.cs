@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using NBitcoin;
+using Newtonsoft.Json;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
@@ -79,6 +81,18 @@ namespace WalletWasabi.WebClients
 			}
         }
 
+        public async Task RegisterOutputAsync(string roundHash, OutputRequest request)
+        {
+			using (var response = await _torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/output?roundHash={roundHash}", request.ToHttpStringContent()))
+			{
+				if (!response.IsSuccessStatusCode)
+                {
+					string message = await response.Content.ReadAsJsonAsync<string>();
+					throw new HttpRequestException(message);
+                }
+			}
+        }
+
         public async Task<IEnumerable<CcjRunningRoundState>> GetStatesAsync()
         {
 			using (var response = await _torClient.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
@@ -108,6 +122,40 @@ namespace WalletWasabi.WebClients
 					return string.Empty;
 
 				return await response.Content.ReadAsJsonAsync<string>();
+			}
+        }
+
+        public async Task<Transaction> CoinJoin(Guid uid, long roundId)
+        {
+			var queryString = $"/api/v1/btc/chaumiancoinjoin/coinjoin?uniqueId={uid}&roundId={roundId}";
+
+			using (var response = await _torClient.SendAsync(HttpMethod.Get, queryString))
+			{
+				if (!response.IsSuccessStatusCode)
+                {
+					string message = await response.Content.ReadAsJsonAsync<string>();
+					throw new HttpRequestException(message ?? string.Empty);
+                }
+
+				var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
+				return new Transaction(coinjoinHex);
+			}
+        }
+
+        public async Task Signature(Guid uid, long roundId, IDictionary<int, TxIn> inputs )
+        {
+			var queryString = $"/api/v1/btc/chaumiancoinjoin/signatures?uniqueId={uid}&roundId={roundId}";
+			var inputsToSign =	inputs.ToDictionary(x=>x.Key, y=>y.Value.WitScript.ToString());
+			var json = JsonConvert.SerializeObject(inputsToSign, Formatting.None);
+			var requestBody = new StringContent(json, Encoding.UTF8, "application/json");
+			
+			using (var response = await _torClient.SendAsync(HttpMethod.Post, queryString, requestBody))
+			{
+				if (!response.IsSuccessStatusCode)
+                {
+					string message = await response.Content.ReadAsJsonAsync<string>();
+					throw new HttpRequestException(message ?? string.Empty);
+                }
 			}
         }
 

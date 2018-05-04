@@ -1913,64 +1913,34 @@ namespace WalletWasabi.Tests
 				Guid uniqueAliceId2 = Guid.Empty;
 				string sigHex1;
 				string sigHex2;
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request1.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
-					uniqueAliceId1 = inputsResp.UniqueId;
-					roundId = inputsResp.RoundId;
-					sigHex1 = ByteHelpers.ToHex(blindingKey.PubKey.UnblindSignature(inputsResp.BlindedOutputSignature, blinded1.BlindingFactor));
-				}
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request2.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
-					uniqueAliceId2 = inputsResp.UniqueId;
-					Assert.Equal(roundId, inputsResp.RoundId);
-					sigHex2 = ByteHelpers.ToHex(blindingKey.PubKey.UnblindSignature(inputsResp.BlindedOutputSignature, blinded2.BlindingFactor));
-				}
-				var roundHash = "";
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId1}&roundId={roundId}"))
-				{
-					Assert.True(response.IsSuccessStatusCode);
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					roundHash = await response.Content.ReadAsJsonAsync<string>();
-				}
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId2}&roundId={roundId}"))
-				{
-					Assert.True(response.IsSuccessStatusCode);
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var rh = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal(roundHash, rh);
-				}
-				using (var response = await torClient.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
-				{
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
+				registration =await client.RegisterInputAsync(request1);
+				uniqueAliceId1 = registration.UniqueId;
+				roundId = registration.RoundId;
+				sigHex1 = ByteHelpers.ToHex(blindingKey.PubKey.UnblindSignature(registration.BlindedOutputSignature, blinded1.BlindingFactor));
+				
+				registration =await client.RegisterInputAsync(request2);
+				uniqueAliceId2 = registration.UniqueId;
+				Assert.Equal(roundId, registration.RoundId);
+				sigHex2 = ByteHelpers.ToHex(blindingKey.PubKey.UnblindSignature(registration.BlindedOutputSignature, blinded2.BlindingFactor));
+				
+				var roundHash = await client.GetConfirmationAsync(uniqueAliceId1, roundId);
+				var rh = await client.GetConfirmationAsync(uniqueAliceId2, roundId);
+				Assert.Equal(roundHash, rh);
 
-					Assert.Single(states.Where(x => x.RoundId == roundId));
-					Assert.Equal(CcjRoundPhase.OutputRegistration, states.Single(x => x.RoundId == roundId).Phase);
-				}
+				states = await client.GetStatesAsync();
+				Assert.Single(states.Where(x => x.RoundId == roundId));
+				Assert.Equal(CcjRoundPhase.OutputRegistration, states.Single(x => x.RoundId == roundId).Phase);
 
 				var outputRequest1 = new OutputRequest() { OutputScript = outputAddress1.ScriptPubKey.ToString(), SignatureHex = sigHex1 };
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/output?roundHash={roundHash}", outputRequest1.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-				}
+				await client.RegisterOutputAsync(roundHash, outputRequest1);
 
 				var outputRequest2 = new OutputRequest() { OutputScript = outputAddress2.ScriptPubKey.ToString(), SignatureHex = sigHex2 };
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/output?roundHash={roundHash}", outputRequest2.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-				}
+				await client.RegisterOutputAsync(roundHash, outputRequest2);
 
-				using (var response = await torClient.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
-				{
-					states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
-					Assert.Equal(CcjRoundPhase.Signing, states.Single(x => x.RoundId == roundId).Phase);
-					Assert.Equal(2, states.Single(x => x.RoundId == roundId).RegisteredPeerCount);
-					Assert.Equal(2, states.Single(x => x.RoundId == roundId).RequiredPeerCount);
-				}
+				states = await client.GetStatesAsync();
+				Assert.Equal(CcjRoundPhase.Signing, states.Single(x => x.RoundId == roundId).Phase);
+				Assert.Equal(2, states.Single(x => x.RoundId == roundId).RegisteredPeerCount);
+				Assert.Equal(2, states.Single(x => x.RoundId == roundId).RequiredPeerCount);
 
 				#endregion
 
@@ -1979,20 +1949,10 @@ namespace WalletWasabi.Tests
 				// GET COINJOIN tests
 				// <-------------------------->
 
-				Transaction unsignedCoinJoin;
-				using (var response = await torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/chaumiancoinjoin/coinjoin?uniqueId={uniqueAliceId1}&roundId={roundId}"))
-				{
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
-					unsignedCoinJoin = new Transaction(coinjoinHex);
-				}
+				var unsignedCoinJoin = await client.CoinJoin(uniqueAliceId1, roundId);
+				var unsignedCoinJoin2 = await client.CoinJoin(uniqueAliceId2, roundId);
 
-				using (var response = await torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/chaumiancoinjoin/coinjoin?uniqueId={uniqueAliceId2}&roundId={roundId}"))
-				{
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal(unsignedCoinJoin.ToHex(), coinjoinHex);
-				}
+				Assert.Equal(unsignedCoinJoin.ToHex(), unsignedCoinJoin2.ToHex());
 
 				Assert.Contains(outputAddress1.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
 				Assert.Contains(outputAddress2.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
@@ -2019,34 +1979,24 @@ namespace WalletWasabi.Tests
 							.AddCoins(new Coin(tx2, input2.N))
 							.SignTransactionInPlace(partSignedCj2, SigHash.All);
 
-				var myDic1 = new Dictionary<int, string>();
-				var myDic2 = new Dictionary<int, string>();
+				var myDic1 = new Dictionary<int, TxIn>();
+				var myDic2 = new Dictionary<int, TxIn>();
 
 				for(int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
 				{
 					var input = unsignedCoinJoin.Inputs[i];
 					if (input.PrevOut == input1)
 					{
-						myDic1.Add(i, partSignedCj1.Inputs[i].WitScript.ToString());
+						myDic1.Add(i, partSignedCj1.Inputs[i]);
 					}
 					if (input.PrevOut == input2)
 					{
-						myDic2.Add(i, partSignedCj2.Inputs[i].WitScript.ToString());
+						myDic2.Add(i, partSignedCj2.Inputs[i]);
 					}
 				}
 
-				var jsonSigs1 = JsonConvert.SerializeObject(myDic1, Formatting.None);
-				var jsonSigs2 = JsonConvert.SerializeObject(myDic2, Formatting.None);
-				var sigReqCont1 = new StringContent(jsonSigs1, Encoding.UTF8, "application/json");
-				var sigReqCont2 = new StringContent(jsonSigs2, Encoding.UTF8, "application/json");
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/signatures?uniqueId={uniqueAliceId1}&roundId={roundId}", sigReqCont1))
-				{
-					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-				}
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/signatures?uniqueId={uniqueAliceId2}&roundId={roundId}", sigReqCont2))
-				{
-					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-				}
+				await client.Signature(uniqueAliceId1, roundId, myDic1);
+				await client.Signature(uniqueAliceId2, roundId, myDic2);
 
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);

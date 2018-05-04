@@ -24,7 +24,7 @@ namespace WalletWasabi.Services
 
 		public TorHttpClient TorClient { get; }
 
-		public WasabiClient Client { get; }
+		public WasabiApiClient Client { get; }
 
 		public string IndexFilePath { get; }
 		private List<FilterModel> Index { get; }
@@ -71,7 +71,7 @@ namespace WalletWasabi.Services
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			TorClient = new TorHttpClient(indexHostUri, torSocks5EndPoint, isolateStream: false);
-			Client = new WasabiClient(TorClient);
+			Client = new WasabiApiClient(TorClient);
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 
 			Index = new List<FilterModel>();
