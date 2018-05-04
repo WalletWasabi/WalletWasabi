@@ -2327,6 +2327,29 @@ namespace WalletWasabi.Tests
 					var response = await request;
 					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 				}
+
+				var coinjoinRequests = new List<Task<HttpResponseMessage>>();
+				foreach (var user in users)
+				{
+					coinjoinRequests.Add(torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/chaumiancoinjoin/coinjoin?uniqueId={user.uniqueId}&roundId={roundId}"));
+				}
+
+				string unsignedCoinJoinHex = "";
+				foreach (var request in coinjoinRequests)
+				{
+					var response = await request;
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					var coinJoinHex = await response.Content.ReadAsJsonAsync<string>();
+					if(unsignedCoinJoinHex == "")
+					{
+						unsignedCoinJoinHex = coinJoinHex;
+					}
+					else
+					{
+						Assert.Equal(unsignedCoinJoinHex, coinJoinHex);
+					}
+				}
+				var unsignedCoinJoin = Transaction.Parse(unsignedCoinJoinHex);
 			}
 		}
 
