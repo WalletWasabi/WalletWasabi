@@ -108,7 +108,7 @@ namespace WalletWasabi.Tests
 			using (var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var client = new WasabiApiClient(torClient))
 			{
-				var ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.BroadcastAsync(signedTx));
+				var ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.BroadcastAsync(signedTx));
 				Assert.EndsWith("relay fee not met", ex.Message);
 			}
 			Logger.TurnOn();
@@ -1523,19 +1523,19 @@ namespace WalletWasabi.Tests
 					Inputs = null,
 				};
 
-				var ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				var ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Invalid request.", ex.Message);
 				
 				request.BlindedOutputScriptHex = "";
 				request.ChangeOutputScript = "";
 				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(), Proof = "" } };
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Invalid request.", ex.Message);
 
 				request.BlindedOutputScriptHex = "c";
 				request.ChangeOutputScript = "a";
 				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = "b" } };
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Provided input is not unspent.", ex.Message);
 
 
@@ -1553,11 +1553,11 @@ namespace WalletWasabi.Tests
 				}
 
 				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.", ex.Message);
 
 				var blocks = await rpc.GenerateAsync(1);
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Provided input must be witness_v0_keyhash.", ex.Message);
 
 
@@ -1565,7 +1565,7 @@ namespace WalletWasabi.Tests
 				var block = await rpc.GetBlockAsync(blockHash);
 				var coinbase = block.Transactions.First();
 				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(coinbase.GetHash(), 0), Proof = "b" } };
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Provided input is immature.", ex.Message);
 
 				var key = new Key();
@@ -1583,30 +1583,30 @@ namespace WalletWasabi.Tests
 					}
 				}
 				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
-				await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 
 				var proof = key.SignMessage("foo");
 				request.Inputs.First().Proof = proof;
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Provided proof is invalid.", ex.Message);
 
 				request.BlindedOutputScriptHex = new Transaction().ToHex();
 				proof = key.SignMessage(request.BlindedOutputScriptHex);
 				request.Inputs.First().Proof = proof;
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.StartsWith("Not enough inputs are provided. Fee to pay:", ex.Message);
 
 
 				roundConfig.Denomination = new Money(0.01m, MoneyUnit.BTC); // exactly the same as our output
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.FailAllRoundsInInputRegistration();
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.StartsWith("Not enough inputs are provided. Fee to pay:", ex.Message);
 
 				roundConfig.Denomination = new Money(0.00999999m, MoneyUnit.BTC); // one satoshi less than our output
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.FailAllRoundsInInputRegistration();
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.StartsWith("Not enough inputs are provided. Fee to pay:", ex.Message);
 
 				roundConfig.Denomination = new Money(0.008m, MoneyUnit.BTC); // one satoshi less than our output
@@ -1630,7 +1630,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
 				Assert.Equal(1, roundState.RegisteredPeerCount);
 
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Blinded output has already been registered.", ex.Message);
 
 				states = await client.GetStatesAsync();
@@ -1642,7 +1642,7 @@ namespace WalletWasabi.Tests
 				request.BlindedOutputScriptHex = "foo";
 				proof = key.SignMessage(request.BlindedOutputScriptHex);
 				request.Inputs.First().Proof = proof;
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Invalid blinded output hex.", ex.Message);
 
 				states = await client.GetStatesAsync();
@@ -1673,7 +1673,7 @@ namespace WalletWasabi.Tests
 				proof = key.SignMessage(request.BlindedOutputScriptHex);
 				request.Inputs.First().Proof = proof;
 				request.Inputs = new List<InputProofModel> { request.Inputs.First(), request.Inputs.First() };
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Cannot register an input twice.", ex.Message);
 
 				var inputProofs = new List<InputProofModel>();
@@ -1699,7 +1699,7 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 
 				request.Inputs = inputProofs;
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Maximum 7 inputs can be registered.", ex.Message);
 
 				inputProofs.RemoveLast();
@@ -1728,12 +1728,12 @@ namespace WalletWasabi.Tests
 				Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
 				Assert.Equal(2, roundState.RegisteredPeerCount);
 
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.Equal("Input is already registered in another round.", ex.Message);
 
 				// Wait until input registration times out.
 				await Task.Delay(3000);
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async ()=>await client.RegisterInputAsync(request));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async ()=>await client.RegisterInputAsync(request));
 				Assert.StartsWith("Input is banned from participation for", ex.Message);
 
 				states = await client.GetStatesAsync();
@@ -1811,26 +1811,26 @@ namespace WalletWasabi.Tests
 					Assert.Null(await response.Content.ReadAsJsonAsync<string>());
 				}
 
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async()=> await client.GetConfirmationAsync(uniqueAliceId, 0));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async()=> await client.GetConfirmationAsync(uniqueAliceId, 0));
 				Assert.Equal("", ex.Message);
 
 				confirmation = await client.GetConfirmationAsync(uniqueAliceId, roundId);
 				Assert.True(string.IsNullOrEmpty(confirmation));
 				
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async()=> await client.GetConfirmationAsync(uniqueAliceId, long.MaxValue));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async()=> await client.GetConfirmationAsync(uniqueAliceId, long.MaxValue));
 				Assert.Equal("Round not found.", ex.Message);
 
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async()=> await client.GetConfirmationAsync(uniqueAliceId, -1));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async()=> await client.GetConfirmationAsync(uniqueAliceId, -1));
 				Assert.Equal("", ex.Message);
 
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async()=> await client.GetConfirmationAsync(Guid.NewGuid(), roundId));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async()=> await client.GetConfirmationAsync(Guid.NewGuid(), roundId));
 				Assert.Equal("Alice not found.", ex.Message);
 
 				roundConfig.ConnectionConfirmationTimeout = 60;
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.FailAllRoundsInInputRegistration();
 			
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async()=> await client.GetConfirmationAsync(Guid.NewGuid(), roundId));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async()=> await client.GetConfirmationAsync(Guid.NewGuid(), roundId));
 				Assert.Equal("Alice not found.", ex.Message);
 
 				registration = await client.RegisterInputAsync(request);
@@ -1848,9 +1848,9 @@ namespace WalletWasabi.Tests
 					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 				}
 
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async()=> await client.GetConfirmationAsync(Guid.NewGuid(), roundId));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async()=> await client.GetConfirmationAsync(Guid.NewGuid(), roundId));
 				Assert.Equal("Alice not found.", ex.Message);
-				ex = await Assert.ThrowsAsync<HttpRequestException>(async()=> await client.GetConfirmationAsync(Guid.NewGuid(), roundId));
+				ex = await Assert.ThrowsAsync<ApiClientException>(async()=> await client.GetConfirmationAsync(Guid.NewGuid(), roundId));
 				Assert.Equal("Alice not found.", ex.Message);
 
 				#endregion

@@ -15,6 +15,33 @@ using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.WebClients
 {
+	public enum ApiClientErrorCode{
+		Generic,
+		FilterNotFound = 1,
+		NetworkFeesNotAvailable = 2
+	};
+	
+	public class ApiClientException : Exception
+	{
+		private readonly static Dictionary<ApiClientErrorCode, string> Errors = new Dictionary<ApiClientErrorCode, string>
+		{
+			{ ApiClientErrorCode.Generic, string.Empty },
+			{ ApiClientErrorCode.FilterNotFound, "Filter not found." },
+			{ ApiClientErrorCode.NetworkFeesNotAvailable, "Couldn't query network fees."}
+		};
+        public ApiClientErrorCode ErrorCode { get; }
+
+        public ApiClientException(ApiClientErrorCode errorCode)
+			: this(errorCode, Errors[errorCode])
+		{
+		}
+        public ApiClientException(ApiClientErrorCode errorCode, string reason)
+			:base(reason)
+		{
+			ErrorCode = errorCode;
+		}
+	}
+
     public class WasabiApiClient : IDisposable
     {
         public readonly TorHttpClient _torClient;
@@ -30,7 +57,7 @@ namespace WalletWasabi.WebClients
 			using (var response = await _torClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v1/btc/blockchain/fees/{ct}"))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
-					throw new HttpRequestException($"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
+					throw new ApiClientException(ApiClientErrorCode.NetworkFeesNotAvailable);
 
 				using (var content = response.Content)
 				{
@@ -42,10 +69,15 @@ namespace WalletWasabi.WebClients
 
         public async Task<IEnumerable<string>> GetFiltersAsync(uint256 bestKnownBlockHash, int count)
         {
-			using (var response = await _torClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v1/btc/blockchain/filters/{bestKnownBlockHash}"))
+			var queryString = $"/api/v1/btc/blockchain/filters/?bestKnownBlockHash={bestKnownBlockHash}&count={count}";
+
+			using (var response = await _torClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, queryString))
 			{
+				if (response.StatusCode == HttpStatusCode.NotFound)
+					throw new ApiClientException(ApiClientErrorCode.FilterNotFound);
+				
 				if (response.StatusCode != HttpStatusCode.OK)
-					throw new HttpRequestException($"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
+					throw new ApiClientException(ApiClientErrorCode.Generic, $"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
 
 				using (var content = response.Content)
 				{
@@ -63,7 +95,7 @@ namespace WalletWasabi.WebClients
 				if (response.StatusCode != HttpStatusCode.OK)
                 {
 					string message = await response.Content.ReadAsJsonAsync<string>();
-					throw new HttpRequestException(message);
+					throw new ApiClientException(ApiClientErrorCode.Generic, message);
                 }
 			}
         }
@@ -75,7 +107,7 @@ namespace WalletWasabi.WebClients
 				if (response.StatusCode != HttpStatusCode.OK)
                 {
 					string message = await response.Content.ReadAsJsonAsync<string>();
-					throw new HttpRequestException(message);
+					throw new ApiClientException(ApiClientErrorCode.Generic, message);
                 }
                 return await response.Content.ReadAsJsonAsync<InputsResponse>();
 			}
@@ -88,7 +120,7 @@ namespace WalletWasabi.WebClients
 				if (!response.IsSuccessStatusCode)
                 {
 					string message = await response.Content.ReadAsJsonAsync<string>();
-					throw new HttpRequestException(message);
+					throw new ApiClientException(ApiClientErrorCode.Generic, message);
                 }
 			}
         }
@@ -100,7 +132,7 @@ namespace WalletWasabi.WebClients
 				if (response.StatusCode != HttpStatusCode.OK)
                 {
 					string message = await response.Content.ReadAsJsonAsync<string>();
-					throw new HttpRequestException(message);
+					throw new ApiClientException(ApiClientErrorCode.Generic, message);
                 }
 				return await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
 			}
@@ -115,7 +147,7 @@ namespace WalletWasabi.WebClients
 				if (!response.IsSuccessStatusCode)
                 {
 					string message = await response.Content.ReadAsJsonAsync<string>();
-					throw new HttpRequestException(message ?? string.Empty);
+					throw new ApiClientException(ApiClientErrorCode.Generic, message ?? string.Empty);
                 }
 
 				if(response.StatusCode == HttpStatusCode.NoContent)
@@ -134,7 +166,7 @@ namespace WalletWasabi.WebClients
 				if (!response.IsSuccessStatusCode)
                 {
 					string message = await response.Content.ReadAsJsonAsync<string>();
-					throw new HttpRequestException(message ?? string.Empty);
+					throw new ApiClientException(ApiClientErrorCode.Generic, message ?? string.Empty);
                 }
 
 				var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
@@ -154,7 +186,7 @@ namespace WalletWasabi.WebClients
 				if (!response.IsSuccessStatusCode)
                 {
 					string message = await response.Content.ReadAsJsonAsync<string>();
-					throw new HttpRequestException(message ?? string.Empty);
+					throw new ApiClientException(ApiClientErrorCode.Generic, message ?? string.Empty);
                 }
 			}
         }

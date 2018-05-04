@@ -132,15 +132,11 @@ namespace WalletWasabi.Services
 								bestKnownFilter = Index.Last();
 							}
 
-							var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/filters/{bestKnownFilter.BlockHash}");
+							try
+							{
+								var filtersEnumerable = await Client.GetFiltersAsync(bestKnownFilter.BlockHash, 50);
+								var filters = filtersEnumerable.ToList();
 
-							if (response.StatusCode == HttpStatusCode.NoContent)
-							{
-								continue;
-							}
-							if (response.StatusCode == HttpStatusCode.OK)
-							{
-								var filters = await response.Content.ReadAsJsonAsync<List<string>>();
 								using (await IndexLock.LockAsync())
 								{
 									for (int i = 0; i < filters.Count; i++)
@@ -162,33 +158,27 @@ namespace WalletWasabi.Services
 
 									Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
 								}
-
-								continue;
 							}
-							else if (response.StatusCode == HttpStatusCode.NotFound)
+							catch(ApiClientException e)
 							{
-								// Reorg happened
-								var reorgedHash = bestKnownFilter.BlockHash;
-								Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
-								// 1. Rollback index
-								using (await IndexLock.LockAsync())
-								{
-									Index.RemoveAt(Index.Count - 1);
+								if(e.ErrorCode == ApiClientErrorCode.FilterNotFound){
+									// Reorg happened
+									var reorgedHash = bestKnownFilter.BlockHash;
+									Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
+									// 1. Rollback index
+									using (await IndexLock.LockAsync())
+									{
+										Index.RemoveAt(Index.Count - 1);
+									}
+
+									OnReorg(reorgedHash);
+
+									// 2. Serialize Index. (Remove last line.)
+									var lines = File.ReadAllLines(IndexFilePath);
+									File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
 								}
-
-								OnReorg(reorgedHash);
-
-								// 2. Serialize Index. (Remove last line.)
-								var lines = File.ReadAllLines(IndexFilePath);
-								File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
-
 								// 3. Skip the last valid block.
 								continue;
-							}
-							else
-							{
-								var error = await response.Content.ReadAsStringAsync();
-								throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {error}");
 							}
 						}
 						catch (Exception ex)
