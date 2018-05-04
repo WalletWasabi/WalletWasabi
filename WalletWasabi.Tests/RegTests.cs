@@ -2193,7 +2193,7 @@ namespace WalletWasabi.Tests
 			var coordinator = Global.Coordinator;
 			Money denomination = new Money(0.1m, MoneyUnit.BTC);
 			decimal coordinatorFeePercent = 0.1m;
-			int anonymitySet = 10;
+			int anonymitySet = 100;
 			int connectionConfirmationTimeout = 120;
 			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
