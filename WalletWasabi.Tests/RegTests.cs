@@ -2192,8 +2192,8 @@ namespace WalletWasabi.Tests
 			var network = Global.RpcClient.Network;
 			var coordinator = Global.Coordinator;
 			Money denomination = new Money(0.1m, MoneyUnit.BTC);
-			decimal coordinatorFeePercent = 0.3m;
-			int anonymitySet = 100;
+			decimal coordinatorFeePercent = 0.1m;
+			int anonymitySet = 150;
 			int connectionConfirmationTimeout = 50;
 			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
@@ -2310,9 +2310,11 @@ namespace WalletWasabi.Tests
 				var roundHash = "";
 				foreach(var request in confirmationRequests)
 				{
-					var response = await request;
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					roundHash = await response.Content.ReadAsJsonAsync<string>();
+					using (var response = await request)
+					{
+						Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+						roundHash = await response.Content.ReadAsJsonAsync<string>();
+					}
 				}
 
 				var outputRequests = new List<Task<HttpResponseMessage>>();
@@ -2324,8 +2326,10 @@ namespace WalletWasabi.Tests
 
 				foreach(var request in outputRequests)
 				{
-					var response = await request;
-					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+					using (var response = await request)
+					{
+						Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+					}
 				}
 
 				var coinjoinRequests = new List<Task<HttpResponseMessage>>();
@@ -2337,19 +2341,57 @@ namespace WalletWasabi.Tests
 				string unsignedCoinJoinHex = "";
 				foreach (var request in coinjoinRequests)
 				{
-					var response = await request;
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var coinJoinHex = await response.Content.ReadAsJsonAsync<string>();
-					if(unsignedCoinJoinHex == "")
+					using (var response = await request)
 					{
-						unsignedCoinJoinHex = coinJoinHex;
-					}
-					else
-					{
-						Assert.Equal(unsignedCoinJoinHex, coinJoinHex);
+						Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+						var coinJoinHex = await response.Content.ReadAsJsonAsync<string>();
+						if (unsignedCoinJoinHex == "")
+						{
+							unsignedCoinJoinHex = coinJoinHex;
+						}
+						else
+						{
+							Assert.Equal(unsignedCoinJoinHex, coinJoinHex);
+						}
 					}
 				}
 				var unsignedCoinJoin = Transaction.Parse(unsignedCoinJoinHex);
+
+				var signatureRequests = new List<Task<HttpResponseMessage>>();
+				foreach (var user in users)
+				{
+					var partSignedCj = new Transaction(unsignedCoinJoin.ToHex());
+					new TransactionBuilder()
+								.AddKeys(user.userInputData.Select(x=>x.key).ToArray())
+								.AddCoins(user.userInputData.Select(x=> new Coin(x.tx, x.input.N)))
+								.SignTransactionInPlace(partSignedCj, SigHash.All);
+
+					var myDic = new Dictionary<int, string>();
+
+					for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
+					{
+						var input = unsignedCoinJoin.Inputs[i];
+						if (user.userInputData.Select(x=>x.input).Contains(input.PrevOut))
+						{
+							myDic.Add(i, partSignedCj.Inputs[i].WitScript.ToString());
+						}
+					}
+
+					var jsonSigs = JsonConvert.SerializeObject(myDic, Formatting.None);
+					var sigReqCont = new StringContent(jsonSigs, Encoding.UTF8, "application/json");
+					signatureRequests.Add(torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/signatures?uniqueId={user.uniqueId}&roundId={roundId}", sigReqCont));
+				}
+
+				foreach(var request in signatureRequests)
+				{
+					using (var response = await request)
+					{
+						Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+					}
+				}
+
+				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
+				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 			}
 		}
 
