@@ -2,6 +2,7 @@ using WalletWasabi.Models;
 using System.Collections.Generic;
 using System;
 using WalletWasabi.Helpers;
+using System.Linq;
 
 namespace NBitcoin
 {
@@ -34,6 +35,17 @@ namespace NBitcoin
 		{
 			Guard.NotNullOrEmptyOrWhitespace(nameof(hex), hex);
 			me.FromBytes(ByteHelpers.FromHex(hex));
+		}
+
+		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me)
+		{
+			var ret = new List<(Money Value, int count)>();
+			foreach (Money v in me.Outputs.Select(x => x.Value).Distinct())
+			{
+				ret.Add((v, me.Outputs.Count(x => x.Value == v)));
+			}
+
+			return ret;
 		}
 	}
 }

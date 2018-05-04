@@ -2193,7 +2193,7 @@ namespace WalletWasabi.Tests
 			var coordinator = Global.Coordinator;
 			Money denomination = new Money(0.1m, MoneyUnit.BTC);
 			decimal coordinatorFeePercent = 0.1m;
-			int anonymitySet = 100;
+			int anonymitySet = 10;
 			int connectionConfirmationTimeout = 120;
 			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
@@ -2408,6 +2408,10 @@ namespace WalletWasabi.Tests
 
 				Assert.True(feeRateReal.FeePerK < feeRateTx.FeePerK);
 				Assert.True(2 * feeRateReal.FeePerK > feeRateTx.FeePerK); // Max 200% mistake.
+
+				var activeOutput = finalCoinjoin.GetIndistinguishableOutputs().OrderByDescending(x=>x.count).First();
+				Assert.True(activeOutput.value >= roundConfig.Denomination);
+				Assert.True(activeOutput.value >= roundConfig.AnonymitySet);
 			}
 		}
 
