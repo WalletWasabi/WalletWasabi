@@ -2193,9 +2193,9 @@ namespace WalletWasabi.Tests
 			var coordinator = Global.Coordinator;
 			Money denomination = new Money(0.1m, MoneyUnit.BTC);
 			decimal coordinatorFeePercent = 0.1m;
-			int anonymitySet = 150;
-			int connectionConfirmationTimeout = 50;
-			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 1);
+			int anonymitySet = 100;
+			int connectionConfirmationTimeout = 120;
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.FailAllRoundsInInputRegistration();
 
