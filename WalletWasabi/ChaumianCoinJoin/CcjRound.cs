@@ -649,6 +649,14 @@ namespace WalletWasabi.ChaumianCoinJoin
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x=>x.ScriptPubKey == Constants.GetCoordinatorAddress(RpcClient.Network).ScriptPubKey)?.Value?.ToString(false, false)?? "0"} BTC.");
 						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize()/1024} KB.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize()/1024} KB.");
+						foreach(var o in SignedCoinJoin.GetIndistinguishableOutputs().Where(x=>x.count > 1))
+						{
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurences of {o.value.ToString(true, false)} BTC output.");
+						}
 
 						await RpcClient.SendRawTransactionAsync(SignedCoinJoin);
 						Succeed(syncLock: false);

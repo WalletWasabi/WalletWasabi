@@ -112,7 +112,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				{"rest", "1"},
 				{"listenonion", "0"},
 				{"server", "1"},
-				{"txindex", "0"},
+				{"txindex", "1"},
 				{"rpcuser", Creds.UserName},
 				{"rpcpassword", Creds.Password},
 				{"whitebind", "127.0.0.1:" + _ports[0].ToString()},
