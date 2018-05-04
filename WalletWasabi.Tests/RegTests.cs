@@ -2392,6 +2392,22 @@ namespace WalletWasabi.Tests
 
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
+
+				var coins = new List<Coin>();
+				var finalCoinjoin = await rpc.GetRawTransactionAsync(mempooltxs.First());
+				foreach (var input in finalCoinjoin.Inputs)
+				{
+					var getTxOut = await rpc.GetTxOutAsync(input.PrevOut.Hash, (int)input.PrevOut.N, includeMempool: false);
+
+					coins.Add(new Coin(input.PrevOut.Hash, input.PrevOut.N, getTxOut.TxOut.Value, getTxOut.TxOut.ScriptPubKey));
+				}
+
+				FeeRate feeRateTx = finalCoinjoin.GetFeeRate(coins.ToArray());
+				var esr = await rpc.EstimateSmartFeeAsync((int)roundConfig.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
+				FeeRate feeRateReal = esr.FeeRate;
+
+				Assert.True(feeRateReal.FeePerK < feeRateTx.FeePerK);
+				Assert.True(2 * feeRateReal.FeePerK > feeRateTx.FeePerK); // Max 200% mistake.
 			}
 		}
 
