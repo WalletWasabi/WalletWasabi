@@ -19,6 +19,7 @@ using NBitcoin;
 using NBitcoin.Policy;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
+using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Services
 {
@@ -584,17 +585,10 @@ namespace WalletWasabi.Services
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 			Money feePerBytes = null;
-			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
-			using (var response = await torClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
+			using (var torClient = new TorHttpClient(IndexDownloader.TorClient.DestinationUri, IndexDownloader.TorClient.TorSocks5EndPoint, isolateStream: true))
+			using (var client = new WasabiApiClient( torClient ))
 			{
-				if (response.StatusCode != HttpStatusCode.OK)
-					throw new HttpRequestException($"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
-
-				using (var content = response.Content)
-				{
-					var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
-					feePerBytes = new Money(json.Single().Value.Conservative);
-				}
+				feePerBytes = (await client.GetFeePerByteAsync(feeTarget)).Single();
 			}
 
 			bool spendAll = spendAllCount == 1;
@@ -793,7 +787,7 @@ namespace WalletWasabi.Services
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
-			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
+			using (var torClient = new TorHttpClient(IndexDownloader.TorClient.DestinationUri, IndexDownloader.TorClient.TorSocks5EndPoint, isolateStream: true))
 			using (var content = new StringContent($"'{transaction.Transaction.ToHex()}'", Encoding.UTF8, "application/json"))
 			using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
