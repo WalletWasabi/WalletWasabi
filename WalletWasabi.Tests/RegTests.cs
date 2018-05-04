@@ -2204,7 +2204,7 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(100); // So to make sure we have enough money.
 
 				var fundingTxCount = 0;
-				var users = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, Script activeOutputScript, Script changeOutputScript, InputsRequest inputsRequest, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, Guid? uniqueId, string unblindedSigHex)>();
+				var inputRegistrationUsers = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, Script activeOutputScript, Script changeOutputScript, InputsRequest inputsRequest, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData)>();
 				for (int i = 0; i < roundConfig.AnonymitySet; i++)
 				{
 					var userInputData = new List<(Key key, BitcoinWitPubKeyAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)>();
@@ -2260,38 +2260,72 @@ namespace WalletWasabi.Tests
 						Inputs = inputProofModels,
 						ChangeOutputScript = changeOutputScript.ToString()
 					};
-					users.Add((blinded, activeOutputScript, changeOutputScript, inputsRequest, userInputData, null, null));
+					inputRegistrationUsers.Add((blinded, activeOutputScript, changeOutputScript, inputsRequest, userInputData));
 				}
 
 				var mempool = await rpc.GetRawMempoolAsync();
-				Assert.Equal(users.SelectMany(x => x.userInputData).Count(), mempool.Count());
+				Assert.Equal(inputRegistrationUsers.SelectMany(x => x.userInputData).Count(), mempool.Count());
 				
 				while ((await rpc.GetRawMempoolAsync()).Length != 0)
 				{
 					await rpc.GenerateAsync(1);
 				}
 
-				long roundId;
+				long roundId = 0;
 
 				var inputsRequests = new List<Task<HttpResponseMessage>>();
 
-				foreach (var user in users)
+				foreach (var user in inputRegistrationUsers)
 				{
 					inputsRequests.Add(torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", user.inputsRequest.ToHttpStringContent()));
 				}
 
-				for (int i = 0; i < users.Count; i++)
+				var users = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, Script activeOutputScript, Script changeOutputScript, InputsRequest inputsRequest, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, Guid? uniqueId, string unblindedSigHex)>();
+				for (int i = 0; i < inputRegistrationUsers.Count; i++)
 				{
-					var user = users[i];
+					var user = inputRegistrationUsers[i];
 					var request = inputsRequests[i];
 
 					using (var response = await request)
 					{
 						var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
-						user.uniqueId = inputsResp.UniqueId;
+						Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
+												
 						roundId = inputsResp.RoundId;
-						user.unblindedSigHex = ByteHelpers.ToHex(blindingKey.PubKey.UnblindSignature(inputsResp.BlindedOutputSignature, user.blinded.blindingFactor));
+
+						// Because it's valuetuple.
+						users.Add((user.blinded, user.activeOutputScript, user.changeOutputScript, user.inputsRequest, user.userInputData, inputsResp.UniqueId, ByteHelpers.ToHex(blindingKey.PubKey.UnblindSignature(inputsResp.BlindedOutputSignature, user.blinded.blindingFactor))));
 					}
+				}
+
+				Assert.Equal(users.Count(), roundConfig.AnonymitySet);
+
+				var confirmationRequests = new List<Task<HttpResponseMessage>>();
+
+				foreach (var user in users)
+				{
+					confirmationRequests.Add(torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={user.uniqueId}&roundId={roundId}"));
+				}
+
+				var roundHash = "";
+				foreach(var request in confirmationRequests)
+				{
+					var response = await request;
+					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+					roundHash = await response.Content.ReadAsJsonAsync<string>();
+				}
+
+				var outputRequests = new List<Task<HttpResponseMessage>>();
+				foreach (var user in users)
+				{
+					var outputRequest = new OutputRequest() { OutputScript = user.activeOutputScript.ToString(), SignatureHex = user.unblindedSigHex };
+					outputRequests.Add(torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/output?roundHash={roundHash}", outputRequest.ToHttpStringContent()));
+				}
+
+				foreach(var request in outputRequests)
+				{
+					var response = await request;
+					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 				}
 			}
 		}
