@@ -685,11 +685,11 @@ namespace WalletWasabi.Tests
 				}
 
 				var waitCount = 0;
-				while(wallet.Coins.Sum(x => x.Amount) == Money.Zero)
+				while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
 				{
 					await Task.Delay(1000);
 					waitCount++;
-					if(waitCount >= 21)
+					if (waitCount >= 21)
 					{
 						throw new TimeoutException("Funding transaction to the wallet did not arrive.");
 					}
@@ -1460,7 +1460,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		public async Task ChaumianCoinJoinTestsAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
+		public async Task ChaumianCoinJoinTestsAsync()
 		{
 			var rpc = Global.RpcClient;
 			var network = Global.RpcClient.Network;
@@ -1471,7 +1471,7 @@ namespace WalletWasabi.Tests
 			int connectionConfirmationTimeout = 50;
 			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
-			coordinator.FailAllRoundsInInputRegistration();			
+			coordinator.FailAllRoundsInInputRegistration();
 
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			{
@@ -1795,7 +1795,7 @@ namespace WalletWasabi.Tests
 					var roundState = states.Single(x => x.RoundId == roundId);
 					Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
 					Assert.Equal(2, roundState.RegisteredPeerCount);
-					
+
 					var roundState2 = states.First(x => x.Phase == CcjRoundPhase.InputRegistration);
 					Assert.Equal(0, roundState2.RegisteredPeerCount);
 				}
@@ -2029,7 +2029,7 @@ namespace WalletWasabi.Tests
 				{
 					BlindedOutputScriptHex = blindedOutputScriptHex1,
 					Inputs = new List<InputProofModel> { new InputProofModel { Input = input1, Proof = key1.SignMessage(blindedOutputScriptHex1) } },
-					ChangeOutputScript = new Key().ScriptPubKey.ToString()					
+					ChangeOutputScript = new Key().ScriptPubKey.ToString()
 				};
 				var request2 = new InputsRequest
 				{
@@ -2151,7 +2151,7 @@ namespace WalletWasabi.Tests
 				var myDic1 = new Dictionary<int, string>();
 				var myDic2 = new Dictionary<int, string>();
 
-				for(int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
+				for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
 				{
 					var input = unsignedCoinJoin.Inputs[i];
 					if (input.PrevOut == input1)
@@ -2181,73 +2181,86 @@ namespace WalletWasabi.Tests
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
 				#endregion
+			}
+		}
 
-				#region 100Participants
-				// <-------------------------->
-				// 100 PARTICIPANT TEST
-				// <-------------------------->
-				
-				roundConfig.AnonymitySet = 100;
-				roundConfig.Denomination = new Money(0.1m, MoneyUnit.BTC);
-				coordinator.UpdateRoundConfig(roundConfig);
-				coordinator.FailAllRoundsInInputRegistration();
-				await rpc.GenerateAsync(3);
+		[Fact]
+		public async Task ChaumianCoinJoin100ParticipantsTestsAsync() 
+		{
+			var blindingKey = Global.Coordinator.RsaKey;
+			var rpc = Global.RpcClient;
+			var network = Global.RpcClient.Network;
+			var coordinator = Global.Coordinator;
+			Money denomination = new Money(0.1m, MoneyUnit.BTC);
+			decimal coordinatorFeePercent = 0.3m;
+			int anonymitySet = 100;
+			int connectionConfirmationTimeout = 50;
+			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 1);
+			coordinator.UpdateRoundConfig(roundConfig);
+			coordinator.FailAllRoundsInInputRegistration();
 
+			using (var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
+			{
+				await rpc.GenerateAsync(100); // So to make sure we have enough money.
+
+				var fundingTxCount = 0;
 				var users = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, Script activeOutputScript, Script changeOutputScript, InputsRequest inputsRequest, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, Guid? uniqueId, string unblindedSigHex)>();
 				for (int i = 0; i < roundConfig.AnonymitySet; i++)
 				{
-					var userInputData = new List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)>();
+					var userInputData = new List<(Key key, BitcoinWitPubKeyAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)>();
 					var activeOutputScript = new Key().ScriptPubKey;
 					var changeOutputScript = new Key().ScriptPubKey;
-					var b = blindingKey.PubKey.Blind(activeOutputScript.ToBytes());
+					var blinded = blindingKey.PubKey.Blind(activeOutputScript.ToBytes());
 
 					var inputProofModels = new List<InputProofModel>();
 					int numberOfInputs = new Random().Next(1, 7);
-					var recSatSum = 0;
+					var receiveSatoshiSum = 0;
 					for (int j = 0; j < numberOfInputs; j++)
 					{
-						var k = new Key();
+						var key = new Key();
 						var receiveSatoshi = new Random().Next(1000, 100000000);
-						recSatSum += receiveSatoshi;
-						if(j == numberOfInputs - 1)
+						receiveSatoshiSum += receiveSatoshi;
+						if (j == numberOfInputs - 1)
 						{
 							receiveSatoshi = 100000000;
 						}
-						BitcoinWitPubKeyAddress ia = k.PubKey.GetSegwitAddress(network);
-						var h = await rpc.SendToAddressAsync(ia, receiveSatoshi);
-						var t = await rpc.GetRawTransactionAsync(h);
+						BitcoinWitPubKeyAddress inputAddress = key.PubKey.GetSegwitAddress(network);
+						uint256 txHash = await rpc.SendToAddressAsync(inputAddress, receiveSatoshi);
+						fundingTxCount++;
+						Assert.NotNull(txHash);
+						Transaction transaction = await rpc.GetRawTransactionAsync(txHash);
 
-						var idx = 0;
+						var outputIndex = 0;
 						var hit = false;
-						for (int l = 0; l < t.Outputs.Count; l++)
+						for (int k = 0; k < transaction.Outputs.Count; k++)
 						{
-							var output = t.Outputs[l];
-							if (output.ScriptPubKey == ia.ScriptPubKey)
+							var output = transaction.Outputs[k];
+							if (output.ScriptPubKey == inputAddress.ScriptPubKey)
 							{
-								idx = i;
+								outputIndex = k;
 								hit = true;
 							}
 						}
 						Assert.True(hit);
 
-						OutPoint inp = new OutPoint(h, idx);
-						var ipr = new InputProofModel { Input = inp, Proof = k.SignMessage(ByteHelpers.ToHex(b.BlindedData)) };
-						inputProofModels.Add(ipr);
-
-						GetTxOutResponse getTxOutResponse = await rpc.GetTxOutAsync(inp.Hash, (int)inp.N, includeMempool: true);
-						// Check if inputs are unspent.				
+						OutPoint input = new OutPoint(txHash, outputIndex);
+						var inputProof = new InputProofModel { Input = input, Proof = key.SignMessage(ByteHelpers.ToHex(blinded.BlindedData)) };
+						inputProofModels.Add(inputProof);
+						
+						GetTxOutResponse getTxOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+						// Check if inputs are unspent.	
 						Assert.NotNull(getTxOutResponse);
 
-						userInputData.Add((k, ia, h, t, inp));
+						userInputData.Add((key, inputAddress, txHash, transaction, input));
 					}
 
-					var ir = new InputsRequest
+					var inputsRequest = new InputsRequest
 					{
-						BlindedOutputScriptHex = ByteHelpers.ToHex(b.BlindedData),
+						BlindedOutputScriptHex = ByteHelpers.ToHex(blinded.BlindedData),
 						Inputs = inputProofModels,
 						ChangeOutputScript = changeOutputScript.ToString()
 					};
-					users.Add((b, activeOutputScript, changeOutputScript, ir, userInputData, null, null));
+					users.Add((blinded, activeOutputScript, changeOutputScript, inputsRequest, userInputData, null, null));
 				}
 
 				var mempool = await rpc.GetRawMempoolAsync();
@@ -2258,32 +2271,31 @@ namespace WalletWasabi.Tests
 					await rpc.GenerateAsync(1);
 				}
 
+				long roundId;
+
 				var inputsRequests = new List<Task<HttpResponseMessage>>();
 
-				foreach(var u in users)
+				foreach (var user in users)
 				{
-					inputsRequests.Add(client.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", u.inputsRequest.ToHttpStringContent()));
+					inputsRequests.Add(torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", user.inputsRequest.ToHttpStringContent()));
 				}
 
 				for (int i = 0; i < users.Count; i++)
 				{
-					var u = users[i];
-					var r = inputsRequests[i];
+					var user = users[i];
+					var request = inputsRequests[i];
 
-					using (var response = await r)
+					using (var response = await request)
 					{
 						var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
-						u.uniqueId = inputsResp.UniqueId;
+						user.uniqueId = inputsResp.UniqueId;
 						roundId = inputsResp.RoundId;
-						u.unblindedSigHex = ByteHelpers.ToHex(blindingKey.PubKey.UnblindSignature(inputsResp.BlindedOutputSignature, u.blinded.blindingFactor));
+						user.unblindedSigHex = ByteHelpers.ToHex(blindingKey.PubKey.UnblindSignature(inputsResp.BlindedOutputSignature, user.blinded.blindingFactor));
 					}
 				}
-
-				#endregion
 			}
 		}
 
 		#endregion
-
 	}
 }
