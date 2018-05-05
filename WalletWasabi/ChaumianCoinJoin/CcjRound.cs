@@ -711,7 +711,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 				}
 				if (Bobs.Any(x => x.ActiveOutputScript == bob.ActiveOutputScript))
 				{
-					throw new InvalidOperationException("Bob is already added.");
+					return; // Bob is already added.
 				}
 
 				Bobs.Add(bob);
