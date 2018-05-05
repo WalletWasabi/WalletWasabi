@@ -1477,6 +1477,7 @@ namespace WalletWasabi.Tests
 			using (var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var satoshiClient = new SatoshiClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var bobClient = new BobClient(new Uri(RegTestFixture.BackendEndPoint)))
+			using (var aliceClient = new AliceClient(new Uri(RegTestFixture.BackendEndPoint)))
 			{
 				#region PostInputsGetStates
 				// <-------------------------->
@@ -1503,38 +1504,26 @@ namespace WalletWasabi.Tests
 				}
 
 				// Inputs request tests
-				var request = new InputsRequest
+				var inputsRequest = new InputsRequest
 				{
 					BlindedOutputScriptHex = null,
 					ChangeOutputScript = null,
 					Inputs = null,
 				};
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal("Invalid request.", message);
-				}
 
-				request.BlindedOutputScriptHex = "";
-				request.ChangeOutputScript = "";
-				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(), Proof = "" } };
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal("Invalid request.", message);
-				}
+				HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid request.", httpRequestException.Message);
 
-				request.BlindedOutputScriptHex = "c";
-				request.ChangeOutputScript = "a";
-				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = "b" } };
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal("Provided input is not unspent.", message);
-				}
+				Script blindedOutputScript = new Script();
+				byte[] changeOutputScript = new byte[] { };
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(blindedOutputScript, changeOutputScript, new InputProofModel { Input = new OutPoint(), Proof = "" }));
+				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid request.", httpRequestException.Message);
+
+				inputsRequest.BlindedOutputScriptHex = "c";
+				inputsRequest.ChangeOutputScript = "a";
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = "b" } };
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is not unspent.", httpRequestException.Message);
 
 				var addr = await rpc.GetNewAddressAsync();
 				var hash = await rpc.SendToAddressAsync(addr, new Money(0.01m, MoneyUnit.BTC));
@@ -1549,32 +1538,20 @@ namespace WalletWasabi.Tests
 					}
 				}
 
-				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.", message);
-				}
-
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is neither confirmed, nor is from an unconfirmed coinjoin.", httpRequestException.Message);
+				
 				var blocks = await rpc.GenerateAsync(1);
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal("Provided input must be witness_v0_keyhash.", message);
-				}
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input must be witness_v0_keyhash.", httpRequestException.Message);
 
 				var blockHash = blocks.Single();
 				var block = await rpc.GetBlockAsync(blockHash);
 				var coinbase = block.Transactions.First();
-				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(coinbase.GetHash(), 0), Proof = "b" } };
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal("Provided input is immature.", message);
-				}
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(coinbase.GetHash(), 0), Proof = "b" } };
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is immature.", httpRequestException.Message);
 
 				var key = new Key();
 				var witnessAddress = key.PubKey.GetSegwitAddress(network);
@@ -1590,95 +1567,64 @@ namespace WalletWasabi.Tests
 						index = i;
 					}
 				}
-				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-				}
-				var proof = key.SignMessage("foo");
-				request.Inputs.First().Proof = proof;
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal("Provided proof is invalid.", message);
-				}
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}", httpRequestException.Message);
 
-				request.BlindedOutputScriptHex = new Transaction().ToHex();
-				proof = key.SignMessage(request.BlindedOutputScriptHex);
-				request.Inputs.First().Proof = proof;
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.StartsWith("Not enough inputs are provided. Fee to pay:", message);
-				}
+				var proof = key.SignMessage("foo");
+				inputsRequest.Inputs.First().Proof = proof;
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided proof is invalid.", httpRequestException.Message);
+
+				inputsRequest.BlindedOutputScriptHex = new Transaction().ToHex();
+				proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
+				inputsRequest.Inputs.First().Proof = proof;
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
 				roundConfig.Denomination = new Money(0.01m, MoneyUnit.BTC); // exactly the same as our output
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.FailAllRoundsInInputRegistration();
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.StartsWith("Not enough inputs are provided. Fee to pay:", message);
-				}
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
 				roundConfig.Denomination = new Money(0.00999999m, MoneyUnit.BTC); // one satoshi less than our output
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.FailAllRoundsInInputRegistration();
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.StartsWith("Not enough inputs are provided. Fee to pay:", message);
-				}
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
 				roundConfig.Denomination = new Money(0.008m, MoneyUnit.BTC); // one satoshi less than our output
 				roundConfig.ConnectionConfirmationTimeout = 2;
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.FailAllRoundsInInputRegistration();
-				long roundId = 0;
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				InputsResponse inputsResponse = await aliceClient.PostInputsAsync(inputsRequest);
+				Assert.NotNull(inputsResponse.BlindedOutputSignature);
+				Assert.NotEqual(Guid.Empty, inputsResponse.UniqueId);
+				Assert.True(inputsResponse.RoundId > 0);
+				long roundId = inputsResponse.RoundId;
+				string queryString = $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={inputsResponse.UniqueId}&roundId={inputsResponse.RoundId}";
+				using (var response2 = await torClient.SendAsync(HttpMethod.Post, queryString))
 				{
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
-					Assert.NotNull(inputsResp.BlindedOutputSignature);
-					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
-					Assert.True(inputsResp.RoundId > 0);
-					roundId = inputsResp.RoundId;
-
-					string queryString = $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={inputsResp.UniqueId}&roundId={inputsResp.RoundId}";
-					using (var response2 = await torClient.SendAsync(HttpMethod.Post, queryString))
-					{
-						Assert.Equal(HttpStatusCode.NoContent, response2.StatusCode);
-					}
+					Assert.Equal(HttpStatusCode.NoContent, response2.StatusCode);
 				}
 
 				CcjRunningRoundState roundState = await satoshiClient.GetRoundStateAsync(roundId);
 				Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
 				Assert.Equal(1, roundState.RegisteredPeerCount);
 
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal("Blinded output has already been registered.", message);
-				}
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nBlinded output has already been registered.", httpRequestException.Message);
 
 				roundState = await satoshiClient.GetRoundStateAsync(roundId);
 				Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
 				Assert.Equal(1, roundState.RegisteredPeerCount);
 
-				request.BlindedOutputScriptHex = "foo";
-				proof = key.SignMessage(request.BlindedOutputScriptHex);
-				request.Inputs.First().Proof = proof;
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal("Invalid blinded output hex.", message);
-				}
+				inputsRequest.BlindedOutputScriptHex = "foo";
+				proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
+				inputsRequest.Inputs.First().Proof = proof;
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid blinded output hex.", httpRequestException.Message);
 
 				roundState = await satoshiClient.GetRoundStateAsync(roundId);
 				Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
@@ -1687,37 +1633,25 @@ namespace WalletWasabi.Tests
 				var blindingKey = Global.Coordinator.RsaKey;
 				byte[] scriptBytes = key.ScriptPubKey.ToBytes();
 				var (BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptBytes);
-				request.BlindedOutputScriptHex = ByteHelpers.ToHex(BlindedData);
-				proof = key.SignMessage(request.BlindedOutputScriptHex);
-				request.Inputs.First().Proof = proof;
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					if (response.StatusCode == HttpStatusCode.BadRequest) // Very rarely it fails, let's try to catch it.
-					{
-						Logger.LogWarning(await response.Content.ReadAsJsonAsync<string>());
-					}
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
-					Assert.NotNull(inputsResp.BlindedOutputSignature);
-					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
-					Assert.True(inputsResp.RoundId > 0);
-				}
+				inputsRequest.BlindedOutputScriptHex = ByteHelpers.ToHex(BlindedData);
+				proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
+				inputsRequest.Inputs.First().Proof = proof;
+				inputsResponse = await aliceClient.PostInputsAsync(inputsRequest);
+				Assert.NotNull(inputsResponse.BlindedOutputSignature);
+				Assert.NotEqual(Guid.Empty, inputsResponse.UniqueId);
+				Assert.True(inputsResponse.RoundId > 0);
 
 				roundState = await satoshiClient.GetRoundStateAsync(roundId);
 				Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
 				Assert.Equal(1, roundState.RegisteredPeerCount);
 				
 
-				request.BlindedOutputScriptHex = new Transaction().ToHex();
-				proof = key.SignMessage(request.BlindedOutputScriptHex);
-				request.Inputs.First().Proof = proof;
-				request.Inputs = new List<InputProofModel> { request.Inputs.First(), request.Inputs.First() };
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal("Cannot register an input twice.", message);
-				}
+				inputsRequest.BlindedOutputScriptHex = new Transaction().ToHex();
+				proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
+				inputsRequest.Inputs.First().Proof = proof;
+				inputsRequest.Inputs = new List<InputProofModel> { inputsRequest.Inputs.First(), inputsRequest.Inputs.First() };
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nCannot register an input twice.", httpRequestException.Message);
 
 				var inputProofs = new List<InputProofModel>();
 				for (int j = 0; j < 8; j++)
@@ -1736,31 +1670,23 @@ namespace WalletWasabi.Tests
 							index = i;
 						}
 					}
-					proof = key.SignMessage(request.BlindedOutputScriptHex);
+					proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
 					inputProofs.Add(new InputProofModel { Input = new OutPoint(hash, index), Proof = proof });
 				}
 				await rpc.GenerateAsync(1);
 
-				request.Inputs = inputProofs;
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-					string message = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal("Maximum 7 inputs can be registered.", message);
-				}
+				inputsRequest.Inputs = inputProofs;
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
+				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nMaximum 7 inputs can be registered.", httpRequestException.Message);
 
 				inputProofs.RemoveLast();
-				request.Inputs = inputProofs;
+				inputsRequest.Inputs = inputProofs;
 
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
-				{
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
-					Assert.NotNull(inputsResp.BlindedOutputSignature);
-					Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
-					Assert.True(inputsResp.RoundId > 0);
-					roundId = inputsResp.RoundId;
-				}
+				inputsResponse = await aliceClient.PostInputsAsync(inputsRequest);
+				Assert.NotNull(inputsResponse.BlindedOutputSignature);
+				Assert.NotEqual(Guid.Empty, inputsResponse.UniqueId);
+				Assert.True(inputsResponse.RoundId > 0);
+				roundId = inputsResponse.RoundId;
 
 				roundState = await satoshiClient.GetRoundStateAsync(roundId);
 				var inputRegistrableRoundState = await satoshiClient.GetFirstRegistrableRoundStateAsync();
@@ -1777,7 +1703,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(2, roundState.RegisteredPeerCount);
 				
 
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", inputsRequest.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					string message = await response.Content.ReadAsJsonAsync<string>();
@@ -1786,7 +1712,7 @@ namespace WalletWasabi.Tests
 
 				// Wait until input registration times out.
 				await Task.Delay(3000);
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", inputsRequest.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					string message = await response.Content.ReadAsJsonAsync<string>();
@@ -1822,11 +1748,11 @@ namespace WalletWasabi.Tests
 				}
 				scriptBytes = new Key().PubKey.GetSegwitAddress(network).ScriptPubKey.ToBytes();
 				(BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptBytes);
-				request.BlindedOutputScriptHex = ByteHelpers.ToHex(BlindedData);
-				proof = key.SignMessage(request.BlindedOutputScriptHex);
-				request.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = proof } };
+				inputsRequest.BlindedOutputScriptHex = ByteHelpers.ToHex(BlindedData);
+				proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = proof } };
 				Guid uniqueAliceId = Guid.Empty;
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", inputsRequest.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
@@ -1908,7 +1834,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal("Round is not running.", await response.Content.ReadAsJsonAsync<string>());
 				}
 
-				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+				using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", inputsRequest.ToHttpStringContent()))
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 					var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
@@ -2142,11 +2068,12 @@ namespace WalletWasabi.Tests
 
 			using (var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var bobClient = new BobClient(new Uri(RegTestFixture.BackendEndPoint)))
+			using (var aliceClient = new AliceClient(new Uri(RegTestFixture.BackendEndPoint)))
 			{
 				await rpc.GenerateAsync(100); // So to make sure we have enough money.
 
 				var fundingTxCount = 0;
-				var inputRegistrationUsers = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, Script activeOutputScript, Script changeOutputScript, InputsRequest inputsRequest, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData)>();
+				var inputRegistrationUsers = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, Script activeOutputScript, Script changeOutputScript, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData)>();
 				for (int i = 0; i < roundConfig.AnonymitySet; i++)
 				{
 					var userInputData = new List<(Key key, BitcoinWitPubKeyAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)>();
@@ -2196,13 +2123,7 @@ namespace WalletWasabi.Tests
 						userInputData.Add((key, inputAddress, txHash, transaction, input));
 					}
 
-					var inputsRequest = new InputsRequest
-					{
-						BlindedOutputScriptHex = ByteHelpers.ToHex(blinded.BlindedData),
-						Inputs = inputProofModels,
-						ChangeOutputScript = changeOutputScript.ToString()
-					};
-					inputRegistrationUsers.Add((blinded, activeOutputScript, changeOutputScript, inputsRequest, userInputData));
+					inputRegistrationUsers.Add((blinded, activeOutputScript, changeOutputScript, inputProofModels, userInputData));
 				}
 
 				var mempool = await rpc.GetRawMempoolAsync();
@@ -2217,29 +2138,30 @@ namespace WalletWasabi.Tests
 				Logger.TurnOff();
 				long roundId = 0;
 
-				var inputsRequests = new List<Task<HttpResponseMessage>>();
+				var inputsRequests = new List<Task<InputsResponse>>();
 
 				foreach (var user in inputRegistrationUsers)
 				{
-					inputsRequests.Add(torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", user.inputsRequest.ToHttpStringContent()));
+					inputsRequests.Add(aliceClient.PostInputsAsync(user.changeOutputScript, user.blinded.blindedData, user.inputProofModels.ToArray()));
 				}
 
-				var users = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, Script activeOutputScript, Script changeOutputScript, InputsRequest inputsRequest, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, Guid? uniqueId, byte[] unblindedSignature)>();
+				var users = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, Script activeOutputScript, Script changeOutputScript, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, Guid? uniqueId, byte[] unblindedSignature)>();
 				for (int i = 0; i < inputRegistrationUsers.Count; i++)
 				{
 					var user = inputRegistrationUsers[i];
 					var request = inputsRequests[i];
 
-					using (var response = await request)
+					var response = await request;
+					if (roundId == 0)
 					{
-						var inputsResp = await response.Content.ReadAsJsonAsync<InputsResponse>();
-						Assert.NotEqual(Guid.Empty, inputsResp.UniqueId);
-												
-						roundId = inputsResp.RoundId;
-
-						// Because it's valuetuple.
-						users.Add((user.blinded, user.activeOutputScript, user.changeOutputScript, user.inputsRequest, user.userInputData, inputsResp.UniqueId, blindingKey.PubKey.UnblindSignature(inputsResp.BlindedOutputSignature, user.blinded.blindingFactor)));
+						roundId = response.RoundId;
 					}
+					else
+					{
+						Assert.Equal(roundId, response.RoundId);
+					}
+					// Because it's valuetuple.
+					users.Add((user.blinded, user.activeOutputScript, user.changeOutputScript, user.inputProofModels, user.userInputData, response.UniqueId, blindingKey.PubKey.UnblindSignature(response.BlindedOutputSignature, user.blinded.blindingFactor)));
 				}
 
 				Logger.TurnOn();
@@ -2345,7 +2267,7 @@ namespace WalletWasabi.Tests
 				var esr = await rpc.EstimateSmartFeeAsync((int)roundConfig.ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
 				FeeRate feeRateReal = esr.FeeRate;
 
-				Assert.True(feeRateReal.FeePerK < feeRateTx.FeePerK);
+				Assert.True(feeRateReal.FeePerK - (feeRateReal.FeePerK/2) < feeRateTx.FeePerK); // Max 50% mistake.
 				Assert.True(2 * feeRateReal.FeePerK > feeRateTx.FeePerK); // Max 200% mistake.
 
 				var activeOutput = finalCoinjoin.GetIndistinguishableOutputs().OrderByDescending(x=>x.count).First();

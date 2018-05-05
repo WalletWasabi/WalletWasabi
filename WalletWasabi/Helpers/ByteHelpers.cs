@@ -91,7 +91,8 @@ namespace System
 		/// </summary>
 		public static string ToHex(params byte[] bytes)
 		{
-			Guard.NotNullOrEmpty(nameof(bytes), bytes);
+			if (bytes == null) return null;
+			if (bytes.Length == 0) return "";
 
 			var lookupP = _lookup32UnsafeP;
 			var result = new string((char)0, bytes.Length * 2);
@@ -114,7 +115,8 @@ namespace System
 		/// </summary>
 		public static byte[] FromHex(string hex)
 		{
-			hex = Guard.NotNullOrEmptyOrWhitespace(nameof(hex), hex, true);
+			if (hex == null) return null;
+			if (string.IsNullOrWhiteSpace(hex)) return new byte[0];
 
 			var bytes = new byte[hex.Length / 2];
 			var hexValue = new int[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05,
