@@ -1387,8 +1387,7 @@ namespace WalletWasabi.Tests
 				}
 
 				Assert.Empty(wallet.Coins);
-
-
+				
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
 				var tx0Id = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC),
@@ -1603,11 +1602,8 @@ namespace WalletWasabi.Tests
 				Assert.NotEqual(Guid.Empty, inputsResponse.UniqueId);
 				Assert.True(inputsResponse.RoundId > 0);
 				long roundId = inputsResponse.RoundId;
-				string queryString = $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={inputsResponse.UniqueId}&roundId={inputsResponse.RoundId}";
-				using (var response2 = await torClient.SendAsync(HttpMethod.Post, queryString))
-				{
-					Assert.Equal(HttpStatusCode.NoContent, response2.StatusCode);
-				}
+
+				Assert.Null(await aliceClient.PostConfirmationAsync(inputsResponse.RoundId, inputsResponse.UniqueId));
 
 				CcjRunningRoundState roundState = await satoshiClient.GetRoundStateAsync(roundId);
 				Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
@@ -1747,17 +1743,9 @@ namespace WalletWasabi.Tests
 				Guid uniqueAliceId = inputsResponse.UniqueId;
 				Assert.True(inputsResponse.RoundId > 0);
 				roundId = inputsResponse.RoundId;
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
-				{
-					Assert.True(response.IsSuccessStatusCode);
-					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-				}
+				Assert.Null(await aliceClient.PostConfirmationAsync(roundId, uniqueAliceId));
 				// Double the request.
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
-				{
-					Assert.True(response.IsSuccessStatusCode);
-					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-				}
+				Assert.Null(await aliceClient.PostConfirmationAsync(roundId, uniqueAliceId));
 				// badrequests
 				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation"))
 				{
@@ -1794,11 +1782,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					Assert.Null(await response.Content.ReadAsJsonAsync<string>());
 				}
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
-				{
-					Assert.True(response.IsSuccessStatusCode);
-					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-				}
+				Assert.Null(await aliceClient.PostConfirmationAsync(roundId, uniqueAliceId));
 				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={long.MaxValue}"))
 				{
 					Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -1826,11 +1810,7 @@ namespace WalletWasabi.Tests
 				Assert.True(inputsResponse.RoundId > 0);
 				roundId = inputsResponse.RoundId;
 
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
-				{
-					Assert.True(response.IsSuccessStatusCode);
-					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-				}
+				Assert.Null(await aliceClient.PostConfirmationAsync(roundId, uniqueAliceId));
 				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/unconfirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
 				{
 					Assert.True(response.IsSuccessStatusCode);

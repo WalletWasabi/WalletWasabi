@@ -26,7 +26,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 		public async Task<InputsResponse> PostInputsAsync(InputsRequest request)
 		{
-			using (var response = await TorClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
+			using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
@@ -54,6 +54,54 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				Inputs = inputs
 			};
 			return await PostInputsAsync(request);
+		}
+
+		/// <returns>null or roundHash</returns>
+		public async Task<string> PostConfirmationAsync(long roundId, Guid uniqueAliceId)
+		{
+			using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
+			{
+				if (response.StatusCode == HttpStatusCode.NoContent)
+				{
+					return null;
+				}
+				else if (response.StatusCode == HttpStatusCode.OK)
+				{
+					return await response.Content.ReadAsJsonAsync<string>();
+				}
+				else
+				{
+					string error = await response.Content.ReadAsJsonAsync<string>();
+					if (error == null)
+					{
+						throw new HttpRequestException(response.StatusCode.ToReasonString());
+					}
+					else
+					{
+						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
+					}
+				}
+			}
+		}
+
+		/// <returns>null or roundHash</returns>
+		public async Task PostUnConfirmationAsync(long roundId, Guid uniqueAliceId)
+		{
+			using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/unconfirmation?uniqueId={uniqueAliceId}&roundId={roundId}"))
+			{
+				if (!response.IsSuccessStatusCode)
+				{
+					string error = await response.Content.ReadAsJsonAsync<string>();
+					if (error == null)
+					{
+						throw new HttpRequestException(response.StatusCode.ToReasonString());
+					}
+					else
+					{
+						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
+					}
+				}
+			}
 		}
 
 		#region IDisposable Support
