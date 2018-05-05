@@ -10,6 +10,8 @@ namespace System.Net.Http
     {
 		public static async Task<T> ReadAsJsonAsync<T>(this HttpContent me)
 		{
+			if (me == null) return default;
+
 			var jsonString = await me.ReadAsStringAsync();
 			return JsonConvert.DeserializeObject<T>(jsonString);
 		}
