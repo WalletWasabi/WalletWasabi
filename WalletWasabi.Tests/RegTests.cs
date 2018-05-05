@@ -2220,6 +2220,8 @@ namespace WalletWasabi.Tests
 					await rpc.GenerateAsync(1);
 				}
 
+
+				Logger.TurnOff();
 				long roundId = 0;
 
 				var inputsRequests = new List<Task<HttpResponseMessage>>();
@@ -2246,6 +2248,8 @@ namespace WalletWasabi.Tests
 						users.Add((user.blinded, user.activeOutputScript, user.changeOutputScript, user.inputsRequest, user.userInputData, inputsResp.UniqueId, ByteHelpers.ToHex(blindingKey.PubKey.UnblindSignature(inputsResp.BlindedOutputSignature, user.blinded.blindingFactor))));
 					}
 				}
+
+				Logger.TurnOn();
 
 				Assert.Equal(users.Count(), roundConfig.AnonymitySet);
 
