@@ -1884,20 +1884,9 @@ namespace WalletWasabi.Tests
 				// GET COINJOIN tests
 				// <-------------------------->
 
-				Transaction unsignedCoinJoin;
-				using (var response = await torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/chaumiancoinjoin/coinjoin?uniqueId={uniqueAliceId1}&roundId={roundId}"))
-				{
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
-					unsignedCoinJoin = new Transaction(coinjoinHex);
-				}
-
-				using (var response = await torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/chaumiancoinjoin/coinjoin?uniqueId={uniqueAliceId2}&roundId={roundId}"))
-				{
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
-					Assert.Equal(unsignedCoinJoin.ToHex(), coinjoinHex);
-				}
+				Transaction unsignedCoinJoin = await aliceClient.GetUnsignedCoinJoinAsync(roundId, uniqueAliceId1);
+				Assert.Equal(unsignedCoinJoin.ToHex(), (await aliceClient.GetUnsignedCoinJoinAsync(roundId, uniqueAliceId1)).ToHex());
+				Assert.Equal(unsignedCoinJoin.ToHex(), (await aliceClient.GetUnsignedCoinJoinAsync(roundId, uniqueAliceId2)).ToHex());
 
 				Assert.Contains(outputAddress1.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
 				Assert.Contains(outputAddress2.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
@@ -2105,30 +2094,24 @@ namespace WalletWasabi.Tests
 
 				await Task.WhenAll(outputRequests);
 
-				var coinjoinRequests = new List<Task<HttpResponseMessage>>();
+				var coinjoinRequests = new List<Task<Transaction>>();
 				foreach (var user in users)
 				{
-					coinjoinRequests.Add(torClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/chaumiancoinjoin/coinjoin?uniqueId={user.uniqueId}&roundId={roundId}"));
+					coinjoinRequests.Add(aliceClient.GetUnsignedCoinJoinAsync(roundId, user.uniqueId));
 				}
 
-				string unsignedCoinJoinHex = "";
+				Transaction unsignedCoinJoin = null;
 				foreach (var request in coinjoinRequests)
 				{
-					using (var response = await request)
+					if (unsignedCoinJoin == null)
 					{
-						Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-						var coinJoinHex = await response.Content.ReadAsJsonAsync<string>();
-						if (unsignedCoinJoinHex == "")
-						{
-							unsignedCoinJoinHex = coinJoinHex;
-						}
-						else
-						{
-							Assert.Equal(unsignedCoinJoinHex, coinJoinHex);
-						}
+						unsignedCoinJoin = await request;
+					}
+					else
+					{
+						Assert.Equal(unsignedCoinJoin.ToHex(), (await request).ToHex());
 					}
 				}
-				var unsignedCoinJoin = Transaction.Parse(unsignedCoinJoinHex);
 
 				var signatureRequests = new List<Task<HttpResponseMessage>>();
 				foreach (var user in users)

@@ -104,6 +104,28 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			}
 		}
 
+		public async Task<Transaction> GetUnsignedCoinJoinAsync(long roundId, Guid uniqueAliceId)
+		{
+			using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v1/btc/chaumiancoinjoin/coinjoin?uniqueId={uniqueAliceId}&roundId={roundId}"))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					string error = await response.Content.ReadAsJsonAsync<string>();
+					if (error == null)
+					{
+						throw new HttpRequestException(response.StatusCode.ToReasonString());
+					}
+					else
+					{
+						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
+					}
+				}
+
+				var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
+				return new Transaction(coinjoinHex);
+			}
+		}
+
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
