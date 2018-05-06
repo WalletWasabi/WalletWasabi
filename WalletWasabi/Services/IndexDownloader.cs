@@ -233,6 +233,8 @@ namespace WalletWasabi.Services
 			{
 				await Task.Delay(50);
 			}
+
+			Client?.Dispose();
 		}
 
 		public FilterModel GetBestFilter()

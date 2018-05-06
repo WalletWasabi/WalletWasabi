@@ -26,6 +26,7 @@ namespace WalletWasabi.Services
 	{
 		public KeyManager KeyManager { get; }
 		public IndexDownloader IndexDownloader { get; }
+		public CcjClient ChaumianClient { get; }
 		public MemPoolService MemPool { get; }
 
 		public NodesGroup Nodes { get; }
@@ -51,11 +52,12 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, MemPoolService memPool, NodesGroup nodes, string blocksFolderPath)
+		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, CcjClient chaumianClient, MemPoolService memPool, NodesGroup nodes, string blocksFolderPath)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			IndexDownloader = Guard.NotNull(nameof(indexDownloader), indexDownloader);
+			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
 			MemPool = Guard.NotNull(nameof(memPool), memPool);
 
 			WalletBlocks = new SortedDictionary<Height, uint256>();
