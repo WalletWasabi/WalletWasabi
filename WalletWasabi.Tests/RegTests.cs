@@ -1913,34 +1913,24 @@ namespace WalletWasabi.Tests
 							.AddCoins(new Coin(tx2, input2.N))
 							.SignTransactionInPlace(partSignedCj2, SigHash.All);
 
-				var myDic1 = new Dictionary<int, string>();
-				var myDic2 = new Dictionary<int, string>();
+				var myDic1 = new Dictionary<int, WitScript>();
+				var myDic2 = new Dictionary<int, WitScript>();
 
 				for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
 				{
 					var input = unsignedCoinJoin.Inputs[i];
 					if (input.PrevOut == input1)
 					{
-						myDic1.Add(i, partSignedCj1.Inputs[i].WitScript.ToString());
+						myDic1.Add(i, partSignedCj1.Inputs[i].WitScript);
 					}
 					if (input.PrevOut == input2)
 					{
-						myDic2.Add(i, partSignedCj2.Inputs[i].WitScript.ToString());
+						myDic2.Add(i, partSignedCj2.Inputs[i].WitScript);
 					}
 				}
 
-				var jsonSigs1 = JsonConvert.SerializeObject(myDic1, Formatting.None);
-				var jsonSigs2 = JsonConvert.SerializeObject(myDic2, Formatting.None);
-				var sigReqCont1 = new StringContent(jsonSigs1, Encoding.UTF8, "application/json");
-				var sigReqCont2 = new StringContent(jsonSigs2, Encoding.UTF8, "application/json");
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/signatures?uniqueId={uniqueAliceId1}&roundId={roundId}", sigReqCont1))
-				{
-					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-				}
-				using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/signatures?uniqueId={uniqueAliceId2}&roundId={roundId}", sigReqCont2))
-				{
-					Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-				}
+				await aliceClient.PostSignaturesAsync(roundId, uniqueAliceId1, myDic1);
+				await aliceClient.PostSignaturesAsync(roundId, uniqueAliceId2, myDic2);
 
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
@@ -1964,7 +1954,6 @@ namespace WalletWasabi.Tests
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.FailAllRoundsInInputRegistration();
 
-			using (var torClient = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var bobClient = new BobClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var aliceClient = new AliceClient(new Uri(RegTestFixture.BackendEndPoint)))
 			{
@@ -2113,7 +2102,7 @@ namespace WalletWasabi.Tests
 					}
 				}
 
-				var signatureRequests = new List<Task<HttpResponseMessage>>();
+				var signatureRequests = new List<Task>();
 				foreach (var user in users)
 				{
 					var partSignedCj = new Transaction(unsignedCoinJoin.ToHex());
@@ -2122,29 +2111,21 @@ namespace WalletWasabi.Tests
 								.AddCoins(user.userInputData.Select(x=> new Coin(x.tx, x.input.N)))
 								.SignTransactionInPlace(partSignedCj, SigHash.All);
 
-					var myDic = new Dictionary<int, string>();
+					var myDic = new Dictionary<int, WitScript>();
 
 					for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
 					{
 						var input = unsignedCoinJoin.Inputs[i];
 						if (user.userInputData.Select(x=>x.input).Contains(input.PrevOut))
 						{
-							myDic.Add(i, partSignedCj.Inputs[i].WitScript.ToString());
+							myDic.Add(i, partSignedCj.Inputs[i].WitScript);
 						}
 					}
 
-					var jsonSigs = JsonConvert.SerializeObject(myDic, Formatting.None);
-					var sigReqCont = new StringContent(jsonSigs, Encoding.UTF8, "application/json");
-					signatureRequests.Add(torClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/signatures?uniqueId={user.uniqueId}&roundId={roundId}", sigReqCont));
+					signatureRequests.Add(aliceClient.PostSignaturesAsync(roundId, user.uniqueId, myDic));
 				}
 
-				foreach(var request in signatureRequests)
-				{
-					using (var response = await request)
-					{
-						Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-					}
-				}
+				await Task.WhenAll(signatureRequests);
 
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);

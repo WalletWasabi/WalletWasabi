@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -123,6 +124,34 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 				var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
 				return new Transaction(coinjoinHex);
+			}
+		}
+
+		public async Task PostSignaturesAsync(long roundId, Guid uniqueAliceId, IDictionary<int, WitScript> signatures)
+		{
+			var myDic = new Dictionary<int, string>();
+			foreach(var signature in signatures)
+			{
+				myDic.Add(signature.Key, signature.Value.ToString());
+			}
+
+			var jsonSignatures = JsonConvert.SerializeObject(myDic, Formatting.None);
+			var signatureRequestContent = new StringContent(jsonSignatures, Encoding.UTF8, "application/json");
+
+			using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/signatures?uniqueId={uniqueAliceId}&roundId={roundId}", signatureRequestContent))
+			{
+				if (response.StatusCode != HttpStatusCode.NoContent)
+				{
+					string error = await response.Content.ReadAsJsonAsync<string>();
+					if (error == null)
+					{
+						throw new HttpRequestException(response.StatusCode.ToReasonString());
+					}
+					else
+					{
+						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
+					}
+				}
 			}
 		}
 
