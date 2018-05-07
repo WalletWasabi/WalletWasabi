@@ -26,23 +26,23 @@ namespace WalletWasabi.Services
 		public BobClient BobClient { get; }
 		public SatoshiClient SatoshiClient { get; }
 
-		private List<(SmartCoin coin, ISecret secret)> CoinsToMix { get; }
+		private List<(SmartCoin coin, ISecret secret, long? roundId)> CoinsToMix { get; }
 		private AsyncLock CoinsToMixLock { get; }
 
-		private CcjRunningRoundState _registrableRoundState;
-		public CcjRunningRoundState RegistrableRoundState
+		private IEnumerable<CcjRunningRoundState> _roundStates;
+		public IEnumerable<CcjRunningRoundState> RoundStates
 		{
-			get => _registrableRoundState;
+			get => _roundStates;
 			private set
 			{
-				if (_registrableRoundState != value)
+				if (_roundStates != value)
 				{
-					_registrableRoundState = value;
-					RegistrableRoundStateChanged?.Invoke(this, value);
+					_roundStates = value;
+					RoundStatesChanged?.Invoke(this, value);
 				}
 			}
 		}
-		public event EventHandler<CcjRunningRoundState> RegistrableRoundStateChanged;
+		public event EventHandler<IEnumerable<CcjRunningRoundState>> RoundStatesChanged;
 
 		private long _frequentStatusProcessingIfNotMixing;
 
@@ -64,11 +64,11 @@ namespace WalletWasabi.Services
 			BobClient = new BobClient(ccjHostUri, torSocks5EndPoint);
 			SatoshiClient = new SatoshiClient(ccjHostUri, torSocks5EndPoint);
 
-			_registrableRoundState = null;
+			_roundStates = null;
 			_running = 0;
 			Stop = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
-			CoinsToMix = new List<(SmartCoin, ISecret)>();
+			CoinsToMix = new List<(SmartCoin, ISecret, long?)>();
 			CoinsToMixLock = new AsyncLock();
 		}
 
@@ -99,18 +99,34 @@ namespace WalletWasabi.Services
 							// If stop was requested return.
 							if (IsRunning == false) return;
 
-							// if mixing >- connConf: delay = new Random().Next(2, 7);
-							if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1)
+							using (await CoinsToMixLock.LockAsync())
 							{
-								double rand = double.Parse($"0.{new Random().Next(2, 8)}");
-								int delay = (int)(rand * RegistrableRoundState.RegistrationTimeout);
+								// if mixing >- connConf: delay = new Random().Next(2, 7);
+								var notNullRoundIds = CoinsToMix.Where(x => x.roundId != null).Select(y => y.roundId).Distinct();
+								var count = 0;
+								foreach(var roundId in notNullRoundIds)
+								{
+									count += RoundStates.Count(x => x.RoundId == roundId && x.Phase >= CcjRoundPhase.ConnectionConfirmation);
+								}
 
-								await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
-								await ProcessStatusAsync();
-							}
-							else
-							{
-								await Task.Delay(1000); // dormant
+								if(count > 0)
+								{
+									var delay = new Random().Next(2, 7);
+									await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
+									await ProcessStatusAsync();
+								}
+								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || CoinsToMix.Count != 0)
+								{
+									double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout and 0.8 * connConfTimeout
+									int delay = (int)(rand * RoundStates.First(x => x.Phase == CcjRoundPhase.InputRegistration).RegistrationTimeout);
+
+									await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
+									await ProcessStatusAsync();
+								}
+								else
+								{
+									await Task.Delay(1000); // dormant
+								}
 							}
 						}
 						catch (TaskCanceledException ex)
@@ -138,10 +154,12 @@ namespace WalletWasabi.Services
 			try
 			{
 				IEnumerable<CcjRunningRoundState> states = await SatoshiClient.GetAllRoundStatesAsync();
-				RegistrableRoundState = states.First(x => x.Phase == CcjRoundPhase.InputRegistration);
+				RoundStates = states;
 
-				int delay = new Random().Next(0, 7);
+				int delay = new Random().Next(0, 7); // delay the response to defend timing attack privacy
 				await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
+
+
 			}
 			catch (TaskCanceledException ex)
 			{
@@ -184,7 +202,7 @@ namespace WalletWasabi.Services
 					}
 
 					coin.Locked = true;
-					CoinsToMix.Add((coin, secret));
+					CoinsToMix.Add((coin, secret, null));
 				}
 			}
 		}
