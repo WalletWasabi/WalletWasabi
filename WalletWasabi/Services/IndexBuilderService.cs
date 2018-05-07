@@ -28,7 +28,6 @@ namespace WalletWasabi.Services
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
 		
 		public event EventHandler<Block> NewBlock;
-		private void OnNewBlock(Block block) => NewBlock?.Invoke(this, block);
 
 		private class ActionHistoryHelper
 		{
@@ -228,7 +227,7 @@ namespace WalletWasabi.Services
 
 							if (blockCount - height <= 2)
 							{
-								OnNewBlock(block);
+								NewBlock?.Invoke(this, block);
 							}
 
 							if (prevHash != null)

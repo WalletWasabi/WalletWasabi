@@ -31,10 +31,8 @@ namespace WalletWasabi.Services
 		public Height StartingHeight => GetStartingHeight(Network);
 
 		public event EventHandler<uint256> Reorged;
-		private void OnReorg(uint256 invalidBlockHash) => Reorged?.Invoke(this, invalidBlockHash);
 
 		public event EventHandler<FilterModel> NewFilter;
-		private void OnNewFilter(FilterModel filter) => NewFilter?.Invoke(this, filter);
 
 		public static FilterModel GetStartingFilter(Network network)
 		{
@@ -144,7 +142,7 @@ namespace WalletWasabi.Services
 										var filterModel = FilterModel.FromLine(filters[i], bestKnownFilter.BlockHeight + i + 1);
 
 										Index.Add(filterModel);
-										OnNewFilter(filterModel);
+										NewFilter?.Invoke(this, filterModel);
 									}
 
 									if (filters.Count == 1) // minor optimization
@@ -172,7 +170,7 @@ namespace WalletWasabi.Services
 									Index.RemoveAt(Index.Count - 1);
 								}
 
-								OnReorg(reorgedHash);
+								Reorged?.Invoke(this, reorgedHash);
 
 								// 2. Serialize Index. (Remove last line.)
 								var lines = File.ReadAllLines(IndexFilePath);

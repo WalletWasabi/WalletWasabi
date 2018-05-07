@@ -66,14 +66,13 @@ namespace WalletWasabi.ChaumianCoinJoin
 					if (_phase != value)
 					{
 						_phase = value;
-						OnPhaseChanged(value);
+						PhaseChanged?.Invoke(this, value);
 					}
 				}
 			}
 		}
 
 		public event EventHandler<CcjRoundPhase> PhaseChanged;
-		private void OnPhaseChanged(CcjRoundPhase phase) => PhaseChanged?.Invoke(this, phase);
 
 		private CcjRoundStatus _status;
 
@@ -95,14 +94,13 @@ namespace WalletWasabi.ChaumianCoinJoin
 					if (_status != value)
 					{
 						_status = value;
-						OnStatusChanged(value);
+						StatusChanged?.Invoke(this, value);
 					}
 				}
 			}
 		}
 
 		public event EventHandler<CcjRoundStatus> StatusChanged;
-		private void OnStatusChanged(CcjRoundStatus status) => StatusChanged?.Invoke(this, status);
 
 		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
 

@@ -38,12 +38,11 @@ namespace WalletWasabi.Services
 				if (_registrableRoundState != value)
 				{
 					_registrableRoundState = value;
-					OnRegistrableRoundStateChanged(value);
+					RegistrableRoundStateChanged?.Invoke(this, value);
 				}
 			}
 		}
 		public event EventHandler<CcjRunningRoundState> RegistrableRoundStateChanged;
-		private void OnRegistrableRoundStateChanged(CcjRunningRoundState state) => RegistrableRoundStateChanged?.Invoke(this, state);
 
 		private long _frequentStatusProcessingIfNotMixing;
 
