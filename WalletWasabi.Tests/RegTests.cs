@@ -1739,7 +1739,7 @@ namespace WalletWasabi.Tests
 				roundId = inputsResponse.RoundId;
 
 				roundState = await satoshiClient.GetRoundStateAsync(roundId);
-				var inputRegistrableRoundState = await satoshiClient.GetFirstRegistrableRoundStateAsync();
+				var inputRegistrableRoundState = await satoshiClient.GetRegistrableRoundStateAsync();
 				Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
 				Assert.Equal(2, roundState.RegisteredPeerCount);
 				Assert.Equal(0, inputRegistrableRoundState.RegisteredPeerCount);

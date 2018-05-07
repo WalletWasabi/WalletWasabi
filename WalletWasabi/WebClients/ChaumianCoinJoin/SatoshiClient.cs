@@ -50,7 +50,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			return states.Single(x => x.RoundId == roundId);
 		}
 
-		public async Task<CcjRunningRoundState> GetFirstRegistrableRoundStateAsync()
+		public async Task<CcjRunningRoundState> GetRegistrableRoundStateAsync()
 		{
 			IEnumerable<CcjRunningRoundState> states = await GetAllRoundStatesAsync();
 			return states.First(x => x.Phase == CcjRoundPhase.InputRegistration);
