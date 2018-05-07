@@ -207,6 +207,17 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public async Task DequeueCoinsFromMixAsync(params (uint256 transactionId, int index)[] coins)
+		{
+			using (await CoinsToMixLock.LockAsync())
+			{
+				// if wasn't even queued return
+				// if its round is >= connconf throw: cannot dequeue
+				// if its round is inputreg, send unconfirm req and depending on the response throw or unqueue
+				// unqueue: 1) remove from list, 2) make coin unlocked
+			}
+		}
+
 		public async Task StopAsync()
 		{
 			if (IsRunning)
