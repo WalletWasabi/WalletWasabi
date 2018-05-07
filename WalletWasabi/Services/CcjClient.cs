@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,9 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.ChaumianCoinJoin;
 using WalletWasabi.Helpers;
+using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
 
 namespace WalletWasabi.Services
@@ -17,11 +20,15 @@ namespace WalletWasabi.Services
 	public class CcjClient
 	{
 		public Network Network { get; }
+		public KeyManager KeyManager { get; }
 
 		public AliceClient AliceClient { get; }
 		public BobClient BobClient { get; }
 		public SatoshiClient SatoshiClient { get; }
-		
+
+		private List<(SmartCoin coin, ISecret secret)> CoinsToMix { get; }
+		private AsyncLock CoinsToMixLock { get; }
+
 		private CcjRunningRoundState _registrableRoundState;
 		public CcjRunningRoundState RegistrableRoundState
 		{
@@ -50,9 +57,10 @@ namespace WalletWasabi.Services
 
 		private CancellationTokenSource Stop { get; }
 
-		public CcjClient(Network network, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
+		public CcjClient(Network network, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
+			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			AliceClient = new AliceClient(ccjHostUri, torSocks5EndPoint);
 			BobClient = new BobClient(ccjHostUri, torSocks5EndPoint);
 			SatoshiClient = new SatoshiClient(ccjHostUri, torSocks5EndPoint);
@@ -61,6 +69,8 @@ namespace WalletWasabi.Services
 			_running = 0;
 			Stop = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
+			CoinsToMix = new List<(SmartCoin, ISecret)>();
+			CoinsToMixLock = new AsyncLock();
 		}
 
 		public void Start()
@@ -152,6 +162,32 @@ namespace WalletWasabi.Services
 		public void DeactivateFrequentStatusProcessingIfNotMixing()
 		{
 			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
+		}
+
+		public void QueueCoinsToMix(string password, params SmartCoin[] coins)
+		{
+			using (CoinsToMixLock.Lock())
+			{
+				foreach (SmartCoin coin in coins)
+				{
+					if (coin.SpentOrLocked)
+					{
+						continue;
+					}
+					var secret = KeyManager.GetSecrets(password, coin.ScriptPubKey).SingleOrDefault();
+					if (secret == null)
+					{
+						continue;
+					}
+					if (CoinsToMix.Select(x => x.coin).Contains(coin))
+					{
+						continue;
+					}
+
+					coin.Locked = true;
+					CoinsToMix.Add((coin, secret));
+				}
+			}
 		}
 
 		public async Task StopAsync()

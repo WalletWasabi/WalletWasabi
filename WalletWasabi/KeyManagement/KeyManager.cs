@@ -180,7 +180,7 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		public IEnumerable<ExtKey> GetSecrets(string password, IEnumerable<Script> scripts)
+		public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
 		{
 			Key secret = EncryptedSecret.GetKey(password);
 			var extKey = new ExtKey(secret, ChainCode);

@@ -434,7 +434,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
@@ -469,7 +469,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(new Money(0.1m, MoneyUnit.BTC), firstCoin.Amount);
 				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0, 1);
-				Assert.True(firstCoin.Unspent);
+				Assert.False(firstCoin.SpentOrLocked);
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal(key.GetP2wpkhScript(), firstCoin.ScriptPubKey);
 				Assert.Null(firstCoin.SpenderTransactionId);
@@ -499,7 +499,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 2, firstCoin.Height.Value);
 				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 1, secondCoin.Height.Value);
 				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, thirdCoin.Height);
-				Assert.True(thirdCoin.Unspent);
+				Assert.False(thirdCoin.SpentOrLocked);
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal("bar label", secondCoin.Label);
 				Assert.Equal("bar label", thirdCoin.Label);
@@ -555,7 +555,7 @@ namespace WalletWasabi.Tests
 
 				Assert.Equal(new Money(0.03m, MoneyUnit.BTC), rbfCoin.Amount);
 				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 2, rbfCoin.Height.Value);
-				Assert.True(rbfCoin.Unspent);
+				Assert.False(rbfCoin.SpentOrLocked);
 				Assert.Equal("bar label", rbfCoin.Label);
 				Assert.Equal(key2.GetP2wpkhScript(), rbfCoin.ScriptPubKey);
 				Assert.Null(rbfCoin.SpenderTransactionId);
@@ -670,7 +670,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -731,7 +731,7 @@ namespace WalletWasabi.Tests
 				#region Basic
 
 				Script receive = wallet.GetReceiveKey("Basic").GetP2wpkhScript();
-				Money amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
+				Money amountToSend = wallet.Coins.Where(x => !x.SpentOrLocked).Sum(x => x.Amount) / 2;
 				var res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
@@ -771,7 +771,7 @@ namespace WalletWasabi.Tests
 				#region SubtractFeeFromAmount
 
 				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").GetP2wpkhScript();
-				amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 2;
+				amountToSend = wallet.Coins.Where(x => !x.SpentOrLocked).Sum(x => x.Amount) / 2;
 				res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
@@ -927,7 +927,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(res.Transaction.Transaction.Outputs);
 				var maxBuiltTxOutput = res.Transaction.Transaction.Outputs.Single();
 				Assert.Equal(receive, maxBuiltTxOutput.ScriptPubKey);
-				Assert.Equal(wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
+				Assert.Equal(wallet.Coins.Where(x => !x.SpentOrLocked).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
@@ -940,7 +940,7 @@ namespace WalletWasabi.Tests
 				var inputCountBefore = res.SpentCoins.Count();
 				res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
 					allowUnconfirmed: true,
-					allowedInputs: wallet.Coins.Where(x => x.Unspent).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1));
+					allowedInputs: wallet.Coins.Where(x => !x.SpentOrLocked).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1));
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
@@ -980,7 +980,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal("change of (my label)", res.InnerWalletOutputs.Single().Label);
 
-				amountToSend = wallet.Coins.Where(x => x.Unspent).Sum(x => x.Amount) / 3;
+				amountToSend = wallet.Coins.Where(x => !x.SpentOrLocked).Sum(x => x.Amount) / 3;
 				res = await wallet.BuildTransactionAsync("password", new[] {
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing"),
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing2")
@@ -1056,7 +1056,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1228,7 +1228,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1404,7 +1404,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1454,12 +1454,12 @@ namespace WalletWasabi.Tests
 				Assert.Contains(wallet.Coins, x => x.TransactionId == tx1Res.Transaction.GetHash());
 
 				// There is a coin destroyed
-				Assert.Equal(1, wallet.Coins.Count(x => !x.Unspent && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
+				Assert.Equal(1, wallet.Coins.Count(x => x.SpentOrLocked && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.TransactionId == tx0Id));
 
-				var totalWallet = wallet.Coins.Where(c => c.Unspent).Sum(c => c.Amount);
+				var totalWallet = wallet.Coins.Where(c => !c.SpentOrLocked).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi, totalWallet);
 
 
@@ -1475,12 +1475,12 @@ namespace WalletWasabi.Tests
 				Assert.Contains(wallet.Coins, x => x.TransactionId == tx2Res.Transaction.GetHash());
 
 				// There is a coin destroyed
-				Assert.Equal(1, wallet.Coins.Count(x => !x.Unspent && x.SpenderTransactionId == tx2Res.Transaction.GetHash()));
+				Assert.Equal(1, wallet.Coins.Count(x => x.SpentOrLocked && x.SpenderTransactionId == tx2Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.TransactionId == tx1Res.Transaction.GetHash()));
 
-				totalWallet = wallet.Coins.Where(c => c.Unspent).Sum(c => c.Amount);
+				totalWallet = wallet.Coins.Where(c => !c.SpentOrLocked).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi - tx2Res.Fee.Satoshi, totalWallet);
 
 				_filtersProcessedByWalletCount = 0;
@@ -2209,6 +2209,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CcjClientTestsAsync()
 		{
+			string password = "password";
 			var rpc = Global.RpcClient;
 			var network = Global.RpcClient.Network;
 			var coordinator = Global.Coordinator;
@@ -2221,7 +2222,7 @@ namespace WalletWasabi.Tests
 			coordinator.FailAllRoundsInInputRegistration();
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
 
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, KeyManager.CreateNew(out _, password), new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
 				chaumianClient.Start();

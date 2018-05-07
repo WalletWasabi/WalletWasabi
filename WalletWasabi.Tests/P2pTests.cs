@@ -86,10 +86,12 @@ namespace WalletWasabi.Tests
 					RequiredServices = NodeServices.Network,
 					MinVersion = ProtocolVersion_WITNESS_VERSION
 				});
-			WalletService walletService = new WalletService(
-				KeyManager.CreateNew(out _, "password"),
+
+			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
+			 WalletService walletService = new WalletService(
+				keyManager,
 				new IndexDownloader(network, Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345")),
-				new CcjClient(network, new Uri("http://localhost:12345")),
+				new CcjClient(network, keyManager, new Uri("http://localhost:12345")),
 				memPoolService,
 				nodes,
 				blocksFolderPath);

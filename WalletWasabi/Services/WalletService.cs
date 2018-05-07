@@ -564,22 +564,22 @@ namespace WalletWasabi.Services
 
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrLocked && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrLocked && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 			}
 			else
 			{
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.Where(x => x.Unspent).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrLocked).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => x.Unspent && x.Confirmed).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrLocked && x.Confirmed).ToList();
 				}
 			}
 
@@ -707,7 +707,7 @@ namespace WalletWasabi.Services
 			IEnumerable<SmartCoin> coinsToSpend = SelectCoinsToSpend(allowedSmartCoinInputs, totalOutgoingAmount);
 
 			// 8. Get signing keys
-			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(password, coinsToSpend.Select(x => x.ScriptPubKey));
+			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(password, coinsToSpend.Select(x => x.ScriptPubKey).ToArray());
 
 			// 9. Build the transaction
 			Logger.LogInfo<WalletService>("Signing transaction...");
