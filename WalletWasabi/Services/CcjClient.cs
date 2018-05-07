@@ -26,8 +26,9 @@ namespace WalletWasabi.Services
 		public BobClient BobClient { get; }
 		public SatoshiClient SatoshiClient { get; }
 
+		private AsyncLock MixLock { get; }
+
 		private List<(SmartCoin coin, ISecret secret, long? roundId)> CoinsToMix { get; }
-		private AsyncLock CoinsToMixLock { get; }
 
 		private IEnumerable<CcjRunningRoundState> _roundStates;
 		public IEnumerable<CcjRunningRoundState> RoundStates
@@ -69,7 +70,7 @@ namespace WalletWasabi.Services
 			Stop = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
 			CoinsToMix = new List<(SmartCoin, ISecret, long?)>();
-			CoinsToMixLock = new AsyncLock();
+			MixLock = new AsyncLock();
 		}
 
 		public void Start()
@@ -99,34 +100,34 @@ namespace WalletWasabi.Services
 							// If stop was requested return.
 							if (IsRunning == false) return;
 
-							using (await CoinsToMixLock.LockAsync())
+							var count = 0;
+							using (await MixLock.LockAsync())
 							{
 								// if mixing >- connConf: delay = new Random().Next(2, 7);
-								var notNullRoundIds = CoinsToMix.Where(x => x.roundId != null).Select(y => y.roundId).Distinct();
-								var count = 0;
-								foreach(var roundId in notNullRoundIds)
+								var notNullRoundIds = CoinsToMix.Where(x => x.roundId != null).Select(y => y.roundId).Distinct();								
+								foreach (var roundId in notNullRoundIds)
 								{
 									count += RoundStates.Count(x => x.RoundId == roundId && x.Phase >= CcjRoundPhase.ConnectionConfirmation);
 								}
+							}
 
-								if(count > 0)
-								{
-									var delay = new Random().Next(2, 7);
-									await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
-									await ProcessStatusAsync();
-								}
-								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || CoinsToMix.Count != 0)
-								{
-									double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout and 0.8 * connConfTimeout
-									int delay = (int)(rand * RoundStates.First(x => x.Phase == CcjRoundPhase.InputRegistration).RegistrationTimeout);
+							if (count > 0)
+							{
+								var delay = new Random().Next(2, 7);
+								await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
+								await ProcessStatusAsync();
+							}
+							else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || CoinsToMix.Count != 0)
+							{
+								double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout and 0.8 * connConfTimeout
+								int delay = (int)(rand * RoundStates.First(x => x.Phase == CcjRoundPhase.InputRegistration).RegistrationTimeout);
 
-									await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
-									await ProcessStatusAsync();
-								}
-								else
-								{
-									await Task.Delay(1000); // dormant
-								}
+								await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
+								await ProcessStatusAsync();
+							}
+							else
+							{
+								await Task.Delay(1000); // dormant
 							}
 						}
 						catch (TaskCanceledException ex)
@@ -159,7 +160,10 @@ namespace WalletWasabi.Services
 				int delay = new Random().Next(0, 7); // delay the response to defend timing attack privacy
 				await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
 
+				using (await MixLock.LockAsync())
+				{
 
+				}
 			}
 			catch (TaskCanceledException ex)
 			{
@@ -183,7 +187,7 @@ namespace WalletWasabi.Services
 
 		public void QueueCoinsToMix(string password, params SmartCoin[] coins)
 		{
-			using (CoinsToMixLock.Lock())
+			using (MixLock.Lock())
 			{
 				foreach (SmartCoin coin in coins)
 				{
@@ -209,12 +213,28 @@ namespace WalletWasabi.Services
 
 		public async Task DequeueCoinsFromMixAsync(params (uint256 transactionId, int index)[] coins)
 		{
-			using (await CoinsToMixLock.LockAsync())
+			using (await MixLock.LockAsync())
 			{
-				// if wasn't even queued return
-				// if its round is >= connconf throw: cannot dequeue
-				// if its round is inputreg, send unconfirm req and depending on the response throw or unqueue
-				// unqueue: 1) remove from list, 2) make coin unlocked
+				AggregateException aggregateException = null;
+				foreach (var coin in coins)
+				{
+					// if wasn't even queued return
+					// if its round is >= connconf: add to aggregateException, continue; cannot dequeue
+					// if its round is inputreg, send unconfirm req and depending on the response add to aggregateException, continue; or unqueue coin and remove roundId from its siblings (were registered to the same round)
+					// unqueue coin: 1) remove from list, 2) make coin unlocked
+				}
+
+				if (aggregateException != null)
+				{
+					if (aggregateException.InnerExceptions.Count == 1)
+					{
+						throw aggregateException.InnerExceptions.First();
+					}
+					else
+					{
+						throw aggregateException;
+					}
+				}
 			}
 		}
 
@@ -234,6 +254,17 @@ namespace WalletWasabi.Services
 			SatoshiClient?.Dispose();
 			BobClient?.Dispose();
 			AliceClient?.Dispose();
+
+			try
+			{
+				// Try to dequeue all coins at last. This should be done manually, and prevent the closing of the software if unsuccessful.
+				await DequeueCoinsFromMixAsync(CoinsToMix.Select(x => (x.coin.TransactionId, x.coin.Index)).ToArray()); 
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError<CcjClient>("Couldn't dequeue all coins. Some coins will likely be banned from mixing.");
+				Logger.LogError<CcjClient>(ex);
+			}
 		}
 	}
 }
