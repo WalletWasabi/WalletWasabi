@@ -26,7 +26,11 @@ namespace WalletWasabi.Backend.Models
 			if(Filter != null) // bech found here
 			{
 				builder.Append(":");
-				builder.Append(Filter.ToString());
+				builder.Append(Filter.N);
+				builder.Append(":");
+				builder.Append(Filter.Data.Length);
+				builder.Append(":");
+				builder.Append(ByteHelpers.ToHex(Filter.Data.ToByteArray()));
 			}
 
 			return builder.ToString();
@@ -48,13 +52,19 @@ namespace WalletWasabi.Backend.Models
 			}
 			else
 			{
+				var n = int.Parse(parts[1]);
+				var fba = new FastBitArray(ByteHelpers.FromHex(parts[3]));
+				fba.Length = int.Parse(parts[2]);
+
+				var filter = new GolombRiceFilter(fba, n);
+
 				return new FilterModel
 				{
 					BlockHeight = Guard.NotNull(nameof(height), height),
 					BlockHash = new uint256(parts[0]),
-					Filter = GolombRiceFilter.Parse(parts[1])
+					Filter = filter
 				};
-			}
+			}			
 		}
 	}
 }
