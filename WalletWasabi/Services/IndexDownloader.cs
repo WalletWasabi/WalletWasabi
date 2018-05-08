@@ -38,11 +38,11 @@ namespace WalletWasabi.Services
 		{
 			if (network == Network.Main)
 			{
-				return FilterModel.FromLine("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893:2:43:11288322B003", GetStartingHeight(network));
+				return FilterModel.FromLine("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893:02832810ec08a0", GetStartingHeight(network));
 			}
 			else if (network == Network.TestNet)
 			{
-				return FilterModel.FromLine("00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a:1:21:6E081E", GetStartingHeight(network));
+				return FilterModel.FromLine("00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a:017821b8", GetStartingHeight(network));
 			}
 			else if (network == Network.RegTest)
 			{
