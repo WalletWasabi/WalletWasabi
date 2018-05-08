@@ -40,6 +40,8 @@ namespace WalletWasabi.Backend
 				c.IncludeXmlComments(xmlPath);
 			});
 
+			services.AddLogging(Logging=> Logging.AddFilter((s, level)=> level >= Microsoft.Extensions.Logging.LogLevel.Warning));
+
 			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider() );
 		}
 
