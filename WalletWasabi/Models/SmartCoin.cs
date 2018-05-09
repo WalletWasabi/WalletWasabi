@@ -71,9 +71,14 @@ namespace WalletWasabi.Models
 			Locked = locked;
 		}
 
-		public Coin ToCoin()
+		public Coin GetCoin()
 		{
 			return new Coin(TransactionId, (uint)Index, Amount, ScriptPubKey);
+		}
+
+		public OutPoint GetOutPoint()
+		{
+			return new OutPoint(TransactionId, (uint)Index);
 		}
 
 		#region EqualityAndComparison

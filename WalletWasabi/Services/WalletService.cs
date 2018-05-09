@@ -330,7 +330,7 @@ namespace WalletWasabi.Services
 				if (foundKey != default)
 				{
 					foundKey.KeyState = KeyState.Used;
-					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, foundKey.Label, null);
+					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, foundKey.Label, spenderTransactionId: null, locked: false); // Don't inherit locked status from key, that's different.
 					Coins.Add(coin);
 
 					// Make sure there's always 21 clean keys generated and indexed.
@@ -712,7 +712,7 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>("Signing transaction...");
 			var builder = new TransactionBuilder();
 			builder = builder
-				.AddCoins(coinsToSpend.Select(x => x.ToCoin()))
+				.AddCoins(coinsToSpend.Select(x => x.GetCoin()))
 				.AddKeys(signingKeys.ToArray());
 
 			foreach ((Script scriptPubKey, Money amount, string label) output in realToSend)

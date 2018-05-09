@@ -242,7 +242,7 @@ namespace WalletWasabi.Backend.Controllers
 					byte[] signature = RsaKey.SignBlindedData(blindedData);
 
 					// Check if phase changed since.
-					if (round.Status != ChaumianCoinJoin.CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
+					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
 					{
 						return base.StatusCode(StatusCodes.Status503ServiceUnavailable, "The state of the round changed while handling the request. Try again.");
 					}

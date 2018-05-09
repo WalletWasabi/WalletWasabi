@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using WalletWasabi.Crypto;
 
 namespace WalletWasabi.Tests
 {
@@ -91,7 +92,7 @@ namespace WalletWasabi.Tests
 			 WalletService walletService = new WalletService(
 				keyManager,
 				new IndexDownloader(network, Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345")),
-				new CcjClient(network, keyManager, new Uri("http://localhost:12345")),
+				new CcjClient(network, new BlindingRsaKey().PubKey, keyManager, new Uri("http://localhost:12345")),
 				memPoolService,
 				nodes,
 				blocksFolderPath);

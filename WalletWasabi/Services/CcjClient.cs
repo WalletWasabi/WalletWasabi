@@ -7,8 +7,10 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
@@ -20,6 +22,7 @@ namespace WalletWasabi.Services
 	public class CcjClient
 	{
 		public Network Network { get; }
+		BlindingRsaPubKey BlindingPubKey { get; }
 		public KeyManager KeyManager { get; }
 
 		public AliceClient AliceClient { get; }
@@ -47,9 +50,10 @@ namespace WalletWasabi.Services
 
 		private CancellationTokenSource Stop { get; }
 
-		public CcjClient(Network network, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
+		public CcjClient(Network network, BlindingRsaPubKey blindingPubKey, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
+			BlindingPubKey = Guard.NotNull(nameof(blindingPubKey), blindingPubKey);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			AliceClient = new AliceClient(ccjHostUri, torSocks5EndPoint);
 			BobClient = new BobClient(ccjHostUri, torSocks5EndPoint);
@@ -171,7 +175,7 @@ namespace WalletWasabi.Services
 						CcjRunningRoundState state = states.SingleOrDefault(x => x.RoundId == round.State.RoundId);
 						if (state == null) // The round is not running anymore.
 						{
-							foreach(MixCoin rc in round.CoinsRegistered)
+							foreach (MixCoin rc in round.CoinsRegistered)
 							{
 								CoinsWaitingForMix.Add(rc);
 							}
@@ -191,7 +195,189 @@ namespace WalletWasabi.Services
 
 				using (await MixLock.LockAsync())
 				{
+					CoinsWaitingForMix.RemoveAll(x => x.SmartCoin.SpenderTransactionId != null); // Make sure coins those were somehow spent are removed.
 
+					CcjClientRound inputRegistrableRound = Rounds.First(x => x.State.Phase == CcjRoundPhase.InputRegistration);
+					if (inputRegistrableRound.AliceUniqueId == null) // If didn't register already, check what can we register.
+					{
+						try
+						{
+							var coinsToRegister = new List<MixCoin>();
+							var amountSoFar = Money.Zero;
+							Money amountNeededExceptInputFees = inputRegistrableRound.State.Denomination + inputRegistrableRound.State.FeePerOutputs * 2;
+							var tooSmallInputs = false;
+							foreach (MixCoin coin in CoinsWaitingForMix
+								.Where(x => x.SmartCoin.Confirmed || x.SmartCoin.Label.Contains("CoinJoin", StringComparison.Ordinal)) // Where our label contains CoinJoin, CoinJoins can be registered even if not confirmed, our label will likely be CoinJoin only if it was a previous CoinJoin, otherwise the server will refuse us.
+								.OrderByDescending(y => y.SmartCoin.Amount) // First order by amount.
+								.OrderByDescending(z => z.SmartCoin.Confirmed)) // Then order by the amount ordered ienumerable by confirmation, so first try to register confirmed coins.
+							{
+								coinsToRegister.Add(coin);
+								if (inputRegistrableRound.State.MaximumInputCountPerPeer < coinsToRegister.Count)
+								{
+									tooSmallInputs = true;
+									break;
+								}
+
+								amountSoFar += coin.SmartCoin.Amount;
+								if (amountSoFar > amountNeededExceptInputFees + inputRegistrableRound.State.FeePerInputs * coinsToRegister.Count)
+								{
+									break;
+								}
+							}
+
+							// If input count doesn't reach the max input registration AND there are enough coins queued, then register to mix.
+							if (!tooSmallInputs && amountSoFar > amountNeededExceptInputFees + inputRegistrableRound.State.FeePerInputs * coinsToRegister.Count)
+							{
+								var changeKey = KeyManager.GenerateNewKey("CoinJoin Change Output", KeyState.Locked, isInternal: true);
+								var activeKey = KeyManager.GenerateNewKey("CoinJoin Active Output", KeyState.Locked, isInternal: true);
+								var blind = BlindingPubKey.Blind(activeKey.GetP2wpkhScript().ToBytes());
+
+								var inputProofs = new List<InputProofModel>();
+								foreach (var coin in coinsToRegister)
+								{
+									var inputProof = new InputProofModel
+									{
+										Input = coin.SmartCoin.GetOutPoint(),
+										Proof = coin.Secret.PrivateKey.SignMessage(ByteHelpers.ToHex(blind.BlindedData))
+									};
+									inputProofs.Add(inputProof);
+								}
+								InputsResponse inputsResponse = await AliceClient.PostInputsAsync(changeKey.GetP2wpkhScript(), blind.BlindedData, inputProofs.ToArray());
+
+								if (!BlindingPubKey.Verify(inputsResponse.BlindedOutputSignature, blind.BlindedData))
+								{
+									throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
+								}
+
+								CcjClientRound roundRegistered = Rounds.SingleOrDefault(x => x.State.RoundId == inputsResponse.RoundId);
+								if (roundRegistered == null)
+								{
+									// If our SatoshiClient doesn't yet know about the round because of the dealy create it.
+									// Make its state as it'd be the same as our assumed round was, except the roundId and registeredPeerCount, it'll be updated later.
+									roundRegistered = new CcjClientRound(CcjRunningRoundState.CloneExcept(inputRegistrableRound.State, inputsResponse.RoundId, registeredPeerCount: 1));
+									Rounds.Add(roundRegistered);
+									RoundAdded?.Invoke(this, roundRegistered);
+								}
+
+								foreach (var coin in coinsToRegister)
+								{
+									roundRegistered.CoinsRegistered.Add(coin);
+									CoinsWaitingForMix.Remove(coin);
+								}
+								roundRegistered.ActiveOutput = activeKey;
+								roundRegistered.ChangeOutput = changeKey;
+								roundRegistered.UnblindedSignature = BlindingPubKey.UnblindSignature(inputsResponse.BlindedOutputSignature, blind.BlindingFactor);
+								roundRegistered.AliceUniqueId = inputsResponse.UniqueId;
+								RoundUpdated?.Invoke(this, roundRegistered);
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogError<CcjClient>(ex);
+						}
+					}
+					else // We registered, let's confirm we're online.
+					{
+						try
+						{
+							string roundHash = await AliceClient.PostConfirmationAsync(inputRegistrableRound.State.RoundId, (Guid)inputRegistrableRound.AliceUniqueId);
+							if (roundHash != null) // Then the phase went to connection confirmation. 
+							{
+								inputRegistrableRound.RoundHash = roundHash;
+								inputRegistrableRound.State.Phase = CcjRoundPhase.ConnectionConfirmation;
+								RoundUpdated?.Invoke(this, inputRegistrableRound);
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogError<CcjClient>(ex);
+						}
+					}
+
+					foreach (CcjClientRound ongoingRound in Rounds.Where(x => x.State.Phase != CcjRoundPhase.InputRegistration && x.AliceUniqueId != null))
+					{
+						try
+						{
+							if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
+							{
+								if (ongoingRound.RoundHash == null) // If we didn't already obtained our roundHash obtain it.
+								{
+									string roundHash = await AliceClient.PostConfirmationAsync(inputRegistrableRound.State.RoundId, (Guid)inputRegistrableRound.AliceUniqueId);
+									if (roundHash == null)
+									{
+										throw new NotSupportedException("Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
+									}
+									else
+									{
+										ongoingRound.RoundHash = roundHash;
+										RoundUpdated?.Invoke(this, ongoingRound);
+									}
+								}
+							}
+							else if (ongoingRound.State.Phase == CcjRoundPhase.OutputRegistration)
+							{
+								if (ongoingRound.RoundHash == null)
+								{
+									throw new NotSupportedException("Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
+								}
+
+								await BobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutput.GetP2wpkhScript(), ongoingRound.UnblindedSignature);
+							}
+							else if (ongoingRound.State.Phase == CcjRoundPhase.Signing)
+							{
+								Transaction unsignedCoinJoin = await AliceClient.GetUnsignedCoinJoinAsync(ongoingRound.State.RoundId, (Guid)ongoingRound.AliceUniqueId);
+								if (NBitcoinHelpers.HashOutpoints(unsignedCoinJoin.Inputs.Select(x => x.PrevOut)) != ongoingRound.RoundHash)
+								{
+									throw new NotSupportedException("Coordinator provided invalid roundHash.");
+								}
+								Money amountBack = unsignedCoinJoin.Outputs
+									.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutput.GetP2wpkhScript() || x.ScriptPubKey == ongoingRound.ChangeOutput.GetP2wpkhScript())
+									.Sum(y => y.Value);
+								Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.SmartCoin.Amount); // Start with input sum.
+								minAmountBack -= ongoingRound.State.FeePerOutputs * 2 + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
+								Money actualDenomination = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count).First().value; // Denomination may grow.
+								Money expectedCoordinatorFee = new Money((ongoingRound.State.CoordinatorFeePercent * 0.01m) * decimal.Parse(actualDenomination.ToString(false, true)), MoneyUnit.BTC);
+								minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
+
+								// If there's no change output then coordinator protection may happened:
+								if (unsignedCoinJoin.Outputs.All(x => x.ScriptPubKey != ongoingRound.ChangeOutput.GetP2wpkhScript()))
+								{
+									Money minimumOutputAmount = new Money(0.0001m, MoneyUnit.BTC); // If the change would be less than about $1 then add it to the coordinator.
+									Money onePercentOfDenomination = new Money(actualDenomination.ToDecimal(MoneyUnit.BTC) * 0.01m, MoneyUnit.BTC); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
+									Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
+
+									minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
+								}
+
+								if (amountBack < minAmountBack)
+								{
+									throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
+								}
+
+								new TransactionBuilder()
+									.AddKeys(ongoingRound.CoinsRegistered.Select(x=>x.Secret).ToArray())
+									.AddCoins(ongoingRound.CoinsRegistered.Select(x=>x.SmartCoin.GetCoin()))
+									.SignTransactionInPlace(unsignedCoinJoin, SigHash.All);
+
+								var myDic = new Dictionary<int, WitScript>();
+
+								for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
+								{
+									var input = unsignedCoinJoin.Inputs[i];
+									if (ongoingRound.CoinsRegistered.Select(x => x.SmartCoin.GetOutPoint()).Contains(input.PrevOut))
+									{
+										myDic.Add(i, unsignedCoinJoin.Inputs[i].WitScript);
+									}
+								}
+
+								await AliceClient.PostSignaturesAsync(ongoingRound.State.RoundId, (Guid)ongoingRound.AliceUniqueId, myDic);
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogError<CcjClient>(ex);
+						}
+					}
 				}
 			}
 			catch (TaskCanceledException ex)
@@ -272,7 +458,7 @@ namespace WalletWasabi.Services
 			{
 				List<Exception> exceptions = new List<Exception>();
 
-				foreach(var coinToDequeue in coins)
+				foreach (var coinToDequeue in coins)
 				{
 					MixCoin coinWaitingForMix = CoinsWaitingForMix.SingleOrDefault(x => x.SmartCoin.TransactionId == coinToDequeue.transactionId && x.SmartCoin.Index == coinToDequeue.index);
 					if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
@@ -280,13 +466,13 @@ namespace WalletWasabi.Services
 						CoinsWaitingForMix.Remove(coinWaitingForMix);
 					}
 
-					foreach(CcjClientRound round in Rounds)
+					foreach (CcjClientRound round in Rounds)
 					{
 						MixCoin coinBeingMixed = round.CoinsRegistered.SingleOrDefault(x => x.SmartCoin.TransactionId == coinToDequeue.transactionId && x.SmartCoin.Index == coinToDequeue.index);
 
-						if(coinBeingMixed != null) // If it is being mixed.
+						if (coinBeingMixed != null) // If it is being mixed.
 						{
-							if(round.State.Phase == CcjRoundPhase.InputRegistration)
+							if (round.State.Phase == CcjRoundPhase.InputRegistration)
 							{
 								try
 								{

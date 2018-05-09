@@ -34,5 +34,22 @@ namespace WalletWasabi.Backend.Models.Responses
 		public decimal CoordinatorFeePercent { get; set; }
 
 		public long RoundId { get; set; }
+
+		public static CcjRunningRoundState CloneExcept(CcjRunningRoundState state, long roundId, int registeredPeerCount)
+		{
+			return new CcjRunningRoundState
+			{
+				Phase = state.Phase,
+				Denomination = state.Denomination,
+				RegisteredPeerCount = registeredPeerCount,
+				RequiredPeerCount = state.RequiredPeerCount,
+				CoordinatorFeePercent = state.CoordinatorFeePercent,
+				FeePerInputs = state.FeePerInputs,
+				FeePerOutputs = state.FeePerOutputs,
+				MaximumInputCountPerPeer = state.MaximumInputCountPerPeer,
+				RegistrationTimeout = state.RegistrationTimeout,
+				RoundId = roundId
+			};
+		}
 	}
 }

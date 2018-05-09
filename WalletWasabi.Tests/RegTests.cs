@@ -435,7 +435,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, Global.Coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
@@ -671,7 +671,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, Global.Coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1057,7 +1057,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, Global.Coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1229,7 +1229,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, Global.Coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1405,7 +1405,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, "password");
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, Global.Coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
@@ -1982,7 +1982,6 @@ namespace WalletWasabi.Tests
 			using (var bobClient = new BobClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var aliceClient = new AliceClient(new Uri(RegTestFixture.BackendEndPoint)))
 			{
-
 				var fundingTxCount = 0;
 				var inputRegistrationUsers = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, Script activeOutputScript, Script changeOutputScript, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData)>();
 				for (int i = 0; i < roundConfig.AnonymitySet; i++)
@@ -2198,7 +2197,7 @@ namespace WalletWasabi.Tests
 			var smartCoin1 = new SmartCoin(txid1, tx1.Outputs.GetIndex(bech1.ScriptPubKey), bech1.ScriptPubKey, amount1, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
 			var smartCoin2 = new SmartCoin(txid2, tx2.Outputs.GetIndex(bech2.ScriptPubKey), bech2.ScriptPubKey, amount2, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
 
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, Global.Coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
 				chaumianClient.Start();
