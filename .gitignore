@@ -262,3 +262,8 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+#AltCover
+__Saved/
+coverage.xml
+lcov.info
