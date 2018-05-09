@@ -10,7 +10,6 @@ namespace WalletWasabi.Models
 	{
 		public SmartCoin SmartCoin { get; }
 		public ISecret Secret { get; }
-		public long? RoundId { get; private set; }
 
 		public MixCoin(SmartCoin coin, ISecret secret)
 		{
@@ -21,9 +20,5 @@ namespace WalletWasabi.Models
 			}
 			Secret = Guard.NotNull(nameof(secret), secret);
 		}
-
-		public bool IsMixing() => RoundId != null;
-		public void RemoveFromMix() => RoundId = null;
-		public void AddToMix(long roundId) => RoundId = roundId;
 	}
 }

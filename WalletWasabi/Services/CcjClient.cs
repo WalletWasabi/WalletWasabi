@@ -28,7 +28,7 @@ namespace WalletWasabi.Services
 
 		private AsyncLock MixLock { get; }
 
-		private List<MixCoin> CoinsToMix { get; }
+		private List<MixCoin> CoinsWaitingForMix { get; }
 
 		private List<CcjClientRound> Rounds { get; }
 		public event EventHandler<CcjClientRound> RoundAdded;
@@ -59,7 +59,7 @@ namespace WalletWasabi.Services
 			_running = 0;
 			Stop = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
-			CoinsToMix = new List<MixCoin>();
+			CoinsWaitingForMix = new List<MixCoin>();
 			MixLock = new AsyncLock();
 		}
 
@@ -171,6 +171,10 @@ namespace WalletWasabi.Services
 						CcjRunningRoundState state = states.SingleOrDefault(x => x.RoundId == round.State.RoundId);
 						if (state == null) // The round is not running anymore.
 						{
+							foreach(MixCoin rc in round.CoinsRegistered)
+							{
+								CoinsWaitingForMix.Add(rc);
+							}
 							roundsToRemove.Add(round.State.RoundId);
 						}
 					}
@@ -178,10 +182,6 @@ namespace WalletWasabi.Services
 					foreach (long roundId in roundsToRemove)
 					{
 						Rounds.RemoveAll(x => x.State.RoundId == roundId);
-						foreach (var coin in CoinsToMix.Where(x => x.RoundId == roundId))
-						{
-							coin.RemoveFromMix();
-						}
 						RoundRemoved?.Invoke(this, roundId);
 					}
 				}
@@ -234,12 +234,12 @@ namespace WalletWasabi.Services
 					{
 						continue;
 					}
-					if (CoinsToMix.Select(x => x.SmartCoin).Contains(coin))
+					if (CoinsWaitingForMix.Select(x => x.SmartCoin).Contains(coin))
 					{
 						continue;
 					}
 
-					CoinsToMix.Add(new MixCoin(coin, secret));
+					CoinsWaitingForMix.Add(new MixCoin(coin, secret));
 					successful.Add(coin);
 				}
 
@@ -256,45 +256,42 @@ namespace WalletWasabi.Services
 			{
 				List<Exception> exceptions = new List<Exception>();
 
-				foreach (var coinToDequeue in coins)
+				foreach(var coinToDequeue in coins)
 				{
-					MixCoin coinToMix = CoinsToMix.SingleOrDefault(x => x.SmartCoin.TransactionId == coinToDequeue.transactionId && x.SmartCoin.Index == coinToDequeue.index);
-					// if wasn't even queued continue
-					if (coinToMix == null)
+					MixCoin coinWaitingForMix = CoinsWaitingForMix.SingleOrDefault(x => x.SmartCoin.TransactionId == coinToDequeue.transactionId && x.SmartCoin.Index == coinToDequeue.index);
+					if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
 					{
-						continue;
+						CoinsWaitingForMix.Remove(coinWaitingForMix);
 					}
-					// if its round is >= connconf: add to aggregateException, continue; cannot dequeue
-					if (coinToMix.RoundId != null)
+
+					foreach(CcjClientRound round in Rounds)
 					{
-						CcjClientRound round = Rounds.Single(x => x.State.RoundId == coinToMix.RoundId); // Round must be present and running.
-						if (round.State.Phase >= CcjRoundPhase.ConnectionConfirmation)
+						MixCoin coinBeingMixed = round.CoinsRegistered.SingleOrDefault(x => x.SmartCoin.TransactionId == coinToDequeue.transactionId && x.SmartCoin.Index == coinToDequeue.index);
+
+						if(coinBeingMixed != null) // If it is being mixed.
 						{
-							exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.index}:{coinToDequeue.transactionId}."));
-							continue;
-						}
-						else // // if its round is inputreg, send unconfirm req and depending on the response add to aggregateException, continue; or unqueue coin and remove roundId from its siblings (were registered to the same round)
-						{
-							try
+							if(round.State.Phase == CcjRoundPhase.InputRegistration)
 							{
-								await AliceClient.PostUnConfirmationAsync(round.State.RoundId, (Guid)round.AliceUniqueId); // AliceUniqueId must be there.
-								foreach(var c in CoinsToMix)
+								try
 								{
-									if(c.RoundId == round.State.RoundId)
+									await AliceClient.PostUnConfirmationAsync(round.State.RoundId, (Guid)round.AliceUniqueId); // AliceUniqueId must be there.
+									foreach (var c in round.CoinsRegistered)
 									{
-										c.RemoveFromMix();
+										CoinsWaitingForMix.Add(c);
+										round.ClearRegistration();
 									}
 								}
+								catch (Exception ex)
+								{
+									exceptions.Add(ex);
+								}
 							}
-							catch (Exception ex)
+							else
 							{
-								exceptions.Add(ex);
-								continue;
+								exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.index}:{coinToDequeue.transactionId}."));
 							}
 						}
 					}
-					coinToMix.RemoveFromMix();
-					CoinsToMix.Remove(coinToMix);
 				}
 
 				if (exceptions.Count == 1)
@@ -328,7 +325,7 @@ namespace WalletWasabi.Services
 			try
 			{
 				// Try to dequeue all coins at last. This should be done manually, and prevent the closing of the software if unsuccessful.
-				await DequeueCoinsFromMixAsync(CoinsToMix.Select(x => (x.SmartCoin.TransactionId, x.SmartCoin.Index)).ToArray()); 
+				await DequeueCoinsFromMixAsync(CoinsWaitingForMix.Select(x => (x.SmartCoin.TransactionId, x.SmartCoin.Index)).ToArray()); 
 			}
 			catch (Exception ex)
 			{
