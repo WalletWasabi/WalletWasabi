@@ -250,6 +250,22 @@ namespace WalletWasabi.Services
 		/// <summary>
 		/// Unlock coin after dequeuing it.
 		/// </summary>
+		public async Task DequeueCoinsFromMixAsync(params MixCoin[] coins)
+		{
+			await DequeueCoinsFromMixAsync(coins.Select(x => (x.SmartCoin.TransactionId, x.SmartCoin.Index)).ToArray());
+		}
+
+		/// <summary>
+		/// Unlock coin after dequeuing it.
+		/// </summary>
+		public async Task DequeueCoinsFromMixAsync(params SmartCoin[] coins)
+		{
+			await DequeueCoinsFromMixAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
+		}
+
+		/// <summary>
+		/// Unlock coin after dequeuing it.
+		/// </summary>
 		public async Task DequeueCoinsFromMixAsync(params (uint256 transactionId, int index)[] coins)
 		{
 			using (await MixLock.LockAsync())
@@ -325,7 +341,7 @@ namespace WalletWasabi.Services
 			try
 			{
 				// Try to dequeue all coins at last. This should be done manually, and prevent the closing of the software if unsuccessful.
-				await DequeueCoinsFromMixAsync(CoinsWaitingForMix.Select(x => (x.SmartCoin.TransactionId, x.SmartCoin.Index)).ToArray()); 
+				await DequeueCoinsFromMixAsync(Rounds.SelectMany(x=>x.CoinsRegistered).Concat(CoinsWaitingForMix).ToArray()); 
 			}
 			catch (Exception ex)
 			{

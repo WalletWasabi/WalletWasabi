@@ -2209,15 +2209,14 @@ namespace WalletWasabi.Tests
 				Assert.Throws<SecurityException>(() => chaumianClient.QueueCoinsToMix("asdasdasd", smartCoin1, smartCoin2));
 
 				// Make sure it doesn't throw.
-				await chaumianClient.DequeueCoinsFromMixAsync();
 				await chaumianClient.DequeueCoinsFromMixAsync((smartCoin1.TransactionId, smartCoin1.Index));
 
 				Assert.True(2 == chaumianClient.QueueCoinsToMix(password, smartCoin1, smartCoin2).Count());
 				await chaumianClient.DequeueCoinsFromMixAsync((smartCoin1.TransactionId, 111));
-				await chaumianClient.DequeueCoinsFromMixAsync((smartCoin1.TransactionId, smartCoin1.Index), (smartCoin2.TransactionId, smartCoin2.Index));
+				await chaumianClient.DequeueCoinsFromMixAsync(smartCoin1, smartCoin2);
 				Assert.True(2 == chaumianClient.QueueCoinsToMix(password, smartCoin1, smartCoin2).Count());
-				await chaumianClient.DequeueCoinsFromMixAsync((smartCoin1.TransactionId, smartCoin1.Index));
-				await chaumianClient.DequeueCoinsFromMixAsync((smartCoin2.TransactionId, smartCoin2.Index));
+				await chaumianClient.DequeueCoinsFromMixAsync(smartCoin1);
+				await chaumianClient.DequeueCoinsFromMixAsync(smartCoin2);
 			}
 			finally
 			{
