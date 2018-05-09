@@ -26,6 +26,25 @@ namespace NBitcoin
 			}
 		}
 
+		public static int GetIndex(this TxOutList me, Script script)
+		{
+			var index = -1;
+			for (int i = 0; i < me.Count; i++)
+			{
+				var output = me[i];
+				if(output.ScriptPubKey == script)
+				{
+					index = i;
+				}
+			}
+
+			if(index == -1)
+			{
+				throw new InvalidOperationException("Script not found.");
+			}
+			return index;
+		}
+
 		public static string ToHex(this IBitcoinSerializable me)
 		{
 			return ByteHelpers.ToHex(me.ToBytes());

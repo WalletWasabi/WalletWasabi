@@ -35,6 +35,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using Org.BouncyCastle.Math;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
+using System.Security;
 
 namespace WalletWasabi.Tests
 {
@@ -1581,15 +1582,7 @@ namespace WalletWasabi.Tests
 				var addr = await rpc.GetNewAddressAsync();
 				var hash = await rpc.SendToAddressAsync(addr, new Money(0.01m, MoneyUnit.BTC));
 				var tx = await rpc.GetRawTransactionAsync(hash);
-				var index = 0;
-				for (int i = 0; i < tx.Outputs.Count; i++)
-				{
-					var output = tx.Outputs[i];
-					if (output.ScriptPubKey == addr.ScriptPubKey)
-					{
-						index = i;
-					}
-				}
+				var index = tx.Outputs.GetIndex(addr.ScriptPubKey);
 
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
@@ -1611,15 +1604,7 @@ namespace WalletWasabi.Tests
 				hash = await rpc.SendToAddressAsync(witnessAddress, new Money(0.01m, MoneyUnit.BTC));
 				await rpc.GenerateAsync(1);
 				tx = await rpc.GetRawTransactionAsync(hash);
-				index = 0;
-				for (int i = 0; i < tx.Outputs.Count; i++)
-				{
-					var output = tx.Outputs[i];
-					if (output.ScriptPubKey == witnessAddress.ScriptPubKey)
-					{
-						index = i;
-					}
-				}
+				index = tx.Outputs.GetIndex(witnessAddress.ScriptPubKey);
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}", httpRequestException.Message);
@@ -1711,15 +1696,7 @@ namespace WalletWasabi.Tests
 					hash = await rpc.SendToAddressAsync(witnessAddress, new Money(0.01m, MoneyUnit.BTC));
 					await rpc.GenerateAsync(1);
 					tx = await rpc.GetRawTransactionAsync(hash);
-					index = 0;
-					for (int i = 0; i < tx.Outputs.Count; i++)
-					{
-						var output = tx.Outputs[i];
-						if (output.ScriptPubKey == witnessAddress.ScriptPubKey)
-						{
-							index = i;
-						}
-					}
+					index = tx.Outputs.GetIndex(witnessAddress.ScriptPubKey);
 					proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
 					inputProofs.Add(new InputProofModel { Input = new OutPoint(hash, index), Proof = proof });
 				}
@@ -1778,15 +1755,7 @@ namespace WalletWasabi.Tests
 				hash = await rpc.SendToAddressAsync(witnessAddress, new Money(0.01m, MoneyUnit.BTC));
 				await rpc.GenerateAsync(1);
 				tx = await rpc.GetRawTransactionAsync(hash);
-				index = 0;
-				for (int i = 0; i < tx.Outputs.Count; i++)
-				{
-					var output = tx.Outputs[i];
-					if (output.ScriptPubKey == witnessAddress.ScriptPubKey)
-					{
-						index = i;
-					}
-				}
+				index = tx.Outputs.GetIndex(witnessAddress.ScriptPubKey);
 				scriptBytes = new Key().PubKey.GetSegwitAddress(network).ScriptPubKey.ToBytes();
 				(BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptBytes);
 
@@ -2040,18 +2009,7 @@ namespace WalletWasabi.Tests
 						Assert.NotNull(txHash);
 						Transaction transaction = await rpc.GetRawTransactionAsync(txHash);
 
-						var outputIndex = 0;
-						var hit = false;
-						for (int k = 0; k < transaction.Outputs.Count; k++)
-						{
-							var output = transaction.Outputs[k];
-							if (output.ScriptPubKey == inputAddress.ScriptPubKey)
-							{
-								outputIndex = k;
-								hit = true;
-							}
-						}
-						Assert.True(hit);
+						var outputIndex = transaction.Outputs.GetIndex(inputAddress.ScriptPubKey);
 
 						OutPoint input = new OutPoint(txHash, outputIndex);
 						var inputProof = new InputProofModel { Input = input, Proof = key.SignMessage(ByteHelpers.ToHex(blinded.BlindedData)) };
@@ -2221,11 +2179,44 @@ namespace WalletWasabi.Tests
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.FailAllRoundsInInputRegistration();
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
+			var keyManager = KeyManager.CreateNew(out _, password);
+			var key1 = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
+			var key2 = keyManager.GenerateNewKey("bar", KeyState.Clean, false);
+			var bech1 = key1.GetP2wpkhAddress(network);
+			var bech2 = key2.GetP2wpkhAddress(network);
+			var amount1 = new Money(0.03m, MoneyUnit.BTC);
+			var amount2 = new Money(0.08m, MoneyUnit.BTC);
+			var txid1 = await rpc.SendToAddressAsync(bech1, amount1, replaceable: false);
+			var txid2 = await rpc.SendToAddressAsync(bech2, amount2, replaceable: false);
+			key1.KeyState = KeyState.Used;
+			key2.KeyState = KeyState.Used;
+			var tx1 = await rpc.GetRawTransactionAsync(txid1);
+			var tx2 = await rpc.GetRawTransactionAsync(txid2);
+			await rpc.GenerateAsync(1);
+			var height = await rpc.GetBlockCountAsync();
+			var smartCoin1 = new SmartCoin(txid1, tx1.Outputs.GetIndex(bech1.ScriptPubKey), bech1.ScriptPubKey, amount1, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
+			var smartCoin2 = new SmartCoin(txid2, tx2.Outputs.GetIndex(bech2.ScriptPubKey), bech2.ScriptPubKey, amount2, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
 
-			var chaumianClient = new CcjClient(Global.RpcClient.Network, KeyManager.CreateNew(out _, password), new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(Global.RpcClient.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
 				chaumianClient.Start();
+
+				Assert.Throws<NotSupportedException>(() => chaumianClient.QueueCoinsToMix(password, smartCoin1, smartCoin2));
+				smartCoin1.Locked = true;
+				smartCoin2.Locked = true;
+				Assert.Throws<SecurityException>(() => chaumianClient.QueueCoinsToMix("asdasdasd", smartCoin1, smartCoin2));
+
+				// Make sure it doesn't throw.
+				await chaumianClient.DequeueCoinsFromMixAsync();
+				await chaumianClient.DequeueCoinsFromMixAsync((smartCoin1.TransactionId, smartCoin1.Index));
+
+				Assert.True(2 == chaumianClient.QueueCoinsToMix(password, smartCoin1, smartCoin2).Count());
+				await chaumianClient.DequeueCoinsFromMixAsync((smartCoin1.TransactionId, 111));
+				await chaumianClient.DequeueCoinsFromMixAsync((smartCoin1.TransactionId, smartCoin1.Index), (smartCoin2.TransactionId, smartCoin2.Index));
+				Assert.True(2 == chaumianClient.QueueCoinsToMix(password, smartCoin1, smartCoin2).Count());
+				await chaumianClient.DequeueCoinsFromMixAsync((smartCoin1.TransactionId, smartCoin1.Index));
+				await chaumianClient.DequeueCoinsFromMixAsync((smartCoin2.TransactionId, smartCoin2.Index));
 			}
 			finally
 			{
