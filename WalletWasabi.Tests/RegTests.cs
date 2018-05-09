@@ -1715,10 +1715,11 @@ namespace WalletWasabi.Tests
 				Assert.True(inputsResponse.RoundId > 0);
 				roundId = inputsResponse.RoundId;
 
+				await Task.Delay(50);
 				roundState = await satoshiClient.GetRoundStateAsync(roundId);
-				var inputRegistrableRoundState = await satoshiClient.GetRegistrableRoundStateAsync();
 				Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
 				Assert.Equal(2, roundState.RegisteredPeerCount);
+				var inputRegistrableRoundState = await satoshiClient.GetRegistrableRoundStateAsync();
 				Assert.Equal(0, inputRegistrableRoundState.RegisteredPeerCount);
 
 				roundConfig.ConnectionConfirmationTimeout = 1; // One second.
