@@ -265,3 +265,5 @@ __pycache__/
 
 #AltCover
 __Saved/
+coverage.xml
+lcov.info
