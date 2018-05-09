@@ -18,7 +18,7 @@ branches:
 
 cache:
   directories:
-  # $HOME/.walletwasabi/
+  - $HOME/.walletwasabi/
   - $HOME/.nuget/packages 
 
 before_install:
