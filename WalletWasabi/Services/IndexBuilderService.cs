@@ -311,15 +311,13 @@ namespace WalletWasabi.Services
 								}
 							}
 
-							// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
-							// The parameter k MUST be set to the first 16 bytes of the hash of the block for which the filter 
-							// is constructed.This ensures the key is deterministic while still varying from block to block.
-							var key = block.GetHash().ToBytes().Take(16).ToArray();
-
 							GolombRiceFilter filter = null;
 							if (scripts.Count != 0)
 							{
-								filter = GolombRiceFilter.Build(key, scripts.Select(x => x.ToCompressedBytes()));
+								filter = new GolombRiceFilterBuilder()
+									.SetKey(block.GetHash())
+									.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
+									.Build();
 							}
 
 							var filterModel = new FilterModel
