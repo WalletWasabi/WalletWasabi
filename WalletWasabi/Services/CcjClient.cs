@@ -22,7 +22,7 @@ namespace WalletWasabi.Services
 	public class CcjClient
 	{
 		public Network Network { get; }
-		BlindingRsaPubKey BlindingPubKey { get; }
+		BlindingRsaPubKey CoordinatorPubKey { get; }
 		public KeyManager KeyManager { get; }
 
 		public AliceClient AliceClient { get; }
@@ -31,7 +31,7 @@ namespace WalletWasabi.Services
 
 		private AsyncLock MixLock { get; }
 
-		private List<MixCoin> CoinsWaitingForMix { get; }
+		private List<SmartCoin> CoinsWaitingForMix { get; }
 
 		private List<CcjClientRound> Rounds { get; }
 		public event EventHandler<CcjClientRound> RoundAdded;
@@ -50,10 +50,10 @@ namespace WalletWasabi.Services
 
 		private CancellationTokenSource Stop { get; }
 
-		public CcjClient(Network network, BlindingRsaPubKey blindingPubKey, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
+		public CcjClient(Network network, BlindingRsaPubKey coordinatorPubKey, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			BlindingPubKey = Guard.NotNull(nameof(blindingPubKey), blindingPubKey);
+			CoordinatorPubKey = Guard.NotNull(nameof(coordinatorPubKey), coordinatorPubKey);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			AliceClient = new AliceClient(ccjHostUri, torSocks5EndPoint);
 			BobClient = new BobClient(ccjHostUri, torSocks5EndPoint);
@@ -63,7 +63,7 @@ namespace WalletWasabi.Services
 			_running = 0;
 			Stop = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
-			CoinsWaitingForMix = new List<MixCoin>();
+			CoinsWaitingForMix = new List<SmartCoin>();
 			MixLock = new AsyncLock();
 		}
 
@@ -111,11 +111,11 @@ namespace WalletWasabi.Services
 							}
 							else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || inputRegMixing)
 							{
-								double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout and 0.8 * connConfTimeout
+								double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.8 * connConfTimeout
 								int delay;
 								using (await MixLock.LockAsync())
 								{
-									delay = (int)(rand * Rounds.First(x => x.State.Phase == CcjRoundPhase.InputRegistration).State.RegistrationTimeout);
+									delay = Math.Max(0, (int)(rand * Rounds.First(x => x.State.Phase == CcjRoundPhase.InputRegistration).State.RegistrationTimeout - 7));
 								}
 
 								await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
@@ -175,7 +175,7 @@ namespace WalletWasabi.Services
 						CcjRunningRoundState state = states.SingleOrDefault(x => x.RoundId == round.State.RoundId);
 						if (state == null) // The round is not running anymore.
 						{
-							foreach (MixCoin rc in round.CoinsRegistered)
+							foreach (SmartCoin rc in round.CoinsRegistered)
 							{
 								CoinsWaitingForMix.Add(rc);
 							}
@@ -195,21 +195,21 @@ namespace WalletWasabi.Services
 
 				using (await MixLock.LockAsync())
 				{
-					CoinsWaitingForMix.RemoveAll(x => x.SmartCoin.SpenderTransactionId != null); // Make sure coins those were somehow spent are removed.
+					CoinsWaitingForMix.RemoveAll(x => x.SpenderTransactionId != null); // Make sure coins those were somehow spent are removed.
 
 					CcjClientRound inputRegistrableRound = Rounds.First(x => x.State.Phase == CcjRoundPhase.InputRegistration);
 					if (inputRegistrableRound.AliceUniqueId == null) // If didn't register already, check what can we register.
 					{
 						try
 						{
-							var coinsToRegister = new List<MixCoin>();
+							var coinsToRegister = new List<SmartCoin>();
 							var amountSoFar = Money.Zero;
 							Money amountNeededExceptInputFees = inputRegistrableRound.State.Denomination + inputRegistrableRound.State.FeePerOutputs * 2;
 							var tooSmallInputs = false;
-							foreach (MixCoin coin in CoinsWaitingForMix
-								.Where(x => x.SmartCoin.Confirmed || x.SmartCoin.Label.Contains("CoinJoin", StringComparison.Ordinal)) // Where our label contains CoinJoin, CoinJoins can be registered even if not confirmed, our label will likely be CoinJoin only if it was a previous CoinJoin, otherwise the server will refuse us.
-								.OrderByDescending(y => y.SmartCoin.Amount) // First order by amount.
-								.OrderByDescending(z => z.SmartCoin.Confirmed)) // Then order by the amount ordered ienumerable by confirmation, so first try to register confirmed coins.
+							foreach (SmartCoin coin in CoinsWaitingForMix
+								.Where(x => x.Confirmed || x.Label.Contains("CoinJoin", StringComparison.Ordinal)) // Where our label contains CoinJoin, CoinJoins can be registered even if not confirmed, our label will likely be CoinJoin only if it was a previous CoinJoin, otherwise the server will refuse us.
+								.OrderByDescending(y => y.Amount) // First order by amount.
+								.OrderByDescending(z => z.Confirmed)) // Then order by the amount ordered ienumerable by confirmation, so first try to register confirmed coins.
 							{
 								coinsToRegister.Add(coin);
 								if (inputRegistrableRound.State.MaximumInputCountPerPeer < coinsToRegister.Count)
@@ -218,7 +218,7 @@ namespace WalletWasabi.Services
 									break;
 								}
 
-								amountSoFar += coin.SmartCoin.Amount;
+								amountSoFar += coin.Amount;
 								if (amountSoFar > amountNeededExceptInputFees + inputRegistrableRound.State.FeePerInputs * coinsToRegister.Count)
 								{
 									break;
@@ -230,21 +230,23 @@ namespace WalletWasabi.Services
 							{
 								var changeKey = KeyManager.GenerateNewKey("CoinJoin Change Output", KeyState.Locked, isInternal: true);
 								var activeKey = KeyManager.GenerateNewKey("CoinJoin Active Output", KeyState.Locked, isInternal: true);
-								var blind = BlindingPubKey.Blind(activeKey.GetP2wpkhScript().ToBytes());
+								var blind = CoordinatorPubKey.Blind(activeKey.GetP2wpkhScript().ToBytes());
 
 								var inputProofs = new List<InputProofModel>();
-								foreach (var coin in coinsToRegister)
+								foreach (SmartCoin coin in coinsToRegister)
 								{
 									var inputProof = new InputProofModel
 									{
-										Input = coin.SmartCoin.GetOutPoint(),
+										Input = coin.GetOutPoint(),
 										Proof = coin.Secret.PrivateKey.SignMessage(ByteHelpers.ToHex(blind.BlindedData))
 									};
 									inputProofs.Add(inputProof);
 								}
 								InputsResponse inputsResponse = await AliceClient.PostInputsAsync(changeKey.GetP2wpkhScript(), blind.BlindedData, inputProofs.ToArray());
 
-								if (!BlindingPubKey.Verify(inputsResponse.BlindedOutputSignature, blind.BlindedData))
+								byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(inputsResponse.BlindedOutputSignature, blind.BlindingFactor);
+
+								if (!CoordinatorPubKey.Verify(unblindedSignature, activeKey.GetP2wpkhScript().ToBytes()))
 								{
 									throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
 								}
@@ -265,8 +267,8 @@ namespace WalletWasabi.Services
 									CoinsWaitingForMix.Remove(coin);
 								}
 								roundRegistered.ActiveOutput = activeKey;
-								roundRegistered.ChangeOutput = changeKey;
-								roundRegistered.UnblindedSignature = BlindingPubKey.UnblindSignature(inputsResponse.BlindedOutputSignature, blind.BlindingFactor);
+								roundRegistered.ChangeOutput = changeKey;								
+								roundRegistered.UnblindedSignature = unblindedSignature;
 								roundRegistered.AliceUniqueId = inputsResponse.UniqueId;
 								RoundUpdated?.Invoke(this, roundRegistered);
 							}
@@ -290,6 +292,14 @@ namespace WalletWasabi.Services
 						}
 						catch (Exception ex)
 						{
+							if(ex.Message.StartsWith("NotFound", StringComparison.Ordinal)) // Alice timed out.
+							{
+								foreach(var coin in inputRegistrableRound.CoinsRegistered)
+								{
+									CoinsWaitingForMix.Add(coin);
+								}
+								inputRegistrableRound.ClearRegistration();
+							}
 							Logger.LogError<CcjClient>(ex);
 						}
 					}
@@ -333,7 +343,7 @@ namespace WalletWasabi.Services
 								Money amountBack = unsignedCoinJoin.Outputs
 									.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutput.GetP2wpkhScript() || x.ScriptPubKey == ongoingRound.ChangeOutput.GetP2wpkhScript())
 									.Sum(y => y.Value);
-								Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.SmartCoin.Amount); // Start with input sum.
+								Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
 								minAmountBack -= ongoingRound.State.FeePerOutputs * 2 + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
 								Money actualDenomination = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count).First().value; // Denomination may grow.
 								Money expectedCoordinatorFee = new Money((ongoingRound.State.CoordinatorFeePercent * 0.01m) * decimal.Parse(actualDenomination.ToString(false, true)), MoneyUnit.BTC);
@@ -355,8 +365,8 @@ namespace WalletWasabi.Services
 								}
 
 								new TransactionBuilder()
-									.AddKeys(ongoingRound.CoinsRegistered.Select(x=>x.Secret).ToArray())
-									.AddCoins(ongoingRound.CoinsRegistered.Select(x=>x.SmartCoin.GetCoin()))
+									.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret).ToArray())
+									.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
 									.SignTransactionInPlace(unsignedCoinJoin, SigHash.All);
 
 								var myDic = new Dictionary<int, WitScript>();
@@ -364,7 +374,7 @@ namespace WalletWasabi.Services
 								for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
 								{
 									var input = unsignedCoinJoin.Inputs[i];
-									if (ongoingRound.CoinsRegistered.Select(x => x.SmartCoin.GetOutPoint()).Contains(input.PrevOut))
+									if (ongoingRound.CoinsRegistered.Select(x => x.GetOutPoint()).Contains(input.PrevOut))
 									{
 										myDic.Add(i, unsignedCoinJoin.Inputs[i].WitScript);
 									}
@@ -375,6 +385,14 @@ namespace WalletWasabi.Services
 						}
 						catch (Exception ex)
 						{
+							if (ex.Message.StartsWith("NotFound", StringComparison.Ordinal)) // Alice timed out.
+							{
+								foreach (var coin in ongoingRound.CoinsRegistered)
+								{
+									CoinsWaitingForMix.Add(coin);
+								}
+								ongoingRound.ClearRegistration();
+							}
 							Logger.LogError<CcjClient>(ex);
 						}
 					}
@@ -411,48 +429,33 @@ namespace WalletWasabi.Services
 
 				foreach (SmartCoin coin in coins)
 				{
-					if (coin.SpenderTransactionId != null)
+					if (CoinsWaitingForMix.Contains(coin))
 					{
+						successful.Add(coin);
 						continue;
 					}
-					var secret = KeyManager.GetSecrets(password, coin.ScriptPubKey).SingleOrDefault();
-					if (secret == null)
-					{
-						continue;
-					}
-					if (CoinsWaitingForMix.Select(x => x.SmartCoin).Contains(coin))
+
+					if (coin.SpentOrLocked)
 					{
 						continue;
 					}
 
-					CoinsWaitingForMix.Add(new MixCoin(coin, secret));
+					coin.Secret = KeyManager.GetSecrets(password, coin.ScriptPubKey).Single();
+					
+					coin.Locked = true;
+
+					CoinsWaitingForMix.Add(coin);
 					successful.Add(coin);
 				}
 
 				return successful;
 			}
 		}
-
-		/// <summary>
-		/// Unlock coin after dequeuing it.
-		/// </summary>
-		public async Task DequeueCoinsFromMixAsync(params MixCoin[] coins)
-		{
-			await DequeueCoinsFromMixAsync(coins.Select(x => (x.SmartCoin.TransactionId, x.SmartCoin.Index)).ToArray());
-		}
-
+		
 		/// <summary>
 		/// Unlock coin after dequeuing it.
 		/// </summary>
 		public async Task DequeueCoinsFromMixAsync(params SmartCoin[] coins)
-		{
-			await DequeueCoinsFromMixAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
-		}
-
-		/// <summary>
-		/// Unlock coin after dequeuing it.
-		/// </summary>
-		public async Task DequeueCoinsFromMixAsync(params (uint256 transactionId, int index)[] coins)
 		{
 			using (await MixLock.LockAsync())
 			{
@@ -460,15 +463,17 @@ namespace WalletWasabi.Services
 
 				foreach (var coinToDequeue in coins)
 				{
-					MixCoin coinWaitingForMix = CoinsWaitingForMix.SingleOrDefault(x => x.SmartCoin.TransactionId == coinToDequeue.transactionId && x.SmartCoin.Index == coinToDequeue.index);
+					SmartCoin coinWaitingForMix = CoinsWaitingForMix.SingleOrDefault(x => x == coinToDequeue);
 					if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
 					{
 						CoinsWaitingForMix.Remove(coinWaitingForMix);
+						coinWaitingForMix.Locked = false;
+						coinWaitingForMix.Secret = null;
 					}
 
 					foreach (CcjClientRound round in Rounds)
 					{
-						MixCoin coinBeingMixed = round.CoinsRegistered.SingleOrDefault(x => x.SmartCoin.TransactionId == coinToDequeue.transactionId && x.SmartCoin.Index == coinToDequeue.index);
+						SmartCoin coinBeingMixed = round.CoinsRegistered.SingleOrDefault(x => x == coinToDequeue);
 
 						if (coinBeingMixed != null) // If it is being mixed.
 						{
@@ -490,7 +495,7 @@ namespace WalletWasabi.Services
 							}
 							else
 							{
-								exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.index}:{coinToDequeue.transactionId}."));
+								exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}."));
 							}
 						}
 					}
@@ -527,7 +532,12 @@ namespace WalletWasabi.Services
 			try
 			{
 				// Try to dequeue all coins at last. This should be done manually, and prevent the closing of the software if unsuccessful.
-				await DequeueCoinsFromMixAsync(Rounds.SelectMany(x=>x.CoinsRegistered).Concat(CoinsWaitingForMix).ToArray()); 
+				SmartCoin[] coinsToDequeue;
+				using (MixLock.Lock())
+				{
+					coinsToDequeue = Rounds.SelectMany(x => x.CoinsRegistered).Concat(CoinsWaitingForMix).ToArray();
+				}
+				await DequeueCoinsFromMixAsync(coinsToDequeue); 
 			}
 			catch (Exception ex)
 			{

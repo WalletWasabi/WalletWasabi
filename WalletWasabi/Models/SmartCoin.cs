@@ -56,6 +56,11 @@ namespace WalletWasabi.Models
 		public bool SpentOrLocked => SpenderTransactionId != null || Locked;
 		public bool Confirmed => Height != Height.MemPool && Height != Height.Unknown;
 
+		/// <summary>
+		/// It's a secret, so it's usually going to be null. Don't use it.
+		/// </summary>
+		public ISecret Secret { get; set; }
+
 		[JsonConstructor]
 		public SmartCoin(uint256 transactionId, int index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, string label = "", uint256 spenderTransactionId = null, bool locked = false)
 		{
@@ -69,6 +74,7 @@ namespace WalletWasabi.Models
 			SpenderTransactionId = spenderTransactionId;
 			RBF = rbf;
 			Locked = locked;
+			Secret = null;
 		}
 
 		public Coin GetCoin()

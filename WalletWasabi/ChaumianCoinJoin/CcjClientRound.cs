@@ -13,7 +13,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 	{
 		public CcjRunningRoundState State { get; set; }
 		
-		public List<MixCoin> CoinsRegistered { get; }
+		public List<SmartCoin> CoinsRegistered { get; }
 		
 		public Guid? AliceUniqueId { get; set; }
 
@@ -27,7 +27,7 @@ namespace WalletWasabi.ChaumianCoinJoin
 		public CcjClientRound(CcjRunningRoundState state)
 		{
 			State = Guard.NotNull(nameof(state), state);
-			CoinsRegistered = new List<MixCoin>();
+			CoinsRegistered = new List<SmartCoin>();
 			ClearRegistration(); // shortcut for initializing variables
 		}
 
