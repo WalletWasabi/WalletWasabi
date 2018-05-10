@@ -418,9 +418,6 @@ namespace WalletWasabi.Services
 			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
 		}
 
-		/// <summary>
-		/// Lock the coins before queueing them.
-		/// </summary>
 		public IEnumerable<SmartCoin> QueueCoinsToMix(string password, params SmartCoin[] coins)
 		{
 			using (MixLock.Lock())
@@ -452,9 +449,6 @@ namespace WalletWasabi.Services
 			}
 		}
 		
-		/// <summary>
-		/// Unlock coin after dequeuing it.
-		/// </summary>
 		public async Task DequeueCoinsFromMixAsync(params SmartCoin[] coins)
 		{
 			using (await MixLock.LockAsync())
