@@ -4,7 +4,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Responses

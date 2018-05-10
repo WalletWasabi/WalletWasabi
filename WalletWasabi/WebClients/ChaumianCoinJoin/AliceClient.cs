@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin

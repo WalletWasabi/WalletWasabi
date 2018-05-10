@@ -11,7 +11,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.ChaumianCoinJoin
+namespace WalletWasabi.Models.ChaumianCoinJoin
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class CcjRoundConfig : IConfig

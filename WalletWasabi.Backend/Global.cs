@@ -11,7 +11,7 @@ using System.Net;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using System.Text;
-using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Backend
 {

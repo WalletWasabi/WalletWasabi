@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using NBitcoin.RPC;
 using System.Net;
-using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Backend
 {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.ChaumianCoinJoin
+namespace WalletWasabi.Models.ChaumianCoinJoin
 {
     public class Alice
     {

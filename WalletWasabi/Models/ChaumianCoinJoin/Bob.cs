@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.ChaumianCoinJoin
+namespace WalletWasabi.Models.ChaumianCoinJoin
 {
     public class Bob
     {

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Tests
 {

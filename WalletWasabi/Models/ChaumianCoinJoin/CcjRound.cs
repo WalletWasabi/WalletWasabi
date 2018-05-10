@@ -11,7 +11,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.ChaumianCoinJoin
+namespace WalletWasabi.Models.ChaumianCoinJoin
 {
 	public class CcjRound
 	{

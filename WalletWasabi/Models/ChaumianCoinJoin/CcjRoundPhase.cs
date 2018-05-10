@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace WalletWasabi.ChaumianCoinJoin
+namespace WalletWasabi.Models.ChaumianCoinJoin
 {
 	public enum CcjRoundPhase
 	{

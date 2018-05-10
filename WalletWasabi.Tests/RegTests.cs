@@ -29,7 +29,7 @@ using System.Threading.Tasks;
 using Org.BouncyCastle.Asn1.IsisMtt.X509;
 using Xunit;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.ChaumianCoinJoin;
+using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;

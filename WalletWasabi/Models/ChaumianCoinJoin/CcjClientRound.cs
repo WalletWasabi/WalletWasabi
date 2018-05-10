@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.ChaumianCoinJoin
+namespace WalletWasabi.Models.ChaumianCoinJoin
 {
 	public class CcjClientRound
 	{
