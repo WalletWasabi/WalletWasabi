@@ -78,17 +78,23 @@ namespace WalletWasabi.Services
 					foreach (string line in allLines)
 					{
 						uint256 txHash = new uint256(line);
-						RPCResponse getRawTransactionResponse = RpcClient.SendCommand(RPCOperations.getrawtransaction, txHash.ToString(), true);
-						if (string.IsNullOrWhiteSpace(getRawTransactionResponse?.ResultString))
-						{
-							toRemove.Add(line);
-						}
-						else
-						{
+						try{
+							RPCResponse getRawTransactionResponse = RpcClient.SendCommand(RPCOperations.getrawtransaction, txHash.ToString(), true);
 							CoinJoins.Add(txHash);
 							if (getRawTransactionResponse.Result.Value<int>("confirmations") <= 0)
 							{
 								UnconfirmedCoinJoins.Add(txHash);
+							}
+						}
+						catch(RPCException rpce)
+						{
+							if(rpce.RPCCode == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY)
+							{
+								toRemove.Add(line);
+							}
+							else
+							{
+								throw;
 							}
 						}
 					}
@@ -118,7 +124,9 @@ namespace WalletWasabi.Services
 			foreach(Transaction tx in block.Transactions)
 			{
 				if (RoundConfig.DosSeverity <= 1) return;
+				var txId = tx.GetHash();
 
+				var outputIndex = 0;
 				foreach(TxIn input in tx.Inputs)
 				{
 					OutPoint prevOut = input.PrevOut;
@@ -131,7 +139,8 @@ namespace WalletWasabi.Services
 							int newSeverity = found.Value.severity + 1;
 							if(RoundConfig.DosSeverity >= newSeverity)
 							{
-								await UtxoReferee.BanUtxosAsync(newSeverity, found.Value.timeOfBan, prevOut);
+								var txCoins = tx.Outputs.Select(x=> new OutPoint(txId, outputIndex));
+								await UtxoReferee.BanUtxosAsync(newSeverity, found.Value.timeOfBan, txCoins.ToArray());
 							}
 							await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
 						}
@@ -139,7 +148,8 @@ namespace WalletWasabi.Services
 					else
 					{
 						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
-					}										
+					}
+					outputIndex++;
 				}
 			}
 		}
