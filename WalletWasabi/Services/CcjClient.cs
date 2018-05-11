@@ -85,32 +85,32 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							// If stop was requested return.
-							if (IsRunning == false) return;
+							int delay;
+							using (await MixLock.LockAsync())
+							{
+								// If stop was requested return.
+								if (IsRunning == false) return;
 
-							// if mixing >= connConf: delay = new Random().Next(2, 7);
-							if (State.GetActivelyMixingRounds().Count() > 0)
-							{
-								var delay = new Random().Next(2, 7);
-								await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
-								await ProcessStatusAsync();
-							}
-							else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Count() > 0)
-							{
-								double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.8 * connConfTimeout
-								int delay;
-								using (await MixLock.LockAsync())
+								// if mixing >= connConf: delay = new Random().Next(2, 7);
+								if (State.GetActivelyMixingRounds().Count() > 0)
 								{
+									delay = new Random().Next(2, 7);
+								}
+								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Count() > 0)
+								{
+									double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.8 * connConfTimeout
 									delay = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
 								}
+								else
+								{
+									// dormant
+									await Task.Delay(1000); // dormant
+									continue;
+								}
+							}
 
-								await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
-								await ProcessStatusAsync();
-							}
-							else
-							{
-								await Task.Delay(1000); // dormant
-							}
+							await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
+							await ProcessStatusAsync();
 						}
 						catch (TaskCanceledException ex)
 						{
@@ -136,13 +136,15 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				IEnumerable<CcjRunningRoundState> states = await SatoshiClient.GetAllRoundStatesAsync();
+				IEnumerable<CcjRunningRoundState> states;
+				int delay;
 				using (await MixLock.LockAsync())
 				{
+					states = await SatoshiClient.GetAllRoundStatesAsync();
 					State.UpdateRoundsByStates(states.ToArray());
+					delay = new Random().Next(0, 7); // delay the response to defend timing attack privacy
 				}
 
-				int delay = new Random().Next(0, 7); // delay the response to defend timing attack privacy
 				await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
 
 				using (await MixLock.LockAsync())
