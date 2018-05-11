@@ -31,12 +31,7 @@ namespace WalletWasabi.Services
 
 		private AsyncLock MixLock { get; }
 
-		private List<SmartCoin> CoinsWaitingForMix { get; }
-
-		private List<CcjClientRound> Rounds { get; }
-		public event EventHandler<CcjClientRound> RoundAdded;
-		public event EventHandler<long> RoundRemoved;
-		public event EventHandler<CcjClientRound> RoundUpdated;
+		public CcjClientState State { get; }
 
 		private long _frequentStatusProcessingIfNotMixing;
 
@@ -59,11 +54,10 @@ namespace WalletWasabi.Services
 			BobClient = new BobClient(ccjHostUri, torSocks5EndPoint);
 			SatoshiClient = new SatoshiClient(ccjHostUri, torSocks5EndPoint);
 
-			Rounds = new List<CcjClientRound>();
 			_running = 0;
 			Stop = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
-			CoinsWaitingForMix = new List<SmartCoin>();
+			State = new CcjClientState();
 			MixLock = new AsyncLock();
 		}
 
@@ -94,28 +88,20 @@ namespace WalletWasabi.Services
 							// If stop was requested return.
 							if (IsRunning == false) return;
 
-							var inputRegMixing = false;
-							var activelyMixing = false;
-							using (await MixLock.LockAsync())
-							{
-								// if mixing >= connConf: delay = new Random().Next(2, 7);
-								activelyMixing = Rounds.Any(x => x.AliceUniqueId != null && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation);
-								inputRegMixing = Rounds.Any(x => x.AliceUniqueId != null);
-							}
-
-							if (activelyMixing)
+							// if mixing >= connConf: delay = new Random().Next(2, 7);
+							if (State.GetActivelyMixingRounds().Count() > 0)
 							{
 								var delay = new Random().Next(2, 7);
 								await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
 								await ProcessStatusAsync();
 							}
-							else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || inputRegMixing)
+							else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Count() > 0)
 							{
 								double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.8 * connConfTimeout
 								int delay;
 								using (await MixLock.LockAsync())
 								{
-									delay = Math.Max(0, (int)(rand * Rounds.First(x => x.State.Phase == CcjRoundPhase.InputRegistration).State.RegistrationTimeout - 7));
+									delay = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
 								}
 
 								await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
@@ -153,41 +139,7 @@ namespace WalletWasabi.Services
 				IEnumerable<CcjRunningRoundState> states = await SatoshiClient.GetAllRoundStatesAsync();
 				using (await MixLock.LockAsync())
 				{
-					foreach (CcjRunningRoundState state in states)
-					{
-						CcjClientRound round = Rounds.SingleOrDefault(x => x.State.RoundId == state.RoundId);
-						if (round == null) // It's a new running round.
-						{
-							var r = new CcjClientRound(state);
-							Rounds.Add(r);
-							RoundAdded?.Invoke(this, r);
-						}
-						else
-						{
-							round.State = state;
-							RoundUpdated?.Invoke(this, round);
-						}
-					}
-
-					var roundsToRemove = new List<long>();
-					foreach (CcjClientRound round in Rounds)
-					{
-						CcjRunningRoundState state = states.SingleOrDefault(x => x.RoundId == round.State.RoundId);
-						if (state == null) // The round is not running anymore.
-						{
-							foreach (SmartCoin rc in round.CoinsRegistered)
-							{
-								CoinsWaitingForMix.Add(rc);
-							}
-							roundsToRemove.Add(round.State.RoundId);
-						}
-					}
-
-					foreach (long roundId in roundsToRemove)
-					{
-						Rounds.RemoveAll(x => x.State.RoundId == roundId);
-						RoundRemoved?.Invoke(this, roundId);
-					}
+					State.UpdateRoundsByStates(states.ToArray());
 				}
 
 				int delay = new Random().Next(0, 7); // delay the response to defend timing attack privacy
@@ -195,45 +147,27 @@ namespace WalletWasabi.Services
 
 				using (await MixLock.LockAsync())
 				{
-					CoinsWaitingForMix.RemoveAll(x => x.SpenderTransactionId != null); // Make sure coins those were somehow spent are removed.
+					State.RemoveSpentCoinsFromWaitingList(); // Make sure coins those were somehow spent are removed.
 
-					CcjClientRound inputRegistrableRound = Rounds.First(x => x.State.Phase == CcjRoundPhase.InputRegistration);
+					CcjClientRound inputRegistrableRound = State.GetRegistrableRound();
 					if (inputRegistrableRound.AliceUniqueId == null) // If didn't register already, check what can we register.
 					{
 						try
 						{
-							var coinsToRegister = new List<SmartCoin>();
-							var amountSoFar = Money.Zero;
-							Money amountNeededExceptInputFees = inputRegistrableRound.State.Denomination + inputRegistrableRound.State.FeePerOutputs * 2;
-							var tooSmallInputs = false;
-							foreach (SmartCoin coin in CoinsWaitingForMix
-								.Where(x => x.Confirmed || x.Label.Contains("CoinJoin", StringComparison.Ordinal)) // Where our label contains CoinJoin, CoinJoins can be registered even if not confirmed, our label will likely be CoinJoin only if it was a previous CoinJoin, otherwise the server will refuse us.
-								.OrderByDescending(y => y.Amount) // First order by amount.
-								.OrderByDescending(z => z.Confirmed)) // Then order by the amount ordered ienumerable by confirmation, so first try to register confirmed coins.
-							{
-								coinsToRegister.Add(coin);
-								if (inputRegistrableRound.State.MaximumInputCountPerPeer < coinsToRegister.Count)
-								{
-									tooSmallInputs = true;
-									break;
-								}
+							IEnumerable<SmartCoin> registrableCoins = State.GetRegistrableCoins(
+								inputRegistrableRound.State.MaximumInputCountPerPeer,
+								inputRegistrableRound.State.Denomination,
+								inputRegistrableRound.State.FeePerInputs,
+								inputRegistrableRound.State.FeePerOutputs);
 
-								amountSoFar += coin.Amount;
-								if (amountSoFar > amountNeededExceptInputFees + inputRegistrableRound.State.FeePerInputs * coinsToRegister.Count)
-								{
-									break;
-								}
-							}
-
-							// If input count doesn't reach the max input registration AND there are enough coins queued, then register to mix.
-							if (!tooSmallInputs && amountSoFar > amountNeededExceptInputFees + inputRegistrableRound.State.FeePerInputs * coinsToRegister.Count)
+							if (registrableCoins.Count() > 0)
 							{
 								var changeKey = KeyManager.GenerateNewKey("CoinJoin Change Output", KeyState.Locked, isInternal: true);
 								var activeKey = KeyManager.GenerateNewKey("CoinJoin Active Output", KeyState.Locked, isInternal: true);
 								var blind = CoordinatorPubKey.Blind(activeKey.GetP2wpkhScript().ToBytes());
 
 								var inputProofs = new List<InputProofModel>();
-								foreach (SmartCoin coin in coinsToRegister)
+								foreach (SmartCoin coin in registrableCoins)
 								{
 									var inputProof = new InputProofModel
 									{
@@ -251,26 +185,24 @@ namespace WalletWasabi.Services
 									throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
 								}
 
-								CcjClientRound roundRegistered = Rounds.SingleOrDefault(x => x.State.RoundId == inputsResponse.RoundId);
+								CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(inputsResponse.RoundId);
 								if (roundRegistered == null)
 								{
 									// If our SatoshiClient doesn't yet know about the round because of the dealy create it.
 									// Make its state as it'd be the same as our assumed round was, except the roundId and registeredPeerCount, it'll be updated later.
 									roundRegistered = new CcjClientRound(CcjRunningRoundState.CloneExcept(inputRegistrableRound.State, inputsResponse.RoundId, registeredPeerCount: 1));
-									Rounds.Add(roundRegistered);
-									RoundAdded?.Invoke(this, roundRegistered);
+									State.AddOrReplaceRound(roundRegistered);
 								}
 
-								foreach (var coin in coinsToRegister)
+								foreach (var coin in registrableCoins)
 								{
 									roundRegistered.CoinsRegistered.Add(coin);
-									CoinsWaitingForMix.Remove(coin);
+									State.RemoveCoinFromWaitingList(coin);
 								}
 								roundRegistered.ActiveOutput = activeKey;
 								roundRegistered.ChangeOutput = changeKey;								
 								roundRegistered.UnblindedSignature = unblindedSignature;
 								roundRegistered.AliceUniqueId = inputsResponse.UniqueId;
-								RoundUpdated?.Invoke(this, roundRegistered);
 							}
 						}
 						catch (Exception ex)
@@ -287,24 +219,19 @@ namespace WalletWasabi.Services
 							{
 								inputRegistrableRound.RoundHash = roundHash;
 								inputRegistrableRound.State.Phase = CcjRoundPhase.ConnectionConfirmation;
-								RoundUpdated?.Invoke(this, inputRegistrableRound);
 							}
 						}
 						catch (Exception ex)
 						{
 							if(ex.Message.StartsWith("NotFound", StringComparison.Ordinal)) // Alice timed out.
 							{
-								foreach(var coin in inputRegistrableRound.CoinsRegistered)
-								{
-									CoinsWaitingForMix.Add(coin);
-								}
-								inputRegistrableRound.ClearRegistration();
+								State.ClearRoundRegistration(inputRegistrableRound.State.RoundId);
 							}
 							Logger.LogError<CcjClient>(ex);
 						}
 					}
 
-					foreach (CcjClientRound ongoingRound in Rounds.Where(x => x.State.Phase != CcjRoundPhase.InputRegistration && x.AliceUniqueId != null))
+					foreach (CcjClientRound ongoingRound in State.GetActivelyMixingRounds())
 					{
 						try
 						{
@@ -320,7 +247,6 @@ namespace WalletWasabi.Services
 									else
 									{
 										ongoingRound.RoundHash = roundHash;
-										RoundUpdated?.Invoke(this, ongoingRound);
 									}
 								}
 							}
@@ -387,11 +313,7 @@ namespace WalletWasabi.Services
 						{
 							if (ex.Message.StartsWith("NotFound", StringComparison.Ordinal)) // Alice timed out.
 							{
-								foreach (var coin in ongoingRound.CoinsRegistered)
-								{
-									CoinsWaitingForMix.Add(coin);
-								}
-								ongoingRound.ClearRegistration();
+								State.ClearRoundRegistration(ongoingRound.State.RoundId);
 							}
 							Logger.LogError<CcjClient>(ex);
 						}
@@ -426,7 +348,7 @@ namespace WalletWasabi.Services
 
 				foreach (SmartCoin coin in coins)
 				{
-					if (CoinsWaitingForMix.Contains(coin))
+					if (State.Contains(coin))
 					{
 						successful.Add(coin);
 						continue;
@@ -441,7 +363,7 @@ namespace WalletWasabi.Services
 					
 					coin.Locked = true;
 
-					CoinsWaitingForMix.Add(coin);
+					State.AddCoinToWaitingList(coin);
 					successful.Add(coin);
 				}
 
@@ -457,41 +379,36 @@ namespace WalletWasabi.Services
 
 				foreach (var coinToDequeue in coins)
 				{
-					SmartCoin coinWaitingForMix = CoinsWaitingForMix.SingleOrDefault(x => x == coinToDequeue);
-					if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
+					foreach (var round in State.GetPassivelyMixingRounds())
 					{
-						CoinsWaitingForMix.Remove(coinWaitingForMix);
-						coinWaitingForMix.Locked = false;
-						coinWaitingForMix.Secret = null;
-					}
-
-					foreach (CcjClientRound round in Rounds)
-					{
-						SmartCoin coinBeingMixed = round.CoinsRegistered.SingleOrDefault(x => x == coinToDequeue);
-
-						if (coinBeingMixed != null) // If it is being mixed.
+						if (round.CoinsRegistered.Contains(coinToDequeue))
 						{
-							if (round.State.Phase == CcjRoundPhase.InputRegistration)
+							try
 							{
-								try
-								{
-									await AliceClient.PostUnConfirmationAsync(round.State.RoundId, (Guid)round.AliceUniqueId); // AliceUniqueId must be there.
-									foreach (var c in round.CoinsRegistered)
-									{
-										CoinsWaitingForMix.Add(c);
-										round.ClearRegistration();
-									}
-								}
-								catch (Exception ex)
-								{
-									exceptions.Add(ex);
-								}
+								await AliceClient.PostUnConfirmationAsync(round.State.RoundId, (Guid)round.AliceUniqueId); // AliceUniqueId must be there.
+								State.ClearRoundRegistration(round.State.RoundId);
 							}
-							else
+							catch (Exception ex)
 							{
-								exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}."));
+								exceptions.Add(ex);
 							}
 						}
+					}
+
+					foreach (var round in State.GetActivelyMixingRounds())
+					{
+						if(round.CoinsRegistered.Contains(coinToDequeue))
+						{
+							exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}."));
+						}
+					}
+
+					SmartCoin coinWaitingForMix = State.GetSingleOrDefaultFromWaitingList(coinToDequeue);
+					if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
+					{
+						State.RemoveCoinFromWaitingList(coinWaitingForMix);
+						coinWaitingForMix.Locked = false;
+						coinWaitingForMix.Secret = null;
 					}
 				}
 
@@ -525,18 +442,23 @@ namespace WalletWasabi.Services
 
 			try
 			{
-				// Try to dequeue all coins at last. This should be done manually, and prevent the closing of the software if unsuccessful.
-				SmartCoin[] coinsToDequeue;
-				using (MixLock.Lock())
-				{
-					coinsToDequeue = Rounds.SelectMany(x => x.CoinsRegistered).Concat(CoinsWaitingForMix).ToArray();
-				}
-				await DequeueCoinsFromMixAsync(coinsToDequeue); 
+				await DequeueCoinsFromMixAsync(State.GetAllCoins().ToArray());
 			}
-			catch (Exception ex)
+			catch(Exception ex)
 			{
 				Logger.LogError<CcjClient>("Couldn't dequeue all coins. Some coins will likely be banned from mixing.");
-				Logger.LogError<CcjClient>(ex);
+				if (ex is AggregateException)
+				{
+					var aggrEx = ex as AggregateException;
+					foreach(var innerEx in aggrEx.InnerExceptions)
+					{
+						Logger.LogError<CcjClient>(innerEx);
+					}
+				}
+				else
+				{
+					Logger.LogError<CcjClient>(ex);
+				}
 			}
 		}
 	}

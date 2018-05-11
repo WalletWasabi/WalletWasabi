@@ -54,6 +54,7 @@ namespace WalletWasabi.Models
 		public bool Locked { get; set; }
 
 		public bool SpentOrLocked => SpenderTransactionId != null || Locked;
+		public bool Unspent => SpenderTransactionId == null;
 		public bool Confirmed => Height != Height.MemPool && Height != Height.Unknown;
 
 		/// <summary>
