@@ -1515,6 +1515,51 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
+		public async Task CcjCoordinatorCtorTestsAsync()
+		{
+			var rpc = Global.RpcClient;
+			var network = Global.RpcClient.Network;
+
+			var bestBlockHash = await rpc.GetBestBlockHashAsync();
+			var bestBlock = await rpc.GetBlockAsync(bestBlockHash);
+			var coinbaseTxId = bestBlock.Transactions[0].GetHash();
+			var offchainTxId = new Transaction().GetHash();
+			var mempoolTxId = rpc.SendToAddress(new Key().PubKey.GetSegwitAddress(network), Money.Coins(1));
+
+			var folder = Path.Combine(Global.DataDir, nameof(CcjCoordinatorCtorTestsAsync));
+			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
+			Directory.CreateDirectory(folder);
+			var cjfile = Path.Combine(folder, $"CoinJoins{network}.txt");
+			File.WriteAllLines(cjfile, new[]{
+				coinbaseTxId.ToString(),
+				offchainTxId.ToString(), 
+				mempoolTxId.ToString()
+			});
+
+			var coordinator = new CcjCoordinator(network, folder, rpc, Global.Coordinator.RoundConfig);
+			var txIds = await File.ReadAllLinesAsync(cjfile);
+			
+			Assert.Contains(coinbaseTxId.ToString(), txIds);
+			Assert.Contains(mempoolTxId.ToString(), txIds);
+			Assert.DoesNotContain(offchainTxId.ToString(), txIds);
+
+
+			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
+			Directory.CreateDirectory(folder);
+			File.WriteAllLines(cjfile, new[]{
+				coinbaseTxId.ToString(),
+				"This line is invalid (the file is corrupted)",
+				offchainTxId.ToString(),
+			});
+			coordinator = new CcjCoordinator(network, folder, rpc, Global.Coordinator.RoundConfig);
+			txIds = await File.ReadAllLinesAsync(cjfile);
+			Assert.Equal(1, txIds.Count());
+			Assert.Contains(coinbaseTxId.ToString(), txIds);
+			Assert.DoesNotContain(offchainTxId.ToString(), txIds);
+			Assert.DoesNotContain("This line is invalid (the file is corrupted)", txIds);
+		}
+
+		[Fact]
 		public async Task CcjTestsAsync()
 		{
 			var rpc = Global.RpcClient;
@@ -1524,7 +1569,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.2m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 50;
-			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 1);
+			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.FailAllRoundsInInputRegistration();
 
@@ -1716,7 +1761,7 @@ namespace WalletWasabi.Tests
 				Assert.True(inputsResponse.RoundId > 0);
 				roundId = inputsResponse.RoundId;
 
-				await Task.Delay(50);
+				await Task.Delay(250);
 				roundState = await satoshiClient.GetRoundStateAsync(roundId);
 				Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
 				Assert.Equal(2, roundState.RegisteredPeerCount);
@@ -1738,6 +1783,20 @@ namespace WalletWasabi.Tests
 				await Task.Delay(3000);
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostInputsAsync(inputsRequest));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nInput is banned from participation for", httpRequestException.Message);
+
+				var spendingTx = new Transaction();
+				var bannedCoin = inputsRequest.Inputs.First().Input;
+				var utxos = Global.Coordinator.UtxoReferee;
+				Assert.True(utxos.BannedUtxos.Any(x => x.Key == bannedCoin));
+				spendingTx.Inputs.Add(new TxIn(bannedCoin));
+				spendingTx.Outputs.Add(new TxOut(Money.Coins(1), new Key().PubKey.GetSegwitAddress(network)));
+				var fakeBlockWithSpendingBannedCoins = network.Consensus.ConsensusFactory.CreateBlock();
+				fakeBlockWithSpendingBannedCoins.Transactions.Add(spendingTx);
+
+				await Global.Coordinator.ProcessBlockAsync(fakeBlockWithSpendingBannedCoins);
+
+				Assert.True(utxos.BannedUtxos.Any(x => x.Key == new OutPoint(spendingTx.GetHash(), 0)));
+				Assert.False(utxos.BannedUtxos.Any(x => x.Key == bannedCoin));
 
 				states = await satoshiClient.GetAllRoundStatesAsync();
 				foreach (var rs in states.Where(x => x.Phase == CcjRoundPhase.InputRegistration))
