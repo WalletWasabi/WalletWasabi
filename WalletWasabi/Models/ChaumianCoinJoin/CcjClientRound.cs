@@ -6,6 +6,7 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
+using WalletWasabi.WebClients.ChaumianCoinJoin;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
@@ -14,8 +15,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public CcjRunningRoundState State { get; set; }
 		
 		public List<SmartCoin> CoinsRegistered { get; }
-		
-		public Guid? AliceUniqueId { get; set; }
+
+		public AliceClient AliceClient { get; set; }
 
 		public HdPubKey ChangeOutput { get; set; }
 		public HdPubKey ActiveOutput { get; set; }
@@ -34,11 +35,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public void ClearRegistration()
 		{
 			CoinsRegistered.Clear();
-			AliceUniqueId = null;
 			ChangeOutput = null;
 			ActiveOutput = null;
 			UnblindedSignature = null;
 			RoundHash = null;
+			AliceClient?.Dispose();
+			AliceClient = null;
 		}
 	}
 }

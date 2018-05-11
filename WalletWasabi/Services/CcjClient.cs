@@ -25,7 +25,6 @@ namespace WalletWasabi.Services
 		BlindingRsaPubKey CoordinatorPubKey { get; }
 		public KeyManager KeyManager { get; }
 
-		public AliceClient AliceClient { get; }
 		public SatoshiClient SatoshiClient { get; }
 		public Uri CcjHostUri { get; }
 		IPEndPoint TorSocks5EndPoint { get; }
@@ -54,7 +53,6 @@ namespace WalletWasabi.Services
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
 			TorSocks5EndPoint = torSocks5EndPoint;
-			AliceClient = new AliceClient(ccjHostUri, torSocks5EndPoint);
 			SatoshiClient = new SatoshiClient(ccjHostUri, torSocks5EndPoint);
 
 			_running = 0;
@@ -155,7 +153,7 @@ namespace WalletWasabi.Services
 					State.RemoveSpentCoinsFromWaitingList(); // Make sure coins those were somehow spent are removed.
 
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRound();
-					if (inputRegistrableRound.AliceUniqueId == null) // If didn't register already, check what can we register.
+					if (inputRegistrableRound.AliceClient == null) // If didn't register already, check what can we register.
 					{
 						try
 						{
@@ -181,21 +179,21 @@ namespace WalletWasabi.Services
 									};
 									inputProofs.Add(inputProof);
 								}
-								InputsResponse inputsResponse = await AliceClient.PostInputsAsync(changeKey.GetP2wpkhScript(), blind.BlindedData, inputProofs.ToArray());
+								AliceClient aliceClient = await AliceClient.CreateNewAsync(changeKey.GetP2wpkhScript(), blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
 
-								byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(inputsResponse.BlindedOutputSignature, blind.BlindingFactor);
+								byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
 
 								if (!CoordinatorPubKey.Verify(unblindedSignature, activeKey.GetP2wpkhScript().ToBytes()))
 								{
 									throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
 								}
 
-								CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(inputsResponse.RoundId);
+								CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 								if (roundRegistered == null)
 								{
 									// If our SatoshiClient doesn't yet know about the round because of the dealy create it.
 									// Make its state as it'd be the same as our assumed round was, except the roundId and registeredPeerCount, it'll be updated later.
-									roundRegistered = new CcjClientRound(CcjRunningRoundState.CloneExcept(inputRegistrableRound.State, inputsResponse.RoundId, registeredPeerCount: 1));
+									roundRegistered = new CcjClientRound(CcjRunningRoundState.CloneExcept(inputRegistrableRound.State, aliceClient.RoundId, registeredPeerCount: 1));
 									State.AddOrReplaceRound(roundRegistered);
 								}
 
@@ -207,7 +205,7 @@ namespace WalletWasabi.Services
 								roundRegistered.ActiveOutput = activeKey;
 								roundRegistered.ChangeOutput = changeKey;								
 								roundRegistered.UnblindedSignature = unblindedSignature;
-								roundRegistered.AliceUniqueId = inputsResponse.UniqueId;
+								roundRegistered.AliceClient = aliceClient;
 							}
 						}
 						catch (Exception ex)
@@ -219,7 +217,7 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							string roundHash = await AliceClient.PostConfirmationAsync(inputRegistrableRound.State.RoundId, (Guid)inputRegistrableRound.AliceUniqueId);
+							string roundHash = await inputRegistrableRound.AliceClient.PostConfirmationAsync();
 							if (roundHash != null) // Then the phase went to connection confirmation. 
 							{
 								inputRegistrableRound.RoundHash = roundHash;
@@ -244,7 +242,7 @@ namespace WalletWasabi.Services
 							{
 								if (ongoingRound.RoundHash == null) // If we didn't already obtained our roundHash obtain it.
 								{
-									string roundHash = await AliceClient.PostConfirmationAsync(inputRegistrableRound.State.RoundId, (Guid)inputRegistrableRound.AliceUniqueId);
+									string roundHash = await ongoingRound.AliceClient.PostConfirmationAsync();
 									if (roundHash == null)
 									{
 										throw new NotSupportedException("Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
@@ -269,7 +267,7 @@ namespace WalletWasabi.Services
 							}
 							else if (ongoingRound.State.Phase == CcjRoundPhase.Signing)
 							{
-								Transaction unsignedCoinJoin = await AliceClient.GetUnsignedCoinJoinAsync(ongoingRound.State.RoundId, (Guid)ongoingRound.AliceUniqueId);
+								Transaction unsignedCoinJoin = await ongoingRound.AliceClient.GetUnsignedCoinJoinAsync();
 								if (NBitcoinHelpers.HashOutpoints(unsignedCoinJoin.Inputs.Select(x => x.PrevOut)) != ongoingRound.RoundHash)
 								{
 									throw new NotSupportedException("Coordinator provided invalid roundHash.");
@@ -314,7 +312,7 @@ namespace WalletWasabi.Services
 									}
 								}
 
-								await AliceClient.PostSignaturesAsync(ongoingRound.State.RoundId, (Guid)ongoingRound.AliceUniqueId, myDic);
+								await ongoingRound.AliceClient.PostSignaturesAsync(myDic);
 							}
 						}
 						catch (Exception ex)
@@ -393,7 +391,7 @@ namespace WalletWasabi.Services
 						{
 							try
 							{
-								await AliceClient.PostUnConfirmationAsync(round.State.RoundId, (Guid)round.AliceUniqueId); // AliceUniqueId must be there.
+								await round.AliceClient.PostUnConfirmationAsync(); // AliceUniqueId must be there.
 								State.ClearRoundRegistration(round.State.RoundId);
 							}
 							catch (Exception ex)
@@ -445,7 +443,7 @@ namespace WalletWasabi.Services
 
 			Stop?.Dispose();
 			SatoshiClient?.Dispose();
-			AliceClient?.Dispose();
+			State.DisposeAllAliceClients();
 
 			try
 			{

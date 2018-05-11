@@ -112,7 +112,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => x.AliceUniqueId != null && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).ToArray();
+				return Rounds.Where(x => x.AliceClient != null && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).ToArray();
 			}
 		}
 
@@ -120,7 +120,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => x.AliceUniqueId != null && x.State.Phase == CcjRoundPhase.InputRegistration).ToArray();
+				return Rounds.Where(x => x.AliceClient != null && x.State.Phase == CcjRoundPhase.InputRegistration).ToArray();
 			}
 		}
 
@@ -157,6 +157,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					WaitingList.Add(coin);
 				}
+				foreach(var round in Rounds.Where(x=> roundsToRemove.Contains(x.State.RoundId)))
+				{
+					round.AliceClient?.Dispose();
+				}
 				Rounds.RemoveAll(x => roundsToRemove.Contains(x.State.RoundId));
 
 				foreach (var round in Rounds)
@@ -182,6 +186,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
+				foreach (var r in Rounds.Where(x => x.State.RoundId == round.State.RoundId))
+				{
+					r.AliceClient?.Dispose();
+				}
 				Rounds.RemoveAll(x => x.State.RoundId == round.State.RoundId);
 				Rounds.Add(round);
 			}
@@ -198,6 +206,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						WaitingList.Add(coin);
 					}
 					round.ClearRegistration();
+				}
+			}
+		}
+
+		public void DisposeAllAliceClients()
+		{
+			lock (StateLock)
+			{
+				foreach (var aliceClient in Rounds.Select(x => x.AliceClient))
+				{
+					aliceClient?.Dispose();
 				}
 			}
 		}
