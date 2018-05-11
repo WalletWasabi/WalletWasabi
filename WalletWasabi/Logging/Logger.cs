@@ -204,64 +204,19 @@ namespace WalletWasabi.Logging
 
 		#region ExceptionLoggingMethods
 
-		/// <summary>
-		/// Logs the <paramref name="ex"/>.Message at <paramref name="messageLevel"/>, if only <paramref name="messageLevel"/> logging is set.
-		/// Logs the <paramref name="ex"/>.ToString() at <paramref name="messageLevel"/>, if <paramref name="toStringLevel"/> logging is also set.
-		/// Note: this will never log at <paramref name="toStringLevel"/>.
-		/// <paramref name="toStringLevel"/>Should be lower or equal to <paramref name="messageLevel"/>.
-		/// </summary>
-		private static void Log(Exception ex, LogLevel messageLevel, LogLevel toStringLevel = LogLevel.Trace, string category = "")
+		private static void Log(Exception ex, LogLevel level, string category = "")
 		{
-			if (toStringLevel >= MinimumLevel)
-			{
-				Log(messageLevel, ex.ToString(), category);
-				return;
-			}
-			if (messageLevel >= MinimumLevel)
-			{
-				Log(messageLevel, $"{ex.GetType()}: {ex.Message}", category);
-				return;
-			}
+			Log(level, ex.ToString(), category);
 		}
 
-		/// <summary>
-		/// Logs the <paramref name="ex"/>.Message at <paramref name="messageLevel"/>, if only <paramref name="messageLevel"/> logging is set.
-		/// Logs the <paramref name="ex"/>.ToString() at <paramref name="messageLevel"/>, if <paramref name="toStringLevel"/> logging is also set.
-		/// Note: this will never log at <paramref name="toStringLevel"/>.
-		/// <paramref name="toStringLevel"/>Should be lower or equal to <paramref name="messageLevel"/>.
-		/// </summary>
-		private static void Log<T>(Exception ex, LogLevel messageLevel, LogLevel toStringLevel = LogLevel.Trace)
+		private static void Log<T>(Exception ex, LogLevel level)
 		{
-			if (toStringLevel >= MinimumLevel)
-			{
-				Log<T>(messageLevel, ex.ToString());
-				return;
-			}
-			if (messageLevel >= MinimumLevel)
-			{
-				Log<T>(messageLevel, $"{ex.GetType()}: {ex.Message}");
-				return;
-			}
+			Log<T>(level, ex.ToString());
 		}
 
-		/// <summary>
-		/// Logs the <paramref name="ex"/>.Message at <paramref name="messageLevel"/>, if only <paramref name="messageLevel"/> logging is set.
-		/// Logs the <paramref name="ex"/>.ToString() at <paramref name="messageLevel"/>, if <paramref name="toStringLevel"/> logging is also set.
-		/// Note: this will never log at <paramref name="toStringLevel"/>.
-		/// <paramref name="toStringLevel"/>Should be lower or equal to <paramref name="messageLevel"/>.
-		/// </summary>
-		private static void Log(Exception ex, LogLevel messageLevel, LogLevel toStringLevel = LogLevel.Trace, Type category = null)
+		private static void Log(Exception ex, LogLevel level, Type category = null)
 		{
-			if (toStringLevel >= MinimumLevel)
-			{
-				Log(messageLevel, ex.ToString(), category);
-				return;
-			}
-			if (messageLevel >= MinimumLevel)
-			{
-				Log(messageLevel, $"{ex.GetType()}: {ex.Message}", category);
-				return;
-			}
+			Log(level, ex.ToString(), category);
 		}
 
 		#endregion
@@ -293,7 +248,7 @@ namespace WalletWasabi.Logging
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
-		public static void LogTrace<T>(Exception ex) => Log<T>(ex, LogLevel.Trace, LogLevel.Trace);
+		public static void LogTrace<T>(Exception ex) => Log<T>(ex, LogLevel.Trace);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Trace level.
 		/// 
@@ -301,7 +256,7 @@ namespace WalletWasabi.Logging
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
-		public static void LogTrace(Exception ex, Type category) => Log(ex, LogLevel.Trace, LogLevel.Trace, category);
+		public static void LogTrace(Exception ex, Type category) => Log(ex, LogLevel.Trace, category);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Trace level.
 		/// 
@@ -309,7 +264,7 @@ namespace WalletWasabi.Logging
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
-		public static void LogTrace(Exception ex, string category = "") => Log(ex, LogLevel.Trace, LogLevel.Trace, category);
+		public static void LogTrace(Exception ex, string category = "") => Log(ex, LogLevel.Trace, category);
 
 		#endregion
 
@@ -344,7 +299,7 @@ namespace WalletWasabi.Logging
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Debug level.
 		/// </summary>
-		public static void LogDebug<T>(Exception ex, LogLevel toStringLevel = LogLevel.Trace) => Log<T>(ex, LogLevel.Debug, toStringLevel);
+		public static void LogDebug<T>(Exception ex, LogLevel toStringLevel = LogLevel.Trace) => Log<T>(ex, LogLevel.Debug);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Debug level, if only Debug level logging is set.
 		/// Logs the <paramref name="ex"/>.ToString() at Debug, if <paramref name="toStringLevel"/> logging is also set.
@@ -355,7 +310,7 @@ namespace WalletWasabi.Logging
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Debug level.
 		/// </summary>
-		public static void LogDebug(Exception ex, LogLevel toStringLevel = LogLevel.Trace, Type category = null) => Log(ex, LogLevel.Debug, toStringLevel, category);
+		public static void LogDebug(Exception ex, LogLevel toStringLevel = LogLevel.Trace, Type category = null) => Log(ex, LogLevel.Debug, category);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Debug level, if only Debug level logging is set.
 		/// Logs the <paramref name="ex"/>.ToString() at Debug, if <paramref name="toStringLevel"/> logging is also set.
@@ -366,7 +321,7 @@ namespace WalletWasabi.Logging
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Debug level.
 		/// </summary>
-		public static void LogDebug(Exception ex, LogLevel toStringLevel = LogLevel.Trace, string category = "") => Log(ex, LogLevel.Debug, toStringLevel, category);
+		public static void LogDebug(Exception ex, LogLevel toStringLevel = LogLevel.Trace, string category = "") => Log(ex, LogLevel.Debug, category);
 
 		#endregion
 
@@ -401,7 +356,7 @@ namespace WalletWasabi.Logging
 		/// Example: "Request received for path /api/my-controller"
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Info level.
 		/// </summary>
-		public static void LogInfo<T>(Exception ex, LogLevel toStringLevel = LogLevel.Trace) => Log<T>(ex, LogLevel.Info, toStringLevel);
+		public static void LogInfo<T>(Exception ex, LogLevel toStringLevel = LogLevel.Trace) => Log<T>(ex, LogLevel.Info);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Info level, if only Info level logging is set.
 		/// Logs the <paramref name="ex"/>.ToString() at Info, if <paramref name="toStringLevel"/> logging is also set.
@@ -412,7 +367,7 @@ namespace WalletWasabi.Logging
 		/// Example: "Request received for path /api/my-controller"
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Info level.
 		/// </summary>
-		public static void LogInfo(Exception ex, LogLevel toStringLevel = LogLevel.Trace, Type category = null) => Log(ex, LogLevel.Info, toStringLevel, category);
+		public static void LogInfo(Exception ex, LogLevel toStringLevel = LogLevel.Trace, Type category = null) => Log(ex, LogLevel.Info, category);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Info level, if only Info level logging is set.
 		/// Logs the <paramref name="ex"/>.ToString() at Info, if <paramref name="toStringLevel"/> logging is also set.
@@ -423,7 +378,7 @@ namespace WalletWasabi.Logging
 		/// Example: "Request received for path /api/my-controller"
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Info level.
 		/// </summary>
-		public static void LogInfo(Exception ex, LogLevel toStringLevel = LogLevel.Trace, string category = "") => Log(ex, LogLevel.Info, toStringLevel, category);
+		public static void LogInfo(Exception ex, LogLevel toStringLevel = LogLevel.Trace, string category = "") => Log(ex, LogLevel.Info, category);
 
 		#endregion
 
@@ -462,7 +417,7 @@ namespace WalletWasabi.Logging
 		/// Example: "FileNotFoundException for file quotes.txt."
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Warning level.
 		/// </summary>
-		public static void LogWarning<T>(Exception ex, LogLevel toStringLevel = LogLevel.Trace) => Log<T>(ex, LogLevel.Warning, toStringLevel);
+		public static void LogWarning<T>(Exception ex, LogLevel toStringLevel = LogLevel.Trace) => Log<T>(ex, LogLevel.Warning);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Warning level, if only Warning level logging is set.
 		/// Logs the <paramref name="ex"/>.ToString() at Warning, if <paramref name="toStringLevel"/> logging is also set.
@@ -474,7 +429,7 @@ namespace WalletWasabi.Logging
 		/// Example: "FileNotFoundException for file quotes.txt."
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Warning level.
 		/// </summary>
-		public static void LogWarning(Exception ex, LogLevel toStringLevel = LogLevel.Trace, Type category = null) => Log(ex, LogLevel.Warning, toStringLevel, category);
+		public static void LogWarning(Exception ex, LogLevel toStringLevel = LogLevel.Trace, Type category = null) => Log(ex, LogLevel.Warning, category);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Warning level, if only Warning level logging is set.
 		/// Logs the <paramref name="ex"/>.ToString() at Warning, if <paramref name="toStringLevel"/> logging is also set.
@@ -486,7 +441,7 @@ namespace WalletWasabi.Logging
 		/// Example: "FileNotFoundException for file quotes.txt."
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Warning level.
 		/// </summary>
-		public static void LogWarning(Exception ex, LogLevel toStringLevel = LogLevel.Trace, string category = "") => Log(ex, LogLevel.Warning, toStringLevel, category);
+		public static void LogWarning(Exception ex, LogLevel toStringLevel = LogLevel.Trace, string category = "") => Log(ex, LogLevel.Warning, category);
 
 		#endregion
 
@@ -521,7 +476,7 @@ namespace WalletWasabi.Logging
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Error level.
 		/// </summary>
-		public static void LogError<T>(Exception ex, LogLevel toStringLevel = LogLevel.Trace) => Log<T>(ex, LogLevel.Error, toStringLevel);
+		public static void LogError<T>(Exception ex, LogLevel toStringLevel = LogLevel.Trace) => Log<T>(ex, LogLevel.Error);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Error level, if only Error level logging is set.
 		/// Logs the <paramref name="ex"/>.ToString() at Error, if <paramref name="toStringLevel"/> logging is also set.
@@ -532,7 +487,7 @@ namespace WalletWasabi.Logging
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Error level.
 		/// </summary>
-		public static void LogError(Exception ex, LogLevel toStringLevel = LogLevel.Trace, Type category = null) => Log(ex, LogLevel.Error, toStringLevel, category);
+		public static void LogError(Exception ex, LogLevel toStringLevel = LogLevel.Trace, Type category = null) => Log(ex, LogLevel.Error, category);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Error level, if only Error level logging is set.
 		/// Logs the <paramref name="ex"/>.ToString() at Error, if <paramref name="toStringLevel"/> logging is also set.
@@ -543,7 +498,7 @@ namespace WalletWasabi.Logging
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Error level.
 		/// </summary>
-		public static void LogError(Exception ex, LogLevel toStringLevel = LogLevel.Trace, string category = "") => Log(ex, LogLevel.Error, toStringLevel, category);
+		public static void LogError(Exception ex, LogLevel toStringLevel = LogLevel.Trace, string category = "") => Log(ex, LogLevel.Error, category);
 
 		#endregion
 
@@ -574,7 +529,7 @@ namespace WalletWasabi.Logging
 		/// Examples: data loss scenarios, out of disk space.
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Critical level.
 		/// </summary>
-		public static void LogCritical<T>(Exception ex, LogLevel toStringLevel = LogLevel.Trace) => Log<T>(ex, LogLevel.Critical, toStringLevel);
+		public static void LogCritical<T>(Exception ex, LogLevel toStringLevel = LogLevel.Trace) => Log<T>(ex, LogLevel.Critical);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Critical level, if only Critical level logging is set.
 		/// Logs the <paramref name="ex"/>.ToString() at Critical, if <paramref name="toStringLevel"/> logging is also set.
@@ -584,7 +539,7 @@ namespace WalletWasabi.Logging
 		/// Examples: data loss scenarios, out of disk space.
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Critical level.
 		/// </summary>
-		public static void LogCritical(Exception ex, LogLevel toStringLevel = LogLevel.Trace, Type category = null) => Log(ex, LogLevel.Critical, toStringLevel, category);
+		public static void LogCritical(Exception ex, LogLevel toStringLevel = LogLevel.Trace, Type category = null) => Log(ex, LogLevel.Critical, category);
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Critical level, if only Critical level logging is set.
 		/// Logs the <paramref name="ex"/>.ToString() at Critical, if <paramref name="toStringLevel"/> logging is also set.
@@ -594,7 +549,7 @@ namespace WalletWasabi.Logging
 		/// Examples: data loss scenarios, out of disk space.
 		/// <paramref name="toStringLevel"/>Should be lower or equal to Critical level.
 		/// </summary>
-		public static void LogCritical(Exception ex, LogLevel toStringLevel = LogLevel.Trace, string category = "") => Log(ex, LogLevel.Critical, toStringLevel, category);
+		public static void LogCritical(Exception ex, LogLevel toStringLevel = LogLevel.Trace, string category = "") => Log(ex, LogLevel.Critical, category);
 
 		#endregion
 

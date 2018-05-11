@@ -152,92 +152,102 @@ namespace WalletWasabi.Services
 				{
 					State.RemoveSpentCoinsFromWaitingList(); // Make sure coins those were somehow spent are removed.
 
-					CcjClientRound inputRegistrableRound = State.GetRegistrableRound();
-					if (inputRegistrableRound.AliceClient == null) // If didn't register already, check what can we register.
+					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
+					if (inputRegistrableRound != null)
 					{
-						try
+						if (inputRegistrableRound.AliceClient == null) // If didn't register already, check what can we register.
 						{
-							IEnumerable<SmartCoin> registrableCoins = State.GetRegistrableCoins(
-								inputRegistrableRound.State.MaximumInputCountPerPeer,
-								inputRegistrableRound.State.Denomination,
-								inputRegistrableRound.State.FeePerInputs,
-								inputRegistrableRound.State.FeePerOutputs);
-
-							if (registrableCoins.Count() > 0)
+							try
 							{
-								var changeKey = KeyManager.GenerateNewKey("CoinJoin Change Output", KeyState.Locked, isInternal: true);
-								var activeKey = KeyManager.GenerateNewKey("CoinJoin Active Output", KeyState.Locked, isInternal: true);
-								var blind = CoordinatorPubKey.Blind(activeKey.GetP2wpkhScript().ToBytes());
+								IEnumerable<(uint256 txid, int index)> registrableCoins = State.GetRegistrableCoins(
+									inputRegistrableRound.State.MaximumInputCountPerPeer,
+									inputRegistrableRound.State.Denomination,
+									inputRegistrableRound.State.FeePerInputs,
+									inputRegistrableRound.State.FeePerOutputs);
 
-								var inputProofs = new List<InputProofModel>();
-								foreach (SmartCoin coin in registrableCoins)
+								if (registrableCoins.Count() > 0)
 								{
-									var inputProof = new InputProofModel
+									var changeKey = KeyManager.GenerateNewKey("CoinJoin Change Output", KeyState.Locked, isInternal: true);
+									var activeKey = KeyManager.GenerateNewKey("CoinJoin Active Output", KeyState.Locked, isInternal: true);
+									var blind = CoordinatorPubKey.Blind(activeKey.GetP2wpkhScript().ToBytes());
+
+									var inputProofs = new List<InputProofModel>();
+									foreach ((uint256 txid, int index) coinReference in registrableCoins)
 									{
-										Input = coin.GetOutPoint(),
-										Proof = coin.Secret.PrivateKey.SignMessage(ByteHelpers.ToHex(blind.BlindedData))
-									};
-									inputProofs.Add(inputProof);
-								}
-								AliceClient aliceClient = await AliceClient.CreateNewAsync(changeKey.GetP2wpkhScript(), blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
+										var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+										if (coin == null) throw new NotSupportedException("This is impossible.");
+										var inputProof = new InputProofModel
+										{
+											Input = coin.GetOutPoint(),
+											Proof = coin.Secret.PrivateKey.SignMessage(ByteHelpers.ToHex(blind.BlindedData))
+										};
+										inputProofs.Add(inputProof);
+									}
+									AliceClient aliceClient = await AliceClient.CreateNewAsync(changeKey.GetP2wpkhScript(), blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
 
-								byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
+									byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
 
-								if (!CoordinatorPubKey.Verify(unblindedSignature, activeKey.GetP2wpkhScript().ToBytes()))
-								{
-									throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
-								}
+									if (!CoordinatorPubKey.Verify(unblindedSignature, activeKey.GetP2wpkhScript().ToBytes()))
+									{
+										throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
+									}
 
-								CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
-								if (roundRegistered == null)
-								{
-									// If our SatoshiClient doesn't yet know about the round because of the dealy create it.
-									// Make its state as it'd be the same as our assumed round was, except the roundId and registeredPeerCount, it'll be updated later.
-									roundRegistered = new CcjClientRound(CcjRunningRoundState.CloneExcept(inputRegistrableRound.State, aliceClient.RoundId, registeredPeerCount: 1));
-									State.AddOrReplaceRound(roundRegistered);
-								}
+									CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
+									if (roundRegistered == null)
+									{
+										// If our SatoshiClient doesn't yet know about the round because of the dealy create it.
+										// Make its state as it'd be the same as our assumed round was, except the roundId and registeredPeerCount, it'll be updated later.
+										roundRegistered = new CcjClientRound(CcjRunningRoundState.CloneExcept(inputRegistrableRound.State, aliceClient.RoundId, registeredPeerCount: 1));
+										State.AddOrReplaceRound(roundRegistered);
+									}
 
-								foreach (var coin in registrableCoins)
-								{
-									roundRegistered.CoinsRegistered.Add(coin);
-									State.RemoveCoinFromWaitingList(coin);
+									foreach ((uint256 txid, int index) coinReference in registrableCoins)
+									{
+										var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+										if (coin == null) throw new NotSupportedException("This is impossible.");
+										roundRegistered.CoinsRegistered.Add(coin);
+										State.RemoveCoinFromWaitingList(coin);
+									}
+									roundRegistered.ActiveOutput = activeKey;
+									roundRegistered.ChangeOutput = changeKey;
+									roundRegistered.UnblindedSignature = unblindedSignature;
+									roundRegistered.AliceClient = aliceClient;
 								}
-								roundRegistered.ActiveOutput = activeKey;
-								roundRegistered.ChangeOutput = changeKey;								
-								roundRegistered.UnblindedSignature = unblindedSignature;
-								roundRegistered.AliceClient = aliceClient;
+							}
+							catch (Exception ex)
+							{
+								Logger.LogError<CcjClient>(ex);
 							}
 						}
-						catch (Exception ex)
+						else // We registered, let's confirm we're online.
 						{
-							Logger.LogError<CcjClient>(ex);
+							try
+							{
+								string roundHash = await inputRegistrableRound.AliceClient.PostConfirmationAsync();
+								if (roundHash != null) // Then the phase went to connection confirmation. 
+								{
+									inputRegistrableRound.RoundHash = roundHash;
+									inputRegistrableRound.State.Phase = CcjRoundPhase.ConnectionConfirmation;
+								}
+							}
+							catch (Exception ex)
+							{
+								if (ex.Message.StartsWith("NotFound", StringComparison.Ordinal)) // Alice timed out.
+								{
+									State.ClearRoundRegistration(inputRegistrableRound.State.RoundId);
+								}
+								Logger.LogError<CcjClient>(ex);
+							}
 						}
 					}
-					else // We registered, let's confirm we're online.
+
+					foreach (int ongoingRoundId in State.GetActivelyMixingRounds())
 					{
 						try
 						{
-							string roundHash = await inputRegistrableRound.AliceClient.PostConfirmationAsync();
-							if (roundHash != null) // Then the phase went to connection confirmation. 
-							{
-								inputRegistrableRound.RoundHash = roundHash;
-								inputRegistrableRound.State.Phase = CcjRoundPhase.ConnectionConfirmation;
-							}
-						}
-						catch (Exception ex)
-						{
-							if(ex.Message.StartsWith("NotFound", StringComparison.Ordinal)) // Alice timed out.
-							{
-								State.ClearRoundRegistration(inputRegistrableRound.State.RoundId);
-							}
-							Logger.LogError<CcjClient>(ex);
-						}
-					}
+							var ongoingRound = State.GetSingleOrDefaultRound(ongoingRoundId);
+							if (ongoingRound == null) throw new NotSupportedException("This is impossible.");
 
-					foreach (CcjClientRound ongoingRound in State.GetActivelyMixingRounds())
-					{
-						try
-						{
 							if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
 							{
 								if (ongoingRound.RoundHash == null) // If we didn't already obtained our roundHash obtain it.
@@ -319,7 +329,7 @@ namespace WalletWasabi.Services
 						{
 							if (ex.Message.StartsWith("NotFound", StringComparison.Ordinal)) // Alice timed out.
 							{
-								State.ClearRoundRegistration(ongoingRound.State.RoundId);
+								State.ClearRoundRegistration(ongoingRoundId);
 							}
 							Logger.LogError<CcjClient>(ex);
 						}
@@ -385,8 +395,11 @@ namespace WalletWasabi.Services
 
 				foreach (var coinToDequeue in coins)
 				{
-					foreach (var round in State.GetPassivelyMixingRounds())
+					foreach (int roundId in State.GetPassivelyMixingRounds())
 					{
+						var round = State.GetSingleOrDefaultRound(roundId);
+						if (round == null) throw new NotSupportedException("This is impossible.");
+
 						if (round.CoinsRegistered.Contains(coinToDequeue))
 						{
 							try
@@ -401,9 +414,12 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					foreach (var round in State.GetActivelyMixingRounds())
+					foreach (int roundId in State.GetActivelyMixingRounds())
 					{
-						if(round.CoinsRegistered.Contains(coinToDequeue))
+						var round = State.GetSingleOrDefaultRound(roundId);
+						if (round == null) throw new NotSupportedException("This is impossible.");
+
+						if (round.CoinsRegistered.Contains(coinToDequeue))
 						{
 							exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}."));
 						}
@@ -445,24 +461,29 @@ namespace WalletWasabi.Services
 			SatoshiClient?.Dispose();
 			State.DisposeAllAliceClients();
 
-			try
+			foreach (var coinReference in State.GetAllCoins())
 			{
-				await DequeueCoinsFromMixAsync(State.GetAllCoins().ToArray());
-			}
-			catch(Exception ex)
-			{
-				Logger.LogError<CcjClient>("Couldn't dequeue all coins. Some coins will likely be banned from mixing.");
-				if (ex is AggregateException)
+				try
 				{
-					var aggrEx = ex as AggregateException;
-					foreach(var innerEx in aggrEx.InnerExceptions)
-					{
-						Logger.LogError<CcjClient>(innerEx);
-					}
+					var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+					if (coin == null) throw new NotSupportedException("This is impossible.");
+					await DequeueCoinsFromMixAsync(coin);
 				}
-				else
+				catch (Exception ex)
 				{
-					Logger.LogError<CcjClient>(ex);
+					Logger.LogError<CcjClient>("Couldn't dequeue all coins. Some coins will likely be banned from mixing.");
+					if (ex is AggregateException)
+					{
+						var aggrEx = ex as AggregateException;
+						foreach (var innerEx in aggrEx.InnerExceptions)
+						{
+							Logger.LogError<CcjClient>(innerEx);
+						}
+					}
+					else
+					{
+						Logger.LogError<CcjClient>(ex);
+					}
 				}
 			}
 		}

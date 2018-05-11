@@ -69,15 +69,23 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public IEnumerable<SmartCoin> GetAllCoins()
+		public SmartCoin GetSingleOrDefaultFromWaitingList((uint256 txid, int index) coinReference)
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).ToArray();
+				return WaitingList.SingleOrDefault(x => x.TransactionId == coinReference.txid && x.Index == coinReference.index);
 			}
 		}
 
-		public IEnumerable<SmartCoin> GetRegistrableCoins(int maximumInputCountPerPeer, Money denomination, Money feePerInputs, Money feePerOutputs)
+		public IEnumerable<(uint256 txid, int index)> GetAllCoins()
+		{
+			lock (StateLock)
+			{
+				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x=>(x.TransactionId, x.Index)).ToArray();
+			}
+		}
+
+		public IEnumerable<(uint256 txid, int index)> GetRegistrableCoins(int maximumInputCountPerPeer, Money denomination, Money feePerInputs, Money feePerOutputs)
 		{
 			lock (StateLock)
 			{
@@ -93,34 +101,34 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 					if (maximumInputCountPerPeer < coinsToRegister.Count)
 					{
-						return Enumerable.Empty<SmartCoin>(); // Inputs are too small, max input to be registered is reached.
+						return Enumerable.Empty<(uint256 txid, int index)>(); // Inputs are too small, max input to be registered is reached.
 					}
 
 					amountSoFar += coin.Amount;
 					if (amountSoFar > amountNeededExceptInputFees + feePerInputs * coinsToRegister.Count)
 					{
 						// If input count doesn't reach the max input registration AND there are enough coins queued, then can register to mix.
-						return coinsToRegister;
+						return coinsToRegister.Select(x => (x.TransactionId, x.Index)).ToArray();
 					}
 				}
 
-				return Enumerable.Empty<SmartCoin>(); // Amount is never reached.
+				return Enumerable.Empty<(uint256 txid, int index)>(); // Amount is never reached.
 			}
 		}
 
-		public IEnumerable<CcjClientRound> GetActivelyMixingRounds()
+		public IEnumerable<long> GetActivelyMixingRounds()
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => x.AliceClient != null && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).ToArray();
+				return Rounds.Where(x => x.AliceClient != null && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).Select(x=>x.State.RoundId).ToArray();
 			}
 		}
 
-		public IEnumerable<CcjClientRound> GetPassivelyMixingRounds()
+		public IEnumerable<long> GetPassivelyMixingRounds()
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => x.AliceClient != null && x.State.Phase == CcjRoundPhase.InputRegistration).ToArray();
+				return Rounds.Where(x => x.AliceClient != null && x.State.Phase == CcjRoundPhase.InputRegistration).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 
@@ -173,15 +181,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public CcjClientRound GetRegistrableRound()
+		public CcjClientRound GetRegistrableRoundOrDefault()
 		{
 			lock(StateLock)
 			{
-				return Rounds.First(x => x.State.Phase == CcjRoundPhase.InputRegistration);
+				return Rounds.FirstOrDefault(x => x.State.Phase == CcjRoundPhase.InputRegistration);
 			}
 		}
-
-
+		
 		public void AddOrReplaceRound(CcjClientRound round)
 		{
 			lock (StateLock)

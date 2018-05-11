@@ -1517,8 +1517,12 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CcjCoordinatorCtorTestsAsync()
 		{
+			Logger.TurnOff(); // turn off at the end, otherwise, the tests logs would have of warnings
+
 			var rpc = Global.RpcClient;
 			var network = Global.RpcClient.Network;
+
+			await rpc.GenerateAsync(1);
 
 			var bestBlockHash = await rpc.GetBestBlockHashAsync();
 			var bestBlock = await rpc.GetBlockAsync(bestBlockHash);
@@ -1557,6 +1561,8 @@ namespace WalletWasabi.Tests
 			Assert.Contains(coinbaseTxId.ToString(), txIds);
 			Assert.DoesNotContain(offchainTxId.ToString(), txIds);
 			Assert.DoesNotContain("This line is invalid (the file is corrupted)", txIds);
+
+			Logger.TurnOn();
 		}
 
 		[Fact]

@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests
 			// Initialize tests...
 
 			Logger.SetFilePath(Path.Combine(DataDir, "Logs.txt"));
-			Logger.SetMinimumLevel(LogLevel.Debug);
+			Logger.SetMinimumLevel(LogLevel.Info);
 			Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 		}
 
