@@ -1552,17 +1552,11 @@ namespace WalletWasabi.Tests
 				offchainTxId.ToString(),
 			});
 			coordinator = new CcjCoordinator(network, folder, rpc, Global.Coordinator.RoundConfig);
-			Assert.False(File.Exists(cjfile));
-
-
-			coordinator = Global.Coordinator;
-			Money denomination = new Money(0.2m, MoneyUnit.BTC);
-			decimal coordinatorFeePercent = 0.2m;
-			int anonymitySet = 2;
-			int connectionConfirmationTimeout = 50;
-			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 1);
-			coordinator.UpdateRoundConfig(roundConfig);
-			coordinator.FailAllRoundsInInputRegistration();
+			txIds = await File.ReadAllLinesAsync(cjfile);
+			Assert.Equal(1, txIds.Count());
+			Assert.Contains(coinbaseTxId.ToString(), txIds);
+			Assert.DoesNotContain(offchainTxId.ToString(), txIds);
+			Assert.DoesNotContain("This line is invalid (the file is corrupted)", txIds);
 		}
 
 		[Fact]

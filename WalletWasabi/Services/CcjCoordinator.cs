@@ -77,8 +77,8 @@ namespace WalletWasabi.Services
 					string[] allLines = File.ReadAllLines(CoinJoinsFilePath);
 					foreach (string line in allLines)
 					{
-						uint256 txHash = new uint256(line);
 						try{
+							uint256 txHash = new uint256(line);
 							RPCResponse getRawTransactionResponse = RpcClient.SendCommand(RPCOperations.getrawtransaction, txHash.ToString(), true);
 							CoinJoins.Add(txHash);
 							if (getRawTransactionResponse.Result.Value<int>("confirmations") <= 0)
@@ -86,16 +86,16 @@ namespace WalletWasabi.Services
 								UnconfirmedCoinJoins.Add(txHash);
 							}
 						}
-						catch(RPCException rpce)
+						catch(Exception ex)
 						{
-							if(rpce.RPCCode == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY)
-							{
-								toRemove.Add(line);
-							}
-							else
-							{
-								throw;
-							}
+							toRemove.Add(line);
+							var rpce = ex as RPCException;
+
+							var logEntry = rpce!= null &&  rpce.RPCCode == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY 
+								? $"CoinJoins file contains invalid transaction ID {line}"
+								: $"CoinJoins file got corrupted. Deleting offending line \"{line.Substring(0, 20)}\".";
+								
+							Logger.LogWarning<CcjCoordinator>($"{logEntry}. {ex.GetType()}: {ex.Message}");
 						}
 					}
 
@@ -126,30 +126,24 @@ namespace WalletWasabi.Services
 				if (RoundConfig.DosSeverity <= 1) return;
 				var txId = tx.GetHash();
 
-				var outputIndex = 0;
 				foreach(TxIn input in tx.Inputs)
 				{
 					OutPoint prevOut = input.PrevOut;
 
+					var found = UtxoReferee.BannedUtxos.SingleOrDefault(x => x.Key == prevOut);
+					if (found.Key == default) continue; // if coin is not banned 
+
 					if(!AnyRunningRoundContainsInput(prevOut, out _))
 					{
-						var found = UtxoReferee.BannedUtxos.SingleOrDefault(x => x.Key == prevOut);
-						if (found.Key != default)
+						int newSeverity = found.Value.severity + 1;
+						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
+
+						if(RoundConfig.DosSeverity >= newSeverity)
 						{
-							int newSeverity = found.Value.severity + 1;
-							if(RoundConfig.DosSeverity >= newSeverity)
-							{
-								var txCoins = tx.Outputs.Select(x=> new OutPoint(txId, outputIndex));
-								await UtxoReferee.BanUtxosAsync(newSeverity, found.Value.timeOfBan, txCoins.ToArray());
-							}
-							await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
+							var txCoins = tx.Outputs.AsIndexedOutputs().Select(x=> x.ToCoin().Outpoint);
+							await UtxoReferee.BanUtxosAsync(newSeverity, found.Value.timeOfBan, txCoins.ToArray());
 						}
 					}
-					else
-					{
-						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
-					}
-					outputIndex++;
 				}
 			}
 		}
