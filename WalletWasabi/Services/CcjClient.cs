@@ -26,14 +26,16 @@ namespace WalletWasabi.Services
 		public KeyManager KeyManager { get; }
 
 		public AliceClient AliceClient { get; }
-		public BobClient BobClient { get; }
 		public SatoshiClient SatoshiClient { get; }
+		public Uri CcjHostUri { get; }
+		IPEndPoint TorSocks5EndPoint { get; }
 
 		private AsyncLock MixLock { get; }
 
 		public CcjClientState State { get; }
 
 		private long _frequentStatusProcessingIfNotMixing;
+
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -50,8 +52,9 @@ namespace WalletWasabi.Services
 			Network = Guard.NotNull(nameof(network), network);
 			CoordinatorPubKey = Guard.NotNull(nameof(coordinatorPubKey), coordinatorPubKey);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
+			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
+			TorSocks5EndPoint = torSocks5EndPoint;
 			AliceClient = new AliceClient(ccjHostUri, torSocks5EndPoint);
-			BobClient = new BobClient(ccjHostUri, torSocks5EndPoint);
 			SatoshiClient = new SatoshiClient(ccjHostUri, torSocks5EndPoint);
 
 			_running = 0;
@@ -259,7 +262,10 @@ namespace WalletWasabi.Services
 									throw new NotSupportedException("Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
 								}
 
-								await BobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutput.GetP2wpkhScript(), ongoingRound.UnblindedSignature);
+								using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
+								{
+									await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutput.GetP2wpkhScript(), ongoingRound.UnblindedSignature);
+								}									
 							}
 							else if (ongoingRound.State.Phase == CcjRoundPhase.Signing)
 							{
@@ -439,7 +445,6 @@ namespace WalletWasabi.Services
 
 			Stop?.Dispose();
 			SatoshiClient?.Dispose();
-			BobClient?.Dispose();
 			AliceClient?.Dispose();
 
 			try
