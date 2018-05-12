@@ -273,7 +273,7 @@ namespace WalletWasabi.Services
 								using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
 								{
 									await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutput.GetP2wpkhScript(), ongoingRound.UnblindedSignature);
-								}									
+								}
 							}
 							else if (ongoingRound.State.Phase == CcjRoundPhase.Signing)
 							{
@@ -376,7 +376,7 @@ namespace WalletWasabi.Services
 					}
 
 					coin.Secret = KeyManager.GetSecrets(password, coin.ScriptPubKey).Single();
-					
+
 					coin.Locked = true;
 
 					State.AddCoinToWaitingList(coin);
@@ -386,7 +386,7 @@ namespace WalletWasabi.Services
 				return successful;
 			}
 		}
-		
+
 		public async Task DequeueCoinsFromMixAsync(params SmartCoin[] coins)
 		{
 			using (await MixLock.LockAsync())
@@ -458,31 +458,38 @@ namespace WalletWasabi.Services
 			}
 
 			Stop?.Dispose();
-			SatoshiClient?.Dispose();
-			State.DisposeAllAliceClients();
 
-			foreach (var coinReference in State.GetAllCoins())
+			using (await MixLock.LockAsync())
 			{
-				try
+				SatoshiClient?.Dispose();
+				State.DisposeAllAliceClients();
+
+				foreach (var coinReference in State.GetAllCoins())
 				{
-					var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-					if (coin == null) throw new NotSupportedException("This is impossible.");
-					await DequeueCoinsFromMixAsync(coin);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError<CcjClient>("Couldn't dequeue all coins. Some coins will likely be banned from mixing.");
-					if (ex is AggregateException)
+					try
 					{
-						var aggrEx = ex as AggregateException;
-						foreach (var innerEx in aggrEx.InnerExceptions)
+						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+						if (coin == null)
 						{
-							Logger.LogError<CcjClient>(innerEx);
+							continue; // The coin isn't present anymore. Good. This should never happen though.
 						}
+						await DequeueCoinsFromMixAsync(coin);
 					}
-					else
+					catch (Exception ex)
 					{
-						Logger.LogError<CcjClient>(ex);
+						Logger.LogError<CcjClient>("Couldn't dequeue all coins. Some coins will likely be banned from mixing.");
+						if (ex is AggregateException)
+						{
+							var aggrEx = ex as AggregateException;
+							foreach (var innerEx in aggrEx.InnerExceptions)
+							{
+								Logger.LogError<CcjClient>(innerEx);
+							}
+						}
+						else
+						{
+							Logger.LogError<CcjClient>(ex);
+						}
 					}
 				}
 			}
