@@ -89,7 +89,7 @@ namespace WalletWasabi.Services
 							int delay;
 							using (await MixLock.LockAsync())
 							{
-								State.RemoveSpentCoinsFromWaitingList();
+								await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 								// If stop was requested return.
 								if (IsRunning == false) return;
@@ -143,7 +143,7 @@ namespace WalletWasabi.Services
 				int delay;
 				using (await MixLock.LockAsync())
 				{
-					State.RemoveSpentCoinsFromWaitingList();
+					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 					states = await SatoshiClient.GetAllRoundStatesAsync();
 					State.UpdateRoundsByStates(states.ToArray());
@@ -154,7 +154,7 @@ namespace WalletWasabi.Services
 
 				using (await MixLock.LockAsync())
 				{
-					State.RemoveSpentCoinsFromWaitingList();
+					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
 					if (inputRegistrableRound != null)
@@ -360,11 +360,11 @@ namespace WalletWasabi.Services
 			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
 		}
 
-		public IEnumerable<SmartCoin> QueueCoinsToMix(string password, params SmartCoin[] coins)
+		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 		{
-			using (MixLock.Lock())
+			using (await MixLock.LockAsync())
 			{
-				State.RemoveSpentCoinsFromWaitingList();
+				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 				var successful = new List<SmartCoin>();
 
@@ -397,18 +397,21 @@ namespace WalletWasabi.Services
 		{
 			using (await MixLock.LockAsync())
 			{
-				State.RemoveSpentCoinsFromWaitingList();
+				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
-				await DequeueCoinsFromMixNoLockAsync(coins);
+				await DequeueCoinsFromMixNoLockAsync(coins.Select(x=>(x.TransactionId, x.Index)).ToArray());
 			}
 		}
 
-		private async Task DequeueCoinsFromMixNoLockAsync(params SmartCoin[] coins)
+		private async Task DequeueCoinsFromMixNoLockAsync(params (uint256 txid, int index)[] coins)
 		{
 			List<Exception> exceptions = new List<Exception>();
 
-			foreach (var coinToDequeue in coins)
+			foreach (var coinReference in coins)
 			{
+				var coinToDequeue = State.GetSingleOrDefaultCoin(coinReference);
+				if (coinToDequeue == null) continue;
+
 				foreach (int roundId in State.GetPassivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
@@ -423,7 +426,14 @@ namespace WalletWasabi.Services
 						}
 						catch (Exception ex)
 						{
-							exceptions.Add(ex);
+							if (!coinToDequeue.Unspent)
+							{
+
+							}
+							else
+							{
+								exceptions.Add(ex);
+							}
 						}
 					}
 				}
@@ -431,8 +441,13 @@ namespace WalletWasabi.Services
 				foreach (int roundId in State.GetActivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
-					if (round == null) throw new NotSupportedException("This is impossible.");
+					if (round == null) continue;
 
+					if (!coinToDequeue.Unspent) // If coin was spent, well that sucks, except if it was spent by the tumbler in signing phase.
+					{
+						State.ClearRoundRegistration(round.State.RoundId);
+						continue;
+					}
 					if (round.CoinsRegistered.Contains(coinToDequeue))
 					{
 						exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}."));
@@ -474,7 +489,7 @@ namespace WalletWasabi.Services
 
 			using (await MixLock.LockAsync())
 			{
-				State.RemoveSpentCoinsFromWaitingList();
+				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 				SatoshiClient?.Dispose();
 				State.DisposeAllAliceClients();
@@ -489,7 +504,7 @@ namespace WalletWasabi.Services
 						{
 							continue; // The coin isn't present anymore. Good. This should never happen though.
 						}
-						await DequeueCoinsFromMixNoLockAsync(coin);
+						await DequeueCoinsFromMixNoLockAsync((coin.TransactionId, coin.Index));
 					}
 					catch (Exception ex)
 					{

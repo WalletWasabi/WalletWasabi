@@ -34,11 +34,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public void RemoveSpentCoinsFromWaitingList()
+		public IEnumerable<(uint256 txid, int index)> GetSpentCoins()
 		{
 			lock (StateLock)
 			{
-				WaitingList.RemoveAll(x => !x.Unspent);
+				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => !x.Unspent).Select(x => (x.TransactionId, x.Index)).ToArray();
 			}
 		}
 
@@ -66,6 +66,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			lock (StateLock)
 			{
 				return WaitingList.SingleOrDefault(x => x == coin);
+			}
+		}
+
+		public SmartCoin GetSingleOrDefaultCoin((uint256 txid, int index) coinReference)
+		{
+			lock (StateLock)
+			{
+				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).SingleOrDefault(x => x.TransactionId == coinReference.txid && x.Index == coinReference.index);
 			}
 		}
 

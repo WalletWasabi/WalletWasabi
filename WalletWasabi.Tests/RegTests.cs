@@ -2284,28 +2284,28 @@ namespace WalletWasabi.Tests
 				chaumianClient2.Start();
 
 				smartCoin1.Locked = true;
-				Assert.True(0 == chaumianClient1.QueueCoinsToMix(password, smartCoin1).Count());
+				Assert.True(0 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Count());
 				Assert.True(smartCoin1.Locked);
 
-				Assert.Throws<SecurityException>(() => chaumianClient1.QueueCoinsToMix("asdasdasd", smartCoin1, smartCoin2));
+				await Assert.ThrowsAsync<SecurityException>(async () => await chaumianClient1.QueueCoinsToMixAsync("asdasdasd", smartCoin1, smartCoin2));
 				Assert.True(smartCoin1.Locked);
 				Assert.False(smartCoin2.Locked);
 				smartCoin1.Locked = false;
 
-				chaumianClient1.QueueCoinsToMix(password, smartCoin1, smartCoin2);
+				await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2);
 				Assert.True(smartCoin1.Locked);
 				Assert.True(smartCoin2.Locked);
 
 				// Make sure it doesn't throw.
 				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((new Transaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((new Transaction()).GetHash(), 0) }, Height.MemPool, rbf: false));
 
-				Assert.True(2 == chaumianClient1.QueueCoinsToMix(password, smartCoin1, smartCoin2).Count());
+				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
 				Assert.False(smartCoin1.Locked);
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, smartCoin2);
 				Assert.False(smartCoin1.Locked);
 				Assert.False(smartCoin2.Locked);
-				Assert.True(2 == chaumianClient1.QueueCoinsToMix(password, smartCoin1, smartCoin2).Count());
+				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				Assert.True(smartCoin1.Locked);
 				Assert.True(smartCoin2.Locked);
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
@@ -2313,10 +2313,10 @@ namespace WalletWasabi.Tests
 				Assert.False(smartCoin1.Locked);
 				Assert.False(smartCoin2.Locked);
 
-				Assert.True(2 == chaumianClient1.QueueCoinsToMix(password, smartCoin1, smartCoin2).Count());
+				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				Assert.True(smartCoin1.Locked);
 				Assert.True(smartCoin2.Locked);
-				Assert.True(1 == chaumianClient2.QueueCoinsToMix(password, smartCoin3).Count());
+				Assert.True(1 == (await chaumianClient2.QueueCoinsToMixAsync(password, smartCoin3)).Count());
 
 				Task timeout = Task.Delay(TimeSpan.FromSeconds(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2));
 				while ((await rpc.GetRawMempoolAsync()).Length == 0)
