@@ -271,65 +271,73 @@ namespace WalletWasabi.Services
 							}
 							else if (ongoingRound.State.Phase == CcjRoundPhase.OutputRegistration)
 							{
-								if (ongoingRound.RoundHash == null)
+								if (!ongoingRound.PostedOutput)
 								{
-									throw new NotSupportedException("Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
-								}
-
-								using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
-								{
-									await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutput.GetP2wpkhScript(), ongoingRound.UnblindedSignature);
-									Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId})Bob Posted output.");
+									if (ongoingRound.RoundHash == null)
+									{
+										throw new NotSupportedException("Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
+									}
+								
+									using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
+									{
+										await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutput.GetP2wpkhScript(), ongoingRound.UnblindedSignature);
+										ongoingRound.PostedOutput = true;
+										Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId})Bob Posted output.");
+									}
 								}
 							}
 							else if (ongoingRound.State.Phase == CcjRoundPhase.Signing)
 							{
-								Transaction unsignedCoinJoin = await ongoingRound.AliceClient.GetUnsignedCoinJoinAsync();
-								if (NBitcoinHelpers.HashOutpoints(unsignedCoinJoin.Inputs.Select(x => x.PrevOut)) != ongoingRound.RoundHash)
+								if (!ongoingRound.Signed)
 								{
-									throw new NotSupportedException("Coordinator provided invalid roundHash.");
-								}
-								Money amountBack = unsignedCoinJoin.Outputs
-									.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutput.GetP2wpkhScript() || x.ScriptPubKey == ongoingRound.ChangeOutput.GetP2wpkhScript())
-									.Sum(y => y.Value);
-								Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
-								minAmountBack -= ongoingRound.State.FeePerOutputs * 2 + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
-								Money actualDenomination = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count).First().value; // Denomination may grow.
-								Money expectedCoordinatorFee = new Money((ongoingRound.State.CoordinatorFeePercent * 0.01m) * decimal.Parse(actualDenomination.ToString(false, true)), MoneyUnit.BTC);
-								minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
-
-								// If there's no change output then coordinator protection may happened:
-								if (unsignedCoinJoin.Outputs.All(x => x.ScriptPubKey != ongoingRound.ChangeOutput.GetP2wpkhScript()))
-								{
-									Money minimumOutputAmount = new Money(0.0001m, MoneyUnit.BTC); // If the change would be less than about $1 then add it to the coordinator.
-									Money onePercentOfDenomination = new Money(actualDenomination.ToDecimal(MoneyUnit.BTC) * 0.01m, MoneyUnit.BTC); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
-									Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
-
-									minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
-								}
-
-								if (amountBack < minAmountBack)
-								{
-									throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
-								}
-
-								new TransactionBuilder()
-									.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret).ToArray())
-									.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
-									.SignTransactionInPlace(unsignedCoinJoin, SigHash.All);
-
-								var myDic = new Dictionary<int, WitScript>();
-
-								for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
-								{
-									var input = unsignedCoinJoin.Inputs[i];
-									if (ongoingRound.CoinsRegistered.Select(x => x.GetOutPoint()).Contains(input.PrevOut))
+									Transaction unsignedCoinJoin = await ongoingRound.AliceClient.GetUnsignedCoinJoinAsync();
+									if (NBitcoinHelpers.HashOutpoints(unsignedCoinJoin.Inputs.Select(x => x.PrevOut)) != ongoingRound.RoundHash)
 									{
-										myDic.Add(i, unsignedCoinJoin.Inputs[i].WitScript);
+										throw new NotSupportedException("Coordinator provided invalid roundHash.");
 									}
-								}
+									Money amountBack = unsignedCoinJoin.Outputs
+										.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutput.GetP2wpkhScript() || x.ScriptPubKey == ongoingRound.ChangeOutput.GetP2wpkhScript())
+										.Sum(y => y.Value);
+									Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
+									minAmountBack -= ongoingRound.State.FeePerOutputs * 2 + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
+									Money actualDenomination = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count).First().value; // Denomination may grow.
+									Money expectedCoordinatorFee = new Money((ongoingRound.State.CoordinatorFeePercent * 0.01m) * decimal.Parse(actualDenomination.ToString(false, true)), MoneyUnit.BTC);
+									minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
 
-								await ongoingRound.AliceClient.PostSignaturesAsync(myDic);
+									// If there's no change output then coordinator protection may happened:
+									if (unsignedCoinJoin.Outputs.All(x => x.ScriptPubKey != ongoingRound.ChangeOutput.GetP2wpkhScript()))
+									{
+										Money minimumOutputAmount = new Money(0.0001m, MoneyUnit.BTC); // If the change would be less than about $1 then add it to the coordinator.
+										Money onePercentOfDenomination = new Money(actualDenomination.ToDecimal(MoneyUnit.BTC) * 0.01m, MoneyUnit.BTC); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
+										Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
+
+										minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
+									}
+
+									if (amountBack < minAmountBack)
+									{
+										throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
+									}
+
+									new TransactionBuilder()
+										.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret).ToArray())
+										.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
+										.SignTransactionInPlace(unsignedCoinJoin, SigHash.All);
+
+									var myDic = new Dictionary<int, WitScript>();
+
+									for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
+									{
+										var input = unsignedCoinJoin.Inputs[i];
+										if (ongoingRound.CoinsRegistered.Select(x => x.GetOutPoint()).Contains(input.PrevOut))
+										{
+											myDic.Add(i, unsignedCoinJoin.Inputs[i].WitScript);
+										}
+									}
+
+									await ongoingRound.AliceClient.PostSignaturesAsync(myDic);
+									ongoingRound.Signed = true;
+								}
 							}
 						}
 						catch (Exception ex)

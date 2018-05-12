@@ -25,6 +25,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public string RoundHash { get; set; }
 
+		public bool Signed { get; set; }
+		public bool PostedOutput { get; set; }
+
 		public CcjClientRound(CcjRunningRoundState state)
 		{
 			State = Guard.NotNull(nameof(state), state);
@@ -41,6 +44,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			RoundHash = null;
 			AliceClient?.Dispose();
 			AliceClient = null;
+			Signed = false;
+			PostedOutput = false;
 		}
 	}
 }
