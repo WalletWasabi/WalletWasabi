@@ -89,6 +89,8 @@ namespace WalletWasabi.Services
 							int delay;
 							using (await MixLock.LockAsync())
 							{
+								State.RemoveSpentCoinsFromWaitingList();
+
 								// If stop was requested return.
 								if (IsRunning == false) return;
 
@@ -141,6 +143,8 @@ namespace WalletWasabi.Services
 				int delay;
 				using (await MixLock.LockAsync())
 				{
+					State.RemoveSpentCoinsFromWaitingList();
+
 					states = await SatoshiClient.GetAllRoundStatesAsync();
 					State.UpdateRoundsByStates(states.ToArray());
 					delay = new Random().Next(0, 7); // delay the response to defend timing attack privacy
@@ -150,7 +154,7 @@ namespace WalletWasabi.Services
 
 				using (await MixLock.LockAsync())
 				{
-					State.RemoveSpentCoinsFromWaitingList(); // Make sure coins those were somehow spent are removed.
+					State.RemoveSpentCoinsFromWaitingList();
 
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
 					if (inputRegistrableRound != null)
@@ -360,6 +364,8 @@ namespace WalletWasabi.Services
 		{
 			using (MixLock.Lock())
 			{
+				State.RemoveSpentCoinsFromWaitingList();
+
 				var successful = new List<SmartCoin>();
 
 				foreach (SmartCoin coin in coins)
@@ -391,57 +397,64 @@ namespace WalletWasabi.Services
 		{
 			using (await MixLock.LockAsync())
 			{
-				List<Exception> exceptions = new List<Exception>();
+				State.RemoveSpentCoinsFromWaitingList();
 
-				foreach (var coinToDequeue in coins)
+				await DequeueCoinsFromMixNoLockAsync(coins);
+			}
+		}
+
+		private async Task DequeueCoinsFromMixNoLockAsync(params SmartCoin[] coins)
+		{
+			List<Exception> exceptions = new List<Exception>();
+
+			foreach (var coinToDequeue in coins)
+			{
+				foreach (int roundId in State.GetPassivelyMixingRounds())
 				{
-					foreach (int roundId in State.GetPassivelyMixingRounds())
-					{
-						var round = State.GetSingleOrDefaultRound(roundId);
-						if (round == null) throw new NotSupportedException("This is impossible.");
+					var round = State.GetSingleOrDefaultRound(roundId);
+					if (round == null) throw new NotSupportedException("This is impossible.");
 
-						if (round.CoinsRegistered.Contains(coinToDequeue))
+					if (round.CoinsRegistered.Contains(coinToDequeue))
+					{
+						try
 						{
-							try
-							{
-								await round.AliceClient.PostUnConfirmationAsync(); // AliceUniqueId must be there.
-								State.ClearRoundRegistration(round.State.RoundId);
-							}
-							catch (Exception ex)
-							{
-								exceptions.Add(ex);
-							}
+							await round.AliceClient.PostUnConfirmationAsync(); // AliceUniqueId must be there.
+							State.ClearRoundRegistration(round.State.RoundId);
+						}
+						catch (Exception ex)
+						{
+							exceptions.Add(ex);
 						}
 					}
+				}
 
-					foreach (int roundId in State.GetActivelyMixingRounds())
+				foreach (int roundId in State.GetActivelyMixingRounds())
+				{
+					var round = State.GetSingleOrDefaultRound(roundId);
+					if (round == null) throw new NotSupportedException("This is impossible.");
+
+					if (round.CoinsRegistered.Contains(coinToDequeue))
 					{
-						var round = State.GetSingleOrDefaultRound(roundId);
-						if (round == null) throw new NotSupportedException("This is impossible.");
-
-						if (round.CoinsRegistered.Contains(coinToDequeue))
-						{
-							exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}."));
-						}
-					}
-
-					SmartCoin coinWaitingForMix = State.GetSingleOrDefaultFromWaitingList(coinToDequeue);
-					if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
-					{
-						State.RemoveCoinFromWaitingList(coinWaitingForMix);
-						coinWaitingForMix.Locked = false;
-						coinWaitingForMix.Secret = null;
+						exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}."));
 					}
 				}
 
-				if (exceptions.Count == 1)
+				SmartCoin coinWaitingForMix = State.GetSingleOrDefaultFromWaitingList(coinToDequeue);
+				if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
 				{
-					throw exceptions.Single();
+					State.RemoveCoinFromWaitingList(coinWaitingForMix);
+					coinWaitingForMix.Locked = false;
+					coinWaitingForMix.Secret = null;
 				}
-				else if (exceptions.Count > 0)
-				{
-					throw new AggregateException(exceptions);
-				}
+			}
+
+			if (exceptions.Count == 1)
+			{
+				throw exceptions.Single();
+			}
+			else if (exceptions.Count > 0)
+			{
+				throw new AggregateException(exceptions);
 			}
 		}
 
@@ -461,6 +474,8 @@ namespace WalletWasabi.Services
 
 			using (await MixLock.LockAsync())
 			{
+				State.RemoveSpentCoinsFromWaitingList();
+
 				SatoshiClient?.Dispose();
 				State.DisposeAllAliceClients();
 
@@ -474,7 +489,7 @@ namespace WalletWasabi.Services
 						{
 							continue; // The coin isn't present anymore. Good. This should never happen though.
 						}
-						await DequeueCoinsFromMixAsync(coin);
+						await DequeueCoinsFromMixNoLockAsync(coin);
 					}
 					catch (Exception ex)
 					{

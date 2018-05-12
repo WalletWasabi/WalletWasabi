@@ -2327,6 +2327,11 @@ namespace WalletWasabi.Tests
 					}
 					await Task.Delay(1000);
 				}
+
+				var cj = (await rpc.GetRawMempoolAsync()).Single();
+				smartCoin1.SpenderTransactionId = cj;
+				smartCoin2.SpenderTransactionId = cj;
+				smartCoin3.SpenderTransactionId = cj;
 			}
 			finally
 			{
