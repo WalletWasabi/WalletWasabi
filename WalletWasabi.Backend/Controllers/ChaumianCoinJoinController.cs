@@ -380,7 +380,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(410)]
-		public IActionResult PostUncorfimation([FromQuery]string uniqueId, [FromQuery]long roundId)
+		public IActionResult PostUnconfimation([FromQuery]string uniqueId, [FromQuery]long roundId)
 		{
 			if (roundId <= 0 || !ModelState.IsValid)
 			{
