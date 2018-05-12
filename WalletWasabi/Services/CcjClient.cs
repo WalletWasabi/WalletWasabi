@@ -464,7 +464,8 @@ namespace WalletWasabi.Services
 				SatoshiClient?.Dispose();
 				State.DisposeAllAliceClients();
 
-				foreach (var coinReference in State.GetAllCoins())
+				IEnumerable<(uint256 txid, int index)> allCoins = State.GetAllCoins();
+				foreach (var coinReference in allCoins)
 				{
 					try
 					{

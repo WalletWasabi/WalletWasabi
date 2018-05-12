@@ -2333,6 +2333,9 @@ namespace WalletWasabi.Tests
 				if (chaumianClient1 != null)
 				{
 					await chaumianClient1.StopAsync();
+				}
+				if (chaumianClient2 != null)
+				{
 					await chaumianClient2.StopAsync();
 				}
 			}
