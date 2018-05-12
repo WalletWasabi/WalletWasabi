@@ -644,7 +644,7 @@ namespace WalletWasabi.Tests
 		{
 		}
 
-		[Fact]
+		[Fact(DisplayName = "InvokesBuildTransactionAsync")]
 		public async Task SendTestsFromHiddenWalletAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1010,7 +1010,66 @@ namespace WalletWasabi.Tests
 				Assert.Contains("change of (outgoing, outgoing2)", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
 				Assert.Contains("change of (outgoing, outgoing2)", keyManager.GetKeys().Select(x => x.Label));
 
-				#endregion Labeling
+				#endregion
+
+				#region AllowedInputsDisallowUnconfirmed
+
+				inputCountBefore = res.SpentCoins.Count();
+
+				receive = wallet.GetReceiveKey("AllowedInputsDisallowUnconfirmed").GetP2wpkhScript();
+
+				var allowedInputs = wallet.Coins.Where(x => !x.SpentOrLocked).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1);
+				var toSend = new[]{ new WalletService.Operation(receive, Money.Zero, "fizz")};
+
+				res = await wallet.BuildTransactionAsync("password", toSend, 1008, false, allowedInputs: allowedInputs);
+				
+
+				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
+				Assert.Single(res.InnerWalletOutputs);
+				Assert.Empty(res.OuterWalletOutputs);
+
+				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+
+				Assert.Equal(receive, activeOutput.ScriptPubKey);
+				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
+				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+
+				Assert.True(inputCountBefore >= res.SpentCoins.Count());
+				Assert.False(res.SpendsUnconfirmed);
+				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+
+				Assert.Single(res.Transaction.Transaction.Inputs);
+				Assert.Single(res.Transaction.Transaction.Outputs);
+				Assert.Single(res.SpentCoins);
+
+				Assert.True(inputCountBefore >= res.SpentCoins.Count());
+				Assert.Equal(res.SpentCoins.Count(), res.Transaction.Transaction.Inputs.Count);
+
+				#endregion
+
+				#region exceptions
+
+				// ArgumentException
+				var toSendWithTwoZeros = new[]{ 
+					new WalletService.Operation(receive, Money.Zero, "fizz"),
+					new WalletService.Operation(receive, Money.Zero, "buzz")
+				};
+
+				Func<Task> throwsArgException = async () => 
+					await wallet.BuildTransactionAsync(
+						"password",
+						toSendWithTwoZeros,
+						1008,
+						false,
+						allowedInputs: allowedInputs);
+
+				await Assert.ThrowsAsync<ArgumentException>(throwsArgException);
+				Logger.LogInfo<RegTests>("Two Money.Zero elements thrown ArgumentException");
+
+				#endregion
 			}
 			finally
 			{
@@ -1031,7 +1090,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact(DisplayName = "InvokesBuildTransactionAsync")]
 		public async Task BuildTransactionValidationsTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1200,7 +1259,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact(DisplayName = "InvokesBuildTransactionAsync")]
 		public async Task BuildTransactionReorgsTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1371,7 +1430,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact(DisplayName = "InvokesBuildTransactionAsync")]
 		public async Task SpendUnconfirmedTxTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
