@@ -144,7 +144,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Min(x => x.State.RegistrationTimeout);
+				if (Rounds.Count == 0)
+				{
+					return 0;
+				}
+				else
+				{
+					return Rounds.Min(x => x.State.RegistrationTimeout);
+				}
 			}
 		}
 
