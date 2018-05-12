@@ -69,6 +69,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
+		public int GetWaitingListCount()
+		{
+			lock (StateLock)
+			{
+				return WaitingList.Count;
+			}
+		}
+
 		public SmartCoin GetSingleOrDefaultFromWaitingList((uint256 txid, int index) coinReference)
 		{
 			lock (StateLock)

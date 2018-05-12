@@ -2281,7 +2281,7 @@ namespace WalletWasabi.Tests
 			try
 			{
 				chaumianClient1.Start();
-				//chaumianClient2.Start();
+				chaumianClient2.Start();
 
 				smartCoin1.Locked = true;
 				Assert.True(0 == chaumianClient1.QueueCoinsToMix(password, smartCoin1).Count());
@@ -2316,17 +2316,17 @@ namespace WalletWasabi.Tests
 				Assert.True(2 == chaumianClient1.QueueCoinsToMix(password, smartCoin1, smartCoin2).Count());
 				Assert.True(smartCoin1.Locked);
 				Assert.True(smartCoin2.Locked);
-				//Assert.True(1 == chaumianClient2.QueueCoinsToMix(password, smartCoin3).Count());
+				Assert.True(1 == chaumianClient2.QueueCoinsToMix(password, smartCoin3).Count());
 
-				//Task timeout = Task.Delay(TimeSpan.FromSeconds(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2));
-				//while ((await rpc.GetRawMempoolAsync()).Length == 0)
-				//{
-				//	if(timeout.IsCompletedSuccessfully)
-				//	{
-				//		throw new TimeoutException("CoinJoin wasn't propagated.");
-				//	}
-				//	await Task.Delay(1000);
-				//}
+				Task timeout = Task.Delay(TimeSpan.FromSeconds(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2));
+				while ((await rpc.GetRawMempoolAsync()).Length == 0)
+				{
+					if (timeout.IsCompletedSuccessfully)
+					{
+						throw new TimeoutException("CoinJoin wasn't propagated.");
+					}
+					await Task.Delay(1000);
+				}
 			}
 			finally
 			{
