@@ -193,6 +193,15 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						round.State = allRunningRoundsStates.Single(x => x.RoundId == round.State.RoundId);
 					}
 				}
+
+				foreach(var state in allRunningRoundsStates)
+				{
+					if(!Rounds.Select(x=>x.State.RoundId).Contains(state.RoundId))
+					{
+						var r = new CcjClientRound(state);
+						Rounds.Add(r);
+					}
+				}
 			}
 		}
 
