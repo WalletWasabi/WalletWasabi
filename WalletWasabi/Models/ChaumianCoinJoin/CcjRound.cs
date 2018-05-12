@@ -345,7 +345,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				// Delay asyncronously to the requested timeout.
 				await Task.Delay(timeout);
-				Logger.LogInfo<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.");
 
 				var executeRunFailure = false;
 				using (await RoundSyncronizerLock.LockAsync())
@@ -354,6 +353,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 				if (executeRunFailure)
 				{
+					Logger.LogInfo<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds. Failure mode is executing.");
+
 					// This will happen outside the lock.
 					Task.Run(async () =>
 					{
