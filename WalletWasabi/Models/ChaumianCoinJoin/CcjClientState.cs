@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
@@ -30,6 +31,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				if (!(WaitingList.Contains(coin) || Rounds.Any(x => x.CoinsRegistered.Contains(coin))))
 				{
 					WaitingList.Add(coin);
+					Logger.LogInfo<CcjClientState>($"Coin added to the waiting list: {coin.Index}:{coin.TransactionId}.");
 				}
 			}
 		}
@@ -49,6 +51,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				if (WaitingList.Contains(coin))
 				{
 					WaitingList.Remove(coin);
+					Logger.LogInfo<CcjClientState>($"Coin removed from the waiting list: {coin.Index}:{coin.TransactionId}.");
 				}
 			}
 		}
@@ -187,10 +190,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				foreach (var coin in Rounds.Where(x => roundsToRemove.Contains(x.State.RoundId)).SelectMany(y => y.CoinsRegistered))
 				{
 					WaitingList.Add(coin);
+					Logger.LogInfo<CcjClientState>($"Coin added to the waiting list: {coin.Index}:{coin.TransactionId}.");
 				}
 				foreach(var round in Rounds.Where(x=> roundsToRemove.Contains(x.State.RoundId)))
 				{
 					round.AliceClient?.Dispose();
+					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's not running anymore.");
 				}
 				Rounds.RemoveAll(x => roundsToRemove.Contains(x.State.RoundId));
 
@@ -208,6 +213,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					{
 						var r = new CcjClientRound(state);
 						Rounds.Add(r);
+						Logger.LogInfo<CcjClientState>($"Round ({r.State.RoundId}) added.");
 					}
 				}
 			}
@@ -228,9 +234,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				foreach (var r in Rounds.Where(x => x.State.RoundId == round.State.RoundId))
 				{
 					r.AliceClient?.Dispose();
+					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's being replaced.");
 				}
 				Rounds.RemoveAll(x => x.State.RoundId == round.State.RoundId);
 				Rounds.Add(round);
+				Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) added.");
 			}
 		}
 
@@ -243,8 +251,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					foreach (var coin in round.CoinsRegistered)
 					{
 						WaitingList.Add(coin);
+						Logger.LogInfo<CcjClientState>($"Coin added to the waiting list: {coin.Index}:{coin.TransactionId}.");
 					}
 					round.ClearRegistration();
+					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) registration is cleared.");
 				}
 			}
 		}

@@ -82,6 +82,8 @@ namespace WalletWasabi.Services
 				{
 					await ProcessStatusAsync();
 
+					Logger.LogInfo<CcjClient>($"CcjClient is successfully initialized.");
+
 					while (IsRunning)
 					{
 						try
@@ -188,7 +190,7 @@ namespace WalletWasabi.Services
 										inputProofs.Add(inputProof);
 									}
 									AliceClient aliceClient = await AliceClient.CreateNewAsync(changeKey.GetP2wpkhScript(), blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
-
+									
 									byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
 
 									if (!CoordinatorPubKey.Verify(unblindedSignature, activeKey.GetP2wpkhScript().ToBytes()))
@@ -277,6 +279,7 @@ namespace WalletWasabi.Services
 								using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
 								{
 									await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutput.GetP2wpkhScript(), ongoingRound.UnblindedSignature);
+									Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId})Bob Posted output.");
 								}
 							}
 							else if (ongoingRound.State.Phase == CcjRoundPhase.Signing)
@@ -387,6 +390,7 @@ namespace WalletWasabi.Services
 
 					State.AddCoinToWaitingList(coin);
 					successful.Add(coin);
+					Logger.LogInfo<CcjClient>($"Coin queued: {coin.Index}:{coin.TransactionId}.");
 				}
 
 				return successful;
@@ -460,6 +464,7 @@ namespace WalletWasabi.Services
 					State.RemoveCoinFromWaitingList(coinWaitingForMix);
 					coinWaitingForMix.Locked = false;
 					coinWaitingForMix.Secret = null;
+					Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.");
 				}
 			}
 

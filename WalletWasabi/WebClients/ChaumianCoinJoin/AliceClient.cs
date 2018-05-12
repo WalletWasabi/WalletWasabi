@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.TorSocks5;
 
@@ -54,6 +55,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 					client.RoundId = inputsResponse.RoundId;
 					client.UniqueId = inputsResponse.UniqueId;
 					client.BlindedOutputSignature = inputsResponse.BlindedOutputSignature;
+					Logger.LogInfo<AliceClient>($"Round ({client.RoundId}), Alice ({client.UniqueId}): Registered {request.Inputs.Count()} inputs.");
 
 					return client;
 				}
@@ -83,11 +85,14 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode == HttpStatusCode.NoContent)
 				{
+					Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection.");
 					return null;
 				}
 				else if (response.StatusCode == HttpStatusCode.OK)
 				{
-					return await response.Content.ReadAsJsonAsync<string>();
+					string roundHash = await response.Content.ReadAsJsonAsync<string>();
+					Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Acquired roundHash: {roundHash}.");
+					return roundHash;
 				}
 				else
 				{
@@ -121,6 +126,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
 					}
 				}
+				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Unconfirmed connection.");
 			}
 		}
 
@@ -142,7 +148,9 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				}
 
 				var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
-				return new Transaction(coinjoinHex);
+				Transaction coinJoin = new Transaction(coinjoinHex);
+				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Acquired unsigned CoinJoin: {coinJoin.GetHash()}.");
+				return coinJoin;
 			}
 		}
 
@@ -171,6 +179,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
 					}
 				}
+				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Posted {signatures.Count} signatures.");
 			}
 		}
 
