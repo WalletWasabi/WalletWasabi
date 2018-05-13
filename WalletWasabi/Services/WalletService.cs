@@ -332,7 +332,7 @@ namespace WalletWasabi.Services
 					foundKey.KeyState = KeyState.Used;
 					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, foundKey.Label, spenderTransactionId: null, locked: false); // Don't inherit locked status from key, that's different.
 					Coins.Add(coin);
-					if (coin.Label == "ZeroLink Change")
+					if (coin.Label == "ZeroLink Change" && ChaumianClient.OnePiece != null)
 					{
 						Task.Run(async () =>
 						{
