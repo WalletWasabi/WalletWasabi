@@ -589,6 +589,15 @@ namespace WalletWasabi.Services
 					State.RemoveCoinFromWaitingList(coinWaitingForMix);
 					coinWaitingForMix.Locked = false;
 					coinWaitingForMix.Secret = null;
+					if (coinWaitingForMix.Label == "ZeroLink Change" && coinWaitingForMix.Unspent)
+					{
+						coinWaitingForMix.Label = "ZeroLink Dequeued Change";
+						var key = KeyManager.GetKeys().SingleOrDefault(x => x.GetP2wpkhScript() == coinWaitingForMix.ScriptPubKey);
+						if (key != null)
+						{
+							key.Label = coinWaitingForMix.Label;
+						}
+					}
 					Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.");
 				}
 			}

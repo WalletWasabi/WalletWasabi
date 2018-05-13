@@ -2577,7 +2577,7 @@ namespace WalletWasabi.Tests
 				Assert.True(3 == (await chaumianClient2.QueueCoinsToMixAsync(password, wallet2.Coins.ToArray())).Count());
 
 				Task timeout = Task.Delay(TimeSpan.FromSeconds(2*(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2)));
-				while (wallet.Coins.Count <= 3)
+				while (wallet.Coins.Count != 7)
 				{
 					if (timeout.IsCompletedSuccessfully)
 					{
@@ -2585,6 +2585,26 @@ namespace WalletWasabi.Tests
 					}
 					await Task.Delay(1000);
 				}
+
+				var times = 0;
+				while (wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).SingleOrDefault() == null)
+				{
+					await Task.Delay(1000);
+					times++;
+					if (times >= 21) throw new TimeoutException("Wallet spends were not recognized.");
+				}
+				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).ToArray();
+				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges);
+
+				Assert.Equal(3, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrLocked));
+				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrLocked));
+				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
+				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
+				Assert.Equal(2, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && !x.Unspent));
+				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Change"));
+				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && x.Unspent));
+				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.Unspent));
+				Assert.Equal(1, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.SpentOrLocked));
 			}
 			finally
 			{
