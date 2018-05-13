@@ -1,4 +1,5 @@
-﻿using Org.BouncyCastle.Math;
+﻿using NBitcoin;
+using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,8 +19,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public AliceClient AliceClient { get; set; }
 
-		public HdPubKey ChangeOutput { get; set; }
-		public HdPubKey ActiveOutput { get; set; }
+		public Script ChangeOutputScript { get; set; }
+		public Script ActiveOutputScript { get; set; }
 
 		public byte[] UnblindedSignature { get; set; }
 
@@ -38,8 +39,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public void ClearRegistration()
 		{
 			CoinsRegistered.Clear();
-			ChangeOutput = null;
-			ActiveOutput = null;
+			ChangeOutputScript = null;
+			ActiveOutputScript = null;
 			UnblindedSignature = null;
 			RoundHash = null;
 			AliceClient?.Dispose();

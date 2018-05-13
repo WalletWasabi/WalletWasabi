@@ -2346,6 +2346,99 @@ namespace WalletWasabi.Tests
 			}
 		}
 
+		[Fact]
+		public async Task CcjClientCustomOutputScriptTestsAsync()
+		{
+			string password = "password";
+			var rpc = Global.RpcClient;
+			var network = Global.RpcClient.Network;
+			var coordinator = Global.Coordinator;
+			Money denomination = new Money(0.1m, MoneyUnit.BTC);
+			decimal coordinatorFeePercent = 0.1m;
+			int anonymitySet = 2;
+			int connectionConfirmationTimeout = 14;
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
+			coordinator.UpdateRoundConfig(roundConfig);
+			coordinator.FailAllRoundsInInputRegistration();
+			await rpc.GenerateAsync(3); // So to make sure we have enough money.
+			var keyManager = KeyManager.CreateNew(out _, password);
+			var key1 = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
+			var key2 = keyManager.GenerateNewKey("bar", KeyState.Clean, false);
+			var key3 = keyManager.GenerateNewKey("baz", KeyState.Clean, false);
+			var bech1 = key1.GetP2wpkhAddress(network);
+			var bech2 = key2.GetP2wpkhAddress(network);
+			var bech3 = key3.GetP2wpkhAddress(network);
+			var amount1 = new Money(0.03m, MoneyUnit.BTC);
+			var amount2 = new Money(0.08m, MoneyUnit.BTC);
+			var amount3 = new Money(0.3m, MoneyUnit.BTC);
+			var txid1 = await rpc.SendToAddressAsync(bech1, amount1, replaceable: false);
+			var txid2 = await rpc.SendToAddressAsync(bech2, amount2, replaceable: false);
+			var txid3 = await rpc.SendToAddressAsync(bech3, amount3, replaceable: false);
+			key1.KeyState = KeyState.Used;
+			key2.KeyState = KeyState.Used;
+			key3.KeyState = KeyState.Used;
+			var tx1 = await rpc.GetRawTransactionAsync(txid1);
+			var tx2 = await rpc.GetRawTransactionAsync(txid2);
+			var tx3 = await rpc.GetRawTransactionAsync(txid3);
+			await rpc.GenerateAsync(1);
+			var height = await rpc.GetBlockCountAsync();
+			var smartCoin1 = new SmartCoin(txid1, tx1.Outputs.GetIndex(bech1.ScriptPubKey), bech1.ScriptPubKey, amount1, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
+			var smartCoin2 = new SmartCoin(txid2, tx2.Outputs.GetIndex(bech2.ScriptPubKey), bech2.ScriptPubKey, amount2, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
+			var smartCoin3 = new SmartCoin(txid3, tx3.Outputs.GetIndex(bech3.ScriptPubKey), bech3.ScriptPubKey, amount3, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
+
+			var chaumianClient1 = new CcjClient(Global.RpcClient.Network, Global.Coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(Global.RpcClient.Network, Global.Coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			try
+			{
+				chaumianClient1.Start();
+				chaumianClient2.Start();
+
+				var customChange1 = new Key().ScriptPubKey;
+				var customActive1 = new Key().ScriptPubKey;
+				var customChange2 = new Key().ScriptPubKey;
+				var customActive2 = new Key().ScriptPubKey;
+				chaumianClient1.AddCustomChangeScript(customChange1);
+				chaumianClient2.AddCustomChangeScript(customChange2);
+				chaumianClient1.AddCustomActiveScript(customActive1);
+				chaumianClient2.AddCustomActiveScript(customActive2);
+
+				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
+				Assert.True(1 == (await chaumianClient2.QueueCoinsToMixAsync(password, smartCoin3)).Count());
+
+				Task timeout = Task.Delay(TimeSpan.FromSeconds(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2));
+				while ((await rpc.GetRawMempoolAsync()).Length == 0)
+				{
+					if (timeout.IsCompletedSuccessfully)
+					{
+						throw new TimeoutException("CoinJoin wasn't propagated.");
+					}
+					await Task.Delay(1000);
+				}
+
+				var cjid = (await rpc.GetRawMempoolAsync()).Single();
+				smartCoin1.SpenderTransactionId = cjid;
+				smartCoin2.SpenderTransactionId = cjid;
+				smartCoin3.SpenderTransactionId = cjid;
+
+				var cj = await rpc.GetRawTransactionAsync(cjid);
+				Assert.Contains(customActive1, cj.Outputs.Select(x => x.ScriptPubKey));
+				Assert.DoesNotContain(customChange1, cj.Outputs.Select(x => x.ScriptPubKey)); // The smallest of CJ won't generate change.
+				Assert.Contains(customActive2, cj.Outputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(customChange2, cj.Outputs.Select(x => x.ScriptPubKey));
+			}
+			finally
+			{
+				if (chaumianClient1 != null)
+				{
+					await chaumianClient1.StopAsync();
+				}
+				if (chaumianClient2 != null)
+				{
+					await chaumianClient2.StopAsync();
+				}
+			}
+		}
+
 		#endregion
 	}
 }
