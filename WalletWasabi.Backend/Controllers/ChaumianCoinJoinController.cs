@@ -85,7 +85,7 @@ namespace WalletWasabi.Backend.Controllers
 			if (!ModelState.IsValid
 				|| request == null
 				|| string.IsNullOrWhiteSpace(request.BlindedOutputScriptHex)
-				|| string.IsNullOrWhiteSpace(request.ChangeOutputScript)
+				|| string.IsNullOrWhiteSpace(request.ChangeOutputAddress)
 				|| request.Inputs == null
 				|| request.Inputs.Count() == 0
 				|| request.Inputs.Any(x => x.Input == null
@@ -112,7 +112,15 @@ namespace WalletWasabi.Backend.Controllers
 						return BadRequest("Blinded output has already been registered.");
 					}
 
-					var changeOutput = new Script(request.ChangeOutputScript);
+					BitcoinAddress changeOutputAddress;
+					try
+					{
+						changeOutputAddress = BitcoinAddress.Create(request.ChangeOutputAddress, Network);
+					}
+					catch (FormatException ex)
+					{
+						return BadRequest($"Invalid ChangeOutputAddress. Details: {ex.Message}");
+					}
 
 					var inputs = new HashSet<(OutPoint OutPoint, TxOut Output)>();
 
@@ -220,7 +228,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Make sure Alice checks work.
-					var alice = new Alice(inputs, networkFeeToPay, new Script(request.ChangeOutputScript), request.BlindedOutputScriptHex);
+					var alice = new Alice(inputs, networkFeeToPay, changeOutputAddress, request.BlindedOutputScriptHex);
 
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{
@@ -444,12 +452,12 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(404)]
 		[ProducesResponseType(409)]
 		[ProducesResponseType(410)]
-		public async Task<IActionResult> PostOutputAsync([FromQuery]string roundHash, [FromBody]OutputRequest outputRequest)
+		public async Task<IActionResult> PostOutputAsync([FromQuery]string roundHash, [FromBody]OutputRequest request)
 		{
 			if (string.IsNullOrWhiteSpace(roundHash)
-				|| outputRequest == null
-				|| string.IsNullOrWhiteSpace(outputRequest.OutputScript)
-				|| string.IsNullOrWhiteSpace(outputRequest.SignatureHex)
+				|| request == null
+				|| string.IsNullOrWhiteSpace(request.OutputAddress)
+				|| string.IsNullOrWhiteSpace(request.SignatureHex)
 				|| !ModelState.IsValid)
 			{
 				return BadRequest();
@@ -472,21 +480,29 @@ namespace WalletWasabi.Backend.Controllers
 				return Conflict($"Output registration can only be done from OutputRegistration phase. Current phase: {phase}.");
 			}
 
-			var outputScript = new Script(outputRequest.OutputScript);
+			BitcoinAddress outputAddress;
+			try
+			{
+				outputAddress = BitcoinAddress.Create(request.OutputAddress, Network);
+			}
+			catch (FormatException ex)
+			{
+				return BadRequest($"Invalid OutputAddress. Details: {ex.Message}");
+			}
 
-			if (RsaKey.PubKey.Verify(ByteHelpers.FromHex(outputRequest.SignatureHex), outputScript.ToBytes()))
+			if (RsaKey.PubKey.Verify(ByteHelpers.FromHex(request.SignatureHex), outputAddress.ScriptPubKey.ToBytes()))
 			{
 				using (await OutputLock.LockAsync())
 				{
 					Bob bob = null;
 					try
 					{
-						bob = new Bob(outputScript);
+						bob = new Bob(outputAddress);
 						round.AddBob(bob);
 					}
 					catch (Exception ex)
 					{
-						return BadRequest($"Invalid outputScript is provided. Details: {ex.Message}");
+						return BadRequest($"Invalid outputAddress is provided. Details: {ex.Message}");
 					}
 
 					if (round.CountBobs() == round.AnonymitySet)

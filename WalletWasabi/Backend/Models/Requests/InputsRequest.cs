@@ -18,7 +18,7 @@ namespace WalletWasabi.Backend.Models.Requests
 		public string BlindedOutputScriptHex { get; set; }
 
 		[Required]
-		public string ChangeOutputScript { get; set; }
+		public string ChangeOutputAddress { get; set; }
 
 		public StringContent ToHttpStringContent()
 		{

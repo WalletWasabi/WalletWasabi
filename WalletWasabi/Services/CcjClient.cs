@@ -25,10 +25,10 @@ namespace WalletWasabi.Services
 		BlindingRsaPubKey CoordinatorPubKey { get; }
 		public KeyManager KeyManager { get; }
 
-		public List<Script> CustomChangeScripts { get; }
-		private object CustomChangeScriptsLock { get; }
-		public List<Script> CustomActiveScripts { get; }
-		private object CustomActiveScriptsLock { get; }
+		public List<BitcoinAddress> CustomChangeAddresses { get; }
+		private object CustomChangeAddressesLock { get; }
+		public List<BitcoinAddress> CustomActiveAddresses { get; }
+		private object CustomActiveAddressesLock { get; }
 
 		public SatoshiClient SatoshiClient { get; }
 		public Uri CcjHostUri { get; }
@@ -66,10 +66,10 @@ namespace WalletWasabi.Services
 			State = new CcjClientState();
 			MixLock = new AsyncLock();
 
-			CustomChangeScripts = new List<Script>();
-			CustomActiveScripts = new List<Script>();
-			CustomChangeScriptsLock = new object();
-			CustomActiveScriptsLock = new object();
+			CustomChangeAddresses = new List<BitcoinAddress>();
+			CustomActiveAddresses = new List<BitcoinAddress>();
+			CustomChangeAddressesLock = new object();
+			CustomActiveAddressesLock = new object();
 		}
 
 		public void Start()
@@ -183,27 +183,27 @@ namespace WalletWasabi.Services
 
 								if (registrableCoins.Count() > 0)
 								{
-									Script changeKey = null;
-									Script activeKey = null;
-									lock (CustomChangeScriptsLock)
+									BitcoinAddress changeAddress = null;
+									BitcoinAddress activeAddress = null;
+									lock (CustomChangeAddressesLock)
 									{
-										if(CustomChangeScripts.Count > 0)
+										if(CustomChangeAddresses.Count > 0)
 										{
-											changeKey = CustomChangeScripts.First();
-											CustomChangeScripts.RemoveFirst();
+											changeAddress = CustomChangeAddresses.First();
+											CustomChangeAddresses.RemoveFirst();
 										}
 									}
-									lock (CustomActiveScriptsLock)
+									lock (CustomActiveAddressesLock)
 									{
-										if (CustomActiveScripts.Count > 0)
+										if (CustomActiveAddresses.Count > 0)
 										{
-											activeKey = CustomActiveScripts.First();
-											CustomActiveScripts.RemoveFirst();
+											activeAddress = CustomActiveAddresses.First();
+											CustomActiveAddresses.RemoveFirst();
 										}
 									}
-									changeKey = changeKey ?? KeyManager.GenerateNewKey("CoinJoin Change Output", KeyState.Locked, isInternal: true).GetP2wpkhScript();
-									activeKey = activeKey ?? KeyManager.GenerateNewKey("CoinJoin Active Output", KeyState.Locked, isInternal: true).GetP2wpkhScript();
-									var blind = CoordinatorPubKey.Blind(activeKey.ToBytes());
+									changeAddress = changeAddress ?? KeyManager.GenerateNewKey("CoinJoin Change Output", KeyState.Locked, isInternal: true).GetP2wpkhAddress(Network);
+									activeAddress = activeAddress ?? KeyManager.GenerateNewKey("CoinJoin Active Output", KeyState.Locked, isInternal: true).GetP2wpkhAddress(Network);
+									var blind = CoordinatorPubKey.Blind(activeAddress.ScriptPubKey.ToBytes());
 
 									var inputProofs = new List<InputProofModel>();
 									foreach ((uint256 txid, int index) coinReference in registrableCoins)
@@ -217,11 +217,11 @@ namespace WalletWasabi.Services
 										};
 										inputProofs.Add(inputProof);
 									}
-									AliceClient aliceClient = await AliceClient.CreateNewAsync(changeKey, blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
+									AliceClient aliceClient = await AliceClient.CreateNewAsync(changeAddress, blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
 									
 									byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
 
-									if (!CoordinatorPubKey.Verify(unblindedSignature, activeKey.ToBytes()))
+									if (!CoordinatorPubKey.Verify(unblindedSignature, activeAddress.ScriptPubKey.ToBytes()))
 									{
 										throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
 									}
@@ -242,8 +242,8 @@ namespace WalletWasabi.Services
 										roundRegistered.CoinsRegistered.Add(coin);
 										State.RemoveCoinFromWaitingList(coin);
 									}
-									roundRegistered.ActiveOutputScript = activeKey;
-									roundRegistered.ChangeOutputScript = changeKey;
+									roundRegistered.ActiveOutputAddress = activeAddress;
+									roundRegistered.ChangeOutputAddress = changeAddress;
 									roundRegistered.UnblindedSignature = unblindedSignature;
 									roundRegistered.AliceClient = aliceClient;
 								}
@@ -308,7 +308,7 @@ namespace WalletWasabi.Services
 								
 									using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
 									{
-										await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutputScript, ongoingRound.UnblindedSignature);
+										await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutputAddress, ongoingRound.UnblindedSignature);
 										ongoingRound.PostedOutput = true;
 										Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId})Bob Posted output.");
 									}
@@ -324,7 +324,7 @@ namespace WalletWasabi.Services
 										throw new NotSupportedException("Coordinator provided invalid roundHash.");
 									}
 									Money amountBack = unsignedCoinJoin.Outputs
-										.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutputScript || x.ScriptPubKey == ongoingRound.ChangeOutputScript)
+										.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutputAddress.ScriptPubKey || x.ScriptPubKey == ongoingRound.ChangeOutputAddress.ScriptPubKey)
 										.Sum(y => y.Value);
 									Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
 									minAmountBack -= ongoingRound.State.FeePerOutputs * 2 + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
@@ -333,7 +333,7 @@ namespace WalletWasabi.Services
 									minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
 
 									// If there's no change output then coordinator protection may happened:
-									if (unsignedCoinJoin.Outputs.All(x => x.ScriptPubKey != ongoingRound.ChangeOutputScript))
+									if (unsignedCoinJoin.Outputs.All(x => x.ScriptPubKey != ongoingRound.ChangeOutputAddress.ScriptPubKey))
 									{
 										Money minimumOutputAmount = new Money(0.0001m, MoneyUnit.BTC); // If the change would be less than about $1 then add it to the coordinator.
 										Money onePercentOfDenomination = new Money(actualDenomination.ToDecimal(MoneyUnit.BTC) * 0.01m, MoneyUnit.BTC); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
@@ -399,86 +399,86 @@ namespace WalletWasabi.Services
 			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
 		}
 
-		#region ScriptLists
+		#region CustomAddressesLists
 
-		public IEnumerable<Script> GetCustomChangeScripts()
+		public IEnumerable<BitcoinAddress> GetCustomChangeAddresses()
 		{
-			lock(CustomChangeScriptsLock)
+			lock(CustomChangeAddressesLock)
 			{
-				return CustomChangeScripts;
+				return CustomChangeAddresses;
 			}
 		}
 
-		public IEnumerable<Script> GetCustomActiveScripts()
+		public IEnumerable<BitcoinAddress> GetCustomActiveAddresses()
 		{
-			lock (CustomActiveScriptsLock)
+			lock (CustomActiveAddressesLock)
 			{
-				return CustomActiveScripts;
-			}
-		}
-
-		/// <summary>
-		/// Best effort. For example if a round is disrupted my malicious actors, the script won't be registered again, therefore it's not guaranteed money will arrive.
-		/// </summary>
-		public void AddCustomActiveScript(Script script, bool beginning = false)
-		{
-			lock (CustomActiveScriptsLock)
-			{
-				if(CustomActiveScripts.Contains(script))
-				{
-					CustomActiveScripts.Remove(script);
-				}
-				if (beginning)
-				{
-					CustomActiveScripts.Insert(0, script);
-				}
-				else
-				{
-					CustomActiveScripts.Add(script);
-				}
+				return CustomActiveAddresses;
 			}
 		}
 
 		/// <summary>
-		/// Best effort. For example if a round is disrupted my malicious actors, the script won't be registered again, therefore it's not guaranteed money will arrive.
+		/// Best effort. For example if a round is disrupted my malicious actors, the address won't be registered again, therefore it's not guaranteed money will arrive.
 		/// </summary>
-		public void AddCustomChangeScript(Script script, bool beginning = false)
+		public void AddCustomActiveAddress(BitcoinAddress address, bool beginning = false)
 		{
-			lock (CustomChangeScriptsLock)
+			lock (CustomActiveAddressesLock)
 			{
-				if (CustomChangeScripts.Contains(script))
+				if(CustomActiveAddresses.Contains(address))
 				{
-					CustomChangeScripts.Remove(script);
+					CustomActiveAddresses.Remove(address);
 				}
 				if (beginning)
 				{
-					CustomChangeScripts.Insert(0, script);
+					CustomActiveAddresses.Insert(0, address);
 				}
 				else
 				{
-					CustomChangeScripts.Add(script);
+					CustomActiveAddresses.Add(address);
 				}
 			}
 		}
 
-		public void RemoveCustomChangeScript(Script script)
+		/// <summary>
+		/// Best effort. For example if a round is disrupted my malicious actors, the address won't be registered again, therefore it's not guaranteed money will arrive.
+		/// </summary>
+		public void AddCustomChangeAddress(BitcoinAddress address, bool beginning = false)
 		{
-			lock (CustomChangeScriptsLock)
+			lock (CustomChangeAddressesLock)
 			{
-				if (CustomChangeScripts.Contains(script))
+				if (CustomChangeAddresses.Contains(address))
 				{
-					CustomChangeScripts.Remove(script);
+					CustomChangeAddresses.Remove(address);
+				}
+				if (beginning)
+				{
+					CustomChangeAddresses.Insert(0, address);
+				}
+				else
+				{
+					CustomChangeAddresses.Add(address);
 				}
 			}
 		}
 
-		public void RemoveCustomActiveScript(Script script)
+		public void RemoveCustomChangeAddress(BitcoinAddress address)
 		{
-			lock (CustomActiveScriptsLock)
+			lock (CustomChangeAddressesLock)
 			{
-				if (CustomActiveScripts.Contains(script))
+				if (CustomChangeAddresses.Contains(address))
 				{
-					CustomActiveScripts.Remove(script);
+					CustomChangeAddresses.Remove(address);
+				}
+			}
+		}
+
+		public void RemoveCustomActiveAddress(BitcoinAddress address)
+		{
+			lock (CustomActiveAddressesLock)
+			{
+				if (CustomActiveAddresses.Contains(address))
+				{
+					CustomActiveAddresses.Remove(address);
 				}
 			}
 		}

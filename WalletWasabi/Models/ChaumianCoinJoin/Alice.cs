@@ -21,7 +21,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public IEnumerable<(OutPoint OutPoint, TxOut Output)> Inputs { get; }
 
-		public Script ChangeOutputScript { get; }
+		public BitcoinAddress ChangeOutputAddress { get; }
 
 		public string BlindedOutputScriptHex { get; }
 
@@ -29,20 +29,20 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public AliceState State { get; set; }
 
-		public Alice(IEnumerable<(OutPoint OutPoint, TxOut Output)> inputs, Money networkFeeToPay, Script changeOutputScript, string blindedOutputHex)
+		public Alice(IEnumerable<(OutPoint OutPoint, TxOut Output)> inputs, Money networkFeeToPay, BitcoinAddress changeOutputAddress, string blindedOutputScriptHex)
 		{
 			Inputs = Guard.NotNullOrEmpty(nameof(inputs), inputs);
 			NetworkFeeToPay = Guard.NotNull(nameof(networkFeeToPay), networkFeeToPay);
-			BlindedOutputScriptHex = Guard.NotNullOrEmptyOrWhitespace(nameof(blindedOutputHex), blindedOutputHex);
+			BlindedOutputScriptHex = Guard.NotNullOrEmptyOrWhitespace(nameof(blindedOutputScriptHex), blindedOutputScriptHex);
 
-			Guard.NotNull(nameof(changeOutputScript), changeOutputScript);
+			Guard.NotNull(nameof(changeOutputAddress), changeOutputAddress);
 			// 33 bytes maximum: https://bitcoin.stackexchange.com/a/46379/26859
-			int byteCount = changeOutputScript.ToBytes().Length;
+			int byteCount = changeOutputAddress.ScriptPubKey.ToBytes().Length;
 			if (byteCount > 33)
 			{
-				throw new ArgumentOutOfRangeException(nameof(changeOutputScript), byteCount, $"Can be maximum 33 bytes.");
+				throw new ArgumentOutOfRangeException(nameof(changeOutputAddress), byteCount, $"Can be maximum 33 bytes.");
 			}
-			ChangeOutputScript = changeOutputScript;
+			ChangeOutputAddress = changeOutputAddress;
 			LastSeen = DateTimeOffset.UtcNow;
 
 			UniqueId = Guid.NewGuid();

@@ -19,8 +19,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public AliceClient AliceClient { get; set; }
 
-		public Script ChangeOutputScript { get; set; }
-		public Script ActiveOutputScript { get; set; }
+		public BitcoinAddress ChangeOutputAddress { get; set; }
+		public BitcoinAddress ActiveOutputAddress { get; set; }
 
 		public byte[] UnblindedSignature { get; set; }
 
@@ -39,8 +39,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public void ClearRegistration()
 		{
 			CoinsRegistered.Clear();
-			ChangeOutputScript = null;
-			ActiveOutputScript = null;
+			ChangeOutputAddress = null;
+			ActiveOutputAddress = null;
 			UnblindedSignature = null;
 			RoundHash = null;
 			AliceClient?.Dispose();

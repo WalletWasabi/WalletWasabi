@@ -248,7 +248,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// 2. Add Bob outputs.
 						foreach (Bob bob in Bobs)
 						{
-							transaction.AddOutput(newDenomination, bob.ActiveOutputScript);
+							transaction.AddOutput(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 						}
 
 						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(RpcClient.Network);
@@ -281,7 +281,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								}
 								else
 								{
-									transaction.AddOutput(changeAmount, alice.ChangeOutputScript);
+									transaction.AddOutput(changeAmount, alice.ChangeOutputAddress.ScriptPubKey);
 								}
 							}
 							else
@@ -708,7 +708,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					throw new InvalidOperationException("Adding Bob is only allowed in OutputRegistration phase.");
 				}
-				if (Bobs.Any(x => x.ActiveOutputScript == bob.ActiveOutputScript))
+				if (Bobs.Any(x => x.ActiveOutputAddress == bob.ActiveOutputAddress))
 				{
 					return; // Bob is already added.
 				}

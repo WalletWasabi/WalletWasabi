@@ -10,7 +10,7 @@ namespace WalletWasabi.Backend.Models.Requests
     public class OutputRequest
     {
 		[Required]
-		public string OutputScript { get; set; }
+		public string OutputAddress { get; set; }
 
 		[Required]
 		public string SignatureHex { get; set; }

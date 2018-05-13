@@ -1611,20 +1611,15 @@ namespace WalletWasabi.Tests
 				var inputsRequest = new InputsRequest
 				{
 					BlindedOutputScriptHex = null,
-					ChangeOutputScript = null,
+					ChangeOutputAddress = null,
 					Inputs = null,
 				};
 
 				HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(inputsRequest, baseUri));
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid request.", httpRequestException.Message);
-
-				Script blindedOutputScript = new Script();
-				byte[] changeOutputScript = new byte[] { };
-				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(blindedOutputScript, changeOutputScript, new InputProofModel[] { new InputProofModel { Input = new OutPoint(), Proof = "" } }, baseUri));
-				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid request.", httpRequestException.Message);
-
+				
 				inputsRequest.BlindedOutputScriptHex = "c";
-				inputsRequest.ChangeOutputScript = "a";
+				inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(network).ToString();
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = "b" } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(inputsRequest, baseUri));
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is not unspent.", httpRequestException.Message);
@@ -1826,7 +1821,7 @@ namespace WalletWasabi.Tests
 				scriptBytes = new Key().PubKey.GetSegwitAddress(network).ScriptPubKey.ToBytes();
 				(BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptBytes);
 
-				using (var aliceClient = await AliceClient.CreateNewAsync(new Key().ScriptPubKey, BlindedData, new InputProofModel[] { new InputProofModel { Input = new OutPoint(hash, index), Proof = key.SignMessage(ByteHelpers.ToHex(BlindedData)) } }, baseUri))
+				using (var aliceClient = await AliceClient.CreateNewAsync(new Key().PubKey.GetAddress(network), BlindedData, new InputProofModel[] { new InputProofModel { Input = new OutPoint(hash, index), Proof = key.SignMessage(ByteHelpers.ToHex(BlindedData)) } }, baseUri))
 				{
 					Assert.NotNull(aliceClient.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
@@ -1870,7 +1865,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nRound is not running.", httpRequestException.Message);
 				}
 
-				using (var aliceClient = await AliceClient.CreateNewAsync(new Key().ScriptPubKey, BlindedData, new InputProofModel[] { new InputProofModel { Input = new OutPoint(hash, index), Proof = key.SignMessage(ByteHelpers.ToHex(BlindedData)) } }, baseUri))
+				using (var aliceClient = await AliceClient.CreateNewAsync(new Key().PubKey.GetAddress(network), BlindedData, new InputProofModel[] { new InputProofModel { Input = new OutPoint(hash, index), Proof = key.SignMessage(ByteHelpers.ToHex(BlindedData)) } }, baseUri))
 				{
 					Assert.NotNull(aliceClient.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
@@ -1930,8 +1925,8 @@ namespace WalletWasabi.Tests
 				var input1 = new OutPoint(hash1, index1);
 				var input2 = new OutPoint(hash2, index2);
 
-				using (var aliceClient1 = await AliceClient.CreateNewAsync(new Key().ScriptPubKey, blinded1.BlindedData, new InputProofModel[] { new InputProofModel { Input = input1, Proof = key1.SignMessage(blindedOutputScriptHex1) } }, baseUri))
-				using (var aliceClient2 = await AliceClient.CreateNewAsync(new Key().ScriptPubKey, blinded2.BlindedData, new InputProofModel[] { new InputProofModel { Input = input2, Proof = key2.SignMessage(blindedOutputScriptHex2) } }, baseUri))
+				using (var aliceClient1 = await AliceClient.CreateNewAsync(new Key().PubKey.GetAddress(network), blinded1.BlindedData, new InputProofModel[] { new InputProofModel { Input = input1, Proof = key1.SignMessage(blindedOutputScriptHex1) } }, baseUri))
+				using (var aliceClient2 = await AliceClient.CreateNewAsync(new Key().PubKey.GetAddress(network), blinded2.BlindedData, new InputProofModel[] { new InputProofModel { Input = input2, Proof = key2.SignMessage(blindedOutputScriptHex2) } }, baseUri))
 				{
 					Assert.Equal(aliceClient2.RoundId, aliceClient1.RoundId);
 					Assert.NotEqual(aliceClient2.UniqueId, aliceClient1.UniqueId);
@@ -1956,8 +1951,8 @@ namespace WalletWasabi.Tests
 					using (var bobClient1 = new BobClient(baseUri))
 					using (var bobClient2 = new BobClient(baseUri))
 					{
-						await bobClient1.PostOutputAsync(roundHash, outputAddress1.ScriptPubKey, unblindedSignature1);
-						await bobClient2.PostOutputAsync(roundHash, outputAddress2.ScriptPubKey, unblindedSignature2);
+						await bobClient1.PostOutputAsync(roundHash, outputAddress1, unblindedSignature1);
+						await bobClient2.PostOutputAsync(roundHash, outputAddress2, unblindedSignature2);
 					}
 
 					roundState = await satoshiClient.GetRoundStateAsync(aliceClient1.RoundId);
@@ -2046,13 +2041,13 @@ namespace WalletWasabi.Tests
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			var fundingTxCount = 0;
-			var inputRegistrationUsers = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, Script activeOutputScript, Script changeOutputScript, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData)>();
+			var inputRegistrationUsers = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData)>();
 			for (int i = 0; i < roundConfig.AnonymitySet; i++)
 			{
 				var userInputData = new List<(Key key, BitcoinWitPubKeyAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)>();
-				var activeOutputScript = new Key().ScriptPubKey;
-				var changeOutputScript = new Key().ScriptPubKey;
-				var blinded = blindingKey.PubKey.Blind(activeOutputScript.ToBytes());
+				var activeOutputAddress = new Key().PubKey.GetAddress(network);
+				var changeOutputAddress = new Key().PubKey.GetAddress(network);
+				var blinded = blindingKey.PubKey.Blind(activeOutputAddress.ScriptPubKey.ToBytes());
 
 				var inputProofModels = new List<InputProofModel>();
 				int numberOfInputs = new Random().Next(1, 7);
@@ -2085,7 +2080,7 @@ namespace WalletWasabi.Tests
 					userInputData.Add((key, inputAddress, txHash, transaction, input));
 				}
 
-				inputRegistrationUsers.Add((blinded, activeOutputScript, changeOutputScript, inputProofModels, userInputData));
+				inputRegistrationUsers.Add((blinded, activeOutputAddress, changeOutputAddress, inputProofModels, userInputData));
 			}
 
 			var mempool = await rpc.GetRawMempoolAsync();
@@ -2103,11 +2098,11 @@ namespace WalletWasabi.Tests
 
 			foreach (var user in inputRegistrationUsers)
 			{
-				aliceClients.Add(AliceClient.CreateNewAsync(user.changeOutputScript, user.blinded.blindedData, user.inputProofModels, baseUri));
+				aliceClients.Add(AliceClient.CreateNewAsync(user.changeOutputAddress, user.blinded.blindedData, user.inputProofModels, baseUri));
 			}
 
 			long roundId = 0;
-			var users = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, Script activeOutputScript, Script changeOutputScript, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient aliceClient, byte[] unblindedSignature)>();
+			var users = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient aliceClient, byte[] unblindedSignature)>();
 			for (int i = 0; i < inputRegistrationUsers.Count; i++)
 			{
 				var user = inputRegistrationUsers[i];
@@ -2123,7 +2118,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
 				// Because it's valuetuple.
-				users.Add((user.blinded, user.activeOutputScript, user.changeOutputScript, user.inputProofModels, user.userInputData, aliceClient, blindingKey.PubKey.UnblindSignature(aliceClient.BlindedOutputSignature, user.blinded.blindingFactor)));
+				users.Add((user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, blindingKey.PubKey.UnblindSignature(aliceClient.BlindedOutputSignature, user.blinded.blindingFactor)));
 			}
 
 			Logger.TurnOn();
@@ -2154,10 +2149,10 @@ namespace WalletWasabi.Tests
 			foreach (var user in users)
 			{
 				var bobClient = new BobClient(baseUri);
-				outputRequests.Add((bobClient, bobClient.PostOutputAsync(roundHash, user.activeOutputScript, user.unblindedSignature)));
+				outputRequests.Add((bobClient, bobClient.PostOutputAsync(roundHash, user.activeOutputAddress, user.unblindedSignature)));
 			}
 
-			foreach(var request in outputRequests)
+			foreach (var request in outputRequests)
 			{
 				await request.Item2;
 				request.Item1.Dispose();
@@ -2393,14 +2388,14 @@ namespace WalletWasabi.Tests
 				chaumianClient1.Start();
 				chaumianClient2.Start();
 
-				var customChange1 = new Key().ScriptPubKey;
-				var customActive1 = new Key().ScriptPubKey;
-				var customChange2 = new Key().ScriptPubKey;
-				var customActive2 = new Key().ScriptPubKey;
-				chaumianClient1.AddCustomChangeScript(customChange1);
-				chaumianClient2.AddCustomChangeScript(customChange2);
-				chaumianClient1.AddCustomActiveScript(customActive1);
-				chaumianClient2.AddCustomActiveScript(customActive2);
+				var customChange1 = new Key().PubKey.GetAddress(network);
+				var customActive1 = new Key().PubKey.GetAddress(network);
+				var customChange2 = new Key().PubKey.GetAddress(network);
+				var customActive2 = new Key().PubKey.GetAddress(network);
+				chaumianClient1.AddCustomChangeAddress(customChange1);
+				chaumianClient2.AddCustomChangeAddress(customChange2);
+				chaumianClient1.AddCustomActiveAddress(customActive1);
+				chaumianClient2.AddCustomActiveAddress(customActive2);
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				Assert.True(1 == (await chaumianClient2.QueueCoinsToMixAsync(password, smartCoin3)).Count());
@@ -2421,10 +2416,10 @@ namespace WalletWasabi.Tests
 				smartCoin3.SpenderTransactionId = cjid;
 
 				var cj = await rpc.GetRawTransactionAsync(cjid);
-				Assert.Contains(customActive1, cj.Outputs.Select(x => x.ScriptPubKey));
-				Assert.DoesNotContain(customChange1, cj.Outputs.Select(x => x.ScriptPubKey)); // The smallest of CJ won't generate change.
-				Assert.Contains(customActive2, cj.Outputs.Select(x => x.ScriptPubKey));
-				Assert.Contains(customChange2, cj.Outputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(customActive1.ScriptPubKey, cj.Outputs.Select(x => x.ScriptPubKey));
+				Assert.DoesNotContain(customChange1.ScriptPubKey, cj.Outputs.Select(x => x.ScriptPubKey)); // The smallest of CJ won't generate change.
+				Assert.Contains(customActive2.ScriptPubKey, cj.Outputs.Select(x => x.ScriptPubKey));
+				Assert.Contains(customChange2.ScriptPubKey, cj.Outputs.Select(x => x.ScriptPubKey));
 			}
 			finally
 			{

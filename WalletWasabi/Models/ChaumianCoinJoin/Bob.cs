@@ -8,18 +8,18 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 {
     public class Bob
     {
-		public Script ActiveOutputScript { get; }
+		public BitcoinAddress ActiveOutputAddress { get; }
 
-		public Bob(Script activeOutputScript)
+		public Bob(BitcoinAddress activeOutputAddress)
 		{
-			Guard.NotNull(nameof(activeOutputScript), activeOutputScript);
+			Guard.NotNull(nameof(activeOutputAddress), activeOutputAddress);
 			// 33 bytes maximum: https://bitcoin.stackexchange.com/a/46379/26859
-			int byteCount = activeOutputScript.ToBytes().Length;
+			int byteCount = activeOutputAddress.ScriptPubKey.ToBytes().Length;
 			if (byteCount > 33)
 			{
-				throw new ArgumentOutOfRangeException(nameof(activeOutputScript), byteCount, $"Can be maximum 33 bytes.");
+				throw new ArgumentOutOfRangeException(nameof(activeOutputAddress), byteCount, $"Can be maximum 33 bytes.");
 			}
-			ActiveOutputScript = activeOutputScript;
+			ActiveOutputAddress = activeOutputAddress;
 		}
 	}
 }

@@ -20,5 +20,23 @@ namespace WalletWasabi.Helpers
 			return HashHelpers.GenerateSha256Hash(sb.ToString());
 		}
 
+		public static BitcoinAddress ParseBitcoinAddress(string address)
+		{
+			try
+			{
+				return BitcoinAddress.Create(address, Network.RegTest);
+			}
+			catch
+			{
+				try
+				{
+					return BitcoinAddress.Create(address, Network.TestNet);
+				}
+				catch
+				{
+					return BitcoinAddress.Create(address, Network.Main);
+				}
+			}
+		}
 	}
 }
