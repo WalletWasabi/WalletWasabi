@@ -207,6 +207,7 @@ namespace WalletWasabi.Tests
 		public async Task FilterDownloaderTestAsync()
 		{
 			await AssertFiltersInitializedAsync();
+			await Global.RpcClient.GenerateAsync(1); // So we have enough coins.
 
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{Global.RpcClient.Network}.dat");
 
@@ -270,6 +271,7 @@ namespace WalletWasabi.Tests
 		public async Task ReorgTestAsync()
 		{
 			await AssertFiltersInitializedAsync();
+			await Global.RpcClient.GenerateAsync(1); // So we have enough coins.
 
 			var network = Network.RegTest;
 			var keyManager = KeyManager.CreateNew(out _, "password");
@@ -408,6 +410,7 @@ namespace WalletWasabi.Tests
 		{
 			// Make sure fitlers are created on the server side.
 			await AssertFiltersInitializedAsync();
+			await Global.RpcClient.GenerateAsync(1); // So we have enough coins.
 
 			var network = Global.RpcClient.Network;
 
@@ -645,6 +648,7 @@ namespace WalletWasabi.Tests
 		{
 			// Make sure fitlers are created on the server side.
 			await AssertFiltersInitializedAsync();
+			await Global.RpcClient.GenerateAsync(1); // So we have enough coins.
 
 			var network = Global.RpcClient.Network;
 
@@ -681,7 +685,9 @@ namespace WalletWasabi.Tests
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
 			var txid = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
-			await Global.RpcClient.GenerateAsync(2);
+			Assert.NotNull(txid);
+
+			await Global.RpcClient.GenerateAsync(1);
 
 			try
 			{
@@ -1031,6 +1037,7 @@ namespace WalletWasabi.Tests
 		{
 			// Make sure fitlers are created on the server side.
 			await AssertFiltersInitializedAsync();
+			await Global.RpcClient.GenerateAsync(1); // So we have enough coins.
 
 			var network = Global.RpcClient.Network;
 
@@ -1203,6 +1210,7 @@ namespace WalletWasabi.Tests
 		{
 			// Make sure fitlers are created on the server side.
 			await AssertFiltersInitializedAsync();
+			await Global.RpcClient.GenerateAsync(1); // So we have enough coins.
 
 			var network = Global.RpcClient.Network;
 
@@ -1377,6 +1385,7 @@ namespace WalletWasabi.Tests
 		{
 			// Make sure fitlers are created on the server side.
 			await AssertFiltersInitializedAsync();
+			await Global.RpcClient.GenerateAsync(1); // So we have enough coins.
 
 			var network = Global.RpcClient.Network;
 
@@ -2427,6 +2436,181 @@ namespace WalletWasabi.Tests
 				{
 					await chaumianClient1.StopAsync();
 				}
+				if (chaumianClient2 != null)
+				{
+					await chaumianClient2.StopAsync();
+				}
+			}
+		}
+
+		[Fact]
+		public async Task CoinJoinMultipleRoundTestsAsync()
+		{
+			// Make sure fitlers are created on the server side.
+			await AssertFiltersInitializedAsync();
+			var rpc = Global.RpcClient;
+			await rpc.GenerateAsync(3); // So we have enough coins.
+
+			var network = rpc.Network;
+			var coordinator = Global.Coordinator;
+			Money denomination = new Money(0.1m, MoneyUnit.BTC);
+			decimal coordinatorFeePercent = 0.1m;
+			int anonymitySet = 2;
+			int connectionConfirmationTimeout = 14;
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
+			coordinator.UpdateRoundConfig(roundConfig);
+			coordinator.FailAllRoundsInInputRegistration();
+
+			// Create the services.
+			// 1. Create connection service.
+			var nodes = new NodesGroup(Global.Config.Network,
+					requirements: new NodeRequirement
+					{
+						RequiredServices = NodeServices.Network,
+						MinVersion = ProtocolVersion_WITNESS_VERSION
+					});
+			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+
+			var nodes2 = new NodesGroup(Global.Config.Network,
+					requirements: new NodeRequirement
+					{
+						RequiredServices = NodeServices.Network,
+						MinVersion = ProtocolVersion_WITNESS_VERSION
+					});
+			nodes2.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+
+			// 2. Create mempool service.
+			var memPoolService = new MemPoolService();
+			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+
+			var memPoolService2 = new MemPoolService();
+			Node node2 = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			node2.Behaviors.Add(new MemPoolBehavior(memPoolService2));
+
+			// 3. Create index downloader service.
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Index{network}.dat");
+			var indexDownloader = new IndexDownloader(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+
+			var indexFilePath2 = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Index{network}2.dat");
+			var indexDownloader2 = new IndexDownloader(network, indexFilePath2, new Uri(RegTestFixture.BackendEndPoint));
+
+			// 4. Create key manager service.
+			string password = "password";
+			var keyManager = KeyManager.CreateNew(out _, password);
+
+			var keyManager2 = KeyManager.CreateNew(out _, password);
+
+			// 5. Create chaumian coinjoin client.
+			var chaumianClient = new CcjClient(network, Global.Coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+
+			var chaumianClient2 = new CcjClient(network, Global.Coordinator.RsaKey.PubKey, keyManager2, new Uri(RegTestFixture.BackendEndPoint));
+
+			// 6. Create wallet service.
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Blocks");
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
+			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
+
+			var blocksFolderPath2 = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Blocks2");
+			var wallet2 = new WalletService(keyManager2, indexDownloader2, chaumianClient2, memPoolService2, nodes2, blocksFolderPath2);
+
+			// Get some money, make it confirm.
+			var key = wallet.GetReceiveKey("fundZeroLink");
+			var txid = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
+			Assert.NotNull(txid);
+			var key2 = wallet2.GetReceiveKey("fundZeroLink");
+			var key3 = wallet2.GetReceiveKey("fundZeroLink");
+			var key4 = wallet2.GetReceiveKey("fundZeroLink");
+			var txid2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.11m, MoneyUnit.BTC));
+			var txid3 = await rpc.SendToAddressAsync(key3.GetP2wpkhAddress(network), new Money(0.12m, MoneyUnit.BTC));
+			var txid4 = await rpc.SendToAddressAsync(key4.GetP2wpkhAddress(network), new Money(0.13m, MoneyUnit.BTC));
+
+			await rpc.GenerateAsync(1);
+
+			try
+			{
+				_filtersProcessedByWalletCount = 0;
+				nodes.Connect(); // Start connection service.
+				node.VersionHandshake(); // Start mempool service.
+				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
+				nodes2.Connect(); // Start connection service.
+				node2.VersionHandshake(); // Start mempool service.
+				indexDownloader2.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
+				chaumianClient2.Start(); // Start chaumian coinjoin client.
+
+				// Wait until the filter our previous transaction is present.
+				var blockCount = await rpc.GetBlockCountAsync();
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
+
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet2.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
+
+				var waitCount = 0;
+				while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
+				{
+					await Task.Delay(1000);
+					waitCount++;
+					if (waitCount >= 21)
+					{
+						throw new TimeoutException("Funding transaction to the wallet1 did not arrive.");
+					}
+				}
+				waitCount = 0;
+				while (wallet2.Coins.Sum(x => x.Amount) == Money.Zero)
+				{
+					await Task.Delay(1000);
+					waitCount++;
+					if (waitCount >= 21)
+					{
+						throw new TimeoutException("Funding transaction to the wallet2 did not arrive.");
+					}
+				}
+
+				Assert.True(1 == (await chaumianClient.QueueCoinsToMixAsync(password, wallet.Coins.ToArray())).Count());
+				Assert.True(3 == (await chaumianClient2.QueueCoinsToMixAsync(password, wallet2.Coins.ToArray())).Count());
+
+				Task timeout = Task.Delay(TimeSpan.FromSeconds(2*(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2)));
+				while (wallet.Coins.Count <= 3)
+				{
+					if (timeout.IsCompletedSuccessfully)
+					{
+						throw new TimeoutException("CoinJoin wasn't propagated or didn't arrive.");
+					}
+					await Task.Delay(1000);
+				}
+			}
+			finally
+			{
+				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
+				wallet?.Dispose();
+				// Dispose index downloader service.
+				if (indexDownloader != null)
+				{
+					await indexDownloader.StopAsync();
+				}
+				// Dispose connection service.
+				nodes?.Dispose();
+				// Dispose chaumian coinjoin client.
+				if (chaumianClient != null)
+				{
+					await chaumianClient.StopAsync();
+				}
+				wallet2?.Dispose();
+				// Dispose index downloader service.
+				if (indexDownloader2 != null)
+				{
+					await indexDownloader2.StopAsync();
+				}
+				// Dispose connection service.
+				nodes2?.Dispose();
+				// Dispose chaumian coinjoin client.
 				if (chaumianClient2 != null)
 				{
 					await chaumianClient2.StopAsync();

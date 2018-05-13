@@ -112,7 +112,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				var amountSoFar = Money.Zero;
 				Money amountNeededExceptInputFees = denomination + feePerOutputs * 2;
 				foreach (SmartCoin coin in WaitingList
-								.Where(x => x.Confirmed || x.Label.Contains("CoinJoin", StringComparison.Ordinal)) // Where our label contains CoinJoin, CoinJoins can be registered even if not confirmed, our label will likely be CoinJoin only if it was a previous CoinJoin, otherwise the server will refuse us.
+								.Where(x => x.Confirmed || x.Label.StartsWith("ZeroLink", StringComparison.Ordinal)) // Where our label contains CoinJoin, CoinJoins can be registered even if not confirmed, our label will likely be CoinJoin only if it was a previous CoinJoin, otherwise the server will refuse us.
 								.OrderByDescending(y => y.Amount) // First order by amount.
 								.OrderByDescending(z => z.Confirmed)) // Then order by the amount ordered ienumerable by confirmation, so first try to register confirmed coins.
 				{

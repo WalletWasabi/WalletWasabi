@@ -201,8 +201,8 @@ namespace WalletWasabi.Services
 											CustomActiveAddresses.RemoveFirst();
 										}
 									}
-									changeAddress = changeAddress ?? KeyManager.GenerateNewKey("CoinJoin Change Output", KeyState.Locked, isInternal: true).GetP2wpkhAddress(Network);
-									activeAddress = activeAddress ?? KeyManager.GenerateNewKey("CoinJoin Active Output", KeyState.Locked, isInternal: true).GetP2wpkhAddress(Network);
+									changeAddress = changeAddress ?? KeyManager.GenerateNewKey("ZeroLink Change", KeyState.Locked, isInternal: true).GetP2wpkhAddress(Network);
+									activeAddress = activeAddress ?? KeyManager.GenerateNewKey("ZeroLink Mixed Coin", KeyState.Locked, isInternal: true).GetP2wpkhAddress(Network);
 									var blind = CoordinatorPubKey.Blind(activeAddress.ScriptPubKey.ToBytes());
 
 									var inputProofs = new List<InputProofModel>();
@@ -485,6 +485,8 @@ namespace WalletWasabi.Services
 
 		#endregion
 
+		internal string OnePiece { get; private set; } = null;
+
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 		{
 			using (await MixLock.LockAsync())
@@ -507,6 +509,7 @@ namespace WalletWasabi.Services
 					}
 
 					coin.Secret = KeyManager.GetSecrets(password, coin.ScriptPubKey).Single();
+					OnePiece = OnePiece ?? password;
 
 					coin.Locked = true;
 
