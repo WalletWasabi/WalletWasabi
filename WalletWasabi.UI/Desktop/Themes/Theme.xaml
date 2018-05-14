@@ -6,6 +6,13 @@
     <SolidColorBrush x:Key="ThemeBorderDarkBrush">#FF333333</SolidColorBrush>
     <SolidColorBrush x:Key="ThemeBorderLightBrush">#FFCCCCCC</SolidColorBrush>
     <SolidColorBrush x:Key="HighlightBrush">#FF086F9E</SolidColorBrush>    
+    <SolidColorBrush x:Key="ThemeForegroundLightBrush">#FF808080</SolidColorBrush>
+    <SolidColorBrush x:Key="ThemeForegroundBrush">#FF000000</SolidColorBrush>
+
+    <sys:Double x:Key="ThemeDisabledOpacity">0.5</sys:Double>
+    <sys:Double x:Key="FontSizeSmall">10</sys:Double>
+    <sys:Double x:Key="FontSizeNormal">14</sys:Double>
+    <sys:Double x:Key="FontSizeLarge">24</sys:Double>
 <!--
     <SolidColorBrush x:Key="ThemeBorderMidBrush">#FF888888</SolidColorBrush>
     <SolidColorBrush x:Key="ThemeControlLightBrush">#FFFFFFFF</SolidColorBrush>
@@ -20,10 +27,6 @@
     <SolidColorBrush x:Key="ErrorBrush">Red</SolidColorBrush>
     <SolidColorBrush x:Key="ErrorBrushLight">#10ff0000</SolidColorBrush>
     <Thickness x:Key="ThemeBorderThickness">2</Thickness>
-    <sys:Double x:Key="ThemeDisabledOpacity">0.5</sys:Double>
-    <sys:Double x:Key="FontSizeSmall">10</sys:Double>
-    <sys:Double x:Key="FontSizeNormal">12</sys:Double>
-    <sys:Double x:Key="FontSizeLarge">16</sys:Double>
 -->
   </Style.Resources>
 </Style>

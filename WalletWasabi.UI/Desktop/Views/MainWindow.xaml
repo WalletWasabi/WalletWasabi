@@ -12,22 +12,23 @@
     <DockPanel>
         <Border DockPanel.Dock="Top" Classes="header">
             <DockPanel>
-                <TextBlock HorizontalAlignment="Stretch" DockPanel.Dock="Left">Wasabi Wallet</TextBlock>
+                <TextBlock Classes="header title" DockPanel.Dock="Left">Wasabi Wallet</TextBlock>
                 <Border Classes="summary" DockPanel.Dock="Right">
-                    <TextBlock>65.779109 BTC</TextBlock>
+                    <TextBlock Classes="header summary">65.779109 BTC</TextBlock>
                 </Border>
             </DockPanel>
+        </Border>
+        <Border DockPanel.Dock="Bottom" Classes="actionsBar">
+            <TextBlock FontWeight="Bold">Status: Downloading filters (56708/1201234) 6%</TextBlock>
         </Border>
         <Border DockPanel.Dock="Top" Classes="actionsBar">
             <TextBlock Text="{Binding Greeting}" />
         </Border>
-        <StackPanel Classes="body">
-            <Border Classes="basicWalletOperations">
-                <TextBlock>Wallet summary / Send / Receive bitcoins</TextBlock>
-            </Border>
-            <Border Classes="body">
-                <TextBlock>Transactions history place holder</TextBlock>
-            </Border>
-        </StackPanel>
+        <Border DockPanel.Dock="Top" >
+            <TextBlock>Wallet summary / Send / Receive bitcoins</TextBlock>
+        </Border>
+        <Border DockPanel.Dock="Top">
+            <TextBlock>Transactions history place holder</TextBlock>
+        </Border>
     </DockPanel>
 </Window>
