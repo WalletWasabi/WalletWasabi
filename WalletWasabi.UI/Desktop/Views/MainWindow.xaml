@@ -1,0 +1,34 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:WalletWasabi.UI.Desktop.ViewModels;assembly=WalletWasabi.UI.Desktop"
+        xmlns:controls="clr-namespace:WalletWasabi.UI.Desktop.Views;assembly=WalletWasabi.UI.Desktop"
+        Title="Wasabi Wallet"
+        Background="{DynamicResource ThemeBackgroundBrush}"
+        Height="800" Width="900">
+    <Design.DataContext> 
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Classes="header">
+            <DockPanel>
+                <TextBlock Classes="header title" DockPanel.Dock="Left">Wasabi Wallet</TextBlock>
+                <Border Classes="summary" DockPanel.Dock="Right">
+                    <TextBlock Classes="header summary">65.779109 BTC</TextBlock>
+                </Border>
+            </DockPanel>
+        </Border>
+        <Border DockPanel.Dock="Bottom" Classes="actionsBar">
+            <TextBlock FontWeight="Bold">Status: Downloading filters (56708/1201234) 6%</TextBlock>
+        </Border>
+        <Border DockPanel.Dock="Top" Classes="actionsBar">
+            <TextBlock Text="{Binding Greeting}" />
+        </Border>
+        <Border DockPanel.Dock="Top" >
+            <TextBlock>Wallet summary / Send / Receive bitcoins</TextBlock>
+        </Border>
+        <Border DockPanel.Dock="Top">
+            <TextBlock>Transactions history place holder</TextBlock>
+        </Border>
+    </DockPanel>
+</Window>
