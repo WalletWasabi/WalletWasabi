@@ -1021,7 +1021,15 @@ namespace WalletWasabi.Tests
 				var allowedInputs = wallet.Coins.Where(x => !x.SpentOrLocked).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1);
 				var toSend = new[]{ new WalletService.Operation(receive, Money.Zero, "fizz")};
 
-				res = await wallet.BuildTransactionAsync("password", toSend, 1008, false, allowedInputs: allowedInputs);
+				// covers:
+				// feeTarget < 2
+				// disallow unconfirmed
+				// allowed inputs
+				res = await wallet.BuildTransactionAsync("password", toSend, 0, false, allowedInputs: allowedInputs);
+
+				// covers:
+				// customchange
+				res2 = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(new Key().ScriptPubKey, new Money(0.05m, MoneyUnit.BTC), "label")}, 0, customChange: new Key().ScriptPubKey);
 				
 
 				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
