@@ -1029,7 +1029,8 @@ namespace WalletWasabi.Tests
 
 				// covers:
 				// customchange
-				res2 = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(new Key().ScriptPubKey, new Money(0.05m, MoneyUnit.BTC), "label")}, 0, customChange: new Key().ScriptPubKey);
+				// feePc > 1
+				res2 = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(new Key().ScriptPubKey, new Money(100, MoneyUnit.MilliBTC), "outgoing")}, 1008, customChange: new Key().ScriptPubKey);
 				
 
 				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
