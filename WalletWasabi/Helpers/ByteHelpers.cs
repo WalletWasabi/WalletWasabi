@@ -58,7 +58,8 @@ namespace System
 					{
 						return false;
 					}
-					x1 += 4; x2 += 4;
+					x1 += 4;
+					x2 += 4;
 				}
 				if ((l & 2) != 0)
 				{
@@ -66,7 +67,8 @@ namespace System
 					{
 						return false;
 					}
-					x1 += 2; x2 += 2;
+					x1 += 2;
+					x2 += 2;
 				}
 				if ((l & 1) != 0)
 				{
