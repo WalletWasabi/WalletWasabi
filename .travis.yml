@@ -8,10 +8,10 @@ notifications:
 matrix:
   include:
     - os: linux
-      dist: trusty     
+      dist: trusty
     - os: osx
-    
-# branches to build 
+
+# branches to build
 branches:
   only:
     - master
@@ -19,7 +19,7 @@ branches:
 cache:
   directories:
   - $HOME/.walletwasabi/
-  - $HOME/.nuget/packages 
+  - $HOME/.nuget/packages
 
 before_install:
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -qq update && sudo apt-get install -y tor; else brew install tor; fi
