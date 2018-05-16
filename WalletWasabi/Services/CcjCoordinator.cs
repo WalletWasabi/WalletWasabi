@@ -90,9 +90,8 @@ namespace WalletWasabi.Services
 						catch (Exception ex)
 						{
 							toRemove.Add(line);
-							var rpce = ex as RPCException;
 
-							var logEntry = rpce != null && rpce.RPCCode == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY
+							var logEntry = ex is RPCException rpce && rpce.RPCCode == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY
 								? $"CoinJoins file contains invalid transaction ID {line}"
 								: $"CoinJoins file got corrupted. Deleting offending line \"{line.Substring(0, 20)}\".";
 
