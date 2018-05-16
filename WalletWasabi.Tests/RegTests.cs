@@ -76,8 +76,13 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		private (string password, RPCClient rpc, Network network, CcjCoordinator coordinator) InitializedUsefulDefaultVariables()
+		private async Task<(string password, RPCClient rpc, Network network, CcjCoordinator coordinator)> InitializeTestEnvironmentAsync(int numberOfBlocksToGenerate)
 		{
+			await AssertFiltersInitializedAsync(); // Make sure fitlers are created on the server side.
+			if (numberOfBlocksToGenerate != 0)
+			{
+				await Global.RpcClient.GenerateAsync(numberOfBlocksToGenerate); // Make sure everything is confirmed.
+			}
 			return ("password", Global.RpcClient, Global.RpcClient.Network, Global.Coordinator);
 		}
 
@@ -103,8 +108,8 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async void BroadcastWithOutMinFeeAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
-			await rpc.GenerateAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+
 			var utxos = await rpc.ListUnspentAsync();
 			var utxo = utxos[0];
 			var addr = await rpc.GetNewAddressAsync();
@@ -128,9 +133,8 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async void BroadcastReplayTxAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
-
-			await rpc.GenerateAsync(1);
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+			
 			var utxos = await rpc.ListUnspentAsync();
 			var utxo = utxos[0];
 			var tx = await rpc.GetRawTransactionAsync(utxo.OutPoint.Hash);
@@ -149,7 +153,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async void BroadcastInvalidTxAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			var content = new StringContent($"''", Encoding.UTF8, "application/json");
 
@@ -171,7 +175,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task MempoolAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			var memPoolService = new MemPoolService();
 			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
@@ -218,10 +222,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task FilterDownloaderTestAsync()
 		{
-			await AssertFiltersInitializedAsync();
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
-
-			await rpc.GenerateAsync(1); // So we have enough coins.
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{rpc.Network}.dat");
 
@@ -284,10 +285,8 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task ReorgTestAsync()
 		{
-			await AssertFiltersInitializedAsync();
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
-			await rpc.GenerateAsync(1); // So we have enough coins.
-			
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// Mine some coins, make a few bech32 transactions then make it confirm.
@@ -422,11 +421,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task WalletTestsAsync()
 		{
-			// Make sure fitlers are created on the server side.
-			await AssertFiltersInitializedAsync();
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
-
-			await rpc.GenerateAsync(1); // So we have enough coins.
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -660,10 +655,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task SendTestsFromHiddenWalletAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
-			// Make sure fitlers are created on the server side.
-			await AssertFiltersInitializedAsync();
-			await rpc.GenerateAsync(1); // So we have enough coins.
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -1048,10 +1040,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task BuildTransactionValidationsTestAsync()
 		{
-			// Make sure fitlers are created on the server side.
-			await AssertFiltersInitializedAsync();
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
-			await rpc.GenerateAsync(1); // So we have enough coins.
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -1220,10 +1209,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task BuildTransactionReorgsTestAsync()
 		{
-			// Make sure fitlers are created on the server side.
-			await AssertFiltersInitializedAsync();
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
-			await rpc.GenerateAsync(1); // So we have enough coins.
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -1394,10 +1380,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task SpendUnconfirmedTxTestAsync()
 		{
-			// Make sure fitlers are created on the server side.
-			await AssertFiltersInitializedAsync();
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
-			await rpc.GenerateAsync(1); // So we have enough coins.
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			// Create the services.
 			// 1. Create connection service.
@@ -1536,12 +1519,10 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CcjCoordinatorCtorTestsAsync()
 		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+
 			Logger.TurnOff(); // turn off at the end, otherwise, the tests logs would have of warnings
-
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
-
-			await rpc.GenerateAsync(1);
-
+			
 			var bestBlockHash = await rpc.GetBestBlockHashAsync();
 			var bestBlock = await rpc.GetBlockAsync(bestBlockHash);
 			var coinbaseTxId = bestBlock.Transactions[0].GetHash();
@@ -1586,7 +1567,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CcjTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			Money denomination = new Money(0.2m, MoneyUnit.BTC);
 			decimal coordinatorFeePercent = 0.2m;
@@ -2043,7 +2024,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task Ccj100ParticipantsTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			var blindingKey = coordinator.RsaKey;
 			Money denomination = new Money(0.1m, MoneyUnit.BTC);
@@ -2250,7 +2231,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CcjClientTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			Money denomination = new Money(0.1m, MoneyUnit.BTC);
 			decimal coordinatorFeePercent = 0.1m;
@@ -2358,7 +2339,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CcjClientCustomOutputScriptTestsAsync()
 		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			Money denomination = new Money(0.1m, MoneyUnit.BTC);
 			decimal coordinatorFeePercent = 0.1m;
@@ -2449,12 +2430,8 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CoinJoinMultipleRoundTestsAsync()
 		{
-			// Make sure fitlers are created on the server side.
-			await AssertFiltersInitializedAsync();
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = InitializedUsefulDefaultVariables();
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(3);
 
-			await rpc.GenerateAsync(3); // So we have enough coins.
-			
 			Money denomination = new Money(0.1m, MoneyUnit.BTC);
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
