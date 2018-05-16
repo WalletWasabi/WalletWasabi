@@ -1754,7 +1754,7 @@ namespace WalletWasabi.Tests
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 					Assert.True(aliceClient.RoundId > 0);
 
-					await Task.Delay(250);
+					await Task.Delay(1000);
 					var roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
 					Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
 					Assert.Equal(2, roundState.RegisteredPeerCount);
