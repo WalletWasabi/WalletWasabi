@@ -306,28 +306,10 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			Guid uniqueIdGuid = CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
+			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
-			}
-
-			CcjRound round = Coordinator.TryGetRound(roundId);
-			if (round == null)
-			{
-				return NotFound("Round not found.");
-			}
-
-			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
-
-			if (alice == null)
-			{
-				return NotFound("Alice not found.");
-			}
-
-			if (round.Status != CcjRoundStatus.Running)
-			{
-				return Gone("Round is not running.");
 			}
 
 			CcjRoundPhase phase = round.Phase;
@@ -335,7 +317,7 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				case CcjRoundPhase.InputRegistration:
 					{
-						round.StartAliceTimeout(uniqueIdGuid);
+						round.StartAliceTimeout(alice.UniqueId);
 						return NoContent();
 					}
 				case CcjRoundPhase.ConnectionConfirmation:
@@ -395,7 +377,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			Guid uniqueIdGuid = CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
+			Guid uniqueIdGuid = GetGuidOrFailureResponse(uniqueId, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
@@ -543,26 +525,10 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			Guid uniqueIdGuid = CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
+			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
-			}
-
-			CcjRound round = Coordinator.TryGetRound(roundId);
-			if (round == null)
-			{
-				return NotFound("Round not found.");
-			}
-
-			if (round.TryGetAliceBy(uniqueIdGuid) == null) // We don't care about Alice now, but let's not give the CJ to anyone who isn't participating.
-			{
-				return NotFound("Alice not found.");
-			}
-
-			if (round.Status != CcjRoundStatus.Running)
-			{
-				return Gone("Round is not running.");
 			}
 
 			CcjRoundPhase phase = round.Phase;
@@ -610,33 +576,16 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			Guid uniqueIdGuid = CheckUniqueId(uniqueId, out IActionResult returnFailureResponse);
+			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
-			}
-
-			CcjRound round = Coordinator.TryGetRound(roundId);
-			if (round == null)
-			{
-				return NotFound("Round not found.");
-			}
-
-			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
-			if (alice == null)
-			{
-				return NotFound("Alice not found.");
 			}
 
 			// Check if Alice provided signature to all her inputs.
 			if (signatures.Count != alice.Inputs.Count())
 			{
 				return BadRequest("Alice did not provide enough witnesses.");
-			}
-
-			if (round.Status != CcjRoundStatus.Running)
-			{
-				return Gone("Round is not running.");
 			}
 
 			CcjRoundPhase phase = round.Phase;
@@ -697,7 +646,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 		}
 
-		private Guid CheckUniqueId(string uniqueId, out IActionResult returnFailureResponse)
+		private Guid GetGuidOrFailureResponse(string uniqueId, out IActionResult returnFailureResponse)
 		{
 			returnFailureResponse = null;
 			if (string.IsNullOrWhiteSpace(uniqueId) || !ModelState.IsValid)
@@ -722,6 +671,41 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			return aliceGuid;
+		}
+
+		private (CcjRound round, Alice alice) GetRunningRoundAndAliceOrFailureResponse(long roundId, string uniqueId, out IActionResult returnFailureResponse)
+		{
+			returnFailureResponse = null;
+
+			Guid uniqueIdGuid = GetGuidOrFailureResponse(uniqueId, out IActionResult guidFail);
+
+			if (guidFail != null)
+			{
+				returnFailureResponse = guidFail;
+				return (null, null);
+			}
+
+			CcjRound round = Coordinator.TryGetRound(roundId);
+
+			if (round == null)
+			{
+				returnFailureResponse = NotFound("Round not found.");
+				return (null, null);
+			}
+
+			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
+			if (alice == null)
+			{
+				returnFailureResponse = NotFound("Alice not found.");
+				return (round, null);
+			}
+
+			if (round.Status != CcjRoundStatus.Running)
+			{
+				returnFailureResponse = Gone("Round is not running.");
+			}
+
+			return (round, alice);
 		}
 
 		/// <summary>
