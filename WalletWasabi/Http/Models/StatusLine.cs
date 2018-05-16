@@ -1,7 +1,7 @@
 ﻿using System;
-using static WalletWasabi.Http.Constants;
 using System.Net;
 using WalletWasabi.Logging;
+using static WalletWasabi.Http.Constants;
 
 namespace WalletWasabi.Http.Models
 {

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using static WalletWasabi.Http.Constants;
 using System.IO;
 using System.Linq;
+using static WalletWasabi.Http.Constants;
 
 namespace WalletWasabi.Http.Models
 {

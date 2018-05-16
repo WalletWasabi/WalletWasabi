@@ -1,6 +1,6 @@
 ﻿using System;
-using static WalletWasabi.Http.Constants;
 using System.Net.Http;
+using static WalletWasabi.Http.Constants;
 
 namespace WalletWasabi.Http.Models
 {
