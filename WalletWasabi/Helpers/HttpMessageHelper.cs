@@ -45,6 +45,8 @@ namespace System.Net.Http
 		{
 			var headers = "";
 			var firstRead = true;
+			var builder = new StringBuilder();
+			builder.Append(headers);
 			while (true)
 			{
 				string header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken);
@@ -62,8 +64,8 @@ namespace System.Net.Http
 					// A recipient that receives whitespace between the
 					// start - line and the first header field MUST either reject the message
 					// as invalid or consume each whitespace-preceded line without further
-					// processing of it(i.e., ignore the entire line, along with any				 
-					// subsequent lines preceded by whitespace, until a properly formed				 
+					// processing of it(i.e., ignore the entire line, along with any
+					// subsequent lines preceded by whitespace, until a properly formed
 					// header field is received or the header section is terminated).
 					if (char.IsWhiteSpace(header[0]))
 					{
@@ -72,8 +74,9 @@ namespace System.Net.Http
 					firstRead = false;
 				}
 
-				headers += header + CRLF; // CRLF is part of the headerstring
+				builder.Append(header + CRLF); // CRLF is part of the headerstring
 			}
+			headers = builder.ToString();
 			if (headers == null || headers == "")
 			{
 				headers = "";

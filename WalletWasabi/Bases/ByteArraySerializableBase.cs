@@ -9,7 +9,7 @@ namespace WalletWasabi.Bases
 	{
 		#region ConstructorsAndInitializers
 
-		public ByteArraySerializableBase()
+		protected ByteArraySerializableBase()
 		{
 
 		}

@@ -112,7 +112,7 @@ namespace WalletWasabi.TorSocks5
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.
 			var host = Guard.NotNullOrEmptyOrWhitespace($"{nameof(request)}.{nameof(request.RequestUri)}.{nameof(request.RequestUri.DnsSafeHost)}", request.RequestUri.DnsSafeHost, trim: true);
-			
+
 			// https://tools.ietf.org/html/rfc7230#section-2.6
 			// Intermediaries that process HTTP messages (i.e., all intermediaries
 			// other than those acting as tunnels) MUST send their own HTTP - version
@@ -201,8 +201,10 @@ namespace WalletWasabi.TorSocks5
 
 			await TorSocks5Client.Stream.WriteAsync(bytes, 0, bytes.Length);
 			await TorSocks5Client.Stream.FlushAsync();
-
-			return await new HttpResponseMessage().CreateNewAsync(TorSocks5Client.Stream, request.Method);
+			using (var httpResponseMessage = new HttpResponseMessage())
+			{
+				return await httpResponseMessage.CreateNewAsync(TorSocks5Client.Stream, request.Method);
+			}
 		}
 
 		#region IDisposable Support
@@ -221,9 +223,9 @@ namespace WalletWasabi.TorSocks5
 				_disposedValue = true;
 			}
 		}
-		
+
 		// ~TorHttpClient() {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+		// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 		//   Dispose(false);
 		// }
 

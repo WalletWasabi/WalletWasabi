@@ -30,7 +30,7 @@ namespace WalletWasabi.Tests
 		[InlineData("main")]
 		public async Task SmartBitTestsAsync(string networkString)
 		{
-			if(!await TestAsync("https://api.smartbit.com.au/v1/blockchain/stats"))
+			if (!await TestAsync("https://api.smartbit.com.au/v1/blockchain/stats"))
 			{
 				return; // If website doesn't work, don't bother failing.
 			}
@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests
 			using (var client = new SmartBitClient(network))
 			{
 				IEnumerable<SmartBitExchangeRate> rates = rates = await client.GetExchangeRatesAsync(CancellationToken.None);
-				
+
 				Assert.Contains("AUD", rates.Select(x => x.Code));
 				Assert.Contains("USD", rates.Select(x => x.Code));
 
@@ -107,9 +107,10 @@ namespace WalletWasabi.Tests
 					}
 				}
 			}
-			catch
+			catch(Exception ex)
 			{
-				Logger.LogWarning<ExternalApiTests>($"Uri wasn't reachable: {uri}");
+				Logger.LogDebug<ExternalApiTests>($"Uri wasn't reachable: {uri}");
+				Logger.LogDebug<ExternalApiTests>(ex);
 			}
 			return false;
 		}

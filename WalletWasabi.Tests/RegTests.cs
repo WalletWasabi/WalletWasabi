@@ -134,7 +134,7 @@ namespace WalletWasabi.Tests
 		public async void BroadcastReplayTxAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
-			
+
 			var utxos = await rpc.ListUnspentAsync();
 			var utxo = utxos[0];
 			var tx = await rpc.GetRawTransactionAsync(utxo.OutPoint.Hash);
@@ -313,7 +313,7 @@ namespace WalletWasabi.Tests
 
 				downloader.Reorged += ReorgTestAsync_Downloader_Reorged;
 
-				// Test initial synchronization.	
+				// Test initial synchronization.
 				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
 
 				var indexLines = await File.ReadAllLinesAsync(indexFilePath);
@@ -1142,7 +1142,7 @@ namespace WalletWasabi.Tests
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
 
-				// subtract Fee from amount index with no enough money 
+				// subtract Fee from amount index with no enough money
 				operations = new[]{
 					new WalletService.Operation(scp,  Money.Satoshis(1m), ""),
 					new WalletService.Operation(scp, Money.Coins(0.5m), "") };
@@ -1165,8 +1165,8 @@ namespace WalletWasabi.Tests
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are allowed)
 				var btx = await wallet.BuildTransactionAsync(password, operations, 2, true);
 				Assert.Equal(2, btx.SpentCoins.Count());
-				Assert.Equal(1, btx.SpentCoins.Count(c => c.Confirmed == true));
-				Assert.Equal(1, btx.SpentCoins.Count(c => c.Confirmed == false));
+				Assert.Equal(1, btx.SpentCoins.Count(c => c.Confirmed));
+				Assert.Equal(1, btx.SpentCoins.Count(c => !c.Confirmed));
 
 				// Only one operation with Zero money
 				operations = new[]{
@@ -1296,7 +1296,7 @@ namespace WalletWasabi.Tests
 
 				// Send money after reorg.
 				// When we invalidate a block, those transactions setted in the invalidated block
-				// are reintroduced when we generate a new block though the rpc call 
+				// are reintroduced when we generate a new block though the rpc call
 				operations = new[]{
 					new WalletService.Operation(scp, Money.Coins(0.013m), "") };
 				var btx3 = await wallet.BuildTransactionAsync(password, operations, 2);
@@ -1522,7 +1522,7 @@ namespace WalletWasabi.Tests
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
 			Logger.TurnOff(); // turn off at the end, otherwise, the tests logs would have of warnings
-			
+
 			var bestBlockHash = await rpc.GetBestBlockHashAsync();
 			var bestBlock = await rpc.GetBlockAsync(bestBlockHash);
 			var coinbaseTxId = bestBlock.Transactions[0].GetHash();
@@ -1539,27 +1539,30 @@ namespace WalletWasabi.Tests
 				mempoolTxId.ToString()
 			});
 
-			var coordinatorToTest = new CcjCoordinator(network, folder, rpc, coordinator.RoundConfig);
-			var txIds = await File.ReadAllLinesAsync(cjfile);
+			using (var coordinatorToTest = new CcjCoordinator(network, folder, rpc, coordinator.RoundConfig))
+			{
+				var txIds = await File.ReadAllLinesAsync(cjfile);
 
-			Assert.Contains(coinbaseTxId.ToString(), txIds);
-			Assert.Contains(mempoolTxId.ToString(), txIds);
-			Assert.DoesNotContain(offchainTxId.ToString(), txIds);
+				Assert.Contains(coinbaseTxId.ToString(), txIds);
+				Assert.Contains(mempoolTxId.ToString(), txIds);
+				Assert.DoesNotContain(offchainTxId.ToString(), txIds);
 
 
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
-			Directory.CreateDirectory(folder);
-			File.WriteAllLines(cjfile, new[]{
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
+				Directory.CreateDirectory(folder);
+				File.WriteAllLines(cjfile, new[]{
 				coinbaseTxId.ToString(),
 				"This line is invalid (the file is corrupted)",
 				offchainTxId.ToString(),
 			});
-			coordinatorToTest = new CcjCoordinator(network, folder, rpc, coordinatorToTest.RoundConfig);
-			txIds = await File.ReadAllLinesAsync(cjfile);
-			Assert.Single(txIds);
-			Assert.Contains(coinbaseTxId.ToString(), txIds);
-			Assert.DoesNotContain(offchainTxId.ToString(), txIds);
-			Assert.DoesNotContain("This line is invalid (the file is corrupted)", txIds);
+				var coordinatorToTest2 = new CcjCoordinator(network, folder, rpc, coordinatorToTest.RoundConfig);
+				coordinatorToTest2.Dispose();
+				txIds = await File.ReadAllLinesAsync(cjfile);
+				Assert.Single(txIds);
+				Assert.Contains(coinbaseTxId.ToString(), txIds);
+				Assert.DoesNotContain(offchainTxId.ToString(), txIds);
+				Assert.DoesNotContain("This line is invalid (the file is corrupted)", txIds);
+			}
 
 			Logger.TurnOn();
 		}
@@ -2071,7 +2074,7 @@ namespace WalletWasabi.Tests
 					inputProofModels.Add(inputProof);
 
 					GetTxOutResponse getTxOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
-					// Check if inputs are unspent.	
+					// Check if inputs are unspent.
 					Assert.NotNull(getTxOutResponse);
 
 					userInputData.Add((key, inputAddress, txHash, transaction, input));

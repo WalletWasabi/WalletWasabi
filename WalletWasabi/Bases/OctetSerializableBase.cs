@@ -14,7 +14,7 @@ namespace WalletWasabi.Bases
 
 		#region ConstructorsAndInitializers
 
-		public OctetSerializableBase()
+		protected OctetSerializableBase()
 		{
 
 		}

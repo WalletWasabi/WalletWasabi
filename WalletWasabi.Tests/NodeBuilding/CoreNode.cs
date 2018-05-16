@@ -51,11 +51,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private async Task CleanFolderAsync()
 		{
-			try
-			{
-				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder);
-			}
-			catch (DirectoryNotFoundException) { }
+			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder);
 		}
 
 		public async Task SyncAsync(CoreNode node, bool keepConnection = false)
@@ -106,7 +102,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		public async Task StartAsync()
 		{
-			NodeConfigParameters config = new NodeConfigParameters
+			var config = new NodeConfigParameters
 			{
 				{"regtest", "1"},
 				{"rest", "1"},
@@ -131,11 +127,14 @@ namespace WalletWasabi.Tests.NodeBuilding
 			{
 				try
 				{
-					await CreateRpcClient().GetBlockHashAsync(0).ConfigureAwait(false);
+					await CreateRpcClient().GetBlockHashAsync(0);
 					State = CoreNodeState.Running;
 					break;
 				}
-				catch { }
+				catch
+				{
+
+				}
 				if (_process == null || _process.HasExited)
 					break;
 			}
@@ -144,9 +143,9 @@ namespace WalletWasabi.Tests.NodeBuilding
 		private Process _process;
 		private readonly string DataDir;
 
-		private void FindPorts(int[] portArray)
+		private static void FindPorts(int[] portArray)
 		{
-			int i = 0;
+			var i = 0;
 			while (i < portArray.Length)
 			{
 				var port = RandomUtils.GetUInt32() % 4000;
@@ -155,13 +154,16 @@ namespace WalletWasabi.Tests.NodeBuilding
 					continue;
 				try
 				{
-					TcpListener listener = new TcpListener(IPAddress.Loopback, (int)port);
+					var listener = new TcpListener(IPAddress.Loopback, (int)port);
 					listener.Start();
 					listener.Stop();
 					portArray[i] = (int)port;
 					i++;
 				}
-				catch (SocketException) { }
+				catch (SocketException)
+				{
+
+				}
 			}
 		}
 
@@ -171,7 +173,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public Transaction GiveMoney(Script destination, Money amount, bool broadcast = true)
 		{
 			var rpc = CreateRpcClient();
-			TransactionBuilder builder = new TransactionBuilder();
+			var builder = new TransactionBuilder();
 			builder.AddKeys(rpc.ListSecrets().OfType<ISecret>().ToArray());
 			builder.AddCoins(rpc.ListUnspent().Where(c => !_locked.Contains(c.OutPoint)).Select(c => c.AsCoin()));
 			builder.Send(destination, amount);
@@ -228,7 +230,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public void Split(Money amount, int parts)
 		{
 			var rpc = CreateRpcClient();
-			TransactionBuilder builder = new TransactionBuilder();
+			var builder = new TransactionBuilder();
 			builder.AddKeys(rpc.ListSecrets().OfType<ISecret>().ToArray());
 			builder.AddCoins(rpc.ListUnspent().Select(c => c.AsCoin()));
 			var secret = GetFirstSecret(rpc);
@@ -285,40 +287,11 @@ namespace WalletWasabi.Tests.NodeBuilding
 			rpc.SendBatch();
 			return tasks.Select(b => b.GetAwaiter().GetResult()).ToArray();
 		}
-		
+
 		private List<uint256> _toMalleate = new List<uint256>();
 		public void Malleate(uint256 txId)
 		{
 			_toMalleate.Add(txId);
-		}
-
-		private Transaction DoMalleate(Transaction transaction)
-		{
-			transaction = transaction.Clone();
-			if (!transaction.IsCoinBase)
-				foreach (var input in transaction.Inputs)
-				{
-					List<Op> malleated = new List<Op>();
-					foreach (var op in input.ScriptSig.ToOps())
-					{
-						try
-						{
-							var sig = new TransactionSignature(op.PushData);
-							sig = MakeHighS(sig);
-							malleated.Add(Op.GetPushOp(sig.ToBytes()));
-						}
-						catch { malleated.Add(op); }
-					}
-					input.ScriptSig = new Script(malleated.ToArray());
-				}
-			return transaction;
-		}
-		
-		private TransactionSignature MakeHighS(TransactionSignature sig)
-		{
-			var curveOrder = new NBitcoin.BouncyCastle.Math.BigInteger("115792089237316195423570985008687907852837564279074904382605163141518161494337", 10);
-			var ecdsa = new ECDSASignature(sig.Signature.R, sig.Signature.S.Negate().Mod(curveOrder));
-			return new TransactionSignature(ecdsa, sig.SigHash);
 		}
 
 		public void BroadcastBlocks(IEnumerable<Block> blocks)
@@ -339,7 +312,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 			node.PingPong();
 		}
-		
+
 		public Block[] FindBlock(int blockCount = 1, bool includeMempool = true)
 		{
 			SelectMempoolTransactions();
@@ -366,42 +339,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 			public uint256 Hash = null;
 			public Transaction Transaction = null;
 			public List<TransactionNode> DependsOn = new List<TransactionNode>();
-		}
-
-		private List<Transaction> Reorder(List<Transaction> txs)
-		{
-			if (txs.Count == 0)
-				return txs;
-			var result = new List<Transaction>();
-			var dictionary = txs.ToDictionary(t => t.GetHash(), t => new TransactionNode(t));
-			foreach (var transaction in dictionary.Select(d => d.Value))
-			{
-				foreach (var input in transaction.Transaction.Inputs)
-				{
-					var node = dictionary.TryGet(input.PrevOut.Hash);
-					if (node != null)
-					{
-						transaction.DependsOn.Add(node);
-					}
-				}
-			}
-			while (dictionary.Count != 0)
-			{
-				foreach (var node in dictionary.Select(d => d.Value).ToList())
-				{
-					foreach (var parent in node.DependsOn.ToList())
-					{
-						if (!dictionary.ContainsKey(parent.Hash))
-							node.DependsOn.Remove(parent);
-					}
-					if (node.DependsOn.Count == 0)
-					{
-						result.Add(node.Transaction);
-						dictionary.Remove(node.Hash);
-					}
-				}
-			}
-			return result;
 		}
 
 		private BitcoinSecret GetFirstSecret(RPCClient rpc)

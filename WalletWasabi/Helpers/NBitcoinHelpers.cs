@@ -16,7 +16,7 @@ namespace WalletWasabi.Helpers
 				
 				sb.Append(ByteHelpers.ToHex(input.ToBytes()));
 			}
-			
+
 			return HashHelpers.GenerateSha256Hash(sb.ToString());
 		}
 
@@ -26,13 +26,13 @@ namespace WalletWasabi.Helpers
 			{
 				return BitcoinAddress.Create(address, Network.RegTest);
 			}
-			catch
+			catch(FormatException)
 			{
 				try
 				{
 					return BitcoinAddress.Create(address, Network.TestNet);
 				}
-				catch
+				catch(FormatException)
 				{
 					return BitcoinAddress.Create(address, Network.Main);
 				}

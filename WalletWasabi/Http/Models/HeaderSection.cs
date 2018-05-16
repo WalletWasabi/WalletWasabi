@@ -126,53 +126,56 @@ namespace WalletWasabi.Http.Models
 
 		public HttpRequestContentHeaders ToHttpRequestHeaders()
 		{
-			var message = new HttpRequestMessage()
+			using (var message = new HttpRequestMessage
 			{
 				Content = new ByteArrayContent(new byte[] { })
-			};
-			message.Content.Headers.ContentLength = null;
-			foreach (var field in Fields)
+			})
 			{
-				if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
+				message.Content.Headers.ContentLength = null;
+				foreach (var field in Fields)
 				{
-					message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
+					{
+						message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					}
+					else message.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
-				else message.Headers.TryAddWithoutValidation(field.Name, field.Value);
-			}
 
-			return new HttpRequestContentHeaders
-			{
-				RequestHeaders = message.Headers,
-				ContentHeaders = message.Content.Headers
-			};
+				return new HttpRequestContentHeaders
+				{
+					RequestHeaders = message.Headers,
+					ContentHeaders = message.Content.Headers
+				};
+			}
 		}
 		public HttpResponseContentHeaders ToHttpResponseHeaders()
 		{
-			var message = new HttpResponseMessage()
+			using (var message = new HttpResponseMessage
 			{
 				Content = new ByteArrayContent(new byte[] { })
-			};
-			message.Content.Headers.ContentLength = null;
-			foreach (var field in Fields)
+			})
 			{
-				if(field.Name.StartsWith("Content-", StringComparison.Ordinal))
+				message.Content.Headers.ContentLength = null;
+				foreach (var field in Fields)
 				{
-					message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					if (field.Name.StartsWith("Content-", StringComparison.Ordinal))
+					{
+						message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					}
+					else message.Headers.TryAddWithoutValidation(field.Name, field.Value);
 				}
-				else message.Headers.TryAddWithoutValidation(field.Name, field.Value);
-			}
 
-			return new HttpResponseContentHeaders
-			{
-				ResponseHeaders = message.Headers,
-				ContentHeaders = message.Content.Headers
-			};
+				return new HttpResponseContentHeaders
+				{
+					ResponseHeaders = message.Headers,
+					ContentHeaders = message.Content.Headers
+				};
+			}
 		}
 
 		public static HeaderSection CreateNew(HttpHeaders headers)
 		{
 			var hs = new HeaderSection();
-			var message = new HttpRequestMessage();
 			foreach (var header in headers)
 			{
 				hs.Fields.Add(new HeaderField(header.Key, string.Join(",", header.Value)));

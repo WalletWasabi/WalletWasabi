@@ -6,8 +6,10 @@ namespace System.Net
 	{
 		public static string ToReasonString(this HttpStatusCode me)
 		{
-			var message = new HttpResponseMessage(me);
-			return message.ReasonPhrase;
+			using (var message = new HttpResponseMessage(me))
+			{
+				return message.ReasonPhrase;
+			}
 		}
 	}
 }

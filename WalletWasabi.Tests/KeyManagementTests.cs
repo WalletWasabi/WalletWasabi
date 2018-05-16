@@ -99,7 +99,7 @@ namespace WalletWasabi.Tests
 			Logger.TurnOn();
 
 			var manager = KeyManager.CreateNew(out _, password, filePath);
-			KeyManager.FromFile(filePath); 
+			KeyManager.FromFile(filePath);
 
 			manager.ToFile();
 

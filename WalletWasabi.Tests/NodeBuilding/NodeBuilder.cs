@@ -51,12 +51,14 @@ namespace WalletWasabi.Tests.NodeBuilding
 				if (File.Exists(bitcoind))
 					return bitcoind;
 				zip = Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-win32.zip");
-				string url = string.Format("https://bitcoin.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
-				HttpClient client = new HttpClient();
-				client.Timeout = TimeSpan.FromMinutes(10.0);
-				var data = await client.GetByteArrayAsync(url);
-				await File.WriteAllBytesAsync(zip, data);
-				ZipFile.ExtractToDirectory(zip, new FileInfo(zip).Directory.FullName);
+				var url = string.Format("https://bitcoin.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
+				using (var client = new HttpClient())
+				{
+					client.Timeout = TimeSpan.FromMinutes(10.0);
+					var data = await client.GetByteArrayAsync(url);
+					await File.WriteAllBytesAsync(zip, data);
+					ZipFile.ExtractToDirectory(zip, new FileInfo(zip).Directory.FullName);
+				}
 			}
 			else
 			{
@@ -68,12 +70,15 @@ namespace WalletWasabi.Tests.NodeBuilding
 					Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
 					: Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-osx64.tar.gz");
 
-				string url = string.Format("https://bitcoin.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
-				HttpClient client = new HttpClient();
-				client.Timeout = TimeSpan.FromMinutes(10.0);
-				var data = await client.GetByteArrayAsync(url);
-				await File.WriteAllBytesAsync(zip, data);
-				Process.Start("tar", "-zxvf " + zip + " -C " + SharedFixture.DataDir).WaitForExit();
+				var url = string.Format("https://bitcoin.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
+				using (var client = new HttpClient())
+				{
+					client.Timeout = TimeSpan.FromMinutes(10.0);
+					var data = await client.GetByteArrayAsync(url);
+					await File.WriteAllBytesAsync(zip, data);
+
+					Process.Start("tar", "-zxvf " + zip + " -C " + SharedFixture.DataDir).WaitForExit();
+				}
 			}
 			File.Delete(zip);
 			return bitcoind;

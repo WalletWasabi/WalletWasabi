@@ -11,7 +11,7 @@ namespace NBitcoin.RPC
 		/// <returns>Returns the current block on timeout or exit</returns>
 		public static async Task<BlockInfo> WaitForNewBlockAsync(this RPCClient rpc, long timeout = 0)
 		{
-			var resp = await rpc.SendCommandAsync("waitfornewblock", timeout).ConfigureAwait(false);
+			var resp = await rpc.SendCommandAsync("waitfornewblock", timeout);
 			return new BlockInfo
 			{
 				Height = int.Parse(resp.Result["height"].ToString()),
@@ -27,7 +27,7 @@ namespace NBitcoin.RPC
 		/// <returns>Returns the current block on timeout or exit</returns>
 		public static async Task<BlockInfo> WaitForBlockAsync(this RPCClient rpc, uint256 blockhash, long timeout = 0)
 		{
-			var resp = await rpc.SendCommandAsync("waitforblock", blockhash.ToString(), timeout).ConfigureAwait(false);
+			var resp = await rpc.SendCommandAsync("waitforblock", blockhash.ToString(), timeout);
 			return new BlockInfo
 			{
 				Height = int.Parse(resp.Result["height"].ToString()),
@@ -76,5 +76,5 @@ namespace NBitcoin.RPC
 	{
 		public int Height { get; internal set; }
 		public uint256 Hash { get; internal set; }
-	} 
+	}
 }
