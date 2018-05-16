@@ -453,7 +453,7 @@ namespace WalletWasabi.Tests
 
 			try
 			{
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
@@ -487,7 +487,7 @@ namespace WalletWasabi.Tests
 				// Get some money, make it confirm.
 				var key2 = wallet.GetReceiveKey("bar label");
 				var txid2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.01m, MoneyUnit.BTC));
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				var txid3 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.02m, MoneyUnit.BTC));
 				await rpc.GenerateAsync(1);
@@ -538,7 +538,7 @@ namespace WalletWasabi.Tests
 
 				// REORG TESTS
 				var txid4 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), new Money(0.03m, MoneyUnit.BTC), replaceable: true);
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(2);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid4));
@@ -547,7 +547,7 @@ namespace WalletWasabi.Tests
 				tip = await rpc.GetBestBlockHashAsync();
 				await rpc.InvalidateBlockAsync(tip); // Reorg 2
 				var tx4bumpRes = await rpc.BumpFeeAsync(txid4); // RBF it
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(3);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 
@@ -589,7 +589,7 @@ namespace WalletWasabi.Tests
 				var mempoolCoin = wallet.Coins.Where(x => x.TransactionId == txid5).Single();
 				Assert.Equal(Height.MemPool, mempoolCoin.Height);
 
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 				var res = await rpc.GetTxOutAsync(mempoolCoin.TransactionId, mempoolCoin.Index, true);
@@ -626,7 +626,7 @@ namespace WalletWasabi.Tests
 			{
 				if (times > timeout.TotalSeconds)
 				{
-					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter wasn't processed. Needed: {numberOfFiltersToWaitFor}, got only: {_filtersProcessedByWalletCount}.");
+					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter wasn't processed. Needed: {numberOfFiltersToWaitFor}, got only: {Interlocked.Read(ref _filtersProcessedByWalletCount)}.");
 				}
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
@@ -683,12 +683,14 @@ namespace WalletWasabi.Tests
 			var key = wallet.GetReceiveKey("foo label");
 			var txid = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
 			Assert.NotNull(txid);
-
+			await rpc.GenerateAsync(1);
+			var txid2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC));
+			Assert.NotNull(txid2);
 			await rpc.GenerateAsync(1);
 
 			try
 			{
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
@@ -1000,7 +1002,7 @@ namespace WalletWasabi.Tests
 				Assert.Contains("change of (outgoing, outgoing2)", wallet.Coins.Where(x => x.Height == Height.MemPool).Select(x => x.Label));
 				Assert.Contains("change of (outgoing, outgoing2)", keyManager.GetKeys().Select(x => x.Label));
 
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
@@ -1282,7 +1284,7 @@ namespace WalletWasabi.Tests
 				await rpc.InvalidateBlockAsync(tip); // Reorg 2
 
 				// Generate three new blocks (replace the previous invalidated ones)
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(3);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 
@@ -1301,7 +1303,7 @@ namespace WalletWasabi.Tests
 
 				// Test synchronization after fork with different transactions.
 				// Create a fork that invalidates the blocks containing the funding transaction
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.InvalidateBlockAsync(baseTip);
 				try
 				{
@@ -1345,7 +1347,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(wallet.Coins.Where(x => x.TransactionId == fundingBumpTxid.TransactionId));
 
 				// Confirm the coin
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
@@ -1477,7 +1479,7 @@ namespace WalletWasabi.Tests
 				totalWallet = wallet.Coins.Where(c => !c.SpentOrLocked).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi - tx2Res.Fee.Satoshi, totalWallet);
 
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				var blockId = (await rpc.GenerateAsync(1)).Single();
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
@@ -2503,7 +2505,7 @@ namespace WalletWasabi.Tests
 
 			try
 			{
-				_filtersProcessedByWalletCount = 0;
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
