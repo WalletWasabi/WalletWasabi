@@ -29,9 +29,10 @@ namespace WalletWasabi.KeyManagement
 		[JsonProperty(Order = 4)]
 		private List<HdPubKey> HdPubKeys { get; }
 
-		// BIP44-ish derivation scheme
+		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
-		private static readonly KeyPath AccountKeyPath = new KeyPath("m/44'/0'/0'");
+		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
+		private static readonly KeyPath AccountKeyPath = new KeyPath("m/84'/0'/0'");
 
 		private readonly object HdPubKeysLock;
 

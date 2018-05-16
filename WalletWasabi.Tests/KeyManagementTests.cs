@@ -150,7 +150,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(isInternal, generatedKey.IsInternal());
 				Assert.Equal(label, generatedKey.Label);
 				Assert.Equal(keyState, generatedKey.KeyState);
-				Assert.StartsWith("44'/0'/0'", generatedKey.FullKeyPath.ToString());
+				Assert.StartsWith("84'/0'/0'", generatedKey.FullKeyPath.ToString());
 			}
 		}
 
