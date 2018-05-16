@@ -597,7 +597,7 @@ namespace WalletWasabi.Services
 						var key = KeyManager.GetKeys().SingleOrDefault(x => x.GetP2wpkhScript() == coinWaitingForMix.ScriptPubKey);
 						if (key != null)
 						{
-							key.Label = coinWaitingForMix.Label;
+							key.SetLabel(coinWaitingForMix.Label, KeyManager);
 						}
 					}
 					Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.");

@@ -129,6 +129,11 @@ namespace WalletWasabi.Helpers
 			return value;
 		}
 
+		/// <summary>
+		/// Corrects the string:
+		/// If the string is null, it'll be empty.
+		/// Trims the string.
+		/// </summary>
 		public static string Correct(string str)
 		{
 			return string.IsNullOrWhiteSpace(str)

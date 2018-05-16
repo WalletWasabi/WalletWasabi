@@ -2268,9 +2268,9 @@ namespace WalletWasabi.Tests
 			var txid1 = await rpc.SendToAddressAsync(bech1, amount1, replaceable: false);
 			var txid2 = await rpc.SendToAddressAsync(bech2, amount2, replaceable: false);
 			var txid3 = await rpc.SendToAddressAsync(bech3, amount3, replaceable: false);
-			key1.KeyState = KeyState.Used;
-			key2.KeyState = KeyState.Used;
-			key3.KeyState = KeyState.Used;
+			key1.SetKeyState(KeyState.Used);
+			key2.SetKeyState(KeyState.Used);
+			key3.SetKeyState(KeyState.Used);
 			var tx1 = await rpc.GetRawTransactionAsync(txid1);
 			var tx2 = await rpc.GetRawTransactionAsync(txid2);
 			var tx3 = await rpc.GetRawTransactionAsync(txid3);
@@ -2378,9 +2378,9 @@ namespace WalletWasabi.Tests
 			var txid1 = await rpc.SendToAddressAsync(bech1, amount1, replaceable: false);
 			var txid2 = await rpc.SendToAddressAsync(bech2, amount2, replaceable: false);
 			var txid3 = await rpc.SendToAddressAsync(bech3, amount3, replaceable: false);
-			key1.KeyState = KeyState.Used;
-			key2.KeyState = KeyState.Used;
-			key3.KeyState = KeyState.Used;
+			key1.SetKeyState(KeyState.Used);
+			key2.SetKeyState(KeyState.Used);
+			key3.SetKeyState(KeyState.Used);
 			var tx1 = await rpc.GetRawTransactionAsync(txid1);
 			var tx2 = await rpc.GetRawTransactionAsync(txid2);
 			var tx3 = await rpc.GetRawTransactionAsync(txid3);

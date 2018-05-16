@@ -204,7 +204,7 @@ namespace WalletWasabi.Services
 
 			var ret = KeyManager.GetKeys(KeyState.Clean, false).RandomElement();
 
-			ret.Label = label;
+			ret.SetLabel(label, KeyManager);
 
 			return ret;
 		}
@@ -334,7 +334,7 @@ namespace WalletWasabi.Services
 				HdPubKey foundKey = keys.SingleOrDefault(x => x.GetP2wpkhScript() == output.ScriptPubKey);
 				if (foundKey != default)
 				{
-					foundKey.KeyState = KeyState.Used;
+					foundKey.SetKeyState(KeyState.Used, KeyManager);
 					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, foundKey.Label, spenderTransactionId: null, locked: false); // Don't inherit locked status from key, that's different.
 					Coins.Add(coin);
 					if (coin.Unspent && coin.Label == "ZeroLink Change" && ChaumianClient.OnePiece != null)
@@ -692,8 +692,8 @@ namespace WalletWasabi.Services
 			{
 				AssertCleanKeysIndexed(21, true);
 				var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
-
-				changeHdPubKey.Label = changeLabel;
+				
+				changeHdPubKey.SetLabel(changeLabel, KeyManager);
 				changeScriptPubKey = changeHdPubKey.GetP2wpkhScript();
 			}
 			else
@@ -818,7 +818,7 @@ namespace WalletWasabi.Services
 			var key = KeyManager.GetKeys().SingleOrDefault(x => x.GetP2wpkhScript() == coin.ScriptPubKey);
 			if(key != null)
 			{
-				key.Label = newLabel;
+				key.SetLabel(newLabel, KeyManager);
 			}
 		}
 
