@@ -201,8 +201,10 @@ namespace WalletWasabi.Services
 											CustomActiveAddresses.RemoveFirst();
 										}
 									}
-									changeAddress = changeAddress ?? KeyManager.GenerateNewKey("ZeroLink Change", KeyState.Locked, isInternal: true).GetP2wpkhAddress(Network);
-									activeAddress = activeAddress ?? KeyManager.GenerateNewKey("ZeroLink Mixed Coin", KeyState.Locked, isInternal: true).GetP2wpkhAddress(Network);
+									changeAddress = changeAddress ?? KeyManager.GenerateNewKey("ZeroLink Change", KeyState.Locked, isInternal: true, toFile: false).GetP2wpkhAddress(Network);
+									activeAddress = activeAddress ?? KeyManager.GenerateNewKey("ZeroLink Mixed Coin", KeyState.Locked, isInternal: true, toFile: false).GetP2wpkhAddress(Network);
+									KeyManager.ToFile();
+
 									var blind = CoordinatorPubKey.Blind(activeAddress.ScriptPubKey.ToBytes());
 
 									var inputProofs = new List<InputProofModel>();

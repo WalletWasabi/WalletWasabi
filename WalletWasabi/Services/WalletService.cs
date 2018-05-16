@@ -220,12 +220,12 @@ namespace WalletWasabi.Services
 			{
 				while (KeyManager.GetKeys(KeyState.Clean, true).Count() < howMany)
 				{
-					KeyManager.GenerateNewKey("", KeyState.Clean, true);
+					KeyManager.GenerateNewKey("", KeyState.Clean, true, toFile: false);
 					generated = true;
 				}
 				while (KeyManager.GetKeys(KeyState.Clean, false).Count() < howMany)
 				{
-					KeyManager.GenerateNewKey("", KeyState.Clean, false);
+					KeyManager.GenerateNewKey("", KeyState.Clean, false, toFile: false);
 					generated = true;
 				}
 			}
@@ -233,9 +233,14 @@ namespace WalletWasabi.Services
 			{
 				while (KeyManager.GetKeys(KeyState.Clean, isInternal).Count() < howMany)
 				{
-					KeyManager.GenerateNewKey("", KeyState.Clean, (bool)isInternal);
+					KeyManager.GenerateNewKey("", KeyState.Clean, (bool)isInternal, toFile: false);
 					generated = true;
 				}
+			}
+
+			if(generated)
+			{
+				KeyManager.ToFile();
 			}
 			return generated;
 		}

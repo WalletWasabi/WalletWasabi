@@ -140,7 +140,7 @@ namespace WalletWasabi.KeyManagement
 			return km;
 		}
 
-		public HdPubKey GenerateNewKey(string label, KeyState keyState, bool isInternal)
+		public HdPubKey GenerateNewKey(string label, KeyState keyState, bool isInternal, bool toFile = true)
 		{
 			// BIP44-ish derivation scheme
 			// m / purpose' / coin_type' / account' / change / address_index
@@ -174,7 +174,10 @@ namespace WalletWasabi.KeyManagement
 				var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
 				HdPubKeys.Add(hdPubKey);
 
-				ToFile();
+				if (toFile)
+				{
+					ToFile();
+				}
 
 				return hdPubKey;
 			}

@@ -112,7 +112,7 @@ namespace WalletWasabi.Tests
 				var isInternal = random.Next(2) == 0;
 				var label = RandomString.Generate(21);
 				var keyState = (KeyState)random.Next(3);
-				manager.GenerateNewKey(label, keyState, isInternal);
+				manager.GenerateNewKey(label, keyState, isInternal, toFile: false);
 			}
 			manager.ToFile();
 
