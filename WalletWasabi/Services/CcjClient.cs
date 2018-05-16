@@ -182,7 +182,7 @@ namespace WalletWasabi.Services
 
 					foreach (int ongoingRoundId in State.GetActivelyMixingRounds())
 					{
-						await TryHandleOngoingRoundAsync(ongoingRoundId);
+						await TryProcessRoundStateAsync(ongoingRoundId);
 					}
 				}
 			}
@@ -196,7 +196,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async Task TryHandleOngoingRoundAsync(int ongoingRoundId)
+		private async Task TryProcessRoundStateAsync(int ongoingRoundId)
 		{
 			try
 			{
@@ -207,15 +207,7 @@ namespace WalletWasabi.Services
 				{
 					if (ongoingRound.RoundHash == null) // If we didn't already obtained our roundHash obtain it.
 					{
-						string roundHash = await ongoingRound.AliceClient.PostConfirmationAsync();
-						if (roundHash == null)
-						{
-							throw new NotSupportedException("Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
-						}
-						else
-						{
-							ongoingRound.RoundHash = roundHash;
-						}
+						await ObtainRoundHashAsync(ongoingRound);
 					}
 				}
 				else if (ongoingRound.State.Phase == CcjRoundPhase.OutputRegistration)
@@ -227,12 +219,7 @@ namespace WalletWasabi.Services
 							throw new NotSupportedException("Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
 						}
 
-						using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
-						{
-							await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutputAddress, ongoingRound.UnblindedSignature);
-							ongoingRound.PostedOutput = true;
-							Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId})Bob Posted output.");
-						}
+						await RegisterOutputAsync(ongoingRound);
 					}
 				}
 				else if (ongoingRound.State.Phase == CcjRoundPhase.Signing)
@@ -240,49 +227,7 @@ namespace WalletWasabi.Services
 					if (!ongoingRound.Signed)
 					{
 						Transaction unsignedCoinJoin = await ongoingRound.AliceClient.GetUnsignedCoinJoinAsync();
-						if (NBitcoinHelpers.HashOutpoints(unsignedCoinJoin.Inputs.Select(x => x.PrevOut)) != ongoingRound.RoundHash)
-						{
-							throw new NotSupportedException("Coordinator provided invalid roundHash.");
-						}
-						Money amountBack = unsignedCoinJoin.Outputs
-							.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutputAddress.ScriptPubKey || x.ScriptPubKey == ongoingRound.ChangeOutputAddress.ScriptPubKey)
-							.Sum(y => y.Value);
-						Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
-						minAmountBack -= ongoingRound.State.FeePerOutputs * 2 + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
-						Money actualDenomination = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count).First().value; // Denomination may grow.
-						Money expectedCoordinatorFee = new Money((ongoingRound.State.CoordinatorFeePercent * 0.01m) * decimal.Parse(actualDenomination.ToString(false, true)), MoneyUnit.BTC);
-						minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
-
-						// If there's no change output then coordinator protection may happened:
-						if (unsignedCoinJoin.Outputs.All(x => x.ScriptPubKey != ongoingRound.ChangeOutputAddress.ScriptPubKey))
-						{
-							Money minimumOutputAmount = new Money(0.0001m, MoneyUnit.BTC); // If the change would be less than about $1 then add it to the coordinator.
-							Money onePercentOfDenomination = new Money(actualDenomination.ToDecimal(MoneyUnit.BTC) * 0.01m, MoneyUnit.BTC); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
-							Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
-
-							minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
-						}
-
-						if (amountBack < minAmountBack)
-						{
-							throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
-						}
-
-						new TransactionBuilder()
-							.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret).ToArray())
-							.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
-							.SignTransactionInPlace(unsignedCoinJoin, SigHash.All);
-
-						var myDic = new Dictionary<int, WitScript>();
-
-						for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
-						{
-							var input = unsignedCoinJoin.Inputs[i];
-							if (ongoingRound.CoinsRegistered.Select(x => x.GetOutPoint()).Contains(input.PrevOut))
-							{
-								myDic.Add(i, unsignedCoinJoin.Inputs[i].WitScript);
-							}
-						}
+						Dictionary<int, WitScript> myDic = SignCoinJoin(ongoingRound, unsignedCoinJoin);
 
 						await ongoingRound.AliceClient.PostSignaturesAsync(myDic);
 						ongoingRound.Signed = true;
@@ -296,6 +241,78 @@ namespace WalletWasabi.Services
 					State.ClearRoundRegistration(ongoingRoundId);
 				}
 				Logger.LogError<CcjClient>(ex);
+			}
+		}
+
+		private static Dictionary<int, WitScript> SignCoinJoin(CcjClientRound ongoingRound, Transaction unsignedCoinJoin)
+		{
+			if (NBitcoinHelpers.HashOutpoints(unsignedCoinJoin.Inputs.Select(x => x.PrevOut)) != ongoingRound.RoundHash)
+			{
+				throw new NotSupportedException("Coordinator provided invalid roundHash.");
+			}
+			Money amountBack = unsignedCoinJoin.Outputs
+				.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutputAddress.ScriptPubKey || x.ScriptPubKey == ongoingRound.ChangeOutputAddress.ScriptPubKey)
+				.Sum(y => y.Value);
+			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
+			minAmountBack -= ongoingRound.State.FeePerOutputs * 2 + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
+			Money actualDenomination = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count).First().value; // Denomination may grow.
+			Money expectedCoordinatorFee = new Money((ongoingRound.State.CoordinatorFeePercent * 0.01m) * decimal.Parse(actualDenomination.ToString(false, true)), MoneyUnit.BTC);
+			minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
+
+			// If there's no change output then coordinator protection may happened:
+			if (unsignedCoinJoin.Outputs.All(x => x.ScriptPubKey != ongoingRound.ChangeOutputAddress.ScriptPubKey))
+			{
+				Money minimumOutputAmount = new Money(0.0001m, MoneyUnit.BTC); // If the change would be less than about $1 then add it to the coordinator.
+				Money onePercentOfDenomination = new Money(actualDenomination.ToDecimal(MoneyUnit.BTC) * 0.01m, MoneyUnit.BTC); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
+				Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
+
+				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
+			}
+
+			if (amountBack < minAmountBack)
+			{
+				throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
+			}
+
+			new TransactionBuilder()
+				.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret).ToArray())
+				.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
+				.SignTransactionInPlace(unsignedCoinJoin, SigHash.All);
+
+			var myDic = new Dictionary<int, WitScript>();
+
+			for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
+			{
+				var input = unsignedCoinJoin.Inputs[i];
+				if (ongoingRound.CoinsRegistered.Select(x => x.GetOutPoint()).Contains(input.PrevOut))
+				{
+					myDic.Add(i, unsignedCoinJoin.Inputs[i].WitScript);
+				}
+			}
+
+			return myDic;
+		}
+
+		private async Task RegisterOutputAsync(CcjClientRound ongoingRound)
+		{
+			using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
+			{
+				await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutputAddress, ongoingRound.UnblindedSignature);
+				ongoingRound.PostedOutput = true;
+				Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId})Bob Posted output.");
+			}
+		}
+
+		private static async Task ObtainRoundHashAsync(CcjClientRound ongoingRound)
+		{
+			string roundHash = await ongoingRound.AliceClient.PostConfirmationAsync();
+			if (roundHash == null)
+			{
+				throw new NotSupportedException("Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
+			}
+			else
+			{
+				ongoingRound.RoundHash = roundHash;
 			}
 		}
 
