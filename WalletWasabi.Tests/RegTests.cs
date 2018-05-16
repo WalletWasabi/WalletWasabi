@@ -1,41 +1,31 @@
-﻿using WalletWasabi.Backend;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.Exceptions;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using WalletWasabi.Services;
-using WalletWasabi.Tests.NodeBuilding;
-using WalletWasabi.TorSocks5;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using NBitcoin;
+﻿using NBitcoin;
 using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using NBitcoin.RPC;
-using Newtonsoft.Json;
+using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Org.BouncyCastle.Asn1.IsisMtt.X509;
-using Xunit;
-using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Models.ChaumianCoinJoin;
+using WalletWasabi.Backend;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
-using WalletWasabi.Crypto;
-using WalletWasabi.Helpers;
-using Org.BouncyCastle.Math;
+using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Exceptions;
+using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
+using WalletWasabi.Models;
+using WalletWasabi.Models.ChaumianCoinJoin;
+using WalletWasabi.Services;
+using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
-using System.Security;
+using Xunit;
 
 namespace WalletWasabi.Tests
 {
@@ -168,7 +158,7 @@ namespace WalletWasabi.Tests
 			Logger.TurnOn();
 		}
 
-		#endregion
+		#endregion BackendTests
 
 		#region ServicesTests
 
@@ -213,6 +203,7 @@ namespace WalletWasabi.Tests
 		}
 
 		private long _mempoolTransactionCount = 0;
+
 		private void MempoolAsync_MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
@@ -408,13 +399,14 @@ namespace WalletWasabi.Tests
 		}
 
 		private long _reorgTestAsync_ReorgCount;
+
 		private void ReorgTestAsync_Downloader_Reorged(object sender, uint256 e)
 		{
 			Assert.NotNull(e);
 			Interlocked.Increment(ref _reorgTestAsync_ReorgCount);
 		}
 
-		#endregion
+		#endregion ServicesTests
 
 		#region ClientTests
 
@@ -642,6 +634,7 @@ namespace WalletWasabi.Tests
 		}
 
 		private long _filtersProcessedByWalletCount;
+
 		private void Wallet_NewFilterProcessed(object sender, FilterModel e)
 		{
 			Interlocked.Increment(ref _filtersProcessedByWalletCount);
@@ -649,7 +642,6 @@ namespace WalletWasabi.Tests
 
 		private void WalletTestsAsync_MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
-
 		}
 
 		[Fact]
@@ -778,7 +770,7 @@ namespace WalletWasabi.Tests
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
-				#endregion
+				#endregion Basic
 
 				#region SubtractFeeFromAmount
 
@@ -813,7 +805,7 @@ namespace WalletWasabi.Tests
 				}
 				Assert.True(foundReceive);
 
-				#endregion
+				#endregion SubtractFeeFromAmount
 
 				#region LowFee
 
@@ -846,7 +838,7 @@ namespace WalletWasabi.Tests
 				}
 				Assert.True(foundReceive);
 
-				#endregion
+				#endregion LowFee
 
 				#region MediumFee
 
@@ -879,7 +871,7 @@ namespace WalletWasabi.Tests
 				}
 				Assert.True(foundReceive);
 
-				#endregion
+				#endregion MediumFee
 
 				#region HighFee
 
@@ -917,7 +909,7 @@ namespace WalletWasabi.Tests
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
-				#endregion
+				#endregion HighFee
 
 				#region MaxAmount
 
@@ -943,7 +935,7 @@ namespace WalletWasabi.Tests
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
-				#endregion
+				#endregion MaxAmount
 
 				#region InputSelection
 
@@ -982,7 +974,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(res.Transaction.Transaction.Outputs);
 				Assert.Single(res.SpentCoins);
 
-				#endregion
+				#endregion InputSelection
 
 				#region Labeling
 
@@ -1016,7 +1008,7 @@ namespace WalletWasabi.Tests
 				Assert.Contains("change of (outgoing, outgoing2)", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
 				Assert.Contains("change of (outgoing, outgoing2)", keyManager.GetKeys().Select(x => x.Label));
 
-				#endregion
+				#endregion Labeling
 			}
 			finally
 			{
@@ -1465,7 +1457,6 @@ namespace WalletWasabi.Tests
 				var totalWallet = wallet.Coins.Where(c => !c.SpentOrLocked).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi, totalWallet);
 
-
 				// Spend the unconfirmed and unspent coin (send it to ourself)
 				operations = new[] { new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "") };
 				var tx2Res = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
@@ -1547,7 +1538,6 @@ namespace WalletWasabi.Tests
 				Assert.Contains(mempoolTxId.ToString(), txIds);
 				Assert.DoesNotContain(offchainTxId.ToString(), txIds);
 
-
 				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
 				Directory.CreateDirectory(folder);
 				File.WriteAllLines(cjfile, new[]{
@@ -1585,6 +1575,7 @@ namespace WalletWasabi.Tests
 			using (var satoshiClient = new SatoshiClient(baseUri))
 			{
 				#region PostInputsGetStates
+
 				// <-------------------------->
 				// POST INPUTS and GET STATES tests
 				// <-------------------------->
@@ -1712,7 +1703,6 @@ namespace WalletWasabi.Tests
 					Assert.Equal(1, roundState.RegisteredPeerCount);
 				}
 
-
 				var blindingKey = coordinator.RsaKey;
 				byte[] scriptBytes = key.ScriptPubKey.ToBytes();
 				var (BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptBytes);
@@ -1806,9 +1796,10 @@ namespace WalletWasabi.Tests
 					Assert.Equal(0, rs.RegisteredPeerCount);
 				}
 
-				#endregion
+				#endregion PostInputsGetStates
 
 				#region PostConfirmationPostUnconfirmation
+
 				// <-------------------------->
 				// POST CONFIRMATION and POST UNCONFIRMATION tests
 				// <-------------------------->
@@ -1882,9 +1873,10 @@ namespace WalletWasabi.Tests
 					}
 				}
 
-				#endregion
+				#endregion PostConfirmationPostUnconfirmation
 
 				#region PostOutput
+
 				// <-------------------------->
 				// POST OUTPUT tests
 				// <-------------------------->
@@ -1961,9 +1953,10 @@ namespace WalletWasabi.Tests
 					Assert.Equal(2, roundState.RegisteredPeerCount);
 					Assert.Equal(2, roundState.RequiredPeerCount);
 
-					#endregion
+					#endregion PostOutput
 
 					#region GetCoinjoin
+
 					// <-------------------------->
 					// GET COINJOIN tests
 					// <-------------------------->
@@ -1979,9 +1972,10 @@ namespace WalletWasabi.Tests
 					Assert.Contains(input2, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
 					Assert.True(2 == unsignedCoinJoin.Inputs.Count);
 
-					#endregion
+					#endregion GetCoinjoin
 
 					#region PostSignatures
+
 					// <-------------------------->
 					// POST SIGNATURES tests
 					// <-------------------------->
@@ -2019,7 +2013,7 @@ namespace WalletWasabi.Tests
 					uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 					Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
-					#endregion
+					#endregion PostSignatures
 				}
 			}
 		}
@@ -2090,7 +2084,6 @@ namespace WalletWasabi.Tests
 			{
 				await rpc.GenerateAsync(1);
 			}
-
 
 			Logger.TurnOff();
 
@@ -2619,6 +2612,6 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		#endregion
+		#endregion ClientTests
 	}
 }

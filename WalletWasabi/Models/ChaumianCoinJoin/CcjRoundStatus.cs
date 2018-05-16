@@ -4,11 +4,11 @@ using System.Text;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-    public enum CcjRoundStatus
-    {
+	public enum CcjRoundStatus
+	{
 		NotStarted,
 		Running,
 		Succeded,
 		Failed
-    }
+	}
 }

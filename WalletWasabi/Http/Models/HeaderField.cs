@@ -6,7 +6,7 @@ using static WalletWasabi.Http.Constants;
 namespace WalletWasabi.Http.Models
 {
 	public class HeaderField
-    {
+	{
 		public string Name { get; private set; }
 		public string Value { get; private set; }
 
@@ -39,7 +39,7 @@ namespace WalletWasabi.Http.Models
 			var ret = Name + ":" + Value;
 			if (endWithCRLF)
 			{
-                ret += CRLF;
+				ret += CRLF;
 			}
 			return ret;
 		}
@@ -53,11 +53,11 @@ namespace WalletWasabi.Http.Models
 		{
 			fieldString = fieldString.TrimEnd(CRLF, StringComparison.Ordinal);
 
-			using(var reader = new StringReader(fieldString))
+			using (var reader = new StringReader(fieldString))
 			{
 				var name = reader.ReadPart(':');
 				// if empty
-				if(name == null || name.Trim() == "") throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
+				if (name == null || name.Trim() == "") throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
 				// https://tools.ietf.org/html/rfc7230#section-3.2.4
 				// No whitespace is allowed between the header field-name and colon.
 				// A proxy MUST remove any such whitespace from a response message before forwarding the message downstream.
@@ -67,7 +67,6 @@ namespace WalletWasabi.Http.Models
 
 				var value = reader.ReadToEnd();
 				value = Guard.Correct(value);
-
 
 				return new HeaderField(name, value);
 			}

@@ -36,7 +36,7 @@ namespace WalletWasabi.KeyManagement
 
 		private readonly object HdPubKeysLock;
 
-		public string FilePath { get; private set;  }
+		public string FilePath { get; private set; }
 		private object ToFileLock { get; }
 
 		[JsonConstructor]
@@ -217,7 +217,7 @@ namespace WalletWasabi.KeyManagement
 
 			lock (HdPubKeysLock)
 			{
-				foreach (HdPubKey key in HdPubKeys.Where(x => 
+				foreach (HdPubKey key in HdPubKeys.Where(x =>
 					scripts.Contains(x.GetP2wpkhScript())
 					|| scripts.Contains(x.GetP2shOverP2wpkhScript())
 					|| scripts.Contains(x.GetP2pkhScript())

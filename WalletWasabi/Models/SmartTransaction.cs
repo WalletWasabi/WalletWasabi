@@ -13,26 +13,26 @@ namespace WalletWasabi.Models
 		public Transaction Transaction { get; }
 
 		public bool Confirmed => Height.Type == HeightType.Chain;
+
 		public uint256 GetHash() => Transaction.GetHash();
 
 		public int GetConfirmationCount(Height bestHeight) => Height == Height.MemPool ? 0 : bestHeight.Value - Height.Value + 1;
 
-
 		private readonly DateTimeOffset? _firstSeenIfMemPoolHeight = null;
+
 		/// <summary>
-		/// if Height is MemPool it's first seen, else null, 
+		/// if Height is MemPool it's first seen, else null,
 		/// only exists in memory,
 		/// doesn't affect equality
 		/// </summary>
 		public DateTimeOffset? GetFirstSeenIfMemPoolHeight() => _firstSeenIfMemPoolHeight;
 
-		#endregion
+		#endregion Members
 
 		#region Constructors
 
 		public SmartTransaction()
 		{
-
 		}
 
 		public SmartTransaction(Transaction transaction, Height height)
@@ -44,11 +44,12 @@ namespace WalletWasabi.Models
 				_firstSeenIfMemPoolHeight = DateTimeOffset.UtcNow;
 		}
 
-		#endregion
+		#endregion Constructors
 
 		#region Equality
 
 		public bool Equals(SmartTransaction other) => GetHash().Equals(other?.GetHash());
+
 		public bool Equals(Transaction other) => GetHash().Equals(other?.GetHash());
 
 		public override bool Equals(object obj)
@@ -75,12 +76,12 @@ namespace WalletWasabi.Models
 		{
 			return !(tx1 == tx2);
 		}
+
 		public static bool operator ==(SmartTransaction tx1, SmartTransaction tx2)
 		{
 			bool rc;
 
 			if (ReferenceEquals(tx1, tx2)) rc = true;
-
 			else if ((object)tx1 == null || (object)tx2 == null)
 			{
 				rc = false;
@@ -92,6 +93,7 @@ namespace WalletWasabi.Models
 
 			return rc;
 		}
+
 		public static bool operator ==(Transaction tx1, SmartTransaction tx2)
 		{
 			bool rc;
@@ -134,6 +136,6 @@ namespace WalletWasabi.Models
 			return !(tx1 == tx2);
 		}
 
-		#endregion
+		#endregion Equality
 	}
 }

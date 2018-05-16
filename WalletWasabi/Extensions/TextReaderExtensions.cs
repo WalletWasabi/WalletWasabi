@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace System.IO
 {
 	public static class TextReaderExtensions
-    {
+	{
 		// Reads a line. If CRLF is false a line is defined as a sequence of characters followed by
 		// a carriage return ('\r'), a line feed ('\n'), or a carriage return
 		// immediately followed by a line feed. The resulting string does not
@@ -48,7 +48,7 @@ namespace System.IO
 			},
 			me, ctsToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
 		}
-		
+
 		public static string ReadPart(this TextReader me, char separator)
 		{
 			var sb = new StringBuilder();

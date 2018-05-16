@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
+using NBitcoin.RPC;
+using System;
 using System.IO;
-using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using NBitcoin.RPC;
-using System.Net;
 using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Backend
 {
-    public class Program
-    {
+	public class Program
+	{
 #pragma warning disable IDE1006 // Naming Styles
+
 		public static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
@@ -59,5 +57,5 @@ namespace WalletWasabi.Backend
 				Logger.LogCritical<Program>(ex);
 			}
 		}
-    }
+	}
 }

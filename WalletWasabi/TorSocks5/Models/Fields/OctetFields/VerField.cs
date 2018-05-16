@@ -9,19 +9,18 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 
 		public static VerField Socks5 => new VerField(5);
 
-		#endregion
+		#endregion Statics
 
 		#region PropertiesAndMembers
 
 		public int Value => ByteValue;
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public VerField()
 		{
-			
 		}
 
 		public VerField(int value)
@@ -29,6 +28,6 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 			ByteValue = (byte)Guard.InRangeAndNotNull(nameof(value), value, 0, 255);
 		}
 
-		#endregion		
+		#endregion ConstructorsAndInitializers
 	}
 }

@@ -13,8 +13,8 @@ using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin
 {
-    public class BobClient : IDisposable
-    {
+	public class BobClient : IDisposable
+	{
 		public TorHttpClient TorClient { get; }
 
 		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
@@ -73,6 +73,6 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			// GC.SuppressFinalize(this);
 		}
 
-		#endregion
+		#endregion IDisposable Support
 	}
 }

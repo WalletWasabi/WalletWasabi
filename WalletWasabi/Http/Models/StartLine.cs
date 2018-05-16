@@ -32,13 +32,13 @@ namespace WalletWasabi.Http.Models
 			}
 
 			var parts = new List<string>();
-			using(var reader = new StringReader(trimmed))
+			using (var reader = new StringReader(trimmed))
 			{
 				while (true)
 				{
 					var part = reader.ReadPart(SP.ToCharArray()[0]);
 
-					if(part == null || part == "")
+					if (part == null || part == "")
 					{
 						break;
 					}
@@ -53,12 +53,12 @@ namespace WalletWasabi.Http.Models
 						var rest = reader.ReadToEnd();
 
 						// startLineString must end here, the ReadToEnd returns "" if nothing to read instead of null
-						if(rest != "")
+						if (rest != "")
 						{
 							part += SP + rest;
-						}						
+						}
 					}
-					parts.Add(part);					
+					parts.Add(part);
 				}
 			}
 			return parts;

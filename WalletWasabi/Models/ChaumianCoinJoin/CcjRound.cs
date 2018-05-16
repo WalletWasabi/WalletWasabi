@@ -32,14 +32,16 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public Transaction UnsignedCoinJoin { get; private set; }
 		private string _unsignedCoinJoinHex;
+
 		public string GetUnsignedCoinJoinHex()
 		{
-			if(_unsignedCoinJoinHex == null)
+			if (_unsignedCoinJoinHex == null)
 			{
 				_unsignedCoinJoinHex = UnsignedCoinJoin.ToHex();
 			}
 			return _unsignedCoinJoinHex;
 		}
+
 		public Transaction SignedCoinJoin { get; private set; }
 
 		private List<Alice> Alices { get; }
@@ -49,6 +51,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		private CcjRoundPhase _phase;
 		private object PhaseLock { get; }
+
 		public CcjRoundPhase Phase
 		{
 			get
@@ -77,6 +80,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		private CcjRoundStatus _status;
 
 		private object StatusLock { get; }
+
 		public CcjRoundStatus Status
 		{
 			get
@@ -331,15 +335,19 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					case CcjRoundPhase.InputRegistration:
 						timeout = InputRegistrationTimeout;
 						break;
+
 					case CcjRoundPhase.ConnectionConfirmation:
 						timeout = ConnectionConfirmationTimeout;
 						break;
+
 					case CcjRoundPhase.OutputRegistration:
 						timeout = OutputRegistrationTimeout;
 						break;
+
 					case CcjRoundPhase.Signing:
 						timeout = SigningTimeout;
 						break;
+
 					default: throw new InvalidOperationException("This is impossible to happen.");
 				}
 
@@ -378,6 +386,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									}
 								}
 								break;
+
 							case CcjRoundPhase.ConnectionConfirmation:
 								{
 									// Only fail if less than two one alices are registered.
@@ -411,6 +420,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									}
 								}
 								break;
+
 							case CcjRoundPhase.OutputRegistration:
 								{
 									// Output registration never fails.
@@ -419,6 +429,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
 								}
 								break;
+
 							case CcjRoundPhase.Signing:
 								{
 									var alicesToBan = await RemoveAlicesIfInputsSpentAsync();
@@ -429,6 +440,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									Fail();
 								}
 								break;
+
 							default: throw new InvalidOperationException("This is impossible to happen.");
 						}
 					});
@@ -645,14 +657,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs.Select(y => new Coin(y.OutPoint, y.Output))).ToArray();
 						Money networkFee = SignedCoinJoin.GetFee(spentCoins);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x=>x.ScriptPubKey == Constants.GetCoordinatorAddress(RpcClient.Network).ScriptPubKey)?.Value?.ToString(false, false)?? "0"} BTC.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(RpcClient.Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
 						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte.");
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize()/1024} KB.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize()/1024} KB.");
-						foreach(var o in SignedCoinJoin.GetIndistinguishableOutputs().Where(x=>x.count > 1))
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize() / 1024} KB.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
+						foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs().Where(x => x.count > 1))
 						{
 							Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurences of {o.value.ToString(true, false)} BTC output.");
 						}
@@ -754,7 +766,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					{
 						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
 
-						// Check if inputs are unspent.				
+						// Check if inputs are unspent.
 						if (getTxOutResponse == null)
 						{
 							alicesRemoved.Add(alice);
@@ -810,6 +822,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			return numberOfRemovedAlices;
 		}
 
-		#endregion
+		#endregion Modifiers
 	}
 }

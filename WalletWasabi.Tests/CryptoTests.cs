@@ -1,9 +1,8 @@
-﻿using WalletWasabi.Crypto;
-using WalletWasabi.Logging;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Security.Cryptography;
 using System.Text;
+using WalletWasabi.Crypto;
+using WalletWasabi.Logging;
 using Xunit;
 
 namespace WalletWasabi.Tests

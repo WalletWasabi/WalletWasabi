@@ -12,13 +12,12 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public MethodField Method { get; set; }
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public MethodSelectionResponse()
 		{
-
 		}
 
 		public MethodSelectionResponse(MethodField method)
@@ -27,7 +26,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Ver = VerField.Socks5;
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -45,6 +44,6 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public override byte[] ToBytes() => new byte[] { Ver.ToByte(), Method.ToByte() };
 
-		#endregion
+		#endregion Serialization
 	}
 }

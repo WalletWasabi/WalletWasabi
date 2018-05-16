@@ -2,7 +2,7 @@
 
 namespace WalletWasabi.Http.Models
 {
-    public class HttpResponseContentHeaders
+	public class HttpResponseContentHeaders
 	{
 		public HttpResponseHeaders ResponseHeaders { get; set; }
 		public HttpContentHeaders ContentHeaders { get; set; }

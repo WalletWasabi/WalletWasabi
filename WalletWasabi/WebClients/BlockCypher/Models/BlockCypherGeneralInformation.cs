@@ -10,7 +10,7 @@ namespace WalletWasabi.WebClients.BlockCypher.Models
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	public class BlockCypherGeneralInformation
-    {
+	{
 		[JsonProperty(PropertyName = "name")]
 		public string Name { get; set; }
 
@@ -63,5 +63,5 @@ namespace WalletWasabi.WebClients.BlockCypher.Models
 		[JsonProperty(PropertyName = "last_fork_hash")]
 		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 LastForkHash { get; set; }
-    }
+	}
 }

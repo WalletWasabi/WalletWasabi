@@ -18,13 +18,14 @@ namespace WalletWasabi.Backend
 	public static class Global
 	{
 		private static string _dataDir = null;
+
 		public static string DataDir
 		{
 			get
 			{
 				if (!string.IsNullOrWhiteSpace(_dataDir)) return _dataDir;
 
-				_dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi","Backend"));
+				_dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
 
 				return _dataDir;
 			}
@@ -42,11 +43,11 @@ namespace WalletWasabi.Backend
 
 		public static CcjRoundConfig RoundConfig { get; private set; }
 
-		public async static Task InitializeAsync(Config config, CcjRoundConfig roundConfig,  RPCClient rpc)
+		public async static Task InitializeAsync(Config config, CcjRoundConfig roundConfig, RPCClient rpc)
 		{
 			Config = Guard.NotNull(nameof(config), config);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
-			RpcClient = Guard.NotNull(nameof(rpc), rpc);			
+			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 
 			await AssertRpcNodeFullyInitializedAsync();
 
@@ -66,7 +67,8 @@ namespace WalletWasabi.Backend
 			if (roundConfig.FilePath != null)
 			{
 				RoundConfigWatcher = new ConfigWatcher(RoundConfig);
-				RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), () => {
+				RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), () =>
+				{
 					try
 					{
 						Coordinator.UpdateRoundConfig(RoundConfig);
@@ -95,7 +97,7 @@ namespace WalletWasabi.Backend
 			{
 				var blockchainInfoRequest = new RPCRequest(RPCOperations.getblockchaininfo, parameters: null);
 				var blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
-				
+
 				var blocks = blockchainInfo.Blocks;
 				if (blocks == 0 && Config.Network != Network.RegTest)
 				{
@@ -137,7 +139,7 @@ namespace WalletWasabi.Backend
 					}
 				}
 			}
-			catch(WebException)
+			catch (WebException)
 			{
 				Logger.LogError($"Bitcoin Core is not running, or incorrect RPC credentials or network is given in the config file: `{Config.FilePath}`.");
 				throw;

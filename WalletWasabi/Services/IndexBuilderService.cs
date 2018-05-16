@@ -26,7 +26,7 @@ namespace WalletWasabi.Services
 
 		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
-		
+
 		public event EventHandler<Block> NewBlock;
 
 		private class ActionHistoryHelper
@@ -67,6 +67,7 @@ namespace WalletWasabi.Services
 			{
 				ActionHistory.Add(actionItem);
 			}
+
 			public void StoreAction(Operation action, OutPoint outpoint, Script script)
 			{
 				StoreAction(new ActionItem(action, outpoint, script));
@@ -82,9 +83,11 @@ namespace WalletWasabi.Services
 						case Operation.Add:
 							toRollBack.Remove(act.OutPoint);
 							break;
+
 						case Operation.Remove:
 							toRollBack.Add(act.OutPoint, act.Script);
 							break;
+
 						default:
 							throw new ArgumentOutOfRangeException();
 					}
@@ -112,14 +115,18 @@ namespace WalletWasabi.Services
 				throw new NotSupportedException($"{network} is not supported.");
 			}
 		}
+
 		public Height StartingHeight => GetStartingHeight(RpcClient.Network);
+
 		public static FilterModel GetStartingFilter(Network network) => IndexDownloader.GetStartingFilter(network);
+
 		public FilterModel StartingFilter => GetStartingFilter(RpcClient.Network);
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
 		private long _running;
+
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
@@ -278,7 +285,7 @@ namespace WalletWasabi.Services
 								// If stop was requested return.
 								// Because this tx iteration can take even minutes
 								// It doesn't need to be accessed with a thread safe fasion with Interlocked through IsRunning, this may have some performance benefit
-								if (_running != 1) return; 
+								if (_running != 1) return;
 
 								for (int i = 0; i < tx.Outputs.Count; i++)
 								{
@@ -341,7 +348,7 @@ namespace WalletWasabi.Services
 
 							// If not close to the tip, just log debug.
 							// Use height.Value instead of simply height, because it cannot be negative height.
-							if (blockCount - height.Value <= 3 || height % 100 == 0) 
+							if (blockCount - height.Value <= 3 || height % 100 == 0)
 							{
 								Logger.LogInfo<IndexBuilderService>($"Created filter for block: {height}.");
 							}
@@ -377,7 +384,7 @@ namespace WalletWasabi.Services
 					if (found)
 					{
 						filters.Add(filter.ToLine());
-						if(filters.Count >= count)
+						if (filters.Count >= count)
 						{
 							break;
 						}

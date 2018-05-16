@@ -1,7 +1,7 @@
-﻿using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces;
-using System;
+﻿using System;
 using System.Text;
+using WalletWasabi.Helpers;
+using WalletWasabi.Interfaces;
 
 namespace WalletWasabi.Bases
 {
@@ -11,10 +11,9 @@ namespace WalletWasabi.Bases
 
 		protected ByteArraySerializableBase()
 		{
-
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -56,12 +55,14 @@ namespace WalletWasabi.Bases
 			return ToHex(xhhSyntax: true);
 		}
 
-		#endregion
+		#endregion Serialization
 
 		#region EqualityAndComparison
 
 		public override bool Equals(object obj) => obj is ByteArraySerializableBase && this == (ByteArraySerializableBase)obj;
+
 		public bool Equals(ByteArraySerializableBase other) => this == other;
+
 		public override int GetHashCode()
 		{
 			// https://github.com/bcgit/bc-csharp/blob/b19e68a517e56ef08cd2e50df4dcb8a96ddbe507/crypto/src/util/Arrays.cs#L206
@@ -82,16 +83,21 @@ namespace WalletWasabi.Bases
 
 			return hash;
 		}
+
 		public static bool operator ==(ByteArraySerializableBase x, ByteArraySerializableBase y) => ByteHelpers.CompareFastUnsafe(x?.ToBytes(), y?.ToBytes());
+
 		public static bool operator !=(ByteArraySerializableBase x, ByteArraySerializableBase y) => !(x == y);
 
 		public bool Equals(byte[] other) => ByteHelpers.CompareFastUnsafe(ToBytes(), other);
 
 		public static bool operator ==(byte[] x, ByteArraySerializableBase y) => ByteHelpers.CompareFastUnsafe(x, y?.ToBytes());
+
 		public static bool operator ==(ByteArraySerializableBase x, byte[] y) => ByteHelpers.CompareFastUnsafe(x?.ToBytes(), y);
+
 		public static bool operator !=(byte[] x, ByteArraySerializableBase y) => !(x == y);
+
 		public static bool operator !=(ByteArraySerializableBase x, byte[] y) => !(x == y);
 
-		#endregion
+		#endregion EqualityAndComparison
 	}
 }

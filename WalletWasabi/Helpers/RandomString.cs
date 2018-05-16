@@ -1,11 +1,12 @@
-﻿using WalletWasabi.Helpers;
-using System.Linq;
+﻿using System.Linq;
+using WalletWasabi.Helpers;
 
 namespace System
 {
 	public static class RandomString
-    {
+	{
 		private static Random Random = new Random();
+
 		public static string Generate(int length)
 		{
 			Guard.MinimumAndNotNull(nameof(length), length, 1);

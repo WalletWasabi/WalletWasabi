@@ -15,6 +15,7 @@ namespace WalletWasabi.Services
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
 		private long _running;
+
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 

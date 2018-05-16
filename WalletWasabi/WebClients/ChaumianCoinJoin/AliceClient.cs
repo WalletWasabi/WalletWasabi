@@ -69,7 +69,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 		public static async Task<AliceClient> CreateNewAsync(BitcoinAddress changeOutput, byte[] blindedData, IEnumerable<InputProofModel> inputs, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
-			var request =  new InputsRequest
+			var request = new InputsRequest
 			{
 				BlindedOutputScriptHex = ByteHelpers.ToHex(blindedData),
 				ChangeOutputAddress = changeOutput.ToString(),
@@ -157,7 +157,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		public async Task PostSignaturesAsync(IDictionary<int, WitScript> signatures)
 		{
 			var myDic = new Dictionary<int, string>();
-			foreach(var signature in signatures)
+			foreach (var signature in signatures)
 			{
 				myDic.Add(signature.Key, signature.Value.ToString());
 			}
@@ -213,6 +213,6 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			// GC.SuppressFinalize(this);
 		}
 
-		#endregion
+		#endregion IDisposable Support
 	}
 }

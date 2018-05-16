@@ -1,12 +1,10 @@
-﻿using WalletWasabi.Helpers;
-using System.Linq;
+﻿using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace System
 {
 	unsafe public static class ByteHelpers
-    {
+	{
 		// https://stackoverflow.com/questions/415291/best-way-to-combine-two-or-more-byte-arrays-in-c-sharp
 		/// <summary>
 		/// Fastest byte array concatenation in C#

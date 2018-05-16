@@ -17,8 +17,8 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Services
 {
-    public class IndexDownloader
-    {
+	public class IndexDownloader
+	{
 		public Network Network { get; }
 
 		public TorHttpClient Client { get; }
@@ -26,8 +26,9 @@ namespace WalletWasabi.Services
 		public string IndexFilePath { get; }
 		private List<FilterModel> Index { get; }
 		private AsyncLock IndexLock { get; }
-		
+
 		public static Height GetStartingHeight(Network network) => IndexBuilderService.GetStartingHeight(network);
+
 		public Height StartingHeight => GetStartingHeight(Network);
 
 		public event EventHandler<uint256> Reorged;
@@ -53,12 +54,14 @@ namespace WalletWasabi.Services
 				throw new NotSupportedException($"{network} is not supported.");
 			}
 		}
+
 		public FilterModel StartingFilter => GetStartingFilter(Network);
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
 		private long _running;
+
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
@@ -204,13 +207,13 @@ namespace WalletWasabi.Services
 				}
 			});
 		}
-		
+
 		public Height GetHeight(uint256 blockHash)
 		{
 			using (IndexLock.Lock())
 			{
 				var single = Index.Single(x => x.BlockHash == blockHash);
-				if(single != null)
+				if (single != null)
 				{
 					return single.BlockHeight;
 				}

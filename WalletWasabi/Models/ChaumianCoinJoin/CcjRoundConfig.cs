@@ -49,7 +49,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public CcjRoundConfig()
 		{
-
 		}
 
 		public CcjRoundConfig(string filePath)
@@ -172,7 +171,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			return false;
 		}
-		
+
 		/// <inheritdoc />
 		public void SetFilePath(string path)
 		{

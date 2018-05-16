@@ -1,14 +1,12 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Text;
 
 namespace WalletWasabi.Backend.Models.Requests
 {
-    public class OutputRequest
-    {
+	public class OutputRequest
+	{
 		[Required]
 		public string OutputAddress { get; set; }
 

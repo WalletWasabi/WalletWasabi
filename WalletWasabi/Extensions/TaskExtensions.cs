@@ -8,7 +8,7 @@
 		/// </summary>
 		public static async Task<T> WithAwaitCancellationAsync<T>(this Task<T> me, CancellationToken cancel)
 		{
-			// The tasck completion source. 
+			// The tasck completion source.
 			var tcs = new TaskCompletionSource<bool>();
 
 			// Register with the cancellation token.

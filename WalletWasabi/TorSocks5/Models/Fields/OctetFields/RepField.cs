@@ -110,24 +110,23 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 			}
 		}
 
-		#endregion
+		#endregion Statics
 
 		#region ConstructorsAndInitializers
 
 		public RepField()
 		{
-
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
 		public override string ToString()
 		{
-			foreach(ReplyType rt in Enum.GetValues(typeof(ReplyType)))
+			foreach (ReplyType rt in Enum.GetValues(typeof(ReplyType)))
 			{
-				if(ByteValue == (byte)rt)
+				if (ByteValue == (byte)rt)
 				{
 					return rt.ToString();
 				}
@@ -135,6 +134,6 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 			return $"Unassigned ({ToHex()})";
 		}
 
-		#endregion
+		#endregion Serialization
 	}
 }

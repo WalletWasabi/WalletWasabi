@@ -18,9 +18,9 @@ namespace WalletWasabi.Tests.NodeBuilding
 	public class CoreNode
 	{
 		private readonly NodeBuilder _Builder;
-        public string Folder { get; }
+		public string Folder { get; }
 
-        public IPEndPoint Endpoint
+		public IPEndPoint Endpoint
 		{
 			get
 			{
@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 		}
 
-        public string Config { get; }
+		public string Config { get; }
 
 		public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
 
@@ -68,9 +68,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 				rpc.RemoveNode(node.Endpoint);
 			}
 		}
-        public CoreNodeState State { get; private set; }
 
-        private readonly int[] _ports;
+		public CoreNodeState State { get; private set; }
+
+		private readonly int[] _ports;
 
 		public int ProtocolPort
 		{
@@ -81,6 +82,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		}
 
 		private readonly NetworkCredential Creds;
+
 		public RPCClient CreateRpcClient()
 		{
 			return new RPCClient(Creds, new Uri("http://127.0.0.1:" + _ports[1] + "/"), Network.RegTest);
@@ -93,11 +95,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		public Node CreateNodeClient()
 		{
-			return Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback,_ports[0]));
+			return Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, _ports[0]));
 		}
+
 		public Node CreateNodeClient(NodeConnectionParameters parameters)
 		{
-			return Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback,_ports[0]), parameters);
+			return Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, _ports[0]), parameters);
 		}
 
 		public async Task StartAsync()
@@ -133,7 +136,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 				}
 				catch
 				{
-
 				}
 				if (_process == null || _process.HasExited)
 					break;
@@ -162,7 +164,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 				}
 				catch (SocketException)
 				{
-
 				}
 			}
 		}
@@ -170,6 +171,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		private List<Transaction> _transactions = new List<Transaction>();
 		private HashSet<OutPoint> _locked = new HashSet<OutPoint>();
 		private readonly Money _fee = Money.Coins(0.0001m);
+
 		public Transaction GiveMoney(Script destination, Money amount, bool broadcast = true)
 		{
 			var rpc = CreateRpcClient();
@@ -245,6 +247,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		}
 
 		private readonly object _l = new object();
+
 		public void Kill(bool cleanFolder = true)
 		{
 			lock (_l)
@@ -289,6 +292,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		}
 
 		private List<uint256> _toMalleate = new List<uint256>();
+
 		public void Malleate(uint256 txId)
 		{
 			_toMalleate.Add(txId);
@@ -330,6 +334,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				Transaction = tx;
 				Hash = tx.GetHash();
 			}
+
 			public uint256 Hash = null;
 			public Transaction Transaction = null;
 			public List<TransactionNode> DependsOn = new List<TransactionNode>();

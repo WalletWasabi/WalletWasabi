@@ -1,8 +1,8 @@
-using WalletWasabi.Models;
-using System.Collections.Generic;
 using System;
-using WalletWasabi.Helpers;
+using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 
 namespace NBitcoin
 {
@@ -24,13 +24,13 @@ namespace NBitcoin
 			for (int i = 0; i < me.Count; i++)
 			{
 				var output = me[i];
-				if(output.ScriptPubKey == script)
+				if (output.ScriptPubKey == script)
 				{
 					index = i;
 				}
 			}
 
-			if(index == -1)
+			if (index == -1)
 			{
 				throw new InvalidOperationException("Script not found.");
 			}

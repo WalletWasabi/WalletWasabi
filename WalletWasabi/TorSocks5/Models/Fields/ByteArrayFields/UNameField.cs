@@ -12,13 +12,12 @@ namespace WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
 
 		public string UName => Encoding.UTF8.GetString(Bytes); // Tor accepts UTF8 encoded passwd
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public UNameField()
 		{
-
 		}
 
 		public UNameField(string uName)
@@ -27,7 +26,7 @@ namespace WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
 			Bytes = Encoding.UTF8.GetBytes(uName);
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -35,6 +34,6 @@ namespace WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
 
 		public override byte[] ToBytes() => Bytes;
 
-		#endregion
+		#endregion Serialization
 	}
 }

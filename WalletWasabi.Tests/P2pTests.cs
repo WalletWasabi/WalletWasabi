@@ -1,10 +1,4 @@
-﻿using WalletWasabi.Backend.Models;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using WalletWasabi.Services;
-using WalletWasabi.Tests.NodeBuilding;
-using NBitcoin;
+﻿using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using NBitcoin.RPC;
@@ -12,11 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Crypto;
+using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
+using WalletWasabi.Models;
+using WalletWasabi.Services;
+using WalletWasabi.Tests.NodeBuilding;
+using Xunit;
 
 namespace WalletWasabi.Tests
 {
@@ -165,6 +164,7 @@ namespace WalletWasabi.Tests
 		}
 
 		private long _nodeCount = 0;
+
 		private void ConnectedNodes_Added(object sender, NodeEventArgs e)
 		{
 			var nodes = sender as NodesCollection;
@@ -176,6 +176,7 @@ namespace WalletWasabi.Tests
 
 			Logger.LogTrace<P2pTests>($"Node count: {Interlocked.Read(ref _nodeCount)}.");
 		}
+
 		private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
 		{
 			var nodes = sender as NodesCollection;
@@ -185,6 +186,7 @@ namespace WalletWasabi.Tests
 		}
 
 		private long _mempoolTransactionCount = 0;
+
 		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);

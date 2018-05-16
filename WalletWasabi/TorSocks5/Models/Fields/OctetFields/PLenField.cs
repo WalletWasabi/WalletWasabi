@@ -10,13 +10,12 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 
 		public int Value => ByteValue;
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public PLenField()
 		{
-
 		}
 
 		public PLenField(int value)
@@ -24,7 +23,7 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 			ByteValue = (byte)Guard.InRangeAndNotNull(nameof(value), value, 0, 255);
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -35,6 +34,6 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 			ByteValue = (byte)passwd.ToBytes().Length;
 		}
 
-		#endregion
+		#endregion Serialization
 	}
 }

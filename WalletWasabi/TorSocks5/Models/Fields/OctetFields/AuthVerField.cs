@@ -9,19 +9,18 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 
 		public static AuthVerField Version1 => new AuthVerField(1);
 
-		#endregion
+		#endregion Statics
 
 		#region PropertiesAndMembers
 
 		public int Value => ByteValue;
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public AuthVerField()
 		{
-
 		}
 
 		public AuthVerField(int value)
@@ -29,6 +28,6 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 			ByteValue = (byte)Guard.InRangeAndNotNull(nameof(value), value, 0, 255);
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 	}
 }

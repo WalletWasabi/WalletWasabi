@@ -15,9 +15,9 @@ namespace WalletWasabi.Http.Models
 			try
 			{
 				var parts = protocolString.Trim().Split(new char[] { '/' });
-				if(parts.Length != 2) throw new FormatException($"Wrong {nameof(HttpProtocol)} format: {protocolString}.");
+				if (parts.Length != 2) throw new FormatException($"Wrong {nameof(HttpProtocol)} format: {protocolString}.");
 
-				if(parts[1].Split(new char[] { '.' }).Length != 2)
+				if (parts[1].Split(new char[] { '.' }).Length != 2)
 				{
 					throw new FormatException($"Wrong {nameof(HttpProtocol)} format: {protocolString}.");
 				}
@@ -30,10 +30,10 @@ namespace WalletWasabi.Http.Models
 					throw new NotSupportedException($"Wrong protocol {nameof(HttpProtocol)}: {protocolString}.");
 				}
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				throw new FormatException($"Wrong {nameof(HttpProtocol)} format: {protocolString}.", ex);
-			}			
+			}
 		}
 
 		private static string GetProtocol(string protocolString)
@@ -47,17 +47,25 @@ namespace WalletWasabi.Http.Models
 		#region Equality
 
 		public override bool Equals(object obj) => obj is HttpProtocol && this == (HttpProtocol)obj;
+
 		public bool Equals(HttpProtocol other) => this == other;
+
 		public override int GetHashCode() => ToString().GetHashCode();
+
 		public static bool operator ==(HttpProtocol x, HttpProtocol y) => x?.ToString() == y?.ToString();
+
 		public static bool operator !=(HttpProtocol x, HttpProtocol y) => !(x == y);
 
 		public bool Equals(string other) => ToString() == other;
+
 		public static bool operator ==(string x, HttpProtocol y) => x == y?.ToString();
+
 		public static bool operator ==(HttpProtocol x, string y) => x?.ToString() == y;
+
 		public static bool operator !=(string x, HttpProtocol y) => !(x == y);
+
 		public static bool operator !=(HttpProtocol x, string y) => !(x == y);
 
-		#endregion
+		#endregion Equality
 	}
 }

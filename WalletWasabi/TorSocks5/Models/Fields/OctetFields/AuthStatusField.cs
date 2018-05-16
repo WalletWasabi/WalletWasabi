@@ -9,19 +9,18 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 
 		public static AuthStatusField Success => new AuthStatusField(0);
 
-		#endregion
+		#endregion Statics
 
 		#region PropertiesAndMembers
 
 		public int Value => ByteValue;
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public AuthStatusField()
 		{
-
 		}
 
 		public AuthStatusField(int value)
@@ -29,7 +28,7 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 			ByteValue = (byte)Guard.InRangeAndNotNull(nameof(value), value, 0, 255);
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region
 

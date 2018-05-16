@@ -9,7 +9,7 @@ using static WalletWasabi.Http.Constants;
 namespace System.Net.Http
 {
 	public static class HttpResponseMessageExtensions
-    {
+	{
 		public static async Task<HttpResponseMessage> CreateNewAsync(Stream responseStream, HttpMethod requestMethod)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-3
@@ -59,6 +59,7 @@ namespace System.Net.Http
 		{
 			return new MemoryStream(Encoding.UTF8.GetBytes(await me.ToHttpStringAsync()));
 		}
+
 		public static async Task<string> ToHttpStringAsync(this HttpResponseMessage me)
 		{
 			var startLine = new StatusLine(new HttpProtocol($"HTTP/{me.Version.Major}.{me.Version.Minor}"), me.StatusCode).ToString();

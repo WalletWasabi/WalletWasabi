@@ -1,15 +1,13 @@
-﻿using WalletWasabi.JsonConverters;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using NBitcoin;
+﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
+using WalletWasabi.JsonConverters;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Backend
 {
@@ -31,7 +29,6 @@ namespace WalletWasabi.Backend
 
 		public Config()
 		{
-
 		}
 
 		public Config(string filePath)
