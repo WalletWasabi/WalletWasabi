@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests
 				var generatedBlock = builder.Nodes.First().Generate(1);
 				var latestBlock = await latestBlockTask;
 				Assert.True(latestBlockTask.IsCompleted && !latestBlockTask.IsFaulted);
-				Assert.Equal(generatedBlock[0].GetHash(), latestBlock.Hash);
+				Assert.Equal(generatedBlock[0].GetHash(), latestBlock.hash);
 			}
 		}
 
@@ -46,7 +46,7 @@ namespace WalletWasabi.Tests
 				builder.Nodes.First().BroadcastBlocks(generatedBlocks);
 				var latestBlock = await latestBlockTask;
 				Assert.True(latestBlockTask.IsCompleted && !latestBlockTask.IsFaulted);
-				Assert.Equal(latestBlockHash, latestBlock.Hash);
+				Assert.Equal(latestBlockHash, latestBlock.hash);
 			}
 		}
 

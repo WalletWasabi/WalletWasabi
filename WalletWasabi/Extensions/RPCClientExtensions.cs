@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using WalletWasabi.Models;
 
 namespace NBitcoin.RPC
 {
@@ -9,14 +10,10 @@ namespace NBitcoin.RPC
 		/// </summary>
 		/// <param name="timeout">(int, optional, default=0) Time in milliseconds to wait for a response. 0 indicates no timeout.</param>
 		/// <returns>Returns the current block on timeout or exit</returns>
-		public static async Task<BlockInfo> WaitForNewBlockAsync(this RPCClient rpc, long timeout = 0)
+		public static async Task<(Height height, uint256 hash)> WaitForNewBlockAsync(this RPCClient rpc, long timeout = 0)
 		{
 			var resp = await rpc.SendCommandAsync("waitfornewblock", timeout);
-			return new BlockInfo
-			{
-				Height = int.Parse(resp.Result["height"].ToString()),
-				Hash = uint256.Parse(resp.Result["hash"].ToString())
-			};
+			return (int.Parse(resp.Result["height"].ToString()), uint256.Parse(resp.Result["hash"].ToString()));
 		}
 
 		/// <summary>
@@ -25,14 +22,10 @@ namespace NBitcoin.RPC
 		/// <param name="blockhash">Block hash to wait for</param>
 		/// <param name="timeout">(int, optional, default=0) Time in milliseconds to wait for a response. 0 indicates no timeout.</param>
 		/// <returns>Returns the current block on timeout or exit</returns>
-		public static async Task<BlockInfo> WaitForBlockAsync(this RPCClient rpc, uint256 blockhash, long timeout = 0)
+		public static async Task<(Height height, uint256 hash)> WaitForBlockAsync(this RPCClient rpc, uint256 blockhash, long timeout = 0)
 		{
 			var resp = await rpc.SendCommandAsync("waitforblock", blockhash.ToString(), timeout);
-			return new BlockInfo
-			{
-				Height = int.Parse(resp.Result["height"].ToString()),
-				Hash = uint256.Parse(resp.Result["hash"].ToString())
-			};
+			return (int.Parse(resp.Result["height"].ToString()), uint256.Parse(resp.Result["hash"].ToString()));
 		}
 
 		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this RPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
@@ -70,11 +63,5 @@ namespace NBitcoin.RPC
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = new FeeRate(new Money(staoshiPerBytes * 1000, MoneyUnit.Satoshi)) };
 			return resp;
 		}
-	}
-
-	public class BlockInfo
-	{
-		public int Height { get; internal set; }
-		public uint256 Hash { get; internal set; }
 	}
 }

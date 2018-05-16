@@ -110,7 +110,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				var coinsToRegister = new List<SmartCoin>();
 				var amountSoFar = Money.Zero;
-				Money amountNeededExceptInputFees = denomination + feePerOutputs * 2;
+				Money amountNeededExceptInputFees = denomination + (feePerOutputs * 2);
 				foreach (SmartCoin coin in WaitingList
 								.Where(x => x.Confirmed || x.Label.StartsWith("ZeroLink", StringComparison.Ordinal)) // Where our label contains CoinJoin, CoinJoins can be registered even if not confirmed, our label will likely be CoinJoin only if it was a previous CoinJoin, otherwise the server will refuse us.
 								.OrderByDescending(y => y.Amount) // First order by amount.
@@ -124,7 +124,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 
 					amountSoFar += coin.Amount;
-					if (amountSoFar > amountNeededExceptInputFees + feePerInputs * coinsToRegister.Count)
+					if (amountSoFar > amountNeededExceptInputFees + (feePerInputs * coinsToRegister.Count))
 					{
 						// If input count doesn't reach the max input registration AND there are enough coins queued, then can register to mix.
 						return coinsToRegister.Select(x => (x.TransactionId, x.Index)).ToArray();

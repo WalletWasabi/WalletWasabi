@@ -21,12 +21,12 @@ namespace WalletWasabi.JsonConverters
 			if ("true".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
 				|| "yes".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
 				|| "fuckyeah".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
-				|| "1" == canSpendUnconfirmedString)
+				|| canSpendUnconfirmedString == "1")
 				return true;
 			if ("false".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
 				|| "no".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
 				|| "nah".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
-				|| "0" == canSpendUnconfirmedString)
+				|| canSpendUnconfirmedString == "0")
 				return false;
 
 			return bool.Parse(canSpendUnconfirmedString);
