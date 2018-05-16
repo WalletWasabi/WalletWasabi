@@ -1,12 +1,10 @@
-﻿using WalletWasabi.KeyManagement;
-using NBitcoin;
+﻿using NBitcoin;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Security;
-using System.Text;
-using Xunit;
+using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using Xunit;
 
 namespace WalletWasabi.Tests
 {

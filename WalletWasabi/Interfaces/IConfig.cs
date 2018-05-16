@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace WalletWasabi.Interfaces
 {
 	public interface IConfig
-    {
+	{
 		/// <summary>
 		/// The path of the config file.
 		/// </summary>

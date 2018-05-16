@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.WebClients.SmartBit
 {
-    public class SmartBitClient : IDisposable
+	public class SmartBitClient : IDisposable
 	{
 		public Network Network { get; }
 		private HttpClient HttpClient { get; }
@@ -66,14 +66,13 @@ namespace WalletWasabi.WebClients.SmartBit
 			using (HttpResponseMessage response =
 					await HttpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel))
 			{
-
 				if (response.StatusCode != HttpStatusCode.OK) throw new HttpRequestException(response.StatusCode.ToString());
 				string responseString = await response.Content.ReadAsStringAsync();
 				AssertSuccess(responseString);
 
 				var exchangeRates = JObject.Parse(responseString).Value<JArray>("exchange_rates");
 				var ret = new HashSet<SmartBitExchangeRate>();
-				foreach(var jtoken in exchangeRates)
+				foreach (var jtoken in exchangeRates)
 				{
 					ret.Add(JsonConvert.DeserializeObject<SmartBitExchangeRate>(jtoken.ToString()));
 				}
@@ -91,6 +90,7 @@ namespace WalletWasabi.WebClients.SmartBit
 		}
 
 		#region IDisposable Support
+
 		private bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
@@ -124,6 +124,7 @@ namespace WalletWasabi.WebClients.SmartBit
 			// uncomment the following line if the finalizer is overridden above.
 			// GC.SuppressFinalize(this);
 		}
-		#endregion
+
+		#endregion IDisposable Support
 	}
 }

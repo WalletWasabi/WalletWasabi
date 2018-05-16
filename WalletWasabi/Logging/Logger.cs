@@ -9,22 +9,22 @@ using System.Threading;
 namespace WalletWasabi.Logging
 {
 	public static class Logger
-    {
+	{
 		#region PropertiesAndMembers
 
 		private static long On = 1;
 
 		public static LogLevel MinimumLevel { get; private set; } = LogLevel.Critical;
 
-        public static HashSet<LogMode> Modes { get; } = new HashSet<LogMode>();
+		public static HashSet<LogMode> Modes { get; } = new HashSet<LogMode>();
 
-        public static string FilePath { get; private set; } = "Log.txt";
+		public static string FilePath { get; private set; } = "Log.txt";
 
-        public static string EntrySeparator { get; private set; } = Environment.NewLine;
+		public static string EntrySeparator { get; private set; } = Environment.NewLine;
 
-        public static string FileEntryEncryptionPassword { get; private set; } = null;
+		public static string FileEntryEncryptionPassword { get; private set; } = null;
 
-        private static long _logerFailed = Interlocked.Exchange(ref _logerFailed, 0);
+		private static long _logerFailed = Interlocked.Exchange(ref _logerFailed, 0);
 
 		private static readonly object Lock = new object();
 
@@ -33,85 +33,87 @@ namespace WalletWasabi.Logging
 		/// </summary>
 		public static long MaximumLogFileSize { get; private set; } = 10_000; // approx 10 MB
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region Initializers
 
 		public static void SetMinimumLevel(LogLevel level) => MinimumLevel = level;
 
 		public static void SetModes(params LogMode[] modes)
-        {
-            if (Modes.Count != 0)
-            {
-                Modes.Clear();
-            }
+		{
+			if (Modes.Count != 0)
+			{
+				Modes.Clear();
+			}
 
-            if (modes != null)
-            {
-                foreach (var mode in modes)
-                {
-                    Modes.Add(mode);
-                }
-            }
-        }
+			if (modes != null)
+			{
+				foreach (var mode in modes)
+				{
+					Modes.Add(mode);
+				}
+			}
+		}
 
-        public static void SetFilePath(string filePath) => FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
+		public static void SetFilePath(string filePath) => FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
 
-        public static void SetEntrySeparator(string entrySeparator) => EntrySeparator = Guard.NotNull(nameof(entrySeparator), entrySeparator);
+		public static void SetEntrySeparator(string entrySeparator) => EntrySeparator = Guard.NotNull(nameof(entrySeparator), entrySeparator);
 
-        public static void SetFileEntryEncryptionPassword(string password) => FileEntryEncryptionPassword = password;
+		public static void SetFileEntryEncryptionPassword(string password) => FileEntryEncryptionPassword = password;
 
 		/// <summary>
 		/// KB
 		/// </summary>
 		public static void SetMaximumLogFileSize(long sizeInKb) => MaximumLogFileSize = sizeInKb;
 
-		#endregion
+		#endregion Initializers
 
 		#region Methods
 
 		public static void TurnOff() => Interlocked.Exchange(ref On, 0);
+
 		public static void TurnOn() => Interlocked.Exchange(ref On, 1);
+
 		public static bool IsOn() => Interlocked.Read(ref On) == 1;
 
 		public static void DecryptLogEntries(string destination)
-        {
-            var encrypted = File.ReadAllText(FilePath);
+		{
+			var encrypted = File.ReadAllText(FilePath);
 
-            var dir = Path.GetDirectoryName(destination);
-            Directory.CreateDirectory(dir);
+			var dir = Path.GetDirectoryName(destination);
+			Directory.CreateDirectory(dir);
 
-            foreach(var entry in encrypted.Split(new char[]{','}, StringSplitOptions.RemoveEmptyEntries))
-            {
-                var decryptedEntry = StringCipher.Decrypt(entry, FileEntryEncryptionPassword);
-                File.AppendAllText(destination, $"{decryptedEntry}{EntrySeparator}");
-            }
-        }
+			foreach (var entry in encrypted.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+			{
+				var decryptedEntry = StringCipher.Decrypt(entry, FileEntryEncryptionPassword);
+				File.AppendAllText(destination, $"{decryptedEntry}{EntrySeparator}");
+			}
+		}
 
-		#endregion
+		#endregion Methods
 
 		#region LoggingMethods
 
 		#region GeneralLoggingMethods
 
 		private static void Log(LogLevel level, string message, string category)
-        {
-            try
-            {
-                if (Modes.Count == 0 || !IsOn())
-                {
-                    return;
-                }
+		{
+			try
+			{
+				if (Modes.Count == 0 || !IsOn())
+				{
+					return;
+				}
 
-                if(level < MinimumLevel)
-                {
-                    return;
-                }
+				if (level < MinimumLevel)
+				{
+					return;
+				}
 
-                message = string.IsNullOrWhiteSpace(message) ? "" : message;
-                category = string.IsNullOrWhiteSpace(category) ? "" : category;
+				message = string.IsNullOrWhiteSpace(message) ? "" : message;
+				category = string.IsNullOrWhiteSpace(category) ? "" : category;
 
-                var finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd hh:mm:ss} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
+				var finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd hh:mm:ss} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
 
 				lock (Lock)
 				{
@@ -125,6 +127,7 @@ namespace WalletWasabi.Logging
 								case LogLevel.Warning:
 									color = ConsoleColor.Yellow;
 									break;
+
 								case LogLevel.Error:
 								case LogLevel.Critical:
 									color = ConsoleColor.Red;
@@ -150,10 +153,10 @@ namespace WalletWasabi.Logging
 							Directory.CreateDirectory(dir);
 						}
 
-						if(File.Exists(FilePath))
+						if (File.Exists(FilePath))
 						{
 							var sizeInBytes = new FileInfo(FilePath).Length;
-							if(sizeInBytes > 1000 * MaximumLogFileSize)
+							if (sizeInBytes > 1000 * MaximumLogFileSize)
 							{
 								File.Delete(FilePath);
 							}
@@ -173,34 +176,34 @@ namespace WalletWasabi.Logging
 						}
 					}
 				}
-            }
-            catch(Exception ex)
-            {
-                Interlocked.Increment(ref _logerFailed);
-                if(Interlocked.Read(ref _logerFailed) > 1)
-                {
-                    Interlocked.Exchange(ref _logerFailed, 0);
-                    return;
-                }
-                LogDebug($"Logging failed: {ex}", $"{nameof(Logger)}.{nameof(Logging)}.{nameof(Logger)}");
-            }
-        }
+			}
+			catch (Exception ex)
+			{
+				Interlocked.Increment(ref _logerFailed);
+				if (Interlocked.Read(ref _logerFailed) > 1)
+				{
+					Interlocked.Exchange(ref _logerFailed, 0);
+					return;
+				}
+				LogDebug($"Logging failed: {ex}", $"{nameof(Logger)}.{nameof(Logging)}.{nameof(Logger)}");
+			}
+		}
 
-        private static void Log(LogLevel level, string message, Type category)
-        {
-            if (category == null)
-            {
-                Log(level, message, "");
-            }
-            else
-            {
-                Log(level, message, category.ToString());
-            }
-        }
+		private static void Log(LogLevel level, string message, Type category)
+		{
+			if (category == null)
+			{
+				Log(level, message, "");
+			}
+			else
+			{
+				Log(level, message, category.ToString());
+			}
+		}
 
-        private static void Log<T>(LogLevel level, string message) => Log(level, message, typeof(T).Name);
+		private static void Log<T>(LogLevel level, string message) => Log(level, message, typeof(T).Name);
 
-		#endregion
+		#endregion GeneralLoggingMethods
 
 		#region ExceptionLoggingMethods
 
@@ -219,7 +222,7 @@ namespace WalletWasabi.Logging
 			Log(level, ex.ToString(), category);
 		}
 
-		#endregion
+		#endregion ExceptionLoggingMethods
 
 		#region TraceLoggingMethods
 
@@ -229,44 +232,49 @@ namespace WalletWasabi.Logging
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
 		public static void LogTrace<T>(string message) => Log<T>(LogLevel.Trace, message);
-        /// <summary>
-        /// For information that is valuable only to a developer debugging an issue.
-        /// These messages may contain sensitive application data and so should not be enabled in a production environment.
-        /// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
-        /// </summary>
-        public static void LogTrace(string message, Type category) => Log(LogLevel.Trace, message, category);
-        /// <summary>
-        /// For information that is valuable only to a developer debugging an issue.
-        /// These messages may contain sensitive application data and so should not be enabled in a production environment.
-        /// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
-        /// </summary>
-        public static void LogTrace(string message, string category = "") => Log(LogLevel.Trace, message, category);
+
+		/// <summary>
+		/// For information that is valuable only to a developer debugging an issue.
+		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
+		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
+		/// </summary>
+		public static void LogTrace(string message, Type category) => Log(LogLevel.Trace, message, category);
+
+		/// <summary>
+		/// For information that is valuable only to a developer debugging an issue.
+		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
+		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
+		/// </summary>
+		public static void LogTrace(string message, string category = "") => Log(LogLevel.Trace, message, category);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Trace level.
-		/// 
+		///
 		/// For information that is valuable only to a developer debugging an issue.
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
 		public static void LogTrace<T>(Exception ex) => Log<T>(ex, LogLevel.Trace);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Trace level.
-		/// 
+		///
 		/// For information that is valuable only to a developer debugging an issue.
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
 		public static void LogTrace(Exception ex, Type category) => Log(ex, LogLevel.Trace, category);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Trace level.
-		/// 
+		///
 		/// For information that is valuable only to a developer debugging an issue.
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
 		public static void LogTrace(Exception ex, string category = "") => Log(ex, LogLevel.Trace, category);
 
-		#endregion
+		#endregion TraceLoggingMethods
 
 		#region DebugLoggingMethods
 
@@ -276,12 +284,14 @@ namespace WalletWasabi.Logging
 		/// You typically would not enable Debug level logs in production unless you are troubleshooting, due to the high volume of logs.
 		/// </summary>
 		public static void LogDebug<T>(string message) => Log<T>(LogLevel.Debug, message);
+
 		/// <summary>
 		/// For information that has short-term usefulness during development and debugging.
 		/// Example: "Entering method Configure with flag set to true."
 		/// You typically would not enable Debug level logs in production unless you are troubleshooting, due to the high volume of logs.
 		/// </summary>
 		public static void LogDebug(string message, Type category) => Log(LogLevel.Debug, message, category);
+
 		/// <summary>
 		/// For information that has short-term usefulness during development and debugging.
 		/// Example: "Entering method Configure with flag set to true."
@@ -291,30 +301,32 @@ namespace WalletWasabi.Logging
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Debug level, if only Debug level logging is set.
-		/// 
+		///
 		/// For information that is valuable only to a developer debugging an issue.
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
 		public static void LogDebug<T>(Exception ex) => Log<T>(ex, LogLevel.Debug);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Debug level, if only Debug level logging is set.
-		/// 
+		///
 		/// For information that is valuable only to a developer debugging an issue.
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
 		public static void LogDebug(Exception ex, Type category = null) => Log(ex, LogLevel.Debug, category);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Debug level.
-		/// 
+		///
 		/// For information that is valuable only to a developer debugging an issue.
 		/// These messages may contain sensitive application data and so should not be enabled in a production environment.
 		/// Example: "Credentials: {"User":"someuser", "Password":"P@ssword"}"
 		/// </summary>
 		public static void LogDebug(Exception ex, string category = "") => Log(ex, LogLevel.Debug, category);
 
-		#endregion
+		#endregion DebugLoggingMethods
 
 		#region InfoLoggingMethods
 
@@ -324,43 +336,47 @@ namespace WalletWasabi.Logging
 		/// Example: "Request received for path /api/my-controller"
 		/// </summary>
 		public static void LogInfo<T>(string message) => Log<T>(LogLevel.Info, message);
-        /// <summary>
-        /// For tracking the general flow of the application.
-        /// These logs typically have some long-term value.
-        /// Example: "Request received for path /api/my-controller"
-        /// </summary>
-        public static void LogInfo(string message, Type category) => Log(LogLevel.Info, message, category);
-        /// <summary>
-        /// For tracking the general flow of the application.
-        /// These logs typically have some long-term value.
-        /// Example: "Request received for path /api/my-controller"
-        /// </summary>
-        public static void LogInfo(string message, string category = "") => Log(LogLevel.Info, message, category);
+
+		/// <summary>
+		/// For tracking the general flow of the application.
+		/// These logs typically have some long-term value.
+		/// Example: "Request received for path /api/my-controller"
+		/// </summary>
+		public static void LogInfo(string message, Type category) => Log(LogLevel.Info, message, category);
+
+		/// <summary>
+		/// For tracking the general flow of the application.
+		/// These logs typically have some long-term value.
+		/// Example: "Request received for path /api/my-controller"
+		/// </summary>
+		public static void LogInfo(string message, string category = "") => Log(LogLevel.Info, message, category);
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Info level.
-		/// 
+		///
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
 		/// Example: "Request received for path /api/my-controller"
 		/// </summary>
 		public static void LogInfo<T>(Exception ex) => Log<T>(ex, LogLevel.Info);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Info level.
-		/// 
+		///
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
 		/// </summary>
 		public static void LogInfo(Exception ex, Type category = null) => Log(ex, LogLevel.Info, category);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Info level.
-		/// 
+		///
 		/// For tracking the general flow of the application.
 		/// These logs typically have some long-term value.
 		/// </summary>
 		public static void LogInfo(Exception ex, string category = "") => Log(ex, LogLevel.Info, category);
 
-		#endregion
+		#endregion InfoLoggingMethods
 
 		#region WarningLoggingMethods
 
@@ -371,42 +387,46 @@ namespace WalletWasabi.Logging
 		/// Example: "FileNotFoundException for file quotes.txt."
 		/// </summary>
 		public static void LogWarning<T>(string message) => Log<T>(LogLevel.Warning, message);
-        /// <summary>
-        /// For abnormal or unexpected events in the application flow.
-        /// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
-        /// Handled exceptions are a common place to use the Warning log level.
-        /// Example: "FileNotFoundException for file quotes.txt."
-        /// </summary>
-        public static void LogWarning(string message, Type category) => Log(LogLevel.Warning, message, category);
-        /// <summary>
-        /// For abnormal or unexpected events in the application flow.
-        /// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
-        /// Handled exceptions are a common place to use the Warning log level.
-        /// Example: "FileNotFoundException for file quotes.txt."
-        /// </summary>
-        public static void LogWarning(string message, string category = "") => Log(LogLevel.Warning, message, category);
+
+		/// <summary>
+		/// For abnormal or unexpected events in the application flow.
+		/// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
+		/// Handled exceptions are a common place to use the Warning log level.
+		/// Example: "FileNotFoundException for file quotes.txt."
+		/// </summary>
+		public static void LogWarning(string message, Type category) => Log(LogLevel.Warning, message, category);
+
+		/// <summary>
+		/// For abnormal or unexpected events in the application flow.
+		/// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
+		/// Handled exceptions are a common place to use the Warning log level.
+		/// Example: "FileNotFoundException for file quotes.txt."
+		/// </summary>
+		public static void LogWarning(string message, string category = "") => Log(LogLevel.Warning, message, category);
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Warning level.
-		/// 
+		///
 		/// For abnormal or unexpected events in the application flow.
 		/// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
 		/// Handled exceptions are a common place to use the Warning log level.
 		/// Example: "FileNotFoundException for file quotes.txt."
 		/// </summary>
 		public static void LogWarning<T>(Exception ex) => Log<T>(ex, LogLevel.Warning);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Warning level.
-		/// 
+		///
 		/// For abnormal or unexpected events in the application flow.
 		/// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
 		/// Handled exceptions are a common place to use the Warning log level.
 		/// Example: "FileNotFoundException for file quotes.txt."
 		/// </summary>
 		public static void LogWarning(Exception ex, Type category = null) => Log(ex, LogLevel.Warning, category);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Warning level.
-		/// 
+		///
 		/// For abnormal or unexpected events in the application flow.
 		/// These may include errors or other conditions that do not cause the application to stop, but which may need to be investigated.
 		/// Handled exceptions are a common place to use the Warning log level.
@@ -414,7 +434,7 @@ namespace WalletWasabi.Logging
 		/// </summary>
 		public static void LogWarning(Exception ex, string category = "") => Log(ex, LogLevel.Warning, category);
 
-		#endregion
+		#endregion WarningLoggingMethods
 
 		#region ErrorLoggingMethods
 
@@ -424,45 +444,49 @@ namespace WalletWasabi.Logging
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// </summary>
 		public static void LogError<T>(string message) => Log<T>(LogLevel.Error, message);
-        /// <summary>
-        /// For errors and exceptions that cannot be handled.
-        /// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
-        /// Example log message: "Cannot insert record due to duplicate key violation."
-        /// </summary>
-        public static void LogError(string message, Type category) => Log(LogLevel.Error, message, category);
-        /// <summary>
-        /// For errors and exceptions that cannot be handled.
-        /// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
-        /// Example log message: "Cannot insert record due to duplicate key violation."
-        /// </summary>
-        public static void LogError(string message, string category = "") => Log(LogLevel.Error, message, category);
+
+		/// <summary>
+		/// For errors and exceptions that cannot be handled.
+		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
+		/// Example log message: "Cannot insert record due to duplicate key violation."
+		/// </summary>
+		public static void LogError(string message, Type category) => Log(LogLevel.Error, message, category);
+
+		/// <summary>
+		/// For errors and exceptions that cannot be handled.
+		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
+		/// Example log message: "Cannot insert record due to duplicate key violation."
+		/// </summary>
+		public static void LogError(string message, string category = "") => Log(LogLevel.Error, message, category);
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Error level.
-		/// 
+		///
 		/// For errors and exceptions that cannot be handled.
 		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// </summary>
 		public static void LogError<T>(Exception ex) => Log<T>(ex, LogLevel.Error);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Error level.
-		/// 
+		///
 		/// For errors and exceptions that cannot be handled.
 		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// </summary>
 		public static void LogError(Exception ex, Type category = null) => Log(ex, LogLevel.Error, category);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.ToString() at Error level.
-		/// 
+		///
 		/// For errors and exceptions that cannot be handled.
 		/// These messages indicate a failure in the current activity or operation (such as the current HTTP request), not an application-wide failure.
 		/// Example log message: "Cannot insert record due to duplicate key violation."
 		/// </summary>
 		public static void LogError(Exception ex, string category = "") => Log(ex, LogLevel.Error, category);
 
-		#endregion
+		#endregion ErrorLoggingMethods
 
 		#region CriticalLoggingMethods
 
@@ -471,41 +495,45 @@ namespace WalletWasabi.Logging
 		/// Examples: data loss scenarios, out of disk space.
 		/// </summary>
 		public static void LogCritical<T>(string message) => Log<T>(LogLevel.Critical, message);
-        /// <summary>
-        /// For failures that require immediate attention.
-        /// Examples: data loss scenarios, out of disk space.
-        /// </summary>
-        public static void LogCritical(string message, Type category) => Log(LogLevel.Critical, message, category);
-        /// <summary>
-        /// For failures that require immediate attention.
-        /// Examples: data loss scenarios, out of disk space.
-        /// </summary>
-        public static void LogCritical(string message, string category = "") => Log(LogLevel.Critical, message, category);
+
+		/// <summary>
+		/// For failures that require immediate attention.
+		/// Examples: data loss scenarios, out of disk space.
+		/// </summary>
+		public static void LogCritical(string message, Type category) => Log(LogLevel.Critical, message, category);
+
+		/// <summary>
+		/// For failures that require immediate attention.
+		/// Examples: data loss scenarios, out of disk space.
+		/// </summary>
+		public static void LogCritical(string message, string category = "") => Log(LogLevel.Critical, message, category);
 
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Critical level.
-		/// 
+		///
 		/// For failures that require immediate attention.
 		/// Examples: data loss scenarios, out of disk space.
 		/// </summary>
 		public static void LogCritical<T>(Exception ex) => Log<T>(ex, LogLevel.Critical);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Critical level.
-		/// 
+		///
 		/// For failures that require immediate attention.
 		/// Examples: data loss scenarios, out of disk space.
 		/// </summary>
 		public static void LogCritical(Exception ex, Type category = null) => Log(ex, LogLevel.Critical, category);
+
 		/// <summary>
 		/// Logs the <paramref name="ex"/>.Message at Critical level.
-		/// 
+		///
 		/// For failures that require immediate attention.
 		/// Examples: data loss scenarios, out of disk space.
 		/// </summary>
 		public static void LogCritical(Exception ex, string category = "") => Log(ex, LogLevel.Critical, category);
 
-		#endregion
+		#endregion CriticalLoggingMethods
 
-		#endregion
+		#endregion LoggingMethods
 	}
 }

@@ -53,15 +53,14 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 			}
 		}
 
-		#endregion
+		#endregion Statics
 
 		#region ConstructorsAndInitializers
 
 		public CmdField()
 		{
-
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 	}
 }

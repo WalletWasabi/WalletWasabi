@@ -1,17 +1,16 @@
-﻿using WalletWasabi.Logging;
-using WalletWasabi.WebClients.BlockCypher;
-using WalletWasabi.WebClients.BlockCypher.Models;
-using WalletWasabi.WebClients.SmartBit;
-using WalletWasabi.WebClients.SmartBit.Models;
-using NBitcoin;
+﻿using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
+using WalletWasabi.WebClients.BlockCypher;
+using WalletWasabi.WebClients.BlockCypher.Models;
+using WalletWasabi.WebClients.SmartBit;
+using WalletWasabi.WebClients.SmartBit.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests
@@ -107,7 +106,7 @@ namespace WalletWasabi.Tests
 					}
 				}
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Logger.LogDebug<ExternalApiTests>($"Uri wasn't reachable: {uri}");
 				Logger.LogDebug<ExternalApiTests>(ex);

@@ -24,13 +24,12 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public PortField BndPort { get; set; }
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public TorSocks5Response()
 		{
-
 		}
 
 		public TorSocks5Response(RepField rep, AddrField bndAddr, PortField bndPort)
@@ -43,7 +42,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Atyp = bndAddr.Atyp;
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -72,7 +71,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 		}
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), Rep.ToByte(), Rsv.ToByte(), Atyp.ToByte() }, BndAddr.ToBytes(), BndPort.ToBytes());
-		
-		#endregion
+
+		#endregion Serialization
 	}
 }

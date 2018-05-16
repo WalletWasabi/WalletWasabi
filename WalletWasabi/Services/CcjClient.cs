@@ -22,7 +22,7 @@ namespace WalletWasabi.Services
 	public class CcjClient
 	{
 		public Network Network { get; }
-		BlindingRsaPubKey CoordinatorPubKey { get; }
+		private BlindingRsaPubKey CoordinatorPubKey { get; }
 		public KeyManager KeyManager { get; }
 
 		public List<BitcoinAddress> CustomChangeAddresses { get; }
@@ -32,7 +32,7 @@ namespace WalletWasabi.Services
 
 		public SatoshiClient SatoshiClient { get; }
 		public Uri CcjHostUri { get; }
-		IPEndPoint TorSocks5EndPoint { get; }
+		private IPEndPoint TorSocks5EndPoint { get; }
 
 		private AsyncLock MixLock { get; }
 
@@ -259,7 +259,7 @@ namespace WalletWasabi.Services
 							try
 							{
 								string roundHash = await inputRegistrableRound.AliceClient.PostConfirmationAsync();
-								if (roundHash != null) // Then the phase went to connection confirmation. 
+								if (roundHash != null) // Then the phase went to connection confirmation.
 								{
 									inputRegistrableRound.RoundHash = roundHash;
 									inputRegistrableRound.State.Phase = CcjRoundPhase.ConnectionConfirmation;
@@ -484,7 +484,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		#endregion
+		#endregion CustomAddressesLists
 
 		internal string OnePiece { get; private set; } = null;
 
@@ -558,7 +558,6 @@ namespace WalletWasabi.Services
 						{
 							if (!coinToDequeue.Unspent)
 							{
-
 							}
 							else
 							{

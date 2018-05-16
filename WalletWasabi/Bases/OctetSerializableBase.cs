@@ -1,6 +1,6 @@
-﻿using WalletWasabi.Helpers;
+﻿using System;
+using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
-using System;
 
 namespace WalletWasabi.Bases
 {
@@ -10,16 +10,15 @@ namespace WalletWasabi.Bases
 
 		protected byte ByteValue { get; set; }
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		protected OctetSerializableBase()
 		{
-
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -31,7 +30,7 @@ namespace WalletWasabi.Bases
 
 		public string ToHex(bool xhhSyntax = false)
 		{
-			if(xhhSyntax)
+			if (xhhSyntax)
 			{
 				return $"X'{ByteHelpers.ToHex(ToByte())}'";
 			}
@@ -59,23 +58,30 @@ namespace WalletWasabi.Bases
 			return ToHex(xhhSyntax: true);
 		}
 
-		#endregion
+		#endregion Serialization
 
 		#region EqualityAndComparison
 
 		public override bool Equals(object obj) => obj is OctetSerializableBase && this == (OctetSerializableBase)obj;
+
 		public bool Equals(OctetSerializableBase other) => this == other;
+
 		public override int GetHashCode() => ByteValue;
+
 		public static bool operator ==(OctetSerializableBase x, OctetSerializableBase y) => x?.ByteValue == y?.ByteValue;
+
 		public static bool operator !=(OctetSerializableBase x, OctetSerializableBase y) => !(x == y);
 
 		public bool Equals(byte other) => ByteValue == other;
 
 		public static bool operator ==(byte x, OctetSerializableBase y) => x == y?.ByteValue;
+
 		public static bool operator ==(OctetSerializableBase x, byte y) => x?.ByteValue == y;
+
 		public static bool operator !=(byte x, OctetSerializableBase y) => !(x == y);
+
 		public static bool operator !=(OctetSerializableBase x, byte y) => !(x == y);
 
-		#endregion
+		#endregion EqualityAndComparison
 	}
 }

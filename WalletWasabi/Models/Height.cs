@@ -42,7 +42,7 @@ namespace WalletWasabi.Models
 		/// </summary>
 		/// <param name="height">The height value to initialize the instance.
 		/// If height value is (Int32.MaxValue -1) then the Height type is setted to MemPool.
-		/// If height value is (Int32.MaxValue) then the Height tpe is setted to Unknown; 
+		/// If height value is (Int32.MaxValue) then the Height tpe is setted to Unknown;
 		/// Otherwise the Height type is setted as Chain.
 		/// </param>
 		/// <exception href="ArgumentException">When height value is less than zero.</exception>
@@ -86,7 +86,7 @@ namespace WalletWasabi.Models
 		}
 
 		/// <summary>
-		/// Constructor for copy 
+		/// Constructor for copy
 		/// </summary>
 		/// <param name="height">The height to be copied.</param>
 		public Height(Height height)
@@ -122,7 +122,6 @@ namespace WalletWasabi.Models
 
 		#region EqualityAndComparison
 
-
 		/// <inheritdoc/>
 		public override bool Equals(object obj) => obj is Height && this == (Height)obj;
 
@@ -131,17 +130,17 @@ namespace WalletWasabi.Models
 
 		/// <inheritdoc/>
 		public override int GetHashCode() => Value.GetHashCode();
-		
+
 		/// <summary>
-		/// Performs a comparison and return if side are equal 
+		/// Performs a comparison and return if side are equal
 		/// </summary>
 		/// <param name="x">The left-hand Height instance.</param>
 		/// <param name="y">The right-hand Height instance.</param>
 		/// <returns>true if lhs and rhs are equal; otherwise false.</returns>
 		public static bool operator ==(Height x, Height y) => x.Value == y.Value;
-		
+
 		/// <summary>
-		/// Performs a comparison and return if side are not equal 
+		/// Performs a comparison and return if side are not equal
 		/// </summary>
 		/// <param name="x">The left-hand Height instance.</param>
 		/// <param name="y">The right-hand Height instance.</param>
@@ -149,14 +148,14 @@ namespace WalletWasabi.Models
 		public static bool operator !=(Height x, Height y) => !(x == y);
 
 		/// <summary>
-		/// Performs a comparison and return if side are equal 
+		/// Performs a comparison and return if side are equal
 		/// </summary>
 		/// <param name="other">The value to compare.</param>
 		/// <returns>true if this and other are equal; otherwise false.</returns>
 		public bool Equals(int other) => Value == other;
 
 		/// <summary>
-		/// Performs a comparison and return if side are equal 
+		/// Performs a comparison and return if side are equal
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
@@ -164,7 +163,7 @@ namespace WalletWasabi.Models
 		public static bool operator ==(int x, Height y) => x == y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if side are equal 
+		/// Performs a comparison and return if side are equal
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
@@ -172,7 +171,7 @@ namespace WalletWasabi.Models
 		public static bool operator ==(Height x, int y) => x.Value == y;
 
 		/// <summary>
-		/// Performs a comparison and return if side are not equal 
+		/// Performs a comparison and return if side are not equal
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
@@ -180,7 +179,7 @@ namespace WalletWasabi.Models
 		public static bool operator !=(int x, Height y) => !(x == y);
 
 		/// <summary>
-		/// Performs a comparison and return if side are not equal 
+		/// Performs a comparison and return if side are not equal
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
@@ -205,7 +204,7 @@ namespace WalletWasabi.Models
 		}
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater than right-side value. 
+		/// Performs a comparison and return if left-side value is greater than right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
@@ -213,7 +212,7 @@ namespace WalletWasabi.Models
 		public static bool operator >(Height x, Height y) => x.Value > y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less than right-side value. 
+		/// Performs a comparison and return if left-side value is less than right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
@@ -221,7 +220,7 @@ namespace WalletWasabi.Models
 		public static bool operator <(Height x, Height y) => x.Value < y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value. 
+		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
@@ -229,7 +228,7 @@ namespace WalletWasabi.Models
 		public static bool operator >=(Height x, Height y) => x.Value >= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value. 
+		/// Performs a comparison and return if left-side value is less or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
@@ -237,7 +236,7 @@ namespace WalletWasabi.Models
 		public static bool operator <=(Height x, Height y) => x.Value <= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater than right-side value. 
+		/// Performs a comparison and return if left-side value is greater than right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
@@ -245,7 +244,7 @@ namespace WalletWasabi.Models
 		public static bool operator >(int x, Height y) => x > y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater than right-side value. 
+		/// Performs a comparison and return if left-side value is greater than right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height  value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
@@ -253,7 +252,7 @@ namespace WalletWasabi.Models
 		public static bool operator >(Height x, int y) => x.Value > y;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less than right-side value. 
+		/// Performs a comparison and return if left-side value is less than right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
@@ -261,7 +260,7 @@ namespace WalletWasabi.Models
 		public static bool operator <(int x, Height y) => x < y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less than right-side value. 
+		/// Performs a comparison and return if left-side value is less than right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
@@ -269,7 +268,7 @@ namespace WalletWasabi.Models
 		public static bool operator <(Height x, int y) => x.Value < y;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value. 
+		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
@@ -277,7 +276,7 @@ namespace WalletWasabi.Models
 		public static bool operator >=(int x, Height y) => x >= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value. 
+		/// Performs a comparison and return if left-side value is less or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Int32 value to compare.</param>
 		/// <param name="y">The right-hand Height value to compare.</param>
@@ -285,7 +284,7 @@ namespace WalletWasabi.Models
 		public static bool operator <=(int x, Height y) => x <= y.Value;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is greater or equal to right-side value. 
+		/// Performs a comparison and return if left-side value is greater or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
@@ -293,34 +292,33 @@ namespace WalletWasabi.Models
 		public static bool operator >=(Height x, int y) => x.Value >= y;
 
 		/// <summary>
-		/// Performs a comparison and return if left-side value is less or equal to right-side value. 
+		/// Performs a comparison and return if left-side value is less or equal to right-side value.
 		/// </summary>
 		/// <param name="x">The left-hand Height value to compare.</param>
 		/// <param name="y">The right-hand Int32 value to compare.</param>
 		/// <returns>true if left-hand value is less or equal to right-side value; otherwise false.</returns>
 		public static bool operator <=(Height x, int y) => x.Value <= y;
 
-		#endregion
-
+		#endregion EqualityAndComparison
 
 		#region MathOperations
 
 		/// <summary>
-		/// Increments the height value by 1 
+		/// Increments the height value by 1
 		/// </summary>
 		/// <param name="me">The instance to be used as base value.</param>
 		public static Height operator ++(Height me)
 		{
-			return new Height( me.Value + 1 );
+			return new Height(me.Value + 1);
 		}
 
 		/// <summary>
-		/// Decrements the height value by 1 
+		/// Decrements the height value by 1
 		/// </summary>
 		/// <param name="me">The instance to be used as base value.</param>
 		public static Height operator --(Height me)
 		{
-			return new Height( me.Value - 1 );
+			return new Height(me.Value - 1);
 		}
 
 		/// <summary>
@@ -363,7 +361,7 @@ namespace WalletWasabi.Models
 			return height.Value - value;
 		}
 
-		#endregion
+		#endregion MathOperations
 	}
 
 	public enum HeightType

@@ -59,7 +59,7 @@ namespace WalletWasabi.TorSocks5
 
 		internal AsyncLock AsyncLock { get; }
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
@@ -265,7 +265,7 @@ namespace WalletWasabi.TorSocks5
 			// encapsulation for the purposes of integrity, authentication and / or
 			// confidentiality, the data are encapsulated using the method-dependent
 			// encapsulation.Similarly, when data arrives at the SOCKS server for
-			// the client, the server MUST encapsulate the data as appropriate for 
+			// the client, the server MUST encapsulate the data as appropriate for
 			// the authentication method in use.
 		}
 
@@ -290,7 +290,7 @@ namespace WalletWasabi.TorSocks5
 			}
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Methods
 
@@ -460,7 +460,7 @@ namespace WalletWasabi.TorSocks5
 			return resolveResponse.BndAddr.DomainOrIPv4;
 		}
 
-		#endregion
+		#endregion Methods
 
 		#region IDisposable Support
 
@@ -478,7 +478,7 @@ namespace WalletWasabi.TorSocks5
 				_disposedValue = true;
 			}
 		}
-		
+
 		// ~TorSocks5Client() {
 		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 		//   Dispose(false);
@@ -515,6 +515,6 @@ namespace WalletWasabi.TorSocks5
 			}
 		}
 
-		#endregion
+		#endregion IDisposable Support
 	}
 }

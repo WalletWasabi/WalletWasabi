@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-    public class BitcoinAddressConverter : JsonConverter
+	public class BitcoinAddressConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
+using System;
 
 namespace WalletWasabi.Crypto
 {
@@ -91,7 +89,9 @@ namespace WalletWasabi.Crypto
 		#region Equality
 
 		public override bool Equals(object obj) => obj is BlindingRsaPubKey && this == (BlindingRsaPubKey)obj;
+
 		public bool Equals(BlindingRsaPubKey other) => this == other;
+
 		public override int GetHashCode()
 		{
 			var hash = Modulus.GetHashCode();
@@ -111,6 +111,6 @@ namespace WalletWasabi.Crypto
 
 		public static bool operator !=(BlindingRsaPubKey x, BlindingRsaPubKey y) => !(x == y);
 
-		#endregion
+		#endregion Equality
 	}
 }

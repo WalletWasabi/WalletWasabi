@@ -21,13 +21,12 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public PasswdField Passwd { get; set; }
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public UsernamePasswordRequest()
 		{
-
 		}
 
 		public UsernamePasswordRequest(UNameField uName, PasswdField passwd)
@@ -44,7 +43,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			ULen = uLen;
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -74,6 +73,6 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), ULen.ToByte() }, UName.ToBytes(), new byte[] { PLen.ToByte() }, Passwd.ToBytes());
 
-		#endregion
+		#endregion Serialization
 	}
 }

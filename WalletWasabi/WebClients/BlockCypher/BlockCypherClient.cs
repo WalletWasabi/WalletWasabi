@@ -57,6 +57,7 @@ namespace WalletWasabi.WebClients.BlockCypher
 		}
 
 		#region IDisposable Support
+
 		private bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
@@ -90,6 +91,7 @@ namespace WalletWasabi.WebClients.BlockCypher
 			// uncomment the following line if the finalizer is overridden above.
 			// GC.SuppressFinalize(this);
 		}
-		#endregion
+
+		#endregion IDisposable Support
 	}
 }

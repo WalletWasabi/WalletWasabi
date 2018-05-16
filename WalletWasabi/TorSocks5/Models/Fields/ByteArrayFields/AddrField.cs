@@ -19,7 +19,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 		{
 			get
 			{
-				if(Atyp == AtypField.DomainName)
+				if (Atyp == AtypField.DomainName)
 				{
 					return Encoding.ASCII.GetString(Bytes.Skip(1).ToArray()); // UTF8 result in general SOCKS server failure
 				}
@@ -39,13 +39,12 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			}
 		}
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public AddrField()
 		{
-
 		}
 
 		/// <param name="dstAddr">domain or IPv4</param>
@@ -59,7 +58,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			Atyp = atyp;
 
 			byte[] bytes;
-			if(atyp == AtypField.DomainName)
+			if (atyp == AtypField.DomainName)
 			{
 				// https://www.ietf.org/rfc/rfc1928.txt
 				// the address field contains a fully-qualified domain name.  The first
@@ -74,21 +73,21 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 
 				bytes = ByteHelpers.Combine(new byte[] { (byte)numberOfOctets }, domainBytes);
 			}
-			else if(atyp == AtypField.IPv4)
+			else if (atyp == AtypField.IPv4)
 			{
 				// the address is a version-4 IP address, with a length of 4 octets
 				var parts = dstAddr.Split(".", StringSplitOptions.RemoveEmptyEntries);
-				if(parts.Length != 4 || parts.Any(x => string.IsNullOrWhiteSpace(x)))
+				if (parts.Length != 4 || parts.Any(x => string.IsNullOrWhiteSpace(x)))
 				{
 					throw new FormatException($"{nameof(dstAddr)} must be have 4 parts. Actual: {parts.Length} parts. Value: {dstAddr}.");
 				}
 
 				bytes = new byte[4];
-				for(int i = 0; i < 4; i++)
+				for (int i = 0; i < 4; i++)
 				{
-					if(int.TryParse(parts[i], out int partInt))
+					if (int.TryParse(parts[i], out int partInt))
 					{
-						if(partInt < 0 || partInt > 255)
+						if (partInt < 0 || partInt > 255)
 						{
 							throw new FormatException($"`Every part of {nameof(dstAddr)} must be between 0 and 255. The {i}. part is invalid: {partInt}. Value of {nameof(dstAddr)}: {dstAddr}");
 						}
@@ -108,7 +107,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			Bytes = bytes;
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -121,7 +120,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			{
 				atyp = AtypField.DomainName;
 			}
-			else if(bytes.Length == 4)
+			else if (bytes.Length == 4)
 			{
 				atyp = AtypField.IPv4;
 			}
@@ -137,6 +136,6 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 
 		public override string ToString() => DomainOrIPv4;
 
-		#endregion
+		#endregion Serialization
 	}
 }

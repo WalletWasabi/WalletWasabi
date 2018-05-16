@@ -40,9 +40,9 @@ namespace WalletWasabi.Backend
 				c.IncludeXmlComments(xmlPath);
 			});
 
-			services.AddLogging(Logging=> Logging.AddFilter((s, level)=> level >= Microsoft.Extensions.Logging.LogLevel.Warning));
+			services.AddLogging(Logging => Logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
-			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider() );
+			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -75,7 +75,7 @@ namespace WalletWasabi.Backend
 
 			var stopTasks = new List<Task>();
 
-			if(Global.IndexBuilderService != null)
+			if (Global.IndexBuilderService != null)
 			{
 				Global.IndexBuilderService.NewBlock -= Global.IndexBuilderService_NewBlockAsync;
 
@@ -83,7 +83,7 @@ namespace WalletWasabi.Backend
 				stopTasks.Add(t);
 			}
 
-			if(Global.RoundConfigWatcher != null)
+			if (Global.RoundConfigWatcher != null)
 			{
 				var t = Global.RoundConfigWatcher.StopAsync();
 				stopTasks.Add(t);

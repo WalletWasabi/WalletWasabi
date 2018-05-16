@@ -24,13 +24,12 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public PortField DstPort { get; set; }
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public TorSocks5Request()
 		{
-
 		}
 
 		public TorSocks5Request(CmdField cmd, AddrField dstAddr, PortField dstPort)
@@ -43,7 +42,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Atyp = dstAddr.Atyp;
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -73,6 +72,6 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), Cmd.ToByte(), Rsv.ToByte(), Atyp.ToByte() }, DstAddr.ToBytes(), DstPort.ToBytes());
 
-		#endregion
+		#endregion Serialization
 	}
 }

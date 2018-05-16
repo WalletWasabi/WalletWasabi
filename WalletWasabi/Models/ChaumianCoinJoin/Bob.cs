@@ -6,8 +6,8 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-    public class Bob
-    {
+	public class Bob
+	{
 		public BitcoinAddress ActiveOutputAddress { get; }
 
 		public Bob(BitcoinAddress activeOutputAddress)

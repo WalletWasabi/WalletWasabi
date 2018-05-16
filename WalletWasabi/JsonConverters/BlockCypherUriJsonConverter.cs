@@ -5,7 +5,7 @@ using System.Text;
 
 namespace WalletWasabi.JsonConverters
 {
-	class BlockCypherUriJsonConverter : JsonConverter
+	internal class BlockCypherUriJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)

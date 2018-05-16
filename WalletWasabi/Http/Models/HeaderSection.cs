@@ -10,26 +10,28 @@ using System.Linq;
 namespace WalletWasabi.Http.Models
 {
 	public class HeaderSection
-    {
+	{
 		public List<HeaderField> Fields { get; private set; } = new List<HeaderField>();
 
 		public string ToString(bool endWithTwoCRLF)
 		{
 			StringBuilder sb = new StringBuilder();
-			foreach(var field in Fields)
+			foreach (var field in Fields)
 			{
 				sb.Append(field.ToString(endWithCRLF: true));
 			}
-			if(endWithTwoCRLF)
+			if (endWithTwoCRLF)
 			{
 				sb.Append(CRLF);
 			}
 			return sb.ToString();
 		}
+
 		public override string ToString()
 		{
 			return ToString(false);
 		}
+
 		public static HeaderSection CreateNew(string headersString)
 		{
 			headersString = HeaderField.CorrectObsFolding(headersString);
@@ -64,17 +66,17 @@ namespace WalletWasabi.Http.Models
 		private static void ValidateAndCorrectHeaders(HeaderSection hs)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-5.4
-			// Since the Host field - value is critical information for handling a				 
-			// request, a user agent SHOULD generate Host as the first header field				 
+			// Since the Host field - value is critical information for handling a
+			// request, a user agent SHOULD generate Host as the first header field
 			// following the request - line.
 			HeaderField hostToCorrect = null;
-			foreach(var f in hs.Fields)
+			foreach (var f in hs.Fields)
 			{
 				// if we find host
-				if(f.Name == "Host")
+				if (f.Name == "Host")
 				{
 					// if host is not first
-					if(hs.Fields.First().Name != "Host")
+					if (hs.Fields.First().Name != "Host")
 					{
 						// then correct host
 						hostToCorrect = f;
@@ -148,6 +150,7 @@ namespace WalletWasabi.Http.Models
 				};
 			}
 		}
+
 		public HttpResponseContentHeaders ToHttpResponseHeaders()
 		{
 			using (var message = new HttpResponseMessage

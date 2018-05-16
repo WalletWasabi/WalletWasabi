@@ -14,7 +14,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 	public class CcjClientRound
 	{
 		public CcjRunningRoundState State { get; set; }
-		
+
 		public List<SmartCoin> CoinsRegistered { get; }
 
 		public AliceClient AliceClient { get; set; }

@@ -1,19 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
+using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Backend.Controllers
@@ -161,7 +161,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.Hash, (int)inputProof.Input.N, includeMempool: true);
 
-						// Check if inputs are unspent.				
+						// Check if inputs are unspent.
 						if (getTxOutResponse == null)
 						{
 							return BadRequest("Provided input is not unspent.");
@@ -414,7 +414,7 @@ namespace WalletWasabi.Backend.Controllers
 				return Ok("Alice not found.");
 			}
 
-			if(round.Status != CcjRoundStatus.Running)
+			if (round.Status != CcjRoundStatus.Running)
 			{
 				return Gone("Round is not running.");
 			}
@@ -463,7 +463,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			CcjRound round = Coordinator.TryGetRound(roundHash);			
+			CcjRound round = Coordinator.TryGetRound(roundHash);
 			if (round == null)
 			{
 				return NotFound("Round not found.");
@@ -554,7 +554,7 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				return NotFound("Round not found.");
 			}
-			
+
 			if (round.TryGetAliceBy(uniqueIdGuid) == null) // We don't care about Alice now, but let's not give the CJ to anyone who isn't participating.
 			{
 				return NotFound("Alice not found.");
@@ -663,9 +663,9 @@ namespace WalletWasabi.Backend.Controllers
 								{
 									return BadRequest($"Index out of range. Maximum value: {maxIndex}. Provided value: {index}");
 								}
-								
+
 								// Check duplicates.
-								if(!string.IsNullOrWhiteSpace(round.SignedCoinJoin.Inputs[index].WitScript?.ToString())) // Not sure why WitScript?.ToString() is needed, there was something wrong in previous HiddenWallet version if I didn't do this.
+								if (!string.IsNullOrWhiteSpace(round.SignedCoinJoin.Inputs[index].WitScript?.ToString())) // Not sure why WitScript?.ToString() is needed, there was something wrong in previous HiddenWallet version if I didn't do this.
 								{
 									return BadRequest($"Input is already signed.");
 								}
@@ -682,10 +682,10 @@ namespace WalletWasabi.Backend.Controllers
 								// Finally add it to our CJ.
 								round.SignedCoinJoin.Inputs[index].WitScript = witness;
 							}
-							
+
 							alice.State = AliceState.SignedCoinJoin;
 
-							await round.BroadcastCoinJoinIfFullySignedAsync();							
+							await round.BroadcastCoinJoinIfFullySignedAsync();
 						}
 
 						return NoContent();

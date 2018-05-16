@@ -1,11 +1,8 @@
-﻿using WalletWasabi.Models;
-using NBitcoin;
+﻿using NBitcoin;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
+using WalletWasabi.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests

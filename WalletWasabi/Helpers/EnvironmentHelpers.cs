@@ -1,14 +1,12 @@
-﻿using WalletWasabi.Logging;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers
 {
-    public static class EnvironmentHelpers
-    {
+	public static class EnvironmentHelpers
+	{
 		public static string GetDataDir(string appName)
 		{
 			string directory = null;

@@ -48,6 +48,7 @@ namespace WalletWasabi.Services
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
 		private long _running;
+
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
@@ -268,7 +269,7 @@ namespace WalletWasabi.Services
 			//	if mempool
 			//		if all double spent coins are mempool and RBF
 			//			remove double spent coins(if other coin spends it, remove that too and so on) // will add later if they came to our keys
-			//		else 
+			//		else
 			//			return
 			//	else // new confirmation always enjoys priority
 			//		remove double spent coins recursively(if other coin spends it, remove that too and so on)// will add later if they came to our keys
@@ -870,6 +871,6 @@ namespace WalletWasabi.Services
 			// GC.SuppressFinalize(this);
 		}
 
-		#endregion
+		#endregion IDisposable Support
 	}
 }

@@ -32,16 +32,15 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 			}
 		}
 
-		#endregion
+		#endregion Statics
 
 		#region ConstructorsAndInitializers
 
 		public AtypField()
 		{
-
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -61,6 +60,6 @@ namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 			}
 		}
 
-		#endregion
+		#endregion Serialization
 	}
 }

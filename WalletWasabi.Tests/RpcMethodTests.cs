@@ -49,6 +49,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(latestBlockHash, latestBlock.Hash);
 			}
 		}
-		#endregion
+
+		#endregion RpcMethodTests
 	}
 }

@@ -37,7 +37,7 @@ namespace NBitcoin.RPC
 
 		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this RPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
 		{
-			if(simulateIfRegTest && rpc.Network == Network.RegTest)
+			if (simulateIfRegTest && rpc.Network == Network.RegTest)
 			{
 				return SimulateRegTestFeeEstimation(confirmationTarget, estimateMode);
 			}

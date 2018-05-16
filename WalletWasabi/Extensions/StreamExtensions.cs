@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace System.IO
 {
 	public static class StreamExtensions
-    {
+	{
 		public static async Task<int> ReadByteAsync(this Stream stream, CancellationToken ctsToken = default)
 		{
 			var buf = new byte[1];
@@ -12,10 +12,11 @@ namespace System.IO
 			if (len == 0) return -1;
 			else return buf[0];
 		}
+
 		public static async Task<int> ReadBlockAsync(this Stream stream, byte[] buffer, int count, CancellationToken ctsToken = default)
 		{
 			var left = count;
-			while(left != 0)
+			while (left != 0)
 			{
 				var read = await stream.ReadAsync(buffer, count - left, left, ctsToken);
 				left -= read;

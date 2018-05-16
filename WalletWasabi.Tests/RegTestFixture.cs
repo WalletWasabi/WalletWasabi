@@ -1,14 +1,12 @@
-﻿using WalletWasabi.Backend;
-using WalletWasabi.Logging;
-using WalletWasabi.Tests.NodeBuilding;
-using Microsoft.AspNetCore;
+﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using NBitcoin;
+using System;
+using System.Threading.Tasks;
+using WalletWasabi.Backend;
+using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
+using WalletWasabi.Tests.NodeBuilding;
 
 namespace WalletWasabi.Tests
 {

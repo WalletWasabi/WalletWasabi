@@ -15,8 +15,8 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Services
 {
-    public class UtxoReferee
-    {
+	public class UtxoReferee
+	{
 		/// <summary>
 		/// Key: banned utxo, Value: severity level, time of ban
 		/// </summary>
@@ -89,7 +89,7 @@ namespace WalletWasabi.Services
 		public async Task BanUtxosAsync(int severity, DateTimeOffset timeOfBan, params OutPoint[] toBan)
 		{
 			var lines = new List<string>();
-			foreach(var utxo in toBan)
+			foreach (var utxo in toBan)
 			{
 				if (BannedUtxos.TryAdd(utxo, (severity, timeOfBan)))
 				{
@@ -107,7 +107,7 @@ namespace WalletWasabi.Services
 
 		public async Task UnbanAsync(OutPoint output)
 		{
-			if(BannedUtxos.TryRemove(output, out _))
+			if (BannedUtxos.TryRemove(output, out _))
 			{
 				IEnumerable<string> lines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}");
 				await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);

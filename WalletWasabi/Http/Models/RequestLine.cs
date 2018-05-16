@@ -31,7 +31,7 @@ namespace WalletWasabi.Http.Models
 				var methodString = parts[0];
 				var uri = new Uri(parts[1]);
 				var protocolString = parts[2];
-				
+
 				var method = new HttpMethod(methodString);
 				var protocol = new HttpProtocol(protocolString);
 

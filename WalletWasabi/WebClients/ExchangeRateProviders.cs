@@ -17,8 +17,7 @@ namespace WalletWasabi.WebClients
 		Task<List<ExchangeRate>> GetExchangeRateAsync();
 	}
 
-
-	class SmartBitExchangeRateProvider : IExchangeRateProvider
+	internal class SmartBitExchangeRateProvider : IExchangeRateProvider
 	{
 		private SmartBitClient _client;
 
@@ -41,21 +40,23 @@ namespace WalletWasabi.WebClients
 		}
 	}
 
-	class BlockchainInfoExchangeRateProvider : IExchangeRateProvider
+	internal class BlockchainInfoExchangeRateProvider : IExchangeRateProvider
 	{
-		class BlockchainInfoExchangeRate{
+		private class BlockchainInfoExchangeRate
+		{
 			public decimal Last { get; set; }
 			public decimal Buy { get; set; }
 			public decimal Sell { get; set; }
 		}
 
-		class BlockchainInfoExchangeRates{
+		private class BlockchainInfoExchangeRates
+		{
 			public BlockchainInfoExchangeRate USD { get; set; }
 		}
 
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{
-			using(var httpClient = new HttpClient())
+			using (var httpClient = new HttpClient())
 			{
 				httpClient.BaseAddress = new Uri("https://blockchain.info");
 				var response = await httpClient.GetAsync("/ticker");
@@ -71,21 +72,26 @@ namespace WalletWasabi.WebClients
 		}
 	}
 
-	class CoinbaseExchangeRateProvider : IExchangeRateProvider
+	internal class CoinbaseExchangeRateProvider : IExchangeRateProvider
 	{
-		class DataWrapper{
-			public class CoinbaseExchangeRate{
-				public class ExchangeRates{
+		private class DataWrapper
+		{
+			public class CoinbaseExchangeRate
+			{
+				public class ExchangeRates
+				{
 					public decimal USD { get; set; }
 				}
+
 				public ExchangeRates Rates { get; set; }
 			}
-			public CoinbaseExchangeRate Data {get; set;}
+
+			public CoinbaseExchangeRate Data { get; set; }
 		}
-		
+
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{
-			using(var httpClient = new HttpClient())
+			using (var httpClient = new HttpClient())
 			{
 				httpClient.BaseAddress = new Uri("https://api.coinbase.com");
 				var response = await httpClient.GetAsync("/v2/exchange-rates?currency=BTC");
@@ -101,15 +107,16 @@ namespace WalletWasabi.WebClients
 		}
 	}
 
-
 	public class ItBitExchangeRateProvider : IExchangeRateProvider
 	{
-		class ItBitExchangeRateInfo{
+		private class ItBitExchangeRateInfo
+		{
 			public decimal Bid { get; set; }
 		}
+
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{
-			using(var httpClient = new HttpClient())
+			using (var httpClient = new HttpClient())
 			{
 				httpClient.BaseAddress = new Uri("https://api.itbit.com");
 				var response = await httpClient.GetAsync("v1/markets/XBTUSD/ticker");
@@ -127,12 +134,14 @@ namespace WalletWasabi.WebClients
 
 	public class GeminiExchangeRateProvider : IExchangeRateProvider
 	{
-		class GeminiExchangeRateInfo{
+		private class GeminiExchangeRateInfo
+		{
 			public decimal Bid { get; set; }
 		}
+
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{
-			using(var httpClient = new HttpClient())
+			using (var httpClient = new HttpClient())
 			{
 				httpClient.BaseAddress = new Uri("https://api.gemini.com");
 				var response = await httpClient.GetAsync("/v1/pubticker/btcusd");
@@ -150,7 +159,7 @@ namespace WalletWasabi.WebClients
 
 	public class ExchangeRateProvider : IExchangeRateProvider
 	{
-		private  readonly IExchangeRateProvider[] _exchangeRateProviders = new IExchangeRateProvider[]{
+		private readonly IExchangeRateProvider[] _exchangeRateProviders = new IExchangeRateProvider[]{
 			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main, disposeHandler: true)),
 			new BlockchainInfoExchangeRateProvider(),
 			new CoinbaseExchangeRateProvider(),
@@ -162,13 +171,15 @@ namespace WalletWasabi.WebClients
 		{
 			List<ExchangeRate> exchangeRates = null;
 
-			foreach(var provider in _exchangeRateProviders)
+			foreach (var provider in _exchangeRateProviders)
 			{
 				try
 				{
 					exchangeRates = await provider.GetExchangeRateAsync();
 					break;
-				}catch(Exception){
+				}
+				catch (Exception)
+				{
 					// Ignore it and try with the next one
 				}
 			}
@@ -176,13 +187,12 @@ namespace WalletWasabi.WebClients
 		}
 	}
 
-	static class HttpResponseMessageExtensions
+	internal static class HttpResponseMessageExtensions
 	{
 		public static async Task<T> ReadAsAsync<T>(this HttpResponseMessage me)
 		{
-			var jsonString =  await me.Content.ReadAsStringAsync();
+			var jsonString = await me.Content.ReadAsStringAsync();
 			return JsonConvert.DeserializeObject<T>(jsonString);
 		}
-	}	
+	}
 }
-

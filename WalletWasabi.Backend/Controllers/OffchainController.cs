@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.WebClients;
 
@@ -36,7 +35,6 @@ namespace WalletWasabi.Backend.Controllers
 		[ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-
 			if (!Cache.TryGetValue(nameof(GetExchangeRatesAsync), out List<ExchangeRate> exchangeRates))
 			{
 				exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();

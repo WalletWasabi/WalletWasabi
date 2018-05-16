@@ -10,8 +10,10 @@ namespace WalletWasabi.WebClients.SmartBit.Models
 	{
 		[JsonProperty(PropertyName = "code")]
 		public string Code { get; set; }
+
 		[JsonProperty(PropertyName = "name")]
 		public string Name { get; set; }
+
 		[JsonProperty(PropertyName = "rate")]
 		public decimal Rate { get; set; }
 	}

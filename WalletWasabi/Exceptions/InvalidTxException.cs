@@ -1,13 +1,12 @@
-﻿using WalletWasabi.Helpers;
-using NBitcoin;
+﻿using NBitcoin;
 using NBitcoin.Policy;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Exceptions
 {
-    public class InvalidTxException : Exception
+	public class InvalidTxException : Exception
 	{
 		public Transaction Transaction { get; }
 		public IEnumerable<TransactionPolicyError> Errors { get; }

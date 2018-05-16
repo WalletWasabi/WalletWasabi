@@ -1,14 +1,10 @@
-﻿using WalletWasabi.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using WalletWasabi.Logging;
 
 namespace System.IO
 {
-    public static class IoHelpers
-    {
+	public static class IoHelpers
+	{
 		// http://stackoverflow.com/a/14933880/2061103
 		public static async Task DeleteRecursivelyWithMagicDustAsync(string destinationDir)
 		{

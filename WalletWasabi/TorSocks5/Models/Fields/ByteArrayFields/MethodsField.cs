@@ -16,7 +16,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 		{
 			get
 			{
-				foreach(var b in Bytes)
+				foreach (var b in Bytes)
 				{
 					var method = new MethodField();
 					method.FromByte(b);
@@ -25,13 +25,12 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			}
 		}
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public MethodsField()
 		{
-			
 		}
 
 		public MethodsField(params MethodField[] methods)
@@ -46,7 +45,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			}
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -54,9 +53,9 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 		{
 			Guard.NotNullOrEmpty(nameof(bytes), bytes);
 
-			foreach(var b in bytes)
+			foreach (var b in bytes)
 			{
-				if(b != MethodField.NoAuthenticationRequired && b != MethodField.UsernamePassword)
+				if (b != MethodField.NoAuthenticationRequired && b != MethodField.UsernamePassword)
 				{
 					throw new FormatException($"Unrecognized authentication method: {ByteHelpers.ToHex(b)}.");
 				}
@@ -67,6 +66,6 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 
 		public override byte[] ToBytes() => Bytes;
 
-		#endregion
+		#endregion Serialization
 	}
 }

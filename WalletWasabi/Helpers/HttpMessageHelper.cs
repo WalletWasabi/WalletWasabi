@@ -248,13 +248,15 @@ namespace System.Net.Http
 		{
 			return await GetDecodedChunkedContentAsync(stream, headerStruct, null, ctsToken);
 		}
+
 		private static async Task<HttpContent> GetDecodedChunkedContentAsync(Stream stream, HttpResponseContentHeaders headerStruct, CancellationToken ctsToken = default)
 		{
 			return await GetDecodedChunkedContentAsync(stream, null, headerStruct, ctsToken);
 		}
+
 		private static async Task<HttpContent> GetDecodedChunkedContentAsync(Stream stream, HttpRequestContentHeaders requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
 		{
-			if(responseHeaders == null && requestHeaders == null)
+			if (responseHeaders == null && requestHeaders == null)
 			{
 				throw new ArgumentException("Response and request headers cannot be both null.");
 			}
@@ -430,7 +432,7 @@ namespace System.Net.Http
 		private static async Task<HttpContent> GetContentTillEndAsync(Stream stream, CancellationToken ctsToken)
 		{
 			var bab = new ByteArrayBuilder();
-			while(true)
+			while (true)
 			{
 				var read = await stream.ReadByteAsync(ctsToken);
 				if (read == -1) return new ByteArrayContent(bab.ToArray());

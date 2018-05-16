@@ -93,9 +93,9 @@ namespace WalletWasabi.Tests.NodeBuilding
 			BitcoinD = bitcoindPath;
 		}
 
-        public string BitcoinD { get; }
-        public List<CoreNode> Nodes { get; } = new List<CoreNode>();
-        public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
+		public string BitcoinD { get; }
+		public List<CoreNode> Nodes { get; } = new List<CoreNode>();
+		public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
 
 		public async Task<CoreNode> CreateNodeAsync(bool start = false)
 		{
@@ -134,6 +134,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		}
 
 		private List<IDisposable> _disposables = new List<IDisposable>();
+
 		internal void AddDisposable(IDisposable group)
 		{
 			_disposables.Add(group);

@@ -117,13 +117,13 @@ namespace WalletWasabi.Helpers
 			return (int)value;
 		}
 
-		public static T InRangeAndNotNull<T>(string parameterName, T value, T smallest, T greatest) where T: IComparable
+		public static T InRangeAndNotNull<T>(string parameterName, T value, T smallest, T greatest) where T : IComparable
 		{
 			NotNull(parameterName, value);
-			if( value.CompareTo(smallest) < 0)
+			if (value.CompareTo(smallest) < 0)
 				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter cannot be less than {smallest}.");
 
-			if( value.CompareTo(greatest) > 0)
+			if (value.CompareTo(greatest) > 0)
 				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter cannot be greater than {greatest}.");
 
 			return value;

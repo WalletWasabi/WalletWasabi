@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.WebClients;
-using WalletWasabi.WebClients.SmartBit;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Backend.Controllers
 {
@@ -51,23 +45,23 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpGet("fees/{confirmationTargets}")]
 		[ProducesResponseType(200)] // Note: If you add typeof(SortedDictionary<int, FeeEstimationPair>) then swagger UI will visualize incorrectly.
 		[ProducesResponseType(400)]
-		[ResponseCache(Duration = 60, Location=ResponseCacheLocation.Client)]
+		[ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetFeesAsync(string confirmationTargets)
 		{
-			if(string.IsNullOrWhiteSpace(confirmationTargets) || !ModelState.IsValid)
+			if (string.IsNullOrWhiteSpace(confirmationTargets) || !ModelState.IsValid)
 			{
 				return BadRequest($"Invalid {nameof(confirmationTargets)} are specified.");
 			}
 
 			var confirmationTargetsInts = new HashSet<int>();
-			foreach(var targetParam in confirmationTargets.Split(',', StringSplitOptions.RemoveEmptyEntries))
+			foreach (var targetParam in confirmationTargets.Split(',', StringSplitOptions.RemoveEmptyEntries))
 			{
-				if(int.TryParse(targetParam, out var target))
+				if (int.TryParse(targetParam, out var target))
 				{
-					if(target < 2 || target > 1008)
+					if (target < 2 || target > 1008)
 						return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
 
-					if(confirmationTargetsInts.Contains(target)) 
+					if (confirmationTargetsInts.Contains(target))
 						continue;
 					confirmationTargetsInts.Add(target);
 				}
@@ -114,7 +108,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(400)]
 		public async Task<IActionResult> BroadcastAsync([FromBody]string hex)
 		{
-			if(string.IsNullOrWhiteSpace(hex) || !ModelState.IsValid)
+			if (string.IsNullOrWhiteSpace(hex) || !ModelState.IsValid)
 			{
 				return BadRequest("Invalid hex.");
 			}
@@ -124,7 +118,7 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				transaction = new Transaction(hex);
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				Logger.LogDebug<BlockchainController>(ex);
 				return BadRequest("Invalid hex.");
@@ -134,11 +128,11 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				await RpcClient.SendRawTransactionAsync(transaction);
 			}
-			catch(RPCException ex) when (ex.Message.Contains("already in block chain", StringComparison.InvariantCultureIgnoreCase))
+			catch (RPCException ex) when (ex.Message.Contains("already in block chain", StringComparison.InvariantCultureIgnoreCase))
 			{
 				return Ok("Transaction is already in the blockchain.");
 			}
-			catch(RPCException ex)
+			catch (RPCException ex)
 			{
 				Logger.LogDebug<BlockchainController>(ex);
 				return BadRequest(ex.Message);
@@ -146,7 +140,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			return Ok("Transaction is successfully broadcasted.");
 		}
-		
+
 		/// <summary>
 		/// Gets block filters from the specified block hash.
 		/// </summary>
@@ -176,17 +170,17 @@ namespace WalletWasabi.Backend.Controllers
 			{
 				return BadRequest("Invalid block hash or count is provided.");
 			}
-			
+
 			var knownHash = new uint256(bestKnownBlockHash);
 
 			IEnumerable<string> filters = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
-			if(!found)
+			if (!found)
 			{
 				return NotFound($"Provided {nameof(bestKnownBlockHash)} is not found: {bestKnownBlockHash}.");
 			}
 
-			if(filters.Count() == 0)
+			if (filters.Count() == 0)
 			{
 				return NoContent();
 			}

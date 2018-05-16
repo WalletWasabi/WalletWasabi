@@ -1,7 +1,7 @@
 ﻿namespace System.Net
 {
 	public static class HttpStatusCodeHelper
-    {
+	{
 		/// <summary>
 		/// 1xx
 		/// </summary>
@@ -9,6 +9,7 @@
 		{
 			return ((int)status).ToString()[0] == '1';
 		}
+
 		/// <summary>
 		/// 2xx
 		/// </summary>
@@ -16,7 +17,7 @@
 		{
 			return ((int)status).ToString()[0] == '2';
 		}
-		
+
 		public static bool IsValidCode(int codeToValidate)
 		{
 			foreach (var code in Enum.GetValues(typeof(HttpStatusCode)))

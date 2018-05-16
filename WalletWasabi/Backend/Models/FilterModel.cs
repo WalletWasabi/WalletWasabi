@@ -1,10 +1,8 @@
-﻿using WalletWasabi.Helpers;
-using WalletWasabi.Models;
-using NBitcoin;
-using System;
-using System.Collections.Generic;
+﻿using NBitcoin;
 using System.Linq;
 using System.Text;
+using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Models
 {
@@ -15,7 +13,7 @@ namespace WalletWasabi.Backend.Models
 		public GolombRiceFilter Filter { get; set; }
 
 		// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki
-		// The parameter k MUST be set to the first 16 bytes of the hash of the block for which the filter 
+		// The parameter k MUST be set to the first 16 bytes of the hash of the block for which the filter
 		// is constructed.This ensures the key is deterministic while still varying from block to block.
 		public byte[] FilterKey => BlockHash.ToBytes().Take(16).ToArray();
 
@@ -23,7 +21,7 @@ namespace WalletWasabi.Backend.Models
 		{
 			var builder = new StringBuilder();
 			builder.Append(BlockHash);
-			if(Filter != null) // bech found here
+			if (Filter != null) // bech found here
 			{
 				builder.Append(":");
 				builder.Append(Filter.ToString());
@@ -37,7 +35,7 @@ namespace WalletWasabi.Backend.Models
 			Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
 			var parts = line.Split(':');
 
-			if(parts.Length == 1) // no bech here
+			if (parts.Length == 1) // no bech here
 			{
 				return new FilterModel
 				{

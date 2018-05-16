@@ -1,9 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using NBitcoin.DataEncoders;
 
 namespace WalletWasabi.Crypto
 {
@@ -20,11 +18,11 @@ namespace WalletWasabi.Crypto
 		public static string Encrypt(string plainText, string passPhrase)
 		{
 			// Salt is randomly generated each time, but is preprended to encrypted cipher text
-			// so that the same Salt value can be used when decrypting.  
+			// so that the same Salt value can be used when decrypting.
 			byte[] salt = Generate128BitsOfRandomEntropy();
-			byte[] iv=null;		
+			byte[] iv = null;
 			byte[] cipherTextBytes = null;
-			byte[] key=null;
+			byte[] key = null;
 			var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
 
 			using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
@@ -50,9 +48,9 @@ namespace WalletWasabi.Crypto
 				}
 			}
 
-			using(var memoryStream = new MemoryStream())
+			using (var memoryStream = new MemoryStream())
 			{
-				using(var writer = new BinaryWriter(memoryStream))
+				using (var writer = new BinaryWriter(memoryStream))
 				{
 					writer.Write(salt);
 					writer.Write(iv);
@@ -74,8 +72,8 @@ namespace WalletWasabi.Crypto
 		public static string Decrypt(string cipherText, string passPhrase)
 		{
 			var cipherTextBytesWithSaltAndIv = Convert.FromBase64String(cipherText);
-			byte[] key=null;
-			byte[] iv=null;		
+			byte[] key = null;
+			byte[] iv = null;
 
 			using (var memoryStream = new MemoryStream(cipherTextBytesWithSaltAndIv))
 			{
@@ -85,7 +83,7 @@ namespace WalletWasabi.Crypto
 					var salt = reader.ReadBytes(Keysize / 8);
 					iv = reader.ReadBytes(Keysize / 8);
 					var authenticationCode = reader.ReadBytes(32);
-					cipherLength = (int)(memoryStream.Length-memoryStream.Position);
+					cipherLength = (int)(memoryStream.Length - memoryStream.Position);
 					var cipher = reader.ReadBytes(cipherLength);
 
 					using (var password = new Rfc2898DeriveBytes(passPhrase, salt, DerivationIterations))
@@ -96,8 +94,9 @@ namespace WalletWasabi.Crypto
 					using (var hmac = new HMACSHA256(key))
 					{
 						var calculatedAuthenticationCode = hmac.ComputeHash(cipher);
-						for(var i=0; i< calculatedAuthenticationCode.Length; i++){
-							if(calculatedAuthenticationCode[i] != authenticationCode[i])
+						for (var i = 0; i < calculatedAuthenticationCode.Length; i++)
+						{
+							if (calculatedAuthenticationCode[i] != authenticationCode[i])
 							{
 								throw new CryptographicException("Message Authentication failed. Message has been modified or wrong password");
 							}

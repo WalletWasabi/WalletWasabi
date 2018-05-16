@@ -1,12 +1,12 @@
 ﻿namespace System
 {
-    public static class StringExtensions
-    {
+	public static class StringExtensions
+	{
 		public static bool Equals(this string source, string value, StringComparison comparisonType, bool trimmed)
 		{
-			if(comparisonType == StringComparison.Ordinal)
+			if (comparisonType == StringComparison.Ordinal)
 			{
-				if(trimmed)
+				if (trimmed)
 				{
 					return string.CompareOrdinal(source.Trim(), value.Trim()) == 0;
 				}
@@ -17,7 +17,7 @@
 			}
 			else
 			{
-				if(trimmed)
+				if (trimmed)
 				{
 					return source.Trim().Equals(value.Trim(), comparisonType);
 				}
@@ -45,6 +45,7 @@
 		{
 			return me.TrimStart(trimString, comparisonType).TrimEnd(trimString, comparisonType);
 		}
+
 		/// <summary>
 		/// Removes one leading occurence of the specified string
 		/// </summary>
@@ -56,6 +57,7 @@
 			}
 			return me;
 		}
+
 		/// <summary>
 		/// Removes one trailing occurence of the specified string
 		/// </summary>

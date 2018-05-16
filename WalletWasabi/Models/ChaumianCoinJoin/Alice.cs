@@ -7,8 +7,8 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
-    public class Alice
-    {
+	public class Alice
+	{
 		public DateTimeOffset LastSeen { get; set; }
 
 		public Guid UniqueId { get; }
@@ -53,5 +53,5 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			State = AliceState.InputsRegistered;
 		}
-    }
+	}
 }

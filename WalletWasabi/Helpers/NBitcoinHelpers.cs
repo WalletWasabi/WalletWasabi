@@ -13,7 +13,6 @@ namespace WalletWasabi.Helpers
 			var sb = new StringBuilder();
 			foreach (OutPoint input in outPoints.OrderBy(x => x.Hash.ToString()).OrderBy(x => x.N))
 			{
-				
 				sb.Append(ByteHelpers.ToHex(input.ToBytes()));
 			}
 
@@ -26,13 +25,13 @@ namespace WalletWasabi.Helpers
 			{
 				return BitcoinAddress.Create(address, Network.RegTest);
 			}
-			catch(FormatException)
+			catch (FormatException)
 			{
 				try
 				{
 					return BitcoinAddress.Create(address, Network.TestNet);
 				}
-				catch(FormatException)
+				catch (FormatException)
 				{
 					return BitcoinAddress.Create(address, Network.Main);
 				}

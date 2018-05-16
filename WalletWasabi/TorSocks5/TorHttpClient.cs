@@ -33,7 +33,7 @@ namespace WalletWasabi.TorSocks5
 		public TorHttpClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null, bool isolateStream = false)
 		{
 			DestinationUri = Guard.NotNull(nameof(baseUri), baseUri);
-			if(DestinationUri.IsLoopback)
+			if (DestinationUri.IsLoopback)
 			{
 				TorSocks5EndPoint = null;
 			}
@@ -54,7 +54,7 @@ namespace WalletWasabi.TorSocks5
 					await client.ConnectAsync();
 					await client.HandshakeAsync();
 				}
-				catch(ConnectionException)
+				catch (ConnectionException)
 				{
 					return false;
 				}
@@ -237,6 +237,6 @@ namespace WalletWasabi.TorSocks5
 			// GC.SuppressFinalize(this);
 		}
 
-		#endregion
+		#endregion IDisposable Support
 	}
 }

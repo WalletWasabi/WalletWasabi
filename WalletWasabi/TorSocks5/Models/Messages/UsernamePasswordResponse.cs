@@ -12,13 +12,12 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public AuthStatusField Status { get; set; }
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public UsernamePasswordResponse()
 		{
-
 		}
 
 		public UsernamePasswordResponse(AuthStatusField status)
@@ -27,7 +26,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			Ver = AuthVerField.Version1;
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -45,6 +44,6 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public override byte[] ToBytes() => new byte[] { Ver.ToByte(), Status.ToByte() };
 
-		#endregion
+		#endregion Serialization
 	}
 }

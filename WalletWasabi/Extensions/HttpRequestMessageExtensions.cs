@@ -8,7 +8,7 @@ using static WalletWasabi.Http.Constants;
 namespace System.Net.Http
 {
 	public static class HttpRequestMessageExtensions
-    {
+	{
 		public static async Task<HttpRequestMessage> CreateNewAsync(Stream requestStream, CancellationToken ctsToken = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-3
@@ -114,7 +114,7 @@ namespace System.Net.Http
 				newMessage.Headers.TryAddWithoutValidation(header.Key, header.Value);
 			}
 
-			if(me.Content == null)
+			if (me.Content == null)
 			{
 				return newMessage;
 			}

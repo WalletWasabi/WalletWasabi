@@ -14,12 +14,12 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Services
 {
-    public class MemPoolBehavior : NodeBehavior
+	public class MemPoolBehavior : NodeBehavior
 	{
-		const int MAX_INV_SIZE = 50000;
+		private const int MAX_INV_SIZE = 50000;
 
 		public MemPoolService MemPoolService { get; }
-		
+
 		public MemPoolBehavior(MemPoolService memPoolService)
 		{
 			MemPoolService = Guard.NotNull(nameof(memPoolService), memPoolService);
@@ -76,7 +76,7 @@ namespace WalletWasabi.Services
 			foreach (var inv in invPayload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
 			{
 				// if we already have it continue;
-				if(!MemPoolService.TransactionHashes.Add(inv.Hash))
+				if (!MemPoolService.TransactionHashes.Add(inv.Hash))
 				{
 					continue;
 				}

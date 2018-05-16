@@ -1,16 +1,13 @@
 ﻿using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Backend.Models.Responses
 {
-    public class CcjRunningRoundState
-    {
+	public class CcjRunningRoundState
+	{
 		[JsonConverter(typeof(StringEnumConverter))]
 		public CcjRoundPhase Phase { get; set; }
 

@@ -8,7 +8,7 @@ using WalletWasabi.Helpers;
 namespace WalletWasabi.TorSocks5.Models.Messages
 {
 	public class VersionMethodRequest : ByteArraySerializableBase
-    {
+	{
 		#region PropertiesAndMembers
 
 		public VerField Ver { get; set; }
@@ -17,13 +17,12 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public MethodsField Methods { get; set; }
 
-		#endregion
+		#endregion PropertiesAndMembers
 
 		#region ConstructorsAndInitializers
 
 		public VersionMethodRequest()
 		{
-
 		}
 
 		public VersionMethodRequest(MethodsField methods)
@@ -38,7 +37,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			NMethods = nMethods;
 		}
 
-		#endregion
+		#endregion ConstructorsAndInitializers
 
 		#region Serialization
 
@@ -53,7 +52,7 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 			NMethods = new NMethodsField();
 			NMethods.FromByte(bytes[1]);
 
-			if(NMethods.Value != bytes.Length - 2)
+			if (NMethods.Value != bytes.Length - 2)
 			{
 				throw new FormatException($"{nameof(NMethods)}.{nameof(NMethods.Value)} must be {nameof(bytes)}.{nameof(bytes.Length)} - 2` = {bytes.Length - 2}. Actual: {NMethods.Value}.");
 			}
@@ -64,6 +63,6 @@ namespace WalletWasabi.TorSocks5.Models.Messages
 
 		public override byte[] ToBytes() => ByteHelpers.Combine(new byte[] { Ver.ToByte(), NMethods.ToByte() }, Methods.ToBytes());
 
-		#endregion
+		#endregion Serialization
 	}
 }

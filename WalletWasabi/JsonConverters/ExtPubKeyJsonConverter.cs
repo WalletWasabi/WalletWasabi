@@ -6,7 +6,7 @@ using System.Text;
 
 namespace WalletWasabi.JsonConverters
 {
-    public class ExtPubKeyJsonConverter : JsonConverter
+	public class ExtPubKeyJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
