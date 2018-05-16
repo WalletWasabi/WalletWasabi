@@ -141,7 +141,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 		}
 
-
 		private Process _process;
 		private readonly string DataDir;
 
@@ -197,7 +196,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 			{
 				_locked.Remove(outpoint);
 			}
-
 		}
 
 		public void Broadcast(Transaction transaction)
@@ -256,7 +254,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				}
 				State = CoreNodeState.Killed;
 				if (cleanFolder)
-					CleanFolderAsync().GetAwaiter().GetResult(); ;
+					CleanFolderAsync().GetAwaiter().GetResult();
 			}
 		}
 

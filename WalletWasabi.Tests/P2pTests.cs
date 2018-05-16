@@ -138,7 +138,6 @@ namespace WalletWasabi.Tests
 						Logger.LogInfo<P2pTests>($"Full block is downloaded: {hash}.");
 					}
 				}
-
 			}
 			finally
 			{
