@@ -64,7 +64,7 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
   Depends on:
   - [x] ZeroLink Research
   
-- [ ] **7. ZeroLink Client.** *2 weeks. NBitcoin.* Revise the ZeroLink Client code based on ZeroLink v2 Revision.
+- [x] **7. ZeroLink Client.** *2 weeks. NBitcoin.* Revise the ZeroLink Client code based on ZeroLink v2 Revision.
 
   Depends on:
   - [x] ZeroLink Research
@@ -75,7 +75,7 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
 - [ ] **8. GUI.** *1 month. Electron, front end, Bitcoin.* Redesign the user experience and build it.
 
   Depends on:
-  - [ ] ALL previous items
+  - [x] ALL previous items
   
 ### 4. Deployment Stage
   
