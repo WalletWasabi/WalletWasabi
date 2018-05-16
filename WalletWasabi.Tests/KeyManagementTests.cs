@@ -90,18 +90,18 @@ namespace WalletWasabi.Tests
 		public void CanSerialize()
 		{
 			string password = "password";
-			var manager = KeyManager.CreateNew(out _, password);
 
 			var filePath = Path.Combine(SharedFixture.DataDir, nameof(CanSerialize), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
+			var manager = KeyManager.CreateNew(out _, password, filePath);
 
 			Logger.TurnOff();
 			Assert.Throws<FileNotFoundException>(() => KeyManager.FromFile(filePath));
 			Logger.TurnOn();
 
-			manager.ToFile(filePath);
+			manager.ToFile();
 
-			manager.ToFile(filePath); // assert it doesn't throw
+			manager.ToFile(); // assert it doesn't throw
 
 			var random = new Random();
 
@@ -112,7 +112,7 @@ namespace WalletWasabi.Tests
 				var keyState = (KeyState)random.Next(3);
 				manager.GenerateNewKey(label, keyState, isInternal);
 			}
-			manager.ToFile(filePath);
+			manager.ToFile();
 
 			Assert.True(File.Exists(filePath));
 

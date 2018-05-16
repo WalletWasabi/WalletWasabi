@@ -35,8 +35,10 @@ namespace WalletWasabi.KeyManagement
 
 		private readonly object HdPubKeysLock;
 
+		public string FilePath { get; private set;  }
+
 		[JsonConstructor]
-		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey)
+		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, string filePath = null)
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeysLock = new object();
@@ -44,9 +46,10 @@ namespace WalletWasabi.KeyManagement
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
+			SetFilePath(filePath);
 		}
 
-		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password)
+		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, string filePath = null)
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeysLock = new object();
@@ -61,9 +64,11 @@ namespace WalletWasabi.KeyManagement
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
 			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
+
+			SetFilePath(filePath);
 		}
 
-		public static KeyManager CreateNew(out Mnemonic mnemonic, string password)
+		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string filePath = null)
 		{
 			if (password == null)
 			{
@@ -74,10 +79,10 @@ namespace WalletWasabi.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter());
+			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), filePath);
 		}
 
-		public static KeyManager Recover(Mnemonic mnemonic, string password)
+		public static KeyManager Recover(Mnemonic mnemonic, string password, string filePath = null)
 		{
 			Guard.NotNull(nameof(mnemonic), mnemonic);
 			if (password == null)
@@ -88,20 +93,28 @@ namespace WalletWasabi.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter());
+			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), filePath);
 		}
 
-		public void ToFile(string filePath)
+		public void SetFilePath(string filePath)
 		{
-			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
+			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
+			if (FilePath != null)
+			{
+				var directoryPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
+				Directory.CreateDirectory(directoryPath);
+			}
+		}
 
-			var directoryPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
-			if (directoryPath != null) Directory.CreateDirectory(directoryPath);
-
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			File.WriteAllText(filePath,
-			jsonString,
-			Encoding.UTF8);
+		public void ToFile()
+		{
+			if (FilePath != null)
+			{
+				string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+				File.WriteAllText(FilePath,
+				jsonString,
+				Encoding.UTF8);
+			}
 		}
 
 		public static KeyManager FromFile(string filePath)
@@ -114,7 +127,9 @@ namespace WalletWasabi.KeyManagement
 			}
 
 			string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
-			return JsonConvert.DeserializeObject<KeyManager>(jsonString);
+			var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
+			km.SetFilePath(filePath);
+			return km;
 		}
 
 		public HdPubKey GenerateNewKey(string label, KeyState keyState, bool isInternal)
