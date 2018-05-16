@@ -588,10 +588,7 @@ namespace WalletWasabi.Services
 						}
 						catch (Exception ex)
 						{
-							if (!coinToDequeue.Unspent)
-							{
-							}
-							else
+							if (coinToDequeue.Unspent)
 							{
 								exceptions.Add(ex);
 							}
