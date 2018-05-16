@@ -51,7 +51,7 @@ namespace WalletWasabi.TorSocks5
 				}
 				catch (Exception ex)
 				{
-					Logger.LogWarning<TorSocks5Client>(ex, LogLevel.Debug);
+					Logger.LogWarning<TorSocks5Client>(ex);
 					return false;
 				}
 			}
@@ -507,7 +507,7 @@ namespace WalletWasabi.TorSocks5
 			}
 			catch (Exception ex)
 			{
-				Logger.LogWarning<TorSocks5Client>(ex, LogLevel.Debug);
+				Logger.LogWarning<TorSocks5Client>(ex);
 			}
 			finally
 			{

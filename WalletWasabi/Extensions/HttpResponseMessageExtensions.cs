@@ -10,7 +10,7 @@ namespace System.Net.Http
 {
 	public static class HttpResponseMessageExtensions
     {
-		public static async Task<HttpResponseMessage> CreateNewAsync(this HttpResponseMessage me, Stream responseStream, HttpMethod requestMethod)
+		public static async Task<HttpResponseMessage> CreateNewAsync(Stream responseStream, HttpMethod requestMethod)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-3
 			// The normal procedure for parsing an HTTP message is to read the
@@ -30,7 +30,7 @@ namespace System.Net.Http
 			//					* (header - field CRLF )
 			//					CRLF
 			//					[message - body]
-			
+
 			var position = 0;
 			string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream);
 			position += startLine.Length;
@@ -53,7 +53,7 @@ namespace System.Net.Http
 				HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, response.Content.Headers);
 			}
 			return response;
-		}		
+		}
 
 		public static async Task<Stream> ToStreamAsync(this HttpResponseMessage me)
 		{
@@ -63,14 +63,14 @@ namespace System.Net.Http
 		{
 			var startLine = new StatusLine(new HttpProtocol($"HTTP/{me.Version.Major}.{me.Version.Minor}"), me.StatusCode).ToString();
 
-			string headers = "";
+			var headers = "";
 			if (me.Headers != null && me.Headers.Count() != 0)
 			{
 				var headerSection = HeaderSection.CreateNew(me.Headers);
 				headers += headerSection.ToString(endWithTwoCRLF: false);
 			}
 
-			string messageBody = "";
+			var messageBody = "";
 			if (me.Content != null)
 			{
 				if (me.Content.Headers != null && me.Content.Headers.Count() != 0)
@@ -83,6 +83,6 @@ namespace System.Net.Http
 			}
 
 			return startLine + headers + CRLF + messageBody;
-		}		
+		}
 	}
 }

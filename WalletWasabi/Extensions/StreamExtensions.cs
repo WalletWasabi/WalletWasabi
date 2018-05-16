@@ -12,7 +12,7 @@ namespace System.IO
 			if (len == 0) return -1;
 			else return buf[0];
 		}
-		public static async Task<int> ReadBlockAsync(this Stream stream, byte[] buffer, int offset, int count, CancellationToken ctsToken = default)
+		public static async Task<int> ReadBlockAsync(this Stream stream, byte[] buffer, int count, CancellationToken ctsToken = default)
 		{
 			var left = count;
 			while(left != 0)

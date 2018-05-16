@@ -203,7 +203,7 @@ namespace WalletWasabi.TorSocks5
 			await TorSocks5Client.Stream.FlushAsync();
 			using (var httpResponseMessage = new HttpResponseMessage())
 			{
-				return await httpResponseMessage.CreateNewAsync(TorSocks5Client.Stream, request.Method);
+				return await HttpResponseMessageExtensions.CreateNewAsync(TorSocks5Client.Stream, request.Method);
 			}
 		}
 

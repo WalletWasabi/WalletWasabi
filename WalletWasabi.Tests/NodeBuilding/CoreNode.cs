@@ -278,7 +278,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			private set;
 		}
 
-		public Block[] Generate(int blockCount, bool includeUnbroadcasted = true, bool broadcast = true)
+		public Block[] Generate(int blockCount)
 		{
 			var rpc = CreateRpcClient();
 			var blocks = rpc.Generate(blockCount);
@@ -311,12 +311,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 				node.SendMessageAsync(new BlockPayload(block));
 			}
 			node.PingPong();
-		}
-
-		public Block[] FindBlock(int blockCount = 1, bool includeMempool = true)
-		{
-			SelectMempoolTransactions();
-			return Generate(blockCount, includeMempool);
 		}
 
 		public void MineBlock(Block block)

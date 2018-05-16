@@ -39,7 +39,7 @@ namespace WalletWasabi.Tests
 			{
 				var rpc = (await builder.CreateNodeAsync()).CreateRpcClient();
 				await builder.StartAllAsync();
-				var generatedBlocks = builder.Nodes.First().Generate(10, true, false);
+				var generatedBlocks = builder.Nodes.First().Generate(10);
 				var latestBlockHash = generatedBlocks.Last().GetHash();
 				var latestBlockTask = rpc.WaitForBlockAsync(latestBlockHash);
 

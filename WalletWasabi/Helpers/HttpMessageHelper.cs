@@ -28,7 +28,7 @@ namespace System.Net.Http
 			int read = 0;
 			while (read >= 0)
 			{
-				read = await stream.ReadByteAsync(ctsToken);				
+				read = await stream.ReadByteAsync(ctsToken);
 				bab.Append((byte)read);
 				if (Encoding.ASCII.GetBytes(LF)[0] == (byte)read)
 				{
@@ -279,7 +279,7 @@ namespace System.Net.Http
 			// read trailer field
 			// while (trailer field is not empty) {
 			//   if (trailer field is allowed to be sent in a trailer) {
-			//      append trailer field to existing header fields				
+			//      append trailer field to existing header fields
 			//   }
 			//   read trailer-field
 			// }
@@ -381,7 +381,7 @@ namespace System.Net.Http
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Modified-Since");
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Unmodified-Since");
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "If-Range");
-			// authentication(e.g., see [RFC7235] 
+			// authentication(e.g., see [RFC7235]
 			// https://tools.ietf.org/html/rfc7235#section-5.3
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Authorization");
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Proxy-Authenticate");
@@ -391,7 +391,7 @@ namespace System.Net.Http
 			// https://tools.ietf.org/html/rfc6265
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Set-Cookie");
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Cookie");
-			// response control data(e.g., see Section 7.1 of[RFC7231]), 
+			// response control data(e.g., see Section 7.1 of[RFC7231]),
 			// https://tools.ietf.org/html/rfc7231#section-7.1
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Age");
 			trailerHeaderSection.Fields.RemoveAll(x => x.Name == "Cache-Control");
@@ -439,7 +439,7 @@ namespace System.Net.Http
 
 		private static async Task<HttpContent> GetContentTillLengthAsync(Stream stream, long? contentLength, CancellationToken ctsToken = default)
 			=> new ByteArrayContent(await ReadBytesTillLengthAsync(stream, contentLength, ctsToken));
-		
+
 		private static async Task<byte[]> ReadBytesTillLengthAsync(Stream stream, long? length, CancellationToken ctsToken)
 		{
 			try
@@ -452,7 +452,7 @@ namespace System.Net.Http
 			}
 
 			var allData = new byte[(int)length];
-			var num = await stream.ReadBlockAsync(allData, 0, (int)length);
+			var num = await stream.ReadBlockAsync(allData, (int)length);
 			if (num < (int)length)
 			{
 				// https://tools.ietf.org/html/rfc7230#section-3.3.3

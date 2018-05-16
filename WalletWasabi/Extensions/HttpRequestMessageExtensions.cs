@@ -9,7 +9,7 @@ namespace System.Net.Http
 {
 	public static class HttpRequestMessageExtensions
     {
-		public static async Task<HttpRequestMessage> CreateNewAsync(this HttpRequestMessage me, Stream requestStream, CancellationToken ctsToken = default)
+		public static async Task<HttpRequestMessage> CreateNewAsync(Stream requestStream, CancellationToken ctsToken = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-3
 			// The normal procedure for parsing an HTTP message is to read the
@@ -29,7 +29,7 @@ namespace System.Net.Http
 			//					* (header - field CRLF )
 			//					CRLF
 			//					[message - body]
-			
+
 			var position = 0;
 			string startLine = await HttpMessageHelper.ReadStartLineAsync(requestStream, ctsToken);
 			position += startLine.Length;
@@ -69,11 +69,11 @@ namespace System.Net.Http
 				{
 					// https://tools.ietf.org/html/rfc7230#section-5.4
 					// If the target URI includes an authority component, then a
-					// client MUST send a field-value for Host that is identical to that			   
-					// authority component, excluding any userinfo subcomponent and its "@"			   
-					// delimiter(Section 2.7.1).If the authority component is missing or			   
-					// undefined for the target URI, then a client MUST send a Host header			   
-					// field with an empty field - value.					
+					// client MUST send a field-value for Host that is identical to that
+					// authority component, excluding any userinfo subcomponent and its "@"
+					// delimiter(Section 2.7.1).If the authority component is missing or
+					// undefined for the target URI, then a client MUST send a Host header
+					// field with an empty field - value.
 					me.Headers.TryAddWithoutValidation("Host", me.RequestUri.Authority);
 				}
 			}
@@ -86,7 +86,7 @@ namespace System.Net.Http
 				var headerSection = HeaderSection.CreateNew(me.Headers);
 				headers += headerSection.ToString(endWithTwoCRLF: false);
 			}
-			
+
 			string messageBody = "";
 			if (me.Content != null)
 			{
@@ -95,7 +95,7 @@ namespace System.Net.Http
 					var headerSection = HeaderSection.CreateNew(me.Content.Headers);
 					headers += headerSection.ToString(endWithTwoCRLF: false);
 				}
-				
+
 				messageBody = await me.Content.ReadAsStringAsync();
 			}
 
