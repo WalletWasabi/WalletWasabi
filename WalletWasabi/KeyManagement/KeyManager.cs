@@ -36,6 +36,7 @@ namespace WalletWasabi.KeyManagement
 		private readonly object HdPubKeysLock;
 
 		public string FilePath { get; private set;  }
+		private object ToFileLock { get; }
 
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, string filePath = null)
@@ -47,6 +48,8 @@ namespace WalletWasabi.KeyManagement
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
 			SetFilePath(filePath);
+			ToFileLock = new object();
+			ToFile();
 		}
 
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, string filePath = null)
@@ -66,6 +69,8 @@ namespace WalletWasabi.KeyManagement
 			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
 
 			SetFilePath(filePath);
+			ToFileLock = new object();
+			ToFile();
 		}
 
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string filePath = null)
@@ -110,10 +115,13 @@ namespace WalletWasabi.KeyManagement
 		{
 			if (FilePath != null)
 			{
-				string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-				File.WriteAllText(FilePath,
-				jsonString,
-				Encoding.UTF8);
+				lock (ToFileLock)
+				{
+					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+					File.WriteAllText(FilePath,
+					jsonString,
+					Encoding.UTF8);
+				}
 			}
 		}
 
@@ -165,6 +173,8 @@ namespace WalletWasabi.KeyManagement
 
 				var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
 				HdPubKeys.Add(hdPubKey);
+
+				ToFile();
 
 				return hdPubKey;
 			}

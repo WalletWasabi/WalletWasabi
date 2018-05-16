@@ -93,11 +93,13 @@ namespace WalletWasabi.Tests
 
 			var filePath = Path.Combine(SharedFixture.DataDir, nameof(CanSerialize), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
-			var manager = KeyManager.CreateNew(out _, password, filePath);
 
 			Logger.TurnOff();
 			Assert.Throws<FileNotFoundException>(() => KeyManager.FromFile(filePath));
 			Logger.TurnOn();
+
+			var manager = KeyManager.CreateNew(out _, password, filePath);
+			KeyManager.FromFile(filePath); 
 
 			manager.ToFile();
 
