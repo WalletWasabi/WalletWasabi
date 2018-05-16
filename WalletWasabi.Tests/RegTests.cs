@@ -1443,7 +1443,7 @@ namespace WalletWasabi.Tests
 				}
 
 				Assert.Empty(wallet.Coins);
-				
+
 				// Get some money, make it confirm.
 				// this is necesary because we are in a fork now.
 				var tx0Id = await Global.RpcClient.SendToAddressAsync(key.GetP2wpkhAddress(network), new Money(1m, MoneyUnit.BTC),
@@ -1545,13 +1545,13 @@ namespace WalletWasabi.Tests
 			var cjfile = Path.Combine(folder, $"CoinJoins{network}.txt");
 			File.WriteAllLines(cjfile, new[]{
 				coinbaseTxId.ToString(),
-				offchainTxId.ToString(), 
+				offchainTxId.ToString(),
 				mempoolTxId.ToString()
 			});
 
 			var coordinator = new CcjCoordinator(network, folder, rpc, Global.Coordinator.RoundConfig);
 			var txIds = await File.ReadAllLinesAsync(cjfile);
-			
+
 			Assert.Contains(coinbaseTxId.ToString(), txIds);
 			Assert.Contains(mempoolTxId.ToString(), txIds);
 			Assert.DoesNotContain(offchainTxId.ToString(), txIds);
@@ -1626,7 +1626,7 @@ namespace WalletWasabi.Tests
 
 				HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(inputsRequest, baseUri));
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid request.", httpRequestException.Message);
-				
+
 				inputsRequest.BlindedOutputScriptHex = "c";
 				inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(network).ToString();
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(uint256.One, 0), Proof = "b" } };
@@ -2576,7 +2576,7 @@ namespace WalletWasabi.Tests
 				Assert.True(1 == (await chaumianClient.QueueCoinsToMixAsync(password, wallet.Coins.ToArray())).Count());
 				Assert.True(3 == (await chaumianClient2.QueueCoinsToMixAsync(password, wallet2.Coins.ToArray())).Count());
 
-				Task timeout = Task.Delay(TimeSpan.FromSeconds(2*(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2)));
+				Task timeout = Task.Delay(TimeSpan.FromSeconds(2 * (connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2)));
 				while (wallet.Coins.Count != 7)
 				{
 					if (timeout.IsCompletedSuccessfully)

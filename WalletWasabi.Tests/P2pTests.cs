@@ -89,13 +89,13 @@ namespace WalletWasabi.Tests
 				});
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
-			 WalletService walletService = new WalletService(
-				keyManager,
-				new IndexDownloader(network, Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345")),
-				new CcjClient(network, new BlindingRsaKey().PubKey, keyManager, new Uri("http://localhost:12345")),
-				memPoolService,
-				nodes,
-				blocksFolderPath);
+			WalletService walletService = new WalletService(
+			   keyManager,
+			   new IndexDownloader(network, Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345")),
+			   new CcjClient(network, new BlindingRsaKey().PubKey, keyManager, new Uri("http://localhost:12345")),
+			   memPoolService,
+			   nodes,
+			   blocksFolderPath);
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try

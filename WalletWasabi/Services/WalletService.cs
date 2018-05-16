@@ -238,7 +238,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			if(generated)
+			if (generated)
 			{
 				KeyManager.ToFile();
 			}
@@ -281,7 +281,7 @@ namespace WalletWasabi.Services
 			if (keys == null)
 			{
 				keys = KeyManager.GetKeys().ToList();
-			}			
+			}
 
 			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
 			{
@@ -299,7 +299,7 @@ namespace WalletWasabi.Services
 
 			// If double spend:
 			IEnumerable<SmartCoin> doubleSpends = Coins.Where(x => tx.Transaction.Inputs.Any(y => x.SpentOutputs.Select(z => z.ToOutPoint()).Contains(y.PrevOut)));
-			if(doubleSpends.Count() > 0)
+			if (doubleSpends.Count() > 0)
 			{
 				if (tx.Height == Height.MemPool)
 				{
@@ -320,7 +320,7 @@ namespace WalletWasabi.Services
 				else // new confirmation always enjoys priority
 				{
 					// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
-					foreach(var doubleSpentCoin in doubleSpends)
+					foreach (var doubleSpentCoin in doubleSpends)
 					{
 						RemoveCoinRecursively(doubleSpentCoin);
 					}
@@ -692,7 +692,7 @@ namespace WalletWasabi.Services
 			{
 				AssertCleanKeysIndexed(21, true);
 				var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
-				
+
 				changeHdPubKey.SetLabel(changeLabel, KeyManager);
 				changeScriptPubKey = changeHdPubKey.GetP2wpkhScript();
 			}
@@ -816,7 +816,7 @@ namespace WalletWasabi.Services
 			newLabel = Guard.Correct(newLabel);
 			coin.Label = newLabel;
 			var key = KeyManager.GetKeys().SingleOrDefault(x => x.GetP2wpkhScript() == coin.ScriptPubKey);
-			if(key != null)
+			if (key != null)
 			{
 				key.SetLabel(newLabel, KeyManager);
 			}

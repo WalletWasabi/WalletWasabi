@@ -40,7 +40,6 @@ namespace WalletWasabi.Services
 
 		private long _frequentStatusProcessingIfNotMixing;
 
-
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
@@ -187,7 +186,7 @@ namespace WalletWasabi.Services
 									BitcoinAddress activeAddress = null;
 									lock (CustomChangeAddressesLock)
 									{
-										if(CustomChangeAddresses.Count > 0)
+										if (CustomChangeAddresses.Count > 0)
 										{
 											changeAddress = CustomChangeAddresses.First();
 											CustomChangeAddresses.RemoveFirst();
@@ -220,7 +219,7 @@ namespace WalletWasabi.Services
 										inputProofs.Add(inputProof);
 									}
 									AliceClient aliceClient = await AliceClient.CreateNewAsync(changeAddress, blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
-									
+
 									byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
 
 									if (!CoordinatorPubKey.Verify(unblindedSignature, activeAddress.ScriptPubKey.ToBytes()))
@@ -307,7 +306,7 @@ namespace WalletWasabi.Services
 									{
 										throw new NotSupportedException("Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
 									}
-								
+
 									using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
 									{
 										await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutputAddress, ongoingRound.UnblindedSignature);
@@ -405,7 +404,7 @@ namespace WalletWasabi.Services
 
 		public IEnumerable<BitcoinAddress> GetCustomChangeAddresses()
 		{
-			lock(CustomChangeAddressesLock)
+			lock (CustomChangeAddressesLock)
 			{
 				return CustomChangeAddresses;
 			}
@@ -426,7 +425,7 @@ namespace WalletWasabi.Services
 		{
 			lock (CustomActiveAddressesLock)
 			{
-				if(CustomActiveAddresses.Contains(address))
+				if (CustomActiveAddresses.Contains(address))
 				{
 					CustomActiveAddresses.Remove(address);
 				}
@@ -530,7 +529,7 @@ namespace WalletWasabi.Services
 			{
 				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
-				await DequeueCoinsFromMixNoLockAsync(coins.Select(x=>(x.TransactionId, x.Index)).ToArray());
+				await DequeueCoinsFromMixNoLockAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
 			}
 		}
 

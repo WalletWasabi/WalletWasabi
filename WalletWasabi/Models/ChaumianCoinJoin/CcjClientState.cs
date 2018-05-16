@@ -100,7 +100,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x=>(x.TransactionId, x.Index)).ToArray();
+				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => (x.TransactionId, x.Index)).ToArray();
 			}
 		}
 
@@ -139,7 +139,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => x.AliceClient != null && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).Select(x=>x.State.RoundId).ToArray();
+				return Rounds.Where(x => x.AliceClient != null && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 
@@ -192,7 +192,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					WaitingList.Add(coin);
 					Logger.LogInfo<CcjClientState>($"Coin added to the waiting list: {coin.Index}:{coin.TransactionId}.");
 				}
-				foreach(var round in Rounds.Where(x=> roundsToRemove.Contains(x.State.RoundId)))
+				foreach (var round in Rounds.Where(x => roundsToRemove.Contains(x.State.RoundId)))
 				{
 					round.AliceClient?.Dispose();
 					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's not running anymore.");
@@ -207,9 +207,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 				}
 
-				foreach(var state in allRunningRoundsStates)
+				foreach (var state in allRunningRoundsStates)
 				{
-					if(!Rounds.Select(x=>x.State.RoundId).Contains(state.RoundId))
+					if (!Rounds.Select(x => x.State.RoundId).Contains(state.RoundId))
 					{
 						var r = new CcjClientRound(state);
 						Rounds.Add(r);
@@ -221,12 +221,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public CcjClientRound GetRegistrableRoundOrDefault()
 		{
-			lock(StateLock)
+			lock (StateLock)
 			{
 				return Rounds.FirstOrDefault(x => x.State.Phase == CcjRoundPhase.InputRegistration);
 			}
 		}
-		
+
 		public void AddOrReplaceRound(CcjClientRound round)
 		{
 			lock (StateLock)
