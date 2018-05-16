@@ -74,7 +74,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		}
         public CoreNodeState State { get; private set; }
 
-        private int[] _ports;
+        private readonly int[] _ports;
 
 		public int ProtocolPort
 		{
@@ -167,7 +167,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private List<Transaction> _transactions = new List<Transaction>();
 		private HashSet<OutPoint> _locked = new HashSet<OutPoint>();
-		private Money _fee = Money.Coins(0.0001m);
+		private readonly Money _fee = Money.Coins(0.0001m);
 		public Transaction GiveMoney(Script destination, Money amount, bool broadcast = true)
 		{
 			var rpc = CreateRpcClient();
@@ -242,7 +242,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			Broadcast(tx);
 		}
 
-		private object _l = new object();
+		private readonly object _l = new object();
 		public void Kill(bool cleanFolder = true)
 		{
 			lock (_l)

@@ -80,21 +80,15 @@ namespace WalletWasabi.Tests.NodeBuilding
 		}
 
 		private int _last = 0;
-		private string _root;
-		private string _bitcoind;
+		private readonly string _root;
+
 		public NodeBuilder(string root, string bitcoindPath)
 		{
 			_root = root;
-			_bitcoind = bitcoindPath;
+			BitcoinD = bitcoindPath;
 		}
 
-		public string BitcoinD
-		{
-			get
-			{
-				return _bitcoind;
-			}
-		}
+        public string BitcoinD { get; }
         public List<CoreNode> Nodes { get; } = new List<CoreNode>();
         public NodeConfigParameters ConfigParameters { get; } = new NodeConfigParameters();
 
