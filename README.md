@@ -16,7 +16,7 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 [7]: https://img.shields.io/github/license/zkSNACKs/WalletWasabi.svg
 [8]: https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md
 [9]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi/badge
-[10]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi/badge
+[10]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi
 
 ## Build & Test
 
