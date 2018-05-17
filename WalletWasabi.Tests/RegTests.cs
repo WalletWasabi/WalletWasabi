@@ -1439,9 +1439,18 @@ namespace WalletWasabi.Tests
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
 				Assert.Single(wallet.Coins);
 
-				// Spend the unconfirmed coin (send it to ourself)
-				var operations = new[] { new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "") };
+				// Test mixin
+				var operations = new[] {
+					new WalletService.Operation(key.GetP2wpkhScript(), Money.Coins(0.01m), ""),
+					new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.01m), ""),
+					new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.01m), "")
+				};
 				var tx1Res = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true);
+				Assert.Equal(2, tx1Res.OuterWalletOutputs.Single(x => x.ScriptPubKey == key.GetP2wpkhScript()).Mixin);
+
+				// Spend the unconfirmed coin (send it to ourself)
+				operations = new[] { new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "") };
+				tx1Res = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(tx1Res.Transaction);
 
 				while (wallet.Coins.Count != 3)
@@ -1621,7 +1630,7 @@ namespace WalletWasabi.Tests
 				var addr = await rpc.GetNewAddressAsync();
 				var hash = await rpc.SendToAddressAsync(addr, new Money(0.01m, MoneyUnit.BTC));
 				var tx = await rpc.GetRawTransactionAsync(hash);
-				var index = tx.Outputs.GetIndex(addr.ScriptPubKey);
+				var index = tx.Outputs.GetIndexes(addr.ScriptPubKey).Single();
 
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(inputsRequest, baseUri));
@@ -1643,7 +1652,7 @@ namespace WalletWasabi.Tests
 				hash = await rpc.SendToAddressAsync(witnessAddress, new Money(0.01m, MoneyUnit.BTC));
 				await rpc.GenerateAsync(1);
 				tx = await rpc.GetRawTransactionAsync(hash);
-				index = tx.Outputs.GetIndex(witnessAddress.ScriptPubKey);
+				index = tx.Outputs.GetIndexes(witnessAddress.ScriptPubKey).Single();
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new OutPoint(hash, index), Proof = "b" } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}", httpRequestException.Message);
@@ -1737,7 +1746,7 @@ namespace WalletWasabi.Tests
 					hash = await rpc.SendToAddressAsync(witnessAddress, new Money(0.01m, MoneyUnit.BTC));
 					await rpc.GenerateAsync(1);
 					tx = await rpc.GetRawTransactionAsync(hash);
-					index = tx.Outputs.GetIndex(witnessAddress.ScriptPubKey);
+					index = tx.Outputs.GetIndexes(witnessAddress.ScriptPubKey).Single();
 					proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
 					inputProofs.Add(new InputProofModel { Input = new OutPoint(hash, index), Proof = proof });
 				}
@@ -1811,7 +1820,7 @@ namespace WalletWasabi.Tests
 				hash = await rpc.SendToAddressAsync(witnessAddress, new Money(0.01m, MoneyUnit.BTC));
 				await rpc.GenerateAsync(1);
 				tx = await rpc.GetRawTransactionAsync(hash);
-				index = tx.Outputs.GetIndex(witnessAddress.ScriptPubKey);
+				index = tx.Outputs.GetIndexes(witnessAddress.ScriptPubKey).Single();
 				scriptBytes = new Key().PubKey.GetSegwitAddress(network).ScriptPubKey.ToBytes();
 				(BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptBytes);
 
@@ -2063,7 +2072,7 @@ namespace WalletWasabi.Tests
 					Assert.NotNull(txHash);
 					Transaction transaction = await rpc.GetRawTransactionAsync(txHash);
 
-					var outputIndex = transaction.Outputs.GetIndex(inputAddress.ScriptPubKey);
+					var outputIndex = transaction.Outputs.GetIndexes(inputAddress.ScriptPubKey).Single();
 
 					OutPoint input = new OutPoint(txHash, outputIndex);
 					var inputProof = new InputProofModel { Input = input, Proof = key.SignMessage(ByteHelpers.ToHex(blinded.BlindedData)) };
@@ -2260,9 +2269,9 @@ namespace WalletWasabi.Tests
 			var tx3 = await rpc.GetRawTransactionAsync(txid3);
 			await rpc.GenerateAsync(1);
 			var height = await rpc.GetBlockCountAsync();
-			var smartCoin1 = new SmartCoin(txid1, tx1.Outputs.GetIndex(bech1.ScriptPubKey), bech1.ScriptPubKey, amount1, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
-			var smartCoin2 = new SmartCoin(txid2, tx2.Outputs.GetIndex(bech2.ScriptPubKey), bech2.ScriptPubKey, amount2, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
-			var smartCoin3 = new SmartCoin(txid3, tx3.Outputs.GetIndex(bech3.ScriptPubKey), bech3.ScriptPubKey, amount3, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
+			var smartCoin1 = new SmartCoin(txid1, tx1.Outputs.GetIndexes(bech1.ScriptPubKey).Single(), bech1.ScriptPubKey, amount1, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx1.GetMixin(tx1.Outputs.GetIndexes(bech1.ScriptPubKey).Single()));
+			var smartCoin2 = new SmartCoin(txid2, tx2.Outputs.GetIndexes(bech2.ScriptPubKey).Single(), bech2.ScriptPubKey, amount2, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx2.GetMixin(tx2.Outputs.GetIndexes(bech2.ScriptPubKey).Single()));
+			var smartCoin3 = new SmartCoin(txid3, tx3.Outputs.GetIndexes(bech3.ScriptPubKey).Single(), bech3.ScriptPubKey, amount3, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(tx3.Outputs.GetIndexes(bech3.ScriptPubKey).Single()));
 
 			var chaumianClient1 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			var chaumianClient2 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
@@ -2285,7 +2294,7 @@ namespace WalletWasabi.Tests
 				Assert.True(smartCoin2.Locked);
 
 				// Make sure it doesn't throw.
-				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((new Transaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((new Transaction()).GetHash(), 0) }, Height.MemPool, rbf: false));
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((new Transaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((new Transaction()).GetHash(), 0) }, Height.MemPool, rbf: false, mixin: 0));
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
@@ -2368,9 +2377,9 @@ namespace WalletWasabi.Tests
 			var tx3 = await rpc.GetRawTransactionAsync(txid3);
 			await rpc.GenerateAsync(1);
 			var height = await rpc.GetBlockCountAsync();
-			var smartCoin1 = new SmartCoin(txid1, tx1.Outputs.GetIndex(bech1.ScriptPubKey), bech1.ScriptPubKey, amount1, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
-			var smartCoin2 = new SmartCoin(txid2, tx2.Outputs.GetIndex(bech2.ScriptPubKey), bech2.ScriptPubKey, amount2, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
-			var smartCoin3 = new SmartCoin(txid3, tx3.Outputs.GetIndex(bech3.ScriptPubKey), bech3.ScriptPubKey, amount3, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false);
+			var smartCoin1 = new SmartCoin(txid1, tx1.Outputs.GetIndexes(bech1.ScriptPubKey).Single(), bech1.ScriptPubKey, amount1, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx1.GetMixin(tx1.Outputs.GetIndexes(bech1.ScriptPubKey).Single()));
+			var smartCoin2 = new SmartCoin(txid2, tx2.Outputs.GetIndexes(bech2.ScriptPubKey).Single(), bech2.ScriptPubKey, amount2, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx2.GetMixin(tx2.Outputs.GetIndexes(bech2.ScriptPubKey).Single()));
+			var smartCoin3 = new SmartCoin(txid3, tx3.Outputs.GetIndexes(bech3.ScriptPubKey).Single(), bech3.ScriptPubKey, amount3, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(tx3.Outputs.GetIndexes(bech3.ScriptPubKey).Single()));
 
 			var chaumianClient1 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			var chaumianClient2 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));

@@ -18,23 +18,23 @@ namespace NBitcoin
 			}
 		}
 
-		public static int GetIndex(this TxOutList me, Script script)
+		public static IEnumerable<int> GetIndexes(this TxOutList me, Script script)
 		{
-			var index = -1;
+			var indexes = new List<int>();
 			for (int i = 0; i < me.Count; i++)
 			{
 				var output = me[i];
 				if (output.ScriptPubKey == script)
 				{
-					index = i;
+					indexes.Add(i);
 				}
 			}
 
-			if (index == -1)
+			if (indexes.Count == 0)
 			{
 				throw new InvalidOperationException("Script not found.");
 			}
-			return index;
+			return indexes;
 		}
 
 		public static string ToHex(this IBitcoinSerializable me)
@@ -57,6 +57,18 @@ namespace NBitcoin
 			}
 
 			return ret;
+		}
+
+		public static int GetAnonymitySet(this Transaction me, int outputIndex)
+		{
+			var output = me.Outputs[outputIndex];
+			return me.GetIndistinguishableOutputs().Single(x => x.value == output.Value).count;
+		}
+
+		public static int GetMixin(this Transaction me, int outputIndex)
+		{
+			var output = me.Outputs[outputIndex];
+			return me.GetIndistinguishableOutputs().Single(x => x.value == output.Value).count - 1;
 		}
 	}
 }

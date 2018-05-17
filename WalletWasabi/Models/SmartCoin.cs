@@ -53,6 +53,9 @@ namespace WalletWasabi.Models
 		[JsonConverter(typeof(FunnyBoolJsonConverter))]
 		public bool Locked { get; set; }
 
+		[JsonProperty(Order = 11)]
+		public int Mixin { get; }
+
 		public bool SpentOrLocked => SpenderTransactionId != null || Locked;
 		public bool Unspent => SpenderTransactionId == null;
 		public bool Confirmed => Height != Height.MemPool && Height != Height.Unknown;
@@ -63,13 +66,14 @@ namespace WalletWasabi.Models
 		public ISecret Secret { get; set; }
 
 		[JsonConstructor]
-		public SmartCoin(uint256 transactionId, int index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, string label = "", uint256 spenderTransactionId = null, bool locked = false)
+		public SmartCoin(uint256 transactionId, int index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool locked = false)
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
 			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
 			Amount = Guard.NotNull(nameof(amount), amount);
 			SpentOutputs = Guard.NotNull(nameof(spentOutputs), spentOutputs);
+			Mixin = Guard.InRangeAndNotNull(nameof(mixin), mixin, 0, int.MaxValue);
 			Height = height;
 			Label = Guard.Correct(label);
 			SpenderTransactionId = spenderTransactionId;

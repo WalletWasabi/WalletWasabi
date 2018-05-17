@@ -336,7 +336,13 @@ namespace WalletWasabi.Services
 				if (foundKey != default)
 				{
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
-					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, foundKey.Label, spenderTransactionId: null, locked: false); // Don't inherit locked status from key, that's different.
+					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+					var mixin = tx.Transaction.GetMixin(i);
+					if (spentOwnCoins.Count != 0)
+					{
+						mixin += spentOwnCoins.Min(x => x.Mixin);
+					}
+					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, locked: false); // Don't inherit locked status from key, that's different.
 					Coins.Add(coin);
 					if (coin.Unspent && coin.Label == "ZeroLink Change" && ChaumianClient.OnePiece != null)
 					{
@@ -761,7 +767,8 @@ namespace WalletWasabi.Services
 			for (var i = 0; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, spentOutputs, Height.Unknown, tx.RBF);
+				var mixin = tx.GetMixin(i) + spentCoins.Min(x => x.Mixin);
+				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, mixin);
 				if (KeyManager.GetKeys(KeyState.Clean).Select(x => x.GetP2wpkhScript()).Contains(coin.ScriptPubKey))
 				{
 					coin.Label = changeLabel;
