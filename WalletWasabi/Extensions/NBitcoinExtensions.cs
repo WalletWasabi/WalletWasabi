@@ -18,23 +18,9 @@ namespace NBitcoin
 			}
 		}
 
-		public static IEnumerable<int> GetIndexes(this TxOutList me, Script script)
+		public static IEnumerable<Coin> GetCoins(this TxOutList me, Script script)
 		{
-			var indexes = new List<int>();
-			for (int i = 0; i < me.Count; i++)
-			{
-				var output = me[i];
-				if (output.ScriptPubKey == script)
-				{
-					indexes.Add(i);
-				}
-			}
-
-			if (indexes.Count == 0)
-			{
-				throw new InvalidOperationException("Script not found.");
-			}
-			return indexes;
+			return me.AsCoins().Where(c=>c.ScriptPubKey == script);
 		}
 
 		public static string ToHex(this IBitcoinSerializable me)
@@ -65,7 +51,7 @@ namespace NBitcoin
 			return me.GetIndistinguishableOutputs().Single(x => x.value == output.Value).count;
 		}
 
-		public static int GetMixin(this Transaction me, int outputIndex)
+		public static int GetMixin(this Transaction me, uint outputIndex)
 		{
 			var output = me.Outputs[outputIndex];
 			return me.GetIndistinguishableOutputs().Single(x => x.value == output.Value).count - 1;

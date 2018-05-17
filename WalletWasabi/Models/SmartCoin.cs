@@ -21,7 +21,7 @@ namespace WalletWasabi.Models
 		public uint256 TransactionId { get; }
 
 		[JsonProperty(Order = 2)]
-		public int Index { get; }
+		public uint Index { get; }
 
 		[JsonProperty(Order = 3)]
 		[JsonConverter(typeof(JsonConverters.ScriptJsonConverter))]
@@ -66,12 +66,29 @@ namespace WalletWasabi.Models
 		public ISecret Secret { get; set; }
 
 		[JsonConstructor]
-		public SmartCoin(uint256 transactionId, int index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool locked = false)
+		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool locked = false)
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
 			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
 			Amount = Guard.NotNull(nameof(amount), amount);
+			SpentOutputs = Guard.NotNull(nameof(spentOutputs), spentOutputs);
+			Mixin = Guard.InRangeAndNotNull(nameof(mixin), mixin, 0, int.MaxValue);
+			Height = height;
+			Label = Guard.Correct(label);
+			SpenderTransactionId = spenderTransactionId;
+			RBF = rbf;
+			Locked = locked;
+			Secret = null;
+		}
+
+		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool locked = false)
+		{
+			Guard.NotNull(nameof(coin), coin);
+			TransactionId = coin.Outpoint.Hash;
+			Index = coin.Outpoint.N;
+			ScriptPubKey = coin.ScriptPubKey;
+			Amount = coin.Amount;
 			SpentOutputs = Guard.NotNull(nameof(spentOutputs), spentOutputs);
 			Mixin = Guard.InRangeAndNotNull(nameof(mixin), mixin, 0, int.MaxValue);
 			Height = height;
@@ -98,7 +115,7 @@ namespace WalletWasabi.Models
 
 		public bool Equals(SmartCoin other) => this == other;
 
-		public override int GetHashCode() => TransactionId.GetHashCode() ^ Index;
+		public override int GetHashCode() => TransactionId.GetHashCode() ^ (int)Index;
 
 		public static bool operator ==(SmartCoin x, SmartCoin y) => y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
 

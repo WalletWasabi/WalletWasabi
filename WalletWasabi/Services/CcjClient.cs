@@ -341,7 +341,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				IEnumerable<(uint256 txid, int index)> registrableCoins = State.GetRegistrableCoins(
+				IEnumerable<(uint256 txid, uint index)> registrableCoins = State.GetRegistrableCoins(
 					inputRegistrableRound.State.MaximumInputCountPerPeer,
 					inputRegistrableRound.State.Denomination,
 					inputRegistrableRound.State.FeePerInputs,
@@ -374,7 +374,7 @@ namespace WalletWasabi.Services
 					var blind = CoordinatorPubKey.Blind(activeAddress.ScriptPubKey.ToBytes());
 
 					var inputProofs = new List<InputProofModel>();
-					foreach ((uint256 txid, int index) coinReference in registrableCoins)
+					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
 					{
 						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin == null) throw new NotSupportedException("This is impossible.");
@@ -403,7 +403,7 @@ namespace WalletWasabi.Services
 						State.AddOrReplaceRound(roundRegistered);
 					}
 
-					foreach ((uint256 txid, int index) coinReference in registrableCoins)
+					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
 					{
 						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin == null) throw new NotSupportedException("This is impossible.");
@@ -565,7 +565,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async Task DequeueCoinsFromMixNoLockAsync(params (uint256 txid, int index)[] coins)
+		private async Task DequeueCoinsFromMixNoLockAsync(params (uint256 txid, uint index)[] coins)
 		{
 			List<Exception> exceptions = new List<Exception>();
 
@@ -667,7 +667,7 @@ namespace WalletWasabi.Services
 				SatoshiClient?.Dispose();
 				State.DisposeAllAliceClients();
 
-				IEnumerable<(uint256 txid, int index)> allCoins = State.GetAllCoins();
+				IEnumerable<(uint256 txid, uint index)> allCoins = State.GetAllCoins();
 				foreach (var coinReference in allCoins)
 				{
 					try

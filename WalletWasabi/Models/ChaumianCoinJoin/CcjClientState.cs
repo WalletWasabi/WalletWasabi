@@ -36,7 +36,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public IEnumerable<(uint256 txid, int index)> GetSpentCoins()
+		public IEnumerable<(uint256 txid, uint index)> GetSpentCoins()
 		{
 			lock (StateLock)
 			{
@@ -72,7 +72,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public SmartCoin GetSingleOrDefaultCoin((uint256 txid, int index) coinReference)
+		public SmartCoin GetSingleOrDefaultCoin((uint256 txid, uint index) coinReference)
 		{
 			lock (StateLock)
 			{
@@ -88,7 +88,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public SmartCoin GetSingleOrDefaultFromWaitingList((uint256 txid, int index) coinReference)
+		public SmartCoin GetSingleOrDefaultFromWaitingList((uint256 txid, uint index) coinReference)
 		{
 			lock (StateLock)
 			{
@@ -96,7 +96,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public IEnumerable<(uint256 txid, int index)> GetAllCoins()
+		public IEnumerable<(uint256 txid, uint index)> GetAllCoins()
 		{
 			lock (StateLock)
 			{
@@ -104,7 +104,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public IEnumerable<(uint256 txid, int index)> GetRegistrableCoins(int maximumInputCountPerPeer, Money denomination, Money feePerInputs, Money feePerOutputs)
+		public IEnumerable<(uint256 txid, uint index)> GetRegistrableCoins(int maximumInputCountPerPeer, Money denomination, Money feePerInputs, Money feePerOutputs)
 		{
 			lock (StateLock)
 			{
@@ -120,7 +120,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 					if (maximumInputCountPerPeer < coinsToRegister.Count)
 					{
-						return Enumerable.Empty<(uint256 txid, int index)>(); // Inputs are too small, max input to be registered is reached.
+						return Enumerable.Empty<(uint256 txid, uint index)>(); // Inputs are too small, max input to be registered is reached.
 					}
 
 					amountSoFar += coin.Amount;
@@ -131,7 +131,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 				}
 
-				return Enumerable.Empty<(uint256 txid, int index)>(); // Amount is never reached.
+				return Enumerable.Empty<(uint256 txid, uint index)>(); // Amount is never reached.
 			}
 		}
 

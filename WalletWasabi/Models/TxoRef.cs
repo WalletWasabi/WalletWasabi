@@ -19,10 +19,10 @@ namespace WalletWasabi.Models
 		public uint256 TransactionId { get; }
 
 		[JsonProperty(Order = 2)]
-		public int Index { get; }
+		public uint Index { get; }
 
 		[JsonConstructor]
-		public TxoRef(uint256 transactionId, int index)
+		public TxoRef(uint256 transactionId, uint index)
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
@@ -32,7 +32,7 @@ namespace WalletWasabi.Models
 		{
 			Guard.NotNull(nameof(outPoint), outPoint);
 			TransactionId = outPoint.Hash;
-			Index = (int)outPoint.N;
+			Index = outPoint.N;
 		}
 
 		public OutPoint ToOutPoint() => new OutPoint(TransactionId, Index);
@@ -43,7 +43,7 @@ namespace WalletWasabi.Models
 
 		public bool Equals(TxoRef other) => this == other;
 
-		public override int GetHashCode() => TransactionId.GetHashCode() ^ Index;
+		public override int GetHashCode() => TransactionId.GetHashCode() ^ (int)Index;
 
 		public static bool operator ==(TxoRef x, TxoRef y) => y?.TransactionId == x?.TransactionId && y?.Index == x?.Index;
 
