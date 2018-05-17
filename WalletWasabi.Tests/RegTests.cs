@@ -644,7 +644,7 @@ namespace WalletWasabi.Tests
 		{
 		}
 
-		[Fact(DisplayName = "InvokesBuildTransactionAsync")]
+		[Fact]
 		public async Task SendTestsFromHiddenWalletAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1024,20 +1024,18 @@ namespace WalletWasabi.Tests
 				// covers:
 				// disallow unconfirmed with allowed inputs
 				// feeTarget < 2 // NOTE: need to correct alowing 0 and 1
-				res = await wallet.BuildTransactionAsync("password", toSend, 0, false, allowedInputs: allowedInputs);
+				res = await wallet.BuildTransactionAsync(password, toSend, 0, false, allowedInputs: allowedInputs);
 
 				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
 
-				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
-
 				Assert.Equal(receive, activeOutput.ScriptPubKey);
-				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
-				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
-				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+				Logger.LogDebug<RegTests>($"Fee: {res.Fee}");
+				Logger.LogDebug<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Logger.LogDebug<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogDebug<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogDebug<RegTests>($"TxId: {res.Transaction.GetHash()}");
 
 				Assert.True(inputCountBefore >= res.SpentCoins.Count());
 				Assert.False(res.SpendsUnconfirmed);
@@ -1056,17 +1054,15 @@ namespace WalletWasabi.Tests
 				// covers:
 				// customchange
 				// feePc > 1
-				res = await wallet.BuildTransactionAsync("password", new[] { new WalletService.Operation(new Key().ScriptPubKey, new Money(100, MoneyUnit.MilliBTC), "outgoing")}, 1008, customChange: new Key().ScriptPubKey);
+				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(new Key().ScriptPubKey, new Money(100, MoneyUnit.MilliBTC), "outgoing")}, 1008, customChange: new Key().ScriptPubKey);
 
 				Assert.True(res.FeePercentOfSent > 1);
 
-				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
-
-				Logger.LogInfo<RegTests>($"Fee: {res.Fee}");
-				Logger.LogInfo<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
-				Logger.LogInfo<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
-				Logger.LogInfo<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
-				Logger.LogInfo<RegTests>($"TxId: {res.Transaction.GetHash()}");
+				Logger.LogDebug<RegTests>($"Fee: {res.Fee}");
+				Logger.LogDebug<RegTests>($"FeePercentOfSent: {res.FeePercentOfSent} %");
+				Logger.LogDebug<RegTests>($"SpendsUnconfirmed: {res.SpendsUnconfirmed}");
+				Logger.LogDebug<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
+				Logger.LogDebug<RegTests>($"TxId: {res.Transaction.GetHash()}");
 
 				#endregion
 			}
@@ -1089,7 +1085,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact(DisplayName = "InvokesBuildTransactionAsync")]
+		[Fact]
 		public async Task BuildTransactionValidationsTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1174,14 +1170,13 @@ namespace WalletWasabi.Tests
 			// "Only one element can contain Money.Zero
 			var toSendWithTwoZeros = new[]{
 				new WalletService.Operation(scp, Money.Zero, "zero"),
-				new WalletService.Operation(scp, Money.Zero, "zero")};
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync("password", toSendWithTwoZeros, 1008, false));
+				new WalletService.Operation(scp, Money.Zero, "zero") };
+			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(password, toSendWithTwoZeros, 1008, false));
 
 			// cannot specify spend all and custom change
 			var spendAll = new[]{
-				new WalletService.Operation(scp, Money.Zero, "spendAll")
-			};
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync("password", spendAll, 1008, false, customChange: new Key().ScriptPubKey));
+				new WalletService.Operation(scp, Money.Zero, "spendAll") };
+			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(password, spendAll, 1008, false, customChange: new Key().ScriptPubKey));
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
@@ -1270,7 +1265,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact(DisplayName = "InvokesBuildTransactionAsync")]
+		[Fact]
 		public async Task BuildTransactionReorgsTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1441,7 +1436,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact(DisplayName = "InvokesBuildTransactionAsync")]
+		[Fact]
 		public async Task SpendUnconfirmedTxTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
