@@ -328,7 +328,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
+			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If transaction received to any of the wallet keys:
 				var output = tx.Transaction.Outputs[i];
@@ -337,7 +337,7 @@ namespace WalletWasabi.Services
 				{
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
 					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-					var mixin = tx.Transaction.GetMixin(i);
+					var mixin = tx.Transaction.GetMixin((uint)i);
 					if (spentOwnCoins.Count != 0)
 					{
 						mixin += spentOwnCoins.Min(x => x.Mixin);
@@ -764,7 +764,7 @@ namespace WalletWasabi.Services
 
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
-			for (var i = 0; i < tx.Outputs.Count; i++)
+			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
 				var mixin = tx.GetMixin(i) + spentCoins.Min(x => x.Mixin);
