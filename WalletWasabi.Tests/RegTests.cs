@@ -1011,7 +1011,7 @@ namespace WalletWasabi.Tests
 				Assert.Contains("change of (outgoing, outgoing2)", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
 				Assert.Contains("change of (outgoing, outgoing2)", keyManager.GetKeys().Select(x => x.Label));
 
-				#endregion
+				#endregion Labeling
 
 				#region AllowedInputsDisallowUnconfirmed
 
@@ -1020,7 +1020,7 @@ namespace WalletWasabi.Tests
 				receive = wallet.GetReceiveKey("AllowedInputsDisallowUnconfirmed").GetP2wpkhScript();
 
 				var allowedInputs = wallet.Coins.Where(x => !x.SpentOrLocked).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1);
-				var toSend = new[]{ new WalletService.Operation(receive, Money.Zero, "fizz")};
+				var toSend = new[] { new WalletService.Operation(receive, Money.Zero, "fizz") };
 
 				// covers:
 				// disallow unconfirmed with allowed inputs
@@ -1048,14 +1048,14 @@ namespace WalletWasabi.Tests
 				Assert.True(inputCountBefore >= res.SpentCoins.Count());
 				Assert.Equal(res.SpentCoins.Count(), res.Transaction.Transaction.Inputs.Count);
 
-				#endregion
+				#endregion AllowedInputsDisallowUnconfirmed
 
 				#region custom change
 
 				// covers:
 				// customchange
 				// feePc > 1
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(new Key().ScriptPubKey, new Money(100, MoneyUnit.MilliBTC), "outgoing")}, 1008, customChange: new Key().ScriptPubKey);
+				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(new Key().ScriptPubKey, new Money(100, MoneyUnit.MilliBTC), "outgoing") }, 1008, customChange: new Key().ScriptPubKey);
 
 				Assert.True(res.FeePercentOfSent > 1);
 
@@ -1065,7 +1065,7 @@ namespace WalletWasabi.Tests
 				Logger.LogDebug<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogDebug<RegTests>($"TxId: {res.Transaction.GetHash()}");
 
-				#endregion
+				#endregion custom change
 			}
 			finally
 			{
@@ -1167,7 +1167,7 @@ namespace WalletWasabi.Tests
 
 			// allowedInputs cannot be empty
 			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2, false, null, null, new TxoRef[0]));
-			
+
 			// "Only one element can contain Money.Zero
 			var toSendWithTwoZeros = new[]{
 				new WalletService.Operation(scp, Money.Zero, "zero"),
@@ -2059,7 +2059,7 @@ namespace WalletWasabi.Tests
 
 					var partSignedCj1 = new Transaction(unsignedCoinJoin.ToHex());
 					var partSignedCj2 = new Transaction(unsignedCoinJoin.ToHex());
-					
+
 					var builder = new TransactionBuilder();
 					partSignedCj1 = builder
 						.ContinueToBuild(partSignedCj1)
@@ -2257,10 +2257,11 @@ namespace WalletWasabi.Tests
 			foreach (var user in users)
 			{
 				var partSignedCj = new Transaction(unsignedCoinJoin.ToHex());
-				new TransactionBuilder()
+				partSignedCj = new TransactionBuilder()
+							.ContinueToBuild(partSignedCj)
 							.AddKeys(user.userInputData.Select(x => x.key).ToArray())
 							.AddCoins(user.userInputData.Select(x => new Coin(x.tx, x.input.N)))
-							.SignTransactionInPlace(partSignedCj, SigHash.All);
+							.BuildTransaction(true);
 
 				var myDic = new Dictionary<int, WitScript>();
 
@@ -2341,10 +2342,10 @@ namespace WalletWasabi.Tests
 			var tx3 = await rpc.GetRawTransactionAsync(txid3);
 			await rpc.GenerateAsync(1);
 			var height = await rpc.GetBlockCountAsync();
-			var bech1Coin =tx1.Outputs.GetCoins(bech1.ScriptPubKey).Single();
-			var bech2Coin =tx2.Outputs.GetCoins(bech2.ScriptPubKey).Single();
-			var bech3Coin =tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
-			
+			var bech1Coin = tx1.Outputs.GetCoins(bech1.ScriptPubKey).Single();
+			var bech2Coin = tx2.Outputs.GetCoins(bech2.ScriptPubKey).Single();
+			var bech3Coin = tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
+
 			var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx1.GetMixin(bech1Coin.Outpoint.N));
 			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx2.GetMixin(bech2Coin.Outpoint.N));
 			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(bech3Coin.Outpoint.N));
@@ -2454,14 +2455,14 @@ namespace WalletWasabi.Tests
 			await rpc.GenerateAsync(1);
 			var height = await rpc.GetBlockCountAsync();
 
-			var bech1Coin =tx1.Outputs.GetCoins(bech1.ScriptPubKey).Single();
-			var bech2Coin =tx2.Outputs.GetCoins(bech2.ScriptPubKey).Single();
-			var bech3Coin =tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
-			
+			var bech1Coin = tx1.Outputs.GetCoins(bech1.ScriptPubKey).Single();
+			var bech2Coin = tx2.Outputs.GetCoins(bech2.ScriptPubKey).Single();
+			var bech3Coin = tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
+
 			var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx1.GetMixin(bech1Coin.Outpoint.N));
 			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx2.GetMixin(bech2Coin.Outpoint.N));
 			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(bech3Coin.Outpoint.N));
-			
+
 			var chaumianClient1 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			var chaumianClient2 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			try
