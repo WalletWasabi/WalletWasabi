@@ -77,14 +77,13 @@ namespace WalletWasabi.Services
 					string[] allLines = File.ReadAllLines(CoinJoinsFilePath);
 					foreach (string line in allLines)
 					{
-						try
-						{
-							uint256 txHash = new uint256(line);
-							RPCResponse getRawTransactionResponse = RpcClient.SendCommand(RPCOperations.getrawtransaction, txHash.ToString(), true);
-							CoinJoins.Add(txHash);
-							if (getRawTransactionResponse.Result.Value<int>("confirmations") <= 0)
+						try{
+							var txId = uint256.Parse(line);
+							var txInfo = RpcClient.GetRawTransactionInfoAsync(txId).GetAwaiter().GetResult();
+							CoinJoins.Add(txId);
+							if (txInfo.Confirmations <= 0)
 							{
-								UnconfirmedCoinJoins.Add(txHash);
+								UnconfirmedCoinJoins.Add(txId);
 							}
 						}
 						catch (Exception ex)
@@ -288,7 +287,7 @@ namespace WalletWasabi.Services
 		{
 			using (await CoinJoinsLock.LockAsync())
 			{
-				if (UnconfirmedCoinJoins.Count() < 24)
+				if(UnconfirmedCoinJoins.Count < 24)
 				{
 					return false;
 				}
@@ -296,18 +295,23 @@ namespace WalletWasabi.Services
 				{
 					foreach (var cjHash in UnconfirmedCoinJoins)
 					{
-						RPCResponse getRawTransactionResponse = await RpcClient.SendCommandAsync(RPCOperations.getrawtransaction, cjHash.ToString(), true);
-						// if failed remove from everywhere (should not happen normally)
-						if (string.IsNullOrWhiteSpace(getRawTransactionResponse?.ResultString))
+						try{
+							var txInfo = await RpcClient.GetRawTransactionInfoAsync(cjHash);
+							// if confirmed remove only from unconfirmed
+							if(txInfo.Confirmations > 0)
+							{
+								UnconfirmedCoinJoins.Remove(cjHash);
+							}
+						}
+						catch(RPCException e)
 						{
+							if(e.RPCCode != RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY)
+								throw;
+								
+							// if failed remove from everywhere (should not happen normally)
 							UnconfirmedCoinJoins.Remove(cjHash);
 							CoinJoins.Remove(cjHash);
 							await File.WriteAllLinesAsync(CoinJoinsFilePath, CoinJoins.Select(x => x.ToString()));
-						}
-						// if confirmed remove only from unconfirmed
-						if (getRawTransactionResponse.Result.Value<int>("confirmations") > 0)
-						{
-							UnconfirmedCoinJoins.Remove(cjHash);
 						}
 					}
 				}
