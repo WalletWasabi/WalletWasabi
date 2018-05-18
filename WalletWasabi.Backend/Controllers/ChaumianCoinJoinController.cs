@@ -614,7 +614,7 @@ namespace WalletWasabi.Backend.Controllers
 								}
 
 								// Check duplicates.
-								if (!string.IsNullOrWhiteSpace(round.SignedCoinJoin.Inputs[index].WitScript?.ToString())) // Not sure why WitScript?.ToString() is needed, there was something wrong in previous HiddenWallet version if I didn't do this.
+								if (round.SignedCoinJoin.Inputs[index].HasWitness())
 								{
 									return BadRequest($"Input is already signed.");
 								}

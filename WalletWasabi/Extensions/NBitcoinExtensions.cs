@@ -20,7 +20,7 @@ namespace NBitcoin
 
 		public static IEnumerable<Coin> GetCoins(this TxOutList me, Script script)
 		{
-			return me.AsCoins().Where(c=>c.ScriptPubKey == script);
+			return me.AsCoins().Where(c => c.ScriptPubKey == script);
 		}
 
 		public static string ToHex(this IBitcoinSerializable me)
@@ -55,6 +55,15 @@ namespace NBitcoin
 		{
 			var output = me.Outputs[outputIndex];
 			return me.GetIndistinguishableOutputs().Single(x => x.value == output.Value).count - 1;
+		}
+
+		public static bool HasWitness(this TxIn me)
+		{
+			Guard.NotNull(nameof(me), me);
+
+			bool notNull = me.WitScript != null;
+			bool notEmpty = me.WitScript != WitScript.Empty;
+			return notNull && notEmpty;
 		}
 	}
 }

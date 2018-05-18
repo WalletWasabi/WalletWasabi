@@ -648,7 +648,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			using (await RoundSyncronizerLock.LockAsync())
 			{
 				// Check if fully signed.
-				if (SignedCoinJoin.Inputs.All(x => !string.IsNullOrWhiteSpace(x.WitScript?.ToString()))) // Not sure why WitScript?.ToString() is needed, there was something wrong in previous HiddenWallet version if I didn't do this.
+				if (SignedCoinJoin.Inputs.All(x => x.HasWitness()))
 				{
 					Logger.LogInfo<CcjRound>($"Round ({RoundId}): Trying to broadcast coinjoin.");
 
