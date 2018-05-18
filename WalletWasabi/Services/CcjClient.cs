@@ -274,19 +274,21 @@ namespace WalletWasabi.Services
 				throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
 			}
 
-			new TransactionBuilder()
+			var builder = new TransactionBuilder();
+			var signedCoinJoin = builder
+				.ContinueToBuild(unsignedCoinJoin)
 				.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret).ToArray())
 				.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
-				.SignTransactionInPlace(unsignedCoinJoin, SigHash.All);
+				.BuildTransaction(true);
 
 			var myDic = new Dictionary<int, WitScript>();
 
-			for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
+			for (int i = 0; i < signedCoinJoin.Inputs.Count; i++)
 			{
-				var input = unsignedCoinJoin.Inputs[i];
+				var input = signedCoinJoin.Inputs[i];
 				if (ongoingRound.CoinsRegistered.Select(x => x.GetOutPoint()).Contains(input.PrevOut))
 				{
-					myDic.Add(i, unsignedCoinJoin.Inputs[i].WitScript);
+					myDic.Add(i, signedCoinJoin.Inputs[i].WitScript);
 				}
 			}
 

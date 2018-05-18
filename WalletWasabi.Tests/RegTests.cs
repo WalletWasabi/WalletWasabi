@@ -2059,14 +2059,20 @@ namespace WalletWasabi.Tests
 
 					var partSignedCj1 = new Transaction(unsignedCoinJoin.ToHex());
 					var partSignedCj2 = new Transaction(unsignedCoinJoin.ToHex());
-					new TransactionBuilder()
-								.AddKeys(key1)
-								.AddCoins(new Coin(tx1, input1.N))
-								.SignTransactionInPlace(partSignedCj1, SigHash.All);
-					new TransactionBuilder()
-								.AddKeys(key2)
-								.AddCoins(new Coin(tx2, input2.N))
-								.SignTransactionInPlace(partSignedCj2, SigHash.All);
+					
+					var builder = new TransactionBuilder();
+					partSignedCj1 = builder
+						.ContinueToBuild(partSignedCj1)
+						.AddKeys(key1)
+						.AddCoins(new Coin(tx1, input1.N))
+						.BuildTransaction(true);
+
+					builder = new TransactionBuilder();
+					partSignedCj2 = builder
+						.ContinueToBuild(partSignedCj2)
+						.AddKeys(key2)
+						.AddCoins(new Coin(tx2, input2.N))
+						.BuildTransaction(true);
 
 					var myDic1 = new Dictionary<int, WitScript>();
 					var myDic2 = new Dictionary<int, WitScript>();
