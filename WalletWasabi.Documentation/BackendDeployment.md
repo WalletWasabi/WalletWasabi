@@ -4,11 +4,9 @@
 WalletWasabi.Backend.[TestNet/Main]
 
 ## Image
-
 Ubuntu 18.04 x64
 
 ## Region
-
 Mostly anywhere is fine, except the US or China.
 
 ## Size
@@ -23,7 +21,7 @@ https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubunt
 
 ## SSH in as Root
 
-Putty  
+Putty (Note copypaste with Ctrl+Insert and Shift+Insert.)  
 https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-on-digitalocean-droplets-windows-users
 
 ### Create a New User and Grant Administrative Privileges
@@ -35,7 +33,7 @@ usermod -aG sudo user
 
 # Setup Firewall
 
-https://www.digitalocean.com/community/tutorials/ufw-essentials-common-firewall-rules-and-commands
+https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-ubuntu-14-04
 
 ```
 ufw allow OpenSSH
@@ -61,7 +59,26 @@ sudo apt-get update && sudo apt-get dist-upgrade -y
 
 https://www.microsoft.com/net/learn/get-started/linux/ubuntu18-04
 
-# 4. Publish
+# 4. Install Tor
+
+```
+sudo apt-get install tor
+```
+
+Check if Tor is already running in the background:
+
+```
+sudo netstat -plnt | fgrep 9050
+```
+
+If yes, kill it and verify Tor is properly running by manually typing tor:
+
+```
+tor
+sudo killall tor
+```
+
+# 5. Publish
 
 ## [Remote Machine]
 
