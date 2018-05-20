@@ -37,7 +37,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			Guard.NotNull(nameof(changeOutputAddress), changeOutputAddress);
 			// 33 bytes maximum: https://bitcoin.stackexchange.com/a/46379/26859
-			int byteCount = changeOutputAddress.ScriptPubKey.ToBytes().Length;
+			int byteCount = changeOutputAddress.ScriptPubKey.ToCompressedBytes().Length;
 			if (byteCount > 33)
 			{
 				throw new ArgumentOutOfRangeException(nameof(changeOutputAddress), byteCount, $"Can be maximum 33 bytes.");
