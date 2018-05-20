@@ -71,11 +71,15 @@ Check if Tor is already running in the background:
 sudo netstat -plnt | fgrep 9050
 ```
 
-If yes, kill it and verify Tor is properly running by manually typing tor:
+If yes, kill it:
 
 ```
-tor
 sudo killall tor
+```
+
+Verify Tor is properly running:
+```
+tor
 ```
 
 # 5. Publish
