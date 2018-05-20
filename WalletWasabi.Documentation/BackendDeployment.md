@@ -57,11 +57,9 @@ rsync --archive --chown=user:user ~/.ssh /home/user
 sudo apt-get update && sudo apt-get dist-upgrade -y
 ```
 
-# 3. Install Dependencies
+# 3. Install .NET SDK
 
-```
-
-```
+https://www.microsoft.com/net/learn/get-started/linux/ubuntu18-04
 
 # 4. Publish
 
