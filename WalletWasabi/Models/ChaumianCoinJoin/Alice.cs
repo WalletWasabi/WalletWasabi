@@ -47,7 +47,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			UniqueId = Guid.NewGuid();
 
-			InputSum = inputs.Sum(x => x.Output.Value);
+			InputSum = inputs.Select(x => x.Output.Value).Sum();
 
 			OutputSumWithoutCoordinatorFeeAndDenomination = InputSum - NetworkFeeToPay;
 

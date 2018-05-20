@@ -219,7 +219,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Check if inputs have enough coins.
-					Money inputSum = inputs.Sum(x => x.Output.Value);
+					Money inputSum = inputs.Select(x=>x.Output.Value).Sum();
 					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs + 2 * round.FeePerOutputs);
 					Money changeAmount = inputSum - (round.Denomination + networkFeeToPay);
 					if (changeAmount < Money.Zero)
