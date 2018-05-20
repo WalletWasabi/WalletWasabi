@@ -82,9 +82,17 @@ Verify Tor is properly running:
 tor
 ```
 
-# 5. Publish
+# 5. Install bitcoind
 
-## [Remote Machine]
+https://bitcoin.org/en/download
+
+```
+sudo add-apt-repository ppa:bitcoin/bitcoin
+sudo apt-get update
+sudo apt-get install bitcoind
+```
+
+# 6. Publish
 
 ```
 git clone https://github.com/zkSNACKs/WalletWasabi.git
