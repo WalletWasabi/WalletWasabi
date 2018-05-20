@@ -20,8 +20,13 @@ namespace WalletWasabi.Backend
 			try
 			{
 				Logger.SetFilePath(Path.Combine(Global.DataDir, "Logs.txt"));
+#if RELEASE
 				Logger.SetMinimumLevel(LogLevel.Info);
+				Logger.SetModes(LogMode.File);
+#else
+				Logger.SetMinimumLevel(LogLevel.Debug);
 				Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
+#endif
 
 				var configFilePath = Path.Combine(Global.DataDir, "Config.json");
 				var config = new Config(configFilePath);
