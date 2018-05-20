@@ -92,7 +92,15 @@ sudo apt-get update
 sudo apt-get install bitcoind
 ```
 
-# 6. Publish
+# 6. Install Nginx
+
+https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-18-04
+
+```
+sudo apt install nginx
+```
+
+# 7. Publish
 
 ```
 git clone https://github.com/zkSNACKs/WalletWasabi.git
