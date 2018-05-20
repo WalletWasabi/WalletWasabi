@@ -17,6 +17,18 @@ https://bitcoin.org/en/full-node#minimum-requirements
 
 [4GB Standard/32GB Standard]
 
+# SSH Into The Remote Server
+
+## Initial SSH Setup
+
+https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-on-digitalocean-droplets-windows-users
+
+## Initial Server Setup
+
+https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-18-04
+
+
+
 # Publish
 
 ## [Remote Machine]
