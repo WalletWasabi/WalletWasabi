@@ -252,7 +252,8 @@ namespace WalletWasabi.Services
 			}
 			Money amountBack = unsignedCoinJoin.Outputs
 				.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutputAddress.ScriptPubKey || x.ScriptPubKey == ongoingRound.ChangeOutputAddress.ScriptPubKey)
-				.Sum(y => y.Value);
+				.Select(y => y.Value)
+				.Sum();
 			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
 			minAmountBack -= ongoingRound.State.FeePerOutputs * 2 + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
 			Money actualDenomination = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count).First().value; // Denomination may grow.

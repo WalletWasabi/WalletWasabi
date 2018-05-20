@@ -546,7 +546,7 @@ namespace WalletWasabi.Services
 				throw new ArgumentException($"{nameof(toSend)} cannot contain negative element.");
 			}
 
-			long sum = toSend.Sum(x => x.Amount);
+			long sum = toSend.Select(x => x.Amount).Sum().Satoshi;
 			if (sum < 0 || sum > Constants.MaximumNumberOfSatoshis)
 			{
 				throw new ArgumentOutOfRangeException($"{nameof(toSend)} sum cannot be smaller than 0 or greater than {Constants.MaximumNumberOfSatoshis}.");
@@ -633,7 +633,7 @@ namespace WalletWasabi.Services
 			else
 			{
 				int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
-				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Sum(x => x.Amount) + feePerBytes * expectedMinTxSize).Count();
+				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Select(x => x.Amount).Sum() + feePerBytes * expectedMinTxSize).Count();
 			}
 
 			// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
@@ -647,7 +647,7 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>($"Fee: {fee.ToString(fplus: false, trimExcessZero: true)}");
 
 			// 5. How much to spend?
-			long toSendAmountSumInSatoshis = toSend.Sum(x => x.Amount); // Does it work if I simply go with Money class here? Is that copied by reference of value?
+			long toSendAmountSumInSatoshis = toSend.Select(x => x.Amount).Sum(); // Does it work if I simply go with Money class here? Is that copied by reference of value?
 			var realToSend = new(Script script, Money amount, string label)[toSend.Length];
 			for (int i = 0; i < toSend.Length; i++) // clone
 			{
@@ -660,7 +660,7 @@ namespace WalletWasabi.Services
 			{
 				if (realToSend[i].amount == Money.Zero) // means spend all
 				{
-					realToSend[i].amount = allowedSmartCoinInputs.Sum(x => x.Amount);
+					realToSend[i].amount = allowedSmartCoinInputs.Select(x => x.Amount).Sum();
 
 					realToSend[i].amount -= new Money(toSendAmountSumInSatoshis);
 
@@ -709,7 +709,7 @@ namespace WalletWasabi.Services
 			}
 
 			// 6. Do some checks
-			Money totalOutgoingAmount = realToSend.Sum(x => x.amount) + fee;
+			Money totalOutgoingAmount = realToSend.Select(x => x.amount).Sum() + fee;
 			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmount.ToDecimal(MoneyUnit.BTC);
 
 			if (feePc > 1)
@@ -719,7 +719,7 @@ namespace WalletWasabi.Services
 					+ Environment.NewLine + $"Fee:\t\t {fee.ToString(fplus: false, trimExcessZero: true)} BTC.");
 			}
 
-			var confirmedAvailableAmount = allowedSmartCoinInputs.Where(x => x.Confirmed).Sum(x => x.Amount);
+			var confirmedAvailableAmount = allowedSmartCoinInputs.Where(x => x.Confirmed).Select(x => x.Amount).Sum();
 			var spendsUnconfirmed = false;
 			if (confirmedAvailableAmount < totalOutgoingAmount)
 			{
@@ -798,7 +798,7 @@ namespace WalletWasabi.Services
 			if (!haveEnough)
 				haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
 			if (!haveEnough)
-				throw new InsufficientBalanceException(totalOutAmount, unspentConfirmedCoins.Sum(x => x.Amount) + unspentUnconfirmedCoins.Sum(x => x.Amount));
+				throw new InsufficientBalanceException(totalOutAmount, unspentConfirmedCoins.Select(x => x.Amount).Sum() + unspentUnconfirmedCoins.Select(x => x.Amount).Sum());
 
 			return coinsToSpend;
 		}
@@ -810,7 +810,7 @@ namespace WalletWasabi.Services
 			{
 				coinsToSpend.Add(coin);
 				// if doesn't reach amount, continue adding next coin
-				if (coinsToSpend.Sum(x => x.Amount) < totalOutAmount) continue;
+				if (coinsToSpend.Select(x => x.Amount).Sum() < totalOutAmount) continue;
 
 				haveEnough = true;
 				break;
