@@ -9,7 +9,7 @@ Ubuntu 18.04 x64
 
 ## Region
 
-Not in the US.
+Mostly anywhere is fine, except the US or China.
 
 ## Size
 
