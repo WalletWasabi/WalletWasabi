@@ -82,7 +82,7 @@ Verify Tor is properly running:
 tor
 ```
 
-# 5. Install bitcoind
+# 5. Install, Configure and Synchronize bitcoind
 
 https://bitcoin.org/en/download
 
@@ -90,7 +90,36 @@ https://bitcoin.org/en/download
 sudo add-apt-repository ppa:bitcoin/bitcoin
 sudo apt-get update
 sudo apt-get install bitcoind
+mkdir ~/.bitcoin
+pico ~/.bitcoin/bitcoin.conf
 ```
+
+```
+maxuploadtarget=144
+listen=0
+
+txindex=1
+
+daemon=1
+server=1
+rpcuser=bitcoinuser
+rpcpassword=password
+
+testnet=[0/1]
+```
+
+https://medium.com/@loopring/how-to-run-lighting-btc-node-and-start-mining-b55c4bab8ad  
+https://github.com/MrChrisJ/fullnode/issues/18
+
+```
+sudo ufw allow ssh
+sudo ufw allow [18333/8333]
+bitcoind
+bitcoin-cli getblockcount
+bitcoin-cli stop
+bitcoind
+```
+
 
 # 6. Install Nginx
 
