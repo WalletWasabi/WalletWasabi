@@ -1,4 +1,4 @@
-# Create Remote Server
+# 1. Create Remote Server
 
 ## Name
 WalletWasabi.Backend.[TestNet/Main]
@@ -17,19 +17,53 @@ https://bitcoin.org/en/full-node#minimum-requirements
 
 [4GB Standard/32GB Standard]
 
-# SSH Into The Remote Server
-
-## Initial SSH Setup
-
-https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-on-digitalocean-droplets-windows-users
-
-## Initial Server Setup
+# 2. Setup Server
 
 https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-18-04
 
+## SSH in as Root
 
+Putty  
+https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-on-digitalocean-droplets-windows-users
 
-# Publish
+### Create a New User and Grant Administrative Privileges
+
+```
+adduser user
+usermod -aG sudo user
+```
+
+# Setup Firewall
+
+https://www.digitalocean.com/community/tutorials/ufw-essentials-common-firewall-rules-and-commands
+
+```
+ufw allow OpenSSH
+ufw enable
+```
+
+> As the firewall is currently blocking all connections except for SSH, if you install and configure additional services, you will need to adjust the firewall settings to allow acceptable traffic in. You can learn some common UFW operations in this guide.
+> https://www.digitalocean.com/community/tutorials/ufw-essentials-common-firewall-rules-and-commands
+
+## Enabling External Access for User
+
+```
+rsync --archive --chown=user:user ~/.ssh /home/user
+```
+
+## Update Ubuntu
+
+```
+sudo apt-get update && sudo apt-get dist-upgrade -y
+```
+
+# 3. Install Dependencies
+
+```
+
+```
+
+# 4. Publish
 
 ## [Remote Machine]
 
