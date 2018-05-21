@@ -94,6 +94,11 @@ HiddenServicePort 80 127.0.0.1:37126
 RunAsDaemon 1
 ```
 
+Enable firewall:
+```
+sudo ufw allow 80
+```
+
 todo: get the created secret from the server
 todo: enable tor from firewall
 todo: setup process manager for tor
