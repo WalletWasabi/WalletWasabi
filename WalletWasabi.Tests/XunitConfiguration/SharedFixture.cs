@@ -3,7 +3,7 @@ using System.IO;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.XunitConfiguration
 {
 	public class SharedFixture : IDisposable
 	{

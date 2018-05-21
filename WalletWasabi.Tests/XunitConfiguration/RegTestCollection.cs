@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.XunitConfiguration
 {
 	[CollectionDefinition("RegTest collection")]
 	public class RegTestCollection : ICollectionFixture<RegTestFixture>

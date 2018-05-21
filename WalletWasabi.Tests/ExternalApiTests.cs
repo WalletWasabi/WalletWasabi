@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.WebClients.BlockCypher;
 using WalletWasabi.WebClients.BlockCypher.Models;
 using WalletWasabi.WebClients.SmartBit;

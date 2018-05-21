@@ -8,7 +8,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Tests.NodeBuilding;
 
-namespace WalletWasabi.Tests
+namespace WalletWasabi.Tests.XunitConfiguration
 {
 	public class RegTestFixture : IDisposable
 	{

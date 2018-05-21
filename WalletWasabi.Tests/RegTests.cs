@@ -23,6 +23,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
+using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
 using Xunit;
@@ -30,6 +31,7 @@ using Xunit;
 namespace WalletWasabi.Tests
 {
 	[Collection("RegTest collection")]
+	[TestCaseOrderer("WalletWasabi.Tests.XunitConfiguration.PriorityOrderer", "WalletWasabi.Tests")]
 	public class RegTests : IClassFixture<SharedFixture>
 	{
 		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
@@ -78,7 +80,7 @@ namespace WalletWasabi.Tests
 
 		#region BackendTests
 
-		[Fact]
+		[Fact, TestPriority(1)]
 		public async void GetExchangeRatesAsyncAsync()
 		{
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
@@ -95,7 +97,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact, TestPriority(2)]
 		public async void BroadcastWithOutMinFeeAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -120,7 +122,7 @@ namespace WalletWasabi.Tests
 			Logger.TurnOn();
 		}
 
-		[Fact]
+		[Fact, TestPriority(3)]
 		public async void BroadcastReplayTxAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -140,7 +142,7 @@ namespace WalletWasabi.Tests
 			Logger.TurnOn();
 		}
 
-		[Fact]
+		[Fact, TestPriority(4)]
 		public async void BroadcastInvalidTxAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -162,7 +164,7 @@ namespace WalletWasabi.Tests
 
 		#region ServicesTests
 
-		[Fact]
+		[Fact, TestPriority(5)]
 		public async Task MempoolAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -210,7 +212,7 @@ namespace WalletWasabi.Tests
 			Logger.LogDebug<P2pTests>($"Mempool transaction received: {e.GetHash()}.");
 		}
 
-		[Fact]
+		[Fact, TestPriority(6)]
 		public async Task FilterDownloaderTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -273,7 +275,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact, TestPriority(7)]
 		public async Task ReorgTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -410,7 +412,7 @@ namespace WalletWasabi.Tests
 
 		#region ClientTests
 
-		[Fact]
+		[Fact, TestPriority(8)]
 		public async Task WalletTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -644,7 +646,7 @@ namespace WalletWasabi.Tests
 		{
 		}
 
-		[Fact]
+		[Fact, TestPriority(9)]
 		public async Task SendTestsFromHiddenWalletAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1086,7 +1088,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact, TestPriority(11)]
 		public async Task BuildTransactionValidationsTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1266,7 +1268,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact, TestPriority(12)]
 		public async Task BuildTransactionReorgsTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1437,7 +1439,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact, TestPriority(0)]
 		public async Task SpendUnconfirmedTxTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1584,7 +1586,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact, TestPriority(13)]
 		public async Task CcjCoordinatorCtorTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1634,7 +1636,7 @@ namespace WalletWasabi.Tests
 			Logger.TurnOn();
 		}
 
-		[Fact]
+		[Fact, TestPriority(14)]
 		public async Task CcjTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -2101,7 +2103,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact, TestPriority(15)]
 		public async Task Ccj100ParticipantsTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -2308,7 +2310,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact, TestPriority(16)]
 		public async Task CcjClientTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -2420,7 +2422,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact, TestPriority(17)]
 		public async Task CcjClientCustomOutputScriptTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -2516,7 +2518,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
+		[Fact, TestPriority(18)]
 		public async Task CoinJoinMultipleRoundTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(3);
