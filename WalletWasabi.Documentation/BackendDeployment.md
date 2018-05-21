@@ -122,7 +122,32 @@ bitcoind
 
 # 6. Monitor the App
 
+```
+sudo pico /etc/systemd/system/walletwasabi.service
+```
 
+```
+[Unit]
+Description=WalletWasabi Backend API
+
+[Service]
+WorkingDirectory=/home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp2.0/publish
+ExecStart=/usr/bin/dotnet /home/user/WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp2.0/publish/WalletWasabi.Backend.dll
+Restart=always
+RestartSec=10  # Restart service after 10 seconds if dotnet service crashes
+SyslogIdentifier=walletwasabi-backend
+User=user
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```
+systemctl enable walletwasabi.service
+systemctl start walletwasabi.service
+systemctl status walletwasabi.service
+```
 
 # 7. Publish, Configure and Run WalletWasabi.Backend
 
