@@ -121,13 +121,51 @@ bitcoind
 ```
 
 
-# 6. Install Nginx
+# 6. Install, Configure and Run Nginx
 
-https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-18-04
+## Nginx as Reverse Proxy
 
+https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-18-04  
+https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-2.0&tabs=aspnetcore2x  
+
+> Use apt-get to install Nginx. The installer creates a System V init script that runs Nginx as daemon on system startup. Since Nginx was installed for the first time, explicitly start it by running:
 ```
 sudo apt install nginx
+sudo service nginx start
+sudo pico /etc/nginx/sites-available/default
 ```
+
+Comment out the current server configuration, then use this:
+
+```
+server {
+    listen   80 default_server;
+    # listen [::]:80 default_server deferred;
+    return   444;
+}
+
+server {
+    listen        127.0.0.1:8080;
+    server_name   [ToDo: generate onion for testnet and mainnet and set it to be this];
+    location / {
+        proxy_pass         http://localhost:37127;
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection keep-alive;
+        proxy_set_header   Host $http_host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+```
+sudo nginx -t
+sudo nginx -s reload
+```
+
+# Monitor the App
+
+
 
 # 7. Publish, Configure and Run WalletWasabi.Backend
 
