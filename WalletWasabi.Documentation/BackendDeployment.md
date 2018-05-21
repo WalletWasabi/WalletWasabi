@@ -120,7 +120,24 @@ bitcoin-cli stop
 bitcoind
 ```
 
-# 6. Monitor the App
+# 6. Publish, Configure and Run WalletWasabi.Backend
+
+```
+git clone https://github.com/zkSNACKs/WalletWasabi.git
+cd WalletWasabi
+dotnet restore
+dotnet build
+dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
+dotnet WalletWasabi.Backend/bin/Release/netcoreapp2.0/publish/WalletWasabi.Backend.dll
+cd ..
+cat .walletwasabi/backend/Logs.txt
+pico .walletwasabi/backend/Config.json
+pico .walletwasabi/backend/CcjRoundConfig.json
+dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp2.0/publish/WalletWasabi.Backend.dll
+cat .walletwasabi/backend/Logs.txt
+```
+
+# 7. Monitor the App
 
 ```
 sudo pico /etc/systemd/system/walletwasabi.service
@@ -147,21 +164,4 @@ WantedBy=multi-user.target
 systemctl enable walletwasabi.service
 systemctl start walletwasabi.service
 systemctl status walletwasabi.service
-```
-
-# 7. Publish, Configure and Run WalletWasabi.Backend
-
-```
-git clone https://github.com/zkSNACKs/WalletWasabi.git
-cd WalletWasabi
-dotnet restore
-dotnet build
-dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
-dotnet WalletWasabi.Backend/bin/Release/netcoreapp2.0/publish/WalletWasabi.Backend.dll
-cd ..
-cat .walletwasabi/backend/Logs.txt
-pico .walletwasabi/backend/Config.json
-pico .walletwasabi/backend/CcjRoundConfig.json
-dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp2.0/publish/WalletWasabi.Backend.dll
-cat .walletwasabi/backend/Logs.txt
 ```
