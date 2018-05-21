@@ -35,14 +35,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			NetworkFeeToPay = Guard.NotNull(nameof(networkFeeToPay), networkFeeToPay);
 			BlindedOutputScriptHex = Guard.NotNullOrEmptyOrWhitespace(nameof(blindedOutputScriptHex), blindedOutputScriptHex);
 
-			Guard.NotNull(nameof(changeOutputAddress), changeOutputAddress);
-			// 33 bytes maximum: https://bitcoin.stackexchange.com/a/46379/26859
-			int byteCount = changeOutputAddress.ScriptPubKey.ToBytes().Length;
-			if (byteCount > 33)
-			{
-				throw new ArgumentOutOfRangeException(nameof(changeOutputAddress), byteCount, $"Can be maximum 33 bytes.");
-			}
-			ChangeOutputAddress = changeOutputAddress;
+			ChangeOutputAddress = Guard.NotNull(nameof(changeOutputAddress), changeOutputAddress);
 			LastSeen = DateTimeOffset.UtcNow;
 
 			UniqueId = Guid.NewGuid();
