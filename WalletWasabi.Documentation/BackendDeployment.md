@@ -139,6 +139,8 @@ cat .walletwasabi/backend/Logs.txt
 
 # 7. Monitor the App
 
+https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-2.0&tabs=aspnetcore2x
+
 ```
 sudo pico /etc/systemd/system/walletwasabi.service
 ```
