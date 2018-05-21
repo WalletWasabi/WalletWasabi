@@ -90,7 +90,7 @@ sudo pico /etc/tor/torrc
 
 ```
 HiddenServiceDir /home/user/.hidden_service
-HiddenServicePort 80 127.0.0.1:37126
+HiddenServicePort 80 127.0.0.1:37127
 RunAsDaemon 1
 ```
 
