@@ -166,4 +166,5 @@ WantedBy=multi-user.target
 systemctl enable walletwasabi.service
 systemctl start walletwasabi.service
 systemctl status walletwasabi.service
+tail -10 .walletwasabi/backend/Logs.txt
 ```
