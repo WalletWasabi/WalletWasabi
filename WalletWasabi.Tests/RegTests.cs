@@ -1375,7 +1375,7 @@ namespace WalletWasabi.Tests
 				await rpc.InvalidateBlockAsync(baseTip);
 				try
 				{
-					await rpc.AbandonTransactionAsync(fundingTxid);
+					await rpc.SendCommandAsync("abandontransaction", fundingTxid.ToString());
 				}
 				catch
 				{
