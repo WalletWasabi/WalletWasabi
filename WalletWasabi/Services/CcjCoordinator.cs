@@ -303,15 +303,16 @@ namespace WalletWasabi.Services
 							// if confirmed remove only from unconfirmed
 							if (txInfo.Confirmations > 0)
 							{
-									UnconfirmedCoinJoins.Remove(cjHash);
+								UnconfirmedCoinJoins.Remove(cjHash);
 							}
 						}
-						catch(RPCException e)
+						catch (Exception ex)
 						{
 							// if failed remove from everywhere (should not happen normally)
 							UnconfirmedCoinJoins.Remove(cjHash);
 							CoinJoins.Remove(cjHash);
 							await File.WriteAllLinesAsync(CoinJoinsFilePath, CoinJoins.Select(x => x.ToString()));
+							Logger.LogWarning<CcjCoordinator>(ex)
 						}
 					}
 				}
