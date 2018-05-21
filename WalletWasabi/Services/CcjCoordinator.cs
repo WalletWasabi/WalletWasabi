@@ -312,7 +312,7 @@ namespace WalletWasabi.Services
 							UnconfirmedCoinJoins.Remove(cjHash);
 							CoinJoins.Remove(cjHash);
 							await File.WriteAllLinesAsync(CoinJoinsFilePath, CoinJoins.Select(x => x.ToString()));
-							Logger.LogWarning<CcjCoordinator>(ex)
+							Logger.LogWarning<CcjCoordinator>(ex);
 						}
 					}
 				}
