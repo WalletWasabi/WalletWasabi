@@ -86,7 +86,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			AssertFilePathSet();
 
-			Denomination = new Money(0.1m, MoneyUnit.BTC);
+			Denomination = Money.Coins(0.1m);
 			ConfirmationTarget = 144; // 1 day
 			CoordinatorFeePercent = 0.1m;
 			AnonymitySet = 100;

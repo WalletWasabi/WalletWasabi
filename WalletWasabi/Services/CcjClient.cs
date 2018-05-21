@@ -263,7 +263,7 @@ namespace WalletWasabi.Services
 			// If there's no change output then coordinator protection may happened:
 			if (unsignedCoinJoin.Outputs.All(x => x.ScriptPubKey != ongoingRound.ChangeOutputAddress.ScriptPubKey))
 			{
-				Money minimumOutputAmount = new Money(0.0001m, MoneyUnit.BTC); // If the change would be less than about $1 then add it to the coordinator.
+				Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
 				Money onePercentOfDenomination = Money.Coins(actualDenomination.ToDecimal(MoneyUnit.BTC) * 0.01m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
 				Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
 

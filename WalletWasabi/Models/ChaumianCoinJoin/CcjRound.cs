@@ -276,7 +276,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							Money changeAmount = alice.GetChangeAmount(newDenomination, coordinatorFeePerAlice);
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
 							{
-								Money minimumOutputAmount = new Money(0.0001m, MoneyUnit.BTC); // If the change would be less than about $1 then add it to the coordinator.
+								Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
 								Money onePercentOfDenomination = Money.Coins(newDenomination.ToDecimal(MoneyUnit.BTC) * 0.01m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
 								Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
 								if (changeAmount < minimumChangeAmount)
@@ -295,7 +295,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						}
 
 						// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
-						if (coordinatorFee > new Money(0.0003m, MoneyUnit.BTC))
+						if (coordinatorFee > Money.Coins(0.0003m))
 						{
 							transaction.AddOutput(coordinatorFee, coordinatorAddress);
 						}

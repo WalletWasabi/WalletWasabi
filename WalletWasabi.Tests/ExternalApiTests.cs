@@ -78,7 +78,7 @@ namespace WalletWasabi.Tests
 				Assert.True(response.UnconfirmedCount > 0);
 				Assert.InRange(response.LowFee.FeePerK, Money.Zero, response.MediumFee.FeePerK);
 				Assert.InRange(response.MediumFee.FeePerK, response.LowFee.FeePerK, response.HighFee.FeePerK);
-				Assert.InRange(response.HighFee.FeePerK, response.MediumFee.FeePerK, new Money(0.1m, MoneyUnit.BTC));
+				Assert.InRange(response.HighFee.FeePerK, response.MediumFee.FeePerK, Money.Coins(0.1m));
 				Assert.True(response.Height >= 491999);
 				Assert.Equal(new Uri(client.BaseAddress.ToString().Replace("http", "https") + "/blocks/" + response.Hash.ToString()), response.LatestUrl);
 				Assert.Equal(new Uri(client.BaseAddress.ToString().Replace("http", "https") + "/blocks/" + response.PreviousHash.ToString()), response.PreviousUrl);
