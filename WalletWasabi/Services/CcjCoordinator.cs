@@ -308,9 +308,6 @@ namespace WalletWasabi.Services
 						}
 						catch(RPCException e)
 						{
-							if(e.RPCCode != RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY)
-									throw;
-
 							// if failed remove from everywhere (should not happen normally)
 							UnconfirmedCoinJoins.Remove(cjHash);
 							CoinJoins.Remove(cjHash);
