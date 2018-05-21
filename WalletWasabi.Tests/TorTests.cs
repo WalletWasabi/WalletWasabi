@@ -21,16 +21,6 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		public async Task CanGetTwiceAsync()
-		{
-			using (var client = new TorHttpClient(new Uri("https://icanhazip.com/")))
-			{
-				await client.SendAsync(HttpMethod.Get, "");
-				await client.SendAsync(HttpMethod.Get, "");
-			}
-		}
-
-		[Fact]
 		public async Task CanDoRequest1Async()
 		{
 			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja")))
