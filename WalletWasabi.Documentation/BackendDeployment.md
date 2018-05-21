@@ -92,7 +92,7 @@ sudo pico /etc/tor/torrc
 HiddenServiceDir /home/user/.hidden_service
 HiddenServicePort 80 127.0.0.1:37126
 RunAsDaemon 1
-``
+```
 
 todo: get the created secret from the server
 todo: enable tor from firewall
