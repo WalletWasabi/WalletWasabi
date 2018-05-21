@@ -82,6 +82,24 @@ Verify Tor is properly running:
 tor
 ```
 
+Create torrc:
+
+```
+sudo pico /etc/tor/torrc
+```
+
+```
+HiddenServiceDir /home/user/.hidden_service
+HiddenServicePort 80 127.0.0.1:37126
+RunAsDaemon 1
+``
+
+todo: get the created secret from the server
+todo: enable tor from firewall
+todo: setup process manager for tor
+todo: setup process manager for bitcoind
+todo: write how to update
+
 # 5. Install, Configure and Synchronize bitcoind
 
 https://bitcoin.org/en/download
