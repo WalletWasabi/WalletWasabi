@@ -80,9 +80,9 @@ namespace WalletWasabi.Services
 						try
 						{
 							uint256 txHash = new uint256(line);
-							RPCResponse getRawTransactionResponse = RpcClient.SendCommand(RPCOperations.getrawtransaction, txHash.ToString(), true);
+							RawTransactionInfo rawTransactionInfo = RpcClient.GetRawTransactionInfo(txHash);
 							CoinJoins.Add(txHash);
-							if (getRawTransactionResponse.Result.Value<int>("confirmations") <= 0)
+							if (rawTransactionInfo.Confirmations == 0)
 							{
 								UnconfirmedCoinJoins.Add(txHash);
 							}
@@ -296,18 +296,23 @@ namespace WalletWasabi.Services
 				{
 					foreach (var cjHash in UnconfirmedCoinJoins)
 					{
-						RPCResponse getRawTransactionResponse = await RpcClient.SendCommandAsync(RPCOperations.getrawtransaction, cjHash.ToString(), true);
-						// if failed remove from everywhere (should not happen normally)
-						if (string.IsNullOrWhiteSpace(getRawTransactionResponse?.ResultString))
+						try
 						{
+							RawTransactionInfo rawTransactionInfo = await RpcClient.GetRawTransactionInfoAsync(cjHash);
+
+							// if confirmed remove only from unconfirmed
+							if (rawTransactionInfo.Confirmations > 0)
+							{
+								UnconfirmedCoinJoins.Remove(cjHash);
+							}
+						}
+						catch (Exception ex)
+						{
+							// if failed remove from everywhere (should not happen normally)
 							UnconfirmedCoinJoins.Remove(cjHash);
 							CoinJoins.Remove(cjHash);
 							await File.WriteAllLinesAsync(CoinJoinsFilePath, CoinJoins.Select(x => x.ToString()));
-						}
-						// if confirmed remove only from unconfirmed
-						if (getRawTransactionResponse.Result.Value<int>("confirmations") > 0)
-						{
-							UnconfirmedCoinJoins.Remove(cjHash);
+							Logger.LogWarning<CcjCoordinator>(ex);
 						}
 					}
 				}

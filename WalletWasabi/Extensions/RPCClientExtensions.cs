@@ -24,7 +24,7 @@ namespace NBitcoin.RPC
 		/// <returns>Returns the current block on timeout or exit</returns>
 		public static async Task<(Height height, uint256 hash)> WaitForBlockAsync(this RPCClient rpc, uint256 blockhash, long timeout = 0)
 		{
-			var resp = await rpc.SendCommandAsync("waitforblock", blockhash.ToString(), timeout);
+			var resp = await rpc.SendCommandAsync("waitforblock", blockhash, timeout);
 			return (int.Parse(resp.Result["height"].ToString()), uint256.Parse(resp.Result["hash"].ToString()));
 		}
 
