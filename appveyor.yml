@@ -5,9 +5,9 @@ configuration:
 skip_branch_with_pr: true
 
 cache:
-- '%USERPROFILE%\.nuget\packages -> **\*.csproj'
-- '%APPDATA%\WalletWasabi'
-- Tor
+#- '%USERPROFILE%\.nuget\packages -> **\*.csproj'
+#- '%APPDATA%\WalletWasabi'
+#- Tor
 
 install:
   - if not exist Tor\tor.exe appveyor DownloadFile https://dist.torproject.org/torbrowser/7.5.3/tor-win32-0.3.2.10.zip
