@@ -1,14 +1,9 @@
 ﻿using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Requests;
-using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.TorSocks5;
 using WalletWasabi.Bases;
 
