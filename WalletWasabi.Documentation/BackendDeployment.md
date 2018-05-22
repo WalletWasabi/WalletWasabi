@@ -99,11 +99,11 @@ Enable firewall:
 sudo ufw allow 80
 ```
 
-todo: get the created secret from the server
-todo: enable tor from firewall
-todo: setup process manager for tor
-todo: setup process manager for bitcoind
-todo: write how to update
+** Backup the generated private key! **
+
+todo: setup process manager for tor  
+todo: setup process manager for bitcoind  
+todo: write how to update  
 
 # 5. Install, Configure and Synchronize bitcoind
 
