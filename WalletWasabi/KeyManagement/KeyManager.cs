@@ -160,7 +160,7 @@ namespace WalletWasabi.KeyManagement
 				}
 
 				KeyPath path;
-				if (relevantHdPubKeys.Count() == 0)
+				if (!relevantHdPubKeys.Any())
 				{
 					path = new KeyPath($"{change}/0");
 				}

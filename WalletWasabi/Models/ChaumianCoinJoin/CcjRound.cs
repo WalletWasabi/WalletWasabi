@@ -433,7 +433,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							case CcjRoundPhase.Signing:
 								{
 									var alicesToBan = await RemoveAlicesIfInputsSpentAsync();
-									if (alicesToBan.Count() != 0)
+									if (alicesToBan.Any())
 									{
 										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
 									}

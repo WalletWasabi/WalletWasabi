@@ -350,7 +350,7 @@ namespace WalletWasabi.Services
 					inputRegistrableRound.State.FeePerInputs,
 					inputRegistrableRound.State.FeePerOutputs);
 
-				if (registrableCoins.Count() > 0)
+				if (registrableCoins.Any())
 				{
 					BitcoinAddress changeAddress = null;
 					BitcoinAddress activeAddress = null;
