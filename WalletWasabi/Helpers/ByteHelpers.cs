@@ -92,9 +92,9 @@ namespace System
 			{
 				string s = i.ToString("X2");
 				if (BitConverter.IsLittleEndian)
-					result[i] = ((uint)s[0]) + ((uint)s[1] << 16);
+					result[i] = s[0] + ((uint)s[1] << 16);
 				else
-					result[i] = ((uint)s[1]) + ((uint)s[0] << 16);
+					result[i] = s[1] + ((uint)s[0] << 16);
 			}
 			return result;
 		}
