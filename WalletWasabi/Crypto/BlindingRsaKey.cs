@@ -104,8 +104,8 @@ namespace WalletWasabi.Crypto
 
 		public static bool operator ==(BlindingRsaKey x, BlindingRsaKey y)
 		{
-			if (x == null && y == null) return true;
-			if (x == null ^ y == null) return false;
+			if (ReferenceEquals(x, y)) return true;
+			if ((object)x == null ^ (object)y == null) return false;
 			if (x.PrivateExponent == null ^ y.PrivateExponent == null) return false;
 			if (x.PublicModulus == null ^ y.PublicModulus == null) return false;
 			if (x.PublicExponent == null ^ y.PublicExponent == null) return false;
