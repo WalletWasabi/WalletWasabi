@@ -15,7 +15,7 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			string time = ((string)reader.Value.ToString()).Trim();
+			string time = reader.Value.ToString().Trim();
 			return DateTimeOffset.Parse(time, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
 		}
 
