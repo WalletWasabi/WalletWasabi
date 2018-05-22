@@ -400,7 +400,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 									IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.OutPoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray()).Distinct();
 
-									if (inputsToBan.Count() != 0)
+									if (inputsToBan.Any())
 									{
 										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, inputsToBan.ToArray());
 									}
@@ -433,7 +433,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							case CcjRoundPhase.Signing:
 								{
 									var alicesToBan = await RemoveAlicesIfInputsSpentAsync();
-									if (alicesToBan.Count() != 0)
+									if (alicesToBan.Any())
 									{
 										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
 									}

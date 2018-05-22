@@ -2368,7 +2368,7 @@ namespace WalletWasabi.Tests
 				chaumianClient2.Start();
 
 				smartCoin1.Locked = true;
-				Assert.True(0 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Count());
+				Assert.True(!(await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any());
 				Assert.True(smartCoin1.Locked);
 
 				await Assert.ThrowsAsync<SecurityException>(async () => await chaumianClient1.QueueCoinsToMixAsync("asdasdasd", smartCoin1, smartCoin2));
