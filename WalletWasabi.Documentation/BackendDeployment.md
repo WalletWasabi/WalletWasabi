@@ -99,7 +99,7 @@ Enable firewall:
 sudo ufw allow 80
 ```
 
-** Backup the generated private key! **
+**Backup the generated private key!**
 
 todo: setup process manager for tor  
 todo: setup process manager for bitcoind  
