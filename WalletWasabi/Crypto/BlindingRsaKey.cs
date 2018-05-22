@@ -104,7 +104,12 @@ namespace WalletWasabi.Crypto
 
 		public static bool operator ==(BlindingRsaKey x, BlindingRsaKey y)
 		{
-			// ToDo: add null comparisons for PrivateModulus, PrivateExponent, PublicModulus and PublicExponent, too, because == MUST never throw from nulls
+			if (x == null && y == null) return true;
+			if (x == null ^ y == null) return false;
+			if (x.PrivateExponent == null ^ y.PrivateExponent == null) return false;
+			if (x.PublicModulus == null ^ y.PublicModulus == null) return false;
+			if (x.PublicExponent == null ^ y.PublicExponent == null) return false;
+			
 			return
 				x.PrivateModulus.Equals(y.PrivateModulus)
 				&& x.PrivateExponent.Equals(y.PrivateExponent)
