@@ -40,7 +40,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				try
 				{
-					if (TcpClient == null || !TcpClient.Connected || TcpClient.GetStream() == null)
+					if (TcpClient == null || !TcpClient.Connected)
 					{
 						return false;
 					}
