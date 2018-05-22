@@ -180,7 +180,7 @@ namespace WalletWasabi.Backend.Controllers
 				return NotFound($"Provided {nameof(bestKnownBlockHash)} is not found: {bestKnownBlockHash}.");
 			}
 
-			if (filters.Count() == 0)
+			if (!filters.Any())
 			{
 				return NoContent();
 			}

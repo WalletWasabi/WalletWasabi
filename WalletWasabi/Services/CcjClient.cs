@@ -106,11 +106,11 @@ namespace WalletWasabi.Services
 								if (IsRunning == false) return;
 
 								// if mixing >= connConf: delay = new Random().Next(2, 7);
-								if (State.GetActivelyMixingRounds().Count() > 0)
+								if (State.GetActivelyMixingRounds().Any())
 								{
 									delay = new Random().Next(2, 7);
 								}
-								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Count() > 0 || State.GetWaitingListCount() > 0)
+								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any()|| State.GetWaitingListCount() > 0)
 								{
 									double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.8 * connConfTimeout
 									delay = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));

@@ -87,7 +87,7 @@ namespace WalletWasabi.Backend.Controllers
 				|| string.IsNullOrWhiteSpace(request.BlindedOutputScriptHex)
 				|| string.IsNullOrWhiteSpace(request.ChangeOutputAddress)
 				|| request.Inputs == null
-				|| request.Inputs.Count() == 0
+			    || !request.Inputs.Any()
 				|| request.Inputs.Any(x => x.Input == null
 					|| x.Input.Hash == null
 					|| string.IsNullOrWhiteSpace(x.Proof)))
@@ -329,7 +329,7 @@ namespace WalletWasabi.Backend.Controllers
 						{
 							IEnumerable<Alice> alicesToBan = await round.RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
-							if (alicesToBan.Count() > 0)
+							if (alicesToBan.Any())
 							{
 								await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
 							}
@@ -569,7 +569,7 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			if (roundId <= 0
 				|| signatures == null
-				|| signatures.Count() <= 0
+			    || !signatures.Any()
 				|| signatures.Any(x => x.Key < 0 || string.IsNullOrWhiteSpace(x.Value))
 				|| !ModelState.IsValid)
 			{

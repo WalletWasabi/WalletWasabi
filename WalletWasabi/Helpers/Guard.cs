@@ -53,7 +53,7 @@ namespace WalletWasabi.Helpers
 		{
 			NotNull(parameterName, value);
 
-			if (value.Count() == 0)
+			if (!value.Any())
 			{
 				throw new ArgumentException("Parameter cannot be empty.", parameterName);
 			}
@@ -65,7 +65,7 @@ namespace WalletWasabi.Helpers
 		{
 			NotNull(parameterName, value);
 
-			if (value.Count() == 0)
+			if (!value.Any())
 			{
 				throw new ArgumentException("Parameter cannot be empty.", parameterName);
 			}

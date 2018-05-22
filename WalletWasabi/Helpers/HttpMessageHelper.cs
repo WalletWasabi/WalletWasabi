@@ -492,7 +492,7 @@ namespace System.Net.Http
 
 		public static HttpContent GetDummyOrNullContent(HttpContentHeaders contentHeaders)
 		{
-			if (contentHeaders != null && contentHeaders.Count() != 0)
+			if (contentHeaders != null && contentHeaders.Any())
 			{
 				return new ByteArrayContent(new byte[] { }); // dummy empty content
 			}
@@ -504,7 +504,7 @@ namespace System.Net.Http
 
 		public static void CopyHeaders(HttpHeaders source, HttpHeaders destination)
 		{
-			if (source != null && source.Count() != 0)
+			if (source != null && source.Any())
 			{
 				foreach (var header in source)
 				{
