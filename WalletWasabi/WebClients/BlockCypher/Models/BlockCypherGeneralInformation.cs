@@ -3,8 +3,6 @@ using WalletWasabi.Models;
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.WebClients.BlockCypher.Models
 {

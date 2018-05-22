@@ -1,14 +1,10 @@
 ﻿using WalletWasabi.WebClients.BlockCypher.Models;
 using NBitcoin;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

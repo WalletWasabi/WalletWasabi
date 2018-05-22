@@ -11,7 +11,6 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin
