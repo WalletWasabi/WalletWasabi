@@ -8,7 +8,7 @@ namespace WalletWasabi.Exceptions
 	{
 		public RepField RepField;
 
-		public TorSocks5FailureResponseException(RepField rep) : base($"Tor SOCKS5 proxy responded with {rep.ToString()}.")
+		public TorSocks5FailureResponseException(RepField rep) : base($"Tor SOCKS5 proxy responded with {rep}.")
 		{
 			RepField = Guard.NotNull(nameof(rep), rep);
 		}

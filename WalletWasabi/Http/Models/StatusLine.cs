@@ -14,7 +14,7 @@ namespace WalletWasabi.Http.Models
 			Protocol = protocol;
 			StatusCode = status;
 
-			StartLineString = Protocol.ToString() + SP + (int)StatusCode + SP + StatusCode.ToReasonString() + CRLF;
+			StartLineString = Protocol + SP + (int)StatusCode + SP + StatusCode.ToReasonString() + CRLF;
 		}
 
 		public static StatusLine CreateNew(string statusLineString)
