@@ -157,24 +157,29 @@ namespace WalletWasabi.Services
 			using (await RoundsListLock.LockAsync())
 			{
 				int runningRoundCount = Rounds.Count(x => x.Status == CcjRoundStatus.Running);
-				if (runningRoundCount == 0)
+				switch (runningRoundCount)
 				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
-					round.StatusChanged += Round_StatusChangedAsync;
-					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
-					Rounds.Add(round);
+					case 0:
+					{
+						var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
+						round.StatusChanged += Round_StatusChangedAsync;
+						await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
+						Rounds.Add(round);
 
-					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
-					round2.StatusChanged += Round_StatusChangedAsync;
-					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
-					Rounds.Add(round2);
-				}
-				else if (runningRoundCount == 1)
-				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
-					round.StatusChanged += Round_StatusChangedAsync;
-					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
-					Rounds.Add(round);
+						var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
+						round2.StatusChanged += Round_StatusChangedAsync;
+						await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
+						Rounds.Add(round2);
+						break;
+					}
+					case 1:
+					{
+						var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
+						round.StatusChanged += Round_StatusChangedAsync;
+						await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
+						Rounds.Add(round);
+						break;
+					}
 				}
 			}
 		}
@@ -183,26 +188,28 @@ namespace WalletWasabi.Services
 		{
 			var round = sender as CcjRound;
 
-			// If success save the coinjoin.
-			if (status == CcjRoundStatus.Succeded)
+			switch (status)
 			{
-				using (await CoinJoinsLock.LockAsync())
-				{
-					uint256 coinJoinHash = round.SignedCoinJoin.GetHash();
-					CoinJoins.Add(coinJoinHash);
-					await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() });
-				}
-			}
+				// If success save the coinjoin.
+				case CcjRoundStatus.Succeded:
+					using (await CoinJoinsLock.LockAsync())
+					{
+						uint256 coinJoinHash = round.SignedCoinJoin.GetHash();
+						CoinJoins.Add(coinJoinHash);
+						await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() });
+					}
 
-			// If failed in signing phase, then ban Alices those didn't sign.
-			if (status == CcjRoundStatus.Failed && round.Phase == CcjRoundPhase.Signing)
-			{
-				foreach (Alice alice in round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false)) // Because the event sometimes is raised from inside the lock.
-				{
-					// If its from any coinjoin, then don't ban.
-					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.OutPoint);
-					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, utxosToBan.ToArray());
-				}
+					break;
+				// If failed in signing phase, then ban Alices those didn't sign.
+				case CcjRoundStatus.Failed when round.Phase == CcjRoundPhase.Signing:
+					foreach (Alice alice in round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false)) // Because the event sometimes is raised from inside the lock.
+					{
+						// If its from any coinjoin, then don't ban.
+						IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.OutPoint);
+						await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, utxosToBan.ToArray());
+					}
+
+					break;
 			}
 
 			// If finished start a new round.

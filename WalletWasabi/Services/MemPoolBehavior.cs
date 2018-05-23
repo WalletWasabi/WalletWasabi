@@ -35,16 +35,14 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				if (message.Message.Payload is TxPayload txPayload)
+				switch (message.Message.Payload)
 				{
-					ProcessTxPayload(txPayload);
-					return;
-				}
-
-				if (message.Message.Payload is InvPayload invPayload)
-				{
-					await ProcessInvAsync(node, invPayload);
-					return;
+					case TxPayload txPayload:
+						ProcessTxPayload(txPayload);
+						return;
+					case InvPayload invPayload:
+						await ProcessInvAsync(node, invPayload);
+						return;
 				}
 			}
 			catch (OperationCanceledException ex)

@@ -14,10 +14,14 @@ namespace WalletWasabi.Models
 		{
 			get
 			{
-				if (Type == HeightType.Chain)
-					return _value;
-				if (Type == HeightType.MemPool)
-					return int.MaxValue - 1;
+				switch (Type)
+				{
+					case HeightType.Chain:
+						return _value;
+					case HeightType.MemPool:
+						return int.MaxValue - 1;
+				}
+
 				//if(Type == HeightType.Unknown)
 				return int.MaxValue;
 			}

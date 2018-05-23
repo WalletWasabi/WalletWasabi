@@ -127,61 +127,56 @@ namespace WalletWasabi.Services
 
 							var response = await Client.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/filters?bestKnownBlockHash={bestKnownFilter.BlockHash}&count=1000");
 
-							if (response.StatusCode == HttpStatusCode.NoContent)
+							switch (response.StatusCode)
 							{
-								continue;
-							}
-							if (response.StatusCode == HttpStatusCode.OK)
-							{
-								var filters = await response.Content.ReadAsJsonAsync<List<string>>();
-								using (await IndexLock.LockAsync())
-								{
-									for (int i = 0; i < filters.Count; i++)
+								case HttpStatusCode.NoContent:
+									continue;
+								case HttpStatusCode.OK:
+									var filters = await response.Content.ReadAsJsonAsync<List<string>>();
+									using (await IndexLock.LockAsync())
 									{
-										var filterModel = FilterModel.FromLine(filters[i], bestKnownFilter.BlockHeight + i + 1);
+										for (int i = 0; i < filters.Count; i++)
+										{
+											var filterModel = FilterModel.FromLine(filters[i], bestKnownFilter.BlockHeight + i + 1);
 
-										Index.Add(filterModel);
-										NewFilter?.Invoke(this, filterModel);
+											Index.Add(filterModel);
+											NewFilter?.Invoke(this, filterModel);
+										}
+
+										if (filters.Count == 1) // minor optimization
+										{
+											await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
+										}
+										else
+										{
+											await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
+										}
+
+										Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
 									}
 
-									if (filters.Count == 1) // minor optimization
+									continue;
+								case HttpStatusCode.NotFound:
+									// Reorg happened
+									var reorgedHash = bestKnownFilter.BlockHash;
+									Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
+									// 1. Rollback index
+									using (await IndexLock.LockAsync())
 									{
-										await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
-									}
-									else
-									{
-										await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
+										Index.RemoveAt(Index.Count - 1);
 									}
 
-									Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
-								}
+									Reorged?.Invoke(this, reorgedHash);
 
-								continue;
-							}
-							else if (response.StatusCode == HttpStatusCode.NotFound)
-							{
-								// Reorg happened
-								var reorgedHash = bestKnownFilter.BlockHash;
-								Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
-								// 1. Rollback index
-								using (await IndexLock.LockAsync())
-								{
-									Index.RemoveAt(Index.Count - 1);
-								}
+									// 2. Serialize Index. (Remove last line.)
+									var lines = File.ReadAllLines(IndexFilePath);
+									File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
 
-								Reorged?.Invoke(this, reorgedHash);
-
-								// 2. Serialize Index. (Remove last line.)
-								var lines = File.ReadAllLines(IndexFilePath);
-								File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
-
-								// 3. Skip the last valid block.
-								continue;
-							}
-							else
-							{
-								var error = await response.Content.ReadAsStringAsync();
-								throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {error}");
+									// 3. Skip the last valid block.
+									continue;
+								default:
+									var error = await response.Content.ReadAsStringAsync();
+									throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {error}");
 							}
 						}
 						catch (Exception ex)
@@ -209,14 +204,7 @@ namespace WalletWasabi.Services
 			using (IndexLock.Lock())
 			{
 				var single = Index.Single(x => x.BlockHash == blockHash);
-				if (single != null)
-				{
-					return single.BlockHeight;
-				}
-				else
-				{
-					return Height.Unknown;
-				}
+				return single.BlockHeight;
 			}
 		}
 

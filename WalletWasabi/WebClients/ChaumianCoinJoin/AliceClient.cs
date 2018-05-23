@@ -76,17 +76,15 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		{
 			using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v1/btc/chaumiancoinjoin/confirmation?uniqueId={UniqueId}&roundId={RoundId}"))
 			{
-				if (response.StatusCode == HttpStatusCode.NoContent)
+				switch (response.StatusCode)
 				{
-					Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection.");
-					return null;
-				}
-				
-				if (response.StatusCode == HttpStatusCode.OK)
-				{
-					string roundHash = await response.Content.ReadAsJsonAsync<string>();
-					Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Acquired roundHash: {roundHash}.");
-					return roundHash;
+					case HttpStatusCode.NoContent:
+						Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection.");
+						return null;
+					case HttpStatusCode.OK:
+						string roundHash = await response.Content.ReadAsJsonAsync<string>();
+						Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Acquired roundHash: {roundHash}.");
+						return roundHash;
 				}
 
 				string error = await response.Content.ReadAsJsonAsync<string>();

@@ -202,35 +202,38 @@ namespace WalletWasabi.Services
 				var ongoingRound = State.GetSingleOrDefaultRound(ongoingRoundId);
 				if (ongoingRound == null) throw new NotSupportedException("This is impossible.");
 
-				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
+				switch (ongoingRound.State.Phase)
 				{
-					if (ongoingRound.RoundHash == null) // If we didn't already obtained our roundHash obtain it.
-					{
-						await ObtainRoundHashAsync(ongoingRound);
-					}
-				}
-				else if (ongoingRound.State.Phase == CcjRoundPhase.OutputRegistration)
-				{
-					if (!ongoingRound.PostedOutput)
-					{
-						if (ongoingRound.RoundHash == null)
+					case CcjRoundPhase.ConnectionConfirmation:
+						if (ongoingRound.RoundHash == null) // If we didn't already obtained our roundHash obtain it.
 						{
-							throw new NotSupportedException("Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
+							await ObtainRoundHashAsync(ongoingRound);
 						}
 
-						await RegisterOutputAsync(ongoingRound);
-					}
-				}
-				else if (ongoingRound.State.Phase == CcjRoundPhase.Signing)
-				{
-					if (!ongoingRound.Signed)
-					{
-						Transaction unsignedCoinJoin = await ongoingRound.AliceClient.GetUnsignedCoinJoinAsync();
-						Dictionary<int, WitScript> myDic = SignCoinJoin(ongoingRound, unsignedCoinJoin);
+						break;
+					case CcjRoundPhase.OutputRegistration:
+						if (!ongoingRound.PostedOutput)
+						{
+							if (ongoingRound.RoundHash == null)
+							{
+								throw new NotSupportedException("Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
+							}
 
-						await ongoingRound.AliceClient.PostSignaturesAsync(myDic);
-						ongoingRound.Signed = true;
-					}
+							await RegisterOutputAsync(ongoingRound);
+						}
+
+						break;
+					case CcjRoundPhase.Signing:
+						if (!ongoingRound.Signed)
+						{
+							Transaction unsignedCoinJoin = await ongoingRound.AliceClient.GetUnsignedCoinJoinAsync();
+							Dictionary<int, WitScript> myDic = SignCoinJoin(ongoingRound, unsignedCoinJoin);
+
+							await ongoingRound.AliceClient.PostSignaturesAsync(myDic);
+							ongoingRound.Signed = true;
+						}
+
+						break;
 				}
 			}
 			catch (Exception ex)

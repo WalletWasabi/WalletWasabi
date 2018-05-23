@@ -35,26 +35,17 @@ namespace WalletWasabi.KeyManagement
 		public void SetLabel(string label, KeyManager kmToFile = null)
 		{
 			label = Guard.Correct(label);
-			if (Label != label)
-			{
-				Label = label;
-				if (kmToFile != null)
-				{
-					kmToFile.ToFile();
-				}
-			}
+			if (Label == label) return;			
+			Label = label;
+
+			kmToFile?.ToFile();
 		}
 
 		public void SetKeyState(KeyState state, KeyManager kmToFile = null)
 		{
-			if (KeyState != state)
-			{
-				KeyState = state;
-				if (kmToFile != null)
-				{
-					kmToFile.ToFile();
-				}
-			}
+			if (KeyState == state) return;
+			KeyState = state;
+			kmToFile?.ToFile();
 		}
 
 		private Script _p2pkScript = null;
@@ -112,15 +103,17 @@ namespace WalletWasabi.KeyManagement
 			if (_isInternal == null)
 			{
 				int change = (int)FullKeyPath.Indexes[3];
-				if (change == 0)
+				switch (change)
 				{
-					_isInternal = false;
+					case 0:
+						_isInternal = false;
+						break;
+					case 1:
+						_isInternal = true;
+						break;
+					default:
+						throw new ArgumentException(nameof(FullKeyPath));
 				}
-				else if (change == 1)
-				{
-					_isInternal = true;
-				}
-				else throw new ArgumentException(nameof(FullKeyPath));
 			}
 			return (bool)_isInternal;
 		}
