@@ -40,14 +40,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				try
 				{
-					if (TcpClient == null || !TcpClient.Connected)
-					{
-						return false;
-					}
-					else
-					{
-						return true;
-					}
+					return TcpClient != null && TcpClient.Connected;
 				}
 				catch (Exception ex)
 				{
@@ -377,10 +370,8 @@ namespace WalletWasabi.TorSocks5
 					}
 					return await SendAsync(sendBuffer, receiveBufferSize, fallback: true);
 				}
-				else
-				{
-					throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
-				}
+
+				throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
 			}
 		}
 

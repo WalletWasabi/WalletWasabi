@@ -158,10 +158,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					return 0;
 				}
-				else
-				{
-					return Rounds.Min(x => x.State.RegistrationTimeout);
-				}
+				return Rounds.Min(x => x.State.RegistrationTimeout);
 			}
 		}
 

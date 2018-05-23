@@ -115,7 +115,7 @@ namespace WalletWasabi.Models
 		public override string ToString()
 		{
 			if (Type == HeightType.Chain) return Value.ToString();
-			else return Type.ToString();
+			return Type.ToString();
 		}
 
 		#region EqualityAndComparison

@@ -39,14 +39,8 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 					if (response.StatusCode != HttpStatusCode.OK)
 					{
 						string error = await response.Content.ReadAsJsonAsync<string>();
-						if (error == null)
-						{
-							throw new HttpRequestException(response.StatusCode.ToReasonString());
-						}
-						else
-						{
-							throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
-						}
+						var errorMessage = error == null ? string.Empty : $"\n{error}";
+						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 					}
 
 					var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>();
@@ -87,24 +81,17 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 					Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection.");
 					return null;
 				}
-				else if (response.StatusCode == HttpStatusCode.OK)
+				
+				if (response.StatusCode == HttpStatusCode.OK)
 				{
 					string roundHash = await response.Content.ReadAsJsonAsync<string>();
 					Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Acquired roundHash: {roundHash}.");
 					return roundHash;
 				}
-				else
-				{
-					string error = await response.Content.ReadAsJsonAsync<string>();
-					if (error == null)
-					{
-						throw new HttpRequestException(response.StatusCode.ToReasonString());
-					}
-					else
-					{
-						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
-					}
-				}
+
+				string error = await response.Content.ReadAsJsonAsync<string>();
+				var errorMessage = error == null ? string.Empty : $"\n{error}";
+				throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 			}
 		}
 
@@ -116,14 +103,8 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				if (!response.IsSuccessStatusCode)
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
-					if (error == null)
-					{
-						throw new HttpRequestException(response.StatusCode.ToReasonString());
-					}
-					else
-					{
-						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
-					}
+					var errorMessage = error == null ? string.Empty : $"\n{error}";
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Unconfirmed connection.");
 			}
@@ -136,14 +117,8 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
-					if (error == null)
-					{
-						throw new HttpRequestException(response.StatusCode.ToReasonString());
-					}
-					else
-					{
-						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
-					}
+					var errorMessage = error == null ? string.Empty : $"\n{error}";
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 
 				var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
@@ -169,14 +144,8 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				if (response.StatusCode != HttpStatusCode.NoContent)
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
-					if (error == null)
-					{
-						throw new HttpRequestException(response.StatusCode.ToReasonString());
-					}
-					else
-					{
-						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
-					}
+					var errorMessage = error == null ? string.Empty : $"\n{error}";
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Posted {signatures.Count} signatures.");
 			}

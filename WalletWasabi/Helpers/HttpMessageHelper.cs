@@ -100,11 +100,8 @@ namespace System.Net.Http
 					{
 						return bab.ToString(encoding);
 					}
-					else
-					{
-						bab.Append(new byte[] { (byte)ch, (byte)ch2 });
-						continue;
-					}
+					bab.Append(new byte[] { (byte)ch, (byte)ch2 });
+					continue;
 				}
 				bab.Append((byte)ch);
 			}
@@ -135,10 +132,7 @@ namespace System.Net.Http
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
 				// status code and then close the connection.
-				else
-				{
-					return await GetContentTillEndAsync(stream, ctsToken);
-				}
+				return await GetContentTillEndAsync(stream, ctsToken);
 			}
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 5.If a valid Content - Length header field is present without
@@ -147,7 +141,7 @@ namespace System.Net.Http
 			// the recipient times out before the indicated number of octets are
 			// received, the recipient MUST consider the message to be
 			// incomplete and close the connection.
-			else if (headerStruct.ContentHeaders.Contains("Content-Length"))
+			if (headerStruct.ContentHeaders.Contains("Content-Length"))
 			{
 				long? contentLength = headerStruct.ContentHeaders?.ContentLength;
 				return await GetContentTillLengthAsync(stream, contentLength, ctsToken);
@@ -186,7 +180,7 @@ namespace System.Net.Http
 			// line that concludes the header fields.A client MUST ignore any
 			// Content - Length or Transfer-Encoding header fields received in
 			// such a message.
-			else if (requestMethod == new HttpMethod("CONNECT"))
+			if (requestMethod == new HttpMethod("CONNECT"))
 			{
 				if (HttpStatusCodeHelper.IsSuccessful(statusLine.StatusCode))
 				{
@@ -215,10 +209,7 @@ namespace System.Net.Http
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
 				// status code and then close the connection.
-				else
-				{
-					return await GetContentTillEndAsync(stream, ctsToken);
-				}
+				return await GetContentTillEndAsync(stream, ctsToken);
 			}
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 5.If a valid Content - Length header field is present without
@@ -227,7 +218,7 @@ namespace System.Net.Http
 			// the recipient times out before the indicated number of octets are
 			// received, the recipient MUST consider the message to be
 			// incomplete and close the connection.
-			else if (headerStruct.ContentHeaders.Contains("Content-Length"))
+			if (headerStruct.ContentHeaders.Contains("Content-Length"))
 			{
 				long? contentLength = headerStruct.ContentHeaders?.ContentLength;
 
@@ -495,10 +486,7 @@ namespace System.Net.Http
 			{
 				return new ByteArrayContent(new byte[] { }); // dummy empty content
 			}
-			else
-			{
-				return null;
-			}
+			return null;
 		}
 
 		public static void CopyHeaders(HttpHeaders source, HttpHeaders destination)

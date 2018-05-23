@@ -312,10 +312,7 @@ namespace WalletWasabi.Services
 			{
 				throw new NotSupportedException("Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
 			}
-			else
-			{
-				ongoingRound.RoundHash = roundHash;
-			}
+			ongoingRound.RoundHash = roundHash;
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
@@ -625,7 +622,8 @@ namespace WalletWasabi.Services
 			{
 				throw exceptions.Single();
 			}
-			else if (exceptions.Count > 0)
+			
+			if (exceptions.Count > 0)
 			{
 				throw new AggregateException(exceptions);
 			}

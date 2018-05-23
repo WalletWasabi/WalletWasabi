@@ -23,19 +23,17 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 				{
 					return Encoding.ASCII.GetString(Bytes.Skip(1).ToArray()); // UTF8 result in general SOCKS server failure
 				}
-				else if (Atyp == AtypField.IPv4)
-				{
-					var values = new string[4];
-					for (int i = 0; i < 4; i++)
-					{
-						values[i] = Bytes[i].ToString(); // it's ok ASCII here, these are always numbers
-					}
-					return string.Join(".", values);
-				}
-				else
-				{
+
+				if (Atyp != AtypField.IPv4) 
 					throw new NotSupportedException($"{nameof(Atyp)} is not supported. Value: {Atyp}.");
+
+				var values = new string[4];
+				for (int i = 0; i < 4; i++)
+				{
+					values[i] = Bytes[i].ToString(); // it's ok ASCII here, these are always numbers
 				}
+				return string.Join(".", values);
+
 			}
 		}
 

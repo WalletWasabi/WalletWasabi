@@ -14,7 +14,7 @@ namespace WalletWasabi.WebClients
 {
 	public class ExchangeRateProvider : IExchangeRateProvider
 	{
-		private readonly IExchangeRateProvider[] _exchangeRateProviders = new IExchangeRateProvider[]{
+		private readonly IExchangeRateProvider[] _exchangeRateProviders = {
 			new SmartBitExchangeRateProvider(new SmartBitClient(Network.Main, disposeHandler: true)),
 			new BlockchainInfoExchangeRateProvider(),
 			new CoinbaseExchangeRateProvider(),

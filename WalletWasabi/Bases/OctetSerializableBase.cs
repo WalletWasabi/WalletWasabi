@@ -34,10 +34,7 @@ namespace WalletWasabi.Bases
 			{
 				return $"X'{ByteHelpers.ToHex(ToByte())}'";
 			}
-			else
-			{
-				return ByteHelpers.ToHex(ToByte());
-			}
+			return ByteHelpers.ToHex(ToByte());
 		}
 
 		public void FromHex(string hex)

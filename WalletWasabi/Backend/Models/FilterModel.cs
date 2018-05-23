@@ -44,15 +44,12 @@ namespace WalletWasabi.Backend.Models
 					Filter = null
 				};
 			}
-			else
+			return new FilterModel
 			{
-				return new FilterModel
-				{
-					BlockHeight = Guard.NotNull(nameof(height), height),
-					BlockHash = new uint256(parts[0]),
-					Filter = GolombRiceFilter.Parse(parts[1])
-				};
-			}
+				BlockHeight = Guard.NotNull(nameof(height), height),
+				BlockHash = new uint256(parts[0]),
+				Filter = GolombRiceFilter.Parse(parts[1])
+			};
 		}
 	}
 }

@@ -5,6 +5,6 @@
 		InputRegistration,
 		ConnectionConfirmation,
 		OutputRegistration,
-		Signing,
+		Signing
 	}
 }
