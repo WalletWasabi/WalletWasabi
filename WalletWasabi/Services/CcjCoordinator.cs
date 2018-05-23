@@ -294,7 +294,7 @@ namespace WalletWasabi.Services
 		{
 			using (await CoinJoinsLock.LockAsync())
 			{
-				if (UnconfirmedCoinJoins.Count() < 24)
+				if (UnconfirmedCoinJoins.Count < 24)
 				{
 					return false;
 				}

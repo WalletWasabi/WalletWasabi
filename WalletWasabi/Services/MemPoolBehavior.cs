@@ -48,13 +48,11 @@ namespace WalletWasabi.Services
 			catch (OperationCanceledException ex)
 			{
 				Logger.LogDebug<MemPoolBehavior>(ex);
-				return;
 			}
 			catch (Exception ex)
 			{
 				Logger.LogInfo<MemPoolBehavior>($"Ignoring {ex.GetType()}: {ex.Message}");
 				Logger.LogDebug<MemPoolBehavior>(ex);
-				return;
 			}
 		}
 
@@ -87,7 +85,7 @@ namespace WalletWasabi.Services
 
 		private void ProcessTxPayload(TxPayload transactionPayload)
 		{
-			var transaction = transactionPayload.Object;
+			Transaction transaction = transactionPayload.Object;
 			MemPoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.MemPool));
 		}
 

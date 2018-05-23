@@ -69,7 +69,7 @@ namespace WalletWasabi.Services
 						File.WriteAllLines(BannedUtxosFilePath, newAllLines);
 					}
 
-					Logger.LogInfo<UtxoReferee>($"{allLines.Count()} banned UTXOs are loaded from {BannedUtxosFilePath}.");
+					Logger.LogInfo<UtxoReferee>($"{allLines.Length} banned UTXOs are loaded from {BannedUtxosFilePath}.");
 				}
 				catch (Exception ex)
 				{
