@@ -290,7 +290,7 @@ namespace System.Net.Http
 			// Remove Trailer from existing header fields
 			long length = 0;
 			var firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken);
-			ParseFistChunkLine(firstChunkLine, out long chunkSize, out IEnumerable<string> chunkExtensions);
+			ParseFistChunkLine(firstChunkLine, out long chunkSize, out _);
 			// We will not do anything with the chunk extensions, because:
 			// https://tools.ietf.org/html/rfc7230#section-4.1.1
 			// A recipient MUST ignore unrecognized chunk extensions.
@@ -318,7 +318,6 @@ namespace System.Net.Http
 				firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken);
 				ParseFistChunkLine(firstChunkLine, out long cs, out IEnumerable<string> ces);
 				chunkSize = cs;
-				chunkExtensions = ces;
 			}
 			// https://tools.ietf.org/html/rfc7230#section-4.1.2
 			// A trailer allows the sender to include additional fields at the end
