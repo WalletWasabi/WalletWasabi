@@ -118,7 +118,7 @@ namespace WalletWasabi.Backend
 				Logger.LogInfo<RPCClient>("Bitcoin Core is fully synchronized.");
 
 				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
-				if (estimateSmartFeeResponse == null) throw new NotSupportedException($"Bitcoin Core cannot estimate network fees yet.");
+				if (estimateSmartFeeResponse == null) throw new NotSupportedException("Bitcoin Core cannot estimate network fees yet.");
 				Logger.LogInfo<RPCClient>("Bitcoin Core fee estimation is working.");
 
 				if (Config.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
@@ -126,7 +126,7 @@ namespace WalletWasabi.Backend
 					if (blocks < 101)
 					{
 						var generateBlocksResponse = await RpcClient.GenerateAsync(101);
-						if (generateBlocksResponse == null) throw new NotSupportedException($"Bitcoin Core cannot cannot generate blocks on the RegTest.");
+						if (generateBlocksResponse == null) throw new NotSupportedException("Bitcoin Core cannot cannot generate blocks on the RegTest.");
 
 						blockchainInfoRequest = new RPCRequest(RPCOperations.getblockchaininfo, parameters: null);
 						blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
