@@ -28,7 +28,7 @@ namespace WalletWasabi.Bases
 
 		public string ToHex() => ToHex(false);
 
-		public string ToHex(bool xhhSyntax = false)
+		public string ToHex(bool xhhSyntax)
 		{
 			if (xhhSyntax)
 			{
