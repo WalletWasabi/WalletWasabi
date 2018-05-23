@@ -90,7 +90,7 @@ namespace WalletWasabi.Services
 				{
 					await ProcessStatusAsync();
 
-					Logger.LogInfo<CcjClient>($"CcjClient is successfully initialized.");
+					Logger.LogInfo<CcjClient>("CcjClient is successfully initialized.");
 
 					while (IsRunning)
 					{

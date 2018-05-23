@@ -436,27 +436,27 @@ namespace WalletWasabi.Services
 
 							if (block == null)
 							{
-								Logger.LogInfo<WalletService>($"Disconnected node, because couldn't parse received block.");
+								Logger.LogInfo<WalletService>("Disconnected node, because couldn't parse received block.");
 								node.DisconnectAsync("Couldn't parse block.");
 								continue;
 							}
 
 							if (!block.Check())
 							{
-								Logger.LogInfo<WalletService>($"Disconnected node, because block invalid block received.");
+								Logger.LogInfo<WalletService>("Disconnected node, because block invalid block received.");
 								node.DisconnectAsync("Invalid block received.");
 								continue;
 							}
 						}
 						catch (TimeoutException)
 						{
-							Logger.LogInfo<WalletService>($"Disconnected node, because block download took too long.");
+							Logger.LogInfo<WalletService>("Disconnected node, because block download took too long.");
 							node.DisconnectAsync("Block download took too long.");
 							continue;
 						}
 						catch (OperationCanceledException)
 						{
-							Logger.LogInfo<WalletService>($"Disconnected node, because block download took too long.");
+							Logger.LogInfo<WalletService>("Disconnected node, because block download took too long.");
 							node.DisconnectAsync("Block download took too long.");
 							continue;
 						}
