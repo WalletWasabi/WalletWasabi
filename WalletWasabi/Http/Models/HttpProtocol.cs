@@ -42,7 +42,7 @@ namespace WalletWasabi.Http.Models
 		}
 
 		// HTTP-name "/" DIGIT "." DIGIT
-		public override string ToString() => $"{Protocol}/{Version.ToString()}";
+		public override string ToString() => $"{Protocol}/{Version}";
 
 		#region Equality
 
