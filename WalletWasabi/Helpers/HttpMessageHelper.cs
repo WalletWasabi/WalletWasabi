@@ -37,7 +37,7 @@ namespace System.Net.Http
 			}
 
 			var startLine = bab.ToString(Encoding.ASCII);
-			if (startLine == null || startLine == "") throw new FormatException($"{nameof(startLine)} cannot be null or empty.");
+			if (string.IsNullOrEmpty(startLine)) throw new FormatException($"{nameof(startLine)} cannot be null or empty.");
 			return startLine;
 		}
 
@@ -77,9 +77,9 @@ namespace System.Net.Http
 				builder.Append(header + CRLF); // CRLF is part of the headerstring
 			}
 			headers = builder.ToString();
-			if (headers == null || headers == "")
+			if (string.IsNullOrEmpty(headers))
 			{
-				headers = "";
+				headers = string.Empty;
 			}
 
 			return headers;
@@ -486,7 +486,7 @@ namespace System.Net.Http
 			if (contentHeaders.Contains("Content-Length"))
 			{
 				if (contentHeaders.ContentLength < 0)
-					throw new HttpRequestException("Content-Length MUST be bigger than zero.");
+					throw new HttpRequestException("Content-Length MUST be larger than zero.");
 			}
 		}
 

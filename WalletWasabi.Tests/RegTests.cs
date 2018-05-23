@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests
 				{
 					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 					var filters = await response.Content.ReadAsJsonAsync<List<string>>();
-					var filterCount = filters.Count();
+					var filterCount = filters.Count;
 					if (filterCount >= 101)
 					{
 						break;
@@ -2171,7 +2171,7 @@ namespace WalletWasabi.Tests
 			}
 
 			var mempool = await rpc.GetRawMempoolAsync();
-			Assert.Equal(inputRegistrationUsers.SelectMany(x => x.userInputData).Count(), mempool.Count());
+			Assert.Equal(inputRegistrationUsers.SelectMany(x => x.userInputData).Count(), mempool.Length);
 
 			while ((await rpc.GetRawMempoolAsync()).Length != 0)
 			{
@@ -2209,7 +2209,7 @@ namespace WalletWasabi.Tests
 
 			Logger.TurnOn();
 
-			Assert.Equal(users.Count(), roundConfig.AnonymitySet);
+			Assert.Equal(users.Count, roundConfig.AnonymitySet);
 
 			var confirmationRequests = new List<Task<string>>();
 
