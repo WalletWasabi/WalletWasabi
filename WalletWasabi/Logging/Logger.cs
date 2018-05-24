@@ -113,7 +113,7 @@ namespace WalletWasabi.Logging
 				message = string.IsNullOrWhiteSpace(message) ? "" : message;
 				category = string.IsNullOrWhiteSpace(category) ? "" : category;
 
-				var finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd hh:mm:ss} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
+				var finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
 
 				lock (Lock)
 				{
