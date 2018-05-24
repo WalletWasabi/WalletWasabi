@@ -201,7 +201,7 @@ namespace WalletWasabi.Services
 			try
 			{
 				var ongoingRound = State.GetSingleOrDefaultRound(ongoingRoundId);
-				if (ongoingRound == null) throw new NotSupportedException("This is impossible.");
+				Guard.ThrowIf(ongoingRound == null, typeof(NotSupportedException), "This is impossible.");
 
 				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
 				{
@@ -214,10 +214,7 @@ namespace WalletWasabi.Services
 				{
 					if (!ongoingRound.PostedOutput)
 					{
-						if (ongoingRound.RoundHash == null)
-						{
-							throw new NotSupportedException("Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
-						}
+						Guard.ThrowIf(ongoingRound.RoundHash == null, typeof(NotSupportedException), "Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
 
 						await RegisterOutputAsync(ongoingRound);
 					}
@@ -246,10 +243,7 @@ namespace WalletWasabi.Services
 
 		private static Dictionary<int, WitScript> SignCoinJoin(CcjClientRound ongoingRound, Transaction unsignedCoinJoin)
 		{
-			if (NBitcoinHelpers.HashOutpoints(unsignedCoinJoin.Inputs.Select(x => x.PrevOut)) != ongoingRound.RoundHash)
-			{
-				throw new NotSupportedException("Coordinator provided invalid roundHash.");
-			}
+			Guard.ThrowIf(NBitcoinHelpers.HashOutpoints(unsignedCoinJoin.Inputs.Select(x => x.PrevOut)) != ongoingRound.RoundHash, typeof(NotSupportedException), "Coordinator provided invalid roundHash.");
 			Money amountBack = unsignedCoinJoin.Outputs
 				.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutputAddress.ScriptPubKey || x.ScriptPubKey == ongoingRound.ChangeOutputAddress.ScriptPubKey)
 				.Select(y => y.Value)
@@ -270,10 +264,7 @@ namespace WalletWasabi.Services
 				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
 			}
 
-			if (amountBack < minAmountBack)
-			{
-				throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
-			}
+			Guard.ThrowIf(amountBack < minAmountBack, typeof(NotSupportedException), "Coordinator did not add enough value to our outputs in the coinjoin.");
 
 			var builder = new TransactionBuilder();
 			var signedCoinJoin = builder
@@ -309,14 +300,8 @@ namespace WalletWasabi.Services
 		private static async Task ObtainRoundHashAsync(CcjClientRound ongoingRound)
 		{
 			string roundHash = await ongoingRound.AliceClient.PostConfirmationAsync();
-			if (roundHash == null)
-			{
-				throw new NotSupportedException("Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
-			}
-			else
-			{
-				ongoingRound.RoundHash = roundHash;
-			}
+			Guard.ThrowIf(roundHash == null, typeof(NotSupportedException), "Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
+			ongoingRound.RoundHash = roundHash;
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
@@ -380,7 +365,7 @@ namespace WalletWasabi.Services
 					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
 					{
 						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-						if (coin == null) throw new NotSupportedException("This is impossible.");
+						Guard.ThrowIf(coin == null, typeof(NotSupportedException), "This is impossible.");
 						var inputProof = new InputProofModel
 						{
 							Input = coin.GetOutPoint(),
@@ -392,10 +377,7 @@ namespace WalletWasabi.Services
 
 					byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
 
-					if (!CoordinatorPubKey.Verify(unblindedSignature, activeAddress.ScriptPubKey.ToBytes()))
-					{
-						throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
-					}
+					Guard.ThrowIf(!CoordinatorPubKey.Verify(unblindedSignature, activeAddress.ScriptPubKey.ToBytes()), typeof(NotSupportedException), "Coordinator did not sign the blinded output properly.");
 
 					CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 					if (roundRegistered == null)
@@ -409,7 +391,7 @@ namespace WalletWasabi.Services
 					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
 					{
 						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-						if (coin == null) throw new NotSupportedException("This is impossible.");
+						Guard.ThrowIf(coin == null, typeof(NotSupportedException), "This is impossible.");
 						roundRegistered.CoinsRegistered.Add(coin);
 						State.RemoveCoinFromWaitingList(coin);
 					}
@@ -454,7 +436,7 @@ namespace WalletWasabi.Services
 		}
 
 		/// <summary>
-		/// Best effort. For example if a round is disrupted my malicious actors, the address won't be registered again, therefore it's not guaranteed money will arrive.
+		/// Best effort. For example if a round is disrupted by malicious actors, the address won't be registered again, therefore it's not guaranteed money will arrive.
 		/// </summary>
 		public void AddCustomActiveAddress(BitcoinAddress address, bool beginning = false)
 		{
@@ -580,7 +562,7 @@ namespace WalletWasabi.Services
 				foreach (int roundId in State.GetPassivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
-					if (round == null) throw new NotSupportedException("This is impossible.");
+					Guard.ThrowIf(round == null, typeof(NotSupportedException), "This is impossible.");
 
 					if (round.CoinsRegistered.Contains(coinToDequeue))
 					{
