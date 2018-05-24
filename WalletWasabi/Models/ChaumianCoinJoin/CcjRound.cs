@@ -187,7 +187,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						try
 						{
 							var estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
-							if (estimateSmartFeeResponse == null) throw new InvalidOperationException("FeeRate is not yet initialized");
+							Guard.ThrowIf(estimateSmartFeeResponse == null, typeof(InvalidOperationException), "FeeRate is not yet initialized");
 							var feeRate = estimateSmartFeeResponse.FeeRate;
 							Money feePerBytes = (feeRate.FeePerK / 1000);
 
@@ -687,10 +687,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			using (RoundSyncronizerLock.Lock())
 			{
-				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
-				{
-					throw new InvalidOperationException("Updating anonymity set is only allowed in InputRegistration and ConnectionConfirmation phases.");
-				}
+				Guard.ThrowIf(CcjRoundHelper.ActionDisallowed(CcjRoundAction.UpdatingAnonyminity, Phase, Status), typeof(InvalidOperationException), "Updating anonymity set is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				AnonymitySet = anonymitySet;
 			}
 			Logger.LogInfo<CcjRound>($"Round ({RoundId}): {nameof(AnonymitySet)} updated: {AnonymitySet}.");
@@ -700,10 +697,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			using (RoundSyncronizerLock.Lock())
 			{
-				if (Phase != CcjRoundPhase.InputRegistration || Status != CcjRoundStatus.Running)
-				{
-					throw new InvalidOperationException("Adding Alice is only allowed in InputRegistration phase.");
-				}
+				Guard.ThrowIf(CcjRoundHelper.ActionDisallowed(CcjRoundAction.AddingAlice, Phase, Status), typeof(InvalidOperationException), "Adding Alice is only allowed in InputRegistration phase.");
 				Alices.Add(alice);
 			}
 
@@ -716,10 +710,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			using (RoundSyncronizerLock.Lock())
 			{
-				if (Phase != CcjRoundPhase.OutputRegistration || Status != CcjRoundStatus.Running)
-				{
-					throw new InvalidOperationException("Adding Bob is only allowed in OutputRegistration phase.");
-				}
+				Guard.ThrowIf(CcjRoundHelper.ActionDisallowed(CcjRoundAction.AddingBob, Phase, Status), typeof(InvalidOperationException), "Adding Bob is only allowed in OutputRegistration phase.");
 				if (Bobs.Any(x => x.ActiveOutputAddress == bob.ActiveOutputAddress))
 				{
 					return; // Bob is already added.
@@ -736,10 +727,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			int numberOfRemovedAlices = 0;
 			using (RoundSyncronizerLock.Lock())
 			{
-				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
-				{
-					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
-				}
+				Guard.ThrowIf(CcjRoundHelper.ActionDisallowed(CcjRoundAction.RemovingAlice, Phase, Status), typeof(InvalidOperationException), "Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				numberOfRemovedAlices = Alices.RemoveAll(x => x.State == state);
 			}
 			if (numberOfRemovedAlices != 0)
@@ -755,10 +743,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			using (RoundSyncronizerLock.Lock())
 			{
-				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
-				{
-					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
-				}
+				Guard.ThrowIf(CcjRoundHelper.ActionDisallowed(CcjRoundAction.RemovingAlice, Phase, Status), typeof(InvalidOperationException), "Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 
 				foreach (Alice alice in Alices)
 				{
@@ -789,10 +774,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			var numberOfRemovedAlices = 0;
 			using (RoundSyncronizerLock.Lock())
 			{
-				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
-				{
-					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
-				}
+				Guard.ThrowIf(CcjRoundHelper.ActionDisallowed(CcjRoundAction.RemovingAlice, Phase, Status), typeof(InvalidOperationException), "Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				foreach (var id in ids)
 				{
 					numberOfRemovedAlices = Alices.RemoveAll(x => x.UniqueId == id);
@@ -810,10 +792,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			using (RoundSyncronizerLock.Lock())
 			{
-				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
-				{
-					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
-				}
+				Guard.ThrowIf(CcjRoundHelper.ActionDisallowed(CcjRoundAction.RemovingAlice, Phase, Status), typeof(InvalidOperationException), "Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				numberOfRemovedAlices = Alices.RemoveAll(x => x.Inputs.Any(y => y.OutPoint == input));
 			}
 

@@ -145,10 +145,7 @@ namespace WalletWasabi.Services
 
 		public async Task InitializeAsync(CancellationToken cancel)
 		{
-			if (!IndexDownloader.IsRunning)
-			{
-				throw new NotSupportedException($"{nameof(IndexDownloader)} is not running.");
-			}
+			Guard.ThrowIf(!IndexDownloader.IsRunning, typeof(NotSupportedException), $"{nameof(IndexDownloader)} is not running.");
 
 			using (HandleFiltersLock.Lock())
 			using (WalletBlocksLock.Lock())
@@ -494,7 +491,7 @@ namespace WalletWasabi.Services
 			using (await BlockFolderLock.LockAsync())
 			{
 				var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
-				var fileNames = filePaths.Select(x => Path.GetFileName(x));
+				var fileNames = filePaths.Select(Path.GetFileName);
 				var hashes = fileNames.Select(x => new uint256(x));
 
 				if (hashes.Contains(hash))
@@ -537,30 +534,18 @@ namespace WalletWasabi.Services
 		{
 			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
-			if (toSend.Any(x => x == null))
-			{
-				throw new ArgumentNullException($"{nameof(toSend)} cannot contain null element.");
-			}
-			if (toSend.Any(x => x.Amount < Money.Zero))
-			{
-				throw new ArgumentException($"{nameof(toSend)} cannot contain negative element.");
-			}
+
+			Guard.ThrowIf(toSend.Any(x => x == null), typeof(ArgumentNullException), $"{nameof(toSend)} cannot contain null element.");
+			Guard.ThrowIf(toSend.Any(x => x.Amount < Money.Zero), typeof(ArgumentException), $"{nameof(toSend)} cannot contain negative element.");
 
 			long sum = toSend.Select(x => x.Amount).Sum().Satoshi;
-			if (sum < 0 || sum > Constants.MaximumNumberOfSatoshis)
-			{
-				throw new ArgumentOutOfRangeException($"{nameof(toSend)} sum cannot be smaller than 0 or greater than {Constants.MaximumNumberOfSatoshis}.");
-			}
+			Guard.ThrowIf(sum < 0 || sum > Constants.MaximumNumberOfSatoshis, typeof(ArgumentOutOfRangeException), $"{nameof(toSend)} sum cannot be smaller than 0 or greater than {Constants.MaximumNumberOfSatoshis}.");
 
 			int spendAllCount = toSend.Count(x => x.Amount == Money.Zero);
-			if (spendAllCount > 1)
-			{
-				throw new ArgumentException($"Only one {nameof(toSend)} element can contain Money.Zero. Money.Zero means add the change to the value of this output.");
-			}
-			if (spendAllCount == 1 && customChange != null)
-			{
-				throw new ArgumentException($"{nameof(customChange)} and send all to destination cannot be specified the same time.");
-			}
+			Guard.ThrowIf(spendAllCount > 1, typeof(ArgumentException), $"Only one {nameof(toSend)} element can contain Money.Zero. Money.Zero means add the change to the value of this output.");
+
+			Guard.ThrowIf(spendAllCount == 1 && customChange != null, typeof(ArgumentException), $"{nameof(customChange)} and send all to destination cannot be specified the same time.");
+
 			Guard.InRangeAndNotNull(nameof(feeTarget), feeTarget, 0, 1008); // Allow 0 and 1, and correct later.
 			if (feeTarget < 2) // Correct 0 and 1 to 2.
 			{
@@ -568,24 +553,15 @@ namespace WalletWasabi.Services
 			}
 			if (subtractFeeFromAmountIndex != null) // If not null, make sure not out of range. If null fee is substracted from the change.
 			{
-				if (subtractFeeFromAmountIndex < 0)
-				{
-					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} cannot be smaller than 0.");
-				}
-				if (subtractFeeFromAmountIndex > toSend.Length - 1)
-				{
-					throw new ArgumentOutOfRangeException($"{nameof(subtractFeeFromAmountIndex)} can be maximum {nameof(toSend)}.Length - 1. {nameof(subtractFeeFromAmountIndex)}: {subtractFeeFromAmountIndex}, {nameof(toSend)}.Length - 1: {toSend.Length - 1}.");
-				}
+				Guard.ThrowIf(subtractFeeFromAmountIndex < 0, typeof(ArgumentOutOfRangeException), $"{nameof(subtractFeeFromAmountIndex)} cannot be smaller than 0.");
+				Guard.ThrowIf(subtractFeeFromAmountIndex > toSend.Length - 1, typeof(ArgumentOutOfRangeException), $"{nameof(subtractFeeFromAmountIndex)} can be maximum {nameof(toSend)}.Length - 1. {nameof(subtractFeeFromAmountIndex)}: {subtractFeeFromAmountIndex}, {nameof(toSend)}.Length - 1: {toSend.Length - 1}.");
 			}
 
 			// Get allowed coins to spend.
 			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
 			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
-				if (!allowedInputs.Any())
-				{
-					throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
-				}
+				Guard.ThrowIf(!allowedInputs.Any(), typeof(ArgumentException), $"{nameof(allowedInputs)} is not null, but empty.");
 
 				if (allowUnconfirmed)
 				{
@@ -614,8 +590,7 @@ namespace WalletWasabi.Services
 			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
 			using (var response = await torClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
 			{
-				if (response.StatusCode != HttpStatusCode.OK)
-					throw new HttpRequestException($"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
+				Guard.ThrowIf(response.StatusCode != HttpStatusCode.OK, typeof(HttpRequestException), $"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
 
 				using (var content = response.Content)
 				{
@@ -675,10 +650,7 @@ namespace WalletWasabi.Services
 					realToSend[i].amount -= fee;
 				}
 
-				if (realToSend[i].amount < Money.Zero)
-				{
-					throw new InsufficientBalanceException(Money.Zero, realToSend[i].amount);
-				}
+				Guard.ThrowIf(realToSend[i].amount < Money.Zero, typeof(InsufficientBalanceException), Money.Zero, realToSend[i].amount);
 			}
 
 			var toRemoveList = new List<(Script script, Money money, string label)>(realToSend);
@@ -753,10 +725,7 @@ namespace WalletWasabi.Services
 				.BuildTransaction(true);
 
 			TransactionPolicyError[] checkResults = builder.Check(tx, fee);
-			if (checkResults.Length > 0)
-			{
-				throw new InvalidTxException(tx, checkResults);
-			}
+			Guard.ThrowIf(checkResults.Length > 0, typeof(InvalidTxException), tx, checkResults);
 
 			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 
@@ -797,8 +766,7 @@ namespace WalletWasabi.Services
 			bool haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentConfirmedCoins);
 			if (!haveEnough)
 				haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
-			if (!haveEnough)
-				throw new InsufficientBalanceException(totalOutAmount, unspentConfirmedCoins.Select(x => x.Amount).Sum() + unspentUnconfirmedCoins.Select(x => x.Amount).Sum());
+			Guard.ThrowIf(!haveEnough, typeof(InsufficientBalanceException), totalOutAmount, unspentConfirmedCoins.Select(x => x.Amount).Sum() + unspentUnconfirmedCoins.Select(x => x.Amount).Sum());
 
 			return coinsToSpend;
 		}
@@ -836,14 +804,8 @@ namespace WalletWasabi.Services
 			using (var content = new StringContent($"'{transaction.Transaction.ToHex()}'", Encoding.UTF8, "application/json"))
 			using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
-				if (response.StatusCode == HttpStatusCode.BadRequest)
-				{
-					throw new HttpRequestException($"Couldn't broadcast transaction. Reason: {await response.Content.ReadAsStringAsync()}");
-				}
-				if (response.StatusCode != HttpStatusCode.OK) // Try again.
-				{
-					throw new HttpRequestException($"Couldn't broadcast transaction. Reason: {response.StatusCode.ToReasonString()}");
-				}
+				Guard.ThrowIf(response.StatusCode == HttpStatusCode.BadRequest, typeof(HttpRequestException), $"Couldn't broadcast transaction. Reason: {await response.Content.ReadAsStringAsync()}");
+				Guard.ThrowIf(response.StatusCode != HttpStatusCode.OK, typeof(HttpRequestException), $"Couldn't broadcast transaction. Reason: {response.StatusCode.ToReasonString()}");
 			}
 
 			ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));

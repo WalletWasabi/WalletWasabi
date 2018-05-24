@@ -140,5 +140,14 @@ namespace WalletWasabi.Helpers
 				? string.Empty
 				: str.Trim();
 		}
+
+		public static void ThrowIf(bool condition, Type exceptionType, params object[] exceptionArguments)
+		{
+			if (condition)
+			{
+				var exceptionToThrow = Activator.CreateInstance(exceptionType, exceptionArguments);
+				throw (Exception) exceptionToThrow;
+			}
+		}
 	}
 }
