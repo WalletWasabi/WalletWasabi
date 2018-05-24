@@ -146,7 +146,7 @@ namespace WalletWasabi.Helpers
 			if (condition)
 			{
 				var exceptionToThrow = Activator.CreateInstance(exceptionType, exceptionArguments);
-				throw (SystemException) exceptionToThrow;
+				throw (Exception) exceptionToThrow;
 			}
 		}
 	}
