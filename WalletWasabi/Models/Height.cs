@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.Models
 {
@@ -16,10 +14,14 @@ namespace WalletWasabi.Models
 		{
 			get
 			{
-				if (Type == HeightType.Chain)
-					return _value;
-				if (Type == HeightType.MemPool)
-					return int.MaxValue - 1;
+				switch (Type)
+				{
+					case HeightType.Chain:
+						return _value;
+					case HeightType.MemPool:
+						return int.MaxValue - 1;
+				}
+
 				//if(Type == HeightType.Unknown)
 				return int.MaxValue;
 			}
@@ -117,7 +119,7 @@ namespace WalletWasabi.Models
 		public override string ToString()
 		{
 			if (Type == HeightType.Chain) return Value.ToString();
-			else return Type.ToString();
+			return Type.ToString();
 		}
 
 		#region EqualityAndComparison

@@ -57,13 +57,14 @@ namespace WalletWasabi.JsonConverters
 		/// </param>
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			if (value == null)
+			switch (value)
 			{
-				writer.WriteValue(default(string));
-			}
-			else if (value is Guid guid)
-			{
-				writer.WriteValue(guid.ToString("N"));
+				case null:
+					writer.WriteValue(default(string));
+					break;
+				case Guid guid:
+					writer.WriteValue(guid.ToString("N"));
+					break;
 			}
 		}
 

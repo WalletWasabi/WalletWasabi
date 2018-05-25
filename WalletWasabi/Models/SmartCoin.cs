@@ -1,12 +1,8 @@
 ﻿using WalletWasabi.JsonConverters;
 using WalletWasabi.Helpers;
 using NBitcoin;
-using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace WalletWasabi.Models
 {
@@ -24,7 +20,7 @@ namespace WalletWasabi.Models
 		public uint Index { get; }
 
 		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(JsonConverters.ScriptJsonConverter))]
+		[JsonConverter(typeof(ScriptJsonConverter))]
 		public Script ScriptPubKey { get; }
 
 		[JsonProperty(Order = 4)]
@@ -101,12 +97,12 @@ namespace WalletWasabi.Models
 
 		public Coin GetCoin()
 		{
-			return new Coin(TransactionId, (uint)Index, Amount, ScriptPubKey);
+			return new Coin(TransactionId, Index, Amount, ScriptPubKey);
 		}
 
 		public OutPoint GetOutPoint()
 		{
-			return new OutPoint(TransactionId, (uint)Index);
+			return new OutPoint(TransactionId, Index);
 		}
 
 		#region EqualityAndComparison

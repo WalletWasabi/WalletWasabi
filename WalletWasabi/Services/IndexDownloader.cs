@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,18 +40,15 @@ namespace WalletWasabi.Services
 			{
 				return FilterModel.FromLine("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893:02832810ec08a0", GetStartingHeight(network));
 			}
-			else if (network == Network.TestNet)
+			if (network == Network.TestNet)
 			{
 				return FilterModel.FromLine("00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a:017821b8", GetStartingHeight(network));
 			}
-			else if (network == Network.RegTest)
+			if (network == Network.RegTest)
 			{
 				return FilterModel.FromLine("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206", GetStartingHeight(network));
 			}
-			else
-			{
-				throw new NotSupportedException($"{network} is not supported.");
-			}
+			throw new NotSupportedException($"{network} is not supported.");
 		}
 
 		public FilterModel StartingFilter => GetStartingFilter(Network);
@@ -131,61 +127,56 @@ namespace WalletWasabi.Services
 
 							var response = await Client.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/filters?bestKnownBlockHash={bestKnownFilter.BlockHash}&count=1000");
 
-							if (response.StatusCode == HttpStatusCode.NoContent)
+							switch (response.StatusCode)
 							{
-								continue;
-							}
-							if (response.StatusCode == HttpStatusCode.OK)
-							{
-								var filters = await response.Content.ReadAsJsonAsync<List<string>>();
-								using (await IndexLock.LockAsync())
-								{
-									for (int i = 0; i < filters.Count; i++)
+								case HttpStatusCode.NoContent:
+									continue;
+								case HttpStatusCode.OK:
+									var filters = await response.Content.ReadAsJsonAsync<List<string>>();
+									using (await IndexLock.LockAsync())
 									{
-										var filterModel = FilterModel.FromLine(filters[i], bestKnownFilter.BlockHeight + i + 1);
+										for (int i = 0; i < filters.Count; i++)
+										{
+											var filterModel = FilterModel.FromLine(filters[i], bestKnownFilter.BlockHeight + i + 1);
 
-										Index.Add(filterModel);
-										NewFilter?.Invoke(this, filterModel);
+											Index.Add(filterModel);
+											NewFilter?.Invoke(this, filterModel);
+										}
+
+										if (filters.Count == 1) // minor optimization
+										{
+											await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
+										}
+										else
+										{
+											await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
+										}
+
+										Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
 									}
 
-									if (filters.Count == 1) // minor optimization
+									continue;
+								case HttpStatusCode.NotFound:
+									// Reorg happened
+									var reorgedHash = bestKnownFilter.BlockHash;
+									Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
+									// 1. Rollback index
+									using (await IndexLock.LockAsync())
 									{
-										await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
-									}
-									else
-									{
-										await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
+										Index.RemoveAt(Index.Count - 1);
 									}
 
-									Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
-								}
+									Reorged?.Invoke(this, reorgedHash);
 
-								continue;
-							}
-							else if (response.StatusCode == HttpStatusCode.NotFound)
-							{
-								// Reorg happened
-								var reorgedHash = bestKnownFilter.BlockHash;
-								Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
-								// 1. Rollback index
-								using (await IndexLock.LockAsync())
-								{
-									Index.RemoveAt(Index.Count - 1);
-								}
+									// 2. Serialize Index. (Remove last line.)
+									var lines = File.ReadAllLines(IndexFilePath);
+									File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
 
-								Reorged?.Invoke(this, reorgedHash);
-
-								// 2. Serialize Index. (Remove last line.)
-								var lines = File.ReadAllLines(IndexFilePath);
-								File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
-
-								// 3. Skip the last valid block.
-								continue;
-							}
-							else
-							{
-								var error = await response.Content.ReadAsStringAsync();
-								throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {error}");
+									// 3. Skip the last valid block.
+									continue;
+								default:
+									var error = await response.Content.ReadAsStringAsync();
+									throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {error}");
 							}
 						}
 						catch (Exception ex)
@@ -213,14 +204,7 @@ namespace WalletWasabi.Services
 			using (IndexLock.Lock())
 			{
 				var single = Index.Single(x => x.BlockHash == blockHash);
-				if (single != null)
-				{
-					return single.BlockHeight;
-				}
-				else
-				{
-					return Height.Unknown;
-				}
+				return single.BlockHeight;
 			}
 		}
 

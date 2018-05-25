@@ -38,11 +38,10 @@ namespace WalletWasabi.Helpers
 				}
 			}
 
-			if (!Directory.Exists(directory))
-			{
-				Logger.LogInfo($"Creating data directory at `{directory}`.");
-				Directory.CreateDirectory(directory);
-			}
+			if (Directory.Exists(directory)) return directory;
+			
+			Logger.LogInfo($"Creating data directory at `{directory}`.");
+			Directory.CreateDirectory(directory);
 
 			return directory;
 		}

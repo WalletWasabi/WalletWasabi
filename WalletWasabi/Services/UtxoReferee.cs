@@ -6,12 +6,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Services
 {
@@ -72,7 +69,7 @@ namespace WalletWasabi.Services
 						File.WriteAllLines(BannedUtxosFilePath, newAllLines);
 					}
 
-					Logger.LogInfo<UtxoReferee>($"{allLines.Count()} banned UTXOs are loaded from {BannedUtxosFilePath}.");
+					Logger.LogInfo<UtxoReferee>($"{allLines.Length} banned UTXOs are loaded from {BannedUtxosFilePath}.");
 				}
 				catch (Exception ex)
 				{

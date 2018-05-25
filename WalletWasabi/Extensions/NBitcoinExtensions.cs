@@ -61,5 +61,10 @@ namespace NBitcoin
 			bool notEmpty = me.WitScript != WitScript.Empty;
 			return notNull && notEmpty;
 		}
+
+		public static Money Percentange(this Money me, decimal perc)
+		{
+			return Money.Satoshis((me.Satoshi / 100m) * perc);
+		}
 	}
 }

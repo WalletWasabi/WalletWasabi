@@ -1,14 +1,9 @@
 ﻿using NBitcoin;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Requests;
-using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin
@@ -31,14 +26,8 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				if (response.StatusCode != HttpStatusCode.NoContent)
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
-					if (error == null)
-					{
-						throw new HttpRequestException(response.StatusCode.ToReasonString());
-					}
-					else
-					{
-						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
-					}
+					var errorMessage = error == null ? string.Empty : $"\n{error}";
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 			}
 		}

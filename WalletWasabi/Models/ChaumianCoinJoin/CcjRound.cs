@@ -4,7 +4,6 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -263,7 +262,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						}
 
 						// 4. Start building Coordinator fee.
-						Money coordinatorFeePerAlice = Money.Coins((CoordinatorFeePercent * 0.01m) * decimal.Parse(newDenomination.ToString(false, true)));
+						Money coordinatorFeePerAlice = newDenomination.Percentange(CoordinatorFeePercent);
 						Money coordinatorFee = Alices.Count * coordinatorFeePerAlice;
 
 						// 5. Add the inputs and the changes of Alices.
@@ -277,7 +276,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
 							{
 								Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
-								Money onePercentOfDenomination = Money.Coins(newDenomination.ToDecimal(MoneyUnit.BTC) * 0.01m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
+								Money onePercentOfDenomination = newDenomination.Percentange(1m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
 								Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
 								if (changeAmount < minimumChangeAmount)
 								{
@@ -490,10 +489,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					return Alices.Count;
 				}
 			}
-			else
-			{
-				return Alices.Count;
-			}
+			return Alices.Count;
 		}
 
 		public bool AllAlices(AliceState state)
@@ -519,14 +515,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 			}
 
-			if (alices.Count > 0)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			return alices.Count > 0;
 		}
 
 		public bool ContainsInput(OutPoint input, out List<Alice> alices)
@@ -556,10 +545,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					return Bobs.Count;
 				}
 			}
-			else
-			{
-				return Alices.Count;
-			}
+			return Alices.Count;
 		}
 
 		public IEnumerable<Alice> GetAlicesBy(AliceState state)
@@ -587,10 +573,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					return Alices.Where(x => x.State != state).ToList();
 				}
 			}
-			else
-			{
-				return Alices.Where(x => x.State != state).ToList();
-			}
+			return Alices.Where(x => x.State != state).ToList();
 		}
 
 		public void StartAliceTimeout(Guid uniqueId)

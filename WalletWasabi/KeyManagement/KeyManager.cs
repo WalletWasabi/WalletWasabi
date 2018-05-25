@@ -1,9 +1,7 @@
 ﻿using WalletWasabi.JsonConverters;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 using NBitcoin;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -105,24 +103,22 @@ namespace WalletWasabi.KeyManagement
 		public void SetFilePath(string filePath)
 		{
 			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
-			if (FilePath != null)
-			{
-				var directoryPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
-				Directory.CreateDirectory(directoryPath);
-			}
+			if (FilePath == null) return;
+			
+			var directoryPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
+			Directory.CreateDirectory(directoryPath);
 		}
 
 		public void ToFile()
 		{
-			if (FilePath != null)
+			if (FilePath == null) return;
+			
+			lock (ToFileLock)
 			{
-				lock (ToFileLock)
-				{
-					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-					File.WriteAllText(FilePath,
+				string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+				File.WriteAllText(FilePath,
 					jsonString,
 					Encoding.UTF8);
-				}
 			}
 		}
 
@@ -194,18 +190,15 @@ namespace WalletWasabi.KeyManagement
 				{
 					return HdPubKeys;
 				}
-				else if (keyState != null && isInternal == null)
+				if (keyState != null && isInternal == null)
 				{
 					return HdPubKeys.Where(x => x.KeyState == keyState);
 				}
-				else if (keyState == null && isInternal != null)
+				if (keyState == null)
 				{
 					return HdPubKeys.Where(x => x.IsInternal() == isInternal);
 				}
-				else // Neither of them null.
-				{
-					return HdPubKeys.Where(x => x.KeyState == keyState && x.IsInternal() == isInternal);
-				}
+				return HdPubKeys.Where(x => x.KeyState == keyState && x.IsInternal() == isInternal);
 			}
 		}
 

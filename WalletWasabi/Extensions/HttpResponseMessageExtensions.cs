@@ -1,5 +1,4 @@
 ﻿using WalletWasabi.Http.Models;
-using Newtonsoft.Json;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,15 +30,12 @@ namespace System.Net.Http
 			//					CRLF
 			//					[message - body]
 
-			var position = 0;
 			string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream);
-			position += startLine.Length;
 
 			var statusLine = StatusLine.CreateNew(startLine);
 			var response = new HttpResponseMessage(statusLine.StatusCode);
 
 			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream);
-			position += headers.Length + 2;
 
 			var headerSection = HeaderSection.CreateNew(headers);
 			var headerStruct = headerSection.ToHttpResponseHeaders();
