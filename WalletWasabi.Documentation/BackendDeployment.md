@@ -203,8 +203,6 @@ systemctl status tor.service
 # Update
 
 ```
-#!/bin/bash
-
 sudo apt-get update
 cd ~/WalletWasabi
 git pull
@@ -212,10 +210,9 @@ systemctl stop walletwasabi.service
 systemctl stop tor.service
 bitcoin-cli stop
 sudo apt-get dist-upgrade -y
-dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
 bitcoind
 systemctl start tor.service
-sleep 10 # so to bitcoind get initialized
+dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
 systemctl start walletwasabi.service
 cd ..
 ```
