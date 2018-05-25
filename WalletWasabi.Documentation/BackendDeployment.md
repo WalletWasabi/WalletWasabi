@@ -200,61 +200,6 @@ systemctl start tor.service
 systemctl status tor.service
 ```
 
-## Bitcoin Core
-
-https://github.com/bitcoin/bitcoin/blob/master/doc/init.md  
-https://github.com/bitcoin/bitcoin/blob/master/contrib/init/bitcoind.service  
-
-```
-sudo pico /lib/systemd/system/bitcoind.service
-```
-
-```
-[Unit]
-Description=Bitcoin daemon
-After=network.target
-
-[Service]
-ExecStart=/usr/bin/bitcoind -daemon -conf=/etc/bitcoin/bitcoin.conf -pid=/run/bitcoind/bitcoind.pid
-# Creates /run/bitcoind owned by bitcoin
-RuntimeDirectory=bitcoind
-User=user
-Type=forking
-PIDFile=/run/bitcoind/bitcoind.pid
-Restart=on-failure
-
-# Hardening measures
-####################
-
-# Provide a private /tmp and /var/tmp.
-PrivateTmp=true
-
-# Mount /usr, /boot/ and /etc read-only for the process.
-ProtectSystem=full
-
-# Disallow the process and all of its children to gain
-# new privileges through execve().
-NoNewPrivileges=true
-
-# Use a new /dev namespace only populated with API pseudo devices
-# such as /dev/null, /dev/zero and /dev/random.
-PrivateDevices=true
-
-# Deny the creation of writable and executable memory mappings.
-MemoryDenyWriteExecute=true
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```
-bitcoind stop
-systemctl daemon-reload
-systemctl enable bitcoind.service
-systemctl start bitcoind.service
-systemctl status bitcoind.service
-```
-
 # Update
 
 ```
@@ -265,9 +210,19 @@ cd ~/WalletWasabi
 git pull
 systemctl stop walletwasabi.service
 systemctl stop tor.service
+bitcoin-cli stop
 sudo apt-get dist-upgrade -y
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
-systemctl start walletwasabi.service
+bitcoind
 systemctl start tor.service
+sleep 10 # so to bitcoind get initialized
+systemctl start walletwasabi.service
 cd ..
 ```
+
+# Check If Everything Works
+
+TestNet: http://wtgjmaol3io5ijii.onion/swagger/  
+Main: ...
+
+GET fees
