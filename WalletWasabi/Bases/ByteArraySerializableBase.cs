@@ -21,8 +21,6 @@ namespace WalletWasabi.Bases
 
 		public abstract void FromBytes(byte[] bytes);
 
-		public string ToHex() => ToHex(false);
-
 		public string ToHex(bool xhhSyntax = false)
 		{
 			if (xhhSyntax)
