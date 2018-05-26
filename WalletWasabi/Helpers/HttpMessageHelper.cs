@@ -483,7 +483,7 @@ namespace System.Net.Http
 				}
 			}
 			// Any Content-Length field value greater than or equal to zero is valid.
-			if (contentHeaders.Contains("Content-Length"))
+			if (contentHeaders != null && contentHeaders.Contains("Content-Length"))
 			{
 				if (contentHeaders.ContentLength < 0)
 					throw new HttpRequestException("Content-Length MUST be bigger than zero.");
