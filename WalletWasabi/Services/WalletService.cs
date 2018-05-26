@@ -648,47 +648,44 @@ namespace WalletWasabi.Services
 
 			// 5. How much to spend?
 			long toSendAmountSumInSatoshis = toSend.Select(x => x.Amount).Sum(); // Does it work if I simply go with Money class here? Is that copied by reference of value?
-			var realToSend = new(Script script, Money amount, string label)[toSend.Length];
-			for (int i = 0; i < toSend.Length; i++) // clone
-			{
-				realToSend[i] = (
-					new Script(toSend[i].Script.ToString()),
-					new Money(toSend[i].Amount.Satoshi),
-					toSend[i].Label);
-			}
-			for (int i = 0; i < realToSend.Length; i++)
-			{
-				if (realToSend[i].amount == Money.Zero) // means spend all
-				{
-					realToSend[i].amount = allowedSmartCoinInputs.Select(x => x.Amount).Sum();
 
-					realToSend[i].amount -= new Money(toSendAmountSumInSatoshis);
+			var toSendClone = toSend
+				.Select(op => (script: new Script(op.Script.ToString()), amount: new Money(op.Amount.Satoshi), label: op.Label))
+				.ToArray();
+
+			for (int i = 0; i < toSendClone.Length; i++)
+			{
+				if (toSendClone[i].amount == Money.Zero) // means spend all
+				{
+					toSendClone[i].amount = allowedSmartCoinInputs.Select(x => x.Amount).Sum();
+
+					toSendClone[i].amount -= new Money(toSendAmountSumInSatoshis);
 
 					if (subtractFeeFromAmountIndex == null)
 					{
-						realToSend[i].amount -= fee;
+						toSendClone[i].amount -= fee;
 					}
 				}
 
 				if (subtractFeeFromAmountIndex == i)
 				{
-					realToSend[i].amount -= fee;
+					toSendClone[i].amount -= fee;
 				}
 
-				if (realToSend[i].amount < Money.Zero)
+				if (toSendClone[i].amount < Money.Zero)
 				{
-					throw new InsufficientBalanceException(Money.Zero, realToSend[i].amount);
+					throw new InsufficientBalanceException(Money.Zero, toSendClone[i].amount);
 				}
 			}
 
-			var toRemoveList = new List<(Script script, Money money, string label)>(realToSend);
+			var toRemoveList = new List<(Script script, Money money, string label)>(toSendClone);
 			toRemoveList.RemoveAll(x => x.money == Money.Zero);
-			realToSend = toRemoveList.ToArray();
+			toSendClone = toRemoveList.ToArray();
 
 			// 1. Get the possible changes.
 			Script changeScriptPubKey;
 			var sb = new StringBuilder();
-			foreach (var item in realToSend)
+			foreach (var item in toSendClone)
 			{
 				sb.Append(item.label ?? "?");
 				sb.Append(", ");
@@ -709,7 +706,7 @@ namespace WalletWasabi.Services
 			}
 
 			// 6. Do some checks
-			Money totalOutgoingAmount = realToSend.Select(x => x.amount).Sum() + fee;
+			Money totalOutgoingAmount = toSendClone.Select(x => x.amount).Sum() + fee;
 			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmount.ToDecimal(MoneyUnit.BTC);
 
 			if (feePc > 1)
@@ -741,7 +738,7 @@ namespace WalletWasabi.Services
 				.AddCoins(coinsToSpend.Select(x => x.GetCoin()))
 				.AddKeys(signingKeys.ToArray());
 
-			foreach ((Script scriptPubKey, Money amount, string label) output in realToSend)
+			foreach ((Script scriptPubKey, Money amount, string label) output in toSendClone)
 			{
 				builder = builder.Send(output.scriptPubKey, output.amount);
 			}
