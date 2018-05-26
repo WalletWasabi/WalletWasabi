@@ -19,6 +19,7 @@ using NBitcoin;
 using NBitcoin.Policy;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
+using WalletWasabi.WebClients.ChaumianCoinJoin;
 
 namespace WalletWasabi.Services
 {
@@ -27,6 +28,7 @@ namespace WalletWasabi.Services
 		public KeyManager KeyManager { get; }
 		public IndexDownloader IndexDownloader { get; }
 		public CcjClient ChaumianClient { get; }
+		public WasabiClient WasabiClient { get; }
 		public MemPoolService MemPool { get; }
 
 		public NodesGroup Nodes { get; }
@@ -52,12 +54,13 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, CcjClient chaumianClient, MemPoolService memPool, NodesGroup nodes, string blocksFolderPath)
+		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, CcjClient chaumianClient, MemPoolService memPool, NodesGroup nodes, string blocksFolderPath, WasabiClient wasabiClient)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			IndexDownloader = Guard.NotNull(nameof(indexDownloader), indexDownloader);
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
+			WasabiClient = Guard.NotNull(nameof(wasabiClient), wasabiClient);
 			MemPool = Guard.NotNull(nameof(memPool), memPool);
 
 			WalletBlocks = new SortedDictionary<Height, uint256>();
@@ -610,19 +613,7 @@ namespace WalletWasabi.Services
 
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
-			Money feePerBytes = null;
-			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
-			using (var response = await torClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
-			{
-				if (response.StatusCode != HttpStatusCode.OK)
-					throw new HttpRequestException($"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
-
-				using (var content = response.Content)
-				{
-					var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
-					feePerBytes = new Money(json.Single().Value.Conservative);
-				}
-			}
+			Money feePerBytes = await WasabiClient.GetAndCalculateFeesAsync(feeTarget);
 
 			bool spendAll = spendAllCount == 1;
 			int inNum;
