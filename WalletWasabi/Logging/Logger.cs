@@ -24,7 +24,7 @@ namespace WalletWasabi.Logging
 
 		public static string FileEntryEncryptionPassword { get; private set; } = null;
 
-		private static long _logerFailed = Interlocked.Exchange(ref _logerFailed, 0);
+		private static long _logerFailed = 0;
 
 		private static readonly object Lock = new object();
 
