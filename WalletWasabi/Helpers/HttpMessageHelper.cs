@@ -441,7 +441,7 @@ namespace System.Net.Http
 			}
 
 			var allData = new byte[(int)length];
-			var num = await stream.ReadBlockAsync(allData, (int)length);
+			var num = await stream.ReadBlockAsync(allData, (int)length, ctsToken);
 			if (num < (int)length)
 			{
 				// https://tools.ietf.org/html/rfc7230#section-3.3.3
