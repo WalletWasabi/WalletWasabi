@@ -16,7 +16,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		public TorHttpClient TorClient { get; }
 		public IndexDownloader IndexDownloader { get; }
 
-		public WasabiClient(Uri baseUri, IndexDownloader indexDownloader, IPEndPoint torSocks5EndPoint = null)
+		public WasabiClient(IndexDownloader indexDownloader, Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
         {
 			TorClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
 			IndexDownloader = indexDownloader;

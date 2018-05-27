@@ -445,7 +445,7 @@ namespace WalletWasabi.Tests
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), indexDownloader);
+			WasabiClient wasabiClient = new WasabiClient(indexDownloader, new Uri(RegTestFixture.BackendEndPoint));
 			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -679,7 +679,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), indexDownloader);
+			WasabiClient wasabiClient = new WasabiClient(indexDownloader, new Uri(RegTestFixture.BackendEndPoint));
 			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -1122,7 +1122,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), indexDownloader);
+			WasabiClient wasabiClient = new WasabiClient(indexDownloader, new Uri(RegTestFixture.BackendEndPoint));
 			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -1303,7 +1303,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), indexDownloader);
+			WasabiClient wasabiClient = new WasabiClient(indexDownloader, new Uri(RegTestFixture.BackendEndPoint));
 			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -1477,7 +1477,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), indexDownloader);
+			WasabiClient wasabiClient = new WasabiClient(indexDownloader, new Uri(RegTestFixture.BackendEndPoint));
 			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
@@ -2590,12 +2590,12 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), indexDownloader);
+			WasabiClient wasabiClient = new WasabiClient(indexDownloader, new Uri(RegTestFixture.BackendEndPoint));
 			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var blocksFolderPath2 = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Blocks2");
-			WasabiClient wasabiClient2 = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint), indexDownloader2);
+			WasabiClient wasabiClient2 = new WasabiClient(indexDownloader2, new Uri(RegTestFixture.BackendEndPoint));
 			var wallet2 = new WalletService(keyManager2, indexDownloader2, chaumianClient2, memPoolService2, nodes2, blocksFolderPath2, wasabiClient2);
 
 			// Get some money, make it confirm.

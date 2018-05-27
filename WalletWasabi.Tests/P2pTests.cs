@@ -93,7 +93,7 @@ namespace WalletWasabi.Tests
 				Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), 
 				new Uri("http://localhost:12345"));
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
-			WasabiClient wasabiClient = new WasabiClient(new Uri("http://localhost:1337"), indexDownloader);
+			WasabiClient wasabiClient = new WasabiClient(indexDownloader, new Uri("http://localhost:1337"));
 			WalletService walletService = new WalletService(
 			   keyManager,
 			   indexDownloader,
