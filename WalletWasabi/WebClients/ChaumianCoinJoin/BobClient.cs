@@ -10,17 +10,15 @@ using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Bases;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin
 {
-	public class BobClient : IDisposable
+	public class BobClient : TorDisposableSupport
 	{
-		public TorHttpClient TorClient { get; }
-
-		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
-		public BobClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		/// <inheritdoc/>
+		public BobClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
-			TorClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
 		}
 
 		public async Task PostOutputAsync(string roundHash, BitcoinAddress activeOutputAddress, byte[] unblindedSignature)
@@ -36,37 +34,5 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				}
 			}
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					TorClient?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// ~BobClient() {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-			// GC.SuppressFinalize(this);
-		}
-
-		#endregion IDisposable Support
 	}
 }
