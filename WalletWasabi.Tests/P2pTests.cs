@@ -16,6 +16,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.NodeBuilding;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.WebClients.ChaumianCoinJoin;
 using Xunit;
 
 namespace WalletWasabi.Tests
@@ -89,13 +90,15 @@ namespace WalletWasabi.Tests
 				});
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
+			WasabiClient wasabiClient = new WasabiClient(new Uri("http://localhost:1337"));
 			WalletService walletService = new WalletService(
 			   keyManager,
 			   new IndexDownloader(network, Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345")),
 			   new CcjClient(network, new BlindingRsaKey().PubKey, keyManager, new Uri("http://localhost:12345")),
 			   memPoolService,
 			   nodes,
-			   blocksFolderPath);
+			   blocksFolderPath,
+			   wasabiClient);
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try
