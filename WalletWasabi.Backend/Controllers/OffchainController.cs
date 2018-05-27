@@ -36,20 +36,20 @@ namespace WalletWasabi.Backend.Controllers
 		[ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			if (!Cache.TryGetValue(nameof(GetExchangeRatesAsync), out List<ExchangeRate> exchangeRates))
+			if (Cache.TryGetValue(nameof(GetExchangeRatesAsync), out List<ExchangeRate> exchangeRates)) 
+				return exchangeRates;
+
+			exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();
+
+			if (exchangeRates == null)
 			{
-				exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();
-
-				if (exchangeRates == null)
-				{
-					throw new HttpRequestException("BTC/USD exchange rate is not available.");
-				}
-
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
-
-				Cache.Set(nameof(GetExchangeRatesAsync), exchangeRates, cacheEntryOptions);
+				throw new HttpRequestException("BTC/USD exchange rate is not available.");
 			}
+
+			var cacheEntryOptions = new MemoryCacheEntryOptions()
+				.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
+
+			Cache.Set(nameof(GetExchangeRatesAsync), exchangeRates, cacheEntryOptions);
 
 			return exchangeRates;
 		}

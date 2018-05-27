@@ -9,6 +9,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		InputRegistration,
 		ConnectionConfirmation,
 		OutputRegistration,
-		Signing,
+		Signing
 	}
 }

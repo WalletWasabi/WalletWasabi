@@ -91,7 +91,7 @@ namespace WalletWasabi.Services
 				{
 					await ProcessStatusAsync();
 
-					Logger.LogInfo<CcjClient>($"CcjClient is successfully initialized.");
+					Logger.LogInfo<CcjClient>("CcjClient is successfully initialized.");
 
 					while (IsRunning)
 					{
@@ -180,7 +180,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					foreach (int ongoingRoundId in State.GetActivelyMixingRounds())
+					foreach (long ongoingRoundId in State.GetActivelyMixingRounds())
 					{
 						await TryProcessRoundStateAsync(ongoingRoundId);
 					}
@@ -196,7 +196,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async Task TryProcessRoundStateAsync(int ongoingRoundId)
+		private async Task TryProcessRoundStateAsync(long ongoingRoundId)
 		{
 			try
 			{
@@ -313,10 +313,7 @@ namespace WalletWasabi.Services
 			{
 				throw new NotSupportedException("Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
 			}
-			else
-			{
-				ongoingRound.RoundHash = roundHash;
-			}
+			ongoingRound.RoundHash = roundHash;
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
@@ -577,7 +574,7 @@ namespace WalletWasabi.Services
 				var coinToDequeue = State.GetSingleOrDefaultCoin(coinReference);
 				if (coinToDequeue == null) continue;
 
-				foreach (int roundId in State.GetPassivelyMixingRounds())
+				foreach (long roundId in State.GetPassivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
 					if (round == null) throw new NotSupportedException("This is impossible.");
@@ -599,7 +596,7 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				foreach (int roundId in State.GetActivelyMixingRounds())
+				foreach (long roundId in State.GetActivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
 					if (round == null) continue;
@@ -626,7 +623,8 @@ namespace WalletWasabi.Services
 			{
 				throw exceptions.Single();
 			}
-			else if (exceptions.Count > 0)
+			
+			if (exceptions.Count > 0)
 			{
 				throw new AggregateException(exceptions);
 			}
