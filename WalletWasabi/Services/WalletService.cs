@@ -107,7 +107,7 @@ namespace WalletWasabi.Services
 				await DeleteBlockAsync(invalidBlockHash);
 				WalletBlocks.RemoveByValue(invalidBlockHash);
 				ProcessedBlocks.Remove(invalidBlockHash);
-				if (elem.Key != null)
+				if (elem.Key != default(Height))
 				{
 					foreach (var toRemove in Coins.Where(x => x.Height == elem.Key).ToHashSet())
 					{
