@@ -9,6 +9,8 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Services;
 using WalletWasabi.TorSocks5;
 using WalletWasabi.Bases;
+using WalletWasabi.Models;
+using System.Text;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin
 {
@@ -33,6 +35,22 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 					feePerBytes = new Money(json.Single().Value.Conservative);
 
 					return feePerBytes;
+				}
+			}
+		}
+
+		public async Task BroadcastTransactionAsync(SmartTransaction transaction)
+		{
+			using (var content = new StringContent($"'{transaction.Transaction.ToHex()}'", Encoding.UTF8, "application/json"))
+			using (var response = await TorClient.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
+			{
+				if (response.StatusCode == HttpStatusCode.BadRequest)
+				{
+					throw new HttpRequestException($"Couldn't broadcast transaction. Reason: {await response.Content.ReadAsStringAsync()}");
+				}
+				if (response.StatusCode != HttpStatusCode.OK) // Try again.
+				{
+					throw new HttpRequestException($"Couldn't broadcast transaction. Reason: {response.StatusCode.ToReasonString()}");
 				}
 			}
 		}

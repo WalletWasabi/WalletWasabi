@@ -823,19 +823,7 @@ namespace WalletWasabi.Services
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
-			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
-			using (var content = new StringContent($"'{transaction.Transaction.ToHex()}'", Encoding.UTF8, "application/json"))
-			using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
-			{
-				if (response.StatusCode == HttpStatusCode.BadRequest)
-				{
-					throw new HttpRequestException($"Couldn't broadcast transaction. Reason: {await response.Content.ReadAsStringAsync()}");
-				}
-				if (response.StatusCode != HttpStatusCode.OK) // Try again.
-				{
-					throw new HttpRequestException($"Couldn't broadcast transaction. Reason: {response.StatusCode.ToReasonString()}");
-				}
-			}
+			await WasabiClient.BroadcastTransactionAsync(transaction);
 
 			ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));
 
