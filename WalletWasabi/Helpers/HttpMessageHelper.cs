@@ -299,10 +299,7 @@ namespace System.Net.Http
 					throw new FormatException("Chunk does not end with CRLF.");
 				}
 
-				foreach (var b in chunkData)
-				{
-					decodedBody.Add(b);
-				}
+				decodedBody.AddRange(chunkData);
 
 				length += chunkSize;
 

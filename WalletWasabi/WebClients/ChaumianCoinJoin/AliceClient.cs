@@ -131,11 +131,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 		public async Task PostSignaturesAsync(IDictionary<int, WitScript> signatures)
 		{
-			var myDic = new Dictionary<int, string>();
-			foreach (var signature in signatures)
-			{
-				myDic.Add(signature.Key, signature.Value.ToString());
-			}
+			var myDic = signatures.ToDictionary(signature => signature.Key, signature => signature.Value.ToString());
 
 			var jsonSignatures = JsonConvert.SerializeObject(myDic, Formatting.None);
 			var signatureRequestContent = new StringContent(jsonSignatures, Encoding.UTF8, "application/json");
