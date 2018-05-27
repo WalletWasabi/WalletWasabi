@@ -95,7 +95,6 @@ namespace WalletWasabi.Backend
 		{
 			try
 			{
-				var blockchainInfoRequest = new RPCRequest(RPCOperations.getblockchaininfo, parameters: null);
 				var blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
 
 				var blocks = blockchainInfo.Blocks;
@@ -128,7 +127,6 @@ namespace WalletWasabi.Backend
 						var generateBlocksResponse = await RpcClient.GenerateAsync(101);
 						if (generateBlocksResponse == null) throw new NotSupportedException("Bitcoin Core cannot cannot generate blocks on the RegTest.");
 
-						blockchainInfoRequest = new RPCRequest(RPCOperations.getblockchaininfo, parameters: null);
 						blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
 						blocks = blockchainInfo.Blocks;
 						if (blocks == 0)
