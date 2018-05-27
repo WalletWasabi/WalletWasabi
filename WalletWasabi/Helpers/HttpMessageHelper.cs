@@ -504,12 +504,10 @@ namespace System.Net.Http
 
 		public static void CopyHeaders(HttpHeaders source, HttpHeaders destination)
 		{
-			if (source.NotNullAndNotEmpty())
+			if (!source.NotNullAndNotEmpty()) return;
+			foreach (var header in source)
 			{
-				foreach (var header in source)
-				{
-					destination.TryAddWithoutValidation(header.Key, header.Value);
-				}
+				destination.TryAddWithoutValidation(header.Key, header.Value);
 			}
 		}
 	}

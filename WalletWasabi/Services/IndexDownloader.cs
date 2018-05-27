@@ -213,14 +213,7 @@ namespace WalletWasabi.Services
 			using (IndexLock.Lock())
 			{
 				var single = Index.Single(x => x.BlockHash == blockHash);
-				if (single != null)
-				{
-					return single.BlockHeight;
-				}
-				else
-				{
-					return Height.Unknown;
-				}
+				return single.BlockHeight;
 			}
 		}
 
