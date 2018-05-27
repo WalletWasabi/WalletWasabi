@@ -628,7 +628,7 @@ namespace WalletWasabi.Services
 			int inNum;
 			if (spendAll)
 			{
-				inNum = allowedSmartCoinInputs.Count();
+				inNum = allowedSmartCoinInputs.Count;
 			}
 			else
 			{
