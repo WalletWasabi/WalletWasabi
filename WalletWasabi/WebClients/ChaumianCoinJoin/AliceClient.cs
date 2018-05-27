@@ -19,7 +19,6 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 {
 	public class AliceClient : TorDisposableBase
 	{
-
 		public long RoundId { get; private set; }
 		public Guid UniqueId { get; private set; }
 		public byte[] BlindedOutputSignature { get; private set; }

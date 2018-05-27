@@ -17,7 +17,6 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		/// <inheritdoc/>
 		public SatoshiClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
-
 		}
 
 		public async Task<IEnumerable<CcjRunningRoundState>> GetAllRoundStatesAsync()
