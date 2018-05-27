@@ -8,17 +8,16 @@ using NBitcoin;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Services;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Bases;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin
 {
-	public class WasabiClient : IDisposable
+	public class WasabiClient : TorDisposableSupport
     {
-		public TorHttpClient TorClient { get; }
 		public IndexDownloader IndexDownloader { get; }
 
 		public WasabiClient(IndexDownloader indexDownloader, Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
         {
-			TorClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
 			IndexDownloader = indexDownloader;
         }
 
@@ -40,31 +39,5 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				}
 			}
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					TorClient?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }
