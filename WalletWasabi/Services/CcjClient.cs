@@ -180,7 +180,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					foreach (int ongoingRoundId in State.GetActivelyMixingRounds())
+					foreach (long ongoingRoundId in State.GetActivelyMixingRounds())
 					{
 						await TryProcessRoundStateAsync(ongoingRoundId);
 					}
@@ -196,7 +196,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async Task TryProcessRoundStateAsync(int ongoingRoundId)
+		private async Task TryProcessRoundStateAsync(long ongoingRoundId)
 		{
 			try
 			{
@@ -574,7 +574,7 @@ namespace WalletWasabi.Services
 				var coinToDequeue = State.GetSingleOrDefaultCoin(coinReference);
 				if (coinToDequeue == null) continue;
 
-				foreach (int roundId in State.GetPassivelyMixingRounds())
+				foreach (long roundId in State.GetPassivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
 					if (round == null) throw new NotSupportedException("This is impossible.");
@@ -596,7 +596,7 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				foreach (int roundId in State.GetActivelyMixingRounds())
+				foreach (long roundId in State.GetActivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
 					if (round == null) continue;
