@@ -101,12 +101,12 @@ namespace WalletWasabi.Models
 
 		public Coin GetCoin()
 		{
-			return new Coin(TransactionId, (uint)Index, Amount, ScriptPubKey);
+			return new Coin(TransactionId, Index, Amount, ScriptPubKey);
 		}
 
 		public OutPoint GetOutPoint()
 		{
-			return new OutPoint(TransactionId, (uint)Index);
+			return new OutPoint(TransactionId, Index);
 		}
 
 		#region EqualityAndComparison

@@ -337,7 +337,7 @@ namespace WalletWasabi.Services
 				{
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
 					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-					var mixin = tx.Transaction.GetMixin((uint)i);
+					var mixin = tx.Transaction.GetMixin(i);
 					if (spentOwnCoins.Count != 0)
 					{
 						mixin += spentOwnCoins.Min(x => x.Mixin);

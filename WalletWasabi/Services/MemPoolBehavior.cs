@@ -91,7 +91,7 @@ namespace WalletWasabi.Services
 
 		private void ProcessTxPayload(TxPayload transactionPayload)
 		{
-			var transaction = transactionPayload.Object as Transaction;
+			Transaction transaction = transactionPayload.Object;
 			MemPoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.MemPool));
 		}
 
