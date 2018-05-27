@@ -24,7 +24,7 @@ namespace WalletWasabi.Backend.Models
 			if (Filter != null) // bech found here
 			{
 				builder.Append(":");
-				builder.Append(Filter.ToString());
+				builder.Append(Filter);
 			}
 
 			return builder.ToString();
