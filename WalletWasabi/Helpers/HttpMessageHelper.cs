@@ -51,7 +51,7 @@ namespace System.Net.Http
 			{
 				string header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken);
 
-				if (header == null) throw new FormatException($"Malformed HTTP message: End of headers must be CRLF.");
+				if (header == null) throw new FormatException("Malformed HTTP message: End of headers must be CRLF.");
 				if (header == "")
 				{
 					// 2 CRLF was read in row so it's the end of the headers
@@ -69,7 +69,7 @@ namespace System.Net.Http
 					// header field is received or the header section is terminated).
 					if (char.IsWhiteSpace(header[0]))
 					{
-						throw new FormatException($"Invalid HTTP message: Cannot be whitespace between the start line and the headers.");
+						throw new FormatException("Invalid HTTP message: Cannot be whitespace between the start line and the headers.");
 					}
 					firstRead = false;
 				}
