@@ -23,7 +23,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		public long RoundId { get; private set; }
 		public Guid UniqueId { get; private set; }
 		public byte[] BlindedOutputSignature { get; private set; }
-
+		/// <inheritdoc/>
 		private AliceClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
 		}
