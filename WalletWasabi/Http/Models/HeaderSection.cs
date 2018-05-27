@@ -51,10 +51,7 @@ namespace WalletWasabi.Http.Models
 					{
 						break;
 					}
-					else
-					{
-						hs.Fields.Add(HeaderField.CreateNew(field));
-					}
+					hs.Fields.Add(HeaderField.CreateNew(field));
 				}
 
 				ValidateAndCorrectHeaders(hs);

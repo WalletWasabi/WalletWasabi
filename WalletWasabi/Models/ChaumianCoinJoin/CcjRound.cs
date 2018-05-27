@@ -490,10 +490,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					return Alices.Count;
 				}
 			}
-			else
-			{
-				return Alices.Count;
-			}
+			return Alices.Count;
 		}
 
 		public bool AllAlices(AliceState state)
@@ -519,14 +516,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 			}
 
-			if (alices.Count > 0)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			return alices.Count > 0;
 		}
 
 		public bool ContainsInput(OutPoint input, out List<Alice> alices)
@@ -556,10 +546,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					return Bobs.Count;
 				}
 			}
-			else
-			{
-				return Alices.Count;
-			}
+			return Alices.Count;
 		}
 
 		public IEnumerable<Alice> GetAlicesBy(AliceState state)
@@ -587,10 +574,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					return Alices.Where(x => x.State != state).ToList();
 				}
 			}
-			else
-			{
-				return Alices.Where(x => x.State != state).ToList();
-			}
+			return Alices.Where(x => x.State != state).ToList();
 		}
 
 		public void StartAliceTimeout(Guid uniqueId)
