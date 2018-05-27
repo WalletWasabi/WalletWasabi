@@ -10,7 +10,7 @@ namespace System.IO
 			var buf = new byte[1];
 			var len = await stream.ReadAsync(buf, 0, 1, ctsToken);
 			if (len == 0) return -1;
-			else return buf[0];
+			return buf[0];
 		}
 
 		public static async Task<int> ReadBlockAsync(this Stream stream, byte[] buffer, int count, CancellationToken ctsToken = default)

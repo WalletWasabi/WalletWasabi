@@ -153,10 +153,7 @@ namespace WalletWasabi.Backend.Controllers
 							{
 								return BadRequest($"Input is banned from participation for {banLeft} minutes: {inputProof.Input.N}:{inputProof.Input.Hash}.");
 							}
-							else
-							{
-								await Coordinator.UtxoReferee.UnbanAsync(bannedElem.Key);
-							}
+							await Coordinator.UtxoReferee.UnbanAsync(bannedElem.Key);
 						}
 
 						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.Hash, (int)inputProof.Input.N, includeMempool: true);
@@ -495,10 +492,7 @@ namespace WalletWasabi.Backend.Controllers
 
 				return NoContent();
 			}
-			else
-			{
-				return BadRequest("Invalid signature provided.");
-			}
+			return BadRequest("Invalid signature provided.");
 		}
 
 		/// <summary>
