@@ -2715,6 +2715,39 @@ namespace WalletWasabi.Tests
 			}
 		}
 
+		[Fact]
+		public async Task DownloadIndexFileTests()
+		{
+			var fileName = "IndexFile.txt";
+			var network = Global.Config.Network;
+			var backendUri = RegTestFixture.BackendEndPoint;
+			var remoteFilePath = Path.Combine("Assets", network.Name, fileName);
+			
+			// Download file when it doesn't exist locally
+			File.Delete(fileName);
+			File.WriteAllText(remoteFilePath, new String('*', 2_048));			
+			var downloader = new IndexFileDownloader(network, new Uri(backendUri), fileName);
+			await downloader.DownloadAsync();
+			var downloadedFile = new FileInfo(fileName);
+			Assert.True(downloadedFile.Exists);
+			Assert.Equal(2_048, downloadedFile.Length);
+
+			// Doesn't download remote file if the local copy is bigger than the remote one
+			File.WriteAllText(remoteFilePath, new String('*', 2_008));
+			await downloader.DownloadAsync();
+			downloadedFile = new FileInfo(fileName);
+			Assert.True(downloadedFile.Exists);
+			Assert.Equal(2_048, downloadedFile.Length);
+
+			// Download remote file if it is bigger than the local one
+			downloadedFile.Delete();
+			File.WriteAllText(remoteFilePath, new String('*', 5 * 1_024));
+			await downloader.DownloadAsync();
+			downloadedFile = new FileInfo(fileName);
+			Assert.True(downloadedFile.Exists);
+			Assert.Equal(5 * 1_024, downloadedFile.Length);
+		}
+
 		#endregion ClientTests
 	}
 }

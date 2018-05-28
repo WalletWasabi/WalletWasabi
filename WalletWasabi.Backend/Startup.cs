@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Swagger;
 using WalletWasabi.Logging;
 using WalletWasabi.Interfaces;
+using Microsoft.Extensions.FileProviders;
 
 namespace WalletWasabi.Backend
 {
@@ -56,6 +57,12 @@ namespace WalletWasabi.Backend
 			});
 
 			app.UseMvc();
+
+			app.UseStaticFiles(new StaticFileOptions {
+				FileProvider = new PhysicalFileProvider(
+				Path.Combine(Directory.GetCurrentDirectory(), "Assets")),
+				RequestPath = "/Assets"
+			});
 
 			var applicationLifetime = app.ApplicationServices.GetRequiredService<IApplicationLifetime>();
 			applicationLifetime.ApplicationStopping.Register(OnShutdown); // Don't register async, that won't hold up the shutdown
