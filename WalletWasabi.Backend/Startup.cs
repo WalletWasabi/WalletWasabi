@@ -31,7 +31,7 @@ namespace WalletWasabi.Backend
 				c.SwaggerDoc("v1", new Info
 				{
 					Version = "v1",
-					Title = "Wallet Wasabi API",
+					Title = "Wasabi Wallet API",
 					Description = "Privacy oriented Bitcoin Web API.",
 					License = new License { Name = "Use under MIT.", Url = "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md" }
 				});
@@ -56,7 +56,7 @@ namespace WalletWasabi.Backend
 			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
 			app.UseSwaggerUI(c =>
 			{
-				c.SwaggerEndpoint("/swagger/v1/swagger.json", "Wallet Wasabi API V1");
+				c.SwaggerEndpoint("/swagger/v1/swagger.json", "Wasabi Wallet API V1");
 			});
 
 			app.UseMvc();
