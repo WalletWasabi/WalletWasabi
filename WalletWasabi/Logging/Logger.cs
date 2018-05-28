@@ -24,7 +24,7 @@ namespace WalletWasabi.Logging
 
 		public static string FileEntryEncryptionPassword { get; private set; } = null;
 
-		private static long _logerFailed = Interlocked.Exchange(ref _logerFailed, 0);
+		private static long _logerFailed = 0;
 
 		private static readonly object Lock = new object();
 
@@ -46,12 +46,10 @@ namespace WalletWasabi.Logging
 				Modes.Clear();
 			}
 
-			if (modes != null)
+			if (modes == null) return;
+			foreach (var mode in modes)
 			{
-				foreach (var mode in modes)
-				{
-					Modes.Add(mode);
-				}
+				Modes.Add(mode);
 			}
 		}
 
@@ -113,7 +111,7 @@ namespace WalletWasabi.Logging
 				message = string.IsNullOrWhiteSpace(message) ? "" : message;
 				category = string.IsNullOrWhiteSpace(category) ? "" : category;
 
-				var finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd hh:mm:ss} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
+				var finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
 
 				lock (Lock)
 				{
@@ -145,35 +143,34 @@ namespace WalletWasabi.Logging
 						Debug.Write(finalLogMessage);
 					}
 
-					if (Modes.Contains(LogMode.File))
+					if (!Modes.Contains(LogMode.File)) return;
+					
+					var dir = Path.GetDirectoryName(FilePath);
+					if (dir != "")
 					{
-						var dir = Path.GetDirectoryName(FilePath);
-						if (dir != "")
-						{
-							Directory.CreateDirectory(dir);
-						}
+						Directory.CreateDirectory(dir);
+					}
 
-						if (File.Exists(FilePath))
+					if (File.Exists(FilePath))
+					{
+						var sizeInBytes = new FileInfo(FilePath).Length;
+						if (sizeInBytes > 1000 * MaximumLogFileSize)
 						{
-							var sizeInBytes = new FileInfo(FilePath).Length;
-							if (sizeInBytes > 1000 * MaximumLogFileSize)
-							{
-								File.Delete(FilePath);
-							}
+							File.Delete(FilePath);
 						}
+					}
 
-						if (FileEntryEncryptionPassword != null)
-						{
-							// take the separator down and add a comma (not base64)
-							var replacedSeparatorWithCommaMessage = finalLogMessage.Substring(0, finalLogMessage.Length - EntrySeparator.Length);
-							var encryptedLogMessage = StringCipher.Encrypt(replacedSeparatorWithCommaMessage, FileEntryEncryptionPassword) + ',';
+					if (FileEntryEncryptionPassword != null)
+					{
+						// take the separator down and add a comma (not base64)
+						var replacedSeparatorWithCommaMessage = finalLogMessage.Substring(0, finalLogMessage.Length - EntrySeparator.Length);
+						var encryptedLogMessage = StringCipher.Encrypt(replacedSeparatorWithCommaMessage, FileEntryEncryptionPassword) + ',';
 
-							File.AppendAllText(FilePath, encryptedLogMessage);
-						}
-						else
-						{
-							File.AppendAllText(FilePath, finalLogMessage);
-						}
+						File.AppendAllText(FilePath, encryptedLogMessage);
+					}
+					else
+					{
+						File.AppendAllText(FilePath, finalLogMessage);
 					}
 				}
 			}

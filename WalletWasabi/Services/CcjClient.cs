@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -91,7 +90,7 @@ namespace WalletWasabi.Services
 				{
 					await ProcessStatusAsync();
 
-					Logger.LogInfo<CcjClient>($"CcjClient is successfully initialized.");
+					Logger.LogInfo<CcjClient>("CcjClient is successfully initialized.");
 
 					while (IsRunning)
 					{
@@ -106,11 +105,11 @@ namespace WalletWasabi.Services
 								if (IsRunning == false) return;
 
 								// if mixing >= connConf: delay = new Random().Next(2, 7);
-								if (State.GetActivelyMixingRounds().Count() > 0)
+								if (State.GetActivelyMixingRounds().Any())
 								{
 									delay = new Random().Next(2, 7);
 								}
-								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Count() > 0 || State.GetWaitingListCount() > 0)
+								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any()|| State.GetWaitingListCount() > 0)
 								{
 									double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.8 * connConfTimeout
 									delay = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
@@ -180,7 +179,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					foreach (int ongoingRoundId in State.GetActivelyMixingRounds())
+					foreach (long ongoingRoundId in State.GetActivelyMixingRounds())
 					{
 						await TryProcessRoundStateAsync(ongoingRoundId);
 					}
@@ -196,7 +195,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async Task TryProcessRoundStateAsync(int ongoingRoundId)
+		private async Task TryProcessRoundStateAsync(long ongoingRoundId)
 		{
 			try
 			{
@@ -257,14 +256,14 @@ namespace WalletWasabi.Services
 			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
 			minAmountBack -= ongoingRound.State.FeePerOutputs * 2 + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
 			Money actualDenomination = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count).First().value; // Denomination may grow.
-			Money expectedCoordinatorFee = Money.Coins((ongoingRound.State.CoordinatorFeePercent * 0.01m) * decimal.Parse(actualDenomination.ToString(false, true)));
+			Money expectedCoordinatorFee = actualDenomination.Percentange(ongoingRound.State.CoordinatorFeePercent);
 			minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
 
 			// If there's no change output then coordinator protection may happened:
 			if (unsignedCoinJoin.Outputs.All(x => x.ScriptPubKey != ongoingRound.ChangeOutputAddress.ScriptPubKey))
 			{
 				Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
-				Money onePercentOfDenomination = Money.Coins(actualDenomination.ToDecimal(MoneyUnit.BTC) * 0.01m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
+				Money onePercentOfDenomination = actualDenomination.Percentange(1m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
 				Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
 
 				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
@@ -313,10 +312,7 @@ namespace WalletWasabi.Services
 			{
 				throw new NotSupportedException("Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
 			}
-			else
-			{
-				ongoingRound.RoundHash = roundHash;
-			}
+			ongoingRound.RoundHash = roundHash;
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
@@ -350,7 +346,7 @@ namespace WalletWasabi.Services
 					inputRegistrableRound.State.FeePerInputs,
 					inputRegistrableRound.State.FeePerOutputs);
 
-				if (registrableCoins.Count() > 0)
+				if (registrableCoins.Any())
 				{
 					BitcoinAddress changeAddress = null;
 					BitcoinAddress activeAddress = null;
@@ -577,7 +573,7 @@ namespace WalletWasabi.Services
 				var coinToDequeue = State.GetSingleOrDefaultCoin(coinReference);
 				if (coinToDequeue == null) continue;
 
-				foreach (int roundId in State.GetPassivelyMixingRounds())
+				foreach (long roundId in State.GetPassivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
 					if (round == null) throw new NotSupportedException("This is impossible.");
@@ -599,7 +595,7 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				foreach (int roundId in State.GetActivelyMixingRounds())
+				foreach (long roundId in State.GetActivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
 					if (round == null) continue;
@@ -626,7 +622,8 @@ namespace WalletWasabi.Services
 			{
 				throw exceptions.Single();
 			}
-			else if (exceptions.Count > 0)
+			
+			if (exceptions.Count > 0)
 			{
 				throw new AggregateException(exceptions);
 			}

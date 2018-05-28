@@ -24,7 +24,7 @@ namespace WalletWasabi.Backend.Models
 			if (Filter != null) // bech found here
 			{
 				builder.Append(":");
-				builder.Append(Filter.ToString());
+				builder.Append(Filter);
 			}
 
 			return builder.ToString();
@@ -44,15 +44,12 @@ namespace WalletWasabi.Backend.Models
 					Filter = null
 				};
 			}
-			else
+			return new FilterModel
 			{
-				return new FilterModel
-				{
-					BlockHeight = Guard.NotNull(nameof(height), height),
-					BlockHash = new uint256(parts[0]),
-					Filter = GolombRiceFilter.Parse(parts[1])
-				};
-			}
+				BlockHeight = Guard.NotNull(nameof(height), height),
+				BlockHash = new uint256(parts[0]),
+				Filter = GolombRiceFilter.Parse(parts[1])
+			};
 		}
 	}
 }

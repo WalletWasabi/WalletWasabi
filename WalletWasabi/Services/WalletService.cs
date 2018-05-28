@@ -107,7 +107,7 @@ namespace WalletWasabi.Services
 				await DeleteBlockAsync(invalidBlockHash);
 				WalletBlocks.RemoveByValue(invalidBlockHash);
 				ProcessedBlocks.Remove(invalidBlockHash);
-				if (elem.Key != null)
+				if (elem.Key != default(Height))
 				{
 					foreach (var toRemove in Coins.Where(x => x.Height == elem.Key).ToHashSet())
 					{
@@ -300,7 +300,7 @@ namespace WalletWasabi.Services
 
 			// If double spend:
 			IEnumerable<SmartCoin> doubleSpends = Coins.Where(x => tx.Transaction.Inputs.Any(y => x.SpentOutputs.Select(z => z.ToOutPoint()).Contains(y.PrevOut)));
-			if (doubleSpends.Count() > 0)
+			if (doubleSpends.Any())
 			{
 				if (tx.Height == Height.MemPool)
 				{
@@ -337,7 +337,7 @@ namespace WalletWasabi.Services
 				{
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
 					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-					var mixin = tx.Transaction.GetMixin((uint)i);
+					var mixin = tx.Transaction.GetMixin(i);
 					if (spentOwnCoins.Count != 0)
 					{
 						mixin += spentOwnCoins.Min(x => x.Mixin);
@@ -436,27 +436,27 @@ namespace WalletWasabi.Services
 
 							if (block == null)
 							{
-								Logger.LogInfo<WalletService>($"Disconnected node, because couldn't parse received block.");
+								Logger.LogInfo<WalletService>("Disconnected node, because couldn't parse received block.");
 								node.DisconnectAsync("Couldn't parse block.");
 								continue;
 							}
 
 							if (!block.Check())
 							{
-								Logger.LogInfo<WalletService>($"Disconnected node, because block invalid block received.");
+								Logger.LogInfo<WalletService>("Disconnected node, because block invalid block received.");
 								node.DisconnectAsync("Invalid block received.");
 								continue;
 							}
 						}
 						catch (TimeoutException)
 						{
-							Logger.LogInfo<WalletService>($"Disconnected node, because block download took too long.");
+							Logger.LogInfo<WalletService>("Disconnected node, because block download took too long.");
 							node.DisconnectAsync("Block download took too long.");
 							continue;
 						}
 						catch (OperationCanceledException)
 						{
-							Logger.LogInfo<WalletService>($"Disconnected node, because block download took too long.");
+							Logger.LogInfo<WalletService>("Disconnected node, because block download took too long.");
 							node.DisconnectAsync("Block download took too long.");
 							continue;
 						}
@@ -628,7 +628,7 @@ namespace WalletWasabi.Services
 			int inNum;
 			if (spendAll)
 			{
-				inNum = allowedSmartCoinInputs.Count();
+				inNum = allowedSmartCoinInputs.Count;
 			}
 			else
 			{

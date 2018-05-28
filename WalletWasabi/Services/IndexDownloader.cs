@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,18 +40,15 @@ namespace WalletWasabi.Services
 			{
 				return FilterModel.FromLine("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893:02832810ec08a0", GetStartingHeight(network));
 			}
-			else if (network == Network.TestNet)
+			if (network == Network.TestNet)
 			{
 				return FilterModel.FromLine("00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a:017821b8", GetStartingHeight(network));
 			}
-			else if (network == Network.RegTest)
+			if (network == Network.RegTest)
 			{
 				return FilterModel.FromLine("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206", GetStartingHeight(network));
 			}
-			else
-			{
-				throw new NotSupportedException($"{network} is not supported.");
-			}
+			throw new NotSupportedException($"{network} is not supported.");
 		}
 
 		public FilterModel StartingFilter => GetStartingFilter(Network);
@@ -213,14 +209,7 @@ namespace WalletWasabi.Services
 			using (IndexLock.Lock())
 			{
 				var single = Index.Single(x => x.BlockHash == blockHash);
-				if (single != null)
-				{
-					return single.BlockHeight;
-				}
-				else
-				{
-					return Height.Unknown;
-				}
+				return single.BlockHeight;
 			}
 		}
 

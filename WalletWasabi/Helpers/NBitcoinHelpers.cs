@@ -11,7 +11,7 @@ namespace WalletWasabi.Helpers
 		public static string HashOutpoints(IEnumerable<OutPoint> outPoints)
 		{
 			var sb = new StringBuilder();
-			foreach (OutPoint input in outPoints.OrderBy(x => x.Hash.ToString()).OrderBy(x => x.N))
+			foreach (OutPoint input in outPoints.OrderBy(x => x.Hash.ToString()).ThenBy(x => x.N))
 			{
 				sb.Append(ByteHelpers.ToHex(input.ToBytes()));
 			}

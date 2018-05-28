@@ -37,7 +37,7 @@ namespace System.Net.Http
 			}
 
 			var startLine = bab.ToString(Encoding.ASCII);
-			if (startLine == null || startLine == "") throw new FormatException($"{nameof(startLine)} cannot be null or empty.");
+			if (string.IsNullOrEmpty(startLine)) throw new FormatException($"{nameof(startLine)} cannot be null or empty.");
 			return startLine;
 		}
 
@@ -51,7 +51,7 @@ namespace System.Net.Http
 			{
 				string header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken);
 
-				if (header == null) throw new FormatException($"Malformed HTTP message: End of headers must be CRLF.");
+				if (header == null) throw new FormatException("Malformed HTTP message: End of headers must be CRLF.");
 				if (header == "")
 				{
 					// 2 CRLF was read in row so it's the end of the headers
@@ -69,7 +69,7 @@ namespace System.Net.Http
 					// header field is received or the header section is terminated).
 					if (char.IsWhiteSpace(header[0]))
 					{
-						throw new FormatException($"Invalid HTTP message: Cannot be whitespace between the start line and the headers.");
+						throw new FormatException("Invalid HTTP message: Cannot be whitespace between the start line and the headers.");
 					}
 					firstRead = false;
 				}
@@ -77,9 +77,9 @@ namespace System.Net.Http
 				builder.Append(header + CRLF); // CRLF is part of the headerstring
 			}
 			headers = builder.ToString();
-			if (headers == null || headers == "")
+			if (string.IsNullOrEmpty(headers))
 			{
-				headers = "";
+				headers = string.Empty;
 			}
 
 			return headers;
@@ -100,11 +100,8 @@ namespace System.Net.Http
 					{
 						return bab.ToString(encoding);
 					}
-					else
-					{
-						bab.Append(new byte[] { (byte)ch, (byte)ch2 });
-						continue;
-					}
+					bab.Append(new byte[] { (byte)ch, (byte)ch2 });
+					continue;
 				}
 				bab.Append((byte)ch);
 			}
@@ -135,10 +132,7 @@ namespace System.Net.Http
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
 				// status code and then close the connection.
-				else
-				{
-					return await GetContentTillEndAsync(stream, ctsToken);
-				}
+				return await GetContentTillEndAsync(stream, ctsToken);
 			}
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 5.If a valid Content - Length header field is present without
@@ -147,7 +141,7 @@ namespace System.Net.Http
 			// the recipient times out before the indicated number of octets are
 			// received, the recipient MUST consider the message to be
 			// incomplete and close the connection.
-			else if (headerStruct.ContentHeaders.Contains("Content-Length"))
+			if (headerStruct.ContentHeaders.Contains("Content-Length"))
 			{
 				long? contentLength = headerStruct.ContentHeaders?.ContentLength;
 				return await GetContentTillLengthAsync(stream, contentLength, ctsToken);
@@ -186,7 +180,7 @@ namespace System.Net.Http
 			// line that concludes the header fields.A client MUST ignore any
 			// Content - Length or Transfer-Encoding header fields received in
 			// such a message.
-			else if (requestMethod == new HttpMethod("CONNECT"))
+			if (requestMethod == new HttpMethod("CONNECT"))
 			{
 				if (HttpStatusCodeHelper.IsSuccessful(statusLine.StatusCode))
 				{
@@ -215,10 +209,7 @@ namespace System.Net.Http
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
 				// status code and then close the connection.
-				else
-				{
-					return await GetContentTillEndAsync(stream, ctsToken);
-				}
+				return await GetContentTillEndAsync(stream, ctsToken);
 			}
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 5.If a valid Content - Length header field is present without
@@ -227,7 +218,7 @@ namespace System.Net.Http
 			// the recipient times out before the indicated number of octets are
 			// received, the recipient MUST consider the message to be
 			// incomplete and close the connection.
-			else if (headerStruct.ContentHeaders.Contains("Content-Length"))
+			if (headerStruct.ContentHeaders.Contains("Content-Length"))
 			{
 				long? contentLength = headerStruct.ContentHeaders?.ContentLength;
 
@@ -290,7 +281,7 @@ namespace System.Net.Http
 			// Remove Trailer from existing header fields
 			long length = 0;
 			var firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken);
-			ParseFistChunkLine(firstChunkLine, out long chunkSize, out IEnumerable<string> chunkExtensions);
+			ParseFistChunkLine(firstChunkLine, out long chunkSize, out _);
 			// We will not do anything with the chunk extensions, because:
 			// https://tools.ietf.org/html/rfc7230#section-4.1.1
 			// A recipient MUST ignore unrecognized chunk extensions.
@@ -308,17 +299,13 @@ namespace System.Net.Http
 					throw new FormatException("Chunk does not end with CRLF.");
 				}
 
-				foreach (var b in chunkData)
-				{
-					decodedBody.Add(b);
-				}
+				decodedBody.AddRange(chunkData);
 
 				length += chunkSize;
 
 				firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken);
 				ParseFistChunkLine(firstChunkLine, out long cs, out IEnumerable<string> ces);
 				chunkSize = cs;
-				chunkExtensions = ces;
 			}
 			// https://tools.ietf.org/html/rfc7230#section-4.1.2
 			// A trailer allows the sender to include additional fields at the end
@@ -454,7 +441,7 @@ namespace System.Net.Http
 			}
 
 			var allData = new byte[(int)length];
-			var num = await stream.ReadBlockAsync(allData, (int)length);
+			var num = await stream.ReadBlockAsync(allData, (int)length, ctsToken);
 			if (num < (int)length)
 			{
 				// https://tools.ietf.org/html/rfc7230#section-3.3.3
@@ -483,33 +470,28 @@ namespace System.Net.Http
 				}
 			}
 			// Any Content-Length field value greater than or equal to zero is valid.
-			if (contentHeaders.Contains("Content-Length"))
+			if (contentHeaders != null && contentHeaders.Contains("Content-Length"))
 			{
 				if (contentHeaders.ContentLength < 0)
-					throw new HttpRequestException("Content-Length MUST be bigger than zero.");
+					throw new HttpRequestException("Content-Length MUST be larger than zero.");
 			}
 		}
 
 		public static HttpContent GetDummyOrNullContent(HttpContentHeaders contentHeaders)
 		{
-			if (contentHeaders != null && contentHeaders.Count() != 0)
+			if (contentHeaders.NotNullAndNotEmpty())
 			{
 				return new ByteArrayContent(new byte[] { }); // dummy empty content
 			}
-			else
-			{
-				return null;
-			}
+			return null;
 		}
 
 		public static void CopyHeaders(HttpHeaders source, HttpHeaders destination)
 		{
-			if (source != null && source.Count() != 0)
+			if (!source.NotNullAndNotEmpty()) return;
+			foreach (var header in source)
 			{
-				foreach (var header in source)
-				{
-					destination.TryAddWithoutValidation(header.Key, header.Value);
-				}
+				destination.TryAddWithoutValidation(header.Key, header.Value);
 			}
 		}
 	}

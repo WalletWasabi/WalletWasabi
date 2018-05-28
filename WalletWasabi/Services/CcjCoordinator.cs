@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Crypto;
@@ -288,36 +287,33 @@ namespace WalletWasabi.Services
 		{
 			using (await CoinJoinsLock.LockAsync())
 			{
-				if (UnconfirmedCoinJoins.Count() < 24)
+				if (UnconfirmedCoinJoins.Count < 24)
 				{
 					return false;
 				}
-				else
+				foreach (var cjHash in UnconfirmedCoinJoins.ToArray())
 				{
-					foreach (var cjHash in UnconfirmedCoinJoins.ToArray())
+					try
 					{
-						try
-						{
-							var txInfo = await RpcClient.GetRawTransactionInfoAsync(cjHash);
+						var txInfo = await RpcClient.GetRawTransactionInfoAsync(cjHash);
 
-							// if confirmed remove only from unconfirmed
-							if (txInfo.Confirmations > 0)
-							{
-								UnconfirmedCoinJoins.Remove(cjHash);
-							}
-						}
-						catch (Exception ex)
+						// if confirmed remove only from unconfirmed
+						if (txInfo.Confirmations > 0)
 						{
-							// if failed remove from everywhere (should not happen normally)
 							UnconfirmedCoinJoins.Remove(cjHash);
-							CoinJoins.Remove(cjHash);
-							await File.WriteAllLinesAsync(CoinJoinsFilePath, CoinJoins.Select(x => x.ToString()));
-							Logger.LogWarning<CcjCoordinator>(ex);
 						}
+					}
+					catch (Exception ex)
+					{
+						// if failed remove from everywhere (should not happen normally)
+						UnconfirmedCoinJoins.Remove(cjHash);
+						CoinJoins.Remove(cjHash);
+						await File.WriteAllLinesAsync(CoinJoinsFilePath, CoinJoins.Select(x => x.ToString()));
+						Logger.LogWarning<CcjCoordinator>(ex);
 					}
 				}
 
-				return UnconfirmedCoinJoins.Count() >= 24;
+				return UnconfirmedCoinJoins.Count >= 24;
 			}
 		}
 

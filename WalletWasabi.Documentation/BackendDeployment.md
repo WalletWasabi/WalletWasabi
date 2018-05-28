@@ -82,6 +82,25 @@ Verify Tor is properly running:
 tor
 ```
 
+Create torrc:
+
+```
+sudo pico /etc/tor/torrc
+```
+
+```
+HiddenServiceDir /home/user/.hidden_service
+HiddenServicePort 80 127.0.0.1:37127
+RunAsDaemon 1
+```
+
+Enable firewall:
+```
+sudo ufw allow 80
+```
+
+**Backup the generated private key!**
+
 # 5. Install, Configure and Synchronize bitcoind
 
 https://bitcoin.org/en/download
@@ -137,7 +156,9 @@ dotnet WalletWasabi/WalletWasabi.Backend/bin/Release/netcoreapp2.0/publish/Walle
 cat .walletwasabi/backend/Logs.txt
 ```
 
-# 7. Monitor the App
+# 7. Monitor the Apps
+
+## WalletWasabi.Backend
 
 https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-2.0&tabs=aspnetcore2x
 
@@ -168,3 +189,37 @@ systemctl start walletwasabi.service
 systemctl status walletwasabi.service
 tail -10 .walletwasabi/backend/Logs.txt
 ```
+
+## Tor
+
+```
+systemctl enable tor.service
+systemctl status tor.service
+systemctl stop tor.service
+systemctl start tor.service
+systemctl status tor.service
+```
+
+# Update
+
+```
+sudo apt-get update
+cd ~/WalletWasabi
+git pull
+systemctl stop walletwasabi.service
+systemctl stop tor.service
+bitcoin-cli stop
+sudo apt-get dist-upgrade -y
+bitcoind
+systemctl start tor.service
+dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
+systemctl start walletwasabi.service
+cd ..
+```
+
+# Check If Everything Works
+
+TestNet: http://wtgjmaol3io5ijii.onion/swagger/  
+Main: ...
+
+GET fees

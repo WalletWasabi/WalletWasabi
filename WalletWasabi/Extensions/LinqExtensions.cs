@@ -56,5 +56,10 @@ namespace System.Linq
 				me.Remove(item);
 			}
 		}
+
+		public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
+		{
+			return source != null && source.Any();
+		}
 	}
 }

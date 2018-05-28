@@ -30,15 +30,12 @@ namespace System.Net.Http
 			//					CRLF
 			//					[message - body]
 
-			var position = 0;
 			string startLine = await HttpMessageHelper.ReadStartLineAsync(requestStream, ctsToken);
-			position += startLine.Length;
 
 			var requestLine = RequestLine.CreateNew(startLine);
 			var request = new HttpRequestMessage(requestLine.Method, requestLine.URI);
 
 			string headers = await HttpMessageHelper.ReadHeadersAsync(requestStream, ctsToken);
-			position += headers.Length + 2;
 
 			var headerSection = HeaderSection.CreateNew(headers);
 			var headerStruct = headerSection.ToHttpRequestHeaders();
@@ -81,7 +78,7 @@ namespace System.Net.Http
 			var startLine = new RequestLine(me.Method, me.RequestUri, new HttpProtocol($"HTTP/{me.Version.Major}.{me.Version.Minor}")).ToString();
 
 			string headers = "";
-			if (me.Headers != null && me.Headers.Count() != 0)
+			if (me.Headers.NotNullAndNotEmpty())
 			{
 				var headerSection = HeaderSection.CreateNew(me.Headers);
 				headers += headerSection.ToString(endWithTwoCRLF: false);
@@ -90,7 +87,7 @@ namespace System.Net.Http
 			string messageBody = "";
 			if (me.Content != null)
 			{
-				if (me.Content.Headers != null && me.Content.Headers.Count() != 0)
+				if (me.Content.Headers.NotNullAndNotEmpty())
 				{
 					var headerSection = HeaderSection.CreateNew(me.Content.Headers);
 					headers += headerSection.ToString(endWithTwoCRLF: false);

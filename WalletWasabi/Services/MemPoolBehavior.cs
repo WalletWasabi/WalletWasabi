@@ -1,15 +1,11 @@
-﻿using ConcurrentCollections;
-using WalletWasabi.Helpers;
+﻿using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Services
@@ -54,13 +50,11 @@ namespace WalletWasabi.Services
 			catch (OperationCanceledException ex)
 			{
 				Logger.LogDebug<MemPoolBehavior>(ex);
-				return;
 			}
 			catch (Exception ex)
 			{
 				Logger.LogInfo<MemPoolBehavior>($"Ignoring {ex.GetType()}: {ex.Message}");
 				Logger.LogDebug<MemPoolBehavior>(ex);
-				return;
 			}
 		}
 
@@ -93,7 +87,7 @@ namespace WalletWasabi.Services
 
 		private void ProcessTxPayload(TxPayload transactionPayload)
 		{
-			var transaction = transactionPayload.Object as Transaction;
+			Transaction transaction = transactionPayload.Object;
 			MemPoolService.OnTransactionReceived(new SmartTransaction(transaction, Height.MemPool));
 		}
 

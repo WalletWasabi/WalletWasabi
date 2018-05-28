@@ -45,11 +45,6 @@ namespace WalletWasabi.Http.Models
 
 					if (parts.Count == 2)
 					{
-						if (part == null)
-						{
-							throw new Exception($"Wrong {startLineString} provided.");
-						}
-
 						var rest = reader.ReadToEnd();
 
 						// startLineString must end here, the ReadToEnd returns "" if nothing to read instead of null

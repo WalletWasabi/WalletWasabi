@@ -1,12 +1,7 @@
 ﻿using NBitcoin;
-using Org.BouncyCastle.Math;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Models;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin

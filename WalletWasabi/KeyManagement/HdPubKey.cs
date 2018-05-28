@@ -4,8 +4,6 @@ using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -37,26 +35,17 @@ namespace WalletWasabi.KeyManagement
 		public void SetLabel(string label, KeyManager kmToFile = null)
 		{
 			label = Guard.Correct(label);
-			if (Label != label)
-			{
-				Label = label;
-				if (kmToFile != null)
-				{
-					kmToFile.ToFile();
-				}
-			}
+			if (Label == label) return;			
+			Label = label;
+
+			kmToFile?.ToFile();
 		}
 
 		public void SetKeyState(KeyState state, KeyManager kmToFile = null)
 		{
-			if (KeyState != state)
-			{
-				KeyState = state;
-				if (kmToFile != null)
-				{
-					kmToFile.ToFile();
-				}
-			}
+			if (KeyState == state) return;
+			KeyState = state;
+			kmToFile?.ToFile();
 		}
 
 		private Script _p2pkScript = null;

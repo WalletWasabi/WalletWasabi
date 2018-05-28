@@ -20,7 +20,7 @@ namespace WalletWasabi.Http.Models
 			URI = uri;
 			Protocol = protocol;
 
-			StartLineString = Method.Method + SP + URI.AbsolutePath + URI.Query + SP + Protocol.ToString() + CRLF;
+			StartLineString = Method.Method + SP + URI.AbsolutePath + URI.Query + SP + Protocol + CRLF;
 		}
 
 		public static RequestLine CreateNew(string requestLineString)

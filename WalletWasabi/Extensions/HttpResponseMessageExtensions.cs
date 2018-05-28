@@ -1,5 +1,4 @@
 ﻿using WalletWasabi.Http.Models;
-using Newtonsoft.Json;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,15 +30,12 @@ namespace System.Net.Http
 			//					CRLF
 			//					[message - body]
 
-			var position = 0;
 			string startLine = await HttpMessageHelper.ReadStartLineAsync(responseStream);
-			position += startLine.Length;
 
 			var statusLine = StatusLine.CreateNew(startLine);
 			var response = new HttpResponseMessage(statusLine.StatusCode);
 
 			string headers = await HttpMessageHelper.ReadHeadersAsync(responseStream);
-			position += headers.Length + 2;
 
 			var headerSection = HeaderSection.CreateNew(headers);
 			var headerStruct = headerSection.ToHttpResponseHeaders();
@@ -65,7 +61,7 @@ namespace System.Net.Http
 			var startLine = new StatusLine(new HttpProtocol($"HTTP/{me.Version.Major}.{me.Version.Minor}"), me.StatusCode).ToString();
 
 			var headers = "";
-			if (me.Headers != null && me.Headers.Count() != 0)
+			if (me.Headers.NotNullAndNotEmpty())
 			{
 				var headerSection = HeaderSection.CreateNew(me.Headers);
 				headers += headerSection.ToString(endWithTwoCRLF: false);
@@ -74,7 +70,7 @@ namespace System.Net.Http
 			var messageBody = "";
 			if (me.Content != null)
 			{
-				if (me.Content.Headers != null && me.Content.Headers.Count() != 0)
+				if (me.Content.Headers.NotNullAndNotEmpty())
 				{
 					var headerSection = HeaderSection.CreateNew(me.Content.Headers);
 					headers += headerSection.ToString(endWithTwoCRLF: false);

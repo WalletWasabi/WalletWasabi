@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -102,18 +101,15 @@ namespace WalletWasabi.Services
 			{
 				return new Height(481824);
 			}
-			else if (network == Network.TestNet)
+			if (network == Network.TestNet)
 			{
 				return new Height(828575);
 			}
-			else if (network == Network.RegTest)
+			if (network == Network.RegTest)
 			{
 				return new Height(0);
 			}
-			else
-			{
-				throw new NotSupportedException($"{network} is not supported.");
-			}
+			throw new NotSupportedException($"{network} is not supported.");
 		}
 
 		public Height StartingHeight => GetStartingHeight(RpcClient.Network);

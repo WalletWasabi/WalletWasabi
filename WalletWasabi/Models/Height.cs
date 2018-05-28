@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WalletWasabi.Models
 {
@@ -117,7 +115,7 @@ namespace WalletWasabi.Models
 		public override string ToString()
 		{
 			if (Type == HeightType.Chain) return Value.ToString();
-			else return Type.ToString();
+			return Type.ToString();
 		}
 
 		#region EqualityAndComparison

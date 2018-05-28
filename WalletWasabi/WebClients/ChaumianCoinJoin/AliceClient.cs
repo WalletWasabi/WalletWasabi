@@ -11,23 +11,19 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Logging;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Bases;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin
 {
-	public class AliceClient : IDisposable
+	public class AliceClient : TorDisposableBase
 	{
-		public TorHttpClient TorClient { get; }
-
 		public long RoundId { get; private set; }
 		public Guid UniqueId { get; private set; }
 		public byte[] BlindedOutputSignature { get; private set; }
-
-		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
-		private AliceClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		/// <inheritdoc/>
+		private AliceClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
-			TorClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
 		}
 
 		public static async Task<AliceClient> CreateNewAsync(InputsRequest request, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
@@ -40,14 +36,8 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 					if (response.StatusCode != HttpStatusCode.OK)
 					{
 						string error = await response.Content.ReadAsJsonAsync<string>();
-						if (error == null)
-						{
-							throw new HttpRequestException(response.StatusCode.ToReasonString());
-						}
-						else
-						{
-							throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
-						}
+						var errorMessage = error == null ? string.Empty : $"\n{error}";
+						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 					}
 
 					var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>();
@@ -88,24 +78,17 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 					Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection.");
 					return null;
 				}
-				else if (response.StatusCode == HttpStatusCode.OK)
+				
+				if (response.StatusCode == HttpStatusCode.OK)
 				{
 					string roundHash = await response.Content.ReadAsJsonAsync<string>();
 					Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Acquired roundHash: {roundHash}.");
 					return roundHash;
 				}
-				else
-				{
-					string error = await response.Content.ReadAsJsonAsync<string>();
-					if (error == null)
-					{
-						throw new HttpRequestException(response.StatusCode.ToReasonString());
-					}
-					else
-					{
-						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
-					}
-				}
+
+				string error = await response.Content.ReadAsJsonAsync<string>();
+				var errorMessage = error == null ? string.Empty : $"\n{error}";
+				throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 			}
 		}
 
@@ -117,14 +100,8 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				if (!response.IsSuccessStatusCode)
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
-					if (error == null)
-					{
-						throw new HttpRequestException(response.StatusCode.ToReasonString());
-					}
-					else
-					{
-						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
-					}
+					var errorMessage = error == null ? string.Empty : $"\n{error}";
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Unconfirmed connection.");
 			}
@@ -137,14 +114,8 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
-					if (error == null)
-					{
-						throw new HttpRequestException(response.StatusCode.ToReasonString());
-					}
-					else
-					{
-						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
-					}
+					var errorMessage = error == null ? string.Empty : $"\n{error}";
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 
 				var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
@@ -156,11 +127,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 		public async Task PostSignaturesAsync(IDictionary<int, WitScript> signatures)
 		{
-			var myDic = new Dictionary<int, string>();
-			foreach (var signature in signatures)
-			{
-				myDic.Add(signature.Key, signature.Value.ToString());
-			}
+			var myDic = signatures.ToDictionary(signature => signature.Key, signature => signature.Value.ToString());
 
 			var jsonSignatures = JsonConvert.SerializeObject(myDic, Formatting.None);
 			var signatureRequestContent = new StringContent(jsonSignatures, Encoding.UTF8, "application/json");
@@ -170,49 +137,11 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				if (response.StatusCode != HttpStatusCode.NoContent)
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
-					if (error == null)
-					{
-						throw new HttpRequestException(response.StatusCode.ToReasonString());
-					}
-					else
-					{
-						throw new HttpRequestException($"{response.StatusCode.ToReasonString()}\n{error}");
-					}
+					var errorMessage = error == null ? string.Empty : $"\n{error}";
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Posted {signatures.Count} signatures.");
 			}
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					TorClient?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// ~AliceClient() {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-			// GC.SuppressFinalize(this);
-		}
-
-		#endregion IDisposable Support
 	}
 }
