@@ -19,6 +19,7 @@ using NBitcoin;
 using NBitcoin.Policy;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
+using WalletWasabi.WebClients.ChaumianCoinJoin;
 
 namespace WalletWasabi.Services
 {
@@ -533,7 +534,9 @@ namespace WalletWasabi.Services
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, Operation[] toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
+		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, Operation[] toSend, int feeTarget, Uri baseUri, bool allowUnconfirmed = false,
+																		int? subtractFeeFromAmountIndex = null, Script customChange = null,
+																		IEnumerable<TxoRef> allowedInputs = null, IPEndPoint torSocks5EndPoint = null)
 		{
 			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
@@ -610,19 +613,10 @@ namespace WalletWasabi.Services
 
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
-			Money feePerBytes = null;
-			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
-			using (var response = await torClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
-			{
-				if (response.StatusCode != HttpStatusCode.OK)
-					throw new HttpRequestException($"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
+			WasabiClient wasabiClient = new WasabiClient(baseUri, torSocks5EndPoint);
 
-				using (var content = response.Content)
-				{
-					var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
-					feePerBytes = new Money(json.Single().Value.Conservative);
-				}
-			}
+			var fees = await wasabiClient.GetFeesAsync(feeTarget, baseUri, torSocks5EndPoint);
+			Money feePerBytes = new Money(fees.Single().Value.Conservative);
 
 			bool spendAll = spendAllCount == 1;
 			int inNum;
@@ -830,21 +824,10 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task SendTransactionAsync(SmartTransaction transaction)
+		public async Task SendTransactionAsync(SmartTransaction transaction, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
-			using (var torClient = new TorHttpClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint, isolateStream: true))
-			using (var content = new StringContent($"'{transaction.Transaction.ToHex()}'", Encoding.UTF8, "application/json"))
-			using (var response = await torClient.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
-			{
-				if (response.StatusCode == HttpStatusCode.BadRequest)
-				{
-					throw new HttpRequestException($"Couldn't broadcast transaction. Reason: {await response.Content.ReadAsStringAsync()}");
-				}
-				if (response.StatusCode != HttpStatusCode.OK) // Try again.
-				{
-					throw new HttpRequestException($"Couldn't broadcast transaction. Reason: {response.StatusCode.ToReasonString()}");
-				}
-			}
+			WasabiClient wasabiClient = new WasabiClient(baseUri, torSocks5EndPoint);
+			await wasabiClient.BroadcastTransactionAsync(transaction, baseUri, torSocks5EndPoint);
 
 			ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));
 
