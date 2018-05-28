@@ -21,10 +21,9 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		{
 		}
 
-		public async Task<Money> GetAndCalculateFeesAsync(int feeTarget, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		public async Task<IDictionary<int, FeeEstimationPair>> GetFeesAsync(int feeTarget, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			WasabiClient client = new WasabiClient(baseUri, torSocks5EndPoint);
-			Money feePerBytes = null;
 
 			using (var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
 			{
@@ -34,9 +33,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				using (var content = response.Content)
 				{
 					var json = await content.ReadAsJsonAsync<SortedDictionary<int, FeeEstimationPair>>();
-					feePerBytes = new Money(json.Single().Value.Conservative);
-
-					return feePerBytes;
+					return json;
 				}
 			}
 		}

@@ -614,7 +614,9 @@ namespace WalletWasabi.Services
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 			WasabiClient wasabiClient = new WasabiClient(baseUri, torSocks5EndPoint);
-			Money feePerBytes = await wasabiClient.GetAndCalculateFeesAsync(feeTarget, baseUri, torSocks5EndPoint);
+
+			var fees = await wasabiClient.GetFeesAsync(feeTarget, baseUri, torSocks5EndPoint);
+			Money feePerBytes = new Money(fees.Single().Value.Conservative);
 
 			bool spendAll = spendAllCount == 1;
 			int inNum;
