@@ -1,14 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.WebClients.SmartBit;
 using NBitcoin;
-using Newtonsoft.Json;
 using WalletWasabi.Interfaces;
 using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;

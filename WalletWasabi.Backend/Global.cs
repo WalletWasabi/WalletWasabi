@@ -4,13 +4,9 @@ using WalletWasabi.Services;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto;
-using System.Text;
 using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Backend
