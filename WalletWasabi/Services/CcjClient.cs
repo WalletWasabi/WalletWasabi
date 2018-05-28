@@ -1,11 +1,12 @@
-﻿using NBitcoin;
-using Nito.AsyncEx;
+﻿using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using NBitcoin.DataEncoders;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Models.ChaumianCoinJoin;
@@ -380,7 +381,7 @@ namespace WalletWasabi.Services
 						var inputProof = new InputProofModel
 						{
 							Input = coin.GetOutPoint(),
-							Proof = coin.Secret.PrivateKey.SignMessage(ByteHelpers.ToHex(blind.BlindedData))
+							Proof = coin.Secret.PrivateKey.SignMessage(Encoders.Hex.EncodeData(blind.BlindedData))
 						};
 						inputProofs.Add(inputProof);
 					}

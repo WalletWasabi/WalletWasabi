@@ -12,7 +12,7 @@ namespace WalletWasabi.Helpers
 			{
 				var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
 
-				return ByteHelpers.ToHex(hash);
+				return NBitcoin.DataEncoders.Encoders.Hex.EncodeData(hash);
 			}
 		}
 

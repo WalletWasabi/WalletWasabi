@@ -13,7 +13,7 @@ namespace WalletWasabi.Helpers
 			var sb = new StringBuilder();
 			foreach (OutPoint input in outPoints.OrderBy(x => x.Hash.ToString()).ThenBy(x => x.N))
 			{
-				sb.Append(ByteHelpers.ToHex(input.ToBytes()));
+				sb.Append(NBitcoin.DataEncoders.Encoders.Hex.EncodeData(input.ToBytes()));
 			}
 
 			return HashHelpers.GenerateSha256Hash(sb.ToString());

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using NBitcoin.DataEncoders;
 
 namespace NBitcoin
 {
@@ -25,13 +26,13 @@ namespace NBitcoin
 
 		public static string ToHex(this IBitcoinSerializable me)
 		{
-			return ByteHelpers.ToHex(me.ToBytes());
+			return Encoders.Hex.EncodeData(me.ToBytes());
 		}
 
 		public static void FromHex(this IBitcoinSerializable me, string hex)
 		{
 			Guard.NotNullOrEmptyOrWhitespace(nameof(hex), hex);
-			me.FromBytes(ByteHelpers.FromHex(hex));
+			me.FromBytes(Encoders.Hex.DecodeData(hex));
 		}
 
 		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me)
