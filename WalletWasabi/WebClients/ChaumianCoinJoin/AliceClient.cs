@@ -61,7 +61,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		{
 			var request = new InputsRequest
 			{
-				BlindedOutputScriptHex = ByteHelpers.ToHex(blindedData),
+				BlindedOutputScriptHex = NBitcoin.DataEncoders.Encoders.Hex.EncodeData(blindedData),
 				ChangeOutputAddress = changeOutput.ToString(),
 				Inputs = inputs
 			};

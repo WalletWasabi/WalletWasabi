@@ -2,6 +2,7 @@
 using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
+using NBitcoin.DataEncoders;
 
 namespace WalletWasabi.Bases
 {
@@ -23,18 +24,15 @@ namespace WalletWasabi.Bases
 
 		public string ToHex(bool xhhSyntax = false)
 		{
-			if (xhhSyntax)
-			{
-				return $"X'{ByteHelpers.ToHex(ToBytes())}'";
-			}
-			return ByteHelpers.ToHex(ToBytes());
+			var hex = Encoders.Hex.EncodeData(ToBytes());
+			return xhhSyntax ? $"X'{hex}'" : hex;
 		}
 
 		public void FromHex(string hex)
 		{
 			hex = Guard.NotNullOrEmptyOrWhitespace(nameof(hex), hex, true);
 
-			var bytes = ByteHelpers.FromHex(hex);
+			var bytes = Encoders.Hex.DecodeData(hex);
 			FromBytes(bytes);
 		}
 

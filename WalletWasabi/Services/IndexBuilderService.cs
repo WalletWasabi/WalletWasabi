@@ -4,6 +4,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using NBitcoin;
 using NBitcoin.RPC;
+using NBitcoin.DataEncoders;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -175,7 +176,7 @@ namespace WalletWasabi.Services
 
 						var txHash = new uint256(parts[0]);
 						var nIn = int.Parse(parts[1]);
-						var script = new Script(ByteHelpers.FromHex(parts[2]), true);
+						var script = new Script(Encoders.Hex.DecodeData(parts[2]), true);
 						Bech32UtxoSet.Add(new OutPoint(txHash, nIn), script);
 					}
 				}
@@ -257,7 +258,7 @@ namespace WalletWasabi.Services
 
 										// 4. Serialize Bech32UtxoSet.
 										await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-											.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+											.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + Encoders.Hex.EncodeData(entry.Value.ToCompressedBytes())));
 									}
 
 									// 5. Skip the current block.
@@ -340,7 +341,7 @@ namespace WalletWasabi.Services
 								File.Delete(Bech32UtxoSetFilePath);
 							}
 							await File.WriteAllLinesAsync(Bech32UtxoSetFilePath, Bech32UtxoSet
-								.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + ByteHelpers.ToHex(entry.Value.ToCompressedBytes())));
+								.Select(entry => entry.Key.Hash + ":" + entry.Key.N + ":" + Encoders.Hex.EncodeData(entry.Value.ToCompressedBytes())));
 
 							// If not close to the tip, just log debug.
 							// Use height.Value instead of simply height, because it cannot be negative height.

@@ -57,7 +57,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 			{
 				if (b != MethodField.NoAuthenticationRequired && b != MethodField.UsernamePassword)
 				{
-					throw new FormatException($"Unrecognized authentication method: {ByteHelpers.ToHex(b)}.");
+					throw new FormatException($"Unrecognized authentication method: {b:X2}.");
 				}
 			}
 

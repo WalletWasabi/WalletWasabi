@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using NBitcoin.RPC;
+using NBitcoin.DataEncoders;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -237,7 +238,7 @@ namespace WalletWasabi.Backend.Controllers
 					byte[] blindedData;
 					try
 					{
-						blindedData = ByteHelpers.FromHex(request.BlindedOutputScriptHex);
+						blindedData = Encoders.Hex.DecodeData(request.BlindedOutputScriptHex);
 					}
 					catch
 					{
@@ -469,7 +470,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest($"Invalid OutputAddress. Details: {ex.Message}");
 			}
 
-			if (RsaKey.PubKey.Verify(ByteHelpers.FromHex(request.SignatureHex), outputAddress.ScriptPubKey.ToBytes()))
+			if (RsaKey.PubKey.Verify(Encoders.Hex.DecodeData(request.SignatureHex), outputAddress.ScriptPubKey.ToBytes()))
 			{
 				using (await OutputLock.LockAsync())
 				{

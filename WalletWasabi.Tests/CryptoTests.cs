@@ -5,6 +5,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
+using NBitcoin.DataEncoders;
 
 namespace WalletWasabi.Tests
 {
@@ -133,8 +134,8 @@ namespace WalletWasabi.Tests
 			var key = new BlindingRsaKey();
 			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
 			byte[] blindedData = key.PubKey.Blind(message).BlindedData;
-			string encoded = ByteHelpers.ToHex(blindedData);
-			byte[] decoded = ByteHelpers.FromHex(encoded);
+			string encoded = Encoders.Hex.EncodeData(blindedData);
+			byte[] decoded = Encoders.Hex.DecodeData(encoded);
 			Assert.Equal(blindedData, decoded);
 		}
 	}
