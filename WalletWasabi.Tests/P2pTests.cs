@@ -97,8 +97,7 @@ namespace WalletWasabi.Tests
 			   new CcjClient(network, new BlindingRsaKey().PubKey, keyManager, new Uri("http://localhost:12345")),
 			   memPoolService,
 			   nodes,
-			   blocksFolderPath,
-			   wasabiClient);
+			   blocksFolderPath);
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try

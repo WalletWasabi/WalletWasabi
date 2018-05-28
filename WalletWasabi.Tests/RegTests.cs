@@ -445,8 +445,7 @@ namespace WalletWasabi.Tests
 
 			// 5. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -679,8 +678,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -722,7 +720,7 @@ namespace WalletWasabi.Tests
 				}
 
 				var scp = new Key().ScriptPubKey;
-				var res2 = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(scp, Money.Coins(0.05m), "foo") }, 5, false);
+				var res2 = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(scp, Money.Coins(0.05m), "foo") }, 5, new Uri(RegTestFixture.BackendEndPoint), false);
 
 				Assert.NotNull(res2.Transaction);
 				Assert.Single(res2.OuterWalletOutputs);
@@ -735,7 +733,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(Money.Coins(1m), res2.SpentCoins.Single().Amount);
 				Assert.False(res2.SpendsUnconfirmed);
 
-				await wallet.SendTransactionAsync(res2.Transaction);
+				await wallet.SendTransactionAsync(res2.Transaction, new Uri(RegTestFixture.BackendEndPoint));
 
 				Assert.Contains(res2.InnerWalletOutputs.Single(), wallet.Coins);
 
@@ -743,7 +741,7 @@ namespace WalletWasabi.Tests
 
 				Script receive = wallet.GetReceiveKey("Basic").GetP2wpkhScript();
 				Money amountToSend = wallet.Coins.Where(x => !x.SpentOrLocked).Sum(x => x.Amount) / 2;
-				var res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
+				var res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, new Uri(RegTestFixture.BackendEndPoint), allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -775,7 +773,7 @@ namespace WalletWasabi.Tests
 				}
 				Assert.True(foundReceive);
 
-				await wallet.SendTransactionAsync(res.Transaction);
+				await wallet.SendTransactionAsync(res.Transaction, new Uri(RegTestFixture.BackendEndPoint));
 
 				#endregion Basic
 
@@ -783,7 +781,7 @@ namespace WalletWasabi.Tests
 
 				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").GetP2wpkhScript();
 				amountToSend = wallet.Coins.Where(x => !x.SpentOrLocked).Sum(x => x.Amount) / 2;
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
+				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, new Uri(RegTestFixture.BackendEndPoint), allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -816,7 +814,7 @@ namespace WalletWasabi.Tests
 
 				#region LowFee
 
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, new Uri(RegTestFixture.BackendEndPoint), allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -849,7 +847,7 @@ namespace WalletWasabi.Tests
 
 				#region MediumFee
 
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 144, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 144, new Uri(RegTestFixture.BackendEndPoint), allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -882,7 +880,7 @@ namespace WalletWasabi.Tests
 
 				#region HighFee
 
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 2, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 2, new Uri(RegTestFixture.BackendEndPoint), allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -914,14 +912,14 @@ namespace WalletWasabi.Tests
 				Assert.InRange(res.Fee, Money.Zero, res.Fee);
 				Assert.InRange(res.Fee, res.Fee, res.Fee);
 
-				await wallet.SendTransactionAsync(res.Transaction);
+				await wallet.SendTransactionAsync(res.Transaction, new Uri(RegTestFixture.BackendEndPoint));
 
 				#endregion HighFee
 
 				#region MaxAmount
 
 				receive = wallet.GetReceiveKey("MaxAmount").GetP2wpkhScript();
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008, allowUnconfirmed: true);
+				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008, new Uri(RegTestFixture.BackendEndPoint), allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
@@ -940,7 +938,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(receive, maxBuiltTxOutput.ScriptPubKey);
 				Assert.Equal(wallet.Coins.Where(x => !x.SpentOrLocked).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
 
-				await wallet.SendTransactionAsync(res.Transaction);
+				await wallet.SendTransactionAsync(res.Transaction, new Uri(RegTestFixture.BackendEndPoint));
 
 				#endregion MaxAmount
 
@@ -950,6 +948,7 @@ namespace WalletWasabi.Tests
 
 				var inputCountBefore = res.SpentCoins.Count();
 				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
+					new Uri(RegTestFixture.BackendEndPoint),
 					allowUnconfirmed: true,
 					allowedInputs: wallet.Coins.Where(x => !x.SpentOrLocked).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1));
 
@@ -970,6 +969,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(res.Transaction.Transaction.Outputs);
 
 				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
+					new Uri(RegTestFixture.BackendEndPoint),
 					allowUnconfirmed: true,
 					allowedInputs: new[] { res.SpentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).First() });
 
@@ -986,6 +986,7 @@ namespace WalletWasabi.Tests
 				#region Labeling
 
 				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, Money.Zero, "my label") }, 1008,
+					new Uri(RegTestFixture.BackendEndPoint),
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
@@ -996,13 +997,14 @@ namespace WalletWasabi.Tests
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing"),
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing2")
 				}, 1008,
+					new Uri(RegTestFixture.BackendEndPoint),
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal(2, res.OuterWalletOutputs.Count());
 				Assert.Equal("change of (outgoing, outgoing2)", res.InnerWalletOutputs.Single().Label);
 
-				await wallet.SendTransactionAsync(res.Transaction);
+				await wallet.SendTransactionAsync(res.Transaction, new Uri(RegTestFixture.BackendEndPoint));
 
 				Assert.Contains("change of (outgoing, outgoing2)", wallet.Coins.Where(x => x.Height == Height.MemPool).Select(x => x.Label));
 				Assert.Contains("change of (outgoing, outgoing2)", keyManager.GetKeys().Select(x => x.Label));
@@ -1029,7 +1031,7 @@ namespace WalletWasabi.Tests
 				// covers:
 				// disallow unconfirmed with allowed inputs
 				// feeTarget < 2 // NOTE: need to correct alowing 0 and 1
-				res = await wallet.BuildTransactionAsync(password, toSend, 0, false, allowedInputs: allowedInputs);
+				res = await wallet.BuildTransactionAsync(password, toSend, 0, new Uri(RegTestFixture.BackendEndPoint), false, allowedInputs: allowedInputs);
 
 				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
 				Assert.Single(res.InnerWalletOutputs);
@@ -1059,7 +1061,7 @@ namespace WalletWasabi.Tests
 				// covers:
 				// customchange
 				// feePc > 1
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(new Key().ScriptPubKey, new Money(100, MoneyUnit.MilliBTC), "outgoing") }, 1008, customChange: new Key().ScriptPubKey);
+				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(new Key().ScriptPubKey, new Money(100, MoneyUnit.MilliBTC), "outgoing") }, 1008, new Uri(RegTestFixture.BackendEndPoint), customChange: new Key().ScriptPubKey);
 
 				Assert.True(res.FeePercentOfSent > 1);
 
@@ -1122,8 +1124,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
@@ -1137,52 +1138,52 @@ namespace WalletWasabi.Tests
 
 			Logger.TurnOff();
 			// toSend cannot be null
-			await Assert.ThrowsAsync<ArgumentNullException>(async () => await wallet.BuildTransactionAsync(null, null, 0));
+			await Assert.ThrowsAsync<ArgumentNullException>(async () => await wallet.BuildTransactionAsync(null, null, 0, new Uri(RegTestFixture.BackendEndPoint)));
 
 			// toSend cannot have a null element
-			await Assert.ThrowsAsync<ArgumentNullException>(async () => await wallet.BuildTransactionAsync(null, new[] { (WalletService.Operation)null }, 0));
+			await Assert.ThrowsAsync<ArgumentNullException>(async () => await wallet.BuildTransactionAsync(null, new[] { (WalletService.Operation)null }, 0, new Uri(RegTestFixture.BackendEndPoint)));
 
 			// toSend cannot have a zero elements
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, new WalletService.Operation[0], 0));
+			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, new WalletService.Operation[0], 0, new Uri(RegTestFixture.BackendEndPoint)));
 
 			// feeTarget has to be in the range 0 to 1008
-			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, -10));
-			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2000));
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, -10, new Uri(RegTestFixture.BackendEndPoint)));
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2000, new Uri(RegTestFixture.BackendEndPoint)));
 
 			// subtractFeeFromAmountIndex has to be valid
-			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2, false, -10));
-			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2, false, 1));
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2, new Uri(RegTestFixture.BackendEndPoint), false, -10));
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2, new Uri(RegTestFixture.BackendEndPoint), false, 1));
 
 			// toSend amount sum has to be in range 0 to 2099999997690000
-			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, invalidOperationList, 2));
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, invalidOperationList, 2, new Uri(RegTestFixture.BackendEndPoint)));
 
 			// toSend negative sum amount
 			var operations = new[]{
 				new WalletService.Operation(scp, -10000, "") };
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2));
+			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, new Uri(RegTestFixture.BackendEndPoint)));
 
 			// toSend negative operation amount
 			operations = new[]{
 				new WalletService.Operation(scp,  20000, ""),
 				new WalletService.Operation(scp, -10000, "") };
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2));
+			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, new Uri(RegTestFixture.BackendEndPoint)));
 
 			// toSend ammount sum has to be less than ulong.MaxValue
-			await Assert.ThrowsAsync<OverflowException>(async () => await wallet.BuildTransactionAsync(null, overflowOperationList, 2));
+			await Assert.ThrowsAsync<OverflowException>(async () => await wallet.BuildTransactionAsync(null, overflowOperationList, 2, new Uri(RegTestFixture.BackendEndPoint)));
 
 			// allowedInputs cannot be empty
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2, false, null, null, new TxoRef[0]));
+			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2, new Uri(RegTestFixture.BackendEndPoint), false, null, null, new TxoRef[0]));
 
 			// "Only one element can contain Money.Zero
 			var toSendWithTwoZeros = new[]{
 				new WalletService.Operation(scp, Money.Zero, "zero"),
 				new WalletService.Operation(scp, Money.Zero, "zero") };
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(password, toSendWithTwoZeros, 1008, false));
+			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(password, toSendWithTwoZeros, 1008, new Uri(RegTestFixture.BackendEndPoint), false));
 
 			// cannot specify spend all and custom change
 			var spendAll = new[]{
 				new WalletService.Operation(scp, Money.Zero, "spendAll") };
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(password, spendAll, 1008, false, customChange: new Key().ScriptPubKey));
+			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(password, spendAll, 1008, new Uri(RegTestFixture.BackendEndPoint), false, customChange: new Key().ScriptPubKey));
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
@@ -1211,24 +1212,24 @@ namespace WalletWasabi.Tests
 				operations = new[]{
 					new WalletService.Operation(scp,  Money.Satoshis(1m), ""),
 					new WalletService.Operation(scp, Money.Coins(0.5m), "") };
-				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(password, operations, 2, false, 0));
+				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(password, operations, 2, new Uri(RegTestFixture.BackendEndPoint), false, 0));
 
 				// No enough money (only one confirmed coin, no unconfirmed allowed)
 				operations = new[] { new WalletService.Operation(scp, Money.Coins(1.5m), "") };
-				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(null, operations, 2));
+				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, new Uri(RegTestFixture.BackendEndPoint)));
 
 				// No enough money (only one confirmed coin, unconfirmed allowed)
-				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, true));
+				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, new Uri(RegTestFixture.BackendEndPoint), true));
 
 				// Add new money with no confirmation
 				var txid2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
-				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, false));
+				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, new Uri(RegTestFixture.BackendEndPoint), false));
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are allowed)
-				var btx = await wallet.BuildTransactionAsync(password, operations, 2, true);
+				var btx = await wallet.BuildTransactionAsync(password, operations, 2, new Uri(RegTestFixture.BackendEndPoint), true);
 				Assert.Equal(2, btx.SpentCoins.Count());
 				Assert.Equal(1, btx.SpentCoins.Count(c => c.Confirmed));
 				Assert.Equal(1, btx.SpentCoins.Count(c => !c.Confirmed));
@@ -1237,17 +1238,17 @@ namespace WalletWasabi.Tests
 				operations = new[]{
 					new WalletService.Operation(scp, Money.Zero, ""),
 					new WalletService.Operation(scp, Money.Zero, "") };
-				await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2));
+				await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, new Uri(RegTestFixture.BackendEndPoint)));
 
 				// `Custom change` and `spend all` cannot be specified at the same time
-				await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, false, null, Script.Empty));
+				await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, new Uri(RegTestFixture.BackendEndPoint), false, null, Script.Empty));
 				Logger.TurnOn();
 
 				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.5m), "") };
-				btx = await wallet.BuildTransactionAsync(password, operations, 2);
+				btx = await wallet.BuildTransactionAsync(password, operations, 2, new Uri(RegTestFixture.BackendEndPoint));
 
 				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.00005m), "") };
-				btx = await wallet.BuildTransactionAsync(password, operations, 2, false, 0);
+				btx = await wallet.BuildTransactionAsync(password, operations, 2, new Uri(RegTestFixture.BackendEndPoint), false, 0);
 				Assert.True(btx.FeePercentOfSent > 20);
 				Assert.Single(btx.SpentCoins);
 				Assert.Equal(txid, btx.SpentCoins.First().TransactionId);
@@ -1303,8 +1304,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1340,13 +1340,13 @@ namespace WalletWasabi.Tests
 				// Send money before reorg.
 				var operations = new[]{
 					new WalletService.Operation(scp, Money.Coins(0.011m), "") };
-				var btx1 = await wallet.BuildTransactionAsync(password, operations, 2);
-				await wallet.SendTransactionAsync(btx1.Transaction);
+				var btx1 = await wallet.BuildTransactionAsync(password, operations, 2, new Uri(RegTestFixture.BackendEndPoint));
+				await wallet.SendTransactionAsync(btx1.Transaction, new Uri(RegTestFixture.BackendEndPoint));
 
 				operations = new[]{
 					new WalletService.Operation(scp, Money.Coins(0.012m), "") };
-				var btx2 = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true);
-				await wallet.SendTransactionAsync(btx2.Transaction);
+				var btx2 = await wallet.BuildTransactionAsync(password, operations, 2, new Uri(RegTestFixture.BackendEndPoint), allowUnconfirmed: true);
+				await wallet.SendTransactionAsync(btx2.Transaction, new Uri(RegTestFixture.BackendEndPoint));
 
 				// Test synchronization after fork.
 				// Invalidate the blocks containing the funding transaction
@@ -1365,13 +1365,13 @@ namespace WalletWasabi.Tests
 				// are reintroduced when we generate a new block though the rpc call
 				operations = new[]{
 					new WalletService.Operation(scp, Money.Coins(0.013m), "") };
-				var btx3 = await wallet.BuildTransactionAsync(password, operations, 2);
-				await wallet.SendTransactionAsync(btx3.Transaction);
+				var btx3 = await wallet.BuildTransactionAsync(password, operations, 2, new Uri(RegTestFixture.BackendEndPoint));
+				await wallet.SendTransactionAsync(btx3.Transaction, new Uri(RegTestFixture.BackendEndPoint));
 
 				operations = new[]{
 					new WalletService.Operation(scp, Money.Coins(0.014m), "") };
-				var btx4 = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true);
-				await wallet.SendTransactionAsync(btx4.Transaction);
+				var btx4 = await wallet.BuildTransactionAsync(password, operations, 2, new Uri(RegTestFixture.BackendEndPoint), allowUnconfirmed: true);
+				await wallet.SendTransactionAsync(btx4.Transaction, new Uri(RegTestFixture.BackendEndPoint));
 
 				// Test synchronization after fork with different transactions.
 				// Create a fork that invalidates the blocks containing the funding transaction
@@ -1477,8 +1477,7 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1518,13 +1517,13 @@ namespace WalletWasabi.Tests
 					new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.01m), ""),
 					new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.01m), "")
 				};
-				var tx1Res = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true);
+				var tx1Res = await wallet.BuildTransactionAsync(password, operations, 2, new Uri(RegTestFixture.BackendEndPoint), allowUnconfirmed: true);
 				Assert.Equal(2, tx1Res.OuterWalletOutputs.Single(x => x.ScriptPubKey == key.GetP2wpkhScript()).Mixin);
 
 				// Spend the unconfirmed coin (send it to ourself)
 				operations = new[] { new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "") };
-				tx1Res = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true);
-				await wallet.SendTransactionAsync(tx1Res.Transaction);
+				tx1Res = await wallet.BuildTransactionAsync(password, operations, 2, new Uri(RegTestFixture.BackendEndPoint), allowUnconfirmed: true);
+				await wallet.SendTransactionAsync(tx1Res.Transaction, new Uri(RegTestFixture.BackendEndPoint));
 
 				while (wallet.Coins.Count != 3)
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
@@ -1543,8 +1542,8 @@ namespace WalletWasabi.Tests
 
 				// Spend the unconfirmed and unspent coin (send it to ourself)
 				operations = new[] { new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "") };
-				var tx2Res = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
-				await wallet.SendTransactionAsync(tx2Res.Transaction);
+				var tx2Res = await wallet.BuildTransactionAsync(password, operations, 2, new Uri(RegTestFixture.BackendEndPoint), allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
+				await wallet.SendTransactionAsync(tx2Res.Transaction, new Uri(RegTestFixture.BackendEndPoint));
 
 				while (wallet.Coins.Count != 4)
 					await Task.Delay(500); // Waits for the transaction get to the mempool.
@@ -2590,13 +2589,11 @@ namespace WalletWasabi.Tests
 
 			// 6. Create wallet service.
 			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Blocks");
-			WasabiClient wasabiClient = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath, wasabiClient);
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var blocksFolderPath2 = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Blocks2");
-			WasabiClient wasabiClient2 = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint));
-			var wallet2 = new WalletService(keyManager2, indexDownloader2, chaumianClient2, memPoolService2, nodes2, blocksFolderPath2, wasabiClient2);
+			var wallet2 = new WalletService(keyManager2, indexDownloader2, chaumianClient2, memPoolService2, nodes2, blocksFolderPath2);
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("fundZeroLink");

@@ -21,10 +21,12 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		{
 		}
 
-		public async Task<Money> GetAndCalculateFeesAsync(int feeTarget)
+		public async Task<Money> GetAndCalculateFeesAsync(int feeTarget, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
+			WasabiClient client = new WasabiClient(baseUri, torSocks5EndPoint);
 			Money feePerBytes = null;
-			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
+
+			using (var response = await client.TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v1/btc/blockchain/fees/{feeTarget}"))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 					throw new HttpRequestException($"Couldn't query network fees. Reason: {response.StatusCode.ToReasonString()}");
@@ -39,10 +41,12 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			}
 		}
 
-		public async Task BroadcastTransactionAsync(SmartTransaction transaction)
+		public async Task BroadcastTransactionAsync(SmartTransaction transaction, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
+			WasabiClient client = new WasabiClient(baseUri, torSocks5EndPoint);
+
 			using (var content = new StringContent($"'{transaction.Transaction.ToHex()}'", Encoding.UTF8, "application/json"))
-			using (var response = await TorClient.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
+			using (var response = await client.TorClient.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
 			{
 				if (response.StatusCode == HttpStatusCode.BadRequest)
 				{

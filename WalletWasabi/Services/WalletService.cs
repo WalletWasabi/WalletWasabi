@@ -28,7 +28,6 @@ namespace WalletWasabi.Services
 		public KeyManager KeyManager { get; }
 		public IndexDownloader IndexDownloader { get; }
 		public CcjClient ChaumianClient { get; }
-		public WasabiClient WasabiClient { get; }
 		public MemPoolService MemPool { get; }
 
 		public NodesGroup Nodes { get; }
@@ -54,13 +53,12 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, CcjClient chaumianClient, MemPoolService memPool, NodesGroup nodes, string blocksFolderPath, WasabiClient wasabiClient)
+		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, CcjClient chaumianClient, MemPoolService memPool, NodesGroup nodes, string blocksFolderPath)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			IndexDownloader = Guard.NotNull(nameof(indexDownloader), indexDownloader);
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
-			WasabiClient = Guard.NotNull(nameof(wasabiClient), wasabiClient);
 			MemPool = Guard.NotNull(nameof(memPool), memPool);
 
 			WalletBlocks = new SortedDictionary<Height, uint256>();
@@ -536,7 +534,9 @@ namespace WalletWasabi.Services
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, Operation[] toSend, int feeTarget, bool allowUnconfirmed = false, int? subtractFeeFromAmountIndex = null, Script customChange = null, IEnumerable<TxoRef> allowedInputs = null)
+		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, Operation[] toSend, int feeTarget, Uri baseUri, bool allowUnconfirmed = false,
+																		int? subtractFeeFromAmountIndex = null, Script customChange = null,
+																		IEnumerable<TxoRef> allowedInputs = null, IPEndPoint torSocks5EndPoint = null)
 		{
 			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
@@ -613,7 +613,8 @@ namespace WalletWasabi.Services
 
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
-			Money feePerBytes = await WasabiClient.GetAndCalculateFeesAsync(feeTarget);
+			WasabiClient wasabiClient = new WasabiClient(baseUri, torSocks5EndPoint);
+			Money feePerBytes = await wasabiClient.GetAndCalculateFeesAsync(feeTarget, baseUri, torSocks5EndPoint);
 
 			bool spendAll = spendAllCount == 1;
 			int inNum;
@@ -821,9 +822,10 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task SendTransactionAsync(SmartTransaction transaction)
+		public async Task SendTransactionAsync(SmartTransaction transaction, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
-			await WasabiClient.BroadcastTransactionAsync(transaction);
+			WasabiClient wasabiClient = new WasabiClient(baseUri, torSocks5EndPoint);
+			await wasabiClient.BroadcastTransactionAsync(transaction, baseUri, torSocks5EndPoint);
 
 			ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));
 
