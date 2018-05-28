@@ -215,6 +215,7 @@ systemctl start tor.service
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
 systemctl start walletwasabi.service
 cd ..
+tail -10 .walletwasabi/backend/Logs.txt
 ```
 
 # Check If Everything Works
