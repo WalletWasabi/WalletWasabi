@@ -16,6 +16,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.NodeBuilding;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.WebClients.ChaumianCoinJoin;
 using Xunit;
 
 namespace WalletWasabi.Tests
