@@ -65,6 +65,10 @@ namespace WalletWasabi.Backend.Controllers
 						continue;
 					confirmationTargetsInts.Add(target);
 				}
+				else
+				{
+					return BadRequest($"Invalid {nameof(confirmationTargets)} are specified.");
+				}
 			}
 
 			var feeEstimations = new SortedDictionary<int, FeeEstimationPair>();

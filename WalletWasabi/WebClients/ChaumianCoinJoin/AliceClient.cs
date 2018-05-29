@@ -22,6 +22,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		public long RoundId { get; private set; }
 		public Guid UniqueId { get; private set; }
 		public byte[] BlindedOutputSignature { get; private set; }
+
 		/// <inheritdoc/>
 		private AliceClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
@@ -79,7 +80,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 					Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection.");
 					return null;
 				}
-				
+
 				if (response.StatusCode == HttpStatusCode.OK)
 				{
 					string roundHash = await response.Content.ReadAsJsonAsync<string>();

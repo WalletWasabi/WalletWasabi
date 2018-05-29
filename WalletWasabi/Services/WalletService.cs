@@ -534,9 +534,9 @@ namespace WalletWasabi.Services
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, Operation[] toSend, int feeTarget, Uri baseUri, bool allowUnconfirmed = false,
+		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, Operation[] toSend, int feeTarget, bool allowUnconfirmed = false,
 																		int? subtractFeeFromAmountIndex = null, Script customChange = null,
-																		IEnumerable<TxoRef> allowedInputs = null, IPEndPoint torSocks5EndPoint = null)
+																		IEnumerable<TxoRef> allowedInputs = null)
 		{
 			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
@@ -613,10 +613,13 @@ namespace WalletWasabi.Services
 
 			// 4. Get and calculate fee
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
-			WasabiClient wasabiClient = new WasabiClient(baseUri, torSocks5EndPoint);
 
-			var fees = await wasabiClient.GetFeesAsync(feeTarget, baseUri, torSocks5EndPoint);
-			Money feePerBytes = new Money(fees.Single().Value.Conservative);
+			Money feePerBytes = null;
+			using (var client = new WasabiClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint))
+			{
+				var fees = await client.GetFeesAsync(feeTarget);
+				feePerBytes = new Money(fees.Single().Value.Conservative);
+			}
 
 			bool spendAll = spendAllCount == 1;
 			int inNum;
@@ -824,10 +827,12 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task SendTransactionAsync(SmartTransaction transaction, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
-			WasabiClient wasabiClient = new WasabiClient(baseUri, torSocks5EndPoint);
-			await wasabiClient.BroadcastTransactionAsync(transaction, baseUri, torSocks5EndPoint);
+			using (var client = new WasabiClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint))
+			{
+				await client.BroadcastAsync(transaction);
+			}
 
 			ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));
 
