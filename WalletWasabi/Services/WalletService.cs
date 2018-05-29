@@ -534,8 +534,12 @@ namespace WalletWasabi.Services
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public async Task<BuildTransactionResult> BuildTransactionAsync(string password, Operation[] toSend, int feeTarget, bool allowUnconfirmed = false,
-																		int? subtractFeeFromAmountIndex = null, Script customChange = null,
+		public async Task<BuildTransactionResult> BuildTransactionAsync(string password,
+																		Operation[] toSend,
+																		int feeTarget,
+																		bool allowUnconfirmed = false,
+																		int? subtractFeeFromAmountIndex = null,
+																		Script customChange = null,
 																		IEnumerable<TxoRef> allowedInputs = null)
 		{
 			password = password ?? ""; // Correction.
