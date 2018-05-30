@@ -11,6 +11,7 @@ using WalletWasabi.TorSocks5;
 using WalletWasabi.Bases;
 using WalletWasabi.Models;
 using System.Text;
+using NBitcoin.RPC;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin
 {
@@ -19,6 +20,29 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		/// <inheritdoc/>
 		public WasabiClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
+		}
+
+		#region blockchain
+
+		public async Task<IEnumerable<string>> GetFiltersAsync(string bestKnownBlockHash, int count)
+		{
+			using(var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
+																	HttpStatusCode.OK, 
+																	$"/api/v1/btc/blockchain/filters?bestKnownBlockHash{bestKnownBlockHash}&count={count}"))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					string error = await response.Content.ReadAsJsonAsync<string>();
+					var errorMessage = error == null ? string.Empty : $"\n{error}";
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
+				}
+
+				using(HttpContent content = response.Content)
+				{
+					var ret = await content.ReadAsJsonAsync<List<string>>();
+					return ret;
+				}
+			}
 		}
 
 		public async Task<IDictionary<int, FeeEstimationPair>> GetFeesAsync(params int[] confirmationTargets)
@@ -65,5 +89,30 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		{
 			await BroadcastAsync(transaction.Transaction);
 		}
+
+		#endregion
+
+		#region offchain
+
+		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
+		{
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/v1/btc/offchain/exchange-rates"))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					string error = await response.Content.ReadAsJsonAsync<string>();
+					var errorMessage = error == null ? string.Empty : $"\n{error}";
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
+				}
+
+				using(HttpContent content = response.Content)
+				{
+					var ret = await content.ReadAsJsonAsync<IEnumerable<ExchangeRate>>();
+					return ret;
+				}
+			}
+		}
+
+		#endregion
 	}
 }

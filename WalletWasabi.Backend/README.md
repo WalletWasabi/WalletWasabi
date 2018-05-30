@@ -8,7 +8,7 @@
   Requests have the following format: `/api/v1/{coin}/{controller}/`.
   Currently supported coins: `btc`.
   
-  For example requesting fees: `GET /api/v1/btc/blockchain/exchange-rates`.
+  For example requesting fees: `GET /api/v1/btc/offchain/exchange-rates`.
 
 ### Controller: Blockchain, Coin: BTC
 
