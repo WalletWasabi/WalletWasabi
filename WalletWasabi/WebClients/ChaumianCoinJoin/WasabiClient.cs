@@ -24,7 +24,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 		#region blockchain
 
-		public async Task<IEnumerable<string>> GetFiltersAsync(string bestKnownBlockHash, int count)
+		public async Task<IEnumerable<string>> GetFiltersAsync(uint256 bestKnownBlockHash, int count)
 		{
 			using(var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
 																	HttpStatusCode.OK, 
