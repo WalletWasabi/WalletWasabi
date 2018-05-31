@@ -401,7 +401,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 									if (inputsToBan.Any())
 									{
-										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, inputsToBan.ToArray());
+										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, inputsToBan.ToArray());
 									}
 
 									RemoveAlicesBy(alicesToBan1.Select(x => x.UniqueId).Concat(alicesToBan2.Select(y => y.UniqueId)).Distinct().ToArray());
@@ -434,7 +434,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									var alicesToBan = await RemoveAlicesIfInputsSpentAsync();
 									if (alicesToBan.Any())
 									{
-										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
+										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
 									}
 									Fail();
 								}
