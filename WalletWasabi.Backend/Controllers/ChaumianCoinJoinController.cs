@@ -328,7 +328,7 @@ namespace WalletWasabi.Backend.Controllers
 
 							if (alicesToBan.Any())
 							{
-								await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.Now, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
+								await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
 							}
 
 							int aliceCountAfterConnectionConfirmationTimeout = round.CountAlices();
