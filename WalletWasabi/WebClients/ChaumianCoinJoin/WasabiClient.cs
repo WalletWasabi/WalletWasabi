@@ -28,8 +28,16 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		{
 			using(var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
 																	HttpStatusCode.OK, 
-																	$"/api/v1/btc/blockchain/filters?bestKnownBlockHash{bestKnownBlockHash}&count={count}"))
+			                                                       $"/api/v1/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}"))
 			{
+				if (response.StatusCode == HttpStatusCode.NoContent)
+				{
+					return Enumerable.Empty<string>();
+				}
+				if (response.StatusCode == HttpStatusCode.NotFound)
+				{
+					return null;
+				}
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
@@ -39,7 +47,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 				using(HttpContent content = response.Content)
 				{
-					var ret = await content.ReadAsJsonAsync<List<string>>();
+					var ret = await content.ReadAsJsonAsync<IEnumerable<string>>();
 					return ret;
 				}
 			}
