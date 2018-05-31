@@ -13,6 +13,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.WebClients.ChaumianCoinJoin;
 
 namespace WalletWasabi.Services
 {
@@ -21,6 +22,8 @@ namespace WalletWasabi.Services
 		public Network Network { get; }
 
 		public TorHttpClient Client { get; }
+
+		public WasabiClient WasabiClient { get; }
 
 		public string IndexFilePath { get; }
 		private List<FilterModel> Index { get; }
@@ -65,6 +68,7 @@ namespace WalletWasabi.Services
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			Client = new TorHttpClient(indexHostUri, torSocks5EndPoint, isolateStream: false);
+			WasabiClient = new WasabiClient(indexHostUri, torSocks5EndPoint);
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 
 			Index = new List<FilterModel>();
@@ -125,26 +129,26 @@ namespace WalletWasabi.Services
 								bestKnownFilter = Index.Last();
 							}
 
-							var response = await Client.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/filters?bestKnownBlockHash={bestKnownFilter.BlockHash}&count=1000");
+							var filters = await WasabiClient.GetFiltersAsync(bestKnownFilter.BlockHash, 1000);
 
-							if (response.StatusCode == HttpStatusCode.NoContent)
+							if (filters != null && !filters.Any()) // empty list
 							{
 								continue;
 							}
-							if (response.StatusCode == HttpStatusCode.OK)
+							if (filters.NotNullAndNotEmpty())
 							{
-								var filters = await response.Content.ReadAsJsonAsync<List<string>>();
+								var filtersList = filters.ToList(); // performance
 								using (await IndexLock.LockAsync())
 								{
-									for (int i = 0; i < filters.Count; i++)
+									for (int i = 0; i < filtersList.Count; i++)
 									{
-										var filterModel = FilterModel.FromLine(filters[i], bestKnownFilter.BlockHeight + i + 1);
+										var filterModel = FilterModel.FromLine(filtersList[i], bestKnownFilter.BlockHeight + i + 1);
 
 										Index.Add(filterModel);
 										NewFilter?.Invoke(this, filterModel);
 									}
 
-									if (filters.Count == 1) // minor optimization
+									if (filtersList.Count == 1) // minor optimization
 									{
 										await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
 									}
@@ -158,7 +162,7 @@ namespace WalletWasabi.Services
 
 								continue;
 							}
-							else if (response.StatusCode == HttpStatusCode.NotFound)
+							else if (filters == null)
 							{
 								// Reorg happened
 								var reorgedHash = bestKnownFilter.BlockHash;
@@ -177,11 +181,6 @@ namespace WalletWasabi.Services
 
 								// 3. Skip the last valid block.
 								continue;
-							}
-							else
-							{
-								var error = await response.Content.ReadAsStringAsync();
-								throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {error}");
 							}
 						}
 						catch (Exception ex)
