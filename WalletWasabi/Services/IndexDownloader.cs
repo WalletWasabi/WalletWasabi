@@ -224,6 +224,7 @@ namespace WalletWasabi.Services
 			}
 
 			Client?.Dispose();
+			WasabiClient?.Dispose();
 		}
 
 		public FilterModel GetBestFilter()
