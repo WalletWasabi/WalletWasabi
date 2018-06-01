@@ -24,7 +24,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 		#region blockchain
 
-		public async Task<IEnumerable<string>> GetFiltersAsync(uint256 bestKnownBlockHash, int count)
+		public async Task<IEnumerable<FilterModel>> GetFiltersAsync(uint256 bestKnownBlockHash, Height blockHeight, int count)
 		{
 			using(var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
 																	HttpStatusCode.OK, 
@@ -32,11 +32,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode == HttpStatusCode.NoContent)
 				{
-					return Enumerable.Empty<string>();
-				}
-				if (response.StatusCode == HttpStatusCode.NotFound)
-				{
-					return null;
+					return Enumerable.Empty<FilterModel>();
 				}
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
@@ -47,7 +43,9 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 				using(HttpContent content = response.Content)
 				{
-					var ret = await content.ReadAsJsonAsync<IEnumerable<string>>();
+					var filters = (await content.ReadAsJsonAsync<IEnumerable<string>>()).ToList();
+
+					var ret = filters.Select(s => FilterModel.FromLine(s, blockHeight + filters.IndexOf(s) + 1));
 					return ret;
 				}
 			}

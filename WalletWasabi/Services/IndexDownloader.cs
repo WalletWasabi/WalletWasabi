@@ -114,6 +114,8 @@ namespace WalletWasabi.Services
 
 			Task.Run(async () =>
 			{
+				FilterModel bestKnownFilter = null;
+
 				try
 				{
 					while (IsRunning)
@@ -123,29 +125,26 @@ namespace WalletWasabi.Services
 							// If stop was requested return.
 							if (IsRunning == false) return;
 
-							FilterModel bestKnownFilter;
 							using (await IndexLock.LockAsync())
 							{
 								bestKnownFilter = Index.Last();
 							}
 
-							var filters = await WasabiClient.GetFiltersAsync(bestKnownFilter.BlockHash, 1000);
+							var filters = await WasabiClient.GetFiltersAsync(bestKnownFilter.BlockHash, bestKnownFilter.BlockHeight, 1000);
 
-							if (filters != null && !filters.Any()) // empty list
+							if (!filters.Any())
 							{
 								continue;
 							}
 							if (filters.NotNullAndNotEmpty())
 							{
-								var filtersList = filters.ToList(); // performance
 								using (await IndexLock.LockAsync())
 								{
-									for (int i = 0; i < filtersList.Count; i++)
+									var filtersList = filters.ToList(); // performance
+									foreach (var filter in filtersList)
 									{
-										var filterModel = FilterModel.FromLine(filtersList[i], bestKnownFilter.BlockHeight + i + 1);
-
-										Index.Add(filterModel);
-										NewFilter?.Invoke(this, filterModel);
+										Index.Add(filter);
+										NewFilter?.Invoke(this, filter);
 									}
 
 									if (filtersList.Count == 1) // minor optimization
@@ -162,7 +161,10 @@ namespace WalletWasabi.Services
 
 								continue;
 							}
-							else if (filters == null)
+						}
+						catch (Exception ex)
+						{
+							if (bestKnownFilter != null && ex.Message.Contains($"Provided bestKnownBlockHash is not found: {bestKnownFilter?.BlockHash}."))
 							{
 								// Reorg happened
 								var reorgedHash = bestKnownFilter.BlockHash;
@@ -182,10 +184,10 @@ namespace WalletWasabi.Services
 								// 3. Skip the last valid block.
 								continue;
 							}
-						}
-						catch (Exception ex)
-						{
-							Logger.LogError<IndexDownloader>(ex);
+							else
+							{
+								Logger.LogError<IndexDownloader>(ex);
+							}
 						}
 						finally
 						{
