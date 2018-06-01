@@ -21,8 +21,6 @@ namespace WalletWasabi.Services
 	{
 		public Network Network { get; }
 
-		public TorHttpClient Client { get; }
-
 		public WasabiClient WasabiClient { get; }
 
 		public string IndexFilePath { get; }
@@ -67,7 +65,6 @@ namespace WalletWasabi.Services
 		public IndexDownloader(Network network, string indexFilePath, Uri indexHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			Client = new TorHttpClient(indexHostUri, torSocks5EndPoint, isolateStream: false);
 			WasabiClient = new WasabiClient(indexHostUri, torSocks5EndPoint);
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 
@@ -225,7 +222,6 @@ namespace WalletWasabi.Services
 				await Task.Delay(50);
 			}
 
-			Client?.Dispose();
 			WasabiClient?.Dispose();
 		}
 

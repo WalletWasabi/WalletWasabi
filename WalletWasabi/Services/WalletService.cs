@@ -619,7 +619,7 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 
 			Money feePerBytes = null;
-			using (var client = new WasabiClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint))
+			using (var client = new WasabiClient(IndexDownloader.WasabiClient.TorClient.DestinationUri, IndexDownloader.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
 				var fees = await client.GetFeesAsync(feeTarget);
 				feePerBytes = new Money(fees.Single().Value.Conservative);
@@ -833,7 +833,7 @@ namespace WalletWasabi.Services
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
-			using (var client = new WasabiClient(IndexDownloader.Client.DestinationUri, IndexDownloader.Client.TorSocks5EndPoint))
+			using (var client = new WasabiClient(IndexDownloader.WasabiClient.TorClient.DestinationUri, IndexDownloader.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
 				await client.BroadcastAsync(transaction);
 			}
