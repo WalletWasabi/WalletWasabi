@@ -161,7 +161,7 @@ namespace WalletWasabi.Services
 								continue;
 							}
 						}
-						catch (HttpRequestException ex) when (bestKnownFilter != null && ex.Message.StartsWith("Not Found: Provided bestKnownBlockHash is not found:"))
+						catch (HttpRequestException ex) when (bestKnownFilter != null && ex.Message.StartsWith("Not Found\nProvided bestKnownBlockHash is not found:"))
 						{
 							// Reorg happened
 							var reorgedHash = bestKnownFilter.BlockHash;

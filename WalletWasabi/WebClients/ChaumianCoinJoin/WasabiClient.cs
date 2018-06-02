@@ -38,7 +38,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
 					var errorMessage = error == null ? string.Empty : $"\n{error}";
-					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {errorMessage}");
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 
 				using(HttpContent content = response.Content)
@@ -59,7 +59,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
 					var errorMessage = error == null ? string.Empty : $"\n{error}";
-					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {errorMessage}");
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 
 				using (HttpContent content = response.Content)
@@ -79,7 +79,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
 					var errorMessage = error == null ? string.Empty : $"\n{error}";
-					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {errorMessage}");
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 			}
 		}
@@ -106,7 +106,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				{
 					string error = await response.Content.ReadAsJsonAsync<string>();
 					var errorMessage = error == null ? string.Empty : $"\n{error}";
-					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}: {errorMessage}");
+					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 
 				using(HttpContent content = response.Content)
