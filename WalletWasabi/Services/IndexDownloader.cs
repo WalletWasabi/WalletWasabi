@@ -129,39 +129,36 @@ namespace WalletWasabi.Services
 
 							var filters = await WasabiClient.GetFiltersAsync(bestKnownFilter.BlockHash, 1000);
 
-							if (filters != null && !filters.Any())
+							if (!filters.Any())
 							{
 								continue;
 							}
-							if (filters.NotNullAndNotEmpty())
+							using (await IndexLock.LockAsync())
 							{
-								using (await IndexLock.LockAsync())
+								var filtersList = filters.ToList(); // performance
+								for (int i = 0; i < filtersList.Count; i++)
 								{
-									var filtersList = filters.ToList(); // performance
-									for (int i = 0; i < filtersList.Count; i++)
-									{
-										var filterModel = FilterModel.FromLine(filtersList[i], bestKnownFilter.BlockHeight + i + 1);
+									var filterModel = FilterModel.FromLine(filtersList[i], bestKnownFilter.BlockHeight + i + 1);
 
-										Index.Add(filterModel);
-										NewFilter?.Invoke(this, filterModel);
-									}
-
-									if (filtersList.Count == 1) // minor optimization
-									{
-										await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
-									}
-									else
-									{
-										await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
-									}
-
-									Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
+									Index.Add(filterModel);
+									NewFilter?.Invoke(this, filterModel);
 								}
 
-								continue;
+								if (filtersList.Count == 1) // minor optimization
+								{
+									await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
+								}
+								else
+								{
+									await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
+								}
+
+								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
 							}
+
+							continue;
 						}
-						catch (HttpRequestException ex) when (bestKnownFilter != null && ex.Message.StartsWith("Not Found\nProvided bestKnownBlockHash is not found:"))
+						catch (HttpRequestException ex) when (ex.Message.StartsWith(HttpStatusCode.NotFound.ToReasonString()))
 						{
 							// Reorg happened
 							var reorgedHash = bestKnownFilter.BlockHash;

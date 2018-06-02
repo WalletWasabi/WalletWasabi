@@ -55,7 +55,7 @@ namespace WalletWasabi.Tests
 					var filters = await client.GetFiltersAsync(firstHash, 1000);
 					Assert.True(filters.NotNullAndNotEmpty());
 
-					var filterCount = filters.ToList().Count;
+					var filterCount = filters.Count();
 					if (filterCount >= 101)
 					{
 						break;
