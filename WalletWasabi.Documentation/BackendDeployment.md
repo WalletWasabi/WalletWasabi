@@ -224,3 +224,10 @@ TestNet: http://wtgjmaol3io5ijii.onion/swagger/
 Main: http://4jsmnfcsmbrlm7l7.onion/swagger
 
 GET fees
+
+# Check Status
+
+```
+tail -10 .walletwasabi/backend/Logs.txt
+du -bsh .walletwasabi/backend/IndexBuilderService/*
+```
