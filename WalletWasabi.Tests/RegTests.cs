@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests
 			{
 				using (var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint)))
 				{
-					var filters = await client.GetFiltersAsync(firstHash, 0, 1000);
+					var filters = await client.GetFiltersAsync(firstHash, 1000);
 					Assert.True(filters.NotNullAndNotEmpty());
 
 					var filterCount = filters.ToList().Count;

@@ -127,9 +127,9 @@ namespace WalletWasabi.Services
 								bestKnownFilter = Index.Last();
 							}
 
-							var filters = await WasabiClient.GetFiltersAsync(bestKnownFilter.BlockHash, bestKnownFilter.BlockHeight, 1000);
+							var filters = await WasabiClient.GetFiltersAsync(bestKnownFilter.BlockHash, 1000);
 
-							if (!filters.Any())
+							if (filters != null && !filters.Any())
 							{
 								continue;
 							}
@@ -138,10 +138,12 @@ namespace WalletWasabi.Services
 								using (await IndexLock.LockAsync())
 								{
 									var filtersList = filters.ToList(); // performance
-									foreach (var filter in filtersList)
+									for (int i = 0; i < filtersList.Count; i++)
 									{
-										Index.Add(filter);
-										NewFilter?.Invoke(this, filter);
+										var filterModel = FilterModel.FromLine(filtersList[i], bestKnownFilter.BlockHeight + i + 1);
+
+										Index.Add(filterModel);
+										NewFilter?.Invoke(this, filterModel);
 									}
 
 									if (filtersList.Count == 1) // minor optimization
@@ -159,32 +161,29 @@ namespace WalletWasabi.Services
 								continue;
 							}
 						}
-						catch (Exception ex)
+						catch (HttpRequestException ex) when (bestKnownFilter != null && ex.Message.StartsWith("Not Found: Provided bestKnownBlockHash is not found:"))
 						{
-							if (bestKnownFilter != null && ex.Message.Contains($"Provided bestKnownBlockHash is not found: {bestKnownFilter?.BlockHash}."))
+							// Reorg happened
+							var reorgedHash = bestKnownFilter.BlockHash;
+							Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
+							// 1. Rollback index
+							using (await IndexLock.LockAsync())
 							{
-								// Reorg happened
-								var reorgedHash = bestKnownFilter.BlockHash;
-								Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
-								// 1. Rollback index
-								using (await IndexLock.LockAsync())
-								{
-									Index.RemoveAt(Index.Count - 1);
-								}
-
-								Reorged?.Invoke(this, reorgedHash);
-
-								// 2. Serialize Index. (Remove last line.)
-								var lines = File.ReadAllLines(IndexFilePath);
-								File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
-
-								// 3. Skip the last valid block.
-								continue;
+								Index.RemoveAt(Index.Count - 1);
 							}
-							else
-							{
-								Logger.LogError<IndexDownloader>(ex);
-							}
+
+							Reorged?.Invoke(this, reorgedHash);
+
+							// 2. Serialize Index. (Remove last line.)
+							var lines = File.ReadAllLines(IndexFilePath);
+							File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+
+							// 3. Skip the last valid block.
+							continue;
+						}
+						catch(Exception ex)
+						{
+							Logger.LogError<IndexDownloader>(ex);
 						}
 						finally
 						{
