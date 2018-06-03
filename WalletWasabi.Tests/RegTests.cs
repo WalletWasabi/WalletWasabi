@@ -50,12 +50,12 @@ namespace WalletWasabi.Tests
 			var firstHash = await Global.RpcClient.GetBlockHashAsync(0);
 			while (true)
 			{
-				using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
-				using (var response = await client.SendAsync(HttpMethod.Get, $"/api/v1/btc/blockchain/filters?bestKnownBlockHash={firstHash}&count=1000"))
+				using (var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint)))
 				{
-					Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-					var filters = await response.Content.ReadAsJsonAsync<List<string>>();
-					var filterCount = filters.Count;
+					var filters = await client.GetFiltersAsync(firstHash, 1000);
+					Assert.True(filters.NotNullAndNotEmpty());
+
+					var filterCount = filters.Count();
 					if (filterCount >= 101)
 					{
 						break;

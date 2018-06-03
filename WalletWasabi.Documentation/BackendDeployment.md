@@ -69,11 +69,6 @@ Check if Tor is already running in the background:
 
 ```
 sudo netstat -plnt | fgrep 9050
-```
-
-If yes, kill it:
-
-```
 sudo killall tor
 ```
 
@@ -198,6 +193,8 @@ systemctl status tor.service
 systemctl stop tor.service
 systemctl start tor.service
 systemctl status tor.service
+tor
+sudo netstat -plnt | fgrep 9050
 ```
 
 # Update
@@ -208,19 +205,29 @@ cd ~/WalletWasabi
 git pull
 systemctl stop walletwasabi.service
 systemctl stop tor.service
+sudo killall tor
 bitcoin-cli stop
 sudo apt-get dist-upgrade -y
 bitcoind
 systemctl start tor.service
+tor
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
 systemctl start walletwasabi.service
 cd ..
+sudo netstat -plnt | fgrep 9050
 tail -10 .walletwasabi/backend/Logs.txt
 ```
 
 # Check If Everything Works
 
 TestNet: http://wtgjmaol3io5ijii.onion/swagger/  
-Main: ...
+Main: http://4jsmnfcsmbrlm7l7.onion/swagger
 
 GET fees
+
+# Check Status
+
+```
+tail -10 .walletwasabi/backend/Logs.txt
+du -bsh .walletwasabi/backend/IndexBuilderService/*
+```
