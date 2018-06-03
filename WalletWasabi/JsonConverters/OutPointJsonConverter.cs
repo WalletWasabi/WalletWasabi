@@ -24,7 +24,8 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((OutPoint)value).ToHex());
+			string opHex = ((OutPoint)value).ToHex();
+			writer.WriteValue(opHex);
 		}
 	}
 }
