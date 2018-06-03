@@ -109,7 +109,7 @@ namespace WalletWasabi.Services
 								{
 									delay = new Random().Next(2, 7);
 								}
-								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any()|| State.GetWaitingListCount() > 0)
+								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
 								{
 									double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.8 * connConfTimeout
 									delay = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
@@ -308,11 +308,7 @@ namespace WalletWasabi.Services
 		private static async Task ObtainRoundHashAsync(CcjClientRound ongoingRound)
 		{
 			string roundHash = await ongoingRound.AliceClient.PostConfirmationAsync();
-			if (roundHash == null)
-			{
-				throw new NotSupportedException("Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
-			}
-			ongoingRound.RoundHash = roundHash;
+			ongoingRound.RoundHash = roundHash ?? throw new NotSupportedException("Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
@@ -379,7 +375,7 @@ namespace WalletWasabi.Services
 						if (coin == null) throw new NotSupportedException("This is impossible.");
 						var inputProof = new InputProofModel
 						{
-							Input = coin.GetOutPoint(),
+							Input = coin.GetTxoRef(),
 							Proof = coin.Secret.PrivateKey.SignMessage(ByteHelpers.ToHex(blind.BlindedData))
 						};
 						inputProofs.Add(inputProof);
@@ -622,7 +618,7 @@ namespace WalletWasabi.Services
 			{
 				throw exceptions.Single();
 			}
-			
+
 			if (exceptions.Count > 0)
 			{
 				throw new AggregateException(exceptions);

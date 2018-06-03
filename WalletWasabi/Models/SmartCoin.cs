@@ -105,6 +105,11 @@ namespace WalletWasabi.Models
 			return new OutPoint(TransactionId, Index);
 		}
 
+		public TxoRef GetTxoRef()
+		{
+			return new TxoRef(TransactionId, Index);
+		}
+
 		#region EqualityAndComparison
 
 		public override bool Equals(object obj) => obj is SmartCoin && this == (SmartCoin)obj;

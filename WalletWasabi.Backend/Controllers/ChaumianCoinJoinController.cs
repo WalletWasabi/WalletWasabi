@@ -13,6 +13,7 @@ using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
 
@@ -87,9 +88,9 @@ namespace WalletWasabi.Backend.Controllers
 				|| string.IsNullOrWhiteSpace(request.BlindedOutputScriptHex)
 				|| string.IsNullOrWhiteSpace(request.ChangeOutputAddress)
 				|| request.Inputs == null
-			    || !request.Inputs.Any()
-				|| request.Inputs.Any(x => x.Input == null
-					|| x.Input.Hash == null
+				|| !request.Inputs.Any()
+				|| request.Inputs.Any(x => x.Input == default(TxoRef)
+					|| x.Input.TransactionId == null
 					|| string.IsNullOrWhiteSpace(x.Proof)))
 			{
 				return BadRequest("Invalid request.");
@@ -132,11 +133,11 @@ namespace WalletWasabi.Backend.Controllers
 						{
 							return BadRequest("Cannot register an input twice.");
 						}
-						if (round.ContainsInput(inputProof.Input, out List<Alice> tr))
+						if (round.ContainsInput(inputProof.Input.ToOutPoint(), out List<Alice> tr))
 						{
 							alicesToRemove.UnionWith(tr.Select(x => x.UniqueId)); // Input is already registered by this alice, remove it later if all the checks are completed fine.
 						}
-						if (Coordinator.AnyRunningRoundContainsInput(inputProof.Input, out List<Alice> tnr))
+						if (Coordinator.AnyRunningRoundContainsInput(inputProof.Input.ToOutPoint(), out List<Alice> tnr))
 						{
 							if (tr.Union(tnr).Count() > tr.Count())
 							{
@@ -151,12 +152,12 @@ namespace WalletWasabi.Backend.Controllers
 							int banLeft = maxBan - (int)((DateTimeOffset.UtcNow - bannedElem.Value.timeOfBan).TotalMinutes);
 							if (banLeft > 0)
 							{
-								return BadRequest($"Input is banned from participation for {banLeft} minutes: {inputProof.Input.N}:{inputProof.Input.Hash}.");
+								return BadRequest($"Input is banned from participation for {banLeft} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
 							}
 							await Coordinator.UtxoReferee.UnbanAsync(bannedElem.Key);
 						}
 
-						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.Hash, (int)inputProof.Input.N, includeMempool: true);
+						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
 
 						// Check if inputs are unspent.
 						if (getTxOutResponse == null)
@@ -168,7 +169,7 @@ namespace WalletWasabi.Backend.Controllers
 						if (getTxOutResponse.Confirmations <= 0)
 						{
 							// If it spends a CJ then it may be acceptable to register.
-							if (!Coordinator.ContainsCoinJoin(inputProof.Input.Hash))
+							if (!Coordinator.ContainsCoinJoin(inputProof.Input.TransactionId))
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
@@ -212,11 +213,11 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest("Provided proof is invalid.");
 						}
 
-						inputs.Add((inputProof.Input, txout));
+						inputs.Add((inputProof.Input.ToOutPoint(), txout));
 					}
 
 					// Check if inputs have enough coins.
-					Money inputSum = inputs.Select(x=>x.Output.Value).Sum();
+					Money inputSum = inputs.Select(x => x.Output.Value).Sum();
 					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs + 2 * round.FeePerOutputs);
 					Money changeAmount = inputSum - (round.Denomination + networkFeeToPay);
 					if (changeAmount < Money.Zero)
@@ -563,7 +564,7 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			if (roundId <= 0
 				|| signatures == null
-			    || !signatures.Any()
+				|| !signatures.Any()
 				|| signatures.Any(x => x.Key < 0 || string.IsNullOrWhiteSpace(x.Value))
 				|| !ModelState.IsValid)
 			{
