@@ -1,5 +1,5 @@
 NUGET_PACKAGES_PATH=$HOME/.nuget/packages
-FRAMEWORK=netcoreapp2.0
+FRAMEWORK=netcoreapp2.1
 FILTER=FullyQualifiedName~WalletWasabi.Tests$1
 
 ALTCOVER_VERSION=3.0.490
