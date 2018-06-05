@@ -1,6 +1,6 @@
 language: csharp
 mono: none
-dotnet: 2.0.2
+dotnet: 2.1.300
 
 notifications:
   email: false
