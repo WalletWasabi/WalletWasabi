@@ -47,14 +47,22 @@ namespace WalletWasabi.Models
 
 		[JsonProperty(Order = 10)]
 		[JsonConverter(typeof(FunnyBoolJsonConverter))]
-		public bool Locked { get; set; }
+		public bool CoinJoinInProcess { get; set; }
 
+		/// <summary>
+		/// AnonymitySet - 1
+		/// </summary>
 		[JsonProperty(Order = 11)]
 		public int Mixin { get; }
 
-		public bool SpentOrLocked => SpenderTransactionId != null || Locked;
+		public bool SpentOrCoinJoinInProcess => SpenderTransactionId != null || CoinJoinInProcess;
 		public bool Unspent => SpenderTransactionId == null;
 		public bool Confirmed => Height != Height.MemPool && Height != Height.Unknown;
+
+		/// <summary>
+		/// Mixin + 1
+		/// </summary>
+		public int AnonymitySet => Mixin + 1;
 
 		/// <summary>
 		/// It's a secret, so it's usually going to be null. Don't use it.
@@ -74,7 +82,7 @@ namespace WalletWasabi.Models
 			Label = Guard.Correct(label);
 			SpenderTransactionId = spenderTransactionId;
 			RBF = rbf;
-			Locked = locked;
+			CoinJoinInProcess = locked;
 			Secret = null;
 		}
 
@@ -91,7 +99,7 @@ namespace WalletWasabi.Models
 			Label = Guard.Correct(label);
 			SpenderTransactionId = spenderTransactionId;
 			RBF = rbf;
-			Locked = locked;
+			CoinJoinInProcess = locked;
 			Secret = null;
 		}
 

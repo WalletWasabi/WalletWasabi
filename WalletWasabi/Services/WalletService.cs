@@ -596,22 +596,22 @@ namespace WalletWasabi.Services
 
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrLocked && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProcess && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrLocked && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProcess && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 			}
 			else
 			{
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrLocked).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProcess).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrLocked && x.Confirmed).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProcess && x.Confirmed).ToList();
 				}
 			}
 
