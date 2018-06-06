@@ -20,7 +20,7 @@ namespace WalletWasabi.Models
 		public uint Index { get; }
 
 		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(JsonConverters.ScriptJsonConverter))]
+		[JsonConverter(typeof(ScriptJsonConverter))]
 		public Script ScriptPubKey { get; }
 
 		[JsonProperty(Order = 4)]
