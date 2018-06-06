@@ -24,7 +24,7 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 2. Download the Tor Experd Bundle. (Not the Tor Browser.) https://www.torproject.org/download/download
 3. Run `tor.exe`.
 4. Fire up command line:
-```
+```sh
 git clone https://github.com/zkSNACKs/WalletWasabi
 cd WalletWasabi
 dotnet restore && dotnet build

@@ -26,7 +26,7 @@ https://www.digitalocean.com/community/tutorials/how-to-use-ssh-keys-with-putty-
 
 ### Create a New User and Grant Administrative Privileges
 
-```
+```sh
 adduser user
 usermod -aG sudo user
 ```
@@ -35,7 +35,7 @@ usermod -aG sudo user
 
 https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-ubuntu-14-04
 
-```
+```sh
 ufw allow OpenSSH
 ufw enable
 ```
@@ -45,13 +45,13 @@ ufw enable
 
 ## Enabling External Access for User
 
-```
+```sh
 rsync --archive --chown=user:user ~/.ssh /home/user
 ```
 
 ## Update Ubuntu
 
-```
+```sh
 sudo apt-get update && sudo apt-get dist-upgrade -y
 ```
 
@@ -61,36 +61,36 @@ https://www.microsoft.com/net/learn/get-started/linux/ubuntu18-04
 
 # 4. Install Tor
 
-```
+```sh
 sudo apt-get install tor
 ```
 
 Check if Tor is already running in the background:
 
-```
+```sh
 sudo netstat -plnt | fgrep 9050
 sudo killall tor
 ```
 
 Verify Tor is properly running:
-```
+```sh
 tor
 ```
 
 Create torrc:
 
-```
+```sh
 sudo pico /etc/tor/torrc
 ```
 
-```
+```sh
 HiddenServiceDir /home/user/.hidden_service
 HiddenServicePort 80 127.0.0.1:37127
 RunAsDaemon 1
 ```
 
 Enable firewall:
-```
+```sh
 sudo ufw allow 80
 ```
 
@@ -100,7 +100,7 @@ sudo ufw allow 80
 
 https://bitcoin.org/en/download
 
-```
+```sh
 sudo add-apt-repository ppa:bitcoin/bitcoin
 sudo apt-get update
 sudo apt-get install bitcoind
@@ -108,7 +108,7 @@ mkdir ~/.bitcoin
 pico ~/.bitcoin/bitcoin.conf
 ```
 
-```
+```sh
 maxuploadtarget=144
 listen=0
 
@@ -125,7 +125,7 @@ testnet=[0/1]
 https://medium.com/@loopring/how-to-run-lighting-btc-node-and-start-mining-b55c4bab8ad  
 https://github.com/MrChrisJ/fullnode/issues/18
 
-```
+```sh
 sudo ufw allow ssh
 sudo ufw allow [18333/8333]
 bitcoind
@@ -136,7 +136,7 @@ bitcoind
 
 # 6. Publish, Configure and Run WalletWasabi.Backend
 
-```
+```sh
 git clone https://github.com/zkSNACKs/WalletWasabi.git
 cd WalletWasabi
 dotnet restore
@@ -157,11 +157,11 @@ cat .walletwasabi/backend/Logs.txt
 
 https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-2.0&tabs=aspnetcore2x
 
-```
+```sh
 sudo pico /etc/systemd/system/walletwasabi.service
 ```
 
-```
+```sh
 [Unit]
 Description=WalletWasabi Backend API
 
@@ -178,7 +178,7 @@ Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
 WantedBy=multi-user.target
 ```
 
-```
+```sh
 systemctl enable walletwasabi.service
 systemctl start walletwasabi.service
 systemctl status walletwasabi.service
@@ -187,7 +187,7 @@ tail -10 .walletwasabi/backend/Logs.txt
 
 ## Tor
 
-```
+```sh
 systemctl enable tor.service
 systemctl status tor.service
 systemctl stop tor.service
@@ -199,7 +199,7 @@ sudo netstat -plnt | fgrep 9050
 
 # Update
 
-```
+```sh
 sudo apt-get update
 cd ~/WalletWasabi
 git pull
@@ -227,7 +227,7 @@ GET fees
 
 # Check Status
 
-```
+```sh
 tail -10 .walletwasabi/backend/Logs.txt
 du -bsh .walletwasabi/backend/IndexBuilderService/*
 ```
