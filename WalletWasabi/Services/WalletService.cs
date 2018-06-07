@@ -104,7 +104,7 @@ namespace WalletWasabi.Services
 			using (HandleFiltersLock.Lock())
 			using (WalletBlocksLock.Lock())
 			{
-				var elem = WalletBlocks.SingleOrDefault(x => x.Value == invalidBlockHash);
+				var elem = WalletBlocks.FirstOrDefault(x => x.Value == invalidBlockHash);
 				await DeleteBlockAsync(invalidBlockHash);
 				WalletBlocks.RemoveByValue(invalidBlockHash);
 				ProcessedBlocks.Remove(invalidBlockHash);
@@ -288,7 +288,7 @@ namespace WalletWasabi.Services
 			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If we already had it, just update the height. Maybe got from mempool to block or reorged.
-				var foundCoin = Coins.SingleOrDefault(x => x.TransactionId == tx.GetHash() && x.Index == i);
+				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == tx.GetHash() && x.Index == i);
 				if (foundCoin != default)
 				{
 					// If tx height is mempool then don't, otherwise update the height.
@@ -374,7 +374,7 @@ namespace WalletWasabi.Services
 			{
 				var input = tx.Transaction.Inputs[i];
 
-				var foundCoin = Coins.SingleOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
+				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
 				if (foundCoin != null)
 				{
 					foundCoin.SpenderTransactionId = tx.GetHash();

@@ -129,7 +129,7 @@ namespace WalletWasabi.Services
 				{
 					OutPoint prevOut = input.PrevOut;
 
-					var found = UtxoReferee.BannedUtxos.SingleOrDefault(x => x.Key == prevOut);
+					var found = UtxoReferee.BannedUtxos.FirstOrDefault(x => x.Key == prevOut);
 					if (found.Key == default) continue; // if coin is not banned
 
 					if (!AnyRunningRoundContainsInput(prevOut, out _))

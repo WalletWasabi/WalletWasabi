@@ -145,7 +145,7 @@ namespace WalletWasabi.Backend.Controllers
 							}
 						}
 
-						var bannedElem = Coordinator.UtxoReferee.BannedUtxos.SingleOrDefault(x => x.Key == inputProof.Input);
+						var bannedElem = Coordinator.UtxoReferee.BannedUtxos.FirstOrDefault(x => x.Key == inputProof.Input);
 						if (bannedElem.Key != default)
 						{
 							int maxBan = (int)TimeSpan.FromDays(30).TotalMinutes;

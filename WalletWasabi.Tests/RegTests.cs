@@ -2664,7 +2664,7 @@ namespace WalletWasabi.Tests
 				}
 
 				var times = 0;
-				while (wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).SingleOrDefault() == null)
+				while (wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).FirstOrDefault() == null)
 				{
 					await Task.Delay(1000);
 					times++;
