@@ -300,7 +300,7 @@ namespace WalletWasabi.Services
 
 								foreach (var input in tx.Inputs)
 								{
-									var found = Bech32UtxoSet.SingleOrDefault(x => x.Key == input.PrevOut);
+									var found = Bech32UtxoSet.FirstOrDefault(x => x.Key == input.PrevOut); // Performance: Don't use SingleOrDefault here.
 									if (found.Key != default)
 									{
 										Script val = Bech32UtxoSet[input.PrevOut];
