@@ -300,16 +300,15 @@ namespace WalletWasabi.Services
 
 								foreach (var input in tx.Inputs)
 								{
-									var found = Bech32UtxoSet.FirstOrDefault(x => x.Key == input.PrevOut); // Performance: Don't use SingleOrDefault here.
-									if (found.Key != default)
+									OutPoint prevOut = input.PrevOut;
+									if (Bech32UtxoSet.TryGetValue(prevOut, out Script foundScript))
 									{
-										Script val = Bech32UtxoSet[input.PrevOut];
-										Bech32UtxoSet.Remove(input.PrevOut);
+										Bech32UtxoSet.Remove(prevOut);
 										if (!isIIB)
 										{
-											Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Remove, input.PrevOut, val);
+											Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Remove, prevOut, foundScript);
 										}
-										scripts.Add(found.Value);
+										scripts.Add(foundScript);
 									}
 								}
 							}
