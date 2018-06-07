@@ -292,7 +292,8 @@ namespace WalletWasabi.Services
 										Bech32UtxoSet.Add(outpoint, output.ScriptPubKey);
 										if (!isIIB)
 										{
-											Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
+											var lastUtxo = Bech32UtxoSetHistory[Bech32UtxoSetHistory.Count-1];
+											lastUtxo.StoreAction(ActionHistoryHelper.Operation.Add, outpoint, output.ScriptPubKey);
 										}
 										scripts.Add(output.ScriptPubKey);
 									}
@@ -306,7 +307,8 @@ namespace WalletWasabi.Services
 										Bech32UtxoSet.Remove(prevOut);
 										if (!isIIB)
 										{
-											Bech32UtxoSetHistory.Last().StoreAction(ActionHistoryHelper.Operation.Remove, prevOut, foundScript);
+											var lastUtxo = Bech32UtxoSetHistory[Bech32UtxoSetHistory.Count-1];
+											lastUtxo.StoreAction(ActionHistoryHelper.Operation.Remove, prevOut, foundScript);
 										}
 										scripts.Add(foundScript);
 									}
