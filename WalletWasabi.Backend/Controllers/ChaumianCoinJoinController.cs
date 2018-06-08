@@ -145,16 +145,16 @@ namespace WalletWasabi.Backend.Controllers
 							}
 						}
 
-						var bannedElem = Coordinator.UtxoReferee.BannedUtxos.SingleOrDefault(x => x.Key == inputProof.Input);
-						if (bannedElem.Key != default)
+						OutPoint outpoint = inputProof.Input.ToOutPoint();
+						if (Coordinator.UtxoReferee.BannedUtxos.TryGetValue(outpoint, out (int severity, DateTimeOffset timeOfBan) bannedElem))
 						{
 							int maxBan = (int)TimeSpan.FromDays(30).TotalMinutes;
-							int banLeft = maxBan - (int)((DateTimeOffset.UtcNow - bannedElem.Value.timeOfBan).TotalMinutes);
+							int banLeft = maxBan - (int)((DateTimeOffset.UtcNow - bannedElem.timeOfBan).TotalMinutes);
 							if (banLeft > 0)
 							{
 								return BadRequest($"Input is banned from participation for {banLeft} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
 							}
-							await Coordinator.UtxoReferee.UnbanAsync(bannedElem.Key);
+							await Coordinator.UtxoReferee.UnbanAsync(outpoint);
 						}
 
 						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
@@ -218,7 +218,7 @@ namespace WalletWasabi.Backend.Controllers
 
 					// Check if inputs have enough coins.
 					Money inputSum = inputs.Select(x => x.Output.Value).Sum();
-					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs + 2 * round.FeePerOutputs);
+					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs) + (2 * round.FeePerOutputs);
 					Money changeAmount = inputSum - (round.Denomination + networkFeeToPay);
 					if (changeAmount < Money.Zero)
 					{
