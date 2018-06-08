@@ -72,7 +72,7 @@ It is expected for the proposed timeline to take roughly 1.5 times longer.
 
 ### 3. User Experience Stage
 
-- [ ] **8. Design GUI.** *1 week. Paper and pen.*
+- [x] **8. Design GUI.** *1 week. Paper and pen.*
 - [ ] **8. Build GUI.** *1 month. Electron, front end, Bitcoin.* Redesign the user experience and build it.
 
   Depends on:
