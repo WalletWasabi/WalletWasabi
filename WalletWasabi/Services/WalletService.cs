@@ -104,7 +104,7 @@ namespace WalletWasabi.Services
 			using (HandleFiltersLock.Lock())
 			using (WalletBlocksLock.Lock())
 			{
-				var elem = WalletBlocks.FirstOrDefault(x => x.Value == invalidBlockHash);
+				var elem = WalletBlocks.SingleOrDefault(x => x.Value == invalidBlockHash);
 				await DeleteBlockAsync(invalidBlockHash);
 				WalletBlocks.RemoveByValue(invalidBlockHash);
 				ProcessedBlocks.Remove(invalidBlockHash);
