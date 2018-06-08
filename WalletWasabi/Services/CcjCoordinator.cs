@@ -128,19 +128,20 @@ namespace WalletWasabi.Services
 				foreach (TxIn input in tx.Inputs)
 				{
 					OutPoint prevOut = input.PrevOut;
-					
+
 					// if coin is not banned
-					if (!UtxoReferee.BannedUtxos.TryGetValue(prevOut, out (int severity, DateTimeOffset timeOfBan) found)) continue;
-
-					if (!AnyRunningRoundContainsInput(prevOut, out _))
+					if (UtxoReferee.BannedUtxos.TryGetValue(prevOut, out (int severity, DateTimeOffset timeOfBan) found))
 					{
-						int newSeverity = found.severity + 1;
-						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
-
-						if (RoundConfig.DosSeverity >= newSeverity)
+						if (!AnyRunningRoundContainsInput(prevOut, out _))
 						{
-							var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
-							await UtxoReferee.BanUtxosAsync(newSeverity, found.timeOfBan, txCoins.ToArray());
+							int newSeverity = found.severity + 1;
+							await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
+
+							if (RoundConfig.DosSeverity >= newSeverity)
+							{
+								var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
+								await UtxoReferee.BanUtxosAsync(newSeverity, found.timeOfBan, txCoins.ToArray());
+							}
 						}
 					}
 				}
