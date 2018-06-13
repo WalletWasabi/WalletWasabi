@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
+using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
 using Xunit;
 
@@ -17,8 +14,8 @@ namespace WalletWasabi.Tests
 	{
 		private readonly Dictionary<NetworkType, Uri> _networkUriMappings = new Dictionary<NetworkType, Uri>
 		{
-				{ NetworkType.Mainnet, new Uri("http://wtgjmaol3io5ijii.onion") },
-				{ NetworkType.Testnet, new Uri("http://4jsmnfcsmbrlm7l7.onion") }
+				{ NetworkType.Mainnet, new Uri("http://4jsmnfcsmbrlm7l7.onion") },
+				{ NetworkType.Testnet, new Uri("http://wtgjmaol3io5ijii.onion") }
 		};
 
 		[Theory]
@@ -26,23 +23,28 @@ namespace WalletWasabi.Tests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetFeesAsync(NetworkType network)
 		{
-			try
+			using (var client = new WasabiClient(_networkUriMappings[network]))
 			{
-				Logger.LogInfo<LiveServerTests>($"Init client for {network}");
+				var feeEstimationPairs = await client.GetFeesAsync(1000);
 
-				using (var client = new WasabiClient(_networkUriMappings[network], null))
-				{
-					var feeEstimationPairs = await client.GetFeesAsync(1000);
-
-					Assert.NotNull(feeEstimationPairs);
-					Assert.NotEmpty(feeEstimationPairs);
-
-					Logger.LogInfo<LiveServerTests>($"GetFeesAsync successful for {network}");
-				}
+				Assert.NotNull(feeEstimationPairs);
+				Assert.NotEmpty(feeEstimationPairs);
 			}
-			catch (Exception ex)
+		}
+
+		[Theory]
+		[InlineData(NetworkType.Mainnet)]
+		[InlineData(NetworkType.Testnet)]
+		public async Task GetFiltersAsync(NetworkType network)
+		{
+			using (var client = new WasabiClient(_networkUriMappings[network]))
 			{
-				Logger.LogDebug<LiveServerTests>(ex);
+				var filterModel = IndexDownloader.GetStartingFilter(Network.GetNetwork(network.ToString()));
+
+				var filters = await client.GetFiltersAsync(filterModel.BlockHash, 2);
+
+				Assert.True(filters.NotNullAndNotEmpty());
+				Assert.True(filters.Count() == 2);
 			}
 		}
 	}
