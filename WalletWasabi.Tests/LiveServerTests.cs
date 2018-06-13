@@ -11,38 +11,38 @@ using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
 using Xunit;
 
-namespace WalletWasabi.Tests {
-	public class LiveServerTests : IClassFixture<SharedFixture> {
-		public Dictionary<Network, Uri> NetworkUriMappings;
-		public LiveServerTests()
+namespace WalletWasabi.Tests
+{
+	public class LiveServerTests : IClassFixture<SharedFixture>
+	{
+		private readonly Dictionary<NetworkType, Uri> _networkUriMappings = new Dictionary<NetworkType, Uri>
 		{
-			NetworkUriMappings = new Dictionary<Network, Uri>
-			{
-				{ Network.Main, new Uri("http://wtgjmaol3io5ijii.onion") },
-				{ Network.TestNet, new Uri("http://4jsmnfcsmbrlm7l7.onion") }
-			};
-		}
-		[Fact]
-		public async Task GetFeesAsync()
+				{ NetworkType.Mainnet, new Uri("http://wtgjmaol3io5ijii.onion") },
+				{ NetworkType.Testnet, new Uri("http://4jsmnfcsmbrlm7l7.onion") }
+		};
+
+		[Theory]
+		[InlineData(NetworkType.Mainnet)]
+		[InlineData(NetworkType.Testnet)]
+		public async Task GetFeesAsync(NetworkType network)
 		{
-			foreach (var server in NetworkUriMappings)
+			try
 			{
-				try
+				Logger.LogInfo<LiveServerTests>($"Init client for {network}");
+
+				using (var client = new WasabiClient(_networkUriMappings[network], null))
 				{
-					Logger.LogInfo<LiveServerTests>($"Init client for {server.Key}");
-					using (var client = new WasabiClient(server.Value, null))
-					{
-						var feeEstimationPairs = await client.GetFeesAsync(1000);
-						Assert.NotNull(feeEstimationPairs);
-						Assert.NotEmpty(feeEstimationPairs);
-						Logger.LogInfo<LiveServerTests>($"GetFeesAsync successful for {server.Key}");
-					}
+					var feeEstimationPairs = await client.GetFeesAsync(1000);
+
+					Assert.NotNull(feeEstimationPairs);
+					Assert.NotEmpty(feeEstimationPairs);
+
+					Logger.LogInfo<LiveServerTests>($"GetFeesAsync successful for {network}");
 				}
-				catch (Exception ex)
-				{
-					
-					throw ex;
-				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug<LiveServerTests>(ex);
 			}
 		}
 	}
