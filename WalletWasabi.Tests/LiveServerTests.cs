@@ -27,8 +27,7 @@ namespace WalletWasabi.Tests
 			{
 				var feeEstimationPairs = await client.GetFeesAsync(1000);
 
-				Assert.NotNull(feeEstimationPairs);
-				Assert.NotEmpty(feeEstimationPairs);
+				Assert.True(feeEstimationPairs.NotNullAndNotEmpty());
 			}
 		}
 
@@ -45,6 +44,19 @@ namespace WalletWasabi.Tests
 
 				Assert.True(filters.NotNullAndNotEmpty());
 				Assert.True(filters.Count() == 2);
+			}
+		}
+
+		[Theory]
+		[InlineData(NetworkType.Mainnet)]
+		[InlineData(NetworkType.Testnet)]
+		public async Task GetExchangeRatesAsync(NetworkType network)
+		{
+			using (var client = new WasabiClient(_networkUriMappings[network]))
+			{
+				var exchangeRates = await client.GetExchangeRatesAsync();
+
+				Assert.True(exchangeRates.NotNullAndNotEmpty());
 			}
 		}
 	}
