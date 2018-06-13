@@ -18,6 +18,7 @@ namespace WalletWasabi.Tests
 				{ NetworkType.Testnet, new Uri("http://wtgjmaol3io5ijii.onion") }
 		};
 
+		// Blockchain
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
@@ -47,6 +48,23 @@ namespace WalletWasabi.Tests
 			}
 		}
 
+		[Theory]
+		[InlineData(NetworkType.Mainnet)]
+		[InlineData(NetworkType.Testnet)]
+		public async Task GetAllRoundStatesAsync(NetworkType network)
+		{
+			using (var client = new SatoshiClient(_networkUriMappings[network]))
+			{
+				var states = await client.GetAllRoundStatesAsync();
+				var noRegisteredPeers = states.All(s => s.RegisteredPeerCount == 0);
+
+				Assert.True(noRegisteredPeers);
+				Assert.True(states.NotNullAndNotEmpty());
+				Assert.True(states.Count() == 2);
+			}
+		}
+
+		// Offchain
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
