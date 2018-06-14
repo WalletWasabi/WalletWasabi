@@ -22,9 +22,9 @@ namespace WalletWasabi.Tests
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
-		public async Task GetFeesAsync(NetworkType network)
+		public async Task GetFeesAsync(NetworkType networkType)
 		{
-			using (var client = new WasabiClient(_networkUriMappings[network]))
+			using (var client = new WasabiClient(_networkUriMappings[networkType]))
 			{
 				var feeEstimationPairs = await client.GetFeesAsync(1000);
 
@@ -35,11 +35,11 @@ namespace WalletWasabi.Tests
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
-		public async Task GetFiltersAsync(NetworkType network)
+		public async Task GetFiltersAsync(NetworkType networkType)
 		{
-			using (var client = new WasabiClient(_networkUriMappings[network]))
+			using (var client = new WasabiClient(_networkUriMappings[networkType]))
 			{
-				var filterModel = IndexDownloader.GetStartingFilter(Network.GetNetwork(network.ToString()));
+				var filterModel = IndexDownloader.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
 
 				var filters = await client.GetFiltersAsync(filterModel.BlockHash, 2);
 
@@ -51,9 +51,9 @@ namespace WalletWasabi.Tests
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
-		public async Task GetAllRoundStatesAsync(NetworkType network)
+		public async Task GetAllRoundStatesAsync(NetworkType networkType)
 		{
-			using (var client = new SatoshiClient(_networkUriMappings[network]))
+			using (var client = new SatoshiClient(_networkUriMappings[networkType]))
 			{
 				var states = await client.GetAllRoundStatesAsync();
 				var noRegisteredPeers = states.All(s => s.RegisteredPeerCount == 0);
@@ -68,9 +68,9 @@ namespace WalletWasabi.Tests
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
-		public async Task GetExchangeRatesAsync(NetworkType network)
+		public async Task GetExchangeRatesAsync(NetworkType networkType)
 		{
-			using (var client = new WasabiClient(_networkUriMappings[network]))
+			using (var client = new WasabiClient(_networkUriMappings[networkType]))
 			{
 				var exchangeRates = await client.GetExchangeRatesAsync();
 
