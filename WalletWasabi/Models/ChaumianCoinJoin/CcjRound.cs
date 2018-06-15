@@ -433,13 +433,20 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 								case CcjRoundPhase.Signing:
 									{
-										// ?: Am I not banning non-signing alices?
-										// ?: It doesn't progress forward RemoveAlicesIfInputsSpentAsync
-
-										IEnumerable<Alice> alicesToBan = await RemoveAlicesIfInputsSpentAsync();
-										if (alicesToBan.Any())
+										var outpointsToBan = new List<OutPoint>();
+										using (await RoundSyncronizerLock.LockAsync())
 										{
-											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
+											foreach (Alice alice in Alices)
+											{
+												if (alice.State != AliceState.SignedCoinJoin)
+												{
+													outpointsToBan.AddRange(alice.Inputs.Select(x => x.OutPoint));
+												}
+											}
+										}
+										if (outpointsToBan.Any())
+										{
+											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, outpointsToBan.ToArray());
 										}
 										Fail();
 									}

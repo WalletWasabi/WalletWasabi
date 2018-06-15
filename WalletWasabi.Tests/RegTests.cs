@@ -2232,7 +2232,13 @@ namespace WalletWasabi.Tests
 			using (var satoshiClient = new SatoshiClient(baseUri))
 			{
 				IEnumerable<CcjRunningRoundState> states = await satoshiClient.GetAllRoundStatesAsync();
+				foreach (CcjRoundPhase phase in states.Select(x => x.Phase))
+				{
+					Assert.Equal(CcjRoundPhase.InputRegistration, phase);
+				}
 			}
+
+			Assert.True(coordinator.UtxoReferee.BannedUtxos.Count >= roundConfig.AnonymitySet);
 
 			foreach (var aliceClient in aliceClients)
 			{
