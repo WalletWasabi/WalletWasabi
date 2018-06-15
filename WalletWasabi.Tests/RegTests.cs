@@ -2111,6 +2111,135 @@ namespace WalletWasabi.Tests
 			}
 		}
 
+		[Fact, TestPriority(19)]
+		public async Task BanningTestsAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+
+			var blindingKey = coordinator.RsaKey;
+			Money denomination = Money.Coins(0.1m);
+			decimal coordinatorFeePercent = 0.1m;
+			int anonymitySet = 3;
+			int connectionConfirmationTimeout = 120;
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1);
+			coordinator.UpdateRoundConfig(roundConfig);
+			coordinator.FailAllRoundsInInputRegistration();
+			await rpc.GenerateAsync(3); // So to make sure we have enough money.
+
+			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
+			var fundingTxCount = 0;
+			var inputRegistrationUsers = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData)>();
+			for (int i = 0; i < roundConfig.AnonymitySet; i++)
+			{
+				var userInputData = new List<(Key key, BitcoinWitPubKeyAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)>();
+				var activeOutputAddress = new Key().PubKey.GetAddress(network);
+				var changeOutputAddress = new Key().PubKey.GetAddress(network);
+				var blinded = blindingKey.PubKey.Blind(activeOutputAddress.ScriptPubKey.ToBytes());
+
+				var inputProofModels = new List<InputProofModel>();
+				int numberOfInputs = new Random().Next(1, 7);
+				var receiveSatoshiSum = 0;
+				for (int j = 0; j < numberOfInputs; j++)
+				{
+					var key = new Key();
+					var receiveSatoshi = new Random().Next(1000, 100000000);
+					receiveSatoshiSum += receiveSatoshi;
+					if (j == numberOfInputs - 1)
+					{
+						receiveSatoshi = 100000000;
+					}
+					BitcoinWitPubKeyAddress inputAddress = key.PubKey.GetSegwitAddress(network);
+					uint256 txHash = await rpc.SendToAddressAsync(inputAddress, receiveSatoshi);
+					fundingTxCount++;
+					Assert.NotNull(txHash);
+					Transaction transaction = await rpc.GetRawTransactionAsync(txHash);
+
+					var coin = transaction.Outputs.GetCoins(inputAddress.ScriptPubKey).Single();
+
+					OutPoint input = coin.Outpoint;
+					var inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = key.SignMessage(ByteHelpers.ToHex(blinded.BlindedData)) };
+					inputProofModels.Add(inputProof);
+
+					GetTxOutResponse getTxOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+					// Check if inputs are unspent.
+					Assert.NotNull(getTxOutResponse);
+
+					userInputData.Add((key, inputAddress, txHash, transaction, input));
+				}
+
+				inputRegistrationUsers.Add((blinded, activeOutputAddress, changeOutputAddress, inputProofModels, userInputData));
+			}
+
+			var mempool = await rpc.GetRawMempoolAsync();
+			Assert.Equal(inputRegistrationUsers.SelectMany(x => x.userInputData).Count(), mempool.Length);
+
+			while ((await rpc.GetRawMempoolAsync()).Length != 0)
+			{
+				await rpc.GenerateAsync(1);
+			}
+
+			var aliceClients = new List<Task<AliceClient>>();
+
+			foreach (var user in inputRegistrationUsers)
+			{
+				aliceClients.Add(AliceClient.CreateNewAsync(user.changeOutputAddress, user.blinded.blindedData, user.inputProofModels, baseUri));
+			}
+
+			long roundId = 0;
+			var users = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient aliceClient, byte[] unblindedSignature)>();
+			for (int i = 0; i < inputRegistrationUsers.Count; i++)
+			{
+				var user = inputRegistrationUsers[i];
+				var request = aliceClients[i];
+
+				var aliceClient = await request;
+				if (roundId == 0)
+				{
+					roundId = aliceClient.RoundId;
+				}
+				else
+				{
+					Assert.Equal(roundId, aliceClient.RoundId);
+				}
+				// Because it's valuetuple.
+				users.Add((user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, blindingKey.PubKey.UnblindSignature(aliceClient.BlindedOutputSignature, user.blinded.blindingFactor)));
+			}
+
+			Assert.Equal(users.Count, roundConfig.AnonymitySet);
+
+			var confirmationRequests = new List<Task<string>>();
+
+			foreach (var user in users)
+			{
+				confirmationRequests.Add(user.aliceClient.PostConfirmationAsync());
+			}
+
+			string roundHash = null;
+			foreach (var request in confirmationRequests)
+			{
+				if (roundHash == null)
+				{
+					roundHash = await request;
+				}
+				else
+				{
+					Assert.Equal(roundHash, await request);
+				}
+			}
+
+			await Task.Delay(3000);
+
+			using (var satoshiClient = new SatoshiClient(baseUri))
+			{
+				IEnumerable<CcjRunningRoundState> states = await satoshiClient.GetAllRoundStatesAsync();
+			}
+
+			foreach (var aliceClient in aliceClients)
+			{
+				aliceClient.Dispose();
+			}
+		}
+
 		[Fact, TestPriority(15)]
 		public async Task Ccj100ParticipantsTestsAsync()
 		{

@@ -365,82 +365,92 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					// This will happen outside the lock.
 					Task.Run(async () =>
 					{
-						switch (expectedPhase)
+						try
 						{
-							case CcjRoundPhase.InputRegistration:
-								{
-									// Only fail if less two one Alice is registered.
-									// Don't ban anyone, it's ok if they lost connection.
-									await RemoveAlicesIfInputsSpentAsync();
-									int aliceCountAfterInputRegistrationTimeout = CountAlices();
-									if (aliceCountAfterInputRegistrationTimeout < 2)
+							switch (expectedPhase)
+							{
+								case CcjRoundPhase.InputRegistration:
 									{
+										// Only fail if less two one Alice is registered.
+										// Don't ban anyone, it's ok if they lost connection.
+										await RemoveAlicesIfInputsSpentAsync();
+										int aliceCountAfterInputRegistrationTimeout = CountAlices();
+										if (aliceCountAfterInputRegistrationTimeout < 2)
+										{
+											Fail();
+										}
+										else
+										{
+											UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
+											// Progress to the next phase, which will be ConnectionConfirmation
+											await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+										}
+									}
+									break;
+
+								case CcjRoundPhase.ConnectionConfirmation:
+									{
+										// Only fail if less than two one alices are registered.
+										// What if an attacker registers all the time many alices, then drops out. He'll achieve only 2 alices to participate?
+										// If he registers many alices at InputRegistration
+										// AND never confirms in connection confirmation
+										// THEN connection confirmation will go with 2 alices in every round
+										// Therefore Alices those didn't confirm, nor requested dsconnection should be banned:
+										IEnumerable<Alice> alicesToBan1 = GetAlicesBy(AliceState.InputsRegistered);
+										IEnumerable<Alice> alicesToBan2 = await RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
+
+										IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.OutPoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray()).Distinct();
+
+										if (inputsToBan.Any())
+										{
+											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, inputsToBan.ToArray());
+										}
+
+										RemoveAlicesBy(alicesToBan1.Select(x => x.UniqueId).Concat(alicesToBan2.Select(y => y.UniqueId)).Distinct().ToArray());
+
+										int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
+										if (aliceCountAfterConnectionConfirmationTimeout < 2)
+										{
+											Fail();
+										}
+										else
+										{
+											UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
+											// Progress to the next phase, which will be OutputRegistration
+											await ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
+										}
+									}
+									break;
+
+								case CcjRoundPhase.OutputRegistration:
+									{
+										// Output registration never fails.
+										// We don't know which Alice to ban.
+										// Therefore proceed to signing, and whichever Alice doesn't sign ban.
+										await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
+									}
+									break;
+
+								case CcjRoundPhase.Signing:
+									{
+										// ?: Am I not banning non-signing alices?
+										// ?: It doesn't progress forward RemoveAlicesIfInputsSpentAsync
+
+										IEnumerable<Alice> alicesToBan = await RemoveAlicesIfInputsSpentAsync();
+										if (alicesToBan.Any())
+										{
+											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
+										}
 										Fail();
 									}
-									else
-									{
-										UpdateAnonymitySet(aliceCountAfterInputRegistrationTimeout);
-										// Progress to the next phase, which will be ConnectionConfirmation
-										await ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
-									}
-								}
-								break;
+									break;
 
-							case CcjRoundPhase.ConnectionConfirmation:
-								{
-									// Only fail if less than two one alices are registered.
-									// What if an attacker registers all the time many alices, then drops out. He'll achieve only 2 alices to participate?
-									// If he registers many alices at InputRegistration
-									// AND never confirms in connection confirmation
-									// THEN connection confirmation will go with 2 alices in every round
-									// Therefore Alices those didn't confirm, nor requested dsconnection should be banned:
-									IEnumerable<Alice> alicesToBan1 = GetAlicesBy(AliceState.InputsRegistered);
-									IEnumerable<Alice> alicesToBan2 = await RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
-
-									IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.OutPoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray()).Distinct();
-
-									if (inputsToBan.Any())
-									{
-										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, inputsToBan.ToArray());
-									}
-
-									RemoveAlicesBy(alicesToBan1.Select(x => x.UniqueId).Concat(alicesToBan2.Select(y => y.UniqueId)).Distinct().ToArray());
-
-									int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
-									if (aliceCountAfterConnectionConfirmationTimeout < 2)
-									{
-										Fail();
-									}
-									else
-									{
-										UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
-										// Progress to the next phase, which will be OutputRegistration
-										await ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
-									}
-								}
-								break;
-
-							case CcjRoundPhase.OutputRegistration:
-								{
-									// Output registration never fails.
-									// We don't know which Alice to ban.
-									// Therefore proceed to signing, and whichever Alice doesn't sign ban.
-									await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
-								}
-								break;
-
-							case CcjRoundPhase.Signing:
-								{
-									var alicesToBan = await RemoveAlicesIfInputsSpentAsync();
-									if (alicesToBan.Any())
-									{
-										await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
-									}
-									Fail();
-								}
-								break;
-
-							default: throw new InvalidOperationException("This is impossible to happen.");
+								default: throw new InvalidOperationException("This is impossible to happen.");
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timeout failed with exception: {ex}");
 						}
 					});
 				}
