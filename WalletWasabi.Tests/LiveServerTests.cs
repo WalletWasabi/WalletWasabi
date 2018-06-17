@@ -25,7 +25,8 @@ namespace WalletWasabi.Tests
 			LiveServerTestsFixture = liveServerTestsFixture;
 		}
 
-		// Blockchain
+		#region Blockchain
+
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
@@ -68,34 +69,31 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		// ChaumianCoinJoin
+		#endregion Blockchain
+
+		#region ChaumianCoinJoin
+
 		[Theory]
 		[InlineData(NetworkType.Testnet)]
-		public async Task RegisterAliceInputAsync(NetworkType networkType)
+		public async Task RegisterAliceInputThenUnConfirmAsync(NetworkType networkType)
 		{
-			Network network = Network.GetNetwork(networkType.ToString());
-
-			var activeOutputAddress = LiveServerTestsFixture.AliceInputMappings[networkType].activeOutputAddress;
-			var changeOutputAddress = LiveServerTestsFixture.AliceInputMappings[networkType].changeOutputAddress;
+			var aliceInputData = LiveServerTestsFixture.GetAliceInputData(networkType);
 
 			// blinded data created using activeOutputAddress ScriptPubKey
-			var blindedDataAsHex = LiveServerTestsFixture.AliceInputMappings[networkType].blindedDataHex;
+			var blindedDataAsHex = aliceInputData.blindedDataHex;
+
+			byte[] blinded = ByteHelpers.FromHex(blindedDataAsHex);
 
 			// signed with private key that owns the utxos
-			var proof = LiveServerTestsFixture.AliceInputMappings[networkType].proof;
+			var proof = aliceInputData.proof;
 
-			byte[] blindedData = ByteHelpers.FromHex(blindedDataAsHex);
-
-			// utxos
-			var txoRefs = LiveServerTestsFixture.AliceInputMappings[networkType].utxos;
-
-			var inputProofModels = txoRefs.Select(txrf => new InputProofModel
+			var inputProofModels = aliceInputData.utxos.Select(txrf => new InputProofModel
 			{
-				Input = new TxoRef(txrf.TransactionId, txrf.Index),
+				Input = txrf,
 				Proof = proof
 			});
 
-			var aliceClient = await AliceClient.CreateNewAsync(changeOutputAddress, blindedData, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
+			var aliceClient = await AliceClient.CreateNewAsync(aliceInputData.changeOutputAddress, ByteHelpers.FromHex(blindedDataAsHex), inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
 
 			Assert.NotNull(aliceClient?.RoundId);
 			Assert.NotNull(aliceClient?.UniqueId);
@@ -105,7 +103,10 @@ namespace WalletWasabi.Tests
 			await aliceClient.PostUnConfirmationAsync();
 		}
 
-		// Offchain
+		#endregion ChaumianCoinJoin
+
+		#region Offchain
+
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
@@ -118,5 +119,7 @@ namespace WalletWasabi.Tests
 				Assert.True(exchangeRates.NotNullAndNotEmpty());
 			}
 		}
+
+		#endregion Offchain
 	}
 }

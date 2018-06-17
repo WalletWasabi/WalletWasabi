@@ -41,6 +41,11 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			};
 		}
 
+		public (BitcoinPubKeyAddress activeOutputAddress, BitcoinPubKeyAddress changeOutputAddress, string blindedDataHex, string proof, List<TxoRef> utxos) GetAliceInputData(NetworkType networkType)
+		{
+			return AliceInputMappings[networkType];
+		}
+
 		public void Dispose()
 		{
 			//
