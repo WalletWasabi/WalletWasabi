@@ -100,6 +100,9 @@ namespace WalletWasabi.Tests
 			Assert.NotNull(aliceClient?.RoundId);
 			Assert.NotNull(aliceClient?.UniqueId);
 			Assert.NotNull(aliceClient?.BlindedOutputSignature);
+
+			// need to uncofirm or test will fail when run again
+			await aliceClient.PostUnConfirmationAsync();
 		}
 
 		// Offchain
