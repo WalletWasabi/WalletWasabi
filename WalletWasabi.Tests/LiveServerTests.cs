@@ -56,9 +56,6 @@ namespace WalletWasabi.Tests
 			using (var client = new SatoshiClient(_networkUriMappings[networkType]))
 			{
 				var states = await client.GetAllRoundStatesAsync();
-				var noRegisteredPeers = states.All(s => s.RegisteredPeerCount == 0);
-
-				Assert.True(noRegisteredPeers);
 				Assert.True(states.NotNullAndNotEmpty());
 				Assert.True(states.Count() == 2);
 			}
