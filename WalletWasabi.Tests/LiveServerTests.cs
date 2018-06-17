@@ -1,20 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using NBitcoin;
-using NBitcoin.RPC;
-using Newtonsoft.Json.Linq;
-using WalletWasabi.Backend;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Crypto;
-using WalletWasabi.KeyManagement;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
 using Xunit;
 
@@ -90,19 +82,19 @@ namespace WalletWasabi.Tests
 			byte[] blindedData = ByteHelpers.FromHex(blindedDataAsHex);
 
 			// utxos
-			var txIdOutpointMappings = new Dictionary<uint256, uint>
+			var txoRefs = new List<TxoRef>
 			{
-				{ new uint256("32914e4466c2ba0328bcac6102d5a806b3e44d5ed73b2454ecae730bebcf8784"), 0 },
-				{ new uint256("ac0e02035e885fe0ea921f7a7bbbdb362378ed0800fbe0e54af676a8ab0df710"), 0 },
-				{ new uint256("72b8b61f9bb57519cda99458f4b3fb9881142492b9c55ce50ec70bde42f419ed"), 0 },
-				{ new uint256("ec123d68e3cafcd648ae5258f1587afb367eb6a3bc4275d50fcacbad9e27b12e"), 0 },
-				{ new uint256("6451fbf9b39e4ca649a36e71381b45e314526aa0074dc055eab39de581aeedfb"), 0 },
-				{ new uint256("b65a812be86078ac5b5d2a531aee6197a628d60034dbde9cf035d5a5d8bd064f"), 0 }
+				new TxoRef(new uint256("32914e4466c2ba0328bcac6102d5a806b3e44d5ed73b2454ecae730bebcf8784"), 0 ),
+				new TxoRef(new uint256("ac0e02035e885fe0ea921f7a7bbbdb362378ed0800fbe0e54af676a8ab0df710"), 0 ),
+				new TxoRef(new uint256("72b8b61f9bb57519cda99458f4b3fb9881142492b9c55ce50ec70bde42f419ed"), 0 ),
+				new TxoRef( new uint256("ec123d68e3cafcd648ae5258f1587afb367eb6a3bc4275d50fcacbad9e27b12e"), 0 ),
+				new TxoRef(new uint256("6451fbf9b39e4ca649a36e71381b45e314526aa0074dc055eab39de581aeedfb"), 0 ),
+				new TxoRef(new uint256("b65a812be86078ac5b5d2a531aee6197a628d60034dbde9cf035d5a5d8bd064f"), 0 )
 			};
 
-			var inputProofModels = txIdOutpointMappings.Select(txop => new InputProofModel
+			var inputProofModels = txoRefs.Select(txrf => new InputProofModel
 			{
-				Input = new Models.TxoRef(txop.Key, txop.Value),
+				Input = new Models.TxoRef(txrf.TransactionId, txrf.Index),
 				Proof = proof
 			});
 
