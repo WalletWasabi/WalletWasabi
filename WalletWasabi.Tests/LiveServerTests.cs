@@ -93,11 +93,51 @@ namespace WalletWasabi.Tests
 				Proof = proof
 			});
 
-			var aliceClient = await AliceClient.CreateNewAsync(aliceInputData.changeOutputAddress, ByteHelpers.FromHex(blindedDataAsHex), inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
+			var aliceClient = await AliceClient.CreateNewAsync(aliceInputData.changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
 
 			Assert.NotNull(aliceClient?.RoundId);
 			Assert.NotNull(aliceClient?.UniqueId);
 			Assert.NotNull(aliceClient?.BlindedOutputSignature);
+
+			// need to uncofirm or test will fail when run again
+			await aliceClient.PostUnConfirmationAsync();
+		}
+
+		[Theory]
+		[InlineData(NetworkType.Testnet)]
+		public async Task RegisterAliceInputThenConfirmAsync(NetworkType networkType)
+		{
+			var aliceInputData = LiveServerTestsFixture.GetAliceInputData(networkType);
+
+			// blinded data created using activeOutputAddress ScriptPubKey
+			var blindedDataAsHex = aliceInputData.blindedDataHex;
+
+			byte[] blinded = ByteHelpers.FromHex(blindedDataAsHex);
+
+			// signed with private key that owns the utxos
+			var proof = aliceInputData.proof;
+
+			var inputProofModels = aliceInputData.utxos.Select(txrf => new InputProofModel
+			{
+				Input = txrf,
+				Proof = proof
+			});
+
+			var aliceClient = await AliceClient.CreateNewAsync(aliceInputData.changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
+
+			Assert.NotNull(aliceClient?.RoundId);
+			Assert.NotNull(aliceClient?.UniqueId);
+			Assert.NotNull(aliceClient?.BlindedOutputSignature);
+
+			try
+			{
+				await aliceClient.PostConfirmationAsync();
+			}
+			catch (Exception ex)
+			{
+				await aliceClient.PostUnConfirmationAsync();
+				throw ex;
+			}
 
 			// need to uncofirm or test will fail when run again
 			await aliceClient.PostUnConfirmationAsync();
