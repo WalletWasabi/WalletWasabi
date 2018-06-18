@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Crypto;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
@@ -74,6 +75,7 @@ namespace WalletWasabi.Tests
 		#region ChaumianCoinJoin
 
 		[Theory]
+		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
 		public async Task RegisterAliceInputThenUnConfirmAsync(NetworkType networkType)
 		{
@@ -105,6 +107,7 @@ namespace WalletWasabi.Tests
 
 		[Theory]
 		[InlineData(NetworkType.Testnet)]
+		[InlineData(NetworkType.Mainnet)]
 		public async Task RegisterAliceInputThenConfirmAsync(NetworkType networkType)
 		{
 			var aliceInputData = LiveServerTestsFixture.GetAliceInputData(networkType);
