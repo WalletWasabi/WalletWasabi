@@ -9,7 +9,6 @@ namespace WalletWasabi.Tests.XunitConfiguration
 	public class LiveServerTestsFixture : IDisposable
 	{
 		public Dictionary<NetworkType, Uri> UriMappings { get; internal set; }
-		public Dictionary<NetworkType, (BitcoinPubKeyAddress activeOutputAddress, BitcoinPubKeyAddress changeOutputAddress, string blindedDataHex, string proof, List<TxoRef> utxos)> AliceInputMappings { get; internal set; }
 
 		public LiveServerTestsFixture()
 		{
@@ -18,8 +17,11 @@ namespace WalletWasabi.Tests.XunitConfiguration
 					{ NetworkType.Mainnet, new Uri("http://4jsmnfcsmbrlm7l7.onion") },
 					{ NetworkType.Testnet, new Uri("http://wtgjmaol3io5ijii.onion") }
 			};
+		}
 
-			AliceInputMappings = new Dictionary<NetworkType, (BitcoinPubKeyAddress activeOutputAddress, BitcoinPubKeyAddress changeOutputAddress, string blindedDataHex, string proof, List<TxoRef> utxos)>
+		public (BitcoinPubKeyAddress activeOutputAddress, BitcoinPubKeyAddress changeOutputAddress, string blindedDataHex, string proof, List<TxoRef> utxos) GetAliceInputData(NetworkType networkType)
+		{
+			var aliceInputMappings = new Dictionary<NetworkType, (BitcoinPubKeyAddress activeOutputAddress, BitcoinPubKeyAddress changeOutputAddress, string blindedDataHex, string proof, List<TxoRef> utxos)>
 			{
 				{
 					NetworkType.Testnet,
@@ -51,11 +53,8 @@ namespace WalletWasabi.Tests.XunitConfiguration
 					})
 				}
 			};
-		}
 
-		public (BitcoinPubKeyAddress activeOutputAddress, BitcoinPubKeyAddress changeOutputAddress, string blindedDataHex, string proof, List<TxoRef> utxos) GetAliceInputData(NetworkType networkType)
-		{
-			return AliceInputMappings[networkType];
+			return aliceInputMappings[networkType];
 		}
 
 		public void Dispose()

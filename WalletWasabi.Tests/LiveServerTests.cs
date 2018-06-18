@@ -79,23 +79,18 @@ namespace WalletWasabi.Tests
 		[InlineData(NetworkType.Testnet)]
 		public async Task RegisterAliceInputThenUnConfirmAsync(NetworkType networkType)
 		{
-			var aliceInputData = LiveServerTestsFixture.GetAliceInputData(networkType);
+			(BitcoinPubKeyAddress activeOutputAddress, BitcoinPubKeyAddress changeOutputAddress, string blindedDataHex, string proof, List<TxoRef> utxos) = LiveServerTestsFixture.GetAliceInputData(networkType);
 
-			// blinded data created using activeOutputAddress ScriptPubKey
-			var blindedDataAsHex = aliceInputData.blindedDataHex;
+			// blinded activeOutputAddress.ScriptPubKey
+			byte[] blinded = ByteHelpers.FromHex(blindedDataHex);
 
-			byte[] blinded = ByteHelpers.FromHex(blindedDataAsHex);
-
-			// signed with private key that owns the utxos
-			var proof = aliceInputData.proof;
-
-			var inputProofModels = aliceInputData.utxos.Select(txrf => new InputProofModel
+			var inputProofModels = utxos.Select(txrf => new InputProofModel
 			{
 				Input = txrf,
-				Proof = proof
+				Proof = proof // blinded.BlindedData signed with private key owning utxos
 			});
 
-			var aliceClient = await AliceClient.CreateNewAsync(aliceInputData.changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
+			var aliceClient = await AliceClient.CreateNewAsync(changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
 
 			Assert.NotNull(aliceClient?.RoundId);
 			Assert.NotNull(aliceClient?.UniqueId);
@@ -110,23 +105,18 @@ namespace WalletWasabi.Tests
 		[InlineData(NetworkType.Mainnet)]
 		public async Task RegisterAliceInputThenConfirmAsync(NetworkType networkType)
 		{
-			var aliceInputData = LiveServerTestsFixture.GetAliceInputData(networkType);
+			(BitcoinPubKeyAddress activeOutputAddress, BitcoinPubKeyAddress changeOutputAddress, string blindedDataHex, string proof, List<TxoRef> utxos) = LiveServerTestsFixture.GetAliceInputData(networkType);
 
-			// blinded data created using activeOutputAddress ScriptPubKey
-			var blindedDataAsHex = aliceInputData.blindedDataHex;
+			// blinded activeOutputAddress.ScriptPubKey
+			byte[] blinded = ByteHelpers.FromHex(blindedDataHex);
 
-			byte[] blinded = ByteHelpers.FromHex(blindedDataAsHex);
-
-			// signed with private key that owns the utxos
-			var proof = aliceInputData.proof;
-
-			var inputProofModels = aliceInputData.utxos.Select(txrf => new InputProofModel
+			var inputProofModels = utxos.Select(txrf => new InputProofModel
 			{
 				Input = txrf,
-				Proof = proof
+				Proof = proof // blinded.BlindedData signed with private key owning utxos
 			});
 
-			var aliceClient = await AliceClient.CreateNewAsync(aliceInputData.changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
+			var aliceClient = await AliceClient.CreateNewAsync(changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
 
 			Assert.NotNull(aliceClient?.RoundId);
 			Assert.NotNull(aliceClient?.UniqueId);
