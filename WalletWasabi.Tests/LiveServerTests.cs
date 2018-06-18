@@ -57,7 +57,7 @@ namespace WalletWasabi.Tests
 			{
 				var states = await client.GetAllRoundStatesAsync();
 				Assert.True(states.NotNullAndNotEmpty());
-				Assert.True(states.Count() == 2);
+				Assert.True(states.Count() >= 1);
 			}
 		}
 
