@@ -100,7 +100,6 @@ namespace WalletWasabi.Tests
 
 		[Theory]
 		[InlineData(NetworkType.Testnet)]
-		[InlineData(NetworkType.Mainnet)]
 		public async Task RegisterAliceInputThenConfirmAsync(NetworkType networkType)
 		{
 			(BitcoinPubKeyAddress activeOutputAddress, BitcoinPubKeyAddress changeOutputAddress, string blindedDataHex, string proof, List<TxoRef> utxos) = LiveServerTestsFixture.GetAliceInputData(networkType);
