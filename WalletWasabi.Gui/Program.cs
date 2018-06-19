@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Avalonia;
+using Avalonia.Threading;
+using System;
 
 namespace WalletWasabi.Gui
 {
@@ -6,7 +8,14 @@ namespace WalletWasabi.Gui
 	{
 		private static void Main(string[] args)
 		{
-			Console.WriteLine("Hello World!");
+			AppBuilder.Configure<App>()
+				.UsePlatformDetect()
+				.AfterSetup(builder =>
+				{
+				})
+				.Start<MainWindow>();
 		}
+
+		private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UsePlatformDetect();
 	}
 }
