@@ -75,7 +75,6 @@ namespace WalletWasabi.Tests
 		#region ChaumianCoinJoin
 
 		[Theory]
-		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
 		public async Task RegisterAliceInputThenUnConfirmAsync(NetworkType networkType)
 		{
