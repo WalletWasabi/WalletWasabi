@@ -92,9 +92,7 @@ namespace WalletWasabi.Tests
 
 			var aliceClient = await AliceClient.CreateNewAsync(changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
 
-			Assert.NotNull(aliceClient?.RoundId);
-			Assert.NotNull(aliceClient?.UniqueId);
-			Assert.NotNull(aliceClient?.BlindedOutputSignature);
+			Assert.NotNull(aliceClient.BlindedOutputSignature);
 
 			// need to uncofirm or test will fail when run again
 			await aliceClient.PostUnConfirmationAsync();
@@ -118,22 +116,20 @@ namespace WalletWasabi.Tests
 
 			var aliceClient = await AliceClient.CreateNewAsync(changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
 
-			Assert.NotNull(aliceClient?.RoundId);
-			Assert.NotNull(aliceClient?.UniqueId);
-			Assert.NotNull(aliceClient?.BlindedOutputSignature);
+			Assert.NotNull(aliceClient.BlindedOutputSignature);
 
 			try
 			{
 				await aliceClient.PostConfirmationAsync();
+
+				// need to uncofirm or test will fail when run again
+				await aliceClient.PostUnConfirmationAsync();
 			}
 			catch (Exception ex)
 			{
 				await aliceClient.PostUnConfirmationAsync();
 				throw ex;
 			}
-
-			// need to uncofirm or test will fail when run again
-			await aliceClient.PostUnConfirmationAsync();
 		}
 
 		#endregion ChaumianCoinJoin
