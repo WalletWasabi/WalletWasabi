@@ -317,6 +317,8 @@ namespace WalletWasabi.Services
 							if (scripts.Count != 0)
 							{
 								filter = new GolombRiceFilterBuilder()
+									.SetP(20)
+									.SetM(1U << 20)
 									.SetKey(block.GetHash())
 									.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
 									.Build();
