@@ -1,17 +1,17 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui">
-  <Grid Background="{DynamicResource ThemeAccentBrush}">
-    <DockPanel LastChildFill="True" Margin="10 0">
-      <StackPanel Orientation="Horizontal" Gap="4" DockPanel.Dock="Right">
-        <TextBlock>Connections: </TextBlock>
-        <TextBlock Text="{Binding Connections}" />
-        <TextBlock>Filters Left: </TextBlock>
-        <TextBlock Text="1" />
-        <TextBlock>Blocks Left: </TextBlock>
-        <TextBlock Text="1" />
-        <TextBlock>Mempool: </TextBlock>
-        <TextBlock Text="1" />
-      </StackPanel>
-      <TextBlock>Ready</TextBlock>
-    </DockPanel>
-  </Grid>
+    <Grid Background="{DynamicResource ThemeAccentBrush}">
+        <DockPanel LastChildFill="True" Margin="10 0">
+            <StackPanel Orientation="Horizontal" Gap="4" DockPanel.Dock="Right">
+                <TextBlock>Connections:</TextBlock>
+                <TextBlock Text="{Binding Connections}" />
+                <TextBlock>Filters Left:</TextBlock>
+                <TextBlock Text="1" />
+                <TextBlock>Blocks Left:</TextBlock>
+                <TextBlock Text="1" />
+                <TextBlock>Mempool:</TextBlock>
+                <TextBlock Text="1" />
+            </StackPanel>
+            <TextBlock Text="{Binding Status}" />
+        </DockPanel>
+    </Grid>
 </UserControl>
