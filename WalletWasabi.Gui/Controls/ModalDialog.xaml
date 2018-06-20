@@ -1,0 +1,5 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui">
+    <Grid Background="#22ff0000">
+        <TextBlock Text="OverLay Layer" />
+    </Grid>
+</UserControl>
