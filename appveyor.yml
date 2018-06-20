@@ -15,6 +15,7 @@ install:
   - ps: $TorProcess = Start-Process tor\tor.exe -PassThru
 
 before_build:
+  - git submodule update --init --recursive
   - ps: Start-Sleep -s 5
 
 build_script:
