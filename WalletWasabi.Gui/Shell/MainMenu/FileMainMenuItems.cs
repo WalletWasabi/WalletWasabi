@@ -30,6 +30,16 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultGroup("Wallet")]
 		public IMenuItem GenerateWallet => _menuItemFactory.CreateCommandMenuItem("File.GenerateWallet");
 
+		[ExportMainMenuItem("File", "Recover Wallet")]
+		[DefaultOrder(10)]
+		[DefaultGroup("Wallet")]
+		public IMenuItem Recover => _menuItemFactory.CreateCommandMenuItem("File.RecoverWallet");
+
+		[ExportMainMenuItem("File", "Load Wallet")]
+		[DefaultOrder(20)]
+		[DefaultGroup("Wallet")]
+		public IMenuItem LoadWallet => _menuItemFactory.CreateCommandMenuItem("File.LoadWallet");
+
 		[ExportMainMenuDefaultGroup("File", "Exit")]
 		[DefaultOrder(1000)]
 		public object ExitGroup => null;
