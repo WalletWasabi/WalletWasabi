@@ -34,7 +34,6 @@ namespace WalletWasabi.Tests
 	[TestCaseOrderer("WalletWasabi.Tests.XunitConfiguration.PriorityOrderer", "WalletWasabi.Tests")]
 	public class RegTests : IClassFixture<SharedFixture>
 	{
-		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 		private SharedFixture SharedFixture { get; }
 
 		private RegTestFixture RegTestFixture { get; }
@@ -423,7 +422,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -657,7 +656,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -1099,7 +1098,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -1279,7 +1278,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -1450,7 +1449,7 @@ namespace WalletWasabi.Tests
 				requirements: new NodeRequirement
 				{
 					RequiredServices = NodeServices.Network,
-					MinVersion = ProtocolVersion_WITNESS_VERSION
+					MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 				});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -2680,7 +2679,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -2688,7 +2687,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes2.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
