@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Text;
 using NBitcoin.Protocol;
 using ReactiveUI;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.ViewModels
 {
 	public class StatusBarViewModel : ViewModelBase, IDisposable
 	{
-		private NodesCollection Nodes { get; }
+		public NodesCollection Nodes { get; }
+		public MemPoolService MemPoolService { get; }
+		public IndexDownloader IndexDownloader { get; }
 
 		private int _connections;
 
@@ -21,14 +24,14 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private int _filtersLeft;
+		private int _filters;
 
-		public int FiltersLeft
+		public int Filters
 		{
-			get { return _filtersLeft; }
+			get { return _filters; }
 			set
 			{
-				this.RaiseAndSetIfChanged(ref _filtersLeft, value);
+				this.RaiseAndSetIfChanged(ref _filters, value);
 			}
 		}
 
@@ -43,6 +46,17 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
+		private int _mempool;
+
+		public int Mempool
+		{
+			get { return _mempool; }
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _mempool, value);
+			}
+		}
+
 		private string _status;
 
 		public string Status
@@ -51,11 +65,20 @@ namespace WalletWasabi.Gui.ViewModels
 			set { this.RaiseAndSetIfChanged(ref _status, value); }
 		}
 
-		public StatusBarViewModel(NodesCollection nodes)
+		public StatusBarViewModel(NodesCollection nodes, MemPoolService memPoolService, IndexDownloader indexDownloader)
 		{
 			Nodes = nodes;
 			Nodes.Added += Nodes_Added;
 			Nodes.Removed += Nodes_Removed;
+			Connections = Nodes.Count;
+
+			MemPoolService = memPoolService;
+			MemPoolService.TransactionReceived += MemPoolService_TransactionReceived;
+			Mempool = MemPoolService.TransactionHashes.Count;
+
+			IndexDownloader = indexDownloader;
+			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
+			Filters = IndexDownloader.GetBestHeight().Value;
 
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
@@ -68,6 +91,16 @@ namespace WalletWasabi.Gui.ViewModels
 					Status = "Ready";
 				}
 			});
+		}
+
+		private void IndexDownloader_NewFilter(object sender, Backend.Models.FilterModel e)
+		{
+			Filters = IndexDownloader.GetBestHeight().Value;
+		}
+
+		private void MemPoolService_TransactionReceived(object sender, Models.SmartTransaction e)
+		{
+			Mempool = MemPoolService.TransactionHashes.Count;
 		}
 
 		private void Nodes_Removed(object sender, NodeEventArgs e)
@@ -92,6 +125,8 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					Nodes.Added -= Nodes_Added;
 					Nodes.Removed -= Nodes_Removed;
+					MemPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
+					IndexDownloader.NewFilter -= IndexDownloader_NewFilter;
 				}
 
 				_disposedValue = true;
