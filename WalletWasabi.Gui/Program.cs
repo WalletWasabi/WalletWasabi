@@ -5,12 +5,16 @@ using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using WalletWasabi.Logging;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui
 {
 	internal class Program
 	{
-		private static void Main(string[] args)
+#pragma warning disable IDE1006 // Naming Styles
+
+		private static async Task Main(string[] args)
+#pragma warning restore IDE1006 // Naming Styles
 		{
 			try
 			{
@@ -36,6 +40,10 @@ namespace WalletWasabi.Gui
 			catch (Exception ex)
 			{
 				Logger.LogCritical<Program>(ex);
+			}
+			finally
+			{
+				await Global.DisposeAsync();
 			}
 		}
 

@@ -28,6 +28,11 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		public static string AddressManagerFilePath { get; private set; }
+		public static AddressManager AddressManager { get; private set; }
+		public static MemPoolService MemPoolService { get; private set; }
+		public static NodesGroup Nodes { get; private set; }
+
 		public static Config Config { get; private set; }
 
 		public async static Task InitializeAsync(Config config)
@@ -36,38 +41,47 @@ namespace WalletWasabi.Gui
 			Network network = Config.Network;
 
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
-			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
+			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{network}");
 			var connectionParameters = new NodeConnectionParameters();
-			AddressManager addressManager = null;
+			AddressManager = null;
 			try
 			{
-				addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
-				Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
+				AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
+				Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 			}
 			catch (DirectoryNotFoundException ex)
 			{
-				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
+				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
 				Logger.LogTrace<AddressManager>(ex);
-				addressManager = new AddressManager();
+				AddressManager = new AddressManager();
 			}
 			catch (FileNotFoundException ex)
 			{
-				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
+				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
 				Logger.LogTrace<AddressManager>(ex);
-				addressManager = new AddressManager();
+				AddressManager = new AddressManager();
 			}
 
-			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(addressManager));
-			var memPoolService = new MemPoolService();
-			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
+			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(AddressManager));
+			MemPoolService = new MemPoolService();
+			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
 
-			var nodes = new NodesGroup(network, connectionParameters,
+			Nodes = new NodesGroup(network, connectionParameters,
 				new NodeRequirement
 				{
 					RequiredServices = NodeServices.Network,
 					MinVersion = Constants.ProtocolVersion_WITNESS_VERSION
 				});
+		}
+
+		public async static Task DisposeAsync()
+		{
+			Directory.CreateDirectory(Path.GetDirectoryName(AddressManagerFilePath));
+			AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
+			Logger.LogInfo($"Saved {nameof(AddressManager)} to `{AddressManagerFilePath}`.", nameof(Global));
+			Nodes?.Dispose();
+			Logger.LogInfo($"Disposed {nameof(Nodes)}.", nameof(Global));
 		}
 	}
 }
