@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui
 		{
 			BuildAvaloniaApp().AfterSetup(builder =>
 			{
-			}).StartShellApp("Wasabi Wallet");
+			}).StartShellApp("Wasabi Wallet", new DefaultLayoutFactory());
 		}
 
 		private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
