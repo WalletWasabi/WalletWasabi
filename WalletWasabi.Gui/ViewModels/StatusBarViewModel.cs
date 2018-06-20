@@ -57,9 +57,9 @@ namespace WalletWasabi.Gui.ViewModels
 			Nodes.Added += Nodes_Added;
 			Nodes.Removed += Nodes_Removed;
 
-			this.WhenAnyValue(x => x.FiltersLeft, x => x.BlocksLeft).Subscribe(x =>
+			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
-				if (x.Item1 > 0 && x.Item2 > 0)
+				if (blocks > 0)
 				{
 					Status = "Synchronizing...";
 				}
