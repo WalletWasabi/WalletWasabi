@@ -1,11 +1,9 @@
 ﻿using Avalonia;
-using Avalonia.Threading;
-using System;
-using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
-using WalletWasabi.Logging;
+using System;
 using System.IO;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
 {
@@ -35,7 +33,7 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo<Config>("Config is successfully initialized.");
 
 					Global.Initialize(config);
-				}).StartShellApp("Wasabi Wallet", new DefaultLayoutFactory());
+				}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", new DefaultLayoutFactory());
 			}
 			catch (Exception ex)
 			{
