@@ -1,0 +1,3 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui">
+    <TextBlock Text="Unable to close application at this time." />
+</UserControl>

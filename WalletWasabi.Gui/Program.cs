@@ -34,8 +34,10 @@ namespace WalletWasabi.Gui
 				Global.Initialize(config);
 				statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader);
 
+				MainWindowViewModel.Instance = new MainWindowViewModel(statusBar);
+
 				BuildAvaloniaApp()
-					.StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", new DefaultLayoutFactory(), () => new MainWindowViewModel(statusBar));
+					.StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", new DefaultLayoutFactory(), () => MainWindowViewModel.Instance);
 			}
 			catch (Exception ex)
 			{

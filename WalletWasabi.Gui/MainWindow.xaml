@@ -13,11 +13,14 @@
                       Title="Wasabi Wallet" BorderThickness="1" BorderBrush="{DynamicResource AvalonBorderBrush}"
                       FontFamily="{DynamicResource UiFont}" FontSize="14"
                       Foreground="{DynamicResource ThemeForegroundBrush}" WindowState="Maximized">
-  <cont:MetroWindow.TitleBarContent>
-  </cont:MetroWindow.TitleBarContent>
+    <cont:MetroWindow.TitleBarContent>
+    </cont:MetroWindow.TitleBarContent>
 
-  <DockPanel LastChildFill="True">
-    <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
-    <shell:ShellView />
-  </DockPanel>
+    <Grid>
+        <DockPanel LastChildFill="True">
+            <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
+            <shell:ShellView />
+        </DockPanel>
+        <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
+    </Grid>
 </cont:MetroWindow>
