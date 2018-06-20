@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="**\*.xaml;Assets\*" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
+    <EmbeddedResource Include="App.xaml" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -24,6 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell.Extensibility\AvalonStudio.Shell.Extensibility.csproj" />
+    <ProjectReference Include="..\WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell\AvalonStudio.Shell.csproj" />
     <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
   </ItemGroup>
 

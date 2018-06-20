@@ -1,6 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Threading;
 using System;
+using AvalonStudio.Extensibility.Theme;
+using AvalonStudio.Shell;
 
 namespace WalletWasabi.Gui
 {
@@ -8,14 +10,11 @@ namespace WalletWasabi.Gui
 	{
 		private static void Main(string[] args)
 		{
-			AppBuilder.Configure<App>()
-				.UsePlatformDetect()
-				.AfterSetup(builder =>
-				{
-				})
-				.Start<MainWindow>();
+			BuildAvaloniaApp().AfterSetup(builder =>
+			{
+			}).StartShellApp("Wasabi Wallet");
 		}
 
-		private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UsePlatformDetect();
+		private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
 	}
 }
