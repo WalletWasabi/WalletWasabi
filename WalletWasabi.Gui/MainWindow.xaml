@@ -1,5 +1,6 @@
 ﻿<cont:MetroWindow xmlns="https://github.com/avaloniaui"
                       xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
+                      xmlns:wasabi="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
                       xmlns:shell="clr-namespace:AvalonStudio.Shell;assembly=AvalonStudio.Shell"
                       xmlns:menu="clr-namespace:AvalonStudio.Shell.Extensibility.MainMenu.Views;assembly=AvalonStudio.Shell.Extensibility"
                       xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -12,8 +13,11 @@
                       Title="Wasabi Wallet" BorderThickness="1" BorderBrush="{DynamicResource AvalonBorderBrush}"
                       FontFamily="{DynamicResource UiFont}" FontSize="14"
                       Foreground="{DynamicResource ThemeForegroundBrush}" WindowState="Maximized">
-    <cont:MetroWindow.TitleBarContent>
-    </cont:MetroWindow.TitleBarContent>
+  <cont:MetroWindow.TitleBarContent>
+  </cont:MetroWindow.TitleBarContent>
 
+  <DockPanel LastChildFill="True">
+    <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
     <shell:ShellView />
+  </DockPanel>
 </cont:MetroWindow>
