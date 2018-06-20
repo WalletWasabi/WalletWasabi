@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui
 
 		public static Config Config { get; private set; }
 
-		public async static Task InitializeAsync(Config config)
+		public static void Initialize(Config config)
 		{
 			Config = Guard.NotNull(nameof(config), config);
 			Network network = Config.Network;
@@ -73,6 +73,9 @@ namespace WalletWasabi.Gui
 					RequiredServices = NodeServices.Network,
 					MinVersion = Constants.ProtocolVersion_WITNESS_VERSION
 				});
+
+			Nodes.Connect();
+			Logger.LogInfo("Start connecting to nodes...");
 		}
 
 		public async static Task DisposeAsync()

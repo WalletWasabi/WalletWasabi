@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui
 					await config.LoadOrCreateDefaultFileAsync();
 					Logger.LogInfo<Config>("Config is successfully initialized.");
 
-					await Global.InitializeAsync(config);
+					Global.Initialize(config);
 				}).StartShellApp("Wasabi Wallet", new DefaultLayoutFactory());
 			}
 			catch (Exception ex)
