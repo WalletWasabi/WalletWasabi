@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui
 	{
 		public MainWindow()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 			this.AttachDevTools();
 			//Renderer.DrawFps = true;
 			//Renderer.DrawDirtyRects = Renderer.DrawFps = true;
