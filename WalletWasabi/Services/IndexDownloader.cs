@@ -120,7 +120,7 @@ namespace WalletWasabi.Services
 						try
 						{
 							// If stop was requested return.
-							if (IsRunning == false) return;
+							if (!IsRunning) return;
 
 							using (await IndexLock.LockAsync())
 							{
@@ -178,13 +178,16 @@ namespace WalletWasabi.Services
 							// 3. Skip the last valid block.
 							continue;
 						}
-						catch(Exception ex)
+						catch (Exception ex)
 						{
 							Logger.LogError<IndexDownloader>(ex);
 						}
 						finally
 						{
-							await Task.Delay(requestInterval); // Ask for new index in every requestInterval.
+							if (IsRunning)
+							{
+								await Task.Delay(requestInterval); // Ask for new index in every requestInterval.
+							}
 						}
 					}
 				}
@@ -207,7 +210,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task StopAsync()
+		public void Stop()
 		{
 			if (IsRunning)
 			{
@@ -215,7 +218,7 @@ namespace WalletWasabi.Services
 			}
 			while (IsStopping)
 			{
-				await Task.Delay(50);
+				Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
 			}
 
 			WasabiClient?.Dispose();

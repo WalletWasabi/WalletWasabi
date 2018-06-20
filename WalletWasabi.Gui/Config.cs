@@ -22,6 +22,14 @@ namespace WalletWasabi.Gui
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; private set; }
 
+		[JsonProperty(PropertyName = "TestNetBackendUri")]
+		public string TestNetBackendUri { get; private set; }
+
+		[JsonProperty(PropertyName = "MainNetBackendUri")]
+		public string MainNetBackendUri { get; private set; }
+
+		public Uri GetCurrentUri() => Network == Network.Main ? new Uri(MainNetBackendUri) : new Uri(TestNetBackendUri);
+
 		public Config()
 		{
 		}
@@ -31,9 +39,11 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public Config(Network network)
+		public Config(Network network, string testNetBackendUri, string mainNetBackendUri)
 		{
 			Network = Guard.NotNull(nameof(network), network);
+			TestNetBackendUri = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUri), testNetBackendUri);
+			MainNetBackendUri = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBackendUri), mainNetBackendUri);
 		}
 
 		/// <inheritdoc />
@@ -53,6 +63,8 @@ namespace WalletWasabi.Gui
 			AssertFilePathSet();
 
 			Network = Network.Main;
+			TestNetBackendUri = "http://wtgjmaol3io5ijii.onion/";
+			MainNetBackendUri = "http://4jsmnfcsmbrlm7l7.onion/";
 
 			if (!File.Exists(FilePath))
 			{
@@ -64,6 +76,8 @@ namespace WalletWasabi.Gui
 				var config = JsonConvert.DeserializeObject<Config>(jsonString);
 
 				Network = config.Network ?? Network;
+				TestNetBackendUri = config.TestNetBackendUri ?? TestNetBackendUri;
+				MainNetBackendUri = config.MainNetBackendUri ?? MainNetBackendUri;
 			}
 
 			await ToFileAsync();
@@ -83,6 +97,16 @@ namespace WalletWasabi.Gui
 			var config = JsonConvert.DeserializeObject<Config>(jsonString);
 
 			if (Network != config.Network)
+			{
+				return true;
+			}
+
+			if (!TestNetBackendUri.Equals(config.TestNetBackendUri, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+
+			if (!MainNetBackendUri.Equals(config.MainNetBackendUri, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
 			}
