@@ -3,6 +3,8 @@ using Avalonia.Threading;
 using System;
 using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
+using WalletWasabi.Logging;
+using System.IO;
 
 namespace WalletWasabi.Gui
 {
@@ -10,9 +12,31 @@ namespace WalletWasabi.Gui
 	{
 		private static void Main(string[] args)
 		{
-			BuildAvaloniaApp().AfterSetup(builder =>
+			try
 			{
-			}).StartShellApp("Wasabi Wallet", new DefaultLayoutFactory());
+				Logger.SetFilePath(Path.Combine(Global.DataDir, "Logs.txt"));
+#if RELEASE
+				Logger.SetMinimumLevel(LogLevel.Info);
+				Logger.SetModes(LogMode.File);
+#else
+				Logger.SetMinimumLevel(LogLevel.Debug);
+				Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
+#endif
+
+				BuildAvaloniaApp().AfterSetup(async builder =>
+				{
+					var configFilePath = Path.Combine(Global.DataDir, "Config.json");
+					var config = new Config(configFilePath);
+					await config.LoadOrCreateDefaultFileAsync();
+					Logger.LogInfo<Config>("Config is successfully initialized.");
+
+					await Global.InitializeAsync(config);
+				}).StartShellApp("Wasabi Wallet", new DefaultLayoutFactory());
+			}
+			catch (Exception ex)
+			{
+				Logger.LogCritical<Program>(ex);
+			}
 		}
 
 		private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
