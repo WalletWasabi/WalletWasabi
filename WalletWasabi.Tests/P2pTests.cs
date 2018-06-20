@@ -23,7 +23,6 @@ namespace WalletWasabi.Tests
 {
 	public class P2pTests : IClassFixture<SharedFixture>
 	{
-		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 		private SharedFixture SharedFixture { get; }
 
 		public P2pTests(SharedFixture sharedFixture)
@@ -86,7 +85,7 @@ namespace WalletWasabi.Tests
 				new NodeRequirement
 				{
 					RequiredServices = NodeServices.Network,
-					MinVersion = ProtocolVersion_WITNESS_VERSION
+					MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 				});
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
