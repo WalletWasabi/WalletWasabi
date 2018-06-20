@@ -79,6 +79,18 @@ namespace WalletWasabi.Gui.ViewModels
 			IndexDownloader = indexDownloader;
 			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
 			Filters = IndexDownloader.GetBestHeight().Value;
+
+			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
+			{
+				if (blocks > 0)
+				{
+					Status = "Synchronizing...";
+				}
+				else
+				{
+					Status = "Ready";
+				}
+			});
 		}
 
 		private void IndexDownloader_NewFilter(object sender, Backend.Models.FilterModel e)
