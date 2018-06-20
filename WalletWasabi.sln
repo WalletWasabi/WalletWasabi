@@ -11,7 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi", "WalletWasab
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6611C6DA-01B6-4C7D-ACD9-F212DD5D66BD}"
 	ProjectSection(SolutionItems) = preProject
-		.coverage.sh = .coverage.sh
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
@@ -20,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWasabi.Gui", "WalletWasabi.Gui\WalletWasabi.Gui.csproj", "{B007DC0F-8C86-439D-BE3C-283218D8308B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Gui", "WalletWasabi.Gui\WalletWasabi.Gui.csproj", "{B007DC0F-8C86-439D-BE3C-283218D8308B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
