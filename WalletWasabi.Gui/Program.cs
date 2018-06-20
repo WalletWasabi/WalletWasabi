@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo<Config>("Config is successfully initialized.");
 
 				Global.Initialize(config);
-				statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes);
+				statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader);
 
 				BuildAvaloniaApp()
 					.StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", new DefaultLayoutFactory(), () => new MainWindowViewModel(statusBar));

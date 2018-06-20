@@ -232,6 +232,14 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public Height GetBestHeight()
+		{
+			using (IndexLock.Lock())
+			{
+				return Index.Last().BlockHeight;
+			}
+		}
+
 		public IEnumerable<FilterModel> GetFiltersIncluding(uint256 blockHash)
 		{
 			using (IndexLock.Lock())

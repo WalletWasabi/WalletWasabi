@@ -4,12 +4,12 @@
       <StackPanel Orientation="Horizontal" Gap="4" DockPanel.Dock="Right">
         <TextBlock>Connections: </TextBlock>
         <TextBlock Text="{Binding Connections}" />
-        <TextBlock>Filters Left: </TextBlock>
-        <TextBlock Text="1" />
+        <TextBlock>Filters: </TextBlock>
+        <TextBlock Text="{Binding Filters}" />
         <TextBlock>Blocks Left: </TextBlock>
-        <TextBlock Text="1" />
+        <TextBlock Text="{Binding BlocksLeft}" />
         <TextBlock>Mempool: </TextBlock>
-        <TextBlock Text="1" />
+        <TextBlock Text="{Binding Mempool}" />
       </StackPanel>
       <TextBlock>Ready</TextBlock>
     </DockPanel>
