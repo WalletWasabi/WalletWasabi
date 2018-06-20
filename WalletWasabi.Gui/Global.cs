@@ -1,4 +1,5 @@
-﻿using NBitcoin;
+﻿using Avalonia;
+using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
@@ -32,6 +33,7 @@ namespace WalletWasabi.Gui
 		public static AddressManager AddressManager { get; private set; }
 		public static MemPoolService MemPoolService { get; private set; }
 		public static NodesGroup Nodes { get; private set; }
+		public static IndexDownloader IndexDownloader { get; private set; }
 
 		public static Config Config { get; private set; }
 
@@ -74,17 +76,27 @@ namespace WalletWasabi.Gui
 					MinVersion = Constants.ProtocolVersion_WITNESS_VERSION
 				});
 
+			var indexFilePath = Path.Combine(DataDir, $"Index{network}.dat");
+			IndexDownloader = new IndexDownloader(network, indexFilePath, Config.GetCurrentUri());
+
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
+
+			IndexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(21));
+			Logger.LogInfo("Start synchronizing filters...");
 		}
 
 		public async static Task DisposeAsync()
 		{
+			// Dispose index downloader service.
+			IndexDownloader?.Stop();
+			Logger.LogInfo($"{nameof(IndexDownloader)} is stopped.", nameof(Global));
+
 			Directory.CreateDirectory(Path.GetDirectoryName(AddressManagerFilePath));
 			AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
-			Logger.LogInfo($"Saved {nameof(AddressManager)} to `{AddressManagerFilePath}`.", nameof(Global));
+			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
 			Nodes?.Dispose();
-			Logger.LogInfo($"Disposed {nameof(Nodes)}.", nameof(Global));
+			Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
 		}
 	}
 }

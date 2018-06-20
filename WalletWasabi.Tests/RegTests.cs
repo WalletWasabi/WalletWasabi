@@ -267,10 +267,7 @@ namespace WalletWasabi.Tests
 			}
 			finally
 			{
-				if (downloader != null)
-				{
-					await downloader.StopAsync();
-				}
+				downloader?.Stop();
 			}
 		}
 
@@ -376,10 +373,7 @@ namespace WalletWasabi.Tests
 			{
 				downloader.Reorged -= ReorgTestAsync_Downloader_Reorged;
 
-				if (downloader != null)
-				{
-					await downloader.StopAsync();
-				}
+				downloader?.Stop();
 			}
 		}
 
@@ -601,10 +595,7 @@ namespace WalletWasabi.Tests
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Stop();
 
 				// Dispose mempool service.
 				memPoolService.TransactionReceived -= WalletTestsAsync_MemPoolService_TransactionReceived;
@@ -1073,10 +1064,7 @@ namespace WalletWasabi.Tests
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Stop();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose chaumian coinjoin client.
@@ -1253,10 +1241,7 @@ namespace WalletWasabi.Tests
 			{
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Stop();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose chaumian coinjoin client.
@@ -1424,10 +1409,7 @@ namespace WalletWasabi.Tests
 			{
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Stop();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose chaumian coinjoin client.
@@ -1579,10 +1561,7 @@ namespace WalletWasabi.Tests
 			{
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Stop();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose chaumian coinjoin client.
@@ -2822,10 +2801,7 @@ namespace WalletWasabi.Tests
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Stop();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose chaumian coinjoin client.
@@ -2835,10 +2811,7 @@ namespace WalletWasabi.Tests
 				}
 				wallet2?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader2 != null)
-				{
-					await indexDownloader2.StopAsync();
-				}
+				indexDownloader2?.Stop();
 				// Dispose connection service.
 				nodes2?.Dispose();
 				// Dispose chaumian coinjoin client.
