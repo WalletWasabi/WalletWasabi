@@ -23,9 +23,16 @@ namespace WalletWasabi.Services
 		public Network Network { get; }
 
 		public FilterModel BestKnownFilter { get; private set; }
-		public int BestHeight { get; private set; }
+		public Height BestHeight { get; private set; }
 
-		public int GetFiltersLeft() => BestHeight - BestKnownFilter.BlockHeight;
+		public int GetFiltersLeft()
+		{
+			if (BestHeight == Height.Unknown || BestHeight == Height.MemPool || BestKnownFilter.BlockHeight == Height.Unknown || BestKnownFilter.BlockHeight == Height.MemPool)
+			{
+				return -1;
+			}
+			return BestHeight.Value - BestKnownFilter.BlockHeight.Value;
+		}
 
 		public WasabiClient WasabiClient { get; }
 
@@ -113,7 +120,7 @@ namespace WalletWasabi.Services
 			}
 
 			BestKnownFilter = Index.Last();
-			BestHeight = 0; // At this point we don't know it.
+			BestHeight = Height.Unknown; // At this point we don't know it.
 		}
 
 		public void Synchronize(TimeSpan requestInterval)
@@ -140,6 +147,7 @@ namespace WalletWasabi.Services
 
 							if (filtersResponse == null) // no-content, we are synced
 							{
+								BestHeight = bestKnownStartingFilter.BlockHeight.Value;
 								continue;
 							}
 							BestHeight = filtersResponse.BestHeight;
