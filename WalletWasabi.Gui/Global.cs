@@ -86,10 +86,10 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo("Start synchronizing filters...");
 		}
 
-		public async static Task DisposeAsync()
+		public static void Dispose()
 		{
 			// Dispose index downloader service.
-			IndexDownloader?.Stop();
+			IndexDownloader?.Dispose();
 			Logger.LogInfo($"{nameof(IndexDownloader)} is stopped.", nameof(Global));
 
 			Directory.CreateDirectory(Path.GetDirectoryName(AddressManagerFilePath));

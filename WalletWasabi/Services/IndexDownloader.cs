@@ -17,7 +17,7 @@ using WalletWasabi.WebClients.ChaumianCoinJoin;
 
 namespace WalletWasabi.Services
 {
-	public class IndexDownloader
+	public class IndexDownloader : IDisposable
 	{
 		public Network Network { get; }
 
@@ -231,22 +231,6 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public void Stop()
-		{
-			if (IsRunning)
-			{
-				Interlocked.Exchange(ref _running, 2);
-			}
-			Cancel?.Cancel();
-			while (IsStopping)
-			{
-				Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
-			}
-
-			Cancel?.Dispose();
-			WasabiClient?.Dispose();
-		}
-
 		public IEnumerable<FilterModel> GetFiltersIncluding(uint256 blockHash)
 		{
 			using (IndexLock.Lock())
@@ -286,5 +270,43 @@ namespace WalletWasabi.Services
 				}
 			}
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					if (IsRunning)
+					{
+						Interlocked.Exchange(ref _running, 2);
+					}
+					Cancel?.Cancel();
+					while (IsStopping)
+					{
+						Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
+					}
+
+					Cancel?.Dispose();
+					WasabiClient?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+			// GC.SuppressFinalize(this);
+		}
+
+		#endregion IDisposable Support
 	}
 }

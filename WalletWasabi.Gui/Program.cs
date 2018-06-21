@@ -44,7 +44,7 @@ namespace WalletWasabi.Gui
 			finally
 			{
 				statusBar?.Dispose();
-				await Global.DisposeAsync();
+				Global.Dispose();
 			}
 		}
 
