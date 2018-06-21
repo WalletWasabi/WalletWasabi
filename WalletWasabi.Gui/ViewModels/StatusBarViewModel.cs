@@ -82,15 +82,24 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
-				if (blocks > 0)
-				{
-					Status = "Synchronizing...";
-				}
-				else
-				{
-					Status = "Ready";
-				}
+				SetStatus();
 			});
+			this.WhenAnyValue(x => x.FiltersLeft).Subscribe(filters =>
+			{
+				SetStatus();
+			});
+		}
+
+		private void SetStatus()
+		{
+			if (FiltersLeft != 0 || BlocksLeft != 0)
+			{
+				Status = "Synchronizing...";
+			}
+			else
+			{
+				Status = "Ready";
+			}
 		}
 
 		private void IndexDownloader_NewFilter(object sender, Backend.Models.FilterModel e)
