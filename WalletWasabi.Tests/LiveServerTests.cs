@@ -89,12 +89,13 @@ namespace WalletWasabi.Tests
 				Proof = proof // blinded.BlindedData signed with private key owning utxos
 			});
 
-			var aliceClient = await AliceClient.CreateNewAsync(changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
+			using (var aliceClient = await AliceClient.CreateNewAsync(changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]))
+			{
+				Assert.NotNull(aliceClient.BlindedOutputSignature);
 
-			Assert.NotNull(aliceClient.BlindedOutputSignature);
-
-			// need to uncofirm or test will fail when run again
-			await aliceClient.PostUnConfirmationAsync();
+				// need to uncofirm or test will fail when run again
+				await aliceClient.PostUnConfirmationAsync();
+			}
 		}
 
 		[Theory]
@@ -112,21 +113,22 @@ namespace WalletWasabi.Tests
 				Proof = proof // blinded.BlindedData signed with private key owning utxos
 			});
 
-			var aliceClient = await AliceClient.CreateNewAsync(changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]);
-
-			Assert.NotNull(aliceClient.BlindedOutputSignature);
-
-			try
+			using (var aliceClient = await AliceClient.CreateNewAsync(changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]))
 			{
-				await aliceClient.PostConfirmationAsync();
+				Assert.NotNull(aliceClient.BlindedOutputSignature);
 
-				// need to uncofirm or test will fail when run again
-				await aliceClient.PostUnConfirmationAsync();
-			}
-			catch (Exception ex)
-			{
-				await aliceClient.PostUnConfirmationAsync();
-				throw ex;
+				try
+				{
+					await aliceClient.PostConfirmationAsync();
+
+					// need to uncofirm or test will fail when run again
+					await aliceClient.PostUnConfirmationAsync();
+				}
+				catch (Exception ex)
+				{
+					await aliceClient.PostUnConfirmationAsync();
+					throw ex;
+				}
 			}
 		}
 
