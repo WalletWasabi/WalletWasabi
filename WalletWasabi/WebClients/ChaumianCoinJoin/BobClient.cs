@@ -23,9 +23,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode != HttpStatusCode.NoContent)
 				{
-					string error = await response.Content.ReadAsJsonAsync<string>();
-					var errorMessage = error == null ? string.Empty : $"\n{error}";
-					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
+					await response.ThrowRequestExceptionAsync<string>();
 				}
 			}
 		}
