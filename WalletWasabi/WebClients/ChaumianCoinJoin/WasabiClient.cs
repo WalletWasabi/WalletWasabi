@@ -42,7 +42,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				}
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 
 				using (HttpContent content = response.Content)
@@ -61,7 +61,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 
 				using (HttpContent content = response.Content)
@@ -79,7 +79,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 			}
 		}
@@ -104,7 +104,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 
 				using (HttpContent content = response.Content)

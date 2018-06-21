@@ -25,7 +25,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 
 				var states = await response.Content.ReadAsJsonAsync<IEnumerable<CcjRunningRoundState>>();
