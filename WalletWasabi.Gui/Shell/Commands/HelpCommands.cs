@@ -3,6 +3,8 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -11,7 +13,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public HelpCommands()
 		{
 			AboutCommand = new CommandDefinition(
-				"About", null, ReactiveCommand.Create(() => { }));
+				"About", null, ReactiveCommand.Create(async () => { await MainWindowViewModel.Instance.ShowDialogAsync(new CannotCloseDialogViewModel()); }));
 
 			CustomerSupportCommand = new CommandDefinition(
 				"Customer Support", null, ReactiveCommand.Create(() => { }));
