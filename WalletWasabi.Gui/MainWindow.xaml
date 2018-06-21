@@ -26,5 +26,6 @@
             <shell:ShellView />
         </DockPanel>
         <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
+        <wasabi:Spinner HorizontalAlignment="Center" VerticalAlignment="Center" />
     </Grid>
 </cont:MetroWindow>
