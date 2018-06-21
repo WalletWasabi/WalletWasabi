@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			IndexDownloader = indexDownloader;
 			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
-			Filters = IndexDownloader.GetBestHeight().Value;
+			Filters = IndexDownloader.BestFilter.BlockHeight.Value;
 
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
@@ -95,7 +95,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void IndexDownloader_NewFilter(object sender, Backend.Models.FilterModel e)
 		{
-			Filters = IndexDownloader.GetBestHeight().Value;
+			Filters = IndexDownloader.BestFilter.BlockHeight.Value;
 		}
 
 		private void MemPoolService_TransactionReceived(object sender, Models.SmartTransaction e)

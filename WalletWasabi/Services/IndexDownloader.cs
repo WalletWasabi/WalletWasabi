@@ -21,6 +21,8 @@ namespace WalletWasabi.Services
 	{
 		public Network Network { get; }
 
+		public FilterModel BestFilter { get; private set; }
+
 		public WasabiClient WasabiClient { get; }
 
 		public string IndexFilePath { get; }
@@ -102,6 +104,8 @@ namespace WalletWasabi.Services
 				Index.Add(StartingFilter);
 				File.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 			}
+
+			BestFilter = Index.Last();
 		}
 
 		public void Synchronize(TimeSpan requestInterval)
@@ -122,10 +126,7 @@ namespace WalletWasabi.Services
 							// If stop was requested return.
 							if (!IsRunning) return;
 
-							using (await IndexLock.LockAsync())
-							{
-								bestKnownFilter = Index.Last();
-							}
+							bestKnownFilter = BestFilter;
 
 							var filters = await WasabiClient.GetFiltersAsync(bestKnownFilter.BlockHash, 1000);
 
@@ -141,19 +142,20 @@ namespace WalletWasabi.Services
 									var filterModel = FilterModel.FromLine(filtersList[i], bestKnownFilter.BlockHeight + i + 1);
 
 									Index.Add(filterModel);
+									BestFilter = filterModel;
 									NewFilter?.Invoke(this, filterModel);
 								}
 
 								if (filtersList.Count == 1) // minor optimization
 								{
-									await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
+									await File.AppendAllLinesAsync(IndexFilePath, new[] { BestFilter.ToLine() });
 								}
 								else
 								{
 									await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
 								}
 
-								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
+								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {BestFilter.BlockHeight}.");
 							}
 
 							continue;
@@ -167,6 +169,7 @@ namespace WalletWasabi.Services
 							using (await IndexLock.LockAsync())
 							{
 								Index.RemoveAt(Index.Count - 1);
+								BestFilter = Index.Last();
 							}
 
 							Reorged?.Invoke(this, reorgedHash);
@@ -222,22 +225,6 @@ namespace WalletWasabi.Services
 			}
 
 			WasabiClient?.Dispose();
-		}
-
-		public FilterModel GetBestFilter()
-		{
-			using (IndexLock.Lock())
-			{
-				return Index.Last();
-			}
-		}
-
-		public Height GetBestHeight()
-		{
-			using (IndexLock.Lock())
-			{
-				return Index.Last().BlockHeight;
-			}
 		}
 
 		public IEnumerable<FilterModel> GetFiltersIncluding(uint256 blockHash)

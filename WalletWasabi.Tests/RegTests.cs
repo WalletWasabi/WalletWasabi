@@ -467,7 +467,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(wallet.Coins);
 				var firstCoin = wallet.Coins.Single();
 				Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, firstCoin.Height);
+				Assert.Equal(indexDownloader.BestFilter.BlockHeight, firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0U, 1U);
 				Assert.False(firstCoin.SpentOrCoinJoinInProcess);
 				Assert.Equal("foo label", firstCoin.Label);
@@ -496,9 +496,9 @@ namespace WalletWasabi.Tests
 				var thirdCoin = wallet.Coins.OrderBy(x => x.Height).Last();
 				Assert.Equal(Money.Coins(0.01m), secondCoin.Amount);
 				Assert.Equal(Money.Coins(0.02m), thirdCoin.Amount);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 2, firstCoin.Height.Value);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 1, secondCoin.Height.Value);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, thirdCoin.Height);
+				Assert.Equal(indexDownloader.BestFilter.BlockHeight.Value - 2, firstCoin.Height.Value);
+				Assert.Equal(indexDownloader.BestFilter.BlockHeight.Value - 1, secondCoin.Height.Value);
+				Assert.Equal(indexDownloader.BestFilter.BlockHeight, thirdCoin.Height);
 				Assert.False(thirdCoin.SpentOrCoinJoinInProcess);
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal("bar label", secondCoin.Label);
@@ -554,7 +554,7 @@ namespace WalletWasabi.Tests
 				var rbfCoin = wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId).Single();
 
 				Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 2, rbfCoin.Height.Value);
+				Assert.Equal(indexDownloader.BestFilter.BlockHeight.Value - 2, rbfCoin.Height.Value);
 				Assert.False(rbfCoin.SpentOrCoinJoinInProcess);
 				Assert.Equal("bar label", rbfCoin.Label);
 				Assert.Equal(key2.GetP2wpkhScript(), rbfCoin.ScriptPubKey);
@@ -588,7 +588,7 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 				var res = await rpc.GetTxOutAsync(mempoolCoin.TransactionId, (int)mempoolCoin.Index, true);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, mempoolCoin.Height);
+				Assert.Equal(indexDownloader.BestFilter.BlockHeight, mempoolCoin.Height);
 			}
 			finally
 			{
@@ -999,7 +999,7 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
-				var bestHeight = wallet.IndexDownloader.GetBestFilter().BlockHeight;
+				var bestHeight = wallet.IndexDownloader.BestFilter.BlockHeight;
 				Assert.Contains("change of (outgoing, outgoing2)", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
 				Assert.Contains("change of (outgoing, outgoing2)", keyManager.GetKeys().Select(x => x.Label));
 
