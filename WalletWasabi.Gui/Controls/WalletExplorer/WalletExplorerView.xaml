@@ -1,0 +1,5 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui">
+    <Grid Background="Red">
+        <TextBlock Text="Wallet Explorer" FontSize="20" Foreground="White" />
+    </Grid>
+</UserControl>
