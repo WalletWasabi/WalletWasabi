@@ -12,6 +12,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Models;
 using System.Text;
 using NBitcoin.RPC;
+using System.Threading;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin
 {
@@ -24,11 +25,15 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 		#region blockchain
 
-		public async Task<IEnumerable<string>> GetFiltersAsync(uint256 bestKnownBlockHash, int count)
+		/// <remarks>
+		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
+		/// </remarks>
+		public async Task<IEnumerable<string>> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
 		{
-			using(var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
 																	HttpStatusCode.OK,
-																	$"/api/v1/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}"))
+																	$"/api/v1/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
+																	cancel: cancel))
 			{
 				if (response.StatusCode == HttpStatusCode.NoContent)
 				{
@@ -41,7 +46,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 
-				using(HttpContent content = response.Content)
+				using (HttpContent content = response.Content)
 				{
 					var ret = await content.ReadAsJsonAsync<IEnumerable<string>>();
 					return ret;
@@ -94,7 +99,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			await BroadcastAsync(transaction.Transaction);
 		}
 
-		#endregion
+		#endregion blockchain
 
 		#region offchain
 
@@ -109,7 +114,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 					throw new HttpRequestException($"{response.StatusCode.ToReasonString()}{errorMessage}");
 				}
 
-				using(HttpContent content = response.Content)
+				using (HttpContent content = response.Content)
 				{
 					var ret = await content.ReadAsJsonAsync<IEnumerable<ExchangeRate>>();
 					return ret;
@@ -117,6 +122,6 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			}
 		}
 
-		#endregion
+		#endregion offchain
 	}
 }

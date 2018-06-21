@@ -64,6 +64,8 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
+		private CancellationTokenSource Cancel { get; }
+
 		public IndexDownloader(Network network, string indexFilePath, Uri indexHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
@@ -74,6 +76,7 @@ namespace WalletWasabi.Services
 			IndexLock = new AsyncLock();
 
 			_running = 0;
+			Cancel = new CancellationTokenSource();
 
 			var indexDir = Path.GetDirectoryName(IndexFilePath);
 			if (!string.IsNullOrEmpty(indexDir))
@@ -128,13 +131,13 @@ namespace WalletWasabi.Services
 
 							bestKnownFilter = BestFilter;
 
-							var filters = await WasabiClient.GetFiltersAsync(bestKnownFilter.BlockHash, 1000);
+							var filters = await WasabiClient.GetFiltersAsync(bestKnownFilter.BlockHash, 1000, Cancel.Token);
 
 							if (!filters.Any())
 							{
 								continue;
 							}
-							using (await IndexLock.LockAsync())
+							using (await IndexLock.LockAsync(Cancel.Token))
 							{
 								var filtersList = filters.ToList(); // performance
 								for (int i = 0; i < filtersList.Count; i++)
@@ -160,13 +163,21 @@ namespace WalletWasabi.Services
 
 							continue;
 						}
+						catch (TaskCanceledException ex)
+						{
+							Logger.LogTrace<CcjClient>(ex);
+						}
+						catch (OperationCanceledException ex)
+						{
+							Logger.LogTrace<CcjClient>(ex);
+						}
 						catch (HttpRequestException ex) when (ex.Message.StartsWith(HttpStatusCode.NotFound.ToReasonString()))
 						{
 							// Reorg happened
 							var reorgedHash = bestKnownFilter.BlockHash;
 							Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
 							// 1. Rollback index
-							using (await IndexLock.LockAsync())
+							using (await IndexLock.LockAsync(Cancel.Token))
 							{
 								Index.RemoveAt(Index.Count - 1);
 								BestFilter = Index.Last();
@@ -189,7 +200,14 @@ namespace WalletWasabi.Services
 						{
 							if (IsRunning)
 							{
-								await Task.Delay(requestInterval); // Ask for new index in every requestInterval.
+								try
+								{
+									await Task.Delay(requestInterval, Cancel.Token); // Ask for new index in every requestInterval.
+								}
+								catch (TaskCanceledException ex)
+								{
+									Logger.LogTrace<CcjClient>(ex);
+								}
 							}
 						}
 					}
@@ -219,11 +237,13 @@ namespace WalletWasabi.Services
 			{
 				Interlocked.Exchange(ref _running, 2);
 			}
+			Cancel?.Cancel();
 			while (IsStopping)
 			{
 				Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
 			}
 
+			Cancel?.Dispose();
 			WasabiClient?.Dispose();
 		}
 
