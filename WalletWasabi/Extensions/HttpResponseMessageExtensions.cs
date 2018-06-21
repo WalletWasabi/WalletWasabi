@@ -81,5 +81,12 @@ namespace System.Net.Http
 
 			return startLine + headers + CRLF + messageBody;
 		}
+
+		public async static Task ThrowRequestExceptionAsync<T>(this HttpResponseMessage me)
+		{
+			T error = await me.Content.ReadAsJsonAsync<T>();
+			string errorMessage = error == null ? string.Empty : $"\n{error}";
+			throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}");
+		}
 	}
 }
