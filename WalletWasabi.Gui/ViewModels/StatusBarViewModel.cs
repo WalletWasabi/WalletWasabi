@@ -24,14 +24,14 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private int _filters;
+		private int _filtersLeft;
 
-		public int Filters
+		public int FiltersLeft
 		{
-			get { return _filters; }
+			get { return _filtersLeft; }
 			set
 			{
-				this.RaiseAndSetIfChanged(ref _filters, value);
+				this.RaiseAndSetIfChanged(ref _filtersLeft, value);
 			}
 		}
 
@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			IndexDownloader = indexDownloader;
 			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
-			Filters = IndexDownloader.BestFilter.BlockHeight.Value;
+			FiltersLeft = IndexDownloader.GetFiltersLeft();
 
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
@@ -95,7 +95,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void IndexDownloader_NewFilter(object sender, Backend.Models.FilterModel e)
 		{
-			Filters = IndexDownloader.BestFilter.BlockHeight.Value;
+			FiltersLeft = IndexDownloader.GetFiltersLeft();
 		}
 
 		private void MemPoolService_TransactionReceived(object sender, Models.SmartTransaction e)

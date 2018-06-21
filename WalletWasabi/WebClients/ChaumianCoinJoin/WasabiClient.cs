@@ -13,6 +13,7 @@ using WalletWasabi.Models;
 using System.Text;
 using NBitcoin.RPC;
 using System.Threading;
+using WalletWasabi.Backend.Models.Responses;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin
 {
@@ -28,7 +29,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		/// <remarks>
 		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
 		/// </remarks>
-		public async Task<IEnumerable<string>> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
+		public async Task<FiltersResponse> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
 		{
 			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
 																	HttpStatusCode.OK,
@@ -37,7 +38,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode == HttpStatusCode.NoContent)
 				{
-					return Enumerable.Empty<string>();
+					return null;
 				}
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
@@ -48,7 +49,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 				using (HttpContent content = response.Content)
 				{
-					var ret = await content.ReadAsJsonAsync<IEnumerable<string>>();
+					var ret = await content.ReadAsJsonAsync<FiltersResponse>();
 					return ret;
 				}
 			}
