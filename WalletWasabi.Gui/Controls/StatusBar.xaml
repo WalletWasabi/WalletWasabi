@@ -1,11 +1,18 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui">
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.ViewModels;assembly=WalletWasabi.Gui"
+>
+  <UserControl.Resources>
+      <converters:FilterLeftValueConverter x:Key="FilterLeftValueConverter"/>
+  </UserControl.Resources>
+
   <Grid Background="{DynamicResource ThemeAccentBrush}">
     <DockPanel LastChildFill="True" Margin="10 0">
       <StackPanel Orientation="Horizontal" Gap="4" DockPanel.Dock="Right">
         <TextBlock>Connections:</TextBlock>
         <TextBlock Text="{Binding Connections}" />
         <TextBlock>Filters Left:</TextBlock>
-        <TextBlock Text="{Binding FiltersLeft}" />
+        <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftValueConverter}}" />
         <TextBlock>Blocks Left:</TextBlock>
         <TextBlock Text="{Binding BlocksLeft}" />
         <TextBlock>Mempool:</TextBlock>
