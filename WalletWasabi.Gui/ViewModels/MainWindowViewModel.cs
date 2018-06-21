@@ -10,6 +10,7 @@ namespace WalletWasabi.Gui.ViewModels
 	public class MainWindowViewModel : ViewModelBase
 	{
 		private ModalDialogViewModelBase _modalDialog;
+		private bool _canClose = true;
 
 		public StatusBarViewModel StatusBar { get; }
 
@@ -31,6 +32,12 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get { return _modalDialog; }
 			private set { this.RaiseAndSetIfChanged(ref _modalDialog, value); }
+		}
+
+		public bool CanClose
+		{
+			get { return _canClose; }
+			set { this.RaiseAndSetIfChanged(ref _canClose, value); }
 		}
 	}
 }
