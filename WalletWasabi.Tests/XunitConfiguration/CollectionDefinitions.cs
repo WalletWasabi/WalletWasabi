@@ -9,4 +9,9 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		// to be the place to apply [CollectionDefinition] and all the
 		// ICollectionFixture<> interfaces.
 	}
+
+	[CollectionDefinition("LiveServerTests collection")]
+	public class LiverServerTestsCollections : ICollectionFixture<LiveServerTestsFixture>
+	{
+	}
 }
