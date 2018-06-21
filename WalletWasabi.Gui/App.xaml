@@ -16,6 +16,7 @@
         <StyleInclude Source="resm:Dock.Avalonia.Controls.DockTarget.xaml?assembly=Dock.Avalonia" />
         <StyleInclude Source="resm:Dock.Avalonia.Controls.DockToolChrome.xaml?assembly=Dock.Avalonia" />
         <StyleInclude Source="resm:Dock.Avalonia.Controls.MetroWindow.xaml?assembly=Dock.Avalonia" />
+        <StyleInclude Source="resm:WalletWasabi.Gui.Controls.GroupBox.xaml?assembly=WalletWasabi.Gui" />
     </Application.Styles>
     <Application.DataTemplates>
         <DataTemplate DataType="Views:MainView">
