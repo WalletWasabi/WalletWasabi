@@ -147,7 +147,7 @@ namespace WalletWasabi.Services
 
 							if (filtersResponse == null) // no-content, we are synced
 							{
-								BestHeight = bestKnownStartingFilter.BlockHeight.Value;
+								BestHeight = bestKnownStartingFilter.BlockHeight;
 								continue;
 							}
 							BestHeight = filtersResponse.BestHeight;
