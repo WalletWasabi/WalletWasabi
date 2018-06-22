@@ -31,6 +31,24 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			TermsAndConditionsCommand = new CommandDefinition(
 				"Terms and Conditions", null, ReactiveCommand.Create(() => { }));
+
+			DevToolsCommand = new CommandDefinition("Dev Tools", null, ReactiveCommand.Create(() =>
+			{
+				var devTools = new DevTools(Window.OpenWindows.FirstOrDefault());
+
+				var devToolsWindow = new Window
+				{
+					Width = 1024,
+					Height = 512,
+					Content = devTools,
+					DataTemplates =
+						{
+							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>(),
+						}
+				};
+
+				devToolsWindow.Show();
+			}));
 		}
 
 		private void OnGenerateWallet()
@@ -51,5 +69,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Help.TermsAndConditions")]
 		public CommandDefinition TermsAndConditionsCommand { get; }
+
+		[ExportCommandDefinition("Help.DevTools")]
+		public CommandDefinition DevToolsCommand { get; }
 	}
 }
