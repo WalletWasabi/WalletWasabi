@@ -3,10 +3,12 @@ using Avalonia.Diagnostics;
 using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
+using NBitcoin;
 using ReactiveUI;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs;
+using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -33,12 +35,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 				}));
 
 			PrivacyPolicyCommand = new CommandDefinition(
-				"Privacy Policy", null, ReactiveCommand.Create(() => { 
+				"Privacy Policy", null, ReactiveCommand.Create(() =>
+				{
 					IoC.Get<IShell>().AddDocument(new PrivacyPolicyViewModel());
 				}));
 
 			TermsAndConditionsCommand = new CommandDefinition(
-				"Terms and Conditions", null, ReactiveCommand.Create(() => { 
+				"Terms and Conditions", null, ReactiveCommand.Create(() =>
+				{
 					IoC.Get<IShell>().AddDocument(new TermsAndConditionsViewModel());
 				}));
 

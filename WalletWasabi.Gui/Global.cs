@@ -29,6 +29,8 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		public static string WalletsDir => Path.Combine(DataDir, "Wallets");
+
 		public static string AddressManagerFilePath { get; private set; }
 		public static AddressManager AddressManager { get; private set; }
 		public static MemPoolService MemPoolService { get; private set; }
