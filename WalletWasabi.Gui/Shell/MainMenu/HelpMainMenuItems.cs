@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[ExportMainMenuItem("Help", "About")]
 		[DefaultOrder(0)]
 		[DefaultGroup("About")]
-		public IMenuItem GenerateWallet => _menuItemFactory.CreateCommandMenuItem("Help.About");
+		public IMenuItem About => _menuItemFactory.CreateCommandMenuItem("Help.About");
 
 		[ExportMainMenuDefaultGroup("Help", "Support")]
 		[DefaultOrder(100)]

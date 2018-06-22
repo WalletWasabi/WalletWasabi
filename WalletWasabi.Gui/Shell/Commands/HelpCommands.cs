@@ -1,10 +1,12 @@
-﻿using AvalonStudio.Commands;
+﻿using Avalonia.Controls;
+using Avalonia.Diagnostics;
+using AvalonStudio.Commands;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using WalletWasabi.Gui.Dialogs;
-using WalletWasabi.Gui.ViewModels;
+using System.Linq;
+using System.Reactive.Linq;
+using WalletWasabi.Gui.Tabs;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -13,7 +15,10 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public HelpCommands()
 		{
 			AboutCommand = new CommandDefinition(
-				"About", null, ReactiveCommand.Create(async () => { await MainWindowViewModel.Instance.ShowDialogAsync(new CannotCloseDialogViewModel()); }));
+				"About", null, ReactiveCommand.Create(() =>
+				{
+					IoC.Get<IShell>().AddDocument(new AboutViewModel());
+				}));
 
 			CustomerSupportCommand = new CommandDefinition(
 				"Customer Support", null, ReactiveCommand.Create(() => { }));
