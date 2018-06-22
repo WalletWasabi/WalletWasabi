@@ -130,8 +130,6 @@ namespace WalletWasabi.Services
 
 			Task.Run(async () =>
 			{
-				FilterModel bestKnownStartingFilter = null;
-
 				try
 				{
 					while (IsRunning)
@@ -141,9 +139,9 @@ namespace WalletWasabi.Services
 							// If stop was requested return.
 							if (!IsRunning) return;
 
-							bestKnownStartingFilter = BestKnownFilter;
+							FilterModel startingFilter = BestKnownFilter;
 
-							FiltersResponse filtersResponse = await WasabiClient.GetFiltersAsync(bestKnownStartingFilter.BlockHash, 1000, Cancel.Token);
+							FiltersResponse filtersResponse = await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token);
 
 							if (filtersResponse == null) // no-content, we are synced
 							{
@@ -157,7 +155,7 @@ namespace WalletWasabi.Services
 								var filtersList = filtersResponse.Filters.ToList(); // performance
 								for (int i = 0; i < filtersList.Count; i++)
 								{
-									var filterModel = FilterModel.FromLine(filtersList[i], bestKnownStartingFilter.BlockHeight + i + 1);
+									var filterModel = FilterModel.FromLine(filtersList[i], BestKnownFilter.BlockHeight + 1);
 
 									Index.Add(filterModel);
 									BestKnownFilter = filterModel;
@@ -173,7 +171,7 @@ namespace WalletWasabi.Services
 									await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
 								}
 
-								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownStartingFilter.BlockHeight.Value + 1} to {BestKnownFilter.BlockHeight}.");
+								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {startingFilter.BlockHeight + 1} to {BestKnownFilter.BlockHeight}.");
 							}
 
 							continue;
@@ -189,7 +187,7 @@ namespace WalletWasabi.Services
 						catch (HttpRequestException ex) when (ex.Message.StartsWith(HttpStatusCode.NotFound.ToReasonString()))
 						{
 							// Reorg happened
-							var reorgedHash = bestKnownStartingFilter.BlockHash;
+							var reorgedHash = BestKnownFilter.BlockHash;
 							Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
 							// 1. Rollback index
 							using (await IndexLock.LockAsync(Cancel.Token))
