@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
 
-						owner.CurrentView = new GenerateWalletSuccessViewModel(mnemonic);
+						owner.CurrentView = new GenerateWalletSuccessViewModel(owner, mnemonic);
 					}
 					catch (Exception ex)
 					{

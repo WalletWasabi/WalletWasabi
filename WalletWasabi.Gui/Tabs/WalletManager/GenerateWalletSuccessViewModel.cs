@@ -8,9 +8,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 	{
 		private string _mnemonicWords;
 
-		public GenerateWalletSuccessViewModel(Mnemonic mnemonic) : base("Wallet Generated Successfully!")
+		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, Mnemonic mnemonic) : base("Wallet Generated Successfully!")
 		{
 			_mnemonicWords = mnemonic.ToString();
+
+			ConfirmCommand = ReactiveCommand.Create(() =>
+			{
+				owner.SelectedCategory = owner.LoadWalletCategory;
+			});
 		}
 
 		public string MnemonicWords
@@ -18,6 +23,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			get { return _mnemonicWords; }
 			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
 		}
+
+		public ReactiveCommand ConfirmCommand { get; }
 
 		public override void OnCategorySelected()
 		{
