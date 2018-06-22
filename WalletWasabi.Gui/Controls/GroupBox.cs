@@ -45,6 +45,8 @@ namespace WalletWasabi.Gui.Controls
 			_border.Margin = new Thickness(0, -(_titlePresenter.DesiredSize.Height / 3), 0, 0);
 			_border.Padding = new Thickness(0, (_titlePresenter.DesiredSize.Height / 3), 0, 0);
 
+			_titlePresenter.Margin = new Thickness(Padding.Left, 0, 0, 0);
+
 			return base.ArrangeOverride(finalSize);
 		}
 	}
