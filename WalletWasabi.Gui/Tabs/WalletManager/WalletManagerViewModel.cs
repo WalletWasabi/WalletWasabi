@@ -10,13 +10,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 	{
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
+		private ViewModelBase _currentView;
 
 		public WalletManagerViewModel() : base("Wallet Manager")
 		{
+			LoadWalletCategory = new LoadWalletViewModel();
+
 			Categories = new ObservableCollection<CategoryViewModel>
 			{
-				new GenerateWalletViewModel(),
-				new RecoverWalletViewModel()
+				new GenerateWalletViewModel(this),
+				new RecoverWalletViewModel(this),
+				LoadWalletCategory
 			};
 
 			SelectedCategory = Categories.FirstOrDefault();
@@ -24,8 +28,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			this.WhenAnyValue(x => x.SelectedCategory).Subscribe(category =>
 			{
 				category?.OnCategorySelected();
+
+				CurrentView = category;
 			});
 		}
+
+		public LoadWalletViewModel LoadWalletCategory { get; }
 
 		public ObservableCollection<CategoryViewModel> Categories
 		{
@@ -37,6 +45,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			get { return _selectedCategory; }
 			set { this.RaiseAndSetIfChanged(ref _selectedCategory, value); }
+		}
+
+		public ViewModelBase CurrentView
+		{
+			get { return _currentView; }
+			set { this.RaiseAndSetIfChanged(ref _currentView, value); }
 		}
 	}
 }

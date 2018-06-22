@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _termsAccepted;
 		private string _validationMessage;
 
-		public RecoverWalletViewModel() : base("Recover Wallet")
+		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
 			RecoverCommand = ReactiveCommand.Create(() =>
 			{
@@ -51,6 +51,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						var mnemonic = new Mnemonic(MnemonicWords);
 						KeyManager.Recover(mnemonic, Password, walletFilePath);
+
+						owner.SelectedCategory = owner.LoadWalletCategory;
 					}
 					catch (Exception ex)
 					{
