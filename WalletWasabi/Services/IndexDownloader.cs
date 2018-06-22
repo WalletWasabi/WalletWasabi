@@ -61,6 +61,24 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<TorStatus> TorStatusChanged;
 
+		private BackendStatus _backendStatus;
+
+		public BackendStatus BackendStatus
+		{
+			get => _backendStatus;
+
+			private set
+			{
+				if (_backendStatus != value)
+				{
+					_backendStatus = value;
+					BackendStatusChanged?.Invoke(this, value);
+				}
+			}
+		}
+
+		public event EventHandler<BackendStatus> BackendStatusChanged;
+
 		public int GetFiltersLeft()
 		{
 			if (BestHeight == Height.Unknown || BestHeight == Height.MemPool || BestKnownFilter.BlockHeight == Height.Unknown || BestKnownFilter.BlockHeight == Height.MemPool)
@@ -180,18 +198,27 @@ namespace WalletWasabi.Services
 							FiltersResponse filtersResponse = null;
 							try
 							{
-								await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token);
+								filtersResponse = await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token);
 							}
 							catch (ConnectionException)
 							{
 								TorStatus = TorStatus.NotRunning;
+								BackendStatus = BackendStatus.Online;
 								throw;
 							}
-							catch
+							catch (TorSocks5FailureResponseException)
 							{
 								TorStatus = TorStatus.Running;
+								BackendStatus = BackendStatus.Offline;
 								throw;
 							}
+							catch (Exception ex)
+							{
+								TorStatus = TorStatus.Running;
+								BackendStatus = BackendStatus.Online;
+								throw;
+							}
+							BackendStatus = BackendStatus.Online;
 							TorStatus = TorStatus.Running;
 
 							if (filtersResponse == null) // no-content, we are synced

@@ -16,6 +16,17 @@ namespace WalletWasabi.Gui.ViewModels
 		public MemPoolService MemPoolService { get; }
 		public IndexDownloader IndexDownloader { get; }
 
+		private BackendStatus _backend;
+
+		public BackendStatus Backend
+		{
+			get { return _backend; }
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _backend, value);
+			}
+		}
+
 		private TorStatus _tor;
 
 		public TorStatus Tor
@@ -94,6 +105,7 @@ namespace WalletWasabi.Gui.ViewModels
 			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
 			IndexDownloader.BestHeightChanged += IndexDownloader_BestHeightChanged;
 			IndexDownloader.TorStatusChanged += IndexDownloader_TorStatusChanged;
+			IndexDownloader.BackendStatusChanged += IndexDownloader_BackendStatusChanged;
 
 			FiltersLeft = IndexDownloader.GetFiltersLeft();
 
@@ -125,6 +137,11 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				Status = "Ready";
 			}
+		}
+
+		private void IndexDownloader_BackendStatusChanged(object sender, BackendStatus e)
+		{
+			Backend = e;
 		}
 
 		private void IndexDownloader_TorStatusChanged(object sender, TorStatus e)
@@ -173,6 +190,7 @@ namespace WalletWasabi.Gui.ViewModels
 					IndexDownloader.NewFilter -= IndexDownloader_NewFilter;
 					IndexDownloader.BestHeightChanged -= IndexDownloader_BestHeightChanged;
 					IndexDownloader.TorStatusChanged -= IndexDownloader_TorStatusChanged;
+					IndexDownloader.BackendStatusChanged -= IndexDownloader_BackendStatusChanged;
 				}
 
 				_disposedValue = true;
