@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 
@@ -24,25 +25,24 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			GenerateCommand = ReactiveCommand.Create(async () =>
 			{
+				WalletName = Guard.Correct(WalletName);
+
 				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 
 				if (TermsAccepted == false)
 				{
-					// Terms are not accepted.
+					ValidationMessage = "Terms are not accepted.";
 				}
 				else if (string.IsNullOrWhiteSpace(WalletName))
 				{
-					// Invalid wallet name.
 					ValidationMessage = $"The name {WalletName} is not valid.";
 				}
 				else if (File.Exists(walletFilePath))
 				{
-					// Wallet with the same name already exists.
 					ValidationMessage = $"The name {WalletName} is already taken.";
 				}
 				else if (Password != PasswordConfirmation)
 				{
-					// Password does not match the password confirmation.
 					ValidationMessage = $"The passwords do not match.";
 				}
 				else
@@ -50,11 +50,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					try
 					{
 						KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
-						// https://imgur.com/a/PTkQJJN
 					}
 					catch (Exception ex)
 					{
-						// ex.ToString()
+						ValidationMessage = ex.ToString();
 					}
 				}
 			},
