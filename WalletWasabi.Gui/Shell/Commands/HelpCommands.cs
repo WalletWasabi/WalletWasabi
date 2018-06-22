@@ -33,10 +33,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 				}));
 
 			PrivacyPolicyCommand = new CommandDefinition(
-				"Privacy Policy", null, ReactiveCommand.Create(() => { }));
+				"Privacy Policy", null, ReactiveCommand.Create(() => { 
+					IoC.Get<IShell>().AddDocument(new PrivacyPolicyViewModel());
+				}));
 
 			TermsAndConditionsCommand = new CommandDefinition(
-				"Terms and Conditions", null, ReactiveCommand.Create(() => { }));
+				"Terms and Conditions", null, ReactiveCommand.Create(() => { 
+					IoC.Get<IShell>().AddDocument(new TermsAndConditionsViewModel());
+				}));
 
 			DevToolsCommand = new CommandDefinition("Dev Tools", null, ReactiveCommand.Create(() =>
 			{
