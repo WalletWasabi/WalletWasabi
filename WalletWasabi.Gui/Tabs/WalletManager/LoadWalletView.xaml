@@ -6,5 +6,9 @@
                 <ListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}" />
             </Grid>
         </controls:GroupBox>
+        <DockPanel LastChildFill="True">
+            <Button Content="Load" Command="{Binding LoadCommand}" DockPanel.Dock="Right" />
+            <Grid></Grid>
+        </DockPanel>
     </StackPanel>
 </UserControl>
