@@ -9,4 +9,8 @@
     <Style Selector="Grid.docTabContainer">
         <Setter Property="Margin" Value="20" />
     </Style>
+
+    <Style Selector=".hyperLink">
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+    </Style>
 </Styles>
