@@ -1,0 +1,12 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style Selector="TextBox.selectableTextBlock">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="IsReadOnly" Value="True" />
+    </Style>
+
+    <Style Selector="Grid.docTabContainer">
+        <Setter Property="Margin" Value="20" />
+    </Style>
+</Styles>
