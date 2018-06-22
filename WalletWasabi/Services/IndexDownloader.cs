@@ -23,7 +23,24 @@ namespace WalletWasabi.Services
 		public Network Network { get; }
 
 		public FilterModel BestKnownFilter { get; private set; }
-		public Height BestHeight { get; private set; }
+
+		private Height _bestHeight;
+
+		public Height BestHeight
+		{
+			get => _bestHeight;
+
+			private set
+			{
+				if (_bestHeight != value)
+				{
+					_bestHeight = value;
+					BestHeightChanged?.Invoke(this, value);
+				}
+			}
+		}
+
+		public event EventHandler<Height> BestHeightChanged;
 
 		public int GetFiltersLeft()
 		{
