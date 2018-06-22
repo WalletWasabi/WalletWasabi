@@ -1,0 +1,5 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui">
+    <Grid Classes="docTabContainer">
+        <TextBox Text="Please visit http://reddit.com/r/WasabiWallet/" Classes="selectableTextBlock hyperLink" />
+    </Grid>
+</UserControl>

@@ -21,10 +21,16 @@ namespace WalletWasabi.Gui.Shell.Commands
 				}));
 
 			CustomerSupportCommand = new CommandDefinition(
-				"Customer Support", null, ReactiveCommand.Create(() => { }));
+				"Customer Support", null, ReactiveCommand.Create(() =>
+				{
+					IoC.Get<IShell>().AddDocument(new CustomerSupportViewModel());
+				}));
 
 			ReportBugCommand = new CommandDefinition(
-				"Report Bug", null, ReactiveCommand.Create(() => { }));
+				"Report Bug", null, ReactiveCommand.Create(() =>
+				{
+					IoC.Get<IShell>().AddDocument(new ReportBugViewModel());
+				}));
 
 			PrivacyPolicyCommand = new CommandDefinition(
 				"Privacy Policy", null, ReactiveCommand.Create(() => { }));
