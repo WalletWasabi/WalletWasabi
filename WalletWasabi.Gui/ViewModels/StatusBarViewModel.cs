@@ -80,6 +80,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			IndexDownloader = indexDownloader;
 			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
+			IndexDownloader.BestHeightChanged += IndexDownloader_BestHeightChanged;
 
 			FiltersLeft = IndexDownloader.GetFiltersLeft();
 
@@ -106,6 +107,11 @@ namespace WalletWasabi.Gui.ViewModels
 		}
 
 		private void IndexDownloader_NewFilter(object sender, Backend.Models.FilterModel e)
+		{
+			FiltersLeft = IndexDownloader.GetFiltersLeft();
+		}
+
+		private void IndexDownloader_BestHeightChanged(object sender, Models.Height e)
 		{
 			FiltersLeft = IndexDownloader.GetFiltersLeft();
 		}
@@ -139,6 +145,7 @@ namespace WalletWasabi.Gui.ViewModels
 					Nodes.Removed -= Nodes_Removed;
 					MemPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
 					IndexDownloader.NewFilter -= IndexDownloader_NewFilter;
+					IndexDownloader.BestHeightChanged -= IndexDownloader_BestHeightChanged;
 				}
 
 				_disposedValue = true;
