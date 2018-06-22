@@ -2,7 +2,6 @@
         xmlns:local="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Style Selector="local|GroupBox">
-        <Setter Property="Padding" Value="10" />
         <Setter Property="Margin" Value="10" />
         <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
         <Setter Property="Template">
@@ -12,9 +11,8 @@
                         Background="{TemplateBinding Background}"
                         Content="{TemplateBinding Title}"
                         HorizontalAlignment="Left"
-                        ZIndex="1"
-                        Padding="4 0" Margin="10 0" />
-                    <Border Name="PART_Border"  BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderLightBrush}">
+                        ZIndex="1" />
+                    <Border Name="PART_Border"  BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{DynamicResource ThemeBorderLightBrush}">
                         <ContentPresenter Name="PART_ContentPresenter"
                         Background="{TemplateBinding Background}"
                         ContentTemplate="{TemplateBinding ContentTemplate}"
