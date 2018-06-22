@@ -95,10 +95,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OnTermsClicked()
 		{
+			IoC.Get<IShell>().AddDocument(new TermsAndConditionsViewModel());
 		}
 
 		public void OnPrivacyClicked()
 		{
+			IoC.Get<IShell>().AddDocument(new PrivacyPolicyViewModel());
+		}
+
+		public void OnLegalClicked()
+		{
+			IoC.Get<IShell>().AddDocument(new LegalIssuesViewModel());
 		}
 
 		public override void OnCategorySelected()

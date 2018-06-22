@@ -46,6 +46,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 					IoC.Get<IShell>().AddDocument(new TermsAndConditionsViewModel());
 				}));
 
+			LegalIssuesCommand = new CommandDefinition(
+				"Legal Issues", null, ReactiveCommand.Create(() =>
+				{
+					IoC.Get<IShell>().AddDocument(new LegalIssuesViewModel());
+				}));
+
 			DevToolsCommand = new CommandDefinition("Dev Tools", null, ReactiveCommand.Create(() =>
 			{
 				var devTools = new DevTools(Window.OpenWindows.FirstOrDefault());
@@ -83,6 +89,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Help.TermsAndConditions")]
 		public CommandDefinition TermsAndConditionsCommand { get; }
+
+		[ExportCommandDefinition("Help.LegalIssues")]
+		public CommandDefinition LegalIssuesCommand { get; }
 
 		[ExportCommandDefinition("Help.DevTools")]
 		public CommandDefinition DevToolsCommand { get; }

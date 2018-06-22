@@ -121,11 +121,19 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				SetStatus();
 			});
+			this.WhenAnyValue(x => x.Backend).Subscribe(backend =>
+			{
+				SetStatus();
+			});
+			this.WhenAnyValue(x => x.Peers).Subscribe(peers =>
+			{
+				SetStatus();
+			});
 		}
 
 		private void SetStatus()
 		{
-			if (Tor != TorStatus.Running)
+			if (Tor != TorStatus.Running || Backend != BackendStatus.Online || Peers < 1)
 			{
 				Status = "Connecting...";
 			}
