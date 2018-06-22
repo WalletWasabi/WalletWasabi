@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public GenerateWalletViewModel() : base("Generate Wallet")
 		{
-			GenerateCommand = ReactiveCommand.Create(async () =>
+			GenerateCommand = ReactiveCommand.Create(() =>
 			{
 				WalletName = Guard.Correct(WalletName);
 
