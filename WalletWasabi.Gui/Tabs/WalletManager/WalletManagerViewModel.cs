@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using WalletWasabi.Gui.ViewModels;
+using System;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -14,10 +15,16 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			Categories = new ObservableCollection<CategoryViewModel>
 			{
-				new GenerateWalletViewModel()
+				new GenerateWalletViewModel(),
+				new RecoverWalletViewModel()
 			};
 
 			SelectedCategory = Categories.FirstOrDefault();
+
+			this.WhenAnyValue(x => x.SelectedCategory).Subscribe(category =>
+			{
+				category?.OnCategorySelected();
+			});
 		}
 
 		public ObservableCollection<CategoryViewModel> Categories

@@ -2,8 +2,7 @@
              xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility">
     <Grid Background="#EF2D2D2D" IsVisible="{Binding IsVisible, FallbackValue=False}">
         <Grid Height="500" Background="{DynamicResource ThemeAccentBrush}" Margin="10 0">
-            <DockPanel LastChildFill="True" Margin="4 0">
-
+            <DockPanel LastChildFill="True" Margin="350 0">
                 <StackPanel Orientation="Horizontal" Gap="20" HorizontalAlignment="Right" DockPanel.Dock="Bottom" Margin="8 0 8 8" TextBlock.FontSize="20">
                     <Button Command="{Binding CancelCommand}" IsVisible="{Binding CancelButtonVisible}" Content="Cancel" Width="160" Height="50" />
                     <Button Content="OK" Command="{Binding OKCommand}" IsVisible="{Binding OKButtonVisible}" Width="160" Height="50" />
