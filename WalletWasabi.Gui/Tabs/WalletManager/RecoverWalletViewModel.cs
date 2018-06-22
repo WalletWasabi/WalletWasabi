@@ -18,6 +18,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _mnemonicWords;
 		private string _walletName;
 		private bool _termsAccepted;
+		private string _validationMessage;
 
 		public RecoverWalletViewModel() : base("Recover Wallet")
 		{
@@ -30,19 +31,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				if (TermsAccepted == false)
 				{
-					// ValidationMessage = "Terms are not accepted.";
+					ValidationMessage = "Terms are not accepted.";
 				}
 				else if (string.IsNullOrWhiteSpace(WalletName))
 				{
-					// ValidationMessage = $"The name {WalletName} is not valid.";
+					ValidationMessage = $"The name {WalletName} is not valid.";
 				}
 				else if (File.Exists(walletFilePath))
 				{
-					// ValidationMessage = $"The name {WalletName} is already taken.";
+					ValidationMessage = $"The name {WalletName} is already taken.";
 				}
 				else if (string.IsNullOrWhiteSpace(MnemonicWords))
 				{
-					// ValidationMessage = $"Mnemonic words were not supplied.";
+					ValidationMessage = $"Mnemonic words were not supplied.";
 				}
 				else
 				{
@@ -53,7 +54,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 					catch (Exception ex)
 					{
-						// ValidationMessage = ex.ToString();
+						ValidationMessage = ex.ToString();
 					}
 				}
 			},
@@ -84,6 +85,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _termsAccepted, value); }
 		}
 
+		public string ValidationMessage
+		{
+			get { return _validationMessage; }
+			set { this.RaiseAndSetIfChanged(ref _validationMessage, value); }
+		}
+
 		public ReactiveCommand RecoverCommand { get; }
 
 		public void OnTermsClicked()
@@ -92,6 +99,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OnPrivacyClicked()
 		{
+		}
+
+		public override void OnCategorySelected()
+		{
+			base.OnCategorySelected();
+
+			Password = null;
+			MnemonicWords = null;
+			WalletName = Utils.GetNextWalletName();
+			TermsAccepted = false;
+			ValidationMessage = null;
 		}
 	}
 }

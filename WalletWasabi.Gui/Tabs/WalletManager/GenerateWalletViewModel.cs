@@ -106,22 +106,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Password = null;
 			PasswordConfirmation = null;
-			WalletName = GetNextWalletName();
+			WalletName = Utils.GetNextWalletName();
 			TermsAccepted = false;
 			ValidationMessage = null;
-		}
-
-		private static string GetNextWalletName()
-		{
-			for (int i = 0; i < int.MaxValue; i++)
-			{
-				if (!File.Exists(Path.Combine(Global.WalletsDir, $"Wallet{i}.json")))
-				{
-					return $"Wallet{i}";
-				}
-			}
-
-			throw new NotSupportedException("This is impossible.");
 		}
 	}
 }
