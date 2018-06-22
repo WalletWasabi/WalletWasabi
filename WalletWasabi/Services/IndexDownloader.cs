@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Services
 {
@@ -41,6 +42,24 @@ namespace WalletWasabi.Services
 		}
 
 		public event EventHandler<Height> BestHeightChanged;
+
+		private TorStatus _torStatus;
+
+		public TorStatus TorStatus
+		{
+			get => _torStatus;
+
+			private set
+			{
+				if (_torStatus != value)
+				{
+					_torStatus = value;
+					TorStatusChanged?.Invoke(this, value);
+				}
+			}
+		}
+
+		public event EventHandler<TorStatus> TorStatusChanged;
 
 		public int GetFiltersLeft()
 		{
@@ -158,7 +177,22 @@ namespace WalletWasabi.Services
 
 							FilterModel startingFilter = BestKnownFilter;
 
-							FiltersResponse filtersResponse = await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token);
+							FiltersResponse filtersResponse = null;
+							try
+							{
+								await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token);
+							}
+							catch (ConnectionException)
+							{
+								TorStatus = TorStatus.NotRunning;
+								throw;
+							}
+							catch
+							{
+								TorStatus = TorStatus.Running;
+								throw;
+							}
+							TorStatus = TorStatus.Running;
 
 							if (filtersResponse == null) // no-content, we are synced
 							{

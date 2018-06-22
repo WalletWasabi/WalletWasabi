@@ -3,14 +3,16 @@
              xmlns:converters="clr-namespace:WalletWasabi.Gui.ViewModels;assembly=WalletWasabi.Gui"
 >
   <UserControl.Resources>
-      <converters:FilterLeftValueConverter x:Key="FilterLeftValueConverter"/>
+    <converters:FilterLeftValueConverter x:Key="FilterLeftValueConverter" />
   </UserControl.Resources>
 
   <Grid Background="{DynamicResource ThemeAccentBrush}">
     <DockPanel LastChildFill="True" Margin="10 0">
       <StackPanel Orientation="Horizontal" Gap="4" DockPanel.Dock="Right">
-        <TextBlock>Connections:</TextBlock>
-        <TextBlock Text="{Binding Connections}" />
+        <TextBlock>Tor:</TextBlock>
+        <TextBlock Text="{Binding Tor}" />
+        <TextBlock>Peers:</TextBlock>
+        <TextBlock Text="{Binding Peers}" />
         <TextBlock>Filters Left:</TextBlock>
         <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftValueConverter}}" />
         <TextBlock>Blocks Left:</TextBlock>
