@@ -34,4 +34,12 @@
     <Style Selector=".hyperLink">
         <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
     </Style>
+
+    <Style Selector="Button.activeHyperLink">
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
 </Styles>
