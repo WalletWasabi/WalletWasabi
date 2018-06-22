@@ -1,4 +1,5 @@
-﻿using AvalonStudio.Commands;
+﻿using Avalonia;
+using AvalonStudio.Commands;
 using ReactiveUI;
 
 namespace WalletWasabi.Gui.Shell.Commands
@@ -16,6 +17,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnExit()
 		{
+			Application.Current.Exit();
 		}
 	}
 }
