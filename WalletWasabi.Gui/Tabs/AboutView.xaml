@@ -1,0 +1,5 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui">
+    <Grid Classes="docTabContainer">
+        <TextBox Text="{Binding VersionText}" Classes="selectableTextBlock" />
+    </Grid>
+</UserControl>
