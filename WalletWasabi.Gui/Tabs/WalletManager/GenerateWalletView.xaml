@@ -15,8 +15,16 @@
             </Grid>
         </controls:GroupBox>
         <DockPanel LastChildFill="True">
-            <CheckBox IsChecked="True">I agree to the Terms and Conditions and Privacy Policy.</CheckBox>
-            <Button Content="Generate" Command="{Binding Generate Command}" DockPanel.Dock="Right" />
+            <CheckBox IsChecked="{Binding TermsAccepted,Mode=TwoWay}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="I agree to the " />
+                    <Button Content="Terms and Conditions" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />
+                    <TextBlock Text=" and " />
+                    <Button Content="Privacy Policy" Classes="activeHyperLink" Command="{Binding OnPrivacyClicked}" />
+                    <TextBlock Text="." />
+                </StackPanel>
+            </CheckBox>
+            <Button Content="Generate" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" />
             <Grid></Grid>
         </DockPanel>
     </StackPanel>
