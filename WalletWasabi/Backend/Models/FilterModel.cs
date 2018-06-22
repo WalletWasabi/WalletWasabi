@@ -44,11 +44,15 @@ namespace WalletWasabi.Backend.Models
 					Filter = null
 				};
 			}
+
+			var data = NBitcoin.DataEncoders.Encoders.Hex.DecodeData(parts[1]);
+			var filter = new GolombRiceFilter(data, 20, 1<<20);
+			
 			return new FilterModel
 			{
 				BlockHeight = Guard.NotNull(nameof(height), height),
 				BlockHash = new uint256(parts[0]),
-				Filter = GolombRiceFilter.Parse(parts[1])
+				Filter = filter
 			};
 		}
 	}
