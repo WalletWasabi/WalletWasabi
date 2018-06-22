@@ -15,7 +15,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			Categories = new ObservableCollection<CategoryViewModel>
 			{
-				new GenerateWalletViewModel(),
+				new GenerateWalletViewModel(this),
 				new RecoverWalletViewModel(),
 				new LoadWalletViewModel()
 			};

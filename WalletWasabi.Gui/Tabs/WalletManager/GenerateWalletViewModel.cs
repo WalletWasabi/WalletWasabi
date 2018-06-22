@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _termsAccepted;
 		private string _validationMessage;
 
-		public GenerateWalletViewModel() : base("Generate Wallet")
+		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
 			GenerateCommand = ReactiveCommand.Create(async () =>
 			{
@@ -50,7 +50,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					try
 					{
 						KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
-						// https://imgur.com/a/PTkQJJN
+
+						owner.SelectedCategory = new GenerateWalletSuccessViewModel();
 					}
 					catch (Exception ex)
 					{
