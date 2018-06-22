@@ -212,7 +212,7 @@ namespace WalletWasabi.Services
 								BackendStatus = BackendStatus.Offline;
 								throw;
 							}
-							catch (Exception ex)
+							catch
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.Online;
