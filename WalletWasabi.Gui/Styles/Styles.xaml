@@ -1,9 +1,15 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
     <Style>
         <Style.Resources>
+            <SolidColorBrush x:Key="ThemeAccentBrush">#007ACC</SolidColorBrush>
             <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
+
+            <sys:Double x:Key="FontSizeSmall">12</sys:Double>
+            <sys:Double x:Key="FontSizeNormal">14</sys:Double>
+            <sys:Double x:Key="FontSizeLarge">18</sys:Double>
         </Style.Resources>
     </Style>
     <Style Selector="TextBox.selectableTextBlock">
