@@ -1,0 +1,23 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+    <StackPanel Margin="10" Gap="10">
+        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20">
+            <Grid Classes="content">
+                <StackPanel Gap="8">
+                    <StackPanel>
+                        <TextBlock Text="Heads Up!" FontWeight="Bold" />
+                        <TextBlock Text="It is not possible to recover a wallet without your password. We advise to use a password that you will not forget." TextWrapping="Wrap" />
+                    </StackPanel>
+                    <TextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
+                    <TextBox Text="{Binding Password}" Watermark="Choose a password" PasswordChar="*" UseFloatingWatermark="True" />
+                    <TextBox Text="{Binding PasswordConfirmation}" Watermark="Confirm password" PasswordChar="*" UseFloatingWatermark="True" />
+                </StackPanel>
+            </Grid>
+        </controls:GroupBox>
+        <DockPanel LastChildFill="True">
+            <CheckBox IsChecked="True">I agree to the Terms and Conditions and Privacy Policy.</CheckBox>
+            <Button Content="Generate" Command="{Binding Generate Command}" DockPanel.Dock="Right" />
+            <Grid></Grid>
+        </DockPanel>
+    </StackPanel>
+</UserControl>

@@ -1,7 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Gui.Tabs
+namespace WalletWasabi.Gui.Tabs.WalletManager
 {
 	internal class WalletManagerView : UserControl
 	{
