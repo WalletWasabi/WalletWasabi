@@ -13,7 +13,7 @@
                 </ListBox>
             </Grid>
             <Grid>
-                <cont:ViewModelViewHost DataContext="{Binding SelectedCategory}" Margin="4" />
+                <cont:ViewModelViewHost DataContext="{Binding CurrentView}" Margin="4" />
             </Grid>
         </DockPanel>
     </Grid>
