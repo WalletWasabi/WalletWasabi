@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[ExportMainMenuItem("Help", "About")]
 		[DefaultOrder(0)]
 		[DefaultGroup("About")]
-		public IMenuItem GenerateWallet => _menuItemFactory.CreateCommandMenuItem("Help.About");
+		public IMenuItem About => _menuItemFactory.CreateCommandMenuItem("Help.About");
 
 		[ExportMainMenuDefaultGroup("Help", "Support")]
 		[DefaultOrder(100)]
@@ -57,5 +57,10 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultOrder(1)]
 		[DefaultGroup("Legal")]
 		public IMenuItem TermsAndConditions => _menuItemFactory.CreateCommandMenuItem("Help.TermsAndConditions");
+
+		[ExportMainMenuItem("Help", "Dev Tools")]
+		[DefaultOrder(300)]
+		[DefaultGroup("About")]
+		public IMenuItem DevTools => _menuItemFactory.CreateCommandMenuItem("Help.DevTools");
 	}
 }
