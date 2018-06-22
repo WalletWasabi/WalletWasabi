@@ -6,11 +6,11 @@
                 <StackPanel Gap="8">
                     <StackPanel>
                         <TextBlock Text="Heads Up!" FontWeight="Bold" />
-                        <TextBlock Text="It is not possible to recover a wallet without your password. We advise to use a password that you will not forget." TextWrapping="Wrap" />
+                        <TextBlock Text="At recovery the wallet is unable to check if your password is correct. If you provide a wrong password a wallet will be recovered with the provided mnemonic and password combination." TextWrapping="Wrap" />
                     </StackPanel>
                     <TextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
-                    <TextBox Text="{Binding Password}" Watermark="Choose a password" PasswordChar="*" UseFloatingWatermark="True" />
-                    <TextBox Text="{Binding PasswordConfirmation}" Watermark="Confirm password" PasswordChar="*" UseFloatingWatermark="True" />
+                    <TextBox Text="{Binding Password}" Watermark="Password" PasswordChar="*" UseFloatingWatermark="True" />
+                    <TextBox Text="{Binding MnemonicWords}" Watermark="MnemonicWords" UseFloatingWatermark="True" />
                 </StackPanel>
             </Grid>
         </controls:GroupBox>
@@ -24,9 +24,8 @@
                     <TextBlock Text="." />
                 </StackPanel>
             </CheckBox>
-            <Button Content="Generate" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" />
+            <Button Content="Recover" Command="{Binding RecoverCommand}" DockPanel.Dock="Right" />
             <Grid></Grid>
         </DockPanel>
-        <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
     </StackPanel>
 </UserControl>

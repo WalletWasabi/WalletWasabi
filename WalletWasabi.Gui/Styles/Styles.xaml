@@ -6,6 +6,7 @@
         <Style.Resources>
             <SolidColorBrush x:Key="ThemeAccentBrush">#007ACC</SolidColorBrush>
             <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
+            <SolidColorBrush x:Key="ErrorMessageForeground">#F25022</SolidColorBrush>
 
             <sys:Double x:Key="FontSizeSmall">12</sys:Double>
             <sys:Double x:Key="FontSizeNormal">14</sys:Double>
@@ -33,6 +34,10 @@
 
     <Style Selector=".hyperLink">
         <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
+    </Style>
+
+    <Style Selector=".errorMessage">
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorMessageForeground}" />
     </Style>
 
     <Style Selector="Button.activeHyperLink">

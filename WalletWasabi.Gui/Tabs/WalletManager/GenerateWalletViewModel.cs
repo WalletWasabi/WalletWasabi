@@ -5,6 +5,7 @@ using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
@@ -17,10 +18,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _passwordConfirmation;
 		private string _walletName;
 		private bool _termsAccepted;
+		private string _validationMessage;
 
 		public GenerateWalletViewModel() : base("Generate Wallet")
 		{
-			GenerateCommand = ReactiveCommand.Create(() =>
+			GenerateCommand = ReactiveCommand.Create(async () =>
 			{
 				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 
@@ -31,14 +33,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				else if (string.IsNullOrWhiteSpace(WalletName))
 				{
 					// Invalid wallet name.
+					ValidationMessage = $"The name {WalletName} is not valid.";
 				}
 				else if (File.Exists(walletFilePath))
 				{
 					// Wallet with the same name already exists.
+					ValidationMessage = $"The name {WalletName} is already taken.";
 				}
 				else if (Password != PasswordConfirmation)
 				{
 					// Password does not match the password confirmation.
+					ValidationMessage = $"The passwords do not match.";
 				}
 				else
 				{
@@ -80,6 +85,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _termsAccepted, value); }
 		}
 
+		public string ValidationMessage
+		{
+			get { return _validationMessage; }
+			set { this.RaiseAndSetIfChanged(ref _validationMessage, value); }
+		}
+
 		public ReactiveCommand GenerateCommand { get; }
 
 		public void OnTermsClicked()
@@ -88,6 +99,30 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OnPrivacyClicked()
 		{
+		}
+
+		public override void OnCategorySelected()
+		{
+			base.OnCategorySelected();
+
+			Password = null;
+			PasswordConfirmation = null;
+			WalletName = GetNextWalletName();
+			TermsAccepted = false;
+			ValidationMessage = null;
+		}
+
+		private static string GetNextWalletName()
+		{
+			for (int i = 0; i < int.MaxValue; i++)
+			{
+				if (!File.Exists(Path.Combine(Global.WalletsDir, $"Wallet{i}.json")))
+				{
+					return $"Wallet{i}";
+				}
+			}
+
+			throw new NotSupportedException("This is impossible.");
 		}
 	}
 }
