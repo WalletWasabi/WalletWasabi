@@ -1,31 +1,32 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
-    <StackPanel Margin="10" Gap="10">
-        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20">
-            <Grid Classes="content">
-                <StackPanel Gap="8">
-                    <StackPanel>
-                        <TextBlock Text="Heads Up!" FontWeight="Bold" />
-                        <TextBlock Text="At recovery the wallet is unable to check if your password is correct. If you provide a wrong password a wallet will be recovered with the provided mnemonic and password combination." TextWrapping="Wrap" />
-                    </StackPanel>
-                    <TextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
-                    <TextBox Text="{Binding Password}" Watermark="Password" PasswordChar="*" UseFloatingWatermark="True" />
-                    <TextBox Text="{Binding MnemonicWords}" Watermark="MnemonicWords" UseFloatingWatermark="True" />
-                </StackPanel>
-            </Grid>
-        </controls:GroupBox>
-        <DockPanel LastChildFill="True">
-            <CheckBox IsChecked="{Binding TermsAccepted,Mode=TwoWay}">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="I agree to the " />
-                    <Button Content="Terms and Conditions" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />
-                    <TextBlock Text=" and " />
-                    <Button Content="Privacy Policy" Classes="activeHyperLink" Command="{Binding OnPrivacyClicked}" />
-                    <TextBlock Text="." />
-                </StackPanel>
-            </CheckBox>
-            <Button Content="Recover" Command="{Binding RecoverCommand}" DockPanel.Dock="Right" />
-            <Grid></Grid>
-        </DockPanel>
-    </StackPanel>
+  <StackPanel Margin="10" Gap="10">
+    <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20">
+      <Grid Classes="content">
+        <StackPanel Gap="8">
+          <StackPanel>
+            <TextBlock Text="Heads Up!" FontWeight="Bold" />
+            <TextBlock Text="At recovery the wallet is unable to check if your password is correct. If you provide a wrong password a wallet will be recovered with the provided mnemonic and password combination." TextWrapping="Wrap" />
+          </StackPanel>
+          <TextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
+          <TextBox Text="{Binding Password}" Watermark="Password" PasswordChar="*" UseFloatingWatermark="True" />
+          <TextBox Text="{Binding MnemonicWords}" Watermark="MnemonicWords" UseFloatingWatermark="True" />
+        </StackPanel>
+      </Grid>
+    </controls:GroupBox>
+    <DockPanel LastChildFill="True">
+      <CheckBox IsChecked="{Binding TermsAccepted,Mode=TwoWay}">
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="I agree to the " />
+          <Button Content="Terms and Conditions" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />
+          <TextBlock Text=" and " />
+          <Button Content="Privacy Policy" Classes="activeHyperLink" Command="{Binding OnPrivacyClicked}" />
+          <TextBlock Text="." />
+        </StackPanel>
+      </CheckBox>
+      <Button Content="Recover" Command="{Binding RecoverCommand}" DockPanel.Dock="Right" />
+      <Grid></Grid>
+    </DockPanel>
+    <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
+  </StackPanel>
 </UserControl>
