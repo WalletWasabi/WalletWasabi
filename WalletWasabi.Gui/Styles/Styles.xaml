@@ -1,16 +1,30 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+    <Style>
+        <Style.Resources>
+            <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
+        </Style.Resources>
+    </Style>
     <Style Selector="TextBox.selectableTextBlock">
         <Setter Property="Padding" Value="0" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="IsReadOnly" Value="True" />
     </Style>
 
-    <Style Selector="Grid.docTabContainer">
+    <Style Selector="Control.docTabContainer">
         <Setter Property="Margin" Value="20" />
     </Style>
 
+    <Style Selector="controls|GroupBox.docTabContainer">
+        <Setter Property="TextBlock.FontSize" Value="40" />
+    </Style>
+
+    <Style Selector="Grid.content">
+        <Setter Property="TextBlock.FontSize" Value="14" />
+    </Style>
+
     <Style Selector=".hyperLink">
-        <Setter Property="TextBlock.Foreground" Value="{DynamicResource ThemeAccentBrush}" />
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
     </Style>
 </Styles>
