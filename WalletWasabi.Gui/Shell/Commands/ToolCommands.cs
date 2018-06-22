@@ -2,10 +2,7 @@
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using WalletWasabi.Gui.Tabs;
+using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
