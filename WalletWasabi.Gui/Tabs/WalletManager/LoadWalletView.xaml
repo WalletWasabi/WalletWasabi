@@ -10,5 +10,6 @@
             <Button Content="Load" Command="{Binding LoadCommand}" DockPanel.Dock="Right" />
             <Grid></Grid>
         </DockPanel>
+        <TextBlock Text="{Binding ErrorMessage}" Classes="errorMessage" />
     </StackPanel>
 </UserControl>

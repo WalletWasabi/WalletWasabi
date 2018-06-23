@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Markup.Xaml;
+using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui
 {
@@ -9,5 +10,9 @@ namespace WalletWasabi.Gui
 		{
 			AvaloniaXamlLoader.Load(this);
 		}
+
+ 		public static new App Current => (App)Application.Current;
+
+		public KeyManager KeyManager { get; set; }
 	}
 }

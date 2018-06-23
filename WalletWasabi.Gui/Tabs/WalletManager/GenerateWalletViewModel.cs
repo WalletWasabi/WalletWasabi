@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					try
 					{
-						KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
+						App.Current.KeyManager = KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
 
 						owner.CurrentView = new GenerateWalletSuccessViewModel(owner, mnemonic);
 					}
