@@ -159,11 +159,20 @@ namespace WalletWasabi.Services
 				else
 				{
 					var height = StartingHeight;
-					foreach (var line in File.ReadAllLines(IndexFilePath))
+					try
 					{
-						var filter = FilterModel.FromLine(line, height);
-						height++;
-						Index.Add(filter);
+						foreach (var line in File.ReadAllLines(IndexFilePath))
+						{
+							var filter = FilterModel.FromLine(line, height);
+							height++;
+							Index.Add(filter);
+						}
+					}
+					catch(FormatException)
+					{
+						// We found a corrupted entry. Stop here.
+						// Fix the currupted file.
+						File.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 					}
 				}
 			}
