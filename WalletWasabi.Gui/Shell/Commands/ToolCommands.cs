@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 			WalletManagerCommand = new CommandDefinition(
 				"Wallet Manager", null, ReactiveCommand.Create(OnWalletManager));
 
-			SettingsCommand = new CommandDefinition("Settings", null, ReactiveCommand.Create(() => { }));
+			SettingsCommand = new CommandDefinition("I Do Nothing", null, ReactiveCommand.Create(() => { }));
 		}
 
 		private void OnWalletManager()
