@@ -168,7 +168,7 @@ namespace WalletWasabi.Services
 							Index.Add(filter);
 						}
 					}
-					catch(FormatException)
+					catch (FormatException)
 					{
 						// We found a corrupted entry. Stop here.
 						// Fix the currupted file.
@@ -212,22 +212,22 @@ namespace WalletWasabi.Services
 							catch (ConnectionException)
 							{
 								TorStatus = TorStatus.NotRunning;
-								BackendStatus = BackendStatus.Online;
+								BackendStatus = BackendStatus.NotConnected;
 								throw;
 							}
 							catch (TorSocks5FailureResponseException)
 							{
 								TorStatus = TorStatus.Running;
-								BackendStatus = BackendStatus.Offline;
+								BackendStatus = BackendStatus.NotConnected;
 								throw;
 							}
 							catch
 							{
 								TorStatus = TorStatus.Running;
-								BackendStatus = BackendStatus.Online;
+								BackendStatus = BackendStatus.Connected;
 								throw;
 							}
-							BackendStatus = BackendStatus.Online;
+							BackendStatus = BackendStatus.Connected;
 							TorStatus = TorStatus.Running;
 
 							if (filtersResponse == null) // no-content, we are synced

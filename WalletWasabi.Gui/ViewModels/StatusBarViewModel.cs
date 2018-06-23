@@ -133,7 +133,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void SetStatus()
 		{
-			if (Tor != TorStatus.Running || Backend != BackendStatus.Online || Peers < 1)
+			if (Tor != TorStatus.Running || Backend != BackendStatus.Connected || Peers < 1)
 			{
 				Status = "Connecting...";
 			}

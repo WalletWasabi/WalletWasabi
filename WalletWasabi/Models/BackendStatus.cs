@@ -6,7 +6,7 @@ namespace WalletWasabi.Models
 {
 	public enum BackendStatus
 	{
-		Offline,
-		Online
+		NotConnected,
+		Connected
 	}
 }
