@@ -207,7 +207,7 @@ namespace WalletWasabi.Services
 							FiltersResponse filtersResponse = null;
 							try
 							{
-								filtersResponse = await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token);
+								filtersResponse = await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 							}
 							catch (ConnectionException)
 							{
