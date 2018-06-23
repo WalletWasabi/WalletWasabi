@@ -19,37 +19,37 @@ namespace WalletWasabi.Gui.Shell.Commands
 			AboutCommand = new CommandDefinition(
 				"About", null, ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddDocument(new AboutViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument<AboutViewModel>(new AboutViewModel());
 				}));
 
 			CustomerSupportCommand = new CommandDefinition(
 				"Customer Support", null, ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddDocument(new CustomerSupportViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument<CustomerSupportViewModel>(new CustomerSupportViewModel());
 				}));
 
 			ReportBugCommand = new CommandDefinition(
 				"Report Bug", null, ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddDocument(new ReportBugViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument<ReportBugViewModel>(new ReportBugViewModel());
 				}));
 
 			PrivacyPolicyCommand = new CommandDefinition(
 				"Privacy Policy", null, ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddDocument(new PrivacyPolicyViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument<PrivacyPolicyViewModel>(new PrivacyPolicyViewModel());
 				}));
 
 			TermsAndConditionsCommand = new CommandDefinition(
 				"Terms and Conditions", null, ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddDocument(new TermsAndConditionsViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument<TermsAndConditionsViewModel>(new TermsAndConditionsViewModel());
 				}));
 
 			LegalIssuesCommand = new CommandDefinition(
 				"Legal Issues", null, ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddDocument(new LegalIssuesViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument<LegalIssuesViewModel>(new LegalIssuesViewModel());
 				}));
 
 			DevToolsCommand = new CommandDefinition("Dev Tools", null, ReactiveCommand.Create(() =>

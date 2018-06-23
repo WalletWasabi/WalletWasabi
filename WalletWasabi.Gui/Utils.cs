@@ -1,6 +1,9 @@
-﻿using System;
+﻿using AvalonStudio.Documents;
+using AvalonStudio.Shell;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace WalletWasabi.Gui
@@ -18,6 +21,19 @@ namespace WalletWasabi.Gui
 			}
 
 			throw new NotSupportedException("This is impossible.");
+		}
+
+		public static void AddOrSelectDocument<T>(this IShell me, IDocumentTabViewModel document)
+		{
+			IDocumentTabViewModel doc = me.Documents.FirstOrDefault(x => x is T);
+			if (doc != default)
+			{
+				me.SelectedDocument = doc;
+			}
+			else
+			{
+				me.AddDocument(document);
+			}
 		}
 	}
 }

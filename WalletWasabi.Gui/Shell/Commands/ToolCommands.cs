@@ -1,7 +1,9 @@
 ﻿using AvalonStudio.Commands;
+using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using System.Linq;
 using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Shell.Commands
@@ -18,7 +20,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnWalletManager()
 		{
-			IoC.Get<IShell>().AddDocument(new WalletManagerViewModel());
+			IoC.Get<IShell>().AddOrSelectDocument<WalletManagerViewModel>(new WalletManagerViewModel());
 		}
 
 		[ExportCommandDefinition("Tools.WalletManager")]
