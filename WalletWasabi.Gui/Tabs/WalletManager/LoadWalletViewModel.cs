@@ -1,10 +1,11 @@
-﻿using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
-using NBitcoin;
-using ReactiveUI;
-using System;
-using System.Collections.ObjectModel;
+﻿using System;
 using System.IO;
+using System.Collections.ObjectModel;
+using System.Linq;
+using NBitcoin;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
+using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
@@ -48,9 +49,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			_wallets.Clear();
 
-			foreach (var file in Directory.EnumerateFiles(Global.WalletsDir))
+			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
+			var walletFiles = directoryInfo.GetFiles("*.json",SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
+			foreach (var file in walletFiles)
 			{
-				_wallets.Add(Path.GetFileNameWithoutExtension(file));
+				_wallets.Add(Path.GetFileNameWithoutExtension(file.FullName));
 			}
 		}
 
