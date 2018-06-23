@@ -17,6 +17,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ObservableCollection<string> _wallets;
 		private string _selectedWallet;
 		private bool _isSelectedWallet;
+		private string _errorMessage;
 
 		public LoadWalletViewModel() : base("Load Wallet")
 		{
@@ -45,6 +46,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _isSelectedWallet, value); }
 		}
 
+		public string ErrorMessage
+		{
+			get { return _errorMessage; }
+			set { this.RaiseAndSetIfChanged(ref _errorMessage, value); }
+		}
+
 		public override void OnCategorySelected()
 		{
 			_wallets.Clear();
@@ -70,7 +77,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				return;
 			}
 
-			// Implement the logic here
+			try
+			{
+				App.Current.KeyManager = KeyManager.FromFile(walletFullPath);
+			}
+			catch (Exception ex)
+			{
+				ErrorMessage = $"{SelectedWallet} is corrupted or it doesn't exists";
+				OnCategorySelected();
+			}
 		}
 	}
 }
