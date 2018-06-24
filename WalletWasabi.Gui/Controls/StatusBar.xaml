@@ -1,6 +1,6 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.ViewModels;assembly=WalletWasabi.Gui"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
 >
   <UserControl.Resources>
     <converters:FilterLeftValueConverter x:Key="FilterLeftValueConverter" />

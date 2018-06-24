@@ -15,11 +15,6 @@ namespace WalletWasabi.Gui.Controls
 		private ContentPresenter _titlePresenter;
 		private Border _border;
 
-		static GroupBox()
-		{
-			//AffectsArrange(TitleProperty);
-		}
-
 		Type IStyleable.StyleKey => typeof(GroupBox);
 
 		public static readonly StyledProperty<object> TitleProperty =
