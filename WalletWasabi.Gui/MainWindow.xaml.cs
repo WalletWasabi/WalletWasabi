@@ -28,19 +28,23 @@ namespace WalletWasabi.Gui
 		private void OnActivated(object sender, EventArgs e)
 		{
 			Activated -= OnActivated;
-			if (Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any())
+			DisplayWalletManager();
+		}
+
+		private void DisplayWalletManager()
+		{
+			var isAnyWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
+
+			var walletManagerViewModel = new WalletManagerViewModel();
+			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
+
+			if (isAnyWalletAvailable)
 			{
-				// Load
-				var document = new WalletManagerViewModel();
-				IoC.Get<IShell>().AddDocument(document);
-				document.SelectedCategory = document.Categories.First(x => x is LoadWalletViewModel);
+				walletManagerViewModel.SelectLoadWallet();
 			}
 			else
 			{
-				// Generate
-				var document = new WalletManagerViewModel();
-				IoC.Get<IShell>().AddDocument(document);
-				document.SelectedCategory = document.Categories.First(x => x is GenerateWalletViewModel);
+				walletManagerViewModel.SelectGenerateWallet();
 			}
 		}
 	}
