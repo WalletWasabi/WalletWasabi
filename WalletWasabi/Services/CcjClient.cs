@@ -336,11 +336,11 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				IEnumerable<(uint256 txid, uint index)> registrableCoins = State.GetRegistrableCoins(
+				List<(uint256 txid, uint index)> registrableCoins = State.GetRegistrableCoins(
 					inputRegistrableRound.State.MaximumInputCountPerPeer,
 					inputRegistrableRound.State.Denomination,
 					inputRegistrableRound.State.FeePerInputs,
-					inputRegistrableRound.State.FeePerOutputs);
+					inputRegistrableRound.State.FeePerOutputs).ToList();
 
 				if (registrableCoins.Any())
 				{
