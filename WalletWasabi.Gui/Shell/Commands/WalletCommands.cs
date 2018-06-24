@@ -3,6 +3,7 @@ using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using System.Composition;
 using System.Linq;
 using WalletWasabi.Gui.Tabs.WalletManager;
 
@@ -10,16 +11,23 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class WalletCommands
 	{
-		public WalletCommands()
+		[ImportingConstructor]
+		public WalletCommands(CommandIconService commandIconService)
 		{
 			GenerateWalletCommand = new CommandDefinition(
-				"Generate Wallet", null, ReactiveCommand.Create(OnGenerateWallet));
+				"Generate Wallet", 
+				commandIconService.GetCompletionKindImage("GenerateWallet"),
+				ReactiveCommand.Create(OnGenerateWallet));
 
 			RecoverWalletCommand = new CommandDefinition(
-				"Recover Wallet", null, ReactiveCommand.Create(OnRecoverWallet));
+				"Recover Wallet", 
+				commandIconService.GetCompletionKindImage("RecoverWallet"),
+				ReactiveCommand.Create(OnRecoverWallet));
 
 			LoadWallet = new CommandDefinition(
-				"Load Wallet", null, ReactiveCommand.Create(OnLoadWallet));
+				"Load Wallet", 
+				commandIconService.GetCompletionKindImage("LoadWallet"),
+				ReactiveCommand.Create(OnLoadWallet));
 		}
 
 		private void OnGenerateWallet()

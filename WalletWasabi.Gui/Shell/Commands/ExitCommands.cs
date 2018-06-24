@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using System.Composition;
+using Avalonia;
 using AvalonStudio.Commands;
 using ReactiveUI;
 
@@ -9,13 +10,16 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ExportCommandDefinition("File.Exit")]
 		public CommandDefinition ExitCommand { get; }
 
-		public ExitCommands()
+        [ImportingConstructor]
+        public ExitCommands(CommandIconService commandIconService)
 		{
-			ExitCommand = new CommandDefinition(
-				"Exit", null, ReactiveCommand.Create(OnExit));
+			 ExitCommand = new CommandDefinition(
+				"Exit", 
+				commandIconService.GetCompletionKindImage("Exit"), 
+				ReactiveCommand.Create(OnExit));
 		}
 
-		private void OnExit()
+        private void OnExit()
 		{
 			Application.Current.Exit();
 		}
