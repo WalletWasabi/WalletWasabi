@@ -36,11 +36,14 @@ namespace WalletWasabi.Gui
 		public static MemPoolService MemPoolService { get; private set; }
 		public static NodesGroup Nodes { get; private set; }
 		public static IndexDownloader IndexDownloader { get; private set; }
+		public static WalletService WalletService { get; private set; }
 
 		public static Config Config { get; private set; }
 
 		public static void Initialize(Config config)
 		{
+			WalletService = null;
+
 			Config = Guard.NotNull(nameof(config), config);
 			Network network = Config.Network;
 

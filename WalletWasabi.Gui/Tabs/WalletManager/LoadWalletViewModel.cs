@@ -9,6 +9,7 @@ using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -50,7 +51,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			_wallets.Clear();
 
 			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
-			var walletFiles = directoryInfo.GetFiles("*.json",SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
+			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
 			foreach (var file in walletFiles)
 			{
 				_wallets.Add(Path.GetFileNameWithoutExtension(file.FullName));
@@ -66,11 +67,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				// the selected wallets is not available any more (someone deleted it)
 				OnCategorySelected();
-				SelectedWallet=null;
+				SelectedWallet = null;
 				return;
 			}
 
-			// Implement the logic here
+			var keyManager = KeyManager.FromFile(walletFullPath);
+
+			//Global.WalletService = new WalletService(keyManager)
 		}
 	}
 }
