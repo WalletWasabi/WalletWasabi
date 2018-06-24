@@ -137,7 +137,7 @@ namespace WalletWasabi.Gui
 				await WalletService.InitializeAsync(CancelWalletServiceInitialization.Token);
 				Logger.LogInfo("WalletService started.");
 			}
-			CancelWalletServiceInitialization = null;
+			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
 
 		public static async Task DisposeAsync()
