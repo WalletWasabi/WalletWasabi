@@ -47,6 +47,21 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _selectedCategory, value); }
 		}
 
+		public void SelectGenerateWallet()
+		{
+			SelectedCategory = Categories.First(x=>x is GenerateWalletViewModel);
+		}
+
+		public void SelectRecoverWallet()
+		{
+			SelectedCategory = Categories.First(x=>x is RecoverWalletViewModel);
+		}
+
+		public void SelectLoadWallet()
+		{
+			SelectedCategory = Categories.First(x=>x is LoadWalletViewModel);
+		}
+
 		public ViewModelBase CurrentView
 		{
 			get { return _currentView; }

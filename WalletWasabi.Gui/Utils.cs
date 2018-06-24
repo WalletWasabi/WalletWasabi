@@ -35,5 +35,22 @@ namespace WalletWasabi.Gui
 				me.AddDocument(document);
 			}
 		}
+
+		public static T GetOrCreate<T>(this IShell me) where T : IDocumentTabViewModel, new()
+		{
+			T document = default(T);
+			IDocumentTabViewModel doc = me.Documents.FirstOrDefault(x => x is T);
+			if (doc != default)
+			{
+				document = (T)doc;
+				me.SelectedDocument = doc;
+			}
+			else
+			{
+				document = new T();
+				me.AddDocument(document);
+			}
+			return document;
+		}
 	}
 }
