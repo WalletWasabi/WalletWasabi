@@ -18,15 +18,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 	{
 		private ObservableCollection<string> _wallets;
 		private string _selectedWallet;
-		private bool _isSelectedWallet;
 		private bool _isWalletOpened;
 		private bool _canLoadWallet;
 		private string _warningMessage;
-		private WalletManagerViewModel _owner;
+		private WalletManagerViewModel Owner { get; }
 
 		public LoadWalletViewModel(WalletManagerViewModel owner) : base("Load Wallet")
 		{
-			_owner = owner;
+			Owner = owner;
 			_wallets = new ObservableCollection<string>();
 
 			this.WhenAnyValue(x => x.SelectedWallet)
@@ -105,11 +104,21 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				return;
 			}
 
-			var keyManager = KeyManager.FromFile(walletFullPath);
-
-			await Global.InitializeWalletServiceAsync(keyManager);
-
-			// ToDo: Close the Wallet Manager, Open Wallet Explorer tabs
+			try
+			{
+				var keyManager = KeyManager.FromFile(walletFullPath);
+				await Global.InitializeWalletServiceAsync(keyManager);
+				// Successffully initialized.
+				IoC.Get<IShell>().RemoveDocument(Owner);
+				// ToDo: Open Wallet Explorer tabs
+			}
+			catch (Exception ex)
+			{
+				// Initialization failed.
+				// ToDo: Show error messages.
+				Logger.LogError<LoadWalletViewModel>(ex);
+				await Global.DisposeInWalletDependentServicesAsync();
+			}
 		}
 	}
 }

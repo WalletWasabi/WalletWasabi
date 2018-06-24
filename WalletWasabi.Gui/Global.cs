@@ -140,6 +140,23 @@ namespace WalletWasabi.Gui
 			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 		}
 
+		public static async Task DisposeInWalletDependentServicesAsync()
+		{
+			CancelWalletServiceInitialization?.Cancel();
+			CancelWalletServiceInitialization = null;
+
+			WalletService?.Dispose();
+			WalletService = null;
+			Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
+
+			if (ChaumianClient != null)
+			{
+				await ChaumianClient.StopAsync();
+				ChaumianClient = null;
+			}
+			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.", nameof(Global));
+		}
+
 		public static async Task DisposeAsync()
 		{
 			CancelWalletServiceInitialization?.Cancel();
