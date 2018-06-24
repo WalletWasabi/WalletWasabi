@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						var mnemonic = new Mnemonic(MnemonicWords);
 						KeyManager.Recover(mnemonic, Password, walletFilePath);
 
-						owner.SelectedCategory = owner.LoadWalletCategory;
+						owner.SelectLoadWallet();
 					}
 					catch (Exception ex)
 					{
