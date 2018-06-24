@@ -47,7 +47,7 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		private CancellationTokenSource Stop { get; }
+		private CancellationTokenSource Cancel { get; }
 
 		public CcjClient(Network network, BlindingRsaPubKey coordinatorPubKey, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
@@ -59,7 +59,7 @@ namespace WalletWasabi.Services
 			SatoshiClient = new SatoshiClient(ccjHostUri, torSocks5EndPoint);
 
 			_running = 0;
-			Stop = new CancellationTokenSource();
+			Cancel = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
 			State = new CcjClientState();
 			MixLock = new AsyncLock();
@@ -122,7 +122,7 @@ namespace WalletWasabi.Services
 								}
 							}
 
-							await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
+							await Task.Delay(TimeSpan.FromSeconds(delay), Cancel.Token);
 							await ProcessStatusAsync();
 						}
 						catch (TaskCanceledException ex)
@@ -160,7 +160,7 @@ namespace WalletWasabi.Services
 					delay = new Random().Next(0, 7); // delay the response to defend timing attack privacy
 				}
 
-				await Task.Delay(TimeSpan.FromSeconds(delay), Stop.Token);
+				await Task.Delay(TimeSpan.FromSeconds(delay), Cancel.Token);
 
 				using (await MixLock.LockAsync())
 				{
@@ -336,11 +336,11 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				IEnumerable<(uint256 txid, uint index)> registrableCoins = State.GetRegistrableCoins(
+				List<(uint256 txid, uint index)> registrableCoins = State.GetRegistrableCoins(
 					inputRegistrableRound.State.MaximumInputCountPerPeer,
 					inputRegistrableRound.State.Denomination,
 					inputRegistrableRound.State.FeePerInputs,
-					inputRegistrableRound.State.FeePerOutputs);
+					inputRegistrableRound.State.FeePerOutputs).ToList();
 
 				if (registrableCoins.Any())
 				{
@@ -648,13 +648,13 @@ namespace WalletWasabi.Services
 			{
 				Interlocked.Exchange(ref _running, 2);
 			}
-			Stop?.Cancel();
+			Cancel?.Cancel();
 			while (IsStopping)
 			{
-				await Task.Delay(50);
+				Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
 			}
 
-			Stop?.Dispose();
+			Cancel?.Dispose();
 
 			using (await MixLock.LockAsync())
 			{

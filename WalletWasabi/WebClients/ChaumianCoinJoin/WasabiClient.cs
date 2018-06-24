@@ -12,6 +12,8 @@ using WalletWasabi.Bases;
 using WalletWasabi.Models;
 using System.Text;
 using NBitcoin.RPC;
+using System.Threading;
+using WalletWasabi.Backend.Models.Responses;
 
 namespace WalletWasabi.WebClients.ChaumianCoinJoin
 {
@@ -24,24 +26,28 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 		#region blockchain
 
-		public async Task<IEnumerable<string>> GetFiltersAsync(uint256 bestKnownBlockHash, int count)
+		/// <remarks>
+		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
+		/// </remarks>
+		public async Task<FiltersResponse> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
 		{
 			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
 																	HttpStatusCode.OK,
-																	$"/api/v1/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}"))
+																	$"/api/v1/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
+																	cancel: cancel))
 			{
 				if (response.StatusCode == HttpStatusCode.NoContent)
 				{
-					return Enumerable.Empty<string>();
+					return null;
 				}
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 
 				using (HttpContent content = response.Content)
 				{
-					var ret = await content.ReadAsJsonAsync<IEnumerable<string>>();
+					var ret = await content.ReadAsJsonAsync<FiltersResponse>();
 					return ret;
 				}
 			}
@@ -55,7 +61,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 
 				using (HttpContent content = response.Content)
@@ -73,7 +79,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 			}
 		}
@@ -88,7 +94,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			await BroadcastAsync(transaction.Transaction);
 		}
 
-		#endregion
+		#endregion blockchain
 
 		#region offchain
 
@@ -98,7 +104,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 
 				using (HttpContent content = response.Content)
@@ -109,6 +115,6 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			}
 		}
 
-		#endregion
+		#endregion offchain
 	}
 }

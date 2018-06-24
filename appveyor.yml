@@ -23,7 +23,7 @@ build_script:
 
 test_script:
   - cd WalletWasabi.Tests
-  - dotnet test
+  - dotnet test /p:CollectCoverage=true
 
 on_finish:
   - ps: Stop-Process -Id $TorProcess.Id

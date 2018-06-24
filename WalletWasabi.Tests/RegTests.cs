@@ -34,7 +34,6 @@ namespace WalletWasabi.Tests
 	[TestCaseOrderer("WalletWasabi.Tests.XunitConfiguration.PriorityOrderer", "WalletWasabi.Tests")]
 	public class RegTests : IClassFixture<SharedFixture>
 	{
-		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 		private SharedFixture SharedFixture { get; }
 
 		private RegTestFixture RegTestFixture { get; }
@@ -52,10 +51,10 @@ namespace WalletWasabi.Tests
 			{
 				using (var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint)))
 				{
-					var filters = await client.GetFiltersAsync(firstHash, 1000);
-					Assert.True(filters.NotNullAndNotEmpty());
+					FiltersResponse filtersResponse = await client.GetFiltersAsync(firstHash, 1000);
+					Assert.NotNull(filtersResponse);
 
-					var filterCount = filters.Count();
+					var filterCount = filtersResponse.Filters.Count();
 					if (filterCount >= 101)
 					{
 						break;
@@ -219,8 +218,7 @@ namespace WalletWasabi.Tests
 
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{rpc.Network}.dat");
 
-			var downloader = new IndexDownloader(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
-			try
+			using (var downloader = new IndexDownloader(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint)))
 			{
 				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(1));
 
@@ -266,13 +264,6 @@ namespace WalletWasabi.Tests
 					Assert.Null(filter.Filter);
 				}
 			}
-			finally
-			{
-				if (downloader != null)
-				{
-					await downloader.StopAsync();
-				}
-			}
 		}
 
 		[Fact, TestPriority(7)]
@@ -299,87 +290,84 @@ namespace WalletWasabi.Tests
 			var node = RegTestFixture.BackendRegTestNode;
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(ReorgTestAsync), $"Index{rpc.Network}.dat");
 
-			var downloader = new IndexDownloader(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
-			try
+			using (var downloader = new IndexDownloader(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint)))
 			{
-				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3));
-
-				downloader.Reorged += ReorgTestAsync_Downloader_Reorged;
-
-				// Test initial synchronization.
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
-
-				var indexLines = await File.ReadAllLinesAsync(indexFilePath);
-				var lastFilter = indexLines.Last();
-				var tip = await rpc.GetBestBlockHashAsync();
-				Assert.StartsWith(tip.ToString(), indexLines.Last());
-				var tipBlock = await rpc.GetBlockHeaderAsync(tip);
-				Assert.Contains(tipBlock.HashPrevBlock.ToString(), indexLines.TakeLast(2).First());
-
-				var utxoPath = Global.IndexBuilderService.Bech32UtxoSetFilePath;
-				var utxoLines = await File.ReadAllTextAsync(utxoPath);
-				Assert.Contains(tx1.ToString(), utxoLines);
-				Assert.Contains(tx2.ToString(), utxoLines);
-				Assert.Contains(tx3.ToString(), utxoLines);
-				Assert.DoesNotContain(tx4.ToString(), utxoLines); // make sure only bech is recorded
-				Assert.DoesNotContain(tx5.ToString(), utxoLines); // make sure only bech is recorded
-
-				// Test synchronization after fork.
-				await rpc.InvalidateBlockAsync(tip); // Reorg 1
-				tip = await rpc.GetBestBlockHashAsync();
-				await rpc.InvalidateBlockAsync(tip); // Reorg 2
-				var tx1bumpRes = await rpc.BumpFeeAsync(tx1); // RBF it
-
-				await rpc.GenerateAsync(5);
-				await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
-
-				utxoLines = await File.ReadAllTextAsync(utxoPath);
-				Assert.Contains(tx1bumpRes.TransactionId.ToString(), utxoLines); // assert the tx1bump is the correct tx
-				Assert.DoesNotContain(tx1.ToString(), utxoLines); // assert tx1 is abandoned (despite it confirmed previously)
-				Assert.Contains(tx2.ToString(), utxoLines);
-				Assert.Contains(tx3.ToString(), utxoLines);
-				Assert.DoesNotContain(tx4.ToString(), utxoLines);
-				Assert.DoesNotContain(tx5.ToString(), utxoLines);
-
-				indexLines = await File.ReadAllLinesAsync(indexFilePath);
-				Assert.DoesNotContain(tip.ToString(), indexLines);
-				Assert.DoesNotContain(tipBlock.HashPrevBlock.ToString(), indexLines);
-
-				// Test filter block hashes are correct after fork.
-				var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
-				var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
-				for (int i = 0; i < blockCountIncludingGenesis; i++)
+				try
 				{
-					var expectedHash = await rpc.GetBlockHashAsync(i);
-					var filter = filters[i];
-					Assert.Equal(i, filter.BlockHeight.Value);
-					Assert.Equal(expectedHash, filter.BlockHash);
-					if (i < 101) // Later other tests may fill the filter.
+					downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3));
+
+					downloader.Reorged += ReorgTestAsync_Downloader_Reorged;
+
+					// Test initial synchronization.
+					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
+
+					var indexLines = await File.ReadAllLinesAsync(indexFilePath);
+					var lastFilter = indexLines.Last();
+					var tip = await rpc.GetBestBlockHashAsync();
+					Assert.StartsWith(tip.ToString(), indexLines.Last());
+					var tipBlock = await rpc.GetBlockHeaderAsync(tip);
+					Assert.Contains(tipBlock.HashPrevBlock.ToString(), indexLines.TakeLast(2).First());
+
+					var utxoPath = Global.IndexBuilderService.Bech32UtxoSetFilePath;
+					var utxoLines = await File.ReadAllTextAsync(utxoPath);
+					Assert.Contains(tx1.ToString(), utxoLines);
+					Assert.Contains(tx2.ToString(), utxoLines);
+					Assert.Contains(tx3.ToString(), utxoLines);
+					Assert.DoesNotContain(tx4.ToString(), utxoLines); // make sure only bech is recorded
+					Assert.DoesNotContain(tx5.ToString(), utxoLines); // make sure only bech is recorded
+
+					// Test synchronization after fork.
+					await rpc.InvalidateBlockAsync(tip); // Reorg 1
+					tip = await rpc.GetBestBlockHashAsync();
+					await rpc.InvalidateBlockAsync(tip); // Reorg 2
+					var tx1bumpRes = await rpc.BumpFeeAsync(tx1); // RBF it
+
+					await rpc.GenerateAsync(5);
+					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
+
+					utxoLines = await File.ReadAllTextAsync(utxoPath);
+					Assert.Contains(tx1bumpRes.TransactionId.ToString(), utxoLines); // assert the tx1bump is the correct tx
+					Assert.DoesNotContain(tx1.ToString(), utxoLines); // assert tx1 is abandoned (despite it confirmed previously)
+					Assert.Contains(tx2.ToString(), utxoLines);
+					Assert.Contains(tx3.ToString(), utxoLines);
+					Assert.DoesNotContain(tx4.ToString(), utxoLines);
+					Assert.DoesNotContain(tx5.ToString(), utxoLines);
+
+					indexLines = await File.ReadAllLinesAsync(indexFilePath);
+					Assert.DoesNotContain(tip.ToString(), indexLines);
+					Assert.DoesNotContain(tipBlock.HashPrevBlock.ToString(), indexLines);
+
+					// Test filter block hashes are correct after fork.
+					var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
+					var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
+					for (int i = 0; i < blockCountIncludingGenesis; i++)
 					{
-						Assert.Null(filter.Filter);
+						var expectedHash = await rpc.GetBlockHashAsync(i);
+						var filter = filters[i];
+						Assert.Equal(i, filter.BlockHeight.Value);
+						Assert.Equal(expectedHash, filter.BlockHash);
+						if (i < 101) // Later other tests may fill the filter.
+						{
+							Assert.Null(filter.Filter);
+						}
 					}
+
+					// Test the serialization, too.
+					tip = await rpc.GetBestBlockHashAsync();
+					var blockHash = tip;
+					for (var i = 0; i < indexLines.Length; i++)
+					{
+						var block = await rpc.GetBlockHeaderAsync(blockHash);
+						Assert.Contains(blockHash.ToString(), indexLines[indexLines.Length - i - 1]);
+						blockHash = block.HashPrevBlock;
+					}
+
+					// Assert reorg happened exactly as many times as we reorged.
+					Assert.Equal(2, Interlocked.Read(ref _reorgTestAsync_ReorgCount));
 				}
-
-				// Test the serialization, too.
-				tip = await rpc.GetBestBlockHashAsync();
-				var blockHash = tip;
-				for (var i = 0; i < indexLines.Length; i++)
+				finally
 				{
-					var block = await rpc.GetBlockHeaderAsync(blockHash);
-					Assert.Contains(blockHash.ToString(), indexLines[indexLines.Length - i - 1]);
-					blockHash = block.HashPrevBlock;
-				}
-
-				// Assert reorg happened exactly as many times as we reorged.
-				Assert.Equal(2, Interlocked.Read(ref _reorgTestAsync_ReorgCount));
-			}
-			finally
-			{
-				downloader.Reorged -= ReorgTestAsync_Downloader_Reorged;
-
-				if (downloader != null)
-				{
-					await downloader.StopAsync();
+					downloader.Reorged -= ReorgTestAsync_Downloader_Reorged;
 				}
 			}
 		}
@@ -423,7 +411,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -474,7 +462,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(wallet.Coins);
 				var firstCoin = wallet.Coins.Single();
 				Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, firstCoin.Height);
+				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight, firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0U, 1U);
 				Assert.False(firstCoin.SpentOrCoinJoinInProcess);
 				Assert.Equal("foo label", firstCoin.Label);
@@ -503,9 +491,9 @@ namespace WalletWasabi.Tests
 				var thirdCoin = wallet.Coins.OrderBy(x => x.Height).Last();
 				Assert.Equal(Money.Coins(0.01m), secondCoin.Amount);
 				Assert.Equal(Money.Coins(0.02m), thirdCoin.Amount);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 2, firstCoin.Height.Value);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 1, secondCoin.Height.Value);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, thirdCoin.Height);
+				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight.Value - 2, firstCoin.Height.Value);
+				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight.Value - 1, secondCoin.Height.Value);
+				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight, thirdCoin.Height);
 				Assert.False(thirdCoin.SpentOrCoinJoinInProcess);
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal("bar label", secondCoin.Label);
@@ -561,7 +549,7 @@ namespace WalletWasabi.Tests
 				var rbfCoin = wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId).Single();
 
 				Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight.Value - 2, rbfCoin.Height.Value);
+				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight.Value - 2, rbfCoin.Height.Value);
 				Assert.False(rbfCoin.SpentOrCoinJoinInProcess);
 				Assert.Equal("bar label", rbfCoin.Label);
 				Assert.Equal(key2.GetP2wpkhScript(), rbfCoin.ScriptPubKey);
@@ -595,17 +583,14 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 				var res = await rpc.GetTxOutAsync(mempoolCoin.TransactionId, (int)mempoolCoin.Index, true);
-				Assert.Equal(indexDownloader.GetBestFilter().BlockHeight, mempoolCoin.Height);
+				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight, mempoolCoin.Height);
 			}
 			finally
 			{
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Dispose();
 
 				// Dispose mempool service.
 				memPoolService.TransactionReceived -= WalletTestsAsync_MemPoolService_TransactionReceived;
@@ -657,7 +642,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -1009,7 +994,7 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
-				var bestHeight = wallet.IndexDownloader.GetBestFilter().BlockHeight;
+				var bestHeight = wallet.IndexDownloader.BestKnownFilter.BlockHeight;
 				Assert.Contains("change of (outgoing, outgoing2)", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
 				Assert.Contains("change of (outgoing, outgoing2)", keyManager.GetKeys().Select(x => x.Label));
 
@@ -1074,10 +1059,7 @@ namespace WalletWasabi.Tests
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose chaumian coinjoin client.
@@ -1099,7 +1081,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -1254,10 +1236,7 @@ namespace WalletWasabi.Tests
 			{
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose chaumian coinjoin client.
@@ -1279,7 +1258,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -1425,10 +1404,7 @@ namespace WalletWasabi.Tests
 			{
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose chaumian coinjoin client.
@@ -1450,7 +1426,7 @@ namespace WalletWasabi.Tests
 				requirements: new NodeRequirement
 				{
 					RequiredServices = NodeServices.Network,
-					MinVersion = ProtocolVersion_WITNESS_VERSION
+					MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 				});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -1580,10 +1556,7 @@ namespace WalletWasabi.Tests
 			{
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose chaumian coinjoin client.
@@ -2680,7 +2653,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -2688,7 +2661,7 @@ namespace WalletWasabi.Tests
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = ProtocolVersion_WITNESS_VERSION
+						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
 					});
 			nodes2.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
@@ -2823,10 +2796,7 @@ namespace WalletWasabi.Tests
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
 				wallet?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader != null)
-				{
-					await indexDownloader.StopAsync();
-				}
+				indexDownloader?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose chaumian coinjoin client.
@@ -2836,10 +2806,7 @@ namespace WalletWasabi.Tests
 				}
 				wallet2?.Dispose();
 				// Dispose index downloader service.
-				if (indexDownloader2 != null)
-				{
-					await indexDownloader2.StopAsync();
-				}
+				indexDownloader2?.Dispose();
 				// Dispose connection service.
 				nodes2?.Dispose();
 				// Dispose chaumian coinjoin client.

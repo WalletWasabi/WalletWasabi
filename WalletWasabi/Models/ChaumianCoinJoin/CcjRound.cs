@@ -399,7 +399,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										IEnumerable<Alice> alicesToBan1 = GetAlicesBy(AliceState.InputsRegistered);
 										IEnumerable<Alice> alicesToBan2 = await RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
-										IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.OutPoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray()).Distinct();
+										IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.OutPoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.OutPoint)).Distinct();
 
 										if (inputsToBan.Any())
 										{

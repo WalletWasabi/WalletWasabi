@@ -36,7 +36,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				{
 					if (response.StatusCode != HttpStatusCode.OK)
 					{
-						await response.ThrowRequestExceptionAsync<string>();
+						await response.ThrowRequestExceptionFromContentAsync();
 					}
 
 					var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>();
@@ -80,7 +80,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 
 				string roundHash = await response.Content.ReadAsJsonAsync<string>();
@@ -96,7 +96,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (!response.IsSuccessStatusCode)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Unconfirmed connection.");
 			}
@@ -108,7 +108,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 
 				var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
@@ -129,7 +129,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode != HttpStatusCode.NoContent)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Posted {signatures.Count} signatures.");
 			}

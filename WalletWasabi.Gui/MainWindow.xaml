@@ -1,4 +1,30 @@
-﻿<Window xmlns="https://github.com/avaloniaui" MinWidth="500" MinHeight="300"
-        Title="Wasabi Wallet">
-    <TextBlock Text="Hello World!" />
-</Window>
+﻿<cont:MetroWindow xmlns="https://github.com/avaloniaui"
+                      xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
+                      xmlns:wasabi="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+                      xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+                      xmlns:shell="clr-namespace:AvalonStudio.Shell;assembly=AvalonStudio.Shell"
+                      xmlns:menu="clr-namespace:AvalonStudio.Shell.Extensibility.MainMenu.Views;assembly=AvalonStudio.Shell.Extensibility"
+                      xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+                      xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+                      xmlns:id="clr-namespace:Dock.Avalonia;assembly=Dock.Avalonia"
+                      xmlns:idc="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
+                      xmlns:beh="clr-namespace:AvalonStudio.Utils.Behaviors;assembly=AvalonStudio.Utils"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      Icon="resm:WalletWasabi.Gui.Resources.WasabiLogo.png?assembly=WalletWasabi.Gui"
+                      Title="Wasabi Wallet" BorderThickness="1" BorderBrush="{DynamicResource AvalonBorderBrush}"
+                      FontFamily="{DynamicResource UiFont}" FontSize="14"
+                      Foreground="{DynamicResource ThemeForegroundBrush}" WindowState="Maximized">
+  <i:Interaction.Behaviors>
+    <behaviors:PredicateCloseBehavior CanClose="{Binding CanClose}" />
+  </i:Interaction.Behaviors>
+  <cont:MetroWindow.TitleBarContent>
+  </cont:MetroWindow.TitleBarContent>
+
+  <Grid>
+    <DockPanel LastChildFill="True">
+      <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
+      <shell:ShellView />
+    </DockPanel>
+    <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
+  </Grid>
+</cont:MetroWindow>

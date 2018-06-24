@@ -40,7 +40,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				try
 				{
-          return TcpClient != null && TcpClient.Connected;
+					return TcpClient != null && TcpClient.Connected;
 				}
 				catch (Exception ex)
 				{

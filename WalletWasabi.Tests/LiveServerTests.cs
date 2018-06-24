@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Crypto;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -50,10 +51,10 @@ namespace WalletWasabi.Tests
 			{
 				var filterModel = IndexDownloader.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
 
-				var filters = await client.GetFiltersAsync(filterModel.BlockHash, 2);
+				FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.BlockHash, 2);
 
-				Assert.True(filters.NotNullAndNotEmpty());
-				Assert.True(filters.Count() == 2);
+				Assert.NotNull(filtersResponse);
+				Assert.True(filtersResponse.Filters.Count() == 2);
 			}
 		}
 

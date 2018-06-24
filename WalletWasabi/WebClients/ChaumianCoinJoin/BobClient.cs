@@ -23,7 +23,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			{
 				if (response.StatusCode != HttpStatusCode.NoContent)
 				{
-					await response.ThrowRequestExceptionAsync<string>();
+					await response.ThrowRequestExceptionFromContentAsync();
 				}
 			}
 		}

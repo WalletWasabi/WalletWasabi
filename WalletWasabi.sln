@@ -21,6 +21,27 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Gui", "WalletWasabi.Gui\WalletWasabi.Gui.csproj", "{B007DC0F-8C86-439D-BE3C-283218D8308B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shell", "Shell", "{3C6F150E-8435-490E-AC08-C396BD16D4E7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dock.Avalonia", "WalletWasabi.Dependencies\AvalonStudio.Shell\Dock\src\Dock.Avalonia\Dock.Avalonia.csproj", "{982B6A08-B082-4499-AD2A-148F6E0D78FA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dock.Model.ReactiveUI", "WalletWasabi.Dependencies\AvalonStudio.Shell\Dock\src\Dock.Model.ReactiveUI\Dock.Model.ReactiveUI.csproj", "{2F57A7D4-37DB-4A8C-9CC4-A103979984C5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dock.Model", "WalletWasabi.Dependencies\AvalonStudio.Shell\Dock\src\Dock.Model\Dock.Model.csproj", "{8DFA8B3F-5958-4F96-972F-BD403222BD1C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dock", "Dock", "{1F4A4316-4C10-460D-BCE1-588843D0B28A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvalonStudio.Utils", "WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Utils\AvalonStudio.Utils.csproj", "{EFC84E8A-5674-43D0-9EC6-25497CA68CF3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvalonStudio.Shell.Extensibility", "WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell.Extensibility\AvalonStudio.Shell.Extensibility.csproj", "{74C919FA-3EC1-49FE-B8B6-A8BF2173470D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvalonStudio.Shell", "WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell\AvalonStudio.Shell.csproj", "{137F0B24-7A4C-4D80-9218-43CA71793004}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WalletWasabi.Assets", "WalletWasabi.Assets", "{B3EE1AC9-8F91-4A54-BFA9-9A07DCE366E7}"
+	ProjectSection(SolutionItems) = preProject
+		WalletWasabi.Assets\WasabiLogo.png = WalletWasabi.Assets\WasabiLogo.png
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,9 +64,42 @@ Global
 		{B007DC0F-8C86-439D-BE3C-283218D8308B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B007DC0F-8C86-439D-BE3C-283218D8308B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B007DC0F-8C86-439D-BE3C-283218D8308B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{982B6A08-B082-4499-AD2A-148F6E0D78FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{982B6A08-B082-4499-AD2A-148F6E0D78FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{982B6A08-B082-4499-AD2A-148F6E0D78FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{982B6A08-B082-4499-AD2A-148F6E0D78FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F57A7D4-37DB-4A8C-9CC4-A103979984C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F57A7D4-37DB-4A8C-9CC4-A103979984C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F57A7D4-37DB-4A8C-9CC4-A103979984C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F57A7D4-37DB-4A8C-9CC4-A103979984C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DFA8B3F-5958-4F96-972F-BD403222BD1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DFA8B3F-5958-4F96-972F-BD403222BD1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DFA8B3F-5958-4F96-972F-BD403222BD1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DFA8B3F-5958-4F96-972F-BD403222BD1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFC84E8A-5674-43D0-9EC6-25497CA68CF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFC84E8A-5674-43D0-9EC6-25497CA68CF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFC84E8A-5674-43D0-9EC6-25497CA68CF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFC84E8A-5674-43D0-9EC6-25497CA68CF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74C919FA-3EC1-49FE-B8B6-A8BF2173470D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74C919FA-3EC1-49FE-B8B6-A8BF2173470D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74C919FA-3EC1-49FE-B8B6-A8BF2173470D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74C919FA-3EC1-49FE-B8B6-A8BF2173470D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{137F0B24-7A4C-4D80-9218-43CA71793004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{137F0B24-7A4C-4D80-9218-43CA71793004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{137F0B24-7A4C-4D80-9218-43CA71793004}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{137F0B24-7A4C-4D80-9218-43CA71793004}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{982B6A08-B082-4499-AD2A-148F6E0D78FA} = {1F4A4316-4C10-460D-BCE1-588843D0B28A}
+		{2F57A7D4-37DB-4A8C-9CC4-A103979984C5} = {1F4A4316-4C10-460D-BCE1-588843D0B28A}
+		{8DFA8B3F-5958-4F96-972F-BD403222BD1C} = {1F4A4316-4C10-460D-BCE1-588843D0B28A}
+		{1F4A4316-4C10-460D-BCE1-588843D0B28A} = {3C6F150E-8435-490E-AC08-C396BD16D4E7}
+		{EFC84E8A-5674-43D0-9EC6-25497CA68CF3} = {3C6F150E-8435-490E-AC08-C396BD16D4E7}
+		{74C919FA-3EC1-49FE-B8B6-A8BF2173470D} = {3C6F150E-8435-490E-AC08-C396BD16D4E7}
+		{137F0B24-7A4C-4D80-9218-43CA71793004} = {3C6F150E-8435-490E-AC08-C396BD16D4E7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F367BF06-2061-479C-9FE1-184C87CD39B4}

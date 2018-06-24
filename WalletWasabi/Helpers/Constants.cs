@@ -4,6 +4,8 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
+		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
+
 		public const int P2wpkhInputSizeInBytes = 41;
 		public const int P2pkhInputSizeInBytes = 146;
 		public const int OutputSizeInBytes = 33;

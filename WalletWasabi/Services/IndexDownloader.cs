@@ -14,12 +14,79 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
+using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Services
 {
-	public class IndexDownloader
+	public class IndexDownloader : IDisposable
 	{
 		public Network Network { get; }
+
+		public FilterModel BestKnownFilter { get; private set; }
+
+		private Height _bestHeight;
+
+		public Height BestHeight
+		{
+			get => _bestHeight;
+
+			private set
+			{
+				if (_bestHeight != value)
+				{
+					_bestHeight = value;
+					BestHeightChanged?.Invoke(this, value);
+				}
+			}
+		}
+
+		public event EventHandler<Height> BestHeightChanged;
+
+		private TorStatus _torStatus;
+
+		public TorStatus TorStatus
+		{
+			get => _torStatus;
+
+			private set
+			{
+				if (_torStatus != value)
+				{
+					_torStatus = value;
+					TorStatusChanged?.Invoke(this, value);
+				}
+			}
+		}
+
+		public event EventHandler<TorStatus> TorStatusChanged;
+
+		private BackendStatus _backendStatus;
+
+		public BackendStatus BackendStatus
+		{
+			get => _backendStatus;
+
+			private set
+			{
+				if (_backendStatus != value)
+				{
+					_backendStatus = value;
+					BackendStatusChanged?.Invoke(this, value);
+				}
+			}
+		}
+
+		public event EventHandler<BackendStatus> BackendStatusChanged;
+
+		public int GetFiltersLeft()
+		{
+			if (BestHeight == Height.Unknown || BestHeight == Height.MemPool || BestKnownFilter.BlockHeight == Height.Unknown || BestKnownFilter.BlockHeight == Height.MemPool)
+			{
+				return -1;
+			}
+			return BestHeight.Value - BestKnownFilter.BlockHeight.Value;
+		}
 
 		public WasabiClient WasabiClient { get; }
 
@@ -62,6 +129,8 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
+		private CancellationTokenSource Cancel { get; }
+
 		public IndexDownloader(Network network, string indexFilePath, Uri indexHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
@@ -72,6 +141,7 @@ namespace WalletWasabi.Services
 			IndexLock = new AsyncLock();
 
 			_running = 0;
+			Cancel = new CancellationTokenSource();
 
 			var indexDir = Path.GetDirectoryName(IndexFilePath);
 			if (!string.IsNullOrEmpty(indexDir))
@@ -89,11 +159,20 @@ namespace WalletWasabi.Services
 				else
 				{
 					var height = StartingHeight;
-					foreach (var line in File.ReadAllLines(IndexFilePath))
+					try
 					{
-						var filter = FilterModel.FromLine(line, height);
-						height++;
-						Index.Add(filter);
+						foreach (var line in File.ReadAllLines(IndexFilePath))
+						{
+							var filter = FilterModel.FromLine(line, height);
+							height++;
+							Index.Add(filter);
+						}
+					}
+					catch (FormatException)
+					{
+						// We found a corrupted entry. Stop here.
+						// Fix the currupted file.
+						File.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 					}
 				}
 			}
@@ -102,6 +181,9 @@ namespace WalletWasabi.Services
 				Index.Add(StartingFilter);
 				File.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 			}
+
+			BestKnownFilter = Index.Last();
+			BestHeight = Height.Unknown; // At this point we don't know it.
 		}
 
 		public void Synchronize(TimeSpan requestInterval)
@@ -111,8 +193,6 @@ namespace WalletWasabi.Services
 
 			Task.Run(async () =>
 			{
-				FilterModel bestKnownFilter = null;
-
 				try
 				{
 					while (IsRunning)
@@ -120,53 +200,87 @@ namespace WalletWasabi.Services
 						try
 						{
 							// If stop was requested return.
-							if (IsRunning == false) return;
+							if (!IsRunning) return;
 
-							using (await IndexLock.LockAsync())
+							FilterModel startingFilter = BestKnownFilter;
+
+							FiltersResponse filtersResponse = null;
+							try
 							{
-								bestKnownFilter = Index.Last();
+								filtersResponse = await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 							}
-
-							var filters = await WasabiClient.GetFiltersAsync(bestKnownFilter.BlockHash, 1000);
-
-							if (!filters.Any())
+							catch (ConnectionException)
 							{
+								TorStatus = TorStatus.NotRunning;
+								BackendStatus = BackendStatus.NotConnected;
+								throw;
+							}
+							catch (TorSocks5FailureResponseException)
+							{
+								TorStatus = TorStatus.Running;
+								BackendStatus = BackendStatus.NotConnected;
+								throw;
+							}
+							catch
+							{
+								TorStatus = TorStatus.Running;
+								BackendStatus = BackendStatus.Connected;
+								throw;
+							}
+							BackendStatus = BackendStatus.Connected;
+							TorStatus = TorStatus.Running;
+
+							if (filtersResponse == null) // no-content, we are synced
+							{
+								BestHeight = BestKnownFilter.BlockHeight;
 								continue;
 							}
-							using (await IndexLock.LockAsync())
+							BestHeight = filtersResponse.BestHeight;
+
+							using (await IndexLock.LockAsync(Cancel.Token))
 							{
-								var filtersList = filters.ToList(); // performance
+								var filtersList = filtersResponse.Filters.ToList(); // performance
 								for (int i = 0; i < filtersList.Count; i++)
 								{
-									var filterModel = FilterModel.FromLine(filtersList[i], bestKnownFilter.BlockHeight + i + 1);
+									var filterModel = FilterModel.FromLine(filtersList[i], BestKnownFilter.BlockHeight + 1);
 
 									Index.Add(filterModel);
+									BestKnownFilter = filterModel;
 									NewFilter?.Invoke(this, filterModel);
 								}
 
 								if (filtersList.Count == 1) // minor optimization
 								{
-									await File.AppendAllLinesAsync(IndexFilePath, new[] { Index.Last().ToLine() });
+									await File.AppendAllLinesAsync(IndexFilePath, new[] { BestKnownFilter.ToLine() });
 								}
 								else
 								{
 									await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
 								}
 
-								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {bestKnownFilter.BlockHeight.Value + 1} to {Index.Last().BlockHeight}.");
+								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {startingFilter.BlockHeight + 1} to {BestKnownFilter.BlockHeight}.");
 							}
 
 							continue;
 						}
+						catch (TaskCanceledException ex)
+						{
+							Logger.LogTrace<CcjClient>(ex);
+						}
+						catch (OperationCanceledException ex)
+						{
+							Logger.LogTrace<CcjClient>(ex);
+						}
 						catch (HttpRequestException ex) when (ex.Message.StartsWith(HttpStatusCode.NotFound.ToReasonString()))
 						{
 							// Reorg happened
-							var reorgedHash = bestKnownFilter.BlockHash;
+							var reorgedHash = BestKnownFilter.BlockHash;
 							Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
 							// 1. Rollback index
-							using (await IndexLock.LockAsync())
+							using (await IndexLock.LockAsync(Cancel.Token))
 							{
 								Index.RemoveAt(Index.Count - 1);
+								BestKnownFilter = Index.Last();
 							}
 
 							Reorged?.Invoke(this, reorgedHash);
@@ -178,13 +292,23 @@ namespace WalletWasabi.Services
 							// 3. Skip the last valid block.
 							continue;
 						}
-						catch(Exception ex)
+						catch (Exception ex)
 						{
 							Logger.LogError<IndexDownloader>(ex);
 						}
 						finally
 						{
-							await Task.Delay(requestInterval); // Ask for new index in every requestInterval.
+							if (IsRunning)
+							{
+								try
+								{
+									await Task.Delay(requestInterval, Cancel.Token); // Ask for new index in every requestInterval.
+								}
+								catch (TaskCanceledException ex)
+								{
+									Logger.LogTrace<CcjClient>(ex);
+								}
+							}
 						}
 					}
 				}
@@ -204,28 +328,6 @@ namespace WalletWasabi.Services
 			{
 				var single = Index.Single(x => x.BlockHash == blockHash);
 				return single.BlockHeight;
-			}
-		}
-
-		public async Task StopAsync()
-		{
-			if (IsRunning)
-			{
-				Interlocked.Exchange(ref _running, 2);
-			}
-			while (IsStopping)
-			{
-				await Task.Delay(50);
-			}
-
-			WasabiClient?.Dispose();
-		}
-
-		public FilterModel GetBestFilter()
-		{
-			using (IndexLock.Lock())
-			{
-				return Index.Last();
 			}
 		}
 
@@ -268,5 +370,43 @@ namespace WalletWasabi.Services
 				}
 			}
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					if (IsRunning)
+					{
+						Interlocked.Exchange(ref _running, 2);
+					}
+					Cancel?.Cancel();
+					while (IsStopping)
+					{
+						Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
+					}
+
+					Cancel?.Dispose();
+					WasabiClient?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+			// GC.SuppressFinalize(this);
+		}
+
+		#endregion IDisposable Support
 	}
 }

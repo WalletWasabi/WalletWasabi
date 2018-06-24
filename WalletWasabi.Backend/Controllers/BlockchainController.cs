@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Controllers
 {
@@ -158,8 +160,8 @@ namespace WalletWasabi.Backend.Controllers
 		/// </remarks>
 		/// <param name="bestKnownBlockHash">The best block hash the client knows its filter.</param>
 		/// <param name="count">The number of filters to return.</param>
-		/// <returns>An array of block hash : element count : filter pairs.</returns>
-		/// <response code="200">An array of block hash : element count : filter pairs.</response>
+		/// <returns>The best height and an array of block hash : element count : filter pairs.</returns>
+		/// <response code="200">The best height and an array of block hash : element count : filter pairs.</response>
 		/// <response code="204">When the provided hash is the tip.</response>
 		/// <response code="400">The provided hash was malformed or the count value is out of range</response>
 		/// <response code="404">If the hash is not found. This happens at blockhain reorg.</response>
@@ -177,7 +179,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			var knownHash = new uint256(bestKnownBlockHash);
 
-			IEnumerable<string> filters = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
+			(Height bestHeight, IEnumerable<string> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 			if (!found)
 			{
@@ -189,7 +191,13 @@ namespace WalletWasabi.Backend.Controllers
 				return NoContent();
 			}
 
-			return Ok(filters);
+			var response = new FiltersResponse
+			{
+				BestHeight = bestHeight,
+				Filters = filters
+			};
+
+			return Ok(response);
 		}
 
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)

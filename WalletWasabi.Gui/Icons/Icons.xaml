@@ -1,0 +1,42 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:AvalonStudio.Controls.Standard.CodeEditor;assembly=AvalonStudio.Controls.Standard">
+    <Style>
+        <Style.Resources>
+            <DrawingGroup x:Key="GenerateWallet">
+                <DrawingGroup.Children>
+                    <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,6.5L16,13.5C16,14.327,15.327,15,14.5,15L3.5,15C2.673,15,2,14.327,2,13.5L2,8 2,6 0,6 0,2 2,2 2,0 6,0 6,2 8,2 8,3 10.618,3 11.618,5 14.5,5C15.327,5,16,5.673,16,6.5" />
+                    <GeometryDrawing Brush="#FFDCB67A" Geometry="F1M15,6.5L15,13.5C15,13.776,14.776,14,14.5,14L3.5,14C3.224,14,3,13.776,3,13.5L3,8 6,8 6,6 8,6 9.5,6 9,5 8,5 8,4 10,4 11,6 14.5,6C14.776,6,15,6.224,15,6.5" />
+                    <GeometryDrawing Brush="#FF388A34" Geometry="F1M7,5L5,5 5,7 3,7 3,5 1,5 1,3 3,3 3,1 5,1 5,3 7,3z" />
+                    <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M8.0001,5.0002L8.0001,6.0002 9.5001,6.0002 9.0001,5.0002z" />
+                </DrawingGroup.Children>
+            </DrawingGroup>
+
+            <DrawingGroup x:Key="RecoverWallet">
+                <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                <GeometryDrawing Brush="Transparent" Geometry="F1M6.1064,6C6.5214,5.768 6.9974,5.637 7.5004,5.637 8.0114,5.637 8.5184,5.77 8.9664,6z M15.0004,10L15.0004,4.586 11.0004,0.586 11.0004,3.03C9.9664,2.367 8.7544,2 7.5004,2 4.1584,2 1.3044,4.596 1.0034,7.91L0.9054,9 4.5474,9 4.6604,8.128C4.7634,7.337,5.1874,6.655,5.7904,6.205L9.5854,10z M8.0004,16C6.3454,16 5.0004,14.654 5.0004,13 5.0004,11.346 6.3454,10 8.0004,10 9.6544,10 11.0004,11.346 11.0004,13 11.0004,14.654 9.6544,16 8.0004,16" />
+                <GeometryDrawing Brush="#FFA2A2A2" Geometry="F1M8,11C9.104,11 10,11.896 10,13 10,14.105 9.104,15 8,15 6.896,15 6,14.105 6,13 6,11.896 6.896,11 8,11" />
+                <GeometryDrawing Brush="#FF7AC1FF" Geometry="F1M3.6689,8L1.9999,8C2.2539,5.201 4.6369,3 7.4999,3 9.3599,3 11.0039,3.931 11.9999,5.348L11.9999,3 13.9999,5 13.9999,9 9.9999,9 7.9999,7 10.9999,7 10.9999,6.998 11.2379,7C10.6519,5.611 9.1019,4.637 7.4999,4.637 5.5349,4.637 3.9149,6.102 3.6689,8" />
+            </DrawingGroup>
+
+            <DrawingGroup x:Key="LoadWallet">
+                <DrawingGroup.Children>
+                    <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,9L16,10.196 13.677,16 2,16C2,16 1.14,15.979 0.57,15.435 0.227,15.103 0,14.617 0,14L0,5C0,3.697,1.005,3,2,3L4.486,3 3.607,2.121 5.729,0 10.246,4.518 9.999,4.765 10.116,5 13,5C13.97,5,15,5.701,15,7L15,9z" />
+                    <GeometryDrawing Brush="#FFDCB67A" Geometry="F1M14,10.0313L14,7.0313C14,6.0313,12.764,6.0313,13,6.0313L9.5,6.0313 9.244,5.5193 8.578,6.1863 9,7.0313 13,7.0313 13,10.0313 4,10.0313 2,15.0313 13,15.0313 15,10.0313z M2,15.0153L1.997,15.0153C1.94,15.0153,1,15.0013,1,14.0313L1,8.9593C1.286,9.2523,1.626,9.4873,2,9.6663z" />
+                    <GeometryDrawing Brush="#FF00529C" Geometry="F1M8.832,4.5176L5.728,7.6216 5.021,6.9136 6.918,5.0176 3.5,5.0176C2.673,5.0176 2,5.6906 2,6.5176 2,7.3446 2.673,8.0176 3.5,8.0176L3.5,9.0176C2.122,9.0176 1,7.8966 1,6.5176 1,5.1396 2.122,4.0176 3.5,4.0176L6.918,4.0176 5.021,2.1216 5.728,1.4136z" />
+                </DrawingGroup.Children>
+            </DrawingGroup>
+
+            <DrawingGroup x:Key="Exit">
+                <DrawingGroup.Children>
+                    <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8.0001,5.1721L3.4571,0.6291 0.629099999999999,3.4571 5.1721,8.0001 0.629099999999999,12.5431 3.4571,15.3711 8.0001,10.8281 12.5431,15.3711 15.3711,12.5431 10.8281,8.0001 15.3711,3.4571 12.5431,0.6291z" />
+                    <GeometryDrawing Brush="#FF424242" Geometry="F1M9.4141,8L13.9571,12.543 12.5431,13.957 8.0001,9.414 3.4571,13.957 2.0431,12.543 6.5861,8 2.0431,3.457 3.4571,2.043 8.0001,6.586 12.5431,2.043 13.9571,3.457z" />
+                </DrawingGroup.Children>
+            </DrawingGroup>
+
+        </Style.Resources>
+    </Style>
+</Styles>

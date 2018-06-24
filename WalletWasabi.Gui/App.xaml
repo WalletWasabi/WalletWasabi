@@ -1,6 +1,34 @@
-﻿<Application xmlns="https://github.com/avaloniaui">
+﻿<Application xmlns="https://github.com/avaloniaui"
+             xmlns:cont="clr-namespace:AvalonStudio.Controls;assembly=AvalonStudio.Shell.Extensibility"
+             xmlns:id="clr-namespace:Dock.Model;assembly=Dock.Model"
+             xmlns:Views="clr-namespace:AvaloniaDemo.ViewModels.Views;assembly=AvalonStudio.Shell">
     <Application.Styles>
         <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default" />
         <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseLight.xaml?assembly=Avalonia.Themes.Default" />
+        <StyleInclude Source="resm:AvalonStudio.Shell.Themes.BaseDark.xaml?assembly=AvalonStudio.Shell" />
+        <StyleInclude Source="resm:AvalonStudio.Shell.Themes.Theme.xaml?assembly=AvalonStudio.Shell" />
+        <StyleInclude Source="resm:AvalonStudio.Shell.Themes.Accents.DarkAccent.xaml?assembly=AvalonStudio.Shell" />
+        <StyleInclude Source="resm:AvalonStudio.Shell.Icons.Icons.xaml?assembly=AvalonStudio.Shell" />
+        <StyleInclude Source="resm:AvalonStudio.Shell.Controls.MetroWindowTheme.paml?assembly=AvalonStudio.Shell" />
+        <StyleInclude Source="resm:AvalonStudio.Shell.Extensibility.Controls.ControlTheme.paml?assembly=AvalonStudio.Shell.Extensibility" />
+        <StyleInclude Source="resm:AvalonStudio.Shell.Styles.GlobalStyles.xaml?assembly=AvalonStudio.Shell" />
+        <StyleInclude Source="resm:Dock.Avalonia.Controls.DockPanelSplitter.xaml?assembly=Dock.Avalonia" />
+        <StyleInclude Source="resm:Dock.Avalonia.Controls.DockTarget.xaml?assembly=Dock.Avalonia" />
+        <StyleInclude Source="resm:Dock.Avalonia.Controls.DockToolChrome.xaml?assembly=Dock.Avalonia" />
+        <StyleInclude Source="resm:Dock.Avalonia.Controls.MetroWindow.xaml?assembly=Dock.Avalonia" />
+        <StyleInclude Source="resm:WalletWasabi.Gui.Controls.GroupBox.xaml?assembly=WalletWasabi.Gui" />
+        <StyleInclude Source="resm:WalletWasabi.Gui.Styles.Styles.xaml?assembly=WalletWasabi.Gui" />
+        <StyleInclude Source="resm:WalletWasabi.Gui.Icons.Icons.xaml?assembly=WalletWasabi.Gui"/>
+
     </Application.Styles>
+    <Application.DataTemplates>
+        <DataTemplate DataType="Views:MainView">
+            <Grid>
+                <ContentControl Content="{Binding CurrentView}" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate DataType="id:IView">
+            <cont:ViewModelViewHost DataContext="{Binding }" />
+        </DataTemplate>
+    </Application.DataTemplates>
 </Application>

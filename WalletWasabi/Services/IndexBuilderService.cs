@@ -318,6 +318,8 @@ namespace WalletWasabi.Services
 							{
 								filter = new GolombRiceFilterBuilder()
 									.SetKey(block.GetHash())
+									.SetP(20)
+									.SetM(1<<20)
 									.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
 									.Build();
 							}
@@ -368,7 +370,7 @@ namespace WalletWasabi.Services
 			});
 		}
 
-		public IEnumerable<string> GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
+		public (Height bestHeight, IEnumerable<string> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
 		{
 			using (IndexLock.Lock())
 			{
@@ -393,7 +395,14 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				return filters;
+				if (Index.Count == 0)
+				{
+					return (Height.Unknown, Enumerable.Empty<string>());
+				}
+				else
+				{
+					return (Index.Last().BlockHeight, filters);
+				}
 			}
 		}
 

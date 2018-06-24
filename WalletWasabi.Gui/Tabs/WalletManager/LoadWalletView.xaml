@@ -1,0 +1,17 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+            xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+
+  <StackPanel Margin="10" Gap="10">
+    <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20">
+      <Grid Classes="content">
+        <ListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}" />
+      </Grid>
+    </controls:GroupBox>
+    <DockPanel LastChildFill="True">
+      <Button Content="Load" Command="{Binding LoadCommand}" DockPanel.Dock="Right" />
+      <Grid></Grid>
+    </DockPanel>
+    <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+    <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
+  </StackPanel>
+</UserControl>

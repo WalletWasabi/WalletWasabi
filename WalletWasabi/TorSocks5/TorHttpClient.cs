@@ -14,6 +14,7 @@ using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace WalletWasabi.TorSocks5
 {
@@ -61,7 +62,10 @@ namespace WalletWasabi.TorSocks5
 			}
 		}
 
-		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent content = null)
+		/// <remarks>
+		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
+		/// </remarks>
+		public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string relativeUri, HttpContent content = null, CancellationToken cancel = default)
 		{
 			Guard.NotNull(nameof(method), method);
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
@@ -72,39 +76,59 @@ namespace WalletWasabi.TorSocks5
 				request.Content = content;
 			}
 
-			using (await AsyncLock.LockAsync())
+			try
 			{
-				try
+				using (await AsyncLock.LockAsync(cancel))
 				{
-					return await SendAsync(request);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogTrace<TorHttpClient>(ex);
-
-					TorSocks5Client?.Dispose(); // rebuild the connection and retry
-					TorSocks5Client = null;
-
 					try
 					{
 						return await SendAsync(request);
 					}
-					// If we get ttlexpired then wait and retry again linux often do this.
-					catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
+					catch (Exception ex)
 					{
 						Logger.LogTrace<TorHttpClient>(ex);
 
 						TorSocks5Client?.Dispose(); // rebuild the connection and retry
 						TorSocks5Client = null;
 
-						await Task.Delay(1000);
+						cancel.ThrowIfCancellationRequested();
+						try
+						{
+							return await SendAsync(request);
+						}
+						// If we get ttlexpired then wait and retry again linux often do this.
+						catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
+						{
+							Logger.LogTrace<TorHttpClient>(ex);
+
+							TorSocks5Client?.Dispose(); // rebuild the connection and retry
+							TorSocks5Client = null;
+
+							try
+							{
+								await Task.Delay(1000, cancel);
+							}
+							catch (TaskCanceledException tce)
+							{
+								throw new OperationCanceledException(tce.Message, tce, cancel);
+							}
+						}
+
+						cancel.ThrowIfCancellationRequested();
 						return await SendAsync(request);
 					}
 				}
 			}
+			catch (TaskCanceledException ex)
+			{
+				throw new OperationCanceledException(ex.Message, ex, cancel);
+			}
 		}
 
-		private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+		/// <remarks>
+		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
+		/// </remarks>
+		private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
 		{
 			Guard.NotNull(nameof(request), request);
 
@@ -165,6 +189,7 @@ namespace WalletWasabi.TorSocks5
 
 				TorSocks5Client.Stream = stream;
 			}
+			cancel.ThrowIfCancellationRequested();
 
 			// https://tools.ietf.org/html/rfc7230#section-3.3.2
 			// A user agent SHOULD send a Content - Length in a request message when
