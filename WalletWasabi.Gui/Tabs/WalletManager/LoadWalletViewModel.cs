@@ -34,12 +34,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			this.WhenAnyValue(x => x.IsWalletOpened)
 				.Subscribe(isWalletOpened => CanLoadWallet = !string.IsNullOrEmpty(SelectedWallet) && !isWalletOpened);
 
-			this.WhenAnyValue(x=>x.IsWalletOpened)
-				.Subscribe(isWalletOpened => WarningMessage = isWalletOpened 
-					? "There is an already open wallet. Restart the application in order to be able to open a different wallet."
-					: string.Empty );
+			this.WhenAnyValue(x => x.IsWalletOpened)
+				.Subscribe(isWalletOpened => WarningMessage = isWalletOpened
+					? "There is already an open wallet. Restart the application in order to be able to open a different wallet."
+					: string.Empty);
 
-			LoadCommand = ReactiveCommand.Create( LoadWallet, this.WhenAnyValue(x => x.CanLoadWallet));
+			LoadCommand = ReactiveCommand.Create(LoadWallet, this.WhenAnyValue(x => x.CanLoadWallet));
 		}
 
 		public ObservableCollection<string> Wallets
@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _selectedWallet, value); }
 		}
 
-		public bool IsWalletOpened 
+		public bool IsWalletOpened
 		{
 			get { return _isWalletOpened; }
 			set { this.RaiseAndSetIfChanged(ref _isWalletOpened, value); }
@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				_wallets.Add(Path.GetFileNameWithoutExtension(file.FullName));
 			}
 
-			if(_wallets.Any())
+			if (_wallets.Any())
 			{
 				SelectedWallet = _wallets.First();
 			}
@@ -107,7 +107,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			var keyManager = KeyManager.FromFile(walletFullPath);
 
 			Global.InitializeWalletService(keyManager);
-			
+
 			// ToDo: Close the Wallet Manager, Open Wallet Explorer tabs
 		}
 	}
