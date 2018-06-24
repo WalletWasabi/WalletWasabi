@@ -18,14 +18,28 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ObservableCollection<string> _wallets;
 		private string _selectedWallet;
 		private bool _isSelectedWallet;
+		private bool _isWalletOpened;
+		private bool _canLoadWallet;
+		private string _warningMessage;
+		private WalletManagerViewModel _owner;
 
-		public LoadWalletViewModel() : base("Load Wallet")
+		public LoadWalletViewModel(WalletManagerViewModel owner) : base("Load Wallet")
 		{
+			_owner = owner;
 			_wallets = new ObservableCollection<string>();
-			this.WhenAnyValue(x => x.SelectedWallet).Subscribe(SelectedWallet => IsSelectedWallet = !string.IsNullOrEmpty(SelectedWallet));
-			LoadCommand = ReactiveCommand.Create(
-				LoadWallet,
-				this.WhenAnyValue(x => x.IsSelectedWallet));
+
+			this.WhenAnyValue(x => x.SelectedWallet)
+				.Subscribe(selectedWallet => CanLoadWallet = !string.IsNullOrEmpty(selectedWallet) && !IsWalletOpened);
+
+			this.WhenAnyValue(x => x.IsWalletOpened)
+				.Subscribe(isWalletOpened => CanLoadWallet = !string.IsNullOrEmpty(SelectedWallet) && !isWalletOpened);
+
+			this.WhenAnyValue(x=>x.IsWalletOpened)
+				.Subscribe(isWalletOpened => WarningMessage = isWalletOpened 
+					? "There is an already open wallet. Restart the application in order to be able to open a different wallet."
+					: string.Empty );
+
+			LoadCommand = ReactiveCommand.Create( LoadWallet, this.WhenAnyValue(x => x.CanLoadWallet));
 		}
 
 		public ObservableCollection<string> Wallets
@@ -40,10 +54,22 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _selectedWallet, value); }
 		}
 
-		public bool IsSelectedWallet
+		public bool IsWalletOpened 
 		{
-			get { return _isSelectedWallet; }
-			set { this.RaiseAndSetIfChanged(ref _isSelectedWallet, value); }
+			get { return _isWalletOpened; }
+			set { this.RaiseAndSetIfChanged(ref _isWalletOpened, value); }
+		}
+
+		public string WarningMessage
+		{
+			get { return _warningMessage; }
+			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
+		}
+
+		public bool CanLoadWallet
+		{
+			get { return _canLoadWallet; }
+			set { this.RaiseAndSetIfChanged(ref _canLoadWallet, value); }
 		}
 
 		public override void OnCategorySelected()
@@ -56,6 +82,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				_wallets.Add(Path.GetFileNameWithoutExtension(file.FullName));
 			}
+
+			if(_wallets.Any())
+			{
+				SelectedWallet = _wallets.First();
+			}
+
+			IsWalletOpened = Global.WalletService != null;
 		}
 
 		public ReactiveCommand LoadCommand { get; }
@@ -74,6 +107,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			var keyManager = KeyManager.FromFile(walletFullPath);
 
 			Global.InitializeWalletService(keyManager);
+			
+			// ToDo: Close the Wallet Manager, Open Wallet Explorer tabs
 		}
 	}
 }
