@@ -26,6 +26,7 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 4. Fire up command line:
 ```sh
 git clone https://github.com/zkSNACKs/WalletWasabi
+git submodule update --init --recursive
 cd WalletWasabi
 dotnet restore && dotnet build
 cd WalletWasabi.Tests
