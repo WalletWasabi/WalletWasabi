@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "MainNetBackendUri")]
 		public string MainNetBackendUri { get; private set; }
 
-		public Uri GetCurrentUri() => Network == Network.Main ? new Uri(MainNetBackendUri) : new Uri(TestNetBackendUri);
+		public Uri GetCurrentBackendUri() => Network == Network.Main ? new Uri(MainNetBackendUri) : new Uri(TestNetBackendUri);
 
 		public Config()
 		{

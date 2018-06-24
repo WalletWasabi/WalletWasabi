@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			var keyManager = KeyManager.FromFile(walletFullPath);
 
-			//Global.WalletService = new WalletService(keyManager)
+			Global.InitializeWalletService(keyManager);
 		}
 	}
 }

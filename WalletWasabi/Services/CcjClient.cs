@@ -651,7 +651,7 @@ namespace WalletWasabi.Services
 			Cancel?.Cancel();
 			while (IsStopping)
 			{
-				await Task.Delay(50);
+				Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
 			}
 
 			Cancel?.Dispose();
