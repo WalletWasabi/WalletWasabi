@@ -21,6 +21,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _isWalletOpened;
 		private bool _canLoadWallet;
 		private string _warningMessage;
+		private string _validationMessage;
 		private WalletManagerViewModel Owner { get; }
 
 		public LoadWalletViewModel(WalletManagerViewModel owner) : base("Load Wallet")
@@ -36,7 +37,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			this.WhenAnyValue(x => x.IsWalletOpened)
 				.Subscribe(isWalletOpened => WarningMessage = isWalletOpened
-					? "There is already an open wallet. Restart the application in order to be able to open a different wallet."
+					? "There is already an open wallet. Restart the application to open another one."
 					: string.Empty);
 
 			LoadCommand = ReactiveCommand.Create(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
@@ -66,6 +67,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
 		}
 
+		public string ValidationMessage
+		{
+			get { return _validationMessage; }
+			set { this.RaiseAndSetIfChanged(ref _validationMessage, value); }
+		}
+
 		public bool CanLoadWallet
 		{
 			get { return _canLoadWallet; }
@@ -89,6 +96,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			IsWalletOpened = Global.WalletService != null;
+			ValidationMessage = null;
 		}
 
 		public ReactiveCommand LoadCommand { get; }
@@ -115,7 +123,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			catch (Exception ex)
 			{
 				// Initialization failed.
-				// ToDo: Show error messages.
+				ValidationMessage = ex.ToTypeMessageString();
 				Logger.LogError<LoadWalletViewModel>(ex);
 				await Global.DisposeInWalletDependentServicesAsync();
 			}
