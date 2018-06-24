@@ -17,9 +17,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ObservableCollection<string> _wallets;
 		private string _selectedWallet;
 		private bool _isSelectedWallet;
+		private WalletManagerViewModel _owner;
 
-		public LoadWalletViewModel() : base("Load Wallet")
+		public LoadWalletViewModel(WalletManagerViewModel owner) : base("Load Wallet")
 		{
+			_owner = owner;
 			_wallets = new ObservableCollection<string>();
 			this.WhenAnyValue(x => x.SelectedWallet).Subscribe(SelectedWallet => IsSelectedWallet = !string.IsNullOrEmpty(SelectedWallet));
 			LoadCommand = ReactiveCommand.Create(
@@ -71,6 +73,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 
 			// Implement the logic here
+
+			_owner.RemoveLoadWalletOption();
 		}
 	}
 }
