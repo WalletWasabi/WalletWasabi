@@ -300,7 +300,10 @@ namespace WalletWasabi.Services
 			}
 
 			// If double spend:
-			IEnumerable<SmartCoin> doubleSpends = Coins.Where(x => tx.Transaction.Inputs.Any(y => x.SpentOutputs.Select(z => z.ToOutPoint()).Contains(y.PrevOut)));
+			List<SmartCoin> doubleSpends = Coins
+				.Where(x => tx.Transaction.Inputs.Any(y => x.SpentOutputs.Select(z => z.ToOutPoint()).Contains(y.PrevOut)))
+				.ToList();
+
 			if (doubleSpends.Any())
 			{
 				if (tx.Height == Height.MemPool)
