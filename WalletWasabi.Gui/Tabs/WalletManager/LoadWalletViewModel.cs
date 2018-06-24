@@ -10,6 +10,7 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -39,7 +40,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					? "There is already an open wallet. Restart the application in order to be able to open a different wallet."
 					: string.Empty);
 
-			LoadCommand = ReactiveCommand.Create(LoadWallet, this.WhenAnyValue(x => x.CanLoadWallet));
+			LoadCommand = ReactiveCommand.Create(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
 		}
 
 		public ObservableCollection<string> Wallets
@@ -93,7 +94,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public ReactiveCommand LoadCommand { get; }
 
-		public void LoadWallet()
+		public async Task LoadWalletAsync()
 		{
 			var walletFullPath = Path.Combine(Global.WalletsDir, SelectedWallet + ".json");
 			if (!File.Exists(walletFullPath))
@@ -106,7 +107,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			var keyManager = KeyManager.FromFile(walletFullPath);
 
-			Global.InitializeWalletService(keyManager);
+			await Global.InitializeWalletServiceAsync(keyManager);
 
 			// ToDo: Close the Wallet Manager, Open Wallet Explorer tabs
 		}

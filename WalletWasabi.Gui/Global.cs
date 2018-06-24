@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
@@ -120,7 +121,9 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo("Start synchronizing filters...");
 		}
 
-		public static void InitializeWalletService(KeyManager keyManager)
+		private static CancellationTokenSource CancelWalletServiceInitialization = null;
+
+		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
 			ChaumianClient = new CcjClient(Network, BlindingPubKey, keyManager, Config.GetCurrentBackendUri());
 			WalletService = new WalletService(keyManager, IndexDownloader, ChaumianClient, MemPoolService, Nodes, BlocksDir);
@@ -128,12 +131,19 @@ namespace WalletWasabi.Gui
 			ChaumianClient.Start();
 			Logger.LogInfo("Start Chaumian CoinJoin service...");
 
-			//WalletService.InitializeAsync()
-			Logger.LogInfo("Start WalletService...");
+			using (CancelWalletServiceInitialization = new CancellationTokenSource())
+			{
+				Logger.LogInfo("Starting WalletService...");
+				await WalletService.InitializeAsync(CancelWalletServiceInitialization.Token);
+				Logger.LogInfo("WalletService started.");
+			}
+			CancelWalletServiceInitialization = null;
 		}
 
 		public static async Task DisposeAsync()
 		{
+			CancelWalletServiceInitialization?.Cancel();
+
 			WalletService?.Dispose();
 			Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
 
@@ -149,7 +159,7 @@ namespace WalletWasabi.Gui
 
 			if (ChaumianClient != null)
 			{
-				ChaumianClient.StopAsync().GetAwaiter().GetResult();
+				await ChaumianClient.StopAsync();
 			}
 			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.", nameof(Global));
 		}
