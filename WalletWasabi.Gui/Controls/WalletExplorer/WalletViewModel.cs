@@ -10,19 +10,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletViewModel : DocumentTabViewModel
 	{
-		public WalletViewModel (string name)
+		public WalletViewModel(string name)
 			: base(name)
 		{
-			_actions = new ObservableCollection<DocumentTabViewModel>();
-			_actions.Add(new SendActionViewModel(this));
-			_actions.Add(new ReceiveActionViewModel(this));
-			_actions.Add(new CoinJoinActionViewModel(this));
-			_actions.Add(new HistoryActionViewModel(this));
+			_actions = new ObservableCollection<DocumentTabViewModel>
+			{
+				new SendActionViewModel(this),
+				new ReceiveActionViewModel(this),
+				new CoinJoinActionViewModel(this),
+				new HistoryActionViewModel(this)
+			};
 		}
 
 		public string Name { get; }
 
 		private ObservableCollection<DocumentTabViewModel> _actions;
+
 		public ObservableCollection<DocumentTabViewModel> Actions
 		{
 			get { return _actions; }
@@ -32,7 +35,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 	public class WalletActionViewModel : DocumentTabViewModel
 	{
-		public  WalletViewModel Wallet { get; }
+		public WalletViewModel Wallet { get; }
 
 		public WalletActionViewModel(string title, WalletViewModel walletViewModel)
 			: base(title)
@@ -45,31 +48,46 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void DisplayActionTab()
 		{
-			IoC.Get<IShell>().AddDocument(this);
+			if (Title == "Send")
+			{
+				IoC.Get<IShell>().AddOrSelectDocument<SendActionViewModel>(this);
+			}
+			else if (Title == "Receive")
+			{
+				IoC.Get<IShell>().AddOrSelectDocument<ReceiveActionViewModel>(this);
+			}
+			else if (Title == "CoinJoin")
+			{
+				IoC.Get<IShell>().AddOrSelectDocument<CoinJoinActionViewModel>(this);
+			}
+			else if (Title == "History")
+			{
+				IoC.Get<IShell>().AddOrSelectDocument<HistoryActionViewModel>(this);
+			}
 		}
 	}
 
-	public class SendActionViewModel : WalletActionViewModel 
+	public class SendActionViewModel : WalletActionViewModel
 	{
 		public SendActionViewModel(WalletViewModel walletViewModel)
-			: base("Send", walletViewModel){}
+			: base("Send", walletViewModel) { }
 	}
 
-	public class ReceiveActionViewModel : WalletActionViewModel 
+	public class ReceiveActionViewModel : WalletActionViewModel
 	{
 		public ReceiveActionViewModel(WalletViewModel walletViewModel)
-			: base("Receive", walletViewModel){}
+			: base("Receive", walletViewModel) { }
 	}
 
-	public class HistoryActionViewModel : WalletActionViewModel 
+	public class HistoryActionViewModel : WalletActionViewModel
 	{
 		public HistoryActionViewModel(WalletViewModel walletViewModel)
-			: base("History", walletViewModel){}
+			: base("History", walletViewModel) { }
 	}
 
-	public class CoinJoinActionViewModel : WalletActionViewModel 
+	public class CoinJoinActionViewModel : WalletActionViewModel
 	{
 		public CoinJoinActionViewModel(WalletViewModel walletViewModel)
-			: base("CoinJoin", walletViewModel){}
+			: base("CoinJoin", walletViewModel) { }
 	}
 }
