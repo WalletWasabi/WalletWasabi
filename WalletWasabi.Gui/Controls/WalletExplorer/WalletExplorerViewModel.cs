@@ -8,6 +8,7 @@ using System.Text;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 using System.Linq;
+using AvalonStudio.Shell;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -27,13 +28,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private ObservableCollection<WalletViewModel> _wallets;
+
 		public ObservableCollection<WalletViewModel> Wallets
 		{
-			get { return _wallets;}
+			get { return _wallets; }
 			set { this.RaiseAndSetIfChanged(ref _wallets, value); }
 		}
 
 		private DocumentTabViewModel _selectedItem;
+
 		public DocumentTabViewModel SelectedItem
 		{
 			get { return _selectedItem; }
@@ -42,10 +45,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		internal void OpenWallet(string walletName)
 		{
-			if(_wallets.Any(x=>x.Title == walletName))
+			if (_wallets.Any(x => x.Title == walletName))
 				return;
 
-			_wallets.Add(new WalletViewModel(walletName));
+			WalletViewModel walletViewModel = new WalletViewModel(walletName);
+			_wallets.Add(walletViewModel);
+
+			IoC.Get<IShell>().AddOrSelectDocument<SendActionViewModel>(new SendActionViewModel(walletViewModel));
+			IoC.Get<IShell>().AddOrSelectDocument<ReceiveActionViewModel>(new ReceiveActionViewModel(walletViewModel));
+			IoC.Get<IShell>().AddOrSelectDocument<CoinJoinActionViewModel>(new CoinJoinActionViewModel(walletViewModel));
+			IoC.Get<IShell>().AddOrSelectDocument<HistoryActionViewModel>(new HistoryActionViewModel(walletViewModel));
+			IoC.Get<IShell>().SelectedDocument = IoC.Get<IShell>().Documents.FirstOrDefault(x => x is ReceiveActionViewModel);
 		}
 	}
 }

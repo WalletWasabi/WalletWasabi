@@ -19,26 +19,34 @@ namespace WalletWasabi.Gui
 			StatusBarViewModel statusBar = null;
 			try
 			{
-				Logger.SetFilePath(Path.Combine(Global.DataDir, "Logs.txt"));
+				MainWindowViewModel.Instance = new MainWindowViewModel();
+				BuildAvaloniaApp().AfterSetup(async builder =>
+				{
+					try
+					{
+						Logger.SetFilePath(Path.Combine(Global.DataDir, "Logs.txt"));
 #if RELEASE
-				Logger.SetMinimumLevel(LogLevel.Info);
-				Logger.SetModes(LogMode.File);
+						Logger.SetMinimumLevel(LogLevel.Info);
+						Logger.SetModes(LogMode.File);
 #else
-				Logger.SetMinimumLevel(LogLevel.Debug);
-				Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
+						Logger.SetMinimumLevel(LogLevel.Debug);
+						Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
 #endif
-				var configFilePath = Path.Combine(Global.DataDir, "Config.json");
-				var config = new Config(configFilePath);
-				await config.LoadOrCreateDefaultFileAsync();
-				Logger.LogInfo<Config>("Config is successfully initialized.");
+						var configFilePath = Path.Combine(Global.DataDir, "Config.json");
+						var config = new Config(configFilePath);
+						await config.LoadOrCreateDefaultFileAsync();
+						Logger.LogInfo<Config>("Config is successfully initialized.");
 
-				Global.Initialize(config);
-				statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader);
+						Global.Initialize(config);
+						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader);
 
-				MainWindowViewModel.Instance = new MainWindowViewModel(statusBar);
-
-				BuildAvaloniaApp()
-					.StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", new DefaultLayoutFactory(), () => MainWindowViewModel.Instance);
+						MainWindowViewModel.Instance.StatusBar = statusBar;
+					}
+					catch (Exception ex)
+					{
+						Logger.LogCritical<Program>(ex);
+					}
+				}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", new DefaultLayoutFactory(), () => MainWindowViewModel.Instance);
 			}
 			catch (Exception ex)
 			{
