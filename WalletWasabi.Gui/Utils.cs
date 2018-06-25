@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui
 
 		public static T GetOrCreate<T>(this IShell me) where T : IDocumentTabViewModel, new()
 		{
-			T document = default(T);
+			T document = default;
 			IDocumentTabViewModel doc = me.Documents.FirstOrDefault(x => x is T);
 			if (doc != default)
 			{

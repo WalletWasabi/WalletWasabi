@@ -6,7 +6,7 @@ using System;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class WalletManagerViewModel : DocumentTabViewModel
+	internal class WalletManagerViewModel : WasabiDocumentTabViewModel
 	{
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;

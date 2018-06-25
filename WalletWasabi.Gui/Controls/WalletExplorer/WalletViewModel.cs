@@ -8,7 +8,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModel : DocumentTabViewModel
+	public class WalletViewModel : WasabiDocumentTabViewModel
 	{
 		private ObservableCollection<WalletActionViewModel> _actions;
 
@@ -36,29 +36,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get { return _actions; }
 			set { this.RaiseAndSetIfChanged(ref _actions, value); }
 		}
-	}
-
-	public class SendActionViewModel : WalletActionViewModel
-	{
-		public SendActionViewModel(WalletViewModel walletViewModel)
-			: base("Send", walletViewModel) { }
-	}
-
-	public class ReceiveActionViewModel : WalletActionViewModel
-	{
-		public ReceiveActionViewModel(WalletViewModel walletViewModel)
-			: base("Receive", walletViewModel) { }
-	}
-
-	public class HistoryActionViewModel : WalletActionViewModel
-	{
-		public HistoryActionViewModel(WalletViewModel walletViewModel)
-			: base("History", walletViewModel) { }
-	}
-
-	public class CoinJoinActionViewModel : WalletActionViewModel
-	{
-		public CoinJoinActionViewModel(WalletViewModel walletViewModel)
-			: base("CoinJoin", walletViewModel) { }
 	}
 }

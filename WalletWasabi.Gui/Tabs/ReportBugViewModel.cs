@@ -2,7 +2,7 @@
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class ReportBugViewModel : DocumentTabViewModel
+	internal class ReportBugViewModel : WasabiDocumentTabViewModel
 	{
 		public ReportBugViewModel() : base("Report Bug")
 		{

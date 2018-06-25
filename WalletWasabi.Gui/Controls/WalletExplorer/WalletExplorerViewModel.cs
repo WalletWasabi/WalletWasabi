@@ -35,9 +35,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _wallets, value); }
 		}
 
-		private DocumentTabViewModel _selectedItem;
+		private WasabiDocumentTabViewModel _selectedItem;
 
-		public DocumentTabViewModel SelectedItem
+		public WasabiDocumentTabViewModel SelectedItem
 		{
 			get { return _selectedItem; }
 			set { this.RaiseAndSetIfChanged(ref _selectedItem, value); }

@@ -6,7 +6,7 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class ReceiveTabViewModel : DocumentTabViewModel
+	internal class ReceiveTabViewModel : WasabiDocumentTabViewModel
 	{
 		private string _walletName;
 		private ObservableCollection<AddressViewModel> _addresses;

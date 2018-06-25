@@ -5,10 +5,11 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletActionViewModel : DocumentTabViewModel
+	public class WalletActionViewModel : WasabiDocumentTabViewModel
 	{
 		public WalletViewModel Wallet { get; }
 

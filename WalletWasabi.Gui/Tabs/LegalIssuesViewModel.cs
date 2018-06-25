@@ -5,7 +5,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class LegalIssuesViewModel : DocumentTabViewModel
+	internal class LegalIssuesViewModel : WasabiDocumentTabViewModel
 	{
 		public LegalIssuesViewModel() : base("Legal Issues")
 		{
