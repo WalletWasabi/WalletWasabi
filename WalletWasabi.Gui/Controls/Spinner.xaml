@@ -1,5 +1,5 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui">
-    <Grid Height="400" Width="400">
+    <Grid>
         <Grid.Styles>
             <Style Selector="DrawingPresenter">
                 <Style.Animations>

@@ -23,6 +23,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _canLoadWallet;
 		private string _warningMessage;
 		private string _validationMessage;
+		private bool _isBusy;
+
 		private WalletManagerViewModel Owner { get; }
 
 		public LoadWalletViewModel(WalletManagerViewModel owner) : base("Load Wallet")
@@ -80,6 +82,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _canLoadWallet, value); }
 		}
 
+		public bool IsBusy
+		{
+			get { return _isBusy; }
+			set { this.RaiseAndSetIfChanged(ref _isBusy, value); }
+		}
+
 		public override void OnCategorySelected()
 		{
 			_wallets.Clear();
@@ -104,6 +112,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public async Task LoadWalletAsync()
 		{
+			IsBusy = true;
+
 			var walletFullPath = Path.Combine(Global.WalletsDir, SelectedWallet + ".json");
 			if (!File.Exists(walletFullPath))
 			{
@@ -115,7 +125,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			try
 			{
-				var keyManager = KeyManager.FromFile(walletFullPath);
+				var keyManager = await Task.Run(() => KeyManager.FromFile(walletFullPath));
+
 				await Global.InitializeWalletServiceAsync(keyManager);
 				// Successffully initialized.
 				IoC.Get<IShell>().RemoveDocument(Owner);
@@ -128,6 +139,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				ValidationMessage = ex.ToTypeMessageString();
 				Logger.LogError<LoadWalletViewModel>(ex);
 				await Global.DisposeInWalletDependentServicesAsync();
+			}
+			finally
+			{
+				IsBusy = false;
 			}
 		}
 	}
