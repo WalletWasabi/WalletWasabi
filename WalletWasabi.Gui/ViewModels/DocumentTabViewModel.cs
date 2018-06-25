@@ -12,8 +12,12 @@ namespace WalletWasabi.Gui.ViewModels
 			Title = title;
 		}
 
+		public DocumentTabViewModel()
+		{
+		}
+
 		public string Id { get; set; }
-		public string Title { get; set; }
+		public virtual string Title { get; set; }
 		public object Context { get; set; }
 		public double Width { get; set; }
 		public double Height { get; set; }

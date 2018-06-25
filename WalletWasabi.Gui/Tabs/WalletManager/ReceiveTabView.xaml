@@ -1,0 +1,39 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+            xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+
+    <StackPanel Margin="10" Gap="10">
+        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20">
+            <Grid Classes="content">
+                <Grid RowDefinitions="Auto,Auto">
+                    <Grid ColumnDefinitions="200, Auto, 50" Margin="5 0">
+                        <TextBlock Text="Label:" />
+                        <TextBlock Text="Address:" Grid.Column="1" />
+                    </Grid>
+                    <ListBox Grid.Row="1"  Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="200, 200, 50">
+                                    <Grid.Styles>
+                                        <Style Selector="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center" />
+                                        </Style>
+                                    </Grid.Styles>
+                                    <TextBlock Text="{Binding Label}" />
+                                    <TextBlock Text="{Binding Address}" Grid.Column="1" />
+                                    <Button Content="More" Grid.Column="2" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Grid>
+        </controls:GroupBox>
+        <DockPanel LastChildFill="True">
+            <Button Content="Generate New" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />
+            <TextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" DockPanel.Dock="Left" MinWidth="300" />
+            <Grid></Grid>
+        </DockPanel>
+        <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+        <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
+    </StackPanel>
+</UserControl>

@@ -10,23 +10,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletViewModel : DocumentTabViewModel
 	{
+		private ObservableCollection<WalletActionViewModel> _actions;
+
 		public WalletViewModel(string name)
 			: base(name)
 		{
-			_actions = new ObservableCollection<DocumentTabViewModel>
+			_actions = new ObservableCollection<WalletActionViewModel>
 			{
 				new SendActionViewModel(this),
 				new ReceiveActionViewModel(this),
 				new CoinJoinActionViewModel(this),
 				new HistoryActionViewModel(this)
 			};
+
+			foreach (var vm in _actions)
+			{
+				vm.DisplayActionTab();
+			}
 		}
 
 		public string Name { get; }
 
-		private ObservableCollection<DocumentTabViewModel> _actions;
-
-		public ObservableCollection<DocumentTabViewModel> Actions
+		public ObservableCollection<WalletActionViewModel> Actions
 		{
 			get { return _actions; }
 			set { this.RaiseAndSetIfChanged(ref _actions, value); }
@@ -48,22 +53,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void DisplayActionTab()
 		{
-			if (Title == "Send")
-			{
-				IoC.Get<IShell>().AddOrSelectDocument<SendActionViewModel>(this);
-			}
-			else if (Title == "Receive")
-			{
-				IoC.Get<IShell>().AddOrSelectDocument<ReceiveActionViewModel>(this);
-			}
-			else if (Title == "CoinJoin")
-			{
-				IoC.Get<IShell>().AddOrSelectDocument<CoinJoinActionViewModel>(this);
-			}
-			else if (Title == "History")
-			{
-				IoC.Get<IShell>().AddOrSelectDocument<HistoryActionViewModel>(this);
-			}
+			IoC.Get<IShell>().AddOrSelectDocument(this);
 		}
 	}
 
