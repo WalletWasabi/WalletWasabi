@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -24,6 +25,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				ReactiveCommand.Create(() =>
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument(() => new ReceiveTabViewModel("Test Wallet"));
 				}));
 
 			CustomerSupportCommand = new CommandDefinition(
