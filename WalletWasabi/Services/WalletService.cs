@@ -204,7 +204,10 @@ namespace WalletWasabi.Services
 			// Make sure there's always 21 clean keys generated and indexed.
 			AssertCleanKeysIndexed(21, false);
 
-			var ret = KeyManager.GetKeys(KeyState.Clean, false).RandomElement();
+			IEnumerable<HdPubKey> keys = KeyManager.GetKeys(KeyState.Clean, false);
+
+			var foundLabelless = keys.FirstOrDefault(x => !x.HasLabel()); // return the first labelless
+			HdPubKey ret = foundLabelless ?? KeyManager.GetKeys(KeyState.Clean, false).First(); // return the first, because that's the oldest
 
 			ret.SetLabel(label, KeyManager);
 

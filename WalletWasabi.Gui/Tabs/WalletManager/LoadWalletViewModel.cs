@@ -23,6 +23,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _canLoadWallet;
 		private string _warningMessage;
 		private string _validationMessage;
+		private bool _isBusy;
+
 		private WalletManagerViewModel Owner { get; }
 
 		public LoadWalletViewModel(WalletManagerViewModel owner) : base("Load Wallet")
@@ -76,8 +78,25 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public bool CanLoadWallet
 		{
-			get { return _canLoadWallet; }
-			set { this.RaiseAndSetIfChanged(ref _canLoadWallet, value); }
+			get
+			{
+				if (IsBusy) return false;
+				return _canLoadWallet;
+			}
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _canLoadWallet, value);
+			}
+		}
+
+		public bool IsBusy
+		{
+			get { return _isBusy; }
+			set
+			{
+				CanLoadWallet = !value;
+				this.RaiseAndSetIfChanged(ref _isBusy, value);
+			}
 		}
 
 		public override void OnCategorySelected()
@@ -104,30 +123,43 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public async Task LoadWalletAsync()
 		{
-			var walletFullPath = Path.Combine(Global.WalletsDir, SelectedWallet + ".json");
-			if (!File.Exists(walletFullPath))
-			{
-				// the selected wallets is not available any more (someone deleted it)
-				OnCategorySelected();
-				SelectedWallet = null;
-				return;
-			}
-
 			try
 			{
-				var keyManager = KeyManager.FromFile(walletFullPath);
-				await Global.InitializeWalletServiceAsync(keyManager);
-				// Successffully initialized.
-				IoC.Get<IShell>().RemoveDocument(Owner);
-				// Open Wallet Explorer tabs
-				IoC.Get<WalletExplorerViewModel>().OpenWallet(SelectedWallet);
+				IsBusy = true;
+
+				var walletFullPath = Path.Combine(Global.WalletsDir, SelectedWallet + ".json");
+				if (!File.Exists(walletFullPath))
+				{
+					// the selected wallets is not available any more (someone deleted it)
+					OnCategorySelected();
+					SelectedWallet = null;
+					return;
+				}
+
+				try
+				{
+					await Task.Run(async () =>
+				{
+					var keyManager = KeyManager.FromFile(walletFullPath);
+
+					await Global.InitializeWalletServiceAsync(keyManager);
+				});
+					// Successffully initialized.
+					IoC.Get<IShell>().RemoveDocument(Owner);
+					// Open Wallet Explorer tabs
+					IoC.Get<WalletExplorerViewModel>().OpenWallet(SelectedWallet);
+				}
+				catch (Exception ex)
+				{
+					// Initialization failed.
+					ValidationMessage = ex.ToTypeMessageString();
+					Logger.LogError<LoadWalletViewModel>(ex);
+					await Global.DisposeInWalletDependentServicesAsync();
+				}
 			}
-			catch (Exception ex)
+			finally
 			{
-				// Initialization failed.
-				ValidationMessage = ex.ToTypeMessageString();
-				Logger.LogError<LoadWalletViewModel>(ex);
-				await Global.DisposeInWalletDependentServicesAsync();
+				IsBusy = false;
 			}
 		}
 	}

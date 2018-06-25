@@ -6,7 +6,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class TermsAndConditionsViewModel : DocumentTabViewModel
+	internal class TermsAndConditionsViewModel : WasabiDocumentTabViewModel
 	{
 		public TermsAndConditionsViewModel() : base("Terms and Conditions")
 		{

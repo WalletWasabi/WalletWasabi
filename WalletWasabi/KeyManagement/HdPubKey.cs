@@ -35,7 +35,7 @@ namespace WalletWasabi.KeyManagement
 		public void SetLabel(string label, KeyManager kmToFile = null)
 		{
 			label = Guard.Correct(label);
-			if (Label == label) return;			
+			if (Label == label) return;
 			Label = label;
 
 			kmToFile?.ToFile();
@@ -115,6 +115,8 @@ namespace WalletWasabi.KeyManagement
 			}
 			return (bool)_isInternal;
 		}
+
+		public bool HasLabel() => !string.IsNullOrEmpty(Label);
 
 		#region Equality
 

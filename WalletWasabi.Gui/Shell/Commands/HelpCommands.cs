@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -23,7 +24,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("About"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument<AboutViewModel>(new AboutViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 				}));
 
 			CustomerSupportCommand = new CommandDefinition(
@@ -31,7 +32,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("CustomerSupport"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument<CustomerSupportViewModel>(new CustomerSupportViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument(() => new CustomerSupportViewModel());
 				}));
 
 			ReportBugCommand = new CommandDefinition(
@@ -39,7 +40,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("ReportBug"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument<ReportBugViewModel>(new ReportBugViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument(() => new ReportBugViewModel());
 				}));
 
 			PrivacyPolicyCommand = new CommandDefinition(
@@ -47,7 +48,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("PrivacyPolicy"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument<PrivacyPolicyViewModel>(new PrivacyPolicyViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel());
 				}));
 
 			TermsAndConditionsCommand = new CommandDefinition(
@@ -55,7 +56,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("TermsAndConditions"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument<TermsAndConditionsViewModel>(new TermsAndConditionsViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel());
 				}));
 
 			LegalIssuesCommand = new CommandDefinition(
@@ -63,7 +64,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("LegalIssues"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument<LegalIssuesViewModel>(new LegalIssuesViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel());
 				}));
 
 			DevToolsCommand = new CommandDefinition(

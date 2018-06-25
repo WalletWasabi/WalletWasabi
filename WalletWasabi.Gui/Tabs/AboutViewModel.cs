@@ -6,7 +6,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class AboutViewModel : DocumentTabViewModel
+	internal class AboutViewModel : WasabiDocumentTabViewModel
 	{
 		public AboutViewModel() : base("About")
 		{

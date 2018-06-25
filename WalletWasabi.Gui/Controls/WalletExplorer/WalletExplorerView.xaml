@@ -27,7 +27,7 @@
                     </StackPanel>
                 </TreeDataTemplate>
 
-                <TreeDataTemplate DataType="ViewModels:SendActionViewModel">
+                <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
                     <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}">
                         <StackPanel Orientation="Horizontal" Gap="6">
                             <DrawingPresenter Width="20" Height="20">
@@ -47,7 +47,7 @@
                     </Button>
                 </TreeDataTemplate>
 
-                <TreeDataTemplate DataType="ViewModels:ReceiveActionViewModel">
+                <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
                     <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
                         <StackPanel Orientation="Horizontal" Gap="6">
                             <DrawingPresenter Width="20" Height="20">
@@ -91,7 +91,7 @@
                     </Button>
                 </TreeDataTemplate>
 
-                <TreeDataTemplate DataType="ViewModels:HistoryActionViewModel">
+                <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
                     <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
                         <StackPanel Orientation="Horizontal" Gap="6">
                             <DrawingPresenter Width="20" Height="20">

@@ -2,7 +2,7 @@
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class CustomerSupportViewModel : DocumentTabViewModel
+	internal class CustomerSupportViewModel : WasabiDocumentTabViewModel
 	{
 		public CustomerSupportViewModel() : base("Customer Support")
 		{

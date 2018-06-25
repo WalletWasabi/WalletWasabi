@@ -6,7 +6,7 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class PrivacyPolicyViewModel : DocumentTabViewModel
+	internal class PrivacyPolicyViewModel : WasabiDocumentTabViewModel
 	{
 		public PrivacyPolicyViewModel() : base("Privacy Policy")
 		{

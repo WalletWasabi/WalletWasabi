@@ -8,7 +8,37 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="**\*.xaml;Assets\*" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
+    <EmbeddedResource Include="App.xaml" />
+    <EmbeddedResource Include="Controls\GroupBox.xaml" />
+    <EmbeddedResource Include="Controls\ModalDialog.xaml" />
+    <EmbeddedResource Include="Controls\Spinner.xaml" />
+    <EmbeddedResource Include="Controls\StatusBar.xaml" />
+    <EmbeddedResource Include="Controls\WalletExplorer\HistoryTabView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\WalletExplorer\ReceiveTabView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\WalletExplorer\WalletExplorerView.xaml" />
+    <EmbeddedResource Include="Dialogs\CannotCloseDialogView.xaml" />
+    <EmbeddedResource Include="Icons\Icons.xaml" />
+    <EmbeddedResource Include="MainWindow.xaml" />
+    <EmbeddedResource Include="Styles\Styles.xaml" />
+    <EmbeddedResource Include="Tabs\AboutView.xaml" />
+    <EmbeddedResource Include="Tabs\CustomerSupportView.xaml" />
+    <EmbeddedResource Include="Tabs\LegalIssuesView.xaml">
+      <Generator></Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tabs\PrivacyPolicyView.xaml" />
+    <EmbeddedResource Include="Tabs\ReportBugView.xaml" />
+    <EmbeddedResource Include="Tabs\TermsAndConditionsView.xaml" />
+    <EmbeddedResource Include="Tabs\WalletManager\GenerateWalletSuccessView.xaml" />
+    <EmbeddedResource Include="Tabs\WalletManager\GenerateWalletView.xaml" />
+    <EmbeddedResource Include="Tabs\WalletManager\LoadWalletView.xaml" />
+    <EmbeddedResource Include="Tabs\WalletManager\RecoverWalletView.xaml" />
+    <EmbeddedResource Include="Tabs\WalletManager\WalletManagerView.xaml" />
+    <None Remove="Controls\WalletExplorer\HistoryTabView.xaml" />
+    <None Remove="Controls\WalletExplorer\ReceiveTabView.xaml" />
     <None Remove="Tabs\LegalIssuesView.xaml" />
   
     <Compile Update="**\*.xaml.cs">
@@ -40,6 +70,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Controls\WalletExplorer\ReceiveTabView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
     <EmbeddedResource Update="Tabs\LegalIssuesView.xaml">
       <Generator></Generator>
     </EmbeddedResource>
