@@ -21,9 +21,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
-				var newKey = Global.WalletService.KeyManager.GenerateNewKey(Label, KeyState.Clean, false);
+				HdPubKey newKey = Global.WalletService.GetReceiveKey(Label);
 
-				Addresses.Add(new AddressViewModel(newKey));
+				AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
+				if (found != default)
+				{
+					Addresses.Remove(found);
+				}
+				Addresses.Insert(0, new AddressViewModel(newKey));
 
 				Label = null;
 			}, this.WhenAnyValue(x => x.Label, label => !string.IsNullOrWhiteSpace(label)));
@@ -35,7 +40,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			var keys = Global.WalletService.KeyManager.GetKeys(KeyState.Clean, false);
 
-			foreach (var key in keys)
+			foreach (HdPubKey key in keys.Where(x => !string.IsNullOrWhiteSpace(x.Label)).Reverse())
 			{
 				_addresses.Add(new AddressViewModel(key));
 			}

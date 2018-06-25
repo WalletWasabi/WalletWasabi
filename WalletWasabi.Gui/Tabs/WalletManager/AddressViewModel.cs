@@ -4,16 +4,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 {
 	public class AddressViewModel
 	{
-		private HdPubKey _model;
+		public HdPubKey Model { get; }
 
 		public AddressViewModel(HdPubKey model)
 		{
-			_model = model;
-			Address = _model.GetP2wpkhAddress(Global.Network).ToString();
+			Model = model;
 		}
 
-		public string Label => _model.Label;
+		public string Label => Model.Label;
 
-		public string Address { get; }
+		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
 	}
 }
