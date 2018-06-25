@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			_walletName = walletName;
 			_addresses = new ObservableCollection<AddressViewModel>();
 
-			InitialiseAddresses();
+			InitializeAddresses();
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}, this.WhenAnyValue(x => x.Label, label => !string.IsNullOrWhiteSpace(label)));
 		}
 
-		private void InitialiseAddresses()
+		private void InitializeAddresses()
 		{
 			_addresses?.Clear();
 
