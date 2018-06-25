@@ -23,15 +23,14 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 1. Get Git: https://git-scm.com/downloads
 2. Get .NET Core: https://www.microsoft.com/net/download/dotnet-core/
 3. [OSX] Get Brew: https://stackoverflow.com/a/20381183/2061103
-5. [OSX] Get GTK+3: `brew update && brew install gtk+3`
-6. Get Tor:  
+4. Get Tor:  
   [Windows] Install the Tor Expert Bundle: https://www.torproject.org/download/  
   [Linux] `apt-get install tor`  
   [OSX] `brew install tor`  
-7. Run Tor:  
+5. Run Tor:  
   [Windows] Run `tor.exe`.  
   [Linux&OSX] Type `tor` in terminal.  
-8. Clone, Build & Run
+6. Clone, Build & Run
 ```sh
 git clone https://github.com/zkSNACKs/WalletWasabi
 cd WalletWasabi
