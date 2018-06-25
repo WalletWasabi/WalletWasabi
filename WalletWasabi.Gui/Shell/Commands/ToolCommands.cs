@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			SettingsCommand = new CommandDefinition(
 				"I Do Nothing",
-				commandIconService.GetCompletionKindImage("Settings"),
+				null,
 				ReactiveCommand.Create(() => { }));
 		}
 
