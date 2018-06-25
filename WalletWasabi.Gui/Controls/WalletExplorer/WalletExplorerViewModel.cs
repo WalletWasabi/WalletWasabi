@@ -50,12 +50,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			WalletViewModel walletViewModel = new WalletViewModel(walletName);
 			_wallets.Add(walletViewModel);
-
-			IoC.Get<IShell>().AddOrSelectDocument<SendActionViewModel>(new SendActionViewModel(walletViewModel));
-			IoC.Get<IShell>().AddOrSelectDocument<ReceiveActionViewModel>(new ReceiveActionViewModel(walletViewModel));
-			IoC.Get<IShell>().AddOrSelectDocument<CoinJoinActionViewModel>(new CoinJoinActionViewModel(walletViewModel));
-			IoC.Get<IShell>().AddOrSelectDocument<HistoryActionViewModel>(new HistoryActionViewModel(walletViewModel));
-			IoC.Get<IShell>().SelectedDocument = IoC.Get<IShell>().Documents.FirstOrDefault(x => x is ReceiveActionViewModel);
 		}
 	}
 }

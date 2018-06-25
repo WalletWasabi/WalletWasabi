@@ -23,6 +23,20 @@ namespace WalletWasabi.Gui
 			throw new NotSupportedException("This is impossible.");
 		}
 
+		public static void AddOrSelectDocument<T>(this IShell me, T document) where T : IDocumentTabViewModel
+		{
+			IDocumentTabViewModel doc = me.Documents.FirstOrDefault(x => x.Equals(document));
+
+			if (doc != default)
+			{
+				me.SelectedDocument = doc;
+			}
+			else
+			{
+				me.AddDocument(doc);
+			}
+		}
+
 		public static void AddOrSelectDocument<T>(this IShell me, Func<T> factory) where T : IDocumentTabViewModel
 		{
 			IDocumentTabViewModel doc = me.Documents.FirstOrDefault(x => x is T);
