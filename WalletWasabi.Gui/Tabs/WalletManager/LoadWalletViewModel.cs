@@ -140,7 +140,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					await Task.Run(async () =>
 				{
-					var keyManager = await Task.Run(() => KeyManager.FromFile(walletFullPath));
+					var keyManager = KeyManager.FromFile(walletFullPath);
 
 					await Global.InitializeWalletServiceAsync(keyManager);
 				});
