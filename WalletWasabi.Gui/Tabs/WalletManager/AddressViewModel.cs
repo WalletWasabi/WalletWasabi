@@ -1,14 +1,18 @@
-﻿namespace WalletWasabi.Gui.Tabs.WalletManager
+﻿using WalletWasabi.KeyManagement;
+
+namespace WalletWasabi.Gui.Tabs.WalletManager
 {
 	public class AddressViewModel
 	{
-		public AddressViewModel(string label, string address)
+		private HdPubKey _model;
+
+		public AddressViewModel(HdPubKey model)
 		{
-			Label = label;
-			Address = address;
+			_model = model;
+			Address = _model.GetP2wpkhAddress(Global.Network).ToString();
 		}
 
-		public string Label { get; }
+		public string Label => _model.Label;
 
 		public string Address { get; }
 	}
