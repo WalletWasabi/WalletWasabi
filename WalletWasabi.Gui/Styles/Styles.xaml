@@ -1,4 +1,5 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
@@ -52,4 +53,9 @@
         <Setter Property="Padding" Value="0" />
         <Setter Property="Background" Value="Transparent" />
     </Style>
+
+    <Style Selector="dock|DockToolChrome:active /template/ Grid#PART_Grip">
+        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+    </Style>
+
 </Styles>
