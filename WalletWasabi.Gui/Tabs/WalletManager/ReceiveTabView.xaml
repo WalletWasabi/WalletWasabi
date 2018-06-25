@@ -8,6 +8,11 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid ColumnDefinitions="200, 200, 50">
+                                <Grid.Styles>
+                                    <Style Selector="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                    </Style>
+                                </Grid.Styles>
                                 <TextBlock Text="{Binding Label}" />
                                 <TextBlock Text="{Binding Address}" Grid.Column="1" />
                                 <Button Content="More" Grid.Column="2" />
@@ -18,8 +23,8 @@
             </Grid>
         </controls:GroupBox>
         <DockPanel LastChildFill="True">
-            <Button Content="Generate New" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" />
-            <TextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" DockPanel.Dock="Left" />
+            <Button Content="Generate New" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />
+            <TextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" DockPanel.Dock="Left" MinWidth="300" />
             <Grid></Grid>
         </DockPanel>
         <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
