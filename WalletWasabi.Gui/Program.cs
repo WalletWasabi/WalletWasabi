@@ -2,6 +2,7 @@
 using AvalonStudio.Shell;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
@@ -50,6 +51,14 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
+		private static AppBuilder BuildAvaloniaApp()
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				return AppBuilder.Configure<App>().UseGtk3().UseSkia().UseReactiveUI();
+			}
+
+			return AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
+		}
 	}
 }
