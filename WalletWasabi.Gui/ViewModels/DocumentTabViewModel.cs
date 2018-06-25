@@ -5,7 +5,7 @@ using Dock.Model;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	internal abstract class DocumentTabViewModel : ViewModelBase, IDocumentTabViewModel
+	public abstract class DocumentTabViewModel : ViewModelBase, IDocumentTabViewModel
 	{
 		public DocumentTabViewModel(string title)
 		{
