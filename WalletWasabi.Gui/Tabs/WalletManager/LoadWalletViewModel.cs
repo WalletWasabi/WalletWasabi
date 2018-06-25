@@ -78,14 +78,25 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public bool CanLoadWallet
 		{
-			get { return _canLoadWallet; }
-			set { this.RaiseAndSetIfChanged(ref _canLoadWallet, value); }
+			get
+			{
+				if (IsBusy) return false;
+				return _canLoadWallet;
+			}
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _canLoadWallet, value);
+			}
 		}
 
 		public bool IsBusy
 		{
 			get { return _isBusy; }
-			set { this.RaiseAndSetIfChanged(ref _isBusy, value); }
+			set
+			{
+				CanLoadWallet = !value;
+				this.RaiseAndSetIfChanged(ref _isBusy, value);
+			}
 		}
 
 		public override void OnCategorySelected()
