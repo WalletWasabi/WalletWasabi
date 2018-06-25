@@ -11,6 +11,7 @@ using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Controls.WalletExplorer;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -118,7 +119,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				await Global.InitializeWalletServiceAsync(keyManager);
 				// Successffully initialized.
 				IoC.Get<IShell>().RemoveDocument(Owner);
-				// ToDo: Open Wallet Explorer tabs
+				// Open Wallet Explorer tabs
+				IoC.Get<WalletExplorerViewModel>().OpenWallet(SelectedWallet);
 			}
 			catch (Exception ex)
 			{
