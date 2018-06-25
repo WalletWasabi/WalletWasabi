@@ -1,4 +1,5 @@
-﻿using AvalonStudio.Commands;
+﻿using System.Composition;
+using AvalonStudio.Commands;
 using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -11,12 +12,18 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class ToolCommands
 	{
-		public ToolCommands()
+		[ImportingConstructor]
+		public ToolCommands(CommandIconService commandIconService)
 		{
 			WalletManagerCommand = new CommandDefinition(
-				"Wallet Manager", null, ReactiveCommand.Create(OnWalletManager));
+				"Wallet Manager",
+				commandIconService.GetCompletionKindImage("WalletManager"),
+				ReactiveCommand.Create(OnWalletManager));
 
-			SettingsCommand = new CommandDefinition("I Do Nothing", null, ReactiveCommand.Create(() => { }));
+			SettingsCommand = new CommandDefinition(
+				"Settings",
+				commandIconService.GetCompletionKindImage("Settings"),
+				ReactiveCommand.Create(() => { }));
 		}
 
 		private void OnWalletManager()
