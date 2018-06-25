@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui
 			throw new NotSupportedException("This is impossible.");
 		}
 
-		public static void AddOrSelectDocument<T>(this IShell me, IDocumentTabViewModel document)
+		public static void AddOrSelectDocument<T>(this IShell me, Func<T> factory) where T : IDocumentTabViewModel
 		{
 			IDocumentTabViewModel doc = me.Documents.FirstOrDefault(x => x is T);
 			if (doc != default)
@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				me.AddDocument(document);
+				me.AddDocument(factory());
 			}
 		}
 
