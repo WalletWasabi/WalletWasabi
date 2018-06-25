@@ -4,9 +4,9 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendActionViewModel : WalletActionViewModel
+	public class SendTabViewModel : WalletActionViewModel
 	{
-		public SendActionViewModel(WalletViewModel walletViewModel)
+		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel) { }
 	}
 }

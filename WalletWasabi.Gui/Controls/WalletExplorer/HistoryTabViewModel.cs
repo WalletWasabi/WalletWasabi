@@ -4,9 +4,9 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryActionViewModel : WalletActionViewModel
+	public class HistoryTabViewModel : WalletActionViewModel
 	{
-		public HistoryActionViewModel(WalletViewModel walletViewModel)
+		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel) { }
 	}
 }

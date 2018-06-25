@@ -4,9 +4,9 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinJoinActionViewModel : WalletActionViewModel
+	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
-		public CoinJoinActionViewModel(WalletViewModel walletViewModel)
+		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel) { }
 	}
 }

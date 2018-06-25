@@ -1,20 +1,22 @@
 ﻿using ReactiveUI;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager
+namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	internal class ReceiveTabViewModel : WasabiDocumentTabViewModel
+	public class ReceiveTabViewModel : WalletActionViewModel
 	{
-		private string _walletName;
 		private ObservableCollection<AddressViewModel> _addresses;
 		private string _label;
 
-		public ReceiveTabViewModel(string walletName)
+		public ReceiveTabViewModel(WalletViewModel walletViewModel)
+			: base("Receive", walletViewModel)
 		{
-			_walletName = walletName;
 			_addresses = new ObservableCollection<AddressViewModel>();
 
 			InitializeAddresses();
@@ -40,17 +42,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			var keys = Global.WalletService.KeyManager.GetKeys(KeyState.Clean, false);
 
-			foreach (HdPubKey key in keys.Where(x => !string.IsNullOrWhiteSpace(x.Label)).Reverse())
+			foreach (HdPubKey key in keys.Where(x => x.HasLabel()).Reverse())
 			{
 				_addresses.Add(new AddressViewModel(key));
-			}
-		}
-
-		public override string Title
-		{
-			get => "Receive: " + _walletName;
-			set
-			{
 			}
 		}
 

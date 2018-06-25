@@ -1,6 +1,9 @@
-﻿using WalletWasabi.KeyManagement;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using WalletWasabi.KeyManagement;
 
-namespace WalletWasabi.Gui.Tabs.WalletManager
+namespace WalletWasabi.Gui.ViewModels
 {
 	public class AddressViewModel
 	{

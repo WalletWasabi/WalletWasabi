@@ -17,10 +17,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			_actions = new ObservableCollection<WalletActionViewModel>
 			{
-				new SendActionViewModel(this),
-				new ReceiveActionViewModel(this),
-				new CoinJoinActionViewModel(this),
-				new HistoryActionViewModel(this)
+				new SendTabViewModel(this),
+				new ReceiveTabViewModel(this),
+				new CoinJoinTabViewModel(this),
+				new HistoryTabViewModel(this)
 			};
 
 			foreach (var vm in _actions)

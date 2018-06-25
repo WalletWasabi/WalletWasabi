@@ -25,8 +25,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 				ReactiveCommand.Create(() =>
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
-					IoC.Get<IShell>().AddOrSelectDocument(() => new HistoryTabViewModel("Test Wallet"));
-					IoC.Get<IShell>().AddOrSelectDocument(() => new ReceiveTabViewModel("Test Wallet"));
 				}));
 
 			CustomerSupportCommand = new CommandDefinition(
