@@ -1,116 +1,116 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
             xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
 
-    <Grid>
-        <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}">
-            <TreeView.Styles>
-                <Style Selector="TreeViewItem">
-                    <Setter Property="IsExpanded" Value="True" />
-                </Style>
-            </TreeView.Styles>
-            <TreeView.DataTemplates>
-                <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
-                    <StackPanel Orientation="Horizontal" Gap="6">
-                        <DrawingPresenter Width="20" Height="20">
-                            <DrawingPresenter.Drawing>
-                                <DrawingGroup>
-                                    <DrawingGroup.Children>
-                                        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                                        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,9L16,10.196 13.677,16 2,16C2,16 1.14,15.979 0.57,15.435 0.227,15.103 0,14.617 0,14L0,5C0,3.697,1.005,3,2,3L4.486,3 3.607,2.121 5.729,0 10.246,4.518 9.999,4.765 10.116,5 13,5C13.97,5,15,5.701,15,7L15,9z" />
-                                        <GeometryDrawing Brush="#FFDCB67A" Geometry="F1M14,10.0313L14,7.0313C14,6.0313,12.764,6.0313,13,6.0313L9.5,6.0313 9.244,5.5193 8.578,6.1863 9,7.0313 13,7.0313 13,10.0313 4,10.0313 2,15.0313 13,15.0313 15,10.0313z M2,15.0153L1.997,15.0153C1.94,15.0153,1,15.0013,1,14.0313L1,8.9593C1.286,9.2523,1.626,9.4873,2,9.6663z" />
-                                        <GeometryDrawing Brush="#FF00529C" Geometry="F1M8.832,4.5176L5.728,7.6216 5.021,6.9136 6.918,5.0176 3.5,5.0176C2.673,5.0176 2,5.6906 2,6.5176 2,7.3446 2.673,8.0176 3.5,8.0176L3.5,9.0176C2.122,9.0176 1,7.8966 1,6.5176 1,5.1396 2.122,4.0176 3.5,4.0176L6.918,4.0176 5.021,2.1216 5.728,1.4136z" />
-                                    </DrawingGroup.Children>
-                                </DrawingGroup>
-                            </DrawingPresenter.Drawing>
-                        </DrawingPresenter>
-                        <TextBlock Text="{Binding Title}" Height="15" />
-                    </StackPanel>
-                </TreeDataTemplate>
+  <Grid>
+    <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}">
+      <TreeView.Styles>
+        <Style Selector="TreeViewItem">
+          <Setter Property="IsExpanded" Value="True" />
+        </Style>
+      </TreeView.Styles>
+      <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
+          <StackPanel Orientation="Horizontal" Gap="6">
+            <DrawingPresenter Width="20" Height="20">
+              <DrawingPresenter.Drawing>
+                <DrawingGroup>
+                  <DrawingGroup.Children>
+                    <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,9L16,10.196 13.677,16 2,16C2,16 1.14,15.979 0.57,15.435 0.227,15.103 0,14.617 0,14L0,5C0,3.697,1.005,3,2,3L4.486,3 3.607,2.121 5.729,0 10.246,4.518 9.999,4.765 10.116,5 13,5C13.97,5,15,5.701,15,7L15,9z" />
+                    <GeometryDrawing Brush="#FFDCB67A" Geometry="F1M14,10.0313L14,7.0313C14,6.0313,12.764,6.0313,13,6.0313L9.5,6.0313 9.244,5.5193 8.578,6.1863 9,7.0313 13,7.0313 13,10.0313 4,10.0313 2,15.0313 13,15.0313 15,10.0313z M2,15.0153L1.997,15.0153C1.94,15.0153,1,15.0013,1,14.0313L1,8.9593C1.286,9.2523,1.626,9.4873,2,9.6663z" />
+                    <GeometryDrawing Brush="#FF00529C" Geometry="F1M8.832,4.5176L5.728,7.6216 5.021,6.9136 6.918,5.0176 3.5,5.0176C2.673,5.0176 2,5.6906 2,6.5176 2,7.3446 2.673,8.0176 3.5,8.0176L3.5,9.0176C2.122,9.0176 1,7.8966 1,6.5176 1,5.1396 2.122,4.0176 3.5,4.0176L6.918,4.0176 5.021,2.1216 5.728,1.4136z" />
+                  </DrawingGroup.Children>
+                </DrawingGroup>
+              </DrawingPresenter.Drawing>
+            </DrawingPresenter>
+            <TextBlock Text="{Binding Title}" Height="15" />
+          </StackPanel>
+        </TreeDataTemplate>
 
-                <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
-                    <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}">
-                        <StackPanel Orientation="Horizontal" Gap="6">
-                            <DrawingPresenter Width="20" Height="20">
-                                <DrawingPresenter.Drawing>
-                                    <DrawingGroup>
-                                        <DrawingGroup.Children>
-                                            <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                                            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,8C16,12.418 12.418,16 8,16 3.582,16 0,12.418 0,8 0,3.582 3.582,0 8,0 12.418,0 16,3.582 16,8" />
-                                            <GeometryDrawing Brush="#FF1BA1E2" Geometry="F1M8,15C11.865,15 15,11.865 15,8 15,4.135 11.865,1 8,1 4.135,1 1,4.135 1,8 1,11.865 4.135,15 8,15" />
-                                            <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M8,2.9277L13.582,8.6377 12.168,10.0517 9,6.8837 9,12.9997 7,12.9997 7,6.8837 3.832,10.0517 2.418,8.6377z" />
-                                        </DrawingGroup.Children>
-                                    </DrawingGroup>
-                                </DrawingPresenter.Drawing>
-                            </DrawingPresenter>
-                            <TextBlock Text="{Binding Title}" Height="15" />
-                        </StackPanel>
-                    </Button>
-                </TreeDataTemplate>
+        <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
+          <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}">
+            <StackPanel Orientation="Horizontal" Gap="6">
+              <DrawingPresenter Width="20" Height="20">
+                <DrawingPresenter.Drawing>
+                  <DrawingGroup>
+                    <DrawingGroup.Children>
+                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,8C16,12.418 12.418,16 8,16 3.582,16 0,12.418 0,8 0,3.582 3.582,0 8,0 12.418,0 16,3.582 16,8" />
+                      <GeometryDrawing Brush="#FF1BA1E2" Geometry="F1M8,15C11.865,15 15,11.865 15,8 15,4.135 11.865,1 8,1 4.135,1 1,4.135 1,8 1,11.865 4.135,15 8,15" />
+                      <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M8,2.9277L13.582,8.6377 12.168,10.0517 9,6.8837 9,12.9997 7,12.9997 7,6.8837 3.832,10.0517 2.418,8.6377z" />
+                    </DrawingGroup.Children>
+                  </DrawingGroup>
+                </DrawingPresenter.Drawing>
+              </DrawingPresenter>
+              <TextBlock Text="{Binding Title}" Height="15" />
+            </StackPanel>
+          </Button>
+        </TreeDataTemplate>
 
-                <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
-                    <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
-                        <StackPanel Orientation="Horizontal" Gap="6">
-                            <DrawingPresenter Width="20" Height="20">
-                                <DrawingPresenter.Drawing>
-                                    <DrawingGroup>
-                                        <DrawingGroup.Children>
-                                            <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                                            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,8C0,3.582 3.582,0 8,0 12.418,0 16,3.582 16,8 16,12.418 12.418,16 8,16 3.582,16 0,12.418 0,8" />
-                                            <GeometryDrawing Brush="#FF1BA1E2" Geometry="F1M8,14L2.418,8.29 3.832,6.876 7,10.044 7,3 9,3 9,10.044 12.168,6.876 13.582,8.29z M8,1C4.135,1 1,4.134 1,8 1,11.865 4.135,15 8,15 11.865,15 15,11.865 15,8 15,4.134 11.865,1 8,1" />
-                                            <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M8,14L2.418,8.29 3.832,6.876 7,10.044 7,3 9,3 9,10.044 12.168,6.876 13.582,8.29z" />
-                                        </DrawingGroup.Children>
-                                    </DrawingGroup>
-                                </DrawingPresenter.Drawing>
-                            </DrawingPresenter>
-                            <TextBlock Text="{Binding Title}" Height="15" />
-                        </StackPanel>
-                    </Button>
-                </TreeDataTemplate>
+        <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
+            <StackPanel Orientation="Horizontal" Gap="6">
+              <DrawingPresenter Width="20" Height="20">
+                <DrawingPresenter.Drawing>
+                  <DrawingGroup>
+                    <DrawingGroup.Children>
+                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,8C0,3.582 3.582,0 8,0 12.418,0 16,3.582 16,8 16,12.418 12.418,16 8,16 3.582,16 0,12.418 0,8" />
+                      <GeometryDrawing Brush="#FF1BA1E2" Geometry="F1M8,14L2.418,8.29 3.832,6.876 7,10.044 7,3 9,3 9,10.044 12.168,6.876 13.582,8.29z M8,1C4.135,1 1,4.134 1,8 1,11.865 4.135,15 8,15 11.865,15 15,11.865 15,8 15,4.134 11.865,1 8,1" />
+                      <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M8,14L2.418,8.29 3.832,6.876 7,10.044 7,3 9,3 9,10.044 12.168,6.876 13.582,8.29z" />
+                    </DrawingGroup.Children>
+                  </DrawingGroup>
+                </DrawingPresenter.Drawing>
+              </DrawingPresenter>
+              <TextBlock Text="{Binding Title}" Height="15" />
+            </StackPanel>
+          </Button>
+        </TreeDataTemplate>
 
-                <TreeDataTemplate DataType="ViewModels:CoinJoinActionViewModel">
-                    <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
-                        <StackPanel Orientation="Horizontal" Gap="6">
-                            <DrawingPresenter Width="20" Height="20">
-                                <DrawingPresenter.Drawing>
-                                    <DrawingGroup>
-                                        <DrawingGroup.Children>
-                                            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,-0.000199999999999534L0,6.9998 3,6.9998 3,8.9998 0,8.9998 0,15.9998 7,15.9998 7,12.0008 7.414,12.0008 8,11.4158 8,12.0008 16,12.0008 16,4.0008 8,4.0008 8,4.5858 7.414,4.0008 7,4.0008 7,-0.000199999999999534z" />
-                                            <GeometryDrawing Brush="#FF414141" Geometry="F1M4.5859,6L3.9999,5.414 3.9999,5 1.9999,5 1.9999,2 4.9999,2 4.9999,4 5.9999,4 5.9999,1 0.9999,1 0.9999,6 2.9999,6z" />
-                                            <GeometryDrawing Brush="#FF414141" Geometry="F1M9,5L9,5.586 10,6.586 10,6 14,6 14,10 10,10 10,9.414 9,10.414 9,11 15,11 15,5z" />
-                                            <GeometryDrawing Brush="#FF414141" Geometry="F1M5,14L2,14 2,11 4,11 4,10.586 4.586,10 3,10 1,10 1,15 6,15 6,12 5,12z" />
-                                            <GeometryDrawing Brush="#FF414141" Geometry="F1M7,5L5,5 7,7 4,7 4,9 7,9 5,11 7,11 10,8z" />
-                                            <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M2,5L4,5 4,4 5,4 5,2 2,2z" />
-                                            <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M10,6L10,6.586 11,7.586 11,8.414 10,9.414 10,10 14,10 14,6z" />
-                                            <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M4,11L2,11 2,14 5,14 5,12 4,12z" />
-                                        </DrawingGroup.Children>
-                                    </DrawingGroup>
-                                </DrawingPresenter.Drawing>
-                            </DrawingPresenter>
-                            <TextBlock Text="{Binding Title}" Height="15" />
-                        </StackPanel>
-                    </Button>
-                </TreeDataTemplate>
+        <TreeDataTemplate DataType="ViewModels:CoinJoinTabViewModel">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
+            <StackPanel Orientation="Horizontal" Gap="6">
+              <DrawingPresenter Width="20" Height="20">
+                <DrawingPresenter.Drawing>
+                  <DrawingGroup>
+                    <DrawingGroup.Children>
+                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,-0.000199999999999534L0,6.9998 3,6.9998 3,8.9998 0,8.9998 0,15.9998 7,15.9998 7,12.0008 7.414,12.0008 8,11.4158 8,12.0008 16,12.0008 16,4.0008 8,4.0008 8,4.5858 7.414,4.0008 7,4.0008 7,-0.000199999999999534z" />
+                      <GeometryDrawing Brush="#FF414141" Geometry="F1M4.5859,6L3.9999,5.414 3.9999,5 1.9999,5 1.9999,2 4.9999,2 4.9999,4 5.9999,4 5.9999,1 0.9999,1 0.9999,6 2.9999,6z" />
+                      <GeometryDrawing Brush="#FF414141" Geometry="F1M9,5L9,5.586 10,6.586 10,6 14,6 14,10 10,10 10,9.414 9,10.414 9,11 15,11 15,5z" />
+                      <GeometryDrawing Brush="#FF414141" Geometry="F1M5,14L2,14 2,11 4,11 4,10.586 4.586,10 3,10 1,10 1,15 6,15 6,12 5,12z" />
+                      <GeometryDrawing Brush="#FF414141" Geometry="F1M7,5L5,5 7,7 4,7 4,9 7,9 5,11 7,11 10,8z" />
+                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M2,5L4,5 4,4 5,4 5,2 2,2z" />
+                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M10,6L10,6.586 11,7.586 11,8.414 10,9.414 10,10 14,10 14,6z" />
+                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M4,11L2,11 2,14 5,14 5,12 4,12z" />
+                    </DrawingGroup.Children>
+                  </DrawingGroup>
+                </DrawingPresenter.Drawing>
+              </DrawingPresenter>
+              <TextBlock Text="{Binding Title}" Height="15" />
+            </StackPanel>
+          </Button>
+        </TreeDataTemplate>
 
-                <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
-                    <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
-                        <StackPanel Orientation="Horizontal" Gap="6">
-                            <DrawingPresenter Width="20" Height="20">
-                                <DrawingPresenter.Drawing>
-                                    <DrawingGroup>
-                                        <DrawingGroup.Children>
-                                            <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                                            <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,0L1,0 1,8.031C0.380000000000001,8.864 0,9.884 0,11 0,12.115 0.380000000000001,13.136 1,13.969L1,14 1.026,14C1.939,15.207 3.373,16 5,16 6.627,16 8.061,15.207 8.974,14L16,14z" />
-                                            <GeometryDrawing Brush="#FF424242" Geometry="F1M7,11L7,12 4,12 4,9 5,9 5,11z M5,14C3.345,14 2,12.655 2,11 2,9.345 3.345,8 5,8 6.655,8 8,9.345 8,11 8,12.655 6.655,14 5,14 M5,7C2.791,7 1,8.791 1,11 1,13.209 2.791,15 5,15 7.209,15 9,13.209 9,11 9,8.791 7.209,7 5,7 M14,6L11,6 11,4 14,4z M14,9L11,9 11,7 14,7z M14,12L11,12 11,10 14,10z M10,6L7,6 7,4 10,4z M2,1L2,7.026C2.838,6.391,3.87,6,5,6L3,6 3,4 6,4 6,6 5,6C6.116,6,7.136,6.38,7.969,7L10,7 10,9 9.576,9C9.716,9.318,9.828,9.651,9.899,10L10,10 10,12 9.899,12C9.828,12.349,9.716,12.682,9.576,13L15,13 15,1z" />
-                                            <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M7,12L4,12 4,9 5,9 5,11 7,11z M5,8C3.345,8 2,9.345 2,11 2,12.655 3.345,14 5,14 6.655,14 8,12.655 8,11 8,9.345 6.655,8 5,8 M7,6L10,6 10,4 7,4z M11,12L14,12 14,10 11,10z M11,9L14,9 14,7 11,7z M11,6L14,6 14,4 11,4z M6,4L3,4 3,6 6,6z M9.576,9L10,9 10,7 7.969,7C8.663,7.517,9.224,8.199,9.576,9 M10,12L10,11C10,11.342,9.965,11.677,9.899,12z M9.899,10L10,10 10,11C10,10.658,9.965,10.323,9.899,10" />
-                                        </DrawingGroup.Children>
-                                    </DrawingGroup>
-                                </DrawingPresenter.Drawing>
-                            </DrawingPresenter>
-                            <TextBlock Text="{Binding Title}" Height="15" />
-                        </StackPanel>
-                    </Button>
-                </TreeDataTemplate>
-            </TreeView.DataTemplates>
-        </TreeView>
-    </Grid>
+        <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
+            <StackPanel Orientation="Horizontal" Gap="6">
+              <DrawingPresenter Width="20" Height="20">
+                <DrawingPresenter.Drawing>
+                  <DrawingGroup>
+                    <DrawingGroup.Children>
+                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,0L1,0 1,8.031C0.380000000000001,8.864 0,9.884 0,11 0,12.115 0.380000000000001,13.136 1,13.969L1,14 1.026,14C1.939,15.207 3.373,16 5,16 6.627,16 8.061,15.207 8.974,14L16,14z" />
+                      <GeometryDrawing Brush="#FF424242" Geometry="F1M7,11L7,12 4,12 4,9 5,9 5,11z M5,14C3.345,14 2,12.655 2,11 2,9.345 3.345,8 5,8 6.655,8 8,9.345 8,11 8,12.655 6.655,14 5,14 M5,7C2.791,7 1,8.791 1,11 1,13.209 2.791,15 5,15 7.209,15 9,13.209 9,11 9,8.791 7.209,7 5,7 M14,6L11,6 11,4 14,4z M14,9L11,9 11,7 14,7z M14,12L11,12 11,10 14,10z M10,6L7,6 7,4 10,4z M2,1L2,7.026C2.838,6.391,3.87,6,5,6L3,6 3,4 6,4 6,6 5,6C6.116,6,7.136,6.38,7.969,7L10,7 10,9 9.576,9C9.716,9.318,9.828,9.651,9.899,10L10,10 10,12 9.899,12C9.828,12.349,9.716,12.682,9.576,13L15,13 15,1z" />
+                      <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M7,12L4,12 4,9 5,9 5,11 7,11z M5,8C3.345,8 2,9.345 2,11 2,12.655 3.345,14 5,14 6.655,14 8,12.655 8,11 8,9.345 6.655,8 5,8 M7,6L10,6 10,4 7,4z M11,12L14,12 14,10 11,10z M11,9L14,9 14,7 11,7z M11,6L14,6 14,4 11,4z M6,4L3,4 3,6 6,6z M9.576,9L10,9 10,7 7.969,7C8.663,7.517,9.224,8.199,9.576,9 M10,12L10,11C10,11.342,9.965,11.677,9.899,12z M9.899,10L10,10 10,11C10,10.658,9.965,10.323,9.899,10" />
+                    </DrawingGroup.Children>
+                  </DrawingGroup>
+                </DrawingPresenter.Drawing>
+              </DrawingPresenter>
+              <TextBlock Text="{Binding Title}" Height="15" />
+            </StackPanel>
+          </Button>
+        </TreeDataTemplate>
+      </TreeView.DataTemplates>
+    </TreeView>
+  </Grid>
 </UserControl>
