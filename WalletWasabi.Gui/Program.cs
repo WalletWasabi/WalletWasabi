@@ -53,11 +53,6 @@ namespace WalletWasabi.Gui
 
 		private static AppBuilder BuildAvaloniaApp()
 		{
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				return AppBuilder.Configure<App>().UseGtk3().UseSkia().UseReactiveUI();
-			}
-
 			return AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
 		}
 	}
