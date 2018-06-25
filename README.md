@@ -18,19 +18,26 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 [9]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi/badge
 [10]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi
 
-## Build & Test
+## Build & Run
 
-1. Get .NET Core.
-2. Download the Tor Experd Bundle. (Not the Tor Browser.) https://www.torproject.org/download/download
-3. Run `tor.exe`.
-4. Fire up command line:
+1. Get Git: https://git-scm.com/downloads
+2. Get .NET Core: https://www.microsoft.com/net/download/dotnet-core/
+3. [OSX] Get Brew: https://stackoverflow.com/a/20381183/2061103
+4. Get Tor:  
+  [Windows] Install the Tor Expert Bundle: https://www.torproject.org/download/  
+  [Linux] `apt-get install tor`  
+  [OSX] `brew install tor`  
+5. Run Tor:  
+  [Windows] Run `tor.exe`.  
+  [Linux&OSX] Type `tor` in terminal.  
+6. Clone, Build & Run
 ```sh
 git clone https://github.com/zkSNACKs/WalletWasabi
 cd WalletWasabi
 git submodule update --init --recursive
 dotnet restore && dotnet build
-cd WalletWasabi.Tests
-dotnet test
+cd WalletWasabi.Gui
+dotnet run
 ```
 
 ### Notes:
