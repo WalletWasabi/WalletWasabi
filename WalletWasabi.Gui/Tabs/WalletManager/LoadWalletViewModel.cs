@@ -125,9 +125,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			try
 			{
+				await Task.Run(async () =>
+			{
 				var keyManager = await Task.Run(() => KeyManager.FromFile(walletFullPath));
 
 				await Global.InitializeWalletServiceAsync(keyManager);
+			});
 				// Successffully initialized.
 				IoC.Get<IShell>().RemoveDocument(Owner);
 				// Open Wallet Explorer tabs

@@ -27,13 +27,13 @@ namespace WalletWasabi.Gui
 		{
 			IDocumentTabViewModel doc = me.Documents.FirstOrDefault(x => x.Equals(document));
 
-			if (doc != default)
+			if (doc != null)
 			{
 				me.SelectedDocument = doc;
 			}
 			else
 			{
-				me.AddDocument(doc);
+				me.AddDocument(document);
 			}
 		}
 
