@@ -1,6 +1,4 @@
-using System;
 using System.Collections.ObjectModel;
-using System.Composition;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;

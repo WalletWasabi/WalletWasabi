@@ -4,12 +4,10 @@ using Avalonia.Diagnostics;
 using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
-using NBitcoin;
 using ReactiveUI;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs;
-using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {

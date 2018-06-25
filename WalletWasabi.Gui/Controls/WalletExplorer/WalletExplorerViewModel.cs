@@ -1,10 +1,7 @@
 ﻿using AvalonStudio.Extensibility;
 using AvalonStudio.MVVM;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Composition;
-using System.Text;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 using System.Linq;

@@ -2,14 +2,10 @@
 using System.IO;
 using System.Collections.ObjectModel;
 using System.Linq;
-using NBitcoin;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 
@@ -83,20 +79,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public override void OnCategorySelected()
 		{
 			_wallets.Clear();
-
-			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
-			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
-			foreach (var file in walletFiles)
-			{
-				_wallets.Add(Path.GetFileNameWithoutExtension(file.FullName));
-			}
-
-			if (_wallets.Any())
-			{
-				SelectedWallet = _wallets.First();
-			}
-
-			IsWalletOpened = Global.WalletService != null;
+			IsWalletOpened = false;
 			ValidationMessage = null;
 		}
 
@@ -104,31 +87,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public async Task LoadWalletAsync()
 		{
-			var walletFullPath = Path.Combine(Global.WalletsDir, SelectedWallet + ".json");
-			if (!File.Exists(walletFullPath))
-			{
-				// the selected wallets is not available any more (someone deleted it)
-				OnCategorySelected();
-				SelectedWallet = null;
-				return;
-			}
-
-			try
-			{
-				var keyManager = KeyManager.FromFile(walletFullPath);
-				await Global.InitializeWalletServiceAsync(keyManager);
-				// Successffully initialized.
-				IoC.Get<IShell>().RemoveDocument(Owner);
-				// Open Wallet Explorer tabs
-				IoC.Get<WalletExplorerViewModel>().OpenWallet(SelectedWallet);
-			}
-			catch (Exception ex)
-			{
-				// Initialization failed.
-				ValidationMessage = ex.ToTypeMessageString();
-				Logger.LogError<LoadWalletViewModel>(ex);
-				await Global.DisposeInWalletDependentServicesAsync();
-			}
 		}
 	}
 }

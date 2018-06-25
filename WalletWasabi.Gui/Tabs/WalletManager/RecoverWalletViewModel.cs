@@ -1,14 +1,9 @@
 ﻿using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
-using NBitcoin;
 using ReactiveUI;
 using System;
-using System.Collections.ObjectModel;
 using System.IO;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -24,42 +19,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			RecoverCommand = ReactiveCommand.Create(() =>
 			{
-				WalletName = Guard.Correct(WalletName);
-				MnemonicWords = Guard.Correct(MnemonicWords);
-
-				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-
-				if (TermsAccepted == false)
-				{
-					ValidationMessage = "Terms are not accepted.";
-				}
-				else if (string.IsNullOrWhiteSpace(WalletName))
-				{
-					ValidationMessage = $"The name {WalletName} is not valid.";
-				}
-				else if (File.Exists(walletFilePath))
-				{
-					ValidationMessage = $"The name {WalletName} is already taken.";
-				}
-				else if (string.IsNullOrWhiteSpace(MnemonicWords))
-				{
-					ValidationMessage = $"Mnemonic words were not supplied.";
-				}
-				else
-				{
-					try
-					{
-						var mnemonic = new Mnemonic(MnemonicWords);
-						KeyManager.Recover(mnemonic, Password, walletFilePath);
-
-						owner.SelectLoadWallet();
-					}
-					catch (Exception ex)
-					{
-						ValidationMessage = ex.ToTypeMessageString();
-						Logger.LogError<LoadWalletViewModel>(ex);
-					}
-				}
 			},
 			this.WhenAnyValue(x => x.TermsAccepted));
 		}

@@ -2,10 +2,8 @@
 using AvalonStudio.Shell;
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
 {
@@ -19,21 +17,7 @@ namespace WalletWasabi.Gui
 			StatusBarViewModel statusBar = null;
 			try
 			{
-				Logger.SetFilePath(Path.Combine(Global.DataDir, "Logs.txt"));
-#if RELEASE
-				Logger.SetMinimumLevel(LogLevel.Info);
-				Logger.SetModes(LogMode.File);
-#else
-				Logger.SetMinimumLevel(LogLevel.Debug);
-				Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
-#endif
-				var configFilePath = Path.Combine(Global.DataDir, "Config.json");
-				var config = new Config(configFilePath);
-				await config.LoadOrCreateDefaultFileAsync();
-				Logger.LogInfo<Config>("Config is successfully initialized.");
-
-				Global.Initialize(config);
-				statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader);
+				statusBar = new StatusBarViewModel();
 
 				MainWindowViewModel.Instance = new MainWindowViewModel(statusBar);
 
@@ -42,12 +26,11 @@ namespace WalletWasabi.Gui
 			}
 			catch (Exception ex)
 			{
-				Logger.LogCritical<Program>(ex);
+				Console.WriteLine(ex);
 			}
 			finally
 			{
 				statusBar?.Dispose();
-				await Global.DisposeAsync();
 			}
 		}
 

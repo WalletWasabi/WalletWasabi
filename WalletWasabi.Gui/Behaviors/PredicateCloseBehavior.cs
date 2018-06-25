@@ -2,11 +2,9 @@
 using Avalonia.Controls;
 using Avalonia.Xaml.Interactivity;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 
