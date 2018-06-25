@@ -1,10 +1,8 @@
 ﻿using AvalonStudio.Documents;
 using AvalonStudio.Shell;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace WalletWasabi.Gui
 {
@@ -12,13 +10,7 @@ namespace WalletWasabi.Gui
 	{
 		public static string GetNextWalletName()
 		{
-			for (int i = 0; i < int.MaxValue; i++)
-			{
-				if (!File.Exists(Path.Combine(Global.WalletsDir, $"Wallet{i}.json")))
-				{
-					return $"Wallet{i}";
-				}
-			}
+			return "Foo";
 
 			throw new NotSupportedException("This is impossible.");
 		}

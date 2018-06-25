@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui
 
 		private void DisplayWalletManager()
 		{
-			var isAnyWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
+			var isAnyWalletAvailable = true;
 
 			var walletManagerViewModel = new WalletManagerViewModel();
 			IoC.Get<IShell>().AddDocument(walletManagerViewModel);

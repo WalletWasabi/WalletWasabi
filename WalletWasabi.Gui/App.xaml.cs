@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 
 namespace WalletWasabi.Gui
 {
@@ -7,6 +8,7 @@ namespace WalletWasabi.Gui
 	{
 		public override void Initialize()
 		{
+			Dispatcher.UIThread.VerifyAccess();
 			AvaloniaXamlLoader.Load(this);
 		}
 	}

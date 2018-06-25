@@ -1,5 +1,4 @@
-﻿using NBitcoin;
-using ReactiveUI;
+﻿using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
@@ -8,9 +7,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 	{
 		private string _mnemonicWords;
 
-		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, Mnemonic mnemonic) : base("Wallet Generated Successfully!")
+		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner) : base("Wallet Generated Successfully!")
 		{
-			_mnemonicWords = mnemonic.ToString();
+			_mnemonicWords = "";
 
 			ConfirmCommand = ReactiveCommand.Create(() =>
 			{

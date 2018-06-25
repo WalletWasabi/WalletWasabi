@@ -1,24 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NBitcoin.Protocol;
 using ReactiveUI;
-using WalletWasabi.Services;
-using Avalonia.Data.Converters;
-using System.Globalization;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.ViewModels
 {
 	public class StatusBarViewModel : ViewModelBase, IDisposable
 	{
-		public NodesCollection Nodes { get; }
-		public MemPoolService MemPoolService { get; }
-		public IndexDownloader IndexDownloader { get; }
+		private bool _backend;
 
-		private BackendStatus _backend;
-
-		public BackendStatus Backend
+		public bool Backend
 		{
 			get { return _backend; }
 			set
@@ -27,9 +16,9 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private TorStatus _tor;
+		private bool _tor;
 
-		public TorStatus Tor
+		public bool Tor
 		{
 			get { return _tor; }
 			set
@@ -90,24 +79,13 @@ namespace WalletWasabi.Gui.ViewModels
 			set { this.RaiseAndSetIfChanged(ref _status, value); }
 		}
 
-		public StatusBarViewModel(NodesCollection nodes, MemPoolService memPoolService, IndexDownloader indexDownloader)
+		public StatusBarViewModel()
 		{
-			Nodes = nodes;
-			Nodes.Added += Nodes_Added;
-			Nodes.Removed += Nodes_Removed;
-			Peers = Nodes.Count;
+			Peers = 2;
 
-			MemPoolService = memPoolService;
-			MemPoolService.TransactionReceived += MemPoolService_TransactionReceived;
-			Mempool = MemPoolService.TransactionHashes.Count;
+			Mempool = 2;
 
-			IndexDownloader = indexDownloader;
-			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
-			IndexDownloader.BestHeightChanged += IndexDownloader_BestHeightChanged;
-			IndexDownloader.TorStatusChanged += IndexDownloader_TorStatusChanged;
-			IndexDownloader.BackendStatusChanged += IndexDownloader_BackendStatusChanged;
-
-			FiltersLeft = IndexDownloader.GetFiltersLeft();
+			FiltersLeft = 2;
 
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
@@ -133,11 +111,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void SetStatus()
 		{
-			if (Tor != TorStatus.Running || Backend != BackendStatus.Connected || Peers < 1)
-			{
-				Status = "Connecting...";
-			}
-			else if (FiltersLeft != 0 || BlocksLeft != 0)
+			if (FiltersLeft != 0 || BlocksLeft != 0)
 			{
 				Status = "Synchronizing...";
 			}
@@ -145,41 +119,6 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				Status = "Ready";
 			}
-		}
-
-		private void IndexDownloader_BackendStatusChanged(object sender, BackendStatus e)
-		{
-			Backend = e;
-		}
-
-		private void IndexDownloader_TorStatusChanged(object sender, TorStatus e)
-		{
-			Tor = e;
-		}
-
-		private void IndexDownloader_NewFilter(object sender, Backend.Models.FilterModel e)
-		{
-			FiltersLeft = IndexDownloader.GetFiltersLeft();
-		}
-
-		private void IndexDownloader_BestHeightChanged(object sender, Height e)
-		{
-			FiltersLeft = IndexDownloader.GetFiltersLeft();
-		}
-
-		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
-		{
-			Mempool = MemPoolService.TransactionHashes.Count;
-		}
-
-		private void Nodes_Removed(object sender, NodeEventArgs e)
-		{
-			Peers = Nodes.Count;
-		}
-
-		private void Nodes_Added(object sender, NodeEventArgs e)
-		{
-			Peers = Nodes.Count;
 		}
 
 		#region IDisposable Support
@@ -192,13 +131,6 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				if (disposing)
 				{
-					Nodes.Added -= Nodes_Added;
-					Nodes.Removed -= Nodes_Removed;
-					MemPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
-					IndexDownloader.NewFilter -= IndexDownloader_NewFilter;
-					IndexDownloader.BestHeightChanged -= IndexDownloader_BestHeightChanged;
-					IndexDownloader.TorStatusChanged -= IndexDownloader_TorStatusChanged;
-					IndexDownloader.BackendStatusChanged -= IndexDownloader_BackendStatusChanged;
 				}
 
 				_disposedValue = true;

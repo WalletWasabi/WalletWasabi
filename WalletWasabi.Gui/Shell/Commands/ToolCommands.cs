@@ -1,6 +1,5 @@
 ﻿using System.Composition;
 using AvalonStudio.Commands;
-using AvalonStudio.Documents;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
@@ -28,10 +27,10 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnWalletManager()
 		{
-			var isAnyWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
+			var isAnyWalletAvailable = true;
 
 			var walletManagerViewModel = IoC.Get<IShell>().GetOrCreate<WalletManagerViewModel>();
-			if (Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any())
+			if (true)
 			{
 				walletManagerViewModel.SelectLoadWallet();
 			}

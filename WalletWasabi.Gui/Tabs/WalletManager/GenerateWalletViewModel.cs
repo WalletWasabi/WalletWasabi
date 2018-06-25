@@ -1,15 +1,9 @@
 ﻿using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
-using NBitcoin;
 using ReactiveUI;
 using System;
-using System.Collections.ObjectModel;
 using System.IO;
-using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Helpers;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -25,40 +19,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
-				WalletName = Guard.Correct(WalletName);
-
-				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-
-				if (TermsAccepted == false)
-				{
-					ValidationMessage = "Terms are not accepted.";
-				}
-				else if (string.IsNullOrWhiteSpace(WalletName))
-				{
-					ValidationMessage = $"The name {WalletName} is not valid.";
-				}
-				else if (File.Exists(walletFilePath))
-				{
-					ValidationMessage = $"The name {WalletName} is already taken.";
-				}
-				else if (Password != PasswordConfirmation)
-				{
-					ValidationMessage = $"The passwords do not match.";
-				}
-				else
-				{
-					try
-					{
-						KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
-
-						owner.CurrentView = new GenerateWalletSuccessViewModel(owner, mnemonic);
-					}
-					catch (Exception ex)
-					{
-						ValidationMessage = ex.ToTypeMessageString();
-						Logger.LogError<GenerateWalletViewModel>(ex);
-					}
-				}
 			},
 			this.WhenAnyValue(x => x.TermsAccepted));
 		}
