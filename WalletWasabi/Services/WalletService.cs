@@ -20,6 +20,7 @@ using NBitcoin.Policy;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
+using System.Collections.ObjectModel;
 
 namespace WalletWasabi.Services
 {
@@ -41,7 +42,7 @@ namespace WalletWasabi.Services
 		private HashSet<uint256> ProcessedBlocks { get; }
 		private AsyncLock WalletBlocksLock { get; }
 
-		public ConcurrentHashSet<SmartCoin> Coins { get; }
+		public ConcurrentObservableHashSet<SmartCoin> Coins { get; }
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
@@ -66,7 +67,7 @@ namespace WalletWasabi.Services
 			WalletBlocksLock = new AsyncLock();
 			HandleFiltersLock = new AsyncLock();
 
-			Coins = new ConcurrentHashSet<SmartCoin>();
+			Coins = new ConcurrentObservableHashSet<SmartCoin>();
 
 			BlocksFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(blocksFolderPath), blocksFolderPath, trim: true);
 			BlockFolderLock = new AsyncLock();
@@ -350,7 +351,7 @@ namespace WalletWasabi.Services
 						mixin += spentOwnCoins.Min(x => x.Mixin);
 					}
 					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, locked: false); // Don't inherit locked status from key, that's different.
-					Coins.Add(coin);
+					Coins.TryAdd(coin);
 					if (coin.Unspent && coin.Label == "ZeroLink Change" && ChaumianClient.OnePiece != null)
 					{
 						Task.Run(async () =>
