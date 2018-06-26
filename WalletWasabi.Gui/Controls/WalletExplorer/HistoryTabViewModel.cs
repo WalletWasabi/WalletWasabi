@@ -24,6 +24,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Height bestHeight = WalletService.IndexDownloader.BestHeight;
 			foreach (SmartCoin coin in WalletService.Coins)
 			{
+				Transactions.Add(new TransactionViewModel(new TransactionInfo
+				{
+					AmountBtc = $"+{coin.Amount.ToString(false, true)}",
+					Confirmed = coin.Confirmed,
+					Label = coin.Label,
+					TransactionId = coin.TransactionId.ToString()
+				}));
+
+				if (coin.SpenderTransactionId != null)
+				{
+					Transactions.Add(new TransactionViewModel(new TransactionInfo
+					{
+						AmountBtc = $"-{coin.Amount.ToString(false, true)}",
+						Confirmed = coin.Confirmed,
+						Label = coin.Label,
+						TransactionId = coin.SpenderTransactionId.ToString()
+					}));
+				}
 			}
 
 			WalletService.IndexDownloader.BestHeightChanged += IndexDownloader_BestHeightChanged;
