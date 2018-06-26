@@ -160,10 +160,9 @@ REID number: GICO.117429-6
 www.zksnacks.com(*) 
 
 (*) We recommend you to use Tor browser in order to protect your privacy.
-
-
-			
 			";
+			TermsAndConditions += new String('\n', 100);
+
 		}
 
 		public string TermsAndConditions { get; }
