@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -21,29 +22,38 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private TransactionViewModel _selectedTransaction;
 		private double _clipboardNotificationOpacity;
 		private bool _clipboardNotificationVisible;
+		private long _disableClipboard;
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
+			Interlocked.Exchange(ref _disableClipboard, 0);
 			Transactions = new ObservableCollection<TransactionViewModel>();
 			RewriteTable();
 
 			Global.WalletService.NewBlockProcessed += WalletService_NewBlockProcessed;
 			Global.WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
 
-			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async address =>
+			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
-				if (address != null)
+				if (Interlocked.Read(ref _disableClipboard) == 0)
 				{
-					await Application.Current.Clipboard.SetTextAsync(address.TransactionId);
-					ClipboardNotificationVisible = true;
-					ClipboardNotificationOpacity = 1;
-
-					Dispatcher.UIThread.Post(async () =>
+					if (transaction != null)
 					{
-						await Task.Delay(1000);
-						ClipboardNotificationOpacity = 0;
-					});
+						await Application.Current.Clipboard.SetTextAsync(transaction.TransactionId);
+						ClipboardNotificationVisible = true;
+						ClipboardNotificationOpacity = 1;
+
+						Dispatcher.UIThread.Post(async () =>
+						{
+							await Task.Delay(1000);
+							ClipboardNotificationOpacity = 0;
+						});
+					}
+				}
+				else
+				{
+					Interlocked.Exchange(ref _disableClipboard, 0);
 				}
 			});
 		}
@@ -71,6 +81,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
+			var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
 			Transactions?.Clear();
 			foreach (var txr in txRecordList)
 			{
@@ -82,6 +93,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					TransactionId = txr.transactionId.ToString()
 				};
 				Transactions.Add(new TransactionViewModel(txinfo));
+			}
+
+			if (Transactions.Count > 0 && rememberSelectedTransactionId != null)
+			{
+				var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
+				if (txToSelect != default)
+				{
+					Interlocked.Exchange(ref _disableClipboard, 1);
+					SelectedTransaction = txToSelect;
+				}
 			}
 		}
 
