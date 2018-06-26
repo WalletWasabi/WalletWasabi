@@ -58,4 +58,7 @@
         <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
     </Style>
 
+    <Style Selector="ListBox">
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
+    </Style>
 </Styles>
