@@ -32,14 +32,7 @@
             <StackPanel Orientation="Horizontal" Gap="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
-                  <DrawingGroup>
-                    <DrawingGroup.Children>
-                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,8C16,12.418 12.418,16 8,16 3.582,16 0,12.418 0,8 0,3.582 3.582,0 8,0 12.418,0 16,3.582 16,8" />
-                      <GeometryDrawing Brush="#FF1BA1E2" Geometry="F1M8,15C11.865,15 15,11.865 15,8 15,4.135 11.865,1 8,1 4.135,1 1,4.135 1,8 1,11.865 4.135,15 8,15" />
-                      <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M8,2.9277L13.582,8.6377 12.168,10.0517 9,6.8837 9,12.9997 7,12.9997 7,6.8837 3.832,10.0517 2.418,8.6377z" />
-                    </DrawingGroup.Children>
-                  </DrawingGroup>
+                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 25.3333,52.25L 50.6667,52.25L 50.6667,45.9167L 55.4167,45.9167L 55.4167,57L 50.6667,57L 25.3333,57L 20.5833,57L 20.5833,45.9167L 25.3333,45.9167L 25.3333,52.25 Z M 34.8333,49.0834L 41.1667,49.0834L 41.1666,28.5L 49.0833,38L 49.0833,28.5L 38,15.8334L 26.9167,28.5L 26.9167,38L 34.8333,28.5L 34.8333,49.0834 Z "/>
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
               <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
@@ -52,14 +45,7 @@
             <StackPanel Orientation="Horizontal" Gap="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
-                  <DrawingGroup>
-                    <DrawingGroup.Children>
-                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,8C0,3.582 3.582,0 8,0 12.418,0 16,3.582 16,8 16,12.418 12.418,16 8,16 3.582,16 0,12.418 0,8" />
-                      <GeometryDrawing Brush="#FF1BA1E2" Geometry="F1M8,14L2.418,8.29 3.832,6.876 7,10.044 7,3 9,3 9,10.044 12.168,6.876 13.582,8.29z M8,1C4.135,1 1,4.134 1,8 1,11.865 4.135,15 8,15 11.865,15 15,11.865 15,8 15,4.134 11.865,1 8,1" />
-                      <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M8,14L2.418,8.29 3.832,6.876 7,10.044 7,3 9,3 9,10.044 12.168,6.876 13.582,8.29z" />
-                    </DrawingGroup.Children>
-                  </DrawingGroup>
+                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 25.3333,52.25L 50.6666,52.25L 50.6666,45.9167L 55.4166,45.9167L 55.4166,57L 20.5833,57L 20.5833,45.9167L 25.3333,45.9167L 25.3333,52.25 Z M 34.8333,15.8333L 41.1667,15.8333L 41.1667,36.4167L 49.0833,26.9167L 49.0833,36.4167L 38,49.0833L 26.9167,36.4167L 26.9167,26.9167L 34.8333,36.4167L 34.8333,15.8333 Z "/>
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
               <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />

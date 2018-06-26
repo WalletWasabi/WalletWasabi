@@ -24,6 +24,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _warningMessage;
 		private string _validationMessage;
 		private bool _isBusy;
+		private string _loadButtonText;
 
 		private WalletManagerViewModel Owner { get; }
 
@@ -44,6 +45,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					: string.Empty);
 
 			LoadCommand = ReactiveCommand.Create(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
+			SetLoadButtonText(IsBusy);
 		}
 
 		public ObservableCollection<string> Wallets
@@ -76,6 +78,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _validationMessage, value); }
 		}
 
+		public void SetLoadButtonText(bool isBusy)
+		{
+			LoadButtonText = isBusy ? "Loading..." : "Load Wallet";
+		}
+
+		public string LoadButtonText
+		{
+			get { return _loadButtonText; }
+			set { this.RaiseAndSetIfChanged(ref _loadButtonText, value); }
+		}
+
 		public bool CanLoadWallet
 		{
 			get
@@ -95,6 +108,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set
 			{
 				CanLoadWallet = !value;
+				SetLoadButtonText(value);
 				this.RaiseAndSetIfChanged(ref _isBusy, value);
 			}
 		}
@@ -102,6 +116,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public override void OnCategorySelected()
 		{
 			_wallets.Clear();
+
+			if (!File.Exists(Global.WalletsDir))
+			{
+				Directory.CreateDirectory(Global.WalletsDir);
+			}
 
 			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
 			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
@@ -138,10 +157,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
-					await Task.Run(async () => {
+					await Task.Run(async () =>
+					{
 						var walletFileInfo = new FileInfo(walletFullPath);
 						walletFileInfo.LastAccessTime = DateTime.Now;
-						
+
 						var keyManager = KeyManager.FromFile(walletFullPath);
 
 						await Global.InitializeWalletServiceAsync(keyManager);
