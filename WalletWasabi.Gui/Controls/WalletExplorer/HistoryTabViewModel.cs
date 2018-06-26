@@ -1,7 +1,12 @@
-﻿using ReactiveUI;
+﻿using Avalonia.Threading;
+using AvalonStudio.Extensibility;
+using NBitcoin;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -12,17 +17,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
-		private WalletService WalletService { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
-			WalletService = Global.WalletService;
-
 			Transactions = new ObservableCollection<TransactionViewModel>();
+			RewriteTable();
 
-			Height bestHeight = WalletService.IndexDownloader.BestHeight;
-			foreach (SmartCoin coin in WalletService.Coins)
+			Global.WalletService.NewBlockProcessed += WalletService_NewBlockProcessed;
+			Global.WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+		}
+
+		private void RewriteTable()
+		{
+			Transactions?.Clear();
+
+			foreach (SmartCoin coin in Global.WalletService.Coins)
 			{
 				Transactions.Add(new TransactionViewModel(new TransactionInfo
 				{
@@ -43,19 +53,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}));
 				}
 			}
-
-			WalletService.IndexDownloader.BestHeightChanged += IndexDownloader_BestHeightChanged;
-			WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
 		}
 
-		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void WalletService_NewBlockProcessed(object sender, Block e)
 		{
-			//throw new NotImplementedException();
+			Dispatcher.UIThread.InvokeAsync(() => RewriteTable());
 		}
 
-		private void IndexDownloader_BestHeightChanged(object sender, Models.Height e)
+		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			//throw new NotImplementedException();
+			Dispatcher.UIThread.InvokeAsync(() => RewriteTable());
 		}
 
 		public ObservableCollection<TransactionViewModel> Transactions

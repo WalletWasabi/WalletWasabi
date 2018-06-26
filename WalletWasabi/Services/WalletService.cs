@@ -46,6 +46,8 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
+		public event EventHandler<Block> NewBlockProcessed;
+
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
@@ -261,6 +263,8 @@ namespace WalletWasabi.Services
 			}
 
 			ProcessedBlocks.Add(block.GetHash());
+
+			NewBlockProcessed?.Invoke(this, block);
 		}
 
 		private void ProcessTransaction(SmartTransaction tx, List<HdPubKey> keys = null)

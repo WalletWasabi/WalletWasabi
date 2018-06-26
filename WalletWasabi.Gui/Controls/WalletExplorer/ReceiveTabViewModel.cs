@@ -25,6 +25,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			_addresses = new ObservableCollection<AddressViewModel>();
 
+			Global.WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+
 			InitializeAddresses();
 
 			GenerateCommand = ReactiveCommand.Create(() =>
@@ -61,6 +63,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					});
 				}
 			});
+		}
+
+		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+			Dispatcher.UIThread.InvokeAsync(() => InitializeAddresses());
 		}
 
 		private void InitializeAddresses()

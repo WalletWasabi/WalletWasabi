@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using ConcurrentCollections;
-using Nito.AsyncEx;
 
 namespace System.Collections.ObjectModel
 {
@@ -19,11 +18,6 @@ namespace System.Collections.ObjectModel
 
 		public event NotifyCollectionChangedEventHandler CollectionChanged;
 
-		private void OnCollectionChanged()
-		{
-			CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-		}
-
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
 		public IEnumerator<T> GetEnumerator() => ConcurrentHashSet.GetEnumerator();
@@ -34,7 +28,7 @@ namespace System.Collections.ObjectModel
 			{
 				if (ConcurrentHashSet.Add(item))
 				{
-					OnCollectionChanged();
+					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
 					return true;
 				}
 				return false;
@@ -48,7 +42,7 @@ namespace System.Collections.ObjectModel
 				if (ConcurrentHashSet.Count > 0)
 				{
 					ConcurrentHashSet.Clear();
-					OnCollectionChanged();
+					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 				}
 			}
 		}
@@ -61,7 +55,7 @@ namespace System.Collections.ObjectModel
 			{
 				if (ConcurrentHashSet.TryRemove(item))
 				{
-					OnCollectionChanged();
+					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
 					return true;
 				}
 				return false;
