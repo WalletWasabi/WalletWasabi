@@ -61,4 +61,8 @@
     <Style Selector="ListBox">
         <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
     </Style>
+
+    <Style Selector="TextBox">
+        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
+    </Style>
 </Styles>
