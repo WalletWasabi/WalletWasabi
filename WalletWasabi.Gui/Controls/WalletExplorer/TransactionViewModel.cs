@@ -11,7 +11,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			_model = model;
 
-			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed);
+			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, model.Confirmed);
 		}
 
 		private readonly ObservableAsPropertyHelper<bool> _confirmed;
