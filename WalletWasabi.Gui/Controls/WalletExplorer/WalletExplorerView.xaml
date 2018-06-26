@@ -23,7 +23,7 @@
                 </DrawingGroup>
               </DrawingPresenter.Drawing>
             </DrawingPresenter>
-            <TextBlock Text="{Binding Title}" Height="15" />
+            <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
           </StackPanel>
         </TreeDataTemplate>
 
@@ -42,7 +42,7 @@
                   </DrawingGroup>
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
-              <TextBlock Text="{Binding Title}" Height="15" />
+              <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </TreeDataTemplate>
@@ -62,7 +62,7 @@
                   </DrawingGroup>
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
-              <TextBlock Text="{Binding Title}" Height="15" />
+              <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </TreeDataTemplate>
@@ -86,7 +86,7 @@
                   </DrawingGroup>
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
-              <TextBlock Text="{Binding Title}" Height="15" />
+              <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </TreeDataTemplate>
@@ -106,7 +106,7 @@
                   </DrawingGroup>
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
-              <TextBlock Text="{Binding Title}" Height="15" />
+              <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </TreeDataTemplate>
