@@ -3,32 +3,28 @@
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
         <Grid Classes="content">
             <DockPanel LastChildFill="True">
-                <Grid RowDefinitions="Auto,Auto" DockPanel.Dock="Top">
-                    <Grid MinHeight="20">
-                        <Grid IsVisible="{Binding ClipboardNotificationVisible}">
-                            <Grid Opacity="{Binding ClipboardNotificationOpacity}">
-                                <Grid.Transitions>
-                                    <Transitions>
-                                        <DoubleTransition Property="Grid.Opacity"
+                <Grid ColumnDefinitions="100, 200, 200, *" Margin="5 0" DockPanel.Dock="Top">
+                    <TextBlock Text="Confirmed:" />
+                    <TextBlock Text="Amount:" Grid.Column="1" />
+                    <TextBlock Text="Label:" Grid.Column="2" />
+                    <TextBlock Text="Transaction Id:" Grid.Column="3" Margin="20 0 0 0" />
+                    <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.ColumnSpan="4">
+                        <Grid Opacity="{Binding ClipboardNotificationOpacity}">
+                            <Grid.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Grid.Opacity"
                                             Easing="CircularEaseIn"
                                             Duration="0:0:0.5" />
-                                    </Transitions>
-                                </Grid.Transitions>
-                                <TextBlock Text="TransactionId Copied to Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                            </Grid>
+                                </Transitions>
+                            </Grid.Transitions>
+                            <TextBlock Text="TransactionId Copied to Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Right" />
                         </Grid>
-                    </Grid>
-                    <Grid ColumnDefinitions="50, 200, 200, Auto" Margin="5 0" Grid.Row="1">
-                        <TextBlock Text="Confirmed:" />
-                        <TextBlock Text="Amount:" Grid.Column="1" />
-                        <TextBlock Text="Label:" Grid.Column="2" />
-                        <TextBlock Text="Transaction Id:" Grid.Column="3" Margin="20 0 0 0" />
                     </Grid>
                 </Grid>
                 <ListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Grid ColumnDefinitions="50, 200, 200, Auto">
+                            <Grid ColumnDefinitions="100, 200, 200, *">
                                 <Grid.Styles>
                                     <Style Selector="TextBlock">
                                         <Setter Property="VerticalAlignment" Value="Center" />
