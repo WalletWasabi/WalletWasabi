@@ -6,9 +6,20 @@
             <Grid Classes="content">
                 <Grid RowDefinitions="Auto,Auto,Auto">
                     <DockPanel LastChildFill="True" DockPanel.Dock="Top">
-                        <Button Content="Generate New Receive Address" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />
+                        <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />
                         <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label" UseFloatingWatermark="True" DockPanel.Dock="Left" MinWidth="300" />
-                        <Grid></Grid>
+                        <Grid IsVisible="{Binding ClipboardNotificationVisible}">
+                            <Grid Opacity="{Binding ClipboardNotificationOpacity}">
+                                <Grid.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="Grid.Opacity"
+                                            Easing="CircularEaseIn"
+                                            Duration="0:0:0.5" />
+                                    </Transitions>
+                                </Grid.Transitions>
+                                <TextBlock Text="Address Copied to Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </Grid>
+                        </Grid>
                     </DockPanel>
                     <Grid ColumnDefinitions="200, Auto, 50" Margin="5 10 5 0" Grid.Row="1">
                         <TextBlock Text="Label:" />
@@ -24,7 +35,6 @@
                                         </Style>
                                     </Grid.Styles>
                                     <TextBlock Text="{Binding Label}" />
-                                    <TextBlock Text="{Binding Address}" Grid.Column="1" />
                                     <Button Content="QR Code ..." Command="{Binding QRCodeCommand}"  Grid.Column="2" Margin="0 2" />
                                 </Grid>
                             </DataTemplate>

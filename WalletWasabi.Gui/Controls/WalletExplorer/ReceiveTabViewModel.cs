@@ -1,9 +1,12 @@
-﻿using ReactiveUI;
+﻿using Avalonia;
+using Avalonia.Threading;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
 
@@ -12,7 +15,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class ReceiveTabViewModel : WalletActionViewModel
 	{
 		private ObservableCollection<AddressViewModel> _addresses;
+		private AddressViewModel _selectedAddress;
 		private string _label;
+		private double _clipboardNotificationOpacity;
+		private bool _clipboardNotificationVisible;
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
@@ -30,10 +36,31 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Addresses.Remove(found);
 				}
-				Addresses.Insert(0, new AddressViewModel(newKey));
+
+				var newAddress = new AddressViewModel(newKey);
+
+				Addresses.Insert(0, newAddress);
+
+				SelectedAddress = newAddress;
 
 				Label = string.Empty;
 			}, this.WhenAnyValue(x => x.Label, label => !string.IsNullOrWhiteSpace(label)));
+
+			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
+			{
+				if (address != null)
+				{
+					await Application.Current.Clipboard.SetTextAsync(address.Address);
+					ClipboardNotificationVisible = true;
+					ClipboardNotificationOpacity = 1;
+
+					Dispatcher.UIThread.Post(async () =>
+					{
+						await Task.Delay(1000);
+						ClipboardNotificationOpacity = 0;
+					});
+				}
+			});
 		}
 
 		private void InitializeAddresses()
@@ -54,10 +81,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _addresses, value); }
 		}
 
+		public AddressViewModel SelectedAddress
+		{
+			get { return _selectedAddress; }
+			set { this.RaiseAndSetIfChanged(ref _selectedAddress, value); }
+		}
+
 		public string Label
 		{
 			get { return _label; }
 			set { this.RaiseAndSetIfChanged(ref _label, value); }
+		}
+
+		public double ClipboardNotificationOpacity
+		{
+			get { return _clipboardNotificationOpacity; }
+			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value); }
+		}
+
+		public bool ClipboardNotificationVisible
+		{
+			get { return _clipboardNotificationVisible; }
+			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value); }
 		}
 
 		public ReactiveCommand GenerateCommand { get; }
