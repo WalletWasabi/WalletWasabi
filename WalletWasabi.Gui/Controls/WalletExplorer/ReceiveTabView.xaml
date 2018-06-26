@@ -6,7 +6,7 @@
             <Grid Classes="content">
                 <Grid RowDefinitions="Auto,Auto,Auto">
                     <DockPanel LastChildFill="True" DockPanel.Dock="Top">
-                        <Button Content="Generate New Receive Address" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />
+                        <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />
                         <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label" UseFloatingWatermark="True" DockPanel.Dock="Left" MinWidth="300" />
                         <Grid></Grid>
                     </DockPanel>
