@@ -117,6 +117,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			_wallets.Clear();
 
+			if (!File.Exists(Global.WalletsDir))
+			{
+				Directory.CreateDirectory(Global.WalletsDir);
+			}
+
 			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
 			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
 			foreach (var file in walletFiles)
