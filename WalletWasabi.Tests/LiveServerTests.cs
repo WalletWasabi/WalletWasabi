@@ -73,68 +73,6 @@ namespace WalletWasabi.Tests
 
 		#endregion Blockchain
 
-		#region ChaumianCoinJoin
-
-		[Theory]
-		[InlineData(NetworkType.Testnet)]
-		public async Task RegisterAliceInputThenUnConfirmAsync(NetworkType networkType)
-		{
-			(BitcoinPubKeyAddress activeOutputAddress, BitcoinPubKeyAddress changeOutputAddress, string blindedDataHex, string proof, List<TxoRef> utxos) = LiveServerTestsFixture.GetAliceInputData(networkType);
-
-			// blinded activeOutputAddress.ScriptPubKey
-			byte[] blinded = ByteHelpers.FromHex(blindedDataHex);
-
-			var inputProofModels = utxos.Select(txrf => new InputProofModel
-			{
-				Input = txrf,
-				Proof = proof // blinded.BlindedData signed with private key owning utxos
-			});
-
-			using (var aliceClient = await AliceClient.CreateNewAsync(changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]))
-			{
-				Assert.NotNull(aliceClient.BlindedOutputSignature);
-
-				// need to uncofirm or test will fail when run again
-				await aliceClient.PostUnConfirmationAsync();
-			}
-		}
-
-		[Theory]
-		[InlineData(NetworkType.Testnet)]
-		public async Task RegisterAliceInputThenConfirmAsync(NetworkType networkType)
-		{
-			(BitcoinPubKeyAddress activeOutputAddress, BitcoinPubKeyAddress changeOutputAddress, string blindedDataHex, string proof, List<TxoRef> utxos) = LiveServerTestsFixture.GetAliceInputData(networkType);
-
-			// blinded activeOutputAddress.ScriptPubKey
-			byte[] blinded = ByteHelpers.FromHex(blindedDataHex);
-
-			var inputProofModels = utxos.Select(txrf => new InputProofModel
-			{
-				Input = txrf,
-				Proof = proof // blinded.BlindedData signed with private key owning utxos
-			});
-
-			using (var aliceClient = await AliceClient.CreateNewAsync(changeOutputAddress, blinded, inputProofModels, LiveServerTestsFixture.UriMappings[networkType]))
-			{
-				Assert.NotNull(aliceClient.BlindedOutputSignature);
-
-				try
-				{
-					await aliceClient.PostConfirmationAsync();
-
-					// need to uncofirm or test will fail when run again
-					await aliceClient.PostUnConfirmationAsync();
-				}
-				catch (Exception ex)
-				{
-					await aliceClient.PostUnConfirmationAsync();
-					throw ex;
-				}
-			}
-		}
-
-		#endregion ChaumianCoinJoin
-
 		#region Offchain
 
 		[Theory]
