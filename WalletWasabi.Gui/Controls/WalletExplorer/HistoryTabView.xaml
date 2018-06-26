@@ -1,10 +1,9 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
-
-    <StackPanel Margin="10" Gap="10">
-        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20">
-            <Grid Classes="content">
-                <Grid RowDefinitions="Auto,Auto,Auto">
+    <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
+        <Grid Classes="content">
+            <DockPanel LastChildFill="True">
+                <Grid RowDefinitions="Auto,Auto" DockPanel.Dock="Top">
                     <Grid MinHeight="20">
                         <Grid IsVisible="{Binding ClipboardNotificationVisible}">
                             <Grid Opacity="{Binding ClipboardNotificationOpacity}">
@@ -25,25 +24,25 @@
                         <TextBlock Text="Label:" Grid.Column="2" />
                         <TextBlock Text="Transaction Id:" Grid.Column="3" Margin="20 0 0 0" />
                     </Grid>
-                    <ListBox Grid.Row="2"  Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="50, 200, 200, Auto">
-                                    <Grid.Styles>
-                                        <Style Selector="TextBlock">
-                                            <Setter Property="VerticalAlignment" Value="Center" />
-                                        </Style>
-                                    </Grid.Styles>
-                                    <Path Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" IsVisible="{Binding Confirmed}" Stretch="Fill" />
-                                    <TextBlock Text="{Binding AmountBtc}" Grid.Column="1" />
-                                    <TextBlock Text="{Binding Label}" Grid.Column="2" />
-                                    <TextBlock Text="{Binding TransactionId}" Grid.Column="3"  Margin="20 0 0 0"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
                 </Grid>
-            </Grid>
-        </controls:GroupBox>
-    </StackPanel>
+                <ListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="50, 200, 200, Auto">
+                                <Grid.Styles>
+                                    <Style Selector="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                    </Style>
+                                </Grid.Styles>
+                                <Path Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" IsVisible="{Binding Confirmed}" Stretch="Fill" />
+                                <TextBlock Text="{Binding AmountBtc}" Grid.Column="1" />
+                                <TextBlock Text="{Binding Label}" Grid.Column="2" />
+                                <TextBlock Text="{Binding TransactionId}" Grid.Column="3"  Margin="20 0 0 0" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Grid>
+    </controls:GroupBox>
 </UserControl>
