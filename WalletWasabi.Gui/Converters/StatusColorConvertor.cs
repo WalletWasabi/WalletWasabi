@@ -16,13 +16,13 @@ namespace WalletWasabi.Gui.Converters
 			bool isTor = Enum.TryParse(value.ToString(), out TorStatus tor);
 			if (isTor && tor == TorStatus.NotRunning)
 			{
-				return Brushes.Red;
+				return Brushes.Yellow;
 			}
 
 			bool isBackend = Enum.TryParse(value.ToString(), out BackendStatus backend);
 			if (isBackend && backend == BackendStatus.NotConnected)
 			{
-				return Brushes.Red;
+				return Brushes.Yellow;
 			}
 
 			return ColorTheme.CurrentTheme.Foreground;
