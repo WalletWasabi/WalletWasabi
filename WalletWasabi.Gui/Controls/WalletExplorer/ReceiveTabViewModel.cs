@@ -32,7 +32,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				Addresses.Insert(0, new AddressViewModel(newKey));
 
-				Label = null;
+				Label = string.Empty;
 			}, this.WhenAnyValue(x => x.Label, label => !string.IsNullOrWhiteSpace(label)));
 		}
 
