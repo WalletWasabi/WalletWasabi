@@ -1,5 +1,10 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
-            xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+    <i:Interaction.Behaviors>
+        <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedAddress}" />
+    </i:Interaction.Behaviors>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
         <Grid Classes="content">
             <DockPanel LastChildFill="True">

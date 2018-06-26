@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			foreach (SmartCoin coin in Global.WalletService.Coins.OrderByDescending(x => x.Height))
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
-				if (found != default)
+				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
 					var newRecord = (coin.Confirmed, found.amount + coin.Amount, $"{found.label}, {coin.Label}", coin.TransactionId);
@@ -77,7 +77,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (coin.SpenderTransactionId != null)
 				{
-					txRecordList.Add((coin.Confirmed, (Money.Zero - coin.Amount), coin.Label, coin.SpenderTransactionId));
+					var foundSpender = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);
+					if (foundSpender != default) // if found
+					{
+						txRecordList.Remove(foundSpender);
+						var newRecord = (coin.Confirmed, foundSpender.amount - coin.Amount, foundSpender.label, coin.SpenderTransactionId);
+						txRecordList.Add(newRecord);
+					}
+					else
+					{
+						txRecordList.Add((coin.Confirmed, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
+					}
 				}
 			}
 
