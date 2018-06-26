@@ -30,28 +30,38 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void RewriteTable()
 		{
-			Transactions?.Clear();
-
-			foreach (SmartCoin coin in Global.WalletService.Coins)
+			var txRecordList = new List<(bool confirmed, Money amount, string label, uint256 transactionId)>();
+			foreach (SmartCoin coin in Global.WalletService.Coins.OrderByDescending(x => x.Height))
 			{
-				Transactions.Add(new TransactionViewModel(new TransactionInfo
+				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
+				if (found != default)
 				{
-					AmountBtc = $"+{coin.Amount.ToString(false, true)}",
-					Confirmed = coin.Confirmed,
-					Label = coin.Label,
-					TransactionId = coin.TransactionId.ToString()
-				}));
+					txRecordList.Remove(found);
+					var newRecord = (coin.Confirmed, found.amount + coin.Amount, $"{found.label}, {coin.Label}", coin.TransactionId);
+					txRecordList.Add(newRecord);
+				}
+				else
+				{
+					txRecordList.Add((coin.Confirmed, coin.Amount, coin.Label, coin.TransactionId));
+				}
 
 				if (coin.SpenderTransactionId != null)
 				{
-					Transactions.Add(new TransactionViewModel(new TransactionInfo
-					{
-						AmountBtc = $"-{coin.Amount.ToString(false, true)}",
-						Confirmed = coin.Confirmed,
-						Label = coin.Label,
-						TransactionId = coin.SpenderTransactionId.ToString()
-					}));
+					txRecordList.Add((coin.Confirmed, (Money.Zero - coin.Amount), coin.Label, coin.TransactionId));
 				}
+			}
+
+			Transactions?.Clear();
+			foreach (var txr in txRecordList)
+			{
+				var txinfo = new TransactionInfo
+				{
+					Confirmed = txr.confirmed,
+					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
+					Label = txr.label,
+					TransactionId = txr.transactionId.ToString()
+				};
+				Transactions.Add(new TransactionViewModel(txinfo));
 			}
 		}
 
