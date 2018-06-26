@@ -3,6 +3,7 @@
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
     <UserControl.Resources>
         <converters:FilterLeftValueConverter x:Key="FilterLeftValueConverter" />
+        <converters:StatusColorConvertor x:Key="StatusColorConvertor" />
     </UserControl.Resources>
 
     <Grid Background="{DynamicResource ThemeAccentBrush}">
@@ -33,7 +34,8 @@
                     </DrawingPresenter>
                 </Grid>
                 <TextBlock>Tor:</TextBlock>
-                <TextBlock Text="{Binding Tor}" />
+
+                <TextBlock Text="{Binding Tor}" Foreground="{Binding Tor, Converter={StaticResource StatusColorConvertor}}" />
 
                 <Grid Height="10" Width="10">
                     <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -62,7 +64,8 @@
                     </DrawingPresenter>
                 </Grid>
                 <TextBlock>Backend:</TextBlock>
-                <TextBlock Text="{Binding Backend}" />
+
+                <TextBlock Text="{Binding Backend}" Foreground="{Binding Backend, Converter={StaticResource StatusColorConvertor}}" />
 
                 <Grid Height="10" Width="10">
                     <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
