@@ -36,7 +36,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Addresses.Remove(found);
 				}
-				Addresses.Insert(0, new AddressViewModel(newKey));
+
+				var newAddress = new AddressViewModel(newKey);
+
+				Addresses.Insert(0, newAddress);
+
+				SelectedAddress = newAddress;
 
 				Label = string.Empty;
 			}, this.WhenAnyValue(x => x.Label, label => !string.IsNullOrWhiteSpace(label)));
