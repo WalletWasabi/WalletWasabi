@@ -21,9 +21,9 @@
                             </Grid>
                         </Grid>
                     </DockPanel>
-                    <Grid ColumnDefinitions="200, Auto, 50" Margin="5 10 5 0" Grid.Row="1">
+                    <Grid ColumnDefinitions="300, *, 50" Margin="5 10 5 0" Grid.Row="1">
                         <TextBlock Text="Label:" />
-                        <TextBlock Text="Address:" Grid.Column="1" />
+                        <TextBlock Text="Address:" Grid.Column="1" Margin="10 0 0 0" />
                     </Grid>
                     <ListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}">
                         <ListBox.ItemTemplate>
@@ -35,6 +35,7 @@
                                         </Style>
                                     </Grid.Styles>
                                     <TextBlock Text="{Binding Label}" />
+                                    <TextBlock Text="{Binding Address}" Grid.Column="1" Margin="10 0 0 0" />
                                     <Button Content="QR Code ..." Command="{Binding QRCodeCommand}"  Grid.Column="2" Margin="0 2" />
                                 </Grid>
                             </DataTemplate>
