@@ -77,7 +77,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (coin.SpenderTransactionId != null)
 				{
-					txRecordList.Add((coin.Confirmed, (Money.Zero - coin.Amount), coin.Label, coin.TransactionId));
+					txRecordList.Add((coin.Confirmed, (Money.Zero - coin.Amount), coin.Label, coin.SpenderTransactionId));
 				}
 			}
 
