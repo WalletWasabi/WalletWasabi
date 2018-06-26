@@ -1,0 +1,12 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+            xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
+
+    <DockPanel Margin="10" LastChildFill="True">
+        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20">
+            <Grid Classes="content">
+                <local:CoinListView DataContext="{Binding CoinList}" />
+            </Grid>
+        </controls:GroupBox>
+    </DockPanel>
+</UserControl>

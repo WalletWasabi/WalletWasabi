@@ -1,18 +1,31 @@
 ﻿using Avalonia.Data.Converters;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class FilterLeftValueConverter : IValueConverter
+	public class PrivacyLevelValueConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if (value is int integer)
 			{
-				return integer == -1 ? "--" : value.ToString();
+				if (integer <= 0)
+				{
+					return "None";
+				}
+				else if (integer >= 1 && integer <= 6)
+				{
+					return "Some";
+				}
+				else if (integer >= 7 && integer <= 49)
+				{
+					return "Fine";
+				}
+				else if (integer > 49)
+				{
+					return "Strong";
+				}
 			}
 
 			throw new InvalidOperationException();

@@ -8,44 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="App.xaml" />
-    <EmbeddedResource Include="Controls\GroupBox.xaml" />
-    <EmbeddedResource Include="Controls\ModalDialog.xaml" />
-    <EmbeddedResource Include="Controls\Spinner.xaml" />
-    <EmbeddedResource Include="Controls\StatusBar.xaml" />
-    <EmbeddedResource Include="Controls\WalletExplorer\HistoryTabView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Controls\WalletExplorer\ReceiveTabView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Controls\WalletExplorer\WalletExplorerView.xaml" />
-    <EmbeddedResource Include="Dialogs\CannotCloseDialogView.xaml" />
-    <EmbeddedResource Include="Icons\Icons.xaml" />
-    <EmbeddedResource Include="MainWindow.xaml" />
-    <EmbeddedResource Include="Styles\Styles.xaml" />
-    <EmbeddedResource Include="Tabs\AboutView.xaml" />
-    <EmbeddedResource Include="Tabs\CustomerSupportView.xaml" />
-    <EmbeddedResource Include="Tabs\LegalIssuesView.xaml">
-      <Generator></Generator>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tabs\PrivacyPolicyView.xaml" />
-    <EmbeddedResource Include="Tabs\ReportBugView.xaml" />
-    <EmbeddedResource Include="Tabs\TermsAndConditionsView.xaml" />
-    <EmbeddedResource Include="Tabs\WalletManager\GenerateWalletSuccessView.xaml" />
-    <EmbeddedResource Include="Tabs\WalletManager\GenerateWalletView.xaml" />
-    <EmbeddedResource Include="Tabs\WalletManager\LoadWalletView.xaml" />
-    <EmbeddedResource Include="Tabs\WalletManager\RecoverWalletView.xaml" />
-    <EmbeddedResource Include="Tabs\WalletManager\WalletManagerView.xaml" />
-    <None Remove="Controls\WalletExplorer\HistoryTabView.xaml" />
-    <None Remove="Controls\WalletExplorer\ReceiveTabView.xaml" />
-    <None Remove="Tabs\LegalIssuesView.xaml" />
-  
-    <Compile Update="**\*.xaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
+    <EmbeddedResource Include="**\*.xaml;Assets\*" Exclude="bin\**;obj\**;**\*.xproj;packages\**;@(EmbeddedResource)" />
   </ItemGroup>
-
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.1\WalletWasabi.Gui.xml</DocumentationFile>
@@ -53,29 +17,20 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>bin\Release\netcoreapp2.1\WalletWasabi.Gui.xml</DocumentationFile>
-  </PropertyGroup>  
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="0.6.2-build5373-beta" />
   </ItemGroup>
 
   <ItemGroup>
-      <EmbeddedResource Include="Resources\WasabiLogo.png" />
+    <EmbeddedResource Include="Resources\WasabiLogo.png" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell.Extensibility\AvalonStudio.Shell.Extensibility.csproj" />
     <ProjectReference Include="..\WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell\AvalonStudio.Shell.csproj" />
     <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Controls\WalletExplorer\ReceiveTabView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Tabs\LegalIssuesView.xaml">
-      <Generator></Generator>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
