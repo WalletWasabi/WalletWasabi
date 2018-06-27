@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
-			CoinList = new CoinListViewModel();
+			CoinList = new CoinListViewModel(Global.WalletService.Coins);
 		}
 
 		public CoinListViewModel CoinList
