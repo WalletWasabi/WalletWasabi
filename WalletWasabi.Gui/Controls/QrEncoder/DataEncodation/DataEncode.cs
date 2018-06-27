@@ -15,17 +15,17 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		{
 			RecognitionStruct recognitionResult = InputRecognise.Recognise(content);
 			EncoderBase encoderBase = CreateEncoder(recognitionResult.Mode, recognitionResult.EncodingName);
-			
+
 			BitList encodeContent = encoderBase.GetDataBits(content);
-			
+
 			int encodeContentLength = encodeContent.Count;
-			
-			VersionControlStruct vcStruct = 
+
+			VersionControlStruct vcStruct =
 				VersionControl.InitialSetup(encodeContentLength, recognitionResult.Mode, ecLevel, recognitionResult.EncodingName);
-			
+
 			BitList dataCodewords = new BitList();
 			//Eci header
-			if(vcStruct.isContainECI && vcStruct.ECIHeader != null)
+			if (vcStruct.isContainECI && vcStruct.ECIHeader != null)
 				dataCodewords.Add(vcStruct.ECIHeader);
 			//Header
 			dataCodewords.Add(encoderBase.GetModeIndicator());
@@ -35,72 +35,75 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			dataCodewords.Add(encodeContent);
 			//Terminator Padding
 			dataCodewords.TerminateBites(dataCodewords.Count, vcStruct.VersionDetail.NumDataBytes);
-			
+
 			int dataCodewordsCount = dataCodewords.Count;
-			if((dataCodewordsCount & 0x7) != 0)
+			if ((dataCodewordsCount & 0x7) != 0)
 				throw new ArgumentException("data codewords is not byte sized.");
-			else if(dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
+			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
 			{
 				throw new ArgumentException("datacodewords num of bytes not equal to NumDataBytes for current version");
 			}
-			
+
 			EncodationStruct encStruct = new EncodationStruct(vcStruct);
 			encStruct.Mode = recognitionResult.Mode;
 			encStruct.DataCodewords = dataCodewords;
 			return encStruct;
 		}
 
+		internal static EncodationStruct Encode(IEnumerable<byte> content, ErrorCorrectionLevel eclevel)
+		{
+			EncoderBase encoderBase = CreateEncoder(Mode.EightBitByte, QRCodeConstantVariable.DefaultEncoding);
 
-        internal static EncodationStruct Encode(IEnumerable<byte> content, ErrorCorrectionLevel eclevel)
-        {
-            EncoderBase encoderBase = CreateEncoder(Mode.EightBitByte, QRCodeConstantVariable.DefaultEncoding);
+			BitList encodeContent = new BitList(content);
 
-            BitList encodeContent = new BitList(content);
+			int encodeContentLength = encodeContent.Count;
 
-            int encodeContentLength = encodeContent.Count;
+			VersionControlStruct vcStruct =
+				VersionControl.InitialSetup(encodeContentLength, Mode.EightBitByte, eclevel, QRCodeConstantVariable.DefaultEncoding);
 
-            VersionControlStruct vcStruct =
-                VersionControl.InitialSetup(encodeContentLength, Mode.EightBitByte, eclevel, QRCodeConstantVariable.DefaultEncoding);
+			BitList dataCodewords = new BitList();
+			//Eci header
+			if (vcStruct.isContainECI && vcStruct.ECIHeader != null)
+				dataCodewords.Add(vcStruct.ECIHeader);
+			//Header
+			dataCodewords.Add(encoderBase.GetModeIndicator());
+			int numLetter = encodeContentLength >> 3;
+			dataCodewords.Add(encoderBase.GetCharCountIndicator(numLetter, vcStruct.VersionDetail.Version));
+			//Data
+			dataCodewords.Add(encodeContent);
+			//Terminator Padding
+			dataCodewords.TerminateBites(dataCodewords.Count, vcStruct.VersionDetail.NumDataBytes);
 
-            BitList dataCodewords = new BitList();
-            //Eci header
-            if (vcStruct.isContainECI && vcStruct.ECIHeader != null)
-                dataCodewords.Add(vcStruct.ECIHeader);
-            //Header
-            dataCodewords.Add(encoderBase.GetModeIndicator());
-            int numLetter = encodeContentLength >> 3;
-            dataCodewords.Add(encoderBase.GetCharCountIndicator(numLetter, vcStruct.VersionDetail.Version));
-            //Data
-            dataCodewords.Add(encodeContent);
-            //Terminator Padding
-            dataCodewords.TerminateBites(dataCodewords.Count, vcStruct.VersionDetail.NumDataBytes);
+			int dataCodewordsCount = dataCodewords.Count;
+			if ((dataCodewordsCount & 0x7) != 0)
+				throw new ArgumentException("data codewords is not byte sized.");
+			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
+			{
+				throw new ArgumentException("datacodewords num of bytes not equal to NumDataBytes for current version");
+			}
 
-            int dataCodewordsCount = dataCodewords.Count;
-            if ((dataCodewordsCount & 0x7) != 0)
-                throw new ArgumentException("data codewords is not byte sized.");
-            else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
-            {
-                throw new ArgumentException("datacodewords num of bytes not equal to NumDataBytes for current version");
-            }
+			EncodationStruct encStruct = new EncodationStruct(vcStruct);
+			encStruct.Mode = Mode.EightBitByte;
+			encStruct.DataCodewords = dataCodewords;
+			return encStruct;
+		}
 
-            EncodationStruct encStruct = new EncodationStruct(vcStruct);
-            encStruct.Mode = Mode.EightBitByte;
-            encStruct.DataCodewords = dataCodewords;
-            return encStruct;
-        }
-		
 		private static EncoderBase CreateEncoder(Mode mode, string encodingName)
 		{
-			switch(mode)
+			switch (mode)
 			{
 				case Mode.Numeric:
 					return new NumericEncoder();
+
 				case Mode.Alphanumeric:
 					return new AlphanumericEncoder();
+
 				case Mode.EightBitByte:
 					return new EightBitByteEncoder(encodingName);
+
 				case Mode.Kanji:
 					return new KanjiEncoder();
+
 				default:
 					throw new ArgumentOutOfRangeException("mode", string.Format("Doesn't contain encoder for {0}", mode));
 			}

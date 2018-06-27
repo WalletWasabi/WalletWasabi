@@ -6,8 +6,8 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 	{
 		internal VersionDetail VersionDetail { get; set; }
 		internal Mode Mode { get; set; }
-		internal BitList DataCodewords { get; set;}
-		
+		internal BitList DataCodewords { get; set; }
+
 		internal EncodationStruct(VersionControlStruct vcStruct)
 			: this()
 		{

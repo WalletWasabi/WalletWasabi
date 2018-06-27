@@ -13,22 +13,21 @@
 		{
 			int width = matrix.Width;
 			int DarkBitCount = 0;
-			
-			for(int j = 0; j < width; j++)
+
+			for (int j = 0; j < width; j++)
 			{
-				for(int i = 0; i < width; i++)
+				for (int i = 0; i < width; i++)
 				{
-					if(matrix[i, j])
+					if (matrix[i, j])
 						DarkBitCount++;
 				}
 			}
-			
+
 			int MatrixCount = width * width;
-			
+
 			double ratio = (double)DarkBitCount / MatrixCount;
-			
-			return System.Math.Abs((int)(ratio*100 -50)) / 5 * 10;
-			
+
+			return System.Math.Abs((int)(ratio * 100 - 50)) / 5 * 10;
 		}
 	}
 }

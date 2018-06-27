@@ -11,7 +11,7 @@
                 <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
                     <DockPanel LastChildFill="True">
                         <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />
-                        <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label" UseFloatingWatermark="True" DockPanel.Dock="Left" MinWidth="300" >
+                        <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label" UseFloatingWatermark="True" DockPanel.Dock="Left" MinWidth="300">
                             <i:Interaction.Behaviors>
                                 <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
                             </i:Interaction.Behaviors>

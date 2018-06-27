@@ -4,16 +4,16 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.Tabs
 {
-    public class LegalIssuesView : UserControl
-    {
-        public LegalIssuesView()
-        {
+	public class LegalIssuesView : UserControl
+	{
+		public LegalIssuesView()
+		{
 			InitializeComponent();
-        }
+		}
 
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
-    }
+		private void InitializeComponent()
+		{
+			AvaloniaXamlLoader.Load(this);
+		}
+	}
 }

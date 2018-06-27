@@ -45,17 +45,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void SelectGenerateWallet()
 		{
-			SelectedCategory = Categories.First(x=>x is GenerateWalletViewModel);
+			SelectedCategory = Categories.First(x => x is GenerateWalletViewModel);
 		}
 
 		public void SelectRecoverWallet()
 		{
-			SelectedCategory = Categories.First(x=>x is RecoverWalletViewModel);
+			SelectedCategory = Categories.First(x => x is RecoverWalletViewModel);
 		}
 
 		public void SelectLoadWallet()
 		{
-			SelectedCategory = Categories.First(x=>x is LoadWalletViewModel);
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel);
 		}
 
 		public ViewModelBase CurrentView

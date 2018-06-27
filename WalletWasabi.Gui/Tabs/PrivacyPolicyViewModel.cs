@@ -58,7 +58,7 @@ Contact details regarding this declaration
 
 In case you have any questions concerning zkSNACKs' Data Protection Declaration or if you would like to exercise your right of information, rectification or deletion, please send us a written request outlining your desire to: legal@zksnacks.com.
 ";
-		
+
 			PrivacyPolicy += new String('\n', 100);
 		}
 

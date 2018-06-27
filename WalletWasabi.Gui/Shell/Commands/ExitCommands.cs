@@ -10,16 +10,16 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ExportCommandDefinition("File.Exit")]
 		public CommandDefinition ExitCommand { get; }
 
-        [ImportingConstructor]
-        public ExitCommands(CommandIconService commandIconService)
+		[ImportingConstructor]
+		public ExitCommands(CommandIconService commandIconService)
 		{
-			 ExitCommand = new CommandDefinition(
-				"Exit", 
-				commandIconService.GetCompletionKindImage("Exit"), 
-				ReactiveCommand.Create(OnExit));
+			ExitCommand = new CommandDefinition(
+			   "Exit",
+			   commandIconService.GetCompletionKindImage("Exit"),
+			   ReactiveCommand.Create(OnExit));
 		}
 
-        private void OnExit()
+		private void OnExit()
 		{
 			Application.Current.Exit();
 		}

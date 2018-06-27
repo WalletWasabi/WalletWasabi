@@ -16,22 +16,22 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 			int ecBlockGroup1 = vd.ECBlockGroup1;
 			int numDataBytesGroup1 = vd.NumDataBytesGroup1;
 			int numDataBytesGroup2 = vd.NumDataBytesGroup2;
-			
+
 			int ecBytesPerBlock = vd.NumECBytesPerBlock;
-			
+
 			int dataBytesOffset = 0;
 			byte[][] dByteJArray = new byte[vd.NumECBlocks][];
 			byte[][] ecByteJArray = new byte[vd.NumECBlocks][];
-			
+
 			GaloisField256 gf256 = GaloisField256.QRCodeGaloisField;
 			GeneratorPolynomial generator = new GeneratorPolynomial(gf256);
-			
-			for(int blockID = 0; blockID < vd.NumECBlocks; blockID++)
+
+			for (int blockID = 0; blockID < vd.NumECBlocks; blockID++)
 			{
-				if(blockID < ecBlockGroup1)
+				if (blockID < ecBlockGroup1)
 				{
 					dByteJArray[blockID] = new byte[numDataBytesGroup1];
-					for(int index = 0; index < numDataBytesGroup1; index++)
+					for (int index = 0; index < numDataBytesGroup1; index++)
 					{
 						dByteJArray[blockID][index] = dataCodewordsByte[dataBytesOffset + index];
 					}
@@ -40,42 +40,42 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 				else
 				{
 					dByteJArray[blockID] = new byte[numDataBytesGroup2];
-					for(int index = 0; index < numDataBytesGroup2; index++)
+					for (int index = 0; index < numDataBytesGroup2; index++)
 					{
 						dByteJArray[blockID][index] = dataCodewordsByte[dataBytesOffset + index];
 					}
 					dataBytesOffset += numDataBytesGroup2;
 				}
-				
+
 				ecByteJArray[blockID] = ReedSolomonEncoder.Encode(dByteJArray[blockID], ecBytesPerBlock, generator);
 			}
-			if(vd.NumDataBytes != dataBytesOffset)
+			if (vd.NumDataBytes != dataBytesOffset)
 				throw new ArgumentException("Data bytes does not match offset");
-			
+
 			BitList codewords = new BitList();
-			
+
 			int maxDataLength = ecBlockGroup1 == vd.NumECBlocks ? numDataBytesGroup1 : numDataBytesGroup2;
-		
-			for(int dataID = 0; dataID < maxDataLength; dataID++)
+
+			for (int dataID = 0; dataID < maxDataLength; dataID++)
 			{
-				for(int blockID = 0; blockID < vd.NumECBlocks; blockID++)
+				for (int blockID = 0; blockID < vd.NumECBlocks; blockID++)
 				{
-					if( !(dataID == numDataBytesGroup1 && blockID < ecBlockGroup1) )
+					if (!(dataID == numDataBytesGroup1 && blockID < ecBlockGroup1))
 						codewords.Add((int)dByteJArray[blockID][dataID], 8);
 				}
 			}
-			
-			for(int ECID = 0; ECID < ecBytesPerBlock; ECID++)
+
+			for (int ECID = 0; ECID < ecBytesPerBlock; ECID++)
 			{
-				for(int blockID = 0; blockID < vd.NumECBlocks; blockID++)
+				for (int blockID = 0; blockID < vd.NumECBlocks; blockID++)
 				{
 					codewords.Add((int)ecByteJArray[blockID][ECID], 8);
 				}
 			}
-			
-			if( vd.NumTotalBytes != codewords.Count >> 3)
+
+			if (vd.NumTotalBytes != codewords.Count >> 3)
 				throw new ArgumentException(string.Format("total bytes: {0}, actual bits: {1}", vd.NumTotalBytes, codewords.Count));
-			
+
 			return codewords;
 		}
 	}

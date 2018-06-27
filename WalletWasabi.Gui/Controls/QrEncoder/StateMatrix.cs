@@ -6,13 +6,13 @@ namespace Gma.QrCodeNet.Encoding
 	{
 		private MatrixStatus[,] m_matrixStatus;
 		private readonly int m_Width;
-		
+
 		public StateMatrix(int width)
 		{
 			m_Width = width;
 			m_matrixStatus = new MatrixStatus[width, width];
 		}
-		
+
 		public MatrixStatus this[int x, int y]
 		{
 			get
@@ -24,7 +24,7 @@ namespace Gma.QrCodeNet.Encoding
 				m_matrixStatus[x, y] = value;
 			}
 		}
-		
+
 		internal MatrixStatus this[MatrixPoint point]
 		{
 			get
@@ -32,12 +32,12 @@ namespace Gma.QrCodeNet.Encoding
 			set
 			{ this[point.X, point.Y] = value; }
 		}
-		
+
 		public int Width
 		{
 			get { return m_Width; }
 		}
-		
+
 		public int Height
 		{
 			get { return Width; }

@@ -8,7 +8,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 	/// </summary>
 	internal class AlphanumericTable
 	{
-		private static readonly Dictionary<char, int> s_AlphanumericTable = 
+		private static readonly Dictionary<char, int> s_AlphanumericTable =
 			new Dictionary<char, int>
 		{
 			{'0', 0},
@@ -49,7 +49,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			{'Z', 35},
 			{'\x0020', 36},  //"SP"
 			{'\x0024', 37},  //"$"
-			{'\x0025', 38},  //"%" 
+			{'\x0025', 38},  //"%"
 			{'\x002A', 39},  //"*"
 			{'\x002B', 40},  //"+"
 			{'\x002D', 41},  //"-"
@@ -57,7 +57,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			{'\x002F', 43}, //"/"
 			{'\x003A', 44},	//":"
 		};
-		
+
 		/// <summary>
 		/// Convert char to int value
 		/// </summary>
@@ -65,16 +65,16 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <remarks>Table from chapter 8.4.3 P21</remarks>
 		internal static int ConvertAlphaNumChar(char inputChar)
 		{
-	        int value;
-	        if (!s_AlphanumericTable.TryGetValue(inputChar, out value))
-	        {
-	            throw new ArgumentOutOfRangeException(
-                    "inputChar", 
-	                "Not an alphanumeric character found. Only characters from table from chapter 8.4.3 P21 are supported in alphanumeric mode.");
-	        }
-		    return value;
+			int value;
+			if (!s_AlphanumericTable.TryGetValue(inputChar, out value))
+			{
+				throw new ArgumentOutOfRangeException(
+					"inputChar",
+					"Not an alphanumeric character found. Only characters from table from chapter 8.4.3 P21 are supported in alphanumeric mode.");
+			}
+			return value;
 		}
-		
+
 		internal static bool Contains(char inputChar)
 		{
 			return s_AlphanumericTable.ContainsKey(inputChar);
