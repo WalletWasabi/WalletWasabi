@@ -194,19 +194,19 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 				case 1:
 					//Indicator = 0. Page 24. Chapter 6.4.2.1
 					dataBits.Add((int)ECICodewordsLength.One, 1);
-					eciAssignmentBits = eciAssignmentByte * 8 - 1;
+					eciAssignmentBits = (eciAssignmentByte * 8) - 1;
 					break;
 
 				case 2:
 					//Indicator = 10. Page 24. Chapter 6.4.2.1
 					dataBits.Add((int)ECICodewordsLength.Two, 2);
-					eciAssignmentBits = eciAssignmentByte * 8 - 2;
+					eciAssignmentBits = (eciAssignmentByte * 8) - 2;
 					break;
 
 				case 3:
 					//Indicator = 110. Page 24. Chapter 6.4.2.1
 					dataBits.Add((int)ECICodewordsLength.Three, 3);
-					eciAssignmentBits = eciAssignmentByte * 8 - 3;
+					eciAssignmentBits = (eciAssignmentByte * 8) - 3;
 					break;
 
 				default:
