@@ -1,9 +1,42 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
-            xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
-    <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20">
-        <Grid Classes="content">
-            <local:CoinListView DataContext="{Binding CoinList}" />
-        </Grid>
-    </controls:GroupBox>
+    <UserControl.Resources>
+        <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
+    </UserControl.Resources>
+    <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Bottom" Margin="20 10" Gap="10" HorizontalAlignment="Center" MinWidth="1000">
+            <TextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
+            <StackPanel Orientation="Horizontal" Gap="10">
+                <Button Content="Max" Command="{Binding MaxCommand}" />
+                <TextBox Text="{Binding Amount}" Watermark="Amount" UseFloatingWatermark="True" />
+                <StackPanel>
+                    <Slider Minimum="0" Maximum="10" Value="{Binding Fee}" />
+                    <StackPanel Orientation="Horizontal" Gap="4">
+                        <TextBlock Text="Confirmation Target:" />
+                        <TextBlock Text="{Binding Fee, Converter={StaticResource FeeConfirmationTargetConverter}}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+            <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" />
+            <DockPanel LastChildFill="True">
+                <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
+                    <StackPanel Orientation="Horizontal">
+                        <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
+                        <TextBlock Text="{Binding BuildTransactionButtonText}" />
+                    </StackPanel>
+                </Button>
+                <Grid></Grid>
+            </DockPanel>
+            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+            <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
+        </StackPanel>
+        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20">
+            <Grid Classes="content">
+                <local:CoinListView DataContext="{Binding CoinList}" />
+            </Grid>
+        </controls:GroupBox>
+    </DockPanel>
 </UserControl>
