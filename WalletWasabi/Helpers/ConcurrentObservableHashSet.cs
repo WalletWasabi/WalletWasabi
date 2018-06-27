@@ -55,7 +55,8 @@ namespace System.Collections.ObjectModel
 			{
 				if (ConcurrentHashSet.TryRemove(item))
 				{
-					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
+					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, ConcurrentHashSet));
 					return true;
 				}
 				return false;
