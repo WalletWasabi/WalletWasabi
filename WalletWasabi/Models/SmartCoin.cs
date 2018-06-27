@@ -41,7 +41,7 @@ namespace WalletWasabi.Models
 				{
 					_height = value;
 
-					PropertyChanged(this, new PropertyChangedEventArgs(nameof(Confirmed)));
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Confirmed)));
 				}
 			}
 		}
