@@ -93,6 +93,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
+			txRecordList = txRecordList.OrderBy(x => x.confirmed).ToList();
+
 			var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
 			Transactions?.Clear();
 			foreach (var txr in txRecordList)
