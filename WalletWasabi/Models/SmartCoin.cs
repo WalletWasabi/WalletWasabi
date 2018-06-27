@@ -3,6 +3,7 @@ using WalletWasabi.Helpers;
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.ComponentModel;
 
 namespace WalletWasabi.Models
 {
@@ -10,8 +11,10 @@ namespace WalletWasabi.Models
 	/// An UTXO that knows more.
 	/// </summary>
 	[JsonObject(MemberSerialization.OptIn)]
-	public class SmartCoin : IEquatable<SmartCoin>
+	public class SmartCoin : IEquatable<SmartCoin>, INotifyPropertyChanged
 	{
+		private Height _height;
+
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 TransactionId { get; }
@@ -29,7 +32,19 @@ namespace WalletWasabi.Models
 
 		[JsonProperty(Order = 5)]
 		[JsonConverter(typeof(HeightJsonConverter))]
-		public Height Height { get; set; }
+		public Height Height
+		{
+			get { return _height; }
+			set
+			{
+				if (value != _height)
+				{
+					_height = value;
+
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Confirmed)));
+				}
+			}
+		}
 
 		[JsonProperty(Order = 6)]
 		public string Label { get; set; }
@@ -102,6 +117,8 @@ namespace WalletWasabi.Models
 			CoinJoinInProcess = locked;
 			Secret = null;
 		}
+
+		public event PropertyChangedEventHandler PropertyChanged;
 
 		public Coin GetCoin()
 		{

@@ -28,7 +28,7 @@ namespace System.Collections.ObjectModel
 			{
 				if (ConcurrentHashSet.Add(item))
 				{
-					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
+					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, Count - 1));
 					return true;
 				}
 				return false;
