@@ -8,7 +8,7 @@
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
         <Grid Classes="content">
             <DockPanel LastChildFill="True">
-                <Grid RowDefinitions="Auto,Auto" DockPanel.Dock="Top">
+                <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
                     <DockPanel LastChildFill="True">
                         <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />
                         <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label" UseFloatingWatermark="True" DockPanel.Dock="Left" MinWidth="300" >
