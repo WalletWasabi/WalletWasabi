@@ -46,6 +46,8 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
+		public event EventHandler<SmartCoin> CoinSpent;
+
 		public event EventHandler<Block> NewBlockProcessed;
 
 		/// <summary>
@@ -389,6 +391,7 @@ namespace WalletWasabi.Services
 				if (foundCoin != null)
 				{
 					foundCoin.SpenderTransactionId = tx.GetHash();
+					CoinSpent?.Invoke(this, foundCoin);
 				}
 			}
 		}

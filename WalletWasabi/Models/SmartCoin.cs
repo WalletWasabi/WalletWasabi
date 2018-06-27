@@ -14,6 +14,8 @@ namespace WalletWasabi.Models
 	public class SmartCoin : IEquatable<SmartCoin>, INotifyPropertyChanged
 	{
 		private Height _height;
+		private string _label;
+		private uint256 _spenderTransactionId;
 
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(Uint256JsonConverter))]
@@ -39,19 +41,57 @@ namespace WalletWasabi.Models
 			{
 				if (value != _height)
 				{
+					var rememberConfirmed = Confirmed;
+
 					_height = value;
 
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Confirmed)));
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Height)));
+
+					if (rememberConfirmed != Confirmed)
+					{
+						PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Confirmed)));
+					}
 				}
 			}
 		}
 
 		[JsonProperty(Order = 6)]
-		public string Label { get; set; }
+		public string Label
+		{
+			get { return _label; }
+			set
+			{
+				if (value != _label)
+				{
+					_label = value;
+
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Label)));
+				}
+			}
+		}
 
 		[JsonProperty(Order = 7)]
 		[JsonConverter(typeof(Uint256JsonConverter))]
-		public uint256 SpenderTransactionId { get; set; }
+		public uint256 SpenderTransactionId
+		{
+			get { return _spenderTransactionId; }
+			set
+			{
+				if (value != _spenderTransactionId)
+				{
+					var rememberSpentOrCoinJoinInProcess = SpentOrCoinJoinInProcess;
+					_spenderTransactionId = value;
+
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Label)));
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Unspent)));
+
+					if (rememberSpentOrCoinJoinInProcess != SpentOrCoinJoinInProcess)
+					{
+						PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SpentOrCoinJoinInProcess)));
+					}
+				}
+			}
+		}
 
 		[JsonProperty(Order = 8)]
 		public TxoRef[] SpentOutputs { get; }

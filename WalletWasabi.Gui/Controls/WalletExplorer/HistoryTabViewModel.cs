@@ -33,6 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.WalletService.NewBlockProcessed += WalletService_NewBlockProcessed;
 			Global.WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+			Global.WalletService.CoinSpent += WalletService_CoinSpent;
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
@@ -123,6 +124,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+		{
+			Dispatcher.UIThread.InvokeAsync(() => RewriteTable());
+		}
+
+		private void WalletService_CoinSpent(object sender, SmartCoin e)
 		{
 			Dispatcher.UIThread.InvokeAsync(() => RewriteTable());
 		}
