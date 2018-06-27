@@ -1,16 +1,22 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-            xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
     <i:Interaction.Behaviors>
         <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedTransaction}" />
     </i:Interaction.Behaviors>
+    <UserControl.Resources>
+        <converters:MoneyBrushConverter x:Key="MoneyBrushConverter" />
+    </UserControl.Resources>
+
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
         <Grid Classes="content">
             <DockPanel LastChildFill="True">
                 <Grid ColumnDefinitions="100, 200, 200, *" Margin="5 0" DockPanel.Dock="Top">
                     <TextBlock Text="Confirmed:" />
-                    <TextBlock Text="Amount:" Grid.Column="1" />
+                    <TextBlock Text="Amount:" Grid.Column="1"/>
                     <TextBlock Text="Label:" Grid.Column="2" />
                     <TextBlock Text="Transaction Id:" Grid.Column="3" Margin="20 0 0 0" />
                     <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.ColumnSpan="4">
@@ -36,7 +42,7 @@
                                     </Style>
                                 </Grid.Styles>
                                 <Path Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" IsVisible="{Binding Confirmed}" Stretch="Fill" />
-                                <TextBlock Text="{Binding AmountBtc}" Grid.Column="1" />
+                                <TextBlock Text="{Binding AmountBtc}" Grid.Column="1" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
                                 <TextBlock Text="{Binding Label}" Grid.Column="2" />
                                 <TextBlock Text="{Binding TransactionId}" Grid.Column="3"  Margin="20 0 0 0" />
                             </Grid>
