@@ -13,19 +13,17 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			bool isTor = Enum.TryParse(value.ToString(), out TorStatus tor);
-			if (isTor && tor == TorStatus.NotRunning)
+			switch (parameter.ToString())
 			{
-				return Brushes.Yellow;
+				case "Tor" when Enum.Parse<TorStatus>(value.ToString()) == TorStatus.NotRunning:
+				case "Backend" when Enum.Parse<BackendStatus>(value.ToString()) == BackendStatus.NotConnected:
+				case "Peers" when (int)value == 0:
+				case "FiltersLeft" when value.ToString() != "0": // need to cover "--"
+				case "BlocksLeft" when (int)value != 0:
+					return Brushes.Yellow;
+				default:
+					return ColorTheme.CurrentTheme.Foreground;
 			}
-
-			bool isBackend = Enum.TryParse(value.ToString(), out BackendStatus backend);
-			if (isBackend && backend == BackendStatus.NotConnected)
-			{
-				return Brushes.Yellow;
-			}
-
-			return ColorTheme.CurrentTheme.Foreground;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

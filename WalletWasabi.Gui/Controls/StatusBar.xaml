@@ -35,7 +35,7 @@
                         </DrawingPresenter>
                     </Grid>
                     <TextBlock>Tor:</TextBlock>
-                    <TextBlock Text="{Binding Tor}" Foreground="{Binding Tor, Converter={StaticResource StatusColorConvertor}}" />
+                    <TextBlock Text="{Binding Tor}" Foreground="{Binding Tor, ConverterParameter=Tor, Converter={StaticResource StatusColorConvertor}}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Gap="4">
@@ -66,7 +66,7 @@
                         </DrawingPresenter>
                     </Grid>
                     <TextBlock>Backend:</TextBlock>
-                    <TextBlock Text="{Binding Backend}" Foreground="{Binding Backend, Converter={StaticResource StatusColorConvertor}}" />
+                    <TextBlock Text="{Binding Backend}" Foreground="{Binding Backend, ConverterParameter=Backend, Converter={StaticResource StatusColorConvertor}}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Gap="4">
@@ -85,7 +85,7 @@
                         </DrawingPresenter>
                     </Grid>
                     <TextBlock>Peers:</TextBlock>
-                    <TextBlock Text="{Binding Peers}" />
+                    <TextBlock Text="{Binding Peers}" Foreground="{Binding Peers, ConverterParameter=Peers, Converter={StaticResource StatusColorConvertor}}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Gap="4">
@@ -104,7 +104,7 @@
                         </DrawingPresenter>
                     </Grid>
                     <TextBlock>Filters Left:</TextBlock>
-                    <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftValueConverter}}" />
+                    <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftValueConverter}}" Foreground="{Binding FiltersLeft, ConverterParameter=FiltersLeft, Converter={StaticResource StatusColorConvertor}}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Gap="4">
@@ -125,7 +125,7 @@
                         </DrawingPresenter>
                     </Grid>
                     <TextBlock>Blocks Left:</TextBlock>
-                    <TextBlock Text="{Binding BlocksLeft}" />
+                    <TextBlock Text="{Binding BlocksLeft}" Foreground="{Binding BlocksLeft, ConverterParameter=BlocksLeft, Converter={StaticResource StatusColorConvertor}}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Gap="4">
