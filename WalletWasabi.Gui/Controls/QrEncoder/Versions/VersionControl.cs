@@ -50,7 +50,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 
 			VersionControlStruct vcStruct = FillVCStruct(versionNum, level, encodingName);
 
-			vcStruct.isContainECI = containECI;
+			vcStruct.IsContainECI = containECI;
 
 			vcStruct.ECIHeader = eciHeader;
 

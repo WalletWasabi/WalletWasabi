@@ -10,22 +10,22 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 		{
 		}
 
-		private static readonly bool[,] s_PositionDetection = new[,]
+		private static readonly bool[,] S_PositionDetection = new[,]
 																		 {
-																			 { o, o, o, o, o, o, o, o, o },
-																			 { o, x, x, x, x, x, x, x, o },
-																			 { o, x, o, o, o, o, o, x, o },
-																			 { o, x, o, x, x, x, o, x, o },
-																			 { o, x, o, x, x, x, o, x, o },
-																			 { o, x, o, x, x, x, o, x, o },
-																			 { o, x, o, o, o, o, o, x, o },
-																			 { o, x, x, x, x, x, x, x, o },
-																			 { o, o, o, o, o, o, o, o, o }
+																			 { O, O, O, O, O, O, O, O, O },
+																			 { O, X, X, X, X, X, X, X, O },
+																			 { O, X, O, O, O, O, O, X, O },
+																			 { O, X, O, X, X, X, O, X, O },
+																			 { O, X, O, X, X, X, O, X, O },
+																			 { O, X, O, X, X, X, O, X, O },
+																			 { O, X, O, O, O, O, O, X, O },
+																			 { O, X, X, X, X, X, X, X, O },
+																			 { O, O, O, O, O, O, O, O, O }
 																		 };
 
 		public override bool[,] Stencil
 		{
-			get { return s_PositionDetection; }
+			get { return S_PositionDetection; }
 		}
 
 		public override void ApplyTo(TriStateMatrix matrix)

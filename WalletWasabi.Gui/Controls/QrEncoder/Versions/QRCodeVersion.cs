@@ -8,14 +8,14 @@
 
 		internal int DimensionForVersion { get; private set; }
 
-		private ErrorCorrectionBlocks[] m_ECBlocks;
+		private readonly ErrorCorrectionBlocks[] _m_ECBlocks;
 
 		internal QRCodeVersion(int versionNum, int totalCodewords, ErrorCorrectionBlocks ecblocksL, ErrorCorrectionBlocks ecblocksM, ErrorCorrectionBlocks ecblocksQ, ErrorCorrectionBlocks ecblocksH)
 			: this()
 		{
 			VersionNum = versionNum;
 			TotalCodewords = totalCodewords;
-			m_ECBlocks = new ErrorCorrectionBlocks[] { ecblocksL, ecblocksM, ecblocksQ, ecblocksH };
+			_m_ECBlocks = new ErrorCorrectionBlocks[] { ecblocksL, ecblocksM, ecblocksQ, ecblocksH };
 			DimensionForVersion = 17 + versionNum * 4;
 		}
 
@@ -24,16 +24,16 @@
 			switch (ECLevel)
 			{
 				case ErrorCorrectionLevel.L:
-					return m_ECBlocks[0];
+					return _m_ECBlocks[0];
 
 				case ErrorCorrectionLevel.M:
-					return m_ECBlocks[1];
+					return _m_ECBlocks[1];
 
 				case ErrorCorrectionLevel.Q:
-					return m_ECBlocks[2];
+					return _m_ECBlocks[2];
 
 				case ErrorCorrectionLevel.H:
-					return m_ECBlocks[3];
+					return _m_ECBlocks[3];
 
 				default:
 					throw new System.ArgumentOutOfRangeException("Invalide ErrorCorrectionLevel");

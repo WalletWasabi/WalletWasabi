@@ -25,7 +25,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 			BitList dataCodewords = new BitList();
 			//Eci header
-			if (vcStruct.isContainECI && vcStruct.ECIHeader != null)
+			if (vcStruct.IsContainECI && vcStruct.ECIHeader != null)
 				dataCodewords.Add(vcStruct.ECIHeader);
 			//Header
 			dataCodewords.Add(encoderBase.GetModeIndicator());
@@ -63,7 +63,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 			BitList dataCodewords = new BitList();
 			//Eci header
-			if (vcStruct.isContainECI && vcStruct.ECIHeader != null)
+			if (vcStruct.IsContainECI && vcStruct.ECIHeader != null)
 				dataCodewords.Add(vcStruct.ECIHeader);
 			//Header
 			dataCodewords.Add(encoderBase.GetModeIndicator());

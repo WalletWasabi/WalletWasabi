@@ -5,8 +5,8 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
 	public sealed class ECISet
 	{
-		private Dictionary<string, int> s_NameToValue;
-		private Dictionary<int, string> s_ValueToName;
+		private Dictionary<string, int> _s_NameToValue;
+		private Dictionary<int, string> _s_ValueToName;
 
 		public enum AppendOption { NameToValue, ValueToName, Both }
 
@@ -15,16 +15,16 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			switch (option)
 			{
 				case AppendOption.NameToValue:
-					s_NameToValue.Add(name, value);
+					_s_NameToValue.Add(name, value);
 					break;
 
 				case AppendOption.ValueToName:
-					s_ValueToName.Add(value, name);
+					_s_ValueToName.Add(value, name);
 					break;
 
 				case AppendOption.Both:
-					s_NameToValue.Add(name, value);
-					s_ValueToName.Add(value, name);
+					_s_NameToValue.Add(name, value);
+					_s_ValueToName.Add(value, name);
 					break;
 
 				default:
@@ -47,16 +47,16 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			switch (option)
 			{
 				case AppendOption.NameToValue:
-					s_NameToValue = new Dictionary<string, int>();
+					_s_NameToValue = new Dictionary<string, int>();
 					break;
 
 				case AppendOption.ValueToName:
-					s_ValueToName = new Dictionary<int, string>();
+					_s_ValueToName = new Dictionary<int, string>();
 					break;
 
 				case AppendOption.Both:
-					s_NameToValue = new Dictionary<string, int>();
-					s_ValueToName = new Dictionary<int, string>();
+					_s_NameToValue = new Dictionary<string, int>();
+					_s_ValueToName = new Dictionary<int, string>();
 					break;
 
 				default:
@@ -86,10 +86,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal int GetECIValueByName(string encodingName)
 		{
-			if (s_NameToValue == null)
+			if (_s_NameToValue == null)
 				Initialize(AppendOption.NameToValue);
-			int ECIValue;
-			if (s_NameToValue.TryGetValue(encodingName, out ECIValue))
+			if (_s_NameToValue.TryGetValue(encodingName, out int ECIValue))
 				return ECIValue;
 			else
 				throw new ArgumentOutOfRangeException(string.Format("ECI doesn't contain encoding: {0}", encodingName));
@@ -97,10 +96,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal string GetECINameByValue(int ECIValue)
 		{
-			if (s_ValueToName == null)
+			if (_s_ValueToName == null)
 				Initialize(AppendOption.ValueToName);
-			string ECIName;
-			if (s_ValueToName.TryGetValue(ECIValue, out ECIName))
+			if (_s_ValueToName.TryGetValue(ECIValue, out string ECIName))
 				return ECIName;
 			else
 				throw new ArgumentOutOfRangeException(string.Format("ECI doesn't contain value: {0}", ECIValue));
@@ -140,24 +138,24 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <returns>ECI table in Dictionary collection</returns>
 		public Dictionary<string, int> GetECITable()
 		{
-			if (s_NameToValue == null)
+			if (_s_NameToValue == null)
 				Initialize(AppendOption.NameToValue);
 
-			return s_NameToValue;
+			return _s_NameToValue;
 		}
 
 		public bool ContainsECIName(string encodingName)
 		{
-			if (s_NameToValue == null)
+			if (_s_NameToValue == null)
 				Initialize(AppendOption.NameToValue);
-			return s_NameToValue.ContainsKey(encodingName);
+			return _s_NameToValue.ContainsKey(encodingName);
 		}
 
 		public bool ContainsECIValue(int eciValue)
 		{
-			if (s_ValueToName == null)
+			if (_s_ValueToName == null)
 				Initialize(AppendOption.ValueToName);
-			return s_ValueToName.ContainsKey(eciValue);
+			return _s_ValueToName.ContainsKey(eciValue);
 		}
 
 		/// <summary>
@@ -174,7 +172,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// 1 codeword length = 0. Any additional codeword add 1 to front. Eg: 3 = 110</remarks>
 		/// <description>Bits required for each one is:
 		/// one = 1, two = 2, three = 3</description>
-		private enum ECICodewordsLength { one = 0, two = 2, three = 6 }
+		private enum ECICodewordsLength { One = 0, Two = 2, Three = 6 }
 
 		/// <remarks>ISO/IEC 18004:2006 Chapter 6.4.2 Page 24.</remarks>
 		internal BitList GetECIHeader(string encodingName)
@@ -195,19 +193,19 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			{
 				case 1:
 					//Indicator = 0. Page 24. Chapter 6.4.2.1
-					dataBits.Add((int)ECICodewordsLength.one, 1);
+					dataBits.Add((int)ECICodewordsLength.One, 1);
 					eciAssignmentBits = eciAssignmentByte * 8 - 1;
 					break;
 
 				case 2:
 					//Indicator = 10. Page 24. Chapter 6.4.2.1
-					dataBits.Add((int)ECICodewordsLength.two, 2);
+					dataBits.Add((int)ECICodewordsLength.Two, 2);
 					eciAssignmentBits = eciAssignmentByte * 8 - 2;
 					break;
 
 				case 3:
 					//Indicator = 110. Page 24. Chapter 6.4.2.1
-					dataBits.Add((int)ECICodewordsLength.three, 3);
+					dataBits.Add((int)ECICodewordsLength.Three, 3);
 					eciAssignmentBits = eciAssignmentByte * 8 - 3;
 					break;
 

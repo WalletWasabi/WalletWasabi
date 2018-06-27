@@ -4,27 +4,27 @@ namespace Gma.QrCodeNet.Encoding.Common
 {
 	public sealed class ByteMatrix
 	{
-		private readonly sbyte[,] m_Bytes;
+		private readonly sbyte[,] M_Bytes;
 
 		internal sbyte this[int x, int y]
 		{
-			get { return m_Bytes[y, x]; }
-			set { m_Bytes[y, x] = value; }
+			get { return M_Bytes[y, x]; }
+			set { M_Bytes[y, x] = value; }
 		}
 
 		internal int Width
 		{
-			get { return m_Bytes.GetLength(1); }
+			get { return M_Bytes.GetLength(1); }
 		}
 
 		internal int Height
 		{
-			get { return m_Bytes.GetLength(0); }
+			get { return M_Bytes.GetLength(0); }
 		}
 
 		internal ByteMatrix(int width, int height)
 		{
-			m_Bytes = new sbyte[height, width];
+			M_Bytes = new sbyte[height, width];
 		}
 
 		internal void Clear(sbyte value)

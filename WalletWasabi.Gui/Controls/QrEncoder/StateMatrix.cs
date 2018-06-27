@@ -4,24 +4,23 @@ namespace Gma.QrCodeNet.Encoding
 {
 	public sealed class StateMatrix
 	{
-		private MatrixStatus[,] m_matrixStatus;
-		private readonly int m_Width;
+		private readonly MatrixStatus[,] _m_matrixStatus;
 
 		public StateMatrix(int width)
 		{
-			m_Width = width;
-			m_matrixStatus = new MatrixStatus[width, width];
+			Width = width;
+			_m_matrixStatus = new MatrixStatus[width, width];
 		}
 
 		public MatrixStatus this[int x, int y]
 		{
 			get
 			{
-				return m_matrixStatus[x, y];
+				return _m_matrixStatus[x, y];
 			}
 			set
 			{
-				m_matrixStatus[x, y] = value;
+				_m_matrixStatus[x, y] = value;
 			}
 		}
 
@@ -33,10 +32,7 @@ namespace Gma.QrCodeNet.Encoding
 			{ this[point.X, point.Y] = value; }
 		}
 
-		public int Width
-		{
-			get { return m_Width; }
-		}
+		public int Width { get; }
 
 		public int Height
 		{

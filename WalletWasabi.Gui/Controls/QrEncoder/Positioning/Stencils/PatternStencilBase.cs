@@ -12,8 +12,8 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 			Version = version;
 		}
 
-		protected const bool o = false;
-		protected const bool x = true;
+		protected const bool O = false;
+		protected const bool X = true;
 
 		public abstract bool[,] Stencil { get; }
 

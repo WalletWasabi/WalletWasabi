@@ -7,34 +7,26 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 	/// </summary>
 	internal sealed class GaloisField256
 	{
-		private int[] antiLogTable;
-		private int[] logTable;
+		private readonly int[] _antiLogTable;
+		private readonly int[] _logTable;
 
-		private readonly int m_primitive;
-
-		internal int Primitive
-		{
-			get
-			{
-				return m_primitive;
-			}
-		}
+		internal int Primitive { get; }
 
 		internal GaloisField256(int primitive)
 		{
-			antiLogTable = new int[256];
-			logTable = new int[256];
+			_antiLogTable = new int[256];
+			_logTable = new int[256];
 
-			m_primitive = primitive;
+			Primitive = primitive;
 
 			int gfx = 1;
 			//Power cycle is from 0 to 254. 2^255 = 1 = 2^0
 			//Value cycle is from 1 to 255. Thus there should not have Log(0).
 			for (int powers = 0; powers < 256; powers++)
 			{
-				antiLogTable[powers] = gfx;
+				_antiLogTable[powers] = gfx;
 				if (powers != 255)
-					logTable[gfx] = powers;
+					_logTable[gfx] = powers;
 				gfx <<= 1;      //gfx = gfx * 2 where alpha is 2.
 
 				if (gfx > 255)
@@ -57,7 +49,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// </returns>
 		internal int Exponent(int PowersOfa)
 		{
-			return antiLogTable[PowersOfa];
+			return _antiLogTable[PowersOfa];
 		}
 
 		/// <returns>
@@ -67,10 +59,10 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if (gfValue == 0)
 				throw new ArgumentException("GaloisField value will not equal to 0, Log method");
-			return logTable[gfValue];
+			return _logTable[gfValue];
 		}
 
-		internal int inverse(int gfValue)
+		internal int Inverse(int gfValue)
 		{
 			if (gfValue == 0)
 				throw new ArgumentException("GaloisField value will not equal to 0, Inverse method");

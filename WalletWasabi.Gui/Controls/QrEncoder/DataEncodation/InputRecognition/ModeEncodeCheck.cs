@@ -5,7 +5,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 {
 	public static class ModeEncodeCheck
 	{
-		public static bool isModeEncodeValid(Mode mode, string encoding, string content)
+		public static bool IsModeEncodeValid(Mode mode, string encoding, string content)
 		{
 			switch (mode)
 			{

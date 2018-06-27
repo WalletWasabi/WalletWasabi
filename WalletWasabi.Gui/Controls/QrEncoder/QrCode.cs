@@ -13,16 +13,16 @@ namespace Gma.QrCodeNet.Encoding
 		internal QrCode(BitMatrix matrix)
 		{
 			Matrix = matrix;
-			isContainMatrix = true;
+			IsContainMatrix = true;
 		}
 
 		public QrCode()
 		{
-			isContainMatrix = false;
+			IsContainMatrix = false;
 			Matrix = null;
 		}
 
-		public bool isContainMatrix
+		public bool IsContainMatrix
 		{
 			get;
 			private set;

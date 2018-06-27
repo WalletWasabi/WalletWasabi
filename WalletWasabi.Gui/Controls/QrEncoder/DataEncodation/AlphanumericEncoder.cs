@@ -34,7 +34,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <summary>
 		/// Constant from Chapter 8.4.3 Alphanumeric Mode. P.21
 		/// </summary>
-		private const int s_MultiplyFirstChar = 45;
+		private const int S_MultiplyFirstChar = 45;
 
 		private static int GetAlphaNumValue(string content, int startIndex, int length)
 		{
@@ -45,7 +45,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 				int positionFromEnd = startIndex + length - i - 1;
 				int code = AlphanumericTable.ConvertAlphaNumChar(content[positionFromEnd]);
 				value += code * iMultiplyValue;
-				iMultiplyValue *= s_MultiplyFirstChar;
+				iMultiplyValue *= S_MultiplyFirstChar;
 			}
 			return value;
 		}

@@ -54,12 +54,12 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		/// <summary>
 		/// From Appendix C in JISX0510:2004 (p.65).
 		/// </summary>
-		private const int s_FormatInfoPoly = 0x537;
+		private const int S_FormatInfoPoly = 0x537;
 
 		/// <summary>
 		/// From Appendix C in JISX0510:2004 (p.65).
 		/// </summary>
-		private const int s_FormatInfoMaskPattern = 0x5412;
+		private const int S_FormatInfoMaskPattern = 0x5412;
 
 		private static BitList GetFormatInfoBits(ErrorCorrectionLevel errorlevel, Pattern pattern)
 		{
@@ -67,12 +67,12 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			//Pattern bits length = 3
 			formatInfo |= GetErrorCorrectionIndicatorBits(errorlevel) << 3;
 
-			int bchCode = BCHCalculator.CalculateBCH(formatInfo, s_FormatInfoPoly);
+			int bchCode = BCHCalculator.CalculateBCH(formatInfo, S_FormatInfoPoly);
 			//bchCode length = 10
 			formatInfo = (formatInfo << 10) | bchCode;
 
 			//xor maskPattern
-			formatInfo ^= s_FormatInfoMaskPattern;
+			formatInfo ^= S_FormatInfoMaskPattern;
 
 			BitList resultBits = new BitList
 			{

@@ -4,25 +4,9 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 {
 	internal sealed class Polynomial
 	{
-		private readonly int[] m_Coefficients;
+		internal int[] Coefficients { get; }
 
-		internal int[] Coefficients
-		{
-			get
-			{
-				return m_Coefficients;
-			}
-		}
-
-		private readonly GaloisField256 m_GField;
-
-		internal GaloisField256 GField
-		{
-			get
-			{
-				return m_GField;
-			}
-		}
+		internal GaloisField256 GField { get; }
 
 		internal int Degree
 		{
@@ -32,21 +16,13 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			}
 		}
 
-		private readonly int m_primitive;
+		internal int Primitive { get; }
 
-		internal int Primitive
+		internal bool IsMonomialZero
 		{
 			get
 			{
-				return m_primitive;
-			}
-		}
-
-		internal bool isMonomialZero
-		{
-			get
-			{
-				return m_Coefficients[0] == 0;
+				return Coefficients[0] == 0;
 			}
 		}
 
@@ -57,9 +33,9 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			if (coefficientsLength == 0 || coefficients == null)
 				throw new ArithmeticException("Can not create empty Polynomial");
 
-			m_GField = gfield;
+			GField = gfield;
 
-			m_primitive = gfield.Primitive;
+			Primitive = gfield.Primitive;
 
 			if (coefficientsLength > 1 && coefficients[0] == 0)
 			{
@@ -70,18 +46,18 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 				}
 
 				if (firstNonZeroIndex == coefficientsLength)
-					m_Coefficients = new int[] { 0 };
+					Coefficients = new int[] { 0 };
 				else
 				{
 					int newLength = coefficientsLength - firstNonZeroIndex;
-					m_Coefficients = new int[newLength];
-					Array.Copy(coefficients, firstNonZeroIndex, m_Coefficients, 0, newLength);
+					Coefficients = new int[newLength];
+					Array.Copy(coefficients, firstNonZeroIndex, Coefficients, 0, newLength);
 				}
 			}
 			else
 			{
-				m_Coefficients = new int[coefficientsLength];
-				Array.Copy(coefficients, m_Coefficients, coefficientsLength);
+				Coefficients = new int[coefficientsLength];
+				Array.Copy(coefficients, Coefficients, coefficientsLength);
 			}
 		}
 
@@ -92,7 +68,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			//eg: x^2 + x + 1. degree 1, reverse position = degree + 1 = 2.
 			//Pos = 3 - 2 = 1
-			return m_Coefficients[m_Coefficients.Length - (degree + 1)];
+			return Coefficients[Coefficients.Length - (degree + 1)];
 		}
 
 		/// <summary>
@@ -106,9 +82,9 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			{
 				throw new ArgumentException("Polynomial can not perform AddOrSubtract as they don't have same Primitive for GaloisField256");
 			}
-			if (isMonomialZero)
+			if (IsMonomialZero)
 				return other;
-			else if (other.isMonomialZero)
+			else if (other.IsMonomialZero)
 				return this;
 
 			int otherLength = other.Coefficients.Length;
@@ -148,7 +124,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			{
 				throw new ArgumentException("Polynomial can not perform Multiply as they don't have same Primitive for GaloisField256");
 			}
-			if (isMonomialZero || other.isMonomialZero)
+			if (IsMonomialZero || other.IsMonomialZero)
 				return new Polynomial(GField, new int[] { 0 });
 
 			int[] aCoefficients = Coefficients;
@@ -205,7 +181,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			{
 				throw new ArgumentException("Polynomial can not perform Devide as they don't have same Primitive for GaloisField256");
 			}
-			if (other.isMonomialZero)
+			if (other.IsMonomialZero)
 			{
 				throw new ArgumentException("Can not devide by Polynomial Zero");
 			}
@@ -227,7 +203,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 
 				//Denominator
 				int otherLeadingTerm = other.GetCoefficient(other.Degree);
-				int inverseOtherLeadingTerm = GField.inverse(otherLeadingTerm);
+				int inverseOtherLeadingTerm = GField.Inverse(otherLeadingTerm);
 
 				for (int aIndex = 0; aIndex <= aLength - bLength; aIndex++)
 				{

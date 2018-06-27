@@ -8,7 +8,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 	/// </summary>
 	internal class AlphanumericTable
 	{
-		private static readonly Dictionary<char, int> s_AlphanumericTable =
+		private static readonly Dictionary<char, int> S_AlphanumericTable =
 			new Dictionary<char, int>
 		{
 			{'0', 0},
@@ -65,8 +65,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <remarks>Table from chapter 8.4.3 P21</remarks>
 		internal static int ConvertAlphaNumChar(char inputChar)
 		{
-			int value;
-			if (!s_AlphanumericTable.TryGetValue(inputChar, out value))
+			if (!S_AlphanumericTable.TryGetValue(inputChar, out int value))
 			{
 				throw new ArgumentOutOfRangeException(
 					"inputChar",
@@ -77,7 +76,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal static bool Contains(char inputChar)
 		{
-			return s_AlphanumericTable.ContainsKey(inputChar);
+			return S_AlphanumericTable.ContainsKey(inputChar);
 		}
 	}
 }

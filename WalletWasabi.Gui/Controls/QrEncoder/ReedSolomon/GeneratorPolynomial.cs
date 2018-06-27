@@ -8,9 +8,9 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 	/// </summary>
 	internal sealed class GeneratorPolynomial
 	{
-		private readonly GaloisField256 m_gfield;
+		private readonly GaloisField256 M_gfield;
 
-		private List<Polynomial> m_cacheGenerator;
+		private List<Polynomial> _m_cacheGenerator;
 
 		/// <summary>
 		/// After create GeneratorPolynomial. Keep it as long as possible.
@@ -18,10 +18,10 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// </summary>
 		internal GeneratorPolynomial(GaloisField256 gfield)
 		{
-			m_gfield = gfield;
-			m_cacheGenerator = new List<Polynomial>(10)
+			M_gfield = gfield;
+			_m_cacheGenerator = new List<Polynomial>(10)
 			{
-				new Polynomial(m_gfield, new int[] { 1 })
+				new Polynomial(M_gfield, new int[] { 1 })
 			};
 		}
 
@@ -31,9 +31,9 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// <returns>Generator</returns>
 		internal Polynomial GetGenerator(int degree)
 		{
-			if (degree >= m_cacheGenerator.Count)
+			if (degree >= _m_cacheGenerator.Count)
 				BuildGenerator(degree);
-			return m_cacheGenerator[degree];
+			return _m_cacheGenerator[degree];
 		}
 
 		/// <summary>
@@ -41,17 +41,17 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// </summary>
 		private void BuildGenerator(int degree)
 		{
-			lock (m_cacheGenerator)
+			lock (_m_cacheGenerator)
 			{
-				int currentCacheLength = m_cacheGenerator.Count;
+				int currentCacheLength = _m_cacheGenerator.Count;
 				if (degree >= currentCacheLength)
 				{
-					Polynomial lastGenerator = m_cacheGenerator[currentCacheLength - 1];
+					Polynomial lastGenerator = _m_cacheGenerator[currentCacheLength - 1];
 
 					for (int d = currentCacheLength; d <= degree; d++)
 					{
-						Polynomial nextGenerator = lastGenerator.Multiply(new Polynomial(m_gfield, new int[] { 1, m_gfield.Exponent(d - 1) }));
-						m_cacheGenerator.Add(nextGenerator);
+						Polynomial nextGenerator = lastGenerator.Multiply(new Polynomial(M_gfield, new int[] { 1, M_gfield.Exponent(d - 1) }));
+						_m_cacheGenerator.Add(nextGenerator);
 						lastGenerator = nextGenerator;
 					}
 				}

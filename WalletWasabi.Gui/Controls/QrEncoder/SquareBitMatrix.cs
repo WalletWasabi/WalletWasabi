@@ -4,21 +4,21 @@ namespace Gma.QrCodeNet.Encoding
 {
 	public class SquareBitMatrix : BitMatrix
 	{
-		private readonly bool[,] m_InternalArray;
+		private readonly bool[,] M_InternalArray;
 
-		private readonly int m_Width;
+		private readonly int M_Width;
 
 		public SquareBitMatrix(int width)
 		{
-			m_InternalArray = new bool[width, width];
-			m_Width = width;
+			M_InternalArray = new bool[width, width];
+			M_Width = width;
 		}
 
 		internal SquareBitMatrix(bool[,] internalArray)
 		{
-			m_InternalArray = internalArray;
+			M_InternalArray = internalArray;
 			int width = internalArray.GetLength(0);
-			m_Width = width;
+			M_Width = width;
 		}
 
 		public static bool CreateSquareBitMatrix(bool[,] internalArray, out SquareBitMatrix triStateMatrix)
@@ -45,10 +45,10 @@ namespace Gma.QrCodeNet.Encoding
 		{
 			get
 			{
-				bool[,] deepCopyArray = new bool[m_Width, m_Width];
-				for (int x = 0; x < m_Width; x++)
-					for (int y = 0; y < m_Width; y++)
-						deepCopyArray[x, y] = m_InternalArray[x, y];
+				bool[,] deepCopyArray = new bool[M_Width, M_Width];
+				for (int x = 0; x < M_Width; x++)
+					for (int y = 0; y < M_Width; y++)
+						deepCopyArray[x, y] = M_InternalArray[x, y];
 				return deepCopyArray;
 			}
 		}
@@ -57,11 +57,11 @@ namespace Gma.QrCodeNet.Encoding
 		{
 			get
 			{
-				return m_InternalArray[i, j];
+				return M_InternalArray[i, j];
 			}
 			set
 			{
-				m_InternalArray[i, j] = value;
+				M_InternalArray[i, j] = value;
 			}
 		}
 
@@ -72,7 +72,7 @@ namespace Gma.QrCodeNet.Encoding
 
 		public override int Width
 		{
-			get { return m_Width; }
+			get { return M_Width; }
 		}
 	}
 }

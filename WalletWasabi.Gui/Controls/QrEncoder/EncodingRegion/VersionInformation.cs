@@ -9,8 +9,8 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 	/// <remarks>ISO/IEC 18004:2000 Chapter 8.10 Page 54</remarks>
 	internal static class VersionInformation
 	{
-		private const int s_VIRectangleHeight = 3;
-		private const int s_VIRectangleWidth = 6;
+		private const int S_VIRectangleHeight = 3;
+		private const int S_VIRectangleWidth = 6;
 
 		/// <summary>
 		/// Embed version information to Matrix
@@ -26,13 +26,13 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 
 			int matrixWidth = tsMatrix.Width;
 			//1 cell between version info and position stencil
-			int shiftLength = QRCodeConstantVariable.PositionStencilWidth + s_VIRectangleHeight + 1;
+			int shiftLength = QRCodeConstantVariable.PositionStencilWidth + S_VIRectangleHeight + 1;
 			//Reverse order input
-			int viIndex = s_LengthDataBits + s_LengthECBits - 1;
+			int viIndex = S_LengthDataBits + S_LengthECBits - 1;
 
-			for (int viWidth = 0; viWidth < s_VIRectangleWidth; viWidth++)
+			for (int viWidth = 0; viWidth < S_VIRectangleWidth; viWidth++)
 			{
-				for (int viHeight = 0; viHeight < s_VIRectangleHeight; viHeight++)
+				for (int viHeight = 0; viHeight < S_VIRectangleHeight; viHeight++)
 				{
 					bool bit = versionInfo[viIndex];
 					viIndex--;
@@ -44,19 +44,19 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			}
 		}
 
-		private const int s_LengthDataBits = 6;
-		private const int s_LengthECBits = 12;
-		private const int s_VersionBCHPoly = 0x1f25;
+		private const int S_LengthDataBits = 6;
+		private const int S_LengthECBits = 12;
+		private const int S_VersionBCHPoly = 0x1f25;
 
 		private static BitList VersionInfoBitList(int version)
 		{
 			BitList result = new BitList
 			{
-				{ version, s_LengthDataBits },
-				{ BCHCalculator.CalculateBCH(version, s_VersionBCHPoly), s_LengthECBits }
+				{ version, S_LengthDataBits },
+				{ BCHCalculator.CalculateBCH(version, S_VersionBCHPoly), S_LengthECBits }
 			};
 
-			if (result.Count != (s_LengthECBits + s_LengthDataBits))
+			if (result.Count != (S_LengthECBits + S_LengthDataBits))
 				throw new Exception("Version Info creation error. Result is not 18 bits");
 			return result;
 		}

@@ -4,17 +4,17 @@ namespace Gma.QrCodeNet.Encoding
 {
 	public class TriStateMatrix : BitMatrix
 	{
-		private readonly StateMatrix m_stateMatrix;
+		private readonly StateMatrix M_stateMatrix;
 
-		private readonly bool[,] m_InternalArray;
+		private readonly bool[,] M_InternalArray;
 
-		private readonly int m_Width;
+		private readonly int M_Width;
 
 		public TriStateMatrix(int width)
 		{
-			m_stateMatrix = new StateMatrix(width);
-			m_InternalArray = new bool[width, width];
-			m_Width = width;
+			M_stateMatrix = new StateMatrix(width);
+			M_InternalArray = new bool[width, width];
+			M_Width = width;
 		}
 
 		public static bool CreateTriStateMatrix(bool[,] internalArray, out TriStateMatrix triStateMatrix)
@@ -41,27 +41,27 @@ namespace Gma.QrCodeNet.Encoding
 		{
 			get
 			{
-				bool[,] deepCopyArray = new bool[m_Width, m_Width];
-				for (int x = 0; x < m_Width; x++)
-					for (int y = 0; y < m_Width; y++)
-						deepCopyArray[x, y] = m_InternalArray[x, y];
+				bool[,] deepCopyArray = new bool[M_Width, M_Width];
+				for (int x = 0; x < M_Width; x++)
+					for (int y = 0; y < M_Width; y++)
+						deepCopyArray[x, y] = M_InternalArray[x, y];
 				return deepCopyArray;
 			}
 		}
 
 		internal TriStateMatrix(bool[,] internalArray)
 		{
-			m_InternalArray = internalArray;
+			M_InternalArray = internalArray;
 			int width = internalArray.GetLength(0);
-			m_stateMatrix = new StateMatrix(width);
-			m_Width = width;
+			M_stateMatrix = new StateMatrix(width);
+			M_Width = width;
 		}
 
 		public override bool this[int i, int j]
 		{
 			get
 			{
-				return m_InternalArray[i, j];
+				return M_InternalArray[i, j];
 			}
 			set
 			{
@@ -69,7 +69,7 @@ namespace Gma.QrCodeNet.Encoding
 				{
 					throw new InvalidOperationException(string.Format("The value of cell [{0},{1}] is not set or is Stencil.", i, j));
 				}
-				m_InternalArray[i, j] = value;
+				M_InternalArray[i, j] = value;
 			}
 		}
 
@@ -77,14 +77,14 @@ namespace Gma.QrCodeNet.Encoding
 		{
 			set
 			{
-				m_stateMatrix[i, j] = mstatus;
-				m_InternalArray[i, j] = value;
+				M_stateMatrix[i, j] = mstatus;
+				M_InternalArray[i, j] = value;
 			}
 		}
 
 		internal MatrixStatus MStatus(int i, int j)
 		{
-			return m_stateMatrix[i, j];
+			return M_stateMatrix[i, j];
 		}
 
 		internal MatrixStatus MStatus(MatrixPoint point)
@@ -99,7 +99,7 @@ namespace Gma.QrCodeNet.Encoding
 
 		public override int Width
 		{
-			get { return m_Width; }
+			get { return M_Width; }
 		}
 	}
 }
