@@ -11,8 +11,8 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		public RecognitionStruct(Mode mode, string encodingName)
 			: this()
 		{
-			this.Mode = mode;
-			this.EncodingName = encodingName;
+			Mode = mode;
+			EncodingName = encodingName;
 		}
 	}
 }

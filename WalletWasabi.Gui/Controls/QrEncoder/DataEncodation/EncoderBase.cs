@@ -31,7 +31,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
         internal BitList GetModeIndicator()
         {
             BitList modeIndicatorBits = new BitList();
-            modeIndicatorBits.Add((int)this.Mode, 4);
+            modeIndicatorBits.Add((int)Mode, 4);
             return modeIndicatorBits;
         }
 

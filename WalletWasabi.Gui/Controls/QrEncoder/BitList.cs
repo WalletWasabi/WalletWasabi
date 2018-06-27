@@ -89,7 +89,7 @@ namespace Gma.QrCodeNet.Encoding
 		{
 			foreach(bool item in items)
 			{
-				this.Add(item);
+				Add(item);
 			}
 		}
 		
@@ -105,13 +105,13 @@ namespace Gma.QrCodeNet.Encoding
 				{
 					//Add one more byte to List. 
 					byte newByte = (byte)((value >> (numBitsLeft - 8)) & 0xFF);
-					this.appendByte(newByte);
+					appendByte(newByte);
 					numBitsLeft -= 8;
 				}
 				else
 				{
 					bool bit = ((value >> (numBitsLeft - 1)) & 1) == 1;
-					this.Add(bit);
+					Add(bit);
 					numBitsLeft--;
 				}
 			}

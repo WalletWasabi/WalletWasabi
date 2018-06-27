@@ -40,7 +40,7 @@ namespace Gma.QrCodeNet.Encoding
 		
 		public int Height
 		{
-			get { return this.Width; }
+			get { return Width; }
 		}
 	}
 }

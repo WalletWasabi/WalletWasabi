@@ -29,7 +29,7 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
         {
             foreach (MatrixPoint coordinatePair in GetNonColidingCoordinatePairs(matrix))
             {
-                this.CopyTo(matrix, coordinatePair, MatrixStatus.NoMask);
+				CopyTo(matrix, coordinatePair, MatrixStatus.NoMask);
             }
         }
 

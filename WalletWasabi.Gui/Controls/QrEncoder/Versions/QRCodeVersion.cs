@@ -13,10 +13,10 @@
 		internal QRCodeVersion(int versionNum, int totalCodewords, ErrorCorrectionBlocks ecblocksL, ErrorCorrectionBlocks ecblocksM, ErrorCorrectionBlocks ecblocksQ, ErrorCorrectionBlocks ecblocksH)
 			: this()
 		{
-			this.VersionNum = versionNum;
-			this.TotalCodewords = totalCodewords;
-			this.m_ECBlocks = new ErrorCorrectionBlocks[]{ecblocksL, ecblocksM, ecblocksQ, ecblocksH};
-			this.DimensionForVersion = 17 + versionNum * 4;
+			VersionNum = versionNum;
+			TotalCodewords = totalCodewords;
+			m_ECBlocks = new ErrorCorrectionBlocks[]{ecblocksL, ecblocksM, ecblocksQ, ecblocksH};
+			DimensionForVersion = 17 + versionNum * 4;
 		}
 		
 		internal ErrorCorrectionBlocks GetECBlocksByLevel(Gma.QrCodeNet.Encoding.ErrorCorrectionLevel ECLevel)

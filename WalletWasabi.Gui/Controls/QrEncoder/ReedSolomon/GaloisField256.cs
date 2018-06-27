@@ -75,7 +75,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if( gfValue == 0 )
 				throw new ArgumentException("GaloisField value will not equal to 0, Inverse method");
-			return this.Exponent(255 - this.Log(gfValue));
+			return Exponent(255 - Log(gfValue));
 		}
 		
 		internal int Addition(int gfValueA, int gfValueB)
@@ -86,7 +86,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		internal int Subtraction(int gfValueA, int gfValueB)
 		{
 			//Subtraction is same as addition. 
-			return this.Addition(gfValueA, gfValueB);
+			return Addition(gfValueA, gfValueB);
 		}
 		
 		/// <returns>

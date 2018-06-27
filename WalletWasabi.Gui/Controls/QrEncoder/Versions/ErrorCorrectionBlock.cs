@@ -9,8 +9,8 @@
 		internal ErrorCorrectionBlock(int numErrorCorrectionBlock, int numDataCodewards)
 			: this()
 		{
-			this.NumErrorCorrectionBlock = numErrorCorrectionBlock;
-			this.NumDataCodewords = numDataCodewards;
+			NumErrorCorrectionBlock = numErrorCorrectionBlock;
+			NumDataCodewords = numDataCodewards;
 		}
 	}
 }

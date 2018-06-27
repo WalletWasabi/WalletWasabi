@@ -48,7 +48,7 @@ namespace Gma.QrCodeNet.Encoding
         {
         	try
         	{
-        		qrCode = this.Encode(content);
+        		qrCode = Encode(content);
         		return true;
         	}
         	catch(InputOutOfBoundaryException)
@@ -81,7 +81,7 @@ namespace Gma.QrCodeNet.Encoding
         {
             try
             {
-                qrCode = this.Encode(content);
+                qrCode = Encode(content);
                 return true;
             }
             catch (InputOutOfBoundaryException)

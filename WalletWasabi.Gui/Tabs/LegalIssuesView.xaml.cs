@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Tabs
     {
         public LegalIssuesView()
         {
-            this.InitializeComponent();
+			InitializeComponent();
         }
 
         private void InitializeComponent()

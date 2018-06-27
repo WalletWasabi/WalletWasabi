@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		public SendTabView()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		private void InitializeComponent()

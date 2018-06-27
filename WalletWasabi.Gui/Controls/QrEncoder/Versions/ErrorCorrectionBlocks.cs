@@ -13,19 +13,19 @@
 		internal ErrorCorrectionBlocks(int numErrorCorrectionCodewords, ErrorCorrectionBlock ecBlock)
 			: this()
 		{
-			this.NumErrorCorrectionCodewards = numErrorCorrectionCodewords;
-			this.m_ECBlock = new ErrorCorrectionBlock[]{ecBlock};
-			
-			this.initialize();
+			NumErrorCorrectionCodewards = numErrorCorrectionCodewords;
+			m_ECBlock = new ErrorCorrectionBlock[]{ecBlock};
+
+			initialize();
 		}
 		
 		internal ErrorCorrectionBlocks(int numErrorCorrectionCodewords, ErrorCorrectionBlock ecBlock1, ErrorCorrectionBlock ecBlock2)
 			: this()
 		{
-			this.NumErrorCorrectionCodewards = numErrorCorrectionCodewords;
-			this.m_ECBlock = new ErrorCorrectionBlock[]{ecBlock1, ecBlock2};
-			
-			this.initialize();
+			NumErrorCorrectionCodewards = numErrorCorrectionCodewords;
+			m_ECBlock = new ErrorCorrectionBlock[]{ecBlock1, ecBlock2};
+
+			initialize();
 		}
 		
 		/// <summary>

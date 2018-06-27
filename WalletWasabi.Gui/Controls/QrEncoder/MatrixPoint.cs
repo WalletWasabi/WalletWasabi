@@ -14,7 +14,7 @@
 
         public MatrixPoint Offset(MatrixPoint offset)
         {
-            return new MatrixPoint(offset.X + this.X, offset.Y + this.Y);
+            return new MatrixPoint(offset.X + X, offset.Y + Y);
         }
 
         internal MatrixPoint Offset(int offsetX, int offsetY)

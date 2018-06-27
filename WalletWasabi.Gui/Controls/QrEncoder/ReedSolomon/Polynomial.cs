@@ -105,22 +105,22 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// <returns>Result polynomial after add or subtract</returns>
 		internal Polynomial AddOrSubtract(Polynomial other)
 		{
-			if(this.Primitive != other.Primitive)
+			if(Primitive != other.Primitive)
 			{
 				throw new ArgumentException("Polynomial can not perform AddOrSubtract as they don't have same Primitive for GaloisField256");
 			}
-			if(this.isMonomialZero)
+			if(isMonomialZero)
 				return other;
 			else if(other.isMonomialZero)
 				return this;
 			
 			int otherLength = other.Coefficients.Length;
-			int thisLength = this.Coefficients.Length;
+			int thisLength = Coefficients.Length;
 			
 			if(otherLength > thisLength)
-				return CoefficientXor(this.Coefficients, other.Coefficients);
+				return CoefficientXor(Coefficients, other.Coefficients);
 			else
-				return CoefficientXor(other.Coefficients, this.Coefficients);
+				return CoefficientXor(other.Coefficients, Coefficients);
 			
 		}
 		
@@ -137,10 +137,10 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			
 			for(int index = lengthDiff; index < targetLength; index++)
 			{
-				xorCoefficient[index] = this.GField.Addition(largerCoefficients[index], smallerCoefficients[index - lengthDiff]);
+				xorCoefficient[index] = GField.Addition(largerCoefficients[index], smallerCoefficients[index - lengthDiff]);
 			}
 			
-			return new Polynomial(this.GField, xorCoefficient);
+			return new Polynomial(GField, xorCoefficient);
 		}
 		
 		/// <summary>
@@ -149,14 +149,14 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// <returns>Result polynomial after multiply</returns>
 		internal Polynomial Multiply(Polynomial other)
 		{
-			if(this.Primitive != other.Primitive)
+			if(Primitive != other.Primitive)
 			{
 				throw new ArgumentException("Polynomial can not perform Multiply as they don't have same Primitive for GaloisField256");
 			}
-			if(this.isMonomialZero || other.isMonomialZero)
-				return new Polynomial(this.GField, new int[]{0});
+			if(isMonomialZero || other.isMonomialZero)
+				return new Polynomial(GField, new int[]{0});
 			
-			int[] aCoefficients = this.Coefficients;
+			int[] aCoefficients = Coefficients;
 			int aLength = aCoefficients.Length;
 			int[] bCoefficient = other.Coefficients;
 			int bLength = bCoefficient.Length;
@@ -167,11 +167,11 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 				int aCoeff = aCoefficients[aIndex];
 				for(int bIndex = 0; bIndex < bLength; bIndex++)
 				{
-					rCoefficients[aIndex + bIndex] = 
-						this.GField.Addition(rCoefficients[aIndex + bIndex], this.GField.Product(aCoeff, bCoefficient[bIndex]));
+					rCoefficients[aIndex + bIndex] =
+						GField.Addition(rCoefficients[aIndex + bIndex], GField.Product(aCoeff, bCoefficient[bIndex]));
 				}
 			}
-			return new Polynomial(this.GField, rCoefficients);
+			return new Polynomial(GField, rCoefficients);
 			
 		}
 		
@@ -183,22 +183,22 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			if(scalar == 0)
 			{
-				return new Polynomial(this.GField, new int[]{0});
+				return new Polynomial(GField, new int[]{0});
 			}
 			else if(scalar == 1)
 			{
 				return this;
 			}
 			
-			int length = this.Coefficients.Length;
+			int length = Coefficients.Length;
 			int[] rCoefficient = new int[length];
 			
 			for(int index = 0; index < length; index++)
 			{
-				rCoefficient[index] = this.GField.Product(this.Coefficients[index], scalar);
+				rCoefficient[index] = GField.Product(Coefficients[index], scalar);
 			}
 			
-			return new Polynomial(this.GField, rCoefficient);
+			return new Polynomial(GField, rCoefficient);
 		}
 		
 		/// <summary>
@@ -207,7 +207,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// <returns>Result polynomial after divide</returns>
 		internal PolyDivideStruct Divide(Polynomial other)
 		{
-			if(this.Primitive != other.Primitive)
+			if(Primitive != other.Primitive)
 			{
 				throw new ArgumentException("Polynomial can not perform Devide as they don't have same Primitive for GaloisField256");
 			}
@@ -216,16 +216,16 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 				throw new ArgumentException("Can not devide by Polynomial Zero");
 			}
 			//this devide by other = a devide by b
-			int aLength = this.Coefficients.Length;
+			int aLength = Coefficients.Length;
 			//We will make change to aCoefficient. It will return as remainder
 			int[] aCoefficients = new int[aLength];
-			Array.Copy(this.Coefficients, 0, aCoefficients, 0, aLength);
+			Array.Copy(Coefficients, 0, aCoefficients, 0, aLength);
 			
 			
 			int bLength = other.Coefficients.Length;
 			
 			if(aLength < bLength)
-				return new PolyDivideStruct(new Polynomial(this.GField, new int[]{0}), this);
+				return new PolyDivideStruct(new Polynomial(GField, new int[]{0}), this);
 			else
 			{
 				//quotient coefficients
@@ -234,13 +234,13 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 				
 				//Denominator
 				int otherLeadingTerm = other.GetCoefficient(other.Degree);
-				int inverseOtherLeadingTerm = this.GField.inverse(otherLeadingTerm);
+				int inverseOtherLeadingTerm = GField.inverse(otherLeadingTerm);
 				
 				for(int aIndex = 0; aIndex <= aLength - bLength; aIndex++)
 				{
 					if(aCoefficients[aIndex] != 0)
 					{
-						int aScalar = this.GField.Product(inverseOtherLeadingTerm, aCoefficients[aIndex]);
+						int aScalar = GField.Product(inverseOtherLeadingTerm, aCoefficients[aIndex]);
 						Polynomial term = other.MultiplyScalar(aScalar);
 						qCoefficients[aIndex] = aScalar;
 					
@@ -249,14 +249,14 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 						{
 							for(int bIndex = 0; bIndex < bLength; bIndex++)
 							{
-								aCoefficients[aIndex + bIndex] = this.GField.Subtraction(aCoefficients[aIndex + bIndex], bCoefficient[bIndex]);
+								aCoefficients[aIndex + bIndex] = GField.Subtraction(aCoefficients[aIndex + bIndex], bCoefficient[bIndex]);
 							}
 						}
 					}
 				}
 				
-				return new PolyDivideStruct(new Polynomial(this.GField, qCoefficients),
-				                            new Polynomial(this.GField, aCoefficients));
+				return new PolyDivideStruct(new Polynomial(GField, qCoefficients),
+				                            new Polynomial(GField, aCoefficients));
 			}
 			
 			

@@ -29,7 +29,7 @@ namespace Gma.QrCodeNet.Encoding.Common
 
         internal void Clear(sbyte value)
         {
-            this.ForAll((x, y, matrix) => { matrix[x, y] = value; });
+			ForAll((x, y, matrix) => { matrix[x, y] = value; });
         }
 
         internal void ForAll(Action<int, int, ByteMatrix> action)

@@ -12,14 +12,14 @@ namespace Gma.QrCodeNet.Encoding
     {
         internal QrCode(BitMatrix matrix)
         {
-        	this.Matrix = matrix;
-        	this.isContainMatrix = true;
+			Matrix = matrix;
+			isContainMatrix = true;
         }
         
         public QrCode()
         {
-        	this.isContainMatrix = false;
-        	this.Matrix = null;
+			isContainMatrix = false;
+			Matrix = null;
         }
         
         public bool isContainMatrix

@@ -11,8 +11,8 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		internal PolyDivideStruct(Polynomial quotient, Polynomial remainder)
 			: this()
 		{
-			this.Quotient = quotient;
-			this.Remainder = remainder;
+			Quotient = quotient;
+			Remainder = remainder;
 		}
 	}
 }

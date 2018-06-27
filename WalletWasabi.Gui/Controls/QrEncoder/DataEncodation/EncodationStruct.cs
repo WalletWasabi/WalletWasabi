@@ -11,7 +11,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		internal EncodationStruct(VersionControlStruct vcStruct)
 			: this()
 		{
-			this.VersionDetail = vcStruct.VersionDetail;
+			VersionDetail = vcStruct.VersionDetail;
 		}
 	}
 }

@@ -33,19 +33,19 @@ namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
             MatrixSize size = GetSizeOfSquareWithSeparators();
             
             MatrixPoint leftTopCorner = new MatrixPoint(0, 0);
-            this.CopyTo(matrix, new MatrixRectangle(new MatrixPoint(1, 1), size), leftTopCorner, MatrixStatus.NoMask);
+			CopyTo(matrix, new MatrixRectangle(new MatrixPoint(1, 1), size), leftTopCorner, MatrixStatus.NoMask);
 
-            MatrixPoint rightTopCorner = new MatrixPoint(matrix.Width - this.Width + 1, 0);
-            this.CopyTo(matrix, new MatrixRectangle(new MatrixPoint(0, 1), size), rightTopCorner, MatrixStatus.NoMask);
+            MatrixPoint rightTopCorner = new MatrixPoint(matrix.Width - Width + 1, 0);
+			CopyTo(matrix, new MatrixRectangle(new MatrixPoint(0, 1), size), rightTopCorner, MatrixStatus.NoMask);
 
 
-            MatrixPoint leftBottomCorner = new MatrixPoint(0, matrix.Width - this.Width + 1);
-            this.CopyTo(matrix, new MatrixRectangle(new MatrixPoint(1, 0), size), leftBottomCorner, MatrixStatus.NoMask);
+            MatrixPoint leftBottomCorner = new MatrixPoint(0, matrix.Width - Width + 1);
+			CopyTo(matrix, new MatrixRectangle(new MatrixPoint(1, 0), size), leftBottomCorner, MatrixStatus.NoMask);
         }
 
         private MatrixSize GetSizeOfSquareWithSeparators()
         {
-            return new MatrixSize(this.Width - 1, this.Height - 1);
+            return new MatrixSize(Width - 1, Height - 1);
         }
     }
 }
