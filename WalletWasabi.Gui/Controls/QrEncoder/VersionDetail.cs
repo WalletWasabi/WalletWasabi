@@ -26,7 +26,7 @@
 
 		internal static int Width(int version)
 		{
-			return 17 + 4 * version;
+			return 17 + (4 * version);
 		}
 
 		internal int ECBlockGroup1

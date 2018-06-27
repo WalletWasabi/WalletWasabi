@@ -16,7 +16,7 @@
 			VersionNum = versionNum;
 			TotalCodewords = totalCodewords;
 			_m_ECBlocks = new ErrorCorrectionBlocks[] { ecblocksL, ecblocksM, ecblocksQ, ecblocksH };
-			DimensionForVersion = 17 + versionNum * 4;
+			DimensionForVersion = 17 + (versionNum * 4);
 		}
 
 		internal ErrorCorrectionBlocks GetECBlocksByLevel(Gma.QrCodeNet.Encoding.ErrorCorrectionLevel ECLevel)
