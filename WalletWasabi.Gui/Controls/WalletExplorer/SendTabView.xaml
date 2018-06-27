@@ -7,11 +7,11 @@
         <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
     </UserControl.Resources>
     <DockPanel LastChildFill="True">
-        <StackPanel DockPanel.Dock="Bottom" Margin="20 10" Gap="10" HorizontalAlignment="Center" MinWidth="1000">
+        <StackPanel DockPanel.Dock="Bottom" Margin="20 10" Gap="10" HorizontalAlignment="Left" MinWidth="1000">
             <TextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
             <StackPanel Orientation="Horizontal" Gap="10">
                 <Button Content="Max" Command="{Binding MaxCommand}" />
-                <TextBox Text="{Binding Amount}" Watermark="Amount" UseFloatingWatermark="True" />
+                <TextBox Text="{Binding Amount}" Watermark="Amount" UseFloatingWatermark="True" MinWidth="100" />
                 <StackPanel>
                     <Slider Minimum="0" Maximum="10" Value="{Binding Fee}" />
                     <StackPanel Orientation="Horizontal" Gap="4">
@@ -33,10 +33,22 @@
             <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
             <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
         </StackPanel>
-        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20">
-            <Grid Classes="content">
-                <local:CoinListView DataContext="{Binding CoinList}" />
-            </Grid>
+        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
+
+        <Grid Classes="content">
+            <DockPanel LastChildFill="True">
+                <Grid ColumnDefinitions="40,80,100,600,100,150,Auto" Margin="5 0" DockPanel.Dock="Top">
+                    <TextBlock Text="Select" />
+                    <TextBlock Text="Confirmed" Grid.Column="1"/>
+                    <TextBlock Text="Amount" Grid.Column="2" />
+                    <TextBlock Text="Label" Grid.Column="3" />
+                    <TextBlock Text="Privacy Level" Grid.Column="4" Margin="20 0 0 0"/>
+                    <TextBlock Text="" Grid.Column="5"/>
+                    <TextBlock Text="" Grid.Column="6"/>
+                </Grid>
+            <local:CoinListView DataContext="{Binding CoinList}" />
+            </DockPanel> 
+        </Grid>
         </controls:GroupBox>
     </DockPanel>
 </UserControl>
