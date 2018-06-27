@@ -21,15 +21,17 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		public long RoundId { get; private set; }
 		public Guid UniqueId { get; private set; }
 		public byte[] BlindedOutputSignature { get; private set; }
+		public Network Network { get; }
 
 		/// <inheritdoc/>
-		private AliceClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
+		private AliceClient(Network network, Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
+			Network = network;
 		}
 
-		public static async Task<AliceClient> CreateNewAsync(InputsRequest request, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		public static async Task<AliceClient> CreateNewAsync(Network network, InputsRequest request, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
-			AliceClient client = new AliceClient(baseUri, torSocks5EndPoint);
+			AliceClient client = new AliceClient(network, baseUri, torSocks5EndPoint);
 			try
 			{
 				using (HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, "/api/v1/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -56,7 +58,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			}
 		}
 
-		public static async Task<AliceClient> CreateNewAsync(BitcoinAddress changeOutput, byte[] blindedData, IEnumerable<InputProofModel> inputs, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		public static async Task<AliceClient> CreateNewAsync(Network network, BitcoinAddress changeOutput, byte[] blindedData, IEnumerable<InputProofModel> inputs, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			var request = new InputsRequest
 			{
@@ -64,7 +66,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				ChangeOutputAddress = changeOutput.ToString(),
 				Inputs = inputs
 			};
-			return await CreateNewAsync(request, baseUri, torSocks5EndPoint);
+			return await CreateNewAsync(network, request, baseUri, torSocks5EndPoint);
 		}
 
 		/// <returns>null or roundHash</returns>
@@ -112,7 +114,9 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 				}
 
 				var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
-				Transaction coinJoin = new Transaction(coinjoinHex);
+
+				Transaction coinJoin = Network.TestNet.Consensus.ConsensusFactory.CreateTransaction();
+				coinJoin.FromHex(coinjoinHex);
 				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Acquired unsigned CoinJoin: {coinJoin.GetHash()}.");
 				return coinJoin;
 			}

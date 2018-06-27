@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests
 				Assert.Contains("USD", rates.Select(x => x.Code));
 
 				Logger.TurnOff();
-				await Assert.ThrowsAsync<HttpRequestException>(async () => await client.PushTransactionAsync(new Transaction(), CancellationToken.None));
+				await Assert.ThrowsAsync<HttpRequestException>(async () => await client.PushTransactionAsync(network.Consensus.ConsensusFactory.CreateTransaction(), CancellationToken.None));
 				Logger.TurnOn();
 			}
 		}

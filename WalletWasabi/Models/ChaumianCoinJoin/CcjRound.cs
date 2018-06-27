@@ -246,7 +246,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 						// 1. Set new denomination: minor optimization.
 						Money newDenomination = Alices.Min(x => x.OutputSumWithoutCoordinatorFeeAndDenomination);
-						var transaction = new Transaction();
+						var transaction = RpcClient.Network.Consensus.ConsensusFactory.CreateTransaction();
 
 						// 2. Add Bob outputs.
 						foreach (Bob bob in Bobs)
@@ -306,7 +306,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							.Shuffle()
 							.BuildTransaction(false);
 
-						SignedCoinJoin = new Transaction(UnsignedCoinJoin.ToHex());
+						SignedCoinJoin = RpcClient.Network.Consensus.ConsensusFactory.CreateTransaction();
+						SignedCoinJoin.FromHex(UnsignedCoinJoin.ToHex());
 
 						Phase = CcjRoundPhase.Signing;
 					}

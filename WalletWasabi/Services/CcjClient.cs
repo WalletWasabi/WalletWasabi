@@ -380,7 +380,7 @@ namespace WalletWasabi.Services
 						};
 						inputProofs.Add(inputProof);
 					}
-					AliceClient aliceClient = await AliceClient.CreateNewAsync(changeAddress, blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
+					AliceClient aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
 
 					byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
 
