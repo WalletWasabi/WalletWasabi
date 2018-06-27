@@ -59,7 +59,7 @@ namespace System.Collections.ObjectModel
 
 					foreach (var hash in ConcurrentHashSet)
 					{
-						CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, hash));
+						CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, hash, Count - 1));
 					}
 					return true;
 				}
