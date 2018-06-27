@@ -5,16 +5,16 @@
     <UserControl.Resources>
         <converters:PrivacyLevelValueConverter x:Key="PrivacyLevelValueConverter" />
     </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </UserControl.Styles>
     <ListBox Items="{Binding Coins}" SelectedItems="{Binding SelectedCoins}">
         <ListBox.ItemTemplate>
             <DataTemplate>
                 <Grid ColumnDefinitions="50,50,200,200,100,150,Auto">
-                    <Grid.Styles>
-                        <Style Selector="TextBlock">
-                            <Setter Property="VerticalAlignment" Value="Center" />
-                        </Style>
-                    </Grid.Styles>
-                    <Grid.ToolTip>
+                    <!--<Grid.ToolTip>
                         <StackPanel Gap="4" MaxWidth="800">
                             <StackPanel Orientation="Horizontal" Gap="4">
                                 <TextBlock Text="Confirmations:" />
@@ -61,7 +61,7 @@
                                 <TextBlock Text="{Binding SpentOutputs}" TextWrapping="Wrap" />
                             </StackPanel>
                         </StackPanel>
-                    </Grid.ToolTip>
+                    </Grid.ToolTip>-->
                     <CheckBox IsChecked="{Binding IsSelected}" />
                     <Path Grid.Column="1" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" IsVisible="{Binding Confirmed}" Stretch="Fill" />
                     <TextBlock Grid.Column="2" Text="{Binding AmountBtc}" />
