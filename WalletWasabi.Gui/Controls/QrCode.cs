@@ -25,7 +25,6 @@ namespace WalletWasabi.Gui.Controls
                 o => o.Matrix,
                 (o, v) => o.Matrix = v);
 
-
         private bool[,] _matrix;
 
         [Content]
@@ -74,6 +73,5 @@ namespace WalletWasabi.Gui.Controls
 
             return size;
         }
-
     }
 }

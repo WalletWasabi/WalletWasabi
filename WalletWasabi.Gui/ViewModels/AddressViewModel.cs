@@ -21,7 +21,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
 
-
 		public bool[,] QrCode
 		{
 			get
