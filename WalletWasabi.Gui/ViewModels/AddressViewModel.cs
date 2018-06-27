@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.KeyManagement;
-using Gma.QrCodeNet.Encoding;
-using Gma.QrCodeNet.Encoding.Windows.Render;
 using Avalonia.Media.Imaging;
+using Gma.QrCodeNet.Encoding;
 
 namespace WalletWasabi.Gui.ViewModels
 {
