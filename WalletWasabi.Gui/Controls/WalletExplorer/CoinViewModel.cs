@@ -3,20 +3,23 @@ using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Gui.ViewModels;
 using ReactiveUI;
+using WalletWasabi.Models;
+using NBitcoin;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinViewModel : ViewModelBase
 	{
-		private bool _confirmed;
 		private bool _isSelected;
-		private string _amountBtc;
-		private string _label;
+		private SmartCoin _model;
 		private int _privacyLevel;
 		private string _history;
 
-		public CoinViewModel(CoinListViewModel owner)
+		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
 		{
+			_model = model;
+
 			this.WhenAnyValue(x => x.IsSelected).Subscribe(selected =>
 			{
 				if (selected)
@@ -31,13 +34,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					owner.SelectedCoins.Remove(this);
 				}
 			});
+
+			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
+			{
+				this.RaisePropertyChanged(nameof(Confirmed));
+			});
 		}
 
-		public bool Confirmed
-		{
-			get { return _confirmed; }
-			set { this.RaiseAndSetIfChanged(ref _confirmed, value); }
-		}
+		public bool Confirmed => _model.Confirmed;
 
 		public bool IsSelected
 		{
@@ -45,17 +49,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _isSelected, value); }
 		}
 
-		public string AmountBtc
-		{
-			get { return _amountBtc; }
-			set { this.RaiseAndSetIfChanged(ref _amountBtc, value); }
-		}
+		public Money Amount => _model.Amount;
 
-		public string Label
-		{
-			get { return _label; }
-			set { this.RaiseAndSetIfChanged(ref _label, value); }
-		}
+		public string AmountBtc => _model.Amount.ToString(false, true);
+
+		public string Label => _model.Label;
 
 		public int PrivacyLevel
 		{
