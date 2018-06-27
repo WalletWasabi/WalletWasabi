@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					: string.Empty);
 
 			LoadCommand = ReactiveCommand.Create(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
-			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolderAsync);
+			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			SetLoadButtonText(IsBusy);
 		}
 
@@ -192,20 +192,20 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public ReactiveCommand OpenFolderCommand { get; }
 
-		public async Task OpenWalletsFolderAsync()
+		public void OpenWalletsFolder()
 		{
 			var path = Global.WalletsDir;
 			if (Directory.Exists(path))
 			{
-				if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{path}\"" });
 				}
-				else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
 					Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = path, CreateNoWindow = true });
 				}
-				else if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
 					Process.Start(new ProcessStartInfo { FileName = "open", Arguments = path, CreateNoWindow = true });
 				}
