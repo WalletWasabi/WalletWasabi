@@ -35,12 +35,12 @@ Unless otherwise required by law, in no event shall the owners of, or contributo
 WASABI WALLET’S TRADEMARKS
 ========================
 
-""wasabiwallet.io"", ""Wasabi Wallet"", and all logos related to the Wasabi Wallet services are either trademarks or used as trademarks of Wasabi Wallet like the product of zkSNACKs Ltd. You may not copy, imitate, modify or use them without zkSNAKCKs’ prior written consent. In addition, all page headers, custom graphics, button icons, and scripts are service marks, trademarks, and/or trade dress of Wasabi Wallet. You may not copy, imitate, modify or use them without our prior written consent. You may use HTML logos provided by Wasabi Wallet for the purpose of directing web traffic to the Wasabi Wallet services. You may not alter, modify or change these HTML logos in any way, use them in a manner that mischaracterizes zkSNACKs or the Wasabi Wallet services or display them in any manner that implies zkSNACKs’ sponsorship or endorsement. 
+""wasabiwallet.io"", ""Wasabi Wallet"", and all logos related to the Wasabi Wallet services are either trademarks or used as trademarks of Wasabi Wallet like the product of zkSNACKs Ltd. You may not copy, imitate, modify or use them without zkSNAKCKs’ prior written consent. In addition, all page headers, custom graphics, button icons, and scripts are service marks, trademarks, and/or trade dress of Wasabi Wallet. You may not copy, imitate, modify or use them without our prior written consent. You may use HTML logos provided by Wasabi Wallet for the purpose of directing web traffic to the Wasabi Wallet services. You may not alter, modify or change these HTML logos in any way, use them in a manner that mischaracterizes zkSNACKs or the Wasabi Wallet services or display them in any manner that implies zkSNACKs’ sponsorship or endorsement.
 
 COUNTRY OF RESIDENCE
 ==================
 
-In case if you are a Gibraltar residence person and willing to use Wasabi wallet please inform us in advance on the following e-mail address: legal@zksnacks.com.			
+In case if you are a Gibraltar residence person and willing to use Wasabi wallet please inform us in advance on the following e-mail address: legal@zksnacks.com.
 			";
 
 			LegalIssues += new String('\n', 100);

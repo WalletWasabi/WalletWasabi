@@ -11,7 +11,7 @@ namespace WalletWasabi.Gui.Tabs
 		public TermsAndConditionsViewModel() : base("Terms and Conditions")
 		{
 			TermsAndConditions = @"
-PLEASE READ THESE TERMS OF USE CAREFULLY. BY CLICKING AGREE, OR BY ACCESSING OR DOWNLOADING OUR SOFTWARE (AS DEFINED BELOW), YOU AGREE TO BE BOUND BY THESE TERMS OF USE AND ALL TERMS INCORPORATED BY REFERENCE. 
+PLEASE READ THESE TERMS OF USE CAREFULLY. BY CLICKING AGREE, OR BY ACCESSING OR DOWNLOADING OUR SOFTWARE (AS DEFINED BELOW), YOU AGREE TO BE BOUND BY THESE TERMS OF USE AND ALL TERMS INCORPORATED BY REFERENCE.
 
 If you are accepting these terms on behalf of an entity, you confirm that you are authorised on behalf of that entity to agree to be bound by these Terms of Use and all terms incorporated by reference.
 
@@ -21,14 +21,14 @@ If you are accepting these terms on behalf of an entity, you confirm that you ar
 1.1 SCOPE
 
 This binding Agreement is between zkSNACKs Ltd. (“Service Provider” or “We”) and the person, persons, or entity (“You” or “Your”) using the service, software, or application (“Software”).
-These Terms apply to the download of the Client Application (as defined below), any access and use of the Software (as defined below), our website at www.wasabiwallet.io(*) and our Privacy Engine (as defined below), and any of our other services related to or utilizing any of the foregoing, which we refer to in these Terms, collectively, as our “Privacy Oriented Bitcoin Transaction Services” (Services). 
+These Terms apply to the download of the Client Application (as defined below), any access and use of the Software (as defined below), our website at www.wasabiwallet.io(*) and our Privacy Engine (as defined below), and any of our other services related to or utilizing any of the foregoing, which we refer to in these Terms, collectively, as our “Privacy Oriented Bitcoin Transaction Services” (Services).
 
 1.2 ELIGIBILITY AND AGREEMENT
 
-If you use the Services these Terms apply. If you do not agree to these Terms, you must not use our Services. 
+If you use the Services these Terms apply. If you do not agree to these Terms, you must not use our Services.
 You can use our Services only if you are 14 years of age or over and you can lawfully enter into an agreement pursuant to these Terms under applicable law. If you use our Services, you agree to do so in compliance with these Terms and with applicable laws and regulations.
 
-1.3 OUR PRIVACY POLICY 
+1.3 OUR PRIVACY POLICY
 
 Our Privacy Policy is located at www.wasabiwallet.io(*). Our Privacy Policy is expressly incorporated into these Terms and should be read carefully as it contains important information about how we collect, use, and share your personal data.
 We expressly declare that we do not store or collect any personal data other than as defined by our Privacy Policy. We do not record, keep or maintain any records whatsoever about your private key and do not require you to establish an account with us or register on our website in any form.
@@ -44,7 +44,7 @@ We may make changes to these Terms, including when there are changes to our Serv
 
 We strongly advise to only use our services if you are familiar with cryptocurrencies, especially Bitcoin. We recommend to first learn the basics of Bitcoin and Bitcoin transactions before starting to use our Services.
 This Software consists of the Client Application and the Privacy Engine (both as defined below) and functions as a free, open source non-custodial desktop wallet. The Software does not constitute an account where We or other third parties serve as financial intermediaries or custodians of Your bitcoin(s). The Software and our services are therefore exempt from the authority of the Gibraltar Financial Services Commission or any other financial institutions.
-While the Software has undergone beta testing and continues to be improved by feedback from the open-source user and developer community, We cannot guarantee there will not be bugs in the Software. You acknowledge that Your use of this Software is at Your own discretion and in compliance with all applicable laws. You are responsible for safekeeping Your passwords, private key pairs, PINs, mnemonic words, and any other codes You use to access the Software. 
+While the Software has undergone beta testing and continues to be improved by feedback from the open-source user and developer community, We cannot guarantee there will not be bugs in the Software. You acknowledge that Your use of this Software is at Your own discretion and in compliance with all applicable laws. You are responsible for safekeeping Your passwords, private key pairs, PINs, mnemonic words, and any other codes You use to access the Software.
 We expressly declare that we do not store any private keys. Encrypted private key information is stored locally on your computer in a wallet file and/or backed up with mnemonic words, shown at the creation of the wallet. Private keys can be accessed with a password, you have given at the creation of the wallet. It is solely your responsibility to backup and to safekeep your private keys. In case of loss of private keys, you may permanently lose access to your public addresses, since we are not able to recover the private keys for You.
 If You do not understand the above paragraph please learn more about Bitcoin transactions before using our Services.
 The download and use of the Wasabi Wallet software is subject to the acceptance of our terms and conditions. From the point of downloading we do not store or manage any data, we do not even have knowledge about neither the installation, nor the use of the wallet.
@@ -75,12 +75,12 @@ transactions that support pyramid, Ponzi, or other ""get rich quick"" schemes;
 provide credit repair or debt settlement services;
 explicit sexual content;
 money laundering or any support thereof.
-You agree that you will not engage in any of the following activities via the Services, nor will you help or facilitate a third party to engage in any such activity: 
-attempt to gain unauthorised access to our Engine; 
-make any attempt to bypass or circumvent any security features; 
-violate any law, statute, ordinance, regulation or court order; 
-engage in any activity that is abusive or interferes with or disrupts our Services. 
-Use of our Services in connection with any transaction involving illegal products or services is expressly prohibited. 
+You agree that you will not engage in any of the following activities via the Services, nor will you help or facilitate a third party to engage in any such activity:
+attempt to gain unauthorised access to our Engine;
+make any attempt to bypass or circumvent any security features;
+violate any law, statute, ordinance, regulation or court order;
+engage in any activity that is abusive or interferes with or disrupts our Services.
+Use of our Services in connection with any transaction involving illegal products or services is expressly prohibited.
 The Service Provider reserves the right to temporarily or permanently block you from using the Services if any violation of this section occurs or if we have reasonable grounds to believe that any violation of this section may occur.
 
 4 INDEMNIFICATION
@@ -96,7 +96,7 @@ Our trademarks, service marks, designs, logos, URLs, and trade names that are di
 6 DISCLAIMER OF WARRANTIES
 ==========================
 
-Our Services are provided “as is” with no warranty of any kind. Your use of our Services is at your sole risk. We and our licensors, service providers or subcontractors (if any) make no representations or warranties about the suitability of the information, software, products and services contained in our Services for any purpose or their compliance with any accounting rules, principles or laws, and we expressly disclaim any representation or warranty that the Services will be free from errors, viruses or other harmful components, that communications to or from the Services will be secure and will not intercepted, that the services, functions and other capabilities offered by the Services will be uninterrupted, or that their content will be accurate, complete or timely. 
+Our Services are provided “as is” with no warranty of any kind. Your use of our Services is at your sole risk. We and our licensors, service providers or subcontractors (if any) make no representations or warranties about the suitability of the information, software, products and services contained in our Services for any purpose or their compliance with any accounting rules, principles or laws, and we expressly disclaim any representation or warranty that the Services will be free from errors, viruses or other harmful components, that communications to or from the Services will be secure and will not intercepted, that the services, functions and other capabilities offered by the Services will be uninterrupted, or that their content will be accurate, complete or timely.
 EXCEPT AS EXPRESSLY STATED IN THESE TERMS, WE DISCLAIM (TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW) ALL WARRANTIES, REPRESENTATIONS AND CONDITIONS, WHETHER EXPRESS OR IMPLIED AND WHETHER IMPOSED BY STATUTE OR OTHERWISE, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES RELATING TO TITLE, NON-INFRINGEMENT, MERCHANTABILITY, AND FITNESS FOR A PARTICULAR PURPOSE. YOU ACKNOWLEDGE THAT YOU HAVE NOT ENTERED INTO THIS AGREEMENT IN RELIANCE UPON ANY STATEMENT, WARRANTY OR REPRESENTATION EXCEPT THOSE EXPRESSLY AND SPECIFICALLY SET FORTH IN THESE TERMS AND THAT YOU SHALL HAVE NO REMEDIES IN RESPECT OF ANY STATEMENT, WARRANTY, REPRESENTATION OR CONDITION THAT IS NOT EXPRESSLY AND SPECIFICALLY SET FORTH IN THESE TERMS. Some jurisdictions do not allow the disclaimer of implied terms in contracts with consumers, so some or all of the disclaimers in this section may not apply to you.
 
 7 NO ADVICE
@@ -121,12 +121,12 @@ If for any reason a court of competent jurisdiction finds any provision of these
 
 9.2 ARBITRATION
 
-You and the Service Provider agree to arbitrate any dispute arising under or in connection with these Terms or your use of our Services, except for disputes in which either party seeks equitable and other relief for any alleged infringement or unlawful use of copyrights, trademarks, trade names, logos, trade secrets, patents or other intellectual property rights. Arbitration prevents you from suing in court or from having a jury trial. You and the Service Provider agree to notify each other in writing of any dispute within thirty (30) days of when it arises. Notice to the Service Provider shall be sent to legal@zksnacks.com. You and the Service Provider further agree: 
-to attempt informal resolution prior to any demand for arbitration; 
-that the seat or legal place of any arbitration will be Gibraltar; 
-that arbitration will be conducted confidentially by a single arbitrator appointed by the Gibraltar Chamber of Commerce; 
-the arbitration shall be conducted in accordance with the rules of International Chamber of Commerce; and 
-that the courts in Gibraltar will have exclusive jurisdiction over any appeals of an arbitration award. 
+You and the Service Provider agree to arbitrate any dispute arising under or in connection with these Terms or your use of our Services, except for disputes in which either party seeks equitable and other relief for any alleged infringement or unlawful use of copyrights, trademarks, trade names, logos, trade secrets, patents or other intellectual property rights. Arbitration prevents you from suing in court or from having a jury trial. You and the Service Provider agree to notify each other in writing of any dispute within thirty (30) days of when it arises. Notice to the Service Provider shall be sent to legal@zksnacks.com. You and the Service Provider further agree:
+to attempt informal resolution prior to any demand for arbitration;
+that the seat or legal place of any arbitration will be Gibraltar;
+that arbitration will be conducted confidentially by a single arbitrator appointed by the Gibraltar Chamber of Commerce;
+the arbitration shall be conducted in accordance with the rules of International Chamber of Commerce; and
+that the courts in Gibraltar will have exclusive jurisdiction over any appeals of an arbitration award.
 Other than class procedures and remedies discussed below, the arbitrator has the authority to grant any remedy that would otherwise be available in court.
 Whether the dispute is heard in arbitration or in court, you and the Service Provider will not commence against the other a class action, class arbitration or representative action or proceeding.
 
@@ -157,11 +157,11 @@ zkSNACKs Ltd.
 Address: Suite 3 2nd floor, Icom house 1/5, Irish Town, Gibraltar
 Company number: 117429
 REID number: GICO.117429-6
-www.zksnacks.com(*) 
+www.zksnacks.com(*)
 
 (*) We recommend you to use Tor browser in order to protect your privacy.
 			";
-			
+
 			TermsAndConditions += new String('\n', 100);
 		}
 

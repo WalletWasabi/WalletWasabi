@@ -33,6 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.WalletService.NewBlockProcessed += WalletService_NewBlockProcessed;
 			Global.WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+			Global.WalletService.CoinSpent += WalletService_CoinSpent;
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
@@ -67,7 +68,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
-					var newRecord = (coin.Confirmed, found.amount + coin.Amount, $"{found.label}, {coin.Label}", coin.TransactionId);
+					var newRecord = (found.confirmed, found.amount + coin.Amount, $"{found.label}, {coin.Label}", coin.TransactionId);
 					txRecordList.Add(newRecord);
 				}
 				else
@@ -86,7 +87,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						txRecordList.Add((coin.Confirmed, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
+						bool guessConfirmed = !Global.MemPoolService.TransactionHashes.Contains(coin.SpenderTransactionId); // If it's not in the mempool it's likely confirmed.
+						txRecordList.Add((guessConfirmed, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
 					}
 				}
 			}
@@ -122,6 +124,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+		{
+			Dispatcher.UIThread.InvokeAsync(() => RewriteTable());
+		}
+
+		private void WalletService_CoinSpent(object sender, SmartCoin e)
 		{
 			Dispatcher.UIThread.InvokeAsync(() => RewriteTable());
 		}

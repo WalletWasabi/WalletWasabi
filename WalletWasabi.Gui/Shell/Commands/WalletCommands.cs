@@ -15,17 +15,17 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public WalletCommands(CommandIconService commandIconService)
 		{
 			GenerateWalletCommand = new CommandDefinition(
-				"Generate Wallet", 
+				"Generate Wallet",
 				commandIconService.GetCompletionKindImage("GenerateWallet"),
 				ReactiveCommand.Create(OnGenerateWallet));
 
 			RecoverWalletCommand = new CommandDefinition(
-				"Recover Wallet", 
+				"Recover Wallet",
 				commandIconService.GetCompletionKindImage("RecoverWallet"),
 				ReactiveCommand.Create(OnRecoverWallet));
 
 			LoadWallet = new CommandDefinition(
-				"Load Wallet", 
+				"Load Wallet",
 				commandIconService.GetCompletionKindImage("LoadWallet"),
 				ReactiveCommand.Create(OnLoadWallet));
 		}

@@ -102,7 +102,7 @@ namespace WalletWasabi.Gui
 		/// <inheritdoc/>
 		public override void InitLayout(IView layout, object context)
 		{
-			this.ContextLocator = new Dictionary<string, Func<object>>
+			ContextLocator = new Dictionary<string, Func<object>>
 			{
 				// Defaults
 				[nameof(IRootDock)] = () => context,
@@ -118,18 +118,18 @@ namespace WalletWasabi.Gui
 				["Main"] = () => context
 			};
 
-			this.HostLocator = new Dictionary<string, Func<IDockHost>>
+			HostLocator = new Dictionary<string, Func<IDockHost>>
 			{
 				[nameof(IDockWindow)] = () => new HostWindow()
 			};
 
-			this.ViewLocator = new Dictionary<string, Func<IView>>
+			ViewLocator = new Dictionary<string, Func<IView>>
 			{
 				[nameof(RightDock)] = () => RightDock,
 				[nameof(DocumentDock)] = () => DocumentDock
 			};
 
-			this.Update(layout, context, null);
+			Update(layout, context, null);
 
 			if (layout is IDock layoutWindowsHost)
 			{
