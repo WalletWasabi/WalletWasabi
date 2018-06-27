@@ -48,6 +48,5 @@ namespace Gma.QrCodeNet.Encoding
 			    return deepCopyArray;
 		    }
 	    }
-
 	}
 }
