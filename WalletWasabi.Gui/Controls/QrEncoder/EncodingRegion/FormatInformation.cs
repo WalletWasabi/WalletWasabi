@@ -74,8 +74,10 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			//xor maskPattern
 			formatInfo ^= s_FormatInfoMaskPattern;
 
-			BitList resultBits = new BitList();
-			resultBits.Add(formatInfo, 15);
+			BitList resultBits = new BitList
+			{
+				{ formatInfo, 15 }
+			};
 
 			if (resultBits.Count != 15)
 				throw new Exception("FormatInfoBits length is not 15");

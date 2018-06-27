@@ -29,8 +29,10 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <remarks>See Chapter 8.4 Data encodation, Table 2 — Mode indicators</remarks>
 		internal BitList GetModeIndicator()
 		{
-			BitList modeIndicatorBits = new BitList();
-			modeIndicatorBits.Add((int)Mode, 4);
+			BitList modeIndicatorBits = new BitList
+			{
+				{ (int)Mode, 4 }
+			};
 			return modeIndicatorBits;
 		}
 

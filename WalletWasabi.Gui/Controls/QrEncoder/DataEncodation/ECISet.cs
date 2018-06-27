@@ -181,9 +181,10 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		{
 			int eciValue = GetECIValueByName(encodingName);
 
-			BitList dataBits = new BitList();
-
-			dataBits.Add(ECIMode, ECIIndicatorNumBits);
+			BitList dataBits = new BitList
+			{
+				{ ECIMode, ECIIndicatorNumBits }
+			};
 
 			int eciAssignmentByte = NumOfCodewords(eciValue);
 			//Number of bits = Num codewords indicator + codeword value = Number of codewords * 8

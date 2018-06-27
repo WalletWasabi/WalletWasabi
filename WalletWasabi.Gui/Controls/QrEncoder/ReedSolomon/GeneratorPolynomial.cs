@@ -19,8 +19,10 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		internal GeneratorPolynomial(GaloisField256 gfield)
 		{
 			m_gfield = gfield;
-			m_cacheGenerator = new List<Polynomial>(10);
-			m_cacheGenerator.Add(new Polynomial(m_gfield, new int[] { 1 }));
+			m_cacheGenerator = new List<Polynomial>(10)
+			{
+				new Polynomial(m_gfield, new int[] { 1 })
+			};
 		}
 
 		/// <summary>

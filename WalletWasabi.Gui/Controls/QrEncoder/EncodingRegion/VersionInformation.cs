@@ -50,9 +50,11 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 
 		private static BitList VersionInfoBitList(int version)
 		{
-			BitList result = new BitList();
-			result.Add(version, s_LengthDataBits);
-			result.Add(BCHCalculator.CalculateBCH(version, s_VersionBCHPoly), s_LengthECBits);
+			BitList result = new BitList
+			{
+				{ version, s_LengthDataBits },
+				{ BCHCalculator.CalculateBCH(version, s_VersionBCHPoly), s_LengthECBits }
+			};
 
 			if (result.Count != (s_LengthECBits + s_LengthDataBits))
 				throw new Exception("Version Info creation error. Result is not 18 bits");
