@@ -67,7 +67,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
-					var newRecord = (coin.Confirmed, found.amount + coin.Amount, $"{found.label}, {coin.Label}", coin.TransactionId);
+					var newRecord = (found.confirmed, found.amount + coin.Amount, $"{found.label}, {coin.Label}", coin.TransactionId);
 					txRecordList.Add(newRecord);
 				}
 				else
@@ -86,7 +86,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						txRecordList.Add((coin.Confirmed, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
+						bool guessConfirmed = !Global.MemPoolService.TransactionHashes.Contains(coin.SpenderTransactionId); // If it's not in the mempool it's likely confirmed.
+						txRecordList.Add((guessConfirmed, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
 					}
 				}
 			}
