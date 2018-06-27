@@ -8,10 +8,14 @@
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
         <Grid Classes="content">
             <DockPanel LastChildFill="True">
-                <Grid RowDefinitions="Auto,Auto" DockPanel.Dock="Top">
+                <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
                     <DockPanel LastChildFill="True">
                         <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />
-                        <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label" UseFloatingWatermark="True" DockPanel.Dock="Left" MinWidth="300" />
+                        <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label" UseFloatingWatermark="True" DockPanel.Dock="Left" MinWidth="300" >
+                            <i:Interaction.Behaviors>
+                                <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
+                            </i:Interaction.Behaviors>
+                        </TextBox>
                         <Grid IsVisible="{Binding ClipboardNotificationVisible}">
                             <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                                 <Grid.Transitions>
@@ -29,23 +33,24 @@
                         <TextBlock Text="Label:" />
                         <TextBlock Text="Address:" Grid.Column="1" Margin="20 0 0 0" />
                     </Grid>
+                    <ListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Expander ExpandDirection="Down">
+                                        <StackPanel Background="#FFFEFEFE">
+                                            <controls:QrCode Matrix="{Binding QrCode}" Height="200" Margin="10 10 10 20" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Expander>
+                                    <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
+                                        <TextBlock Text="{Binding Address}" />
+                                        <TextBlock Text="{Binding Label}" Grid.Column="1" />
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </Grid>
-                <ListBox Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid ColumnDefinitions="300, *, 100">
-                                <Grid.Styles>
-                                    <Style Selector="TextBlock">
-                                        <Setter Property="VerticalAlignment" Value="Center" />
-                                    </Style>
-                                </Grid.Styles>
-                                <TextBlock Text="{Binding Label}" />
-                                <TextBlock Text="{Binding Address}" Grid.Column="1" Margin="20 0 0 0" />
-                                <Button Content="QR Code ..." Command="{Binding QRCodeCommand}"  Grid.Column="2" Margin="0 2" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
             </DockPanel>
         </Grid>
     </controls:GroupBox>

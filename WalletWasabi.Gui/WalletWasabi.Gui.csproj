@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="0.6.2-build5373-beta" />
+    <PackageReference Include="QrCode.Net" Version="0.4.0" />
   </ItemGroup>
 
   <ItemGroup>
