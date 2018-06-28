@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class SendTabViewModel : WalletActionViewModel
 	{
-		private CoinListViewModel _coinList;
+		private ReadOnlyCoinListViewModel _coinList;
 		private string _buildTransactionButtonText;
 		private bool _isMax;
 		private string _amount;
@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
-			CoinList = new CoinListViewModel(Global.WalletService.Coins);
+			CoinList = new ReadOnlyCoinListViewModel(Global.WalletService.Coins);
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
@@ -84,7 +84,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_ignoreAmountChanges = false;
 		}
 
-		public CoinListViewModel CoinList
+		public ReadOnlyCoinListViewModel CoinList
 		{
 			get { return _coinList; }
 			set { this.RaiseAndSetIfChanged(ref _coinList, value); }

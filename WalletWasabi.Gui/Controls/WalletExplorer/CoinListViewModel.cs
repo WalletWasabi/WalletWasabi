@@ -1,32 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using WalletWasabi.Gui.ViewModels;
 using ReactiveUI;
 using System.Collections.ObjectModel;
 using WalletWasabi.Models;
+using System.Linq;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinListViewModel : ViewModelBase
+	public class CoinListViewModel : CoinListViewModelBase
 	{
-		private ObservableCollection<CoinViewModel> _selectedCoins;
-		private IReactiveDerivedList<CoinViewModel> _coins;
+		private ObservableCollection<CoinViewModel> _coins;
 
 		public CoinListViewModel(IEnumerable<SmartCoin> coins)
 		{
-			SelectedCoins = new ObservableCollection<CoinViewModel>();
-
-			Coins = coins.CreateDerivedCollection(c => new CoinViewModel(this, c), c => !c.SpentOrCoinJoinInProcess, (first, second) => first.Amount.CompareTo(second.Amount), RxApp.MainThreadScheduler);
+			Coins = new ObservableCollection<CoinViewModel>(coins.Select(c => new CoinViewModel(this, c)));
 		}
 
-		public ObservableCollection<CoinViewModel> SelectedCoins
+		public CoinListViewModel()
 		{
-			get { return _selectedCoins; }
-			set { this.RaiseAndSetIfChanged(ref _selectedCoins, value); }
+			Coins = new ObservableCollection<CoinViewModel>();
 		}
 
-		public IReactiveDerivedList<CoinViewModel> Coins
+		public ObservableCollection<CoinViewModel> Coins
 		{
 			get { return _coins; }
 			set { this.RaiseAndSetIfChanged(ref _coins, value); }
