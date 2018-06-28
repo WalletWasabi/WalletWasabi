@@ -46,7 +46,7 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
-		public event EventHandler<SmartCoin> CoinSpent;
+		public event EventHandler<SmartCoin> CoinSpentOrSpenderConfirmed;
 
 		public event EventHandler<Block> NewBlockProcessed;
 
@@ -271,6 +271,11 @@ namespace WalletWasabi.Services
 
 		private void ProcessTransaction(SmartTransaction tx, List<HdPubKey> keys = null)
 		{
+			if (tx.Height != Height.MemPool && tx.Height != Height.Unknown)
+			{
+				MemPool.TransactionHashes.TryRemove(tx.GetHash());
+			}
+
 			//iterate tx
 			//	if already have the coin
 			//		if NOT mempool
@@ -391,7 +396,7 @@ namespace WalletWasabi.Services
 				if (foundCoin != null)
 				{
 					foundCoin.SpenderTransactionId = tx.GetHash();
-					CoinSpent?.Invoke(this, foundCoin);
+					CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
 				}
 			}
 		}

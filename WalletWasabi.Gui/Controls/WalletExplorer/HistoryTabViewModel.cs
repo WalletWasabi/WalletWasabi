@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.WalletService.NewBlockProcessed += WalletService_NewBlockProcessed;
 			Global.WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
-			Global.WalletService.CoinSpent += WalletService_CoinSpent;
+			Global.WalletService.CoinSpentOrSpenderConfirmed += WalletService_CoinSpent;
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
