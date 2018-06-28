@@ -78,16 +78,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (coin.SpenderTransactionId != null)
 				{
+					bool guessConfirmed = !Global.MemPoolService.TransactionHashes.Contains(coin.SpenderTransactionId) && coin.Confirmed; // If it's not in the mempool it's likely confirmed && coin is confirmed.
+
 					var foundSpender = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);
 					if (foundSpender != default) // if found
 					{
 						txRecordList.Remove(foundSpender);
-						var newRecord = (coin.Confirmed, foundSpender.amount - coin.Amount, foundSpender.label, coin.SpenderTransactionId);
+						var newRecord = (guessConfirmed, foundSpender.amount - coin.Amount, foundSpender.label, coin.SpenderTransactionId);
 						txRecordList.Add(newRecord);
 					}
 					else
 					{
-						bool guessConfirmed = !Global.MemPoolService.TransactionHashes.Contains(coin.SpenderTransactionId); // If it's not in the mempool it's likely confirmed.
 						txRecordList.Add((guessConfirmed, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
 					}
 				}
