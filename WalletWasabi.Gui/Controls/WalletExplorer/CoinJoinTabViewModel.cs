@@ -30,6 +30,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					QueuedCoins.Coins.Add(coin);
 				}
 			});
+
+			DequeueCommand = ReactiveCommand.Create(() =>
+			{
+				var toMove = QueuedCoins.SelectedCoins.ToList();
+
+				foreach (var coin in toMove)
+				{
+					coin.ChangeOwner(AvailableCoins);
+					QueuedCoins.Coins.Remove(coin);
+					AvailableCoins.Coins.Add(coin);
+				}
+			});
 		}
 
 		public CoinListViewModel AvailableCoins

@@ -41,6 +41,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				this.RaisePropertyChanged(nameof(Confirmed));
 			});
+
+			History = "Calculate History";
 		}
 
 		public void ChangeOwner(CoinListViewModelBase newOwner)
@@ -67,6 +69,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string AmountBtc => _model.Amount.ToString(false, true);
 
 		public string Label => _model.Label;
+
+		public int Height => _model.Height;
 
 		public int PrivacyLevel
 		{
