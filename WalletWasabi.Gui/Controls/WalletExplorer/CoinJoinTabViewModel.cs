@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using Avalonia.Controls;
 using ReactiveUI;
@@ -19,7 +20,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Password = "";
 
-			var globalCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), null, (first, second) => second.Amount.CompareTo(first.Amount), RxApp.MainThreadScheduler);
+			var onCoinsSetModified = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
+				.ObserveOn(RxApp.MainThreadScheduler);
+
+			var globalCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), null, (first, second) => second.Amount.CompareTo(first.Amount), signalReset: onCoinsSetModified, RxApp.MainThreadScheduler);
 			globalCoins.ChangeTrackingEnabled = true;
 
 			var available = globalCoins.CreateDerivedCollection(c => c, c => c.Confirmed && !c.SpentOrCoinJoinInProcess);
