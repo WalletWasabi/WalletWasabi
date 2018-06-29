@@ -11,6 +11,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Gui.Tabs.WalletManager;
+using Avalonia;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -72,20 +73,20 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("DevTools"),
 				ReactiveCommand.Create(() =>
 				{
-					//var devTools = new DevTools(Window..FirstOrDefault());
+					var devTools = new DevTools(Application.Current.Windows.FirstOrDefault());
 
-					//var devToolsWindow = new Window
-					//{
-					//	Width = 1024,
-					//	Height = 512,
-					//	Content = devTools,
-					//	DataTemplates =
-					//	{
-					//		new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>(),
-					//	}
-					//};
+					var devToolsWindow = new Window
+					{
+						Width = 1024,
+						Height = 512,
+						Content = devTools,
+						DataTemplates =
+						{
+							new ViewLocator<Avalonia.Diagnostics.ViewModels.ViewModelBase>(),
+						}
+					};
 
-					//devToolsWindow.Show();
+					devToolsWindow.Show();
 				}));
 		}
 
