@@ -11,7 +11,7 @@
             <Grid Classes="content">
                 <DockPanel LastChildFill="True">
                     <Button DockPanel.Dock="Bottom" Content="Enqueue" Command="{Binding EnqueueCommand}" />
-                    <local:CoinListView DataContext="{Binding AvailableCoins}" />
+                    <local:CoinListView DataContext="{Binding AvailableCoinsList}" />
                 </DockPanel>
             </Grid>
         </controls:GroupBox>
@@ -25,7 +25,7 @@
             <Grid Classes="content">
                 <DockPanel LastChildFill="True">
                     <Button DockPanel.Dock="Bottom" Content="Dequeue" Command="{Binding DequeueCommand}" />
-                    <local:CoinListView DataContext="{Binding QueuedCoins}" />
+                    <local:CoinListView DataContext="{Binding QueuedCoinsList}" />
                 </DockPanel>
             </Grid>
         </controls:GroupBox>

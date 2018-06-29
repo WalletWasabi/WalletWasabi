@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using Avalonia.Controls;
@@ -9,51 +10,68 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
-		private CoinListViewModel _availableCoins;
-		private CoinListViewModel _queuedCoins;
+		private CoinListViewModel _availableCoinsList;
+		private CoinListViewModel _queuedCoinsList;
+		private ObservableCollection<CoinViewModel> _availableCoins;
+		private ObservableCollection<CoinViewModel> _queuedCoins;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
-			AvailableCoins = new CoinListViewModel(Global.WalletService.Coins);
+			AvailableCoins = new ObservableCollection<CoinViewModel>(Global.WalletService.Coins.Where(c => !c.SpentOrCoinJoinInProcess)
+				.Select(c => new CoinViewModel(c)));
 
-			QueuedCoins = new CoinListViewModel();
+			QueuedCoins = new ObservableCollection<CoinViewModel>();
+
+			AvailableCoinsList = new CoinListViewModel(AvailableCoins);
+
+			QueuedCoinsList = new CoinListViewModel(QueuedCoins);
 
 			EnqueueCommand = ReactiveCommand.Create(() =>
 			{
-				var toMove = AvailableCoins.SelectedCoins.ToList();
+				var toMove = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 				foreach (var coin in toMove)
 				{
-					coin.ChangeOwner(QueuedCoins);
-					AvailableCoins.Coins.Remove(coin);
-					QueuedCoins.Coins.Add(coin);
+					AvailableCoins.Remove(coin);
+					QueuedCoins.Add(coin);
 				}
 			});
 
 			DequeueCommand = ReactiveCommand.Create(() =>
 			{
-				var toMove = QueuedCoins.SelectedCoins.ToList();
+				var toMove = QueuedCoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 				foreach (var coin in toMove)
 				{
-					coin.ChangeOwner(AvailableCoins);
-					QueuedCoins.Coins.Remove(coin);
-					AvailableCoins.Coins.Add(coin);
+					QueuedCoins.Remove(coin);
+					AvailableCoins.Add(coin);
 				}
 			});
 		}
 
-		public CoinListViewModel AvailableCoins
+		public ObservableCollection<CoinViewModel> AvailableCoins
 		{
 			get { return _availableCoins; }
 			set { this.RaiseAndSetIfChanged(ref _availableCoins, value); }
 		}
 
-		public CoinListViewModel QueuedCoins
+		public ObservableCollection<CoinViewModel> QueuedCoins
 		{
 			get { return _queuedCoins; }
 			set { this.RaiseAndSetIfChanged(ref _queuedCoins, value); }
+		}
+
+		public CoinListViewModel AvailableCoinsList
+		{
+			get { return _availableCoinsList; }
+			set { this.RaiseAndSetIfChanged(ref _availableCoinsList, value); }
+		}
+
+		public CoinListViewModel QueuedCoinsList
+		{
+			get { return _queuedCoinsList; }
+			set { this.RaiseAndSetIfChanged(ref _queuedCoinsList, value); }
 		}
 
 		public ReactiveCommand EnqueueCommand { get; }
