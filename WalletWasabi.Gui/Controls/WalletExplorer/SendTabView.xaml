@@ -36,18 +36,7 @@
         <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
 
         <Grid Classes="content">
-            <DockPanel LastChildFill="True">
-                <Grid ColumnDefinitions="40,80,100,600,100,150,Auto" Margin="5 0" DockPanel.Dock="Top">
-                    <TextBlock Text="Select" />
-                    <TextBlock Text="Confirmed" Grid.Column="1"/>
-                    <TextBlock Text="Amount" Grid.Column="2" />
-                    <TextBlock Text="Label" Grid.Column="3" />
-                    <TextBlock Text="Privacy Level" Grid.Column="4" Margin="20 0 0 0"/>
-                    <TextBlock Text="" Grid.Column="5"/>
-                    <TextBlock Text="" Grid.Column="6"/>
-                </Grid>
             <local:CoinListView DataContext="{Binding CoinList}" />
-            </DockPanel> 
         </Grid>
         </controls:GroupBox>
     </DockPanel>

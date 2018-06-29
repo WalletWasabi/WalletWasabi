@@ -71,18 +71,27 @@
         </Style>
     </UserControl.Styles>
 
-    <ListBox Items="{Binding Coins}">
-        <ListBox.ItemTemplate>
-            <DataTemplate>
-                <Grid ColumnDefinitions="40,80,100,600,100,Auto">
-                    <CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Center" />
-                    <Path Grid.Column="1" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" IsVisible="{Binding Confirmed}" Stretch="Fill" />
-                    <TextBlock Grid.Column="2" Text="{Binding AmountBtc}" />
-                    <TextBlock Grid.Column="3" Text="{Binding Label}" />
-                    <TextBlock Grid.Column="4" Text="{Binding PrivacyLevel, Converter={StaticResource PrivacyLevelValueConverter}}" Margin="20 0 0 0" />
-                    <TextBlock Text="{Binding History}" Grid.Column="5" />
-                </Grid>
-            </DataTemplate>
-        </ListBox.ItemTemplate>
-    </ListBox>
+    <DockPanel LastChildFill="True">
+        <Grid ColumnDefinitions="60,100,100,600,100,Auto" Margin="5 0" DockPanel.Dock="Top">
+            <TextBlock Text="Select" />
+            <TextBlock Text="Confirmed" Grid.Column="1" />
+            <TextBlock Text="Amount" Grid.Column="2" />
+            <TextBlock Text="Label" Grid.Column="3" />
+            <TextBlock Text="Privacy Level" Grid.Column="4" Margin="20 0 0 0" />
+        </Grid>
+        <ListBox Items="{Binding Coins}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid ColumnDefinitions="40,80,100,600,100,Auto">
+                        <CheckBox IsChecked="{Binding IsSelected}" />
+                        <Path Grid.Column="1" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" IsVisible="{Binding Confirmed}" Stretch="Fill" />
+                        <TextBlock Grid.Column="2" Text="{Binding AmountBtc}" />
+                        <TextBlock Grid.Column="3" Text="{Binding Label}" />
+                        <TextBlock Grid.Column="4" Text="{Binding PrivacyLevel, Converter={StaticResource PrivacyLevelValueConverter}}" Margin="20 0 0 0" />
+                        <TextBlock Text="{Binding History}" Grid.Column="5" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
 </UserControl>
