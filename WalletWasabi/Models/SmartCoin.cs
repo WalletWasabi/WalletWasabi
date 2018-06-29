@@ -45,12 +45,11 @@ namespace WalletWasabi.Models
 					var rememberConfirmed = Confirmed;
 
 					_height = value;
-
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Height)));
+					OnPropertyChanged(nameof(Height));
 
 					if (rememberConfirmed != Confirmed)
 					{
-						PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Confirmed)));
+						OnPropertyChanged(nameof(Confirmed));
 					}
 				}
 			}
@@ -65,8 +64,7 @@ namespace WalletWasabi.Models
 				if (value != _label)
 				{
 					_label = value;
-
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Label)));
+					OnPropertyChanged(nameof(Label));
 				}
 			}
 		}
@@ -81,19 +79,19 @@ namespace WalletWasabi.Models
 				if (value != _spenderTransactionId)
 				{
 					var rememberSpentOrCoinJoinInProcess = SpentOrCoinJoinInProcess;
+					var rememberUnspent = Unspent;
 
-					if (_spenderTransactionId != value)
+					_spenderTransactionId = value;
+					OnPropertyChanged(nameof(SpenderTransactionId));
+
+					if (rememberUnspent != Unspent)
 					{
-						_spenderTransactionId = value;
-						RaisePropertyChanged();
+						OnPropertyChanged(nameof(Unspent));
 					}
-
-					RaisePropertyChanged(nameof(Label));
-					RaisePropertyChanged(nameof(Unspent));
 
 					if (rememberSpentOrCoinJoinInProcess != SpentOrCoinJoinInProcess)
 					{
-						RaisePropertyChanged(nameof(SpentOrCoinJoinInProcess));
+						OnPropertyChanged(nameof(SpentOrCoinJoinInProcess));
 					}
 				}
 			}
@@ -115,10 +113,15 @@ namespace WalletWasabi.Models
 			{
 				if (_coinJoinInProcess != value)
 				{
-					_coinJoinInProcess = value;
+					var rememberSpentOrCoinJoinInProcess = SpentOrCoinJoinInProcess;
 
-					RaisePropertyChanged();
-					RaisePropertyChanged(nameof(SpentOrCoinJoinInProcess));
+					_coinJoinInProcess = value;
+					OnPropertyChanged(nameof(CoinJoinInProcess));
+
+					if (rememberSpentOrCoinJoinInProcess != SpentOrCoinJoinInProcess)
+					{
+						OnPropertyChanged(nameof(SpentOrCoinJoinInProcess));
+					}
 				}
 			}
 		}
@@ -179,6 +182,11 @@ namespace WalletWasabi.Models
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
+		private void OnPropertyChanged(string propertyName)
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
 		public Coin GetCoin()
 		{
 			return new Coin(TransactionId, Index, Amount, ScriptPubKey);
@@ -192,11 +200,6 @@ namespace WalletWasabi.Models
 		public TxoRef GetTxoRef()
 		{
 			return new TxoRef(TransactionId, Index);
-		}
-
-		private void RaisePropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = "")
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
 		#region EqualityAndComparison

@@ -571,7 +571,7 @@ namespace WalletWasabi.Services
 			{
 				throw new ArgumentException($"{nameof(toSend)} cannot contain negative element.");
 			}
-			if (toSend.Any(x => x.Amount < new Money(0.00001m, MoneyUnit.BTC)))
+			if (toSend.Any(x => x.Amount != Money.Zero && x.Amount < new Money(0.00001m, MoneyUnit.BTC)))
 			{
 				throw new InvalidOperationException($"Sanity check failed. One of the output is < 0.00001 BTC.");
 			}
