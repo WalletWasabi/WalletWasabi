@@ -12,8 +12,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private CoinListViewModel _availableCoinsList;
 		private CoinListViewModel _queuedCoinsList;
-		private IReadOnlyCollection<CoinViewModel> _availableCoins;
-		private IReadOnlyCollection<CoinViewModel> _queuedCoins;
 		private string _password;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
@@ -21,13 +19,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Password = "";
 
-			AvailableCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), c => !c.SpentOrCoinJoinInProcess && c.Confirmed, null, RxApp.MainThreadScheduler);
+			var globalCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), null, (first, second) => second.Amount.CompareTo(first.Amount), RxApp.MainThreadScheduler);
+			globalCoins.ChangeTrackingEnabled = true;
 
-			QueuedCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), c => c.CoinJoinInProcess, null, RxApp.MainThreadScheduler);
+			var available = globalCoins.CreateDerivedCollection(c => c, c => c.Confirmed && !c.SpentOrCoinJoinInProcess);
 
-			AvailableCoinsList = new CoinListViewModel(AvailableCoins, (first, second) => second.Amount.CompareTo(first.Amount));
+			var queued = globalCoins.CreateDerivedCollection(c => c, c => c.CoinJoinInProgress);
 
-			QueuedCoinsList = new CoinListViewModel(QueuedCoins, (first, second) => second.Amount.CompareTo(first.Amount));
+			AvailableCoinsList = new CoinListViewModel(available);
+
+			QueuedCoinsList = new CoinListViewModel(queued);
 
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
@@ -68,18 +69,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _password; }
 			set { this.RaiseAndSetIfChanged(ref _password, value); }
-		}
-
-		public IReadOnlyCollection<CoinViewModel> AvailableCoins
-		{
-			get { return _availableCoins; }
-			set { this.RaiseAndSetIfChanged(ref _availableCoins, value); }
-		}
-
-		public IReadOnlyCollection<CoinViewModel> QueuedCoins
-		{
-			get { return _queuedCoins; }
-			set { this.RaiseAndSetIfChanged(ref _queuedCoins, value); }
 		}
 
 		public CoinListViewModel AvailableCoinsList
