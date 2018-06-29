@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -52,21 +54,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IsBusy = true;
 				try
 				{
-					//CoinList.SelectedCoins
-					//IsMax = use all selected coins.
-					// backend stuff here.
-
 					if (string.IsNullOrWhiteSpace(Label))
 					{
 						throw new InvalidOperationException("Label is required.");
+					}
+
+					var selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
+
+					if (!selectedCoins.Any())
+					{
+						throw new InvalidOperationException("No coins are selected to spend.");
 					}
 
 					var address = BitcoinAddress.Create(Address, Global.Network);
 					var script = address.ScriptPubKey;
 					var amount = IsMax ? Money.Zero : Money.Parse(Amount);
 					var operation = new WalletService.Operation(script, amount, Label);
-					var result = await Global.WalletService.BuildTransactionAsync(Password, new[] { operation }, Fee, allowUnconfirmed: true);
-					await Global.WalletService.SendTransactionAsync(result.Transaction);
+
+					var result = await Task.Run(async () => await Global.WalletService.BuildTransactionAsync(Password, new[] { operation }, Fee, allowUnconfirmed: true, allowedInputs: selectedCoins));
+
+					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(result.Transaction));
+
 					SuccessMessage = "Transaction is successfully sent!";
 					WarningMessage = "";
 				}

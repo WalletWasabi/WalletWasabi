@@ -12,24 +12,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class CoinViewModel : ViewModelBase
 	{
 		private bool _isSelected;
-		private SmartCoin _model;
 		private int _privacyLevel;
 		private string _history;
 
 		public CoinViewModel(SmartCoin model)
 		{
-			_model = model;
+			Model = model;
 
 			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmed));
 			});
-
-			History = "Calculate History";
 		}
 
-		public bool Confirmed => _model.Confirmed;
-		public int Confirmations => Global.IndexDownloader.BestHeight.Value - _model.Height.Value;
+		public SmartCoin Model { get; }
+
+		public bool Confirmed => Model.Confirmed;
+
+		public int Confirmations => Global.IndexDownloader.BestHeight.Value - Model.Height.Value;
 
 		public bool IsSelected
 		{
@@ -37,13 +37,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _isSelected, value); }
 		}
 
-		public Money Amount => _model.Amount;
+		public Money Amount => Model.Amount;
 
-		public string AmountBtc => _model.Amount.ToString(false, true);
+		public string AmountBtc => Model.Amount.ToString(false, true);
 
-		public string Label => _model.Label;
+		public string Label => Model.Label;
 
-		public int Height => _model.Height;
+		public int Height => Model.Height;
 
 		public int PrivacyLevel
 		{
@@ -51,11 +51,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _privacyLevel, value); }
 		}
 
-		public string TransactionId => _model.TransactionId.ToString();
+		public string TransactionId => Model.TransactionId.ToString();
 
-		public uint OutputIndex => _model.Index;
+		public uint OutputIndex => Model.Index;
 
-		public int AnonymitySet => _model.AnonymitySet;
+		public int AnonymitySet => Model.AnonymitySet;
 
 		public string History
 		{

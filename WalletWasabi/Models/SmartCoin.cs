@@ -16,6 +16,7 @@ namespace WalletWasabi.Models
 		private Height _height;
 		private string _label;
 		private uint256 _spenderTransactionId;
+		private bool _coinJoinInProcess;
 
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(Uint256JsonConverter))]
@@ -80,14 +81,19 @@ namespace WalletWasabi.Models
 				if (value != _spenderTransactionId)
 				{
 					var rememberSpentOrCoinJoinInProcess = SpentOrCoinJoinInProcess;
-					_spenderTransactionId = value;
 
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Label)));
-					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Unspent)));
+					if (_spenderTransactionId != value)
+					{
+						_spenderTransactionId = value;
+						RaisePropertyChanged();
+					}
+
+					RaisePropertyChanged(nameof(Label));
+					RaisePropertyChanged(nameof(Unspent));
 
 					if (rememberSpentOrCoinJoinInProcess != SpentOrCoinJoinInProcess)
 					{
-						PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SpentOrCoinJoinInProcess)));
+						RaisePropertyChanged(nameof(SpentOrCoinJoinInProcess));
 					}
 				}
 			}
@@ -102,7 +108,20 @@ namespace WalletWasabi.Models
 
 		[JsonProperty(Order = 10)]
 		[JsonConverter(typeof(FunnyBoolJsonConverter))]
-		public bool CoinJoinInProcess { get; set; }
+		public bool CoinJoinInProcess
+		{
+			get => _coinJoinInProcess;
+			set
+			{
+				if (_coinJoinInProcess != value)
+				{
+					_coinJoinInProcess = value;
+
+					RaisePropertyChanged();
+					RaisePropertyChanged(nameof(SpentOrCoinJoinInProcess));
+				}
+			}
+		}
 
 		/// <summary>
 		/// AnonymitySet - 1
@@ -173,6 +192,11 @@ namespace WalletWasabi.Models
 		public TxoRef GetTxoRef()
 		{
 			return new TxoRef(TransactionId, Index);
+		}
+
+		private void RaisePropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = "")
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
 		#region EqualityAndComparison
