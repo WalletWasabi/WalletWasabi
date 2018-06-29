@@ -78,7 +78,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
-					var newRecord = (found.height, found.amount + coin.Amount, $"{found.label}, {coin.Label}", coin.TransactionId);
+					var foundLabel = found.label != string.Empty ? found.label + ", " : "";
+					var newRecord = (found.height, found.amount + coin.Amount, $"{foundLabel}{coin.Label}", coin.TransactionId);
 					txRecordList.Add(newRecord);
 				}
 				else
