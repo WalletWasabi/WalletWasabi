@@ -15,27 +15,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SmartCoin _model;
 		private int _privacyLevel;
 		private string _history;
-		private CoinListViewModelBase _owner;
 
-		public CoinViewModel(CoinListViewModelBase owner, SmartCoin model)
+		public CoinViewModel(SmartCoin model)
 		{
 			_model = model;
-			_owner = owner;
-
-			this.WhenAnyValue(x => x.IsSelected).Subscribe(selected =>
-			{
-				if (selected)
-				{
-					if (!_owner.SelectedCoins.Contains(this))
-					{
-						_owner.SelectedCoins.Add(this);
-					}
-				}
-				else
-				{
-					_owner.SelectedCoins.Remove(this);
-				}
-			});
 
 			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
 			{
@@ -43,17 +26,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			History = "Calculate History";
-		}
-
-		public void ChangeOwner(CoinListViewModelBase newOwner)
-		{
-			var selected = IsSelected;
-
-			IsSelected = false;
-
-			_owner = newOwner;
-
-			IsSelected = selected;
 		}
 
 		public bool Confirmed => _model.Confirmed;
