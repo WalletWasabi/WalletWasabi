@@ -1146,9 +1146,6 @@ namespace WalletWasabi.Tests
 				new WalletService.Operation(scp, -10000, "") };
 			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2));
 
-			// toSend ammount sum has to be less than ulong.MaxValue
-			await Assert.ThrowsAsync<OverflowException>(async () => await wallet.BuildTransactionAsync(null, overflowOperationList, 2));
-
 			// allowedInputs cannot be empty
 			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2, false, null, null, new TxoRef[0]));
 
@@ -1188,7 +1185,7 @@ namespace WalletWasabi.Tests
 
 				// subtract Fee from amount index with no enough money
 				operations = new[]{
-					new WalletService.Operation(scp,  Money.Satoshis(1m), ""),
+					new WalletService.Operation(scp,  Money.Coins(1m), ""),
 					new WalletService.Operation(scp, Money.Coins(0.5m), "") };
 				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(password, operations, 2, false, 0));
 

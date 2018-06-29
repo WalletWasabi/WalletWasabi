@@ -6,6 +6,7 @@ using ReactiveUI;
 using WalletWasabi.Models;
 using NBitcoin;
 using System.Reactive.Linq;
+using System.Linq;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -13,12 +14,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private bool _isSelected;
 		private int _privacyLevel;
-		private string _history;
+		private List<string> _history;
 
 		public CoinViewModel(SmartCoin model)
 		{
 			Model = model;
 
+			_history = new List<string>();
 			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmed));
@@ -73,10 +75,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProcess ? "Yes" : "No";
 
-		public string History
-		{
-			get { return _history; }
-			set { this.RaiseAndSetIfChanged(ref _history, value); }
-		}
+		public List<string> History => Model.SpentOutputs.Select(x=>x.ToOutPoint().ToString()).ToList();
 	}
 }
