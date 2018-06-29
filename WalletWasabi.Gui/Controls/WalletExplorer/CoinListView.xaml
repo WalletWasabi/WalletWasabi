@@ -13,52 +13,40 @@
             <Setter Property="ToolTip.Tip">
                 <Setter.Value>
                     <Template>
-                        <StackPanel Gap="4" MaxWidth="800">
-                            <StackPanel Orientation="Horizontal" Gap="4">
-                                <TextBlock Text="Confirmations:" />
-                                <TextBlock Text="{Binding Confirmations}" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Gap="4">
-                                <TextBlock Text="Height:" />
-                                <TextBlock Text="{Binding Height}" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Gap="4">
-                                <TextBlock Text="Amount:" />
-                                <TextBlock Text="{Binding AmountBtc}" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Gap="4">
-                                <TextBlock Text="Label:" />
-                                <TextBlock Text="{Binding Label}" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Gap="4">
-                                <TextBlock Text="Output Index:" />
-                                <TextBlock Text="{Binding OutputIndex}" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Gap="4">
-                                <TextBlock Text="Transaction Id:" />
-                                <TextBlock Text="{Binding TransactionId}" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Gap="4">
-                                <TextBlock Text="Privacy:" />
-                                <TextBlock Text="{Binding PrivacyLevel, Converter={StaticResource PrivacyLevelValueConverter}}" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Gap="4">
-                                <TextBlock Text="Anonymity Set:" />
-                                <TextBlock Text="{Binding AnonymitySet}" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Gap="4">
-                                <TextBlock Text="CoinJoin In Progress:" />
-                                <TextBlock Text="{Binding InCoinJoin}" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Gap="4">
-                                <TextBlock Text="History:" />
-                                <TextBlock Text="{Binding History}" TextWrapping="Wrap" />
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Gap="4">
-                                <TextBlock Text="Spent Outputs:" />
-                                <TextBlock Text="{Binding SpentOutputs}" TextWrapping="Wrap" />
-                            </StackPanel>
-                        </StackPanel>
+                        <Grid ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800">
+                            <TextBlock Text="Confirmations:" Grid.Row="0" />
+                            <TextBlock Text="{Binding Confirmations}" Grid.Row="0" Grid.Column="1" />
+
+                            <TextBlock Text="Height:" Grid.Row="1" />
+                            <TextBlock Text="{Binding Height}"  Grid.Column="1" Grid.Row="1" />
+
+                            <TextBlock Text="Amount:" Grid.Row="2" />
+                            <TextBlock Text="{Binding AmountBtc}"  Grid.Column="1" Grid.Row="2" />
+
+                            <TextBlock Text="Label:" Grid.Row="3" />
+                            <TextBlock Text="{Binding Label}"  Grid.Column="1" Grid.Row="3" />
+
+                            <TextBlock Text="Output Index:" Grid.Row="4" />
+                            <TextBlock Text="{Binding OutputIndex}"  Grid.Column="1" Grid.Row="4" />
+
+                            <TextBlock Text="Transaction Id:" Grid.Row="5" />
+                            <TextBlock Text="{Binding TransactionId}"  Grid.Column="1" Grid.Row="5" />
+
+                            <TextBlock Text="Privacy:" Grid.Row="6" />
+                            <TextBlock Text="{Binding PrivacyLevel, Converter={StaticResource PrivacyLevelValueConverter}}"  Grid.Column="1" Grid.Row="6" />
+
+                            <TextBlock Text="Anonymity Set:" Grid.Row="7" />
+                            <TextBlock Text="{Binding AnonymitySet}"  Grid.Column="1" Grid.Row="7" />
+
+                            <TextBlock Text="CoinJoin In Progress:" Grid.Row="8" />
+                            <TextBlock Text="{Binding InCoinJoin}"  Grid.Column="1" Grid.Row="8" />
+
+                            <TextBlock Text="History:" Grid.Row="9" />
+                            <TextBlock Text="{Binding History}" TextWrapping="Wrap"  Grid.Column="1" Grid.Row="9" />
+
+                            <TextBlock Text="Spent Outputs:" Grid.Row="10" />
+                            <TextBlock Text="{Binding SpentOutputs}" TextWrapping="Wrap"  Grid.Column="1" Grid.Row="10" />
+                        </Grid>
                     </Template>
                 </Setter.Value>
             </Setter>
