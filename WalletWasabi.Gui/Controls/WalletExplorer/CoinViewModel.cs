@@ -57,7 +57,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public int AnonymitySet => Model.AnonymitySet;
 
-		public string InCoinJoin => _model.CoinJoinInProcess ? "Yes" : "No";
+		public string InCoinJoin => Model.CoinJoinInProcess ? "Yes" : "No";
 
 		public string History
 		{
