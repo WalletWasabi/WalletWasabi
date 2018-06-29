@@ -50,6 +50,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _privacyLevel, value); }
 		}
 
+		public string TransactionId => _model.TransactionId.ToString();
+		
 		public string History
 		{
 			get { return _history; }
