@@ -10,7 +10,18 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is int integer)
 			{
-				return "20 minutes - 7 days";
+				if (integer >= 2 && integer <= 6) // minutes
+				{
+					return $"Minutes";
+				}
+				if (integer >= 7 && integer <= 144) // hours
+				{
+					return "Hours";
+				}
+				if (integer >= 145 && integer <= 1008) // days
+				{
+					return "Days";
+				}
 			}
 
 			throw new InvalidOperationException();

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -17,9 +19,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _fee;
 		private string _password;
 		private string _address;
+		private string _label;
 		private bool _isBusy;
-		private const string BuildTransactionButtonTextString = "Build Transaction";
-		private const string BuildingTransactionButtonTextString = "Building Transaction";
+		private string _warningMessage;
+		private string _successMessage;
+		private const string BuildTransactionButtonTextString = "Send Transaction";
+		private const string BuildingTransactionButtonTextString = "Sending Transaction...";
 
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
@@ -47,14 +52,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IsBusy = true;
 				try
 				{
-					await Task.Delay(5000);
-
 					//CoinList.SelectedCoins
 					//IsMax = use all selected coins.
 					// backend stuff here.
+
+					if (string.IsNullOrWhiteSpace(Label))
+					{
+						throw new InvalidOperationException("Label is required.");
+					}
+
+					var address = BitcoinAddress.Create(Address, Global.Network);
+					var script = address.ScriptPubKey;
+					var amount = IsMax ? Money.Zero : Money.Parse(Amount);
+					var operation = new WalletService.Operation(script, amount, Label);
+					var result = await Global.WalletService.BuildTransactionAsync(Password, new[] { operation }, Fee, allowUnconfirmed: true);
+					await Global.WalletService.SendTransactionAsync(result.Transaction);
+					SuccessMessage = "Transaction is successfully sent!";
+					WarningMessage = "";
 				}
-				catch
+				catch (Exception ex)
 				{
+					SuccessMessage = "";
+					WarningMessage = $"FAILED: {ex.ToTypeMessageString()}";
 				}
 				finally
 				{
@@ -137,6 +156,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _address; }
 			set { this.RaiseAndSetIfChanged(ref _address, value); }
+		}
+
+		public string Label
+		{
+			get { return _label; }
+			set { this.RaiseAndSetIfChanged(ref _label, value); }
+		}
+
+		public string WarningMessage
+		{
+			get { return _warningMessage; }
+			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
+		}
+
+		public string SuccessMessage
+		{
+			get { return _successMessage; }
+			set { this.RaiseAndSetIfChanged(ref _successMessage, value); }
 		}
 
 		public ReactiveCommand BuildTransactionCommand { get; }
