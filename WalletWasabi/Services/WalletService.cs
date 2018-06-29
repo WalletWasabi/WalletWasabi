@@ -571,6 +571,10 @@ namespace WalletWasabi.Services
 			{
 				throw new ArgumentException($"{nameof(toSend)} cannot contain negative element.");
 			}
+			if (toSend.Any(x => x.Amount != Money.Zero && x.Amount < new Money(0.00001m, MoneyUnit.BTC)))
+			{
+				throw new InvalidOperationException($"Sanity check failed. One of the output is < 0.00001 BTC.");
+			}
 
 			long sum = toSend.Select(x => x.Amount).Sum().Satoshi;
 			if (sum < 0 || sum > Constants.MaximumNumberOfSatoshis)
@@ -858,6 +862,7 @@ namespace WalletWasabi.Services
 			}
 
 			ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));
+			MemPool.TransactionHashes.Add(transaction.GetHash());
 
 			Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted: {transaction.GetHash()}.");
 		}

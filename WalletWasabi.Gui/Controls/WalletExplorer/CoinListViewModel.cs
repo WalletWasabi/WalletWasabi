@@ -16,7 +16,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CoinViewModel _selectedCoin;
 		private double _clipboardNotificationOpacity;
 		private bool _clipboardNotificationVisible;
-		private long _disableClipboard;
 
 		public CoinListViewModel(IEnumerable<CoinViewModel> coins, Func<CoinViewModel, CoinViewModel, int> orderer = null)
 		{

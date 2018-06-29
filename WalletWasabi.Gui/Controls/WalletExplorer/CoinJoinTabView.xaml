@@ -6,8 +6,8 @@
     <UserControl.Resources>
         <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
     </UserControl.Resources>
-    <Grid RowDefinitions="*,200,*">
-        <controls:GroupBox Title="Coins" TextBlock.FontSize="30" Padding="20" Margin="10">
+    <Grid RowDefinitions="4*,3*,4*">
+        <controls:GroupBox Title="Coins" TextBlock.FontSize="30" Padding="20 20 20 10" Margin="10 5 10 5">
             <Grid Classes="content">
                 <DockPanel LastChildFill="True">
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Gap="4">
@@ -19,12 +19,12 @@
             </Grid>
         </controls:GroupBox>
 
-        <controls:GroupBox Title="Status" TextBlock.FontSize="30" Padding="20" Margin="10" Grid.Row="1">
+        <controls:GroupBox Title="Status" TextBlock.FontSize="30" Padding="20" Margin="10 5 10 5" Grid.Row="1">
             <Grid Classes="content">
             </Grid>
         </controls:GroupBox>
 
-        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10" Grid.Row="2">
+        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20 20 20 10" Margin="10 5" Grid.Row="2">
             <Grid Classes="content">
                 <DockPanel LastChildFill="True">
                     <Button DockPanel.Dock="Bottom" Content="Dequeue" Command="{Binding DequeueCommand}" />

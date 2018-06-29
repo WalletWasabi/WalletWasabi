@@ -1037,7 +1037,7 @@ namespace WalletWasabi.Tests
 
 				#endregion AllowedInputsDisallowUnconfirmed
 
-				#region custom change
+				#region CustomChange
 
 				// covers:
 				// customchange
@@ -1052,7 +1052,7 @@ namespace WalletWasabi.Tests
 				Logger.LogDebug<RegTests>($"Active Output: {activeOutput.Amount.ToString(false, true)} {activeOutput.ScriptPubKey.GetDestinationAddress(network)}");
 				Logger.LogDebug<RegTests>($"TxId: {res.Transaction.GetHash()}");
 
-				#endregion custom change
+				#endregion CustomChange
 			}
 			finally
 			{

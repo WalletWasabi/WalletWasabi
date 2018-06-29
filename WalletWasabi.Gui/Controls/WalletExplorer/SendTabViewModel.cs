@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					SuccessMessage = "";
-					WarningMessage = $"FAILED: {ex.ToTypeMessageString()}";
+					WarningMessage = ex.ToTypeMessageString();
 				}
 				finally
 				{
