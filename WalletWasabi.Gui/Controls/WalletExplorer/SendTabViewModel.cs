@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			// TODO reset on item properties changing?
 
 			CoinList = new CoinListViewModel(
-			Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), c => !c.SpentOrCoinJoinInProcess, signalReset: onCoinsSetModified));
+				Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), c => !c.SpentOrCoinJoinInProcess, signalReset: onCoinsSetModified));
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
@@ -81,7 +81,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					SuccessMessage = "";
-					WarningMessage = $"FAILED: {ex.ToTypeMessageString()}";
+					WarningMessage = ex.ToTypeMessageString();
 				}
 				finally
 				{
