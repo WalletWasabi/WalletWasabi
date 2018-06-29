@@ -24,9 +24,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				this.RaisePropertyChanged(nameof(Confirmed));
 			});
-
-			History = "Calculate History";
 		}
+
+		public SmartCoin Model => _model;
 
 		public bool Confirmed => _model.Confirmed;
 
@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public string TransactionId => _model.TransactionId.ToString();
-		
+
 		public string History
 		{
 			get { return _history; }
