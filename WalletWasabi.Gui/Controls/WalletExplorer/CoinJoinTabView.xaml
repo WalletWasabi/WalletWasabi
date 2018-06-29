@@ -10,7 +10,10 @@
         <controls:GroupBox Title="Coins" TextBlock.FontSize="30" Padding="20" Margin="10">
             <Grid Classes="content">
                 <DockPanel LastChildFill="True">
-                    <Button DockPanel.Dock="Bottom" Content="Enqueue" Command="{Binding EnqueueCommand}" />
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Gap="4">
+                        <Button Content="Enqueue" Command="{Binding EnqueueCommand}" />
+                        <TextBox PasswordChar="*" Text="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
+                    </StackPanel>
                     <local:CoinListView DataContext="{Binding AvailableCoinsList}" />
                 </DockPanel>
             </Grid>

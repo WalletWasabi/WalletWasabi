@@ -27,5 +27,13 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			IoC.Get<IShell>().RemoveDocument(this);
 		}
+
+		public virtual void OnSelected()
+		{
+		}
+
+		public virtual void OnDeselected()
+		{
+		}
 	}
 }

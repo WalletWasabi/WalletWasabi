@@ -12,51 +12,71 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private CoinListViewModel _availableCoinsList;
 		private CoinListViewModel _queuedCoinsList;
-		private ObservableCollection<CoinViewModel> _availableCoins;
-		private ObservableCollection<CoinViewModel> _queuedCoins;
+		private IReadOnlyCollection<CoinViewModel> _availableCoins;
+		private IReadOnlyCollection<CoinViewModel> _queuedCoins;
+		private string _password;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
-			AvailableCoins = new ObservableCollection<CoinViewModel>(Global.WalletService.Coins.Where(c => !c.SpentOrCoinJoinInProcess)
-				.Select(c => new CoinViewModel(c)));
+			Password = "";
 
-			QueuedCoins = new ObservableCollection<CoinViewModel>();
+			AvailableCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), c => !c.SpentOrCoinJoinInProcess && c.Confirmed, null, RxApp.MainThreadScheduler);
 
-			AvailableCoinsList = new CoinListViewModel(AvailableCoins);
+			QueuedCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), c => c.CoinJoinInProcess, null, RxApp.MainThreadScheduler);
 
-			QueuedCoinsList = new CoinListViewModel(QueuedCoins);
+			AvailableCoinsList = new CoinListViewModel(AvailableCoins, (first, second) => second.Amount.CompareTo(first.Amount));
 
-			EnqueueCommand = ReactiveCommand.Create(() =>
+			QueuedCoinsList = new CoinListViewModel(QueuedCoins, (first, second) => second.Amount.CompareTo(first.Amount));
+
+			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
-				var toMove = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
+				var selectedCoins = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
 
-				foreach (var coin in toMove)
+				foreach (var coin in selectedCoins)
 				{
-					AvailableCoins.Remove(coin);
-					QueuedCoins.Add(coin);
+					coin.IsSelected = false;
 				}
+
+				await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
 			});
 
-			DequeueCommand = ReactiveCommand.Create(() =>
+			DequeueCommand = ReactiveCommand.Create(async () =>
 			{
-				var toMove = QueuedCoinsList.Coins.Where(c => c.IsSelected).ToList();
+				var selectedCoins = QueuedCoinsList.Coins.Where(c => c.IsSelected).ToList();
 
-				foreach (var coin in toMove)
+				foreach (var coin in selectedCoins)
 				{
-					QueuedCoins.Remove(coin);
-					AvailableCoins.Add(coin);
+					coin.IsSelected = false;
 				}
+
+				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
 			});
 		}
 
-		public ObservableCollection<CoinViewModel> AvailableCoins
+		public override void OnSelected()
+		{
+			Global.ChaumianClient.ActivateFrequentStatusProcessing();
+		}
+
+		public override void OnDeselected()
+		{
+			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
+		}
+
+		public string Password
+		{
+			get { return _password; }
+			set { this.RaiseAndSetIfChanged(ref _password, value); }
+		}
+
+		public IReadOnlyCollection<CoinViewModel> AvailableCoins
 		{
 			get { return _availableCoins; }
 			set { this.RaiseAndSetIfChanged(ref _availableCoins, value); }
 		}
 
-		public ObservableCollection<CoinViewModel> QueuedCoins
+		public IReadOnlyCollection<CoinViewModel> QueuedCoins
 		{
 			get { return _queuedCoins; }
 			set { this.RaiseAndSetIfChanged(ref _queuedCoins, value); }

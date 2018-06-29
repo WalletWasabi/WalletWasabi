@@ -18,10 +18,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _clipboardNotificationVisible;
 		private long _disableClipboard;
 
-		public CoinListViewModel(IEnumerable<CoinViewModel> coins)
+		public CoinListViewModel(IEnumerable<CoinViewModel> coins, Func<CoinViewModel, CoinViewModel, int> orderer = null)
 		{
-			Coins = coins.CreateDerivedCollection(c => c, null, (first, second) => 
-				first.Amount.CompareTo(second.Amount), RxApp.MainThreadScheduler);
+			Coins = coins.CreateDerivedCollection(c => c, null, orderer, RxApp.MainThreadScheduler);
 
 			this.WhenAnyValue(x => x.SelectedCoin).Subscribe(async coin =>
 			{

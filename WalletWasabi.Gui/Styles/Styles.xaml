@@ -12,7 +12,7 @@
 
             <sys:Double x:Key="FontSizeSmall">12</sys:Double>
             <sys:Double x:Key="FontSizeNormal">14</sys:Double>
-            <sys:Double x:Key="FontSizeLarge">18</sys:Double>
+            <sys:Double x:Key="FontSizeLarge">16</sys:Double>
         </Style.Resources>
     </Style>
     <Style Selector="TextBox.selectableTextBlock">
