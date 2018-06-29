@@ -14,14 +14,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private bool _isSelected;
 		private int _privacyLevel;
-		private List<string> _history;
+		private string _history;
 
 		public CoinViewModel(SmartCoin model)
 		{
 			Model = model;
 
-			_history = new List<string>();
-			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmed));
 			});
@@ -75,6 +74,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProcess ? "Yes" : "No";
 
-		public List<string> History => Model.SpentOutputs.Select(x=>x.ToOutPoint().ToString()).ToList();
+		public string History
+		{
+			get { return _history; }
+			set { this.RaiseAndSetIfChanged(ref _history, value); }
+		}
 	}
 }
