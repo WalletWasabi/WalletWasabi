@@ -69,7 +69,7 @@
                             Duration="0:0:0.5" />
                     </Transitions>
                 </Grid.Transitions>
-                <TextBlock Text="Address Copied to Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <TextBlock Text="Transaction ID Copied to Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
             </Grid>
         </Grid>    
         <Grid ColumnDefinitions="60,100,100,600,100,Auto" Margin="5 0" DockPanel.Dock="Top">
