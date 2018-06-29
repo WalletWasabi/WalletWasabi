@@ -21,6 +21,7 @@ using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using WalletWasabi.WebClients.ChaumianCoinJoin;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace WalletWasabi.Services
 {
@@ -259,11 +260,9 @@ namespace WalletWasabi.Services
 		{
 			var keys = KeyManager.GetKeys().ToList();
 
-			foreach (var tx in block.Transactions)
-			{
-				ProcessTransaction(new SmartTransaction(tx, height), keys);
-			}
-
+			Parallel.ForEach(block.Transactions, (tx)=>
+				ProcessTransaction(new SmartTransaction(tx, height), keys)
+			);
 			ProcessedBlocks.Add(block.GetHash());
 
 			NewBlockProcessed?.Invoke(this, block);
