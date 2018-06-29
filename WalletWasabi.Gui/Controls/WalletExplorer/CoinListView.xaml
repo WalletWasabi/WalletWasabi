@@ -42,8 +42,7 @@
                             <TextBlock Text="{Binding InCoinJoin}"  Grid.Column="1" Grid.Row="8" />
 
                             <TextBlock Text="History:" Grid.Row="9" />
-                            <ItemsControl Items="{Binding History}" Grid.Column="1" Grid.Row="9"/>
-                        </Grid>
+                            <TextBlock Text="{Binding History}" TextWrapping="Wrap"  Grid.Column="1" Grid.Row="9" />                        </Grid>
                     </Template>
                 </Setter.Value>
             </Setter>
@@ -85,7 +84,7 @@
                         <TextBlock Grid.Column="2" Text="{Binding AmountBtc}" />
                         <TextBlock Grid.Column="3" Text="{Binding Label}" />
                         <TextBlock Grid.Column="4" Text="{Binding PrivacyLevel, Converter={StaticResource PrivacyLevelValueConverter}}" Margin="20 0 0 0" />
-                        <TextBlock Text="" Grid.Column="5" />
+                        <TextBlock Text="{Binding History}" Grid.Column="5" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
