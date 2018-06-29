@@ -9,44 +9,6 @@
         <Style Selector="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        <Style Selector="ListBoxItem">
-            <Setter Property="ToolTip.Tip">
-                <Setter.Value>
-                    <Template>
-                        <Grid ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800">
-                            <TextBlock Text="Confirmations:" Grid.Row="0" />
-                            <TextBlock Text="{Binding Confirmations}" Grid.Row="0" Grid.Column="1" />
-
-                            <TextBlock Text="Height:" Grid.Row="1" />
-                            <TextBlock Text="{Binding Height}"  Grid.Column="1" Grid.Row="1" />
-
-                            <TextBlock Text="Amount:" Grid.Row="2" />
-                            <TextBlock Text="{Binding AmountBtc}"  Grid.Column="1" Grid.Row="2" />
-
-                            <TextBlock Text="Label:" Grid.Row="3" />
-                            <TextBlock Text="{Binding Label}"  Grid.Column="1" Grid.Row="3" />
-
-                            <TextBlock Text="Output Index:" Grid.Row="4" />
-                            <TextBlock Text="{Binding OutputIndex}"  Grid.Column="1" Grid.Row="4" />
-
-                            <TextBlock Text="Transaction Id:" Grid.Row="5" />
-                            <TextBlock Text="{Binding TransactionId}"  Grid.Column="1" Grid.Row="5" />
-
-                            <TextBlock Text="Privacy:" Grid.Row="6" />
-                            <TextBlock Text="{Binding PrivacyLevel, Converter={StaticResource PrivacyLevelValueConverter}}"  Grid.Column="1" Grid.Row="6" />
-
-                            <TextBlock Text="Anonymity Set:" Grid.Row="7" />
-                            <TextBlock Text="{Binding AnonymitySet}"  Grid.Column="1" Grid.Row="7" />
-
-                            <TextBlock Text="CoinJoin In Progress:" Grid.Row="8" />
-                            <TextBlock Text="{Binding InCoinJoin}"  Grid.Column="1" Grid.Row="8" />
-
-                            <TextBlock Text="History:" Grid.Row="9" />
-                            <TextBlock Text="{Binding History}" TextWrapping="Wrap"  Grid.Column="1" Grid.Row="9" />                        </Grid>
-                    </Template>
-                </Setter.Value>
-            </Setter>
-        </Style>
         <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
         </Style>
@@ -68,7 +30,7 @@
                 <TextBlock Text="Transaction ID Copied to Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
             </Grid>
         </Grid>    
-        <Grid ColumnDefinitions="60,100,100,600,100,Auto" Margin="5 0" DockPanel.Dock="Top">
+        <Grid ColumnDefinitions="60,100,100,600,100,Auto" Margin="35 0" DockPanel.Dock="Top">
             <TextBlock Text="Select" />
             <TextBlock Text="Confirmed" Grid.Column="1" />
             <TextBlock Text="Amount" Grid.Column="2" />
@@ -78,13 +40,50 @@
         <ListBox Items="{Binding Coins}" SelectedItem="{Binding SelectedCoin}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Grid ColumnDefinitions="60,100,100,600,100,Auto">
-                        <CheckBox IsChecked="{Binding IsSelected}" />
-                        <Path Grid.Column="1" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" IsVisible="{Binding Confirmed}" Stretch="Fill" />
-                        <TextBlock Grid.Column="2" Text="{Binding AmountBtc}" />
-                        <TextBlock Grid.Column="3" Text="{Binding Label}" />
-                        <TextBlock Grid.Column="4" Text="{Binding PrivacyLevel, Converter={StaticResource PrivacyLevelValueConverter}}" Margin="20 0 0 0" />
-                        <TextBlock Text="{Binding History}" Grid.Column="5" />
+                    <Grid>
+                        <Expander ExpandDirection="Down">
+                            <StackPanel Background="#FFFEFEFE">
+                                <Grid ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800">
+                                    <TextBlock Text="Confirmations:" Grid.Row="0" />
+                                    <TextBlock Text="{Binding Confirmations}" Grid.Row="0" Grid.Column="1" />
+
+                                    <TextBlock Text="Height:" Grid.Row="1" />
+                                    <TextBlock Text="{Binding Height}"  Grid.Column="1" Grid.Row="1" />
+
+                                    <TextBlock Text="Amount:" Grid.Row="2" />
+                                    <TextBlock Text="{Binding AmountBtc}"  Grid.Column="1" Grid.Row="2" />
+
+                                    <TextBlock Text="Label:" Grid.Row="3" />
+                                    <TextBlock Text="{Binding Label}"  Grid.Column="1" Grid.Row="3" />
+
+                                    <TextBlock Text="Output Index:" Grid.Row="4" />
+                                    <TextBlock Text="{Binding OutputIndex}"  Grid.Column="1" Grid.Row="4" />
+
+                                    <TextBlock Text="Transaction Id:" Grid.Row="5" />
+                                    <TextBlock Text="{Binding TransactionId}"  Grid.Column="1" Grid.Row="5" />
+
+                                    <TextBlock Text="Privacy:" Grid.Row="6" />
+                                    <TextBlock Text="{Binding PrivacyLevel, Converter={StaticResource PrivacyLevelValueConverter}}"  Grid.Column="1" Grid.Row="6" />
+
+                                    <TextBlock Text="Anonymity Set:" Grid.Row="7" />
+                                    <TextBlock Text="{Binding AnonymitySet}"  Grid.Column="1" Grid.Row="7" />
+
+                                    <TextBlock Text="CoinJoin In Progress:" Grid.Row="8" />
+                                    <TextBlock Text="{Binding InCoinJoin}"  Grid.Column="1" Grid.Row="8" />
+
+                                    <TextBlock Text="History:" Grid.Row="9" />
+                                    <ItemsControl Items="{Binding History}" Grid.Column="1" Grid.Row="9"/>
+                                </Grid>
+                            </StackPanel>
+                        </Expander>
+                        <Grid ColumnDefinitions="60,100,100,600,100,Auto" Margin="30 0 0 0" VerticalAlignment="Top">
+                            <CheckBox IsChecked="{Binding IsSelected}" />
+                            <Path Grid.Column="1" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" IsVisible="{Binding Confirmed}" Stretch="Fill" />
+                            <TextBlock Grid.Column="2" Text="{Binding AmountBtc}" />
+                            <TextBlock Grid.Column="3" Text="{Binding Label}" />
+                            <TextBlock Grid.Column="4" Text="{Binding PrivacyLevel, Converter={StaticResource PrivacyLevelValueConverter}}" Margin="20 0 0 0" />
+                            <TextBlock Text="" Grid.Column="5" />
+                        </Grid>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
