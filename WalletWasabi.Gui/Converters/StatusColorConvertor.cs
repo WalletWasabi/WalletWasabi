@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			switch (parameter.ToString())
+			switch (parameter?.ToString())
 			{
 				case "Tor" when Enum.Parse<TorStatus>(value.ToString()) == TorStatus.NotRunning:
 				case "Backend" when Enum.Parse<BackendStatus>(value.ToString()) == BackendStatus.NotConnected:

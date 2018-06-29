@@ -34,7 +34,8 @@
                             </DrawingPresenter.Drawing>
                         </DrawingPresenter>
                     </Grid>
-                    <TextBlock>Tor:</TextBlock>
+                    <!-- TODO: use StringFormat once its supported by Avalonia -->
+                    <TextBlock Foreground="{Binding Tor, ConverterParameter=Tor, Converter={StaticResource StatusColorConvertor}}">Tor:</TextBlock>
                     <TextBlock Text="{Binding Tor}" Foreground="{Binding Tor, ConverterParameter=Tor, Converter={StaticResource StatusColorConvertor}}" />
                 </StackPanel>
 
@@ -65,7 +66,8 @@
                             </DrawingPresenter.Drawing>
                         </DrawingPresenter>
                     </Grid>
-                    <TextBlock>Backend:</TextBlock>
+                    <!-- TODO: use StringFormat once its supported by Avalonia -->
+                    <TextBlock Foreground="{Binding Backend, ConverterParameter=Backend, Converter={StaticResource StatusColorConvertor}}">Backend:</TextBlock>
                     <TextBlock Text="{Binding Backend}" Foreground="{Binding Backend, ConverterParameter=Backend, Converter={StaticResource StatusColorConvertor}}" />
                 </StackPanel>
 
@@ -84,7 +86,8 @@
                             </DrawingPresenter.Drawing>
                         </DrawingPresenter>
                     </Grid>
-                    <TextBlock>Peers:</TextBlock>
+                    <!-- TODO: use StringFormat once its supported by Avalonia -->
+                    <TextBlock Foreground="{Binding Peers, ConverterParameter=Peers, Converter={StaticResource StatusColorConvertor}}">Peers:</TextBlock>
                     <TextBlock Text="{Binding Peers}" Foreground="{Binding Peers, ConverterParameter=Peers, Converter={StaticResource StatusColorConvertor}}" />
                 </StackPanel>
 
@@ -103,7 +106,8 @@
                             </DrawingPresenter.Drawing>
                         </DrawingPresenter>
                     </Grid>
-                    <TextBlock>Filters Left:</TextBlock>
+                    <!-- TODO: use StringFormat once its supported by Avalonia -->
+                    <TextBlock Foreground="{Binding FiltersLeft, ConverterParameter=FiltersLeft, Converter={StaticResource StatusColorConvertor}}">Filters Left:</TextBlock>
                     <TextBlock Text="{Binding FiltersLeft, Converter={StaticResource FilterLeftValueConverter}}" Foreground="{Binding FiltersLeft, ConverterParameter=FiltersLeft, Converter={StaticResource StatusColorConvertor}}" />
                 </StackPanel>
 
@@ -124,7 +128,8 @@
                             </DrawingPresenter.Drawing>
                         </DrawingPresenter>
                     </Grid>
-                    <TextBlock>Blocks Left:</TextBlock>
+                    <!-- TODO: use StringFormat once its supported by Avalonia -->
+                    <TextBlock Foreground="{Binding BlocksLeft, ConverterParameter=BlocksLeft, Converter={StaticResource StatusColorConvertor}}">Blocks Left:</TextBlock>
                     <TextBlock Text="{Binding BlocksLeft}" Foreground="{Binding BlocksLeft, ConverterParameter=BlocksLeft, Converter={StaticResource StatusColorConvertor}}" />
                 </StackPanel>
 
