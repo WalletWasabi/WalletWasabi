@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ReactiveUI;
@@ -8,7 +9,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class SendTabViewModel : WalletActionViewModel
 	{
-		private ReadOnlyCoinListViewModel _coinList;
+		private CoinListViewModel _coinList;
 		private string _buildTransactionButtonText;
 		private bool _isMax;
 		private string _amount;
@@ -23,7 +24,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
-			CoinList = new ReadOnlyCoinListViewModel(Global.WalletService.Coins);
+			var onCoinsSetModified = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
+				.ObserveOn(RxApp.MainThreadScheduler);
+
+			// TODO reset on item properties changing?
+
+			CoinList = new CoinListViewModel(
+			Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), c => !c.SpentOrCoinJoinInProcess, signalReset: onCoinsSetModified));
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
@@ -84,7 +91,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_ignoreAmountChanges = false;
 		}
 
-		public ReadOnlyCoinListViewModel CoinList
+		public CoinListViewModel CoinList
 		{
 			get { return _coinList; }
 			set { this.RaiseAndSetIfChanged(ref _coinList, value); }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
@@ -25,7 +26,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			_addresses = new ObservableCollection<AddressViewModel>();
 
-			Global.WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(o =>
+			{
+				InitializeAddresses();
+			});
 
 			InitializeAddresses();
 
@@ -63,11 +69,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					});
 				}
 			});
-		}
-
-		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-		{
-			Dispatcher.UIThread.InvokeAsync(() => InitializeAddresses());
 		}
 
 		private void InitializeAddresses()
