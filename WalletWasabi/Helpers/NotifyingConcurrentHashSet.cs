@@ -1,22 +1,21 @@
-﻿using System.Collections.Generic;
-using System.Collections.Specialized;
-using ConcurrentCollections;
+﻿using ConcurrentCollections;
+using System.Collections.Generic;
 
 namespace System.Collections.ObjectModel
 {
-	public class ConcurrentObservableHashSet<T> : INotifyCollectionChanged, IReadOnlyCollection<T>
+	public class NotifyingConcurrentHashSet<T> : IReadOnlyCollection<T>
 	{
 		protected ConcurrentHashSet<T> ConcurrentHashSet { get; }
 
+		public event EventHandler HashSetChanged;
+
 		private object Lock { get; }
 
-		public ConcurrentObservableHashSet()
+		public NotifyingConcurrentHashSet()
 		{
 			ConcurrentHashSet = new ConcurrentHashSet<T>();
 			Lock = new object();
 		}
-
-		public event NotifyCollectionChangedEventHandler CollectionChanged;
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -28,7 +27,7 @@ namespace System.Collections.ObjectModel
 			{
 				if (ConcurrentHashSet.Add(item))
 				{
-					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, Count - 1));
+					HashSetChanged?.Invoke(this, EventArgs.Empty);
 					return true;
 				}
 				return false;
@@ -42,7 +41,7 @@ namespace System.Collections.ObjectModel
 				if (ConcurrentHashSet.Count > 0)
 				{
 					ConcurrentHashSet.Clear();
-					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+					HashSetChanged?.Invoke(this, EventArgs.Empty);
 				}
 			}
 		}
@@ -55,12 +54,7 @@ namespace System.Collections.ObjectModel
 			{
 				if (ConcurrentHashSet.TryRemove(item))
 				{
-					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-
-					foreach (var hash in ConcurrentHashSet)
-					{
-						CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, hash, Count - 1));
-					}
+					HashSetChanged?.Invoke(this, EventArgs.Empty);
 					return true;
 				}
 				return false;
