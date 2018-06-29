@@ -29,6 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public bool Confirmed => _model.Confirmed;
+		public int Confirmations => Global.IndexDownloader.BestHeight.Value - _model.Height.Value;
 
 		public bool IsSelected
 		{
@@ -51,7 +52,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public string TransactionId => _model.TransactionId.ToString();
-		
+
+		public uint OutputIndex => _model.Index;
+
+		public int AnonymitySet => _model.AnonymitySet;
+
 		public string History
 		{
 			get { return _history; }
