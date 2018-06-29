@@ -71,40 +71,42 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void RewriteTable()
 		{
-			var txRecordList = new List<(bool confirmed, Money amount, string label, uint256 transactionId)>();
-			foreach (SmartCoin coin in Global.WalletService.Coins.OrderByDescending(x => x.Height))
+			var txRecordList = new List<(Height height, Money amount, string label, uint256 transactionId)>();
+			foreach (SmartCoin coin in Global.WalletService.Coins)
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
-					var newRecord = (found.confirmed, found.amount + coin.Amount, $"{found.label}, {coin.Label}", coin.TransactionId);
+					var newRecord = (found.height, found.amount + coin.Amount, $"{found.label}, {coin.Label}", coin.TransactionId);
 					txRecordList.Add(newRecord);
 				}
 				else
 				{
-					txRecordList.Add((coin.Confirmed, coin.Amount, coin.Label, coin.TransactionId));
+					txRecordList.Add((coin.Height, coin.Amount, coin.Label, coin.TransactionId));
 				}
 
 				if (coin.SpenderTransactionId != null)
 				{
 					bool guessConfirmed = !Global.MemPoolService.TransactionHashes.Contains(coin.SpenderTransactionId) && coin.Confirmed; // If it's not in the mempool it's likely confirmed && coin is confirmed.
+					var guessHeight = guessConfirmed ? coin.Height : Models.Height.MemPool;
 
 					var foundSpender = txRecordList.FirstOrDefault(x => x.transactionId == coin.SpenderTransactionId);
 					if (foundSpender != default) // if found
 					{
 						txRecordList.Remove(foundSpender);
-						var newRecord = (guessConfirmed, foundSpender.amount - coin.Amount, foundSpender.label, coin.SpenderTransactionId);
+						guessHeight = Math.Max(guessHeight, foundSpender.height);
+						var newRecord = (guessHeight, foundSpender.amount - coin.Amount, foundSpender.label, coin.SpenderTransactionId);
 						txRecordList.Add(newRecord);
 					}
 					else
 					{
-						txRecordList.Add((guessConfirmed, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
+						txRecordList.Add((guessHeight, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
 					}
 				}
 			}
 
-			txRecordList = txRecordList.OrderBy(x => x.confirmed).ToList();
+			txRecordList = txRecordList.OrderByDescending(x => x.height).ToList();
 
 			var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
 			Transactions?.Clear();
@@ -112,7 +114,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				var txinfo = new TransactionInfo
 				{
-					Confirmed = txr.confirmed,
+					Confirmed = txr.height != Models.Height.MemPool && txr.height != Models.Height.Unknown,
 					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
 					Label = txr.label,
 					TransactionId = txr.transactionId.ToString()
