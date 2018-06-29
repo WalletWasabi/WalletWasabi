@@ -16,29 +16,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _privacyLevel;
 		private string _history;
 
-		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
+		public CoinViewModel(SmartCoin model)
 		{
 			_model = model;
-
-			this.WhenAnyValue(x => x.IsSelected).Subscribe(selected =>
-			{
-				if (selected)
-				{
-					if (!owner.SelectedCoins.Contains(this))
-					{
-						owner.SelectedCoins.Add(this);
-					}
-				}
-				else
-				{
-					owner.SelectedCoins.Remove(this);
-				}
-			});
 
 			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmed));
 			});
+
+			History = "Calculate History";
 		}
 
 		public bool Confirmed => _model.Confirmed;
@@ -54,6 +41,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string AmountBtc => _model.Amount.ToString(false, true);
 
 		public string Label => _model.Label;
+
+		public int Height => _model.Height;
 
 		public int PrivacyLevel
 		{

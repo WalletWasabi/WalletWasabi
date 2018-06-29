@@ -1,0 +1,33 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
+    <UserControl.Resources>
+        <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
+    </UserControl.Resources>
+    <Grid RowDefinitions="*,200,*">
+        <controls:GroupBox Title="Coins" TextBlock.FontSize="30" Padding="20" Margin="10">
+            <Grid Classes="content">
+                <DockPanel LastChildFill="True">
+                    <Button DockPanel.Dock="Bottom" Content="Enqueue" Command="{Binding EnqueueCommand}" />
+                    <local:CoinListView DataContext="{Binding AvailableCoinsList}" />
+                </DockPanel>
+            </Grid>
+        </controls:GroupBox>
+
+        <controls:GroupBox Title="Status" TextBlock.FontSize="30" Padding="20" Margin="10" Grid.Row="1">
+            <Grid Classes="content">
+            </Grid>
+        </controls:GroupBox>
+
+        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10" Grid.Row="2">
+            <Grid Classes="content">
+                <DockPanel LastChildFill="True">
+                    <Button DockPanel.Dock="Bottom" Content="Dequeue" Command="{Binding DequeueCommand}" />
+                    <local:CoinListView DataContext="{Binding QueuedCoinsList}" />
+                </DockPanel>
+            </Grid>
+        </controls:GroupBox>
+    </Grid>
+</UserControl>

@@ -42,7 +42,7 @@ namespace WalletWasabi.Services
 		private HashSet<uint256> ProcessedBlocks { get; }
 		private AsyncLock WalletBlocksLock { get; }
 
-		public ConcurrentObservableHashSet<SmartCoin> Coins { get; }
+		public NotifyingConcurrentHashSet<SmartCoin> Coins { get; }
 
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
@@ -71,7 +71,7 @@ namespace WalletWasabi.Services
 			WalletBlocksLock = new AsyncLock();
 			HandleFiltersLock = new AsyncLock();
 
-			Coins = new ConcurrentObservableHashSet<SmartCoin>();
+			Coins = new NotifyingConcurrentHashSet<SmartCoin>();
 
 			BlocksFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(blocksFolderPath), blocksFolderPath, trim: true);
 			BlockFolderLock = new AsyncLock();

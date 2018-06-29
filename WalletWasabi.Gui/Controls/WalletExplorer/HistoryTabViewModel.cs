@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,9 +32,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Transactions = new ObservableCollection<TransactionViewModel>();
 			RewriteTable();
 
-			Global.WalletService.NewBlockProcessed += WalletService_NewBlockProcessed;
-			Global.WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
-			Global.WalletService.CoinSpentOrSpenderConfirmed += WalletService_CoinSpent;
+			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged));
+			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
+			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
+
+			coinsChanged
+				.Merge(newBlockProcessed)
+				.Merge(coinSpent)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(o =>
+				{
+					RewriteTable();
+				});
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
@@ -119,21 +129,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SelectedTransaction = txToSelect;
 				}
 			}
-		}
-
-		private void WalletService_NewBlockProcessed(object sender, Block e)
-		{
-			Dispatcher.UIThread.InvokeAsync(() => RewriteTable());
-		}
-
-		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-		{
-			Dispatcher.UIThread.InvokeAsync(() => RewriteTable());
-		}
-
-		private void WalletService_CoinSpent(object sender, SmartCoin e)
-		{
-			Dispatcher.UIThread.InvokeAsync(() => RewriteTable());
 		}
 
 		public ObservableCollection<TransactionViewModel> Transactions

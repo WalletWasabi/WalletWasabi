@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ReactiveUI;
@@ -23,7 +24,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
-			CoinList = new CoinListViewModel(Global.WalletService.Coins);
+			var onCoinsSetModified = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
+				.ObserveOn(RxApp.MainThreadScheduler);
+
+			// TODO reset on item properties changing?
+
+			CoinList = new CoinListViewModel(
+			Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), c => !c.SpentOrCoinJoinInProcess, signalReset: onCoinsSetModified));
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
