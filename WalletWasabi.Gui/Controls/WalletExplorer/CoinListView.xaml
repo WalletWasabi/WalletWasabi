@@ -72,6 +72,18 @@
     </UserControl.Styles>
 
     <DockPanel LastChildFill="True">
+        <Grid IsVisible="{Binding ClipboardNotificationVisible}" DockPanel.Dock="Top">
+            <Grid Opacity="{Binding ClipboardNotificationOpacity}">
+                <Grid.Transitions>
+                    <Transitions>
+                        <DoubleTransition Property="Grid.Opacity"
+                            Easing="CircularEaseIn"
+                            Duration="0:0:0.5" />
+                    </Transitions>
+                </Grid.Transitions>
+                <TextBlock Text="Address Copied to Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            </Grid>
+        </Grid>    
         <Grid ColumnDefinitions="60,100,100,600,100,Auto" Margin="5 0" DockPanel.Dock="Top">
             <TextBlock Text="Select" />
             <TextBlock Text="Confirmed" Grid.Column="1" />
@@ -79,7 +91,7 @@
             <TextBlock Text="Label" Grid.Column="3" />
             <TextBlock Text="Privacy Level" Grid.Column="4" Margin="20 0 0 0" />
         </Grid>
-        <ListBox Items="{Binding Coins}">
+        <ListBox Items="{Binding Coins}" SelectedItem="{Binding SelectedCoin}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid ColumnDefinitions="40,80,100,600,100,Auto">

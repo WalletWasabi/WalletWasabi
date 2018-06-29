@@ -1,11 +1,17 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
     <UserControl.Resources>
         <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
     </UserControl.Resources>
+    <i:Interaction.Behaviors>
+        <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
+    </i:Interaction.Behaviors>
+
     <DockPanel LastChildFill="True">
         <StackPanel DockPanel.Dock="Bottom" Margin="20 10" Gap="10" HorizontalAlignment="Left" MinWidth="1000">
             <TextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
