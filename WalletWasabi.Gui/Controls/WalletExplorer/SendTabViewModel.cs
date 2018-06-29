@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var filteredCoins = globalCoins.CreateDerivedCollection(c => c, c => !c.SpentOrCoinJoinInProcess);
 
-			CoinList = new CoinListViewModel(globalCoins);
+			CoinList = new CoinListViewModel(filteredCoins);
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
