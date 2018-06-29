@@ -5,25 +5,28 @@
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
-    <UserControl.Resources>
-        <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
-    </UserControl.Resources>
-    <i:Interaction.Behaviors>
-        <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
-    </i:Interaction.Behaviors>
+  <UserControl.Resources>
+    <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
+  </UserControl.Resources>
+  <i:Interaction.Behaviors>
+    <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
+  </i:Interaction.Behaviors>
 
   <DockPanel LastChildFill="True">
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20 20 20 0" Margin="10">
       <Grid Classes="content">
         <DockPanel LastChildFill="True">
-          <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Gap="10" HorizontalAlignment="Left" MinWidth="1000" >
+          <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Gap="10" HorizontalAlignment="Left" MinWidth="1000">
             <TextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
             <TextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" />
             <StackPanel Orientation="Horizontal" Gap="10">
               <Button Content="Max" Command="{Binding MaxCommand}" />
               <TextBox Text="{Binding Amount}" Watermark="Amount" UseFloatingWatermark="True" MinWidth="100" />
               <StackPanel>
-                <Slider Minimum="2" Maximum="1008" Value="{Binding Fee}" />
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="Fee:" />
+                  <Slider Minimum="2" Maximum="1008" Value="{Binding Fee}" Width="190" />
+                </StackPanel>
                 <StackPanel Orientation="Horizontal" Gap="4">
                   <TextBlock Text="Confirmation Expected In:" />
                   <TextBlock Text="{Binding Fee, Converter={StaticResource FeeConfirmationTargetConverter}}" />
