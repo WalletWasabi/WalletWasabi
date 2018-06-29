@@ -17,10 +17,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private double _clipboardNotificationOpacity;
 		private bool _clipboardNotificationVisible;
 
-		public CoinListViewModel(IEnumerable<CoinViewModel> coins)
+		public CoinListViewModel(IReactiveDerivedList<CoinViewModel> coins)
 		{
-			Coins = coins.CreateDerivedCollection(c => c, null, (first, second) =>
-				first.Amount.CompareTo(second.Amount), RxApp.MainThreadScheduler);
+			Coins = coins;
 
 			this.WhenAnyValue(x => x.SelectedCoin).Subscribe(async coin =>
 			{

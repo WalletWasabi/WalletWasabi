@@ -34,10 +34,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var onCoinsSetModified = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-			// TODO reset on item properties changing?
+			var globalCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), null, (first, second) => second.Amount.CompareTo(first.Amount), signalReset: onCoinsSetModified, RxApp.MainThreadScheduler);
+			globalCoins.ChangeTrackingEnabled = true;
 
-			CoinList = new CoinListViewModel(
-				Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), c => !c.SpentOrCoinJoinInProcess, signalReset: onCoinsSetModified));
+			var filteredCoins = globalCoins.CreateDerivedCollection(c => c, c => !c.SpentOrCoinJoinInProcess);
+
+			CoinList = new CoinListViewModel(globalCoins);
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 

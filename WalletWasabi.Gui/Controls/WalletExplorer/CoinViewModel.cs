@@ -21,15 +21,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Model = model;
 
 			_history = new List<string>();
-			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
+			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmed));
+			});
+
+			model.WhenAnyValue(x => x.SpentOrCoinJoinInProcess).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(SpentOrCoinJoinInProcess));
+			});
+
+			model.WhenAnyValue(x => x.CoinJoinInProcess).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(CoinJoinInProgress));
 			});
 		}
 
 		public SmartCoin Model { get; }
 
 		public bool Confirmed => Model.Confirmed;
+
+		public bool CoinJoinInProgress => Model.CoinJoinInProcess;
+
+		public bool SpentOrCoinJoinInProcess => Model.SpentOrCoinJoinInProcess;
 
 		public int Confirmations => Global.IndexDownloader.BestHeight.Value - Model.Height.Value;
 
