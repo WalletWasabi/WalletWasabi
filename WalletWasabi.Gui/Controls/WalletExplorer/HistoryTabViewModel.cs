@@ -78,8 +78,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (found != default) // if found
 				{
 					txRecordList.Remove(found);
-					var foundLabel = found.label != string.Empty ? found.label + ", " : "";
-					var newRecord = (found.height, found.amount + coin.Amount, $"{foundLabel}{coin.Label}", coin.TransactionId);
+					var newRecord = (found.height, found.amount + coin.Amount, $"{found.label}, {coin.Label}", coin.TransactionId);
 					txRecordList.Add(newRecord);
 				}
 				else
@@ -102,7 +101,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					else
 					{
-						txRecordList.Add((guessHeight, (Money.Zero - coin.Amount), "", coin.SpenderTransactionId));
+						txRecordList.Add((guessHeight, (Money.Zero - coin.Amount), coin.Label, coin.SpenderTransactionId));
 					}
 				}
 			}
