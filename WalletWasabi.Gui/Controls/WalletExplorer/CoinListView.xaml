@@ -42,7 +42,7 @@
                 <DataTemplate>
                     <Grid>
                         <Expander ExpandDirection="Down">
-                            <StackPanel Background="#FFFEFEFE">
+                            <StackPanel Background="{DynamicResource ThemeControlBackgroundBrush}">
                                 <Grid ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800">
                                     <TextBlock Text="Confirmations:" Grid.Row="0" />
                                     <TextBlock Text="{Binding Confirmations}" Grid.Row="0" Grid.Column="1" />

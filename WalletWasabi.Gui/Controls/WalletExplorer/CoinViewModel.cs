@@ -44,7 +44,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool SpentOrCoinJoinInProcess => Model.SpentOrCoinJoinInProcess;
 
-		public int Confirmations => Global.IndexDownloader.BestHeight.Value - Model.Height.Value;
+		public int Confirmations => Global.IndexDownloader.BestHeight.Type == HeightType.Chain
+			? Global.IndexDownloader.BestHeight.Value - Model.Height.Value
+			: 0;
 
 		public bool IsSelected
 		{
