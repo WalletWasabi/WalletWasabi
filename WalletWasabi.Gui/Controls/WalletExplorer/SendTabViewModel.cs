@@ -91,7 +91,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			},
 			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
-				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)));
+				(isMax, amount, address, busy) => ((isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)));
 
 			MaxCommand = ReactiveCommand.Create(() =>
 			{
