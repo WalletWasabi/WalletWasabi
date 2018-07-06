@@ -170,14 +170,14 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task CanRequestOnionAsync()
 		{
-			using (var client = new TorHttpClient(new Uri("https://www.facebookcorewwwi.onion/")))
+			using (var client = new TorHttpClient(new Uri("http://expyuzz4wqqyqhjn.onion/")))
 			{
 				HttpResponseMessage response = await client.SendAsync(HttpMethod.Get, "");
 				var content = await response.Content.ReadAsStringAsync();
 
 				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-				Assert.Contains("facebook", content, StringComparison.OrdinalIgnoreCase);
+				Assert.Contains("tor", content, StringComparison.OrdinalIgnoreCase);
 			}
 		}
 
