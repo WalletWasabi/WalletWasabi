@@ -23,11 +23,15 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// EightBitByte encoder's encoding will change according to different region
 		/// </summary>
 		/// <param name="encoding">Default encoding is "iso-8859-1"</param>
-		internal EightBitByteEncoder(string encoding)
-			: base() => Encoding = encoding ?? _defaultEncoding;
+		internal EightBitByteEncoder(string encoding) : base()
+		{
+			Encoding = encoding ?? _defaultEncoding;
+		}
 
-		internal EightBitByteEncoder()
-			: base() => Encoding = _defaultEncoding;
+		internal EightBitByteEncoder() : base()
+		{
+			Encoding = _defaultEncoding;
+		}
 
 		internal override Mode Mode => Mode.EightBitByte;
 

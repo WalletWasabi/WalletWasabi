@@ -6,7 +6,10 @@ namespace Gma.QrCodeNet.Encoding
 	{
 		private readonly StateMatrix M_stateMatrix;
 
-		public TriStateMatrix(int width) : base(width, new bool[width, width]) => M_stateMatrix = new StateMatrix(width);
+		public TriStateMatrix(int width) : base(width, new bool[width, width])
+		{
+			M_stateMatrix = new StateMatrix(width);
+		}
 
 		public static bool CreateTriStateMatrix(bool[,] internalArray, out TriStateMatrix triStateMatrix)
 		{
@@ -20,7 +23,10 @@ namespace Gma.QrCodeNet.Encoding
 			return false;
 		}
 
-		internal TriStateMatrix(bool[,] internalArray) : base(internalArray) => M_stateMatrix = new StateMatrix(internalArray.GetLength(0));
+		internal TriStateMatrix(bool[,] internalArray) : base(internalArray)
+		{
+			M_stateMatrix = new StateMatrix(internalArray.GetLength(0));
+		}
 
 		public override bool this[int i, int j]
 		{
