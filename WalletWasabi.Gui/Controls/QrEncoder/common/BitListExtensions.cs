@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Gma.QrCodeNet.Encoding.common
+namespace Gma.QrCodeNet.Encoding.Common
 {
 	internal static class BitListExtensions
 	{

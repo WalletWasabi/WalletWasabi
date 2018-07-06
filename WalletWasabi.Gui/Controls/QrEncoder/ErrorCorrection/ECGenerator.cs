@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using Gma.QrCodeNet.Encoding.common;
+using Gma.QrCodeNet.Encoding.Common;
 using Gma.QrCodeNet.Encoding.Versions;
 using Gma.QrCodeNet.Encoding.ReedSolomon;
 
