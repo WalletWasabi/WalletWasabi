@@ -1,6 +1,12 @@
 # API Specification
 
-**ATTENTION:** This document describes the initial specification. The actual implementation may significantly differ.
+**ATTENTION:** This document describes the initial specification. The actual implementation may significantly differ. You can find up to date documentation here:  
+- TestNet: http://wtgjmaol3io5ijii.onion/swagger
+- Main: http://4jsmnfcsmbrlm7l7.onion/swagger
+
+## Related Documents:
+
+[Backend Deployment And Update Instructions](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/BackendDeployment.md)
 
 ## HTTP
 
