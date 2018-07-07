@@ -21,6 +21,7 @@ namespace WalletWasabi.Gui.Converters
 				case "FiltersLeft" when value.ToString() != "0": // need to cover "--"
 				case "BlocksLeft" when (int)value != 0:
 					return Brushes.Yellow;
+
 				default:
 					return ColorTheme.CurrentTheme.Foreground;
 			}

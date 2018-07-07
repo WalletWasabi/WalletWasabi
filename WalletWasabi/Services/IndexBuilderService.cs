@@ -319,7 +319,7 @@ namespace WalletWasabi.Services
 								filter = new GolombRiceFilterBuilder()
 									.SetKey(block.GetHash())
 									.SetP(20)
-									.SetM(1<<20)
+									.SetM(1 << 20)
 									.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
 									.Build();
 							}

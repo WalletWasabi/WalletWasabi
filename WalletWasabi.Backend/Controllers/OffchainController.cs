@@ -35,7 +35,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			if (Cache.TryGetValue(nameof(GetExchangeRatesAsync), out List<ExchangeRate> exchangeRates)) 
+			if (Cache.TryGetValue(nameof(GetExchangeRatesAsync), out List<ExchangeRate> exchangeRates))
 				return exchangeRates;
 
 			exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();

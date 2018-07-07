@@ -46,8 +46,8 @@ namespace WalletWasabi.Backend.Models
 			}
 
 			var data = NBitcoin.DataEncoders.Encoders.Hex.DecodeData(parts[1]);
-			var filter = new GolombRiceFilter(data, 20, 1<<20);
-			
+			var filter = new GolombRiceFilter(data, 20, 1 << 20);
+
 			return new FilterModel
 			{
 				BlockHeight = Guard.NotNull(nameof(height), height),

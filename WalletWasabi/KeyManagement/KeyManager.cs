@@ -104,7 +104,7 @@ namespace WalletWasabi.KeyManagement
 		{
 			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
 			if (FilePath == null) return;
-			
+
 			var directoryPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
 			Directory.CreateDirectory(directoryPath);
 		}
@@ -112,7 +112,7 @@ namespace WalletWasabi.KeyManagement
 		public void ToFile()
 		{
 			if (FilePath == null) return;
-			
+
 			lock (ToFileLock)
 			{
 				string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);

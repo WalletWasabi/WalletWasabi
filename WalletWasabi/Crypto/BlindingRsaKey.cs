@@ -109,7 +109,7 @@ namespace WalletWasabi.Crypto
 			if (x.PrivateExponent == null ^ y.PrivateExponent == null) return false;
 			if (x.PublicModulus == null ^ y.PublicModulus == null) return false;
 			if (x.PublicExponent == null ^ y.PublicExponent == null) return false;
-			
+
 			return
 				x.PrivateModulus.Equals(y.PrivateModulus)
 				&& x.PrivateExponent.Equals(y.PrivateExponent)

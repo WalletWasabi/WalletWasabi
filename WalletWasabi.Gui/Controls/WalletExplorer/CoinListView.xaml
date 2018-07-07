@@ -29,7 +29,7 @@
                 </Grid.Transitions>
                 <TextBlock Text="Transaction ID Copied to Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
             </Grid>
-        </Grid>    
+        </Grid>
         <Grid ColumnDefinitions="60,100,100,600,100,Auto" Margin="35 0" DockPanel.Dock="Top">
             <TextBlock Text="Select" />
             <TextBlock Text="Confirmed" Grid.Column="1" />
@@ -72,7 +72,7 @@
                                     <TextBlock Text="{Binding InCoinJoin}"  Grid.Column="1" Grid.Row="8" />
 
                                     <TextBlock Text="History:" Grid.Row="9" />
-                                    <ItemsControl Items="{Binding History}" Grid.Column="1" Grid.Row="9"/>
+                                    <ItemsControl Items="{Binding History}" Grid.Column="1" Grid.Row="9" />
                                 </Grid>
                             </StackPanel>
                         </Expander>

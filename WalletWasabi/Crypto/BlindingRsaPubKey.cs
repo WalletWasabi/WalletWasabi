@@ -104,7 +104,7 @@ namespace WalletWasabi.Crypto
 		{
 			if (ReferenceEquals(x, y)) return true;
 			if ((object)x == null ^ (object)y == null) return false;
-			
+
 			return
 				x.Modulus.Equals(y.Modulus)
 				&& x.Exponent.Equals(y.Exponent);

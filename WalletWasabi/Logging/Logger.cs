@@ -144,7 +144,7 @@ namespace WalletWasabi.Logging
 					}
 
 					if (!Modes.Contains(LogMode.File)) return;
-					
+
 					var dir = Path.GetDirectoryName(FilePath);
 					if (dir != "")
 					{

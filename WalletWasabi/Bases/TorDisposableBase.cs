@@ -5,14 +5,14 @@ using WalletWasabi.TorSocks5;
 namespace WalletWasabi.Bases
 {
 	public abstract class TorDisposableBase : IDisposable
-    {
+	{
 		public TorHttpClient TorClient { get; }
 
 		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
 		protected TorDisposableBase(Uri baseUri, IPEndPoint torSocks5EndPoint = null)
-        {
+		{
 			TorClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
-        }
+		}
 
 		#region IDisposable Support
 
@@ -39,5 +39,5 @@ namespace WalletWasabi.Bases
 		}
 
 		#endregion IDisposable Support
-    }
+	}
 }

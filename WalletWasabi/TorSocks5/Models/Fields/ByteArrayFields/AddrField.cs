@@ -24,7 +24,7 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 					return Encoding.ASCII.GetString(Bytes.Skip(1).ToArray()); // UTF8 result in general SOCKS server failure
 				}
 
-				if (Atyp != AtypField.IPv4) 
+				if (Atyp != AtypField.IPv4)
 					throw new NotSupportedException($"{nameof(Atyp)} is not supported. Value: {Atyp}.");
 
 				var values = new string[4];
