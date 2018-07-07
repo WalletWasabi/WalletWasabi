@@ -372,7 +372,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							{
 								case CcjRoundPhase.InputRegistration:
 									{
-										// Only fail if less two one Alice is registered.
+										// Only fail if less than two one Alice is registered.
 										// Don't ban anyone, it's ok if they lost connection.
 										await RemoveAlicesIfInputsSpentAsync();
 										int aliceCountAfterInputRegistrationTimeout = CountAlices();
