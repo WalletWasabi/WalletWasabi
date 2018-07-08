@@ -1,4 +1,5 @@
 ﻿using AvalonStudio.Extensibility.Dialogs;
+using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;

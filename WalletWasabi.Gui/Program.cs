@@ -1,5 +1,7 @@
 ﻿using Avalonia;
 using AvalonStudio.Shell;
+using AvalonStudio.Shell.Extensibility.Platforms;
+using NBitcoin;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;

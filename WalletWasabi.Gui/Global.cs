@@ -6,6 +6,7 @@ using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace WalletWasabi.Gui
 		public static string BlocksDir => Path.Combine(DataDir, "Blocks", Config.Network.ToString());
 		public static Network Network => Config.Network;
 
-		public static BlindingRsaPubKey BlindingPubKey { get; private set; }
+		public static BlindingRsaPubKey BlindingPubKey => Config.GetBlindingRsaPubKey();
 
 		public static string AddressManagerFilePath { get; private set; }
 		public static AddressManager AddressManager { get; private set; }
@@ -46,6 +47,7 @@ namespace WalletWasabi.Gui
 		public static IndexDownloader IndexDownloader { get; private set; }
 		public static CcjClient ChaumianClient { get; private set; }
 		public static WalletService WalletService { get; private set; }
+		public static Node RegTestMemPoolServingNode { get; private set; }
 
 		public static Config Config { get; private set; }
 
@@ -56,66 +58,78 @@ namespace WalletWasabi.Gui
 
 			Config = Guard.NotNull(nameof(config), config);
 
-			string blindingPubKeyFile = Path.Combine(DataDir, $"BlindingPubKey{Network}.json");
-			if (File.Exists(blindingPubKeyFile))
-			{
-				string blindingPubKeyJson = "";
-				blindingPubKeyJson = File.ReadAllText(blindingPubKeyFile);
-				BlindingPubKey = BlindingRsaPubKey.CreateFromJson(blindingPubKeyJson);
-			}
-			else
-			{
-				if (Network == Network.Main)
-				{
-					BlindingPubKey = new BlindingRsaPubKey(new BigInteger("16421152619146079007287475569112871971988560541093277613438316709041030720662622782033859387192362542996510605015506477964793447620206674394713753349543444988246276357919473682408472170521463339860947351211455351029147665615454176157348164935212551240942809518428851690991984017733153078846480521091423447691527000770982623947706172997649440619968085147635776736938871139581019988225202983052255684151711253254086264386774936200194229277914886876824852466823571396538091430866082004097086602287294474304344865162932126041736158327600847754258634325228417149098062181558798532036659383679712667027126535424484318399849"), new BigInteger("65537"));
-				}
-				else
-				{
-					BlindingPubKey = new BlindingRsaPubKey(new BigInteger("19473594448380717274202325076521698699373476167359253614775896809797414915031772455344343455269320444157176520539924715307970060890094127521516100754263825112231545354422893125394219335109864514907655429499954825469485252969706079992227103439161156022844535556626007277544637236136559868400854764962522288139619969507311597914908752685925185380735570791798593290356424409633800092336087046668579610273133131498947353719917407262847070395909920415822288443947309434039008038907229064999576278651443575362470457496666718250346530518268694562965606704838796709743032825816642704620776596590683042135764246115456630753521"), new BigInteger("65537"));
-				}
-				Directory.CreateDirectory(DataDir);
-				File.WriteAllText(blindingPubKeyFile, BlindingPubKey.ToJson());
-			}
-
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager = null;
-			try
+
+			if (Network == Network.RegTest)
 			{
-				AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
-				Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
-			}
-			catch (DirectoryNotFoundException ex)
-			{
-				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-				Logger.LogTrace<AddressManager>(ex);
 				AddressManager = new AddressManager();
+				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the RegTest.");
 			}
-			catch (FileNotFoundException ex)
+			else
 			{
-				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-				Logger.LogTrace<AddressManager>(ex);
-				AddressManager = new AddressManager();
+				try
+				{
+					AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
+					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
+				}
+				catch (DirectoryNotFoundException ex)
+				{
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace<AddressManager>(ex);
+					AddressManager = new AddressManager();
+				}
+				catch (FileNotFoundException ex)
+				{
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+					Logger.LogTrace<AddressManager>(ex);
+					AddressManager = new AddressManager();
+				}
 			}
 
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(AddressManager));
 			MemPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
 
-			Nodes = new NodesGroup(Network, connectionParameters,
-				new NodeRequirement
-				{
-					RequiredServices = NodeServices.Network,
-					MinVersion = Constants.ProtocolVersion_WITNESS_VERSION
-				});
+			if (Network == Network.RegTest)
+			{
+				Nodes = new NodesGroup(Network,
+					requirements: new NodeRequirement
+					{
+						RequiredServices = NodeServices.Network,
+						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION
+					});
+				Nodes.ConnectedNodes.Add(Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444)));
+
+				RegTestMemPoolServingNode = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+				RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
+			}
+			else
+			{
+				Nodes = new NodesGroup(Network, connectionParameters,
+					new NodeRequirement
+					{
+						RequiredServices = NodeServices.Network,
+						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION
+					});
+
+				RegTestMemPoolServingNode = null;
+			}
 
 			var indexFilePath = Path.Combine(DataDir, $"Index{Network}.dat");
 			IndexDownloader = new IndexDownloader(Network, indexFilePath, Config.GetCurrentBackendUri());
 
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
+
+			if (RegTestMemPoolServingNode != null)
+			{
+				RegTestMemPoolServingNode.VersionHandshake();
+				Logger.LogInfo("Start connecting to mempool serving regtest node...");
+			}
 
 			IndexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(21));
 			Logger.LogInfo("Start synchronizing filters...");
@@ -173,6 +187,12 @@ namespace WalletWasabi.Gui
 
 			Nodes?.Dispose();
 			Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
+
+			if (RegTestMemPoolServingNode != null)
+			{
+				RegTestMemPoolServingNode.Disconnect();
+				Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
+			}
 
 			if (ChaumianClient != null)
 			{

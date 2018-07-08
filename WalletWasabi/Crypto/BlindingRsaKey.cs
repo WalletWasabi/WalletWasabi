@@ -6,6 +6,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using System;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Crypto
 {
@@ -23,7 +24,7 @@ namespace WalletWasabi.Crypto
 		{
 			// Generate a 2048-bit RSA key pair.
 			var generator = new RsaKeyPairGenerator();
-			var RSA_F4 = BigInteger.ValueOf(65537);
+			var RSA_F4 = Constants.RsaPubKeyExponent;
 			generator.Init(new RsaKeyGenerationParameters(
 						publicExponent: RSA_F4,
 						random: new SecureRandom(),
