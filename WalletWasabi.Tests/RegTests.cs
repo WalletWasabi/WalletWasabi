@@ -598,6 +598,9 @@ namespace WalletWasabi.Tests
 				// Dispose connection service.
 				nodes?.Dispose();
 
+				// Dispose mempool serving node.
+				node?.Disconnect();
+
 				// Dispose chaumian coinjoin client.
 				if (chaumianClient != null)
 				{
@@ -1062,6 +1065,8 @@ namespace WalletWasabi.Tests
 				indexDownloader?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
+				// Dispose mempool serving node.
+				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
 				if (chaumianClient != null)
 				{
@@ -1236,6 +1241,8 @@ namespace WalletWasabi.Tests
 				indexDownloader?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
+				// Dispose mempool serving node.
+				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
 				if (chaumianClient != null)
 				{
@@ -1404,6 +1411,8 @@ namespace WalletWasabi.Tests
 				indexDownloader?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
+				// Dispose mempool serving node.
+				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
 				if (chaumianClient != null)
 				{
@@ -1556,6 +1565,8 @@ namespace WalletWasabi.Tests
 				indexDownloader?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
+				// Dispose mempool serving node.
+				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
 				if (chaumianClient != null)
 				{
@@ -2799,6 +2810,8 @@ namespace WalletWasabi.Tests
 				indexDownloader?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
+				// Dispose mempool serving node.
+				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
 				if (chaumianClient != null)
 				{

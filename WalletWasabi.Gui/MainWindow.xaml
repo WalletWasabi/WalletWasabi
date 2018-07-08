@@ -15,16 +15,16 @@
                       MinWidth="1000" MinHeight="500"
                       FontFamily="{DynamicResource UiFont}" FontSize="14"
                       Foreground="{DynamicResource ThemeForegroundBrush}" WindowState="Maximized">
-    <i:Interaction.Behaviors>
-        <behaviors:PredicateCloseBehavior CanClose="{Binding CanClose}" />
-    </i:Interaction.Behaviors>
-    <cont:MetroWindow.TitleBarContent>
-    </cont:MetroWindow.TitleBarContent>
-    <Grid>
-        <DockPanel LastChildFill="True">
-            <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
-            <shell:ShellView />
-        </DockPanel>
-        <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
-    </Grid>
+  <i:Interaction.Behaviors>
+    <behaviors:PredicateCloseBehavior CanClose="{Binding CanClose}" />
+  </i:Interaction.Behaviors>
+  <cont:MetroWindow.TitleBarContent>
+  </cont:MetroWindow.TitleBarContent>
+  <Grid>
+    <DockPanel LastChildFill="True">
+      <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
+      <shell:ShellView />
+    </DockPanel>
+    <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
+  </Grid>
 </cont:MetroWindow>

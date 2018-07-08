@@ -7,6 +7,7 @@ using WalletWasabi.Services;
 using Avalonia.Data.Converters;
 using System.Globalization;
 using WalletWasabi.Models;
+using NBitcoin;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -90,6 +91,14 @@ namespace WalletWasabi.Gui.ViewModels
 			set { this.RaiseAndSetIfChanged(ref _status, value); }
 		}
 
+		private string _showNetwork;
+
+		public string ShowNetwork
+		{
+			get { return _showNetwork; }
+			set { this.RaiseAndSetIfChanged(ref _showNetwork, value); }
+		}
+
 		public StatusBarViewModel(NodesCollection nodes, MemPoolService memPoolService, IndexDownloader indexDownloader)
 		{
 			Nodes = nodes;
@@ -108,6 +117,15 @@ namespace WalletWasabi.Gui.ViewModels
 			IndexDownloader.BackendStatusChanged += IndexDownloader_BackendStatusChanged;
 
 			FiltersLeft = IndexDownloader.GetFiltersLeft();
+
+			if (indexDownloader.Network == Network.Main)
+			{
+				ShowNetwork = "";
+			}
+			else
+			{
+				ShowNetwork = indexDownloader.Network.ToString();
+			}
 
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
