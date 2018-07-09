@@ -12,7 +12,7 @@
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                       Icon="resm:WalletWasabi.Gui.Resources.WasabiLogo.png?assembly=WalletWasabi.Gui"
                       Title="Wasabi Wallet" BorderThickness="1" BorderBrush="{DynamicResource AvalonBorderBrush}"
-                      MinWidth="1000" MinHeight="500"
+                      MinWidth="1000" MinHeight="510"
                       FontFamily="{DynamicResource UiFont}" FontSize="14"
                       Foreground="{DynamicResource ThemeForegroundBrush}" WindowState="Maximized">
   <i:Interaction.Behaviors>

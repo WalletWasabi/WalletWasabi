@@ -1,6 +1,6 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
-  <StackPanel Margin="10" Gap="10" >
+  <StackPanel Margin="10" Gap="10">
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="30">
       <Grid Classes="content">
         <StackPanel Gap="8">
@@ -15,7 +15,7 @@
       </Grid>
     </controls:GroupBox>
     <DockPanel LastChildFill="True">
-      <CheckBox IsChecked="{Binding TermsAccepted,Mode=TwoWay}">
+      <CheckBox IsChecked="{Binding TermsAccepted,Mode=TwoWay}" TextBlock.FontSize="10">
         <StackPanel Orientation="Horizontal">
           <TextBlock Text="I agree to the " />
           <Button Content="Terms and Conditions" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />
