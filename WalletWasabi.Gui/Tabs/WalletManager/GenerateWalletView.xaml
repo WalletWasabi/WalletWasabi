@@ -6,7 +6,7 @@
         <StackPanel Gap="8">
           <StackPanel>
             <TextBlock Text="Heads Up!" FontWeight="Bold" />
-            <TextBlock Text="You cannot recover your wallet without your password. Therefore we advise you to use a password that you will not forget." TextWrapping="Wrap" />
+            <TextBlock Text="You cannot recover your wallet without your password. Therefore we strongly advise you to use a password that you will not forget." TextWrapping="Wrap" />
           </StackPanel>
           <TextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
           <TextBox Text="{Binding Password}" Watermark="Choose a password" PasswordChar="*" UseFloatingWatermark="True" />
