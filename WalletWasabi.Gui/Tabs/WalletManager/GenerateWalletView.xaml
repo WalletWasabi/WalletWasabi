@@ -1,7 +1,7 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
-  <StackPanel Margin="10" Gap="10">
-    <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20">
+  <StackPanel Margin="10" Gap="10" >
+    <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="30">
       <Grid Classes="content">
         <StackPanel Gap="8">
           <StackPanel>
