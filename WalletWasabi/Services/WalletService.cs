@@ -710,26 +710,31 @@ namespace WalletWasabi.Services
 			realToSend = toRemoveList.ToArray();
 
 			// 1. Get the possible changes.
-			Script changeScriptPubKey;
-			var sb = new StringBuilder();
-			foreach (var item in realToSend)
-			{
-				sb.Append(item.label ?? "?");
-				sb.Append(", ");
-			}
-			var changeLabel = $"change of ({sb.ToString().TrimEnd(',', ' ')})";
+			Script changeScriptPubKey = null;
+			string changeLabel = "";
 
-			if (customChange == null)
+			if (!spendAll)
 			{
-				AssertCleanKeysIndexed(21, true);
-				var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
+				var sb = new StringBuilder();
+				foreach (var item in realToSend)
+				{
+					sb.Append(item.label ?? "?");
+					sb.Append(", ");
+				}
+				changeLabel = $"change of ({sb.ToString().TrimEnd(',', ' ')})";
 
-				changeHdPubKey.SetLabel(changeLabel, KeyManager);
-				changeScriptPubKey = changeHdPubKey.GetP2wpkhScript();
-			}
-			else
-			{
-				changeScriptPubKey = customChange;
+				if (customChange == null)
+				{
+					AssertCleanKeysIndexed(21, true);
+					var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
+
+					changeHdPubKey.SetLabel(changeLabel, KeyManager);
+					changeScriptPubKey = changeHdPubKey.GetP2wpkhScript();
+				}
+				else
+				{
+					changeScriptPubKey = customChange;
+				}
 			}
 
 			// 6. Do some checks
@@ -770,8 +775,12 @@ namespace WalletWasabi.Services
 				builder = builder.Send(output.scriptPubKey, output.amount);
 			}
 
+			if (!spendAll)
+			{
+				builder = builder.SetChange(changeScriptPubKey);
+			}
+
 			var tx = builder
-				.SetChange(changeScriptPubKey)
 				.SendFees(fee)
 				.Shuffle()
 				.BuildTransaction(true);
@@ -783,8 +792,6 @@ namespace WalletWasabi.Services
 			}
 
 			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-
-			TxoRef[] spentOutputs = spentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).ToArray();
 
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
