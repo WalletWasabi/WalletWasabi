@@ -6,7 +6,7 @@
         <StackPanel Gap="8">
           <StackPanel>
             <TextBlock Text="Heads Up!" FontWeight="Bold" />
-            <TextBlock Text="At recovery the wallet is unable to check if your password is correct. If you provide a wrong password a wallet will be recovered with the provided mnemonic and password combination." TextWrapping="Wrap" />
+            <TextBlock Text="At recovery, the wallet is unable to check if your password is correct or not. If you provide the wrong password, a wallet will be recovered with the provided mnemonic and password combination." TextWrapping="Wrap" />
           </StackPanel>
           <TextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
           <TextBox Text="{Binding Password}" Watermark="Password" PasswordChar="*" UseFloatingWatermark="True" />
