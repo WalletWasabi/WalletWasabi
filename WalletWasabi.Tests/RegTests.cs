@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests
 		#region BackendTests
 
 		[Fact, TestPriority(1)]
-		public async void GetExchangeRatesAsyncAsync()
+		public async Task GetExchangeRatesAsync()
 		{
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
 			using (var response = await client.SendAsync(HttpMethod.Get, "/api/v1/btc/offchain/exchange-rates"))
@@ -96,8 +96,18 @@ namespace WalletWasabi.Tests
 			}
 		}
 
+		[Fact, TestPriority(1)]
+		public async Task GetClientVersionAsync()
+		{
+			using (var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint)))
+			{
+				var version = await client.GetClientVersionAsync();
+				Assert.Equal(Helpers.Constants.ClientVersion, version);
+			}
+		}
+
 		[Fact, TestPriority(2)]
-		public async void BroadcastWithOutMinFeeAsync()
+		public async Task BroadcastWithOutMinFeeAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
@@ -122,7 +132,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact, TestPriority(3)]
-		public async void BroadcastReplayTxAsync()
+		public async Task BroadcastReplayTxAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
@@ -142,7 +152,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact, TestPriority(4)]
-		public async void BroadcastInvalidTxAsync()
+		public async Task BroadcastInvalidTxAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 

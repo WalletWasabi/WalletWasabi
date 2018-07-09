@@ -115,6 +115,23 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			}
 		}
 
+		public async Task<Version> GetClientVersionAsync()
+		{
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/v1/btc/offchain/client-version"))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync();
+				}
+
+				using (HttpContent content = response.Content)
+				{
+					var ret = await content.ReadAsJsonAsync<Version>();
+					return ret;
+				}
+			}
+		}
+
 		#endregion offchain
 	}
 }
