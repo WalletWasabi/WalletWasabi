@@ -21,7 +21,7 @@
             <TextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" />
             <StackPanel Orientation="Horizontal" Gap="10">
               <Button Content="Max" Command="{Binding MaxCommand}" />
-              <TextBox Text="{Binding Amount}" Watermark="Amount" UseFloatingWatermark="True" MinWidth="100" />
+              <TextBox Text="{Binding Amount}" Watermark="Amount" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
               <StackPanel>
                 <StackPanel Orientation="Horizontal" Gap="10">
                   <TextBlock Text="Fee:" />
