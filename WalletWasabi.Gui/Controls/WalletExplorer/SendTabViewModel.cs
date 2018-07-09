@@ -113,6 +113,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetMax()
 		{
+			if (IsMax)
+			{
+				ResetMax();
+				return;
+			}
+
 			IsMax = true;
 
 			_ignoreAmountChanges = true;
@@ -120,6 +126,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_ignoreAmountChanges = false;
 		}
 
+		private void ResetMax()
+		{
+			_isMax = false;
+
+			_ignoreAmountChanges = true;
+			Amount = "";
+			_ignoreAmountChanges = false;
+		}
 		public CoinListViewModel CoinList
 		{
 			get { return _coinList; }
