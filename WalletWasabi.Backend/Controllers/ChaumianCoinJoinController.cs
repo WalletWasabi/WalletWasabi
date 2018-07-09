@@ -23,7 +23,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// To interact with the Chaumian CoinJoin Coordinator.
 	/// </summary>
 	[Produces("application/json")]
-	[Route("api/v1/btc/[controller]")]
+	[Route("api/v" + Helpers.Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
 		private static RPCClient RpcClient => Global.RpcClient;

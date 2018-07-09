@@ -10,7 +10,7 @@ namespace WalletWasabi.Gui.Tabs
 	{
 		public AboutViewModel() : base("About")
 		{
-			Version = new Version(0, 7);
+			Version = Helpers.Constants.ClientVersion;
 		}
 
 		public Version Version { get; }

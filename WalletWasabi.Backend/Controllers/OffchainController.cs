@@ -13,7 +13,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// To acquire offchain data.
 	/// </summary>
 	[Produces("application/json")]
-	[Route("api/v1/btc/[controller]")]
+	[Route("api/v" + Helpers.Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class OffchainController : Controller
 	{
 		private IMemoryCache Cache { get; }
@@ -51,6 +51,18 @@ namespace WalletWasabi.Backend.Controllers
 			Cache.Set(nameof(GetExchangeRatesAsync), exchangeRates, cacheEntryOptions);
 
 			return exchangeRates;
+		}
+
+		/// <summary>
+		/// Gets the latest version of the client.
+		/// </summary>
+		/// <returns>Version.</returns>
+		/// <response code="200">Version.</response>
+		[HttpGet("client-version")]
+		[ProducesResponseType(typeof(string), 200)]
+		public string GetClientVersion()
+		{
+			return Helpers.Constants.ClientVersion.ToString();
 		}
 	}
 }

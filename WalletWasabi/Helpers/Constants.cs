@@ -1,10 +1,14 @@
 ﻿using NBitcoin;
 using Org.BouncyCastle.Math;
+using System;
 
 namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
+		public static readonly Version ClientVersion = new Version(0, 7);
+		public const string BackendMajorVersion = "1";
+
 		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 
 		public const int P2wpkhInputSizeInBytes = 41;
