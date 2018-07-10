@@ -40,6 +40,13 @@ cd WalletWasabi.Gui
 dotnet run
 ```
 
+## Update
+
+```sh
+git pull
+git submodule update --init --recursive 
+```
+
 ### Notes:
 
 - Configuration, wallet and similar files can be found in `%appdata%\WalletWasabi` folder on Windows and in `~/.walletwasabi` folder on Linux/OSX.
