@@ -15,7 +15,6 @@ namespace WalletWasabi.Gui.Tabs
 
 		public Version Version { get; }
 
-		public string AboutText => $"Current Version: v{Version.ToString()}\n" +
-			$"Get latest version form: https://github.com/zkSNACKs/WalletWasabi/releases/";
+		public string VersionText => $"v{Version.ToString()}";
 	}
 }

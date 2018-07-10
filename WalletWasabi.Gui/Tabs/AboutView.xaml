@@ -3,7 +3,17 @@
   <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
     <StackPanel>
       <Grid Classes="content" Margin="0 10 0 0">
-        <TextBox Text="{Binding AboutText}" Classes="selectableTextBlock" />
+        <StackPanel Orientation="Vertical">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Current Version: " />
+            <TextBox Text="{Binding VersionText}" Classes="selectableTextBlock" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="To get the latest version, please visit: " />
+            <TextBox Text="https://github.com/zkSNACKs/WalletWasabi/releases/" Classes="selectableTextBlock hyperLink" />
+          </StackPanel>
+          <TextBlock Text="Consider using Tor Browser to protect your privacy." />
+        </StackPanel>
       </Grid>
     </StackPanel>
   </controls:GroupBox>

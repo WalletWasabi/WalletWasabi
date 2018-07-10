@@ -7,7 +7,7 @@
           <TextBlock Text="Please visit: " />
           <TextBox Text="http://reddit.com/r/WasabiWallet/" Classes="selectableTextBlock hyperLink" />
         </StackPanel>
-        <TextBlock Text="We recommend you to use Tor browser in order to protect your privacy." />
+        <TextBlock Text="Consider using Tor Browser to protect your privacy." />
       </StackPanel>
     </Grid>
   </controls:GroupBox>
