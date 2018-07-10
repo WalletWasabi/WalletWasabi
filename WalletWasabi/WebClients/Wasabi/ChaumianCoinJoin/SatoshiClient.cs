@@ -10,7 +10,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.TorSocks5;
 
-namespace WalletWasabi.WebClients.ChaumianCoinJoin
+namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 {
 	public class SatoshiClient : TorDisposableBase
 	{
@@ -21,7 +21,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 		public async Task<IEnumerable<CcjRunningRoundState>> GetAllRoundStatesAsync()
 		{
-			using (var response = await TorClient.SendAsync(HttpMethod.Get, "/api/v1/btc/chaumiancoinjoin/states/"))
+			using (var response = await TorClient.SendAsync(HttpMethod.Get, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/states/"))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{

@@ -14,7 +14,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.WebClients.ChaumianCoinJoin;
+using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 
 namespace WalletWasabi.Services
 {

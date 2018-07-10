@@ -13,9 +13,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.WebClients.ChaumianCoinJoin;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Exceptions;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {

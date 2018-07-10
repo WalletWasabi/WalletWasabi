@@ -19,8 +19,8 @@ using NBitcoin;
 using NBitcoin.Policy;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
-using WalletWasabi.WebClients.ChaumianCoinJoin;
 using System.Collections.ObjectModel;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
 {

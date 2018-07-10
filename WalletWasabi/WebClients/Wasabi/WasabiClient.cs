@@ -15,7 +15,7 @@ using NBitcoin.RPC;
 using System.Threading;
 using WalletWasabi.Backend.Models.Responses;
 
-namespace WalletWasabi.WebClients.ChaumianCoinJoin
+namespace WalletWasabi.WebClients.Wasabi
 {
 	public class WasabiClient : TorDisposableBase
 	{
@@ -33,7 +33,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		{
 			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
 																	HttpStatusCode.OK,
-																	$"/api/v1/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
+																	$"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
 																	cancel: cancel))
 			{
 				if (response.StatusCode == HttpStatusCode.NoContent)
@@ -57,7 +57,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		{
 			var confirmationTargetsString = string.Join(",", confirmationTargets);
 
-			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v1/btc/blockchain/fees/{confirmationTargetsString}"))
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/fees/{confirmationTargetsString}"))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
@@ -75,7 +75,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 		public async Task BroadcastAsync(string hex)
 		{
 			using (var content = new StringContent($"'{hex}'", Encoding.UTF8, "application/json"))
-			using (var response = await TorClient.SendAsync(HttpMethod.Post, "/api/v1/btc/blockchain/broadcast", content))
+			using (var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
@@ -100,7 +100,7 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
-			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/v1/btc/offchain/exchange-rates"))
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/offchain/exchange-rates"))
 			{
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
@@ -115,10 +115,20 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 			}
 		}
 
-		public async Task<Version> GetClientVersionAsync()
+		#endregion offchain
+
+		#region software
+
+		public async Task<(Version ClientVersion, int BackendMajorVersion)> GetVersionsAsync()
 		{
-			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/v1/btc/offchain/client-version"))
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions"))
 			{
+				if (response.StatusCode == HttpStatusCode.NotFound)
+				{
+					// Meaning this things wasn't just yet implemented on the running server.
+					return (new Version(0, 7), 1);
+				}
+
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					await response.ThrowRequestExceptionFromContentAsync();
@@ -126,12 +136,21 @@ namespace WalletWasabi.WebClients.ChaumianCoinJoin
 
 				using (HttpContent content = response.Content)
 				{
-					var ret = await content.ReadAsJsonAsync<Version>();
-					return ret;
+					var resp = await content.ReadAsJsonAsync<VersionsResponse>();
+					return (Version.Parse(resp.ClientVersion), int.Parse(resp.BackenMajordVersion));
 				}
 			}
 		}
 
-		#endregion offchain
+		public async Task<(bool backendCompatible, bool clientUpToDate)> CheckUpdatesAsync()
+		{
+			var versions = await GetVersionsAsync();
+			var clientUpToDate = Helpers.Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater or equal to the backend's reported client version, then good.
+			var backendCompatible = int.Parse(Helpers.Constants.BackendMajorVersion) == versions.BackendMajorVersion; // If the backend major and the client major equals, then our softwares are compatible.
+
+			return (backendCompatible, clientUpToDate);
+		}
+
+		#endregion software
 	}
 }

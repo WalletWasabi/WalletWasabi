@@ -8,6 +8,8 @@ using Avalonia.Data.Converters;
 using System.Globalization;
 using WalletWasabi.Models;
 using NBitcoin;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -16,6 +18,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public NodesCollection Nodes { get; }
 		public MemPoolService MemPoolService { get; }
 		public IndexDownloader IndexDownloader { get; }
+		public UpdateChecker UpdateChecker { get; }
 
 		private BackendStatus _backend;
 
@@ -99,8 +102,14 @@ namespace WalletWasabi.Gui.ViewModels
 			set { this.RaiseAndSetIfChanged(ref _showNetwork, value); }
 		}
 
-		public StatusBarViewModel(NodesCollection nodes, MemPoolService memPoolService, IndexDownloader indexDownloader)
+		private long _clientOutOfDate;
+		private long _backendIncompatible;
+
+		public StatusBarViewModel(NodesCollection nodes, MemPoolService memPoolService, IndexDownloader indexDownloader, UpdateChecker updateChecker)
 		{
+			_clientOutOfDate = 0;
+			_backendIncompatible = 0;
+
 			Nodes = nodes;
 			Nodes.Added += Nodes_Added;
 			Nodes.Removed += Nodes_Removed;
@@ -111,6 +120,7 @@ namespace WalletWasabi.Gui.ViewModels
 			Mempool = MemPoolService.TransactionHashes.Count;
 
 			IndexDownloader = indexDownloader;
+			UpdateChecker = updateChecker;
 			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
 			IndexDownloader.BestHeightChanged += IndexDownloader_BestHeightChanged;
 			IndexDownloader.TorStatusChanged += IndexDownloader_TorStatusChanged;
@@ -129,29 +139,56 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
-				SetStatus();
+				SetStatusAndDoUpdateActions();
 			});
 			this.WhenAnyValue(x => x.FiltersLeft).Subscribe(filters =>
 			{
-				SetStatus();
+				SetStatusAndDoUpdateActions();
 			});
 			this.WhenAnyValue(x => x.Tor).Subscribe(tor =>
 			{
-				SetStatus();
+				SetStatusAndDoUpdateActions();
 			});
 			this.WhenAnyValue(x => x.Backend).Subscribe(backend =>
 			{
-				SetStatus();
+				SetStatusAndDoUpdateActions();
 			});
 			this.WhenAnyValue(x => x.Peers).Subscribe(peers =>
 			{
-				SetStatus();
+				SetStatusAndDoUpdateActions();
 			});
+
+			UpdateChecker.Start(TimeSpan.FromMinutes(7),
+				() =>
+				{
+					Interlocked.Exchange(ref _backendIncompatible, 1);
+					SetStatusAndDoUpdateActions();
+					return Task.CompletedTask;
+				},
+				() =>
+				{
+					Interlocked.Exchange(ref _clientOutOfDate, 1);
+					SetStatusAndDoUpdateActions();
+					return Task.CompletedTask;
+				});
 		}
 
-		private void SetStatus()
+		private void SetStatusAndDoUpdateActions()
 		{
-			if (Tor != TorStatus.Running || Backend != BackendStatus.Connected || Peers < 1)
+			if (Interlocked.Read(ref _backendIncompatible) != 0)
+			{
+				Status = "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR SOFTWARE";
+				// ToDo: 1. Make the status bar clickable. Click takes the user to the About page. (Where the new release download link is.)
+				// ToDo: 2. Remove all the text from the status bar except this one.
+				// ToDo: 3. Make the background of the status bar "IndianRed". Other red is fine, but I think IndianRed would look the best.
+			}
+			else if (Interlocked.Read(ref _clientOutOfDate) != 0)
+			{
+				Status = "New Version Is Available";
+				// ToDo: 1. Make the status bar clickable. Click takes the user to the About page. (Where the new release download link is.)
+				// ToDo: 2. Add a green flag icon to the beginning of this text.
+			}
+			else if (Tor != TorStatus.Running || Backend != BackendStatus.Connected || Peers < 1)
 			{
 				Status = "Connecting...";
 			}

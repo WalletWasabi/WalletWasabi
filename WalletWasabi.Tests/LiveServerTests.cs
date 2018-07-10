@@ -9,7 +9,8 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.WebClients.ChaumianCoinJoin;
+using WalletWasabi.WebClients.Wasabi;
+using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using Xunit;
 
 namespace WalletWasabi.Tests

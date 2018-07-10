@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
-using WalletWasabi.WebClients.ChaumianCoinJoin;
+using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {

@@ -1,6 +1,7 @@
 ﻿using NBitcoin;
 using Org.BouncyCastle.Math;
 using System;
+using WalletWasabi.Backend.Models.Responses;
 
 namespace WalletWasabi.Helpers
 {
@@ -8,6 +9,7 @@ namespace WalletWasabi.Helpers
 	{
 		public static readonly Version ClientVersion = new Version(0, 7);
 		public const string BackendMajorVersion = "1";
+		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(), BackenMajordVersion = BackendMajorVersion };
 
 		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 

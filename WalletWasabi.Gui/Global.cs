@@ -48,6 +48,7 @@ namespace WalletWasabi.Gui
 		public static CcjClient ChaumianClient { get; private set; }
 		public static WalletService WalletService { get; private set; }
 		public static Node RegTestMemPoolServingNode { get; private set; }
+		public static UpdateChecker UpdateChecker { get; private set; }
 
 		public static Config Config { get; private set; }
 
@@ -122,6 +123,8 @@ namespace WalletWasabi.Gui
 			var indexFilePath = Path.Combine(DataDir, $"Index{Network}.dat");
 			IndexDownloader = new IndexDownloader(Network, indexFilePath, Config.GetCurrentBackendUri());
 
+			UpdateChecker = new UpdateChecker(IndexDownloader.WasabiClient);
+
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 
@@ -177,6 +180,9 @@ namespace WalletWasabi.Gui
 
 			WalletService?.Dispose();
 			Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
+
+			UpdateChecker?.Dispose();
+			Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
 
 			IndexDownloader?.Dispose();
 			Logger.LogInfo($"{nameof(IndexDownloader)} is stopped.", nameof(Global));

@@ -52,17 +52,5 @@ namespace WalletWasabi.Backend.Controllers
 
 			return exchangeRates;
 		}
-
-		/// <summary>
-		/// Gets the latest version of the client.
-		/// </summary>
-		/// <returns>Version.</returns>
-		/// <response code="200">Version.</response>
-		[HttpGet("client-version")]
-		[ProducesResponseType(typeof(string), 200)]
-		public string GetClientVersion()
-		{
-			return Helpers.Constants.ClientVersion.ToString();
-		}
 	}
 }

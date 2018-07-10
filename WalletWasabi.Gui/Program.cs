@@ -40,7 +40,7 @@ namespace WalletWasabi.Gui
 						Logger.LogInfo<Config>("Config is successfully initialized.");
 
 						Global.Initialize(config);
-						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader);
+						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader, Global.UpdateChecker);
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 					}
