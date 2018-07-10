@@ -18,7 +18,11 @@
         <DockPanel LastChildFill="True">
           <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Gap="10" HorizontalAlignment="Left" MinWidth="500">
             <TextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
-            <TextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" />
+            <TextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True">
+              <ToolTip.Tip>
+                Start labelling today and your privacy will thank you tomorrow!
+              </ToolTip.Tip>
+            </TextBox>
             <StackPanel Orientation="Horizontal" Gap="10">
               <Button Content="Max" Command="{Binding MaxCommand}" />
               <TextBox Text="{Binding Amount}" Watermark="Amount" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
