@@ -128,7 +128,7 @@ namespace WalletWasabi.KeyManagement
 
 			if (!File.Exists(filePath))
 			{
-				throw new FileNotFoundException($"Walle file not found at: `{filePath}`.");
+				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
 			}
 
 			string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
