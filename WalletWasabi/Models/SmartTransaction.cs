@@ -1,14 +1,22 @@
 ﻿using NBitcoin;
+using Newtonsoft.Json;
 using System;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Models
 {
-	public class SmartTransaction : IEquatable<SmartTransaction>
+	[JsonObject(MemberSerialization.OptIn)]
+	public class SmartTransaction : IEquatable<SmartTransaction>, IEquatable<Transaction>
 	{
 		#region Members
 
-		public Height Height { get; }
+		[JsonProperty]
+		[JsonConverter(typeof(TransactionJsonConverter))]
 		public Transaction Transaction { get; }
+
+		[JsonProperty]
+		[JsonConverter(typeof(HeightJsonConverter))]
+		public Height Height { get; }
 
 		public bool Confirmed => Height.Type == HeightType.Chain;
 
@@ -33,13 +41,16 @@ namespace WalletWasabi.Models
 		{
 		}
 
+		[JsonConstructor]
 		public SmartTransaction(Transaction transaction, Height height)
 		{
 			Height = height;
 			Transaction = transaction;
 
 			if (height == Height.MemPool)
+			{
 				_firstSeenIfMemPoolHeight = DateTimeOffset.UtcNow;
+			}
 		}
 
 		#endregion Constructors
@@ -50,20 +61,8 @@ namespace WalletWasabi.Models
 
 		public bool Equals(Transaction other) => GetHash().Equals(other?.GetHash());
 
-		public override bool Equals(object obj)
-		{
-			bool rc = false;
-
-			if (obj is SmartTransaction st)
-			{
-				rc = GetHash().Equals(st.GetHash());
-			}
-			else if (obj is Transaction t)
-			{
-				rc = GetHash().Equals(t.GetHash());
-			}
-			return rc;
-		}
+		public override bool Equals(object obj) =>
+			(obj is SmartTransaction && this == (SmartTransaction)obj);
 
 		public override int GetHashCode()
 		{
