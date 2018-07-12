@@ -3,8 +3,7 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             Name="ReceiveTabViewerUserControl"
-             IsVisible="{Binding IsSelected}">
+             Name="ReceiveTabViewerUserControl">
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedAddress}" />
   </i:Interaction.Behaviors>
@@ -18,7 +17,7 @@
               <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
                 <i:Interaction.Behaviors>
                   <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
-                  <behaviors:FocusOnVisibleBehavior AttachedControlName="ReceiveTabViewerUserControl" />
+                  <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
                   <iac:FocusOnAttachedToVisualTreeBehavior />
                 </i:Interaction.Behaviors>
 
