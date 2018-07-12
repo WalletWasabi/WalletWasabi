@@ -1,7 +1,10 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             Name="ReceiveTabViewerUserControl"
+             IsVisible="{Binding IsSelected}">
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedAddress}" />
   </i:Interaction.Behaviors>
@@ -11,11 +14,14 @@
         <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
           <DockPanel LastChildFill="True">
 
-            <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
+            <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10" >
               <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
                 <i:Interaction.Behaviors>
                   <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
+                  <behaviors:FocusOnVisibleBehavior AttachedControlName="ReceiveTabViewerUserControl" />
+                  <iac:FocusOnAttachedToVisualTreeBehavior />
                 </i:Interaction.Behaviors>
+
                 <ToolTip.Tip>
                   Start labelling today and your privacy will thank you tomorrow!
                 </ToolTip.Tip>
