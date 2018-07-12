@@ -13,7 +13,7 @@
   </i:Interaction.Behaviors>
 
   <DockPanel LastChildFill="True">
-    <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20 20 20 0" Margin="10">
+    <controls:GroupBox Title="Select Coins To Spend From" TextBlock.FontSize="16" Padding="10" Margin="10">
       <Grid Classes="content">
         <DockPanel LastChildFill="True">
           <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Gap="10" HorizontalAlignment="Left" MinWidth="500">

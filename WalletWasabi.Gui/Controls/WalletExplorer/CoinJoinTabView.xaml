@@ -3,34 +3,34 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
-    <UserControl.Resources>
-        <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
-    </UserControl.Resources>
-    <Grid RowDefinitions="4*,3*,4*">
-        <controls:GroupBox Title="Coins" TextBlock.FontSize="30" Padding="20 20 20 10" Margin="10 5 10 5">
-            <Grid Classes="content">
-                <DockPanel LastChildFill="True">
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Gap="4">
-                        <Button Content="Enqueue" Command="{Binding EnqueueCommand}" />
-                        <TextBox PasswordChar="*" Text="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
-                    </StackPanel>
-                    <local:CoinListView DataContext="{Binding AvailableCoinsList}" />
-                </DockPanel>
-            </Grid>
-        </controls:GroupBox>
+  <UserControl.Resources>
+    <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
+  </UserControl.Resources>
+  <Grid RowDefinitions="4*,3*,4*">
+    <controls:GroupBox Title="Queue Coins For CoinJoin" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5">
+      <Grid Classes="content">
+        <DockPanel LastChildFill="True">
+          <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Gap="4">
+            <Button Content="Enqueue" Command="{Binding EnqueueCommand}" />
+            <TextBox PasswordChar="*" Text="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
+          </StackPanel>
+          <local:CoinListView DataContext="{Binding AvailableCoinsList}" />
+        </DockPanel>
+      </Grid>
+    </controls:GroupBox>
 
-        <controls:GroupBox Title="Status" TextBlock.FontSize="30" Padding="20" Margin="10 5 10 5" Grid.Row="1">
-            <Grid Classes="content">
-            </Grid>
-        </controls:GroupBox>
+    <controls:GroupBox Title="Status" TextBlock.FontSize="16" Padding="20" Margin="10 5 10 5" Grid.Row="1">
+      <Grid Classes="content">
+      </Grid>
+    </controls:GroupBox>
 
-        <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20 20 20 10" Margin="10 5" Grid.Row="2">
-            <Grid Classes="content">
-                <DockPanel LastChildFill="True">
-                    <Button DockPanel.Dock="Bottom" Content="Dequeue" Command="{Binding DequeueCommand}" />
-                    <local:CoinListView DataContext="{Binding QueuedCoinsList}" />
-                </DockPanel>
-            </Grid>
-        </controls:GroupBox>
-    </Grid>
+    <controls:GroupBox Title="Coins Being CoinJoined" TextBlock.FontSize="16" Padding="10" Margin="10 5" Grid.Row="2">
+      <Grid Classes="content">
+        <DockPanel LastChildFill="True">
+          <Button DockPanel.Dock="Bottom" Content="Dequeue" Command="{Binding DequeueCommand}" />
+          <local:CoinListView DataContext="{Binding QueuedCoinsList}" />
+        </DockPanel>
+      </Grid>
+    </controls:GroupBox>
+  </Grid>
 </UserControl>
