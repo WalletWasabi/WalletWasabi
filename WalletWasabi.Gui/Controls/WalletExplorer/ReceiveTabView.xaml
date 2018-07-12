@@ -19,6 +19,7 @@
                 Start labelling today and your privacy will thank you tomorrow!
               </ToolTip.Tip>
             </TextBox>
+            <TextBox Text="{Binding WarningMessage}" Classes="warningMessage" Margin="5" BorderThickness="0" />
             <Grid IsVisible="{Binding ClipboardNotificationVisible}">
               <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                 <Grid.Transitions>

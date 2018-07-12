@@ -20,6 +20,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _label;
 		private double _clipboardNotificationOpacity;
 		private bool _clipboardNotificationVisible;
+		private string _warningMessage;
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
@@ -37,22 +38,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
-				HdPubKey newKey = Global.WalletService.GetReceiveKey(Label);
-
-				AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
-				if (found != default)
+				if (string.IsNullOrWhiteSpace(Label))
 				{
-					Addresses.Remove(found);
+					WarningMessage = "Label cannot be empty";
 				}
+				else
+				{
+					WarningMessage = string.Empty;
 
-				var newAddress = new AddressViewModel(newKey);
+					HdPubKey newKey = Global.WalletService.GetReceiveKey(Label);
 
-				Addresses.Insert(0, newAddress);
+					AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
+					if (found != default)
+					{
+						Addresses.Remove(found);
+					}
 
-				SelectedAddress = newAddress;
+					var newAddress = new AddressViewModel(newKey);
 
-				Label = string.Empty;
-			}, this.WhenAnyValue(x => x.Label, label => !string.IsNullOrWhiteSpace(label)));
+					Addresses.Insert(0, newAddress);
+
+					SelectedAddress = newAddress;
+
+					Label = string.Empty;
+				}
+			});
+
+			this.WhenAnyValue(x => x.Label).Subscribe(label => { WarningMessage = string.Empty; });
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 			{
@@ -101,6 +113,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _label, value); }
 		}
 
+		public string WarningMessage
+		{
+			get { return _warningMessage; }
+			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
+		}
 		public double ClipboardNotificationOpacity
 		{
 			get { return _clipboardNotificationOpacity; }
