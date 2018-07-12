@@ -441,6 +441,7 @@ namespace WalletWasabi.Services
 				if (foundCoin != null)
 				{
 					foundCoin.SpenderTransactionId = tx.GetHash();
+					TransactionCache.Add(tx);
 					CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
 				}
 			}
