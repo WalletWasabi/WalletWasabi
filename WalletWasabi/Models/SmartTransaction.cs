@@ -64,12 +64,25 @@ namespace WalletWasabi.Models
 
 		#region Equality
 
-		public bool Equals(SmartTransaction other) => GetHash().Equals(other?.GetHash());
+		public bool Equals(SmartTransaction other) => Equals((object)other);
 
-		public bool Equals(Transaction other) => GetHash().Equals(other?.GetHash());
+		public bool Equals(Transaction other) => Equals((object)other);
 
-		public override bool Equals(object obj) =>
-			(obj is SmartTransaction && this == (SmartTransaction)obj);
+		public override bool Equals(object obj)
+		{
+			if(object.ReferenceEquals(this, obj))
+				return true;
+			
+			if(obj is SmartTransaction st)
+			{
+				return st.Transaction.GetHash() == this.GetHash();
+			}
+			else if(obj is Transaction t)
+			{
+				return t.GetHash() == this.GetHash();
+			}
+			return false;
+		}
 
 		public override int GetHashCode()
 		{
@@ -83,35 +96,12 @@ namespace WalletWasabi.Models
 
 		public static bool operator ==(SmartTransaction tx1, SmartTransaction tx2)
 		{
-			bool rc;
-
-			if (ReferenceEquals(tx1, tx2)) rc = true;
-			else if ((object)tx1 == null || (object)tx2 == null)
-			{
-				rc = false;
-			}
-			else
-			{
-				rc = tx1.GetHash().Equals(tx2.GetHash());
-			}
-
-			return rc;
+			return tx1.Equals(tx2);
 		}
 
 		public static bool operator ==(Transaction tx1, SmartTransaction tx2)
 		{
-			bool rc;
-
-			if ((object)tx1 == null || (object)tx2 == null)
-			{
-				rc = false;
-			}
-			else
-			{
-				rc = tx1.GetHash().Equals(tx2.GetHash());
-			}
-
-			return rc;
+			return tx2.Equals(tx1);
 		}
 
 		public static bool operator !=(Transaction tx1, SmartTransaction tx2)
@@ -121,18 +111,7 @@ namespace WalletWasabi.Models
 
 		public static bool operator ==(SmartTransaction tx1, Transaction tx2)
 		{
-			bool rc;
-
-			if ((object)tx1 == null || (object)tx2 == null)
-			{
-				rc = false;
-			}
-			else
-			{
-				rc = tx1.GetHash().Equals(tx2.GetHash());
-			}
-
-			return rc;
+			return tx1.Equals(tx2);
 		}
 
 		public static bool operator !=(SmartTransaction tx1, Transaction tx2)
