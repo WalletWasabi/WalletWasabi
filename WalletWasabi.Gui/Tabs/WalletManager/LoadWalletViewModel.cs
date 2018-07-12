@@ -174,7 +174,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					// Successffully initialized.
 					IoC.Get<IShell>().RemoveDocument(Owner);
 					// Open Wallet Explorer tabs
-					IoC.Get<WalletExplorerViewModel>().OpenWallet(SelectedWallet);
+					if (Global.WalletService.Coins.Any())
+					{
+						// If already have coins then open with History tab first.
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(SelectedWallet, receiveDominant: false);
+					}
+					else // Else open with Receive tab first.
+					{
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(SelectedWallet, receiveDominant: true);
+					}
 				}
 				catch (Exception ex)
 				{

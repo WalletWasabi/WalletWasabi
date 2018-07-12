@@ -12,16 +12,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private ObservableCollection<WalletActionViewModel> _actions;
 
-		public WalletViewModel(string name)
+		public WalletViewModel(string name, bool receiveDominant)
 			: base(name)
 		{
-			_actions = new ObservableCollection<WalletActionViewModel>
+			if (receiveDominant)
 			{
-				new SendTabViewModel(this),
-				new ReceiveTabViewModel(this),
-				new CoinJoinTabViewModel(this),
-				new HistoryTabViewModel(this)
-			};
+				_actions = new ObservableCollection<WalletActionViewModel>
+				{
+					new SendTabViewModel(this),
+					new CoinJoinTabViewModel(this),
+					new HistoryTabViewModel(this),
+					new ReceiveTabViewModel(this)
+				};
+			}
+			else
+			{
+				_actions = new ObservableCollection<WalletActionViewModel>
+				{
+					new SendTabViewModel(this),
+					new ReceiveTabViewModel(this),
+					new CoinJoinTabViewModel(this),
+					new HistoryTabViewModel(this)
+				};
+			}
 
 			foreach (var vm in _actions)
 			{

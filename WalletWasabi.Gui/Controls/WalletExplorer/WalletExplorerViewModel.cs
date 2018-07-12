@@ -43,12 +43,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _selectedItem, value); }
 		}
 
-		internal void OpenWallet(string walletName)
+		internal void OpenWallet(string walletName, bool receiveDominant)
 		{
 			if (_wallets.Any(x => x.Title == walletName))
 				return;
 
-			WalletViewModel walletViewModel = new WalletViewModel(walletName);
+			WalletViewModel walletViewModel = new WalletViewModel(walletName, receiveDominant);
 			_wallets.Add(walletViewModel);
 		}
 	}
