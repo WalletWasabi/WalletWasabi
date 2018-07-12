@@ -34,6 +34,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
+		[Trait("Category", "TorNotNeeded")]
 		public async Task CanWaitForBlockFromRpcAsync()
 		{
 			using (var builder = await NodeBuilder.CreateAsync())

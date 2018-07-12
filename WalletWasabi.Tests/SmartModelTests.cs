@@ -20,6 +20,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
+		[Trait("Category", "TorNotNeeded")]
 		public void SmartTransactionEquality()
 		{
 			var tx = Network.TestNet.Consensus.ConsensusFactory.CreateTransaction();
@@ -46,6 +47,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
+		[Trait("Category", "TorNotNeeded")]
 		public void SmartCoinEquality()
 		{
 			var tx = Network.TestNet.Consensus.ConsensusFactory.CreateTransaction();
@@ -76,6 +78,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
+		[Trait("Category", "TorNotNeeded")]
 		public void SmartTransactionSerialization()
 		{
 			var tx = Network.TestNet.Consensus.ConsensusFactory.CreateTransaction();
@@ -113,6 +116,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
+		[Trait("Category", "TorNotNeeded")]
 		public void SmartCoinSerialization()
 		{
 			var tx = Network.TestNet.Consensus.ConsensusFactory.CreateTransaction();
