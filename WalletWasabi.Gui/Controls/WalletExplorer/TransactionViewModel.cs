@@ -1,4 +1,6 @@
 ﻿using ReactiveUI;
+using System;
+using System.Globalization;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -15,6 +17,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private readonly ObservableAsPropertyHelper<bool> _confirmed;
+
+		public string DateTime
+		{
+			get { return _model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture); }
+		}
 
 		public bool Confirmed
 		{

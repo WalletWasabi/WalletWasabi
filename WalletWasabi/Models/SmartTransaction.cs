@@ -29,7 +29,7 @@ namespace WalletWasabi.Models
 		/// only exists in memory,
 		/// doesn't affect equality
 		/// </summary>
-		public DateTimeOffset? FirstSeenIfMemPoolHeight { get; private set; }
+		public DateTimeOffset? FirstSeenIfMemPoolTime { get; private set; }
 
 		#endregion Members
 
@@ -52,11 +52,11 @@ namespace WalletWasabi.Models
 			Height = height;
 			if (height == Height.MemPool)
 			{
-				FirstSeenIfMemPoolHeight = DateTimeOffset.UtcNow;
+				FirstSeenIfMemPoolTime = DateTimeOffset.UtcNow;
 			}
 			else
 			{
-				FirstSeenIfMemPoolHeight = null;
+				FirstSeenIfMemPoolTime = null;
 			}
 		}
 

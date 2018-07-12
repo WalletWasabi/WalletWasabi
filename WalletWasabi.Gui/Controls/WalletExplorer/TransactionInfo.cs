@@ -8,9 +8,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class TransactionInfo : ReactiveObject
 	{
 		private bool _confirmed;
+		private DateTimeOffset _dateTime;
 		private string _amountBtc;
 		private string _label;
 		private string _transactionId;
+
+		public DateTimeOffset DateTime
+		{
+			get { return _dateTime; }
+			set { this.RaiseAndSetIfChanged(ref _dateTime, value); }
+		}
 
 		public bool Confirmed
 		{

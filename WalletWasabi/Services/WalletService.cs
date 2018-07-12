@@ -22,6 +22,7 @@ using Nito.AsyncEx;
 using System.Collections.ObjectModel;
 using WalletWasabi.WebClients.Wasabi;
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
 
 namespace WalletWasabi.Services
 {
@@ -41,7 +42,7 @@ namespace WalletWasabi.Services
 		private AsyncLock BlockFolderLock { get; }
 
 		public SortedDictionary<Height, uint256> WalletBlocks { get; }
-		private HashSet<uint256> ProcessedBlocks { get; }
+		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 		private AsyncLock WalletBlocksLock { get; }
 
 		public NotifyingConcurrentHashSet<SmartCoin> Coins { get; }
@@ -73,7 +74,7 @@ namespace WalletWasabi.Services
 			MemPool = Guard.NotNull(nameof(memPool), memPool);
 
 			WalletBlocks = new SortedDictionary<Height, uint256>();
-			ProcessedBlocks = new HashSet<uint256>();
+			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
 			WalletBlocksLock = new AsyncLock();
 			HandleFiltersLock = new AsyncLock();
 
@@ -121,7 +122,7 @@ namespace WalletWasabi.Services
 				var elem = WalletBlocks.FirstOrDefault(x => x.Value == invalidBlockHash);
 				await DeleteBlockAsync(invalidBlockHash);
 				WalletBlocks.RemoveByValue(invalidBlockHash);
-				ProcessedBlocks.Remove(invalidBlockHash);
+				ProcessedBlocks.TryRemove(invalidBlockHash, out _);
 				if (elem.Key != default(Height))
 				{
 					foreach (var toRemove in Coins.Where(x => x.Height == elem.Key).ToHashSet())
@@ -210,7 +211,7 @@ namespace WalletWasabi.Services
 
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
 		{
-			if (ProcessedBlocks.Contains(filterModel.BlockHash))
+			if (ProcessedBlocks.ContainsKey(filterModel.BlockHash))
 			{
 				return;
 			}
@@ -303,7 +304,7 @@ namespace WalletWasabi.Services
 				ProcessTransaction(new SmartTransaction(tx, height), keys);
 			}
 
-			ProcessedBlocks.Add(block.GetHash());
+			ProcessedBlocks.TryAdd(block.GetHash(), (height, block.Header.BlockTime));
 
 			NewBlockProcessed?.Invoke(this, block);
 		}
