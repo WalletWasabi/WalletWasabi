@@ -16,7 +16,7 @@ namespace WalletWasabi.Models
 
 		[JsonProperty]
 		[JsonConverter(typeof(HeightJsonConverter))]
-		public Height Height { get; }
+		public Height Height { get; private set; }
 
 		public bool Confirmed => Height.Type == HeightType.Chain;
 
@@ -24,14 +24,12 @@ namespace WalletWasabi.Models
 
 		public int GetConfirmationCount(Height bestHeight) => Height == Height.MemPool ? 0 : bestHeight.Value - Height.Value + 1;
 
-		private readonly DateTimeOffset? _firstSeenIfMemPoolHeight = null;
-
 		/// <summary>
 		/// if Height is MemPool it's first seen, else null,
 		/// only exists in memory,
 		/// doesn't affect equality
 		/// </summary>
-		public DateTimeOffset? GetFirstSeenIfMemPoolHeight() => _firstSeenIfMemPoolHeight;
+		public DateTimeOffset? FirstSeenIfMemPoolHeight { get; private set; }
 
 		#endregion Members
 
@@ -44,12 +42,21 @@ namespace WalletWasabi.Models
 		[JsonConstructor]
 		public SmartTransaction(Transaction transaction, Height height)
 		{
-			Height = height;
 			Transaction = transaction;
 
+			SetHeight(height);
+		}
+
+		public void SetHeight(Height height)
+		{
+			Height = height;
 			if (height == Height.MemPool)
 			{
-				_firstSeenIfMemPoolHeight = DateTimeOffset.UtcNow;
+				FirstSeenIfMemPoolHeight = DateTimeOffset.UtcNow;
+			}
+			else
+			{
+				FirstSeenIfMemPoolHeight = null;
 			}
 		}
 

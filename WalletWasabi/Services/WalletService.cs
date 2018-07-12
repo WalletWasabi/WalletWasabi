@@ -21,6 +21,7 @@ using NBitcoin.Protocol;
 using Nito.AsyncEx;
 using System.Collections.ObjectModel;
 using WalletWasabi.WebClients.Wasabi;
+using Newtonsoft.Json;
 
 namespace WalletWasabi.Services
 {
@@ -33,6 +34,7 @@ namespace WalletWasabi.Services
 
 		public NodesGroup Nodes { get; }
 		public string BlocksFolderPath { get; }
+		public string TmpMempoolDumpFilePath { get; }
 
 		private AsyncLock HandleFiltersLock { get; }
 		private AsyncLock BlockDownloadLock { get; }
@@ -44,11 +46,15 @@ namespace WalletWasabi.Services
 
 		public NotifyingConcurrentHashSet<SmartCoin> Coins { get; }
 
+		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
+
 		public event EventHandler<FilterModel> NewFilterProcessed;
 
 		public event EventHandler<SmartCoin> CoinSpentOrSpenderConfirmed;
 
 		public event EventHandler<Block> NewBlockProcessed;
+
+		public Network Network => IndexDownloader.Network;
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -72,6 +78,7 @@ namespace WalletWasabi.Services
 			HandleFiltersLock = new AsyncLock();
 
 			Coins = new NotifyingConcurrentHashSet<SmartCoin>();
+			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
 
 			BlocksFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(blocksFolderPath), blocksFolderPath, trim: true);
 			BlockFolderLock = new AsyncLock();
@@ -94,6 +101,8 @@ namespace WalletWasabi.Services
 				Directory.CreateDirectory(BlocksFolderPath);
 			}
 
+			TmpMempoolDumpFilePath = Path.Combine(BlocksFolderPath, $"TmpMempoolDump{Network}.json");
+
 			IndexDownloader.NewFilter += IndexDownloader_NewFilterAsync;
 			IndexDownloader.Reorged += IndexDownloader_ReorgedAsync;
 			MemPool.TransactionReceived += MemPool_TransactionReceived;
@@ -109,7 +118,7 @@ namespace WalletWasabi.Services
 			using (HandleFiltersLock.Lock())
 			using (WalletBlocksLock.Lock())
 			{
-				var elem = WalletBlocks.SingleOrDefault(x => x.Value == invalidBlockHash);
+				var elem = WalletBlocks.FirstOrDefault(x => x.Value == invalidBlockHash);
 				await DeleteBlockAsync(invalidBlockHash);
 				WalletBlocks.RemoveByValue(invalidBlockHash);
 				ProcessedBlocks.Remove(invalidBlockHash);
@@ -162,9 +171,39 @@ namespace WalletWasabi.Services
 				// Go through the filters and que to download the matches.
 				var filters = IndexDownloader.GetFiltersIncluding(IndexDownloader.StartingFilter.BlockHeight);
 
-				foreach (var filterModel in filters.Where(x => x.Filter != null && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
+				foreach (FilterModel filterModel in filters.Where(x => x.Filter != null && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
 				{
 					await ProcessFilterModelAsync(filterModel, cancel);
+				}
+
+				// Load in dummy mempool
+				if (File.Exists(TmpMempoolDumpFilePath))
+				{
+					string jsonString = File.ReadAllText(TmpMempoolDumpFilePath, Encoding.UTF8);
+					var mempool = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString);
+
+					foreach (var tx in mempool)
+					{
+						try
+						{
+							await SendTransactionAsync(tx);
+
+							ProcessTransaction(tx, keys: null);
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning<WalletService>(ex);
+						}
+					}
+					try
+					{
+						File.Delete(TmpMempoolDumpFilePath);
+					}
+					catch (Exception ex)
+					{
+						// Don't fail because of this. It's not important.
+						Logger.LogWarning<WalletService>(ex);
+					}
 				}
 			}
 		}
@@ -303,13 +342,18 @@ namespace WalletWasabi.Services
 			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If we already had it, just update the height. Maybe got from mempool to block or reorged.
-				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == tx.GetHash() && x.Index == i);
+				SmartCoin foundCoin = Coins.FirstOrDefault(x => x.TransactionId == tx.GetHash() && x.Index == i);
 				if (foundCoin != default)
 				{
 					// If tx height is mempool then don't, otherwise update the height.
 					if (tx.Height != Height.MemPool)
 					{
 						foundCoin.Height = tx.Height;
+						SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x.GetHash() == tx.GetHash());
+						if (foundTx != default(SmartTransaction))
+						{
+							foundTx.SetHeight(tx.Height);
+						}
 					}
 				}
 			}
@@ -363,6 +407,7 @@ namespace WalletWasabi.Services
 					}
 					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, locked: false); // Don't inherit locked status from key, that's different.
 					Coins.TryAdd(coin);
+					TransactionCache.Add(tx);
 					if (coin.Unspent && coin.Label == "ZeroLink Change" && ChaumianClient.OnePiece != null)
 					{
 						Task.Run(async () =>
@@ -410,10 +455,17 @@ namespace WalletWasabi.Services
 				foreach (var filePath in Directory.EnumerateFiles(BlocksFolderPath))
 				{
 					var fileName = Path.GetFileName(filePath);
-					if (hash == new uint256(fileName))
+					try
 					{
-						var blockBytes = await File.ReadAllBytesAsync(filePath);
-						return Block.Load(blockBytes, IndexDownloader.Network);
+						if (hash == new uint256(fileName))
+						{
+							var blockBytes = await File.ReadAllBytesAsync(filePath);
+							return Block.Load(blockBytes, IndexDownloader.Network);
+						}
+					}
+					catch (FormatException)
+					{
+						Logger.LogTrace<WalletService>($"Filename is not a hash: {fileName}.");
 					}
 				}
 			}
@@ -880,6 +932,13 @@ namespace WalletWasabi.Services
 					IndexDownloader.NewFilter -= IndexDownloader_NewFilterAsync;
 					IndexDownloader.Reorged -= IndexDownloader_ReorgedAsync;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
+
+					var directoryPath = Path.GetDirectoryName(Path.GetFullPath(TmpMempoolDumpFilePath));
+					Directory.CreateDirectory(directoryPath);
+					string jsonString = JsonConvert.SerializeObject(TransactionCache.Where(x => x.Height == Height.MemPool), Formatting.Indented);
+					File.WriteAllText(TmpMempoolDumpFilePath,
+						jsonString,
+						Encoding.UTF8);
 				}
 
 				_disposedValue = true;
