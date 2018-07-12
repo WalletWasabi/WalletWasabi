@@ -28,7 +28,6 @@ namespace WalletWasabi.Tests
 		[Theory]
 		[InlineData("test")]
 		[InlineData("main")]
-		[Trait("Category", "TorNotNeeded")]
 		public async Task SmartBitTestsAsync(string networkString)
 		{
 			if (!await TestAsync("https://api.smartbit.com.au/v1/blockchain/stats"))
