@@ -10,15 +10,19 @@
       <DockPanel LastChildFill="True">
         <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
           <DockPanel LastChildFill="True">
-            <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />
-            <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" UseFloatingWatermark="True" DockPanel.Dock="Left" MinWidth="300">
-              <i:Interaction.Behaviors>
-                <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
-              </i:Interaction.Behaviors>
-              <ToolTip.Tip>
-                Start labelling today and your privacy will thank you tomorrow!
-              </ToolTip.Tip>
-            </TextBox>
+
+              <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
+                <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
+                  <i:Interaction.Behaviors>
+                    <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
+                  </i:Interaction.Behaviors>
+                  <ToolTip.Tip>
+                    Start labelling today and your privacy will thank you tomorrow!
+                  </ToolTip.Tip>
+                </TextBox>
+                <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" VerticalAlignment="Top"  Grid.Column="1"/>
+              </Grid>
+
             <Grid IsVisible="{Binding ClipboardNotificationVisible}">
               <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                 <Grid.Transitions>
