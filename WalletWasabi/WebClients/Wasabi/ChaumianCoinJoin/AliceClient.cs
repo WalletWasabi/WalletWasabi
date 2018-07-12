@@ -115,8 +115,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 
 				var coinjoinHex = await response.Content.ReadAsJsonAsync<string>();
 
-				Transaction coinJoin = Network.TestNet.Consensus.ConsensusFactory.CreateTransaction();
-				coinJoin.FromHex(coinjoinHex);
+				Transaction coinJoin = Transaction.Parse(coinjoinHex, Network.Main);
 				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Acquired unsigned CoinJoin: {coinJoin.GetHash()}.");
 				return coinJoin;
 			}

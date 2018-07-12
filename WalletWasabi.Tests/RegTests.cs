@@ -2075,10 +2075,8 @@ namespace WalletWasabi.Tests
 					// POST SIGNATURES tests
 					// <-------------------------->
 
-					var partSignedCj1 = network.Consensus.ConsensusFactory.CreateTransaction();
-					partSignedCj1.FromHex(unsignedCoinJoin.ToHex());
-					var partSignedCj2 = network.Consensus.ConsensusFactory.CreateTransaction();
-					partSignedCj2.FromHex(unsignedCoinJoin.ToHex());
+					var partSignedCj1 = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
+					var partSignedCj2 = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
 
 					var builder = new TransactionBuilder();
 					partSignedCj1 = builder
@@ -2413,8 +2411,7 @@ namespace WalletWasabi.Tests
 			var signatureRequests = new List<Task>();
 			foreach (var user in users)
 			{
-				var partSignedCj = network.Consensus.ConsensusFactory.CreateTransaction();
-				partSignedCj.FromHex(unsignedCoinJoin.ToHex());
+				var partSignedCj = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
 				partSignedCj = new TransactionBuilder()
 							.ContinueToBuild(partSignedCj)
 							.AddKeys(user.userInputData.Select(x => x.key).ToArray())

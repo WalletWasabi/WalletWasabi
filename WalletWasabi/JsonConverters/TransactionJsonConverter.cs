@@ -18,8 +18,7 @@ namespace WalletWasabi.JsonConverters
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
 			var txHex = reader.Value.ToString();
-			var tx = Network.Main.Consensus.ConsensusFactory.CreateTransaction();
-			tx.FromHex(txHex);
+			var tx = Transaction.Parse(txHex, Network.Main);
 			return tx;
 		}
 

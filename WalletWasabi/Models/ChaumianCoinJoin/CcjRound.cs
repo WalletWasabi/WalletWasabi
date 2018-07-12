@@ -306,8 +306,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							.Shuffle()
 							.BuildTransaction(false);
 
-						SignedCoinJoin = RpcClient.Network.Consensus.ConsensusFactory.CreateTransaction();
-						SignedCoinJoin.FromHex(UnsignedCoinJoin.ToHex());
+						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), RpcClient.Network);
 
 						Phase = CcjRoundPhase.Signing;
 					}

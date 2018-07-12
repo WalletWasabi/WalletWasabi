@@ -624,8 +624,7 @@ namespace WalletWasabi.Backend.Controllers
 								}
 
 								// Verify witness.
-								var cjCopy = RpcClient.Network.Consensus.ConsensusFactory.CreateTransaction();
-								cjCopy.FromHex(round.UnsignedCoinJoin.ToHex());
+								var cjCopy = Transaction.Parse(round.UnsignedCoinJoin.ToHex(), Network);
 								cjCopy.Inputs[index].WitScript = witness;
 								TxOut output = alice.Inputs.Single(x => x.OutPoint == cjCopy.Inputs[index].PrevOut).Output;
 								if (!Script.VerifyScript(output.ScriptPubKey, cjCopy, index, output.Value, ScriptVerify.Standard, SigHash.All))

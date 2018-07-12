@@ -119,10 +119,10 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest("Invalid hex.");
 			}
 
-			Transaction transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
+			Transaction transaction;
 			try
 			{
-				transaction.FromHex(hex);
+				transaction = Transaction.Parse(hex, Network);
 			}
 			catch (Exception ex)
 			{
