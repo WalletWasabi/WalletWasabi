@@ -11,18 +11,30 @@
         <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
           <DockPanel LastChildFill="True">
 
-              <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
-                <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
-                  <i:Interaction.Behaviors>
-                    <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
-                  </i:Interaction.Behaviors>
-                  <ToolTip.Tip>
-                    Start labelling today and your privacy will thank you tomorrow!
-                  </ToolTip.Tip>
-                </TextBox>
-                <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" VerticalAlignment="Top"  Grid.Column="1"/>
-              </Grid>
+            <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
+              <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
+                <i:Interaction.Behaviors>
+                  <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
+                </i:Interaction.Behaviors>
+                <ToolTip.Tip>
+                  Start labelling today and your privacy will thank you tomorrow!
+                </ToolTip.Tip>
+              </TextBox>
+              <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" VerticalAlignment="Top"  Grid.Column="1" />
+            </Grid>
 
+            <Grid IsVisible="{Binding LabelRequiredNotificationVisible}">
+              <Grid Opacity="{Binding LabelRequiredNotificationOpacity}">
+                <Grid.Transitions>
+                  <Transitions>
+                    <DoubleTransition Property="Grid.Opacity"
+                        Easing="CircularEaseIn"
+                        Duration="0:0:0.5" />
+                  </Transitions>
+                </Grid.Transitions>
+                <TextBlock Classes="warningMessage" Text="Label Is Required!" VerticalAlignment="Center" HorizontalAlignment="Center" />
+              </Grid>
+            </Grid>
             <Grid IsVisible="{Binding ClipboardNotificationVisible}">
               <Grid Opacity="{Binding ClipboardNotificationOpacity}">
                 <Grid.Transitions>
@@ -32,7 +44,7 @@
                         Duration="0:0:0.5" />
                   </Transitions>
                 </Grid.Transitions>
-                <TextBlock Text="Address Copied to Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <TextBlock Text="Address Is Copied To Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Grid>
             </Grid>
           </DockPanel>

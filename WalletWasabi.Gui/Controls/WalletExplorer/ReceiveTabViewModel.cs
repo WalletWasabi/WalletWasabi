@@ -18,6 +18,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 		private string _label;
+		private double _labelRequiredNotificationOpacity;
+		private bool _labelRequiredNotificationVisible;
 		private double _clipboardNotificationOpacity;
 		private bool _clipboardNotificationVisible;
 
@@ -37,6 +39,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
+				if (string.IsNullOrWhiteSpace(Label))
+				{
+					LabelRequiredNotificationVisible = true;
+					LabelRequiredNotificationOpacity = 1;
+
+					Dispatcher.UIThread.Post(async () =>
+					{
+						await Task.Delay(1000);
+						LabelRequiredNotificationOpacity = 0;
+					});
+
+					return;
+				}
+
 				HdPubKey newKey = Global.WalletService.GetReceiveKey(Label);
 
 				AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
@@ -52,7 +68,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SelectedAddress = newAddress;
 
 				Label = string.Empty;
-			}, this.WhenAnyValue(x => x.Label, label => !string.IsNullOrWhiteSpace(label)));
+			});
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 			{
@@ -99,6 +115,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _label; }
 			set { this.RaiseAndSetIfChanged(ref _label, value); }
+		}
+
+		public double LabelRequiredNotificationOpacity
+		{
+			get { return _labelRequiredNotificationOpacity; }
+			set { this.RaiseAndSetIfChanged(ref _labelRequiredNotificationOpacity, value); }
+		}
+
+		public bool LabelRequiredNotificationVisible
+		{
+			get { return _labelRequiredNotificationVisible; }
+			set { this.RaiseAndSetIfChanged(ref _labelRequiredNotificationVisible, value); }
 		}
 
 		public double ClipboardNotificationOpacity
