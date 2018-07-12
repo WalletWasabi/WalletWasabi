@@ -57,12 +57,6 @@ namespace WalletWasabi.Gui
 				Views = new ObservableCollection<IView>
 				{
 					RightDock,
-					new SplitterDock()
-					{
-						Id = "RightSplitter",
-						Dock = "Right",
-						Title = "RightSplitter"
-					},
 					DocumentDock
 				}
 			};

@@ -58,6 +58,10 @@
         <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
     </Style>
 
+    <Style Selector="dock|DockToolChrome">
+        <Setter Property="MinWidth" Value="300" />
+    </Style>
+
     <Style Selector="ListBox">
         <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
     </Style>
