@@ -86,13 +86,16 @@ namespace WalletWasabi.Tests
 			var smartTx2 = new SmartTransaction(tx2, height);
 			var smartTx3 = new SmartTransaction(tx3, height);
 
-			var serialized = JsonConvert.SerializeObject(smartTx);
+			var settings = new JsonSerializerSettings{ 
+				ReferenceLoopHandling = ReferenceLoopHandling.Serialize
+			};
+			var serialized = JsonConvert.SerializeObject(smartTx, settings);
 			var deserialized = JsonConvert.DeserializeObject<SmartTransaction>(serialized);
 
-			var serialized2 = JsonConvert.SerializeObject(smartTx2);
+			var serialized2 = JsonConvert.SerializeObject(smartTx2, settings);
 			var deserialized2 = JsonConvert.DeserializeObject<SmartTransaction>(serialized2);
 
-			var serialized3 = JsonConvert.SerializeObject(smartTx3);
+			var serialized3 = JsonConvert.SerializeObject(smartTx3, settings);
 			var deserialized3 = JsonConvert.DeserializeObject<SmartTransaction>(serialized3);
 
 			Assert.Equal(smartTx, deserialized);
@@ -105,7 +108,8 @@ namespace WalletWasabi.Tests
 			Assert.True(smartTx.Equals(sto));
 			object to = deserialized.Transaction;
 			Assert.True(smartTx.Equals(deserialized.Transaction));
-			// ToDo: Assert.True(smartTx.Equals(to));
+			
+			Assert.True(smartTx.Equals(to));
 		}
 
 		[Fact]
