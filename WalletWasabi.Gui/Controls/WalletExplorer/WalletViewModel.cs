@@ -28,12 +28,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base(name)
 		{
 			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged));
-			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
-			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
 
 			coinsChanged
-				.Merge(newBlockProcessed)
-				.Merge(coinSpent)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(o =>
 				{
