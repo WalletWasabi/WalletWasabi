@@ -17,11 +17,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<WalletActionViewModel> _actions;
 
 		private string _title;
+
 		public override string Title
 		{
 			get { return _title; }
 			set { this.RaiseAndSetIfChanged(ref _title, value); }
 		}
+
 		public WalletViewModel(string name, bool receiveDominant)
 			: base(name)
 		{
@@ -77,8 +79,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetBalance(string walletName)
 		{
-			Money balance = Global.WalletService.Coins.Where(c => c.Unspent).Sum(c => (long?) c.Amount) ?? 0;
-			Title = $"{walletName} ({balance})";
+			Money balance = Global.WalletService.Coins.Where(c => c.Unspent).Sum(c => (long?)c.Amount) ?? 0;
+			Title = $"{walletName} ({balance.ToString(false, true)} BTC)";
 		}
 	}
 }
