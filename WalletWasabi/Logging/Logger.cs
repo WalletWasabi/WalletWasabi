@@ -37,6 +37,25 @@ namespace WalletWasabi.Logging
 
 		#region Initializers
 
+		/// <summary>
+		/// Initializes the Logger with default values.
+		/// If RELEASE then minlevel is info, and logs only to file.
+		/// If DEBUG then minlevel is debug, and logs to file, debug and console.
+		/// </summary>
+		/// <param name="filePath"></param>
+		public static void InitializeDefaults(string filePath)
+		{
+			SetFilePath(filePath);
+
+#if RELEASE
+			SetMinimumLevel(LogLevel.Info);
+			SetModes(LogMode.File);
+#else
+			SetMinimumLevel(LogLevel.Debug);
+			SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
+#endif
+		}
+
 		public static void SetMinimumLevel(LogLevel level) => MinimumLevel = level;
 
 		public static void SetModes(params LogMode[] modes)

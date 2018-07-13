@@ -26,14 +26,8 @@ namespace WalletWasabi.Gui
 				{
 					try
 					{
-						Logger.SetFilePath(Path.Combine(Global.DataDir, "Logs.txt"));
-#if RELEASE
-						Logger.SetMinimumLevel(LogLevel.Info);
-						Logger.SetModes(LogMode.File);
-#else
-						Logger.SetMinimumLevel(LogLevel.Debug);
-						Logger.SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
-#endif
+						Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+
 						var configFilePath = Path.Combine(Global.DataDir, "Config.json");
 						var config = new Config(configFilePath);
 						await config.LoadOrCreateDefaultFileAsync();
