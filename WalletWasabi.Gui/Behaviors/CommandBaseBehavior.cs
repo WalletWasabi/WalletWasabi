@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 		protected bool ExecuteCommand()
 		{
-			if (Command != null)
+			if (Command != null && Command.CanExecute(CommandParameter))
 			{
 				Command.Execute(CommandParameter);
 				return true;
