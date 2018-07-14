@@ -51,6 +51,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
+			this.WhenAnyValue(x => x.Address).Subscribe(x =>
+			  {
+				  if (!string.IsNullOrWhiteSpace(Address))
+				  {
+					  var trimmed = x.Trim();
+					  try
+					  {
+						  BitcoinAddress.Create(trimmed, Global.Network);
+					  }
+					  catch
+					  {
+						  // ToDo: Error out the textbox.
+						  return;
+					  }
+				  }
+				  // ToDo: Remove erroring out the textbox.
+			  });
+
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
 			{
 				IsBusy = true;
