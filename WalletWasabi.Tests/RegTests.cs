@@ -1067,7 +1067,7 @@ namespace WalletWasabi.Tests
 				// covers:
 				// customchange
 				// feePc > 1
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.0001m), "outgoing") }, 2, customChange: new Key().ScriptPubKey);
+				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.0003m), "outgoing") }, 2, customChange: new Key().ScriptPubKey);
 
 				Assert.True(res.FeePercentOfSent > 1);
 

@@ -625,10 +625,6 @@ namespace WalletWasabi.Services
 			{
 				throw new ArgumentException($"{nameof(toSend)} cannot contain negative element.");
 			}
-			if (toSend.Any(x => x.Amount != Money.Zero && x.Amount < new Money(0.00001m, MoneyUnit.BTC)))
-			{
-				throw new InvalidOperationException($"Sanity check failed. One of the output is < 0.00001 BTC.");
-			}
 
 			long sum = toSend.Select(x => x.Amount).Sum().Satoshi;
 			if (sum < 0 || sum > Constants.MaximumNumberOfSatoshis)
@@ -787,14 +783,19 @@ namespace WalletWasabi.Services
 			}
 
 			// 6. Do some checks
-			Money totalOutgoingAmount = realToSend.Select(x => x.amount).Sum() + fee;
-			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmount.ToDecimal(MoneyUnit.BTC);
+			Money totalOutgoingAmountNoFee = realToSend.Select(x => x.amount).Sum();
+			Money totalOutgoingAmount = totalOutgoingAmountNoFee + fee;
+			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
 
 			if (feePc > 1)
 			{
 				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount."
 					+ Environment.NewLine + $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC."
 					+ Environment.NewLine + $"Fee:\t\t {fee.ToString(fplus: false, trimExcessZero: true)} BTC.");
+			}
+			if (feePc > 100)
+			{
+				throw new InvalidOperationException($"The transaction fee is more than twice as much as your transaction amount: {feePc:0.#}%.");
 			}
 
 			var confirmedAvailableAmount = allowedSmartCoinInputs.Where(x => x.Confirmed).Select(x => x.Amount).Sum();

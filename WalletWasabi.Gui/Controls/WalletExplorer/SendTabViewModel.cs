@@ -70,7 +70,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					var address = BitcoinAddress.Create(Address, Global.Network);
 					var script = address.ScriptPubKey;
-					var amount = IsMax ? Money.Zero : Money.Parse(Amount);
+					var amount = Money.Zero;
+					if (!IsMax)
+					{
+						amount = Money.Parse(Amount);
+						if (amount == Money.Zero)
+						{
+							throw new FormatException($"Invalid {nameof(Amount)}");
+						}
+					}
 					var operation = new WalletService.Operation(script, amount, Label);
 
 					var result = await Task.Run(async () => await Global.WalletService.BuildTransactionAsync(Password, new[] { operation }, Fee, allowUnconfirmed: true, allowedInputs: selectedCoins));
@@ -134,6 +142,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Amount = "";
 			_ignoreAmountChanges = false;
 		}
+
 		public CoinListViewModel CoinList
 		{
 			get { return _coinList; }
