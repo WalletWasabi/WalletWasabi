@@ -13,6 +13,14 @@ namespace WalletWasabi.Gui.ViewModels
 		private ModalDialogViewModelBase _modalDialog;
 		private bool _canClose = true;
 
+		private string _title = "Wasabi Wallet";
+
+		public string Title
+		{
+			get { return _title; }
+			internal set { this.RaiseAndSetIfChanged(ref _title, value); }
+		}
+
 		private StatusBarViewModel _statusBar;
 
 		public StatusBarViewModel StatusBar
