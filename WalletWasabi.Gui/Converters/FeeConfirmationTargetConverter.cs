@@ -12,15 +12,17 @@ namespace WalletWasabi.Gui.Converters
 			{
 				if (integer >= 2 && integer <= 6) // minutes
 				{
-					return $"Minutes";
+					return $"{integer}0 minutes";
 				}
 				if (integer >= 7 && integer <= 144) // hours
 				{
-					return "Hours";
+					var h = integer / 6;
+					return $"{h} hours";
 				}
 				if (integer >= 145 && integer <= 1008) // days
 				{
-					return "Days";
+					var d = integer / 144;
+					return $"{d} days";
 				}
 			}
 
