@@ -37,6 +37,11 @@ namespace WalletWasabi.Gui
 						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader, Global.UpdateChecker);
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
+
+						if (Global.IndexDownloader.Network != Network.Main)
+						{
+							MainWindowViewModel.Instance.Title += $" - {Global.IndexDownloader.Network}";
+						}
 					}
 					catch (Exception ex)
 					{

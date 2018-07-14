@@ -94,14 +94,6 @@ namespace WalletWasabi.Gui.ViewModels
 			set { this.RaiseAndSetIfChanged(ref _status, value); }
 		}
 
-		private string _showNetwork;
-
-		public string ShowNetwork
-		{
-			get { return _showNetwork; }
-			set { this.RaiseAndSetIfChanged(ref _showNetwork, value); }
-		}
-
 		private long _clientOutOfDate;
 		private long _backendIncompatible;
 
@@ -127,15 +119,6 @@ namespace WalletWasabi.Gui.ViewModels
 			IndexDownloader.BackendStatusChanged += IndexDownloader_BackendStatusChanged;
 
 			FiltersLeft = IndexDownloader.GetFiltersLeft();
-
-			if (indexDownloader.Network == Network.Main)
-			{
-				ShowNetwork = "";
-			}
-			else
-			{
-				ShowNetwork = indexDownloader.Network.ToString();
-			}
 
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
