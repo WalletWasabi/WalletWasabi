@@ -13,46 +13,75 @@
   </i:Interaction.Behaviors>
 
   <DockPanel LastChildFill="True">
-    <controls:GroupBox Title="Select Coins To Spend From" TextBlock.FontSize="16" Padding="10" Margin="10">
-      <Grid Classes="content">
-        <DockPanel LastChildFill="True">
-          <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Gap="10" HorizontalAlignment="Left" MinWidth="500">
-            <TextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
-            <TextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True">
-              <ToolTip.Tip>
-                Start labelling today and your privacy will thank you tomorrow!
-              </ToolTip.Tip>
-            </TextBox>
-            <StackPanel Orientation="Horizontal" Gap="10">
-              <Button Content="Max" Command="{Binding MaxCommand}" />
-              <TextBox Text="{Binding Amount}" Watermark="Amount" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
-              <StackPanel>
-                <StackPanel Orientation="Horizontal" Gap="10">
-                  <TextBlock Text="Fee:" />
-                  <Slider Minimum="2" Maximum="1008" Value="{Binding Fee}" Width="190" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Gap="4">
-                  <TextBlock Text="Confirmation Expected In:" />
-                  <TextBlock Text="{Binding Fee, Converter={StaticResource FeeConfirmationTargetConverter}}" />
-                </StackPanel>
+    <Grid Classes="content">
+      <DockPanel LastChildFill="True" Margin="20">
+        <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Gap="10" HorizontalAlignment="Left">
+          <TextBlock>Note that, you must select coins you want to spend from.</TextBlock>
+          <TextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
+          <TextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True">
+            <ToolTip.Tip>
+              Start labelling today and your privacy will thank you tomorrow!
+            </ToolTip.Tip>
+          </TextBox>
+          <StackPanel Orientation="Horizontal" Gap="10">
+            <Button Content="Max" Command="{Binding MaxCommand}" />
+            <TextBox Text="{Binding Amount}" Watermark="Amount (BTC)" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
+            <StackPanel>
+              <StackPanel Orientation="Horizontal" Gap="10">
+                <TextBlock Text="Fee:" />
+
+                <Grid Height="10" Width="10">
+                  <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <DrawingPresenter.Drawing>
+                      <DrawingGroup>
+                        <DrawingGroup.Children>
+                          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M6.3819,-0.000199999999999534L1.9999,8.7638 1.9999,9.9998 5.3709,9.9998 2.9999,14.7648 2.9999,15.9998 5.4149,15.9998 13.9999,7.4138 13.9999,5.9998 9.4139,5.9998 13.9999,1.4138 13.9999,-0.000199999999999534z" />
+                          <GeometryDrawing Brush="#FFC17C1A" Geometry="F1M7,7L13,7 5,15 4,15 6.985,9 3,9 7,1 13,1z" />
+                        </DrawingGroup.Children>
+                      </DrawingGroup>
+                    </DrawingPresenter.Drawing>
+                  </DrawingPresenter>
+                </Grid>
+
+                <Slider Minimum="2" Maximum="1008" Value="{Binding Fee}" Width="190" />
+
+                <Grid Height="10" Width="10">
+                  <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <DrawingPresenter.Drawing>
+                      <DrawingGroup>
+                        <DrawingGroup.Children>
+                          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,16C3.589,16 0,12.411 0,8 0,3.589 3.589,0 8,0 12.411,0 16,3.589 16,8 16,12.411 12.411,16 8,16" />
+                          <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M14,8C14,11.309 11.309,14 8,14 4.691,14 2,11.309 2,8 2,4.691 4.691,2 8,2 11.309,2 14,4.691 14,8" />
+                          <GeometryDrawing Brush="#FF424242" Geometry="F1M14,8C14,4.691 11.309,2 8,2 4.691,2 2,4.691 2,8 2,11.309 4.691,14 8,14 11.309,14 14,11.309 14,8 M15,8C15,11.859 11.859,15 8,15 4.14,15 1,11.859 1,8 1,4.14 4.14,1 8,1 11.859,1 15,4.14 15,8 M8,8L11,8 11,9 7,9 7,4 8,4z" />
+                        </DrawingGroup.Children>
+                      </DrawingGroup>
+                    </DrawingPresenter.Drawing>
+                  </DrawingPresenter>
+                </Grid>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Gap="4">
+                <TextBlock Text="Confirmation Expected In:" />
+                <TextBlock Text="{Binding Fee, Converter={StaticResource FeeConfirmationTargetConverter}}" />
               </StackPanel>
             </StackPanel>
-            <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" />
-            <DockPanel LastChildFill="True">
-              <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
-                <StackPanel Orientation="Horizontal">
-                  <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
-                  <TextBlock Text="{Binding BuildTransactionButtonText}" />
-                </StackPanel>
-              </Button>
-              <Grid></Grid>
-            </DockPanel>
-            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-            <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
           </StackPanel>
-          <local:CoinListView DataContext="{Binding CoinList}" />
-        </DockPanel>
-      </Grid>
-    </controls:GroupBox>
+          <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" />
+          <DockPanel LastChildFill="True">
+            <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
+              <StackPanel Orientation="Horizontal">
+                <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
+                <TextBlock Text="{Binding BuildTransactionButtonText}" />
+              </StackPanel>
+            </Button>
+            <Grid></Grid>
+          </DockPanel>
+          <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+          <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
+        </StackPanel>
+        <local:CoinListView DataContext="{Binding CoinList}" />
+      </DockPanel>
+    </Grid>
   </DockPanel>
 </UserControl>
