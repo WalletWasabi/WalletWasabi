@@ -67,18 +67,22 @@
               </StackPanel>
             </StackPanel>
           </StackPanel>
-          <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" />
-          <DockPanel LastChildFill="True">
-            <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
-              <StackPanel Orientation="Horizontal">
-                <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
-                <TextBlock Text="{Binding BuildTransactionButtonText}" />
-              </StackPanel>
-            </Button>
-            <Grid></Grid>
-          </DockPanel>
+          <StackPanel Gap="10" Orientation="Horizontal">
+            <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
+            <DockPanel LastChildFill="True">
+              <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
+                <StackPanel Orientation="Horizontal">
+                  <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
+                  <TextBlock Text="{Binding BuildTransactionButtonText}" />
+                </StackPanel>
+              </Button>
+              <Grid></Grid>
+            </DockPanel>
+          </StackPanel>
           <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
           <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
+          <Grid ColumnDefinitions="60,100,100,600,100,Auto">
+          </Grid>
         </StackPanel>
         <local:CoinListView DataContext="{Binding CoinList}" />
       </DockPanel>
