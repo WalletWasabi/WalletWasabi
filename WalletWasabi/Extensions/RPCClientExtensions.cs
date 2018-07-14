@@ -53,14 +53,16 @@ namespace NBitcoin.RPC
 			int staoshiPerBytes;
 			if (estimateMode == EstimateSmartFeeMode.Conservative)
 			{
-				staoshiPerBytes = 6 + confirmationTarget;
+				staoshiPerBytes = ((1008 + 1 + 6) - confirmationTarget) / 7;
 			}
 			else // Economical
 			{
-				staoshiPerBytes = 5 + confirmationTarget;
+				staoshiPerBytes = ((1008 + 1 + 5) - confirmationTarget) / 7;
 			}
 
-			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = new FeeRate(new Money(staoshiPerBytes * 1000, MoneyUnit.Satoshi)) };
+			Money feePerK = new Money(staoshiPerBytes * 1000, MoneyUnit.Satoshi);
+			FeeRate feeRate = new FeeRate(feePerK);
+			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 			return resp;
 		}
 	}

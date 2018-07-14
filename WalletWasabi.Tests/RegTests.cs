@@ -790,7 +790,7 @@ namespace WalletWasabi.Tests
 				#region SubtractFeeFromAmount
 
 				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").GetP2wpkhScript();
-				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProcess).Sum(x => x.Amount) / 2;
+				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProcess).Sum(x => x.Amount) / 3;
 				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
@@ -1067,7 +1067,7 @@ namespace WalletWasabi.Tests
 				// covers:
 				// customchange
 				// feePc > 1
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(new Key().ScriptPubKey, new Money(100, MoneyUnit.MilliBTC), "outgoing") }, 1008, customChange: new Key().ScriptPubKey);
+				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.0001m), "outgoing") }, 2, customChange: new Key().ScriptPubKey);
 
 				Assert.True(res.FeePercentOfSent > 1);
 
@@ -1249,13 +1249,6 @@ namespace WalletWasabi.Tests
 
 				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.5m), "") };
 				btx = await wallet.BuildTransactionAsync(password, operations, 2);
-
-				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.00005m), "") };
-				btx = await wallet.BuildTransactionAsync(password, operations, 2, false, 0);
-				Assert.True(btx.FeePercentOfSent > 20);
-				Assert.Single(btx.SpentCoins);
-				Assert.Equal(txid, btx.SpentCoins.First().TransactionId);
-				Assert.False(btx.Transaction.Transaction.RBF);
 			}
 			finally
 			{
@@ -1681,8 +1674,8 @@ namespace WalletWasabi.Tests
 				{
 					// Never changes.
 					Assert.True(0 < rs.RoundId);
-					Assert.Equal(Money.Coins(0.00000544m), rs.FeePerInputs);
-					Assert.Equal(Money.Coins(0.00000264m), rs.FeePerOutputs);
+					Assert.Equal(Money.Coins(0.00009792m), rs.FeePerInputs);
+					Assert.Equal(Money.Coins(0.00004752m), rs.FeePerOutputs);
 					Assert.Equal(7, rs.MaximumInputCountPerPeer);
 					// Changes per rounds.
 					Assert.Equal(denomination, rs.Denomination);
