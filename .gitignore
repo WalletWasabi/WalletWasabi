@@ -12,6 +12,7 @@
 
 #Visual Studio Code
 .vscode/
+!.vscode/settings.json
 
 # Build results
 [Dd]ebug/
