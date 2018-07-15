@@ -14,7 +14,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private bool _isSelected;
 		private int _privacyLevel;
-		private string _history;
 
 		public CoinViewModel(SmartCoin model)
 		{
@@ -76,10 +75,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProcess ? "Yes" : "No";
 
-		public string History
-		{
-			get { return _history; }
-			set { this.RaiseAndSetIfChanged(ref _history, value); }
-		}
+		public string History => string.Join(", ", Global.WalletService.GetHistory(Model, Enumerable.Empty<SmartCoin>()).Select(x => x.Label));
 	}
 }

@@ -259,6 +259,77 @@ namespace WalletWasabi.Services
 			return ret;
 		}
 
+		public List<SmartCoin> GetHistory(SmartCoin coin, IEnumerable<SmartCoin> current)
+		{
+			Guard.NotNull(nameof(coin), coin);
+			if (current.Contains(coin))
+			{
+				return current.ToList();
+			}
+			var history = current.Concat(new List<SmartCoin> { coin }).ToList(); // the coin is the firs elem in its history
+
+			// If the script is the same then we have a match, no matter of the anonimity set.
+			foreach (var c in Coins)
+			{
+				if (c.ScriptPubKey == coin.ScriptPubKey)
+				{
+					if (!history.Contains(c))
+					{
+						var h = GetHistory(c, history);
+						foreach (var hr in h)
+						{
+							if (!history.Contains(hr))
+							{
+								history.Add(hr);
+							}
+						}
+					}
+				}
+			}
+
+			// If it spends someone and haven't been sufficiently anonimized.
+			if (coin.AnonymitySet < 50)
+			{
+				var c = Coins.FirstOrDefault(x => x.SpenderTransactionId == coin.TransactionId && !history.Contains(x));
+				if (c != default)
+				{
+					var h = GetHistory(c, history);
+					foreach (var hr in h)
+					{
+						if (!history.Contains(hr))
+						{
+							history.Add(hr);
+						}
+					}
+				}
+			}
+
+			// If it's being spent by someone and that someone haven't been sufficiently anonimized.
+			if (!coin.Unspent)
+			{
+				var c = Coins.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId && !history.Contains(x));
+				if (c != default)
+				{
+					if (c.AnonymitySet < 50)
+					{
+						if (c != default)
+						{
+							var h = GetHistory(c, history);
+							foreach (var hr in h)
+							{
+								if (!history.Contains(hr))
+								{
+									history.Add(hr);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return history;
+		}
+
 		/// <summary>
 		/// Make sure there's always clean keys generated and indexed.
 		/// </summary>
