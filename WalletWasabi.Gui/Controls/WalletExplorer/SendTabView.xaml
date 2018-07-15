@@ -7,6 +7,7 @@
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
+    <converters:AmountForegroundConverter x:Key="AmountForegroundConverter" />
   </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
@@ -25,7 +26,7 @@
           </TextBox>
           <StackPanel Orientation="Horizontal" Gap="10">
             <Button Content="{Binding MaxClear}" Command="{Binding MaxCommand}" />
-            <TextBox Text="{Binding Amount}" Watermark="Amount (BTC)" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
+            <TextBox Foreground="{Binding IsMax, Converter={StaticResource AmountForegroundConverter}}" IsReadOnly="{Binding IsMax}" Text="{Binding Amount}" Watermark="Amount (BTC)" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
             <StackPanel>
               <StackPanel Orientation="Horizontal" Gap="10">
                 <TextBlock Text="Fee:" />
@@ -63,7 +64,7 @@
               </StackPanel>
               <StackPanel Orientation="Horizontal" Gap="4">
                 <TextBlock Text="Confirmation Expected In:" />
-                <TextBlock Text="{Binding Fee, Converter={StaticResource FeeConfirmationTargetConverter}}" />
+                <TextBlock Foreground="YellowGreen" Text="{Binding Fee, Converter={StaticResource FeeConfirmationTargetConverter}}" />
               </StackPanel>
             </StackPanel>
           </StackPanel>

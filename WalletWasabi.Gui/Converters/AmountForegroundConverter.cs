@@ -1,28 +1,25 @@
 ﻿using Avalonia.Data.Converters;
+using Avalonia.Media;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class FeeConfirmationTargetConverter : IValueConverter
+	public class AmountForegroundConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is int integer)
+			if (value is bool boolean)
 			{
-				if (integer >= 2 && integer <= 6) // minutes
+				if (boolean)
 				{
-					return $"{integer}0 minutes";
+					return Brushes.ForestGreen;
 				}
-				if (integer >= 7 && integer <= 144) // hours
+				else
 				{
-					var h = integer / 6;
-					return $"{h} hours";
-				}
-				if (integer >= 145 && integer <= 1008) // days
-				{
-					var d = integer / 144;
-					return $"{d} days";
+					return Brushes.White;
 				}
 			}
 

@@ -158,7 +158,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ResetMax()
 		{
-			_isMax = false;
+			IsMax = false;
 			MaxClear = "Max";
 
 			_ignoreAmountChanges = true;
