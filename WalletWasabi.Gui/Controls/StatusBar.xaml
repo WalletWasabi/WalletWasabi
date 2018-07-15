@@ -7,9 +7,10 @@
     <converters:FilterLeftValueConverter x:Key="FilterLeftValueConverter" />
     <converters:StatusColorConverter x:Key="StatusColorConverter" />
     <converters:UpdateStatusBrushConverter x:Key="UpdateStatusBrushConverter" />
+    <converters:ShowCursorConverter x:Key="ShowCursorConverter"/>
   </UserControl.Resources>
 
-  <Grid Background="{Binding UpdateStatus, Converter={StaticResource UpdateStatusBrushConverter}}">
+  <Grid Cursor="{Binding UpdateAvailable, Converter={StaticResource ShowCursorConverter}}" Background="{Binding UpdateStatus, Converter={StaticResource UpdateStatusBrushConverter}}">
     <i:Interaction.Behaviors>
       <behaviors:CommandOnClickBehavior Command="{Binding UpdateCommand}" />
     </i:Interaction.Behaviors>
