@@ -16,6 +16,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CoinListViewModel _coinList;
 		private string _buildTransactionButtonText;
 		private bool _isMax;
+		private string _maxClear;
 		private string _amount;
 		private bool _ignoreAmountChanges;
 		private int _fee;
@@ -42,6 +43,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			CoinList = new CoinListViewModel(filteredCoins);
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
+
+			MaxClear = "Max";
 
 			this.WhenAnyValue(x => x.Amount).Subscribe(_ =>
 			{
@@ -146,6 +149,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			IsMax = true;
+			MaxClear = "Clear";
 
 			_ignoreAmountChanges = true;
 			Amount = "All Selected Coins!";
@@ -155,6 +159,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void ResetMax()
 		{
 			_isMax = false;
+			MaxClear = "Max";
 
 			_ignoreAmountChanges = true;
 			Amount = "";
@@ -183,6 +188,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _isMax; }
 			set { this.RaiseAndSetIfChanged(ref _isMax, value); }
+		}
+
+		public string MaxClear
+		{
+			get { return _maxClear; }
+			set { this.RaiseAndSetIfChanged(ref _maxClear, value); }
 		}
 
 		public string Amount
