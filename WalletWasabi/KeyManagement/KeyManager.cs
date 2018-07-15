@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Security;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -204,7 +205,15 @@ namespace WalletWasabi.KeyManagement
 
 		public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
 		{
-			Key secret = EncryptedSecret.GetKey(password);
+			Key secret;
+			try
+			{
+				secret = EncryptedSecret.GetKey(password);
+			}
+			catch (SecurityException ex)
+			{
+				throw new SecurityException("Invalid password.", ex);
+			}
 			var extKey = new ExtKey(secret, ChainCode);
 			var extKeys = new List<ExtKey>();
 

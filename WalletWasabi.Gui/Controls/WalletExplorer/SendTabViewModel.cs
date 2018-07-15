@@ -134,6 +134,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(result.Transaction));
 
+					ResetMax();
+					Address = "";
+					Label = "";
+					Password = "";
+
 					SuccessMessage = "Transaction is successfully sent!";
 					WarningMessage = "";
 				}
