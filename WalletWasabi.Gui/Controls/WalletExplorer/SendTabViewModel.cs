@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Models;
@@ -18,7 +20,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isMax;
 		private string _maxClear;
 		private string _amount;
-		private bool _ignoreAmountChanges;
+		private bool IgnoreAmountChanges { get; set; }
 		private int _fee;
 		private string _password;
 		private string _address;
@@ -44,13 +46,39 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
-			MaxClear = "Max";
+			ResetMax();
 
-			this.WhenAnyValue(x => x.Amount).Subscribe(_ =>
+			this.WhenAnyValue(x => x.Amount).Subscribe(amount =>
 			{
-				if (!_ignoreAmountChanges)
+				if (!IgnoreAmountChanges)
 				{
 					IsMax = false;
+
+					// Correct amount
+					Regex digitsOnly = new Regex(@"[^\d,.]");
+					string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
+					betterAmount = betterAmount.Replace(',', '.');
+					if (1 < betterAmount.Count(x => x == '.')) // Don't enable typing two dots.
+					{
+						var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
+						if (index > 0)
+						{
+							betterAmount = betterAmount.Substring(0, index);
+						}
+					}
+					var dotIndex = betterAmount.IndexOf('.');
+					if (betterAmount.Length - dotIndex > 8) // Enable max 8 decimals.
+					{
+						betterAmount = betterAmount.Substring(0, dotIndex + 1 + 8);
+					}
+
+					if (betterAmount != amount)
+					{
+						Dispatcher.UIThread.Post(() =>
+						{
+							Amount = betterAmount;
+						});
+					}
 				}
 			});
 
@@ -151,9 +179,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsMax = true;
 			MaxClear = "Clear";
 
-			_ignoreAmountChanges = true;
+			IgnoreAmountChanges = true;
 			Amount = "All Selected Coins!";
-			_ignoreAmountChanges = false;
+			IgnoreAmountChanges = false;
 		}
 
 		private void ResetMax()
@@ -161,9 +189,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsMax = false;
 			MaxClear = "Max";
 
-			_ignoreAmountChanges = true;
-			Amount = "";
-			_ignoreAmountChanges = false;
+			IgnoreAmountChanges = true;
+			Amount = "0.0";
+			IgnoreAmountChanges = false;
 		}
 
 		public CoinListViewModel CoinList
