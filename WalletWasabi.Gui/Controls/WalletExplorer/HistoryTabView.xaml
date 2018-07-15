@@ -30,7 +30,7 @@
           <Grid ColumnDefinitions="30, 120, 100, *" Margin="5 0" DockPanel.Dock="Top">
             <TextBlock Text="" />
             <TextBlock Text="Date" Grid.Column="1" />
-            <TextBlock Text="Amount" Grid.Column="2" />
+            <TextBlock Text="Amount (BTC)" Grid.Column="2" />
             <TextBlock Text="Labels" Grid.Column="3"  Margin="20 0 0 0" />
           </Grid>
           <ListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
