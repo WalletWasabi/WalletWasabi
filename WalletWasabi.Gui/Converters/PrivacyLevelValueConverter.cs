@@ -10,19 +10,19 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is int integer)
 			{
-				if (integer <= 0)
+				if (integer <= 1)
 				{
 					return "None";
 				}
-				else if (integer >= 1 && integer <= 6)
+				else if (integer < 21)
 				{
 					return "Some";
 				}
-				else if (integer >= 7 && integer <= 49)
+				else if (integer < 49)
 				{
 					return "Fine";
 				}
-				else if (integer > 49)
+				else
 				{
 					return "Strong";
 				}

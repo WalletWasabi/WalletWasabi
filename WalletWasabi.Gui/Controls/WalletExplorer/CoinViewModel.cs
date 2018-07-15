@@ -13,7 +13,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class CoinViewModel : ViewModelBase
 	{
 		private bool _isSelected;
-		private int _privacyLevel;
 
 		public CoinViewModel(SmartCoin model)
 		{
@@ -60,12 +59,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string Label => Model.Label;
 
 		public int Height => Model.Height;
-
-		public int PrivacyLevel
-		{
-			get { return _privacyLevel; }
-			set { this.RaiseAndSetIfChanged(ref _privacyLevel, value); }
-		}
 
 		public string TransactionId => Model.TransactionId.ToString();
 
