@@ -10,15 +10,66 @@ using WalletWasabi.Models;
 using NBitcoin;
 using System.Threading.Tasks;
 using System.Threading;
+using Avalonia.Threading;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
+using WalletWasabi.Gui.Tabs;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.ViewModels
 {
+	public enum UpdateStatus
+	{
+		Latest,
+		Optional,
+		Critical
+	}
+
 	public class StatusBarViewModel : ViewModelBase, IDisposable
 	{
 		public NodesCollection Nodes { get; }
 		public MemPoolService MemPoolService { get; }
 		public IndexDownloader IndexDownloader { get; }
 		public UpdateChecker UpdateChecker { get; }
+
+		private UpdateStatus _updateStatus;
+
+		public UpdateStatus UpdateStatus
+		{
+			get => _updateStatus;
+			set
+			{
+				if(value != UpdateStatus.Latest)
+				{
+					UpdateAvailable = true;
+
+					if(value == UpdateStatus.Critical)
+					{
+						CriticalUpdateAvailable = true;
+					}
+				}
+
+				this.RaiseAndSetIfChanged(ref _updateStatus, value);
+			}
+		}
+
+		public ReactiveCommand UpdateCommand { get; }
+
+		private bool _updateAvailable;
+
+		public bool UpdateAvailable
+		{
+			get => _updateAvailable;
+			set => this.RaiseAndSetIfChanged(ref _updateAvailable, value);
+		}
+
+		private bool _criticalUpdateAvailable;
+
+		public bool CriticalUpdateAvailable
+		{
+			get => _criticalUpdateAvailable;
+			set => this.RaiseAndSetIfChanged(ref _criticalUpdateAvailable, value);
+		}
 
 		private BackendStatus _backend;
 
@@ -101,6 +152,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			_clientOutOfDate = 0;
 			_backendIncompatible = 0;
+			UpdateStatus = UpdateStatus.Latest;
 
 			Nodes = nodes;
 			Nodes.Added += Nodes_Added;
@@ -145,15 +197,26 @@ namespace WalletWasabi.Gui.ViewModels
 				() =>
 				{
 					Interlocked.Exchange(ref _backendIncompatible, 1);
-					SetStatusAndDoUpdateActions();
+					Dispatcher.UIThread.Post(() =>
+					{
+						SetStatusAndDoUpdateActions();
+					});
 					return Task.CompletedTask;
 				},
 				() =>
 				{
 					Interlocked.Exchange(ref _clientOutOfDate, 1);
-					SetStatusAndDoUpdateActions();
+					Dispatcher.UIThread.Post(() =>
+					{
+						SetStatusAndDoUpdateActions();
+					});
 					return Task.CompletedTask;
 				});
+
+			UpdateCommand = ReactiveCommand.Create(() =>
+			{
+				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+			}, this.WhenAnyValue(x=>x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
 		}
 
 		private void SetStatusAndDoUpdateActions()
@@ -161,15 +224,12 @@ namespace WalletWasabi.Gui.ViewModels
 			if (Interlocked.Read(ref _backendIncompatible) != 0)
 			{
 				Status = "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR SOFTWARE";
-				// ToDo: 1. Make the status bar clickable. Click takes the user to the About page. (Where the new release download link is.)
-				// ToDo: 2. Remove all the text from the status bar except this one.
-				// ToDo: 3. Make the background of the status bar "IndianRed". Other red is fine, but I think IndianRed would look the best.
+				UpdateStatus = UpdateStatus.Critical;
 			}
 			else if (Interlocked.Read(ref _clientOutOfDate) != 0)
 			{
 				Status = "New Version Is Available";
-				// ToDo: 1. Make the status bar clickable. Click takes the user to the About page. (Where the new release download link is.)
-				// ToDo: 2. Add a green flag icon to the beginning of this text.
+				UpdateStatus = UpdateStatus.Optional;
 			}
 			else if (Tor != TorStatus.Running || Backend != BackendStatus.Connected || Peers < 1)
 			{
