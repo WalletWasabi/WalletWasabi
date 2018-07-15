@@ -311,9 +311,14 @@ namespace WalletWasabi.Services
 
 		private void ProcessTransaction(SmartTransaction tx, List<HdPubKey> keys = null)
 		{
-			if (tx.Height != Height.MemPool && tx.Height != Height.Unknown)
+			if (tx.Height.Type == HeightType.Chain)
 			{
-				MemPool.TransactionHashes.TryRemove(tx.GetHash());
+				MemPool.TransactionHashes.TryRemove(tx.GetHash()); // If we have in mempool, remove.
+				SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x.GetHash() == tx.GetHash()); // If we have in cache, update height.
+				if (foundTx != default(SmartTransaction))
+				{
+					foundTx.SetHeight(tx.Height);
+				}
 			}
 
 			//iterate tx
@@ -350,11 +355,6 @@ namespace WalletWasabi.Services
 					if (tx.Height != Height.MemPool)
 					{
 						foundCoin.Height = tx.Height;
-						SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x.GetHash() == tx.GetHash());
-						if (foundTx != default(SmartTransaction))
-						{
-							foundTx.SetHeight(tx.Height);
-						}
 					}
 				}
 			}
