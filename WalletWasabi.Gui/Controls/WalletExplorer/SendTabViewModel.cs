@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						throw new InvalidOperationException("No coins are selected to spend.");
 					}
 
-					var address = BitcoinAddress.Create(Address, Global.Network);
+					var address = BitcoinAddress.Create(Address.Trim(), Global.Network);
 					var script = address.ScriptPubKey;
 					var amount = Money.Zero;
 					if (!IsMax)
@@ -250,7 +250,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			return "Please enter a valid Bitcoin Address";
+			return "";
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]
