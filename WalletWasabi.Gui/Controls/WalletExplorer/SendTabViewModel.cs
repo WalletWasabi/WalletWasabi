@@ -10,6 +10,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.Gui.ViewModels.Validation;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -81,24 +82,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			});
-
-			this.WhenAnyValue(x => x.Address).Subscribe(x =>
-			  {
-				  if (!string.IsNullOrWhiteSpace(Address))
-				  {
-					  var trimmed = x.Trim();
-					  try
-					  {
-						  BitcoinAddress.Create(trimmed, Global.Network);
-					  }
-					  catch
-					  {
-						  // ToDo: Error out the textbox.
-						  return;
-					  }
-				  }
-				  // ToDo: Remove erroring out the textbox.
-			  });
 
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
 			{
@@ -247,6 +230,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _password, value); }
 		}
 
+		public string ValidateAddress()
+		{
+			if (string.IsNullOrEmpty(Address))
+			{
+				return "";
+			}
+
+			if (!string.IsNullOrWhiteSpace(Address))
+			{
+				var trimmed = Address.Trim();
+				try
+				{
+					BitcoinAddress.Create(trimmed, Global.Network);
+					return "";
+				}
+				catch
+				{
+				}
+			}
+
+			return "Please enter a valid Bitcoin Address";
+		}
+
+		[ValidateMethod(nameof(ValidateAddress))]
 		public string Address
 		{
 			get { return _address; }
