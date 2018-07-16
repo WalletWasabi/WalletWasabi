@@ -1,36 +1,11 @@
 ﻿using ReactiveUI;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using WalletWasabi.Gui.ViewModels.Validation;
+using System.Text;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public class ViewModelBase : ReactiveObject, INotifyDataErrorInfo
+	public class ViewModelBase : ReactiveObject
 	{
-		public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
-
-		public bool HasErrors
-		{
-			get { return Validator.ValidateAllProperties(this).Any(); }
-		}
-
-		public IEnumerable GetErrors(string propertyName)
-		{
-			var errorString = Validator.ValidateProperty(this, propertyName);
-			if (!string.IsNullOrEmpty(errorString))
-			{
-				return new List<string> { errorString };
-			}
-
-			return null;
-		}
-
-		protected void NotifyErrorsChanged(string propertyName)
-		{
-			ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
-		}
 	}
 }
