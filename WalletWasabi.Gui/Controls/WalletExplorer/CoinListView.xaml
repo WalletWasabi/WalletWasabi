@@ -25,7 +25,7 @@
       <TextBlock Text="Privacy" Grid.Column="3" Margin="20 0 0 0" />
       <TextBlock Text="History" Grid.Column="4" />
     </Grid>
-    <ListBox Items="{Binding Coins}">
+    <ListBox Items="{Binding Coins}" VirtualizationMode="None">
       <ListBox.ItemTemplate>
         <DataTemplate>
           <Grid>
