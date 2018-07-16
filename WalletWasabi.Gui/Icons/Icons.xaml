@@ -107,6 +107,42 @@
           <GeometryDrawing Brush="#FFF0EFF1" Geometry="F1M13,5L9,5 9,4 13,4z M6,2L6,4.057C6.76,4.5,7.367,5.176,7.701,5.999L13,5.999 13,7 7.949,7C7.97,7.165 8,7.328 8,7.5 8,7.67 7.988,7.836 7.967,8L13,8 13,9 7.692,9C7.539,9.362,7.332,9.697,7.08,10L12,10 12,11 7,11 7,10.1C6.781,10.345 6.535,10.565 6.26,10.756 6.33,11.145 6.49,12.05 6.66,13L14,13 14,2z M5.5,7.499C5.5,8.328 4.828,8.999 4,8.999 3.172,8.999 2.5,8.328 2.5,7.499 2.5,6.671 3.172,5.999 4,5.999 4.828,5.999 5.5,6.671 5.5,7.499" />
         </DrawingGroup.Children>
       </DrawingGroup>
+
+      <!-- Anonimity icons -->
+      <DrawingGroup x:Key="PrivacyOk">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7.7246,15.9219C1.6086,14.1719,0.6986,7.3389,1.0726,3.9709L1.1316,3.4369 7.9996,-9.99999999997669E-05 14.8686,3.4369 14.9276,3.9709C15.3016,7.3389,14.3916,14.1719,8.2756,15.9219L7.9996,15.9999z" />
+          <GeometryDrawing Brush="#FF329932" Geometry="F1M8.5,12L6.5,12 4.5,8 6.5,8 7.5,10 10,5 12,5z M13.951,4L8,1 2.049,4C2.049,4 1.058,13 8,15 14.942,13 13.951,4 13.951,4" />
+          <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M9.999,5L7.499,10 6.499,8 4.499,8 6.499,12 8.499,12 11.999,5z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+
+      <DrawingGroup x:Key="PrivacyCritical">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8.2754,15.9219L8.0004,15.9999 7.7244,15.9219C1.6084,14.1719,0.698399999999999,7.3399,1.0724,3.9709L1.1314,3.4369 8.0004,-9.99999999997669E-05 14.8684,3.4369 14.9274,3.9709C15.3014,7.3399,14.3914,14.1719,8.2754,15.9219" />
+          <GeometryDrawing Brush="#FFE41400" Geometry="F1M11.3691,10.1309L10.1311,11.3689 8.0001,9.2379 5.8691,11.3689 4.6311,10.1309 6.7621,7.9999 4.6311,5.8689 5.8691,4.6309 8.0001,6.7619 10.1311,4.6309 11.3691,5.8689 9.2381,7.9999z M13.9511,3.9999L8.0001,0.9999 2.0491,3.9999C2.0491,3.9999 1.0571,12.9999 8.0001,14.9999 14.9421,12.9999 13.9511,3.9999 13.9511,3.9999" />
+          <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M9.2383,8L11.3693,10.131 10.1313,11.369 8.0003,9.238 5.8683,11.369 4.6313,10.131 6.7623,8 4.6313,5.869 5.8683,4.631 8.0003,6.762 10.1313,4.631 11.3693,5.869z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+
+      <DrawingGroup x:Key="PrivacyWarning">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7.7246,15.9219C1.6086,14.1719,0.6986,7.3389,1.0726,3.9709L1.1316,3.4369 7.9996,-9.99999999997669E-05 14.8686,3.4369 14.9276,3.9709C15.3016,7.3389,14.3916,14.1719,8.2756,15.9219L7.9996,15.9999z" />
+          <GeometryDrawing Brush="#FFFFCC00" Geometry="F1M9,9L7,9 7,4 9,4z M9,12L7,12 7,10 9,10z M13.951,4L8,1 2.049,4C2.049,4 1.058,13 8,15 14.942,13 13.951,4 13.951,4" />
+          <GeometryDrawing Brush="#FF000000" Geometry="F1M7,12L9,12 9,10 7,10z M7,4L9,4 9,9 7,9z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+
+      <DrawingGroup x:Key="PrivacyXXX">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8.2754,15.9219L8.0004,15.9999 7.7244,15.9219C1.6084,14.1719,0.698399999999999,7.3389,1.0724,3.9709L1.1314,3.4369 8.0004,-9.99999999997669E-05 14.8684,3.4369 14.9274,3.9709C15.3014,7.3389,14.3914,14.1719,8.2754,15.9219" />
+          <GeometryDrawing Brush="#FF329932" Geometry="F1M13.9512,4L8.0002,1 2.0492,4C2.0492,4 1.0572,13 8.0002,15 14.9422,13 13.9512,4 13.9512,4" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
     </Style.Resources>
   </Style>
 </Styles>
