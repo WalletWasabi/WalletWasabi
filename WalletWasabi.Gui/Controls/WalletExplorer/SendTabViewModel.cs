@@ -232,7 +232,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string ValidateAddress()
 		{
-			if (Address == string.Empty)
+			if (string.IsNullOrEmpty(Address))
 			{
 				return "";
 			}
