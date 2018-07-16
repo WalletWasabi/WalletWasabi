@@ -4,78 +4,78 @@
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              Name="ReceiveTabViewerUserControl">
-  <i:Interaction.Behaviors>
-    <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedAddress}" />
-  </i:Interaction.Behaviors>
-  <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
-    <Grid Classes="content">
-      <DockPanel LastChildFill="True">
-        <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
-          <DockPanel LastChildFill="True">
+    <i:Interaction.Behaviors>
+        <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedAddress}" />
+    </i:Interaction.Behaviors>
+    <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
+        <Grid Classes="content">
+            <DockPanel LastChildFill="True">
+                <Grid RowDefinitions="Auto,*" DockPanel.Dock="Top">
+                    <DockPanel LastChildFill="True">
 
-            <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10" >
-              <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
-                <i:Interaction.Behaviors>
-                  <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
-                  <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
-                  <iac:FocusOnAttachedToVisualTreeBehavior />
-                </i:Interaction.Behaviors>
+                        <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
+                            <TextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
+                                <i:Interaction.Behaviors>
+                                    <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
+                                    <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
+                                    <iac:FocusOnAttachedToVisualTreeBehavior />
+                                </i:Interaction.Behaviors>
 
-                <ToolTip.Tip>
-                  Start labelling today and your privacy will thank you tomorrow!
-                </ToolTip.Tip>
-              </TextBox>
-              <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" VerticalAlignment="Top"  Grid.Column="1" />
-            </Grid>
+                                <ToolTip.Tip>
+                                    Start labelling today and your privacy will thank you tomorrow!
+                                </ToolTip.Tip>
+                            </TextBox>
+                            <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" VerticalAlignment="Top"  Grid.Column="1" />
+                        </Grid>
 
-            <Grid IsVisible="{Binding LabelRequiredNotificationVisible}">
-              <Grid Opacity="{Binding LabelRequiredNotificationOpacity}">
-                <Grid.Transitions>
-                  <Transitions>
-                    <DoubleTransition Property="Grid.Opacity"
+                        <Grid IsVisible="{Binding LabelRequiredNotificationVisible}">
+                            <Grid Opacity="{Binding LabelRequiredNotificationOpacity}">
+                                <Grid.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="Grid.Opacity"
                         Easing="CircularEaseIn"
                         Duration="0:0:0.5" />
-                  </Transitions>
-                </Grid.Transitions>
-                <TextBlock Classes="warningMessage" Text="Label Is Required!" VerticalAlignment="Center" HorizontalAlignment="Center" />
-              </Grid>
-            </Grid>
-            <Grid IsVisible="{Binding ClipboardNotificationVisible}">
-              <Grid Opacity="{Binding ClipboardNotificationOpacity}">
-                <Grid.Transitions>
-                  <Transitions>
-                    <DoubleTransition Property="Grid.Opacity"
+                                    </Transitions>
+                                </Grid.Transitions>
+                                <TextBlock Classes="warningMessage" Text="Label Is Required!" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </Grid>
+                        </Grid>
+                        <Grid IsVisible="{Binding ClipboardNotificationVisible}">
+                            <Grid Opacity="{Binding ClipboardNotificationOpacity}">
+                                <Grid.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="Grid.Opacity"
                         Easing="CircularEaseIn"
                         Duration="0:0:0.5" />
-                  </Transitions>
-                </Grid.Transitions>
-                <TextBlock Text="Address Is Copied To Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
-              </Grid>
-            </Grid>
-          </DockPanel>
-          <Grid ColumnDefinitions="300, *, 50" Margin="5 10 5 0" Grid.Row="1">
-            <TextBlock Text="Label:" />
-            <TextBlock Text="Address:" Grid.Column="1" Margin="20 0 0 0" />
-          </Grid>
-          <ListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}">
-            <ListBox.ItemTemplate>
-              <DataTemplate>
-                <Grid>
-                  <Expander ExpandDirection="Down">
-                    <StackPanel Background="#FFFEFEFE">
-                      <controls:QrCode Matrix="{Binding QrCode}" Height="200" Margin="10 10 10 20" HorizontalAlignment="Center" />
-                    </StackPanel>
-                  </Expander>
-                  <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
-                    <TextBlock Text="{Binding Address}" />
-                    <TextBlock Text="{Binding Label}" Grid.Column="1" />
-                  </Grid>
+                                    </Transitions>
+                                </Grid.Transitions>
+                                <TextBlock Text="Address Is Copied To Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </Grid>
+                        </Grid>
+                    </DockPanel>
+                    <Grid ColumnDefinitions="300, *, 50" Margin="5 10 5 0" Grid.Row="1">
+                        <TextBlock Text="Label:" />
+                        <TextBlock Text="Address:" Grid.Column="1" Margin="20 0 0 0" />
+                    </Grid>
+                    <ListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" VirtualizationMode="None">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Expander ExpandDirection="Down">
+                                        <StackPanel Background="#FFFEFEFE">
+                                            <controls:QrCode Matrix="{Binding QrCode}" Height="200" Margin="10 10 10 20" HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Expander>
+                                    <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
+                                        <TextBlock Text="{Binding Address}" />
+                                        <TextBlock Text="{Binding Label}" Grid.Column="1" />
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </Grid>
-              </DataTemplate>
-            </ListBox.ItemTemplate>
-          </ListBox>
+            </DockPanel>
         </Grid>
-      </DockPanel>
-    </Grid>
-  </controls:GroupBox>
+    </controls:GroupBox>
 </UserControl>
