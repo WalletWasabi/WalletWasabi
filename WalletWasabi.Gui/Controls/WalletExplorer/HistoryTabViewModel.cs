@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
 				{
-					dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundTransaction.Height).Value.dateTime;
+					dateTime = Global.WalletService.ProcessedBlocks.FirstOrDefault(x => x.Value.height == foundTransaction.Height).Value?.dateTime ?? DateTime.Now;
 				}
 				else
 				{
@@ -103,7 +103,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SmartTransaction foundSpenderTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
-						dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
+						dateTime = Global.WalletService.ProcessedBlocks.FirstOrDefault(x => x.Value.height == foundSpenderTransaction.Height).Value?.dateTime ?? DateTime.Now; ;
 					}
 					else
 					{
