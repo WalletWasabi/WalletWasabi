@@ -250,7 +250,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			return "";
+			return $"Invalid {nameof(Address)}";
 		}
 
 		[ValidateMethod(nameof(ValidateAddress))]
