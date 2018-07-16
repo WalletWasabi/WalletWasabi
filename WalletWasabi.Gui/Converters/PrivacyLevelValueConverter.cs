@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Converters
 				var shield = string.Empty;
 				if (integer <= 1)
 				{
-					shield = "None";
+					shield = "Critical";
 				}
 				else if (integer < 21)
 				{
@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Converters
 				{
 					shield = "Strong";
 				}
-				return GetIconByName("PrivacyWarning");
+				return GetIconByName($"Privacy{shield}");
 			}
 
 			throw new InvalidOperationException();
