@@ -25,7 +25,12 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 		{
 			var property = ReflectionHelper.GetPropertyInfo(instance, propertyName);
 
-			return ValidateMethod(instance, property);
+			if (property != null)
+			{
+				return ValidateMethod(instance, property);
+			}
+
+			return string.Empty;
 		}
 
 		private static string ValidateMethod(object instance, PropertyInfo property)
