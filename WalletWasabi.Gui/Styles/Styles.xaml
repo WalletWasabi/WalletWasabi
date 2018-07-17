@@ -3,146 +3,146 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
-    <Style>
-        <Style.Resources>
-            <SolidColorBrush x:Key="ThemeAccentBrush">#007ACC</SolidColorBrush>
-            <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
-            <SolidColorBrush x:Key="ErrorBrush">#F25022</SolidColorBrush>
-            <SolidColorBrush x:Key="WarningMessageForeground">#FFDD00</SolidColorBrush>
-            <SolidColorBrush x:Key="GreenBrush">#00DD10</SolidColorBrush>
+  <Style>
+    <Style.Resources>
+      <SolidColorBrush x:Key="ThemeAccentBrush">#007ACC</SolidColorBrush>
+      <SolidColorBrush x:Key="HyperLinkForeground">#00A2E8</SolidColorBrush>
+      <SolidColorBrush x:Key="ErrorBrush">#F25022</SolidColorBrush>
+      <SolidColorBrush x:Key="WarningMessageForeground">#FFDD00</SolidColorBrush>
+      <SolidColorBrush x:Key="GreenBrush">#00DD10</SolidColorBrush>
 
-            <sys:Double x:Key="FontSizeSmall">12</sys:Double>
-            <sys:Double x:Key="FontSizeNormal">14</sys:Double>
-            <sys:Double x:Key="FontSizeLarge">16</sys:Double>
-        </Style.Resources>
-    </Style>
-    <Style Selector="TextBox.selectableTextBlock">
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="IsReadOnly" Value="True" />
-    </Style>
+      <sys:Double x:Key="FontSizeSmall">12</sys:Double>
+      <sys:Double x:Key="FontSizeNormal">14</sys:Double>
+      <sys:Double x:Key="FontSizeLarge">16</sys:Double>
+    </Style.Resources>
+  </Style>
+  <Style Selector="TextBox.selectableTextBlock">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="IsReadOnly" Value="True" />
+  </Style>
 
-    <Style Selector="Control.docTabContainer">
-        <Setter Property="Margin" Value="20" />
-    </Style>
+  <Style Selector="Control.docTabContainer">
+    <Setter Property="Margin" Value="20" />
+  </Style>
 
-    <Style Selector="controls|GroupBox.docTabContainer">
-        <Setter Property="TextBlock.FontSize" Value="40" />
-        <Setter Property="Margin" Value="10" />
-    </Style>
+  <Style Selector="controls|GroupBox.docTabContainer">
+    <Setter Property="TextBlock.FontSize" Value="40" />
+    <Setter Property="Margin" Value="10" />
+  </Style>
 
-    <Style Selector="Grid.content">
-        <Setter Property="TextBlock.FontSize" Value="14" />
-    </Style>
+  <Style Selector="Grid.content">
+    <Setter Property="TextBlock.FontSize" Value="14" />
+  </Style>
 
-    <Style Selector=".hyperLink">
-        <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
-    </Style>
+  <Style Selector=".hyperLink">
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
+  </Style>
 
-    <Style Selector=".errorMessage">
-        <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
-    </Style>
+  <Style Selector=".errorMessage">
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
+  </Style>
 
-    <Style Selector=".warningMessage">
-        <Setter Property="TextBlock.Foreground" Value="{DynamicResource WarningMessageForeground}" />
-    </Style>
+  <Style Selector=".warningMessage">
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource WarningMessageForeground}" />
+  </Style>
 
-    <Style Selector="Button.activeHyperLink">
-        <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Background" Value="Transparent" />
-    </Style>
+  <Style Selector="Button.activeHyperLink">
+    <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
 
-    <Style Selector="dock|DockToolChrome:active /template/ Grid#PART_Grip">
-        <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
-    </Style>
+  <Style Selector="dock|DockToolChrome:active /template/ Grid#PART_Grip">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+  </Style>
 
-    <Style Selector="Button.chromeButton">
-        <Setter Property="IsVisible" Value="False"/>
-    </Style>
+  <Style Selector="Button.chromeButton">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
 
-    <Style Selector="ListBox">
-        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
-    </Style>
+  <Style Selector="ListBox">
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
+  </Style>
 
-    <Style Selector="TextBox">
-        <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
-    </Style>
+  <Style Selector="TextBox">
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
+  </Style>
 
-    <Style Selector="DataValidationErrors">
-  <Setter Property="Template">
-    <ControlTemplate>
-      <DockPanel LastChildFill="True">
-        <ContentControl DockPanel.Dock="Bottom"
+  <Style Selector="DataValidationErrors">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel LastChildFill="True">
+          <ContentControl DockPanel.Dock="Bottom"
                         ContentTemplate="{TemplateBinding ErrorTemplate}"
                         DataContext="{TemplateBinding Owner}"
                         Content="{Binding (DataValidationErrors.Errors)}"
-                        IsVisible="{Binding (DataValidationErrors.HasErrors)}"/>
-        <ContentPresenter Name="PART_ContentPresenter"
+                        IsVisible="{Binding (DataValidationErrors.HasErrors)}" />
+          <ContentPresenter Name="PART_ContentPresenter"
                           Background="{TemplateBinding Background}"
                           BorderThickness="{TemplateBinding BorderThickness}"
                           ContentTemplate="{TemplateBinding ContentTemplate}"
                           Content="{TemplateBinding Content}"
-                          Padding="{TemplateBinding Padding}"/>
-      </DockPanel>
-    </ControlTemplate>
-  </Setter>
-  <Setter Property="ErrorTemplate">
-    <DataTemplate>
+                          Padding="{TemplateBinding Padding}" />
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="ErrorTemplate">
+      <DataTemplate>
         <Grid>
-           <Grid.Styles>
-             <Style>
-               <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
-             </Style>         
-           </Grid.Styles>
-            <ItemsControl Items="{Binding}" MemberSelector="Message"/>
-        </Grid>          
-    </DataTemplate>
-  </Setter>
-</Style>
-    <Style Selector="TextBox:error /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}"/>
+          <Grid.Styles>
+            <Style>
+              <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
+            </Style>
+          </Grid.Styles>
+          <ItemsControl Items="{Binding}" MemberSelector="Message" />
+        </Grid>
+      </DataTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="TextBox:error /template/ Border#border">
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
   </Style>
 
-    <Style Selector="TextBox">
-    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}"/>
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}"/>
-    <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}"/>
-    <Setter Property="Padding" Value="4"/>
+  <Style Selector="TextBox">
+    <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderMidBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ThemeBorderThickness}" />
+    <Setter Property="Padding" Value="4" />
     <Setter Property="Template">
       <ControlTemplate>
-                <DockPanel LastChildFill="True">
-        <Border Name="border"
+        <DockPanel LastChildFill="True">
+          <Border Name="border"
                 Background="{TemplateBinding Background}"
                 BorderBrush="{TemplateBinding BorderBrush}"
                 BorderThickness="{TemplateBinding BorderThickness}" DockPanel.Dock="Top">
-          <DockPanel Margin="{TemplateBinding Padding}">
+            <DockPanel Margin="{TemplateBinding Padding}">
 
-            <TextBlock Name="floatingWatermark"
+              <TextBlock Name="floatingWatermark"
                        Foreground="{DynamicResource ThemeAccentBrush}"
                        FontSize="{DynamicResource FontSizeSmall}"
                        Text="{TemplateBinding Watermark}"
                        DockPanel.Dock="Top">
-              <TextBlock.IsVisible>
-                <MultiBinding Converter="{x:Static BoolConverters.And}">
-                  <Binding RelativeSource="{RelativeSource TemplatedParent}"
-                           Path="UseFloatingWatermark"/>
-                  <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                <TextBlock.IsVisible>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                           Path="UseFloatingWatermark" />
+                    <Binding RelativeSource="{RelativeSource TemplatedParent}"
                            Path="Text"
-                           Converter="{x:Static StringConverters.NotNullOrEmpty}"/>
-                </MultiBinding>
-              </TextBlock.IsVisible>
-            </TextBlock>
-                            <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                           Converter="{x:Static StringConverters.NotNullOrEmpty}" />
+                  </MultiBinding>
+                </TextBlock.IsVisible>
+              </TextBlock>
+              <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                             VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
 
                 <Panel>
                   <TextBlock Name="watermark"
                              Opacity="0.5"
                              Text="{TemplateBinding Watermark}"
-                             IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.NullOrEmpty}}"/>
+                             IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.NullOrEmpty}}" />
                   <TextPresenter Name="PART_TextPresenter"
                                  Text="{TemplateBinding Text, Mode=TwoWay}"
                                  CaretIndex="{TemplateBinding CaretIndex}"
@@ -150,24 +150,24 @@
                                  SelectionEnd="{TemplateBinding SelectionEnd}"
                                  TextAlignment="{TemplateBinding TextAlignment}"
                                  TextWrapping="{TemplateBinding TextWrapping}"
-                                 PasswordChar="{TemplateBinding PasswordChar}"/>
+                                 PasswordChar="{TemplateBinding PasswordChar}" />
                 </Panel>
               </ScrollViewer>
-          </DockPanel>
-        </Border>
-                    <Border Margin="{TemplateBinding Padding}" 
+            </DockPanel>
+          </Border>
+          <Border Margin="{TemplateBinding Padding}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             BorderBrush="{TemplateBinding Background}">
-                        <DataValidationErrors />    
-                    </Border>
-                    </DockPanel>
+            <DataValidationErrors />
+          </Border>
+        </DockPanel>
       </ControlTemplate>
     </Setter>
   </Style>
   <Style Selector="TextBox:pointerover /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
   </Style>
   <Style Selector="TextBox:focus /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
   </Style>
 </Styles>
