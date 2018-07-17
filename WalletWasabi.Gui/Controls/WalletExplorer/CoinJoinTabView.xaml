@@ -25,6 +25,19 @@
     <controls:GroupBox Title="Status" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5" Grid.Row="1">
       <Grid Classes="content">
         <StackPanel Orientation="Vertical">
+
+          <StackPanel Orientation="Horizontal" Gap="4">
+            <TextBlock Text="Minimum"> </TextBlock>
+            <TextBlock Text="{Binding RequiredBTC}"> </TextBlock>
+            <TextBlock Text="BTC is required to be queued for CoinJoin."> </TextBlock>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Gap="4">
+            <TextBlock Text="Coordinator Fee:"> </TextBlock>
+            <TextBlock Text="{Binding CoordinatorFeePercent}"> </TextBlock>
+            <TextBlock Text="%"> </TextBlock>
+          </StackPanel>
+
           <StackPanel Orientation="Horizontal" Gap="4">
             <TextBlock Text="Round ID:"> </TextBlock>
             <TextBlock Text="{Binding RoundId}"> </TextBlock>

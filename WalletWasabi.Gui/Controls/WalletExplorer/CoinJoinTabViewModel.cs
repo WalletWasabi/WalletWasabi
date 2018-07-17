@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
 using Avalonia.Controls;
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Models.ChaumianCoinJoin;
 
@@ -16,6 +17,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CoinListViewModel _queuedCoinsList;
 		private long _roundId;
 		private string _phase;
+		private string _requiredBTC;
+		private string _coordinatorFeePercent;
 		private int _peersRegistered;
 		private int _peersNeeded;
 		private string _password;
@@ -38,6 +41,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AvailableCoinsList = new CoinListViewModel(available);
 
 			QueuedCoinsList = new CoinListViewModel(queued);
+
+			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
+			if (registrableRound != default)
+			{
+				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
+				var reqBTC = registrableRound.State.Denomination + registrableRound.State.Denomination.Percentange(0.3m) + registrableRound.State.FeePerInputs * registrableRound.State.MaximumInputCountPerPeer + registrableRound.State.FeePerOutputs * 2;
+				RequiredBTC = reqBTC.ToString(false, true);
+			}
+			else
+			{
+				CoordinatorFeePercent = "0.3";
+				RequiredBTC = "-";
+			}
 
 			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
 			if (mostAdvancedRound != default)
@@ -83,6 +99,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ChaumianClient_StateUpdated(object sender, EventArgs e)
 		{
+			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
+			if (registrableRound != default)
+			{
+				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
+				var reqBTC = registrableRound.State.Denomination + registrableRound.State.Denomination.Percentange(0.3m) + registrableRound.State.FeePerInputs * registrableRound.State.MaximumInputCountPerPeer + registrableRound.State.FeePerOutputs * 2;
+				RequiredBTC = reqBTC.ToString(false, true);
+			}
 			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
 			if (mostAdvancedRound != default)
 			{
@@ -131,6 +154,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _phase; }
 			set { this.RaiseAndSetIfChanged(ref _phase, value); }
+		}
+
+		public string RequiredBTC
+		{
+			get { return _requiredBTC; }
+			set { this.RaiseAndSetIfChanged(ref _requiredBTC, value); }
+		}
+
+		public string CoordinatorFeePercent
+		{
+			get { return _coordinatorFeePercent; }
+			set { this.RaiseAndSetIfChanged(ref _coordinatorFeePercent, value); }
 		}
 
 		public int PeersRegistered
