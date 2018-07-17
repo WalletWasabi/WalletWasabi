@@ -37,6 +37,8 @@ namespace WalletWasabi.Services
 
 		public CcjClientState State { get; }
 
+		public event EventHandler StateUpdated;
+
 		private long _frequentStatusProcessingIfNotMixing;
 
 		/// <summary>
@@ -157,6 +159,7 @@ namespace WalletWasabi.Services
 
 					states = await SatoshiClient.GetAllRoundStatesAsync();
 					State.UpdateRoundsByStates(states.ToArray());
+					StateUpdated?.Invoke(this, null);
 					delay = new Random().Next(0, 7); // delay the response to defend timing attack privacy
 				}
 

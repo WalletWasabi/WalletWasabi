@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Text;
 using Avalonia.Controls;
 using ReactiveUI;
+using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -13,6 +14,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private CoinListViewModel _availableCoinsList;
 		private CoinListViewModel _queuedCoinsList;
+		private long _roundId;
+		private string _phase;
+		private int _peersRegistered;
+		private int _peersNeeded;
 		private string _password;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
@@ -33,6 +38,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AvailableCoinsList = new CoinListViewModel(available);
 
 			QueuedCoinsList = new CoinListViewModel(queued);
+
+			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
+			if (mostAdvancedRound != default)
+			{
+				RoundId = mostAdvancedRound.State.RoundId;
+				Phase = mostAdvancedRound.State.Phase.ToString();
+				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
+				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
+			}
+			else
+			{
+				RoundId = -1;
+				Phase = CcjRoundPhase.InputRegistration.ToString();
+				PeersRegistered = 0;
+				PeersNeeded = 100;
+			}
+			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
 
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
@@ -57,6 +79,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
 			});
+		}
+
+		private void ChaumianClient_StateUpdated(object sender, EventArgs e)
+		{
+			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
+			if (mostAdvancedRound != default)
+			{
+				RoundId = mostAdvancedRound.State.RoundId;
+				Phase = mostAdvancedRound.State.Phase.ToString();
+				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
+				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
+			}
 		}
 
 		public override void OnSelected()
@@ -85,6 +119,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _queuedCoinsList; }
 			set { this.RaiseAndSetIfChanged(ref _queuedCoinsList, value); }
+		}
+
+		public long RoundId
+		{
+			get { return _roundId; }
+			set { this.RaiseAndSetIfChanged(ref _roundId, value); }
+		}
+
+		public string Phase
+		{
+			get { return _phase; }
+			set { this.RaiseAndSetIfChanged(ref _phase, value); }
+		}
+
+		public int PeersRegistered
+		{
+			get { return _peersRegistered; }
+			set { this.RaiseAndSetIfChanged(ref _peersRegistered, value); }
+		}
+
+		public int PeersNeeded
+		{
+			get { return _peersNeeded; }
+			set { this.RaiseAndSetIfChanged(ref _peersNeeded, value); }
 		}
 
 		public ReactiveCommand EnqueueCommand { get; }

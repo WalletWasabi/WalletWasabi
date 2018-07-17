@@ -150,6 +150,30 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
+		public CcjClientRound GetRegistrableRoundOrDefault()
+		{
+			lock (StateLock)
+			{
+				return Rounds.FirstOrDefault(x => x.State.Phase == CcjRoundPhase.InputRegistration);
+			}
+		}
+
+		public CcjClientRound GetMostAdvancedRoundOrDefault()
+		{
+			lock (StateLock)
+			{
+				var foundAdvanced = Rounds.FirstOrDefault(x => x.State.Phase != CcjRoundPhase.InputRegistration);
+				if (foundAdvanced != default)
+				{
+					return foundAdvanced;
+				}
+				else
+				{
+					return Rounds.FirstOrDefault();
+				}
+			}
+		}
+
 		public int GetSmallestRegistrationTimeout()
 		{
 			lock (StateLock)
@@ -212,14 +236,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						Logger.LogInfo<CcjClientState>($"Round ({r.State.RoundId}) added.");
 					}
 				}
-			}
-		}
-
-		public CcjClientRound GetRegistrableRoundOrDefault()
-		{
-			lock (StateLock)
-			{
-				return Rounds.FirstOrDefault(x => x.State.Phase == CcjRoundPhase.InputRegistration);
 			}
 		}
 

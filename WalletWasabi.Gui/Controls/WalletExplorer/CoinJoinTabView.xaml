@@ -22,8 +22,26 @@
       </Grid>
     </controls:GroupBox>
 
-    <controls:GroupBox Title="Status" TextBlock.FontSize="16" Padding="20" Margin="10 5 10 5" Grid.Row="1">
+    <controls:GroupBox Title="Status" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5" Grid.Row="1">
       <Grid Classes="content">
+        <StackPanel Orientation="Vertical">
+          <StackPanel Orientation="Horizontal" Gap="4">
+            <TextBlock Text="Round ID:"> </TextBlock>
+            <TextBlock Text="{Binding RoundId}"> </TextBlock>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Gap="4">
+            <TextBlock Text="Phase:"> </TextBlock>
+            <TextBlock Text="{Binding Phase}"> </TextBlock>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Gap="4">
+            <TextBlock Text="Number Of Registered Peers:"> </TextBlock>
+            <TextBlock Text="{Binding PeersRegistered}"> </TextBlock>
+            <TextBlock Text="/"> </TextBlock>
+            <TextBlock Text="{Binding PeersNeeded}"> </TextBlock>
+          </StackPanel>
+        </StackPanel>
       </Grid>
     </controls:GroupBox>
 
