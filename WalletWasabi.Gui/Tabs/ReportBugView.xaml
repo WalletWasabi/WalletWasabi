@@ -5,7 +5,14 @@
       <StackPanel Orientation="Vertical">
         <StackPanel Orientation="Horizontal">
           <TextBlock Text="Please visit: " />
-          <TextBox Text="http://github.com/zkSNACKs/WalletWasabi/issues" Classes="selectableTextBlock hyperLink" />
+          <TextBox Text="{Binding IssuesURL}" Classes="selectableTextBlock hyperLink">
+            <TextBox.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Copy URL"
+                          Command="{Binding CopyUrlCommand}" />
+              </ContextMenu>
+            </TextBox.ContextMenu>
+          </TextBox>
         </StackPanel>
         <TextBlock Text="Consider using Tor Browser to protect your privacy." />
       </StackPanel>
