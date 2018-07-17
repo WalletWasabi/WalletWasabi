@@ -53,7 +53,8 @@ namespace WalletWasabi.Gui.Converters
 				{
 					shield = "Strong";
 				}
-				return GetIconByName($"Privacy{shield}");
+				var icon = GetIconByName($"Privacy{shield}"); 
+				return new {Icon= icon, ToolTip= $"{shield}. Coin anonymity set is {integer}"};
 			}
 
 			throw new InvalidOperationException();

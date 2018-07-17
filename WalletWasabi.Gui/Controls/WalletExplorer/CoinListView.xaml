@@ -54,7 +54,11 @@
                 </ToolTip.Tip>
               </Path>
               <TextBlock Grid.Column="2" Text="{Binding AmountBtc}" />
-              <DrawingPresenter Drawing="{Binding AnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}" Stretch="Fill"/>
+              <Panel Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Center" 
+                  DataContext="{Binding AnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}"
+                  ToolTip.Tip="{Binding ToolTip}">
+                <DrawingPresenter Drawing="{Binding Icon}" Margin="0 0 25 0" />
+              </Panel>
               <TextBlock Grid.Column="4" Text="{Binding History}" />
               <TextBlock Text="" Grid.Column="5" />
             </Grid>
