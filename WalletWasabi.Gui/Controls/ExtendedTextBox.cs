@@ -6,6 +6,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Styling;
 using ReactiveUI;
 using System;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -21,7 +22,7 @@ namespace WalletWasabi.Gui.Controls
 			PasteCommand = ReactiveCommand.Create(() =>
 			{
 				PasteAsync();
-			});
+			}, this.GetObservable(IsReadOnlyProperty).Select(x => !x));
 		}
 
 		Type IStyleable.StyleKey => typeof(TextBox);
@@ -87,21 +88,11 @@ namespace WalletWasabi.Gui.Controls
 				DataContext = this,
 			};
 
-			if (IsReadOnly)
+			ContextMenu.Items = new Avalonia.Controls.Controls
 			{
-				ContextMenu.Items = new Avalonia.Controls.Controls
-				{
-					new MenuItem { Header = "Copy", Command = CopyCommand }
-				};
-			}
-			else
-			{
-				ContextMenu.Items = new Avalonia.Controls.Controls
-				{
-					new MenuItem { Header = "Copy", Command = CopyCommand },
-					new MenuItem { Header = "Paste", Command = PasteCommand}
-				};
-			}
+				new MenuItem { Header = "Copy", Command = CopyCommand },
+				new MenuItem { Header = "Paste", Command = PasteCommand}
+			};
 		}
 	}
 }
