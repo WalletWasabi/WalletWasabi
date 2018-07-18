@@ -1,19 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Gma.QrCodeNet.Encoding;
+using ReactiveUI;
+using System;
+using System.Threading.Tasks;
 using WalletWasabi.KeyManagement;
-using Avalonia.Media.Imaging;
-using Gma.QrCodeNet.Encoding;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public class AddressViewModel
+	public class AddressViewModel : ViewModelBase
 	{
+		private bool _isExpanded;
+		private bool _generating;
+		private bool _isBusy;
+		private bool[,] _qrCode;
+
 		public HdPubKey Model { get; }
 
 		public AddressViewModel(HdPubKey model)
 		{
 			Model = model;
+
+			this.WhenAnyValue(x => x.IsExpanded).Subscribe(async expanded =>
+			{
+				if (expanded && !_generating && QrCode == null)
+				{
+					IsBusy = true;
+
+					_generating = true;
+
+					QrCode = await Task.Run(() =>
+					{
+						var encoder = new QrEncoder(ErrorCorrectionLevel.H);
+						encoder.TryEncode(Address, out var qrCode);
+
+						return qrCode.Matrix.InternalArray;
+					});
+
+					IsBusy = false;
+				}
+			});
+		}
+
+		public bool IsBusy
+		{
+			get { return _isBusy; }
+			set { this.RaiseAndSetIfChanged(ref _isBusy, value); }
+		}
+
+		public bool IsExpanded
+		{
+			get { return _isExpanded; }
+			set { this.RaiseAndSetIfChanged(ref _isExpanded, value); }
 		}
 
 		public string Label => Model.Label;
@@ -22,12 +58,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool[,] QrCode
 		{
-			get
-			{
-				var encoder = new QrEncoder(ErrorCorrectionLevel.H);
-				encoder.TryEncode(Address, out var qrCode);
-				return qrCode.Matrix.InternalArray;
-			}
+			get => _qrCode;
+			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 	}
 }

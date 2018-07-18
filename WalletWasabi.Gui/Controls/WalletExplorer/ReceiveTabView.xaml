@@ -61,10 +61,13 @@
             <ListBox.ItemTemplate>
               <DataTemplate>
                 <Grid>
-                  <Expander ExpandDirection="Down">
-                    <StackPanel Background="#FFFEFEFE">
-                      <controls:QrCode Matrix="{Binding QrCode}" Height="200" Margin="10 10 10 20" HorizontalAlignment="Center" />
-                    </StackPanel>
+                  <Expander ExpandDirection="Down" IsExpanded="{Binding IsExpanded}">
+                    <Panel>
+                      <Panel Width="240" Background="#FFFEFEFE">
+                        <controls:QrCode Matrix="{Binding QrCode}" HorizontalAlignment="Center" Margin="20" />
+                      </Panel>
+                      <controls:Spinner Height="100" Width="100" IsVisible="{Binding IsBusy}" />
+                    </Panel>
                   </Expander>
                   <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
                     <TextBlock Text="{Binding Address}" />
