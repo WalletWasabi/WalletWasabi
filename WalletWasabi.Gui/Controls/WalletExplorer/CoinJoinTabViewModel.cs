@@ -24,6 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _peersNeeded;
 		private string _password;
 		private Money _amountQueued;
+		private string _warningMessage;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
@@ -87,12 +88,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				var selectedCoins = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
 
+				try
+				{
+					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
+				}
+				catch (Exception ex)
+				{
+					WarningMessage = ex.ToTypeMessageString();
+					return;
+				}
+
+				WarningMessage = string.Empty;
+
 				foreach (var coin in selectedCoins)
 				{
 					coin.IsSelected = false;
 				}
-
-				await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
 
 				if (RequiredBTC - AmountQueued <= Money.Zero && increasePeersInAdvance && PeersRegistered < PeersNeeded) // The status response will come a few seconds later, but here we can already guess the peers are increased.
 				{
@@ -210,7 +221,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get { return _peersNeeded; }
 			set { this.RaiseAndSetIfChanged(ref _peersNeeded, value); }
 		}
-
+		public string WarningMessage
+		{
+			get { return _warningMessage; }
+			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
+		}
 		public ReactiveCommand EnqueueCommand { get; }
 
 		public ReactiveCommand DequeueCommand { get; }
