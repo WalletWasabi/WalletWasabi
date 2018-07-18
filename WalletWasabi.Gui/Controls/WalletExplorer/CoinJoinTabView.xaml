@@ -29,8 +29,9 @@
 
           <StackPanel Orientation="Horizontal" Gap="4">
             <TextBlock Text="Minimum"> </TextBlock>
-            <TextBlock Text="{Binding RequiredBTC}"> </TextBlock>
-            <TextBlock Text="BTC is required to be queued for CoinJoin."> </TextBlock>
+            <TextBlock Foreground="YellowGreen" Text="{Binding RequiredBTC}"> </TextBlock>
+            <TextBlock Foreground="YellowGreen" Text="BTC"> </TextBlock>
+            <TextBlock Text="is required to be queued for CoinJoin."> </TextBlock>
           </StackPanel>
 
           <StackPanel Orientation="Horizontal" Gap="4">
