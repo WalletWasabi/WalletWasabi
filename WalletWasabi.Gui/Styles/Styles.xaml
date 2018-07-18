@@ -67,6 +67,10 @@
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
   </Style>
 
+  <Style Selector="ListBoxItem">
+    <Setter Property="Padding" Value="5 0" />
+  </Style>
+
   <Style Selector="TextBox">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
   </Style>
