@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CoinListViewModel _queuedCoinsList;
 		private long _roundId;
 		private string _phase;
-		private string _requiredBTC;
+		private Money _requiredBTC;
 		private string _coordinatorFeePercent;
 		private int _peersRegistered;
 		private int _peersNeeded;
@@ -52,13 +52,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (registrableRound != default)
 			{
 				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
-				var reqBTC = registrableRound.State.Denomination + registrableRound.State.Denomination.Percentange(0.3m) + registrableRound.State.FeePerInputs * registrableRound.State.MaximumInputCountPerPeer + registrableRound.State.FeePerOutputs * 2;
-				RequiredBTC = reqBTC.ToString(false, true);
+				RequiredBTC = registrableRound.State.Denomination + registrableRound.State.Denomination.Percentange(0.3m) + registrableRound.State.FeePerInputs * registrableRound.State.MaximumInputCountPerPeer + registrableRound.State.FeePerOutputs * 2;
 			}
 			else
 			{
 				CoordinatorFeePercent = "0.3";
-				RequiredBTC = "-";
+				RequiredBTC = Money.Zero;
 			}
 
 			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
@@ -114,8 +113,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (registrableRound != default)
 			{
 				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
-				var reqBTC = registrableRound.State.Denomination + registrableRound.State.Denomination.Percentange(0.3m) + registrableRound.State.FeePerInputs * registrableRound.State.MaximumInputCountPerPeer + registrableRound.State.FeePerOutputs * 2;
-				RequiredBTC = reqBTC.ToString(false, true);
+				RequiredBTC = registrableRound.State.Denomination + registrableRound.State.Denomination.Percentange(0.3m) + registrableRound.State.FeePerInputs * registrableRound.State.MaximumInputCountPerPeer + registrableRound.State.FeePerOutputs * 2;
 			}
 			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
 			if (mostAdvancedRound != default)
@@ -173,7 +171,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _phase, value); }
 		}
 
-		public string RequiredBTC
+		public Money RequiredBTC
 		{
 			get { return _requiredBTC; }
 			set { this.RaiseAndSetIfChanged(ref _requiredBTC, value); }

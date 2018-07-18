@@ -6,6 +6,7 @@
   <UserControl.Resources>
     <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
     <converters:CoinJoinedVisibilityConverter x:Key="CoinJoinedVisibilityConverter" />
+    <converters:MoneyStringConverter x:Key="MoneyStringConverter" />
   </UserControl.Resources>
   <Grid RowDefinitions="4*,3*,4*">
     <controls:GroupBox Title="Queue Coins For CoinJoin" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5">
@@ -29,7 +30,7 @@
 
           <StackPanel Orientation="Horizontal" Gap="4">
             <TextBlock Text="Minimum"> </TextBlock>
-            <TextBlock Foreground="YellowGreen" Text="{Binding RequiredBTC}"> </TextBlock>
+            <TextBlock Foreground="YellowGreen" Text="{Binding RequiredBTC, Converter={StaticResource MoneyStringConverter}}"> </TextBlock>
             <TextBlock Foreground="YellowGreen" Text="BTC"> </TextBlock>
             <TextBlock Text="is required to be queued for CoinJoin."> </TextBlock>
           </StackPanel>
