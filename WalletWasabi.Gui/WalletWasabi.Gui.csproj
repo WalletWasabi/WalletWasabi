@@ -27,10 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\WasabiLogo.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell.Extensibility\AvalonStudio.Shell.Extensibility.csproj" />
     <ProjectReference Include="..\WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell\AvalonStudio.Shell.csproj" />
     <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />

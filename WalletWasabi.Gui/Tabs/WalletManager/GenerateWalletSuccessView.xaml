@@ -6,7 +6,7 @@
     </Border>
     <TextBlock Text="Write down these mnemonic words:" FontWeight="Bold" />
     <Border Padding="2" Background="Gray" HorizontalAlignment="Center" BorderBrush="#FF000000" BorderThickness="1,1,1,1" CornerRadius="6,6, 6, 6">
-      <TextBox Text="{Binding MnemonicWords, Mode=TwoWay}" Background="Gray" Foreground="{DynamicResource ApplicationAccentForegroundBrush}" Classes="selectableTextBlock" />
+      <controls:ExtendedTextBox Text="{Binding MnemonicWords, Mode=TwoWay}" Background="Gray" Foreground="{DynamicResource ApplicationAccentForegroundBrush}" Classes="selectableTextBlock" />
     </Border>
     <TextBlock Text="You can recover your wallet on any computer with:" FontWeight="Bold" />
     <TextBlock Text="- your mnemonic words AND" FontWeight="Bold" />

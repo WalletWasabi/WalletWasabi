@@ -18,15 +18,15 @@
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Gap="10" HorizontalAlignment="Left">
           <TextBlock>Note that, you must select coins you want to spend from.</TextBlock>
-          <TextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
-          <TextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True">
+          <controls:ExtendedTextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
+          <controls:ExtendedTextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True">
             <ToolTip.Tip>
               Start labelling today and your privacy will thank you tomorrow!
             </ToolTip.Tip>
-          </TextBox>
+          </controls:ExtendedTextBox>
           <StackPanel Orientation="Horizontal" Gap="10">
             <Button Content="{Binding MaxClear}" Command="{Binding MaxCommand}" />
-            <TextBox Foreground="{Binding IsMax, Converter={StaticResource AmountForegroundConverter}}" IsReadOnly="{Binding IsMax}" Text="{Binding Amount}" Watermark="Amount (BTC)" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
+            <controls:ExtendedTextBox Foreground="{Binding IsMax, Converter={StaticResource AmountForegroundConverter}}" IsReadOnly="{Binding IsMax}" Text="{Binding Amount}" Watermark="Amount (BTC)" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
             <StackPanel>
               <StackPanel Orientation="Horizontal" Gap="10">
                 <TextBlock Text="Fee:" />

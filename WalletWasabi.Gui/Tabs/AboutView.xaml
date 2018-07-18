@@ -6,11 +6,11 @@
         <StackPanel Orientation="Vertical">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="Current Version: " />
-            <TextBox Text="{Binding VersionText}" Classes="selectableTextBlock" />
+            <controls:ExtendedTextBox Text="{Binding VersionText}" Classes="selectableTextBlock" />
           </StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="To get the latest version, please visit: " />
-            <TextBox Text="https://github.com/zkSNACKs/WalletWasabi/releases/" Classes="selectableTextBlock hyperLink" />
+            <controls:ExtendedTextBox Text="https://github.com/zkSNACKs/WalletWasabi/releases/" Classes="selectableTextBlock hyperLink" />
           </StackPanel>
           <TextBlock Text="Consider using Tor Browser to protect your privacy." />
         </StackPanel>
