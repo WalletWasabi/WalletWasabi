@@ -5,6 +5,7 @@
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
+    <converters:CoinJoinedVisibilityConverter x:Key="CoinJoinedVisibilityConverter" />
   </UserControl.Resources>
   <Grid RowDefinitions="4*,3*,4*">
     <controls:GroupBox Title="Queue Coins For CoinJoin" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5">
@@ -58,7 +59,7 @@
       </Grid>
     </controls:GroupBox>
 
-    <controls:GroupBox Title="Coins Being CoinJoined" TextBlock.FontSize="16" Padding="10" Margin="10 5" Grid.Row="2">
+    <controls:GroupBox Title="Coins Being CoinJoined" TextBlock.FontSize="16" Padding="10" Margin="10 5" Grid.Row="2" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
       <Grid Classes="content">
         <DockPanel LastChildFill="True">
           <StackPanel Gap="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Right">

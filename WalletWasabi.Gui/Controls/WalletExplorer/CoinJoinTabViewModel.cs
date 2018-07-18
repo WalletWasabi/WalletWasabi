@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
@@ -22,6 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _peersRegistered;
 		private int _peersNeeded;
 		private string _password;
+		private Money _amountQueued;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
@@ -41,6 +43,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AvailableCoinsList = new CoinListViewModel(available);
 
 			QueuedCoinsList = new CoinListViewModel(queued);
+
+			AmountQueued = QueuedCoinsList.Coins.Sum(x => x.Amount);
+
+			QueuedCoinsList.Coins.CollectionChanged += Coins_CollectionChanged;
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 			if (registrableRound != default)
@@ -97,6 +103,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 		}
 
+		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+		{
+			AmountQueued = QueuedCoinsList.Coins.Sum(x => x.Amount);
+		}
+
 		private void ChaumianClient_StateUpdated(object sender, EventArgs e)
 		{
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
@@ -142,6 +153,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _queuedCoinsList; }
 			set { this.RaiseAndSetIfChanged(ref _queuedCoinsList, value); }
+		}
+
+		public Money AmountQueued
+		{
+			get { return _amountQueued; }
+			set { this.RaiseAndSetIfChanged(ref _amountQueued, value); }
 		}
 
 		public long RoundId
