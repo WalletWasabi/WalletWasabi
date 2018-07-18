@@ -12,6 +12,8 @@ namespace WalletWasabi.Gui.Controls
 {
 	public class ExtendedTextBox : TextBox, IStyleable
 	{
+		private MenuItem _pasteItem;
+
 		public ExtendedTextBox()
 		{
 			CopyCommand = ReactiveCommand.Create(() =>
@@ -22,7 +24,30 @@ namespace WalletWasabi.Gui.Controls
 			PasteCommand = ReactiveCommand.Create(() =>
 			{
 				PasteAsync();
-			}, this.GetObservable(IsReadOnlyProperty).Select(x => !x));
+			});
+
+			this.GetObservable(IsReadOnlyProperty).Subscribe(ro =>
+			{
+				if (_pasteItem != null)
+				{
+					var items = ContextMenu.Items as Avalonia.Controls.Controls;
+
+					if (ro)
+					{
+						if (items.Contains(_pasteItem))
+						{
+							items.Remove(_pasteItem);
+						}
+					}
+					else
+					{
+						if (!items.Contains(_pasteItem))
+						{
+							items.Add(_pasteItem);
+						}
+					}
+				}
+			});
 		}
 
 		Type IStyleable.StyleKey => typeof(TextBox);
@@ -88,11 +113,17 @@ namespace WalletWasabi.Gui.Controls
 				DataContext = this,
 			};
 
+			_pasteItem = new MenuItem { Header = "Paste", Command = PasteCommand };
+
 			ContextMenu.Items = new Avalonia.Controls.Controls
 			{
-				new MenuItem { Header = "Copy", Command = CopyCommand },
-				new MenuItem { Header = "Paste", Command = PasteCommand}
+				new MenuItem { Header = "Copy", Command = CopyCommand }
 			};
+
+			if(!IsReadOnly)
+			{
+				(ContextMenu.Items as Avalonia.Controls.Controls).Add(_pasteItem);
+			}
 		}
 	}
 }
