@@ -19,6 +19,11 @@ namespace WalletWasabi.Gui.Controls
 {
 	public class QrCode : Control
 	{
+		static QrCode()
+		{
+			AffectsMeasure(MatrixProperty);
+		}
+
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
 			AvaloniaProperty.RegisterDirect<QrCode, bool[,]>(
 				nameof(Matrix),
