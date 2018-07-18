@@ -12,25 +12,25 @@ namespace WalletWasabi.Gui.Converters
 {
 	public class PrivacyLevelValueConverter : IValueConverter
 	{
-        private readonly static Dictionary<string, DrawingGroup> Cache = new Dictionary<string, DrawingGroup>();
+		private readonly static Dictionary<string, DrawingGroup> Cache = new Dictionary<string, DrawingGroup>();
 
-        public DrawingGroup GetIconByName(string icon)
-        {
-            if (!Cache.TryGetValue(icon, out var image))
-            {
-                if (Application.Current.Styles.TryGetResource(icon.ToString(), out object resource))
-                {
-                    image = resource as DrawingGroup;
-                    Cache.Add(icon, image);
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Icon {icon} not found");
-                }
-            }
+		public DrawingGroup GetIconByName(string icon)
+		{
+			if (!Cache.TryGetValue(icon, out var image))
+			{
+				if (Application.Current.Styles.TryGetResource(icon.ToString(), out object resource))
+				{
+					image = resource as DrawingGroup;
+					Cache.Add(icon, image);
+				}
+				else
+				{
+					throw new InvalidOperationException($"Icon {icon} not found");
+				}
+			}
 
-            return image;
-        }
+			return image;
+		}
 
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
@@ -53,8 +53,8 @@ namespace WalletWasabi.Gui.Converters
 				{
 					shield = "Strong";
 				}
-				var icon = GetIconByName($"Privacy{shield}"); 
-				return new {Icon= icon, ToolTip= $"{shield}. Coin anonymity set is {integer}"};
+				var icon = GetIconByName($"Privacy{shield}");
+				return new { Icon = icon, ToolTip = $"Anonymity Set: {integer}" };
 			}
 
 			throw new InvalidOperationException();
