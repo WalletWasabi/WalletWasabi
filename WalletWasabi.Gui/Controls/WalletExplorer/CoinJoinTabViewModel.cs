@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CoinListViewModel _availableCoinsList;
 		private CoinListViewModel _queuedCoinsList;
 		private long _roundId;
-		private string _phase;
+		private CcjRoundPhase _phase;
 		private Money _requiredBTC;
 		private string _coordinatorFeePercent;
 		private int _peersRegistered;
@@ -64,14 +64,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
-				Phase = mostAdvancedRound.State.Phase.ToString();
+				Phase = mostAdvancedRound.State.Phase;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
 			}
 			else
 			{
 				RoundId = -1;
-				Phase = CcjRoundPhase.InputRegistration.ToString();
+				Phase = CcjRoundPhase.InputRegistration;
 				PeersRegistered = 0;
 				PeersNeeded = 100;
 			}
@@ -79,6 +79,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
+				var increasePeersInAdvance = false;
+				if (RequiredBTC - AmountQueued > Money.Zero)
+				{
+					increasePeersInAdvance = true;
+				}
+
 				var selectedCoins = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 				foreach (var coin in selectedCoins)
@@ -87,6 +93,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
+
+				if (RequiredBTC - AmountQueued <= Money.Zero && increasePeersInAdvance && PeersRegistered < PeersNeeded) // The status response will come a few seconds later, but here we can already guess the peers are increased.
+				{
+					PeersRegistered++;
+				}
 			});
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
@@ -99,6 +110,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
+
+				if (RequiredBTC - AmountQueued > Money.Zero && PeersRegistered > 0) // The status response will come a few seconds later, but here we can already guess the peers are decreased.
+				{
+					PeersRegistered--;
+				}
 			});
 		}
 
@@ -119,7 +135,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
-				Phase = mostAdvancedRound.State.Phase.ToString();
+				Phase = mostAdvancedRound.State.Phase;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
 			}
@@ -165,7 +181,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _roundId, value); }
 		}
 
-		public string Phase
+		public CcjRoundPhase Phase
 		{
 			get { return _phase; }
 			set { this.RaiseAndSetIfChanged(ref _phase, value); }
