@@ -6,11 +6,14 @@ using Avalonia.Input.Platform;
 using Avalonia.Styling;
 using ReactiveUI;
 using System;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls
 {
 	public class ExtendedTextBox : TextBox, IStyleable
 	{
+		private MenuItem _pasteItem;
+
 		public ExtendedTextBox()
 		{
 			CopyCommand = ReactiveCommand.Create(() =>
@@ -21,6 +24,29 @@ namespace WalletWasabi.Gui.Controls
 			PasteCommand = ReactiveCommand.Create(() =>
 			{
 				PasteAsync();
+			});
+
+			this.GetObservable(IsReadOnlyProperty).Subscribe(ro =>
+			{
+				if (_pasteItem != null)
+				{
+					var items = ContextMenu.Items as Avalonia.Controls.Controls;
+
+					if (ro)
+					{
+						if (items.Contains(_pasteItem))
+						{
+							items.Remove(_pasteItem);
+						}
+					}
+					else
+					{
+						if (!items.Contains(_pasteItem))
+						{
+							items.Add(_pasteItem);
+						}
+					}
+				}
 			});
 		}
 
@@ -87,20 +113,16 @@ namespace WalletWasabi.Gui.Controls
 				DataContext = this,
 			};
 
-			if (IsReadOnly)
+			_pasteItem = new MenuItem { Header = "Paste", Command = PasteCommand };
+
+			ContextMenu.Items = new Avalonia.Controls.Controls
 			{
-				ContextMenu.Items = new Avalonia.Controls.Controls
-				{
-					new MenuItem { Header = "Copy", Command = CopyCommand }
-				};
-			}
-			else
+				new MenuItem { Header = "Copy", Command = CopyCommand }
+			};
+
+			if(!IsReadOnly)
 			{
-				ContextMenu.Items = new Avalonia.Controls.Controls
-				{
-					new MenuItem { Header = "Copy", Command = CopyCommand },
-					new MenuItem { Header = "Paste", Command = PasteCommand}
-				};
+				(ContextMenu.Items as Avalonia.Controls.Controls).Add(_pasteItem);
 			}
 		}
 	}
