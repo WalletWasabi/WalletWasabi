@@ -199,6 +199,8 @@ sudo netstat -plnt | fgrep 9050
 
 # Update
 
+Consider updating the versions in `WalletWasabi.Helpers.Constants`. If versions are updated, make sure Client Release is already available before updating the backend.
+
 ```sh
 sudo apt-get update
 cd ~/WalletWasabi
