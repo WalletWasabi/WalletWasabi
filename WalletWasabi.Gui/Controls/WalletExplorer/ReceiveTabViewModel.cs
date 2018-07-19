@@ -70,11 +70,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Label = string.Empty;
 			});
 
-			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
+			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address => 
 			{
-				if (address != null)
+				if (address != null) 
 				{
-					await Application.Current.Clipboard.SetTextAsync(address.Address);
+					address.CopyToClipboard();
 					ClipboardNotificationVisible = true;
 					ClipboardNotificationOpacity = 1;
 
@@ -140,7 +140,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get { return _clipboardNotificationVisible; }
 			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value); }
 		}
-
+		
 		public ReactiveCommand GenerateCommand { get; }
 	}
 }
