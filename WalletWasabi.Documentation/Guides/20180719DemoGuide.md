@@ -7,9 +7,9 @@
 ## Notes
 - Wasabi is in alpha stage. Beta version will be released in 11 days (August 1.)
 - The minimum denomination of the mix is 0.1 bitcoins, you may want prefund your wallet with a bit more than that to make sure to cover the fees. Currently the minimum is 0.10034 BTC, but to be sure you may want to prefund it with 0.11 BTC or something like that.
-- The minimum participant number of the mix is 100 users. I will cheat and lower this number for the shake of this test.
+- The minimum participant number of the mix is 100 users. I will cheat and lower this number for the sake of this test.
 - The wallet can only generate bech32 addresses. Thus if you are using a legacy wallet, it won't be able to send funds to that. If that is the case you may want to introduce a middle-wallet like [Electrum,](https://electrum.org/).
-- Please consider not trying this out on OSX. Today, our user interface is instable on OSX.
+- Please do not consider trying this out on OSX, as our user interface is unstable on OSX.
 
 ## Get The Requirements
 
