@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using Gma.QrCodeNet.Encoding;
+﻿using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using System;
 using System.Threading.Tasks;
@@ -61,11 +60,6 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get => _qrCode;
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
-		}
-
-		public void CopyToClipboard()
-		{
-			Application.Current.Clipboard.SetTextAsync(Address).GetAwaiter().GetResult();
 		}
 	}
 }
