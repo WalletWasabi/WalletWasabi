@@ -8,6 +8,7 @@ using System.Text;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -24,7 +25,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _peersNeeded;
 		private string _password;
 		private Money _amountQueued;
-		private string _warningMessage;
+		private string _warningMessageEnqueue;
+		private string _warningMessageDequeue;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
@@ -94,11 +96,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				catch (Exception ex)
 				{
-					WarningMessage = ex.ToTypeMessageString();
+					Logger.LogWarning<CoinJoinTabViewModel>(ex);
+					WarningMessageEnqueue = ex.ToTypeMessageString();
+					if (ex is AggregateException aggex)
+					{
+						foreach (var iex in aggex.InnerExceptions)
+						{
+							WarningMessageEnqueue += Environment.NewLine + iex.ToTypeMessageString();
+						}
+					}
 					return;
 				}
 
-				WarningMessage = string.Empty;
+				WarningMessageEnqueue = string.Empty;
 
 				foreach (var coin in selectedCoins)
 				{
@@ -120,7 +130,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					coin.IsSelected = false;
 				}
 
-				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
+				try
+				{
+					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
+				}
+				catch (Exception ex)
+				{
+					Logger.LogWarning<CoinJoinTabViewModel>(ex);
+					WarningMessageDequeue = ex.ToTypeMessageString();
+					if (ex is AggregateException aggex)
+					{
+						foreach (var iex in aggex.InnerExceptions)
+						{
+							WarningMessageDequeue += Environment.NewLine + iex.ToTypeMessageString();
+						}
+					}
+					return;
+				}
+
+				WarningMessageDequeue = string.Empty;
 
 				if (RequiredBTC - AmountQueued > Money.Zero && PeersRegistered > 0) // The status response will come a few seconds later, but here we can already guess the peers are decreased.
 				{
@@ -221,11 +249,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get { return _peersNeeded; }
 			set { this.RaiseAndSetIfChanged(ref _peersNeeded, value); }
 		}
-		public string WarningMessage
+
+		public string WarningMessageEnqueue
 		{
-			get { return _warningMessage; }
-			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
+			get { return _warningMessageEnqueue; }
+			set { this.RaiseAndSetIfChanged(ref _warningMessageEnqueue, value); }
 		}
+
+		public string WarningMessageDequeue
+		{
+			get { return _warningMessageDequeue; }
+			set { this.RaiseAndSetIfChanged(ref _warningMessageDequeue, value); }
+		}
+
 		public ReactiveCommand EnqueueCommand { get; }
 
 		public ReactiveCommand DequeueCommand { get; }
