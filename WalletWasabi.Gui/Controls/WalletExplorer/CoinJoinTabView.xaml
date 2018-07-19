@@ -28,45 +28,46 @@
 
     <controls:GroupBox Title="Status" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5" Grid.Row="1">
       <Grid Classes="content">
-        <StackPanel Orientation="Vertical">
-
-          <StackPanel Orientation="Horizontal" Gap="4">
-            <TextBlock Text="Minimum"></TextBlock>
-            <TextBlock Foreground="YellowGreen" Text="{Binding RequiredBTC, Converter={StaticResource MoneyStringConverter}}"></TextBlock>
-            <TextBlock Foreground="YellowGreen" Text="BTC"></TextBlock>
-            <TextBlock Text="is required to be queued for CoinJoin."></TextBlock>
+        <ScrollViewer>
+          <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal" Gap="4">
+              <TextBlock Text="Minimum"></TextBlock>
+              <TextBlock Foreground="YellowGreen" Text="{Binding RequiredBTC, Converter={StaticResource MoneyStringConverter}}"></TextBlock>
+              <TextBlock Foreground="YellowGreen" Text="BTC"></TextBlock>
+              <TextBlock Text="is required to be queued for CoinJoin."></TextBlock>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Gap="4" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
+              <TextBlock Text="You have queued"></TextBlock>
+              <TextBlock Foreground="YellowGreen" Text="{Binding AmountQueued, Converter={StaticResource MoneyStringConverter}}"></TextBlock>
+              <TextBlock Foreground="YellowGreen" Text="BTC"></TextBlock>
+              <TextBlock Text="for CoinJoin."></TextBlock>
+            </StackPanel>
+  
+            <StackPanel Orientation="Horizontal" Gap="4">
+              <TextBlock Text="Coordinator Fee:"></TextBlock>
+              <TextBlock Text="{Binding CoordinatorFeePercent}"></TextBlock>
+              <TextBlock Text="%"></TextBlock>
+            </StackPanel>
+  
+            <StackPanel Orientation="Horizontal" Gap="4">
+              <TextBlock Text="Round ID:"></TextBlock>
+              <TextBlock Text="{Binding RoundId}"></TextBlock>
+            </StackPanel>
+  
+            <StackPanel Orientation="Horizontal" Gap="4">
+              <TextBlock Text="Phase:"></TextBlock>
+              <TextBlock Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}"></TextBlock>
+            </StackPanel>
+  
+            <StackPanel Orientation="Horizontal" Gap="4">
+              <TextBlock Text="Number Of Registered Peers:"></TextBlock>
+              <TextBlock Foreground="YellowGreen" Text="{Binding PeersRegistered}"></TextBlock>
+              <TextBlock Text="/"></TextBlock>
+              <TextBlock Text="{Binding PeersNeeded}"></TextBlock>
+              <ProgressBar Minimum="0" Maximum="{Binding PeersNeeded}" Value="{Binding PeersRegistered}"></ProgressBar>
+            </StackPanel>
           </StackPanel>
-          <StackPanel Orientation="Horizontal" Gap="4" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
-            <TextBlock Text="You have queued"></TextBlock>
-            <TextBlock Foreground="YellowGreen" Text="{Binding AmountQueued, Converter={StaticResource MoneyStringConverter}}"></TextBlock>
-            <TextBlock Foreground="YellowGreen" Text="BTC"></TextBlock>
-            <TextBlock Text="for CoinJoin."></TextBlock>
-          </StackPanel>
-
-          <StackPanel Orientation="Horizontal" Gap="4">
-            <TextBlock Text="Coordinator Fee:"></TextBlock>
-            <TextBlock Text="{Binding CoordinatorFeePercent}"></TextBlock>
-            <TextBlock Text="%"></TextBlock>
-          </StackPanel>
-
-          <StackPanel Orientation="Horizontal" Gap="4">
-            <TextBlock Text="Round ID:"></TextBlock>
-            <TextBlock Text="{Binding RoundId}"></TextBlock>
-          </StackPanel>
-
-          <StackPanel Orientation="Horizontal" Gap="4">
-            <TextBlock Text="Phase:"></TextBlock>
-            <TextBlock Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}"></TextBlock>
-          </StackPanel>
-
-          <StackPanel Orientation="Horizontal" Gap="4">
-            <TextBlock Text="Number Of Registered Peers:"></TextBlock>
-            <TextBlock Foreground="YellowGreen" Text="{Binding PeersRegistered}"></TextBlock>
-            <TextBlock Text="/"></TextBlock>
-            <TextBlock Text="{Binding PeersNeeded}"></TextBlock>
-            <ProgressBar Minimum="0" Maximum="{Binding PeersNeeded}" Value="{Binding PeersRegistered}"></ProgressBar>
-          </StackPanel>
-        </StackPanel>
+        </ScrollViewer>
       </Grid>
     </controls:GroupBox>
 
