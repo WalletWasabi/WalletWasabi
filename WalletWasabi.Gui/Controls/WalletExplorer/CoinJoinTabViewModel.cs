@@ -90,6 +90,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				var selectedCoins = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
 
+				if (!selectedCoins.Any())
+				{
+					WarningMessageEnqueue = "No coins are selected to enqueue.";
+					return;
+				}
+
+				WarningMessageEnqueue = string.Empty;
+
 				try
 				{
 					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
