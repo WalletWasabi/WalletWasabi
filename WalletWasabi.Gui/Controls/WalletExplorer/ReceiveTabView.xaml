@@ -70,13 +70,7 @@
                     </Panel>
                   </Expander>
                   <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
-                    <TextBlock Text="{Binding Address}">
-                      <TextBlock.ContextMenu>
-                        <ContextMenu>
-                          <MenuItem Header="_Copy" Command="{Binding CopyToClipboard}" />
-                        </ContextMenu>
-                      </TextBlock.ContextMenu>
-                    </TextBlock>
+                    <TextBlock Text="{Binding Address}" />
                     <TextBlock Text="{Binding Label}" Grid.Column="1" />
                   </Grid>
                 </Grid>
