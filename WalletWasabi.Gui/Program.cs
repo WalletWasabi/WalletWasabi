@@ -37,10 +37,10 @@ namespace WalletWasabi.Gui
 
 						if (!File.Exists(Global.IndexFilePath)) // Load the index file from working folder if we have it.
 						{
-							var indexFileName = Path.GetFileName(Global.IndexFilePath);
-							if (File.Exists(indexFileName))
+							var cachedIndexFilePath = Path.Combine("Assets", Path.GetFileName(Global.IndexFilePath));
+							if (File.Exists(cachedIndexFilePath))
 							{
-								File.Copy(indexFileName, Global.IndexFilePath, overwrite: false);
+								File.Copy(cachedIndexFilePath, Global.IndexFilePath, overwrite: false);
 							}
 						}
 
