@@ -117,7 +117,7 @@ namespace WalletWasabi.Services
 			}
 
 			var walletName = "UnnamedWallet";
-			if (string.IsNullOrWhiteSpace(KeyManager.FilePath))
+			if (!string.IsNullOrWhiteSpace(KeyManager.FilePath))
 			{
 				walletName = Path.GetFileNameWithoutExtension(KeyManager.FilePath);
 			}
