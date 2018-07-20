@@ -202,6 +202,8 @@ namespace WalletWasabi.Models
 			return new TxoRef(TransactionId, Index);
 		}
 
+		public bool HasLabel() => !string.IsNullOrWhiteSpace(Label);
+
 		#region EqualityAndComparison
 
 		public override bool Equals(object obj) => obj is SmartCoin && this == (SmartCoin)obj;

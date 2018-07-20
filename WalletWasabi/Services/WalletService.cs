@@ -200,9 +200,9 @@ namespace WalletWasabi.Services
 				if (File.Exists(TransactionsFilePath))
 				{
 					string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
-					var mempool = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString);
+					var serializedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString);
 
-					foreach (var tx in mempool)
+					foreach (SmartTransaction tx in serializedTransactions.Where(x => !x.Confirmed))
 					{
 						try
 						{
@@ -412,7 +412,7 @@ namespace WalletWasabi.Services
 			if (tx.Height.Type == HeightType.Chain)
 			{
 				MemPool.TransactionHashes.TryRemove(tx.GetHash()); // If we have in mempool, remove.
-				SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x.GetHash() == tx.GetHash()); // If we have in cache, update height.
+				SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx); // If we have in cache, update height.
 				if (foundTx != default(SmartTransaction))
 				{
 					foundTx.SetHeight(tx.Height);
@@ -1036,7 +1036,7 @@ namespace WalletWasabi.Services
 
 					var directoryPath = Path.GetDirectoryName(Path.GetFullPath(TransactionsFilePath));
 					Directory.CreateDirectory(directoryPath);
-					string jsonString = JsonConvert.SerializeObject(TransactionCache.Where(x => x.Height == Height.MemPool), Formatting.Indented);
+					string jsonString = JsonConvert.SerializeObject(TransactionCache, Formatting.Indented);
 					File.WriteAllText(TransactionsFilePath,
 						jsonString,
 						Encoding.UTF8);

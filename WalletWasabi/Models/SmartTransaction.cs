@@ -1,6 +1,7 @@
 ﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Models
@@ -17,6 +18,9 @@ namespace WalletWasabi.Models
 		[JsonProperty]
 		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height Height { get; private set; }
+
+		[JsonProperty]
+		public string Label { get; set; }
 
 		public bool Confirmed => Height.Type == HeightType.Chain;
 
@@ -40,9 +44,10 @@ namespace WalletWasabi.Models
 		}
 
 		[JsonConstructor]
-		public SmartTransaction(Transaction transaction, Height height)
+		public SmartTransaction(Transaction transaction, Height height, string label = "")
 		{
 			Transaction = transaction;
+			Label = Guard.Correct(label);
 
 			SetHeight(height);
 		}
@@ -59,6 +64,8 @@ namespace WalletWasabi.Models
 				FirstSeenIfMemPoolTime = null;
 			}
 		}
+
+		public bool HasLabel() => !string.IsNullOrWhiteSpace(Label);
 
 		#endregion Constructors
 
