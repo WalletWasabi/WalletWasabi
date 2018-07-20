@@ -14,7 +14,16 @@
       <Grid Classes="content">
         <DockPanel LastChildFill="True">
           <StackPanel Gap="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Right">
-            <TextBlock Text="{Binding WarningMessageEnqueue}" Classes="warningMessage" />
+            <Grid Opacity="{Binding WarningMessageEnqueueOpacity}">
+              <Grid.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Grid.Opacity"
+                      Easing="CircularEaseIn"
+                      Duration="0:0:0.5" />
+                </Transitions>
+              </Grid.Transitions>
+              <TextBlock Text="{Binding WarningMessageEnqueue}" Classes="warningMessage" />
+            </Grid>
             <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
             <DockPanel LastChildFill="True" VerticalAlignment="Top">
               <Button Content="Enqueue" Command="{Binding EnqueueCommand}" DockPanel.Dock="Right" />
