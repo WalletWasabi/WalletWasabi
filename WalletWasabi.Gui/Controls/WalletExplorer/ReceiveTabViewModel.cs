@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					return;
 				}
 
-				HdPubKey newKey = Global.WalletService.GetReceiveKey(Label);
+				HdPubKey newKey = Global.WalletService.GetReceiveKey(Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
 				AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
 				if (found != default)

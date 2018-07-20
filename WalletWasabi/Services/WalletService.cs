@@ -242,7 +242,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public HdPubKey GetReceiveKey(string label)
+		public HdPubKey GetReceiveKey(string label, IEnumerable<HdPubKey> dontTouch = null)
 		{
 			label = Guard.Correct(label);
 
@@ -250,9 +250,17 @@ namespace WalletWasabi.Services
 			AssertCleanKeysIndexed(21, false);
 
 			IEnumerable<HdPubKey> keys = KeyManager.GetKeys(KeyState.Clean, isInternal: false);
+			if (dontTouch != null)
+			{
+				keys = keys.Except(dontTouch);
+				if (!keys.Any())
+				{
+					throw new InvalidOperationException($"{nameof(dontTouch)} covers all the possible keys.");
+				}
+			}
 
 			var foundLabelless = keys.FirstOrDefault(x => !x.HasLabel()); // return the first labelless
-			HdPubKey ret = foundLabelless ?? KeyManager.GetKeys(KeyState.Clean, isInternal: false).First(); // return the first, because that's the oldest
+			HdPubKey ret = foundLabelless ?? keys.RandomElement(); // return the first, because that's the oldest
 
 			ret.SetLabel(label, KeyManager);
 
