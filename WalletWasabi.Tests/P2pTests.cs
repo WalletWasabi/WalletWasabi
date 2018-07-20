@@ -56,7 +56,7 @@ namespace WalletWasabi.Tests
 
 			var addressManagerFolderPath = Path.Combine(SharedFixture.DataDir, "AddressManager");
 			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, $"Blocks{network}");
+			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, "Blocks", network.ToString());
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager addressManager = null;
 			try
@@ -95,7 +95,7 @@ namespace WalletWasabi.Tests
 			   new CcjClient(network, new BlindingRsaKey().PubKey, keyManager, new Uri("http://localhost:12345")),
 			   memPoolService,
 			   nodes,
-			   blocksFolderPath);
+			   SharedFixture.DataDir);
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try

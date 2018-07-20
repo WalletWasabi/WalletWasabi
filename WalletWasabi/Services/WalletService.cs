@@ -65,7 +65,7 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, CcjClient chaumianClient, MemPoolService memPool, NodesGroup nodes, string blocksFolderPath)
+		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, CcjClient chaumianClient, MemPoolService memPool, NodesGroup nodes, string workFolderDir)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
@@ -81,7 +81,7 @@ namespace WalletWasabi.Services
 			Coins = new NotifyingConcurrentHashSet<SmartCoin>();
 			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
 
-			BlocksFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(blocksFolderPath), blocksFolderPath, trim: true);
+			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
 			BlockFolderLock = new AsyncLock();
 			BlockDownloadLock = new AsyncLock();
 

@@ -35,7 +35,6 @@ namespace WalletWasabi.Gui
 		}
 
 		public static string WalletsDir => Path.Combine(DataDir, "Wallets");
-		public static string BlocksDir => Path.Combine(DataDir, "Blocks", Config.Network.ToString());
 		public static Network Network => Config.Network;
 
 		public static BlindingRsaPubKey BlindingPubKey => Config.GetBlindingRsaPubKey();
@@ -143,7 +142,7 @@ namespace WalletWasabi.Gui
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
 			ChaumianClient = new CcjClient(Network, BlindingPubKey, keyManager, Config.GetCurrentBackendUri());
-			WalletService = new WalletService(keyManager, IndexDownloader, ChaumianClient, MemPoolService, Nodes, BlocksDir);
+			WalletService = new WalletService(keyManager, IndexDownloader, ChaumianClient, MemPoolService, Nodes, DataDir);
 
 			ChaumianClient.Start();
 			Logger.LogInfo("Start Chaumian CoinJoin service...");

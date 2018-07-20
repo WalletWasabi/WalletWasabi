@@ -453,8 +453,8 @@ namespace WalletWasabi.Tests
 			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 5. Create wallet service.
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Blocks");
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
+			var workDir = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync));
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -687,8 +687,8 @@ namespace WalletWasabi.Tests
 			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
+			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -1129,8 +1129,8 @@ namespace WalletWasabi.Tests
 			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
+			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
@@ -1299,8 +1299,8 @@ namespace WalletWasabi.Tests
 			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
+			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1472,8 +1472,8 @@ namespace WalletWasabi.Tests
 			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Blocks");
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
+			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -2725,12 +2725,12 @@ namespace WalletWasabi.Tests
 			var chaumianClient2 = new CcjClient(network, coordinator.RsaKey.PubKey, keyManager2, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Blocks");
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, blocksFolderPath);
+			var workDir = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync));
+			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
-			var blocksFolderPath2 = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Blocks2");
-			var wallet2 = new WalletService(keyManager2, indexDownloader2, chaumianClient2, memPoolService2, nodes2, blocksFolderPath2);
+			var workDir2 = Path.Combine(SharedFixture.DataDir, $"{nameof(CoinJoinMultipleRoundTestsAsync)}2");
+			var wallet2 = new WalletService(keyManager2, indexDownloader2, chaumianClient2, memPoolService2, nodes2, workDir2);
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("fundZeroLink");
