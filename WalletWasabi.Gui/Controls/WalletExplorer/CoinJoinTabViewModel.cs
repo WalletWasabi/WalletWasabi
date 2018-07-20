@@ -27,6 +27,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _amountQueued;
 		private string _warningMessageEnqueue;
 		private string _warningMessageDequeue;
+		private int _maxInputsPerUser = 7;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
@@ -270,6 +271,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _warningMessageDequeue, value); }
 		}
 
+		public int MaxInputsPerUser => _maxInputsPerUser;
 		public ReactiveCommand EnqueueCommand { get; }
 
 		public ReactiveCommand DequeueCommand { get; }
