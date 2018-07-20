@@ -97,6 +97,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					return;
 				}
 
+				if (selectedCoins.Count > 7 || (selectedCoins.Count + QueuedCoinsList.Coins.Count > 7))
+				{
+					WarningMessageEnqueue = "Maximum 7 inputs can be registered.";
+					return;
+				}
+
 				WarningMessageEnqueue = string.Empty;
 
 				try
