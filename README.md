@@ -33,11 +33,10 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 Clone & Restore & Build
 
 ```sh
-git clone https://github.com/zkSNACKs/WalletWasabi.git
+git clone https://github.com/zkSNACKs/WalletWasabi --recursive
 cd WalletWasabi
-git submodule update --init --recursive
 cd WalletWasabi.Gui
-dotnet restore && dotnet build
+dotnet build
 ```
 
 ## Run Wasabi
