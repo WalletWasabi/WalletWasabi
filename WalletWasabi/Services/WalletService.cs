@@ -35,7 +35,8 @@ namespace WalletWasabi.Services
 
 		public NodesGroup Nodes { get; }
 		public string BlocksFolderPath { get; }
-		public string TmpMempoolDumpFilePath { get; }
+		public string TransactionsFolderPath { get; }
+		public string TransactionsFilePath { get; }
 
 		private AsyncLock HandleFiltersLock { get; }
 		private AsyncLock BlockDownloadLock { get; }
@@ -82,6 +83,7 @@ namespace WalletWasabi.Services
 			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
+			TransactionsFolderPath = Path.Combine(workFolderDir, "Transactions", Network.ToString());
 			BlockFolderLock = new AsyncLock();
 			BlockDownloadLock = new AsyncLock();
 
@@ -101,8 +103,25 @@ namespace WalletWasabi.Services
 			{
 				Directory.CreateDirectory(BlocksFolderPath);
 			}
+			if (Directory.Exists(TransactionsFolderPath))
+			{
+				if (IndexDownloader.Network == Network.RegTest)
+				{
+					Directory.Delete(TransactionsFolderPath, true);
+					Directory.CreateDirectory(TransactionsFolderPath);
+				}
+			}
+			else
+			{
+				Directory.CreateDirectory(TransactionsFolderPath);
+			}
 
-			TmpMempoolDumpFilePath = Path.Combine(BlocksFolderPath, $"TmpMempoolDump{Network}.json");
+			var walletName = "UnnamedWallet";
+			if (string.IsNullOrWhiteSpace(KeyManager.FilePath))
+			{
+				walletName = Path.GetFileNameWithoutExtension(KeyManager.FilePath);
+			}
+			TransactionsFilePath = Path.Combine(TransactionsFolderPath, $"{walletName}Transactions.json");
 
 			IndexDownloader.NewFilter += IndexDownloader_NewFilterAsync;
 			IndexDownloader.Reorged += IndexDownloader_ReorgedAsync;
@@ -178,9 +197,9 @@ namespace WalletWasabi.Services
 				}
 
 				// Load in dummy mempool
-				if (File.Exists(TmpMempoolDumpFilePath))
+				if (File.Exists(TransactionsFilePath))
 				{
-					string jsonString = File.ReadAllText(TmpMempoolDumpFilePath, Encoding.UTF8);
+					string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
 					var mempool = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString);
 
 					foreach (var tx in mempool)
@@ -198,7 +217,7 @@ namespace WalletWasabi.Services
 					}
 					try
 					{
-						File.Delete(TmpMempoolDumpFilePath);
+						File.Delete(TransactionsFilePath);
 					}
 					catch (Exception ex)
 					{
@@ -1015,10 +1034,10 @@ namespace WalletWasabi.Services
 					IndexDownloader.Reorged -= IndexDownloader_ReorgedAsync;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
 
-					var directoryPath = Path.GetDirectoryName(Path.GetFullPath(TmpMempoolDumpFilePath));
+					var directoryPath = Path.GetDirectoryName(Path.GetFullPath(TransactionsFilePath));
 					Directory.CreateDirectory(directoryPath);
 					string jsonString = JsonConvert.SerializeObject(TransactionCache.Where(x => x.Height == Height.MemPool), Formatting.Indented);
-					File.WriteAllText(TmpMempoolDumpFilePath,
+					File.WriteAllText(TransactionsFilePath,
 						jsonString,
 						Encoding.UTF8);
 				}

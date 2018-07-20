@@ -36,6 +36,7 @@ namespace WalletWasabi.Gui
 
 		public static string WalletsDir => Path.Combine(DataDir, "Wallets");
 		public static Network Network => Config.Network;
+		public static string IndexFilePath => Path.Combine(DataDir, $"Index{Network}.dat");
 
 		public static BlindingRsaPubKey BlindingPubKey => Config.GetBlindingRsaPubKey();
 
@@ -51,12 +52,15 @@ namespace WalletWasabi.Gui
 
 		public static Config Config { get; private set; }
 
-		public static void Initialize(Config config)
+		public static void InitializeConfig(Config config)
+		{
+			Config = Guard.NotNull(nameof(config), config);
+		}
+
+		public static void InitializeNoWallet()
 		{
 			WalletService = null;
 			ChaumianClient = null;
-
-			Config = Guard.NotNull(nameof(config), config);
 
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
@@ -119,8 +123,7 @@ namespace WalletWasabi.Gui
 				RegTestMemPoolServingNode = null;
 			}
 
-			var indexFilePath = Path.Combine(DataDir, $"Index{Network}.dat");
-			IndexDownloader = new IndexDownloader(Network, indexFilePath, Config.GetCurrentBackendUri());
+			IndexDownloader = new IndexDownloader(Network, IndexFilePath, Config.GetCurrentBackendUri());
 
 			UpdateChecker = new UpdateChecker(IndexDownloader.WasabiClient);
 

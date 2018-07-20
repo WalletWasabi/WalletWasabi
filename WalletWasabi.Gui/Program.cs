@@ -33,7 +33,18 @@ namespace WalletWasabi.Gui
 						await config.LoadOrCreateDefaultFileAsync();
 						Logger.LogInfo<Config>("Config is successfully initialized.");
 
-						Global.Initialize(config);
+						Global.InitializeConfig(config);
+
+						if (!File.Exists(Global.IndexFilePath)) // Load the index file from working folder if we have it.
+						{
+							var indexFileName = Path.GetFileName(Global.IndexFilePath);
+							if (File.Exists(indexFileName))
+							{
+								File.Copy(indexFileName, Global.IndexFilePath, overwrite: false);
+							}
+						}
+
+						Global.InitializeNoWallet();
 						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader, Global.UpdateChecker);
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
