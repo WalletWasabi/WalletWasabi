@@ -136,7 +136,7 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
 			}
 
-			IndexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(21));
+			IndexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(2.5));
 			Logger.LogInfo("Start synchronizing filters...");
 		}
 
