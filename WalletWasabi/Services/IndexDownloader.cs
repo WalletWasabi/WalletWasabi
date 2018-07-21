@@ -197,6 +197,7 @@ namespace WalletWasabi.Services
 				{
 					while (IsRunning)
 					{
+						var delayNextRequest = false;
 						try
 						{
 							// If stop was requested return.
@@ -261,6 +262,11 @@ namespace WalletWasabi.Services
 								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {startingFilter.BlockHeight + 1} to {BestKnownFilter.BlockHeight}.");
 							}
 
+							if (BestHeight == BestKnownFilter.BlockHeight) // if we're synced
+							{
+								delayNextRequest = true;
+							}
+
 							continue;
 						}
 						catch (TaskCanceledException ex)
@@ -298,7 +304,7 @@ namespace WalletWasabi.Services
 						}
 						finally
 						{
-							if (IsRunning)
+							if (IsRunning && delayNextRequest)
 							{
 								try
 								{
