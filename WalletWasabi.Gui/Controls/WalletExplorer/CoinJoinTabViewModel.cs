@@ -8,6 +8,7 @@ using System.Text;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
 
@@ -168,6 +169,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			AmountQueued = QueuedCoinsList.Coins.Sum(x => x.Amount);
+
+			MainWindowViewModel.Instance.CanClose = !QueuedCoinsList.Coins.Any();
 		}
 
 		private void ChaumianClient_StateUpdated(object sender, EventArgs e)
