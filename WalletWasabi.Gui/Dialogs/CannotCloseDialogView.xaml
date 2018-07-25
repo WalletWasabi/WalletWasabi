@@ -1,8 +1,9 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
-    <controls:GroupBox Title="Unable to Close Application" Background="{DynamicResource ThemeAccentBrush}" TextBlock.FontSize="30" BorderThickness="0">
-        <Grid Classes="content">
-            <TextBlock Text="Unable to close application at this time." />
-        </Grid>
-    </controls:GroupBox>
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui" Design.Width="800" Design.Height="400">
+  <controls:GroupBox Title="Unable to Close Application" Background="{DynamicResource ThemeControlBackgroundBrush}" TextBlock.FontSize="30" BorderThickness="0" Margin="0 80">
+    <Grid Classes="content">
+      <Panel Margin="10">
+        <TextBlock FontSize="15"  Text="It is not possible to close the application when coins are queued for CoinJoin. Please dequeue your coins and try again." TextWrapping="Wrap" />
+      </Panel>
+    </Grid>
+  </controls:GroupBox>
 </UserControl>
