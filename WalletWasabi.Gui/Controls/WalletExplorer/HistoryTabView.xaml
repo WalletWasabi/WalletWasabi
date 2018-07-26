@@ -31,7 +31,7 @@
             <TextBlock Text="" />
             <TextBlock Text="Date" Grid.Column="1" />
             <TextBlock Text="Amount (BTC)" Grid.Column="2" />
-            <TextBlock Text="Labels" Grid.Column="3"  Margin="20 0 0 0" />
+            <TextBlock Text="Transaction ID" Grid.Column="3"  Margin="20 0 0 0" />
           </Grid>
           <ListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
             <ListBox.ItemTemplate>
@@ -49,7 +49,7 @@
                   </Path>
                   <TextBlock Text="{Binding DateTime}" Grid.Column="1" />
                   <TextBlock Text="{Binding AmountBtc}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
-                  <TextBlock Text="{Binding Label}" Grid.Column="3" Margin="20 0 0 0" />
+                  <TextBlock Text="{Binding TransactionId}" Grid.Column="3" Margin="20 0 0 0" />
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>
