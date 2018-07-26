@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Behaviors
 			set => SetValue(CanCloseProperty, value);
 		}
 
+		private static bool _closing = false;
 		protected override void OnAttached()
 		{
 			base.OnAttached();
@@ -36,12 +37,14 @@ namespace WalletWasabi.Gui.Behaviors
 			{
 				Observable.FromEventPattern<CancelEventArgs>(AssociatedObject, nameof(AssociatedObject.Closing)).Subscribe(ev =>
 				{
+					if(_closing) return;
 					if(!CanClose)
 					{
 						ev.EventArgs.Cancel = true;
 
 						MainWindowViewModel.Instance.ShowDialogAsync(new CannotCloseDialogViewModel()).GetAwaiter();
 					}
+					_closing = true;
 				})
 			};
 		}
