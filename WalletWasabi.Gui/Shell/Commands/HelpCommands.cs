@@ -68,6 +68,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 					IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel());
 				}));
 
+#if DEBUG
 			DevToolsCommand = new CommandDefinition(
 				"Dev Tools",
 				commandIconService.GetCompletionKindImage("DevTools"),
@@ -88,6 +89,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 					devToolsWindow.Show();
 				}));
+#endif
 		}
 
 		private void OnGenerateWallet()
@@ -112,7 +114,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ExportCommandDefinition("Help.LegalIssues")]
 		public CommandDefinition LegalIssuesCommand { get; }
 
+#if DEBUG
 		[ExportCommandDefinition("Help.DevTools")]
 		public CommandDefinition DevToolsCommand { get; }
+#endif
 	}
 }

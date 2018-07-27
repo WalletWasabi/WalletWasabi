@@ -63,9 +63,11 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultGroup("Legal")]
 		public IMenuItem LegalIssues => _menuItemFactory.CreateCommandMenuItem("Help.LegalIssues");
 
+#if DEBUG
 		[ExportMainMenuItem("Help", "Dev Tools")]
 		[DefaultOrder(300)]
 		[DefaultGroup("About")]
 		public IMenuItem DevTools => _menuItemFactory.CreateCommandMenuItem("Help.DevTools");
+#endif
 	}
 }
