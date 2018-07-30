@@ -18,6 +18,10 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 [9]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi/badge
 [10]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi
 
+# How To Run?
+
+Note, we have OSX bugs in our GUI library, which we are currently fixing. You may follow our progress here: https://github.com/AvaloniaUI/Avalonia/pull/1789
+
 ## Get The Requirements
 
 1. Get Git: https://git-scm.com/downloads
