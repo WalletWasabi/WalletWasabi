@@ -17,12 +17,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 	{
 		public static readonly AsyncLock Lock = new AsyncLock();
 
-		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.16.1")
+		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.16.2")
 		{
 			using (await Lock.LockAsync())
 			{
 				var directory = Path.Combine(SharedFixture.DataDir, caller);
-				version = version ?? "0.16.1";
+				version = version ?? "0.16.2";
 				var path = await EnsureDownloadedAsync(version);
 				try
 				{
