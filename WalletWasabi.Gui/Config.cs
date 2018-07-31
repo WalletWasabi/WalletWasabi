@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
@@ -42,6 +43,12 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "RegTestBlindingRsaPubKey")]
 		public string RegTestBlindingRsaPubKey { get; private set; }
 
+		[JsonProperty(PropertyName = "TorSocks5IPAddress")]
+		public string TorSocks5IPAddress { get; private set; }
+
+		[JsonProperty(PropertyName = "TorSocks5Port")]
+		public string TorSocks5Port { get; private set; }
+
 		private Uri _backendUri;
 
 		public Uri GetCurrentBackendUri()
@@ -62,6 +69,18 @@ namespace WalletWasabi.Gui
 			}
 
 			return _backendUri;
+		}
+
+		private IPEndPoint _torIpEndPoint;
+		public IPEndPoint GetTorEndPoint() 
+		{
+			if (_torIpEndPoint != null) return _torIpEndPoint;
+			if (TorSocks5Port == null && TorSocks5IPAddress == null) return null;
+
+			var ipAddress = IPAddress.Parse(TorSocks5IPAddress ?? "127.0.0.1");
+			var port = int.Parse(TorSocks5Port ?? "9050");
+
+			return _torIpEndPoint = new IPEndPoint(ipAddress, port);
 		}
 
 		private BlindingRsaPubKey _blindingRsaPubKey;
@@ -123,6 +142,22 @@ namespace WalletWasabi.Gui
 			Encoding.UTF8);
 		}
 
+		private void OverwriteWith(Config config) 
+		{
+			Network = config.Network ?? Network;
+
+			MainNetBackendUri = config.MainNetBackendUri ?? MainNetBackendUri;
+			TestNetBackendUri = config.TestNetBackendUri ?? TestNetBackendUri;
+			RegTestBackendUri = config.RegTestBackendUri ?? RegTestBackendUri;
+
+			MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
+			TestNetBlindingRsaPubKey = config.TestNetBlindingRsaPubKey ?? TestNetBlindingRsaPubKey;
+			RegTestBlindingRsaPubKey = config.RegTestBlindingRsaPubKey ?? RegTestBlindingRsaPubKey;
+
+			TorSocks5IPAddress = config.TorSocks5IPAddress ?? TorSocks5IPAddress;
+			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
+		}
+
 		/// <inheritdoc />
 		public async Task LoadOrCreateDefaultFileAsync()
 		{
@@ -145,22 +180,12 @@ namespace WalletWasabi.Gui
 			else
 			{
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				var config = JsonConvert.DeserializeObject<Config>(jsonString);
-
-				Network = config.Network ?? Network;
-
-				MainNetBackendUri = config.MainNetBackendUri ?? MainNetBackendUri;
-				TestNetBackendUri = config.TestNetBackendUri ?? TestNetBackendUri;
-				RegTestBackendUri = config.RegTestBackendUri ?? RegTestBackendUri;
-
-				MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
-				TestNetBlindingRsaPubKey = config.TestNetBlindingRsaPubKey ?? TestNetBlindingRsaPubKey;
-				RegTestBlindingRsaPubKey = config.RegTestBlindingRsaPubKey ?? RegTestBlindingRsaPubKey;
+				OverwriteWith(JsonConvert.DeserializeObject<Config>(jsonString));
 			}
 
 			_backendUri = GetCurrentBackendUri();
 			_blindingRsaPubKey = GetBlindingRsaPubKey();
-
+			
 			await ToFileAsync();
 		}
 
