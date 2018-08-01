@@ -5,7 +5,9 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
@@ -28,6 +30,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _amountQueued;
 		private string _warningMessageEnqueue;
 		private string _warningMessageDequeue;
+		private int _maxInputsPerUser = 7;
+		private double _warningMessageEnqueueOpacity = 1;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
@@ -94,6 +98,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (!selectedCoins.Any())
 				{
 					WarningMessageEnqueue = "No coins are selected to enqueue.";
+					return;
+				}
+
+				if (selectedCoins.Count > 7 || (selectedCoins.Count + QueuedCoinsList.Coins.Count > 7))
+				{
+					Dispatcher.UIThread.Post(async () =>
+					{
+						WarningMessageEnqueue = "Maximum 7 inputs can be registered.";
+						await Task.Delay(1000);
+						WarningMessageEnqueueOpacity = 0;
+
+						WarningMessageEnqueue = string.Empty;
+						WarningMessageEnqueueOpacity = 1;
+					});
 					return;
 				}
 
@@ -273,6 +291,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _warningMessageDequeue, value); }
 		}
 
+		public int MaxInputsPerUser => _maxInputsPerUser;
+
+		public double WarningMessageEnqueueOpacity
+		{
+			get { return _warningMessageEnqueueOpacity; }
+			set { this.RaiseAndSetIfChanged(ref _warningMessageEnqueueOpacity, value); }
+		}
 		public ReactiveCommand EnqueueCommand { get; }
 
 		public ReactiveCommand DequeueCommand { get; }
