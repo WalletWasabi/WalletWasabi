@@ -1,3 +1,5 @@
+### [GET LATEST VERSION HERE](https://github.com/zkSNACKs/WalletWasabi/releases)
+
 ![](https://i.imgur.com/4GO7nnY.png)
 
 Wasabi Wallet, formerly known as HiddenWallet is a [ZeroLink](https://github.com/nopara73/ZeroLink) compliant Bitcoin wallet. We are dedicated to restore Bitcoin's fungibility and provide the highest possible privacy for our users.  
@@ -41,9 +43,6 @@ git clone https://github.com/zkSNACKs/WalletWasabi.git --recursive
 cd WalletWasabi/WalletWasabi.Gui
 dotnet build
 ```
-
-## Run Wasabi
-
 1. Run Tor:  
   [Windows] Run `tor.exe`.  
   [Linux&OSX] Type `tor` in terminal.  
