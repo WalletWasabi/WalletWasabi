@@ -18,6 +18,8 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 [9]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi/badge
 [10]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi
 
+# [Get The Latest Stable Release](https://github.com/zkSNACKs/WalletWasabi/releases)
+
 # How To Run?
 
 Note, we have OSX bugs in our GUI library, which we are currently fixing. You may follow our progress here: https://github.com/AvaloniaUI/Avalonia/pull/1789
@@ -41,9 +43,6 @@ git clone https://github.com/zkSNACKs/WalletWasabi.git --recursive
 cd WalletWasabi/WalletWasabi.Gui
 dotnet build
 ```
-
-## Run Wasabi
-
 1. Run Tor:  
   [Windows] Run `tor.exe`.  
   [Linux&OSX] Type `tor` in terminal.  
