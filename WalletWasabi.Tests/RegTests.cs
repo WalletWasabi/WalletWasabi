@@ -468,7 +468,7 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(); // Start chaumian coinjoin client.
+				chaumianClient.Start(0); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -706,7 +706,7 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(); // Start chaumian coinjoin client.
+				chaumianClient.Start(0); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -1200,7 +1200,7 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(); // Start chaumian coinjoin client.
+				chaumianClient.Start(0); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -1321,7 +1321,7 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(); // Start chaumian coinjoin client.
+				chaumianClient.Start(0); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -1486,7 +1486,7 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(); // Start chaumian coinjoin client.
+				chaumianClient.Start(0); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -2474,37 +2474,45 @@ namespace WalletWasabi.Tests
 			var key1 = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
 			var key2 = keyManager.GenerateNewKey("bar", KeyState.Clean, false);
 			var key3 = keyManager.GenerateNewKey("baz", KeyState.Clean, false);
+			var key4 = keyManager.GenerateNewKey("qux", KeyState.Clean, false);
 			var bech1 = key1.GetP2wpkhAddress(network);
 			var bech2 = key2.GetP2wpkhAddress(network);
 			var bech3 = key3.GetP2wpkhAddress(network);
+			var bech4 = key4.GetP2wpkhAddress(network);
 			var amount1 = Money.Coins(0.03m);
 			var amount2 = Money.Coins(0.08m);
 			var amount3 = Money.Coins(0.3m);
+			var amount4 = Money.Coins(0.4m);
 			var txid1 = await rpc.SendToAddressAsync(bech1, amount1, replaceable: false);
 			var txid2 = await rpc.SendToAddressAsync(bech2, amount2, replaceable: false);
 			var txid3 = await rpc.SendToAddressAsync(bech3, amount3, replaceable: false);
+			var txid4 = await rpc.SendToAddressAsync(bech4, amount4, replaceable: false);
 			key1.SetKeyState(KeyState.Used);
 			key2.SetKeyState(KeyState.Used);
 			key3.SetKeyState(KeyState.Used);
+			key4.SetKeyState(KeyState.Used);
 			var tx1 = await rpc.GetRawTransactionAsync(txid1);
 			var tx2 = await rpc.GetRawTransactionAsync(txid2);
 			var tx3 = await rpc.GetRawTransactionAsync(txid3);
+			var tx4 = await rpc.GetRawTransactionAsync(txid4);
 			await rpc.GenerateAsync(1);
 			var height = await rpc.GetBlockCountAsync();
 			var bech1Coin = tx1.Outputs.GetCoins(bech1.ScriptPubKey).Single();
 			var bech2Coin = tx2.Outputs.GetCoins(bech2.ScriptPubKey).Single();
 			var bech3Coin = tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
+			var bech4Coin = tx4.Outputs.GetCoins(bech4.ScriptPubKey).Single();
 
 			var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx1.GetMixin(bech1Coin.Outpoint.N));
 			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx2.GetMixin(bech2Coin.Outpoint.N));
 			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(bech3Coin.Outpoint.N));
+			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx4.GetMixin(bech4Coin.Outpoint.N));
 
 			var chaumianClient1 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			var chaumianClient2 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
-				chaumianClient1.Start();
-				chaumianClient2.Start();
+				chaumianClient1.Start(0);
+				chaumianClient2.Start(0);
 
 				smartCoin1.CoinJoinInProcess = true;
 				Assert.True(!(await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any());
@@ -2555,6 +2563,16 @@ namespace WalletWasabi.Tests
 				smartCoin1.SpenderTransactionId = cj;
 				smartCoin2.SpenderTransactionId = cj;
 				smartCoin3.SpenderTransactionId = cj;
+
+				// Make sure if times out, it  tries again.
+				connectionConfirmationTimeout = 1;
+				roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
+				coordinator.UpdateRoundConfig(roundConfig);
+				coordinator.FailAllRoundsInInputRegistration();
+				await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin4);
+				Assert.NotEmpty(chaumianClient1.State.GetAllCoins());
+				await Task.Delay(10000);
+				//Assert.Empty(chaumianClient1.State.GetAllCoins());
 			}
 			finally
 			{
@@ -2617,8 +2635,8 @@ namespace WalletWasabi.Tests
 			var chaumianClient2 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
-				chaumianClient1.Start();
-				chaumianClient2.Start();
+				chaumianClient1.Start(0);
+				chaumianClient2.Start(0);
 
 				var customChange1 = new Key().PubKey.GetAddress(network);
 				var customActive1 = new Key().PubKey.GetAddress(network);
@@ -2751,11 +2769,11 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(); // Start chaumian coinjoin client.
+				chaumianClient.Start(0); // Start chaumian coinjoin client.
 				nodes2.Connect(); // Start connection service.
 				node2.VersionHandshake(); // Start mempool service.
 				indexDownloader2.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient2.Start(); // Start chaumian coinjoin client.
+				chaumianClient2.Start(0); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();

@@ -72,7 +72,7 @@ namespace WalletWasabi.Services
 			CustomActiveAddressesLock = new object();
 		}
 
-		public void Start()
+		public void Start(int maxDelayReplySeconds)
 		{
 			Interlocked.Exchange(ref _running, 1);
 
@@ -90,7 +90,7 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					await ProcessStatusAsync();
+					await ProcessStatusAsync(maxDelayReplySeconds);
 
 					Logger.LogInfo<CcjClient>("CcjClient is successfully initialized.");
 
@@ -125,7 +125,7 @@ namespace WalletWasabi.Services
 							}
 
 							await Task.Delay(TimeSpan.FromSeconds(delay), Cancel.Token);
-							await ProcessStatusAsync();
+							await ProcessStatusAsync(maxDelayReplySeconds);
 						}
 						catch (TaskCanceledException ex)
 						{
@@ -147,7 +147,7 @@ namespace WalletWasabi.Services
 			});
 		}
 
-		private async Task ProcessStatusAsync()
+		private async Task ProcessStatusAsync(int maxDelayReplySeconds)
 		{
 			try
 			{
@@ -160,7 +160,14 @@ namespace WalletWasabi.Services
 					states = await SatoshiClient.GetAllRoundStatesAsync();
 					State.UpdateRoundsByStates(states.ToArray());
 					StateUpdated?.Invoke(this, null);
-					delay = new Random().Next(0, 7); // delay the response to defend timing attack privacy
+					if (maxDelayReplySeconds <= 0)
+					{
+						delay = 0;
+					}
+					else
+					{
+						delay = new Random().Next(0, maxDelayReplySeconds); // delay the response to defend timing attack privacy
+					}
 				}
 
 				await Task.Delay(TimeSpan.FromSeconds(delay), Cancel.Token);
@@ -311,7 +318,7 @@ namespace WalletWasabi.Services
 		private static async Task ObtainRoundHashAsync(CcjClientRound ongoingRound)
 		{
 			string roundHash = await ongoingRound.AliceClient.PostConfirmationAsync();
-			ongoingRound.RoundHash = roundHash ?? throw new NotSupportedException("Coordinator didn't gave us the expected roundHash, even though it's in ConnectionConfirmation phase.");
+			ongoingRound.RoundHash = roundHash ?? throw new NotSupportedException($"Coordinator didn't gave us the expected {nameof(roundHash)}, even though it's in ConnectionConfirmation phase.");
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
