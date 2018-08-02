@@ -77,7 +77,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			foreach (int target in confirmationTargetsInts)
 			{
-				// 1. Use the sanity check that under 5 satoshi per bytes should not be displayed.
+				// 1. Use the sanity check that under 2 satoshi per bytes should not be displayed.
 				// 2. Use the RPCResponse.Blocks output to avoid redundant RPC queries.
 				// 3. Use caching.
 				var conservativeResponse = await GetEstimateSmartFeeAsync(target, EstimateSmartFeeMode.Conservative);
@@ -85,9 +85,8 @@ namespace WalletWasabi.Backend.Controllers
 				var conservativeFee = conservativeResponse.FeeRate.FeePerK.Satoshi / 1000;
 				var economicalFee = economicalResponse.FeeRate.FeePerK.Satoshi / 1000;
 
-				// Sanity check, some miners don't mine transactions under 5 satoshi/bytes.
-				conservativeFee = Math.Max(conservativeFee, 5);
-				economicalFee = Math.Max(economicalFee, 5);
+				conservativeFee = Math.Max(conservativeFee, 2);
+				economicalFee = Math.Max(economicalFee, 2);
 
 				feeEstimations.Add(target, new FeeEstimationPair() { Conservative = conservativeFee, Economical = economicalFee });
 			}
