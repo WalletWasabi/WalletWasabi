@@ -72,7 +72,7 @@ namespace WalletWasabi.Services
 			CustomActiveAddressesLock = new object();
 		}
 
-		public void Start(int maxDelayReplySeconds)
+		public void Start(int minDelayReplySeconds, int maxDelayReplySeconds)
 		{
 			Interlocked.Exchange(ref _running, 1);
 
@@ -90,7 +90,7 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					await ProcessStatusAsync(maxDelayReplySeconds);
+					await ProcessStatusAsync(minDelayReplySeconds, maxDelayReplySeconds);
 
 					Logger.LogInfo<CcjClient>("CcjClient is successfully initialized.");
 
@@ -125,7 +125,7 @@ namespace WalletWasabi.Services
 							}
 
 							await Task.Delay(TimeSpan.FromSeconds(delay), Cancel.Token);
-							await ProcessStatusAsync(maxDelayReplySeconds);
+							await ProcessStatusAsync(minDelayReplySeconds, maxDelayReplySeconds);
 						}
 						catch (TaskCanceledException ex)
 						{
@@ -147,7 +147,7 @@ namespace WalletWasabi.Services
 			});
 		}
 
-		private async Task ProcessStatusAsync(int maxDelayReplySeconds)
+		private async Task ProcessStatusAsync(int minDelayReplySeconds, int maxDelayReplySeconds)
 		{
 			try
 			{
@@ -160,13 +160,17 @@ namespace WalletWasabi.Services
 					states = await SatoshiClient.GetAllRoundStatesAsync();
 					State.UpdateRoundsByStates(states.ToArray());
 					StateUpdated?.Invoke(this, null);
-					if (maxDelayReplySeconds <= 0)
+					if (maxDelayReplySeconds == minDelayReplySeconds)
+					{
+						delay = minDelayReplySeconds;
+					}
+					if (maxDelayReplySeconds < minDelayReplySeconds || maxDelayReplySeconds <= 0)
 					{
 						delay = 0;
 					}
 					else
 					{
-						delay = new Random().Next(0, maxDelayReplySeconds); // delay the response to defend timing attack privacy
+						delay = new Random().Next(minDelayReplySeconds, maxDelayReplySeconds); // delay the response to defend timing attack privacy
 					}
 				}
 
@@ -245,7 +249,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				if (ex.Message.StartsWith("NotFound", StringComparison.Ordinal)) // Alice timed out.
+				if (ex.Message.StartsWith("Not Found", StringComparison.Ordinal)) // Alice timed out.
 				{
 					State.ClearRoundRegistration(ongoingRoundId);
 				}
@@ -334,7 +338,7 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
-				if (ex.Message.StartsWith("NotFound", StringComparison.Ordinal)) // Alice timed out.
+				if (ex.Message.StartsWith("Not Found", StringComparison.Ordinal)) // Alice timed out.
 				{
 					State.ClearRoundRegistration(inputRegistrableRound.State.RoundId);
 				}
@@ -567,6 +571,16 @@ namespace WalletWasabi.Services
 				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 				await DequeueCoinsFromMixNoLockAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
+			}
+		}
+
+		internal async Task DequeueCoinsFromMixAsync(params (uint256 txid, uint index)[] coins)
+		{
+			using (await MixLock.LockAsync())
+			{
+				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+
+				await DequeueCoinsFromMixNoLockAsync(coins);
 			}
 		}
 

@@ -103,6 +103,22 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
+		public IEnumerable<(uint256 txid, uint index)> GetAllWaitingCoins()
+		{
+			lock (StateLock)
+			{
+				return WaitingList.Select(x => (x.TransactionId, x.Index)).ToArray();
+			}
+		}
+
+		public IEnumerable<(uint256 txid, uint index)> GetAllRegisteredCoins()
+		{
+			lock (StateLock)
+			{
+				return Rounds.SelectMany(x => x.CoinsRegistered).Select(x => (x.TransactionId, x.Index)).ToArray();
+			}
+		}
+
 		public IEnumerable<(uint256 txid, uint index)> GetRegistrableCoins(int maximumInputCountPerPeer, Money denomination, Money feePerInputs, Money feePerOutputs)
 		{
 			lock (StateLock)
