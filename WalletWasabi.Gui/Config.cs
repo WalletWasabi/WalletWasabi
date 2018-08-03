@@ -43,11 +43,11 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "RegTestBlindingRsaPubKey")]
 		public string RegTestBlindingRsaPubKey { get; private set; }
 
-		[JsonProperty(PropertyName = "TorSocks5IPAddress")]
-		public string TorSocks5IPAddress { get; private set; }
+		[JsonProperty(PropertyName = "TorSocks5Host")]
+		public string TorSocks5Host { get; private set; }
 
 		[JsonProperty(PropertyName = "TorSocks5Port")]
-		public string TorSocks5Port { get; private set; }
+		public int? TorSocks5Port { get; private set; }
 
 		private Uri _backendUri;
 
@@ -71,16 +71,17 @@ namespace WalletWasabi.Gui
 			return _backendUri;
 		}
 
-		private IPEndPoint _torIpEndPoint;
-		public IPEndPoint GetTorEndPoint() 
+		private IPEndPoint _torSocks5EndPoint;
+
+		public IPEndPoint GetTorSocks5EndPoint()
 		{
-			if (_torIpEndPoint != null) return _torIpEndPoint;
-			if (TorSocks5Port == null && TorSocks5IPAddress == null) return null;
+			if (_torSocks5EndPoint == null)
+			{
+				var host = IPAddress.Parse(TorSocks5Host);
+				_torSocks5EndPoint = new IPEndPoint(host, (int)TorSocks5Port);
+			}
 
-			var ipAddress = IPAddress.Parse(TorSocks5IPAddress ?? "127.0.0.1");
-			var port = int.Parse(TorSocks5Port ?? "9050");
-
-			return _torIpEndPoint = new IPEndPoint(ipAddress, port);
+			return _torSocks5EndPoint;
 		}
 
 		private BlindingRsaPubKey _blindingRsaPubKey;
@@ -118,7 +119,7 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public Config(Network network, string mainNetBackendUri, string testNetBackendUri, string regTestBackendUri, string mainNetBlindingRsaPubKey, string testNetBlindingRsaPubKey, string regTestBlindingRsaPubKey)
+		public Config(Network network, string mainNetBackendUri, string testNetBackendUri, string regTestBackendUri, string mainNetBlindingRsaPubKey, string testNetBlindingRsaPubKey, string regTestBlindingRsaPubKey, string torSocks5Host, int? torSocks5Port)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 
@@ -129,6 +130,9 @@ namespace WalletWasabi.Gui
 			MainNetBlindingRsaPubKey = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBlindingRsaPubKey), mainNetBlindingRsaPubKey);
 			TestNetBlindingRsaPubKey = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBlindingRsaPubKey), testNetBlindingRsaPubKey);
 			RegTestBlindingRsaPubKey = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBlindingRsaPubKey), regTestBlindingRsaPubKey);
+
+			TorSocks5Host = Guard.NotNullOrEmptyOrWhitespace(nameof(torSocks5Host), torSocks5Host);
+			TorSocks5Port = Guard.NotNull(nameof(torSocks5Port), torSocks5Port);
 		}
 
 		/// <inheritdoc />
@@ -140,22 +144,6 @@ namespace WalletWasabi.Gui
 			await File.WriteAllTextAsync(FilePath,
 			jsonString,
 			Encoding.UTF8);
-		}
-
-		private void OverwriteWith(Config config) 
-		{
-			Network = config.Network ?? Network;
-
-			MainNetBackendUri = config.MainNetBackendUri ?? MainNetBackendUri;
-			TestNetBackendUri = config.TestNetBackendUri ?? TestNetBackendUri;
-			RegTestBackendUri = config.RegTestBackendUri ?? RegTestBackendUri;
-
-			MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
-			TestNetBlindingRsaPubKey = config.TestNetBlindingRsaPubKey ?? TestNetBlindingRsaPubKey;
-			RegTestBlindingRsaPubKey = config.RegTestBlindingRsaPubKey ?? RegTestBlindingRsaPubKey;
-
-			TorSocks5IPAddress = config.TorSocks5IPAddress ?? TorSocks5IPAddress;
-			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
 		}
 
 		/// <inheritdoc />
@@ -173,6 +161,9 @@ namespace WalletWasabi.Gui
 			TestNetBlindingRsaPubKey = "19473594448380717274202325076521698699373476167359253614775896809797414915031772455344343455269320444157176520539924715307970060890094127521516100754263825112231545354422893125394219335109864514907655429499954825469485252969706079992227103439161156022844535556626007277544637236136559868400854764962522288139619969507311597914908752685925185380735570791798593290356424409633800092336087046668579610273133131498947353719917407262847070395909920415822288443947309434039008038907229064999576278651443575362470457496666718250346530518268694562965606704838796709743032825816642704620776596590683042135764246115456630753521";
 			RegTestBlindingRsaPubKey = "22150624048432351435695977813740447889408430038879549048669066759540857545194001686487035241226456922025362879904859086838539432404987971759281429087375036048566838323339034078875508311398019006566184621390613010655498049414411420453947773863327821032649547904953655351771067398194902527635974622680354037013275997209153454388073967935123137747633576410851133282514228950508503034222184195026309976327466634252381374641066331514368416311365206032260350939804067745887217463885470620044453632242044977087525656336957163920422847954554131015783995416461568282600638297091432144315385391445294118275302802043857482568817";
 
+			TorSocks5Host = IPAddress.Loopback.ToString();
+			TorSocks5Port = 9050;
+
 			if (!File.Exists(FilePath))
 			{
 				Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
@@ -180,12 +171,25 @@ namespace WalletWasabi.Gui
 			else
 			{
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				OverwriteWith(JsonConvert.DeserializeObject<Config>(jsonString));
+				var config = JsonConvert.DeserializeObject<Config>(jsonString);
+
+				Network = config.Network ?? Network;
+
+				MainNetBackendUri = config.MainNetBackendUri ?? MainNetBackendUri;
+				TestNetBackendUri = config.TestNetBackendUri ?? TestNetBackendUri;
+				RegTestBackendUri = config.RegTestBackendUri ?? RegTestBackendUri;
+
+				MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
+				TestNetBlindingRsaPubKey = config.TestNetBlindingRsaPubKey ?? TestNetBlindingRsaPubKey;
+				RegTestBlindingRsaPubKey = config.RegTestBlindingRsaPubKey ?? RegTestBlindingRsaPubKey;
+
+				TorSocks5Host = config.TorSocks5Host ?? TorSocks5Host;
+				TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
 			}
 
 			_backendUri = GetCurrentBackendUri();
 			_blindingRsaPubKey = GetBlindingRsaPubKey();
-			
+
 			await ToFileAsync();
 		}
 
@@ -233,6 +237,16 @@ namespace WalletWasabi.Gui
 			}
 
 			if (!RegTestBlindingRsaPubKey.Equals(config.RegTestBlindingRsaPubKey, StringComparison.Ordinal))
+			{
+				return true;
+			}
+
+			if (!TorSocks5Host.Equals(config.TorSocks5Host, StringComparison.Ordinal))
+			{
+				return true;
+			}
+
+			if (TorSocks5Port != config.TorSocks5Port)
 			{
 				return true;
 			}
