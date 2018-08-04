@@ -83,12 +83,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
-				var increasePeersInAdvance = false;
-				if (RequiredBTC - AmountQueued > Money.Zero)
-				{
-					increasePeersInAdvance = true;
-				}
-
 				var selectedCoins = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 				if (!selectedCoins.Any())
@@ -123,11 +117,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					coin.IsSelected = false;
 				}
-
-				if (RequiredBTC - AmountQueued <= Money.Zero && increasePeersInAdvance && PeersRegistered < PeersNeeded) // The status response will come a few seconds later, but here we can already guess the peers are increased.
-				{
-					PeersRegistered++;
-				}
 			});
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
@@ -158,11 +147,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				WarningMessageDequeue = string.Empty;
-
-				if (RequiredBTC - AmountQueued > Money.Zero && PeersRegistered > 0) // The status response will come a few seconds later, but here we can already guess the peers are decreased.
-				{
-					PeersRegistered--;
-				}
 			});
 		}
 
