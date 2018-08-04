@@ -2569,22 +2569,22 @@ namespace WalletWasabi.Tests
 				roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.FailAllRoundsInInputRegistration();
-				Assert.NotEmpty(chaumianClient1.State.GetAllCoins());
+				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
 				await chaumianClient1.DequeueAllCoinsFromMixAsync();
-				Assert.Empty(chaumianClient1.State.GetAllCoins());
+				Assert.Empty(chaumianClient1.State.GetAllQueuedCoins());
 				await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin4);
-				Assert.NotEmpty(chaumianClient1.State.GetAllCoins());
+				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
 				Assert.NotEmpty(chaumianClient1.State.GetAllWaitingCoins());
 				Assert.Empty(chaumianClient1.State.GetAllRegisteredCoins());
 				while (chaumianClient1.State.GetAllWaitingCoins().Any())
 				{
 					await Task.Delay(1000);
 				}
-				Assert.NotEmpty(chaumianClient1.State.GetAllCoins());
+				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
 				Assert.Empty(chaumianClient1.State.GetAllWaitingCoins());
 				Assert.NotEmpty(chaumianClient1.State.GetAllRegisteredCoins());
 				await Task.Delay(3000); // Make sure to wait until times out.
-				Assert.NotEmpty(chaumianClient1.State.GetAllCoins());
+				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
 				Assert.NotEmpty(chaumianClient1.State.GetAllWaitingCoins());
 				Assert.Empty(chaumianClient1.State.GetAllRegisteredCoins());
 			}

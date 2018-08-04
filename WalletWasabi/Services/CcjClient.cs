@@ -604,13 +604,13 @@ namespace WalletWasabi.Services
 		{
 			using (await MixLock.LockAsync())
 			{
-				await DequeueCoinsFromMixNoLockAsync(State.GetAllCoins().ToArray());
+				await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray());
 			}
 		}
 
 		private async Task DequeueAllCoinsFromMixNoLockAsync()
 		{
-			await DequeueCoinsFromMixNoLockAsync(State.GetAllCoins().ToArray());
+			await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray());
 		}
 
 		private async Task DequeueCoinsFromMixNoLockAsync(params (uint256 txid, uint index)[] coins)
@@ -717,7 +717,7 @@ namespace WalletWasabi.Services
 				SatoshiClient?.Dispose();
 				State.DisposeAllAliceClients();
 
-				IEnumerable<(uint256 txid, uint index)> allCoins = State.GetAllCoins();
+				IEnumerable<(uint256 txid, uint index)> allCoins = State.GetAllQueuedCoins();
 				foreach (var coinReference in allCoins)
 				{
 					try

@@ -23,6 +23,35 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Rounds = new List<CcjClientRound>();
 		}
 
+		public void UpdateCoin(SmartCoin coin)
+		{
+			lock (StateLock)
+			{
+				SmartCoin found = WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).FirstOrDefault(x => x == coin);
+				if (found != default)
+				{
+					if (WaitingList.Contains(coin))
+					{
+						coin.CoinJoinInProgress = true;
+						WaitingList.Remove(found);
+						WaitingList.Add(coin);
+						return;
+					}
+
+					foreach (CcjClientRound round in Rounds)
+					{
+						if (round.CoinsRegistered.Contains(coin))
+						{
+							coin.CoinJoinInProgress = true;
+							round.CoinsRegistered.Remove(found);
+							round.CoinsRegistered.Add(coin);
+							return;
+						}
+					}
+				}
+			}
+		}
+
 		public void AddCoinToWaitingList(SmartCoin coin)
 		{
 			lock (StateLock)
@@ -95,7 +124,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetAllCoins()
+		public IEnumerable<(uint256 txid, uint index)> GetAllQueuedCoins()
 		{
 			lock (StateLock)
 			{
