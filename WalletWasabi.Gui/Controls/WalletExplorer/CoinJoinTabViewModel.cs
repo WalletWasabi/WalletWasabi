@@ -85,6 +85,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
+				Console.WriteLine();
+				Console.WriteLine("UNSPENT COINS:");
+				foreach (var coin in Global.WalletService.Coins.Where(x => x.Unspent))
+				{
+					Console.WriteLine($"{coin.Amount.ToString(false, true)} {coin.Confirmed} {coin.CoinJoinInProgress}");
+				}
+				Console.WriteLine();
+
 				var selectedCoins = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 				if (!selectedCoins.Any())

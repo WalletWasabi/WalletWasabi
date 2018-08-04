@@ -147,7 +147,7 @@ namespace WalletWasabi.Models
 		public ISecret Secret { get; set; }
 
 		[JsonConstructor]
-		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool locked = false)
+		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false)
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
@@ -159,11 +159,11 @@ namespace WalletWasabi.Models
 			Label = Guard.Correct(label);
 			SpenderTransactionId = spenderTransactionId;
 			RBF = rbf;
-			CoinJoinInProgress = locked;
+			CoinJoinInProgress = coinJoinInProgress;
 			Secret = null;
 		}
 
-		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool locked = false)
+		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false)
 		{
 			Guard.NotNull(nameof(coin), coin);
 			TransactionId = coin.Outpoint.Hash;
@@ -176,7 +176,7 @@ namespace WalletWasabi.Models
 			Label = Guard.Correct(label);
 			SpenderTransactionId = spenderTransactionId;
 			RBF = rbf;
-			CoinJoinInProgress = locked;
+			CoinJoinInProgress = coinJoinInProgress;
 			Secret = null;
 		}
 
