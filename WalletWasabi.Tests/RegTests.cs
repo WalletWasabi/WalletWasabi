@@ -1702,7 +1702,7 @@ namespace WalletWasabi.Tests
 				inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(network).ToString();
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new TxoRef(uint256.One, 0), Proof = "b" } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
-				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is not unspent.", httpRequestException.Message);
+				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is not unspent", httpRequestException.Message);
 
 				var addr = await rpc.GetNewAddressAsync();
 				var hash = await rpc.SendToAddressAsync(addr, Money.Coins(0.01m));
