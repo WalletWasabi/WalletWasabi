@@ -159,7 +159,7 @@ namespace WalletWasabi.Services
 
 					states = await SatoshiClient.GetAllRoundStatesAsync();
 					State.UpdateRoundsByStates(states.ToArray());
-					StateUpdated?.Invoke(this, null);
+
 					if (maxDelayReplySeconds == minDelayReplySeconds)
 					{
 						delay = minDelayReplySeconds;
@@ -574,13 +574,21 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		internal async Task DequeueCoinsFromMixAsync(params (uint256 txid, uint index)[] coins)
+		public async Task DequeueCoinsFromMixAsync(params (uint256 txid, uint index)[] coins)
 		{
 			using (await MixLock.LockAsync())
 			{
 				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 				await DequeueCoinsFromMixNoLockAsync(coins);
+			}
+		}
+
+		public async Task DequeueAllCoinsFromMixAsync()
+		{
+			using (await MixLock.LockAsync())
+			{
+				await DequeueCoinsFromMixNoLockAsync(State.GetAllCoins().ToArray());
 			}
 		}
 

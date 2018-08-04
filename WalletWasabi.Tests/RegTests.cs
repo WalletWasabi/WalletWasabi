@@ -2570,7 +2570,7 @@ namespace WalletWasabi.Tests
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.FailAllRoundsInInputRegistration();
 				Assert.NotEmpty(chaumianClient1.State.GetAllCoins());
-				await chaumianClient1.DequeueCoinsFromMixAsync(chaumianClient1.State.GetAllCoins().ToArray());
+				await chaumianClient1.DequeueAllCoinsFromMixAsync();
 				Assert.Empty(chaumianClient1.State.GetAllCoins());
 				await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin4);
 				Assert.NotEmpty(chaumianClient1.State.GetAllCoins());
