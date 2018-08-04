@@ -315,7 +315,7 @@ namespace WalletWasabi.Services
 			{
 				await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutputAddress, ongoingRound.UnblindedSignature);
 				ongoingRound.PostedOutput = true;
-				Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId})Bob Posted output.");
+				Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted output.");
 			}
 		}
 
