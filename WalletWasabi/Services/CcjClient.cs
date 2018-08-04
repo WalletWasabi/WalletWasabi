@@ -560,7 +560,7 @@ namespace WalletWasabi.Services
 						continue;
 					}
 
-					if (coin.SpentOrCoinJoinInProcess)
+					if (coin.SpentOrCoinJoinInProgress)
 					{
 						continue;
 					}
@@ -568,7 +568,7 @@ namespace WalletWasabi.Services
 					coin.Secret = KeyManager.GetSecrets(password, coin.ScriptPubKey).Single();
 					OnePiece = OnePiece ?? password;
 
-					coin.CoinJoinInProcess = true;
+					coin.CoinJoinInProgress = true;
 
 					State.AddCoinToWaitingList(coin);
 					successful.Add(coin);
@@ -681,7 +681,7 @@ namespace WalletWasabi.Services
 		private void RemoveCoin(SmartCoin coinWaitingForMix)
 		{
 			State.RemoveCoinFromWaitingList(coinWaitingForMix);
-			coinWaitingForMix.CoinJoinInProcess = false;
+			coinWaitingForMix.CoinJoinInProgress = false;
 			coinWaitingForMix.Secret = null;
 			if (coinWaitingForMix.Label == "ZeroLink Change" && coinWaitingForMix.Unspent)
 			{

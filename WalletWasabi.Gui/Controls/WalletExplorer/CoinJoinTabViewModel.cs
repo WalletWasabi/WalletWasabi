@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var globalCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), null, (first, second) => second.Amount.CompareTo(first.Amount), signalReset: onCoinsSetModified, RxApp.MainThreadScheduler);
 			globalCoins.ChangeTrackingEnabled = true;
 
-			var available = globalCoins.CreateDerivedCollection(c => c, c => c.Confirmed && !c.SpentOrCoinJoinInProcess);
+			var available = globalCoins.CreateDerivedCollection(c => c, c => c.Confirmed && !c.SpentOrCoinJoinInProgress);
 
 			var queued = globalCoins.CreateDerivedCollection(c => c, c => c.CoinJoinInProgress);
 

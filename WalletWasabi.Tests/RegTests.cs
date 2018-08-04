@@ -485,7 +485,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
 				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight, firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0U, 1U);
-				Assert.False(firstCoin.SpentOrCoinJoinInProcess);
+				Assert.False(firstCoin.SpentOrCoinJoinInProgress);
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal(key.GetP2wpkhScript(), firstCoin.ScriptPubKey);
 				Assert.Null(firstCoin.SpenderTransactionId);
@@ -515,7 +515,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight.Value - 2, firstCoin.Height.Value);
 				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight.Value - 1, secondCoin.Height.Value);
 				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight, thirdCoin.Height);
-				Assert.False(thirdCoin.SpentOrCoinJoinInProcess);
+				Assert.False(thirdCoin.SpentOrCoinJoinInProgress);
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal("bar label", secondCoin.Label);
 				Assert.Equal("bar label", thirdCoin.Label);
@@ -571,7 +571,7 @@ namespace WalletWasabi.Tests
 
 				Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
 				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight.Value - 2, rbfCoin.Height.Value);
-				Assert.False(rbfCoin.SpentOrCoinJoinInProcess);
+				Assert.False(rbfCoin.SpentOrCoinJoinInProgress);
 				Assert.Equal("bar label", rbfCoin.Label);
 				Assert.Equal(key2.GetP2wpkhScript(), rbfCoin.ScriptPubKey);
 				Assert.Null(rbfCoin.SpenderTransactionId);
@@ -750,7 +750,7 @@ namespace WalletWasabi.Tests
 				#region Basic
 
 				Script receive = wallet.GetReceiveKey("Basic").GetP2wpkhScript();
-				Money amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProcess).Sum(x => x.Amount) / 2;
+				Money amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 2;
 				var res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
@@ -790,7 +790,7 @@ namespace WalletWasabi.Tests
 				#region SubtractFeeFromAmount
 
 				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").GetP2wpkhScript();
-				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProcess).Sum(x => x.Amount) / 3;
+				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 3;
 				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
@@ -946,7 +946,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(res.Transaction.Transaction.Outputs);
 				var maxBuiltTxOutput = res.Transaction.Transaction.Outputs.Single();
 				Assert.Equal(receive, maxBuiltTxOutput.ScriptPubKey);
-				Assert.Equal(wallet.Coins.Where(x => !x.SpentOrCoinJoinInProcess).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
+				Assert.Equal(wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
@@ -959,7 +959,7 @@ namespace WalletWasabi.Tests
 				var inputCountBefore = res.SpentCoins.Count();
 				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
 					allowUnconfirmed: true,
-					allowedInputs: wallet.Coins.Where(x => !x.SpentOrCoinJoinInProcess).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1));
+					allowedInputs: wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1));
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
@@ -999,7 +999,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal("change of (my label)", res.InnerWalletOutputs.Single().Label);
 
-				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProcess).Sum(x => x.Amount) / 3;
+				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 3;
 				res = await wallet.BuildTransactionAsync(password, new[] {
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing"),
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing2")
@@ -1031,7 +1031,7 @@ namespace WalletWasabi.Tests
 
 				receive = wallet.GetReceiveKey("AllowedInputsDisallowUnconfirmed").GetP2wpkhScript();
 
-				var allowedInputs = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProcess).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1);
+				var allowedInputs = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1);
 				var toSend = new[] { new WalletService.Operation(receive, Money.Zero, "fizz") };
 
 				// covers:
@@ -1528,12 +1528,12 @@ namespace WalletWasabi.Tests
 				Assert.Contains(wallet.Coins, x => x.TransactionId == tx1Res.Transaction.GetHash());
 
 				// There is a coin destroyed
-				Assert.Equal(1, wallet.Coins.Count(x => x.SpentOrCoinJoinInProcess && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
+				Assert.Equal(1, wallet.Coins.Count(x => x.SpentOrCoinJoinInProgress && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.TransactionId == tx0Id));
 
-				var totalWallet = wallet.Coins.Where(c => !c.SpentOrCoinJoinInProcess).Sum(c => c.Amount);
+				var totalWallet = wallet.Coins.Where(c => !c.SpentOrCoinJoinInProgress).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi, totalWallet);
 
 				// Spend the unconfirmed and unspent coin (send it to ourself)
@@ -1548,12 +1548,12 @@ namespace WalletWasabi.Tests
 				Assert.Contains(wallet.Coins, x => x.TransactionId == tx2Res.Transaction.GetHash());
 
 				// There is a coin destroyed
-				Assert.Equal(1, wallet.Coins.Count(x => x.SpentOrCoinJoinInProcess && x.SpenderTransactionId == tx2Res.Transaction.GetHash()));
+				Assert.Equal(1, wallet.Coins.Count(x => x.SpentOrCoinJoinInProgress && x.SpenderTransactionId == tx2Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.TransactionId == tx1Res.Transaction.GetHash()));
 
-				totalWallet = wallet.Coins.Where(c => !c.SpentOrCoinJoinInProcess).Sum(c => c.Amount);
+				totalWallet = wallet.Coins.Where(c => !c.SpentOrCoinJoinInProgress).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi - tx2Res.Fee.Satoshi, totalWallet);
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
@@ -2514,39 +2514,39 @@ namespace WalletWasabi.Tests
 				chaumianClient1.Start(2, 2); // Exactly delay it for 2 seconds, this will make sure of timeout later.
 				chaumianClient2.Start(0, 0);
 
-				smartCoin1.CoinJoinInProcess = true;
+				smartCoin1.CoinJoinInProgress = true;
 				Assert.True(!(await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any());
-				Assert.True(smartCoin1.CoinJoinInProcess);
+				Assert.True(smartCoin1.CoinJoinInProgress);
 
 				await Assert.ThrowsAsync<SecurityException>(async () => await chaumianClient1.QueueCoinsToMixAsync("asdasdasd", smartCoin1, smartCoin2));
-				Assert.True(smartCoin1.CoinJoinInProcess);
-				Assert.False(smartCoin2.CoinJoinInProcess);
-				smartCoin1.CoinJoinInProcess = false;
+				Assert.True(smartCoin1.CoinJoinInProgress);
+				Assert.False(smartCoin2.CoinJoinInProgress);
+				smartCoin1.CoinJoinInProgress = false;
 
 				await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2);
-				Assert.True(smartCoin1.CoinJoinInProcess);
-				Assert.True(smartCoin2.CoinJoinInProcess);
+				Assert.True(smartCoin1.CoinJoinInProgress);
+				Assert.True(smartCoin2.CoinJoinInProgress);
 
 				// Make sure it doesn't throw.
 				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.MemPool, rbf: false, mixin: 0));
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
-				Assert.False(smartCoin1.CoinJoinInProcess);
+				Assert.False(smartCoin1.CoinJoinInProgress);
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, smartCoin2);
-				Assert.False(smartCoin1.CoinJoinInProcess);
-				Assert.False(smartCoin2.CoinJoinInProcess);
+				Assert.False(smartCoin1.CoinJoinInProgress);
+				Assert.False(smartCoin2.CoinJoinInProgress);
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
-				Assert.True(smartCoin1.CoinJoinInProcess);
-				Assert.True(smartCoin2.CoinJoinInProcess);
+				Assert.True(smartCoin1.CoinJoinInProgress);
+				Assert.True(smartCoin2.CoinJoinInProgress);
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin2);
-				Assert.False(smartCoin1.CoinJoinInProcess);
-				Assert.False(smartCoin2.CoinJoinInProcess);
+				Assert.False(smartCoin1.CoinJoinInProgress);
+				Assert.False(smartCoin2.CoinJoinInProgress);
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
-				Assert.True(smartCoin1.CoinJoinInProcess);
-				Assert.True(smartCoin2.CoinJoinInProcess);
+				Assert.True(smartCoin1.CoinJoinInProgress);
+				Assert.True(smartCoin2.CoinJoinInProgress);
 				Assert.True(1 == (await chaumianClient2.QueueCoinsToMixAsync(password, smartCoin3)).Count());
 
 				Task timeout = Task.Delay(TimeSpan.FromSeconds(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2));
@@ -2846,15 +2846,15 @@ namespace WalletWasabi.Tests
 				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).ToArray();
 				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges);
 
-				Assert.Equal(3, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrCoinJoinInProcess));
-				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrCoinJoinInProcess));
+				Assert.Equal(3, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrCoinJoinInProgress));
+				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrCoinJoinInProgress));
 				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
 				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
 				Assert.Equal(2, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && !x.Unspent));
 				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Change"));
 				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && x.Unspent));
 				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.Unspent));
-				Assert.Equal(1, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.SpentOrCoinJoinInProcess));
+				Assert.Equal(1, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.SpentOrCoinJoinInProgress));
 			}
 			finally
 			{

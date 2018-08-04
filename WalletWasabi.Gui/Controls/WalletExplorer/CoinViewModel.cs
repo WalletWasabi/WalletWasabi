@@ -23,12 +23,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(Confirmed));
 			});
 
-			model.WhenAnyValue(x => x.SpentOrCoinJoinInProcess).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			model.WhenAnyValue(x => x.SpentOrCoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(SpentOrCoinJoinInProcess));
+				this.RaisePropertyChanged(nameof(SpentOrCoinJoinInProgress));
 			});
 
-			model.WhenAnyValue(x => x.CoinJoinInProcess).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			model.WhenAnyValue(x => x.CoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(CoinJoinInProgress));
 			});
@@ -38,9 +38,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool Confirmed => Model.Confirmed;
 
-		public bool CoinJoinInProgress => Model.CoinJoinInProcess;
+		public bool CoinJoinInProgress => Model.CoinJoinInProgress;
 
-		public bool SpentOrCoinJoinInProcess => Model.SpentOrCoinJoinInProcess;
+		public bool SpentOrCoinJoinInProgress => Model.SpentOrCoinJoinInProgress;
 
 		public int Confirmations => Model.Height.Type == HeightType.Chain
 			? Global.IndexDownloader.BestHeight.Value - Model.Height.Value + 1
@@ -66,7 +66,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public int AnonymitySet => Model.AnonymitySet;
 
-		public string InCoinJoin => Model.CoinJoinInProcess ? "Yes" : "No";
+		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
 		public string History => string.Join(", ", Global.WalletService.GetHistory(Model, Enumerable.Empty<SmartCoin>()).Select(x => x.Label).Distinct());
 	}
