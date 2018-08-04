@@ -39,6 +39,10 @@ namespace WalletWasabi.Services
 
 		public event EventHandler StateUpdated;
 
+		public event EventHandler<SmartCoin> CoinQueued;
+
+		public event EventHandler<SmartCoin> CoinDequeued;
+
 		private long _frequentStatusProcessingIfNotMixing;
 
 		/// <summary>
@@ -160,6 +164,17 @@ namespace WalletWasabi.Services
 					states = await SatoshiClient.GetAllRoundStatesAsync();
 					State.UpdateRoundsByStates(states.ToArray());
 
+					// If we don't have enough coin queued to register a round, then dequeue all.
+					CcjClientRound registrableRound = State.GetRegistrableRoundOrDefault();
+					if (registrableRound != default)
+					{
+						if (!registrableRound.State.HaveEnoughQueued(State.GetAllQueuedCoinAmounts().ToArray()))
+						{
+							await DequeueAllCoinsFromMixNoLockAsync();
+						}
+					}
+
+					StateUpdated?.Invoke(this, null);
 					if (maxDelayReplySeconds == minDelayReplySeconds)
 					{
 						delay = minDelayReplySeconds;
@@ -557,6 +572,7 @@ namespace WalletWasabi.Services
 
 					State.AddCoinToWaitingList(coin);
 					successful.Add(coin);
+					CoinQueued?.Invoke(this, coin);
 					Logger.LogInfo<CcjClient>($"Coin queued: {coin.Index}:{coin.TransactionId}.");
 				}
 
@@ -590,6 +606,11 @@ namespace WalletWasabi.Services
 			{
 				await DequeueCoinsFromMixNoLockAsync(State.GetAllCoins().ToArray());
 			}
+		}
+
+		private async Task DequeueAllCoinsFromMixNoLockAsync()
+		{
+			await DequeueCoinsFromMixNoLockAsync(State.GetAllCoins().ToArray());
 		}
 
 		private async Task DequeueCoinsFromMixNoLockAsync(params (uint256 txid, uint index)[] coins)
@@ -671,6 +692,7 @@ namespace WalletWasabi.Services
 					key.SetLabel(coinWaitingForMix.Label, KeyManager);
 				}
 			}
+			CoinDequeued?.Invoke(this, coinWaitingForMix);
 			Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.");
 		}
 

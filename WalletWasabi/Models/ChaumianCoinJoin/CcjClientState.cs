@@ -103,6 +103,30 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
+		public Money SumAllQueuedCoinAmounts()
+		{
+			lock (StateLock)
+			{
+				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Sum(x => x.Amount);
+			}
+		}
+
+		public int CountAllQueuedCoins()
+		{
+			lock (StateLock)
+			{
+				return WaitingList.Count + Rounds.Sum(x => x.CoinsRegistered.Count);
+			}
+		}
+
+		public IEnumerable<Money> GetAllQueuedCoinAmounts()
+		{
+			lock (StateLock)
+			{
+				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => x.Amount).ToArray();
+			}
+		}
+
 		public IEnumerable<(uint256 txid, uint index)> GetAllWaitingCoins()
 		{
 			lock (StateLock)
