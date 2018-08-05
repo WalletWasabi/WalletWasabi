@@ -227,7 +227,7 @@ tor
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
 systemctl start walletwasabi.service
 cd ..
-sudo netstat -plnt | fgrep 9050
+ps -elf | grep tor
 tail -10 .walletwasabi/backend/Logs.txt
 ```
 
