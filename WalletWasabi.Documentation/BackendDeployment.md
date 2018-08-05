@@ -87,6 +87,17 @@ sudo pico /etc/tor/torrc
 HiddenServiceDir /home/user/.hidden_service
 HiddenServicePort 80 127.0.0.1:37127
 RunAsDaemon 1
+
+# ---MAKE TOR FASTER---
+
+# Need to disable for HiddenServiceNonAnonymousMode
+SOCKSPort 0
+# Need to enable for HiddenServiceSingleHopMode
+HiddenServiceNonAnonymousMode 1
+# This option makes every hidden service instance hosted by a tor
+# instance a Single Onion Service. One-hop circuits make Single Onion
+# servers easily locatable, but clients remain location-anonymous.
+HiddenServiceSingleHopMode 1
 ```
 
 Enable firewall:
@@ -222,8 +233,8 @@ tail -10 .walletwasabi/backend/Logs.txt
 
 # Check If Everything Works
 
+MainNet: http://4jsmnfcsmbrlm7l7.onion/swagger
 TestNet: http://wtgjmaol3io5ijii.onion/swagger/  
-Main: http://4jsmnfcsmbrlm7l7.onion/swagger
 
 GET fees
 
