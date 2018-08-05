@@ -2256,10 +2256,10 @@ namespace WalletWasabi.Tests
 
 			var blindingKey = coordinator.RsaKey;
 			Money denomination = Money.Coins(0.1m);
-			decimal coordinatorFeePercent = 0.1m;
+			decimal coordinatorFeePercent = 0.003m;
 			int anonymitySet = 100;
 			int connectionConfirmationTimeout = 120;
-			var roundConfig = new CcjRoundConfig(denomination, 1008, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
+			var roundConfig = new CcjRoundConfig(denomination, 144, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.FailAllRoundsInInputRegistration();
 			await rpc.GenerateAsync(100); // So to make sure we have enough money.
