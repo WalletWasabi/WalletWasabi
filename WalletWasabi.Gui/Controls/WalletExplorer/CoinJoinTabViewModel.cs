@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				CoordinatorFeePercent = "0.3";
+				CoordinatorFeePercent = "0.003";
 				RequiredBTC = Money.Zero;
 			}
 
