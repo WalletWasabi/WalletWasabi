@@ -14,8 +14,8 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		{
 			UriMappings = new Dictionary<NetworkType, Uri>
 			{
-					{ NetworkType.Mainnet, new Uri("http://4jsmnfcsmbrlm7l7.onion") },
-					{ NetworkType.Testnet, new Uri("http://wtgjmaol3io5ijii.onion") }
+					{ NetworkType.Mainnet, new Uri("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion") },
+					{ NetworkType.Testnet, new Uri("http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion") }
 			};
 		}
 
