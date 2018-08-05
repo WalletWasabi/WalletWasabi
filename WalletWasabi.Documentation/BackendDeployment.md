@@ -68,7 +68,7 @@ sudo apt-get install tor
 Check if Tor is already running in the background:
 
 ```sh
-sudo netstat -plnt | fgrep 9050
+ps -elf | grep tor
 sudo killall tor
 ```
 
@@ -205,7 +205,7 @@ systemctl stop tor.service
 systemctl start tor.service
 systemctl status tor.service
 tor
-sudo netstat -plnt | fgrep 9050
+ps -elf | grep tor
 ```
 
 # Update
