@@ -84,7 +84,7 @@ sudo pico /etc/tor/torrc
 ```
 
 ```sh
-HiddenServiceDir /home/user/.hidden_service
+HiddenServiceDir /home/user/.hidden_service_v3
 HiddenServiceVersion 3
 HiddenServicePort 80 127.0.0.1:37127
 
