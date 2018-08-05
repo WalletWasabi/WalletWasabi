@@ -68,7 +68,7 @@ sudo apt-get install tor
 Check if Tor is already running in the background:
 
 ```sh
-sudo netstat -plnt | fgrep 9050
+ps -elf | grep tor
 sudo killall tor
 ```
 
@@ -84,9 +84,22 @@ sudo pico /etc/tor/torrc
 ```
 
 ```sh
-HiddenServiceDir /home/user/.hidden_service
+HiddenServiceDir /home/user/.hidden_service_v3
+HiddenServiceVersion 3
 HiddenServicePort 80 127.0.0.1:37127
+
 RunAsDaemon 1
+
+# ---MAKE TOR FASTER---
+
+# Need to disable for HiddenServiceNonAnonymousMode
+SOCKSPort 0
+# Need to enable for HiddenServiceSingleHopMode
+HiddenServiceNonAnonymousMode 1
+# This option makes every hidden service instance hosted by a tor
+# instance a Single Onion Service. One-hop circuits make Single Onion
+# servers easily locatable, but clients remain location-anonymous.
+HiddenServiceSingleHopMode 1
 ```
 
 Enable firewall:
@@ -194,7 +207,7 @@ systemctl stop tor.service
 systemctl start tor.service
 systemctl status tor.service
 tor
-sudo netstat -plnt | fgrep 9050
+ps -elf | grep tor
 ```
 
 # Update
@@ -216,15 +229,13 @@ tor
 dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
 systemctl start walletwasabi.service
 cd ..
-sudo netstat -plnt | fgrep 9050
+ps -elf | grep tor
 tail -10 .walletwasabi/backend/Logs.txt
 ```
 
 # Check If Everything Works
 
-TestNet: http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/swagger/  
-Main: http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/swagger
-
+TestNet: http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/swagger/Main: http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/swagger/
 GET fees
 
 # Check Status
