@@ -110,9 +110,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							WarningMessageEnqueue += Environment.NewLine + iex.ToTypeMessageString();
 						}
 					}
+					Password = string.Empty;
 					return;
 				}
 
+				Password = string.Empty;
 				WarningMessageEnqueue = string.Empty;
 
 				foreach (var coin in selectedCoins)
