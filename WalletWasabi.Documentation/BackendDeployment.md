@@ -84,9 +84,10 @@ sudo pico /etc/tor/torrc
 ```
 
 ```sh
-HiddenServiceVersion 3
 HiddenServiceDir /home/user/.hidden_service
+HiddenServiceVersion 3
 HiddenServicePort 80 127.0.0.1:37127
+
 RunAsDaemon 1
 
 # ---MAKE TOR FASTER---
