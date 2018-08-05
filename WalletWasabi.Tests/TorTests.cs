@@ -168,7 +168,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		public async Task CanRequestOnionAsync()
+		public async Task CanRequestOnionV2Async()
 		{
 			using (var client = new TorHttpClient(new Uri("http://expyuzz4wqqyqhjn.onion/")))
 			{
@@ -178,6 +178,20 @@ namespace WalletWasabi.Tests
 				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
 				Assert.Contains("tor", content, StringComparison.OrdinalIgnoreCase);
+			}
+		}
+
+		[Fact]
+		public async Task CanRequestOnionV3Async()
+		{
+			using (var client = new TorHttpClient(new Uri("http://dds6qkxpwdeubwucdiaord2xgbbeyds25rbsgr73tbfpqpt4a6vjwsyd.onion")))
+			{
+				HttpResponseMessage response = await client.SendAsync(HttpMethod.Get, "");
+				var content = await response.Content.ReadAsStringAsync();
+
+				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+				Assert.Contains("whonix", content, StringComparison.OrdinalIgnoreCase);
 			}
 		}
 
