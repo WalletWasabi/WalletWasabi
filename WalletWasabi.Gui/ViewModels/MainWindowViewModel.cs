@@ -1,4 +1,6 @@
-﻿using AvalonStudio.Extensibility.Dialogs;
+﻿using AvalonStudio.Extensibility;
+using AvalonStudio.Extensibility.Dialogs;
+using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -31,7 +33,10 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public MainWindowViewModel()
 		{
+			Shell = IoC.Get<IShell>();
 		}
+		
+		public IShell Shell { get; }
 
 		public static MainWindowViewModel Instance { get; internal set; }
 
