@@ -58,3 +58,6 @@ git submodule update --init --recursive
 ### Notes:
 
 - Configuration, wallet and similar files can be found in `%appdata%\WalletWasabi` folder on Windows and in `~/.walletwasabi` folder on Linux/OSX.
+
+- .NET Telemetry is enabled by default. Set the DOTNET_CLI_TELEMETRY_OPTOUT environment variable to disable it.
+Use `export DOTNET_CLI_TELEMETRY_OPTOUT=1` for Linux and OSX. Use `set DOTNET_CLI_TELEMETRY_OPTOUT=1` for Windows.
