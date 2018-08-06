@@ -794,7 +794,9 @@ namespace WalletWasabi.Services
 			using (var client = new WasabiClient(IndexDownloader.WasabiClient.TorClient.DestinationUri, IndexDownloader.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
 				var fees = await client.GetFeesAsync(feeTarget);
-				feePerBytes = new Money(fees.Single().Value.Conservative);
+				Money feeRate = fees.Single().Value.Conservative;
+				Money sanityCheckedFeeRate = Math.Max(feeRate, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
+				feePerBytes = new Money(sanityCheckedFeeRate);
 			}
 
 			bool spendAll = spendAllCount == 1;
@@ -815,9 +817,9 @@ namespace WalletWasabi.Services
 			var origTxSize = inNum * Constants.P2pkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10;
 			var newTxSize = inNum * Constants.P2wpkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10; // BEWARE: This assumes segwit only inputs!
 			var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
-			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} bytes.");
+			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
 			Money fee = feePerBytes * vSize;
-			Logger.LogInfo<WalletService>($"Fee: {fee.ToString(fplus: false, trimExcessZero: true)}");
+			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi");
 
 			// 5. How much to spend?
 			long toSendAmountSumInSatoshis = toSend.Select(x => x.Amount).Sum(); // Does it work if I simply go with Money class here? Is that copied by reference of value?
@@ -890,7 +892,7 @@ namespace WalletWasabi.Services
 			{
 				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount."
 					+ Environment.NewLine + $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC."
-					+ Environment.NewLine + $"Fee:\t\t {fee.ToString(fplus: false, trimExcessZero: true)} BTC.");
+					+ Environment.NewLine + $"Fee:\t\t {fee.Satoshi} Satoshi.");
 			}
 			if (feePc > 100)
 			{
