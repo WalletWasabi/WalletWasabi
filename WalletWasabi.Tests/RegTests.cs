@@ -736,7 +736,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(res2.OuterWalletOutputs);
 				Assert.Equal(scp, res2.OuterWalletOutputs.Single().ScriptPubKey);
 				Assert.Single(res2.InnerWalletOutputs);
-				Assert.True(res2.Fee > new Money(1 * 100)); // since there is a sanity check of 1sat/b in the server
+				Assert.True(res2.Fee > new Money(2 * 100)); // since there is a sanity check of 2sat/vb in the server
 				Assert.InRange(res2.FeePercentOfSent, 0, 1);
 				Assert.Single(res2.SpentCoins);
 				Assert.Equal(key.GetP2wpkhScript(), res2.SpentCoins.Single().ScriptPubKey);
