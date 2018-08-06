@@ -27,7 +27,7 @@ Note, we have OSX bugs in our GUI library, which we are currently fixing. You ma
 ## Get The Requirements
 
 1. Get Git: https://git-scm.com/downloads
-2. Get .NET Core 2.1 SDK: https://www.microsoft.com/net/download
+2. Get .NET Core 2.1 SDK: https://www.microsoft.com/net/download (Note, you can disable telemetry by typing `export DOTNET_CLI_TELEMETRY_OPTOUT=1` on Linux and OSX or `set DOTNET_CLI_TELEMETRY_OPTOUT=1` on Windows.)
 3. [OSX] Get Brew: https://stackoverflow.com/a/20381183/2061103
 4. Get Tor:  
   [Windows] Install the Tor Expert Bundle: https://www.torproject.org/download/  
@@ -58,6 +58,3 @@ git submodule update --init --recursive
 ### Notes:
 
 - Configuration, wallet and similar files can be found in `%appdata%\WalletWasabi` folder on Windows and in `~/.walletwasabi` folder on Linux/OSX.
-
-- .NET Telemetry is enabled by default. Set the DOTNET_CLI_TELEMETRY_OPTOUT environment variable to disable it.
-Use `export DOTNET_CLI_TELEMETRY_OPTOUT=1` for Linux and OSX. Use `set DOTNET_CLI_TELEMETRY_OPTOUT=1` for Windows.
