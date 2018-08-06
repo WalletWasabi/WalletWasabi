@@ -21,64 +21,11 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		public async Task CanDoRequest1Async()
-		{
-			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja")))
-			{
-				var contents = await QBitTestAsync(client, 1);
-				foreach (var content in contents)
-				{
-					Assert.Equal("\"Good question Holmes !\"", content);
-				}
-			}
-		}
-
-		[Fact]
-		public async Task CanDoRequest2Async()
-		{
-			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja")))
-			{
-				var contents = await QBitTestAsync(client, 2);
-				foreach (var content in contents)
-				{
-					Assert.Equal("\"Good question Holmes !\"", content);
-				}
-			}
-		}
-
-		[Fact]
-		public async Task CanDoRequestManyAsync()
-		{
-			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja")))
-			{
-				var contents = await QBitTestAsync(client, 15);
-				foreach (var content in contents)
-				{
-					Assert.Equal("\"Good question Holmes !\"", content);
-				}
-			}
-		}
-
-		[Fact]
 		public async Task CanDoRequestManyDifferentAsync()
 		{
 			using (var client = new TorHttpClient(new Uri("http://api.qbit.ninja")))
 			{
 				await QBitTestAsync(client, 10, alterRequests: true);
-			}
-		}
-
-		[Fact]
-		public async Task CanDoHttpsRequestManyAsync()
-		{
-			using (var client = new TorHttpClient(new Uri("https://api.qbit.ninja")))
-			{
-				var contents = await QBitTestAsync(client, 15);
-
-				foreach (var content in contents)
-				{
-					Assert.Equal("\"Good question Holmes !\"", content);
-				}
 			}
 		}
 
