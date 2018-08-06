@@ -10,6 +10,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -40,7 +41,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var globalCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), null, (first, second) => second.Amount.CompareTo(first.Amount), signalReset: onCoinsSetModified, RxApp.MainThreadScheduler);
 			globalCoins.ChangeTrackingEnabled = true;
 
-			var available = globalCoins.CreateDerivedCollection(c => c, c => c.Confirmed && !c.SpentOrCoinJoinInProcess);
+			var available = globalCoins.CreateDerivedCollection(c => c, c => c.Confirmed && !c.SpentOrCoinJoinInProgress);
 
 			var queued = globalCoins.CreateDerivedCollection(c => c, c => c.CoinJoinInProgress);
 
@@ -48,19 +49,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			QueuedCoinsList = new CoinListViewModel(queued);
 
-			AmountQueued = QueuedCoinsList.Coins.Sum(x => x.Amount);
+			AmountQueued = Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
-			QueuedCoinsList.Coins.CollectionChanged += Coins_CollectionChanged;
+			Global.ChaumianClient.CoinQueued += ChaumianClient_CoinQueued;
+			Global.ChaumianClient.CoinDequeued += ChaumianClient_CoinDequeued;
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 			if (registrableRound != default)
 			{
 				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
-				RequiredBTC = registrableRound.State.Denomination + registrableRound.State.Denomination.Percentange(0.3m) + registrableRound.State.FeePerInputs * registrableRound.State.MaximumInputCountPerPeer + registrableRound.State.FeePerOutputs * 2;
+				RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
 			}
 			else
 			{
-				CoordinatorFeePercent = "0.3";
+				CoordinatorFeePercent = "0.003";
 				RequiredBTC = Money.Zero;
 			}
 
@@ -83,12 +85,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
-				var increasePeersInAdvance = false;
-				if (RequiredBTC - AmountQueued > Money.Zero)
-				{
-					increasePeersInAdvance = true;
-				}
-
 				var selectedCoins = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 				if (!selectedCoins.Any())
@@ -114,19 +110,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							WarningMessageEnqueue += Environment.NewLine + iex.ToTypeMessageString();
 						}
 					}
+					Password = string.Empty;
 					return;
 				}
 
+				Password = string.Empty;
 				WarningMessageEnqueue = string.Empty;
 
 				foreach (var coin in selectedCoins)
 				{
 					coin.IsSelected = false;
-				}
-
-				if (RequiredBTC - AmountQueued <= Money.Zero && increasePeersInAdvance && PeersRegistered < PeersNeeded) // The status response will come a few seconds later, but here we can already guess the peers are increased.
-				{
-					PeersRegistered++;
 				}
 			});
 
@@ -158,28 +151,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				WarningMessageDequeue = string.Empty;
-
-				if (RequiredBTC - AmountQueued > Money.Zero && PeersRegistered > 0) // The status response will come a few seconds later, but here we can already guess the peers are decreased.
-				{
-					PeersRegistered--;
-				}
 			});
 		}
 
-		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+		private void ChaumianClient_CoinDequeued(object sender, SmartCoin e)
 		{
-			AmountQueued = QueuedCoinsList.Coins.Sum(x => x.Amount);
+			UpdateStates();
+		}
 
-			MainWindowViewModel.Instance.CanClose = !QueuedCoinsList.Coins.Any();
+		private void ChaumianClient_CoinQueued(object sender, SmartCoin e)
+		{
+			UpdateStates();
 		}
 
 		private void ChaumianClient_StateUpdated(object sender, EventArgs e)
 		{
+			UpdateStates();
+		}
+
+		private void UpdateStates()
+		{
+			AmountQueued = Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
+			MainWindowViewModel.Instance.CanClose = AmountQueued == Money.Zero;
+
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 			if (registrableRound != default)
 			{
 				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
-				RequiredBTC = registrableRound.State.Denomination + registrableRound.State.Denomination.Percentange(0.3m) + registrableRound.State.FeePerInputs * registrableRound.State.MaximumInputCountPerPeer + registrableRound.State.FeePerOutputs * 2;
+				RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
 			}
 			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
 			if (mostAdvancedRound != default)

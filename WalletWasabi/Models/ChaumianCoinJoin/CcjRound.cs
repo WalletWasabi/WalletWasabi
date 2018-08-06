@@ -262,7 +262,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						}
 
 						// 4. Start building Coordinator fee.
-						Money coordinatorFeePerAlice = newDenomination.Percentange(CoordinatorFeePercent);
+						Money coordinatorFeePerAlice = newDenomination.Percentange(CoordinatorFeePercent) * Alices.Count;
 						Money coordinatorFee = Alices.Count * coordinatorFeePerAlice;
 
 						// 5. Add the inputs and the changes of Alices.

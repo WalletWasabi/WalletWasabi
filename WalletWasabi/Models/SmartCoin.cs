@@ -16,7 +16,7 @@ namespace WalletWasabi.Models
 		private Height _height;
 		private string _label;
 		private uint256 _spenderTransactionId;
-		private bool _coinJoinInProcess;
+		private bool _coinJoinInProgress;
 
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(Uint256JsonConverter))]
@@ -78,7 +78,7 @@ namespace WalletWasabi.Models
 			{
 				if (value != _spenderTransactionId)
 				{
-					var rememberSpentOrCoinJoinInProcess = SpentOrCoinJoinInProcess;
+					var rememberSpentOrCoinJoinInProgress = SpentOrCoinJoinInProgress;
 					var rememberUnspent = Unspent;
 
 					_spenderTransactionId = value;
@@ -89,9 +89,9 @@ namespace WalletWasabi.Models
 						OnPropertyChanged(nameof(Unspent));
 					}
 
-					if (rememberSpentOrCoinJoinInProcess != SpentOrCoinJoinInProcess)
+					if (rememberSpentOrCoinJoinInProgress != SpentOrCoinJoinInProgress)
 					{
-						OnPropertyChanged(nameof(SpentOrCoinJoinInProcess));
+						OnPropertyChanged(nameof(SpentOrCoinJoinInProgress));
 					}
 				}
 			}
@@ -106,21 +106,21 @@ namespace WalletWasabi.Models
 
 		[JsonProperty(Order = 10)]
 		[JsonConverter(typeof(FunnyBoolJsonConverter))]
-		public bool CoinJoinInProcess
+		public bool CoinJoinInProgress
 		{
-			get => _coinJoinInProcess;
+			get => _coinJoinInProgress;
 			set
 			{
-				if (_coinJoinInProcess != value)
+				if (_coinJoinInProgress != value)
 				{
-					var rememberSpentOrCoinJoinInProcess = SpentOrCoinJoinInProcess;
+					var rememberSpentOrCoinJoinInProgress = SpentOrCoinJoinInProgress;
 
-					_coinJoinInProcess = value;
-					OnPropertyChanged(nameof(CoinJoinInProcess));
+					_coinJoinInProgress = value;
+					OnPropertyChanged(nameof(CoinJoinInProgress));
 
-					if (rememberSpentOrCoinJoinInProcess != SpentOrCoinJoinInProcess)
+					if (rememberSpentOrCoinJoinInProgress != SpentOrCoinJoinInProgress)
 					{
-						OnPropertyChanged(nameof(SpentOrCoinJoinInProcess));
+						OnPropertyChanged(nameof(SpentOrCoinJoinInProgress));
 					}
 				}
 			}
@@ -132,7 +132,7 @@ namespace WalletWasabi.Models
 		[JsonProperty(Order = 11)]
 		public int Mixin { get; }
 
-		public bool SpentOrCoinJoinInProcess => SpenderTransactionId != null || CoinJoinInProcess;
+		public bool SpentOrCoinJoinInProgress => SpenderTransactionId != null || CoinJoinInProgress;
 		public bool Unspent => SpenderTransactionId == null;
 		public bool Confirmed => Height != Height.MemPool && Height != Height.Unknown;
 
@@ -147,7 +147,7 @@ namespace WalletWasabi.Models
 		public ISecret Secret { get; set; }
 
 		[JsonConstructor]
-		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool locked = false)
+		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false)
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
@@ -159,11 +159,11 @@ namespace WalletWasabi.Models
 			Label = Guard.Correct(label);
 			SpenderTransactionId = spenderTransactionId;
 			RBF = rbf;
-			CoinJoinInProcess = locked;
+			CoinJoinInProgress = coinJoinInProgress;
 			Secret = null;
 		}
 
-		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool locked = false)
+		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false)
 		{
 			Guard.NotNull(nameof(coin), coin);
 			TransactionId = coin.Outpoint.Hash;
@@ -176,7 +176,7 @@ namespace WalletWasabi.Models
 			Label = Guard.Correct(label);
 			SpenderTransactionId = spenderTransactionId;
 			RBF = rbf;
-			CoinJoinInProcess = locked;
+			CoinJoinInProgress = coinJoinInProgress;
 			Secret = null;
 		}
 

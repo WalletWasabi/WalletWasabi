@@ -23,6 +23,35 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Rounds = new List<CcjClientRound>();
 		}
 
+		public void UpdateCoin(SmartCoin coin)
+		{
+			lock (StateLock)
+			{
+				SmartCoin found = WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).FirstOrDefault(x => x == coin);
+				if (found != default)
+				{
+					if (WaitingList.Contains(coin))
+					{
+						coin.CoinJoinInProgress = true;
+						WaitingList.Remove(found);
+						WaitingList.Add(coin);
+						return;
+					}
+
+					foreach (CcjClientRound round in Rounds)
+					{
+						if (round.CoinsRegistered.Contains(coin))
+						{
+							coin.CoinJoinInProgress = true;
+							round.CoinsRegistered.Remove(found);
+							round.CoinsRegistered.Add(coin);
+							return;
+						}
+					}
+				}
+			}
+		}
+
 		public void AddCoinToWaitingList(SmartCoin coin)
 		{
 			lock (StateLock)
@@ -95,11 +124,51 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetAllCoins()
+		public IEnumerable<(uint256 txid, uint index)> GetAllQueuedCoins()
 		{
 			lock (StateLock)
 			{
 				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => (x.TransactionId, x.Index)).ToArray();
+			}
+		}
+
+		public Money SumAllQueuedCoinAmounts()
+		{
+			lock (StateLock)
+			{
+				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Sum(x => x.Amount);
+			}
+		}
+
+		public int CountAllQueuedCoins()
+		{
+			lock (StateLock)
+			{
+				return WaitingList.Count + Rounds.Sum(x => x.CoinsRegistered.Count);
+			}
+		}
+
+		public IEnumerable<Money> GetAllQueuedCoinAmounts()
+		{
+			lock (StateLock)
+			{
+				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => x.Amount).ToArray();
+			}
+		}
+
+		public IEnumerable<(uint256 txid, uint index)> GetAllWaitingCoins()
+		{
+			lock (StateLock)
+			{
+				return WaitingList.Select(x => (x.TransactionId, x.Index)).ToArray();
+			}
+		}
+
+		public IEnumerable<(uint256 txid, uint index)> GetAllRegisteredCoins()
+		{
+			lock (StateLock)
+			{
+				return Rounds.SelectMany(x => x.CoinsRegistered).Select(x => (x.TransactionId, x.Index)).ToArray();
 			}
 		}
 

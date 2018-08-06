@@ -86,7 +86,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			Denomination = Money.Coins(0.1m);
 			ConfirmationTarget = 144; // 1 day
-			CoordinatorFeePercent = 0.1m;
+			CoordinatorFeePercent = 0.003m; // Coordinator fee percent is per anonymity set.
 			AnonymitySet = 100;
 			InputRegistrationTimeout = 604800; // One week
 			ConnectionConfirmationTimeout = 60;

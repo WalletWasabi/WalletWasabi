@@ -56,7 +56,7 @@ It is your own responsibility to ensure that the use of Wasabi Wallet complies w
 
 Subject to the other provisions of these Terms, including, but not limited to Section 4 on Prohibited Activities, you may freely download and use the Client Application without any charge or fee imposed on you by the Service Provider.
 The Service Provider does not charge You transaction fees after normal Bitcoin transactions, however You are still subject to transaction fees, charged by the Bitcoin network and received by the Bitcoin miners.
-Both the Service Provider and the Bitcoin network charge you transaction fees after CoinJoin Bitcoin transactions. CoinJoin transactions are shared transactions with other users of the wallet. You initiate a CoinJoin transaction by providing unspent transaction outputs to the Service Engine and a CoinJoin round will be executed when a sufficient number of other users provided unspent transaction outputs. The transaction fee, charged by the Service Provider is 0.3% after each round of transaction you initiate, except if:
+Both the Service Provider and the Bitcoin network charge you transaction fees after CoinJoin Bitcoin transactions. CoinJoin transactions are shared transactions with other users of the wallet. You initiate a CoinJoin transaction by providing unspent transaction outputs to the Service Engine and a CoinJoin round will be executed when a sufficient number of other users provided unspent transaction outputs. The transaction fee, charged by the Service Provider is 0.003% multiplied by the number of users in each round of transaction you initiate, except if:
 You are providing the unspent transaction outputs with the smallest accumulated value to the round. In this case You are not being charged with any fees by the Service Provider.
 You provided unspent transaction outputs, in a way that in the final CoinJoin transaction would result in a change output back to you that is smaller than or equal to 1% of the denomination of the CoinJoin round. In this rare case, change output will not be generated, to gain an edge on privacy, rather the value of the change output will be added to the fees charged by the Service Provider after the round.
 The transaction fees, both charged by the Bitcoin network and the Service Provider shall be automatically processed by our Engine by means of deducting the appropriate amount from the transaction you submit.
@@ -162,7 +162,7 @@ www.zksnacks.com(*)
 (*) We recommend you to use Tor browser in order to protect your privacy.
 			";
 
-			TermsAndConditions += new String('\n', 100);
+			TermsAndConditions += new string('\n', 100);
 		}
 
 		public string TermsAndConditions { get; }

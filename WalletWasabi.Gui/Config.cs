@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
@@ -24,14 +25,14 @@ namespace WalletWasabi.Gui
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; private set; }
 
-		[JsonProperty(PropertyName = "MainNetBackendUri")]
-		public string MainNetBackendUri { get; private set; }
+		[JsonProperty(PropertyName = "MainNetBackendUriV3")]
+		public string MainNetBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "TestNetBackendUri")]
-		public string TestNetBackendUri { get; private set; }
+		[JsonProperty(PropertyName = "TestNetBackendUriV3")]
+		public string TestNetBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "RegTestBackendUri")]
-		public string RegTestBackendUri { get; private set; }
+		[JsonProperty(PropertyName = "RegTestBackendUriV3")]
+		public string RegTestBackendUriV3 { get; private set; }
 
 		[JsonProperty(PropertyName = "TestNetBlindingRsaPubKey")]
 		public string TestNetBlindingRsaPubKey { get; private set; }
@@ -42,6 +43,12 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "RegTestBlindingRsaPubKey")]
 		public string RegTestBlindingRsaPubKey { get; private set; }
 
+		[JsonProperty(PropertyName = "TorSocks5Host")]
+		public string TorSocks5Host { get; private set; }
+
+		[JsonProperty(PropertyName = "TorSocks5Port")]
+		public int? TorSocks5Port { get; private set; }
+
 		private Uri _backendUri;
 
 		public Uri GetCurrentBackendUri()
@@ -50,18 +57,31 @@ namespace WalletWasabi.Gui
 
 			if (Network == Network.Main)
 			{
-				_backendUri = new Uri(MainNetBackendUri);
+				_backendUri = new Uri(MainNetBackendUriV3);
 			}
 			else if (Network == Network.TestNet)
 			{
-				_backendUri = new Uri(TestNetBackendUri);
+				_backendUri = new Uri(TestNetBackendUriV3);
 			}
 			else // RegTest
 			{
-				_backendUri = new Uri(RegTestBackendUri);
+				_backendUri = new Uri(RegTestBackendUriV3);
 			}
 
 			return _backendUri;
+		}
+
+		private IPEndPoint _torSocks5EndPoint;
+
+		public IPEndPoint GetTorSocks5EndPoint()
+		{
+			if (_torSocks5EndPoint == null)
+			{
+				var host = IPAddress.Parse(TorSocks5Host);
+				_torSocks5EndPoint = new IPEndPoint(host, (int)TorSocks5Port);
+			}
+
+			return _torSocks5EndPoint;
 		}
 
 		private BlindingRsaPubKey _blindingRsaPubKey;
@@ -99,17 +119,20 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public Config(Network network, string mainNetBackendUri, string testNetBackendUri, string regTestBackendUri, string mainNetBlindingRsaPubKey, string testNetBlindingRsaPubKey, string regTestBlindingRsaPubKey)
+		public Config(Network network, string mainNetBackendUriV3, string testNetBackendUriV3, string regTestBackendUriV3, string mainNetBlindingRsaPubKey, string testNetBlindingRsaPubKey, string regTestBlindingRsaPubKey, string torSocks5Host, int? torSocks5Port)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 
-			MainNetBackendUri = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBackendUri), mainNetBackendUri);
-			TestNetBackendUri = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUri), testNetBackendUri);
-			RegTestBackendUri = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBackendUri), regTestBackendUri);
+			MainNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBackendUriV3), mainNetBackendUriV3);
+			TestNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUriV3), testNetBackendUriV3);
+			RegTestBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBackendUriV3), regTestBackendUriV3);
 
 			MainNetBlindingRsaPubKey = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBlindingRsaPubKey), mainNetBlindingRsaPubKey);
 			TestNetBlindingRsaPubKey = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBlindingRsaPubKey), testNetBlindingRsaPubKey);
 			RegTestBlindingRsaPubKey = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBlindingRsaPubKey), regTestBlindingRsaPubKey);
+
+			TorSocks5Host = Guard.NotNullOrEmptyOrWhitespace(nameof(torSocks5Host), torSocks5Host);
+			TorSocks5Port = Guard.NotNull(nameof(torSocks5Port), torSocks5Port);
 		}
 
 		/// <inheritdoc />
@@ -130,13 +153,16 @@ namespace WalletWasabi.Gui
 
 			Network = Network.Main;
 
-			MainNetBackendUri = "http://4jsmnfcsmbrlm7l7.onion/";
-			TestNetBackendUri = "http://wtgjmaol3io5ijii.onion/";
-			RegTestBackendUri = "http://localhost:37127/";
+			MainNetBackendUriV3 = "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/ ";
+			TestNetBackendUriV3 = "http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/";
+			RegTestBackendUriV3 = "http://localhost:37127/";
 
 			MainNetBlindingRsaPubKey = "16421152619146079007287475569112871971988560541093277613438316709041030720662622782033859387192362542996510605015506477964793447620206674394713753349543444988246276357919473682408472170521463339860947351211455351029147665615454176157348164935212551240942809518428851690991984017733153078846480521091423447691527000770982623947706172997649440619968085147635776736938871139581019988225202983052255684151711253254086264386774936200194229277914886876824852466823571396538091430866082004097086602287294474304344865162932126041736158327600847754258634325228417149098062181558798532036659383679712667027126535424484318399849";
 			TestNetBlindingRsaPubKey = "19473594448380717274202325076521698699373476167359253614775896809797414915031772455344343455269320444157176520539924715307970060890094127521516100754263825112231545354422893125394219335109864514907655429499954825469485252969706079992227103439161156022844535556626007277544637236136559868400854764962522288139619969507311597914908752685925185380735570791798593290356424409633800092336087046668579610273133131498947353719917407262847070395909920415822288443947309434039008038907229064999576278651443575362470457496666718250346530518268694562965606704838796709743032825816642704620776596590683042135764246115456630753521";
-			RegTestBlindingRsaPubKey = "22150624048432351435695977813740447889408430038879549048669066759540857545194001686487035241226456922025362879904859086838539432404987971759281429087375036048566838323339034078875508311398019006566184621390613010655498049414411420453947773863327821032649547904953655351771067398194902527635974622680354037013275997209153454388073967935123137747633576410851133282514228950508503034222184195026309976327466634252381374641066331514368416311365206032260350939804067745887217463885470620044453632242044977087525656336957163920422847954554131015783995416461568282600638297091432144315385391445294118275302802043857482568817";
+			RegTestBlindingRsaPubKey = "19805113859916587596075691932680544502861190231482837135218424025384831779489269920459188761934430015720070888224509088334152377323792066863417578306968689084791111308220228369762317647065031287517847066636982918712457594977634751868801139928799770519498159408918552825154189662499542806401435306060574685644660620060856030258068774230785018597890946429085154652737881893280417266199217120928088976827238198687973416161592683348464391329470544325577003456519043206654114118700413398703915300437305079248875534495551617486735684899764754790953560278186552096336558799678522940277063802490218431509991711997155692507897";
+
+			TorSocks5Host = IPAddress.Loopback.ToString();
+			TorSocks5Port = 9050;
 
 			if (!File.Exists(FilePath))
 			{
@@ -149,13 +175,16 @@ namespace WalletWasabi.Gui
 
 				Network = config.Network ?? Network;
 
-				MainNetBackendUri = config.MainNetBackendUri ?? MainNetBackendUri;
-				TestNetBackendUri = config.TestNetBackendUri ?? TestNetBackendUri;
-				RegTestBackendUri = config.RegTestBackendUri ?? RegTestBackendUri;
+				MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
+				TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
+				RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
 
 				MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
 				TestNetBlindingRsaPubKey = config.TestNetBlindingRsaPubKey ?? TestNetBlindingRsaPubKey;
 				RegTestBlindingRsaPubKey = config.RegTestBlindingRsaPubKey ?? RegTestBlindingRsaPubKey;
+
+				TorSocks5Host = config.TorSocks5Host ?? TorSocks5Host;
+				TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
 			}
 
 			_backendUri = GetCurrentBackendUri();
@@ -182,17 +211,17 @@ namespace WalletWasabi.Gui
 				return true;
 			}
 
-			if (!TestNetBackendUri.Equals(config.TestNetBackendUri, StringComparison.OrdinalIgnoreCase))
+			if (!TestNetBackendUriV3.Equals(config.TestNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
 			}
 
-			if (!RegTestBackendUri.Equals(config.RegTestBackendUri, StringComparison.OrdinalIgnoreCase))
+			if (!RegTestBackendUriV3.Equals(config.RegTestBackendUriV3, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
 			}
 
-			if (!MainNetBackendUri.Equals(config.MainNetBackendUri, StringComparison.OrdinalIgnoreCase))
+			if (!MainNetBackendUriV3.Equals(config.MainNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
 			}
@@ -208,6 +237,16 @@ namespace WalletWasabi.Gui
 			}
 
 			if (!RegTestBlindingRsaPubKey.Equals(config.RegTestBlindingRsaPubKey, StringComparison.Ordinal))
+			{
+				return true;
+			}
+
+			if (!TorSocks5Host.Equals(config.TorSocks5Host, StringComparison.Ordinal))
+			{
+				return true;
+			}
+
+			if (TorSocks5Port != config.TorSocks5Port)
 			{
 				return true;
 			}

@@ -42,23 +42,23 @@
               <TextBlock Foreground="YellowGreen" Text="BTC"></TextBlock>
               <TextBlock Text="for CoinJoin."></TextBlock>
             </StackPanel>
-  
+
             <StackPanel Orientation="Horizontal" Gap="4">
               <TextBlock Text="Coordinator Fee:"></TextBlock>
               <TextBlock Text="{Binding CoordinatorFeePercent}"></TextBlock>
-              <TextBlock Text="%"></TextBlock>
+              <TextBlock Text="% per anonymity set."></TextBlock>
             </StackPanel>
-  
+
             <StackPanel Orientation="Horizontal" Gap="4">
               <TextBlock Text="Round ID:"></TextBlock>
               <TextBlock Text="{Binding RoundId}"></TextBlock>
             </StackPanel>
-  
+
             <StackPanel Orientation="Horizontal" Gap="4">
               <TextBlock Text="Phase:"></TextBlock>
               <TextBlock Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}"></TextBlock>
             </StackPanel>
-  
+
             <StackPanel Orientation="Horizontal" Gap="4">
               <TextBlock Text="Number Of Registered Peers:"></TextBlock>
               <TextBlock Foreground="YellowGreen" Text="{Binding PeersRegistered}"></TextBlock>
