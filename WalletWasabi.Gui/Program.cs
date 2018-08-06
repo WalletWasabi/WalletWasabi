@@ -25,7 +25,6 @@ namespace WalletWasabi.Gui
 				{
 					try
 					{
-
 						MainWindowViewModel.Instance = new MainWindowViewModel();
 
 						Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
