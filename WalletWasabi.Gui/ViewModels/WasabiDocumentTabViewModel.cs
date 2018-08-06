@@ -30,21 +30,28 @@ namespace WalletWasabi.Gui.ViewModels
 			get { return _isSelected; }
 			set { this.RaiseAndSetIfChanged(ref _isSelected, value); }
 		}
-		
+
+		public bool IsDirty { get; set; }
+
 		public virtual void Close()
 		{
 			IoC.Get<IShell>().RemoveDocument(this);
-			this.IsSelected = false;
+			IsSelected = false;
 		}
 
 		public virtual void OnSelected()
 		{
-			this.IsSelected = true;
+			IsSelected = true;
 		}
 
 		public virtual void OnDeselected()
 		{
-			this.IsSelected = false;
+			IsSelected = false;
+		}
+
+		public bool OnClose()
+		{
+			return false;
 		}
 	}
 }
