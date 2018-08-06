@@ -1,6 +1,6 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
-  <StackPanel Margin="10" Gap="10">
+  <StackPanel Margin="10" Spacing="10">
     <Border Padding="2" Background="ForestGreen" HorizontalAlignment="Center" BorderBrush="#FF000000" BorderThickness="1,1,1,1" CornerRadius="6,6, 6, 6">
       <TextBlock HorizontalAlignment="Center" Text=" Your Wallet Was Generated Successfully! " Foreground="{DynamicResource ApplicationAccentForegroundBrush}" />
     </Border>
