@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool OnClose()
 		{
-			return false;
+			return true;
 		}
 	}
 }
