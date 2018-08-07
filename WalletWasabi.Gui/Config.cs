@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "Network")]
 		[JsonConverter(typeof(NetworkJsonConverter))]
-		public Network Network { get; private set; }
+		public Network Network { get; internal set; }
 
 		[JsonProperty(PropertyName = "MainNetBackendUriV3")]
 		public string MainNetBackendUriV3 { get; private set; }
@@ -264,6 +264,23 @@ namespace WalletWasabi.Gui
 		public void AssertFilePathSet()
 		{
 			if (FilePath == null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+		}
+
+		public Config Clone()
+		{
+			var cfg = new Config();
+			cfg.FilePath = FilePath;
+			cfg.Network = Network;
+
+			cfg.MainNetBackendUriV3 = MainNetBackendUriV3;
+			cfg.TestNetBackendUriV3 = TestNetBackendUriV3;
+			cfg.RegTestBackendUriV3 = RegTestBackendUriV3;
+			cfg.MainNetBlindingRsaPubKey = MainNetBlindingRsaPubKey;
+			cfg.TestNetBlindingRsaPubKey = TestNetBlindingRsaPubKey;
+			cfg.RegTestBlindingRsaPubKey = RegTestBlindingRsaPubKey;
+			cfg.TorSocks5Host = TorSocks5Host;
+			cfg.TorSocks5Port = TorSocks5Port;
+			return cfg;
 		}
 	}
 }

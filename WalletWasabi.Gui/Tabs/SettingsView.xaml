@@ -1,0 +1,19 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+  <StackPanel Margin="10" Gap="10">
+    <controls:GroupBox Title="{Binding Title}"  TextBlock.FontSize="30" Padding="30" >
+      <Grid Classes="content">
+        <StackPanel Orientation="Vertical" Gap="8">
+          <StackPanel>
+            <TextBlock FontWeight="Bold">Heads Up! </TextBlock>
+            <TextBlock>Changes will be applied after restarting the application.</TextBlock>
+          </StackPanel>
+          <StackPanel Margin="0 20 0 20">
+            <TextBlock>Network</TextBlock>
+            <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network}"/>
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+    </controls:GroupBox>
+  </StackPanel>
+</UserControl>

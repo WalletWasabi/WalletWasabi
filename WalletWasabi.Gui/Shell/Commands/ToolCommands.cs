@@ -7,6 +7,7 @@ using ReactiveUI;
 using System.IO;
 using System.Linq;
 using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Gui.Tabs;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -21,9 +22,12 @@ namespace WalletWasabi.Gui.Shell.Commands
 				ReactiveCommand.Create(OnWalletManager));
 
 			SettingsCommand = new CommandDefinition(
-				"I Do Nothing",
+				"Settings",
 				null,
-				ReactiveCommand.Create(() => { }));
+				ReactiveCommand.Create(()=>
+				{
+					IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel());
+				}));
 		}
 
 		private void OnWalletManager()
