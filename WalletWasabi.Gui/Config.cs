@@ -44,10 +44,10 @@ namespace WalletWasabi.Gui
 		public string RegTestBlindingRsaPubKey { get; private set; }
 
 		[JsonProperty(PropertyName = "TorHost")]
-		public string TorHost { get; private set; }
+		public string TorHost { get; internal set; }
 
 		[JsonProperty(PropertyName = "TorSocks5Port")]
-		public int? TorSocks5Port { get; private set; }
+		public int? TorSocks5Port { get; internal set; }
 
 		private Uri _backendUri;
 
