@@ -3,6 +3,7 @@ using ReactiveUI;
 using Avalonia;
 using System;
 using System.Collections.Generic;
+using Avalonia.Threading;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -38,8 +39,12 @@ namespace WalletWasabi.Gui.Tabs
 
 				var config = Global.Config.Clone();
 				config.Network = NBitcoin.Network.GetNetwork(value);
-				config.ToFileAsync().RunSynchronously();
-				this.RaiseAndSetIfChanged(ref _network, value);
+				Dispatcher.UIThread.Post(async () =>
+				{
+					await config.ToFileAsync();
+				});
+
+				this.RaiseAndSetIfChanged(ref _network, value); 
 			}
 		}
 	}
