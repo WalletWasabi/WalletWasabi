@@ -278,7 +278,7 @@ namespace WalletWasabi.Gui
 			cfg.MainNetBlindingRsaPubKey = MainNetBlindingRsaPubKey;
 			cfg.TestNetBlindingRsaPubKey = TestNetBlindingRsaPubKey;
 			cfg.RegTestBlindingRsaPubKey = RegTestBlindingRsaPubKey;
-			cfg.TorSocks5Host = TorSocks5Host;
+			cfg.TorHost = TorHost;
 			cfg.TorSocks5Port = TorSocks5Port;
 			return cfg;
 		}
