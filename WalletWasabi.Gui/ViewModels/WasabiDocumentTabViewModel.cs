@@ -51,6 +51,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool OnClose()
 		{
+			IoC.Get<IShell>().RemoveDocument(this);
+
 			return true;
 		}
 	}
