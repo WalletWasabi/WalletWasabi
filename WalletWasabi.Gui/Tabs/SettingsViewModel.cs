@@ -17,27 +17,29 @@ namespace WalletWasabi.Gui.Tabs
 
 		public IEnumerable<string> Networks
 		{
-			get { 
-				return new []{ 
+			get
+			{
+				return new[]{
 					  "MainNet"
 					, "TestNet3"
 #if DEBUG
 					, "RegTest"
 #endif
-				}; 
+				};
 			}
 		}
-		
+
 		public string Network
 		{
 			get { return _network; }
-			set {
-				if(value == _network) return;
-				
+			set
+			{
+				if (value == _network) return;
+
 				var config = Global.Config.Clone();
 				config.Network = NBitcoin.Network.GetNetwork(value);
 				config.ToFileAsync().RunSynchronously();
-				this.RaiseAndSetIfChanged(ref _network, value); 
+				this.RaiseAndSetIfChanged(ref _network, value);
 			}
 		}
 	}

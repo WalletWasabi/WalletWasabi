@@ -23,8 +23,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			SettingsCommand = new CommandDefinition(
 				"Settings",
-				null,
-				ReactiveCommand.Create(()=>
+				commandIconService.GetCompletionKindImage("Settings"),
+				ReactiveCommand.Create(() =>
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel());
 				}));
