@@ -167,6 +167,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						walletFileInfo.LastAccessTime = DateTime.Now;
 
 						var keyManager = KeyManager.FromFile(walletFullPath);
+						Logger.LogInfo($"Wallet decrypted: {SelectedWallet}.");
 
 						await Global.InitializeWalletServiceAsync(keyManager);
 					});
