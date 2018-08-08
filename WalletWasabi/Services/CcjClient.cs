@@ -15,6 +15,7 @@ using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
+using System.Collections.Concurrent;
 
 namespace WalletWasabi.Services
 {
@@ -32,6 +33,11 @@ namespace WalletWasabi.Services
 		public SatoshiClient SatoshiClient { get; }
 		public Uri CcjHostUri { get; }
 		private IPEndPoint TorSocks5EndPoint { get; }
+
+		/// <summary>
+		/// Used to avoid address reuse as much as possible but still not bloating the wallet.
+		/// </summary>
+		private ConcurrentDictionary<HdPubKey, DateTimeOffset> AccessCache { get; }
 
 		private AsyncLock MixLock { get; }
 
@@ -57,6 +63,7 @@ namespace WalletWasabi.Services
 
 		public CcjClient(Network network, BlindingRsaPubKey coordinatorPubKey, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
+			AccessCache = new ConcurrentDictionary<HdPubKey, DateTimeOffset>();
 			Network = Guard.NotNull(nameof(network), network);
 			CoordinatorPubKey = Guard.NotNull(nameof(coordinatorPubKey), coordinatorPubKey);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
@@ -391,8 +398,63 @@ namespace WalletWasabi.Services
 							CustomActiveAddresses.RemoveFirst();
 						}
 					}
-					changeAddress = changeAddress ?? KeyManager.GenerateNewKey("ZeroLink Change", KeyState.Locked, isInternal: true, toFile: false).GetP2wpkhAddress(Network);
-					activeAddress = activeAddress ?? KeyManager.GenerateNewKey("ZeroLink Mixed Coin", KeyState.Locked, isInternal: true, toFile: false).GetP2wpkhAddress(Network);
+
+					if (changeAddress == null || activeAddress == null)
+					{
+						IEnumerable<HdPubKey> allUnusedInternalKeys = KeyManager.GetKeys(keyState: null, isInternal: true).Where(x => x.KeyState != KeyState.Used);
+
+						if (changeAddress == null)
+						{
+							string changeLabel = "ZeroLink Change";
+							IEnumerable<HdPubKey> allChangeKeys = allUnusedInternalKeys.Where(x => x.Label == changeLabel);
+							HdPubKey changeKey = null;
+							if (allChangeKeys.Count() >= 7) // Then don't generate new keys, because it'd bloat the wallet.
+							{
+								// Find the first one that we did not try to register in the current session.
+								changeKey = allChangeKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
+								// If there is no such a key, then use the oldest.
+								if (changeKey == default)
+								{
+									changeKey = AccessCache.Where(x => allChangeKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
+								}
+								changeKey.SetLabel(changeLabel);
+								changeKey.SetKeyState(KeyState.Locked);
+							}
+							else
+							{
+								changeKey = KeyManager.GenerateNewKey(changeLabel, KeyState.Locked, isInternal: true, toFile: false);
+							}
+							changeAddress = changeKey.GetP2wpkhAddress(Network);
+							AccessCache.AddOrReplace(changeKey, DateTimeOffset.UtcNow);
+						}
+
+						if (activeAddress == null)
+						{
+							const string activeLabel = "ZeroLink Mixed Coin";
+							IEnumerable<HdPubKey> allActiveKeys = allUnusedInternalKeys.Where(x => x.Label == activeLabel);
+							HdPubKey activeKey = null;
+							if (allActiveKeys.Count() >= 7) // Then don't generate new keys, because it'd bloat the wallet.
+							{
+								// Find the first one that we did not try to register in the current session.
+								activeKey = allActiveKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
+								// If there is no such a key, then use the oldest.
+								if (activeKey == default)
+								{
+									activeKey = AccessCache.Where(x => allActiveKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
+								}
+								activeKey.SetLabel(activeLabel);
+								activeKey.SetKeyState(KeyState.Locked);
+								activeAddress = activeKey.GetP2wpkhAddress(Network);
+							}
+							else
+							{
+								activeKey = KeyManager.GenerateNewKey(activeLabel, KeyState.Locked, isInternal: true, toFile: false);
+							}
+							activeAddress = activeKey.GetP2wpkhAddress(Network);
+							AccessCache.AddOrReplace(activeKey, DateTimeOffset.UtcNow);
+						}
+					}
+
 					KeyManager.ToFile();
 
 					var blind = CoordinatorPubKey.Blind(activeAddress.ScriptPubKey.ToBytes());
