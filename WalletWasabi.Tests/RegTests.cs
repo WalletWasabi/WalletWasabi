@@ -1656,7 +1656,7 @@ namespace WalletWasabi.Tests
 			int connectionConfirmationTimeout = 50;
 			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2);
 			coordinator.UpdateRoundConfig(roundConfig);
-			coordinator.FailAllRoundsInInputRegistration();
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			using (var torClient = new TorHttpClient(baseUri))
@@ -1747,20 +1747,20 @@ namespace WalletWasabi.Tests
 
 				roundConfig.Denomination = Money.Coins(0.01m); // exactly the same as our output
 				coordinator.UpdateRoundConfig(roundConfig);
-				coordinator.FailAllRoundsInInputRegistration();
+				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
 				roundConfig.Denomination = Money.Coins(0.00999999m); // one satoshi less than our output
 				coordinator.UpdateRoundConfig(roundConfig);
-				coordinator.FailAllRoundsInInputRegistration();
+				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
 				roundConfig.Denomination = Money.Coins(0.008m); // one satoshi less than our output
 				roundConfig.ConnectionConfirmationTimeout = 2;
 				coordinator.UpdateRoundConfig(roundConfig);
-				coordinator.FailAllRoundsInInputRegistration();
+				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				using (var aliceClient = await AliceClient.CreateNewAsync(network, inputsRequest, baseUri))
 				{
 					Assert.NotNull(aliceClient.BlindedOutputSignature);
@@ -1849,7 +1849,7 @@ namespace WalletWasabi.Tests
 
 					roundConfig.ConnectionConfirmationTimeout = 1; // One second.
 					coordinator.UpdateRoundConfig(roundConfig);
-					coordinator.FailAllRoundsInInputRegistration();
+					coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
 					roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
 					Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
@@ -1940,7 +1940,7 @@ namespace WalletWasabi.Tests
 
 					roundConfig.ConnectionConfirmationTimeout = 60;
 					coordinator.UpdateRoundConfig(roundConfig);
-					coordinator.FailAllRoundsInInputRegistration();
+					coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 					httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostConfirmationAsync());
 					Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nRound is not running.", httpRequestException.Message);
 				}
@@ -2125,7 +2125,7 @@ namespace WalletWasabi.Tests
 			int connectionConfirmationTimeout = 120;
 			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
-			coordinator.FailAllRoundsInInputRegistration();
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
@@ -2261,7 +2261,7 @@ namespace WalletWasabi.Tests
 			int connectionConfirmationTimeout = 120;
 			var roundConfig = new CcjRoundConfig(denomination, 144, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
-			coordinator.FailAllRoundsInInputRegistration();
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(100); // So to make sure we have enough money.
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
@@ -2468,7 +2468,7 @@ namespace WalletWasabi.Tests
 			int connectionConfirmationTimeout = 14;
 			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
-			coordinator.FailAllRoundsInInputRegistration();
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
 			var keyManager = KeyManager.CreateNew(out _, password);
 			var key1 = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
@@ -2568,7 +2568,7 @@ namespace WalletWasabi.Tests
 				connectionConfirmationTimeout = 1;
 				roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
 				coordinator.UpdateRoundConfig(roundConfig);
-				coordinator.FailAllRoundsInInputRegistration();
+				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
 				await chaumianClient1.DequeueAllCoinsFromMixAsync();
 				Assert.Empty(chaumianClient1.State.GetAllQueuedCoins());
@@ -2613,7 +2613,7 @@ namespace WalletWasabi.Tests
 			int connectionConfirmationTimeout = 14;
 			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
-			coordinator.FailAllRoundsInInputRegistration();
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
 			var keyManager = KeyManager.CreateNew(out _, password);
 			var key1 = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
@@ -2710,7 +2710,7 @@ namespace WalletWasabi.Tests
 			int connectionConfirmationTimeout = 14;
 			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1);
 			coordinator.UpdateRoundConfig(roundConfig);
-			coordinator.FailAllRoundsInInputRegistration();
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
 			// Create the services.
 			// 1. Create connection service.

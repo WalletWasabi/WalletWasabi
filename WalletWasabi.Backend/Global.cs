@@ -69,7 +69,7 @@ namespace WalletWasabi.Backend
 					{
 						Coordinator.UpdateRoundConfig(RoundConfig);
 
-						Coordinator.FailAllRoundsInInputRegistration();
+						Coordinator.AbortAllRoundsInInputRegistration(nameof(ConfigWatcher), $"{nameof(RoundConfig)} has changed.");
 					}
 					catch (Exception ex)
 					{
@@ -78,7 +78,7 @@ namespace WalletWasabi.Backend
 
 					return Task.CompletedTask;
 				}); // Every 10 seconds check the config
-				Logger.LogInfo<ConfigWatcher>("RoundConfigWatcher is successfully started.");
+				Logger.LogInfo<ConfigWatcher>($"{nameof(RoundConfigWatcher)} is successfully started.");
 			}
 		}
 

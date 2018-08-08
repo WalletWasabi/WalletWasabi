@@ -159,7 +159,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError<CcjRound>($"Round ({RoundId}) creation failed.");
+				Logger.LogError<CcjRound>($"Round ({RoundId}): Could not create.");
 				Logger.LogError<CcjRound>(ex);
 				throw;
 			}
@@ -211,7 +211,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 						Status = CcjRoundStatus.Running;
 					}
-					else if (Status != CcjRoundStatus.Running) // Failed or succeeded, swallow
+					else if (Status != CcjRoundStatus.Running) // Aborted or succeeded, swallow
 					{
 						return;
 					}
@@ -320,7 +320,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				catch (Exception ex)
 				{
 					Logger.LogError<CcjRound>(ex);
-					Status = CcjRoundStatus.Failed;
+					Status = CcjRoundStatus.Aborted;
 					throw;
 				}
 			}
@@ -353,14 +353,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				// Delay asyncronously to the requested timeout.
 				await Task.Delay(timeout);
 
-				var executeRunFailure = false;
+				var executeRunAbortion = false;
 				using (await RoundSyncronizerLock.LockAsync())
 				{
-					executeRunFailure = Status == CcjRoundStatus.Running && Phase == expectedPhase;
+					executeRunAbortion = Status == CcjRoundStatus.Running && Phase == expectedPhase;
 				}
-				if (executeRunFailure)
+				if (executeRunAbortion)
 				{
-					Logger.LogInfo<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds. Failure mode is executing.");
+					Logger.LogInfo<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds. Aborting...");
 
 					// This will happen outside the lock.
 					Task.Run(async () =>
@@ -371,13 +371,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							{
 								case CcjRoundPhase.InputRegistration:
 									{
-										// Only fail if less than two one Alice is registered.
+										// Only abort if less than two one Alice is registered.
 										// Don't ban anyone, it's ok if they lost connection.
 										await RemoveAlicesIfInputsSpentAsync();
 										int aliceCountAfterInputRegistrationTimeout = CountAlices();
 										if (aliceCountAfterInputRegistrationTimeout < 2)
 										{
-											Fail();
+											Abort(nameof(CcjRound), $"Only {aliceCountAfterInputRegistrationTimeout} Alices registered.");
 										}
 										else
 										{
@@ -390,7 +390,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 								case CcjRoundPhase.ConnectionConfirmation:
 									{
-										// Only fail if less than two one alices are registered.
+										// Only abort if less than two one alices are registered.
 										// What if an attacker registers all the time many alices, then drops out. He'll achieve only 2 alices to participate?
 										// If he registers many alices at InputRegistration
 										// AND never confirms in connection confirmation
@@ -411,7 +411,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
 										if (aliceCountAfterConnectionConfirmationTimeout < 2)
 										{
-											Fail();
+											Abort(nameof(CcjRound), $"Only {aliceCountAfterConnectionConfirmationTimeout} Alices confiremd their connection.");
 										}
 										else
 										{
@@ -424,9 +424,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 								case CcjRoundPhase.OutputRegistration:
 									{
-										// Output registration never fails.
+										// Output registration never aborts.
 										// We don't know which Alice to ban.
-										// Therefore proceed to signing, and whichever Alice doesn't sign ban.
+										// Therefore proceed to signing, and whichever Alice doesn't sign, ban her.
 										await ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
 									}
 									break;
@@ -448,7 +448,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										{
 											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, outpointsToBan.ToArray());
 										}
-										Fail();
+										Abort(nameof(CcjRound), "Not all Alices signed.");
 									}
 									break;
 
@@ -481,20 +481,30 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Succeeded.");
 		}
 
-		public void Fail(bool syncLock = true)
+		public void Abort(string loggingCategory, string reason, bool syncLock = true)
 		{
 			if (syncLock)
 			{
 				using (RoundSyncronizerLock.Lock())
 				{
-					Status = CcjRoundStatus.Failed;
+					Status = CcjRoundStatus.Aborted;
 				}
 			}
 			else
 			{
-				Status = CcjRoundStatus.Failed;
+				Status = CcjRoundStatus.Aborted;
 			}
-			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Failed.");
+
+			string category = string.IsNullOrWhiteSpace(loggingCategory) ? loggingCategory : nameof(CcjRound);
+
+			if (string.IsNullOrWhiteSpace(reason))
+			{
+				Logger.LogInfo($"Round ({RoundId}): Aborted.", category);
+			}
+			else
+			{
+				Logger.LogInfo($"Round ({RoundId}): Aborted. Reason: {reason}", category);
+			}
 		}
 
 		public int CountAlices(bool syncLock = true)
@@ -675,9 +685,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 					catch (Exception ex)
 					{
-						Logger.LogError<CcjRound>($"Round ({RoundId}): Failed to broadcast the CoinJoin: {SignedCoinJoin.GetHash()}.");
+						Abort(nameof(CcjRound), $"Could not broadcast the CoinJoin: {SignedCoinJoin.GetHash()}.", syncLock: false);
 						Logger.LogError<CcjRound>(ex);
-						Fail(syncLock: false);
 					}
 				}
 			}

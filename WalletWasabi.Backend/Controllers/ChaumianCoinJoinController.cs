@@ -344,7 +344,7 @@ namespace WalletWasabi.Backend.Controllers
 							int aliceCountAfterConnectionConfirmationTimeout = round.CountAlices();
 							if (aliceCountAfterConnectionConfirmationTimeout < 2)
 							{
-								round.Fail();
+								round.Abort(nameof(ChaumianCoinJoinController), $"Only {aliceCountAfterConnectionConfirmationTimeout} Alices confiremd their connection.");
 							}
 							else
 							{

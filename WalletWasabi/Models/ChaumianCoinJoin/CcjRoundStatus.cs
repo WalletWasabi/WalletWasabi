@@ -5,6 +5,6 @@
 		NotStarted,
 		Running,
 		Succeded,
-		Failed
+		Aborted
 	}
 }
