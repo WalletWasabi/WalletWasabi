@@ -14,6 +14,8 @@ namespace WalletWasabi.Gui.Tabs
 		private string _network;
 		private string _torHost;
 		private string _torPort;
+		private bool _isDirty;
+		private bool _initialized;
 
 		public SettingsViewModel() : base("Settings")
 		{
@@ -23,7 +25,9 @@ namespace WalletWasabi.Gui.Tabs
 				? Global.Config.TorSocks5Port.Value.ToString() 
 				: string.Empty;
 
+			IsDirty = false;
 			this.WhenAnyValue(x=>x.Network, x=>x.TorHost, x=>x.TorPort).Subscribe(x=>Save());
+			_initialized = true;
 		}
 
 		public IEnumerable<string> Networks
@@ -60,11 +64,20 @@ namespace WalletWasabi.Gui.Tabs
 			set { this.RaiseAndSetIfChanged(ref _torPort, value); }
 		}
 
+		public bool IsDirty
+		{
+			get { return _isDirty; }
+			set { this.RaiseAndSetIfChanged(ref _isDirty, value); }
+		}
+
 		private void Save()
 		{
+			if(!_initialized) return;
 			var isValid  =  string.IsNullOrEmpty(ValidateTorHost()) &&
 							string.IsNullOrEmpty(ValidateTorPort());  
 			if(!isValid) return;
+
+			IsDirty = true;
 
 			var config = Global.Config.Clone();
 			config.Network = NBitcoin.Network.GetNetwork(_network);
