@@ -16,14 +16,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	[Export]
 	[ExportToolControl]
 	[Shared]
-	public class WalletExplorerViewModel : ToolViewModel, IExtension
+	public class WalletExplorerViewModel : ToolViewModel, IActivatableExtension
 	{
 		public override Location DefaultLocation => Location.Right;
 
 		public WalletExplorerViewModel()
 		{
 			Title = "Wallet Explorer";
-
+			
 			_wallets = new ObservableCollection<WalletViewModel>();
 		}
 
@@ -50,6 +50,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			WalletViewModel walletViewModel = new WalletViewModel(walletName, receiveDominant);
 			_wallets.Add(walletViewModel);
+		}
+
+		public void BeforeActivation()
+		{
+		}
+
+		public void Activation()
+		{
+			IoC.Get<IShell>().MainPerspective.AddOrSelectTool(this);
 		}
 	}
 }

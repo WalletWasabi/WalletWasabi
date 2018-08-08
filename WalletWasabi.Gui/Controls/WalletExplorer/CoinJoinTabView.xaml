@@ -13,7 +13,7 @@
     <controls:GroupBox Title="Queue Coins For CoinJoin" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5">
       <Grid Classes="content">
         <DockPanel LastChildFill="True">
-          <StackPanel Gap="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Right">
+          <StackPanel Spacing="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Right">
             <TextBlock Text="{Binding WarningMessageEnqueue}" Classes="warningMessage" />
             <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
             <DockPanel LastChildFill="True" VerticalAlignment="Top">
@@ -30,36 +30,36 @@
       <Grid Classes="content">
         <ScrollViewer>
           <StackPanel Orientation="Vertical">
-            <StackPanel Orientation="Horizontal" Gap="4">
+            <StackPanel Orientation="Horizontal" Spacing="4">
               <TextBlock Text="Minimum"></TextBlock>
               <TextBlock Foreground="YellowGreen" Text="{Binding RequiredBTC, Converter={StaticResource MoneyStringConverter}}"></TextBlock>
               <TextBlock Foreground="YellowGreen" Text="BTC"></TextBlock>
               <TextBlock Text="is required to be queued for CoinJoin."></TextBlock>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Gap="4" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
               <TextBlock Text="You have queued"></TextBlock>
               <TextBlock Foreground="YellowGreen" Text="{Binding AmountQueued, Converter={StaticResource MoneyStringConverter}}"></TextBlock>
               <TextBlock Foreground="YellowGreen" Text="BTC"></TextBlock>
               <TextBlock Text="for CoinJoin."></TextBlock>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" Gap="4">
+            <StackPanel Orientation="Horizontal" Spacing="4">
               <TextBlock Text="Coordinator Fee:"></TextBlock>
               <TextBlock Text="{Binding CoordinatorFeePercent}"></TextBlock>
               <TextBlock Text="% per anonymity set."></TextBlock>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" Gap="4">
+            <StackPanel Orientation="Horizontal" Spacing="4">
               <TextBlock Text="Round ID:"></TextBlock>
               <TextBlock Text="{Binding RoundId}"></TextBlock>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" Gap="4">
+            <StackPanel Orientation="Horizontal" Spacing="4">
               <TextBlock Text="Phase:"></TextBlock>
               <TextBlock Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}"></TextBlock>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" Gap="4">
+            <StackPanel Orientation="Horizontal" Spacing="4">
               <TextBlock Text="Number Of Registered Peers:"></TextBlock>
               <TextBlock Foreground="YellowGreen" Text="{Binding PeersRegistered}"></TextBlock>
               <TextBlock Text="/"></TextBlock>
@@ -74,7 +74,7 @@
     <controls:GroupBox Title="Coins Being CoinJoined" TextBlock.FontSize="16" Padding="10" Margin="10 5" Grid.Row="2" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
       <Grid Classes="content">
         <DockPanel LastChildFill="True">
-          <StackPanel Gap="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Right">
+          <StackPanel Spacing="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Right">
             <TextBlock Text="{Binding WarningMessageDequeue}" Classes="warningMessage" />
             <DockPanel LastChildFill="True">
               <Button Content="Dequeue" Command="{Binding DequeueCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />

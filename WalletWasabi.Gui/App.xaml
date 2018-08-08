@@ -27,7 +27,7 @@
       </Grid>
     </DataTemplate>
     <DataTemplate DataType="id:IView">
-      <cont:ViewModelViewHost DataContext="{Binding }" />
+      <cont:ViewModelViewHost DataContext="{Binding Context}" />
     </DataTemplate>
   </Application.DataTemplates>
 </Application>

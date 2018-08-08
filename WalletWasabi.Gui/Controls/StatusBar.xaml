@@ -16,14 +16,14 @@
       <behaviors:CommandOnClickBehavior Command="{Binding UpdateCommand}" />
     </i:Interaction.Behaviors>
     <DockPanel LastChildFill="True" Margin="10 0">
-      <StackPanel Orientation="Horizontal" Gap="20" DockPanel.Dock="Right">
+      <StackPanel Orientation="Horizontal" Spacing="20" DockPanel.Dock="Right">
 
-        <StackPanel Orientation="Horizontal" Gap="4" IsVisible="{Binding !CriticalUpdateAvailable}">
+        <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
           <TextBlock Text="{Binding ShowNetwork}" />
         </StackPanel>
 
         <Panel IsVisible="{Binding BlocksLeft, Converter={StaticResource ShouldDisplayValueConverter}}">
-          <StackPanel Orientation="Horizontal" Gap="4" IsVisible="{Binding !CriticalUpdateAvailable}">
+          <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
             <Grid Height="10" Width="10">
               <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
                 <DrawingPresenter.Drawing>
@@ -47,7 +47,7 @@
         </Panel>
 
         <Panel IsVisible="{Binding FiltersLeft, Converter={StaticResource ShouldDisplayValueConverter}}">
-          <StackPanel Orientation="Horizontal" Gap="4" IsVisible="{Binding !CriticalUpdateAvailable}">
+          <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
             <Grid Height="10" Width="10">
               <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
                 <DrawingPresenter.Drawing>
@@ -68,7 +68,7 @@
           </StackPanel>
         </Panel>
 
-        <StackPanel Orientation="Horizontal" Gap="4" IsVisible="{Binding !CriticalUpdateAvailable}">
+        <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
           <Grid Height="10" Width="10">
             <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
               <DrawingPresenter.Drawing>
@@ -97,7 +97,7 @@
           <TextBlock Text="{Binding Tor}" Foreground="{Binding Tor, ConverterParameter=Tor, Converter={StaticResource StatusColorConverter}}" />
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Gap="4" IsVisible="{Binding !CriticalUpdateAvailable}">
+        <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
           <Grid Height="10" Width="10">
             <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
               <DrawingPresenter.Drawing>
@@ -129,7 +129,7 @@
           <TextBlock Text="{Binding Backend}" Foreground="{Binding Backend, ConverterParameter=Backend, Converter={StaticResource StatusColorConverter}}" />
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Gap="4" IsVisible="{Binding !CriticalUpdateAvailable}">
+        <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
           <Grid Height="10" Width="10">
             <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
               <DrawingPresenter.Drawing>
@@ -149,7 +149,7 @@
           <TextBlock Text="{Binding Peers}" Foreground="{Binding Peers, ConverterParameter=Peers, Converter={StaticResource StatusColorConverter}}" />
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Gap="4" IsVisible="{Binding !CriticalUpdateAvailable}">
+        <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
           <Grid Height="10" Width="10">
             <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
               <DrawingPresenter.Drawing>
@@ -168,7 +168,7 @@
         </StackPanel>
       </StackPanel>
 
-      <StackPanel Orientation="Horizontal" Gap="4">
+      <StackPanel Orientation="Horizontal" Spacing="4">
         <Grid Height="10" Width="10" IsVisible="{Binding UpdateAvailable}">
           <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
             <DrawingPresenter.Drawing>
