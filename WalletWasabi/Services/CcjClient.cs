@@ -264,11 +264,11 @@ namespace WalletWasabi.Services
 			}
 			catch (Exception ex)
 			{
+				Logger.LogError<CcjClient>(ex); // Keep this in front of the logic (Logs will make more sense.)
 				if (ex.Message.StartsWith("Not Found", StringComparison.Ordinal)) // Alice timed out.
 				{
 					State.ClearRoundRegistration(ongoingRoundId);
 				}
-				Logger.LogError<CcjClient>(ex);
 			}
 		}
 
