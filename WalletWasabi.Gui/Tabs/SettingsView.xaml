@@ -1,14 +1,5 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
-  <UserControl.Styles>
-    <Style Selector="Separator">
-      <Setter Property="Margin" Value="0" />
-      <Setter Property="Background" Value="{DynamicResource ThemeBorderLightBrush}"/>
-      <Setter Property="Margin" Value="0,1,0,0"/>
-      <Setter Property="Height" Value="1"/>
-    </Style>
-  </UserControl.Styles>
-
   <StackPanel Margin="10" Gap="10">
     <controls:GroupBox Title="{Binding Title}"  TextBlock.FontSize="30" Padding="30" >
       <Grid Classes="content">
@@ -18,31 +9,25 @@
             <TextBlock>Changes will be applied after restarting the application.</TextBlock>
           </StackPanel>
 
-          <StackPanel Orientation="Vertical" >
-            <StackPanel>
-              <TextBlock FontWeight="Bold">Bitcoin</TextBlock>
-            </StackPanel>
-            <Separator />
+          <controls:GroupBox Title="Bitcoin" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
             <StackPanel Margin="0 10">
               <TextBlock>Network</TextBlock>
               <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network}"/>
             </StackPanel>
-          </StackPanel>
-          
-          <StackPanel Orientation="Vertical" >
-            <StackPanel>
-              <TextBlock FontWeight="Bold">Tor</TextBlock>
+          </controls:GroupBox>
+
+          <controls:GroupBox Title="Tor" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+            <StackPanel Orientation="Vertical" >
+              <StackPanel Margin="0 10">
+                <TextBlock>Host</TextBlock>
+                <TextBox Text="{Binding TorHost}"/>
+              </StackPanel>
+              <StackPanel>
+                <TextBlock>Port</TextBlock>
+                <TextBox Text="{Binding TorPort}"/>
+              </StackPanel>
             </StackPanel>
-            <Separator />
-            <StackPanel Margin="0 10">
-              <TextBlock>Host</TextBlock>
-              <TextBox Text="{Binding TorHost}"/>
-            </StackPanel>
-            <StackPanel>
-              <TextBlock>Port</TextBlock>
-              <TextBox Text="{Binding TorPort}"/>
-            </StackPanel>
-          </StackPanel>
+          </controls:GroupBox>
         </StackPanel>
       </Grid>
     </controls:GroupBox>
