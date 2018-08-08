@@ -79,3 +79,8 @@ dotnet_naming_symbols.any_async_methods.applicable_accessibilities = *
 dotnet_naming_symbols.any_async_methods.required_modifiers         = async
 dotnet_naming_style.end_with_async.required_suffix = Async
 dotnet_naming_style.end_with_async.capitalization  = pascal_case
+
+[*.xaml]
+indent_style = space
+indent_size = 2
+tab_size = 2
