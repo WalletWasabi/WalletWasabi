@@ -1,33 +1,31 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
-  <StackPanel Margin="10" Gap="10">
-    <controls:GroupBox Title="{Binding Title}"  TextBlock.FontSize="30" Padding="30" >
-      <Grid Classes="content">
-        <StackPanel Orientation="Vertical" Gap="30">
-          <controls:GroupBox Title="Bitcoin" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
-            <StackPanel Margin="0 10">
-              <TextBlock>Network</TextBlock>
-              <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network}"/>
-            </StackPanel>
-          </controls:GroupBox>
-
-          <controls:GroupBox Title="Tor" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
-            <StackPanel Orientation="Vertical" >
-              <StackPanel Margin="0 10">
-                <TextBlock>Host</TextBlock>
-                <TextBox Text="{Binding TorHost}"/>
-              </StackPanel>
-              <StackPanel>
-                <TextBlock>Port</TextBlock>
-                <TextBox Text="{Binding TorPort}"/>
-              </StackPanel>
-            </StackPanel>
-          </controls:GroupBox>
-          <StackPanel IsVisible="{Binding IsDirty}">
-            <TextBlock Classes="warningMessage">Changes will be applied after restarting the application.</TextBlock>
+  <StackPanel Margin="30" Gap="10">
+    <Grid Classes="content">
+      <StackPanel Orientation="Vertical" Gap="30">
+        <controls:GroupBox Title="Bitcoin" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+          <StackPanel Margin="0 10">
+            <TextBlock>Network</TextBlock>
+            <DropDown Items="{Binding Networks}" SelectedItem="{Binding Network}" />
           </StackPanel>
+        </controls:GroupBox>
+
+        <controls:GroupBox Title="Tor" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
+          <StackPanel Orientation="Vertical">
+            <StackPanel Margin="0 10">
+              <TextBlock>Host</TextBlock>
+              <TextBox Text="{Binding TorHost}" />
+            </StackPanel>
+            <StackPanel>
+              <TextBlock>Port</TextBlock>
+              <TextBox Text="{Binding TorPort}" />
+            </StackPanel>
+          </StackPanel>
+        </controls:GroupBox>
+        <StackPanel IsVisible="{Binding IsDirty}">
+          <TextBlock Classes="warningMessage">Changes will be applied after restarting the application.</TextBlock>
         </StackPanel>
-      </Grid>
-    </controls:GroupBox>
+      </StackPanel>
+    </Grid>
   </StackPanel>
 </UserControl>
