@@ -170,27 +170,37 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				var config = JsonConvert.DeserializeObject<Config>(jsonString);
-
-				Network = config.Network ?? Network;
-
-				MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
-				TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
-				RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
-
-				MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
-				TestNetBlindingRsaPubKey = config.TestNetBlindingRsaPubKey ?? TestNetBlindingRsaPubKey;
-				RegTestBlindingRsaPubKey = config.RegTestBlindingRsaPubKey ?? RegTestBlindingRsaPubKey;
-
-				TorHost = config.TorHost ?? TorHost;
-				TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
+				await LoadFileAsync();
 			}
 
+			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
 			_blindingRsaPubKey = GetBlindingRsaPubKey();
 
 			await ToFileAsync();
+		}
+
+		public async Task LoadFileAsync()
+		{
+			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+			var config = JsonConvert.DeserializeObject<Config>(jsonString);
+
+			Network = config.Network ?? Network;
+
+			MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
+			TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
+			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
+
+			MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
+			TestNetBlindingRsaPubKey = config.TestNetBlindingRsaPubKey ?? TestNetBlindingRsaPubKey;
+			RegTestBlindingRsaPubKey = config.RegTestBlindingRsaPubKey ?? RegTestBlindingRsaPubKey;
+
+			TorHost = config.TorHost ?? TorHost;
+			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
+
+			// Just debug convenience.
+			_backendUri = GetCurrentBackendUri();
+			_blindingRsaPubKey = GetBlindingRsaPubKey();
 		}
 
 		/// <inheritdoc />
@@ -264,23 +274,6 @@ namespace WalletWasabi.Gui
 		public void AssertFilePathSet()
 		{
 			if (FilePath == null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
-		}
-
-		public Config Clone()
-		{
-			var cfg = new Config();
-			cfg.FilePath = FilePath;
-			cfg.Network = Network;
-
-			cfg.MainNetBackendUriV3 = MainNetBackendUriV3;
-			cfg.TestNetBackendUriV3 = TestNetBackendUriV3;
-			cfg.RegTestBackendUriV3 = RegTestBackendUriV3;
-			cfg.MainNetBlindingRsaPubKey = MainNetBlindingRsaPubKey;
-			cfg.TestNetBlindingRsaPubKey = TestNetBlindingRsaPubKey;
-			cfg.RegTestBlindingRsaPubKey = RegTestBlindingRsaPubKey;
-			cfg.TorHost = TorHost;
-			cfg.TorSocks5Port = TorSocks5Port;
-			return cfg;
 		}
 	}
 }

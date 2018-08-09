@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Avalonia.Threading;
 using WalletWasabi.Gui.ViewModels.Validation;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -18,15 +19,20 @@ namespace WalletWasabi.Gui.Tabs
 
 		public SettingsViewModel() : base("Settings")
 		{
-			_network = Global.Config.Network.Name == "Main" ? "MainNet" : "TestNet";
-			_torHost = Global.Config.TorHost;
-			_torPort = Global.Config.TorSocks5Port.HasValue
-				? Global.Config.TorSocks5Port.Value.ToString()
-				: string.Empty;
+			var config = new Config(Global.Config.FilePath);
 
-			IsModified = false;
 			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort).Subscribe(x => Save());
-			Initialized = true;
+
+			Dispatcher.UIThread.Post(async () =>
+			{
+				await config.LoadFileAsync();
+
+				Network = config.Network.ToString();
+				TorHost = config.TorHost;
+				TorPort = config.TorSocks5Port.ToString();
+
+				IsModified = await Global.Config.CheckFileChangeAsync();
+			});
 		}
 
 		public IEnumerable<string> Networks
@@ -34,7 +40,7 @@ namespace WalletWasabi.Gui.Tabs
 			get
 			{
 				return new[]{
-					  "MainNet"
+					  "Main"
 					, "TestNet"
 					, "RegTest"
 				};
@@ -67,41 +73,51 @@ namespace WalletWasabi.Gui.Tabs
 			set { this.RaiseAndSetIfChanged(ref _isModified, value); }
 		}
 
-		public bool Initialized { get; }
-
 		private void Save()
 		{
-			if (!Initialized) return;
 			var isValid = string.IsNullOrEmpty(ValidateTorHost()) &&
 							string.IsNullOrEmpty(ValidateTorPort());
 			if (!isValid) return;
+			if (string.IsNullOrWhiteSpace(Network)) return;
 
-			IsModified = true;
-
-			var config = Global.Config.Clone();
-			config.Network = NBitcoin.Network.GetNetwork(_network);
-			config.TorHost = _torHost;
-			config.TorSocks5Port = int.TryParse(_torPort, out var port) ? (int?)port : null;
+			var config = new Config(Global.Config.FilePath);
 
 			Dispatcher.UIThread.Post(async () =>
 			{
-				await config.ToFileAsync();
+				await config.LoadFileAsync();
+
+				var network = NBitcoin.Network.GetNetwork(Network);
+				var torHost = TorHost;
+				var torSocks5Port = int.TryParse(TorPort, out var port) ? (int?)port : null;
+
+				if (config.Network != network || config.TorHost != torHost || config.TorSocks5Port != torSocks5Port)
+				{
+					config.Network = network;
+					config.TorHost = torHost;
+					config.TorSocks5Port = torSocks5Port;
+
+					await config.ToFileAsync();
+
+					IsModified = await Global.Config.CheckFileChangeAsync();
+				}
 			});
 		}
 
 		public string ValidateTorHost()
 		{
-			if (!string.IsNullOrWhiteSpace(TorHost))
+			if (string.IsNullOrWhiteSpace(TorHost))
 			{
-				var torHost = TorHost.Trim();
-				if (Uri.TryCreate(torHost, UriKind.Absolute, out var uri))
-				{
-					return string.Empty;
-				}
-				if (IPAddress.TryParse(torHost, out var ip))
-				{
-					return string.Empty;
-				}
+				return string.Empty;
+			}
+
+			var torHost = TorHost.Trim();
+			if (Uri.TryCreate(torHost, UriKind.Absolute, out var uri))
+			{
+				return string.Empty;
+			}
+			if (IPAddress.TryParse(torHost, out var ip))
+			{
+				return string.Empty;
 			}
 
 			return "Invalid host.";
