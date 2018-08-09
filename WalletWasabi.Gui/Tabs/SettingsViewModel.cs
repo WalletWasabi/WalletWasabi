@@ -21,12 +21,12 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			_network = Global.Config.Network.Name == "Main" ? "MainNet" : "TestNet";
 			_torHost = Global.Config.TorHost;
-			_torPort = Global.Config.TorSocks5Port.HasValue 
-				? Global.Config.TorSocks5Port.Value.ToString() 
+			_torPort = Global.Config.TorSocks5Port.HasValue
+				? Global.Config.TorSocks5Port.Value.ToString()
 				: string.Empty;
 
 			IsModified = false;
-			this.WhenAnyValue(x=>x.Network, x=>x.TorHost, x=>x.TorPort).Subscribe(x=>Save());
+			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort).Subscribe(x => Save());
 			_initialized = true;
 		}
 
@@ -37,9 +37,7 @@ namespace WalletWasabi.Gui.Tabs
 				return new[]{
 					  "MainNet"
 					, "TestNet"
-#if DEBUG
 					, "RegTest"
-#endif
 				};
 			}
 		}
@@ -47,7 +45,7 @@ namespace WalletWasabi.Gui.Tabs
 		public string Network
 		{
 			get { return _network; }
-			set	{ this.RaiseAndSetIfChanged(ref _network, value); }
+			set { this.RaiseAndSetIfChanged(ref _network, value); }
 		}
 
 		[ValidateMethod(nameof(ValidateTorHost))]
@@ -72,10 +70,10 @@ namespace WalletWasabi.Gui.Tabs
 
 		private void Save()
 		{
-			if(!_initialized) return;
-			var isValid  =  string.IsNullOrEmpty(ValidateTorHost()) &&
-							string.IsNullOrEmpty(ValidateTorPort());  
-			if(!isValid) return;
+			if (!_initialized) return;
+			var isValid = string.IsNullOrEmpty(ValidateTorHost()) &&
+							string.IsNullOrEmpty(ValidateTorPort());
+			if (!isValid) return;
 
 			IsModified = true;
 
@@ -95,11 +93,11 @@ namespace WalletWasabi.Gui.Tabs
 			if (!string.IsNullOrWhiteSpace(TorHost))
 			{
 				var torHost = TorHost.Trim();
-				if(Uri.TryCreate(torHost, UriKind.Absolute, out var uri))
+				if (Uri.TryCreate(torHost, UriKind.Absolute, out var uri))
 				{
 					return string.Empty;
 				}
-				if(IPAddress.TryParse(torHost, out var ip))
+				if (IPAddress.TryParse(torHost, out var ip))
 				{
 					return string.Empty;
 				}
@@ -116,7 +114,7 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			var torPort = TorPort.Trim();
-			if(ushort.TryParse(torPort, out var port))
+			if (ushort.TryParse(torPort, out var port))
 			{
 				return string.Empty;
 			}
