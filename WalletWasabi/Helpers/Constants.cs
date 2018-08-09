@@ -7,7 +7,7 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(0, 8, 0);
+		public static readonly Version ClientVersion = new Version(0, 8, 1);
 		public const string BackendMajorVersion = "2";
 		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(), BackenMajordVersion = BackendMajorVersion };
 
