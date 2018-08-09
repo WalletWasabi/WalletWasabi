@@ -15,7 +15,6 @@ namespace WalletWasabi.Gui.Tabs
 		private string _torHost;
 		private string _torPort;
 		private bool _isModified;
-		private bool _initialized;
 
 		public SettingsViewModel() : base("Settings")
 		{
@@ -27,7 +26,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			IsModified = false;
 			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort).Subscribe(x => Save());
-			_initialized = true;
+			Initialized = true;
 		}
 
 		public IEnumerable<string> Networks
@@ -68,9 +67,11 @@ namespace WalletWasabi.Gui.Tabs
 			set { this.RaiseAndSetIfChanged(ref _isModified, value); }
 		}
 
+		public bool Initialized { get; }
+
 		private void Save()
 		{
-			if (!_initialized) return;
+			if (!Initialized) return;
 			var isValid = string.IsNullOrEmpty(ValidateTorHost()) &&
 							string.IsNullOrEmpty(ValidateTorPort());
 			if (!isValid) return;
@@ -103,7 +104,7 @@ namespace WalletWasabi.Gui.Tabs
 				}
 			}
 
-			return "Host is not valid";
+			return "Invalid host.";
 		}
 
 		public string ValidateTorPort()
@@ -119,7 +120,7 @@ namespace WalletWasabi.Gui.Tabs
 				return string.Empty;
 			}
 
-			return "Port is not valid";
+			return "Invalid port.";
 		}
 	}
 }
