@@ -62,7 +62,10 @@
   <Style Selector="Button.chromeButton">
     <Setter Property="IsVisible" Value="False" />
   </Style>
-
+  <Style Selector="Button:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentColorLight}" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
   <Style Selector="ListBox">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
   </Style>
