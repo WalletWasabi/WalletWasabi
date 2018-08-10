@@ -63,8 +63,7 @@
     <Setter Property="IsVisible" Value="False" />
   </Style>
   <Style Selector="Button:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource AccentColorLight}" />
-    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Background" Value="{DynamicResource ApplicationAccentBrushLight}" />
   </Style>
   <Style Selector="ListBox">
     <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
