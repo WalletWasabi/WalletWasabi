@@ -33,6 +33,7 @@ Note, we have OSX bugs in our GUI library, which we are currently fixing. You ma
   [Windows] Install the Tor Expert Bundle: https://www.torproject.org/download/  
   [Linux] `apt-get install tor`  
   [OSX] `brew install tor`  
+5. Check Tor version: `tor --version`. If it's not at least `0.3.2.2`, then see [this writeup](https://github.com/zkSNACKs/WalletWasabi/issues/606#issuecomment-412470662) on how to update it.
   
 ## Get Wasabi
 
