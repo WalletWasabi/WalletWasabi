@@ -21,11 +21,12 @@ namespace WalletWasabi.Gui
 			StatusBarViewModel statusBar = null;
 			try
 			{
-				MainWindowViewModel.Instance = new MainWindowViewModel();
-				BuildAvaloniaApp().AfterSetup(async builder =>
+				BuildAvaloniaApp().BeforeStarting(async builder =>
 				{
 					try
 					{
+						MainWindowViewModel.Instance = new MainWindowViewModel();
+
 						Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
 
 						var configFilePath = Path.Combine(Global.DataDir, "Config.json");
@@ -58,7 +59,7 @@ namespace WalletWasabi.Gui
 					{
 						Logger.LogCritical<Program>(ex);
 					}
-				}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", new DefaultLayoutFactory(), () => MainWindowViewModel.Instance);
+				}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
 			}
 			catch (Exception ex)
 			{

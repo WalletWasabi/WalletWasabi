@@ -130,7 +130,23 @@ namespace WalletWasabi.Logging
 				message = string.IsNullOrWhiteSpace(message) ? "" : message;
 				category = string.IsNullOrWhiteSpace(category) ? "" : category;
 
-				var finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
+				var finalLogMessage = "";
+				if (message != "" && category != "") // If none of them empty.
+				{
+					finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()} {category}: {message}{EntrySeparator}";
+				}
+				else if (message == "" && category != "")  // If only the message is empty.
+				{
+					finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()} {category}{EntrySeparator}";
+				}
+				else if (message != "" && category == "") // If only the category is empty.
+				{
+					finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()}: {message}{EntrySeparator}";
+				}
+				else // if (message == "" && category == "") // If both empty. It probably never happens though.
+				{
+					finalLogMessage = $"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {level.ToString().ToUpperInvariant()}{EntrySeparator}";
+				}
 
 				lock (Lock)
 				{

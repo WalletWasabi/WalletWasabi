@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "Network")]
 		[JsonConverter(typeof(NetworkJsonConverter))]
-		public Network Network { get; private set; }
+		public Network Network { get; internal set; }
 
 		[JsonProperty(PropertyName = "MainNetBackendUriV3")]
 		public string MainNetBackendUriV3 { get; private set; }
@@ -44,10 +44,10 @@ namespace WalletWasabi.Gui
 		public string RegTestBlindingRsaPubKey { get; private set; }
 
 		[JsonProperty(PropertyName = "TorHost")]
-		public string TorHost { get; private set; }
+		public string TorHost { get; internal set; }
 
 		[JsonProperty(PropertyName = "TorSocks5Port")]
-		public int? TorSocks5Port { get; private set; }
+		public int? TorSocks5Port { get; internal set; }
 
 		private Uri _backendUri;
 
@@ -170,27 +170,37 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				var config = JsonConvert.DeserializeObject<Config>(jsonString);
-
-				Network = config.Network ?? Network;
-
-				MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
-				TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
-				RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
-
-				MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
-				TestNetBlindingRsaPubKey = config.TestNetBlindingRsaPubKey ?? TestNetBlindingRsaPubKey;
-				RegTestBlindingRsaPubKey = config.RegTestBlindingRsaPubKey ?? RegTestBlindingRsaPubKey;
-
-				TorHost = config.TorHost ?? TorHost;
-				TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
+				await LoadFileAsync();
 			}
 
+			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
 			_blindingRsaPubKey = GetBlindingRsaPubKey();
 
 			await ToFileAsync();
+		}
+
+		public async Task LoadFileAsync()
+		{
+			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
+			var config = JsonConvert.DeserializeObject<Config>(jsonString);
+
+			Network = config.Network ?? Network;
+
+			MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
+			TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
+			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
+
+			MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
+			TestNetBlindingRsaPubKey = config.TestNetBlindingRsaPubKey ?? TestNetBlindingRsaPubKey;
+			RegTestBlindingRsaPubKey = config.RegTestBlindingRsaPubKey ?? RegTestBlindingRsaPubKey;
+
+			TorHost = config.TorHost ?? TorHost;
+			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
+
+			// Just debug convenience.
+			_backendUri = GetCurrentBackendUri();
+			_blindingRsaPubKey = GetBlindingRsaPubKey();
 		}
 
 		/// <inheritdoc />

@@ -12,14 +12,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 	{
 		private object StateLock { get; }
 
-		private List<SmartCoin> WaitingList { get; }
+		/// <summary>
+		/// The coin that is waiting to be mixed. DateTimeOffset: utc, at what time it is allowed to start registering this coin.
+		/// </summary>
+		private Dictionary<SmartCoin, DateTimeOffset> WaitingList { get; }
 
 		private List<CcjClientRound> Rounds { get; }
 
 		public CcjClientState()
 		{
 			StateLock = new object();
-			WaitingList = new List<SmartCoin>();
+			WaitingList = new Dictionary<SmartCoin, DateTimeOffset>();
 			Rounds = new List<CcjClientRound>();
 		}
 
@@ -27,14 +30,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				SmartCoin found = WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).FirstOrDefault(x => x == coin);
+				SmartCoin found = WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).FirstOrDefault(x => x == coin);
 				if (found != default)
 				{
-					if (WaitingList.Contains(coin))
+					if (WaitingList.Keys.Contains(coin))
 					{
 						coin.CoinJoinInProgress = true;
 						WaitingList.Remove(found);
-						WaitingList.Add(coin);
+						WaitingList.Add(coin, DateTimeOffset.UtcNow);
 						return;
 					}
 
@@ -56,9 +59,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				if (!(WaitingList.Contains(coin) || Rounds.Any(x => x.CoinsRegistered.Contains(coin))))
+				if (!(WaitingList.ContainsKey(coin) || Rounds.Any(x => x.CoinsRegistered.Contains(coin))))
 				{
-					WaitingList.Add(coin);
+					WaitingList.Add(coin, DateTimeOffset.UtcNow);
 					Logger.LogInfo<CcjClientState>($"Coin added to the waiting list: {coin.Index}:{coin.TransactionId}.");
 				}
 			}
@@ -68,7 +71,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => !x.Unspent).Select(x => (x.TransactionId, x.Index)).ToArray();
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => !x.Unspent).Select(x => (x.TransactionId, x.Index)).ToArray();
 			}
 		}
 
@@ -76,7 +79,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				if (WaitingList.Contains(coin))
+				if (WaitingList.ContainsKey(coin))
 				{
 					WaitingList.Remove(coin);
 					Logger.LogInfo<CcjClientState>($"Coin removed from the waiting list: {coin.Index}:{coin.TransactionId}.");
@@ -88,7 +91,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Contains(coin) || Rounds.Any(x => x.CoinsRegistered.Contains(coin));
+				return WaitingList.ContainsKey(coin) || Rounds.Any(x => x.CoinsRegistered.Contains(coin));
 			}
 		}
 
@@ -96,7 +99,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.SingleOrDefault(x => x == coin);
+				return WaitingList.Keys.SingleOrDefault(x => x == coin);
 			}
 		}
 
@@ -104,7 +107,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).SingleOrDefault(x => x.TransactionId == coinReference.txid && x.Index == coinReference.index);
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).SingleOrDefault(x => x.TransactionId == coinReference.txid && x.Index == coinReference.index);
 			}
 		}
 
@@ -120,7 +123,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.SingleOrDefault(x => x.TransactionId == coinReference.txid && x.Index == coinReference.index);
+				return WaitingList.Keys.SingleOrDefault(x => x.TransactionId == coinReference.txid && x.Index == coinReference.index);
 			}
 		}
 
@@ -128,7 +131,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => (x.TransactionId, x.Index)).ToArray();
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => (x.TransactionId, x.Index)).ToArray();
 			}
 		}
 
@@ -136,7 +139,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Sum(x => x.Amount);
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Sum(x => x.Amount);
 			}
 		}
 
@@ -152,7 +155,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => x.Amount).ToArray();
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => x.Amount).ToArray();
 			}
 		}
 
@@ -160,7 +163,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Select(x => (x.TransactionId, x.Index)).ToArray();
+				return WaitingList.Keys.Select(x => (x.TransactionId, x.Index)).ToArray();
 			}
 		}
 
@@ -180,6 +183,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				var amountSoFar = Money.Zero;
 				Money amountNeededExceptInputFees = denomination + (feePerOutputs * 2);
 				foreach (SmartCoin coin in WaitingList
+							.Where(y => y.Value <= DateTimeOffset.UtcNow).Select(z => z.Key) // Only if registering coins is already allowed.
 								.Where(x => x.Confirmed || x.Label.StartsWith("ZeroLink", StringComparison.Ordinal)) // Where our label contains CoinJoin, CoinJoins can be registered even if not confirmed, our label will likely be CoinJoin only if it was a previous CoinJoin, otherwise the server will refuse us.
 								.OrderByDescending(y => y.Amount) // First order by amount.
 								.ThenByDescending(z => z.Confirmed)) // Then order by the amount ordered ienumerable by confirmation, so first try to register confirmed coins.
@@ -276,19 +280,30 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				//	Update them
 
 				IEnumerable<long> roundsToRemove = Rounds.Select(x => x.State.RoundId).Where(y => !allRunningRoundsStates.Select(z => z.RoundId).Contains(y));
-				foreach (var coin in Rounds.Where(x => roundsToRemove.Contains(x.State.RoundId)).SelectMany(y => y.CoinsRegistered))
+
+				foreach (CcjClientRound round in Rounds.Where(x => roundsToRemove.Contains(x.State.RoundId)))
 				{
-					WaitingList.Add(coin);
-					Logger.LogInfo<CcjClientState>($"Coin added to the waiting list: {coin.Index}:{coin.TransactionId}.");
-				}
-				foreach (var round in Rounds.Where(x => roundsToRemove.Contains(x.State.RoundId)))
-				{
+					foreach (SmartCoin coin in round.CoinsRegistered)
+					{
+						if (round.Signed)
+						{
+							var delayRegistration = TimeSpan.FromSeconds(60);
+							WaitingList.Add(coin, DateTimeOffset.UtcNow + delayRegistration);
+							Logger.LogInfo<CcjClientState>($"Coin added to the waiting list: {coin.Index}:{coin.TransactionId}, but its registration is not allowed till {delayRegistration.TotalSeconds} seconds, because this coin might already be spent.");
+						}
+						else
+						{
+							WaitingList.Add(coin, DateTimeOffset.UtcNow);
+							Logger.LogInfo<CcjClientState>($"Coin added to the waiting list: {coin.Index}:{coin.TransactionId}.");
+						}
+					}
+
 					round.AliceClient?.Dispose();
 					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's not running anymore.");
 				}
 				Rounds.RemoveAll(x => roundsToRemove.Contains(x.State.RoundId));
 
-				foreach (var round in Rounds)
+				foreach (CcjClientRound round in Rounds)
 				{
 					if (allRunningRoundsStates.Select(x => x.RoundId).Contains(round.State.RoundId))
 					{
@@ -296,7 +311,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 				}
 
-				foreach (var state in allRunningRoundsStates)
+				foreach (CcjRunningRoundState state in allRunningRoundsStates)
 				{
 					if (!Rounds.Select(x => x.State.RoundId).Contains(state.RoundId))
 					{
@@ -331,7 +346,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					foreach (var coin in round.CoinsRegistered)
 					{
-						WaitingList.Add(coin);
+						WaitingList.Add(coin, DateTimeOffset.UtcNow);
 						Logger.LogInfo<CcjClientState>($"Coin added to the waiting list: {coin.Index}:{coin.TransactionId}.");
 					}
 					round.ClearRegistration();

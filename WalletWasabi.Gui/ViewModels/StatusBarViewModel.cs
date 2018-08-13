@@ -39,11 +39,11 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _updateStatus;
 			set
 			{
-				if(value != UpdateStatus.Latest)
+				if (value != UpdateStatus.Latest)
 				{
 					UpdateAvailable = true;
 
-					if(value == UpdateStatus.Critical)
+					if (value == UpdateStatus.Critical)
 					{
 						CriticalUpdateAvailable = true;
 					}
@@ -159,6 +159,9 @@ namespace WalletWasabi.Gui.ViewModels
 			Nodes.Removed += Nodes_Removed;
 			Peers = Nodes.Count;
 
+			BlocksLeft = 0;
+			WalletService.ConcurrentBlockDownloadNumberChanged += WalletService_ConcurrentBlockDownloadNumberChanged;
+
 			MemPoolService = memPoolService;
 			MemPoolService.TransactionReceived += MemPoolService_TransactionReceived;
 			Mempool = MemPoolService.TransactionHashes.Count;
@@ -216,7 +219,12 @@ namespace WalletWasabi.Gui.ViewModels
 			UpdateCommand = ReactiveCommand.Create(() =>
 			{
 				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
-			}, this.WhenAnyValue(x=>x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
+			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
+		}
+
+		private void WalletService_ConcurrentBlockDownloadNumberChanged(object sender, int concurrentBlockDownloadNumber)
+		{
+			BlocksLeft = concurrentBlockDownloadNumber;
 		}
 
 		private void SetStatusAndDoUpdateActions()

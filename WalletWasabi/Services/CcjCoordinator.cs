@@ -195,8 +195,8 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If failed in signing phase, then ban Alices those didn't sign.
-			if (status == CcjRoundStatus.Failed && round.Phase == CcjRoundPhase.Signing)
+			// If aborted in signing phase, then ban Alices those didn't sign.
+			if (status == CcjRoundStatus.Aborted && round.Phase == CcjRoundPhase.Signing)
 			{
 				foreach (Alice alice in round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false)) // Because the event sometimes is raised from inside the lock.
 				{
@@ -207,20 +207,21 @@ namespace WalletWasabi.Services
 			}
 
 			// If finished start a new round.
-			if (status == CcjRoundStatus.Failed || status == CcjRoundStatus.Succeded)
+			if (status == CcjRoundStatus.Aborted || status == CcjRoundStatus.Succeded)
 			{
 				round.StatusChanged -= Round_StatusChangedAsync;
 				await MakeSureTwoRunningRoundsAsync();
 			}
 		}
 
-		public void FailAllRoundsInInputRegistration()
+		public void AbortAllRoundsInInputRegistration(string loggingCategory, string reason)
 		{
+			string category = string.IsNullOrWhiteSpace(loggingCategory) ? nameof(CcjCoordinator) : loggingCategory;
 			using (RoundsListLock.Lock())
 			{
 				foreach (var r in Rounds.Where(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration))
 				{
-					r.Fail();
+					r.Abort(category, reason);
 				}
 			}
 		}
@@ -306,7 +307,7 @@ namespace WalletWasabi.Services
 					}
 					catch (Exception ex)
 					{
-						// if failed remove from everywhere (should not happen normally)
+						// If aborted remove from everywhere (should not happen normally).
 						UnconfirmedCoinJoins.Remove(cjHash);
 						CoinJoins.Remove(cjHash);
 						await File.WriteAllLinesAsync(CoinJoinsFilePath, CoinJoins.Select(x => x.ToString()));

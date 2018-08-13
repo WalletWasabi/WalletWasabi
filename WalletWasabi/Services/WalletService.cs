@@ -42,6 +42,14 @@ namespace WalletWasabi.Services
 		private AsyncLock BlockDownloadLock { get; }
 		private AsyncLock BlockFolderLock { get; }
 
+		// These are static functions, so we will make sure when blocks are downloading with multiple wallet services, they don't conflict.
+		private static int _concurrentBlockDownload = 0;
+
+		/// <summary>
+		/// int: number of blocks being downloaded in parallel, not the number of blocks left to download!
+		/// </summary>
+		public static event EventHandler<int> ConcurrentBlockDownloadNumberChanged;
+
 		public SortedDictionary<Height, uint256> WalletBlocks { get; }
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 		private AsyncLock WalletBlocksLock { get; }
@@ -602,6 +610,9 @@ namespace WalletWasabi.Services
 
 						try
 						{
+							Interlocked.Increment(ref _concurrentBlockDownload);
+							ConcurrentBlockDownloadNumberChanged?.Invoke(this, _concurrentBlockDownload);
+
 							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(32))) // ADSL	512 kbit/s	00:00:32
 							{
 								block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
@@ -639,6 +650,11 @@ namespace WalletWasabi.Services
 							Logger.LogInfo<WalletService>($"Disconnected node, because block download failed: {ex.Message}");
 							node.DisconnectAsync("Block download failed.");
 							continue;
+						}
+						finally
+						{
+							Interlocked.Decrement(ref _concurrentBlockDownload);
+							ConcurrentBlockDownloadNumberChanged?.Invoke(this, _concurrentBlockDownload);
 						}
 
 						break; // If got this far break, then we have the block, it's valid. Break.

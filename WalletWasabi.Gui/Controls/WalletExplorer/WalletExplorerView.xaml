@@ -10,7 +10,7 @@
       </TreeView.Styles>
       <TreeView.DataTemplates>
         <TreeDataTemplate DataType="ViewModels:WalletViewModel" ItemsSource="{Binding Actions}">
-          <StackPanel Orientation="Horizontal" Gap="6">
+          <StackPanel Orientation="Horizontal" Spacing="6">
             <DrawingPresenter Width="20" Height="20">
               <DrawingPresenter.Drawing>
                 <DrawingGroup>
@@ -29,7 +29,7 @@
 
         <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
           <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}">
-            <StackPanel Orientation="Horizontal" Gap="6">
+            <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
                     <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 25.3333,52.25L 50.6667,52.25L 50.6667,45.9167L 55.4167,45.9167L 55.4167,57L 50.6667,57L 25.3333,57L 20.5833,57L 20.5833,45.9167L 25.3333,45.9167L 25.3333,52.25 Z M 34.8333,49.0834L 41.1667,49.0834L 41.1666,28.5L 49.0833,38L 49.0833,28.5L 38,15.8334L 26.9167,28.5L 26.9167,38L 34.8333,28.5L 34.8333,49.0834 Z " />
@@ -42,7 +42,7 @@
 
         <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
-            <StackPanel Orientation="Horizontal" Gap="6">
+            <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
                     <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 25.3333,52.25L 50.6666,52.25L 50.6666,45.9167L 55.4166,45.9167L 55.4166,57L 20.5833,57L 20.5833,45.9167L 25.3333,45.9167L 25.3333,52.25 Z M 34.8333,15.8333L 41.1667,15.8333L 41.1667,36.4167L 49.0833,26.9167L 49.0833,36.4167L 38,49.0833L 26.9167,36.4167L 26.9167,26.9167L 34.8333,36.4167L 34.8333,15.8333 Z " />
@@ -55,7 +55,7 @@
 
         <TreeDataTemplate DataType="ViewModels:CoinJoinTabViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
-            <StackPanel Orientation="Horizontal" Gap="6">
+            <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
                   <DrawingGroup>
@@ -79,7 +79,7 @@
 
         <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
-            <StackPanel Orientation="Horizontal" Gap="6">
+            <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
                   <DrawingGroup>
