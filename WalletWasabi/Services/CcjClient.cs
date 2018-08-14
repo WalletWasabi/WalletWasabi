@@ -279,7 +279,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private static Dictionary<int, WitScript> SignCoinJoin(CcjClientRound ongoingRound, Transaction unsignedCoinJoin)
+		private Dictionary<int, WitScript> SignCoinJoin(CcjClientRound ongoingRound, Transaction unsignedCoinJoin)
 		{
 			if (NBitcoinHelpers.HashOutpoints(unsignedCoinJoin.Inputs.Select(x => x.PrevOut)) != ongoingRound.RoundHash)
 			{
@@ -313,7 +313,7 @@ namespace WalletWasabi.Services
 			var builder = new TransactionBuilder();
 			var signedCoinJoin = builder
 				.ContinueToBuild(unsignedCoinJoin)
-				.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret).ToArray())
+				.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())
 				.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
 				.BuildTransaction(true);
 
@@ -462,8 +462,9 @@ namespace WalletWasabi.Services
 					var inputProofs = new List<InputProofModel>();
 					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
 					{
-						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin == null) throw new NotSupportedException("This is impossible.");
+						coin.Secret = coin.Secret ?? KeyManager.GetSecrets(OnePiece, coin.ScriptPubKey).Single();
 						var inputProof = new InputProofModel
 						{
 							Input = coin.GetTxoRef(),
