@@ -1,7 +1,7 @@
 ﻿using Avalonia.Data.Converters;
+using Avalonia.Media;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.Text;
 using WalletWasabi.Models.ChaumianCoinJoin;
@@ -15,7 +15,7 @@ namespace WalletWasabi.Gui.Converters
 			if(!Enum.TryParse(typeof(CcjRoundPhase), parameter.ToString(), false, out var p))
 				throw new ArgumentException($"Unknown '{parameter}' value");
 
-			return ((CcjRoundPhase)value <= (CcjRoundPhase)p) 
+			return ((CcjRoundPhase)p <= (CcjRoundPhase)value) 
 				? Brushes.Green
 				: Brushes.Gray;
 		}

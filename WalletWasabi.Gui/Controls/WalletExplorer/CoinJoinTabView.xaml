@@ -55,8 +55,8 @@
               <TextBlock Text="{Binding RoundId}"></TextBlock>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 10">
-              <Canvas Height="25" Width="200">
+            <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 12" >
+              <Canvas Height="20" Width="200">
                 <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="0" />
                 <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="50" />
                 <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="100" />
