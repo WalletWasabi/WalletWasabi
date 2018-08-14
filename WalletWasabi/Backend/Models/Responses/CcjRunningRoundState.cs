@@ -54,28 +54,28 @@ namespace WalletWasabi.Backend.Models.Responses
 		public Money CalculateRequiredAmount(params Money[] queuedCoinAmounts)
 		{
 			var tried = new List<Money>();
-			Money baseMinimum = Denomination + Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount + FeePerOutputs * 2;
+			Money baseMinimum = Denomination + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount) + (FeePerOutputs * 2);
 			foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
 			{
 				tried.Add(amount);
-				Money required = baseMinimum + FeePerInputs * tried.Count;
+				Money required = baseMinimum + (FeePerInputs * tried.Count);
 				if (required <= tried.Sum() || tried.Count == MaximumInputCountPerPeer)
 				{
 					return required;
 				}
 			}
 
-			return baseMinimum + FeePerInputs * MaximumInputCountPerPeer;
+			return baseMinimum + (FeePerInputs * MaximumInputCountPerPeer);
 		}
 
 		public bool HaveEnoughQueued(params Money[] queuedCoinAmounts)
 		{
 			var tried = new List<Money>();
-			Money baseMinimum = Denomination + Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount + FeePerOutputs * 2;
+			Money baseMinimum = Denomination + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount) + (FeePerOutputs * 2);
 			foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
 			{
 				tried.Add(amount);
-				Money required = baseMinimum + FeePerInputs * tried.Count;
+				Money required = baseMinimum + (FeePerInputs * tried.Count);
 				if (required <= tried.Sum())
 				{
 					return true;

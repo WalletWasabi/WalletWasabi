@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ResetMax();
 
-			this.WhenAnyValue(x => x.Amount).Subscribe(amount =>
+			(this).WhenAnyValue(x => x.Amount).Subscribe(amount =>
 			{
 				if (!IgnoreAmountChanges)
 				{
@@ -59,7 +59,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Regex digitsOnly = new Regex(@"[^\d,.]");
 					string betterAmount = digitsOnly.Replace(amount, ""); // Make it digits , and . only.
 					betterAmount = betterAmount.Replace(',', '.');
-					if (1 < betterAmount.Count(x => x == '.')) // Don't enable typing two dots.
+					int countBetterAmount = betterAmount.Count(x => x == '.');
+					if (countBetterAmount > 1) // Don't enable typing two dots.
 					{
 						var index = betterAmount.IndexOf('.', betterAmount.IndexOf('.') + 1);
 						if (index > 0)
