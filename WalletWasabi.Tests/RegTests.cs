@@ -1607,7 +1607,7 @@ namespace WalletWasabi.Tests
 			var offchainTxId = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
 			var mempoolTxId = rpc.SendToAddress(new Key().PubKey.GetSegwitAddress(network), Money.Coins(1));
 
-			var folder = Path.Combine(Global.DataDir, nameof(CcjCoordinatorCtorTestsAsync));
+			var folder = Path.Combine(SharedFixture.DataDir, nameof(CcjCoordinatorCtorTestsAsync));
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
 			Directory.CreateDirectory(folder);
 			var cjfile = Path.Combine(folder, $"CoinJoins{network}.txt");
