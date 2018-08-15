@@ -8,6 +8,7 @@
     <converters:CoinJoinedVisibilityConverter x:Key="CoinJoinedVisibilityConverter" />
     <converters:MoneyStringConverter x:Key="MoneyStringConverter" />
     <converters:PhaseStringConverter x:Key="PhaseStringConverter" />
+    <converters:PhaseColorConverter x:Key="PhaseColorConverter" />
   </UserControl.Resources>
   <Grid RowDefinitions="4*,3*,4*">
     <controls:GroupBox Title="Queue Coins For CoinJoin" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5">
@@ -54,9 +55,18 @@
               <TextBlock Text="{Binding RoundId}"></TextBlock>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal" Spacing="4">
-              <TextBlock Text="Phase:"></TextBlock>
-              <TextBlock Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}"></TextBlock>
+            <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 12" >
+              <Canvas Height="20" Width="200">
+                <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="0" />
+                <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="50" />
+                <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="100" />
+                <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=Signing, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="150" />
+                <Line StartPoint="20,10" EndPoint="50,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" />
+                <Line StartPoint="70,10" EndPoint="100,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=ConnectionConfirmation, Converter={StaticResource PhaseColorConverter}}" />
+                <Line StartPoint="120,10" EndPoint="150,10" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=OutputRegistration, Converter={StaticResource PhaseColorConverter}}" />
+               </Canvas>
+
+               <TextBlock Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}"></TextBlock>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Spacing="4">
