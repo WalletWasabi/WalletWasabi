@@ -8,7 +8,6 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-
 	internal class MnemonicSuggestionBehavior : Behavior<TextBox>
 	{
 		private CompositeDisposable _disposables;
