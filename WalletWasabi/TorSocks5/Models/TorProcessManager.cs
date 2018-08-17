@@ -17,27 +17,14 @@ namespace WalletWasabi.TorSocks5
 		Stopped,
 		Failed
 	}
-	
-	public class TorProcessStatusEventArgs : EventArgs
-	{
-		public TorProcessState OldStatus { get; }
-		public TorProcessState NewStatus { get; }
 
-		public TorProcessStatusEventArgs(TorProcessState oldStatus, TorProcessState newStatus)
-		{
-			OldStatus = oldStatus;
-			NewStatus = newStatus;
-		}
-	}
-
-	public class TorProcessManager
+	internal class TorProcessManager
 	{
 		public readonly static TorProcessManager Default = new TorProcessManager();
 		private readonly static IPEndPoint DefaultSocksEndpoint = new IPEndPoint(IPAddress.Loopback, DefaultSocksPort);
 
 		public const int DefaultSocksPort = 9050;
 		public const string TorInstallingFolder = "tor";
-
 
 		private Process _torProcess;
 		private IPEndPoint _torEndPoint; 
@@ -63,10 +50,9 @@ namespace WalletWasabi.TorSocks5
 			ChangeStatus(TorProcessState.NotStarted);
 		}
 
-		public async Task StartAsync()
+		public void Start()
 		{
-			var isRunning = await IsTorRunningAsync();
-			if(isRunning) return;
+			if(Status == TorProcessState.Running) return;
 
 			Logging.Logger.LogInfo<TorProcessManager>("Starting Tor process");
 			try
@@ -90,10 +76,9 @@ namespace WalletWasabi.TorSocks5
 			}
 		}
 
-		public async Task StopAsync()
+		public void Stop()
 		{
-			var isRunning = await IsTorRunningAsync();
-			if(!isRunning) return;
+			if(Status != TorProcessState.Running) return;
 
 			if (IsManaged)
 			{

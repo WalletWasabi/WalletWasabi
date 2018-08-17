@@ -227,66 +227,23 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public async Task TorProcessManagerAsync()
 		{
-			KillAll("tor");
-			var instance = TorProcessManager.Default;
-			Assert.False(await instance.IsRunningAsync());
-			Assert.Equal(TorProcessState.NotStarted, instance.Status);
-			Assert.False(instance.IsManaged);
-			
-			// Test unmanaged Tor instance
-			KillAll("tor");
-			Process.Start("tor", "SOCKSPort 9050");
-			await Task.Delay(1000);
-
-			var unmanagedTor = TorProcessManager.Default; 			
-			Assert.True(await TorProcessManager.IsTorRunningAsync());
-			Assert.False(await unmanagedTor.IsRunningAsync());
-			Assert.Equal(TorProcessState.NotStarted, unmanagedTor.Status);
-			Assert.False(unmanagedTor.IsManaged);
-				
-			await unmanagedTor.StopAsync();
-			Assert.True(await TorProcessManager.IsTorRunningAsync());
-			Assert.False(await unmanagedTor.IsRunningAsync());
-			Assert.Equal(TorProcessState.NotStarted, unmanagedTor.Status);
-			Assert.False(unmanagedTor.IsManaged);
-
-			await unmanagedTor.StartAsync();
-			Assert.True(await TorProcessManager.IsTorRunningAsync());
-			Assert.False(await unmanagedTor.IsRunningAsync());
-			Assert.Equal(TorProcessState.NotStarted, unmanagedTor.Status);
-			Assert.False(unmanagedTor.IsManaged);
-
 			// Test managed Tor instance
-			KillAll("tor");
-			var managedTor = TorProcessManager.Default;
-			Assert.False(await TorProcessManager.IsTorRunningAsync());
+			var managedTor = new TorProcessManager(9000, "/usr/sbin/tor");
+			//Assert.False(await TorProcessManager.IsTorRunningAsync());
 			Assert.False(await managedTor.IsRunningAsync());
 			Assert.Equal(TorProcessState.NotStarted, managedTor.Status);
 			Assert.False(managedTor.IsManaged);
 
-			await managedTor.StartAsync();
-			await Task.Delay(1000);
+			managedTor.Start();
 			Assert.True(await TorProcessManager.IsTorRunningAsync());
 			Assert.True(await managedTor.IsRunningAsync());
 			Assert.Equal(TorProcessState.Running, managedTor.Status);
 			Assert.True(managedTor.IsManaged);
 			
-			await managedTor.StopAsync();
-			Assert.False(await TorProcessManager.IsTorRunningAsync());
+			managedTor.Stop();
 			Assert.False(await managedTor.IsRunningAsync());
 			Assert.Equal(TorProcessState.Stopped, managedTor.Status);
 			Assert.False(managedTor.IsManaged);
-		}
-
-		private static void KillAll(string processName)
-		{
-			foreach(var process in Process.GetProcessesByName(processName))
-			{
-				using(process){
-					process.Kill();
-					process.WaitForExit();
-				}
-			}
 		}
 	}
 }
