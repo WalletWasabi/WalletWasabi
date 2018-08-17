@@ -3,8 +3,9 @@ using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
@@ -19,6 +20,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _walletName;
 		private bool _termsAccepted;
 		private string _validationMessage;
+		private string _suggestions;
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
@@ -62,6 +64,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 			},
 			this.WhenAnyValue(x => x.TermsAccepted));
+			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x));
 		}
 
 		public string Password
@@ -74,6 +77,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			get { return _mnemonicWords; }
 			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
+		}
+
+		public string Suggestions
+		{
+			get { return _suggestions; }
+			set { this.RaiseAndSetIfChanged(ref _suggestions, value); }
 		}
 
 		public string WalletName
@@ -121,5 +130,25 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			TermsAccepted = false;
 			ValidationMessage = null;
 		}
+
+		private void UpdateSuggestions(string words)
+		{
+			if(string.IsNullOrEmpty(words))
+				return;
+
+			var enteredWordList = words.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
+		
+			if(lastWorld.Length < 1)
+			{
+				Suggestions = string.Empty;
+				return;
+			}
+
+			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld));
+			Suggestions = string.Join("   ", suggestedWords.ToArray());
+		}
+
+		private static IEnumerable<string> EnglishWords = Wordlist.English.GetWords();
 	}
 }

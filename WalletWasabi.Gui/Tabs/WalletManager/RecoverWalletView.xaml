@@ -1,5 +1,7 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
   <StackPanel Margin="10" Spacing="10">
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="30">
       <Grid Classes="content">
@@ -10,7 +12,12 @@
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
           <TextBox Text="{Binding Password}" Watermark="Password" PasswordChar="*" UseFloatingWatermark="True" />
-          <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="MnemonicWords" UseFloatingWatermark="True" />
+          <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="MnemonicWords" UseFloatingWatermark="True" >
+            <i:Interaction.Behaviors>
+              <behaviors:MnemonicSuggestionBehavior SuggestionItems="{Binding Suggestions}" />
+            </i:Interaction.Behaviors>
+          </controls:ExtendedTextBox>
+          <TextBlock Text="{Binding Suggestions}" FontWeight="Bold" />
         </StackPanel>
       </Grid>
     </controls:GroupBox>
