@@ -266,11 +266,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						Money coordinatorFee = Alices.Count * coordinatorFeePerAlice;
 
 						// 5. Add the inputs and the changes of Alices.
+						var spentCoins = new List<Coin>();
 						foreach (Alice alice in Alices)
 						{
 							foreach (var input in alice.Inputs)
 							{
 								transaction.AddInput(new TxIn(input.OutPoint));
+								spentCoins.Add(new Coin(input.OutPoint, input.Output));
 							}
 							Money changeAmount = alice.GetChangeAmount(newDenomination, coordinatorFeePerAlice);
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
@@ -305,6 +307,61 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							.ContinueToBuild(transaction)
 							.Shuffle()
 							.BuildTransaction(false);
+
+						// 8. Try optimize fees.
+						try
+						{
+							// 8.1. Estimate the current FeeRate. Note, there are no signatures yet!
+							int estimatedSigSizeBytes = UnsignedCoinJoin.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
+							int estimatedFinalTxSize = UnsignedCoinJoin.GetVirtualSize() + estimatedSigSizeBytes;
+							Money fee = UnsignedCoinJoin.GetFee(spentCoins.ToArray());
+							// There is a currentFeeRate null check later.
+							FeeRate currentFeeRate = fee == null ? null : new FeeRate(fee, estimatedFinalTxSize);
+
+							// 8.2. Get the most optimal FeeRate.
+							EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
+							if (estimateSmartFeeResponse == null) throw new InvalidOperationException("FeeRate is not yet initialized");
+							FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
+
+							if (optimalFeeRate != null && optimalFeeRate != FeeRate.Zero && currentFeeRate != null && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
+							{
+								var sanityFeeRate = new FeeRate(2m); // 2 s/b
+								optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
+								if (optimalFeeRate < currentFeeRate)
+								{
+									// 8.2 If the fee can be lowered, lower it.
+									// 8.2.1. How much fee can we save?
+									Money feeShouldBePaid = new Money(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
+									Money toSave = fee - feeShouldBePaid;
+
+									// 8.2.2. Get the outputs to divide  the savings between.
+									int maxMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs().Max(x => x.count);
+									Money bestMixAmount = UnsignedCoinJoin.GetIndistinguishableOutputs().Where(x => x.count == maxMixCount).Max(x => x.value);
+									int bestMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs().First(x => x.value == bestMixAmount).count;
+
+									// 8.2.3. Get the savings per best mix outputs.
+									long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
+
+									// 8.2.4. Modify the best mix outputs in the transaction.
+									if (toSavePerBestMixOutputs > 0)
+									{
+										foreach (TxOut output in UnsignedCoinJoin.Outputs.Where(x => x.Value == bestMixAmount))
+										{
+											output.Value += toSavePerBestMixOutputs;
+										}
+									}
+								}
+							}
+							else
+							{
+								Logger.LogError<CcjRound>($"This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning<CcjRound>("Couldn't optimize fees. Fallback to normal fees.");
+							Logger.LogWarning<CcjRound>(ex);
+						}
 
 						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), RpcClient.Network);
 
