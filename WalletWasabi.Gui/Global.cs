@@ -35,6 +35,7 @@ namespace WalletWasabi.Gui
 		}
 
 		public static string WalletsDir => Path.Combine(DataDir, "Wallets");
+		public static string WalletBackupsDir => Path.Combine(DataDir, "WalletBackups");
 		public static Network Network => Config.Network;
 		public static string IndexFilePath => Path.Combine(DataDir, $"Index{Network}.dat");
 
@@ -164,8 +165,18 @@ namespace WalletWasabi.Gui
 			CancelWalletServiceInitialization?.Cancel();
 			CancelWalletServiceInitialization = null;
 
-			WalletService?.Dispose();
-			WalletService = null;
+			if (WalletService != null)
+			{
+				if (WalletService.KeyManager != null) // This should not ever happen.
+				{
+					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(WalletService.KeyManager.FilePath));
+					WalletService.KeyManager?.ToFile(backupWalletFilePath);
+					Logger.LogInfo($"{nameof(KeyManager)} backup saved to {backupWalletFilePath}.", nameof(Global));
+				}
+				WalletService.Dispose();
+				WalletService = null;
+			}
+
 			Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
 
 			if (ChaumianClient != null)
@@ -178,10 +189,7 @@ namespace WalletWasabi.Gui
 
 		public static async Task DisposeAsync()
 		{
-			CancelWalletServiceInitialization?.Cancel();
-
-			WalletService?.Dispose();
-			Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
+			await DisposeInWalletDependentServicesAsync();
 
 			UpdateChecker?.Dispose();
 			Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
@@ -201,12 +209,6 @@ namespace WalletWasabi.Gui
 				RegTestMemPoolServingNode.Disconnect();
 				Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
 			}
-
-			if (ChaumianClient != null)
-			{
-				await ChaumianClient.StopAsync();
-			}
-			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.", nameof(Global));
 		}
 	}
 }
