@@ -24,9 +24,9 @@ namespace WalletWasabi.Backend
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>
 			{
-				c.SwaggerDoc("v1", new Info
+				c.SwaggerDoc($"v{Helpers.Constants.BackendMajorVersion}", new Info
 				{
-					Version = "v1",
+					Version = $"v{Helpers.Constants.BackendMajorVersion}",
 					Title = "Wasabi Wallet API",
 					Description = "Privacy oriented Bitcoin Web API.",
 					License = new License { Name = "Use under MIT.", Url = "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md" }
