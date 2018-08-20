@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
 namespace System.IO
@@ -44,6 +46,85 @@ namespace System.IO
 				return;
 			}
 			// depending on your use case, consider throwing an exception here
+		}
+
+		private static void Replace(string newPath, string path)
+		{
+			var oldPath = path + ".bak";
+			if(File.Exists(oldPath))
+			{
+				File.Delete(oldPath);
+			}
+
+			if(File.Exists(path))
+			{
+				File.Move(path, oldPath);
+			}
+			File.Move(newPath, path);
+			File.Delete(newPath);
+		}
+
+		public static void WriteAllText(string path, string content)
+		{
+			var newPath = path + ".new";
+			File.WriteAllText(newPath, content, Encoding.UTF8);
+			Replace(newPath, path);
+		}
+
+		public static async Task WriteAllTextAsync(string path, string content)
+		{
+			var newPath = path + ".new";
+			await File.WriteAllTextAsync(newPath, content, Encoding.UTF8);
+			Replace(newPath, path);
+		}
+
+		public static void WriteAllLines(string path, IEnumerable<string> content)
+		{
+			var newPath = path + ".new";
+			File.WriteAllLines(newPath, content);
+			Replace(newPath, path);
+		}
+
+		public static async Task WriteAllLinesAsync(string path, IEnumerable<string> content)
+		{
+			var newPath = path + ".new";
+			await File.WriteAllLinesAsync(newPath, content);
+			Replace(newPath, path);
+		}
+
+		public static async Task WriteAllBytesAsync(string path, byte[] content)
+		{
+			var newPath = path + ".new";
+			await File.WriteAllBytesAsync(newPath, content);
+			Replace(newPath, path);
+		}
+
+		public static bool TryGetSafestFileVersion(string path, out string safestFilePath)
+		{
+			var newPath = path + ".new";
+			var oldPath = path + ".bak";
+
+			if(File.Exists(path) && File.Exists(newPath)){
+				safestFilePath = path;
+				return true;
+			}
+			if(File.Exists(oldPath) && File.Exists(newPath))
+			{
+				safestFilePath = oldPath;
+				return true;
+			}
+			if(File.Exists(oldPath) && File.Exists(path))
+			{
+				safestFilePath = path;
+				return true;
+			}
+			if(File.Exists(path))
+			{
+				safestFilePath = path;
+				return true;
+			}
+			safestFilePath = null;
+			return false;
 		}
 	}
 }
