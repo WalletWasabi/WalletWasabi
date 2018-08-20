@@ -313,7 +313,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						{
 							// 8.1. Estimate the current FeeRate. Note, there are no signatures yet!
 							int estimatedSigSizeBytes = UnsignedCoinJoin.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
-							int estimatedFinalTxSize = UnsignedCoinJoin.GetVirtualSize() + estimatedSigSizeBytes;
+							int estimatedFinalTxSize = UnsignedCoinJoin.GetSerializedSize() + estimatedSigSizeBytes;
 							Money fee = UnsignedCoinJoin.GetFee(spentCoins.ToArray());
 							// There is a currentFeeRate null check later.
 							FeeRate currentFeeRate = fee == null ? null : new FeeRate(fee, estimatedFinalTxSize);
