@@ -194,6 +194,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								Logger.LogInfo($"Backed up corrupted wallet file to {corruptedWalletBackupPath}.");
 							}
 							File.Copy(walletBackupFullPath, walletFullPath);
+
 							keyManager = LoadWallet(walletFullPath);
 						}
 
