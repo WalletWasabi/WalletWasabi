@@ -151,11 +151,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IsBusy = true;
 
 				var walletFullPath = Path.Combine(Global.WalletsDir, SelectedWallet + ".json");
-				if (!File.Exists(walletFullPath))
+				var walletBackupFullPath = Path.Combine(Global.WalletBackupsDir, SelectedWallet + ".json");
+				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 				{
-					// the selected wallets is not available any more (someone deleted it)
+					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
 					SelectedWallet = null;
+					ValidationMessage = "The selected wallet and its backup doesn't exsist, did you delete them?";
 					return;
 				}
 
@@ -163,11 +165,37 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					await Task.Run(async () =>
 					{
-						var walletFileInfo = new FileInfo(walletFullPath);
-						walletFileInfo.LastAccessTime = DateTime.Now;
+						KeyManager keyManager = null;
+						try
+						{
+							keyManager = LoadWallet(walletFullPath);
+						}
+						catch (Exception ex)
+						{
+							if (!File.Exists(walletBackupFullPath))
+							{
+								throw;
+							}
 
-						var keyManager = KeyManager.FromFile(walletFullPath);
-						Logger.LogInfo($"Wallet decrypted: {SelectedWallet}.");
+							Logger.LogWarning($"Wallet got corrupted.\n" +
+								$"Wallet Filepath: {walletFullPath}\n" +
+								$"Trying to recover it from backup.\n" +
+								$"Backup path: {walletBackupFullPath}\n" +
+								$"Exception: {ex.ToString()}");
+							if (File.Exists(walletFullPath))
+							{
+								string corruptedWalletBackupPath = Path.Combine(Global.WalletBackupsDir, $"{Path.GetFileName(walletFullPath)}_CorruptedBackup");
+								if (File.Exists(corruptedWalletBackupPath))
+								{
+									File.Delete(corruptedWalletBackupPath);
+									Logger.LogInfo($"Deleted previous corrupted wallet file backup from {corruptedWalletBackupPath}.");
+								}
+								File.Move(walletFullPath, corruptedWalletBackupPath);
+								Logger.LogInfo($"Backed up corrupted wallet file to {corruptedWalletBackupPath}.");
+							}
+							File.Copy(walletBackupFullPath, walletFullPath);
+							keyManager = LoadWallet(walletFullPath);
+						}
 
 						await Global.InitializeWalletServiceAsync(keyManager);
 					});
@@ -197,6 +225,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				IsBusy = false;
 			}
+		}
+
+		private KeyManager LoadWallet(string walletFullPath)
+		{
+			KeyManager keyManager;
+			var walletFileInfo = new FileInfo(walletFullPath);
+			walletFileInfo.LastAccessTime = DateTime.Now;
+
+			keyManager = KeyManager.FromFile(walletFullPath);
+			Logger.LogInfo($"Wallet decrypted: {SelectedWallet}.");
+			return keyManager;
 		}
 
 		public ReactiveCommand OpenFolderCommand { get; }
