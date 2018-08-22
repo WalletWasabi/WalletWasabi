@@ -154,14 +154,14 @@ namespace WalletWasabi.Services
 				{
 					File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
 					Index.Add(StartingFilter);
-					IoHelpers.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+					IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 				}
 				else
 				{
 					var height = StartingHeight;
 					try
 					{
-						if(IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
+						if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
 						{
 							foreach (var line in File.ReadAllLines(safestFileVerion))
 							{
@@ -175,14 +175,14 @@ namespace WalletWasabi.Services
 					{
 						// We found a corrupted entry. Stop here.
 						// Fix the currupted file.
-						IoHelpers.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+						IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 					}
 				}
 			}
 			else
 			{
 				Index.Add(StartingFilter);
-				IoHelpers.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+				IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 			}
 
 			BestKnownFilter = Index.Last();
@@ -253,7 +253,7 @@ namespace WalletWasabi.Services
 									NewFilter?.Invoke(this, filterModel);
 								}
 
-								await IoHelpers.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
+								await IoHelpers.SafeWriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
 								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {startingFilter.BlockHeight + 1} to {BestKnownFilter.BlockHeight}.");
 							}
 
@@ -288,11 +288,11 @@ namespace WalletWasabi.Services
 
 							// 2. Serialize Index. (Remove last line.)
 							string[] lines = null;
-							if(IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
+							if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
 							{
 								lines = File.ReadAllLines(safestFileVerion);
 							}
-							IoHelpers.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+							IoHelpers.SafeWriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
 
 							// 3. Skip the last valid block.
 							continue;
