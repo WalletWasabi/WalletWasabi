@@ -126,9 +126,7 @@ namespace WalletWasabi.KeyManagement
 			lock (ToFileLock)
 			{
 				string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-				File.WriteAllText(filePath,
-					jsonString,
-					Encoding.UTF8);
+				IoHelpers.SafeWriteAllText(filePath, jsonString, Encoding.UTF8);
 			}
 		}
 
@@ -136,12 +134,12 @@ namespace WalletWasabi.KeyManagement
 		{
 			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
 
-			if (!File.Exists(filePath))
+			if (!IoHelpers.TryGetSafestFileVersion(filePath, out var safestFile))
 			{
 				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
 			}
 
-			string jsonString = File.ReadAllText(filePath, Encoding.UTF8);
+			string jsonString = File.ReadAllText(safestFile, Encoding.UTF8);
 			var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
 			km.SetFilePath(filePath);
 			return km;
