@@ -64,7 +64,7 @@ namespace System.IO
 
 			File.Move(newPath, path);
 
-			File.Delete(newPath);
+			File.Delete(oldPath);
 		}
 
 		public static void WriteAllText(string path, string content)
