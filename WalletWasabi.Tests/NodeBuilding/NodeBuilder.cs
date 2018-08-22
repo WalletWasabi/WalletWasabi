@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				if (File.Exists(bitcoind))
 					return bitcoind;
 				zip = Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-win32.zip");
-				var url = string.Format("https://bitcoin.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
+				var url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
 				using (var client = new HttpClient())
 				{
 					client.Timeout = TimeSpan.FromMinutes(10.0);
@@ -71,7 +71,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 					Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
 					: Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-osx64.tar.gz");
 
-				var url = string.Format("https://bitcoin.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
+				var url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
 				using (var client = new HttpClient())
 				{
 					client.Timeout = TimeSpan.FromMinutes(10.0);
