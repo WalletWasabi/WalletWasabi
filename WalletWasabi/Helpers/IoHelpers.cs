@@ -51,12 +51,12 @@ namespace System.IO
 		private static void Replace(string newPath, string path)
 		{
 			var oldPath = path + ".bak";
-			if(File.Exists(oldPath))
+			if (File.Exists(oldPath))
 			{
 				File.Delete(oldPath);
 			}
 
-			if(File.Exists(path))
+			if (File.Exists(path))
 			{
 				File.Move(path, oldPath);
 			}
@@ -104,21 +104,22 @@ namespace System.IO
 			var newPath = path + ".new";
 			var oldPath = path + ".bak";
 
-			if(File.Exists(path) && File.Exists(newPath)){
+			if (File.Exists(path) && File.Exists(newPath))
+			{
 				safestFilePath = path;
 				return true;
 			}
-			if(File.Exists(oldPath) && File.Exists(newPath))
+			if (File.Exists(oldPath) && File.Exists(newPath))
 			{
 				safestFilePath = oldPath;
 				return true;
 			}
-			if(File.Exists(oldPath) && File.Exists(path))
+			if (File.Exists(oldPath) && File.Exists(path))
 			{
 				safestFilePath = path;
 				return true;
 			}
-			if(File.Exists(path))
+			if (File.Exists(path))
 			{
 				safestFilePath = path;
 				return true;
