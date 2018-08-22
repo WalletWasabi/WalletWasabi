@@ -49,7 +49,7 @@ namespace System.IO
 		}
 
 		// https://stackoverflow.com/a/7957634/2061103
-		private static void Replace(string newPath, string path)
+		private static void SafeMove(string newPath, string path)
 		{
 			var oldPath = path + ".old";
 			if (File.Exists(oldPath))
@@ -67,39 +67,39 @@ namespace System.IO
 			File.Delete(oldPath);
 		}
 
-		public static void WriteAllText(string path, string content)
+		public static void SafeWriteAllText(string path, string content)
 		{
 			var newPath = path + ".new";
 			File.WriteAllText(newPath, content, Encoding.UTF8);
-			Replace(newPath, path);
+			SafeMove(newPath, path);
 		}
 
-		public static async Task WriteAllTextAsync(string path, string content)
+		public static async Task SafeWriteAllTextAsync(string path, string content)
 		{
 			var newPath = path + ".new";
 			await File.WriteAllTextAsync(newPath, content, Encoding.UTF8);
-			Replace(newPath, path);
+			SafeMove(newPath, path);
 		}
 
 		public static void WriteAllLines(string path, IEnumerable<string> content)
 		{
 			var newPath = path + ".new";
 			File.WriteAllLines(newPath, content);
-			Replace(newPath, path);
+			SafeMove(newPath, path);
 		}
 
-		public static async Task WriteAllLinesAsync(string path, IEnumerable<string> content)
+		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
 		{
 			var newPath = path + ".new";
 			await File.WriteAllLinesAsync(newPath, content);
-			Replace(newPath, path);
+			SafeMove(newPath, path);
 		}
 
-		public static async Task WriteAllBytesAsync(string path, byte[] content)
+		public static async Task SafeWriteAllBytesAsync(string path, byte[] content)
 		{
 			var newPath = path + ".new";
 			await File.WriteAllBytesAsync(newPath, content);
-			Replace(newPath, path);
+			SafeMove(newPath, path);
 		}
 
 		public static bool TryGetSafestFileVersion(string path, out string safestFilePath)
