@@ -7,6 +7,9 @@ namespace System.IO
 {
 	public static class IoHelpers
 	{
+		private const string OldExtension = ".old";
+		private const string NewExtension = ".new";
+
 		// http://stackoverflow.com/a/14933880/2061103
 		public static async Task DeleteRecursivelyWithMagicDustAsync(string destinationDir)
 		{
@@ -51,7 +54,7 @@ namespace System.IO
 		// https://stackoverflow.com/a/7957634/2061103
 		private static void SafeMove(string newPath, string path)
 		{
-			var oldPath = path + ".old";
+			var oldPath = path + OldExtension;
 			if (File.Exists(oldPath))
 			{
 				File.Delete(oldPath);
@@ -69,43 +72,43 @@ namespace System.IO
 
 		public static void SafeWriteAllText(string path, string content)
 		{
-			var newPath = path + ".new";
+			var newPath = path + NewExtension;
 			File.WriteAllText(newPath, content, Encoding.UTF8);
 			SafeMove(newPath, path);
 		}
 
 		public static async Task SafeWriteAllTextAsync(string path, string content)
 		{
-			var newPath = path + ".new";
+			var newPath = path + NewExtension;
 			await File.WriteAllTextAsync(newPath, content, Encoding.UTF8);
 			SafeMove(newPath, path);
 		}
 
 		public static void WriteAllLines(string path, IEnumerable<string> content)
 		{
-			var newPath = path + ".new";
+			var newPath = path + NewExtension;
 			File.WriteAllLines(newPath, content);
 			SafeMove(newPath, path);
 		}
 
 		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
 		{
-			var newPath = path + ".new";
+			var newPath = path + NewExtension;
 			await File.WriteAllLinesAsync(newPath, content);
 			SafeMove(newPath, path);
 		}
 
 		public static async Task SafeWriteAllBytesAsync(string path, byte[] content)
 		{
-			var newPath = path + ".new";
+			var newPath = path + NewExtension;
 			await File.WriteAllBytesAsync(newPath, content);
 			SafeMove(newPath, path);
 		}
 
 		public static bool TryGetSafestFileVersion(string path, out string safestFilePath)
 		{
-			var newPath = path + ".new";
-			var oldPath = path + ".old";
+			var newPath = path + NewExtension;
+			var oldPath = path + OldExtension;
 
 			if (File.Exists(path) && File.Exists(newPath))
 			{
