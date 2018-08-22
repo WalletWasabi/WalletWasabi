@@ -154,32 +154,35 @@ namespace WalletWasabi.Services
 				{
 					File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
 					Index.Add(StartingFilter);
-					File.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+					IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 				}
 				else
 				{
 					var height = StartingHeight;
 					try
 					{
-						foreach (var line in File.ReadAllLines(IndexFilePath))
+						if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
 						{
-							var filter = FilterModel.FromLine(line, height);
-							height++;
-							Index.Add(filter);
+							foreach (var line in File.ReadAllLines(safestFileVerion))
+							{
+								var filter = FilterModel.FromLine(line, height);
+								height++;
+								Index.Add(filter);
+							}
 						}
 					}
 					catch (FormatException)
 					{
 						// We found a corrupted entry. Stop here.
 						// Fix the currupted file.
-						File.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+						IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 					}
 				}
 			}
 			else
 			{
 				Index.Add(StartingFilter);
-				File.WriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+				IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 			}
 
 			BestKnownFilter = Index.Last();
@@ -250,15 +253,7 @@ namespace WalletWasabi.Services
 									NewFilter?.Invoke(this, filterModel);
 								}
 
-								if (filtersList.Count == 1) // minor optimization
-								{
-									await File.AppendAllLinesAsync(IndexFilePath, new[] { BestKnownFilter.ToLine() });
-								}
-								else
-								{
-									await File.WriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
-								}
-
+								await IoHelpers.SafeWriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
 								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {startingFilter.BlockHeight + 1} to {BestKnownFilter.BlockHeight}.");
 							}
 
@@ -292,8 +287,12 @@ namespace WalletWasabi.Services
 							Reorged?.Invoke(this, reorgedHash);
 
 							// 2. Serialize Index. (Remove last line.)
-							var lines = File.ReadAllLines(IndexFilePath);
-							File.WriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+							string[] lines = null;
+							if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
+							{
+								lines = File.ReadAllLines(safestFileVerion);
+							}
+							IoHelpers.SafeWriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
 
 							// 3. Skip the last valid block.
 							continue;

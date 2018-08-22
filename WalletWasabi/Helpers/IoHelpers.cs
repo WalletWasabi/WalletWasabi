@@ -98,7 +98,7 @@ namespace System.IO
 			SafeMove(newPath, path);
 		}
 
-		public static void WriteAllLines(string path, IEnumerable<string> content)
+		public static void SafeWriteAllLines(string path, IEnumerable<string> content)
 		{
 			var newPath = path + NewExtension;
 			File.WriteAllLines(newPath, content);
