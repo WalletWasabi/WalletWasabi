@@ -48,9 +48,10 @@ namespace System.IO
 			// depending on your use case, consider throwing an exception here
 		}
 
+		// https://stackoverflow.com/a/7957634/2061103
 		private static void Replace(string newPath, string path)
 		{
-			var oldPath = path + ".bak";
+			var oldPath = path + ".old";
 			if (File.Exists(oldPath))
 			{
 				File.Delete(oldPath);
@@ -60,7 +61,9 @@ namespace System.IO
 			{
 				File.Move(path, oldPath);
 			}
+
 			File.Move(newPath, path);
+
 			File.Delete(newPath);
 		}
 
@@ -102,7 +105,7 @@ namespace System.IO
 		public static bool TryGetSafestFileVersion(string path, out string safestFilePath)
 		{
 			var newPath = path + ".new";
-			var oldPath = path + ".bak";
+			var oldPath = path + ".old";
 
 			if (File.Exists(path) && File.Exists(newPath))
 			{
