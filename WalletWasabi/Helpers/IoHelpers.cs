@@ -73,14 +73,28 @@ namespace System.IO
 		public static void SafeWriteAllText(string path, string content)
 		{
 			var newPath = path + NewExtension;
-			File.WriteAllText(newPath, content, Encoding.UTF8);
+			File.WriteAllText(newPath, content);
+			SafeMove(newPath, path);
+		}
+
+		public static void SafeWriteAllText(string path, string content, Encoding encoding)
+		{
+			var newPath = path + NewExtension;
+			File.WriteAllText(newPath, content, encoding);
 			SafeMove(newPath, path);
 		}
 
 		public static async Task SafeWriteAllTextAsync(string path, string content)
 		{
 			var newPath = path + NewExtension;
-			await File.WriteAllTextAsync(newPath, content, Encoding.UTF8);
+			await File.WriteAllTextAsync(newPath, content);
+			SafeMove(newPath, path);
+		}
+
+		public static async Task SafeWriteAllTextAsync(string path, string content, Encoding encoding)
+		{
+			var newPath = path + NewExtension;
+			await File.WriteAllTextAsync(newPath, content, encoding);
 			SafeMove(newPath, path);
 		}
 
