@@ -105,31 +105,39 @@ namespace System.IO
 			SafeMove(newPath, path);
 		}
 
+		// https://stackoverflow.com/a/7957634/2061103
 		public static bool TryGetSafestFileVersion(string path, out string safestFilePath)
 		{
 			var newPath = path + NewExtension;
 			var oldPath = path + OldExtension;
 
+			// If foo.data and foo.data.new exist, load foo.data; foo.data.new may be broken (e.g. power off during write).
 			if (File.Exists(path) && File.Exists(newPath))
 			{
 				safestFilePath = path;
 				return true;
 			}
+
+			// If foo.data.old and foo.data.new exist, both should be valid, but something died very shortly afterwards - you may want to load the foo.data.old version anyway.
 			if (File.Exists(oldPath) && File.Exists(newPath))
 			{
 				safestFilePath = oldPath;
 				return true;
 			}
+
+			// If foo.data and foo.data.old exist, then foo.data should be fine, but again something went wrong, or possibly the file couldn't be deleted.
 			if (File.Exists(oldPath) && File.Exists(path))
 			{
 				safestFilePath = path;
 				return true;
 			}
+
 			if (File.Exists(path))
 			{
 				safestFilePath = path;
 				return true;
 			}
+
 			safestFilePath = null;
 			return false;
 		}
