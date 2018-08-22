@@ -126,7 +126,7 @@ namespace WalletWasabi.KeyManagement
 			lock (ToFileLock)
 			{
 				string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-				IoHelpers.WriteAllText(filePath, jsonString);
+				IoHelpers.SafeWriteAllText(filePath, jsonString, Encoding.UTF8);
 			}
 		}
 
