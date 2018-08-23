@@ -149,10 +149,10 @@ namespace WalletWasabi.KeyManagement
 		{
 			// BIP44-ish derivation scheme
 			// m / purpose' / coin_type' / account' / change / address_index
+			var change = isInternal ? 1 : 0;
+
 			lock (HdPubKeysLock)
 			{
-				var change = isInternal ? 1 : 0;
-
 				IEnumerable<HdPubKey> relevantHdPubKeys;
 				if (isInternal)
 				{
