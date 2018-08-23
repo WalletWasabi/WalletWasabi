@@ -408,7 +408,11 @@ namespace WalletWasabi.Services
 							string changeLabel = "ZeroLink Change";
 							IEnumerable<HdPubKey> allChangeKeys = allUnusedInternalKeys.Where(x => x.Label == changeLabel);
 							HdPubKey changeKey = null;
-							if (allChangeKeys.Count() >= 7) // Then don't generate new keys, because it'd bloat the wallet.
+
+							KeyManager.AssertLockedInternalKeysIndexed(14);
+							IEnumerable<HdPubKey> internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
+
+							if (allChangeKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
 							{
 								// Find the first one that we did not try to register in the current session.
 								changeKey = allChangeKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
@@ -422,7 +426,8 @@ namespace WalletWasabi.Services
 							}
 							else
 							{
-								changeKey = KeyManager.GenerateNewKey(changeLabel, KeyState.Locked, isInternal: true, toFile: false);
+								changeKey = internalNotCachedLockedKeys.RandomElement();
+								changeKey.SetLabel(changeLabel);
 							}
 							changeAddress = changeKey.GetP2wpkhAddress(Network);
 							AccessCache.AddOrReplace(changeKey, DateTimeOffset.UtcNow);
@@ -430,10 +435,14 @@ namespace WalletWasabi.Services
 
 						if (activeAddress == null)
 						{
-							const string activeLabel = "ZeroLink Mixed Coin";
+							string activeLabel = "ZeroLink Mixed Coin";
 							IEnumerable<HdPubKey> allActiveKeys = allUnusedInternalKeys.Where(x => x.Label == activeLabel);
 							HdPubKey activeKey = null;
-							if (allActiveKeys.Count() >= 7) // Then don't generate new keys, because it'd bloat the wallet.
+
+							KeyManager.AssertLockedInternalKeysIndexed(14);
+							IEnumerable<HdPubKey> internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
+
+							if (allActiveKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
 							{
 								// Find the first one that we did not try to register in the current session.
 								activeKey = allActiveKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
@@ -448,7 +457,8 @@ namespace WalletWasabi.Services
 							}
 							else
 							{
-								activeKey = KeyManager.GenerateNewKey(activeLabel, KeyState.Locked, isInternal: true, toFile: false);
+								activeKey = internalNotCachedLockedKeys.RandomElement();
+								activeKey.SetLabel(activeLabel);
 							}
 							activeAddress = activeKey.GetP2wpkhAddress(Network);
 							AccessCache.AddOrReplace(activeKey, DateTimeOffset.UtcNow);

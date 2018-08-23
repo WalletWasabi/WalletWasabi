@@ -95,7 +95,8 @@ namespace WalletWasabi.Services
 			BlockFolderLock = new AsyncLock();
 			BlockDownloadLock = new AsyncLock();
 
-			AssertCleanKeysIndexed(21);
+			KeyManager.AssertCleanKeysIndexed(21);
+			KeyManager.AssertLockedInternalKeysIndexed(14);
 
 			_running = 0;
 
@@ -274,7 +275,7 @@ namespace WalletWasabi.Services
 			label = Guard.Correct(label);
 
 			// Make sure there's always 21 clean keys generated and indexed.
-			AssertCleanKeysIndexed(21, false);
+			KeyManager.AssertCleanKeysIndexed(21, false);
 
 			IEnumerable<HdPubKey> keys = KeyManager.GetKeys(KeyState.Clean, isInternal: false);
 			if (dontTouch != null)
@@ -363,42 +364,6 @@ namespace WalletWasabi.Services
 			}
 
 			return history;
-		}
-
-		/// <summary>
-		/// Make sure there's always clean keys generated and indexed.
-		/// </summary>
-		private bool AssertCleanKeysIndexed(int howMany = 21, bool? isInternal = null)
-		{
-			var generated = false;
-
-			if (isInternal == null)
-			{
-				while (KeyManager.GetKeys(KeyState.Clean, true).Count() < howMany)
-				{
-					KeyManager.GenerateNewKey("", KeyState.Clean, true, toFile: false);
-					generated = true;
-				}
-				while (KeyManager.GetKeys(KeyState.Clean, false).Count() < howMany)
-				{
-					KeyManager.GenerateNewKey("", KeyState.Clean, false, toFile: false);
-					generated = true;
-				}
-			}
-			else
-			{
-				while (KeyManager.GetKeys(KeyState.Clean, isInternal).Count() < howMany)
-				{
-					KeyManager.GenerateNewKey("", KeyState.Clean, (bool)isInternal, toFile: false);
-					generated = true;
-				}
-			}
-
-			if (generated)
-			{
-				KeyManager.ToFile();
-			}
-			return generated;
 		}
 
 		private void ProcessBlock(Height height, Block block)
@@ -532,10 +497,20 @@ namespace WalletWasabi.Services
 					}
 
 					// Make sure there's always 21 clean keys generated and indexed.
-					if (AssertCleanKeysIndexed(21, foundKey.IsInternal()))
+					if (KeyManager.AssertCleanKeysIndexed(21, foundKey.IsInternal()))
 					{
 						// If it generated a new key refresh the keys:
 						keys = KeyManager.GetKeys().ToList();
+					}
+
+					if (foundKey.IsInternal())
+					{
+						// Make sure there's always 14 internal locked keys generated and indexed.
+						if (KeyManager.AssertLockedInternalKeysIndexed(14))
+						{
+							// If it generated a new key refresh the keys:
+							keys = KeyManager.GetKeys().ToList();
+						}
 					}
 				}
 			}
@@ -839,7 +814,7 @@ namespace WalletWasabi.Services
 
 			// 5. How much to spend?
 			long toSendAmountSumInSatoshis = toSend.Select(x => x.Amount).Sum(); // Does it work if I simply go with Money class here? Is that copied by reference of value?
-			var realToSend = new(Script script, Money amount, string label)[toSend.Length];
+			var realToSend = new (Script script, Money amount, string label)[toSend.Length];
 			for (int i = 0; i < toSend.Length; i++) // clone
 			{
 				realToSend[i] = (
@@ -888,7 +863,8 @@ namespace WalletWasabi.Services
 
 			if (customChange == null)
 			{
-				AssertCleanKeysIndexed(21, true);
+				KeyManager.AssertCleanKeysIndexed(21, true);
+				KeyManager.AssertLockedInternalKeysIndexed(14);
 				var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
 
 				changeHdPubKey.SetLabel(changeLabel, KeyManager);

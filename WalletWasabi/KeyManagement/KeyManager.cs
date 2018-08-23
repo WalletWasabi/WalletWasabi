@@ -248,5 +248,63 @@ namespace WalletWasabi.KeyManagement
 				return extKeys;
 			}
 		}
+
+		/// <summary>
+		/// Make sure there's always clean keys generated and indexed.
+		/// </summary>
+		public bool AssertCleanKeysIndexed(int howMany = 21, bool? isInternal = null)
+		{
+			var generated = false;
+
+			if (isInternal == null)
+			{
+				while (GetKeys(KeyState.Clean, true).Count() < howMany)
+				{
+					GenerateNewKey("", KeyState.Clean, true, toFile: false);
+					generated = true;
+				}
+				while (GetKeys(KeyState.Clean, false).Count() < howMany)
+				{
+					GenerateNewKey("", KeyState.Clean, false, toFile: false);
+					generated = true;
+				}
+			}
+			else
+			{
+				while (GetKeys(KeyState.Clean, isInternal).Count() < howMany)
+				{
+					GenerateNewKey("", KeyState.Clean, (bool)isInternal, toFile: false);
+					generated = true;
+				}
+			}
+
+			if (generated)
+			{
+				ToFile();
+			}
+
+			return generated;
+		}
+
+		/// <summary>
+		/// Make sure there's always locked internal keys generated and indexed.
+		/// </summary>
+		public bool AssertLockedInternalKeysIndexed(int howMany = 14)
+		{
+			var generated = false;
+
+			while (GetKeys(KeyState.Locked, true).Count() < howMany)
+			{
+				GenerateNewKey("", KeyState.Locked, true, toFile: false);
+				generated = true;
+			}
+
+			if (generated)
+			{
+				ToFile();
+			}
+
+			return generated;
+		}
 	}
 }
