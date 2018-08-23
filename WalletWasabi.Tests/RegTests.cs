@@ -537,12 +537,12 @@ namespace WalletWasabi.Tests
 				Assert.Empty(keyManager.GetKeys(KeyState.Used, true));
 				Assert.Equal(2, keyManager.GetKeys(KeyState.Used).Count());
 				Assert.Empty(keyManager.GetKeys(KeyState.Locked, false));
-				Assert.Empty(keyManager.GetKeys(KeyState.Locked, true));
-				Assert.Empty(keyManager.GetKeys(KeyState.Locked));
+				Assert.Equal(14, keyManager.GetKeys(KeyState.Locked, true).Count());
+				Assert.Equal(14, keyManager.GetKeys(KeyState.Locked).Count());
 				Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, true).Count());
 				Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, false).Count());
 				Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
-				Assert.Equal(44, keyManager.GetKeys().Count());
+				Assert.Equal(58, keyManager.GetKeys().Count());
 
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "foo label"));
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
@@ -583,12 +583,12 @@ namespace WalletWasabi.Tests
 				Assert.Empty(keyManager.GetKeys(KeyState.Used, true));
 				Assert.Equal(2, keyManager.GetKeys(KeyState.Used).Count());
 				Assert.Empty(keyManager.GetKeys(KeyState.Locked, false));
-				Assert.Empty(keyManager.GetKeys(KeyState.Locked, true));
-				Assert.Empty(keyManager.GetKeys(KeyState.Locked));
+				Assert.Equal(14, keyManager.GetKeys(KeyState.Locked, true).Count());
+				Assert.Equal(14, keyManager.GetKeys(KeyState.Locked).Count());
 				Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, true).Count());
 				Assert.Equal(21, keyManager.GetKeys(KeyState.Clean, false).Count());
 				Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
-				Assert.Equal(44, keyManager.GetKeys().Count());
+				Assert.Equal(58, keyManager.GetKeys().Count());
 
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "foo label"));
 				Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Label == "bar label"));
