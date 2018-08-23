@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -221,6 +222,28 @@ namespace WalletWasabi.Tests
 			}
 
 			return contents;
+		}
+
+		[Fact]
+		public async Task TorProcessManagerAsync()
+		{
+			// Test managed Tor instance
+			var managedTor = new TorProcessManager(9000, "/usr/sbin/tor");
+			//Assert.False(await TorProcessManager.IsTorRunningAsync());
+			Assert.False(await managedTor.IsRunningAsync());
+			Assert.Equal(TorProcessState.NotStarted, managedTor.Status);
+			Assert.False(managedTor.IsManaged);
+
+			managedTor.Start();
+			Assert.True(await TorProcessManager.IsTorRunningAsync());
+			Assert.True(await managedTor.IsRunningAsync());
+			Assert.Equal(TorProcessState.Running, managedTor.Status);
+			Assert.True(managedTor.IsManaged);
+			
+			managedTor.Stop();
+			Assert.False(await managedTor.IsRunningAsync());
+			Assert.Equal(TorProcessState.Stopped, managedTor.Status);
+			Assert.False(managedTor.IsManaged);
 		}
 	}
 }
