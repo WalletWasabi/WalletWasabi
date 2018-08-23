@@ -170,7 +170,17 @@ namespace WalletWasabi.KeyManagement
 				}
 				else
 				{
-					path = relevantHdPubKeys.OrderBy(x => x.GetIndex()).Last().GetNonHardenedKeyPath().Increment();
+					int largestIndex = relevantHdPubKeys.Max(x => x.GetIndex());
+					List<int> missingIndexes = Enumerable.Range(0, largestIndex).Except(relevantHdPubKeys.Select(x => x.GetIndex())).ToList();
+					if (missingIndexes.Any())
+					{
+						int smallestMissingIndex = missingIndexes.Min();
+						path = relevantHdPubKeys.First(x => x.GetIndex() == (smallestMissingIndex - 1)).GetNonHardenedKeyPath().Increment();
+					}
+					else
+					{
+						path = relevantHdPubKeys.First(x => x.GetIndex() == largestIndex).GetNonHardenedKeyPath().Increment();
+					}
 				}
 
 				var fullPath = AccountKeyPath.Derive(path);
