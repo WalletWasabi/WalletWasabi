@@ -84,7 +84,7 @@ namespace WalletWasabi.Tests
 		[Trait("Category", "TorNotNeeded")]
 		public async Task GetExchangeRatesAsync()
 		{
-			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
+			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), SharedFixture.TorSocks5Endpoint))
 			using (var response = await client.SendAsync(HttpMethod.Get, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/offchain/exchange-rates"))
 			{
 				Assert.True(response.StatusCode == HttpStatusCode.OK);
@@ -127,7 +127,7 @@ namespace WalletWasabi.Tests
 			var content = new StringContent($"'{signedTx.ToHex()}'", Encoding.UTF8, "application/json");
 
 			Logger.TurnOff();
-			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
+			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), SharedFixture.TorSocks5Endpoint))
 			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
 			{
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
@@ -148,7 +148,7 @@ namespace WalletWasabi.Tests
 			var content = new StringContent($"'{tx.ToHex()}'", Encoding.UTF8, "application/json");
 
 			Logger.TurnOff();
-			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
+			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), SharedFixture.TorSocks5Endpoint))
 			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
 			{
 				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -166,7 +166,7 @@ namespace WalletWasabi.Tests
 			var content = new StringContent($"''", Encoding.UTF8, "application/json");
 
 			Logger.TurnOff();
-			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint)))
+			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), SharedFixture.TorSocks5Endpoint))
 			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
 			{
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
@@ -1659,7 +1659,7 @@ namespace WalletWasabi.Tests
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
-			using (var torClient = new TorHttpClient(baseUri))
+			using (var torClient = new TorHttpClient(baseUri, SharedFixture.TorSocks5Endpoint))
 			using (var satoshiClient = new SatoshiClient(baseUri))
 			{
 				#region PostInputsGetStates

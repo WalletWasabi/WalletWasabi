@@ -11,8 +11,8 @@ namespace WalletWasabi.TorSocks5
 	{
 		public IPEndPoint TorSocks5EndPoint { get; }
 
-		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
-		public TorProcessManager(IPEndPoint torSocks5EndPoint = null)
+		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
+		public TorProcessManager(IPEndPoint torSocks5EndPoint)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint ?? new IPEndPoint(IPAddress.Loopback, 9050);
 		}
@@ -23,7 +23,7 @@ namespace WalletWasabi.TorSocks5
 			// 2. Can I simply run it from output directory?
 			// 3. Can I copy and unzip it from assets?
 			// 4. Throw exception.
-			if (await IsTorRunningAsync())
+			if (await IsTorRunningAsync(TorSocks5EndPoint))
 			{
 				return;
 			}
@@ -31,8 +31,8 @@ namespace WalletWasabi.TorSocks5
 			throw new NotImplementedException();
 		}
 
-		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
-		public static async Task<bool> IsTorRunningAsync(IPEndPoint torSocks5EndPoint = null)
+		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
+		public static async Task<bool> IsTorRunningAsync(IPEndPoint torSocks5EndPoint)
 		{
 			using (var client = new TorSocks5Client(torSocks5EndPoint))
 			{

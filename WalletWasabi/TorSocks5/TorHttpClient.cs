@@ -29,8 +29,7 @@ namespace WalletWasabi.TorSocks5
 
 		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable
 
-		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
-		public TorHttpClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null, bool isolateStream = false)
+		public TorHttpClient(Uri baseUri, IPEndPoint torSocks5EndPoint, bool isolateStream = false)
 		{
 			DestinationUri = Guard.NotNull(nameof(baseUri), baseUri);
 			if (DestinationUri.IsLoopback)
