@@ -45,23 +45,6 @@ namespace WalletWasabi.TorSocks5
 			IsolateStream = isolateStream;
 		}
 
-		public static async Task<bool> IsTorRunningAsync(IPEndPoint torSocks5EndPoint = null)
-		{
-			using (var client = new TorSocks5Client(torSocks5EndPoint))
-			{
-				try
-				{
-					await client.ConnectAsync();
-					await client.HandshakeAsync();
-				}
-				catch (ConnectionException)
-				{
-					return false;
-				}
-				return true;
-			}
-		}
-
 		/// <remarks>
 		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
 		/// </remarks>
