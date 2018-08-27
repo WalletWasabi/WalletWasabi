@@ -19,6 +19,7 @@ namespace WalletWasabi.Tests
 		#region RpcMethodTests
 
 		[Fact]
+		[Trait("Category", "TorNotNeeded")]
 		public async Task CanWaitForNewBlockFromRpcAsync()
 		{
 			using (var builder = await NodeBuilder.CreateAsync())

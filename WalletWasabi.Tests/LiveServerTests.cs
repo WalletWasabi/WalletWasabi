@@ -9,6 +9,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using Xunit;
@@ -26,6 +27,9 @@ namespace WalletWasabi.Tests
 		{
 			SharedFixture = sharedFixture;
 			LiveServerTestsFixture = liveServerTestsFixture;
+
+			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint);
+			torManager.StartAsync().GetAwaiter().GetResult();
 		}
 
 		#region Blockchain
