@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -46,7 +47,24 @@ namespace WalletWasabi.TorSocks5
 
 				if (!File.Exists(torPath))
 				{
-					throw new NotImplementedException();
+					var torDir = Path.Combine(AppContext.BaseDirectory, "tor");
+					var torDaemonsDir = $"TorDaemons";
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						try
+						{
+							ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "tor-win32.zip"), torDir);
+						}
+						catch (UnauthorizedAccessException)
+						{
+							await Task.Delay(100);
+							ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "tor-win32.zip"), torDir);
+						}
+					}
+					else
+					{
+						throw new NotImplementedException();
+					}
 				}
 
 				var torProcessStartInfo = new ProcessStartInfo(torPath)

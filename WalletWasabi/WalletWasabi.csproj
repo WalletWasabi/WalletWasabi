@@ -24,6 +24,13 @@
 
   <ItemGroup>
     <Folder Include="Gma\QrCodeNet\Encoding\ReedSolomon\" />
+    <Folder Include="TorDaemons\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="TorDaemons\tor-win32.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
