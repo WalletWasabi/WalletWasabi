@@ -49,6 +49,17 @@ namespace WalletWasabi.TorSocks5
 				{
 					var torDir = Path.Combine(AppContext.BaseDirectory, "tor");
 					var torDaemonsDir = $"TorDaemons";
+
+					try
+					{
+						ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "data-folder.zip"), torDir);
+					}
+					catch (UnauthorizedAccessException)
+					{
+						await Task.Delay(100);
+						ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "data-folder.zip"), torDir);
+					}
+
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					{
 						try
