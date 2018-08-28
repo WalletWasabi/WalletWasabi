@@ -74,6 +74,10 @@ namespace WalletWasabi.Helpers
 			if (waitForExit)
 			{
 				process.WaitForExit();
+				if (process.ExitCode != 0)
+				{
+					Logger.LogError($"{nameof(ShellExec)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.", nameof(EnvironmentHelpers));
+				}
 			}
 		}
 	}
