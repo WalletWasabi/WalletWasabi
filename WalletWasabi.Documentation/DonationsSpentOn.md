@@ -13,3 +13,4 @@ Donate: [bc1q32xe73texphk3cgu33cyw7dajky9u76qltcv6m](https://chainflyer.bitflyer
 |2018-06-28|0.33|Donate varsnotwars for contributing for one month.|[View in block explorer](https://chainflyer.bitflyer.jp/Transaction/8a4fcefe9d8c5efe8ac20ca9979bf7ca4558b03846bf0d90c80b885bce1804a4)|
 |2018-06-28|0.49|Donate lontivero for contributing for one month.|[View in block explorer](https://chainflyer.bitflyer.jp/Transaction/8a4fcefe9d8c5efe8ac20ca9979bf7ca4558b03846bf0d90c80b885bce1804a4)|
 |2018-07-30|0.38|Donate lontivero for contributing for one month.|[View in block explorer](https://chainflyer.bitflyer.jp/Transaction/18a704ca9f3765e01da37d6efe34dc862b8f79c49723bc5743bb872cb44e6e93)|
+|2018-08-28|0.43|Donate lontivero for contributing for one month.|[View in block explorer](https://www.smartbit.com.au/tx/0a87808b198ea11493d9154bee0e53dfe5b724eb49f7e4b2965cb554449eac69)|
