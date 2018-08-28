@@ -107,7 +107,9 @@ namespace WalletWasabi.TorSocks5
 				}
 				else // Linux and OSX
 				{
-					EnvironmentHelpers.BashExec($"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:={torDir}/Tor && export LD_LIBRARY_PATH && .{torPath}");
+					string cmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:={torDir}/Tor && export LD_LIBRARY_PATH && .{torPath}";
+					Console.WriteLine(cmd);
+					EnvironmentHelpers.BashExec(cmd, false);
 				}
 
 				await Task.Delay(1000);
