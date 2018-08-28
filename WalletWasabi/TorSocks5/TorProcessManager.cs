@@ -73,7 +73,7 @@ namespace WalletWasabi.TorSocks5
 							ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "tor-win32.zip"), torDir);
 						}
 					}
-					else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					else // Linux and OSX
 					{
 						try
 						{
@@ -87,10 +87,6 @@ namespace WalletWasabi.TorSocks5
 
 						// Make sure there's sufficient permission.
 						EnvironmentHelpers.ShellExec($"chmod -R 777 {torDir}");
-					}
-					else
-					{
-						throw new NotImplementedException();
 					}
 				}
 
