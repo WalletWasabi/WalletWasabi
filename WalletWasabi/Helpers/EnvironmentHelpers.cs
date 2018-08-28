@@ -52,7 +52,7 @@ namespace WalletWasabi.Helpers
 		/// https://stackoverflow.com/a/47918132/2061103
 		/// </summary>
 		/// <param name="cmd"></param>
-		public static void BashExec(string cmd, bool waitForExit = true)
+		public static void ShellExec(string cmd, bool waitForExit = true)
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
@@ -64,7 +64,7 @@ namespace WalletWasabi.Helpers
 					UseShellExecute = false,
 					CreateNoWindow = true,
 					WindowStyle = ProcessWindowStyle.Hidden,
-					FileName = "/bin/bash",
+					FileName = "/bin/sh",
 					Arguments = $"-c \"{escapedArgs}\""
 				}
 			};
