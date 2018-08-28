@@ -110,7 +110,7 @@ namespace WalletWasabi.TorSocks5
 				await Task.Delay(1000);
 				if (!await IsTorRunningAsync(TorSocks5EndPoint))
 				{
-					throw new TorException("Could not automatically start Tor. Try running Tor manually.");
+					throw new TorException("Attempted to start Tor, but it is not running.");
 				}
 			}
 			catch (Exception ex)
