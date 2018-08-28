@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.TorSocks5
 {
@@ -83,6 +84,9 @@ namespace WalletWasabi.TorSocks5
 							await Task.Delay(100);
 							ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "tor-linux64.zip"), torDir);
 						}
+
+						// Make sure there's sufficient permission.
+						EnvironmentHelpers.BashExec($"chmod -R 777 {torDir}");
 					}
 					else
 					{
