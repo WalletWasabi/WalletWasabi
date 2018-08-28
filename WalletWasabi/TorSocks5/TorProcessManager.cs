@@ -72,6 +72,18 @@ namespace WalletWasabi.TorSocks5
 							ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "tor-win32.zip"), torDir);
 						}
 					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					{
+						try
+						{
+							ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "tor-linux64.zip"), torDir);
+						}
+						catch (UnauthorizedAccessException)
+						{
+							await Task.Delay(100);
+							ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "tor-linux64.zip"), torDir);
+						}
+					}
 					else
 					{
 						throw new NotImplementedException();
