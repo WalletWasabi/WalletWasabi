@@ -63,26 +63,17 @@ namespace WalletWasabi.TorSocks5
 
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					{
-						try
-						{
-							ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "tor-win32.zip"), torDir);
-						}
-						catch (UnauthorizedAccessException)
-						{
-							await Task.Delay(100);
-							ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "tor-win32.zip"), torDir);
-						}
+						await IoHelpers.BetterExtractZipToDirectoryAsync(Path.Combine(torDaemonsDir, "tor-win32.zip"), torDir);
 					}
-					else // Linux and OSX
+					else // Linux or OSX
 					{
-						try
+						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						{
-							ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "tor-linux64.zip"), torDir);
+							await IoHelpers.BetterExtractZipToDirectoryAsync(Path.Combine(torDaemonsDir, "tor-linux64.zip"), torDir);
 						}
-						catch (UnauthorizedAccessException)
+						else // OSX
 						{
-							await Task.Delay(100);
-							ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "tor-linux64.zip"), torDir);
+							await IoHelpers.BetterExtractZipToDirectoryAsync(Path.Combine(torDaemonsDir, "tor-osx64.zip"), torDir);
 						}
 
 						// Make sure there's sufficient permission.

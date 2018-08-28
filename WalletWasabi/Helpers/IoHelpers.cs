@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO.Compression;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -117,6 +118,19 @@ namespace System.IO
 			var newPath = path + NewExtension;
 			await File.WriteAllBytesAsync(newPath, content);
 			SafeMove(newPath, path);
+		}
+
+		public static async Task BetterExtractZipToDirectoryAsync(string src, string dest)
+		{
+			try
+			{
+				ZipFile.ExtractToDirectory(src, dest);
+			}
+			catch (UnauthorizedAccessException)
+			{
+				await Task.Delay(100);
+				ZipFile.ExtractToDirectory(src, dest);
+			}
 		}
 
 		// https://stackoverflow.com/a/7957634/2061103
