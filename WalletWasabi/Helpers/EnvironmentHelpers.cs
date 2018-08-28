@@ -52,7 +52,7 @@ namespace WalletWasabi.Helpers
 		/// https://stackoverflow.com/a/47918132/2061103
 		/// </summary>
 		/// <param name="cmd"></param>
-		public static void BashExec(string cmd)
+		public static void BashExec(string cmd, bool waitForExit = true)
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
@@ -70,7 +70,11 @@ namespace WalletWasabi.Helpers
 			};
 
 			process.Start();
-			process.WaitForExit();
+
+			if (waitForExit)
+			{
+				process.WaitForExit();
+			}
 		}
 	}
 }

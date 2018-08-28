@@ -36,19 +36,19 @@ namespace WalletWasabi.TorSocks5
 					return;
 				}
 
+				var torDir = Path.Combine(AppContext.BaseDirectory, "tor");
 				var torPath = "";
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
-					torPath = @"tor\Tor\tor.exe";
+					torPath = $@"{torDir}\Tor\tor.exe";
 				}
 				else // Linux or OSX
 				{
-					torPath = @"tor/Tor/tor";
+					torPath = $@"{torDir}/Tor/tor";
 				}
 
 				if (!File.Exists(torPath))
 				{
-					var torDir = Path.Combine(AppContext.BaseDirectory, "tor");
 					var torDaemonsDir = $"TorDaemons";
 
 					try
@@ -94,14 +94,21 @@ namespace WalletWasabi.TorSocks5
 					}
 				}
 
-				var torProcessStartInfo = new ProcessStartInfo(torPath)
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
-					Arguments = $"SOCKSPort {TorSocks5EndPoint.Port}",
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					RedirectStandardOutput = true
-				};
-				Process torProcess = Process.Start(torProcessStartInfo);
+					var torProcessStartInfo = new ProcessStartInfo(torPath)
+					{
+						Arguments = $"SOCKSPort {TorSocks5EndPoint.Port}",
+						UseShellExecute = false,
+						CreateNoWindow = true,
+						RedirectStandardOutput = true
+					};
+					Process torProcess = Process.Start(torProcessStartInfo);
+				}
+				else // Linux and OSX
+				{
+					EnvironmentHelpers.BashExec($"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:={torDir}/Tor && export LD_LIBRARY_PATH && .{torPath}");
+				}
 
 				await Task.Delay(1000);
 				if (!await IsTorRunningAsync(TorSocks5EndPoint))
