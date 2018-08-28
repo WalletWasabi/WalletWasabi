@@ -1,4 +1,4 @@
-Donate: [bc1q32xe73texphk3cgu33cyw7dajky9u76qltcv6m](https://chainflyer.bitflyer.jp/Address/bc1q32xe73texphk3cgu33cyw7dajky9u76qltcv6m)
+Donate: [bc1q32xe73texphk3cgu33cyw7dajky9u76qltcv6m](https://www.smartbit.com.au/address/bc1q32xe73texphk3cgu33cyw7dajky9u76qltcv6m)
 
 |Date|Amount (BTC)|Description|Transaction|
 |---|---|---|---|
