@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
@@ -110,7 +111,7 @@ namespace WalletWasabi.TorSocks5
 				}
 
 				Logger.LogInfo<TorProcessManager>("Delaying 5000...");
-				await Task.Delay(5000);
+				Thread.Sleep(5000);
 				Logger.LogInfo<TorProcessManager>("Delayed.");
 				if (!await IsTorRunningAsync(TorSocks5EndPoint))
 				{
