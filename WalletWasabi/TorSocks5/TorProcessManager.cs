@@ -110,7 +110,7 @@ namespace WalletWasabi.TorSocks5
 					Logger.LogInfo<TorProcessManager>($"Started Tor process with shell command: {runTorCmd}.");
 				}
 
-				Logger.LogInfo<TorProcessManager>("Delaying 1000...");
+				Logger.LogInfo<TorProcessManager>("Delaying 2000...");
 				Thread.Sleep(2000);
 				Logger.LogInfo<TorProcessManager>("Delayed.");
 				if (!await IsTorRunningAsync(TorSocks5EndPoint))
