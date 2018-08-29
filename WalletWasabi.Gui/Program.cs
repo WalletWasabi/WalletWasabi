@@ -21,12 +21,12 @@ namespace WalletWasabi.Gui
 			StatusBarViewModel statusBar = null;
 			try
 			{
-				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				BuildAvaloniaApp().BeforeStarting(async builder =>
 				{
 					try
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel();
+
 						Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
 
 						var configFilePath = Path.Combine(Global.DataDir, "Config.json");
