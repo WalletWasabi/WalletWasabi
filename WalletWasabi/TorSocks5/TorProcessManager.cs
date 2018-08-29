@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.TorSocks5
 {
@@ -33,6 +34,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				if (await IsTorRunningAsync(TorSocks5EndPoint))
 				{
+					Logger.LogInfo<TorProcessManager>("Tor is already running.");
 					return;
 				}
 
@@ -49,36 +51,43 @@ namespace WalletWasabi.TorSocks5
 
 				if (!File.Exists(torPath))
 				{
+					Logger.LogInfo<TorProcessManager>($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
 					var torDaemonsDir = $"TorDaemons";
 
-					try
-					{
-						ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "data-folder.zip"), torDir);
-					}
-					catch (UnauthorizedAccessException)
-					{
-						await Task.Delay(100);
-						ZipFile.ExtractToDirectory(Path.Combine(torDaemonsDir, "data-folder.zip"), torDir);
-					}
+					string dataZip = Path.Combine(torDaemonsDir, "data-folder.zip");
+					await IoHelpers.BetterExtractZipToDirectoryAsync(dataZip, torDir);
+					Logger.LogInfo<TorProcessManager>($"Extracted {dataZip} to {torDir}.");
 
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 					{
-						await IoHelpers.BetterExtractZipToDirectoryAsync(Path.Combine(torDaemonsDir, "tor-win32.zip"), torDir);
+						string torWinZip = Path.Combine(torDaemonsDir, "tor-win32.zip");
+						await IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, torDir);
+						Logger.LogInfo<TorProcessManager>($"Extracted {torWinZip} to {torDir}.");
 					}
 					else // Linux or OSX
 					{
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						{
-							await IoHelpers.BetterExtractZipToDirectoryAsync(Path.Combine(torDaemonsDir, "tor-linux64.zip"), torDir);
+							string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
+							await IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, torDir);
+							Logger.LogInfo<TorProcessManager>($"Extracted {torLinuxZip} to {torDir}.");
 						}
 						else // OSX
 						{
-							await IoHelpers.BetterExtractZipToDirectoryAsync(Path.Combine(torDaemonsDir, "tor-osx64.zip"), torDir);
+							string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
+							await IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, torDir);
+							Logger.LogInfo<TorProcessManager>($"Extracted {torOsxZip} to {torDir}.");
 						}
 
 						// Make sure there's sufficient permission.
-						EnvironmentHelpers.ShellExec($"chmod -R 777 {torDir}");
+						string chmodTorDirCmd = $"chmod -R 777 {torDir}";
+						EnvironmentHelpers.ShellExec(chmodTorDirCmd);
+						Logger.LogInfo<TorProcessManager>($"Shell command executed: {chmodTorDirCmd}.");
 					}
+				}
+				else
+				{
+					Logger.LogInfo<TorProcessManager>($"Tor instance found at {torPath}.");
 				}
 
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -90,12 +99,14 @@ namespace WalletWasabi.TorSocks5
 						CreateNoWindow = true,
 						RedirectStandardOutput = true
 					};
-					Process torProcess = Process.Start(torProcessStartInfo);
+					Process.Start(torProcessStartInfo);
+					Logger.LogInfo<TorProcessManager>($"Starting Tor process with Process.Start.");
 				}
 				else // Linux and OSX
 				{
-					string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:={torDir}/Tor && export LD_LIBRARY_PATH && cd {torDir}/Tor && ./tor";
+					string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:={torDir}/Tor && export LD_LIBRARY_PATH && cd {torDir}/Tor && ./tor SOCKSPort {TorSocks5EndPoint.Port}";
 					EnvironmentHelpers.ShellExec(runTorCmd, false);
+					Logger.LogInfo<TorProcessManager>($"Starting Tor process with shell command: {runTorCmd}.");
 				}
 
 				await Task.Delay(1000);
@@ -103,6 +114,7 @@ namespace WalletWasabi.TorSocks5
 				{
 					throw new TorException("Attempted to start Tor, but it is not running.");
 				}
+				Logger.LogInfo<TorProcessManager>("Tor is running.");
 			}
 			catch (Exception ex)
 			{
