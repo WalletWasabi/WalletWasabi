@@ -110,9 +110,7 @@ namespace WalletWasabi.TorSocks5
 					Logger.LogInfo<TorProcessManager>($"Started Tor process with shell command: {runTorCmd}.");
 				}
 
-				Logger.LogInfo<TorProcessManager>("Delaying 1000...");
-				await Task.Delay(1000).ConfigureAwait(false);
-				Logger.LogInfo<TorProcessManager>("Delayed.");
+				await Task.Delay(1000).ConfigureAwait(false); // dotnet brainfart, ConfigureAwait(false) IS NEEDED HERE otherwise (only on) Manjuro Linux fails, WTF?!!
 				if (!await IsTorRunningAsync(TorSocks5EndPoint))
 				{
 					throw new TorException("Attempted to start Tor, but it is not running.");
