@@ -17,4 +17,4 @@ build_script:
 
 test_script:
   - cd WalletWasabi.Tests
-  - dotnet test --filter Category=TorNotNeeded
+  - dotnet test --filter Category=RunOnCi

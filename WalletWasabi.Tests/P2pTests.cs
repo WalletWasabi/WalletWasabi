@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests
 		[Theory]
 		[InlineData("test")]
 		[InlineData("main")]
-		[Trait("Category", "TorNotNeeded")]
+		[Trait("Category", "RunOnCi")]
 		public async Task TestServicesAsync(string networkString)
 		{
 			var network = Network.GetNetwork(networkString);
@@ -195,7 +195,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "TorNotNeeded")]
+		[Trait("Category", "RunOnCi")]
 		public async Task FilterBuilderTestAsync()
 		{
 			using (var builder = await NodeBuilder.CreateAsync())

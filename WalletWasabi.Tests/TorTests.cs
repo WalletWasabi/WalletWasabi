@@ -83,7 +83,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "TorNotNeeded")] // This doesn't really mean tor is not needed, rather it means the CI will run it.
+		[Trait("Category", "RunOnCi")] // This doesn't really mean tor is not needed, rather it means the CI will run it.
 		public async Task CanDoHttpsAsync()
 		{
 			using (var client = new TorHttpClient(new Uri("https://slack.com"), SharedFixture.TorSocks5Endpoint))
@@ -190,7 +190,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "TorNotNeeded")] // This doesn't really mean tor is not needed, rather it means the CI will run it.
+		[Trait("Category", "RunOnCi")] // This doesn't really mean tor is not needed, rather it means the CI will run it.
 		public async Task TorRunningAsync()
 		{
 			Assert.True(await TorProcessManager.IsTorRunningAsync(null));
