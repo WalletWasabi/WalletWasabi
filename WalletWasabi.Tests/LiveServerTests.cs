@@ -85,15 +85,11 @@ namespace WalletWasabi.Tests
 		[InlineData(NetworkType.Testnet)]
 		public async Task GetExchangeRatesAsync(NetworkType networkType)
 		{
-			Console.WriteLine("public async Task GetExchangeRatesAsync(NetworkType networkType)");
 			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType]))
 			{
-				Console.WriteLine("using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType]))");
-				var exchangeRates = await client.GetExchangeRatesAsync().ConfigureAwait(false);
-				Console.WriteLine("var exchangeRates = await client.GetExchangeRatesAsync();");
+				var exchangeRates = await client.GetExchangeRatesAsync();
 
 				Assert.True(exchangeRates.NotNullAndNotEmpty());
-				Console.WriteLine("Assert.True(exchangeRates.NotNullAndNotEmpty());");
 			}
 		}
 
