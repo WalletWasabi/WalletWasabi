@@ -89,7 +89,7 @@ namespace WalletWasabi.Tests
 			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType]))
 			{
 				Console.WriteLine("using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType]))");
-				var exchangeRates = await client.GetExchangeRatesAsync();
+				var exchangeRates = await client.GetExchangeRatesAsync().ConfigureAwait(false);
 				Console.WriteLine("var exchangeRates = await client.GetExchangeRatesAsync();");
 
 				Assert.True(exchangeRates.NotNullAndNotEmpty());
