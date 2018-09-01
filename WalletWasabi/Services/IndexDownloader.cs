@@ -310,6 +310,17 @@ namespace WalletWasabi.Services
 									Logger.LogTrace<CcjClient>(ex);
 								}
 							}
+							else if (!IsRunning)
+							{
+								try
+								{
+									await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
+								}
+								catch (TaskCanceledException ex)
+								{
+									Logger.LogTrace<CcjClient>(ex);
+								}
+							}
 						}
 					}
 				}
