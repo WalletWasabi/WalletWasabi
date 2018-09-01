@@ -197,7 +197,7 @@ namespace WalletWasabi.Gui
 			IndexDownloader?.Dispose();
 			Logger.LogInfo($"{nameof(IndexDownloader)} is stopped.", nameof(Global));
 
-			Directory.CreateDirectory(Path.GetDirectoryName(AddressManagerFilePath));
+			IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
 			AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
 			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
 

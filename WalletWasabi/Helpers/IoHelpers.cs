@@ -169,5 +169,15 @@ namespace System.IO
 			safestFilePath = null;
 			return false;
 		}
+
+		public static void EnsureContainingDirectoryExists(string fileNameOrPath)
+		{
+			string fullPath = Path.GetFullPath(fileNameOrPath); // No matter if relative or absolute path is given to this.
+			string dir = Path.GetDirectoryName(fullPath);
+			if (!string.IsNullOrEmpty(dir)) // root
+			{
+				Directory.CreateDirectory(dir); // It does not fail if it exists.
+			}
+		}
 	}
 }

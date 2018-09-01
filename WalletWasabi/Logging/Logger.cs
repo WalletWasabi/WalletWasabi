@@ -97,8 +97,7 @@ namespace WalletWasabi.Logging
 		{
 			var encrypted = File.ReadAllText(FilePath);
 
-			var dir = Path.GetDirectoryName(destination);
-			Directory.CreateDirectory(dir);
+			IoHelpers.EnsureContainingDirectoryExists(destination);
 
 			foreach (var entry in encrypted.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
 			{
@@ -180,11 +179,7 @@ namespace WalletWasabi.Logging
 
 					if (!Modes.Contains(LogMode.File)) return;
 
-					var dir = Path.GetDirectoryName(FilePath);
-					if (dir != "")
-					{
-						Directory.CreateDirectory(dir);
-					}
+					IoHelpers.EnsureContainingDirectoryExists(FilePath);
 
 					if (File.Exists(FilePath))
 					{

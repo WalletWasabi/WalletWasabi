@@ -17,11 +17,14 @@ namespace WalletWasabi.TorSocks5
 	public class TorProcessManager
 	{
 		public IPEndPoint TorSocks5EndPoint { get; }
+		public string LogFile { get; }
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
-		public TorProcessManager(IPEndPoint torSocks5EndPoint)
+		/// <param name="logFile">Opt out of logging with null.</param>
+		public TorProcessManager(IPEndPoint torSocks5EndPoint, string logFile)
 		{
 			TorSocks5EndPoint = torSocks5EndPoint ?? new IPEndPoint(IPAddress.Loopback, 9050);
+			LogFile = logFile;
 		}
 
 		public async Task StartAsync()
@@ -99,11 +102,19 @@ namespace WalletWasabi.TorSocks5
 					Logger.LogInfo<TorProcessManager>($"Tor instance found at {torPath}.");
 				}
 
+				string torArguments = $"--SOCKSPort {TorSocks5EndPoint.Port}";
+				if (!string.IsNullOrEmpty(LogFile))
+				{
+					IoHelpers.EnsureContainingDirectoryExists(LogFile);
+					var logFileFullPath = Path.GetFullPath(LogFile);
+					torArguments += $" --Log \"notice file {logFileFullPath}\"";
+				}
+
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					var torProcessStartInfo = new ProcessStartInfo(torPath)
 					{
-						Arguments = $"SOCKSPort {TorSocks5EndPoint.Port}",
+						Arguments = torArguments,
 						UseShellExecute = false,
 						CreateNoWindow = true,
 						RedirectStandardOutput = true
@@ -113,7 +124,7 @@ namespace WalletWasabi.TorSocks5
 				}
 				else // Linux and OSX
 				{
-					string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:={torDir}/Tor && export LD_LIBRARY_PATH && cd {torDir}/Tor && ./tor SOCKSPort {TorSocks5EndPoint.Port}";
+					string runTorCmd = $"LD_LIBRARY_PATH=$LD_LIBRARY_PATH:={torDir}/Tor && export LD_LIBRARY_PATH && cd {torDir}/Tor && ./tor {torArguments}";
 					EnvironmentHelpers.ShellExec(runTorCmd, false);
 					Logger.LogInfo<TorProcessManager>($"Started Tor process with shell command: {runTorCmd}.");
 				}

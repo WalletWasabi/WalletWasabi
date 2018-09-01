@@ -23,6 +23,8 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			}
 		}
 
+		public static string TorLogsFile => Path.Combine(DataDir, "TorLogs.txt");
+
 		public SharedFixture()
 		{
 			// Initialize tests...

@@ -28,7 +28,7 @@ namespace WalletWasabi.Tests
 			SharedFixture = sharedFixture;
 			LiveServerTestsFixture = liveServerTestsFixture;
 
-			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint);
+			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint, SharedFixture.TorLogsFile);
 			torManager.StartAsync().GetAwaiter().GetResult();
 		}
 

@@ -143,11 +143,7 @@ namespace WalletWasabi.Services
 			_running = 0;
 			Cancel = new CancellationTokenSource();
 
-			var indexDir = Path.GetDirectoryName(IndexFilePath);
-			if (!string.IsNullOrEmpty(indexDir))
-			{
-				Directory.CreateDirectory(indexDir);
-			}
+			IoHelpers.EnsureContainingDirectoryExists(indexFilePath);
 			if (File.Exists(IndexFilePath))
 			{
 				if (Network == Network.RegTest)

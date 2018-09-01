@@ -157,7 +157,7 @@ namespace WalletWasabi.Tests
 					Directory.Delete(blocksFolderPath, recursive: true);
 				}
 
-				Directory.CreateDirectory(Path.GetDirectoryName(addressManagerFilePath));
+				IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
 				Logger.LogInfo<P2pTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 				nodes?.Dispose();

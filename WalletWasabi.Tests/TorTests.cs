@@ -18,7 +18,7 @@ namespace WalletWasabi.Tests
 		public TorTests(SharedFixture sharedFixture)
 		{
 			SharedFixture = sharedFixture;
-			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint);
+			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint, SharedFixture.TorLogsFile);
 			torManager.StartAsync().GetAwaiter().GetResult();
 		}
 
