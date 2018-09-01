@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Logging;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -62,6 +63,18 @@ namespace WalletWasabi.Services
 						catch (TaskCanceledException ex)
 						{
 							Logger.LogTrace<UpdateChecker>(ex);
+						}
+						catch (ConnectionException ex)
+						{
+							Logger.LogDebug<UpdateChecker>(ex);
+							try
+							{
+								await Task.Delay(period, Stop.Token); // Give other threads time to do stuff, update check is not crucial.
+							}
+							catch (TaskCanceledException ex2)
+							{
+								Logger.LogTrace<UpdateChecker>(ex2);
+							}
 						}
 						catch (Exception ex)
 						{

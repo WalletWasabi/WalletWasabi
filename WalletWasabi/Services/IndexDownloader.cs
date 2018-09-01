@@ -293,6 +293,18 @@ namespace WalletWasabi.Services
 							// 3. Skip the last valid block.
 							continue;
 						}
+						catch (ConnectionException ex)
+						{
+							Logger.LogDebug<CcjClient>(ex);
+							try
+							{
+								await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
+							}
+							catch (TaskCanceledException ex2)
+							{
+								Logger.LogTrace<CcjClient>(ex2);
+							}
+						}
 						catch (Exception ex)
 						{
 							Logger.LogError<IndexDownloader>(ex);
@@ -304,17 +316,6 @@ namespace WalletWasabi.Services
 								try
 								{
 									await Task.Delay(requestInterval, Cancel.Token); // Ask for new index in every requestInterval.
-								}
-								catch (TaskCanceledException ex)
-								{
-									Logger.LogTrace<CcjClient>(ex);
-								}
-							}
-							else if (!IsRunning)
-							{
-								try
-								{
-									await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
 								}
 								catch (TaskCanceledException ex)
 								{
