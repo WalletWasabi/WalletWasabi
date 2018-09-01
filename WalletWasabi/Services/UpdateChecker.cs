@@ -66,7 +66,7 @@ namespace WalletWasabi.Services
 						}
 						catch (ConnectionException ex)
 						{
-							Logger.LogDebug<UpdateChecker>(ex);
+							Logger.LogError<UpdateChecker>(ex);
 							try
 							{
 								await Task.Delay(period, Stop.Token); // Give other threads time to do stuff, update check is not crucial.

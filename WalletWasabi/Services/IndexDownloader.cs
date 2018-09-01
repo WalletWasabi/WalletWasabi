@@ -295,7 +295,7 @@ namespace WalletWasabi.Services
 						}
 						catch (ConnectionException ex)
 						{
-							Logger.LogDebug<CcjClient>(ex);
+							Logger.LogError<CcjClient>(ex);
 							try
 							{
 								await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
