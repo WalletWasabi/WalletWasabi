@@ -29,12 +29,7 @@ namespace WalletWasabi.Tests
 			LiveServerTestsFixture = liveServerTestsFixture;
 
 			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint, SharedFixture.TorLogsFile);
-			torManager.Start();
-			Task.Delay(3000).GetAwaiter().GetResult();
-			if (!torManager.IsTorRunningAsync().GetAwaiter().GetResult())
-			{
-				throw new Exception("Tor is not running");
-			}
+			torManager.StartAsync(true).GetAwaiter().GetResult();
 		}
 
 		#region Blockchain

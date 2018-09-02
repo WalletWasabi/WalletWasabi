@@ -87,7 +87,10 @@ namespace WalletWasabi.Gui
 			TorManager = null;
 
 			TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
-			TorManager.Start();
+			new Thread(delegate ()
+			{
+				TorManager.StartAsync(ensureRunning: false).GetAwaiter().GetResult();
+			}).Start();
 
 			Logger.LogInfo<TorProcessManager>($"Fake {nameof(TorProcessManager)} is initialized.");
 

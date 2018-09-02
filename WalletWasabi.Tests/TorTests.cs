@@ -19,12 +19,7 @@ namespace WalletWasabi.Tests
 		{
 			SharedFixture = sharedFixture;
 			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint, SharedFixture.TorLogsFile);
-			torManager.Start();
-			Task.Delay(3000).GetAwaiter().GetResult();
-			if (!torManager.IsTorRunningAsync().GetAwaiter().GetResult())
-			{
-				throw new Exception("Tor is not running");
-			}
+			torManager.StartAsync(false).GetAwaiter().GetResult();
 		}
 
 		[Fact]
