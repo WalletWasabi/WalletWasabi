@@ -1674,7 +1674,7 @@ namespace WalletWasabi.Tests
 				{
 					// Never changes.
 					Assert.True(0 < rs.RoundId);
-					Assert.Equal(Money.Coins(0.00009792m), rs.FeePerInputs);
+					Assert.Equal(Money.Coins(0.00009648m), rs.FeePerInputs);
 					Assert.Equal(Money.Coins(0.00004752m), rs.FeePerOutputs);
 					Assert.Equal(7, rs.MaximumInputCountPerPeer);
 					// Changes per rounds.
