@@ -44,7 +44,16 @@ namespace WalletWasabi.TorSocks5
 						return;
 					}
 
-					var torDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "tor"));
+					var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+					if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						if (!fullBaseDirectory.StartsWith('/'))
+						{
+							fullBaseDirectory.Insert(0, "/");
+						}
+					}
+
+					var torDir = Path.Combine(fullBaseDirectory, "tor");
 
 					var torPath = "";
 					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -53,17 +62,13 @@ namespace WalletWasabi.TorSocks5
 					}
 					else // Linux or OSX
 					{
-						if (!torDir.StartsWith('/'))
-						{
-							torDir.Insert(0, "/");
-						}
 						torPath = $@"{torDir}/Tor/tor";
 					}
 
 					if (!File.Exists(torPath))
 					{
 						Logger.LogInfo<TorProcessManager>($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
-						var torDaemonsDir = $"TorDaemons";
+						string torDaemonsDir = Path.Combine(fullBaseDirectory, "TorDaemons");
 
 						string dataZip = Path.Combine(torDaemonsDir, "data-folder.zip");
 						await IoHelpers.BetterExtractZipToDirectoryAsync(dataZip, torDir);
