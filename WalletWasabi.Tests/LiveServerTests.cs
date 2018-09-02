@@ -30,11 +30,8 @@ namespace WalletWasabi.Tests
 			LiveServerTestsFixture = liveServerTestsFixture;
 
 			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint, SharedFixture.TorLogsFile);
-			new Thread(delegate () // Don't ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
-			{
-				torManager.StartAsync(ensureRunning: false).GetAwaiter().GetResult();
-			}).Start();
-			Thread.Sleep(3000);
+			torManager.Start(ensureRunning: true);
+			Task.Delay(3000).GetAwaiter().GetResult();
 		}
 
 		#region Blockchain
