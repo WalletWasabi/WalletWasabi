@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Backend.Models;
@@ -29,7 +30,11 @@ namespace WalletWasabi.Tests
 			LiveServerTestsFixture = liveServerTestsFixture;
 
 			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint, SharedFixture.TorLogsFile);
-			torManager.StartAsync(true).GetAwaiter().GetResult();
+			new Thread(delegate () // Don't ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
+			{
+				torManager.StartAsync(ensureRunning: false).GetAwaiter().GetResult();
+			}).Start();
+			Thread.Sleep(3000);
 		}
 
 		#region Blockchain

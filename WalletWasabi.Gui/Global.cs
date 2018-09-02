@@ -87,7 +87,7 @@ namespace WalletWasabi.Gui
 			TorManager = null;
 
 			TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
-			new Thread(delegate ()
+			new Thread(delegate () // Don't ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
 			{
 				TorManager.StartAsync(ensureRunning: false).GetAwaiter().GetResult();
 			}).Start();
