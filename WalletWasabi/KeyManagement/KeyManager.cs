@@ -105,13 +105,7 @@ namespace WalletWasabi.KeyManagement
 		{
 			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
 			if (FilePath == null) return;
-			MakeSureContainingDirectoryExists(filePath);
-		}
-
-		private static void MakeSureContainingDirectoryExists(string filePath)
-		{
-			var directoryPath = Path.GetDirectoryName(Path.GetFullPath(filePath));
-			Directory.CreateDirectory(directoryPath);
+			IoHelpers.EnsureContainingDirectoryExists(FilePath);
 		}
 
 		public void ToFile()
@@ -122,7 +116,7 @@ namespace WalletWasabi.KeyManagement
 
 		public void ToFile(string filePath)
 		{
-			MakeSureContainingDirectoryExists(filePath);
+			IoHelpers.EnsureContainingDirectoryExists(filePath);
 			lock (ToFileLock)
 			{
 				string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);

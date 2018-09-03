@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO.Compression;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -119,6 +120,19 @@ namespace System.IO
 			SafeMove(newPath, path);
 		}
 
+		public static async Task BetterExtractZipToDirectoryAsync(string src, string dest)
+		{
+			try
+			{
+				ZipFile.ExtractToDirectory(src, dest);
+			}
+			catch (UnauthorizedAccessException)
+			{
+				await Task.Delay(100);
+				ZipFile.ExtractToDirectory(src, dest);
+			}
+		}
+
 		// https://stackoverflow.com/a/7957634/2061103
 		public static bool TryGetSafestFileVersion(string path, out string safestFilePath)
 		{
@@ -154,6 +168,16 @@ namespace System.IO
 
 			safestFilePath = null;
 			return false;
+		}
+
+		public static void EnsureContainingDirectoryExists(string fileNameOrPath)
+		{
+			string fullPath = Path.GetFullPath(fileNameOrPath); // No matter if relative or absolute path is given to this.
+			string dir = Path.GetDirectoryName(fullPath);
+			if (!string.IsNullOrEmpty(dir)) // root
+			{
+				Directory.CreateDirectory(dir); // It does not fail if it exists.
+			}
 		}
 	}
 }

@@ -8,8 +8,9 @@ namespace WalletWasabi.Tests.XunitConfiguration
 {
 	public class SharedFixture : IDisposable
 	{
-		private static string _dataDir = null;
 		public static IPEndPoint TorSocks5Endpoint { get; } = new IPEndPoint(IPAddress.Loopback, 9050);
+
+		private static string _dataDir = null;
 
 		public static string DataDir
 		{
@@ -20,6 +21,20 @@ namespace WalletWasabi.Tests.XunitConfiguration
 				_dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests"));
 
 				return _dataDir;
+			}
+		}
+
+		private static string _torLogsFile = null;
+
+		public static string TorLogsFile
+		{
+			get
+			{
+				if (!string.IsNullOrWhiteSpace(_torLogsFile)) return _torLogsFile;
+
+				_torLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+
+				return _torLogsFile;
 			}
 		}
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using WalletWasabi.Logging;
@@ -44,6 +45,40 @@ namespace WalletWasabi.Helpers
 			Directory.CreateDirectory(directory);
 
 			return directory;
+		}
+
+		/// <summary>
+		/// Executes a command with bash.
+		/// https://stackoverflow.com/a/47918132/2061103
+		/// </summary>
+		/// <param name="cmd"></param>
+		public static void ShellExec(string cmd, bool waitForExit = true)
+		{
+			var escapedArgs = cmd.Replace("\"", "\\\"");
+
+			var process = new Process
+			{
+				StartInfo = new ProcessStartInfo
+				{
+					RedirectStandardOutput = true,
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					WindowStyle = ProcessWindowStyle.Hidden,
+					FileName = "/bin/sh",
+					Arguments = $"-c \"{escapedArgs}\""
+				}
+			};
+
+			process.Start();
+
+			if (waitForExit)
+			{
+				process.WaitForExit();
+				if (process.ExitCode != 0)
+				{
+					Logger.LogError($"{nameof(ShellExec)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.", nameof(EnvironmentHelpers));
+				}
+			}
 		}
 	}
 }

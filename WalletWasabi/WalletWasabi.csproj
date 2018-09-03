@@ -33,6 +33,15 @@
     <None Update="TorDaemons\Data.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TorDaemons\tor-linux32.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TorDaemons\tor-linux64.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TorDaemons\tor-osx64.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TorDaemons\tor-win32.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

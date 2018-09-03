@@ -17,4 +17,7 @@ build_script:
 
 test_script:
   - cd WalletWasabi.Tests
-  - dotnet test --filter Category=TorNotNeeded
+  - dotnet test --filter Category=RunOnCi
+
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

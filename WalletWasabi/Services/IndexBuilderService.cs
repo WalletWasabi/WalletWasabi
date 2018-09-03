@@ -139,8 +139,7 @@ namespace WalletWasabi.Services
 
 			_running = 0;
 
-			var indexDir = Path.GetDirectoryName(IndexFilePath);
-			Directory.CreateDirectory(indexDir);
+			IoHelpers.EnsureContainingDirectoryExists(IndexFilePath);
 			if (File.Exists(IndexFilePath))
 			{
 				if (RpcClient.Network == Network.RegTest)
@@ -159,8 +158,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			var utxoSetDir = Path.GetDirectoryName(bech32UtxoSetFilePath);
-			Directory.CreateDirectory(utxoSetDir);
+			IoHelpers.EnsureContainingDirectoryExists(bech32UtxoSetFilePath);
 			if (File.Exists(bech32UtxoSetFilePath))
 			{
 				if (RpcClient.Network == Network.RegTest)

@@ -143,11 +143,7 @@ namespace WalletWasabi.Services
 			_running = 0;
 			Cancel = new CancellationTokenSource();
 
-			var indexDir = Path.GetDirectoryName(IndexFilePath);
-			if (!string.IsNullOrEmpty(indexDir))
-			{
-				Directory.CreateDirectory(indexDir);
-			}
+			IoHelpers.EnsureContainingDirectoryExists(indexFilePath);
 			if (File.Exists(IndexFilePath))
 			{
 				if (Network == Network.RegTest)
@@ -296,6 +292,18 @@ namespace WalletWasabi.Services
 
 							// 3. Skip the last valid block.
 							continue;
+						}
+						catch (ConnectionException ex)
+						{
+							Logger.LogError<CcjClient>(ex);
+							try
+							{
+								await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
+							}
+							catch (TaskCanceledException ex2)
+							{
+								Logger.LogTrace<CcjClient>(ex2);
+							}
 						}
 						catch (Exception ex)
 						{

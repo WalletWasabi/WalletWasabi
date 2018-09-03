@@ -1029,8 +1029,7 @@ namespace WalletWasabi.Services
 					IndexDownloader.Reorged -= IndexDownloader_ReorgedAsync;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
 
-					var directoryPath = Path.GetDirectoryName(Path.GetFullPath(TransactionsFilePath));
-					Directory.CreateDirectory(directoryPath);
+					IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
 					string jsonString = JsonConvert.SerializeObject(TransactionCache, Formatting.Indented);
 					File.WriteAllText(TransactionsFilePath,
 						jsonString,

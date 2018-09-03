@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Backend.Models;
@@ -28,8 +29,9 @@ namespace WalletWasabi.Tests
 			SharedFixture = sharedFixture;
 			LiveServerTestsFixture = liveServerTestsFixture;
 
-			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint);
-			torManager.StartAsync().GetAwaiter().GetResult();
+			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint, SharedFixture.TorLogsFile);
+			torManager.Start(ensureRunning: true);
+			Task.Delay(3000).GetAwaiter().GetResult();
 		}
 
 		#region Blockchain

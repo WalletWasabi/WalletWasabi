@@ -15,6 +15,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Gui
 {
@@ -34,6 +35,20 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		private static string _torLogsFile = null;
+
+		public static string TorLogsFile
+		{
+			get
+			{
+				if (!string.IsNullOrWhiteSpace(_torLogsFile)) return _torLogsFile;
+
+				_torLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+
+				return _torLogsFile;
+			}
+		}
+
 		public static string WalletsDir => Path.Combine(DataDir, "Wallets");
 		public static string WalletBackupsDir => Path.Combine(DataDir, "WalletBackups");
 		public static Network Network => Config.Network;
@@ -50,6 +65,7 @@ namespace WalletWasabi.Gui
 		public static WalletService WalletService { get; private set; }
 		public static Node RegTestMemPoolServingNode { get; private set; }
 		public static UpdateChecker UpdateChecker { get; private set; }
+		public static TorProcessManager TorManager { get; private set; }
 
 		public static Config Config { get; private set; }
 
@@ -68,6 +84,12 @@ namespace WalletWasabi.Gui
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager = null;
+			TorManager = null;
+
+			TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
+			TorManager.Start(false);
+
+			Logger.LogInfo<TorProcessManager>($"Fake {nameof(TorProcessManager)} is initialized.");
 
 			if (Network == Network.RegTest)
 			{
@@ -197,7 +219,7 @@ namespace WalletWasabi.Gui
 			IndexDownloader?.Dispose();
 			Logger.LogInfo($"{nameof(IndexDownloader)} is stopped.", nameof(Global));
 
-			Directory.CreateDirectory(Path.GetDirectoryName(AddressManagerFilePath));
+			IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
 			AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
 			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
 
