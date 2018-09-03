@@ -85,7 +85,7 @@ namespace WalletWasabi.Tests
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
-		public async Task GetExchangeRatesAsync(NetworkType networkType)
+		public async Task GetExchangeRateAsync(NetworkType networkType)
 		{
 			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType]))
 			{

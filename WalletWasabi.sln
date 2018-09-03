@@ -40,6 +40,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvalonStudio.Shell.Extensib
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvalonStudio.Shell", "WalletWasabi.Dependencies\AvalonStudio.Shell\src\AvalonStudio.Shell\AvalonStudio.Shell.csproj", "{137F0B24-7A4C-4D80-9218-43CA71793004}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncTest", "AsyncTest\AsyncTest.csproj", "{71595CBF-F863-4FB5-B96B-2EFD70241D5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncTestXunit", "AsyncTestXunit\AsyncTestXunit.csproj", "{166EAB78-DBA0-431A-B16C-B9736032C4AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,6 +90,14 @@ Global
 		{137F0B24-7A4C-4D80-9218-43CA71793004}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{137F0B24-7A4C-4D80-9218-43CA71793004}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{137F0B24-7A4C-4D80-9218-43CA71793004}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71595CBF-F863-4FB5-B96B-2EFD70241D5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71595CBF-F863-4FB5-B96B-2EFD70241D5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71595CBF-F863-4FB5-B96B-2EFD70241D5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71595CBF-F863-4FB5-B96B-2EFD70241D5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{166EAB78-DBA0-431A-B16C-B9736032C4AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{166EAB78-DBA0-431A-B16C-B9736032C4AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{166EAB78-DBA0-431A-B16C-B9736032C4AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{166EAB78-DBA0-431A-B16C-B9736032C4AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
