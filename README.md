@@ -37,7 +37,7 @@ cd WalletWasabi/WalletWasabi.Gui
 dotnet build
 ```
 
-## Run Wasabi:
+## Run Wasabi
 
 Run Wasabi with `dotnet run` from the `WalletWasabi.Gui` folder.
 
