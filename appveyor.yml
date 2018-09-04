@@ -8,10 +8,6 @@ cache:
 - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
 - '%APPDATA%\WalletWasabi'
 
-before_build:
-  - git submodule update --init --recursive
-  - ps: Start-Sleep -s 5
-
 build_script:
   - dotnet build
 
