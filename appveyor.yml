@@ -5,7 +5,7 @@ configuration:
 skip_branch_with_pr: true
 
 cache:
-- '%USERPROFILE%\.nuget\packages -> **\*.csproj'
+#- '%USERPROFILE%\.nuget\packages -> **\*.csproj'
 - '%APPDATA%\WalletWasabi'
 
 before_build:
@@ -19,5 +19,5 @@ test_script:
   - cd WalletWasabi.Tests
   - dotnet test --filter Category=RunOnCi
 
-on_finish:
-  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
