@@ -8,10 +8,6 @@ cache:
 - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
 - '%APPDATA%\WalletWasabi'
 
-build_script:
-  - cd WalletWasabi.Tests
-  - dotnet build
-
 test_script:
   - cd WalletWasabi.Tests
   - dotnet test --filter Category=RunOnCi
