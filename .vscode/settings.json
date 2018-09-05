@@ -1,5 +1,6 @@
 {
-	"omnisharp.path": "latest",
 	"editor.detectIndentation": false,
-	"editor.insertSpaces": false
+	"editor.insertSpaces": false,
+	"breadcrumbs.enabled": true,
+	"omnisharp.path": "latest"
 }
