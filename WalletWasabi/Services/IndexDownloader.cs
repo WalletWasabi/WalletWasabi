@@ -41,6 +41,8 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
+
 		public event EventHandler<Height> BestHeightChanged;
 
 		private TorStatus _torStatus;
@@ -208,23 +210,32 @@ namespace WalletWasabi.Services
 							try
 							{
 								filtersResponse = await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								// NOT GenSocksServErr
+								DoNotGenSocksServFail();
 							}
-							catch (ConnectionException)
+							catch (ConnectionException ex)
 							{
 								TorStatus = TorStatus.NotRunning;
 								BackendStatus = BackendStatus.NotConnected;
+								HandleIfGenSocksServFail(ex);
+
 								throw;
 							}
-							catch (TorSocks5FailureResponseException)
+							catch (TorSocks5FailureResponseException ex)
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;
+
+								HandleIfGenSocksServFail(ex);
+
 								throw;
 							}
-							catch
+							catch (Exception ex)
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.Connected;
+								HandleIfGenSocksServFail(ex);
+
 								throw;
 							}
 							BackendStatus = BackendStatus.Connected;
@@ -333,6 +344,31 @@ namespace WalletWasabi.Services
 					}
 				}
 			});
+		}
+
+		private void HandleIfGenSocksServFail(Exception ex)
+		{
+			// IS GenSocksServFail?
+			if (ex.ToString().Contains("GeneralSocksServerFailure", StringComparison.OrdinalIgnoreCase))
+			{
+				// IS GenSocksServFail
+				DoGenSocksServFail();
+			}
+			else
+			{
+				// NOT GenSocksServFail
+				DoNotGenSocksServFail();
+			}
+		}
+
+		private void DoGenSocksServFail()
+		{
+			ResponseArrivedIsGenSocksServFail?.Invoke(this, true);
+		}
+
+		private void DoNotGenSocksServFail()
+		{
+			ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
 		}
 
 		public Height GetHeight(uint256 blockHash)

@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			Shell = IoC.Get<IShell>();
 		}
-		
+
 		public IShell Shell { get; }
 
 		public static MainWindowViewModel Instance { get; internal set; }
@@ -44,7 +44,11 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			ModalDialog = dialog;
 
-			return await ModalDialog.ShowDialogAsync();
+			bool res = await ModalDialog.ShowDialogAsync();
+
+			ModalDialog = null;
+
+			return res;
 		}
 
 		public ModalDialogViewModelBase ModalDialog

@@ -15,6 +15,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using WalletWasabi.Gui.Tabs;
 using System.Reactive.Linq;
+using WalletWasabi.Gui.Dialogs;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -172,6 +173,7 @@ namespace WalletWasabi.Gui.ViewModels
 			IndexDownloader.BestHeightChanged += IndexDownloader_BestHeightChanged;
 			IndexDownloader.TorStatusChanged += IndexDownloader_TorStatusChanged;
 			IndexDownloader.BackendStatusChanged += IndexDownloader_BackendStatusChanged;
+			IndexDownloader.ResponseArrivedIsGenSocksServFail += IndexDownloader_ResponseArrivedIsGenSocksServFail;
 
 			FiltersLeft = IndexDownloader.GetFiltersLeft();
 
@@ -220,6 +222,43 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
+		}
+
+		private void IndexDownloader_ResponseArrivedIsGenSocksServFail(object sender, bool isGenSocksServFail)
+		{
+			if (isGenSocksServFail)
+			{
+				// Is close band present?
+				if (MainWindowViewModel.Instance.ModalDialog != null)
+				{
+					// Do nothing.
+				}
+				else
+				{
+					// Show GenSocksServFail dialog.
+					MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter();
+				}
+			}
+			else
+			{
+				// Is close band present?
+				if (MainWindowViewModel.Instance.ModalDialog != null)
+				{
+					// Is it GenSocksServFail dialog?
+					if (MainWindowViewModel.Instance.ModalDialog is GenSocksServFailDialogViewModel)
+					{
+						MainWindowViewModel.Instance.ModalDialog.Close(true);
+					}
+					else
+					{
+						// Do nothing.
+					}
+				}
+				else
+				{
+					// Do nothing.
+				}
+			}
 		}
 
 		private void WalletService_ConcurrentBlockDownloadNumberChanged(object sender, int concurrentBlockDownloadNumber)
@@ -305,6 +344,7 @@ namespace WalletWasabi.Gui.ViewModels
 					IndexDownloader.BestHeightChanged -= IndexDownloader_BestHeightChanged;
 					IndexDownloader.TorStatusChanged -= IndexDownloader_TorStatusChanged;
 					IndexDownloader.BackendStatusChanged -= IndexDownloader_BackendStatusChanged;
+					IndexDownloader.ResponseArrivedIsGenSocksServFail -= IndexDownloader_ResponseArrivedIsGenSocksServFail;
 				}
 
 				_disposedValue = true;
