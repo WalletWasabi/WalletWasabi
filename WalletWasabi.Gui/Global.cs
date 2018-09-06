@@ -89,7 +89,7 @@ namespace WalletWasabi.Gui
 			TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
 			TorManager.Start(false);
 
-			Logger.LogInfo<TorProcessManager>($"Fake {nameof(TorProcessManager)} is initialized.");
+			Logger.LogInfo<TorProcessManager>($"{nameof(TorProcessManager)} is initialized.");
 
 			if (Network == Network.RegTest)
 			{
