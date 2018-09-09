@@ -210,8 +210,7 @@ pgrep -ilfa tor
 Consider updating the versions in `WalletWasabi.Helpers.Constants`. If versions are updated, make sure Client Release is already available before updating the backend.
 
 ```sh
-sudo apt-get update
-cd ~/WalletWasabi && git pull && cd ~
+sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~
 systemctl stop walletwasabi.service
 sudo killall tor
 bitcoin-cli stop
