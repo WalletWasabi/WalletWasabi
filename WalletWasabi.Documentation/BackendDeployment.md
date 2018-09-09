@@ -216,21 +216,20 @@ Consider updating the versions in `WalletWasabi.Helpers.Constants`. If versions 
 
 ```sh
 sudo apt-get update
-cd ~/WalletWasabi
-git pull
+cd ~/WalletWasabi && git pull && cd ~
 systemctl stop walletwasabi.service
 systemctl stop tor.service
 sudo killall tor
 bitcoin-cli stop
-sudo apt-get dist-upgrade -y
+sudo apt-get upgrade -y && sudo apt-get autoremove -y
 bitcoind
+bitcoin-cli getblockchaininfo
 systemctl start tor.service
 tor
-dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
+dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 systemctl start walletwasabi.service
-cd ..
-ps -elf | grep tor
-tail -10 .walletwasabi/backend/Logs.txt
+pgrep -ilfa tor && pgrep -ilfa bitcoin && pgrep -ilfa wasabi
+tail -10 ~/.walletwasabi/backend/Logs.txt
 ```
 
 # Check If Everything Works
