@@ -201,11 +201,6 @@ tail -10 .walletwasabi/backend/Logs.txt
 ## Tor
 
 ```sh
-systemctl enable tor.service
-systemctl status tor.service
-systemctl stop tor.service
-systemctl start tor.service
-systemctl status tor.service
 tor
 ps -elf | grep tor
 ```
@@ -218,13 +213,11 @@ Consider updating the versions in `WalletWasabi.Helpers.Constants`. If versions 
 sudo apt-get update
 cd ~/WalletWasabi && git pull && cd ~
 systemctl stop walletwasabi.service
-systemctl stop tor.service
 sudo killall tor
 bitcoin-cli stop
 sudo apt-get upgrade -y && sudo apt-get autoremove -y
 bitcoind
 bitcoin-cli getblockchaininfo
-systemctl start tor.service
 tor
 dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 systemctl start walletwasabi.service
