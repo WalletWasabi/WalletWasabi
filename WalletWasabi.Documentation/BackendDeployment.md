@@ -68,7 +68,7 @@ sudo apt-get install tor
 Check if Tor is already running in the background:
 
 ```sh
-ps -elf | grep tor
+pgrep -ilfa tor
 sudo killall tor
 ```
 
@@ -202,7 +202,7 @@ tail -10 .walletwasabi/backend/Logs.txt
 
 ```sh
 tor
-ps -elf | grep tor
+pgrep -ilfa tor
 ```
 
 # Update
