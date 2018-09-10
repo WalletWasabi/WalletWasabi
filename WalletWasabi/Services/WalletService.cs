@@ -407,12 +407,6 @@ namespace WalletWasabi.Services
 			//	if came to our keys
 			//		add coin
 
-			// If key list is not provided refresh the key list.
-			if (keys == null)
-			{
-				keys = KeyManager.GetKeys().ToList();
-			}
-
 			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If we already had it, just update the height. Maybe got from mempool to block or reorged.
@@ -458,6 +452,12 @@ namespace WalletWasabi.Services
 						RemoveCoinRecursively(doubleSpentCoin);
 					}
 				}
+			}
+
+			// If key list is not provided refresh the key list.
+			if (keys == null)
+			{
+				keys = KeyManager.GetKeys().ToList();
 			}
 
 			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
