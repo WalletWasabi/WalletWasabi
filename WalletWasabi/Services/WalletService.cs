@@ -382,9 +382,11 @@ namespace WalletWasabi.Services
 
 		private void ProcessTransaction(SmartTransaction tx, List<HdPubKey> keys = null)
 		{
+			var txId = tx.GetHash();
+
 			if (tx.Height.Type == HeightType.Chain)
 			{
-				MemPool.TransactionHashes.TryRemove(tx.GetHash()); // If we have in mempool, remove.
+				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
 				SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx); // If we have in cache, update height.
 				if (foundTx != default(SmartTransaction))
 				{
@@ -413,7 +415,7 @@ namespace WalletWasabi.Services
 			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If we already had it, just update the height. Maybe got from mempool to block or reorged.
-				SmartCoin foundCoin = Coins.FirstOrDefault(x => x.TransactionId == tx.GetHash() && x.Index == i);
+				SmartCoin foundCoin = Coins.FirstOrDefault(x => x.Index == i && x.TransactionId == txId);
 				if (foundCoin != default)
 				{
 					// If tx height is mempool then don't, otherwise update the height.
@@ -425,12 +427,14 @@ namespace WalletWasabi.Services
 			}
 
 			// If double spend:
-			List<SmartCoin> doubleSpends = Coins
-				.Where(x => tx.Transaction.Inputs.Any(y => x.SpentOutputs.Select(z => z.ToOutPoint()).Contains(y.PrevOut)))
-				.ToList();
+			var coinsOutPoints = Coins.SelectMany(c=>c.SpentOutputs).Select(z=>z.ToOutPoint());
+			var txOutPoints = tx.Transaction.Inputs.Select(x=>x.PrevOut);
+			var doubleSpentOutPoints = txOutPoints.Intersect(coinsOutPoints).ToList();
 
-			if (doubleSpends.Any())
+			if (doubleSpentOutPoints.Any())
 			{
+				var doubleSpends = Coins.Where(c=> c.SpentOutputs.Any(s=> doubleSpentOutPoints.Contains(s.ToOutPoint())));
+
 				if (tx.Height == Height.MemPool)
 				{
 					// if all double spent coins are mempool and RBF
@@ -471,13 +475,13 @@ namespace WalletWasabi.Services
 				if (foundKey != default)
 				{
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
-					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.N == x.Index && y.PrevOut.Hash == x.TransactionId)).ToList();
 					var mixin = tx.Transaction.GetMixin(i);
 					if (spentOwnCoins.Count != 0)
 					{
 						mixin += spentOwnCoins.Min(x => x.Mixin);
 					}
-					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false); // Don't inherit locked status from key, that's different.
+					var coin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false); // Don't inherit locked status from key, that's different.
 					ChaumianClient.State.UpdateCoin(coin);
 					Coins.TryAdd(coin);
 					TransactionCache.Add(tx);
@@ -520,10 +524,10 @@ namespace WalletWasabi.Services
 			{
 				var input = tx.Transaction.Inputs[i];
 
-				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
+				var foundCoin = Coins.FirstOrDefault(x => x.Index == input.PrevOut.N && x.TransactionId == input.PrevOut.Hash);
 				if (foundCoin != null)
 				{
-					foundCoin.SpenderTransactionId = tx.GetHash();
+					foundCoin.SpenderTransactionId = txId;
 					TransactionCache.Add(tx);
 					CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
 				}
