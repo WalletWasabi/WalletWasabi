@@ -68,7 +68,7 @@ sudo apt-get install tor
 Check if Tor is already running in the background:
 
 ```sh
-ps -elf | grep tor
+pgrep -ilfa tor
 sudo killall tor
 ```
 
@@ -201,13 +201,8 @@ tail -10 .walletwasabi/backend/Logs.txt
 ## Tor
 
 ```sh
-systemctl enable tor.service
-systemctl status tor.service
-systemctl stop tor.service
-systemctl start tor.service
-systemctl status tor.service
 tor
-ps -elf | grep tor
+pgrep -ilfa tor
 ```
 
 # Update
@@ -215,22 +210,18 @@ ps -elf | grep tor
 Consider updating the versions in `WalletWasabi.Helpers.Constants`. If versions are updated, make sure Client Release is already available before updating the backend.
 
 ```sh
-sudo apt-get update
-cd ~/WalletWasabi
-git pull
+sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~
 systemctl stop walletwasabi.service
-systemctl stop tor.service
 sudo killall tor
 bitcoin-cli stop
-sudo apt-get dist-upgrade -y
+sudo apt-get upgrade -y && sudo apt-get autoremove -y
 bitcoind
-systemctl start tor.service
+bitcoin-cli getblockchaininfo
 tor
-dotnet publish WalletWasabi.Backend --configuration Release --self-contained false
+dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 systemctl start walletwasabi.service
-cd ..
-ps -elf | grep tor
-tail -10 .walletwasabi/backend/Logs.txt
+pgrep -ilfa tor && pgrep -ilfa bitcoin && pgrep -ilfa wasabi
+tail -10 ~/.walletwasabi/backend/Logs.txt
 ```
 
 # Check If Everything Works
@@ -239,9 +230,10 @@ TestNet: http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/s
 Main: http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/swagger/  
 GET fees
 
-# Check Status
+# Check Statuses
 
 ```sh
+tail -f ~/.bitcoin/debug.log
 tail -10 .walletwasabi/backend/Logs.txt
 du -bsh .walletwasabi/backend/IndexBuilderService/*
 ```
