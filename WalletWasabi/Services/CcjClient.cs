@@ -505,7 +505,9 @@ namespace WalletWasabi.Services
 						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin == null) throw new NotSupportedException("This is impossible.");
 						roundRegistered.CoinsRegistered.Add(coin);
+						coin.CoinJoinInProgress = false;
 						State.RemoveCoinFromWaitingList(coin);
+						CoinDequeued?.Invoke(this, coin);
 					}
 					roundRegistered.ActiveOutputAddress = activeAddress;
 					roundRegistered.ChangeOutputAddress = changeAddress;
@@ -753,8 +755,8 @@ namespace WalletWasabi.Services
 
 		private void RemoveCoin(SmartCoin coinWaitingForMix)
 		{
-			State.RemoveCoinFromWaitingList(coinWaitingForMix);
 			coinWaitingForMix.CoinJoinInProgress = false;
+			State.RemoveCoinFromWaitingList(coinWaitingForMix);
 			coinWaitingForMix.Secret = null;
 			if (coinWaitingForMix.Label == "ZeroLink Change" && coinWaitingForMix.Unspent)
 			{
