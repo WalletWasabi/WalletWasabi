@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Crypto;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
