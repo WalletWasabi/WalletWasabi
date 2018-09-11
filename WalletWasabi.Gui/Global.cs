@@ -6,6 +6,7 @@ using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -74,10 +75,26 @@ namespace WalletWasabi.Gui
 			Config = Guard.NotNull(nameof(config), config);
 		}
 
+		private static async Task DequeueAllCoinsAsync()
+		{
+			Logger.LogWarning("Process was signaled for killing.");
+			if(WalletService == null || ChaumianClient == null) 
+				return;
+			Logger.LogWarning("Unregistering coins in coinjoin process.");
+			var enqueuedCoins = WalletService.Coins.Where(x=>x.CoinJoinInProgress);
+			await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins.ToArray());
+		}
+
 		public static void InitializeNoWallet()
 		{
 			WalletService = null;
 			ChaumianClient = null;
+
+			System.AppDomain.CurrentDomain.ProcessExit += async (s, e) => await DequeueAllCoinsAsync();
+			Console.CancelKeyPress += async (s, e) => {
+				e.Cancel = true;
+				await DequeueAllCoinsAsync();
+			};
 
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
