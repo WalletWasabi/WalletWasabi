@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui
 			Logger.LogWarning("Process was signaled for killing.");
 			if (WalletService == null || ChaumianClient == null)
 				return;
-			Logger.LogWarning("Unregistering coins in coinjoin process.");
+			Logger.LogWarning("Unregistering coins in CoinJoin process.");
 			var enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress);
 			await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins.ToArray());
 		}
