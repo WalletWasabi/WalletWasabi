@@ -2,7 +2,6 @@
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.TorSocks5;
 using NBitcoin;
 using Nito.AsyncEx;
 using System;
