@@ -755,8 +755,8 @@ namespace WalletWasabi.Services
 
 		private void RemoveCoin(SmartCoin coinWaitingForMix)
 		{
-			coinWaitingForMix.CoinJoinInProgress = false;
 			State.RemoveCoinFromWaitingList(coinWaitingForMix);
+			coinWaitingForMix.CoinJoinInProgress = false;
 			coinWaitingForMix.Secret = null;
 			if (coinWaitingForMix.Label == "ZeroLink Change" && coinWaitingForMix.Unspent)
 			{
