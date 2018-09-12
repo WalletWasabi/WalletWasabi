@@ -379,7 +379,7 @@ namespace WalletWasabi.Services
 
 		private void ProcessTransaction(SmartTransaction tx, List<HdPubKey> keys = null)
 		{
-			var txId = tx.GetHash();
+			uint256 txId = tx.GetHash();
 
 			if (tx.Height.Type == HeightType.Chain)
 			{
@@ -424,13 +424,13 @@ namespace WalletWasabi.Services
 			}
 
 			// If double spend:
-			var coinsOutPoints = Coins.SelectMany(c=>c.SpentOutputs).Select(z=>z.ToOutPoint());
-			var txOutPoints = tx.Transaction.Inputs.Select(x=>x.PrevOut);
+			var coinsOutPoints = Coins.SelectMany(c => c.SpentOutputs).Select(z => z.ToOutPoint());
+			var txOutPoints = tx.Transaction.Inputs.Select(x => x.PrevOut);
 			var doubleSpentOutPoints = txOutPoints.Intersect(coinsOutPoints).ToList();
 
 			if (doubleSpentOutPoints.Any())
 			{
-				var doubleSpends = Coins.Where(c=> c.SpentOutputs.Any(s=> doubleSpentOutPoints.Contains(s.ToOutPoint())));
+				var doubleSpends = Coins.Where(c => c.SpentOutputs.Any(s => doubleSpentOutPoints.Contains(s.ToOutPoint())));
 
 				if (tx.Height == Height.MemPool)
 				{
