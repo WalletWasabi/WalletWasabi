@@ -430,7 +430,7 @@ namespace WalletWasabi.Services
 
 			if (doubleSpentOutPoints.Any())
 			{
-				var doubleSpends = Coins.Where(c => c.SpentOutputs.Any(s => doubleSpentOutPoints.Contains(s.ToOutPoint())));
+				List<SmartCoin> doubleSpends = Coins.Where(c => c.SpentOutputs.Any(s => doubleSpentOutPoints.Contains(s.ToOutPoint()))).ToList();
 
 				if (tx.Height == Height.MemPool)
 				{
