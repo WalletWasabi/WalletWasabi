@@ -80,12 +80,14 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
 				if (WalletService == null || ChaumianClient == null)
 					return;
-				Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
-				IEnumerable<SmartCoin> enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress);
-				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins.ToArray());
+				SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+				if (enqueuedCoins.Any())
+				{
+					Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
+					await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -102,6 +104,7 @@ namespace WalletWasabi.Gui
 			Console.CancelKeyPress += async (s, e) =>
 			{
 				e.Cancel = true;
+				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
 				await TryDequeueAllCoinsAsync();
 			};
 
