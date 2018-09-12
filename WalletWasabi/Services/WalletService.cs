@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +12,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.TorSocks5;
 using NBitcoin;
 using NBitcoin.Policy;
 using NBitcoin.Protocol;
@@ -659,16 +656,23 @@ namespace WalletWasabi.Services
 		/// </remarks>
 		public async Task DeleteBlockAsync(uint256 hash)
 		{
-			using (await BlockFolderLock.LockAsync())
+			try
 			{
-				var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
-				var fileNames = filePaths.Select(x => Path.GetFileName(x));
-				var hashes = fileNames.Select(x => new uint256(x));
-
-				if (hashes.Contains(hash))
+				using (await BlockFolderLock.LockAsync())
 				{
-					File.Delete(Path.Combine(BlocksFolderPath, hash.ToString()));
+					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
+					var fileNames = filePaths.Select(x => Path.GetFileName(x));
+					var hashes = fileNames.Select(x => new uint256(x));
+
+					if (hashes.Contains(hash))
+					{
+						File.Delete(Path.Combine(BlocksFolderPath, hash.ToString()));
+					}
 				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<WalletService>(ex);
 			}
 		}
 
