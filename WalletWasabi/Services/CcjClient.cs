@@ -505,9 +505,7 @@ namespace WalletWasabi.Services
 						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin == null) throw new NotSupportedException("This is impossible.");
 						roundRegistered.CoinsRegistered.Add(coin);
-						coin.CoinJoinInProgress = false;
 						State.RemoveCoinFromWaitingList(coin);
-						CoinDequeued?.Invoke(this, coin);
 					}
 					roundRegistered.ActiveOutputAddress = activeAddress;
 					roundRegistered.ChangeOutputAddress = changeAddress;
