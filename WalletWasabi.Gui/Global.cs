@@ -78,10 +78,21 @@ namespace WalletWasabi.Gui
 			Config = Guard.NotNull(nameof(config), config);
 		}
 
-		private static async Task TryDequeueAllCoinsAsync()
+		private static long _triedDesperateDequeuing = 0;
+
+		private static async Task TryDesperateDequeueAllCoinsAsync()
 		{
 			try
 			{
+				if (Interlocked.Read(ref _triedDesperateDequeuing) == 1)
+				{
+					return;
+				}
+				else
+				{
+					Interlocked.Increment(ref _triedDesperateDequeuing);
+				}
+
 				if (WalletService == null || ChaumianClient == null)
 					return;
 				SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
@@ -102,12 +113,12 @@ namespace WalletWasabi.Gui
 			WalletService = null;
 			ChaumianClient = null;
 
-			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDequeueAllCoinsAsync();
+			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
 			Console.CancelKeyPress += async (s, e) =>
 			{
 				e.Cancel = true;
 				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
-				await TryDequeueAllCoinsAsync();
+				await TryDesperateDequeueAllCoinsAsync();
 				Dispatcher.UIThread.Post(() =>
 				{
 					Application.Current.MainWindow.Close();
