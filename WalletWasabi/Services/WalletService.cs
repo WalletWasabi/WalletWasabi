@@ -424,9 +424,9 @@ namespace WalletWasabi.Services
 			}
 
 			// If double spend:
-			var coinsOutPoints = Coins.SelectMany(c => c.SpentOutputs).Select(z => z.ToOutPoint());
-			var txOutPoints = tx.Transaction.Inputs.Select(x => x.PrevOut);
-			var doubleSpentOutPoints = txOutPoints.Intersect(coinsOutPoints).ToList();
+			IEnumerable<OutPoint> coinsOutPoints = Coins.SelectMany(c => c.SpentOutputs).Select(z => z.ToOutPoint());
+			IEnumerable<OutPoint> txOutPoints = tx.Transaction.Inputs.Select(x => x.PrevOut);
+			List<OutPoint> doubleSpentOutPoints = txOutPoints.Intersect(coinsOutPoints).ToList();
 
 			if (doubleSpentOutPoints.Any())
 			{
