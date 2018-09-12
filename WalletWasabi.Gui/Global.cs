@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -106,6 +108,10 @@ namespace WalletWasabi.Gui
 				e.Cancel = true;
 				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
 				await TryDequeueAllCoinsAsync();
+				Dispatcher.UIThread.Post(() =>
+				{
+					Application.Current.MainWindow.Close();
+				});
 			};
 
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
