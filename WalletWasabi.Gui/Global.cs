@@ -15,6 +15,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.TorSocks5;
 
@@ -81,7 +82,7 @@ namespace WalletWasabi.Gui
 			if (WalletService == null || ChaumianClient == null)
 				return;
 			Logger.LogWarning("Unregistering coins in CoinJoin process.");
-			var enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress);
+			IEnumerable<SmartCoin> enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress);
 			await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins.ToArray());
 		}
 
