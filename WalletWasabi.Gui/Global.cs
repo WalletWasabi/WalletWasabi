@@ -76,14 +76,21 @@ namespace WalletWasabi.Gui
 			Config = Guard.NotNull(nameof(config), config);
 		}
 
-		private static async Task DequeueAllCoinsAsync()
+		private static async Task TryDequeueAllCoinsAsync()
 		{
-			Logger.LogWarning("Process was signaled for killing.");
-			if (WalletService == null || ChaumianClient == null)
-				return;
-			Logger.LogWarning("Unregistering coins in CoinJoin process.");
-			IEnumerable<SmartCoin> enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress);
-			await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins.ToArray());
+			try
+			{
+				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
+				if (WalletService == null || ChaumianClient == null)
+					return;
+				Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
+				IEnumerable<SmartCoin> enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress);
+				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins.ToArray());
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex, nameof(Global));
+			}
 		}
 
 		public static void InitializeNoWallet()
@@ -91,11 +98,11 @@ namespace WalletWasabi.Gui
 			WalletService = null;
 			ChaumianClient = null;
 
-			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await DequeueAllCoinsAsync();
+			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDequeueAllCoinsAsync();
 			Console.CancelKeyPress += async (s, e) =>
 			{
 				e.Cancel = true;
-				await DequeueAllCoinsAsync();
+				await TryDequeueAllCoinsAsync();
 			};
 
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
