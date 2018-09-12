@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -6,7 +7,9 @@ using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +17,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.TorSocks5;
 
@@ -74,10 +78,52 @@ namespace WalletWasabi.Gui
 			Config = Guard.NotNull(nameof(config), config);
 		}
 
+		private static long _triedDesperateDequeuing = 0;
+
+		private static async Task TryDesperateDequeueAllCoinsAsync()
+		{
+			try
+			{
+				if (Interlocked.Read(ref _triedDesperateDequeuing) == 1)
+				{
+					return;
+				}
+				else
+				{
+					Interlocked.Increment(ref _triedDesperateDequeuing);
+				}
+
+				if (WalletService == null || ChaumianClient == null)
+					return;
+				SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+				if (enqueuedCoins.Any())
+				{
+					Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
+					await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex, nameof(Global));
+			}
+		}
+
 		public static void InitializeNoWallet()
 		{
 			WalletService = null;
 			ChaumianClient = null;
+
+			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
+			Console.CancelKeyPress += async (s, e) =>
+			{
+				e.Cancel = true;
+				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
+				await TryDesperateDequeueAllCoinsAsync();
+				Dispatcher.UIThread.Post(() =>
+				{
+					Application.Current.MainWindow.Close();
+				});
+			};
 
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
