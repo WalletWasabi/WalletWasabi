@@ -203,9 +203,9 @@ namespace WalletWasabi.Services
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
-					if (inputRegistrableRound != null)
+					if (!(inputRegistrableRound is null))
 					{
-						if (inputRegistrableRound.AliceClient == null) // If didn't register already, check what can we register.
+						if (inputRegistrableRound.AliceClient is null) // If didn't register already, check what can we register.
 						{
 							await TryRegisterCoinsAsync(inputRegistrableRound);
 						}
@@ -236,11 +236,11 @@ namespace WalletWasabi.Services
 			try
 			{
 				var ongoingRound = State.GetSingleOrDefaultRound(ongoingRoundId);
-				if (ongoingRound == null) throw new NotSupportedException("This is impossible.");
+				if (ongoingRound is null) throw new NotSupportedException("This is impossible.");
 
 				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
 				{
-					if (ongoingRound.RoundHash == null) // If we didn't already obtained our roundHash obtain it.
+					if (ongoingRound.RoundHash is null) // If we didn't already obtained our roundHash obtain it.
 					{
 						await ObtainRoundHashAsync(ongoingRound);
 					}
@@ -249,7 +249,7 @@ namespace WalletWasabi.Services
 				{
 					if (!ongoingRound.PostedOutput)
 					{
-						if (ongoingRound.RoundHash == null)
+						if (ongoingRound.RoundHash is null)
 						{
 							throw new NotSupportedException("Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
 						}
@@ -352,7 +352,7 @@ namespace WalletWasabi.Services
 			try
 			{
 				string roundHash = await inputRegistrableRound.AliceClient.PostConfirmationAsync();
-				if (roundHash != null) // Then the phase went to connection confirmation.
+				if (!(roundHash is null)) // Then the phase went to connection confirmation.
 				{
 					inputRegistrableRound.RoundHash = roundHash;
 					inputRegistrableRound.State.Phase = CcjRoundPhase.ConnectionConfirmation;
@@ -399,11 +399,11 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					if (changeAddress == null || activeAddress == null)
+					if (changeAddress is null || activeAddress is null)
 					{
 						IEnumerable<HdPubKey> allUnusedInternalKeys = KeyManager.GetKeys(keyState: null, isInternal: true).Where(x => x.KeyState != KeyState.Used);
 
-						if (changeAddress == null)
+						if (changeAddress is null)
 						{
 							string changeLabel = "ZeroLink Change";
 							IEnumerable<HdPubKey> allChangeKeys = allUnusedInternalKeys.Where(x => x.Label == changeLabel);
@@ -433,7 +433,7 @@ namespace WalletWasabi.Services
 							AccessCache.AddOrReplace(changeKey, DateTimeOffset.UtcNow);
 						}
 
-						if (activeAddress == null)
+						if (activeAddress is null)
 						{
 							string activeLabel = "ZeroLink Mixed Coin";
 							IEnumerable<HdPubKey> allActiveKeys = allUnusedInternalKeys.Where(x => x.Label == activeLabel);
@@ -473,7 +473,7 @@ namespace WalletWasabi.Services
 					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
 					{
 						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-						if (coin == null) throw new NotSupportedException("This is impossible.");
+						if (coin is null) throw new NotSupportedException("This is impossible.");
 						coin.Secret = coin.Secret ?? KeyManager.GetSecrets(OnePiece, coin.ScriptPubKey).Single();
 						var inputProof = new InputProofModel
 						{
@@ -492,7 +492,7 @@ namespace WalletWasabi.Services
 					}
 
 					CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
-					if (roundRegistered == null)
+					if (roundRegistered is null)
 					{
 						// If our SatoshiClient doesn't yet know about the round because of the dealy create it.
 						// Make its state as it'd be the same as our assumed round was, except the roundId and registeredPeerCount, it'll be updated later.
@@ -503,7 +503,7 @@ namespace WalletWasabi.Services
 					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
 					{
 						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-						if (coin == null) throw new NotSupportedException("This is impossible.");
+						if (coin is null) throw new NotSupportedException("This is impossible.");
 						roundRegistered.CoinsRegistered.Add(coin);
 						State.RemoveCoinFromWaitingList(coin);
 					}
@@ -693,12 +693,12 @@ namespace WalletWasabi.Services
 			foreach (var coinReference in coins)
 			{
 				var coinToDequeue = State.GetSingleOrDefaultCoin(coinReference);
-				if (coinToDequeue == null) continue;
+				if (coinToDequeue is null) continue;
 
 				foreach (long roundId in State.GetPassivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
-					if (round == null) throw new NotSupportedException("This is impossible.");
+					if (round is null) throw new NotSupportedException("This is impossible.");
 
 					if (round.CoinsRegistered.Contains(coinToDequeue))
 					{
@@ -720,7 +720,7 @@ namespace WalletWasabi.Services
 				foreach (long roundId in State.GetActivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
-					if (round == null) continue;
+					if (round is null) continue;
 
 					if (!coinToDequeue.Unspent) // If coin was spent, well that sucks, except if it was spent by the tumbler in signing phase.
 					{
@@ -734,7 +734,7 @@ namespace WalletWasabi.Services
 				}
 
 				SmartCoin coinWaitingForMix = State.GetSingleOrDefaultFromWaitingList(coinToDequeue);
-				if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
+				if (!(coinWaitingForMix is null)) // If it is not being mixed, we can just remove it.
 				{
 					RemoveCoin(coinWaitingForMix);
 				}
@@ -760,7 +760,7 @@ namespace WalletWasabi.Services
 			{
 				coinWaitingForMix.Label = "ZeroLink Dequeued Change";
 				var key = KeyManager.GetKeys().SingleOrDefault(x => x.GetP2wpkhScript() == coinWaitingForMix.ScriptPubKey);
-				if (key != null)
+				if (!(key is null))
 				{
 					key.SetLabel(coinWaitingForMix.Label, KeyManager);
 				}
@@ -796,7 +796,7 @@ namespace WalletWasabi.Services
 					try
 					{
 						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-						if (coin == null)
+						if (coin is null)
 						{
 							continue; // The coin isn't present anymore. Good. This should never happen though.
 						}

@@ -35,21 +35,21 @@ namespace WalletWasabi.Crypto
 
 		public BlindingRsaKey(AsymmetricCipherKeyPair keyPair)
 		{
-			if (keyPair == null)
+			if (keyPair is null)
 				throw new ArgumentNullException(nameof(keyPair));
-			if (keyPair.Private == null)
+			if (keyPair.Private is null)
 				throw new ArgumentNullException(nameof(keyPair.Private));
-			if (keyPair.Public == null)
+			if (keyPair.Public is null)
 				throw new ArgumentNullException(nameof(keyPair.Public));
 			KeyPair = keyPair;
 		}
 
 		public BlindingRsaKey(BigInteger privModulus, BigInteger privExponent, BigInteger pubModulus, BigInteger pubExponent)
 		{
-			if (privModulus == null) throw new ArgumentNullException(nameof(privModulus));
-			if (privExponent == null) throw new ArgumentNullException(nameof(privExponent));
-			if (pubModulus == null) throw new ArgumentNullException(nameof(pubModulus));
-			if (pubExponent == null) throw new ArgumentNullException(nameof(pubExponent));
+			if (privModulus is null) throw new ArgumentNullException(nameof(privModulus));
+			if (privExponent is null) throw new ArgumentNullException(nameof(privExponent));
+			if (pubModulus is null) throw new ArgumentNullException(nameof(pubModulus));
+			if (pubExponent is null) throw new ArgumentNullException(nameof(pubExponent));
 
 			var priv = new RsaKeyParameters(true, privModulus, privExponent);
 			var pub = new RsaKeyParameters(false, pubModulus, pubExponent);
@@ -106,10 +106,10 @@ namespace WalletWasabi.Crypto
 		public static bool operator ==(BlindingRsaKey x, BlindingRsaKey y)
 		{
 			if (ReferenceEquals(x, y)) return true;
-			if ((object)x == null ^ (object)y == null) return false;
-			if (x.PrivateExponent == null ^ y.PrivateExponent == null) return false;
-			if (x.PublicModulus == null ^ y.PublicModulus == null) return false;
-			if (x.PublicExponent == null ^ y.PublicExponent == null) return false;
+			if ((object)x is null ^ (object)y is null) return false;
+			if (x.PrivateExponent is null ^ y.PrivateExponent is null) return false;
+			if (x.PublicModulus is null ^ y.PublicModulus is null) return false;
+			if (x.PublicExponent is null ^ y.PublicExponent is null) return false;
 
 			return
 				x.PrivateModulus.Equals(y.PrivateModulus)

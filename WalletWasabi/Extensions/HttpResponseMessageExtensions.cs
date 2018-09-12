@@ -44,7 +44,7 @@ namespace System.Net.Http
 			response.Content = await HttpMessageHelper.GetContentAsync(responseStream, headerStruct, requestMethod, statusLine);
 
 			HttpMessageHelper.CopyHeaders(headerStruct.ResponseHeaders, response.Headers);
-			if (response.Content != null)
+			if (!(response.Content is null))
 			{
 				HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, response.Content.Headers);
 			}
@@ -68,7 +68,7 @@ namespace System.Net.Http
 			}
 
 			var messageBody = "";
-			if (me.Content != null)
+			if (!(me.Content is null))
 			{
 				if (me.Content.Headers.NotNullAndNotEmpty())
 				{
@@ -85,7 +85,7 @@ namespace System.Net.Http
 		public async static Task ThrowRequestExceptionFromContentAsync(this HttpResponseMessage me)
 		{
 			var error = await me.Content.ReadAsJsonAsync<string>();
-			string errorMessage = error == null ? string.Empty : $"\n{error}";
+			string errorMessage = error is null ? string.Empty : $"\n{error}";
 			throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}");
 		}
 	}

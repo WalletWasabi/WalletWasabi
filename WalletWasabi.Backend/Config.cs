@@ -118,7 +118,7 @@ namespace WalletWasabi.Backend
 		/// <inheritdoc />
 		public void AssertFilePathSet()
 		{
-			if (FilePath == null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+			if (FilePath is null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
 		}
 	}
 }

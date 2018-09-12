@@ -38,7 +38,7 @@
 		/// </summary>
 		private void Initialize()
 		{
-			if (_m_ECBlock == null)
+			if (_m_ECBlock is null)
 				throw new System.ArgumentNullException("ErrorCorrectionBlocks array doesn't contain any value");
 
 			NumBlocks = 0;

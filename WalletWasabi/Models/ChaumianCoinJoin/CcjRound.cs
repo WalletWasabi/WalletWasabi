@@ -34,7 +34,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public string GetUnsignedCoinJoinHex()
 		{
-			if (_unsignedCoinJoinHex == null)
+			if (_unsignedCoinJoinHex is null)
 			{
 				_unsignedCoinJoinHex = UnsignedCoinJoin.ToHex();
 			}
@@ -186,7 +186,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						try
 						{
 							var estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
-							if (estimateSmartFeeResponse == null) throw new InvalidOperationException("FeeRate is not yet initialized");
+							if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
 							var feeRate = estimateSmartFeeResponse.FeeRate;
 							Money feePerBytes = (feeRate.FeePerK / 1000);
 
@@ -197,7 +197,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						catch (Exception ex)
 						{
 							// If fee hasn't been initialized once, fall back.
-							if (FeePerInputs == null || FeePerOutputs == null)
+							if (FeePerInputs is null || FeePerOutputs is null)
 							{
 								var feePerBytes = new Money(100); // 100 satoshi per byte
 
@@ -316,14 +316,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							int estimatedFinalTxSize = UnsignedCoinJoin.GetSerializedSize() + estimatedSigSizeBytes;
 							Money fee = UnsignedCoinJoin.GetFee(spentCoins.ToArray());
 							// There is a currentFeeRate null check later.
-							FeeRate currentFeeRate = fee == null ? null : new FeeRate(fee, estimatedFinalTxSize);
+							FeeRate currentFeeRate = fee is null ? null : new FeeRate(fee, estimatedFinalTxSize);
 
 							// 8.2. Get the most optimal FeeRate.
 							EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
-							if (estimateSmartFeeResponse == null) throw new InvalidOperationException("FeeRate is not yet initialized");
+							if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
 							FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
-							if (optimalFeeRate != null && optimalFeeRate != FeeRate.Zero && currentFeeRate != null && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
+							if (!(optimalFeeRate is null) && optimalFeeRate != FeeRate.Zero && !(currentFeeRate is null) && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
 							{
 								var sanityFeeRate = new FeeRate(2m); // 2 s/b
 								optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
@@ -833,7 +833,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
 
 						// Check if inputs are unspent.
-						if (getTxOutResponse == null)
+						if (getTxOutResponse is null)
 						{
 							alicesRemoved.Add(alice);
 							Alices.Remove(alice);

@@ -100,7 +100,7 @@ namespace WalletWasabi.KeyManagement
 
 		public bool IsInternal()
 		{
-			if (_isInternal == null)
+			if (_isInternal is null)
 			{
 				int change = (int)FullKeyPath.Indexes[3];
 				if (change == 0)

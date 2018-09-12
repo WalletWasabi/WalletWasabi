@@ -43,7 +43,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			var source = Matrix;
 
-			if (source != null)
+			if (!(source is null))
 			{
 				var h = source.GetUpperBound(0);
 				var w = source.GetUpperBound(1);
@@ -69,7 +69,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			var source = Matrix;
 
-			if (source == null || source.Length == 0)
+			if (source is null || source.Length == 0)
 				return new Size();
 
 			var max = Math.Min(availableSize.Width, availableSize.Height);

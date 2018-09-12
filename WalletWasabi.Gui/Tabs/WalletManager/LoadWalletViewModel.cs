@@ -138,7 +138,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				SelectedWallet = _wallets.First();
 			}
 
-			IsWalletOpened = Global.WalletService != null;
+			IsWalletOpened = !(Global.WalletService is null);
 			ValidationMessage = null;
 		}
 

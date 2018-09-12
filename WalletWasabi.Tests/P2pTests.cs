@@ -265,7 +265,7 @@ namespace WalletWasabi.Tests
 				}
 				finally
 				{
-					if (indexBuilderService != null)
+					if (!(indexBuilderService is null))
 					{
 						await indexBuilderService.StopAsync();
 					}

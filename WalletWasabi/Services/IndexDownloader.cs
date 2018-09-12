@@ -240,7 +240,7 @@ namespace WalletWasabi.Services
 							BackendStatus = BackendStatus.Connected;
 							TorStatus = TorStatus.Running;
 
-							if (filtersResponse == null) // no-content, we are synced
+							if (filtersResponse is null) // no-content, we are synced
 							{
 								BestHeight = BestKnownFilter.BlockHeight;
 								continue;

@@ -211,7 +211,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => x.AliceClient != null && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => !(x.AliceClient is null) && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 
@@ -219,7 +219,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => x.AliceClient != null && x.State.Phase == CcjRoundPhase.InputRegistration).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => !(x.AliceClient is null) && x.State.Phase == CcjRoundPhase.InputRegistration).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 

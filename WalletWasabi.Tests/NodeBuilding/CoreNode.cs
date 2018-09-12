@@ -135,7 +135,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 				catch
 				{
 				}
-				if (_process == null || _process.HasExited)
+				if (_process is null || _process.HasExited)
 					break;
 			}
 		}
@@ -250,7 +250,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		{
 			lock (_l)
 			{
-				if (_process != null && !_process.HasExited)
+				if (!(_process is null) && !_process.HasExited)
 				{
 					_process.Kill();
 					_process.WaitForExit();
@@ -340,10 +340,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private BitcoinSecret GetFirstSecret(RPCClient rpc)
 		{
-			if (MinerSecret != null)
+			if (!(MinerSecret is null))
 				return MinerSecret;
 			var dest = rpc.ListSecrets().FirstOrDefault();
-			if (dest == null)
+			if (dest is null)
 			{
 				var address = rpc.GetNewAddress();
 				dest = rpc.DumpPrivKey(address);

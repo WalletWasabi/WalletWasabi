@@ -64,7 +64,7 @@ namespace Gma.QrCodeNet.Encoding
 		/// This exception for string content is null, empty or too large</exception>
 		public QrCode Encode(IEnumerable<byte> content)
 		{
-			if (content == null)
+			if (content is null)
 			{
 				throw new InputOutOfBoundaryException("Input should not be empty or null");
 			}

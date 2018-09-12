@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui
 
 		public Uri GetCurrentBackendUri()
 		{
-			if (_backendUri != null) return _backendUri;
+			if (!(_backendUri is null)) return _backendUri;
 
 			if (Network == Network.Main)
 			{
@@ -75,7 +75,7 @@ namespace WalletWasabi.Gui
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
-			if (_torSocks5EndPoint == null)
+			if (_torSocks5EndPoint is null)
 			{
 				var host = IPAddress.Parse(TorHost);
 				_torSocks5EndPoint = new IPEndPoint(host, (int)TorSocks5Port);
@@ -88,7 +88,7 @@ namespace WalletWasabi.Gui
 
 		public BlindingRsaPubKey GetBlindingRsaPubKey()
 		{
-			if (_blindingRsaPubKey != null) return _blindingRsaPubKey;
+			if (!(_blindingRsaPubKey is null)) return _blindingRsaPubKey;
 
 			if (Network == Network.Main)
 			{
@@ -273,7 +273,7 @@ namespace WalletWasabi.Gui
 		/// <inheritdoc />
 		public void AssertFilePathSet()
 		{
-			if (FilePath == null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+			if (FilePath is null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
 		}
 	}
 }

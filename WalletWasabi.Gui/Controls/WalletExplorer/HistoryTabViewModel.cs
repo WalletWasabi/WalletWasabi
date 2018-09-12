@@ -50,7 +50,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (Interlocked.Read(ref _disableClipboard) == 0)
 				{
-					if (transaction != null)
+					if (!(transaction is null))
 					{
 						await Application.Current.Clipboard.SetTextAsync(transaction.TransactionId);
 						ClipboardNotificationVisible = true;
@@ -105,7 +105,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label, coin.TransactionId));
 				}
 
-				if (coin.SpenderTransactionId != null)
+				if (!(coin.SpenderTransactionId is null))
 				{
 					SmartTransaction foundSpenderTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
@@ -155,7 +155,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Transactions.Add(new TransactionViewModel(txinfo));
 			}
 
-			if (Transactions.Count > 0 && rememberSelectedTransactionId != null)
+			if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
 			{
 				var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
 				if (txToSelect != default)

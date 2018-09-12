@@ -160,7 +160,7 @@ namespace WalletWasabi.Services
 
 		private void RemoveCoinRecursively(SmartCoin toRemove)
 		{
-			if (toRemove.SpenderTransactionId != null)
+			if (!(toRemove.SpenderTransactionId is null))
 			{
 				foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).ToHashSet())
 				{
@@ -176,7 +176,7 @@ namespace WalletWasabi.Services
 			using (HandleFiltersLock.Lock())
 			using (WalletBlocksLock.Lock())
 			{
-				if (filterModel.Filter != null && !WalletBlocks.ContainsValue(filterModel.BlockHash))
+				if (!(filterModel.Filter is null) && !WalletBlocks.ContainsValue(filterModel.BlockHash))
 				{
 					await ProcessFilterModelAsync(filterModel, CancellationToken.None);
 				}
@@ -197,7 +197,7 @@ namespace WalletWasabi.Services
 				// Go through the filters and que to download the matches.
 				var filters = IndexDownloader.GetFiltersIncluding(IndexDownloader.StartingFilter.BlockHeight);
 
-				foreach (FilterModel filterModel in filters.Where(x => x.Filter != null && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
+				foreach (FilterModel filterModel in filters.Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
 				{
 					await ProcessFilterModelAsync(filterModel, cancel);
 				}
@@ -275,7 +275,7 @@ namespace WalletWasabi.Services
 			KeyManager.AssertCleanKeysIndexed(21, false);
 
 			IEnumerable<HdPubKey> keys = KeyManager.GetKeys(KeyState.Clean, isInternal: false);
-			if (dontTouch != null)
+			if (!(dontTouch is null))
 			{
 				keys = keys.Except(dontTouch);
 				if (!keys.Any())
@@ -459,7 +459,7 @@ namespace WalletWasabi.Services
 			}
 
 			// If key list is not provided refresh the key list.
-			if (keys == null)
+			if (keys is null)
 			{
 				keys = KeyManager.GetKeys().ToList();
 			}
@@ -482,7 +482,7 @@ namespace WalletWasabi.Services
 					ChaumianClient.State.UpdateCoin(coin);
 					Coins.TryAdd(coin);
 					TransactionCache.Add(tx);
-					if (coin.Unspent && coin.Label == "ZeroLink Change" && ChaumianClient.OnePiece != null)
+					if (coin.Unspent && coin.Label == "ZeroLink Change" && !(ChaumianClient.OnePiece is null))
 					{
 						Task.Run(async () =>
 						{
@@ -522,7 +522,7 @@ namespace WalletWasabi.Services
 				var input = tx.Transaction.Inputs[i];
 
 				var foundCoin = Coins.FirstOrDefault(x => x.Index == input.PrevOut.N && x.TransactionId == input.PrevOut.Hash);
-				if (foundCoin != null)
+				if (!(foundCoin is null))
 				{
 					foundCoin.SpenderTransactionId = txId;
 					TransactionCache.Add(tx);
@@ -594,7 +594,7 @@ namespace WalletWasabi.Services
 								block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
 							}
 
-							if (block == null)
+							if (block is null)
 							{
 								Logger.LogInfo<WalletService>("Disconnected node, because couldn't parse received block.");
 								node.DisconnectAsync("Couldn't parse block.");
@@ -715,7 +715,7 @@ namespace WalletWasabi.Services
 		{
 			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
-			if (toSend.Any(x => x == null))
+			if (toSend.Any(x => x is null))
 			{
 				throw new ArgumentNullException($"{nameof(toSend)} cannot contain null element.");
 			}
@@ -735,7 +735,7 @@ namespace WalletWasabi.Services
 			{
 				throw new ArgumentException($"Only one {nameof(toSend)} element can contain Money.Zero. Money.Zero means add the change to the value of this output.");
 			}
-			if (spendAllCount == 1 && customChange != null)
+			if (spendAllCount == 1 && !(customChange is null))
 			{
 				throw new ArgumentException($"{nameof(customChange)} and send all to destination cannot be specified the same time.");
 			}
@@ -744,7 +744,7 @@ namespace WalletWasabi.Services
 			{
 				feeTarget = 2;
 			}
-			if (subtractFeeFromAmountIndex != null) // If not null, make sure not out of range. If null fee is substracted from the change.
+			if (!(subtractFeeFromAmountIndex is null)) // If not null, make sure not out of range. If null fee is substracted from the change.
 			{
 				if (subtractFeeFromAmountIndex < 0)
 				{
@@ -758,7 +758,7 @@ namespace WalletWasabi.Services
 
 			// Get allowed coins to spend.
 			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
-			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
+			if (!(allowedInputs is null)) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())
 				{
@@ -838,7 +838,7 @@ namespace WalletWasabi.Services
 
 					realToSend[i].amount -= new Money(toSendAmountSumInSatoshis);
 
-					if (subtractFeeFromAmountIndex == null)
+					if (subtractFeeFromAmountIndex is null)
 					{
 						realToSend[i].amount -= fee;
 					}
@@ -869,7 +869,7 @@ namespace WalletWasabi.Services
 			}
 			var changeLabel = $"change of ({sb.ToString().TrimEnd(',', ' ')})";
 
-			if (customChange == null)
+			if (customChange is null)
 			{
 				KeyManager.AssertCleanKeysIndexed(21, true);
 				KeyManager.AssertLockedInternalKeysIndexed(14);
@@ -1004,7 +1004,7 @@ namespace WalletWasabi.Services
 			newLabel = Guard.Correct(newLabel);
 			coin.Label = newLabel;
 			var key = KeyManager.GetKeys().SingleOrDefault(x => x.GetP2wpkhScript() == coin.ScriptPubKey);
-			if (key != null)
+			if (!(key is null))
 			{
 				key.SetLabel(newLabel, KeyManager);
 			}

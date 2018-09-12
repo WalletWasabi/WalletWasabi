@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Controls
 
 			this.GetObservable(IsReadOnlyProperty).Subscribe(ro =>
 			{
-				if (_pasteItem != null)
+				if (!(_pasteItem is null))
 				{
 					var items = ContextMenu.Items as Avalonia.Controls.Controls;
 
@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			var text = await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard))).GetTextAsync();
 
-			if (text == null)
+			if (text is null)
 			{
 				return;
 			}
@@ -119,7 +119,7 @@ namespace WalletWasabi.Gui.Controls
 				{
 					Brush = Brushes.LightGray,
 					Geometry = Geometry.Parse(
-						@"M19,20H5V4H7V7H17V4H19M12,2A1,1 0 0,1 13,3A1,1 0 0,1 12,4A1,1 0 0,1 11,3A1,1 0 0,1 12,2M19,2H14.82C14.4,0.84 
+						@"M19,20H5V4H7V7H17V4H19M12,2A1,1 0 0,1 13,3A1,1 0 0,1 12,4A1,1 0 0,1 11,3A1,1 0 0,1 12,2M19,2H14.82C14.4,0.84
                     13.3,0 12,0C10.7,0 9.6,0.84 9.18,2H5A2,2 0 0,0 3,4V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V4A2,2 0 0,0 19,2Z")
 				},
 				Width = 16,
@@ -137,14 +137,14 @@ namespace WalletWasabi.Gui.Controls
 				Height = 16
 			};
 
-            _pasteItem = new MenuItem { Header = "Paste", Command = PasteCommand, Icon = pastePresenter };
+			_pasteItem = new MenuItem { Header = "Paste", Command = PasteCommand, Icon = pastePresenter };
 
 			ContextMenu.Items = new Avalonia.Controls.Controls
 			{
 				new MenuItem { Header = "Copy", Command = CopyCommand, Icon = copyPresenter }
 			};
 
-			if(!IsReadOnly)
+			if (!IsReadOnly)
 			{
 				(ContextMenu.Items as Avalonia.Controls.Controls).Add(_pasteItem);
 			}

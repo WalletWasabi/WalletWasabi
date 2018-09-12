@@ -51,7 +51,7 @@ namespace System.Net.Http
 			{
 				string header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken);
 
-				if (header == null) throw new FormatException("Malformed HTTP message: End of headers must be CRLF.");
+				if (header is null) throw new FormatException("Malformed HTTP message: End of headers must be CRLF.");
 				if (header == "")
 				{
 					// 2 CRLF was read in row so it's the end of the headers
@@ -115,7 +115,7 @@ namespace System.Net.Http
 
 		public static async Task<HttpContent> GetContentAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
 		{
-			if (headerStruct.RequestHeaders != null && headerStruct.RequestHeaders.Contains("Transfer-Encoding"))
+			if (!(headerStruct.RequestHeaders is null) && headerStruct.RequestHeaders.Contains("Transfer-Encoding"))
 			{
 				// https://tools.ietf.org/html/rfc7230#section-4
 				// All transfer-coding names are case-insensitive
@@ -192,7 +192,7 @@ namespace System.Net.Http
 			// transfer coding(Section 4.1) is the final encoding, the message
 			// body length is determined by reading and decoding the chunked
 			// data until the transfer coding indicates the data is complete.
-			if (headerStruct.ResponseHeaders != null && headerStruct.ResponseHeaders.Contains("Transfer-Encoding"))
+			if (!(headerStruct.ResponseHeaders is null) && headerStruct.ResponseHeaders.Contains("Transfer-Encoding"))
 			{
 				// https://tools.ietf.org/html/rfc7230#section-4
 				// All transfer-coding names are case-insensitive
@@ -247,11 +247,11 @@ namespace System.Net.Http
 
 		private static async Task<HttpContent> GetDecodedChunkedContentAsync(Stream stream, HttpRequestContentHeaders requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
 		{
-			if (responseHeaders == null && requestHeaders == null)
+			if (responseHeaders is null && requestHeaders is null)
 			{
 				throw new ArgumentException("Response and request headers cannot be both null.");
 			}
-			if (responseHeaders != null && requestHeaders != null)
+			if (!(responseHeaders is null) && !(requestHeaders is null))
 			{
 				throw new ArgumentException("Either response or request headers has to be null.");
 			}
@@ -314,7 +314,7 @@ namespace System.Net.Http
 			string trailerHeaders = await ReadHeadersAsync(stream, ctsToken);
 			var trailerHeaderSection = HeaderSection.CreateNew(trailerHeaders);
 			RemoveInvalidTrailers(trailerHeaderSection);
-			if (responseHeaders != null)
+			if (!(responseHeaders is null))
 			{
 				var trailerHeaderStruct = trailerHeaderSection.ToHttpResponseHeaders();
 				AssertValidHeaders(trailerHeaderStruct.ResponseHeaders, trailerHeaderStruct.ContentHeaders);
@@ -328,7 +328,7 @@ namespace System.Net.Http
 				responseHeaders.ContentHeaders.TryAddWithoutValidation("Content-Length", length.ToString());
 				responseHeaders.ResponseHeaders.Remove("Trailer");
 			}
-			if (requestHeaders != null)
+			if (!(requestHeaders is null))
 			{
 				var trailerHeaderStruct = trailerHeaderSection.ToHttpRequestHeaders();
 				AssertValidHeaders(trailerHeaderStruct.RequestHeaders, trailerHeaderStruct.ContentHeaders);
@@ -462,15 +462,15 @@ namespace System.Net.Http
 
 		public static void AssertValidHeaders(HttpHeaders messageHeaders, HttpContentHeaders contentHeaders)
 		{
-			if (messageHeaders != null && messageHeaders.Contains("Transfer-Encoding"))
+			if (!(messageHeaders is null) && messageHeaders.Contains("Transfer-Encoding"))
 			{
-				if (contentHeaders != null && contentHeaders.Contains("Content-Length"))
+				if (!(contentHeaders is null) && contentHeaders.Contains("Content-Length"))
 				{
 					contentHeaders.Remove("Content-Length");
 				}
 			}
 			// Any Content-Length field value greater than or equal to zero is valid.
-			if (contentHeaders != null && contentHeaders.Contains("Content-Length"))
+			if (!(contentHeaders is null) && contentHeaders.Contains("Content-Length"))
 			{
 				if (contentHeaders.ContentLength < 0)
 					throw new HttpRequestException("Content-Length MUST be larger than zero.");

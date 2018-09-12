@@ -397,7 +397,7 @@ namespace WalletWasabi.Tests
 			var bestHash = await Global.RpcClient.GetBestBlockHashAsync();
 
 			var times = 0;
-			while (downloader.GetFiltersIncluding(new Height(0)).SingleOrDefault(x => x.BlockHash == bestHash) == null)
+			while (downloader.GetFiltersIncluding(new Height(0)).SingleOrDefault(x => x.BlockHash == bestHash) is null)
 			{
 				if (times > timeout.TotalSeconds)
 				{
@@ -623,7 +623,7 @@ namespace WalletWasabi.Tests
 				node?.Disconnect();
 
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (!(chaumianClient is null))
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1090,7 +1090,7 @@ namespace WalletWasabi.Tests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (!(chaumianClient is null))
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1260,7 +1260,7 @@ namespace WalletWasabi.Tests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (!(chaumianClient is null))
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1431,7 +1431,7 @@ namespace WalletWasabi.Tests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (!(chaumianClient is null))
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1586,7 +1586,7 @@ namespace WalletWasabi.Tests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (!(chaumianClient is null))
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -2219,7 +2219,7 @@ namespace WalletWasabi.Tests
 			string roundHash = null;
 			foreach (var request in confirmationRequests)
 			{
-				if (roundHash == null)
+				if (roundHash is null)
 				{
 					roundHash = await request;
 				}
@@ -2359,7 +2359,7 @@ namespace WalletWasabi.Tests
 			string roundHash = null;
 			foreach (var request in confirmationRequests)
 			{
-				if (roundHash == null)
+				if (roundHash is null)
 				{
 					roundHash = await request;
 				}
@@ -2391,7 +2391,7 @@ namespace WalletWasabi.Tests
 			Transaction unsignedCoinJoin = null;
 			foreach (var request in coinjoinRequests)
 			{
-				if (unsignedCoinJoin == null)
+				if (unsignedCoinJoin is null)
 				{
 					unsignedCoinJoin = await request;
 				}
@@ -2590,11 +2590,11 @@ namespace WalletWasabi.Tests
 			}
 			finally
 			{
-				if (chaumianClient1 != null)
+				if (!(chaumianClient1 is null))
 				{
 					await chaumianClient1.StopAsync();
 				}
-				if (chaumianClient2 != null)
+				if (!(chaumianClient2 is null))
 				{
 					await chaumianClient2.StopAsync();
 				}
@@ -2687,11 +2687,11 @@ namespace WalletWasabi.Tests
 			}
 			finally
 			{
-				if (chaumianClient1 != null)
+				if (!(chaumianClient1 is null))
 				{
 					await chaumianClient1.StopAsync();
 				}
-				if (chaumianClient2 != null)
+				if (!(chaumianClient2 is null))
 				{
 					await chaumianClient2.StopAsync();
 				}
@@ -2837,7 +2837,7 @@ namespace WalletWasabi.Tests
 				}
 
 				var times = 0;
-				while (wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).SingleOrDefault() == null)
+				while (wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).SingleOrDefault() is null)
 				{
 					await Task.Delay(1000);
 					times++;
@@ -2867,7 +2867,7 @@ namespace WalletWasabi.Tests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient != null)
+				if (!(chaumianClient is null))
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -2877,7 +2877,7 @@ namespace WalletWasabi.Tests
 				// Dispose connection service.
 				nodes2?.Dispose();
 				// Dispose chaumian coinjoin client.
-				if (chaumianClient2 != null)
+				if (!(chaumianClient2 is null))
 				{
 					await chaumianClient2.StopAsync();
 				}

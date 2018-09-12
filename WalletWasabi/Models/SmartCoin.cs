@@ -132,8 +132,8 @@ namespace WalletWasabi.Models
 		[JsonProperty(Order = 11)]
 		public int Mixin { get; }
 
-		public bool SpentOrCoinJoinInProgress => SpenderTransactionId != null || CoinJoinInProgress;
-		public bool Unspent => SpenderTransactionId == null;
+		public bool SpentOrCoinJoinInProgress => !(SpenderTransactionId is null) || CoinJoinInProgress;
+		public bool Unspent => SpenderTransactionId is null;
 		public bool Confirmed => Height != Height.MemPool && Height != Height.Unknown;
 
 		/// <summary>

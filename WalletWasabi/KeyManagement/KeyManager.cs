@@ -57,7 +57,7 @@ namespace WalletWasabi.KeyManagement
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeysLock = new object();
 
-			if (password == null)
+			if (password is null)
 			{
 				password = "";
 			}
@@ -75,7 +75,7 @@ namespace WalletWasabi.KeyManagement
 
 		public static KeyManager CreateNew(out Mnemonic mnemonic, string password, string filePath = null)
 		{
-			if (password == null)
+			if (password is null)
 			{
 				password = "";
 			}
@@ -90,7 +90,7 @@ namespace WalletWasabi.KeyManagement
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string filePath = null)
 		{
 			Guard.NotNull(nameof(mnemonic), mnemonic);
-			if (password == null)
+			if (password is null)
 			{
 				password = "";
 			}
@@ -104,13 +104,13 @@ namespace WalletWasabi.KeyManagement
 		public void SetFilePath(string filePath)
 		{
 			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
-			if (FilePath == null) return;
+			if (FilePath is null) return;
 			IoHelpers.EnsureContainingDirectoryExists(FilePath);
 		}
 
 		public void ToFile()
 		{
-			if (FilePath == null) return;
+			if (FilePath is null) return;
 			ToFile(FilePath);
 		}
 
@@ -198,15 +198,15 @@ namespace WalletWasabi.KeyManagement
 			// m / purpose' / coin_type' / account' / change / address_index
 			lock (HdPubKeysLock)
 			{
-				if (keyState == null && isInternal == null)
+				if (keyState is null && isInternal is null)
 				{
 					return HdPubKeys;
 				}
-				if (keyState != null && isInternal == null)
+				if (!(keyState is null) && isInternal is null)
 				{
 					return HdPubKeys.Where(x => x.KeyState == keyState);
 				}
-				else if (keyState == null)
+				else if (keyState is null)
 				{
 					return HdPubKeys.Where(x => x.IsInternal() == isInternal);
 				}
@@ -250,7 +250,7 @@ namespace WalletWasabi.KeyManagement
 		{
 			var generated = false;
 
-			if (isInternal == null)
+			if (isInternal is null)
 			{
 				while (GetKeys(KeyState.Clean, true).Count() < howMany)
 				{

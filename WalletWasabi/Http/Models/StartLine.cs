@@ -38,7 +38,7 @@ namespace WalletWasabi.Http.Models
 				{
 					var part = reader.ReadPart(SP.ToCharArray()[0]);
 
-					if (part == null || part == "")
+					if (part is null || part == "")
 					{
 						break;
 					}

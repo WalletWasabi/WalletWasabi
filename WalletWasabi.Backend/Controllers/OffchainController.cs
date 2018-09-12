@@ -40,7 +40,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();
 
-			if (exchangeRates == null)
+			if (exchangeRates is null)
 			{
 				throw new HttpRequestException("BTC/USD exchange rate is not available.");
 			}

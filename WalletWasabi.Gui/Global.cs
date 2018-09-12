@@ -93,7 +93,7 @@ namespace WalletWasabi.Gui
 					Interlocked.Increment(ref _triedDesperateDequeuing);
 				}
 
-				if (WalletService == null || ChaumianClient == null)
+				if (WalletService is null || ChaumianClient is null)
 					return;
 				SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
 				if (enqueuedCoins.Any())
@@ -199,7 +199,7 @@ namespace WalletWasabi.Gui
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 
-			if (RegTestMemPoolServingNode != null)
+			if (!(RegTestMemPoolServingNode is null))
 			{
 				RegTestMemPoolServingNode.VersionHandshake();
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
@@ -233,9 +233,9 @@ namespace WalletWasabi.Gui
 			CancelWalletServiceInitialization?.Cancel();
 			CancelWalletServiceInitialization = null;
 
-			if (WalletService != null)
+			if (!(WalletService is null))
 			{
-				if (WalletService.KeyManager != null) // This should not ever happen.
+				if (!(WalletService.KeyManager is null)) // This should not ever happen.
 				{
 					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(WalletService.KeyManager.FilePath));
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
@@ -247,7 +247,7 @@ namespace WalletWasabi.Gui
 
 			Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
 
-			if (ChaumianClient != null)
+			if (!(ChaumianClient is null))
 			{
 				await ChaumianClient.StopAsync();
 				ChaumianClient = null;
@@ -272,7 +272,7 @@ namespace WalletWasabi.Gui
 			Nodes?.Dispose();
 			Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
 
-			if (RegTestMemPoolServingNode != null)
+			if (!(RegTestMemPoolServingNode is null))
 			{
 				RegTestMemPoolServingNode.Disconnect();
 				Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));

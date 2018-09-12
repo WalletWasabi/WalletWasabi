@@ -23,7 +23,7 @@ namespace Gma.QrCodeNet.Encoding
 
 		public static bool CanCreate(bool[,] internalArray)
 		{
-			if (internalArray == null)
+			if (internalArray is null)
 				return false;
 
 			if (internalArray.GetLength(0) == internalArray.GetLength(1))

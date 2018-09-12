@@ -65,7 +65,7 @@ namespace WalletWasabi.Logging
 				Modes.Clear();
 			}
 
-			if (modes == null) return;
+			if (modes is null) return;
 			foreach (var mode in modes)
 			{
 				Modes.Add(mode);
@@ -190,7 +190,7 @@ namespace WalletWasabi.Logging
 						}
 					}
 
-					if (FileEntryEncryptionPassword != null)
+					if (!(FileEntryEncryptionPassword is null))
 					{
 						// take the separator down and add a comma (not base64)
 						var replacedSeparatorWithCommaMessage = finalLogMessage.Substring(0, finalLogMessage.Length - EntrySeparator.Length);
@@ -218,7 +218,7 @@ namespace WalletWasabi.Logging
 
 		private static void Log(LogLevel level, string message, Type category)
 		{
-			if (category == null)
+			if (category is null)
 			{
 				Log(level, message, "");
 			}
