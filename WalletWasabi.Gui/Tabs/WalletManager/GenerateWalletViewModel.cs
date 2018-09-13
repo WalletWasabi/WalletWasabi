@@ -23,6 +23,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
+			Password = string.Empty;
+			PasswordConfirmation = string.Empty;
+			
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
 				WalletName = Guard.Correct(WalletName);
