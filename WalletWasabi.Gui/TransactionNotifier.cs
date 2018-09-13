@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui
 					Process.Start(new ProcessStartInfo
 					{
 						FileName = "notify-send",
-						Arguments = $"\"Wasabi Wallet\" \"You have received an incoming transaction {coin.Amount} BTC\"",
+						Arguments = $"\"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
 						CreateNoWindow = true
 					});
 				}
@@ -47,7 +47,7 @@ namespace WalletWasabi.Gui
 					Process.Start(new ProcessStartInfo
 					{
 						FileName = "osascript",
-						Arguments = $"-e display notification \"You have received an incoming transaction {coin.Amount} BTC\" with title \"Wasabi Wallet\"",
+						Arguments = $"-e display notification \"Received {coin.Amount.ToString(false, true)} BTC\" with title \"Wasabi\"",
 						CreateNoWindow = true
 					});
 				}
