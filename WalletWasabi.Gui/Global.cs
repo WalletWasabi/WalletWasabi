@@ -6,6 +6,7 @@ using NBitcoin.Protocol.Behaviors;
 using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -226,14 +227,50 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("WalletService started.");
 			}
 			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
-			TransactionNotifier.Current.Start();
+			WalletService.CoinReceived += OnCoinReceived;
+		}
+
+		private static void OnCoinReceived(object sender, SmartCoin coin)
+		{
+			try
+			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					Process.Start(new ProcessStartInfo
+					{
+						FileName = "notify-send",
+						Arguments = $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
+						CreateNoWindow = true
+					});
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				{
+					Process.Start(new ProcessStartInfo
+					{
+						FileName = "osascript",
+						Arguments = $"-e display notification \"Received {coin.Amount.ToString(false, true)} BTC\" with title \"Wasabi\"",
+						CreateNoWindow = true
+					});
+				}
+				//else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
+				//{
+				//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
+				//}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex, nameof(Global));
+			}
 		}
 
 		public static async Task DisposeInWalletDependentServicesAsync()
 		{
+			if (WalletService != null)
+			{
+				WalletService.CoinReceived -= OnCoinReceived;
+			}
 			CancelWalletServiceInitialization?.Cancel();
 			CancelWalletServiceInitialization = null;
-			TransactionNotifier.Current?.Stop();
 
 			if (!(WalletService is null))
 			{
