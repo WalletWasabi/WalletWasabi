@@ -59,6 +59,8 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<SmartCoin> CoinSpentOrSpenderConfirmed;
 
+		public event EventHandler<SmartCoin> CoinReceived;
+
 		public event EventHandler<Block> NewBlockProcessed;
 
 		public Network Network => IndexDownloader.Network;
@@ -482,6 +484,7 @@ namespace WalletWasabi.Services
 					ChaumianClient.State.UpdateCoin(coin);
 					Coins.TryAdd(coin);
 					TransactionCache.Add(tx);
+					CoinReceived?.Invoke(this, coin);
 					if (coin.Unspent && coin.Label == "ZeroLink Change" && !(ChaumianClient.OnePiece is null))
 					{
 						Task.Run(async () =>
