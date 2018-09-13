@@ -195,7 +195,7 @@ namespace WalletWasabi.Gui
 			IndexDownloader = new IndexDownloader(Network, IndexFilePath, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
 
 			UpdateChecker = new UpdateChecker(IndexDownloader.WasabiClient);
-			
+
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 

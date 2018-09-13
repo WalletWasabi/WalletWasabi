@@ -485,7 +485,8 @@ namespace WalletWasabi.Services
 					Coins.TryAdd(coin);
 					TransactionCache.Add(tx);
 					CoinReceived?.Invoke(this, coin);
-					if (coin.Unspent && coin.Label == "ZeroLink Change" && !(ChaumianClient.OnePiece is null))					{
+					if (coin.Unspent && coin.Label == "ZeroLink Change" && !(ChaumianClient.OnePiece is null))
+					{
 						Task.Run(async () =>
 						{
 							try

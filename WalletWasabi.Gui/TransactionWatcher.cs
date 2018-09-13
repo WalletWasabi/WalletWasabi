@@ -7,13 +7,13 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui
 {
-	class Notifier
+	internal class Notifier
 	{
 		public readonly static Notifier Current = new Notifier();
 
 		private Notifier()
 		{
-		} 
+		}
 
 		public void Start()
 		{
@@ -32,19 +32,21 @@ namespace WalletWasabi.Gui
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				Process.Start(new ProcessStartInfo { 
-					FileName = "notify-send", 
-					Arguments = $"\"Wasabi Wallet\" \"You have received an incoming transaction {coin.Amount} BTC\"", 
+				Process.Start(new ProcessStartInfo
+				{
+					FileName = "notify-send",
+					Arguments = $"\"Wasabi Wallet\" \"You have received an incoming transaction {coin.Amount} BTC\"",
 					CreateNoWindow = true
-					});
+				});
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				Process.Start(new ProcessStartInfo { 
-					FileName = "osascript", 
-					Arguments = $"-e display notification \"You have received an incoming transaction {coin.Amount} BTC\" with title \"Wasabi Wallet\"", 
-					CreateNoWindow = true 
-					});
+				Process.Start(new ProcessStartInfo
+				{
+					FileName = "osascript",
+					Arguments = $"-e display notification \"You have received an incoming transaction {coin.Amount} BTC\" with title \"Wasabi Wallet\"",
+					CreateNoWindow = true
+				});
 			}
 		}
 	}
