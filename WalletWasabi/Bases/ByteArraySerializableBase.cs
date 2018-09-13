@@ -62,7 +62,7 @@ namespace WalletWasabi.Bases
 		{
 			// https://github.com/bcgit/bc-csharp/blob/b19e68a517e56ef08cd2e50df4dcb8a96ddbe507/crypto/src/util/Arrays.cs#L206
 			var bytes = ToBytes();
-			if (bytes == null)
+			if (bytes is null)
 			{
 				return 0;
 			}

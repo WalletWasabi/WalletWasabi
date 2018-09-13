@@ -22,8 +22,8 @@ namespace WalletWasabi.Crypto
 
 		public BlindingRsaPubKey(BigInteger modulus, BigInteger exponent)
 		{
-			if (modulus == null) throw new ArgumentNullException(nameof(modulus));
-			if (exponent == null) throw new ArgumentNullException(nameof(exponent));
+			if (modulus is null) throw new ArgumentNullException(nameof(modulus));
+			if (exponent is null) throw new ArgumentNullException(nameof(exponent));
 
 			KeyParameters = new RsaKeyParameters(false, modulus, exponent);
 		}
@@ -103,7 +103,7 @@ namespace WalletWasabi.Crypto
 		public static bool operator ==(BlindingRsaPubKey x, BlindingRsaPubKey y)
 		{
 			if (ReferenceEquals(x, y)) return true;
-			if ((object)x == null ^ (object)y == null) return false;
+			if ((object)x is null ^ (object)y is null) return false;
 
 			return
 				x.Modulus.Equals(y.Modulus)

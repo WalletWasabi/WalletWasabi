@@ -44,7 +44,7 @@ namespace System.Net.Http
 			request.Content = await HttpMessageHelper.GetContentAsync(requestStream, headerStruct, ctsToken);
 
 			HttpMessageHelper.CopyHeaders(headerStruct.RequestHeaders, request.Headers);
-			if (request.Content != null)
+			if (!(request.Content is null))
 			{
 				HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, request.Content.Headers);
 			}
@@ -85,7 +85,7 @@ namespace System.Net.Http
 			}
 
 			string messageBody = "";
-			if (me.Content != null)
+			if (!(me.Content is null))
 			{
 				if (me.Content.Headers.NotNullAndNotEmpty())
 				{
@@ -111,7 +111,7 @@ namespace System.Net.Http
 				newMessage.Headers.TryAddWithoutValidation(header.Key, header.Value);
 			}
 
-			if (me.Content == null)
+			if (me.Content is null)
 			{
 				return newMessage;
 			}

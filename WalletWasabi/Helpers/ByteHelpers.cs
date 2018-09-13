@@ -35,7 +35,7 @@ namespace System
 				return true;
 			}
 
-			if (array1 == null || array2 == null || array1.Length != array2.Length)
+			if (array1 is null || array2 is null || array1.Length != array2.Length)
 			{
 				return false;
 			}
@@ -105,7 +105,7 @@ namespace System
 		/// </summary>
 		public static string ToHex(params byte[] bytes)
 		{
-			if (bytes == null) return null;
+			if (bytes is null) return null;
 			if (bytes.Length == 0) return "";
 
 			var lookupP = _lookup32UnsafeP;
@@ -129,7 +129,7 @@ namespace System
 		/// </summary>
 		public static byte[] FromHex(string hex)
 		{
-			if (hex == null) return null;
+			if (hex is null) return null;
 			if (string.IsNullOrWhiteSpace(hex)) return new byte[0];
 
 			var bytes = new byte[hex.Length / 2];

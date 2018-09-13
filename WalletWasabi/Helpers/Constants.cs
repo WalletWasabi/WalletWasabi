@@ -7,14 +7,14 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(0, 8, 2);
+		public static readonly Version ClientVersion = new Version(0, 9, 1);
 		public const string BackendMajorVersion = "2";
 		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(), BackenMajordVersion = BackendMajorVersion };
 
 		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 
 		public const int P2wpkhInputSizeInBytes = 41;
-		public const int P2pkhInputSizeInBytes = 146;
+		public const int P2pkhInputSizeInBytes = 145;
 		public const int OutputSizeInBytes = 33;
 
 		// https://en.bitcoin.it/wiki/Bitcoin

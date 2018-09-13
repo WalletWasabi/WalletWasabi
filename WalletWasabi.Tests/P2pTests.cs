@@ -32,7 +32,7 @@ namespace WalletWasabi.Tests
 		[Theory]
 		[InlineData("test")]
 		[InlineData("main")]
-		[Trait("Category", "TorNotNeeded")]
+		[Trait("Category", "RunOnCi")]
 		public async Task TestServicesAsync(string networkString)
 		{
 			var network = Network.GetNetwork(networkString);
@@ -157,7 +157,7 @@ namespace WalletWasabi.Tests
 					Directory.Delete(blocksFolderPath, recursive: true);
 				}
 
-				Directory.CreateDirectory(Path.GetDirectoryName(addressManagerFilePath));
+				IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 				addressManager?.SavePeerFile(addressManagerFilePath, network);
 				Logger.LogInfo<P2pTests>($"Saved {nameof(AddressManager)} to `{addressManagerFilePath}`.");
 				nodes?.Dispose();
@@ -195,7 +195,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "TorNotNeeded")]
+		[Trait("Category", "RunOnCi")]
 		public async Task FilterBuilderTestAsync()
 		{
 			using (var builder = await NodeBuilder.CreateAsync())
@@ -265,7 +265,7 @@ namespace WalletWasabi.Tests
 				}
 				finally
 				{
-					if (indexBuilderService != null)
+					if (!(indexBuilderService is null))
 					{
 						await indexBuilderService.StopAsync();
 					}

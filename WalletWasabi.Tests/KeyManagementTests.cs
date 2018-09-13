@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "TorNotNeeded")]
+		[Trait("Category", "RunOnCi")]
 		public void CanCreateNew()
 		{
 			string password = "password";
@@ -70,7 +70,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "TorNotNeeded")]
+		[Trait("Category", "RunOnCi")]
 		public void CanRecover()
 		{
 			string password = "password";
@@ -88,7 +88,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "TorNotNeeded")]
+		[Trait("Category", "RunOnCi")]
 		public void CanSerialize()
 		{
 			string password = "password";
@@ -130,7 +130,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "TorNotNeeded")]
+		[Trait("Category", "RunOnCi")]
 		public void CanGenerateKeys()
 		{
 			string password = "password";

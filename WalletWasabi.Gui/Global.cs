@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -6,7 +7,9 @@ using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +17,9 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
+using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Gui
 {
@@ -34,6 +39,20 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		private static string _torLogsFile = null;
+
+		public static string TorLogsFile
+		{
+			get
+			{
+				if (!string.IsNullOrWhiteSpace(_torLogsFile)) return _torLogsFile;
+
+				_torLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+
+				return _torLogsFile;
+			}
+		}
+
 		public static string WalletsDir => Path.Combine(DataDir, "Wallets");
 		public static string WalletBackupsDir => Path.Combine(DataDir, "WalletBackups");
 		public static Network Network => Config.Network;
@@ -50,6 +69,7 @@ namespace WalletWasabi.Gui
 		public static WalletService WalletService { get; private set; }
 		public static Node RegTestMemPoolServingNode { get; private set; }
 		public static UpdateChecker UpdateChecker { get; private set; }
+		public static TorProcessManager TorManager { get; private set; }
 
 		public static Config Config { get; private set; }
 
@@ -58,16 +78,64 @@ namespace WalletWasabi.Gui
 			Config = Guard.NotNull(nameof(config), config);
 		}
 
+		private static long _triedDesperateDequeuing = 0;
+
+		private static async Task TryDesperateDequeueAllCoinsAsync()
+		{
+			try
+			{
+				if (Interlocked.Read(ref _triedDesperateDequeuing) == 1)
+				{
+					return;
+				}
+				else
+				{
+					Interlocked.Increment(ref _triedDesperateDequeuing);
+				}
+
+				if (WalletService is null || ChaumianClient is null)
+					return;
+				SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+				if (enqueuedCoins.Any())
+				{
+					Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
+					await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex, nameof(Global));
+			}
+		}
+
 		public static void InitializeNoWallet()
 		{
 			WalletService = null;
 			ChaumianClient = null;
+
+			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
+			Console.CancelKeyPress += async (s, e) =>
+			{
+				e.Cancel = true;
+				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
+				await TryDesperateDequeueAllCoinsAsync();
+				Dispatcher.UIThread.Post(() =>
+				{
+					Application.Current.MainWindow.Close();
+				});
+			};
 
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager = null;
+			TorManager = null;
+
+			TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
+			TorManager.Start(false);
+
+			Logger.LogInfo<TorProcessManager>($"{nameof(TorProcessManager)} is initialized.");
 
 			if (Network == Network.RegTest)
 			{
@@ -131,7 +199,7 @@ namespace WalletWasabi.Gui
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 
-			if (RegTestMemPoolServingNode != null)
+			if (!(RegTestMemPoolServingNode is null))
 			{
 				RegTestMemPoolServingNode.VersionHandshake();
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
@@ -167,9 +235,9 @@ namespace WalletWasabi.Gui
 			CancelWalletServiceInitialization = null;
 			Notifier.Current?.Stop();
 
-			if (WalletService != null)
+			if (!(WalletService is null))
 			{
-				if (WalletService.KeyManager != null) // This should not ever happen.
+				if (!(WalletService.KeyManager is null)) // This should not ever happen.
 				{
 					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(WalletService.KeyManager.FilePath));
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
@@ -181,7 +249,7 @@ namespace WalletWasabi.Gui
 
 			Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
 
-			if (ChaumianClient != null)
+			if (!(ChaumianClient is null))
 			{
 				await ChaumianClient.StopAsync();
 				ChaumianClient = null;
@@ -199,14 +267,14 @@ namespace WalletWasabi.Gui
 			IndexDownloader?.Dispose();
 			Logger.LogInfo($"{nameof(IndexDownloader)} is stopped.", nameof(Global));
 
-			Directory.CreateDirectory(Path.GetDirectoryName(AddressManagerFilePath));
+			IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
 			AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
 			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
 
 			Nodes?.Dispose();
 			Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
 
-			if (RegTestMemPoolServingNode != null)
+			if (!(RegTestMemPoolServingNode is null))
 			{
 				RegTestMemPoolServingNode.Disconnect();
 				Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));

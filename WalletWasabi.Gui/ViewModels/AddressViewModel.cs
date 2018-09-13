@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.WhenAnyValue(x => x.IsExpanded).Subscribe(async expanded =>
 			{
-				if (expanded && !_generating && QrCode == null)
+				if (expanded && !_generating && QrCode is null)
 				{
 					IsBusy = true;
 

@@ -53,7 +53,7 @@ namespace WalletWasabi.Services
 						GetTxOutResponse getTxOutResponse = RpcClient.GetTxOut(utxo.Hash, (int)utxo.N, includeMempool: true);
 
 						// Check if inputs are unspent.
-						if (getTxOutResponse == null)
+						if (getTxOutResponse is null)
 						{
 							toRemove.Add(line);
 						}

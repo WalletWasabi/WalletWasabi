@@ -40,7 +40,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				try
 				{
-					return TcpClient != null && TcpClient.Connected;
+					return !(TcpClient is null) && TcpClient.Connected;
 				}
 				catch (Exception ex)
 				{
@@ -84,7 +84,7 @@ namespace WalletWasabi.TorSocks5
 
 		internal async Task ConnectAsync()
 		{
-			if (TorSocks5EndPoint == null) return;
+			if (TorSocks5EndPoint is null) return;
 
 			using (await AsyncLock.LockAsync())
 			{
@@ -128,7 +128,7 @@ namespace WalletWasabi.TorSocks5
 		/// <param name="identity">Isolates streams by identity. If identity is empty string, it won't isolate stream.</param>
 		internal async Task HandshakeAsync(string identity)
 		{
-			if (TorSocks5EndPoint == null) return;
+			if (TorSocks5EndPoint is null) return;
 
 			Guard.NotNull(nameof(identity), identity);
 
@@ -208,7 +208,7 @@ namespace WalletWasabi.TorSocks5
 			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, true);
 			Guard.MinimumAndNotNull(nameof(port), port, 0);
 
-			if (TorSocks5EndPoint == null)
+			if (TorSocks5EndPoint is null)
 			{
 				using (await AsyncLock.LockAsync())
 				{
@@ -313,7 +313,7 @@ namespace WalletWasabi.TorSocks5
 					// then work with TcpClient.ReceiveBufferSize
 					var tcpReceiveBuffSize = TcpClient.ReceiveBufferSize;
 					var actualReceiveBufferSize = 0;
-					if (receiveBufferSize == null || receiveBufferSize <= 0 || receiveBufferSize > tcpReceiveBuffSize)
+					if (receiveBufferSize is null || receiveBufferSize <= 0 || receiveBufferSize > tcpReceiveBuffSize)
 					{
 						actualReceiveBufferSize = tcpReceiveBuffSize;
 					}
@@ -386,7 +386,7 @@ namespace WalletWasabi.TorSocks5
 
 			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, true);
 
-			if (TorSocks5EndPoint == null)
+			if (TorSocks5EndPoint is null)
 			{
 				var hostAddresses = await Dns.GetHostAddressesAsync(host);
 				return hostAddresses.First();
@@ -422,7 +422,7 @@ namespace WalletWasabi.TorSocks5
 
 			Guard.NotNull(nameof(iPv4), iPv4);
 
-			if (TorSocks5EndPoint == null) // Only Tor is iPv4 dependent
+			if (TorSocks5EndPoint is null) // Only Tor is iPv4 dependent
 			{
 				var host = await Dns.GetHostEntryAsync(iPv4);
 				return host.HostName;
@@ -487,7 +487,7 @@ namespace WalletWasabi.TorSocks5
 		{
 			try
 			{
-				if (TcpClient != null)
+				if (!(TcpClient is null))
 				{
 					if (TcpClient.Connected)
 					{

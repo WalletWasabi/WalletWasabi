@@ -10,7 +10,7 @@ namespace System.Net.Http
 			// The scheme and host are case-insensitive and normally provided in lowercase;
 			// all other components are compared in a case-sensitive manner.
 
-			if (host == null) throw new FormatException("Host identifier cannot be null.");
+			if (host is null) throw new FormatException("Host identifier cannot be null.");
 			var h = host.Trim().TrimEnd('/').TrimStart(uriScheme.ToString() + "://", StringComparison.OrdinalIgnoreCase);
 			// https://tools.ietf.org/html/rfc7230#section-2.7.1
 			// A sender MUST NOT generate an "http" URI with an empty host identifier.

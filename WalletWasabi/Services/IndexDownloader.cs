@@ -2,7 +2,6 @@
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.TorSocks5;
 using NBitcoin;
 using Nito.AsyncEx;
 using System;
@@ -40,6 +39,8 @@ namespace WalletWasabi.Services
 				}
 			}
 		}
+
+		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
 
 		public event EventHandler<Height> BestHeightChanged;
 
@@ -143,11 +144,7 @@ namespace WalletWasabi.Services
 			_running = 0;
 			Cancel = new CancellationTokenSource();
 
-			var indexDir = Path.GetDirectoryName(IndexFilePath);
-			if (!string.IsNullOrEmpty(indexDir))
-			{
-				Directory.CreateDirectory(indexDir);
-			}
+			IoHelpers.EnsureContainingDirectoryExists(indexFilePath);
 			if (File.Exists(IndexFilePath))
 			{
 				if (Network == Network.RegTest)
@@ -212,29 +209,38 @@ namespace WalletWasabi.Services
 							try
 							{
 								filtersResponse = await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								// NOT GenSocksServErr
+								DoNotGenSocksServFail();
 							}
-							catch (ConnectionException)
+							catch (ConnectionException ex)
 							{
 								TorStatus = TorStatus.NotRunning;
 								BackendStatus = BackendStatus.NotConnected;
+								HandleIfGenSocksServFail(ex);
+
 								throw;
 							}
-							catch (TorSocks5FailureResponseException)
+							catch (TorSocks5FailureResponseException ex)
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;
+
+								HandleIfGenSocksServFail(ex);
+
 								throw;
 							}
-							catch
+							catch (Exception ex)
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.Connected;
+								HandleIfGenSocksServFail(ex);
+
 								throw;
 							}
 							BackendStatus = BackendStatus.Connected;
 							TorStatus = TorStatus.Running;
 
-							if (filtersResponse == null) // no-content, we are synced
+							if (filtersResponse is null) // no-content, we are synced
 							{
 								BestHeight = BestKnownFilter.BlockHeight;
 								continue;
@@ -297,6 +303,18 @@ namespace WalletWasabi.Services
 							// 3. Skip the last valid block.
 							continue;
 						}
+						catch (ConnectionException ex)
+						{
+							Logger.LogError<CcjClient>(ex);
+							try
+							{
+								await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
+							}
+							catch (TaskCanceledException ex2)
+							{
+								Logger.LogTrace<CcjClient>(ex2);
+							}
+						}
 						catch (Exception ex)
 						{
 							Logger.LogError<IndexDownloader>(ex);
@@ -325,6 +343,31 @@ namespace WalletWasabi.Services
 					}
 				}
 			});
+		}
+
+		private void HandleIfGenSocksServFail(Exception ex)
+		{
+			// IS GenSocksServFail?
+			if (ex.ToString().Contains("GeneralSocksServerFailure", StringComparison.OrdinalIgnoreCase))
+			{
+				// IS GenSocksServFail
+				DoGenSocksServFail();
+			}
+			else
+			{
+				// NOT GenSocksServFail
+				DoNotGenSocksServFail();
+			}
+		}
+
+		private void DoGenSocksServFail()
+		{
+			ResponseArrivedIsGenSocksServFail?.Invoke(this, true);
+		}
+
+		private void DoNotGenSocksServFail()
+		{
+			ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
 		}
 
 		public Height GetHeight(uint256 blockHash)

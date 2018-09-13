@@ -60,7 +60,7 @@ namespace WalletWasabi.Backend
 			await Coordinator.MakeSureTwoRunningRoundsAsync();
 			Logger.LogInfo<CcjCoordinator>("Chaumian CoinJoin Coordinator is successfully initialized and started two new rounds.");
 
-			if (roundConfig.FilePath != null)
+			if (!(roundConfig.FilePath is null))
 			{
 				RoundConfigWatcher = new ConfigWatcher(RoundConfig);
 				RoundConfigWatcher.Start(TimeSpan.FromSeconds(10), () =>
@@ -113,7 +113,7 @@ namespace WalletWasabi.Backend
 				Logger.LogInfo<RPCClient>("Bitcoin Core is fully synchronized.");
 
 				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
-				if (estimateSmartFeeResponse == null) throw new NotSupportedException("Bitcoin Core cannot estimate network fees yet.");
+				if (estimateSmartFeeResponse is null) throw new NotSupportedException("Bitcoin Core cannot estimate network fees yet.");
 				Logger.LogInfo<RPCClient>("Bitcoin Core fee estimation is working.");
 
 				if (Config.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
@@ -121,7 +121,7 @@ namespace WalletWasabi.Backend
 					if (blocks < 101)
 					{
 						var generateBlocksResponse = await RpcClient.GenerateAsync(101);
-						if (generateBlocksResponse == null) throw new NotSupportedException("Bitcoin Core cannot cannot generate blocks on the RegTest.");
+						if (generateBlocksResponse is null) throw new NotSupportedException("Bitcoin Core cannot cannot generate blocks on the RegTest.");
 
 						blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
 						blocks = blockchainInfo.Blocks;

@@ -93,13 +93,13 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			// Validate request.
 			if (!ModelState.IsValid
-				|| request == null
+				|| request is null
 				|| string.IsNullOrWhiteSpace(request.BlindedOutputScriptHex)
 				|| string.IsNullOrWhiteSpace(request.ChangeOutputAddress)
-				|| request.Inputs == null
+				|| request.Inputs is null
 				|| !request.Inputs.Any()
 				|| request.Inputs.Any(x => x.Input == default(TxoRef)
-					|| x.Input.TransactionId == null
+					|| x.Input.TransactionId is null
 					|| string.IsNullOrWhiteSpace(x.Proof)))
 			{
 				return BadRequest("Invalid request.");
@@ -169,7 +169,7 @@ namespace WalletWasabi.Backend.Controllers
 						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
 
 						// Check if inputs are unspent.
-						if (getTxOutResponse == null)
+						if (getTxOutResponse is null)
 						{
 							return BadRequest($"Provided input is not unspent: {inputProof.Input.Index}:{inputProof.Input.TransactionId}");
 						}
@@ -314,7 +314,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
-			if (returnFailureResponse != null)
+			if (!(returnFailureResponse is null))
 			{
 				return returnFailureResponse;
 			}
@@ -385,20 +385,20 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			Guid uniqueIdGuid = GetGuidOrFailureResponse(uniqueId, out IActionResult returnFailureResponse);
-			if (returnFailureResponse != null)
+			if (!(returnFailureResponse is null))
 			{
 				return returnFailureResponse;
 			}
 
 			CcjRound round = Coordinator.TryGetRound(roundId);
-			if (round == null)
+			if (round is null)
 			{
 				return Ok("Round not found.");
 			}
 
 			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
 
-			if (alice == null)
+			if (alice is null)
 			{
 				return Ok("Alice not found.");
 			}
@@ -444,7 +444,7 @@ namespace WalletWasabi.Backend.Controllers
 		public async Task<IActionResult> PostOutputAsync([FromQuery]string roundHash, [FromBody]OutputRequest request)
 		{
 			if (string.IsNullOrWhiteSpace(roundHash)
-				|| request == null
+				|| request is null
 				|| string.IsNullOrWhiteSpace(request.OutputAddress)
 				|| string.IsNullOrWhiteSpace(request.SignatureHex)
 				|| !ModelState.IsValid)
@@ -453,7 +453,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			CcjRound round = Coordinator.TryGetRound(roundHash);
-			if (round == null)
+			if (round is null)
 			{
 				return NotFound("Round not found.");
 			}
@@ -530,7 +530,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
-			if (returnFailureResponse != null)
+			if (!(returnFailureResponse is null))
 			{
 				return returnFailureResponse;
 			}
@@ -572,7 +572,7 @@ namespace WalletWasabi.Backend.Controllers
 		public async Task<IActionResult> PostSignaturesAsync([FromQuery]string uniqueId, [FromQuery]long roundId, [FromBody]IDictionary<int, string> signatures)
 		{
 			if (roundId <= 0
-				|| signatures == null
+				|| signatures is null
 				|| !signatures.Any()
 				|| signatures.Any(x => x.Key < 0 || string.IsNullOrWhiteSpace(x.Value))
 				|| !ModelState.IsValid)
@@ -581,7 +581,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
-			if (returnFailureResponse != null)
+			if (!(returnFailureResponse is null))
 			{
 				return returnFailureResponse;
 			}
@@ -683,7 +683,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			Guid uniqueIdGuid = GetGuidOrFailureResponse(uniqueId, out IActionResult guidFail);
 
-			if (guidFail != null)
+			if (!(guidFail is null))
 			{
 				returnFailureResponse = guidFail;
 				return (null, null);
@@ -691,14 +691,14 @@ namespace WalletWasabi.Backend.Controllers
 
 			CcjRound round = Coordinator.TryGetRound(roundId);
 
-			if (round == null)
+			if (round is null)
 			{
 				returnFailureResponse = NotFound("Round not found.");
 				return (null, null);
 			}
 
 			Alice alice = round.TryGetAliceBy(uniqueIdGuid);
-			if (alice == null)
+			if (alice is null)
 			{
 				returnFailureResponse = NotFound("Alice not found.");
 				return (round, null);

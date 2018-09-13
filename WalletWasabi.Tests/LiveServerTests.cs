@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Crypto;
-using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
@@ -28,8 +23,9 @@ namespace WalletWasabi.Tests
 			SharedFixture = sharedFixture;
 			LiveServerTestsFixture = liveServerTestsFixture;
 
-			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint);
-			torManager.StartAsync().GetAwaiter().GetResult();
+			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint, SharedFixture.TorLogsFile);
+			torManager.Start(ensureRunning: true);
+			Task.Delay(3000).GetAwaiter().GetResult();
 		}
 
 		#region Blockchain
@@ -83,7 +79,7 @@ namespace WalletWasabi.Tests
 		[Theory]
 		[InlineData(NetworkType.Mainnet)]
 		[InlineData(NetworkType.Testnet)]
-		public async Task GetExchangeRatesAsync(NetworkType networkType)
+		public async Task GetExchangeRateAsync(NetworkType networkType) // xunit wtf: If this function is called GetExchangeRatesAsync, it'll stuck on 1 CPU VMs (Manjuro, Fedora)
 		{
 			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType]))
 			{

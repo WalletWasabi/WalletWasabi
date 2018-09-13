@@ -53,7 +53,7 @@ namespace WalletWasabi.TorSocks5
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			var requestUri = new Uri(DestinationUri, relativeUri);
 			var request = new HttpRequestMessage(method, requestUri);
-			if (content != null)
+			if (!(content is null))
 			{
 				request.Content = content;
 			}
@@ -124,13 +124,13 @@ namespace WalletWasabi.TorSocks5
 			// in forwarded messages.
 			request.Version = HttpProtocol.HTTP11.Version;
 
-			if (TorSocks5Client != null && !TorSocks5Client.IsConnected)
+			if (!(TorSocks5Client is null) && !TorSocks5Client.IsConnected)
 			{
 				TorSocks5Client?.Dispose();
 				TorSocks5Client = null;
 			}
 
-			if (TorSocks5Client == null || !TorSocks5Client.IsConnected)
+			if (TorSocks5Client is null || !TorSocks5Client.IsConnected)
 			{
 				TorSocks5Client = new TorSocks5Client(TorSocks5EndPoint);
 				await TorSocks5Client.ConnectAsync();
@@ -186,14 +186,14 @@ namespace WalletWasabi.TorSocks5
 			{
 				if (request.Headers.TransferEncoding.Count == 0)
 				{
-					if (request.Content == null)
+					if (request.Content is null)
 					{
 						request.Content = new ByteArrayContent(new byte[] { }); // dummy empty content
 						request.Content.Headers.ContentLength = 0;
 					}
 					else
 					{
-						if (request.Content.Headers.ContentLength == null)
+						if (request.Content.Headers.ContentLength is null)
 						{
 							request.Content.Headers.ContentLength = (await request.Content.ReadAsStringAsync()).Length;
 						}

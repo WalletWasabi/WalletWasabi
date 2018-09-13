@@ -14,7 +14,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		internal static byte[] Encode(byte[] dataBytes, int numECBytes, GeneratorPolynomial generatorPoly)
 		{
 			int dataLength = dataBytes.Length;
-			if (generatorPoly == null)
+			if (generatorPoly is null)
 				throw new ArgumentNullException("generator", "GeneratorPolynomial var is null");
 			if (dataLength == 0)
 				throw new ArgumentException("There is no data bytes to encode");

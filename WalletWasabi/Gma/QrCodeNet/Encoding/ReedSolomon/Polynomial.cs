@@ -18,7 +18,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		{
 			int coefficientsLength = coefficients.Length;
 
-			if (coefficientsLength == 0 || coefficients == null)
+			if (coefficientsLength == 0 || coefficients is null)
 				throw new ArithmeticException("Can not create empty Polynomial");
 
 			GField = gfield;

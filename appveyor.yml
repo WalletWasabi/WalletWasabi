@@ -8,13 +8,12 @@ cache:
 - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
 - '%APPDATA%\WalletWasabi'
 
-before_build:
-  - git submodule update --init --recursive
-  - ps: Start-Sleep -s 5
-
 build_script:
+  - cd WalletWasabi.Tests
   - dotnet build
 
 test_script:
-  - cd WalletWasabi.Tests
-  - dotnet test --filter Category=TorNotNeeded
+  - dotnet test --filter Category=RunOnCi
+
+#on_finish:
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

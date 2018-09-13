@@ -86,7 +86,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal int GetECIValueByName(string encodingName)
 		{
-			if (_s_NameToValue == null)
+			if (_s_NameToValue is null)
 				Initialize(AppendOption.NameToValue);
 			if (_s_NameToValue.TryGetValue(encodingName, out int ECIValue))
 				return ECIValue;
@@ -96,7 +96,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal string GetECINameByValue(int ECIValue)
 		{
-			if (_s_ValueToName == null)
+			if (_s_ValueToName is null)
 				Initialize(AppendOption.ValueToName);
 			if (_s_ValueToName.TryGetValue(ECIValue, out string ECIName))
 				return ECIName;
@@ -132,7 +132,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <returns>ECI table in Dictionary collection</returns>
 		public Dictionary<string, int> GetECITable()
 		{
-			if (_s_NameToValue == null)
+			if (_s_NameToValue is null)
 				Initialize(AppendOption.NameToValue);
 
 			return _s_NameToValue;
@@ -140,14 +140,14 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		public bool ContainsECIName(string encodingName)
 		{
-			if (_s_NameToValue == null)
+			if (_s_NameToValue is null)
 				Initialize(AppendOption.NameToValue);
 			return _s_NameToValue.ContainsKey(encodingName);
 		}
 
 		public bool ContainsECIValue(int eciValue)
 		{
-			if (_s_ValueToName == null)
+			if (_s_ValueToName is null)
 				Initialize(AppendOption.ValueToName);
 			return _s_ValueToName.ContainsKey(eciValue);
 		}
