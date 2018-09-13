@@ -114,11 +114,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			base.OnCategorySelected();
 
-			Password = null;
-			PasswordConfirmation = null;
+			Password = "";
+			PasswordConfirmation = "";
 			WalletName = Utils.GetNextWalletName();
 			TermsAccepted = false;
-			ValidationMessage = null;
+			ValidationMessage = "";
 		}
 	}
 }
