@@ -30,15 +30,12 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
 					Process.Start(new ProcessStartInfo
 					{
 						FileName = "notify-send",
-						Arguments = $"\"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
+						Arguments = $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
 						CreateNoWindow = true
 					});
 				}
@@ -51,6 +48,10 @@ namespace WalletWasabi.Gui
 						CreateNoWindow = true
 					});
 				}
+				//else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
+				//{
+				//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
+				//}
 			}
 			catch (Exception ex)
 			{
