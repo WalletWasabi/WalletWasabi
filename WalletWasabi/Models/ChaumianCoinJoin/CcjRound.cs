@@ -684,7 +684,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				Task.Run(async () =>
 				{
-					// 2. Delay asyncronously to the requested timeout
+					// 2. Delay asynchronously to the requested timeout
 					await Task.Delay(AliceRegistrationTimeout);
 
 					using (await RoundSynchronizerLock.LockAsync())
