@@ -46,7 +46,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		private List<Alice> Alices { get; }
 		private List<Bob> Bobs { get; }
 
-		private static AsyncLock RoundSyncronizerLock { get; } = new AsyncLock();
+		private static AsyncLock RoundSynchronizerLock { get; } = new AsyncLock();
 
 		private CcjRoundPhase _phase;
 		private object PhaseLock { get; }
@@ -167,7 +167,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public async Task ExecuteNextPhaseAsync(CcjRoundPhase expectedPhase)
 		{
-			using (await RoundSyncronizerLock.LockAsync())
+			using (await RoundSynchronizerLock.LockAsync())
 			{
 				try
 				{
@@ -407,11 +407,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					default: throw new InvalidOperationException("This is impossible to happen.");
 				}
 
-				// Delay asyncronously to the requested timeout.
+				// Delay asynchronously to the requested timeout.
 				await Task.Delay(timeout);
 
 				var executeRunAbortion = false;
-				using (await RoundSyncronizerLock.LockAsync())
+				using (await RoundSynchronizerLock.LockAsync())
 				{
 					executeRunAbortion = Status == CcjRoundStatus.Running && Phase == expectedPhase;
 				}
@@ -491,7 +491,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								case CcjRoundPhase.Signing:
 									{
 										var outpointsToBan = new List<OutPoint>();
-										using (await RoundSyncronizerLock.LockAsync())
+										using (await RoundSynchronizerLock.LockAsync())
 										{
 											foreach (Alice alice in Alices)
 											{
@@ -526,7 +526,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			if (syncLock)
 			{
-				using (RoundSyncronizerLock.Lock())
+				using (RoundSynchronizerLock.Lock())
 				{
 					Status = CcjRoundStatus.Succeded;
 				}
@@ -542,7 +542,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			if (syncLock)
 			{
-				using (RoundSyncronizerLock.Lock())
+				using (RoundSynchronizerLock.Lock())
 				{
 					Status = CcjRoundStatus.Aborted;
 				}
@@ -568,7 +568,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			if (syncLock)
 			{
-				using (RoundSyncronizerLock.Lock())
+				using (RoundSynchronizerLock.Lock())
 				{
 					return Alices.Count;
 				}
@@ -578,7 +578,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public bool AllAlices(AliceState state)
 		{
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				return Alices.All(x => x.State == state);
 			}
@@ -588,7 +588,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			alices = new List<Alice>();
 
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				foreach (Alice alice in Alices)
 				{
@@ -606,7 +606,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			alices = new List<Alice>();
 
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				foreach (Alice alice in Alices)
 				{
@@ -620,11 +620,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			return alices.Count > 0;
 		}
 
-		public int CountBobs(bool syncronized = true)
+		public int CountBobs(bool synchronized = true)
 		{
-			if (syncronized)
+			if (synchronized)
 			{
-				using (RoundSyncronizerLock.Lock())
+				using (RoundSynchronizerLock.Lock())
 				{
 					return Bobs.Count;
 				}
@@ -634,7 +634,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public IEnumerable<Alice> GetAlicesBy(AliceState state)
 		{
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				return Alices.Where(x => x.State == state).ToList();
 			}
@@ -642,7 +642,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public Alice TryGetAliceBy(Guid uniqueId)
 		{
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				return Alices.SingleOrDefault(x => x.UniqueId == uniqueId);
 			}
@@ -652,7 +652,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			if (syncLock)
 			{
-				using (RoundSyncronizerLock.Lock())
+				using (RoundSynchronizerLock.Lock())
 				{
 					return Alices.Where(x => x.State != state).ToList();
 				}
@@ -665,7 +665,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			// 1. Find Alice and set its LastSeen propery.
 			var foundAlice = false;
 			var started = DateTimeOffset.UtcNow;
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				if (Phase != CcjRoundPhase.InputRegistration || Status != CcjRoundStatus.Running)
 				{
@@ -687,7 +687,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					// 2. Delay asyncronously to the requested timeout
 					await Task.Delay(AliceRegistrationTimeout);
 
-					using (await RoundSyncronizerLock.LockAsync())
+					using (await RoundSynchronizerLock.LockAsync())
 					{
 						// 3. If the round is still running and the phase is still InputRegistration
 						if (Status == CcjRoundStatus.Running && Phase == CcjRoundPhase.InputRegistration)
@@ -712,7 +712,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public async Task BroadcastCoinJoinIfFullySignedAsync()
 		{
-			using (await RoundSyncronizerLock.LockAsync())
+			using (await RoundSynchronizerLock.LockAsync())
 			{
 				// Check if fully signed.
 				if (SignedCoinJoin.Inputs.All(x => x.HasWitness()))
@@ -751,7 +751,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public void UpdateAnonymitySet(int anonymitySet)
 		{
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
 				{
@@ -764,7 +764,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public void AddAlice(Alice alice)
 		{
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				if (Phase != CcjRoundPhase.InputRegistration || Status != CcjRoundStatus.Running)
 				{
@@ -780,7 +780,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public void AddBob(Bob bob)
 		{
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				if (Phase != CcjRoundPhase.OutputRegistration || Status != CcjRoundStatus.Running)
 				{
@@ -800,7 +800,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public int RemoveAlicesBy(AliceState state)
 		{
 			int numberOfRemovedAlices = 0;
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
 				{
@@ -819,7 +819,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			var alicesRemoved = new List<Alice>();
 
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
 				{
@@ -853,7 +853,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public int RemoveAlicesBy(params Guid[] ids)
 		{
 			var numberOfRemovedAlices = 0;
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
 				{
@@ -874,7 +874,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			var numberOfRemovedAlices = 0;
 
-			using (RoundSyncronizerLock.Lock())
+			using (RoundSynchronizerLock.Lock())
 			{
 				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
 				{

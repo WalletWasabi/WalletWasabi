@@ -55,7 +55,7 @@ namespace WalletWasabi.Backend
 			Coordinator = new CcjCoordinator(RpcClient.Network, Path.Combine(DataDir, nameof(CcjCoordinator)), RpcClient, roundConfig);
 			IndexBuilderService.NewBlock += IndexBuilderService_NewBlockAsync;
 			IndexBuilderService.Synchronize();
-			Logger.LogInfo<IndexBuilderService>("IndexBuilderService is successfully initialized and started syncronization.");
+			Logger.LogInfo<IndexBuilderService>("IndexBuilderService is successfully initialized and started synchronization.");
 
 			await Coordinator.MakeSureTwoRunningRoundsAsync();
 			Logger.LogInfo<CcjCoordinator>("Chaumian CoinJoin Coordinator is successfully initialized and started two new rounds.");
