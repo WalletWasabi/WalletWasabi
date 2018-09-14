@@ -466,13 +466,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										RemoveAlicesBy(alicesToBan1.Select(x => x.UniqueId).Concat(alicesToBan2.Select(y => y.UniqueId)).Distinct().ToArray());
 
 										int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
-										if (aliceCountAfterConnectionConfirmationTimeout < 2)
+										int didNotConfirmeCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
+										if (didNotConfirmeCount > 0)
 										{
-											Abort(nameof(CcjRound), $"Only {aliceCountAfterConnectionConfirmationTimeout} Alices confiremd their connection.");
+											Abort(nameof(CcjRound), $"{didNotConfirmeCount} Alices did not confirem their connection.");
 										}
 										else
 										{
-											UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
 											// Progress to the next phase, which will be OutputRegistration
 											await ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
 										}
@@ -753,9 +753,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			using (RoundSynchronizerLock.Lock())
 			{
-				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
+				if ((Phase != CcjRoundPhase.InputRegistration) || Status != CcjRoundStatus.Running)
 				{
-					throw new InvalidOperationException("Updating anonymity set is only allowed in InputRegistration and ConnectionConfirmation phases.");
+					throw new InvalidOperationException($"Updating anonymity set is only allowed in {nameof(CcjRoundPhase.InputRegistration)} phase.");
 				}
 				AnonymitySet = anonymitySet;
 			}

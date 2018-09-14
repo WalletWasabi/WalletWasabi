@@ -342,13 +342,13 @@ namespace WalletWasabi.Backend.Controllers
 							}
 
 							int aliceCountAfterConnectionConfirmationTimeout = round.CountAlices();
-							if (aliceCountAfterConnectionConfirmationTimeout < 2)
+							int didNotConfirmeCount = round.AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
+							if (didNotConfirmeCount > 0)
 							{
-								round.Abort(nameof(ChaumianCoinJoinController), $"Only {aliceCountAfterConnectionConfirmationTimeout} Alices confiremd their connection.");
+								round.Abort(nameof(ChaumianCoinJoinController), $"{didNotConfirmeCount} Alices did not confirem their connection.");
 							}
 							else
 							{
-								round.UpdateAnonymitySet(aliceCountAfterConnectionConfirmationTimeout);
 								// Progress to the next phase, which will be OutputRegistration
 								await round.ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
 							}
