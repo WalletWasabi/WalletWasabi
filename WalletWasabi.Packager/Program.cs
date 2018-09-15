@@ -25,12 +25,14 @@ namespace WalletWasabi.Packager
 			Console.WriteLine($"{nameof(version)}:\t\t\t{version}");
 
 			// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
-			// Tor supports: win32, linux32, linux64, osx64
-			// .NET Core supports: win32, win64, linux64, osx64
+			// BOTTLENECKS:
+			// Tor - win-32, linux-32, osx-64
+			// .NET Core - win-32, linux-64, osx-64
+			// Avalonia - win7-32, linux-64, osx-64
 			// We'll only support x64, if someone complains, we can come back to it.
 			var targets = new List<string>
 			{
-				"win-x64",
+				"win7-x64",
 				"linux-x64",
 				"osx-x64"
 			};
