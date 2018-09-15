@@ -58,7 +58,7 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = guiProjectDirectory
 			};
 			var pBuild = Process.Start(psiBuild);
-			pBuild.StandardInput.WriteLine("dotnet restore && dotnet build && exit");
+			pBuild.StandardInput.WriteLine("dotnet clean && dotnet restore && dotnet build && exit");
 			pBuild.WaitForExit();
 
 			foreach (string target in targets)
