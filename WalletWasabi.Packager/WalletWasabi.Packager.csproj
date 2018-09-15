@@ -15,5 +15,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\\netcoreapp2.1\WalletWasabi.Packager.xml</DocumentationFile>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+  </ItemGroup>
 
 </Project>
