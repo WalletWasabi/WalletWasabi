@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,6 +46,16 @@ namespace WalletWasabi.Packager
 				}
 			});
 			Console.WriteLine();
+
+			var psiBuild = new ProcessStartInfo
+			{
+				FileName = "cmd",
+				RedirectStandardInput = true,
+				WorkingDirectory = guiProjectDirectory
+			};
+			var pBuild = Process.Start(psiBuild);
+			pBuild.StandardInput.WriteLine("dotnet restore && dotnet build && exit");
+			pBuild.WaitForExit();
 
 			Console.WriteLine();
 			Console.WriteLine("FINISHED! Press key to exit...");
