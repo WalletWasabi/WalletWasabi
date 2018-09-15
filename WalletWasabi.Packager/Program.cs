@@ -14,9 +14,11 @@ namespace WalletWasabi.Packager
 			string packagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
 			string solutionDirectory = Path.GetFullPath(Path.Combine(packagerProjectDirectory, "..\\"));
 			string guiProjectDirectory = Path.GetFullPath(Path.Combine(solutionDirectory, "WalletWasabi.Gui\\"));
+			string binDistDirectory = Path.GetFullPath(Path.Combine(guiProjectDirectory, "bin\\dist"));
 			Console.WriteLine($"{nameof(solutionDirectory)}:\t\t{solutionDirectory}");
 			Console.WriteLine($"{nameof(packagerProjectDirectory)}:\t{packagerProjectDirectory}");
 			Console.WriteLine($"{nameof(guiProjectDirectory)}:\t\t{guiProjectDirectory}");
+			Console.WriteLine($"{nameof(binDistDirectory)}:\t\t{binDistDirectory}");
 
 			string version = Helpers.Constants.ClientVersion.ToString();
 			Console.WriteLine();
@@ -56,6 +58,34 @@ namespace WalletWasabi.Packager
 			var pBuild = Process.Start(psiBuild);
 			pBuild.StandardInput.WriteLine("dotnet restore && dotnet build && exit");
 			pBuild.WaitForExit();
+
+			foreach (string target in targets)
+			{
+				string currentBinDistDirectory = Path.GetFullPath(Path.Combine(binDistDirectory, target));
+				Console.WriteLine();
+				Console.WriteLine($"{nameof(currentBinDistDirectory)}:\t{currentBinDistDirectory}");
+
+				Console.WriteLine();
+				if (Directory.Exists(currentBinDistDirectory))
+				{
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(currentBinDistDirectory).GetAwaiter().GetResult();
+					Console.WriteLine($"Deleted {currentBinDistDirectory}");
+				}
+				if (!Directory.Exists(currentBinDistDirectory))
+				{
+					Directory.CreateDirectory(currentBinDistDirectory);
+					Console.WriteLine($"Created {currentBinDistDirectory}");
+				}
+
+				var psiPublish = new ProcessStartInfo
+				{
+					FileName = "dotnet",
+					Arguments = $"publish --configuration Release --runtime {target} --output bin/dist/{target}",
+					WorkingDirectory = guiProjectDirectory
+				};
+				var pPublish = Process.Start(psiPublish);
+				pPublish.WaitForExit();
+			}
 
 			Console.WriteLine();
 			Console.WriteLine("FINISHED! Press key to exit...");
