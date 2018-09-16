@@ -81,10 +81,26 @@ namespace WalletWasabi.Packager
 					Console.WriteLine($"Created {currentBinDistDirectory}");
 				}
 
+				// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish?tabs=netcore21
+				// -c|--configuration {Debug|Release}
+				//		Defines the build configuration. The default value is Debug.
+				// --force
+				//		Forces all dependencies to be resolved even if the last restore was successful. Specifying this flag is the same as deleting the project.assets.json file.
+				// -o|--output <OUTPUT_DIRECTORY>
+				//		Specifies the path for the output directory.
+				//		If not specified, it defaults to ./bin/[configuration]/[framework]/publish/ for a framework-dependent deployment or
+				//		./bin/[configuration]/[framework]/[runtime]/publish/ for a self-contained deployment.
+				//		If the path is relative, the output directory generated is relative to the project file location, not to the current working directory.
+				// --self-contained
+				//		Publishes the .NET Core runtime with your application so the runtime doesn't need to be installed on the target machine.
+				//		If a runtime identifier is specified, its default value is true. For more information about the different deployment types, see .NET Core application deployment.
+				// -r|--runtime <RUNTIME_IDENTIFIER>
+				//		Publishes the application for a given runtime. This is used when creating a self-contained deployment (SCD).
+				//		For a list of Runtime Identifiers (RIDs), see the RID catalog. Default is to publish a framework-dependent deployment (FDD).
 				var psiPublish = new ProcessStartInfo
 				{
 					FileName = "dotnet",
-					Arguments = $"publish --configuration Release --runtime {target} --output bin/dist/{target}",
+					Arguments = $"publish --configuration Release --force --output bin/dist/{target} --self-contained true --runtime {target}",
 					WorkingDirectory = guiProjectDirectory
 				};
 				var pPublish = Process.Start(psiPublish);
