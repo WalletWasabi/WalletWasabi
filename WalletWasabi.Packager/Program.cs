@@ -20,9 +20,11 @@ namespace WalletWasabi.Packager
 			Console.WriteLine($"{nameof(guiProjectDirectory)}:\t\t{guiProjectDirectory}");
 			Console.WriteLine($"{nameof(binDistDirectory)}:\t\t{binDistDirectory}");
 
-			string version = Helpers.Constants.ClientVersion.ToString();
+			string versionPrefix = Helpers.Constants.ClientVersion.ToString();
+			string versionSuffix = "-" + Helpers.Constants.ClientVersionSuffix;
 			Console.WriteLine();
-			Console.WriteLine($"{nameof(version)}:\t\t\t{version}");
+			Console.WriteLine($"{nameof(versionPrefix)}:\t\t\t{versionPrefix}");
+			Console.WriteLine($"{nameof(versionSuffix)}:\t\t\t{versionSuffix}");
 
 			// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
 			// BOTTLENECKS:
@@ -58,7 +60,7 @@ namespace WalletWasabi.Packager
 				WorkingDirectory = guiProjectDirectory
 			};
 			var pBuild = Process.Start(psiBuild);
-			pBuild.StandardInput.WriteLine("dotnet clean && dotnet restore && dotnet build && exit");
+			pBuild.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
 			pBuild.WaitForExit();
 
 			Console.WriteLine();
@@ -97,10 +99,20 @@ namespace WalletWasabi.Packager
 				// -r|--runtime <RUNTIME_IDENTIFIER>
 				//		Publishes the application for a given runtime. This is used when creating a self-contained deployment (SCD).
 				//		For a list of Runtime Identifiers (RIDs), see the RID catalog. Default is to publish a framework-dependent deployment (FDD).
+				// --version-suffix <VERSION_SUFFIX>
+				//		Defines the version suffix to replace the asterisk (*) in the version field of the project file.
+				// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore?tabs=netcore2x
+				// --disable-parallel
+				//		Disables restoring multiple projects in parallel.
+				// --no-cache
+				//		Specifies to not cache packages and HTTP requests.
+				// https://github.com/dotnet/docs/issues/7568
+				// /p:Version=1.2.3.4
+				//		"dotnet publish" supports msbuild command line options like /p:Version=1.2.3.4
 				var psiPublish = new ProcessStartInfo
 				{
 					FileName = "dotnet",
-					Arguments = $"publish --configuration Release --force --output bin/dist/{target} --self-contained true --runtime {target}",
+					Arguments = $"publish --configuration Release --force --output bin/dist/{target} --self-contained true --runtime {target} /p:VersionPrefix={versionPrefix} --version-suffix {versionSuffix} --disable-parallel --no-cache",
 					WorkingDirectory = guiProjectDirectory
 				};
 				var pPublish = Process.Start(psiPublish);
