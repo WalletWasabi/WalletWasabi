@@ -8,6 +8,21 @@
     <NoWarn>1701;1702;1705;1591;1573</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageId>WasabiWallet</PackageId>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>nopara73;lontivero;danwalmsley</Authors>
+    <Company>zkSNACKs</Company>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <AssemblyTitle>Wasabi Wallet</AssemblyTitle>
+    <Description>
+      Privacy focused, ZeroLink compliant Bitcoin wallet.
+    </Description>
+    <Copyright>MIT</Copyright>
+  </PropertyGroup>
+  
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>

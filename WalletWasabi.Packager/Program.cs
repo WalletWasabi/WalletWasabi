@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Packager
@@ -20,11 +21,13 @@ namespace WalletWasabi.Packager
 			Console.WriteLine($"{nameof(guiProjectDirectory)}:\t\t{guiProjectDirectory}");
 			Console.WriteLine($"{nameof(binDistDirectory)}:\t\t{binDistDirectory}");
 
+			string executableName = "Wasabi Wallet";
 			string versionPrefix = Helpers.Constants.ClientVersion.ToString();
 			string versionSuffix = "-" + Helpers.Constants.ClientVersionSuffix;
 			Console.WriteLine();
 			Console.WriteLine($"{nameof(versionPrefix)}:\t\t\t{versionPrefix}");
 			Console.WriteLine($"{nameof(versionSuffix)}:\t\t\t{versionSuffix}");
+			Console.WriteLine($"{nameof(executableName)}:\t\t\t{executableName}");
 
 			// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
 			// BOTTLENECKS:
@@ -112,11 +115,25 @@ namespace WalletWasabi.Packager
 				var psiPublish = new ProcessStartInfo
 				{
 					FileName = "dotnet",
-					Arguments = $"publish --configuration Release --force --output bin/dist/{target} --self-contained true --runtime {target} /p:VersionPrefix={versionPrefix} --version-suffix {versionSuffix} --disable-parallel --no-cache",
+					Arguments = $"publish --configuration Release --force --output {currentBinDistDirectory} --self-contained true --runtime {target} /p:VersionPrefix={versionPrefix} --version-suffix {versionSuffix} --disable-parallel --no-cache",
 					WorkingDirectory = guiProjectDirectory
 				};
 				var pPublish = Process.Start(psiPublish);
 				pPublish.WaitForExit();
+
+				string oldExecutable;
+				string newExecutable;
+				if (target.StartsWith("win"))
+				{
+					oldExecutable = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui.exe");
+					newExecutable = Path.Combine(currentBinDistDirectory, "Wasabi Wallet.exe");
+				}
+				else // Linux & OSX
+				{
+					oldExecutable = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui");
+					newExecutable = Path.Combine(currentBinDistDirectory, "Wasabi Wallet");
+				}
+				File.Move(oldExecutable, newExecutable);
 			}
 
 			Console.WriteLine();
