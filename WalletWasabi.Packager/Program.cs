@@ -61,6 +61,13 @@ namespace WalletWasabi.Packager
 			pBuild.StandardInput.WriteLine("dotnet clean && dotnet restore && dotnet build && exit");
 			pBuild.WaitForExit();
 
+			Console.WriteLine();
+			if (Directory.Exists(binDistDirectory))
+			{
+				IoHelpers.DeleteRecursivelyWithMagicDustAsync(binDistDirectory).GetAwaiter().GetResult();
+				Console.WriteLine($"Deleted {binDistDirectory}");
+			}
+
 			foreach (string target in targets)
 			{
 				string currentBinDistDirectory = Path.GetFullPath(Path.Combine(binDistDirectory, target));
@@ -68,11 +75,6 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"{nameof(currentBinDistDirectory)}:\t{currentBinDistDirectory}");
 
 				Console.WriteLine();
-				if (Directory.Exists(currentBinDistDirectory))
-				{
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(currentBinDistDirectory).GetAwaiter().GetResult();
-					Console.WriteLine($"Deleted {currentBinDistDirectory}");
-				}
 				if (!Directory.Exists(currentBinDistDirectory))
 				{
 					Directory.CreateDirectory(currentBinDistDirectory);
