@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Packager
@@ -134,6 +135,18 @@ namespace WalletWasabi.Packager
 					newExecutable = Path.Combine(currentBinDistDirectory, "Wasabi Wallet");
 				}
 				File.Move(oldExecutable, newExecutable);
+
+				if(target.StartsWith("win"))
+				{
+					var psiEditbin = new ProcessStartInfo
+					{
+						FileName = "editbin",
+						Arguments = $"\"{newExecutable}\" /SUBSYSTEM:WINDOWS",
+						WorkingDirectory = currentBinDistDirectory
+					};
+					var pEditbin = Process.Start(psiEditbin);
+					pEditbin.WaitForExit();
+				}
 			}
 
 			Console.WriteLine();
