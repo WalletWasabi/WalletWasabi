@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product 
+    Id="{A6DC3C45-5F3A-4664-A3C1-295060146597}"
+    Name="Wasabi"
+    Language="!(loc.Language)"
+    Version="!(loc.Version)"
+    Manufacturer="!(loc.Company)"
+    UpgradeCode="{D8E80773-D8CF-4031-B8B3-AA750AF0B413}">
+		
+    <Package
+      InstallerVersion="200"
+      Compressed="yes"
+      InstallScope="perMachine"
+      Platform = "x64"
+      Manufacturer="!(loc.Company)"
+      Description="!(loc.Description)"
+      Keywords="!(loc.Keywords)"
+      Comments="!(loc.Comments)"
+      Languages="!(loc.Language)"/>
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate 
+      EmbedCab="yes"/>
+
+		<Feature Id="ProductFeature" Title="Wasabi" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+		</Feature>
+	</Product>
+</Wix>
