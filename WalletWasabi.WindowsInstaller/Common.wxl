@@ -4,8 +4,6 @@
   <String Id="Company">zkSNACKs</String>
 
   <String Id="Language">1033</String>
-
-  <String Id="Version">1.0.0.0</String>
   
   <String Id="Description">Privacy focused, ZeroLink compliant Bitcoin wallet.</String>
   <String Id="Keywords">bitcoin,cryptocurrency,blockchain,privacy,fungibility,anonymity</String>

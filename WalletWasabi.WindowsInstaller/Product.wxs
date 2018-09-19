@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <!-- Define main product. -->
 	<Product 
     Id="{A6DC3C45-5F3A-4664-A3C1-295060146597}"
     Name="Wasabi"
     Language="!(loc.Language)"
-    Version="!(loc.Version)"
+    Version="1.0.0.0"
     Manufacturer="!(loc.Company)"
     UpgradeCode="{D8E80773-D8CF-4031-B8B3-AA750AF0B413}">
 		
+    <!-- Provide package details. -->
     <Package
       InstallerVersion="200"
       Compressed="yes"
@@ -20,10 +22,32 @@
       Comments="!(loc.Comments)"
       Languages="!(loc.Language)"/>
 
+    <!-- Downgrade error message. -->
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    
+    <!-- Include .cab file into the .msi file. -->
 		<MediaTemplate 
       EmbedCab="yes"/>
 
+    <!-- Define main app icon. -->
+    <Icon
+      Id="icon.ico"
+      SourceFile="$(var.WalletWasabi.Gui.ProjectDir)\Assets\WasabiLogo.ico"/>
+
+    <!-- Use the icon.ico icon for this installer. It shows up in Add/Remove programs. -->
+    <Property Id="APPPRODUCTICON">icon.ico</Property>
+
+    <!-- Help/Support website shows in the Add/Remove programs. -->
+    <Property Id="APPURLINFOABOUT">https://github.com/zkSNACKs/WalletWasabi/</Property>
+
+    <!-- Create a basic UI for the installer. -->
+    <UI Id='Mondo'>
+      <UIRef Id="WixUI_Mondo" />
+      <UIRef Id="WixUI_ErrorProgressText" />
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="SetInstallLevel" Value="1000" Order="3">1</Publish>
+    </UI>
+    
+    <!-- Define components, shortcuts, files, etc... for instealler. -->
 		<Feature Id="ProductFeature" Title="Wasabi" Level="1">
 			<ComponentGroupRef Id="ProductComponents" />
 		</Feature>
