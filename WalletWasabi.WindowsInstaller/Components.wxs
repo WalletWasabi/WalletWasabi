@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
-    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <!-- TODO: Remove the comments around this Component element and the ComponentRef below in order to add resources to this installer. -->
-      <!-- <Component Id="ProductComponent"> -->
-      <!-- TODO: Insert files, registry keys, and other resources here. -->
-      <!-- </Component> -->
+    <ComponentGroup Id="ProductComponents">
+      <ComponentRef Id="TestFile"/>
     </ComponentGroup>
+
+    <DirectoryRef Id="INSTALLFOLDER" FileSource="..\WalletWasabi.Gui\bin\dist\win7-x64\">
+      <Component Id="TestFile" Guid="{50CAF59B-0B66-4CA3-8D92-C96591A707AD}" Win64="yes">
+        <File Id="FileTestFile" Name="Avalonia.Markup.Xaml.dll" KeyPath="yes" />
+        
+        <!-- Remove Start Menu items. -->
+        <RemoveFolder Id="RemoveStartMenu" Directory="InstallProgramMenuFolder" On="uninstall"/>
+      </Component>
+    </DirectoryRef>
   </Fragment>
 </Wix>

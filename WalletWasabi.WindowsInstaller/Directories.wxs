@@ -2,8 +2,13 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
+      <!-- Start Menu -->
+      <Directory Id="ProgramMenuFolder">
+          <Directory Id="InstallProgramMenuFolder" Name="!(loc.ProductName)" />
+      </Directory>
+    
       <Directory Id="ProgramFiles64Folder">
-        <Directory Id="INSTALLFOLDER" Name="WalletWasabi.WindowsInstaller" />
+        <Directory Id="INSTALLFOLDER" Name="!(loc.ProductName)" />
       </Directory>
     </Directory>
   </Fragment>

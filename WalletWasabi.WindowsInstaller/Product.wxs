@@ -4,7 +4,7 @@
   <!-- Define main product. -->
 	<Product 
     Id="{A6DC3C45-5F3A-4664-A3C1-295060146597}"
-    Name="Wasabi"
+    Name="!(loc.ProductName)"
     Language="!(loc.Language)"
     Version="1.0.0.0"
     Manufacturer="!(loc.Company)"
@@ -40,11 +40,19 @@
     <!-- Help/Support website shows in the Add/Remove programs. -->
     <Property Id="APPURLINFOABOUT">https://github.com/zkSNACKs/WalletWasabi/</Property>
 
-    <!-- Create a basic UI for the installer. -->
-    <UI Id='Mondo'>
-      <UIRef Id="WixUI_Mondo" />
-      <UIRef Id="WixUI_ErrorProgressText" />
-      <Publish Dialog="WelcomeDlg" Control="Next" Event="SetInstallLevel" Value="1000" Order="3">1</Publish>
+    <!-- Create a basic UI for the installer. Skip terms and conditions: https://stackoverflow.com/a/32215759/2061103 -->
+    <UI>
+      <UIRef Id="WixUI_InstallDir" />
+      <Publish Dialog="WelcomeDlg"
+            Control="Next"
+            Event="NewDialog"
+            Value="VerifyReadyDlg"
+            Order="99">1</Publish>
+      <Publish Dialog="VerifyReadyDlg"
+            Control="Back"
+            Event="NewDialog"
+            Value="WelcomeDlg"
+            Order="99">1</Publish>
     </UI>
     
     <!-- Define components, shortcuts, files, etc... for instealler. -->
