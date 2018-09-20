@@ -24,10 +24,8 @@ namespace WalletWasabi.Packager
 
 			string executableName = "Wasabi Wallet";
 			string versionPrefix = Helpers.Constants.ClientVersion.ToString();
-			string versionSuffix = "-" + Helpers.Constants.ClientVersionSuffix;
 			Console.WriteLine();
 			Console.WriteLine($"{nameof(versionPrefix)}:\t\t\t{versionPrefix}");
-			Console.WriteLine($"{nameof(versionSuffix)}:\t\t\t{versionSuffix}");
 			Console.WriteLine($"{nameof(executableName)}:\t\t\t{executableName}");
 
 			// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
@@ -116,7 +114,7 @@ namespace WalletWasabi.Packager
 				var psiPublish = new ProcessStartInfo
 				{
 					FileName = "dotnet",
-					Arguments = $"publish --configuration Release --force --output {currentBinDistDirectory} --self-contained true --runtime {target} /p:VersionPrefix={versionPrefix} --version-suffix {versionSuffix} --disable-parallel --no-cache",
+					Arguments = $"publish --configuration Release --force --output {currentBinDistDirectory} --self-contained true --runtime {target} /p:VersionPrefix={versionPrefix} --disable-parallel --no-cache",
 					WorkingDirectory = guiProjectDirectory
 				};
 				var pPublish = Process.Start(psiPublish);

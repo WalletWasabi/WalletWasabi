@@ -6,7 +6,7 @@
     Id="{A6DC3C45-5F3A-4664-A3C1-295060146597}"
     Name="!(loc.ProductName)"
     Language="!(loc.Language)"
-    Version="1.0.0.0"
+    Version="$(var.BuildVersion)"
     Manufacturer="!(loc.Company)"
     UpgradeCode="{D8E80773-D8CF-4031-B8B3-AA750AF0B413}">
 		
@@ -35,10 +35,10 @@
       SourceFile="$(var.WalletWasabi.Gui.ProjectDir)\Assets\WasabiLogo.ico"/>
 
     <!-- Use the icon.ico icon for this installer. It shows up in Add/Remove programs. -->
-    <Property Id="APPPRODUCTICON">icon.ico</Property>
+    <Property Id="ARPPRODUCTICON">icon.ico</Property>
 
     <!-- Help/Support website shows in the Add/Remove programs. -->
-    <Property Id="APPURLINFOABOUT">https://github.com/zkSNACKs/WalletWasabi/</Property>
+    <Property Id="ARPURLINFOABOUT">https://github.com/zkSNACKs/WalletWasabi/</Property>
 
     <!-- Create a basic UI for the installer. Skip terms and conditions: https://stackoverflow.com/a/32215759/2061103 -->
     <UI>

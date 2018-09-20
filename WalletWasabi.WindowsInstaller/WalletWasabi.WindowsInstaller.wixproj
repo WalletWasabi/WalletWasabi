@@ -6,7 +6,7 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>54654468-4f58-4253-84bd-6f53a8d3d2c4</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>WalletWasabi.WindowsInstaller</OutputName>
+    <OutputName>WasabiInstaller</OutputName>
     <OutputType>Package</OutputType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
@@ -47,12 +47,16 @@
   <Target Name="EnsureWixToolsetInstalled" Condition=" '$(WixTargetsImported)' != 'true' ">
     <Error Text="The WiX Toolset v3.11 (or newer) build tools must be installed to build this project. To download the WiX Toolset, see http://wixtoolset.org/releases/" />
   </Target>
-  <!--
-	To modify your build process, add your task inside one of the targets below and uncomment it.
-	Other similar extension points exist, see Wix.targets.
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+	      Other similar extension points exist, see Wix.targets. -->
 	<Target Name="BeforeBuild">
+    <GetAssemblyIdentity AssemblyFiles="..\WalletWasabi.Gui\bin\dist\win7-x64\WalletWasabi.Gui.dll">
+      <Output TaskParameter="Assemblies" ItemName="AssemblyVersion"/>
+    </GetAssemblyIdentity>
+    <PropertyGroup>
+      <DefineConstants>BuildVersion=%(AssemblyVersion.Version)</DefineConstants>
+    </PropertyGroup>
+  </Target>
+  <Target Name="AfterBuild">
 	</Target>
-	<Target Name="AfterBuild">
-	</Target>
-	-->
 </Project>
