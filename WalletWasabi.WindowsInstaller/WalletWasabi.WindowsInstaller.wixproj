@@ -55,6 +55,7 @@
       <Output TaskParameter="Assemblies" ItemName="AssemblyVersion" />
     </GetAssemblyIdentity>
     <PropertyGroup>
+      <LinkerBaseInputPaths>..\WalletWasabi.Gui\bin\dist\win7-x64</LinkerBaseInputPaths>
       <DefineConstants>BuildVersion=%(AssemblyVersion.Version);BasePath=..\WalletWasabi.Gui\bin\dist\win7-x64</DefineConstants>
     </PropertyGroup>
     <!-- Harvest file components from publish folder. -->
