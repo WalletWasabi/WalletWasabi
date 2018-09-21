@@ -4,11 +4,11 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <!-- Start Menu -->
       <Directory Id="ProgramMenuFolder">
-          <Directory Id="InstallProgramMenuFolder" Name="!(loc.ProductName)" />
+          <Directory Id="InstallProgramMenuFolder" Name="!(loc.ProductNameFolder)" />
       </Directory>
     
       <Directory Id="ProgramFiles64Folder">
-        <Directory Id="INSTALLFOLDER" Name="!(loc.ProductName)" />
+        <Directory Id="INSTALLFOLDER" Name="!(loc.ProductNameFolder)" />
       </Directory>
     </Directory>
   </Fragment>

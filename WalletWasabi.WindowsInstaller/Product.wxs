@@ -57,7 +57,8 @@
     
     <!-- Define components, shortcuts, files, etc... for instealler. -->
 		<Feature Id="ProductFeature" Title="Wasabi" Level="1">
-			<ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="PublishedComponents" />
 		</Feature>
 	</Product>
 </Wix>
