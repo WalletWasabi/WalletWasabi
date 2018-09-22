@@ -120,6 +120,7 @@ namespace WalletWasabi.Packager
 				var pPublish = Process.Start(psiPublish);
 				pPublish.WaitForExit();
 
+				// Rename the final exe.
 				string oldExecutable;
 				string newExecutable;
 				if (target.StartsWith("win"))
@@ -145,6 +146,13 @@ namespace WalletWasabi.Packager
 					var pEditbin = Process.Start(psiEditbin);
 					pEditbin.WaitForExit();
 				}
+
+				// Hack around Avalonia/Wix fuckup.
+				string dummyFilePath = Path.Combine(currentBinDistDirectory, "Extensions", "DummyHack.txt");
+				string dummyFileContent = "This file is neccessary to have in the publish folder, otherwise Avalonia or AvalonStudio and Wix won't work together./n" +
+					"It matters on Windows. It may or may not make a difference in Linux and OSX.";
+				IoHelpers.EnsureContainingDirectoryExists(dummyFilePath);
+				File.WriteAllText(dummyFilePath, dummyFileContent);
 			}
 
 			Console.WriteLine();
