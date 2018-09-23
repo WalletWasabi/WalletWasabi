@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="en-us" xmlns="http://schemas.microsoft.com/wix/2006/localization">
+
+  <String Id="ProductName">Wasabi Wallet</String>
+  <String Id="ProductNameFolder">WasabiWallet</String>
+  <String Id="Company">zkSNACKs</String>
+
+  <String Id="Language">1033</String>
+  
+  <String Id="Description">Privacy focused, ZeroLink compliant Bitcoin wallet.</String>
+  <String Id="Keywords">bitcoin,cryptocurrency,blockchain,privacy,fungibility,anonymity</String>
+  <String Id="Comments">Easy Peasy Lemon Squeezey</String>
+  
+</WixLocalization>

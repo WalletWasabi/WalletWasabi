@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <ComponentGroup Id="ProductComponents">
+      <ComponentRef Id="StartMenuShortcut"/>
+      <ComponentRef Id="DesktopShortcut"/>
+    </ComponentGroup>
+
+    <DirectoryRef Id="INSTALLFOLDER" FileSource="SourceDir">
+      <Component Id="StartMenuShortcut" Guid="{50CAF59B-0B66-4CA3-8D92-C96591A707AD}" Win64="yes">
+        <Shortcut 
+          Id="StartMenuShortcut"
+          Name="!(loc.ProductName)"
+          Description="!(loc.Description)"
+          Target="[INSTALLFOLDER]Wasabi Wallet.exe"
+          Directory="InstallProgramMenuFolder"
+          WorkingDirectory="INSTALLFOLDER"
+          Icon="icon.ico"
+          />
+        <RegistryValue Id="StartMenuShortcutKey" Root="HKCU" Key="SOFTWARE\!(loc.ProductNameFolder)" Name="StartMenuShortcut" Value="1" Type="integer" KeyPath="yes" />
+        <RemoveFolder Id="RemoveStartMenu" Directory="InstallProgramMenuFolder" On="uninstall"/>        
+      </Component>
+
+      <Component Id="DesktopShortcut" Guid="{FD3D13B1-AA09-495F-A1DE-0E50A010DDF6}" Win64="yes">
+        <Shortcut
+          Id="DesktopShortcut"
+          Name="!(loc.ProductName)"
+          Description="!(loc.Description)"
+          Target="[INSTALLFOLDER]Wasabi Wallet.exe"
+          Directory="DesktopFolder"
+          WorkingDirectory="INSTALLFOLDER"
+          Icon="icon.ico"
+          />
+        <RegistryValue Id="DesktopShortcutKey" Root="HKCU" Key="SOFTWARE\!(loc.ProductNameFolder)" Name="DesktopShortcut" Value="1" Type="integer" KeyPath="yes" />
+        <RemoveFolder Id="RemoveDesktop" Directory="DesktopFolder" On="uninstall"/>
+      </Component>
+    </DirectoryRef>
+
+  </Fragment>
+</Wix>

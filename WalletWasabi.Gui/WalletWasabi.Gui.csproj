@@ -8,6 +8,24 @@
     <NoWarn>1701;1702;1705;1591;1573</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Authors>nopara73;lontivero;danwalmsley</Authors>
+    <Company>zkSNACKs</Company>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <AssemblyTitle>Wasabi Wallet</AssemblyTitle>
+    <Description>
+      Privacy focused, ZeroLink compliant Bitcoin wallet.
+    </Description>
+    <Copyright>MIT</Copyright>
+    <PackageId>Wasabi Wallet</PackageId>
+    <PackageTags>bitcoin;cryptocurrency;blockchain;privacy;fungibility;anonymity</PackageTags>
+    <PackageProjectUrl>https://github.com/zkSNACKs/WalletWasabi/</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/zkSNACKs/WalletWasabi/</RepositoryUrl>
+    <!-- owners is not supported in MSBuild -->
+  </PropertyGroup>
+  
   <ItemGroup>
     <Compile Update="**\*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>

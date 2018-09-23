@@ -24,7 +24,7 @@ namespace WalletWasabi.TorSocks5
 			LogFile = logFile;
 		}
 
-		public void Start(bool ensureRunning)
+		public void Start(bool ensureRunning, string dataDir)
 		{
 			new Thread(delegate () // Don't ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
 			{
@@ -52,7 +52,7 @@ namespace WalletWasabi.TorSocks5
 							}
 						}
 
-						var torDir = Path.Combine(fullBaseDirectory, "tor");
+						var torDir = Path.Combine(dataDir, "tor");
 
 						var torPath = "";
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -83,15 +83,7 @@ namespace WalletWasabi.TorSocks5
 							{
 								if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 								{
-									string torLinuxZip = "";
-									if (RuntimeInformation.OSArchitecture == Architecture.X86)
-									{
-										torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux32.zip");
-									}
-									else // x64
-									{
-										torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
-									}
+									string torLinuxZip = torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
 									IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, torDir).GetAwaiter().GetResult();
 									Logger.LogInfo<TorProcessManager>($"Extracted {torLinuxZip} to {torDir}.");
 								}

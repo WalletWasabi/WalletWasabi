@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <!-- Define main product. -->
+	<Product 
+    Id="*"
+    Name="!(loc.ProductName)"
+    Language="!(loc.Language)"
+    Version="$(var.BuildVersion)"
+    Manufacturer="!(loc.Company)"
+    UpgradeCode="{D8E80773-D8CF-4031-B8B3-AA750AF0B413}">
+		
+    <!-- Provide package details. -->
+    <Package
+      InstallerVersion="200"
+      Compressed="yes"
+      InstallScope="perMachine"
+      Platform = "x64"
+      Manufacturer="!(loc.Company)"
+      Description="!(loc.Description)"
+      Keywords="!(loc.Keywords)"
+      Comments="!(loc.Comments)"
+      Languages="!(loc.Language)"/>
+
+    <!-- Downgrade error message. -->
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    
+    <!-- Include .cab file into the .msi file. -->
+		<MediaTemplate 
+      EmbedCab="yes"/>
+
+    <!-- Define main app icon. -->
+    <Icon
+      Id="icon.ico"
+      SourceFile="$(var.WalletWasabi.Gui.ProjectDir)\Assets\WasabiLogo.ico"/>
+
+    <!-- Add/Remove programs: https://www.firegiant.com/wix/tutorial/com-expression-syntax-miscellanea/add-or-remove-programs-entries/ -->
+    <!-- any comments -->
+    <Property Id='ARPCOMMENTS'>!(loc.Description)</Property>
+    <!-- URL for technical support -->
+    <Property Id='ARPHELPLINK'>https://www.reddit.com/r/WasabiWallet/</Property>
+    <!-- URL for general info about the product -->
+    <Property Id="ARPURLINFOABOUT">https://github.com/zkSNACKs/WalletWasabi/</Property>
+    <!-- Use the icon.ico icon for this installer. -->
+    <Property Id="ARPPRODUCTICON">icon.ico</Property>
+    <!-- To suppress the Repair functionality, use: -->
+    <Property Id='ARPNOREPAIR'>1</Property>
+
+    <!-- Create a basic UI for the installer. Skip terms and conditions: https://stackoverflow.com/a/32215759/2061103 -->
+    <UI>
+      <UIRef Id="WixUI_InstallDir" />
+      <Publish Dialog="WelcomeDlg"
+            Control="Next"
+            Event="NewDialog"
+            Value="VerifyReadyDlg"
+            Order="99">1</Publish>
+      <Publish Dialog="VerifyReadyDlg"
+            Control="Back"
+            Event="NewDialog"
+            Value="WelcomeDlg"
+            Order="99">1</Publish>
+    </UI>
+    
+    <!-- Define components, shortcuts, files, etc... for instealler. -->
+		<Feature Id="ProductFeature" Title="Wasabi" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="PublishedComponents" />
+		</Feature>
+	</Product>
+</Wix>
