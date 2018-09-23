@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -19,7 +20,7 @@ namespace WalletWasabi.Tests
 		{
 			SharedFixture = sharedFixture;
 			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint, SharedFixture.TorLogsFile);
-			torManager.Start(ensureRunning: true);
+			torManager.Start(ensureRunning: true, dataDir: Path.GetFullPath(AppContext.BaseDirectory));
 			Task.Delay(3000).GetAwaiter().GetResult();
 		}
 
