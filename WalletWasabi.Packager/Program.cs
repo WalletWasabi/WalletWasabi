@@ -67,6 +67,14 @@ namespace WalletWasabi.Packager
 			});
 			Console.WriteLine();
 
+			Console.WriteLine();
+			if (Directory.Exists(binDistDirectory))
+			{
+				IoHelpers.DeleteRecursivelyWithMagicDustAsync(binDistDirectory).GetAwaiter().GetResult();
+				Console.WriteLine($"Deleted {binDistDirectory}");
+			}
+			Directory.CreateDirectory(finalDirectory);
+
 			if (doPublish)
 			{
 				var psiBuild = new ProcessStartInfo
@@ -78,13 +86,6 @@ namespace WalletWasabi.Packager
 				var pBuild = Process.Start(psiBuild);
 				pBuild.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
 				pBuild.WaitForExit();
-
-				Console.WriteLine();
-				if (Directory.Exists(binDistDirectory))
-				{
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(binDistDirectory).GetAwaiter().GetResult();
-					Console.WriteLine($"Deleted {binDistDirectory}");
-				}
 
 				foreach (string target in targets)
 				{
@@ -170,7 +171,6 @@ namespace WalletWasabi.Packager
 				}
 			}
 
-			Directory.CreateDirectory(finalDirectory);
 			if (doSign is true)
 			{
 				foreach (string target in targets)
@@ -203,6 +203,16 @@ namespace WalletWasabi.Packager
 					var signProcess = Process.Start(psiSignProcess);
 					signProcess.StandardInput.WriteLine($"gpg --armor --detach-sign {finalFile} && exit");
 					signProcess.WaitForExit();
+
+					var psiRestoreHeat = new ProcessStartInfo
+					{
+						FileName = "cmd",
+						RedirectStandardInput = true,
+						WorkingDirectory = wixProjectDirectory
+					};
+					var restoreHeatProcess = Process.Start(psiRestoreHeat);
+					restoreHeatProcess.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
+					restoreHeatProcess.WaitForExit();
 				}
 			}
 
