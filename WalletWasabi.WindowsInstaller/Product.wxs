@@ -3,7 +3,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <!-- Define main product. -->
 	<Product 
-    Id="{A6DC3C45-5F3A-4664-A3C1-295060146597}"
+    Id="{72146800-0B4E-4D8E-A38C-6BA1886CCEAC}"
     Name="!(loc.ProductName)"
     Language="!(loc.Language)"
     Version="$(var.BuildVersion)"
@@ -34,11 +34,17 @@
       Id="icon.ico"
       SourceFile="$(var.WalletWasabi.Gui.ProjectDir)\Assets\WasabiLogo.ico"/>
 
-    <!-- Use the icon.ico icon for this installer. It shows up in Add/Remove programs. -->
-    <Property Id="ARPPRODUCTICON">icon.ico</Property>
-
-    <!-- Help/Support website shows in the Add/Remove programs. -->
+    <!-- Add/Remove programs: https://www.firegiant.com/wix/tutorial/com-expression-syntax-miscellanea/add-or-remove-programs-entries/ -->
+    <!-- any comments -->
+    <Property Id='ARPCOMMENTS'>!(loc.Description)</Property>
+    <!-- URL for technical support -->
+    <Property Id='ARPHELPLINK'>https://www.reddit.com/r/WasabiWallet/</Property>
+    <!-- URL for general info about the product -->
     <Property Id="ARPURLINFOABOUT">https://github.com/zkSNACKs/WalletWasabi/</Property>
+    <!-- Use the icon.ico icon for this installer. -->
+    <Property Id="ARPPRODUCTICON">icon.ico</Property>
+    <!-- To suppress the Repair functionality, use: -->
+    <Property Id='ARPNOREPAIR'>1</Property>
 
     <!-- Create a basic UI for the installer. Skip terms and conditions: https://stackoverflow.com/a/32215759/2061103 -->
     <UI>

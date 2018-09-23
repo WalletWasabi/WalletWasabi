@@ -16,10 +16,12 @@ namespace WalletWasabi.Packager
 			string packagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
 			string solutionDirectory = Path.GetFullPath(Path.Combine(packagerProjectDirectory, "..\\"));
 			string guiProjectDirectory = Path.GetFullPath(Path.Combine(solutionDirectory, "WalletWasabi.Gui\\"));
+			string wixProjectDirectory = Path.GetFullPath(Path.Combine(solutionDirectory, "WalletWasabi.WindowsInstaller\\"));
 			string binDistDirectory = Path.GetFullPath(Path.Combine(guiProjectDirectory, "bin\\dist"));
 			Console.WriteLine($"{nameof(solutionDirectory)}:\t\t{solutionDirectory}");
 			Console.WriteLine($"{nameof(packagerProjectDirectory)}:\t{packagerProjectDirectory}");
 			Console.WriteLine($"{nameof(guiProjectDirectory)}:\t\t{guiProjectDirectory}");
+			Console.WriteLine($"{nameof(wixProjectDirectory)}:\t\t{wixProjectDirectory}");
 			Console.WriteLine($"{nameof(binDistDirectory)}:\t\t{binDistDirectory}");
 
 			string executableName = "Wasabi Wallet";
@@ -153,6 +155,38 @@ namespace WalletWasabi.Packager
 					"It matters on Windows. It may or may not make a difference in Linux and OSX.";
 				IoHelpers.EnsureContainingDirectoryExists(dummyFilePath);
 				File.WriteAllText(dummyFilePath, dummyFileContent);
+
+				if(target.StartsWith("win", StringComparison.OrdinalIgnoreCase))
+				{
+					//// Create msi.
+					//var wixToolsDir = @"C:\Program Files (x86)\WiX Toolset v3.11\bin\";
+					//var psiHeat = new ProcessStartInfo
+					//{
+					//	FileName = $@"{wixToolsDir}Heat.exe",
+					//	Arguments = $@"dir {currentBinDistDirectory} -cg PublishedComponents -dr INSTALLFOLDER -scom -sreg -srd -var var.BasePath -gg -sfrag -out ComponentsGenerated.wxs",
+					//	WorkingDirectory = wixProjectDirectory
+					//};
+					//var pHeat = Process.Start(psiHeat);
+					//pHeat.WaitForExit();
+
+					//var psiCandle = new ProcessStartInfo
+					//{
+					//	FileName = $@"{wixToolsDir}candle.exe", // This lower case is not a typo.
+					//	Arguments = $"-dBuildVersion=0.9.1.0 -dBasePath={currentBinDistDirectory} -d\"\\DevEnvDir = C:\\Program Files(x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\IDE\\\\\" -dSolutionDir={solutionDirectory} -dSolutionExt=.sln -dSolutionFileName=WalletWasabi.sln -dSolutionName=WalletWasabi -dSolutionPath={solutionDirectory}\\WalletWasabi.sln -dConfiguration=Release -dOutDir={binDistDirectory} -dPlatform=x64 -dProjectDir={wixProjectDirectory} -dProjectExt=.wixproj -dProjectFileName=WalletWasabi.WindowsInstaller.wixproj -dProjectName=WalletWasabi.WindowsInstaller -dProjectPath={wixProjectDirectory}\\WalletWasabi.WindowsInstaller.wixproj -dTargetDir={binDistDirectory} -dTargetExt=.msi -dTargetFileName=WasabiInstaller.msi -dTargetName=WasabiInstaller -dTargetPath={binDistDirectory}\\WasabiInstaller.msi",
+					//	WorkingDirectory = wixProjectDirectory
+					//};
+					//var pCandle = Process.Start(psiCandle);
+					//pCandle.WaitForExit();
+
+					//var psiLight = new ProcessStartInfo
+					//{
+					//	FileName = $@"{wixToolsDir}Light.exe",
+					//	Arguments = $"publish --configuration Release --force --output {currentBinDistDirectory} --self-contained true --runtime {target} /p:VersionPrefix={versionPrefix} --disable-parallel --no-cache",
+					//	WorkingDirectory = wixProjectDirectory
+					//};
+					//var pLight = Process.Start(psiLight);
+					//pLight.WaitForExit();
+				}
 			}
 
 			Console.WriteLine();
