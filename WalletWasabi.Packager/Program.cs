@@ -206,7 +206,6 @@ namespace WalletWasabi.Packager
 				}
 			}
 
-
 			Console.WriteLine();
 			Console.WriteLine("FINISHED! Press key to exit...");
 			Console.ReadKey();
