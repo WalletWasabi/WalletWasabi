@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -177,6 +179,25 @@ namespace System.IO
 			if (!string.IsNullOrEmpty(dir)) // root
 			{
 				Directory.CreateDirectory(dir); // It does not fail if it exists.
+			}
+		}
+
+		public static void OpenFolderInFileExplorer(string dirPath)
+		{
+			if (Directory.Exists(dirPath))
+			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{dirPath}\"" });
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = dirPath, CreateNoWindow = true });
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				{
+					Process.Start(new ProcessStartInfo { FileName = "open", Arguments = dirPath, CreateNoWindow = true });
+				}
 			}
 		}
 	}

@@ -214,6 +214,8 @@ namespace WalletWasabi.Packager
 					restoreHeatProcess.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
 					restoreHeatProcess.WaitForExit();
 				}
+
+				IoHelpers.OpenFolderInFileExplorer(finalDirectory);
 			}
 
 			Console.WriteLine();

@@ -244,21 +244,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public void OpenWalletsFolder()
 		{
 			var path = Global.WalletsDir;
-			if (Directory.Exists(path))
-			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{path}\"" });
-				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				{
-					Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = path, CreateNoWindow = true });
-				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					Process.Start(new ProcessStartInfo { FileName = "open", Arguments = path, CreateNoWindow = true });
-				}
-			}
+			IoHelpers.OpenFolderInFileExplorer(path);
 		}
 	}
 }
