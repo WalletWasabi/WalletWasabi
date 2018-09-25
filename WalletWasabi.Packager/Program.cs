@@ -1,7 +1,10 @@
-﻿using System;
+﻿using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -25,13 +28,11 @@ namespace WalletWasabi.Packager
 			string guiProjectDirectory = Path.GetFullPath(Path.Combine(solutionDirectory, "WalletWasabi.Gui\\"));
 			string wixProjectDirectory = Path.GetFullPath(Path.Combine(solutionDirectory, "WalletWasabi.WindowsInstaller\\"));
 			string binDistDirectory = Path.GetFullPath(Path.Combine(guiProjectDirectory, "bin\\dist"));
-			string finalDirectory = Path.GetFullPath(Path.Combine(binDistDirectory, "final"));
 			Console.WriteLine($"{nameof(solutionDirectory)}:\t\t{solutionDirectory}");
 			Console.WriteLine($"{nameof(packagerProjectDirectory)}:\t{packagerProjectDirectory}");
 			Console.WriteLine($"{nameof(guiProjectDirectory)}:\t\t{guiProjectDirectory}");
 			Console.WriteLine($"{nameof(wixProjectDirectory)}:\t\t{wixProjectDirectory}");
 			Console.WriteLine($"{nameof(binDistDirectory)}:\t\t{binDistDirectory}");
-			Console.WriteLine($"{nameof(finalDirectory)}:\t\t{finalDirectory}");
 
 			string versionPrefix = Helpers.Constants.ClientVersion.ToString();
 			string executableName = "Wasabi Wallet";
@@ -67,16 +68,14 @@ namespace WalletWasabi.Packager
 			});
 			Console.WriteLine();
 
-			Console.WriteLine();
-			if (Directory.Exists(binDistDirectory))
-			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(binDistDirectory).GetAwaiter().GetResult();
-				Console.WriteLine($"Deleted {binDistDirectory}");
-			}
-			Directory.CreateDirectory(finalDirectory);
-
 			if (doPublish)
 			{
+				if (Directory.Exists(binDistDirectory))
+				{
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(binDistDirectory).GetAwaiter().GetResult();
+					Console.WriteLine($"Deleted {binDistDirectory}");
+				}
+
 				var psiBuild = new ProcessStartInfo
 				{
 					FileName = "cmd",
@@ -175,6 +174,8 @@ namespace WalletWasabi.Packager
 			{
 				foreach (string target in targets)
 				{
+					var publishedFolder = Path.Combine(binDistDirectory, $"{target}");
+
 					if (target.StartsWith("win", StringComparison.OrdinalIgnoreCase))
 					{
 						Console.WriteLine("Move created .msi");
@@ -184,13 +185,55 @@ namespace WalletWasabi.Packager
 							throw new Exception(".msi doesn't exist. Expected path: WasabiInstaller.msi.");
 						}
 						var msiFileName = Path.GetFileName(msiPath);
-						var newMsiPath = Path.Combine(finalDirectory, msiFileName);
+						var newMsiPath = Path.Combine(binDistDirectory, msiFileName);
 						File.Move(msiPath, newMsiPath);
+					}
+					else if (target.StartsWith("linux", StringComparison.OrdinalIgnoreCase))
+					{
+						Console.WriteLine("Create Linux .tar.gz");
+						if (!Directory.Exists(publishedFolder))
+						{
+							throw new Exception($"{publishedFolder} doesn't exist.");
+						}
+						var newFolderName = "WasabiWallet";
+						var parentDir = Directory.GetParent(publishedFolder);
+						var newPublishFolder = Path.Combine(parentDir.FullName, newFolderName);
+						var newFolderPath = Path.Combine(newPublishFolder, newFolderName);
+						Directory.CreateDirectory(Path.GetDirectoryName(newFolderPath));
+						Directory.Move(publishedFolder, newFolderPath);
+						publishedFolder = newPublishFolder;
+						var finalFilePath = Path.Combine(binDistDirectory, $"WasabiLinux.tar.gz");
+
+						CreateTarGZ(finalFilePath, publishedFolder);
+					}
+					else // if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
+					{
+						Console.WriteLine("Create OSX .tar.gz");
+						if (!Directory.Exists(publishedFolder))
+						{
+							throw new Exception($"{publishedFolder} doesn't exist.");
+						}
+						var newFolderName = "WasabiWallet";
+						var parentDir = Directory.GetParent(publishedFolder);
+						var newPublishFolder = Path.Combine(parentDir.FullName, newFolderName);
+						var newFolderPath = Path.Combine(newPublishFolder, newFolderName);
+						Directory.CreateDirectory(Path.GetDirectoryName(newFolderPath));
+						Directory.Move(publishedFolder, newFolderPath);
+						publishedFolder = newPublishFolder;
+						var finalFilePath = Path.Combine(binDistDirectory, $"WasabiOsx.tar.gz");
+
+						CreateTarGZ(finalFilePath, publishedFolder);
+					}
+
+					if (Directory.Exists(publishedFolder))
+					{
+						IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+						Console.WriteLine($"Deleted {publishedFolder}");
 					}
 				}
 
 				Console.WriteLine("Signing final files...");
-				var finalFiles = Directory.GetFiles(finalDirectory);
+				var finalFiles = Directory.GetFiles(binDistDirectory);
 
 				foreach (var finalFile in finalFiles)
 				{
@@ -198,7 +241,7 @@ namespace WalletWasabi.Packager
 					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
-						WorkingDirectory = finalDirectory
+						WorkingDirectory = binDistDirectory
 					};
 					var signProcess = Process.Start(psiSignProcess);
 					signProcess.StandardInput.WriteLine($"gpg --armor --detach-sign {finalFile} && exit");
@@ -215,12 +258,59 @@ namespace WalletWasabi.Packager
 					restoreHeatProcess.WaitForExit();
 				}
 
-				IoHelpers.OpenFolderInFileExplorer(finalDirectory);
+				IoHelpers.OpenFolderInFileExplorer(binDistDirectory);
 			}
 
 			Console.WriteLine();
 			Console.WriteLine("FINISHED! Press key to exit...");
 			Console.ReadKey();
+		}
+
+		private static void CreateTarGZ(string tgzFilename, string sourceDirectory)
+		{
+			using (Stream outStream = File.Create(tgzFilename))
+			using (Stream gzoStream = new GZipOutputStream(outStream))
+			{
+				TarArchive tarArchive = TarArchive.CreateOutputTarArchive(gzoStream);
+
+				// Note that the RootPath is currently case sensitive and must be forward slashes e.g. "c:/temp"
+				// and must not end with a slash, otherwise cuts off first char of filename
+				// This is scheduled for fix in next release
+				tarArchive.RootPath = sourceDirectory.Replace('\\', '/');
+				if (tarArchive.RootPath.EndsWith("/"))
+					tarArchive.RootPath = tarArchive.RootPath.Remove(tarArchive.RootPath.Length - 1);
+
+				AddDirectoryFilesToTar(tarArchive, sourceDirectory, true, true);
+			}
+		}
+
+		private static void AddDirectoryFilesToTar(TarArchive tarArchive, string sourceDirectory, bool recurse, bool isRoot)
+		{
+			// Optionally, write an entry for the directory itself.
+			// Specify false for recursion here if we will add the directory's files individually.
+			TarEntry tarEntry;
+
+			if (!isRoot)
+			{
+				tarEntry = TarEntry.CreateEntryFromFile(sourceDirectory);
+				tarArchive.WriteEntry(tarEntry, false);
+			}
+
+			// Write each file to the tar.
+			string[] filenames = Directory.GetFiles(sourceDirectory);
+			foreach (string filename in filenames)
+			{
+				tarEntry = TarEntry.CreateEntryFromFile(filename);
+				Console.WriteLine(tarEntry.Name);
+				tarArchive.WriteEntry(tarEntry, true);
+			}
+
+			if (recurse)
+			{
+				string[] directories = Directory.GetDirectories(sourceDirectory);
+				foreach (string directory in directories)
+					AddDirectoryFilesToTar(tarArchive, directory, recurse, false);
+			}
 		}
 	}
 }
