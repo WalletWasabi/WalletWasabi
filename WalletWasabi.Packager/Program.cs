@@ -135,30 +135,40 @@ namespace WalletWasabi.Packager
 					pPublish.WaitForExit();
 
 					// Rename the final exe.
-					string oldExecutable;
-					string newExecutable;
+					string oldExecutablePath;
+					string newExecutablePath;
 					if (target.StartsWith("win"))
 					{
-						oldExecutable = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui.exe");
-						newExecutable = Path.Combine(currentBinDistDirectory, "Wasabi Wallet.exe");
+						oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui.exe");
+						newExecutablePath = Path.Combine(currentBinDistDirectory, "Wasabi Wallet.exe");
 					}
 					else // Linux & OSX
 					{
-						oldExecutable = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui");
-						newExecutable = Path.Combine(currentBinDistDirectory, "Wasabi Wallet");
+						oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui");
+						newExecutablePath = Path.Combine(currentBinDistDirectory, "Wasabi Wallet");
 					}
-					File.Move(oldExecutable, newExecutable);
+					File.Move(oldExecutablePath, newExecutablePath);
 
 					if (target.StartsWith("win"))
 					{
 						var psiEditbin = new ProcessStartInfo
 						{
 							FileName = "editbin",
-							Arguments = $"\"{newExecutable}\" /SUBSYSTEM:WINDOWS",
+							Arguments = $"\"{newExecutablePath}\" /SUBSYSTEM:WINDOWS",
 							WorkingDirectory = currentBinDistDirectory
 						};
 						var pEditbin = Process.Start(psiEditbin);
 						pEditbin.WaitForExit();
+
+						var icoPath = Path.Combine(guiProjectDirectory, "Assets", "WasabiLogo.ico");
+						var psiRcedit = new ProcessStartInfo
+						{
+							FileName = "rcedit",
+							Arguments = $"\"{newExecutablePath}\" --set-icon \"{icoPath}\" --set-file-version \"{versionPrefix}\" --set-product-version \"{versionPrefix}\" --set-version-string \"LegalCopyright\" \"MIT\" --set-version-string \"CompanyName\" \"zkSNACKs\" --set-version-string \"FileDescription\" \"Privacy focused, ZeroLink compliant Bitcoin wallet.\" --set-version-string \"ProductName\" \"Wasabi Wallet\"",
+							WorkingDirectory = currentBinDistDirectory
+						};
+						var pRcedit = Process.Start(psiRcedit);
+						pRcedit.WaitForExit();
 					}
 
 					// Hack around Avalonia/Wix fuckup.

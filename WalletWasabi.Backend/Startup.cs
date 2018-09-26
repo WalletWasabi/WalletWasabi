@@ -28,7 +28,7 @@ namespace WalletWasabi.Backend
 				{
 					Version = $"v{Helpers.Constants.BackendMajorVersion}",
 					Title = "Wasabi Wallet API",
-					Description = "Privacy oriented Bitcoin Web API.",
+					Description = "Privacy focused, ZeroLink compliant Bitcoin Web API.",
 					License = new License { Name = "Use under MIT.", Url = "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md" }
 				});
 
