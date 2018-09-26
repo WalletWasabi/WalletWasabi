@@ -39,8 +39,9 @@ Version: 1.0.0-beta
 Maintainer: Adam Ficzor <adam.ficzor@gmail.com>
 Architecture: all
 Homepage: https://www.wasabiwallet.io/
+License: MIT
 Description: The privacy-oriented light bitcoin wallet
- is an open source wallet distributed under MIT license.
+ is an open source light Bitcoin wallet for desktop focused on privacy distributed under MIT license.
 EOT
 
 cat <<EOT > $POST_INST_FILE
