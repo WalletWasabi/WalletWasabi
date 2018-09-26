@@ -17,10 +17,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="SharpZipLib" Version="1.0.0" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
   </ItemGroup>
 
