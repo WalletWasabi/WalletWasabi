@@ -22,7 +22,7 @@
       </Grid>
     </controls:GroupBox>
     <DockPanel LastChildFill="True">
-      <CheckBox IsChecked="{Binding TermsAccepted,Mode=TwoWay}" TextBlock.FontSize="10">
+      <CheckBox IsChecked="{Binding TermsAccepted, Mode=TwoWay}" TextBlock.FontSize="10">
         <StackPanel Orientation="Horizontal">
           <TextBlock Text="I agree to the " />
           <Button Content="Terms and Conditions" Classes="activeHyperLink" Command="{Binding OnTermsClicked}" />

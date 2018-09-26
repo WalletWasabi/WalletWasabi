@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				WalletName = Guard.Correct(WalletName);
 				MnemonicWords = Guard.Correct(MnemonicWords);
+				Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
 
 				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 
@@ -65,6 +66,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			},
 			this.WhenAnyValue(x => x.TermsAccepted));
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.Password).Subscribe(x =>
+			{
+				if (x.NotNullAndNotEmpty())
+				{
+					char lastChar = x.Last();
+					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					{
+						Password = x.TrimEnd('\r', '\n');
+					}
+				}
+			});
 		}
 
 		public string Password
@@ -133,13 +145,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		private void UpdateSuggestions(string words)
 		{
-			if(string.IsNullOrEmpty(words))
+			if (string.IsNullOrEmpty(words))
 				return;
 
-			var enteredWordList = words.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			string[] enteredWordList = words.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
-		
-			if(lastWorld.Length < 1)
+
+			if (lastWorld.Length < 1)
 			{
 				Suggestions = string.Empty;
 				return;

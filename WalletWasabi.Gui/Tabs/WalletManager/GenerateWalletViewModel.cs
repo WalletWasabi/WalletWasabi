@@ -5,6 +5,7 @@ using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
@@ -20,47 +21,81 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _walletName;
 		private bool _termsAccepted;
 		private string _validationMessage;
+		public WalletManagerViewModel Owner { get; }
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
+			Owner = owner;
+
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
-				WalletName = Guard.Correct(WalletName);
-
-				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
-
-				if (TermsAccepted == false)
-				{
-					ValidationMessage = "Terms are not accepted.";
-				}
-				else if (string.IsNullOrWhiteSpace(WalletName))
-				{
-					ValidationMessage = $"The name {WalletName} is not valid.";
-				}
-				else if (File.Exists(walletFilePath))
-				{
-					ValidationMessage = $"The name {WalletName} is already taken.";
-				}
-				else if (Password != PasswordConfirmation)
-				{
-					ValidationMessage = $"The passwords do not match.";
-				}
-				else
-				{
-					try
-					{
-						KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
-
-						owner.CurrentView = new GenerateWalletSuccessViewModel(owner, mnemonic);
-					}
-					catch (Exception ex)
-					{
-						ValidationMessage = ex.ToTypeMessageString();
-						Logger.LogError<GenerateWalletViewModel>(ex);
-					}
-				}
+				DoGenerateCommand();
 			},
 			this.WhenAnyValue(x => x.TermsAccepted));
+
+			this.WhenAnyValue(x => x.Password).Subscribe(x =>
+			{
+				if (x.NotNullAndNotEmpty())
+				{
+					char lastChar = x.Last();
+					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					{
+						Password = x.TrimEnd('\r', '\n');
+					}
+				}
+			});
+			this.WhenAnyValue(x => x.PasswordConfirmation).Subscribe(x =>
+			{
+				if (x.NotNullAndNotEmpty())
+				{
+					char lastChar = x.Last();
+					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					{
+						PasswordConfirmation = x.TrimEnd('\r', '\n');
+						DoGenerateCommand();
+					}
+				}
+			});
+		}
+
+		private void DoGenerateCommand()
+		{
+			WalletName = Guard.Correct(WalletName);
+
+			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
+			Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
+			PasswordConfirmation = Guard.Correct(PasswordConfirmation); // Don't let whitespaces to the beginning and to the end.
+
+			if (TermsAccepted == false)
+			{
+				ValidationMessage = "Terms are not accepted.";
+			}
+			else if (string.IsNullOrWhiteSpace(WalletName))
+			{
+				ValidationMessage = $"The name {WalletName} is not valid.";
+			}
+			else if (File.Exists(walletFilePath))
+			{
+				ValidationMessage = $"The name {WalletName} is already taken.";
+			}
+			else if (Password != PasswordConfirmation)
+			{
+				ValidationMessage = $"The passwords do not match.";
+			}
+			else
+			{
+				try
+				{
+					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
+
+					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
+				}
+				catch (Exception ex)
+				{
+					ValidationMessage = ex.ToTypeMessageString();
+					Logger.LogError<GenerateWalletViewModel>(ex);
+				}
+			}
 		}
 
 		public string Password

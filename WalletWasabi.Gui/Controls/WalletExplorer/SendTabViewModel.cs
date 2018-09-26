@@ -11,6 +11,7 @@ using ReactiveUI;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Gui.ViewModels.Validation;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -49,7 +50,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ResetMax();
 
-			(this).WhenAnyValue(x => x.Amount).Subscribe(amount =>
+			this.WhenAnyValue(x => x.Amount).Subscribe(amount =>
 			{
 				if (!IgnoreAmountChanges)
 				{
@@ -89,6 +90,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IsBusy = true;
 				try
 				{
+					Password = Guard.Correct(Password);
 					if (string.IsNullOrWhiteSpace(Label))
 					{
 						throw new InvalidOperationException("Label is required.");
@@ -153,6 +155,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				else
 				{
 					BuildTransactionButtonText = BuildTransactionButtonTextString;
+				}
+			});
+
+			this.WhenAnyValue(x => x.Password).Subscribe(x =>
+			{
+				if (x.NotNullAndNotEmpty())
+				{
+					char lastChar = x.Last();
+					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					{
+						Password = x.TrimEnd('\r', '\n');
+					}
 				}
 			});
 		}

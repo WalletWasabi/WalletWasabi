@@ -5,10 +5,12 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
@@ -85,42 +87,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
-				var selectedCoins = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
-
-				if (!selectedCoins.Any())
-				{
-					WarningMessageEnqueue = "No coins are selected to enqueue.";
-					return;
-				}
-
-				WarningMessageEnqueue = string.Empty;
-
-				try
-				{
-					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
-				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning<CoinJoinTabViewModel>(ex);
-					WarningMessageEnqueue = ex.ToTypeMessageString();
-					if (ex is AggregateException aggex)
-					{
-						foreach (var iex in aggex.InnerExceptions)
-						{
-							WarningMessageEnqueue += Environment.NewLine + iex.ToTypeMessageString();
-						}
-					}
-					Password = string.Empty;
-					return;
-				}
-
-				Password = string.Empty;
-				WarningMessageEnqueue = string.Empty;
-
-				foreach (var coin in selectedCoins)
-				{
-					coin.IsSelected = false;
-				}
+				await DoEnqueueAsync();
 			});
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
@@ -152,6 +119,60 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				WarningMessageDequeue = string.Empty;
 			});
+
+			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
+			{
+				if (x.NotNullAndNotEmpty())
+				{
+					char lastChar = x.Last();
+					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					{
+						Password = x.TrimEnd('\r', '\n');
+						await DoEnqueueAsync();
+					}
+				}
+			});
+		}
+
+		private async Task DoEnqueueAsync()
+		{
+			Password = Guard.Correct(Password);
+			var selectedCoins = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
+
+			if (!selectedCoins.Any())
+			{
+				WarningMessageEnqueue = "No coins are selected to enqueue.";
+				return;
+			}
+
+			WarningMessageEnqueue = string.Empty;
+
+			try
+			{
+				await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<CoinJoinTabViewModel>(ex);
+				WarningMessageEnqueue = ex.ToTypeMessageString();
+				if (ex is AggregateException aggex)
+				{
+					foreach (var iex in aggex.InnerExceptions)
+					{
+						WarningMessageEnqueue += Environment.NewLine + iex.ToTypeMessageString();
+					}
+				}
+				Password = string.Empty;
+				return;
+			}
+
+			Password = string.Empty;
+			WarningMessageEnqueue = string.Empty;
+
+			foreach (var coin in selectedCoins)
+			{
+				coin.IsSelected = false;
+			}
 		}
 
 		private void ChaumianClient_CoinDequeued(object sender, SmartCoin e)
