@@ -2,16 +2,17 @@ SOLUTION_FOLDER=$(pwd)
 PACKAGE_FOLDER=$SOLUTION_FOLDER/wasabi
 BIN_FOLDER=/usr/local/bin
 APP_FOLDER=/usr/share/applications
-ICO_FOLDER=/usr/share/icons/hicolor/32x32/apps
+ICON_FOLDER=/usr/share/icons/hicolor/32x32/apps
 
 PACKAGE_BIN_FOLDER=$PACKAGE_FOLDER$BIN_FOLDER/wasabi.d
 PACKAGE_APP_FOLDER=$PACKAGE_FOLDER$APP_FOLDER
-PACKAGE_ICO_FOLDER=$PACKAGE_FOLDER$ICO_FOLDER
+PACKAGE_ICON_FOLDER=$PACKAGE_FOLDER$ICON_FOLDER
 INSTALLATION_FOLDER=$BIN_FOLDER/wasabi.d
 DEBIAN_FOLDER=$PACKAGE_FOLDER/DEBIAN
 CONTROL_FILE=$DEBIAN_FOLDER/control
 POST_INST_FILE=$DEBIAN_FOLDER/postinst
 PRE_RM_FILE=$DEBIAN_FOLDER/prerm
+ICON_FILE=$PACKAGE_ICON_FOLDER/wasabi.png
 DESKTOP_FILE=$PACKAGE_APP_FOLDER/wasabi.desktop
 
 rm -rf $PACKAGE_FOLDER
@@ -29,9 +30,9 @@ dotnet publish --force \
 mkdir -p $PACKAGE_BIN_FOLDER 
 mkdir -p $DEBIAN_FOLDER
 mkdir -p $PACKAGE_APP_FOLDER
-mkdir -p $PACKAGE_ICO_FOLDER
+mkdir -p $PACKAGE_ICON_FOLDER
 
-cp WalletWasabi.Gui/Assets/WasabiLogo.png $PACKAGE_ICO_FOLDER/wasabi.png
+cp WalletWasabi.Gui/Assets/WasabiLogo.png $ICON_FILE
 
 cat <<EOT > $CONTROL_FILE
 Package: WasabiWallet
@@ -50,7 +51,7 @@ set -e
 cat <<IEOT > $BIN_FOLDER/wasabi
 #!/bin/sh
 
-dotnet $INSTALLATION_FOLDER/WalletWasabi.Gui.dll
+$INSTALLATION_FOLDER/WalletWasabi.Gui
 IEOT
 
 chmod +x $BIN_FOLDER/wasabi
@@ -63,6 +64,8 @@ cat <<EOT > $PRE_RM_FILE
 #!/bin/sh
 set -e
 rm -f $BIN_FOLDER/wasabi
+rm -f $DESKTOP_FILE
+rm -f $ICON_FILE
 rm -rf $INSTALLATION_FOLDER
 echo Removed!!!
 EOT
