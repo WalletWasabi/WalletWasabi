@@ -18,13 +18,13 @@ namespace WalletWasabi.Gui
 		private static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
+			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
 			StatusBarViewModel statusBar = null;
 			try
 			{
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				BuildAvaloniaApp().BeforeStarting(async builder =>
 				{
-					Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
 					MainWindowViewModel.Instance = new MainWindowViewModel();
 
 					var configFilePath = Path.Combine(Global.DataDir, "Config.json");
