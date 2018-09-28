@@ -24,46 +24,40 @@ namespace WalletWasabi.Gui
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				BuildAvaloniaApp().BeforeStarting(async builder =>
 				{
-					try
+					Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+					MainWindowViewModel.Instance = new MainWindowViewModel();
+
+					var configFilePath = Path.Combine(Global.DataDir, "Config.json");
+					var config = new Config(configFilePath);
+					await config.LoadOrCreateDefaultFileAsync();
+					Logger.LogInfo<Config>("Config is successfully initialized.");
+
+					Global.InitializeConfig(config);
+
+					if (!File.Exists(Global.IndexFilePath)) // Load the index file from working folder if we have it.
 					{
-						MainWindowViewModel.Instance = new MainWindowViewModel();
-						Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
-
-						var configFilePath = Path.Combine(Global.DataDir, "Config.json");
-						var config = new Config(configFilePath);
-						await config.LoadOrCreateDefaultFileAsync();
-						Logger.LogInfo<Config>("Config is successfully initialized.");
-
-						Global.InitializeConfig(config);
-
-						if (!File.Exists(Global.IndexFilePath)) // Load the index file from working folder if we have it.
+						var cachedIndexFilePath = Path.Combine("Assets", Path.GetFileName(Global.IndexFilePath));
+						if (File.Exists(cachedIndexFilePath))
 						{
-							var cachedIndexFilePath = Path.Combine("Assets", Path.GetFileName(Global.IndexFilePath));
-							if (File.Exists(cachedIndexFilePath))
-							{
-								File.Copy(cachedIndexFilePath, Global.IndexFilePath, overwrite: false);
-							}
-						}
-
-						Global.InitializeNoWallet();
-						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader, Global.UpdateChecker);
-
-						MainWindowViewModel.Instance.StatusBar = statusBar;
-
-						if (Global.IndexDownloader.Network != Network.Main)
-						{
-							MainWindowViewModel.Instance.Title += $" - {Global.IndexDownloader.Network}";
+							File.Copy(cachedIndexFilePath, Global.IndexFilePath, overwrite: false);
 						}
 					}
-					catch (Exception ex)
+
+					Global.InitializeNoWallet();
+					statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader, Global.UpdateChecker);
+
+					MainWindowViewModel.Instance.StatusBar = statusBar;
+
+					if (Global.IndexDownloader.Network != Network.Main)
 					{
-						Logger.LogCritical<Program>(ex);
+						MainWindowViewModel.Instance.Title += $" - {Global.IndexDownloader.Network}";
 					}
 				}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogCritical<Program>(ex);
+				throw;
 			}
 			finally
 			{

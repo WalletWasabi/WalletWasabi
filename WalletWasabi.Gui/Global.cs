@@ -296,25 +296,32 @@ namespace WalletWasabi.Gui
 
 		public static async Task DisposeAsync()
 		{
-			await DisposeInWalletDependentServicesAsync();
-
-			UpdateChecker?.Dispose();
-			Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
-
-			IndexDownloader?.Dispose();
-			Logger.LogInfo($"{nameof(IndexDownloader)} is stopped.", nameof(Global));
-
-			IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
-			AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
-			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
-
-			Nodes?.Dispose();
-			Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
-
-			if (!(RegTestMemPoolServingNode is null))
+			try
 			{
-				RegTestMemPoolServingNode.Disconnect();
-				Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
+				await DisposeInWalletDependentServicesAsync();
+
+				UpdateChecker?.Dispose();
+				Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
+
+				IndexDownloader?.Dispose();
+				Logger.LogInfo($"{nameof(IndexDownloader)} is stopped.", nameof(Global));
+
+				IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
+				AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
+				Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
+
+				Nodes?.Dispose();
+				Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
+
+				if (!(RegTestMemPoolServingNode is null))
+				{
+					RegTestMemPoolServingNode.Disconnect();
+					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex, nameof(Global));
 			}
 		}
 	}

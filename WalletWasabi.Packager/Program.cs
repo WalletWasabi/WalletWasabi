@@ -18,8 +18,8 @@ namespace WalletWasabi.Packager
 			// 1. Publish with Packager.
 			// 2. Build WIX project with Release and x64 configuration.
 			// 3. Sign with Packager.
-			bool doPublish = false;
-			bool doSign = true;
+			bool doPublish = true;
+			bool doSign = false;
 
 			string packagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
 			string solutionDirectory = Path.GetFullPath(Path.Combine(packagerProjectDirectory, "..\\"));
