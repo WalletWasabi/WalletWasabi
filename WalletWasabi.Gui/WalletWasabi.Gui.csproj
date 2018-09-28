@@ -42,6 +42,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Extensions\DummyHack.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Extensions\DummyHack.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
   </ItemGroup>
 
