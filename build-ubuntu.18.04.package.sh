@@ -2,7 +2,10 @@ SOLUTION_FOLDER=$(pwd)
 PACKAGE_FOLDER=$SOLUTION_FOLDER/wasabi
 BIN_FOLDER=/usr/local/bin
 APP_FOLDER=/usr/share/applications
-ICON_FOLDER=/usr/share/icons/hicolor/32x32/apps
+
+ICON_SIZE=( 32 64 128 )
+ICON_FOLDER=/usr/share/icons/hicolor
+ICON_FOLDER_32=$ICON_FOLDER/32x32/apps
 
 PACKAGE_BIN_FOLDER=$PACKAGE_FOLDER$BIN_FOLDER/wasabi.d
 PACKAGE_APP_FOLDER=$PACKAGE_FOLDER$APP_FOLDER
@@ -12,7 +15,6 @@ DEBIAN_FOLDER=$PACKAGE_FOLDER/DEBIAN
 CONTROL_FILE=$DEBIAN_FOLDER/control
 POST_INST_FILE=$DEBIAN_FOLDER/postinst
 PRE_RM_FILE=$DEBIAN_FOLDER/prerm
-ICON_FILE=$PACKAGE_ICON_FOLDER/wasabi.png
 DESKTOP_FILE=$PACKAGE_APP_FOLDER/wasabi.desktop
 
 rm -rf $PACKAGE_FOLDER
@@ -30,9 +32,12 @@ dotnet publish --force \
 mkdir -p $PACKAGE_BIN_FOLDER 
 mkdir -p $DEBIAN_FOLDER
 mkdir -p $PACKAGE_APP_FOLDER
-mkdir -p $PACKAGE_ICON_FOLDER
 
-cp WalletWasabi.Gui/Assets/WasabiLogo.png $ICON_FILE
+for d in "${ICON_SIZE[@]}"
+do
+	mkdir -p $PACKAGE_ICON_FOLDER/$dx$d/apps
+	cp WalletWasabi.Gui/Assets/wasabi-$d.png $PACKAGE_ICON_FOLDER/$dx$d/apps/wasabi.png
+done
 
 cat <<EOT > $CONTROL_FILE
 Package: WasabiWallet
