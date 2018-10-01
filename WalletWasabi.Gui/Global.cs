@@ -232,14 +232,20 @@ namespace WalletWasabi.Gui
 
 		private static void OnCoinReceived(object sender, SmartCoin coin)
 		{
+			NotifyUser($"Received {coin.Amount.ToString(false, true)} BTC");
+		}
+
+		internal static void NotifyUser(string message)
+		{
 			try
 			{
+				var title = "Wasabi";
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
 					Process.Start(new ProcessStartInfo
 					{
 						FileName = "notify-send",
-						Arguments = $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
+						Arguments = $"--expire-time=3000 \"{title}\" \"{message}\"",
 						CreateNoWindow = true
 					});
 				}
@@ -248,7 +254,7 @@ namespace WalletWasabi.Gui
 					Process.Start(new ProcessStartInfo
 					{
 						FileName = "osascript",
-						Arguments = $"-e display notification \"Received {coin.Amount.ToString(false, true)} BTC\" with title \"Wasabi\"",
+						Arguments = $"-e display notification \"{message}\" with title \"Wasabi\"",
 						CreateNoWindow = true
 					});
 				}

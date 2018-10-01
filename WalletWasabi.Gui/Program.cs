@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Input.Platform;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
@@ -52,6 +53,21 @@ namespace WalletWasabi.Gui
 					{
 						MainWindowViewModel.Instance.Title += $" - {Global.IndexDownloader.Network}";
 					}
+
+					var key = new Key();
+					var address = key.PubKey.GetSegwitAddress(Network.Main).ToString();
+					var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
+					await clipboard.SetTextAsync(address);
+
+					Task.Delay(TimeSpan.FromSeconds(2)).ContinueWith((t) =>
+					{
+						var text = clipboard.GetTextAsync().GetAwaiter().GetResult();
+						if(address != text){
+							Global.NotifyUser("WARNING: probably clipboard compromissed by malware!!!");
+						}
+					});
+
+
 				}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
 			}
 			catch (Exception ex)
