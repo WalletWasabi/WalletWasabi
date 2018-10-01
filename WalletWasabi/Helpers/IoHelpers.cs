@@ -12,6 +12,7 @@ namespace System.IO
 	{
 		private const string OldExtension = ".old";
 		private const string NewExtension = ".new";
+		private const string LockExtension = ".lock";
 
 		// http://stackoverflow.com/a/14933880/2061103
 		public static async Task DeleteRecursivelyWithMagicDustAsync(string destinationDir)
@@ -73,76 +74,94 @@ namespace System.IO
 			File.Delete(oldPath);
 		}
 
-		public static void SafeWriteAllText(string path, string content)
-		{
-			var newPath = path + NewExtension;
-			DelayWhileExistsAsync(newPath).GetAwaiter().GetResult();
-			File.WriteAllText(newPath, content);
-			SafeMove(newPath, path);
-		}
-
-		public static void SafeWriteAllText(string path, string content, Encoding encoding)
-		{
-			var newPath = path + NewExtension;
-			DelayWhileExistsAsync(newPath).GetAwaiter().GetResult();
-			File.WriteAllText(newPath, content, encoding);
-			SafeMove(newPath, path);
-		}
-
 		public static async Task SafeWriteAllTextAsync(string path, string content)
 		{
-			var newPath = path + NewExtension;
-			await DelayWhileExistsAsync(newPath);
-			await File.WriteAllTextAsync(newPath, content);
-			SafeMove(newPath, path);
+			string newPath = path + NewExtension;
+			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			try
+			{
+				await File.WriteAllTextAsync(newPath, content);
+				SafeMove(newPath, path);
+			}
+			finally
+			{
+				RemoveLockPath(lockPath);
+			}
 		}
 
 		public static async Task SafeWriteAllTextAsync(string path, string content, Encoding encoding)
 		{
-			var newPath = path + NewExtension;
-			await DelayWhileExistsAsync(newPath);
-			await File.WriteAllTextAsync(newPath, content, encoding);
-			SafeMove(newPath, path);
-		}
-
-		public static void SafeWriteAllLines(string path, IEnumerable<string> content)
-		{
-			var newPath = path + NewExtension;
-			DelayWhileExistsAsync(newPath).GetAwaiter().GetResult();
-			File.WriteAllLines(newPath, content);
-			SafeMove(newPath, path);
+			string newPath = path + NewExtension;
+			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			try
+			{
+				await File.WriteAllTextAsync(newPath, content, encoding);
+				SafeMove(newPath, path);
+			}
+			finally
+			{
+				RemoveLockPath(lockPath);
+			}
 		}
 
 		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
 		{
-			var newPath = path + NewExtension;
-			await DelayWhileExistsAsync(newPath);
-			await File.WriteAllLinesAsync(newPath, content);
-			SafeMove(newPath, path);
+			string newPath = path + NewExtension;
+			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			try
+			{
+				await File.WriteAllLinesAsync(newPath, content);
+				SafeMove(newPath, path);
+			}
+			finally
+			{
+				RemoveLockPath(lockPath);
+			}
 		}
 
 		public static async Task SafeWriteAllBytesAsync(string path, byte[] content)
 		{
-			var newPath = path + NewExtension;
-			await DelayWhileExistsAsync(newPath);
-			await File.WriteAllBytesAsync(newPath, content);
-			SafeMove(newPath, path);
+			string newPath = path + NewExtension;
+			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			try
+			{
+				await File.WriteAllBytesAsync(newPath, content);
+				SafeMove(newPath, path);
+			}
+			finally
+			{
+				RemoveLockPath(lockPath);
+			}
 		}
 
-		/// <summary>
-		/// Maybe others are working on it, too, it's kindof a hack.
-		/// </summary>
-		private static async Task DelayWhileExistsAsync(string filePath, int times = 7)
+		/// <param name="delayTimesBeforeForceIn">Times * 100ms delay before it forces itself into the lock.</param>
+		/// <returns>lock file path</returns>
+		private static async Task<string> CreateLockOrDelayWhileExistsAsync(string path, int delayTimesBeforeForceIn = 70)
 		{
+			string lockPath = path + LockExtension;
 			var count = 0;
-			while (File.Exists(filePath))
+			while (File.Exists(lockPath))
 			{
 				await Task.Delay(100);
-				if (count > times)
+				if (count > delayTimesBeforeForceIn)
 				{
-					break;
+					return lockPath;
 				}
 				count++;
+			}
+			File.Create(lockPath);
+			return lockPath;
+		}
+
+		private static void RemoveLockPath(string lockPath)
+		{
+			try
+			{
+				File.Delete(lockPath);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex, nameof(IoHelpers));
 			}
 		}
 
