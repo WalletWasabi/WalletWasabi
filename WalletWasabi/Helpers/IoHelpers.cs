@@ -76,6 +76,7 @@ namespace System.IO
 		public static void SafeWriteAllText(string path, string content)
 		{
 			var newPath = path + NewExtension;
+			DelayWhileExistsAsync(newPath).GetAwaiter().GetResult();
 			File.WriteAllText(newPath, content);
 			SafeMove(newPath, path);
 		}
@@ -83,6 +84,7 @@ namespace System.IO
 		public static void SafeWriteAllText(string path, string content, Encoding encoding)
 		{
 			var newPath = path + NewExtension;
+			DelayWhileExistsAsync(newPath).GetAwaiter().GetResult();
 			File.WriteAllText(newPath, content, encoding);
 			SafeMove(newPath, path);
 		}
@@ -90,6 +92,7 @@ namespace System.IO
 		public static async Task SafeWriteAllTextAsync(string path, string content)
 		{
 			var newPath = path + NewExtension;
+			await DelayWhileExistsAsync(newPath);
 			await File.WriteAllTextAsync(newPath, content);
 			SafeMove(newPath, path);
 		}
@@ -97,6 +100,7 @@ namespace System.IO
 		public static async Task SafeWriteAllTextAsync(string path, string content, Encoding encoding)
 		{
 			var newPath = path + NewExtension;
+			await DelayWhileExistsAsync(newPath);
 			await File.WriteAllTextAsync(newPath, content, encoding);
 			SafeMove(newPath, path);
 		}
@@ -104,6 +108,7 @@ namespace System.IO
 		public static void SafeWriteAllLines(string path, IEnumerable<string> content)
 		{
 			var newPath = path + NewExtension;
+			DelayWhileExistsAsync(newPath).GetAwaiter().GetResult();
 			File.WriteAllLines(newPath, content);
 			SafeMove(newPath, path);
 		}
@@ -111,6 +116,7 @@ namespace System.IO
 		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
 		{
 			var newPath = path + NewExtension;
+			await DelayWhileExistsAsync(newPath);
 			await File.WriteAllLinesAsync(newPath, content);
 			SafeMove(newPath, path);
 		}
@@ -118,8 +124,26 @@ namespace System.IO
 		public static async Task SafeWriteAllBytesAsync(string path, byte[] content)
 		{
 			var newPath = path + NewExtension;
+			await DelayWhileExistsAsync(newPath);
 			await File.WriteAllBytesAsync(newPath, content);
 			SafeMove(newPath, path);
+		}
+
+		/// <summary>
+		/// Maybe others are working on it, too, it's kindof a hack.
+		/// </summary>
+		private static async Task DelayWhileExistsAsync(string filePath, int times = 7)
+		{
+			var count = 0;
+			while (File.Exists(filePath))
+			{
+				await Task.Delay(100);
+				if (count > times)
+				{
+					break;
+				}
+				count++;
+			}
 		}
 
 		public static async Task BetterExtractZipToDirectoryAsync(string src, string dest)
