@@ -217,7 +217,7 @@ namespace WalletWasabi.Gui
 			ChaumianClient = new CcjClient(Network, BlindingPubKey, keyManager, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
 			WalletService = new WalletService(keyManager, IndexDownloader, ChaumianClient, MemPoolService, Nodes, DataDir);
 
-			ChaumianClient.Start(0, 7);
+			ChaumianClient.Start(0, 3);
 			Logger.LogInfo("Start Chaumian CoinJoin service...");
 
 			using (CancelWalletServiceInitialization = new CancellationTokenSource())

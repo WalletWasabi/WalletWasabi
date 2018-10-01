@@ -117,14 +117,14 @@ namespace WalletWasabi.Services
 								// If stop was requested return.
 								if (IsRunning == false) return;
 
-								// if mixing >= connConf: delay = new Random().Next(2, 7);
+								// if mixing >= connConf: delay = new Random().Next(1, 3);
 								if (State.GetActivelyMixingRounds().Any())
 								{
-									delaySeconds = new Random().Next(2, 7);
+									delaySeconds = new Random().Next(1, 3);
 								}
 								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
 								{
-									double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.8 * connConfTimeout
+									double rand = double.Parse($"0.{new Random().Next(1, 6)}"); // randomly between every 0.1 * connConfTimeout - 7 and 0.6 * connConfTimeout
 									delaySeconds = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
 								}
 								else
@@ -200,6 +200,11 @@ namespace WalletWasabi.Services
 
 				using (await MixLock.LockAsync())
 				{
+					foreach (long ongoingRoundId in State.GetActivelyMixingRounds())
+					{
+						await TryProcessRoundStateAsync(ongoingRoundId);
+					}
+
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
@@ -213,11 +218,6 @@ namespace WalletWasabi.Services
 						{
 							await TryConfirmConnectionAsync(inputRegistrableRound);
 						}
-					}
-
-					foreach (long ongoingRoundId in State.GetActivelyMixingRounds())
-					{
-						await TryProcessRoundStateAsync(ongoingRoundId);
 					}
 				}
 			}
