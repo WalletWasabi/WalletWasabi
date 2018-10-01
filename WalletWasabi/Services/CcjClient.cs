@@ -109,7 +109,7 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							int delay;
+							int delaySeconds;
 							using (await MixLock.LockAsync())
 							{
 								await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
@@ -120,12 +120,12 @@ namespace WalletWasabi.Services
 								// if mixing >= connConf: delay = new Random().Next(2, 7);
 								if (State.GetActivelyMixingRounds().Any())
 								{
-									delay = new Random().Next(2, 7);
+									delaySeconds = new Random().Next(2, 7);
 								}
 								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
 								{
 									double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.8 * connConfTimeout
-									delay = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
+									delaySeconds = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
 								}
 								else
 								{
@@ -135,7 +135,7 @@ namespace WalletWasabi.Services
 								}
 							}
 
-							await Task.Delay(TimeSpan.FromSeconds(delay), Cancel.Token);
+							await Task.Delay(TimeSpan.FromSeconds(delaySeconds), Cancel.Token);
 							await ProcessStatusAsync(minDelayReplySeconds, maxDelayReplySeconds);
 						}
 						catch (TaskCanceledException ex)
