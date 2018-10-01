@@ -42,7 +42,7 @@ done
 cat <<EOT > $CONTROL_FILE
 Package: WasabiWallet
 Version: 1.0.0-beta
-Maintainer: Adam Ficzor <adam.ficzor@gmail.com>
+Maintainer: Adam Ficsor <adam.ficsor@gmail.com>
 Architecture: all
 Homepage: https://www.wasabiwallet.io/
 License: MIT
