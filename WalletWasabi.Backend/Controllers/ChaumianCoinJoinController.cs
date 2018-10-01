@@ -157,8 +157,8 @@ namespace WalletWasabi.Backend.Controllers
 						OutPoint outpoint = inputProof.Input.ToOutPoint();
 						if (Coordinator.UtxoReferee.BannedUtxos.TryGetValue(outpoint, out (int severity, DateTimeOffset timeOfBan) bannedElem))
 						{
-							int maxBan = (int)TimeSpan.FromDays(30).TotalMinutes;
-							int banLeft = maxBan - (int)((DateTimeOffset.UtcNow - bannedElem.timeOfBan).TotalMinutes);
+							int maxBan = (int)TimeSpan.FromHours((long)Global.RoundConfig.DosDurationHours).TotalMinutes;
+							int banLeft = maxBan - (int)(DateTimeOffset.UtcNow - bannedElem.timeOfBan).TotalMinutes;
 							if (banLeft > 0)
 							{
 								return BadRequest($"Input is banned from participation for {banLeft} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
