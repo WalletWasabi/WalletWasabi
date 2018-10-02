@@ -151,7 +151,7 @@ namespace WalletWasabi.Services
 				{
 					File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
 					Index.Add(StartingFilter);
-					IoHelpers.SafeWriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine())).GetAwaiter().GetResult();
+					IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 				}
 				else
 				{
@@ -172,14 +172,14 @@ namespace WalletWasabi.Services
 					{
 						// We found a corrupted entry. Stop here.
 						// Fix the currupted file.
-						IoHelpers.SafeWriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine())).GetAwaiter().GetResult(); ;
+						IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 					}
 				}
 			}
 			else
 			{
 				Index.Add(StartingFilter);
-				IoHelpers.SafeWriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine())).GetAwaiter().GetResult(); ;
+				IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 			}
 
 			BestKnownFilter = Index.Last();
@@ -298,7 +298,7 @@ namespace WalletWasabi.Services
 							{
 								lines = File.ReadAllLines(safestFileVerion);
 							}
-							await IoHelpers.SafeWriteAllLinesAsync(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
+							IoHelpers.SafeWriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray());
 
 							// 3. Skip the last valid block.
 							continue;

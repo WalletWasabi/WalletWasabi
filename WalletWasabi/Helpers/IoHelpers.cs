@@ -89,6 +89,29 @@ namespace System.IO
 			}
 		}
 
+		public static void SafeWriteAllText(string path, string content, Encoding encoding)
+		{
+			Logger.LogInfo("SafeWriteAllText");
+			string newPath = path + NewExtension;
+			Logger.LogInfo("string newPath = path + NewExtension;");
+			string lockPath = CreateLockOrDelayWhileExistsAsync(path).GetAwaiter().GetResult();
+			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExistsAsync(path).GetAwaiter().GetResult();");
+			try
+			{
+				Logger.LogInfo("try");
+				File.WriteAllText(newPath, content, encoding);
+				Logger.LogInfo("File.WriteAllText(newPath, content, encoding);");
+				SafeMove(newPath, path);
+				Logger.LogInfo("SafeMove(newPath, path);");
+			}
+			finally
+			{
+				Logger.LogInfo("finally");
+				RemoveLockPath(lockPath);
+				Logger.LogInfo("RemoveLockPath(lockPath);");
+			}
+		}
+
 		public static async Task SafeWriteAllTextAsync(string path, string content, Encoding encoding)
 		{
 			Logger.LogInfo("SafeWriteAllTextAsync");
@@ -112,6 +135,29 @@ namespace System.IO
 			}
 		}
 
+		public static void SafeWriteAllLines(string path, IEnumerable<string> content)
+		{
+			Logger.LogInfo("SafeWriteAllLines");
+			string newPath = path + NewExtension;
+			Logger.LogInfo("string newPath = path + NewExtension;");
+			string lockPath = CreateLockOrDelayWhileExistsAsync(path).GetAwaiter().GetResult();
+			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExistsAsync(path).GetAwaiter().GetResult();");
+			try
+			{
+				Logger.LogInfo("try");
+				File.WriteAllLines(newPath, content);
+				Logger.LogInfo("File.WriteAllLines(newPath, content);");
+				SafeMove(newPath, path);
+				Logger.LogInfo("SafeMove(newPath, path);");
+			}
+			finally
+			{
+				Logger.LogInfo("finally");
+				RemoveLockPath(lockPath);
+				Logger.LogInfo("RemoveLockPath(lockPath);");
+			}
+		}
+
 		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
 		{
 			Logger.LogInfo("SafeWriteAllLinesAsync");
@@ -122,7 +168,7 @@ namespace System.IO
 			try
 			{
 				Logger.LogInfo("try");
-				File.WriteAllLines(newPath, content);
+				await File.WriteAllLinesAsync(newPath, content);
 				Logger.LogInfo("await File.WriteAllLinesAsync(newPath, content);");
 				SafeMove(newPath, path);
 				Logger.LogInfo("SafeMove(newPath, path);");
