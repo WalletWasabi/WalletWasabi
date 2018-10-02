@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
@@ -77,7 +78,7 @@ namespace System.IO
 		public static async Task SafeWriteAllTextAsync(string path, string content)
 		{
 			string newPath = path + NewExtension;
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			string lockPath = CreateLockOrDelayWhileExists(path);
 			try
 			{
 				await File.WriteAllTextAsync(newPath, content);
@@ -94,8 +95,8 @@ namespace System.IO
 			Logger.LogInfo("SafeWriteAllText");
 			string newPath = path + NewExtension;
 			Logger.LogInfo("string newPath = path + NewExtension;");
-			string lockPath = CreateLockOrDelayWhileExistsAsync(path).GetAwaiter().GetResult();
-			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExistsAsync(path).GetAwaiter().GetResult();");
+			string lockPath = CreateLockOrDelayWhileExists(path);
+			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExists(path);");
 			try
 			{
 				Logger.LogInfo("try");
@@ -117,8 +118,8 @@ namespace System.IO
 			Logger.LogInfo("SafeWriteAllTextAsync");
 			string newPath = path + NewExtension;
 			Logger.LogInfo("string newPath = path + NewExtension;");
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
-			Logger.LogInfo("string lockPath = await CreateLockOrDelayWhileExistsAsync(path);");
+			string lockPath = CreateLockOrDelayWhileExists(path);
+			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExists(path);");
 			try
 			{
 				Logger.LogInfo("try");
@@ -140,8 +141,8 @@ namespace System.IO
 			Logger.LogInfo("SafeWriteAllLines");
 			string newPath = path + NewExtension;
 			Logger.LogInfo("string newPath = path + NewExtension;");
-			string lockPath = CreateLockOrDelayWhileExistsAsync(path).GetAwaiter().GetResult();
-			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExistsAsync(path).GetAwaiter().GetResult();");
+			string lockPath = CreateLockOrDelayWhileExists(path);
+			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExists(path);");
 			try
 			{
 				Logger.LogInfo("try");
@@ -163,8 +164,8 @@ namespace System.IO
 			Logger.LogInfo("SafeWriteAllLinesAsync");
 			string newPath = path + NewExtension;
 			Logger.LogInfo("string newPath = path + NewExtension;");
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
-			Logger.LogInfo("string lockPath = await CreateLockOrDelayWhileExistsAsync(path);");
+			string lockPath = CreateLockOrDelayWhileExists(path);
+			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExists(path);");
 			try
 			{
 				Logger.LogInfo("try");
@@ -184,7 +185,7 @@ namespace System.IO
 		public static async Task SafeWriteAllBytesAsync(string path, byte[] content)
 		{
 			string newPath = path + NewExtension;
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			string lockPath = CreateLockOrDelayWhileExists(path);
 			try
 			{
 				await File.WriteAllBytesAsync(newPath, content);
@@ -198,9 +199,10 @@ namespace System.IO
 
 		/// <param name="delayTimesBeforeForceIn">Times * 100ms delay before it forces itself into the lock.</param>
 		/// <returns>lock file path</returns>
-		private static async Task<string> CreateLockOrDelayWhileExistsAsync(string path, int delayTimesBeforeForceIn = 70)
+		private static string CreateLockOrDelayWhileExists(string path, int delayTimesBeforeForceIn = 70)
 		{
-			Logger.LogInfo("CreateLockOrDelayWhileExistsAsync");
+			// This function is blocking, because .NET Core async brainfart.
+			Logger.LogInfo("CreateLockOrDelayWhileExists");
 			string lockPath = path + LockExtension;
 			Logger.LogInfo("string lockPath = path + LockExtension;");
 			var count = 0;
@@ -208,8 +210,8 @@ namespace System.IO
 			while (File.Exists(lockPath))
 			{
 				Logger.LogInfo("while (File.Exists(lockPath))");
-				await Task.Delay(100);
-				Logger.LogInfo("await Task.Delay(100);");
+				Thread.Sleep(100);
+				Logger.LogInfo("Thread.Sleep(100);");
 				if (count > delayTimesBeforeForceIn)
 				{
 					Logger.LogInfo("if (count > delayTimesBeforeForceIn)");
