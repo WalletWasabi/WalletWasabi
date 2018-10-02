@@ -386,9 +386,10 @@ namespace WalletWasabi.Services
 			if (tx.Height.Type == HeightType.Chain)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx); // If we have in cache, update height.
-				if (foundTx != default(SmartTransaction))
+				var found = TransactionCache.Contains(tx); // If we have in cache, update height.
+				if (found)
 				{
+					var foundTx = TransactionCache.First(x=> x==tx);
 					foundTx.SetHeight(tx.Height);
 				}
 			}
