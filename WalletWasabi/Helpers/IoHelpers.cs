@@ -122,7 +122,7 @@ namespace System.IO
 			try
 			{
 				Logger.LogInfo("try");
-				await File.WriteAllLinesAsync(newPath, content);
+				File.WriteAllLines(newPath, content);
 				Logger.LogInfo("await File.WriteAllLinesAsync(newPath, content);");
 				SafeMove(newPath, path);
 				Logger.LogInfo("SafeMove(newPath, path);");
