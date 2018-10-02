@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
@@ -77,7 +78,7 @@ namespace System.IO
 		public static async Task SafeWriteAllTextAsync(string path, string content)
 		{
 			string newPath = path + NewExtension;
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			string lockPath = CreateLockOrDelayWhileExists(path);
 			try
 			{
 				await File.WriteAllTextAsync(newPath, content);
@@ -85,44 +86,106 @@ namespace System.IO
 			}
 			finally
 			{
-				RemoveLockPath(lockPath);
+				DeleteLock(lockPath);
+			}
+		}
+
+		public static void SafeWriteAllText(string path, string content, Encoding encoding)
+		{
+			Logger.LogInfo("SafeWriteAllText");
+			string newPath = path + NewExtension;
+			Logger.LogInfo("string newPath = path + NewExtension;");
+			string lockPath = CreateLockOrDelayWhileExists(path);
+			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExists(path);");
+			try
+			{
+				Logger.LogInfo("try");
+				File.WriteAllText(newPath, content, encoding);
+				Logger.LogInfo("File.WriteAllText(newPath, content, encoding);");
+				SafeMove(newPath, path);
+				Logger.LogInfo("SafeMove(newPath, path);");
+			}
+			finally
+			{
+				Logger.LogInfo("finally");
+				DeleteLock(lockPath);
+				Logger.LogInfo("RemoveLockPath(lockPath);");
 			}
 		}
 
 		public static async Task SafeWriteAllTextAsync(string path, string content, Encoding encoding)
 		{
+			Logger.LogInfo("SafeWriteAllTextAsync");
 			string newPath = path + NewExtension;
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			Logger.LogInfo("string newPath = path + NewExtension;");
+			string lockPath = CreateLockOrDelayWhileExists(path);
+			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExists(path);");
 			try
 			{
+				Logger.LogInfo("try");
 				await File.WriteAllTextAsync(newPath, content, encoding);
+				Logger.LogInfo("await File.WriteAllTextAsync(newPath, content, encoding);");
 				SafeMove(newPath, path);
+				Logger.LogInfo("SafeMove(newPath, path);");
 			}
 			finally
 			{
-				RemoveLockPath(lockPath);
+				Logger.LogInfo("finally");
+				DeleteLock(lockPath);
+				Logger.LogInfo("RemoveLockPath(lockPath);");
+			}
+		}
+
+		public static void SafeWriteAllLines(string path, IEnumerable<string> content)
+		{
+			Logger.LogInfo("SafeWriteAllLines");
+			string newPath = path + NewExtension;
+			Logger.LogInfo("string newPath = path + NewExtension;");
+			string lockPath = CreateLockOrDelayWhileExists(path);
+			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExists(path);");
+			try
+			{
+				Logger.LogInfo("try");
+				File.WriteAllLines(newPath, content);
+				Logger.LogInfo("File.WriteAllLines(newPath, content);");
+				SafeMove(newPath, path);
+				Logger.LogInfo("SafeMove(newPath, path);");
+			}
+			finally
+			{
+				Logger.LogInfo("finally");
+				DeleteLock(lockPath);
+				Logger.LogInfo("RemoveLockPath(lockPath);");
 			}
 		}
 
 		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
 		{
+			Logger.LogInfo("SafeWriteAllLinesAsync");
 			string newPath = path + NewExtension;
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			Logger.LogInfo("string newPath = path + NewExtension;");
+			string lockPath = CreateLockOrDelayWhileExists(path);
+			Logger.LogInfo("string lockPath = CreateLockOrDelayWhileExists(path);");
 			try
 			{
+				Logger.LogInfo("try");
 				await File.WriteAllLinesAsync(newPath, content);
+				Logger.LogInfo("await File.WriteAllLinesAsync(newPath, content);");
 				SafeMove(newPath, path);
+				Logger.LogInfo("SafeMove(newPath, path);");
 			}
 			finally
 			{
-				RemoveLockPath(lockPath);
+				Logger.LogInfo("finally");
+				DeleteLock(lockPath);
+				Logger.LogInfo("RemoveLockPath(lockPath);");
 			}
 		}
 
 		public static async Task SafeWriteAllBytesAsync(string path, byte[] content)
 		{
 			string newPath = path + NewExtension;
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			string lockPath = CreateLockOrDelayWhileExists(path);
 			try
 			{
 				await File.WriteAllBytesAsync(newPath, content);
@@ -130,38 +193,56 @@ namespace System.IO
 			}
 			finally
 			{
-				RemoveLockPath(lockPath);
+				DeleteLock(lockPath);
 			}
 		}
 
 		/// <param name="delayTimesBeforeForceIn">Times * 100ms delay before it forces itself into the lock.</param>
 		/// <returns>lock file path</returns>
-		private static async Task<string> CreateLockOrDelayWhileExistsAsync(string path, int delayTimesBeforeForceIn = 70)
+		private static string CreateLockOrDelayWhileExists(string path, int delayTimesBeforeForceIn = 70)
 		{
+			// This function is blocking, because .NET Core async brainfart.
+			Logger.LogInfo("CreateLockOrDelayWhileExists");
 			string lockPath = path + LockExtension;
+			Logger.LogInfo("string lockPath = path + LockExtension;");
 			var count = 0;
+			Logger.LogInfo("var count = 0;");
 			while (File.Exists(lockPath))
 			{
-				await Task.Delay(100);
+				Logger.LogInfo("while (File.Exists(lockPath))");
+				Thread.Sleep(100);
+				Logger.LogInfo("Thread.Sleep(100);");
 				if (count > delayTimesBeforeForceIn)
 				{
+					Logger.LogInfo("if (count > delayTimesBeforeForceIn)");
 					return lockPath;
 				}
 				count++;
+				Logger.LogInfo("count++;");
 			}
 			File.Create(lockPath);
+			Logger.LogInfo("File.Create(lockPath);");
 			return lockPath;
 		}
 
-		private static void RemoveLockPath(string lockPath)
+		private static void DeleteLock(string lockPath)
 		{
+			Logger.LogInfo("DeleteLock");
 			try
 			{
+				Logger.LogInfo("try");
+				// .NET Core brainfart
+				// https://stackoverflow.com/a/18278033/2061103
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
 				File.Delete(lockPath);
+				Logger.LogInfo("File.Delete(lockPath);");
 			}
 			catch (Exception ex)
 			{
+				Logger.LogInfo("catch (Exception ex)");
 				Logger.LogDebug(ex, nameof(IoHelpers));
+				Logger.LogInfo("Logger.LogDebug(ex, nameof(IoHelpers));");
 			}
 		}
 
