@@ -31,6 +31,7 @@ namespace WalletWasabi.Tests
 
 		[Theory]
 		[InlineData("test")]
+		[InlineData("main")]
 		[Trait("Category", "RunOnCi")]
 		public async Task TestServicesAsync(string networkString)
 		{
