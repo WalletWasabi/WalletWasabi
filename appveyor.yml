@@ -13,7 +13,7 @@ build_script:
   - dotnet build
 
 test_script:
-  - dotnet test --filter TestServicesAsync
+  - dotnet test --filter Category=RunOnCi
 
 #on_finish:
 #  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

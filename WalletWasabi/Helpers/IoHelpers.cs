@@ -91,31 +91,47 @@ namespace System.IO
 
 		public static async Task SafeWriteAllTextAsync(string path, string content, Encoding encoding)
 		{
+			Logger.LogInfo("SafeWriteAllTextAsync");
 			string newPath = path + NewExtension;
+			Logger.LogInfo("string newPath = path + NewExtension;");
 			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			Logger.LogInfo("string lockPath = await CreateLockOrDelayWhileExistsAsync(path);");
 			try
 			{
+				Logger.LogInfo("try");
 				await File.WriteAllTextAsync(newPath, content, encoding);
+				Logger.LogInfo("await File.WriteAllTextAsync(newPath, content, encoding);");
 				SafeMove(newPath, path);
+				Logger.LogInfo("SafeMove(newPath, path);");
 			}
 			finally
 			{
+				Logger.LogInfo("finally");
 				RemoveLockPath(lockPath);
+				Logger.LogInfo("RemoveLockPath(lockPath);");
 			}
 		}
 
 		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
 		{
+			Logger.LogInfo("SafeWriteAllLinesAsync");
 			string newPath = path + NewExtension;
+			Logger.LogInfo("string newPath = path + NewExtension;");
 			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
+			Logger.LogInfo("string lockPath = await CreateLockOrDelayWhileExistsAsync(path);");
 			try
 			{
+				Logger.LogInfo("try");
 				await File.WriteAllLinesAsync(newPath, content);
+				Logger.LogInfo("await File.WriteAllLinesAsync(newPath, content);");
 				SafeMove(newPath, path);
+				Logger.LogInfo("SafeMove(newPath, path);");
 			}
 			finally
 			{
+				Logger.LogInfo("finally");
 				RemoveLockPath(lockPath);
+				Logger.LogInfo("RemoveLockPath(lockPath);");
 			}
 		}
 
@@ -138,30 +154,43 @@ namespace System.IO
 		/// <returns>lock file path</returns>
 		private static async Task<string> CreateLockOrDelayWhileExistsAsync(string path, int delayTimesBeforeForceIn = 70)
 		{
+			Logger.LogInfo("CreateLockOrDelayWhileExistsAsync");
 			string lockPath = path + LockExtension;
+			Logger.LogInfo("string lockPath = path + LockExtension;");
 			var count = 0;
+			Logger.LogInfo("var count = 0;");
 			while (File.Exists(lockPath))
 			{
+				Logger.LogInfo("while (File.Exists(lockPath))");
 				await Task.Delay(100);
+				Logger.LogInfo("await Task.Delay(100);");
 				if (count > delayTimesBeforeForceIn)
 				{
+					Logger.LogInfo("if (count > delayTimesBeforeForceIn)");
 					return lockPath;
 				}
 				count++;
+				Logger.LogInfo("count++;");
 			}
 			File.Create(lockPath);
+			Logger.LogInfo("File.Create(lockPath);");
 			return lockPath;
 		}
 
 		private static void RemoveLockPath(string lockPath)
 		{
+			Logger.LogInfo("RemoveLockPath");
 			try
 			{
+				Logger.LogInfo("try");
 				File.Delete(lockPath);
+				Logger.LogInfo("File.Delete(lockPath);");
 			}
 			catch (Exception ex)
 			{
+				Logger.LogInfo("catch (Exception ex)");
 				Logger.LogDebug(ex, nameof(IoHelpers));
+				Logger.LogInfo("Logger.LogDebug(ex, nameof(IoHelpers));");
 			}
 		}
 

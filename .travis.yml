@@ -25,4 +25,4 @@ before_install:
   - if [ $TRAVIS_OS_NAME = osx ]; then ulimit -S -n 4096; fi
 
 script:
-  - travis_wait dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj --filter TestServicesAsync
+  - travis_wait dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj --filter Category=RunOnCi
