@@ -86,7 +86,7 @@ namespace System.IO
 			}
 			finally
 			{
-				RemoveLockPath(lockPath);
+				DeleteLock(lockPath);
 			}
 		}
 
@@ -108,7 +108,7 @@ namespace System.IO
 			finally
 			{
 				Logger.LogInfo("finally");
-				RemoveLockPath(lockPath);
+				DeleteLock(lockPath);
 				Logger.LogInfo("RemoveLockPath(lockPath);");
 			}
 		}
@@ -131,7 +131,7 @@ namespace System.IO
 			finally
 			{
 				Logger.LogInfo("finally");
-				RemoveLockPath(lockPath);
+				DeleteLock(lockPath);
 				Logger.LogInfo("RemoveLockPath(lockPath);");
 			}
 		}
@@ -154,7 +154,7 @@ namespace System.IO
 			finally
 			{
 				Logger.LogInfo("finally");
-				RemoveLockPath(lockPath);
+				DeleteLock(lockPath);
 				Logger.LogInfo("RemoveLockPath(lockPath);");
 			}
 		}
@@ -177,7 +177,7 @@ namespace System.IO
 			finally
 			{
 				Logger.LogInfo("finally");
-				RemoveLockPath(lockPath);
+				DeleteLock(lockPath);
 				Logger.LogInfo("RemoveLockPath(lockPath);");
 			}
 		}
@@ -193,7 +193,7 @@ namespace System.IO
 			}
 			finally
 			{
-				RemoveLockPath(lockPath);
+				DeleteLock(lockPath);
 			}
 		}
 
@@ -225,12 +225,16 @@ namespace System.IO
 			return lockPath;
 		}
 
-		private static void RemoveLockPath(string lockPath)
+		private static void DeleteLock(string lockPath)
 		{
-			Logger.LogInfo("RemoveLockPath");
+			Logger.LogInfo("DeleteLock");
 			try
 			{
 				Logger.LogInfo("try");
+				// .NET Core brainfart
+				// https://stackoverflow.com/a/18278033/2061103
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
 				File.Delete(lockPath);
 				Logger.LogInfo("File.Delete(lockPath);");
 			}
