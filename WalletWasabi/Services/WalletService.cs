@@ -243,7 +243,7 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()), filterModel.FilterKey);
+			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
 			if (!matchFound)
 			{
 				return;
