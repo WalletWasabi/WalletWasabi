@@ -36,7 +36,7 @@ namespace System.IO
 					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
-					await Task.Delay(100).ConfigureAwait(false);
+					await Task.Delay(100);
 					continue;
 				}
 				catch (UnauthorizedAccessException)
@@ -47,7 +47,7 @@ namespace System.IO
 					Logger.LogDebug($"Gnomes prevent deletion of {destinationDir}! Applying magic dust, attempt #{gnomes}.", nameof(IoHelpers));
 
 					// see http://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true for more magic
-					await Task.Delay(100).ConfigureAwait(false);
+					await Task.Delay(100);
 					continue;
 				}
 				return;
@@ -77,10 +77,10 @@ namespace System.IO
 		public static async Task SafeWriteAllTextAsync(string path, string content)
 		{
 			string newPath = path + NewExtension;
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path).ConfigureAwait(false);
+			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
 			try
 			{
-				await File.WriteAllTextAsync(newPath, content).ConfigureAwait(false);
+				await File.WriteAllTextAsync(newPath, content);
 				SafeMove(newPath, path);
 			}
 			finally
@@ -92,10 +92,10 @@ namespace System.IO
 		public static async Task SafeWriteAllTextAsync(string path, string content, Encoding encoding)
 		{
 			string newPath = path + NewExtension;
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path).ConfigureAwait(false);
+			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
 			try
 			{
-				await File.WriteAllTextAsync(newPath, content, encoding).ConfigureAwait(false);
+				await File.WriteAllTextAsync(newPath, content, encoding);
 				SafeMove(newPath, path);
 			}
 			finally
@@ -107,10 +107,10 @@ namespace System.IO
 		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
 		{
 			string newPath = path + NewExtension;
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path).ConfigureAwait(false);
+			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
 			try
 			{
-				await File.WriteAllLinesAsync(newPath, content).ConfigureAwait(false);
+				await File.WriteAllLinesAsync(newPath, content);
 				SafeMove(newPath, path);
 			}
 			finally
@@ -122,10 +122,10 @@ namespace System.IO
 		public static async Task SafeWriteAllBytesAsync(string path, byte[] content)
 		{
 			string newPath = path + NewExtension;
-			string lockPath = await CreateLockOrDelayWhileExistsAsync(path).ConfigureAwait(false);
+			string lockPath = await CreateLockOrDelayWhileExistsAsync(path);
 			try
 			{
-				await File.WriteAllBytesAsync(newPath, content).ConfigureAwait(false);
+				await File.WriteAllBytesAsync(newPath, content);
 				SafeMove(newPath, path);
 			}
 			finally

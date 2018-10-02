@@ -259,7 +259,7 @@ namespace WalletWasabi.Services
 									NewFilter?.Invoke(this, filterModel);
 								}
 
-								await IoHelpers.SafeWriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine())).ConfigureAwait(false);
+								await IoHelpers.SafeWriteAllLinesAsync(IndexFilePath, Index.Select(x => x.ToLine()));
 								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {startingFilter.BlockHeight + 1} to {BestKnownFilter.BlockHeight}.");
 							}
 
