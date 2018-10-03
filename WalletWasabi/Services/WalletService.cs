@@ -429,6 +429,7 @@ namespace WalletWasabi.Services
 			List<SmartCoin> doubleSpends = new List<SmartCoin>();
 			foreach(var coin in Coins)
 			{
+				bool spent = false;
 				foreach(var spentOutput in coin.SpentOutputs)
 				{
 					foreach(var txin in tx.Transaction.Inputs)
@@ -436,8 +437,11 @@ namespace WalletWasabi.Services
 						if(spentOutput.Index == txin.PrevOut.N && spentOutput.TransactionId == txin.PrevOut.Hash )
 						{
 							doubleSpends.Add(coin);
+							spent = true;
+							break;
 						}
 					}
+					if(spent) break;;
 				}
 			}
 
