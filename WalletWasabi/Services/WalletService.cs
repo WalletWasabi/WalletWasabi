@@ -433,7 +433,7 @@ namespace WalletWasabi.Services
 				{
 					foreach (TxIn txin in tx.Transaction.Inputs)
 					{
-						if (spentOutput == txin.PrevOut)
+						if (spentOutput.TransactionId == txin.PrevOut.Hash && spentOutput.Index == txin.PrevOut.N) // Don't do (spentOutput == txin.PrevOut), it's faster this way, because it won't check for null.
 						{
 							doubleSpends.Add(coin);
 							spent = true;
