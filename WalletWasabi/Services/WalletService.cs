@@ -426,15 +426,23 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If double spend:
-			IEnumerable<OutPoint> coinsOutPoints = Coins.SelectMany(c => c.SpentOutputs).Select(z => z.ToOutPoint());
-			IEnumerable<OutPoint> txOutPoints = tx.Transaction.Inputs.Select(x => x.PrevOut);
-			List<OutPoint> doubleSpentOutPoints = txOutPoints.Intersect(coinsOutPoints).ToList();
-
-			if (doubleSpentOutPoints.Any())
+			List<SmartCoin> doubleSpends = new List<SmartCoin>();
+			foreach(var coin in Coins)
 			{
-				List<SmartCoin> doubleSpends = Coins.Where(c => c.SpentOutputs.Any(s => doubleSpentOutPoints.Contains(s.ToOutPoint()))).ToList();
+				foreach(var spentOutput in coin.SpentOutputs)
+				{
+					foreach(var txin in tx.Transaction.Inputs)
+					{
+						if(spentOutput.Index == txin.PrevOut.N && spentOutput.TransactionId == txin.PrevOut.Hash )
+						{
+							doubleSpends.Add(coin);
+						}
+					}
+				}
+			}
 
+			if (doubleSpends.Count > 0)
+			{
 				if (tx.Height == Height.MemPool)
 				{
 					// if all double spent coins are mempool and RBF
