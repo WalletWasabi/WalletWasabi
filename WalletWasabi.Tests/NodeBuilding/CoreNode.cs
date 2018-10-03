@@ -106,16 +106,16 @@ namespace WalletWasabi.Tests.NodeBuilding
 			var config = new NodeConfigParameters
 			{
 				{"regtest", "1"},
-				{"rest", "1"},
-				{"listenonion", "0"},
-				{"server", "1"},
-				{"txindex", "1"},
-				{"rpcuser", Creds.UserName},
-				{"rpcpassword", Creds.Password},
-				{"whitebind", "127.0.0.1:" + _ports[0].ToString()},
-				{"rpcport", _ports[1].ToString()},
-				{"printtoconsole", "0"}, // Set it to one if don't mind loud debug logs
-				{"keypool", "10"}
+				{"regtest.rest", "1"},
+				{"regtest.listenonion", "0"},
+				{"regtest.server", "1"},
+				{"regtest.txindex", "1"},
+				{"regtest.rpcuser", Creds.UserName},
+				{"regtest.rpcpassword", Creds.Password},
+				{"regtest.whitebind", "127.0.0.1:" + _ports[0].ToString()},
+				{"regtest.rpcport", _ports[1].ToString()},
+				{"regtest.printtoconsole", "0"}, // Set it to one if don't mind loud debug logs
+				{"regtest.keypool", "10"}
 			};
 			config.Import(ConfigParameters);
 			File.WriteAllText(Config, config.ToString());

@@ -110,32 +110,6 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(2)]
-		[Trait("Category", "RunOnCi")]
-		public async Task BroadcastWithOutMinFeeAsync()
-		{
-			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
-
-			var utxos = await rpc.ListUnspentAsync();
-			var utxo = utxos[0];
-			var addr = await rpc.GetNewAddressAsync();
-			var tx = network.Consensus.ConsensusFactory.CreateTransaction();
-			tx.Inputs.Add(new TxIn(utxo.OutPoint, Script.Empty));
-			tx.Outputs.Add(new TxOut(utxo.Amount, addr));
-			var signedTx = await rpc.SignRawTransactionAsync(tx);
-
-			var content = new StringContent($"'{signedTx.ToHex()}'", Encoding.UTF8, "application/json");
-
-			Logger.TurnOff();
-			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), SharedFixture.TorSocks5Endpoint))
-			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
-			{
-				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
-				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-			}
-			Logger.TurnOn();
-		}
-
 		[Fact, TestPriority(3)]
 		[Trait("Category", "RunOnCi")]
 		public async Task BroadcastReplayTxAsync()
