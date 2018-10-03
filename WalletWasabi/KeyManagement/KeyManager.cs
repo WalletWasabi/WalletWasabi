@@ -27,6 +27,7 @@ namespace WalletWasabi.KeyManagement
 
 		[JsonProperty(Order = 4)]
 		private List<HdPubKey> HdPubKeys { get; }
+
 		private List<byte[]> HdPubKeyScriptBytes { get; }
 
 		// BIP84-ish derivation scheme
@@ -139,7 +140,7 @@ namespace WalletWasabi.KeyManagement
 			string jsonString = File.ReadAllText(safestFile, Encoding.UTF8);
 			var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
 			km.SetFilePath(filePath);
-			km.HdPubKeyScriptBytes.AddRange(km.GetKeys().Select(x=>x.GetP2wpkhScript().ToCompressedBytes()));
+			km.HdPubKeyScriptBytes.AddRange(km.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()));
 			return km;
 		}
 

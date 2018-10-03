@@ -389,7 +389,7 @@ namespace WalletWasabi.Services
 				var found = TransactionCache.Contains(tx); // If we have in cache, update height.
 				if (found)
 				{
-					var foundTx = TransactionCache.First(x=> x==tx);
+					var foundTx = TransactionCache.First(x => x == tx);
 					foundTx.SetHeight(tx.Height);
 				}
 			}
@@ -427,21 +427,21 @@ namespace WalletWasabi.Services
 			}
 
 			List<SmartCoin> doubleSpends = new List<SmartCoin>();
-			foreach(var coin in Coins)
+			foreach (var coin in Coins)
 			{
 				bool spent = false;
-				foreach(var spentOutput in coin.SpentOutputs)
+				foreach (var spentOutput in coin.SpentOutputs)
 				{
-					foreach(var txin in tx.Transaction.Inputs)
+					foreach (var txin in tx.Transaction.Inputs)
 					{
-						if(spentOutput.Index == txin.PrevOut.N && spentOutput.TransactionId == txin.PrevOut.Hash )
+						if (spentOutput.Index == txin.PrevOut.N && spentOutput.TransactionId == txin.PrevOut.Hash)
 						{
 							doubleSpends.Add(coin);
 							spent = true;
 							break;
 						}
 					}
-					if(spent) break;;
+					if (spent) break; ;
 				}
 			}
 
