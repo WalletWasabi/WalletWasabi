@@ -444,7 +444,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			if (doubleSpends.Count > 0)
+			if (doubleSpends.Any())
 			{
 				if (tx.Height == Height.MemPool)
 				{
