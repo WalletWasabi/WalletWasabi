@@ -218,7 +218,7 @@ namespace WalletWasabi.KeyManagement
 				{
 					return HdPubKeys;
 				}
-				if (!(keyState is null) && isInternal is null)
+				if (isInternal is null && !(keyState is null))
 				{
 					return HdPubKeys.Where(x => x.KeyState == keyState);
 				}
@@ -226,7 +226,7 @@ namespace WalletWasabi.KeyManagement
 				{
 					return HdPubKeys.Where(x => x.IsInternal() == isInternal);
 				}
-				return HdPubKeys.Where(x => x.KeyState == keyState && x.IsInternal() == isInternal);
+				return HdPubKeys.Where(x => x.IsInternal() == isInternal && x.KeyState == keyState);
 			}
 		}
 
