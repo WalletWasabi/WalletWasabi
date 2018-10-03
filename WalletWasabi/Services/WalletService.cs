@@ -243,7 +243,7 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()), filterModel.FilterKey);
+			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
 			if (!matchFound)
 			{
 				return;
@@ -386,10 +386,15 @@ namespace WalletWasabi.Services
 			if (tx.Height.Type == HeightType.Chain)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx); // If we have in cache, update height.
-				if (foundTx != default(SmartTransaction))
+
+				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
+				if (isFoundTx)
 				{
-					foundTx.SetHeight(tx.Height);
+					SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx);
+					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
+					{
+						foundTx.SetHeight(tx.Height);
+					}
 				}
 			}
 
@@ -414,7 +419,7 @@ namespace WalletWasabi.Services
 			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If we already had it, just update the height. Maybe got from mempool to block or reorged.
-				SmartCoin foundCoin = Coins.FirstOrDefault(x => x.Index == i && x.TransactionId == txId);
+				SmartCoin foundCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
 				if (foundCoin != default)
 				{
 					// If tx height is mempool then don't, otherwise update the height.
@@ -425,19 +430,31 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If double spend:
-			IEnumerable<OutPoint> coinsOutPoints = Coins.SelectMany(c => c.SpentOutputs).Select(z => z.ToOutPoint());
-			IEnumerable<OutPoint> txOutPoints = tx.Transaction.Inputs.Select(x => x.PrevOut);
-			List<OutPoint> doubleSpentOutPoints = txOutPoints.Intersect(coinsOutPoints).ToList();
-
-			if (doubleSpentOutPoints.Any())
+			var doubleSpends = new List<SmartCoin>();
+			foreach (SmartCoin coin in Coins)
 			{
-				List<SmartCoin> doubleSpends = Coins.Where(c => c.SpentOutputs.Any(s => doubleSpentOutPoints.Contains(s.ToOutPoint()))).ToList();
+				var spent = false;
+				foreach (TxoRef spentOutput in coin.SpentOutputs)
+				{
+					foreach (TxIn txin in tx.Transaction.Inputs)
+					{
+						if (spentOutput.TransactionId == txin.PrevOut.Hash && spentOutput.Index == txin.PrevOut.N) // Don't do (spentOutput == txin.PrevOut), it's faster this way, because it won't check for null.
+						{
+							doubleSpends.Add(coin);
+							spent = true;
+							break;
+						}
+					}
+					if (spent) break;
+				}
+			}
 
+			if (doubleSpends.Any())
+			{
 				if (tx.Height == Height.MemPool)
 				{
 					// if all double spent coins are mempool and RBF
-					if (doubleSpends.All(x => x.Height == Height.MemPool && x.RBF))
+					if (doubleSpends.All(x => x.RBF && x.Height == Height.MemPool))
 					{
 						// remove double spent coins(if other coin spends it, remove that too and so on) // will add later if they came to our keys
 						foreach (var doubleSpentCoin in doubleSpends)
@@ -474,7 +491,7 @@ namespace WalletWasabi.Services
 				if (foundKey != default)
 				{
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
-					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.N == x.Index && y.PrevOut.Hash == x.TransactionId)).ToList();
+					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 					var mixin = tx.Transaction.GetMixin(i);
 					if (spentOwnCoins.Count != 0)
 					{
@@ -485,7 +502,7 @@ namespace WalletWasabi.Services
 					Coins.TryAdd(coin);
 					TransactionCache.Add(tx);
 					CoinReceived?.Invoke(this, coin);
-					if (coin.Unspent && coin.Label == "ZeroLink Change" && !(ChaumianClient.OnePiece is null))
+					if (coin.Unspent && !(ChaumianClient.OnePiece is null) && coin.Label == "ZeroLink Change")
 					{
 						Task.Run(async () =>
 						{
@@ -524,7 +541,7 @@ namespace WalletWasabi.Services
 			{
 				var input = tx.Transaction.Inputs[i];
 
-				var foundCoin = Coins.FirstOrDefault(x => x.Index == input.PrevOut.N && x.TransactionId == input.PrevOut.Hash);
+				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
 				if (!(foundCoin is null))
 				{
 					foundCoin.SpenderTransactionId = txId;
