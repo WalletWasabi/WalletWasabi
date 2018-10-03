@@ -440,7 +440,7 @@ namespace WalletWasabi.Services
 							break;
 						}
 					}
-					if (spent) break; ;
+					if (spent) break;
 				}
 			}
 
