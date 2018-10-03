@@ -122,17 +122,17 @@ pico ~/.bitcoin/bitcoin.conf
 ```
 
 ```sh
-maxuploadtarget=144
-listen=0
-
-txindex=1
-
-daemon=1
-server=1
-rpcuser=bitcoinuser
-rpcpassword=password
-
 testnet=[0/1]
+
+[main/test].maxuploadtarget=144
+[main/test].listen=0
+
+[main/test].txindex=1
+
+[main/test].daemon=1
+[main/test].server=1
+[main/test].rpcuser=bitcoinuser
+[main/test].rpcpassword=password
 ```
 
 https://medium.com/@loopring/how-to-run-lighting-btc-node-and-start-mining-b55c4bab8ad  
