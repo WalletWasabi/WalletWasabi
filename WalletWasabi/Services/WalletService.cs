@@ -386,10 +386,9 @@ namespace WalletWasabi.Services
 			if (tx.Height.Type == HeightType.Chain)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				var found = TransactionCache.Contains(tx); // If we have in cache, update height.
-				if (found)
+				SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx); // If we have in cache, update height.
+				if (foundTx != default(SmartTransaction))
 				{
-					var foundTx = TransactionCache.First(x => x == tx);
 					foundTx.SetHeight(tx.Height);
 				}
 			}
@@ -426,7 +425,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			List<SmartCoin> doubleSpends = new List<SmartCoin>();
+			var doubleSpends = new List<SmartCoin>();
 			foreach (var coin in Coins)
 			{
 				bool spent = false;
