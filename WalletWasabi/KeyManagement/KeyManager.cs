@@ -27,6 +27,7 @@ namespace WalletWasabi.KeyManagement
 
 		[JsonProperty(Order = 4)]
 		private List<HdPubKey> HdPubKeys { get; }
+		private List<byte[]> HdPubKeyScriptBytes { get; }
 
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
@@ -42,6 +43,7 @@ namespace WalletWasabi.KeyManagement
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, string filePath = null)
 		{
 			HdPubKeys = new List<HdPubKey>();
+			HdPubKeyScriptBytes = new List<byte[]>();
 			HdPubKeysLock = new object();
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
@@ -55,6 +57,7 @@ namespace WalletWasabi.KeyManagement
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, string filePath = null)
 		{
 			HdPubKeys = new List<HdPubKey>();
+			HdPubKeyScriptBytes = new List<byte[]>();
 			HdPubKeysLock = new object();
 
 			if (password is null)
@@ -136,6 +139,7 @@ namespace WalletWasabi.KeyManagement
 			string jsonString = File.ReadAllText(safestFile, Encoding.UTF8);
 			var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
 			km.SetFilePath(filePath);
+			km.HdPubKeyScriptBytes.AddRange(km.GetKeys().Select(x=>x.GetP2wpkhScript().ToCompressedBytes()));
 			return km;
 		}
 
@@ -182,6 +186,7 @@ namespace WalletWasabi.KeyManagement
 
 				var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
 				HdPubKeys.Add(hdPubKey);
+				HdPubKeyScriptBytes.Add(hdPubKey.GetP2wpkhScript().ToCompressedBytes());
 
 				if (toFile)
 				{
@@ -211,6 +216,16 @@ namespace WalletWasabi.KeyManagement
 					return HdPubKeys.Where(x => x.IsInternal() == isInternal);
 				}
 				return HdPubKeys.Where(x => x.KeyState == keyState && x.IsInternal() == isInternal);
+			}
+		}
+
+		public IEnumerable<byte[]> GetPubKeyScriptBytes()
+		{
+			// BIP44-ish derivation scheme
+			// m / purpose' / coin_type' / account' / change / address_index
+			lock (HdPubKeysLock)
+			{
+				return HdPubKeyScriptBytes;
 			}
 		}
 

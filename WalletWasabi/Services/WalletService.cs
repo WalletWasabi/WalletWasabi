@@ -243,7 +243,7 @@ namespace WalletWasabi.Services
 				return;
 			}
 
-			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()), filterModel.FilterKey);
+			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
 			if (!matchFound)
 			{
 				return;
@@ -386,9 +386,10 @@ namespace WalletWasabi.Services
 			if (tx.Height.Type == HeightType.Chain)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				SmartTransaction foundTx = TransactionCache.FirstOrDefault(x => x == tx); // If we have in cache, update height.
-				if (foundTx != default(SmartTransaction))
+				var found = TransactionCache.Contains(tx); // If we have in cache, update height.
+				if (found)
 				{
+					var foundTx = TransactionCache.First(x=> x==tx);
 					foundTx.SetHeight(tx.Height);
 				}
 			}
@@ -425,15 +426,27 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If double spend:
-			IEnumerable<OutPoint> coinsOutPoints = Coins.SelectMany(c => c.SpentOutputs).Select(z => z.ToOutPoint());
-			IEnumerable<OutPoint> txOutPoints = tx.Transaction.Inputs.Select(x => x.PrevOut);
-			List<OutPoint> doubleSpentOutPoints = txOutPoints.Intersect(coinsOutPoints).ToList();
-
-			if (doubleSpentOutPoints.Any())
+			List<SmartCoin> doubleSpends = new List<SmartCoin>();
+			foreach(var coin in Coins)
 			{
-				List<SmartCoin> doubleSpends = Coins.Where(c => c.SpentOutputs.Any(s => doubleSpentOutPoints.Contains(s.ToOutPoint()))).ToList();
+				bool spent = false;
+				foreach(var spentOutput in coin.SpentOutputs)
+				{
+					foreach(var txin in tx.Transaction.Inputs)
+					{
+						if(spentOutput.Index == txin.PrevOut.N && spentOutput.TransactionId == txin.PrevOut.Hash )
+						{
+							doubleSpends.Add(coin);
+							spent = true;
+							break;
+						}
+					}
+					if(spent) break;;
+				}
+			}
 
+			if (doubleSpends.Count > 0)
+			{
 				if (tx.Height == Height.MemPool)
 				{
 					// if all double spent coins are mempool and RBF
