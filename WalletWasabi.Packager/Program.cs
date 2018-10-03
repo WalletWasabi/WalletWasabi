@@ -24,11 +24,13 @@ namespace WalletWasabi.Packager
 			string packagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
 			string solutionDirectory = Path.GetFullPath(Path.Combine(packagerProjectDirectory, "..\\"));
 			string guiProjectDirectory = Path.GetFullPath(Path.Combine(solutionDirectory, "WalletWasabi.Gui\\"));
+			string libraryProjectDirectory = Path.GetFullPath(Path.Combine(solutionDirectory, "WalletWasabi\\"));
 			string wixProjectDirectory = Path.GetFullPath(Path.Combine(solutionDirectory, "WalletWasabi.WindowsInstaller\\"));
 			string binDistDirectory = Path.GetFullPath(Path.Combine(guiProjectDirectory, "bin\\dist"));
 			Console.WriteLine($"{nameof(solutionDirectory)}:\t\t{solutionDirectory}");
 			Console.WriteLine($"{nameof(packagerProjectDirectory)}:\t{packagerProjectDirectory}");
 			Console.WriteLine($"{nameof(guiProjectDirectory)}:\t\t{guiProjectDirectory}");
+			Console.WriteLine($"{nameof(libraryProjectDirectory)}:\t\t{libraryProjectDirectory}");
 			Console.WriteLine($"{nameof(wixProjectDirectory)}:\t\t{wixProjectDirectory}");
 			Console.WriteLine($"{nameof(binDistDirectory)}:\t\t{binDistDirectory}");
 
@@ -83,6 +85,19 @@ namespace WalletWasabi.Packager
 				var pBuild = Process.Start(psiBuild);
 				pBuild.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
 				pBuild.WaitForExit();
+
+				var guiBinReleaseDirectory = Path.GetFullPath(Path.Combine(guiProjectDirectory, "bin\\Release"));
+				var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(libraryProjectDirectory, "bin\\Release"));
+				if (Directory.Exists(guiBinReleaseDirectory))
+				{
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(guiBinReleaseDirectory).GetAwaiter().GetResult();
+					Console.WriteLine($"Deleted {guiBinReleaseDirectory}");
+				}
+				if (Directory.Exists(libraryBinReleaseDirectory))
+				{
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
+					Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
+				}
 
 				foreach (string target in targets)
 				{
