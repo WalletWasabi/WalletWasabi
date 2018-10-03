@@ -222,8 +222,6 @@ namespace WalletWasabi.KeyManagement
 
 		public IEnumerable<byte[]> GetPubKeyScriptBytes()
 		{
-			// BIP44-ish derivation scheme
-			// m / purpose' / coin_type' / account' / change / address_index
 			lock (HdPubKeysLock)
 			{
 				return HdPubKeyScriptBytes;
