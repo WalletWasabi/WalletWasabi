@@ -72,7 +72,7 @@ namespace WalletWasabi.Gui
 
 			if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				builder.UseWin32().UseDirect2D1();
+				builder.UseWin32().UseSkia();
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
