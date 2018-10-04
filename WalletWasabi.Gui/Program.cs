@@ -68,7 +68,18 @@ namespace WalletWasabi.Gui
 
 		private static AppBuilder BuildAvaloniaApp()
 		{
-			return AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
+			if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				return AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				return AppBuilder.Configure<App>().UseAvaloniaNative().UseSkia().UseReactiveUI();
+			}
+			else
+			{
+				return AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
+			}
 		}
 	}
 }
