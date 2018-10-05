@@ -40,7 +40,8 @@ namespace WalletWasabi.Backend
 
 				await Global.InitializeAsync(config, roundConfig, rpc);
 
-				UnversionedWebBuilder.CreateClientVersionHtml();
+				Directory.CreateDirectory(UnversionedWebBuilder.UnversionedFolder);
+				UnversionedWebBuilder.CreateDownloadTextWithVersionHtml();
 
 				var endPoint = "http://localhost:37127/";
 

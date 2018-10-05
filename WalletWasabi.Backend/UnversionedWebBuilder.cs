@@ -12,11 +12,12 @@ namespace WalletWasabi.Backend
 
 		public static string CreateFilePath(string fileName) => Path.Combine(UnversionedFolder, fileName);
 
-		public static void CreateClientVersionHtml()
+		public static string HtmlStartLine { get; } = "<link href=\"../css/bootstrap.css\" rel=\"stylesheet\" type=\"text/css\" />\r\n<link href=\"../css/OpenSansCondensed300700.css\" rel=\"stylesheet\" type=\"text/css\" />\r\n";
+
+		public static void CreateDownloadTextWithVersionHtml()
 		{
-			var filePath = CreateFilePath("client-version.html");
-			var content = "<link href=\"txtstyle.css\" rel=\"stylesheet\" type=\"text/css\" />" + Environment.NewLine;
-			content += Helpers.Constants.ClientVersion.ToString();
+			var filePath = CreateFilePath("download-text-with-version.html");
+			var content = HtmlStartLine + $"<h1 class=\"text-center\">Download Wasabi Wallet {Helpers.Constants.ClientVersion.ToString()}</h1>";
 
 			File.WriteAllText(filePath, content);
 		}
