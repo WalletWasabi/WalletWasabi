@@ -40,6 +40,8 @@ namespace WalletWasabi.Backend
 
 				await Global.InitializeAsync(config, roundConfig, rpc);
 
+				UnversionedWebBuilder.CreateClientVersionHtml();
+
 				var endPoint = "http://localhost:37127/";
 
 				using (var host = WebHost.CreateDefaultBuilder(args)
