@@ -13,7 +13,7 @@ Download the Linux archive and extract it, while keeping the file permissions: `
 
 ![](https://i.imgur.com/vyHsf1t.png)
 
-You can run Wasabi by executing `./wassabee` from the `WasabiLinux` folder.
+You can run Wasabi by executing `./wassabee.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Amongst others, here is where your wallet files and your logs reside.
 
@@ -23,6 +23,6 @@ Download the OSX archive and extract it, while keeping the file permissions: `ta
 
 ![](https://i.imgur.com/b4uGJtE.png)
 
-You can run Wasabi by executing `./wassabee` from the `WasabiOsx` folder.
+You can run Wasabi by executing `./wassabee`.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Amongst others, here is where your wallet files and your logs reside.
