@@ -13,7 +13,7 @@
 # 3. Notify
 
 1. Refresh website download and signature links.
-2. Deploy testnet and mainnet backend.
+2. [Deploy testnet and mainnet backend.](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/BackendDeployment.md#update)
 
 # 4. Announce
 
