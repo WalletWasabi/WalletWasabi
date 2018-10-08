@@ -50,7 +50,7 @@ namespace NBitcoin.RPC
 					{
 						try
 						{
-							return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
+							return await rpc.EstimateSmartFeeAsync(i, estimateMode);
 						}
 						catch
 						{
@@ -73,7 +73,7 @@ namespace NBitcoin.RPC
 			if (tryOtherFeeRates)
 			{
 				EstimateSmartFeeResponse response = await rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode);
-				if (response != null)
+				if (!(response is null))
 				{
 					return response;
 				}
@@ -82,8 +82,8 @@ namespace NBitcoin.RPC
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
 					for (int i = 2; i <= 1008; i++)
 					{
-						response = await rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode);
-						if (response != null)
+						response = await rpc.TryEstimateSmartFeeAsync(i, estimateMode);
+						if (!(response is null))
 						{
 							return response;
 						}
