@@ -3,7 +3,7 @@
 1. Run tests.
 2. Dump client version.
 3. Run packager in publish mode.
-4. Create .msi (Release/AnyCPU)
+4. Create .msi (Release/x64)
 5. Run packager in sign mode. (Set back to publish mode.)
 6. Final .msi test on own computer.
 
