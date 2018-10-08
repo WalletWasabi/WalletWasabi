@@ -51,11 +51,11 @@ namespace WalletWasabi.Backend
 			string smartBitPath;
 			if (Global.Config.Network == Network.TestNet)
 			{
-				smartBitPath = "https://www.testnet.smartbit.com.au/tx/";
+				smartBitPath = "https://testnet.smartbit.com.au/tx/";
 			}
 			else
 			{
-				smartBitPath = "https://www.smartbit.com.au/tx/";
+				smartBitPath = "https://smartbit.com.au/tx/";
 			}
 
 			var coinJoinsList = coinJoins.ToList();
