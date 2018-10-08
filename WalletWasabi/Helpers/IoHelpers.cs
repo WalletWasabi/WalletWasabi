@@ -78,7 +78,7 @@ namespace System.IO
 		public static void SafeWriteAllText(string path, string content)
 		{
 			var newPath = path + NewExtension;
-			var mutexName = Path.GetFileNameWithoutExtension(path);
+			var mutexName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{Path.GetFileNameWithoutExtension(path)}";
 			using (var mutex = new Mutex(false, mutexName))
 			{
 				var mutexAcquired = false;
@@ -115,7 +115,7 @@ namespace System.IO
 		public static void SafeWriteAllText(string path, string content, Encoding encoding)
 		{
 			var newPath = path + NewExtension;
-			var mutexName = Path.GetFileNameWithoutExtension(path);
+			var mutexName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{Path.GetFileNameWithoutExtension(path)}";
 			using (var mutex = new Mutex(false, mutexName))
 			{
 				var mutexAcquired = false;
@@ -152,7 +152,7 @@ namespace System.IO
 		public static void SafeWriteAllLines(string path, IEnumerable<string> content)
 		{
 			var newPath = path + NewExtension;
-			var mutexName = Path.GetFileNameWithoutExtension(path);
+			var mutexName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{Path.GetFileNameWithoutExtension(path)}";
 			using (var mutex = new Mutex(false, mutexName))
 			{
 				var mutexAcquired = false;
