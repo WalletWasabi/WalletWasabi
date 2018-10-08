@@ -20,7 +20,7 @@
                         <h1>Call To Action</h1>
                         <p>As Bitcoin is becoming more and more mainstream, its fungibility is being threatened. Powerful interests are spending immeasurable resources on mass surveillance, and Blockchain analysis companies are rapidly gaining traction. Meanwhile, privacy work on Bitcoin is also gaining momentum, but it is up to You who wins this battle.</p>
                         <p>Wasabi is an open-source, non-custodial, privacy focused Bitcoin wallet, that implements trustless coin shuffling with mathematically provable anonymity: <a href="https://github.com/nopara73/ZeroLink/">Chaumian CoinJoin,</a> it is the first of its kind. However, <a href="https://www.freehaven.net/anonbib/cache/usability:weis2006.pdf">"anonymity loves company,"</a> the more users there are, the better your privacy, and the faster the CoinJoin rounds will be. Whether you are looking for state of the art operational security or you are philosophically aligned with the principles of freedom and privacy, now it is YOUR time to contribute. Fire up your Wasabi and start providing liquidity for CoinJoins to bootstrap the system!</p>
-                        <button type="button" class="btn btn-lg btn-outline-light font-weight-bold" data-toggle="modal" data-target="#download-1">Reclaim your privacy now!</button>
+                        <button type="button" class="btn btn-lg btn-outline-light font-weight-bold" onclick="location.href='#download'">Reclaim your privacy now!</button>
                     </div>
                 </div>
             </div>
@@ -35,11 +35,28 @@
             <div class="container columns-2">
                 <div class="row">
                     <div class="container">
+                        <iframe src="unversioned/mixed-text.html" frameborder=0 width=1000 height="60"></iframe>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-dark text-lg-center text-white font-weight-bold">
+                <p>
+                    <img src="images/tor-browser.png" width="17" height="17" alt="open_source">&nbsp;
+                    http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion
+                </p>
+            </div>
+            <a name="download" />
+            <div class="container columns-2">
+                <div class="row">
+                    <div class="container">
                         <div class="row">
                             <div class="container">
                                 <iframe src="unversioned/download-text-with-version.html" frameborder=0 width=600 height="60"></iframe>
                                 <p class="lead text-center">
-                                    Free and open source. Integrated Tor, CoinJoin and coin control features.
+                                    Free and open source. Integrated <a href="https://www.torproject.org/">Tor</a>, <a href="https://github.com/nopara73/ZeroLink/">CoinJoin</a> and <a href="https://medium.com/@nopara73/coin-control-is-must-learn-if-you-care-about-your-privacy-in-bitcoin-33b9a5f224a2">coin control</a> features.<br />
+                                    ... or build it from <a href="https://github.com/zkSNACKs/WalletWasabi">source code.</a><br />
+                                    <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt">(PGP)</a>
+                                    <a href="https://github.com/zkSNACKs/WalletWasabi/releases">(Release Notes)</a>
                                 </p>
                             </div>
                         </div>
@@ -54,7 +71,8 @@
                             <br />
                             <small>.msi, 64 bit</small>
                         </button>
-                        <a href="">WasabiInstaller.msi.asc</a>
+                        <a href="">(Signature)</a>
+                        <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md#windows">(Help)</a>
                     </div>
                     <div class="col-lg-4 col-12 box-2">
                         <img src="images/linux.png" height="100" alt="open_source">
@@ -65,72 +83,31 @@
                             <br />
                             <small>.tar.gz, 64 bit</small>
                         </button>
-                        <a href="">WasabiLinux.tar.gz.asc</a>
+                        <a href="">(Signature)</a>
+                        <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md#linux">(Help)</a>
                     </div>
                     <div class="col-lg-4 col-12 box-3">
                         <img src="images/apple.png" height="100" alt="open_source">
                         <br /><br />
                         <button class="btn-block btn btn-lg btn-dark" aria-label="Mac download" role="link">
                             <img class="download-icon" src="/images/download.svg" width="18" height="18" alt="Download Wasabi">
-                            Mac
+                            Mac (Beta)
                             <br />
                             <small>.tar.gz, 64 bit</small>
                         </button>
-                        <a href="">WasabiOsx.tar.gz.asc</a>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="github" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">GitHub</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="zksnacks" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Zk Snacks</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="exampleModal3" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Modal title3</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                        </div>
+                        <a href="">(Signature)</a>
+                        <a href="https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/Guides/InstallInstructions.md#osx">(Help)</a>
                     </div>
                 </div>
             </div>
         </section>
         <footer>
-            <a href="docs/wasabi_privacy_policy.pdf" target="_blank">Privacy policy</a>
-            <a href="docs/wasabi_terms.pdf" target="_blank">Terms and Conditions</a>
-            <a href="#" target="_blank">Site Map</a>
-            <a href="#" target="_blank">Contact</a>
+            <a href="https://www.reddit.com/r/WasabiWallet/" target="_blank">Support</a>
+            <a href="https://github.com/zkSNACKs/WalletWasabi" target="_blank">GitHub</a>
+            <a href="https://medium.com/@nopara73" target="_blank">Blog</a>
+            <a href="https://zksnacks.com/" target="_blank">zkSNACKs</a>
+            <a href="https://twitter.com/wasabiwallet" target="_blank">Twitter</a>
+            <a href="swagger/" target="_blank">API</a>
         </footer>
     </div>
 </body>

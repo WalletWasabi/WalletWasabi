@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
@@ -12,6 +14,7 @@ namespace WalletWasabi.Backend
 {
 	public class Program
 	{
+		private static Money TotalVolume { get; set; } = Money.Zero;
 #pragma warning disable IDE1006 // Naming Styles
 
 		public static async Task Main(string[] args)
@@ -40,8 +43,35 @@ namespace WalletWasabi.Backend
 
 				await Global.InitializeAsync(config, roundConfig, rpc);
 
-				Directory.CreateDirectory(UnversionedWebBuilder.UnversionedFolder);
-				UnversionedWebBuilder.CreateDownloadTextWithVersionHtml();
+				try
+				{
+					Directory.CreateDirectory(UnversionedWebBuilder.UnversionedFolder);
+					UnversionedWebBuilder.CreateDownloadTextWithVersionHtml();
+
+					string[] allLines = File.ReadAllLines(Global.Coordinator.CoinJoinsFilePath);
+					foreach (string line in allLines)
+					{
+						try
+						{
+							var txHash = new uint256(line);
+							Transaction tx = Global.RpcClient.GetRawTransaction(txHash);
+
+							var volume = tx.GetIndistinguishableOutputs().Where(x => x.count > 1).Sum(x => x.count * x.value);
+							TotalVolume += volume;
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning(ex, nameof(Program));
+						}
+					}
+
+					UnversionedWebBuilder.UpdateMixedTextHtml(TotalVolume);
+					Global.Coordinator.CoinJoinBroadcasted += Coordinator_CoinJoinBroadcasted;
+				}
+				catch (Exception ex)
+				{
+					Logger.LogWarning(ex, nameof(Program));
+				}
 
 				var endPoint = "http://localhost:37127/";
 
@@ -56,6 +86,20 @@ namespace WalletWasabi.Backend
 			catch (Exception ex)
 			{
 				Logger.LogCritical<Program>(ex);
+			}
+		}
+
+		private static void Coordinator_CoinJoinBroadcasted(object sender, Transaction tx)
+		{
+			try
+			{
+				Money volume = tx.GetIndistinguishableOutputs().Where(x => x.count > 1).Sum(x => x.count * x.value);
+				TotalVolume += volume;
+				UnversionedWebBuilder.UpdateMixedTextHtml(TotalVolume);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex, nameof(Program));
 			}
 		}
 	}

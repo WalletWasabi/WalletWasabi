@@ -24,6 +24,8 @@ namespace WalletWasabi.Services
 		public string CoinJoinsFilePath => Path.Combine(FolderPath, $"CoinJoins{Network}.txt");
 		private AsyncLock CoinJoinsLock { get; }
 
+		public event EventHandler<Transaction> CoinJoinBroadcasted;
+
 		public RPCClient RpcClient { get; }
 
 		public CcjRoundConfig RoundConfig { get; private set; }
@@ -161,12 +163,14 @@ namespace WalletWasabi.Services
 				if (runningRoundCount == 0)
 				{
 					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
+					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round);
 
 					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
 					round2.StatusChanged += Round_StatusChangedAsync;
+					round2.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round2);
 				}
@@ -174,10 +178,16 @@ namespace WalletWasabi.Services
 				{
 					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
 					round.StatusChanged += Round_StatusChangedAsync;
+					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
 					Rounds.Add(round);
 				}
 			}
+		}
+
+		private void Round_CoinJoinBroadcasted(object sender, Transaction e)
+		{
+			CoinJoinBroadcasted?.Invoke(sender, e);
 		}
 
 		private async void Round_StatusChangedAsync(object sender, CcjRoundStatus status)
@@ -210,6 +220,7 @@ namespace WalletWasabi.Services
 			if (status == CcjRoundStatus.Aborted || status == CcjRoundStatus.Succeded)
 			{
 				round.StatusChanged -= Round_StatusChangedAsync;
+				round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
 				await MakeSureTwoRunningRoundsAsync();
 			}
 		}
@@ -334,6 +345,7 @@ namespace WalletWasabi.Services
 						foreach (CcjRound round in Rounds)
 						{
 							round.StatusChanged -= Round_StatusChangedAsync;
+							round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
 						}
 					}
 				}

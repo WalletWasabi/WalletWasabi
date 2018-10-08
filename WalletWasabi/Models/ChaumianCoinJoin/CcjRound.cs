@@ -105,6 +105,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public event EventHandler<CcjRoundStatus> StatusChanged;
 
+		public event EventHandler<Transaction> CoinJoinBroadcasted;
+
 		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
 
 		public TimeSpan InputRegistrationTimeout { get; }
@@ -737,6 +739,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						}
 
 						await RpcClient.SendRawTransactionAsync(SignedCoinJoin);
+						CoinJoinBroadcasted?.Invoke(this, SignedCoinJoin);
 						Succeed(syncLock: false);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
 					}
