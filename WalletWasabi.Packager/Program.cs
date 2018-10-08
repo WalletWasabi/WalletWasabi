@@ -200,16 +200,9 @@ namespace WalletWasabi.Packager
 						{
 							throw new Exception(".msi doesn't exist. Expected path: WasabiInstaller.msi.");
 						}
-						// Since GitHub doesn't let you upload .msi, we zip it.
 						var msiFileName = Path.GetFileName(msiPath);
-						//var newMsiPath = Path.Combine(binDistDirectory, msiFileName);
-						//File.Move(msiPath, newMsiPath);
-						string zipFilePath = Path.Combine(binDistDirectory, "WasabiInstaller.zip");
-						using (var fs = new FileStream(zipFilePath, FileMode.Create))
-						using (var arch = new ZipArchive(fs, ZipArchiveMode.Create))
-						{
-							arch.CreateEntryFromFile(msiPath, msiFileName);
-						}
+						var newMsiPath = Path.Combine(binDistDirectory, msiFileName);
+						File.Move(msiPath, newMsiPath);
 					}
 					else if (target.StartsWith("linux", StringComparison.OrdinalIgnoreCase))
 					{
