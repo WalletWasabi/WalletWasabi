@@ -69,7 +69,7 @@ namespace WalletWasabi.Backend
 				}
 				else
 				{
-					content += $"<li><a href=\"{smartBitPath}/{cjHash}\">{cjHash}</a></li>";
+					content += $"<li><a href=\"{smartBitPath}{cjHash}\">{cjHash}</a></li>";
 				}
 			}
 
