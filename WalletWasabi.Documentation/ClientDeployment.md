@@ -1,10 +1,11 @@
 # 1. Packaging
 
-1. Dump client version.
-2. Run packager in publish mode.
-3. Create .msi
-4. Run packager in sign mode.
-5. Final .msi test on own computer.
+1. Run tests.
+2. Dump client version.
+3. Run packager in publish mode.
+4. Create .msi
+5. Run packager in sign mode.
+6. Final .msi test on own computer.
 
 # 2. GitHub Release
 
