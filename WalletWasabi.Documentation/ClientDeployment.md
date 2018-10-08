@@ -4,6 +4,7 @@
 2. Run packager in publish mode.
 3. Create .msi
 4. Run packager in sign mode.
+5. Final .msi test on own computer.
 
 # 2. GitHub Release
 
