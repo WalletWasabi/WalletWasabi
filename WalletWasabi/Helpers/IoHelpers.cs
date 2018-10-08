@@ -75,161 +75,53 @@ namespace System.IO
 			File.Delete(oldPath);
 		}
 
-		public static async Task SafeWriteAllTextAsync(string path, string content)
-		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				await File.WriteAllTextAsync(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
-		}
-
 		public static void SafeWriteAllText(string path, string content)
 		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				File.WriteAllText(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
-		}
-
-		public static async Task SafeWriteAllTextAsync(string path, string content, Encoding encoding)
-		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				await File.WriteAllTextAsync(newPath, content, encoding);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
+			var newPath = path + NewExtension;
+			File.WriteAllText(newPath, content);
+			SafeMove(newPath, path);
 		}
 
 		public static void SafeWriteAllText(string path, string content, Encoding encoding)
 		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				File.WriteAllText(newPath, content, encoding);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
+			var newPath = path + NewExtension;
+			File.WriteAllText(newPath, content, encoding);
+			SafeMove(newPath, path);
 		}
 
-		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
+		public static async Task SafeWriteAllTextAsync(string path, string content)
 		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				await File.WriteAllLinesAsync(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
+			var newPath = path + NewExtension;
+			await File.WriteAllTextAsync(newPath, content);
+			SafeMove(newPath, path);
+		}
+
+		public static async Task SafeWriteAllTextAsync(string path, string content, Encoding encoding)
+		{
+			var newPath = path + NewExtension;
+			await File.WriteAllTextAsync(newPath, content, encoding);
+			SafeMove(newPath, path);
 		}
 
 		public static void SafeWriteAllLines(string path, IEnumerable<string> content)
 		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				File.WriteAllLines(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
+			var newPath = path + NewExtension;
+			File.WriteAllLines(newPath, content);
+			SafeMove(newPath, path);
+		}
+
+		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
+		{
+			var newPath = path + NewExtension;
+			await File.WriteAllLinesAsync(newPath, content);
+			SafeMove(newPath, path);
 		}
 
 		public static async Task SafeWriteAllBytesAsync(string path, byte[] content)
 		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				await File.WriteAllBytesAsync(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
-		}
-
-		public static void SafeWriteAllBytes(string path, byte[] content)
-		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				File.WriteAllBytes(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
-		}
-
-		/// <summary>This function blocks the thread!</summary>
-		/// <param name="delayTimesBeforeForceIn">Times * 100ms delay before it forces itself into the lock.</param>
-		/// <returns>lock file path</returns>
-		private static string CreateWeakLockOrDelayWhileExists(string path, int delayTimesBeforeForceIn = 70)
-		{
-			// This function is blocking, because .NET Core async brainfart.
-			string lockPath = path + WeakLockExtension;
-			var count = 0;
-			while (File.Exists(lockPath))
-			{
-				Thread.Sleep(100);
-				if (count > delayTimesBeforeForceIn)
-				{
-					return lockPath;
-				}
-				count++;
-			}
-			File.Create(lockPath);
-			return lockPath;
-		}
-
-		private static void RemoveWeakLock(string lockPath)
-		{
-			try
-			{
-				// .NET Core brainfart
-				// https://stackoverflow.com/a/18278033/2061103
-				GC.Collect();
-				GC.WaitForPendingFinalizers();
-				File.Delete(lockPath);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug(ex, nameof(IoHelpers));
-			}
+			var newPath = path + NewExtension;
+			await File.WriteAllBytesAsync(newPath, content);
+			SafeMove(newPath, path);
 		}
 
 		public static async Task BetterExtractZipToDirectoryAsync(string src, string dest)
