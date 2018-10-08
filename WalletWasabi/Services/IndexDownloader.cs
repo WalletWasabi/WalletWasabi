@@ -92,7 +92,6 @@ namespace WalletWasabi.Services
 		public WasabiClient WasabiClient { get; }
 
 		public string IndexFilePath { get; }
-		public string IndexFilePathMutexName { get; }
 		private List<FilterModel> Index { get; }
 		private AsyncLock IndexLock { get; }
 
@@ -138,7 +137,6 @@ namespace WalletWasabi.Services
 			Network = Guard.NotNull(nameof(network), network);
 			WasabiClient = new WasabiClient(indexHostUri, torSocks5EndPoint);
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
-			IndexFilePathMutexName = "55BE9271-85C6-4B3D-AAA8-642B9CFE0F2C";
 
 			Index = new List<FilterModel>();
 			IndexLock = new AsyncLock();
@@ -146,69 +144,42 @@ namespace WalletWasabi.Services
 			_running = 0;
 			Cancel = new CancellationTokenSource();
 
-			using (var mutex = new Mutex(false, IndexFilePathMutexName))
+			IoHelpers.EnsureContainingDirectoryExists(indexFilePath);
+			if (File.Exists(IndexFilePath))
 			{
-				var mutexAcquired = false;
-				try
+				if (Network == Network.RegTest)
 				{
-					// acquire the mutex (or timeout after 7 seconds)
-					// will return false if it timed out
-					mutexAcquired = mutex.WaitOne(7000);
+					File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
+					Index.Add(StartingFilter);
+					IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 				}
-				catch (AbandonedMutexException)
+				else
 				{
-					// abandoned mutexes are still acquired, we just need
-					// to handle the exception and treat it as acquisition
-					mutexAcquired = true;
-				}
-
-				try
-				{
-					IoHelpers.EnsureContainingDirectoryExists(indexFilePath);
-					if (File.Exists(IndexFilePath))
+					var height = StartingHeight;
+					try
 					{
-						if (Network == Network.RegTest)
+						if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
 						{
-							File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
-							Index.Add(StartingFilter);
-							IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
-						}
-						else
-						{
-							var height = StartingHeight;
-							try
+							foreach (var line in File.ReadAllLines(safestFileVerion))
 							{
-								if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
-								{
-									foreach (var line in File.ReadAllLines(safestFileVerion))
-									{
-										var filter = FilterModel.FromLine(line, height);
-										height++;
-										Index.Add(filter);
-									}
-								}
-							}
-							catch (FormatException)
-							{
-								// We found a corrupted entry. Stop here.
-								// Fix the currupted file.
-								IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+								var filter = FilterModel.FromLine(line, height);
+								height++;
+								Index.Add(filter);
 							}
 						}
 					}
-					else
+					catch (FormatException)
 					{
-						Index.Add(StartingFilter);
+						// We found a corrupted entry. Stop here.
+						// Fix the currupted file.
 						IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 					}
 				}
-				finally
-				{
-					if (mutexAcquired)
-					{
-						mutex.ReleaseMutex();
-					}
-				}
+			}
+			else
+			{
+				Index.Add(StartingFilter);
+				IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 			}
 
 			BestKnownFilter = Index.Last();
@@ -288,34 +259,7 @@ namespace WalletWasabi.Services
 									NewFilter?.Invoke(this, filterModel);
 								}
 
-								using (var mutex = new Mutex(false, IndexFilePathMutexName))
-								{
-									var mutexAcquired = false;
-									try
-									{
-										// acquire the mutex (or timeout after 7 seconds)
-										// will return false if it timed out
-										mutexAcquired = mutex.WaitOne(7000);
-									}
-									catch (AbandonedMutexException)
-									{
-										// abandoned mutexes are still acquired, we just need
-										// to handle the exception and treat it as acquisition
-										mutexAcquired = true;
-									}
-
-									try
-									{
-										IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine())); // Don't async inside mutex.
-									}
-									finally
-									{
-										if (mutexAcquired)
-										{
-											mutex.ReleaseMutex();
-										}
-									}
-								}
+								IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {startingFilter.BlockHeight + 1} to {BestKnownFilter.BlockHeight}.");
 							}
 
@@ -348,40 +292,13 @@ namespace WalletWasabi.Services
 
 							Reorged?.Invoke(this, reorgedHash);
 
-							using (var mutex = new Mutex(false, IndexFilePathMutexName))
+							// 2. Serialize Index. (Remove last line.)
+							string[] lines = null;
+							if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
 							{
-								var mutexAcquired = false;
-								try
-								{
-									// acquire the mutex (or timeout after 7 seconds)
-									// will return false if it timed out
-									mutexAcquired = mutex.WaitOne(7000);
-								}
-								catch (AbandonedMutexException)
-								{
-									// abandoned mutexes are still acquired, we just need
-									// to handle the exception and treat it as acquisition
-									mutexAcquired = true;
-								}
-
-								try
-								{
-									// 2. Serialize Index. (Remove last line.)
-									string[] lines = null;
-									if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
-									{
-										lines = File.ReadAllLines(safestFileVerion);
-									}
-									IoHelpers.SafeWriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray()); // It's not async for a reason, I think.
-								}
-								finally
-								{
-									if (mutexAcquired)
-									{
-										mutex.ReleaseMutex();
-									}
-								}
+								lines = File.ReadAllLines(safestFileVerion);
 							}
+							IoHelpers.SafeWriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray()); // It's not async for a reason, I think.
 
 							// 3. Skip the last valid block.
 							continue;
