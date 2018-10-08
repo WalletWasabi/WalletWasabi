@@ -10,9 +10,9 @@ namespace WalletWasabi.Backend
 	public static class UnversionedWebBuilder
 	{
 #if DEBUG
-		public static string UnversionedFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\wwwroot\\unversioned"));
+		public static string UnversionedFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\wwwroot", "unversioned"));
 #else
-		public static string UnversionedFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "wwwroot\\unversioned"));
+		public static string UnversionedFolder { get; } = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "wwwroot", "unversioned"));
 #endif
 
 		public static string CreateFilePath(string fileName) => Path.Combine(UnversionedFolder, fileName);
