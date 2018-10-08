@@ -105,6 +105,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public event EventHandler<CcjRoundStatus> StatusChanged;
 
+		public event EventHandler<Transaction> CoinJoinBroadcasted;
+
 		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
 
 		public TimeSpan InputRegistrationTimeout { get; }
@@ -185,7 +187,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						var outputSizeInBytes = Constants.OutputSizeInBytes;
 						try
 						{
-							var estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
+							var estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 							if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
 							var feeRate = estimateSmartFeeResponse.FeeRate;
 							Money feePerBytes = (feeRate.FeePerK / 1000);
@@ -319,7 +321,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							FeeRate currentFeeRate = fee is null ? null : new FeeRate(fee, estimatedFinalTxSize);
 
 							// 8.2. Get the most optimal FeeRate.
-							EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
+							EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 							if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
 							FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
@@ -737,6 +739,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						}
 
 						await RpcClient.SendRawTransactionAsync(SignedCoinJoin);
+						CoinJoinBroadcasted?.Invoke(this, SignedCoinJoin);
 						Succeed(syncLock: false);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
 					}

@@ -112,7 +112,7 @@ namespace WalletWasabi.Backend
 
 				Logger.LogInfo<RPCClient>("Bitcoin Core is fully synchronized.");
 
-				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
+				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 				if (estimateSmartFeeResponse is null) throw new NotSupportedException("Bitcoin Core cannot estimate network fees yet.");
 				Logger.LogInfo<RPCClient>("Bitcoin Core fee estimation is working.");
 

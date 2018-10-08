@@ -38,4 +38,8 @@
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
   
+  <ItemGroup>
+    <Folder Include="wwwroot\unversioned\" />
+  </ItemGroup>
+  
 </Project>

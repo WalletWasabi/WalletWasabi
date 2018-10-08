@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace NBitcoin.RPC
@@ -28,21 +30,66 @@ namespace NBitcoin.RPC
 			return (int.Parse(resp.Result["height"].ToString()), uint256.Parse(resp.Result["hash"].ToString()));
 		}
 
-		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this RPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
+		public static async Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(this RPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tryOtherFeeRates = true)
 		{
 			if (simulateIfRegTest && rpc.Network == Network.RegTest)
 			{
 				return SimulateRegTestFeeEstimation(confirmationTarget, estimateMode);
 			}
 
+			if (tryOtherFeeRates)
+			{
+				try
+				{
+					return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
+				}
+				catch
+				{
+					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
+					for (int i = 2; i <= 1008; i++)
+					{
+						try
+						{
+							return await rpc.EstimateSmartFeeAsync(i, estimateMode);
+						}
+						catch
+						{
+						}
+					}
+				}
+				// Let's try one more time, whatever.
+			}
+
 			return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
 		}
 
-		public static async Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(this RPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false)
+		public static async Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(this RPCClient rpc, int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tryOtherFeeRates = false)
 		{
 			if (simulateIfRegTest && rpc.Network == Network.RegTest)
 			{
 				return SimulateRegTestFeeEstimation(confirmationTarget, estimateMode);
+			}
+
+			if (tryOtherFeeRates)
+			{
+				EstimateSmartFeeResponse response = await rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode);
+				if (!(response is null))
+				{
+					return response;
+				}
+				else
+				{
+					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
+					for (int i = 2; i <= 1008; i++)
+					{
+						response = await rpc.TryEstimateSmartFeeAsync(i, estimateMode);
+						if (!(response is null))
+						{
+							return response;
+						}
+					}
+				}
+				// Let's try one more time, whatever.
 			}
 
 			return await rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode);
