@@ -205,7 +205,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (!Cache.TryGetValue(cacheKey, out EstimateSmartFeeResponse feeResponse))
 			{
-				feeResponse = await RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true);
+				feeResponse = await RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true, tryOtherFeeRates: true);
 
 				var cacheEntryOptions = new MemoryCacheEntryOptions()
 					.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
