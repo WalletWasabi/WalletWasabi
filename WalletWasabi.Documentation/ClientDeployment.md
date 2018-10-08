@@ -18,4 +18,4 @@
 # 4. Announce
 
 1. Tweet about it.
-2. Submit to /r/Bitcoin.
+2. Submit to /r/WasabiWallet and /r/Bitcoin.
