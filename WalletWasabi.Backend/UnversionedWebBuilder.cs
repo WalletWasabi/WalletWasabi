@@ -37,5 +37,40 @@ namespace WalletWasabi.Backend
 
 			File.WriteAllText(filePath, content);
 		}
+
+		public static void UpdateCoinJoinsHtml(IEnumerable<string> coinJoins)
+		{
+			var filePath = CreateFilePath("coinjoins-table.html");
+
+			var content = HtmlStartLine + "<ul class=\"text-center\" style=\"list-style: none;\">";
+			var endContent = "</ul>";
+			string smartBitPath;
+			if (Global.Config.Network == Network.TestNet)
+			{
+				smartBitPath = "https://www.testnet.smartbit.com.au/tx/";
+			}
+			else
+			{
+				smartBitPath = "https://www.smartbit.com.au/tx/";
+			}
+
+			var coinJoinsList = coinJoins.ToList();
+			for (int i = 0; i < coinJoinsList.Count; i++)
+			{
+				string cjHash = coinJoinsList[i];
+
+				if (i % 2 == 0)
+				{
+					content += $"<li style=\"background:#e6e6e6; margin:5px;\"><a href=\"{smartBitPath}{cjHash}\">{cjHash}</a></li>";
+				}
+				else
+				{
+					content += $"<li><a href=\"{smartBitPath}/{cjHash}\">{cjHash}</a></li>";
+				}
+			}
+
+			content += endContent;
+			File.WriteAllText(filePath, content);
+		}
 	}
 }
