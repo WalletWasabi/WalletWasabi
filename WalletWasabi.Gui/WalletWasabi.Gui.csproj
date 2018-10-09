@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -67,7 +67,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Include="Avalonia.Native" Version="0.7.0-build300038" />
+    <PackageReference Include="Avalonia.Native" Version="0.7.0-build201810094" />
   </ItemGroup>
 
   <ItemGroup>
