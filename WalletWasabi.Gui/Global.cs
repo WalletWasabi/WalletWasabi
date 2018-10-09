@@ -162,6 +162,15 @@ namespace WalletWasabi.Gui
 					Logger.LogTrace<AddressManager>(ex);
 					AddressManager = new AddressManager();
 				}
+				catch (OverflowException ex)
+				{
+					// https://github.com/zkSNACKs/WalletWasabi/issues/712
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
+					File.Delete(AddressManagerFilePath);
+					Logger.LogTrace<AddressManager>(ex);
+					AddressManager = new AddressManager();
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+				}
 			}
 
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(AddressManager));
