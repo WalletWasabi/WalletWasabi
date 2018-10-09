@@ -65,11 +65,11 @@ namespace WalletWasabi.Backend
 
 				if (i % 2 == 0)
 				{
-					content += $"<li style=\"background:#e6e6e6; margin:5px;\"><a href=\"{smartBitPath}{cjHash}\">{cjHash}</a></li>";
+					content += $"<li style=\"background:#e6e6e6; margin:5px;\"><a href=\"{smartBitPath}{cjHash}\" target=\"_blank\">{cjHash}</a></li>";
 				}
 				else
 				{
-					content += $"<li><a href=\"{smartBitPath}{cjHash}\">{cjHash}</a></li>";
+					content += $"<li><a href=\"{smartBitPath}{cjHash}\" target=\"_blank\">{cjHash}</a></li>";
 				}
 			}
 
