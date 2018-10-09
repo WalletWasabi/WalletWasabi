@@ -28,7 +28,7 @@
         </TreeDataTemplate>
 
         <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
-          <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}">
+          <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}" HorizontalAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
@@ -41,7 +41,7 @@
         </TreeDataTemplate>
 
         <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
-          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
@@ -54,7 +54,7 @@
         </TreeDataTemplate>
 
         <TreeDataTemplate DataType="ViewModels:CoinJoinTabViewModel">
-          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Left" >
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
@@ -78,7 +78,7 @@
         </TreeDataTemplate>
 
         <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
-          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
