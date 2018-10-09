@@ -9,13 +9,15 @@
 
 # 2. GitHub Release
 
-1. Create GitHub Release.
+1. Create GitHub Release (Use the previous release as template.)
 2. Write Release notes based on commits since last release.
+3. Download at test the binaries.
 
 # 3. Notify
 
 1. Refresh website download and signature links.
-2. [Deploy testnet and mainnet backend.](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/BackendDeployment.md#update)
+2. Make sure CI and CodeFactor checks out.
+3. [Deploy testnet and mainnet backend.](https://github.com/zkSNACKs/WalletWasabi/blob/master/WalletWasabi.Documentation/BackendDeployment.md#update)
 
 # 4. Announce
 

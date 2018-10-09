@@ -1,3 +1,5 @@
+http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/
+
 # Windows
 
 Download the Windows installer (.msi) and follow the instructions.
@@ -13,7 +15,7 @@ Download the Linux archive and extract it, while keeping the file permissions: `
 
 ![](https://i.imgur.com/vyHsf1t.png)
 
-You can run Wasabi by executing `./wassabee.
+You can run Wasabi by executing `./wassabee`.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Amongst others, here is where your wallet files and your logs reside.
 
