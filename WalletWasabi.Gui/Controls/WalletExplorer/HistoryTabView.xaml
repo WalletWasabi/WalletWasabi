@@ -17,11 +17,9 @@
         <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.ColumnSpan="4" DockPanel.Dock="Top">
           <Grid Opacity="{Binding ClipboardNotificationOpacity}">
             <Grid.Transitions>
-              <Transitions>
-                <DoubleTransition Property="Grid.Opacity"
+              <DoubleTransition Property="Grid.Opacity"
                         Easing="CircularEaseIn"
                         Duration="0:0:0.5" />
-              </Transitions>
             </Grid.Transitions>
             <TextBlock Text="TransactionId Is Copied to Clipboard!" Foreground="#22B14C" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="4" />
           </Grid>
