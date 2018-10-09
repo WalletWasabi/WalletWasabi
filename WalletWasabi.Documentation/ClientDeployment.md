@@ -9,8 +9,9 @@
 
 # 2. GitHub Release
 
-1. Create GitHub Release.
+1. Create GitHub Release (Use the previous release as template.)
 2. Write Release notes based on commits since last release.
+3. Download at test the binaries.
 
 # 3. Notify
 
