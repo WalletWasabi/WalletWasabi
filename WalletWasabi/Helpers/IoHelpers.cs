@@ -75,160 +75,114 @@ namespace System.IO
 			File.Delete(oldPath);
 		}
 
-		public static async Task SafeWriteAllTextAsync(string path, string content)
-		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				await File.WriteAllTextAsync(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
-		}
-
 		public static void SafeWriteAllText(string path, string content)
 		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
+			var newPath = path + NewExtension;
+			var mutexName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{Path.GetFileNameWithoutExtension(path)}";
+			using (var mutex = new Mutex(false, mutexName))
 			{
-				File.WriteAllText(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
-		}
+				var mutexAcquired = false;
+				try
+				{
+					// acquire the mutex (or timeout after 60 seconds)
+					// will return false if it timed out
+					mutexAcquired = mutex.WaitOne(60000);
+				}
+				catch (AbandonedMutexException)
+				{
+					// abandoned mutexes are still acquired, we just need
+					// to handle the exception and treat it as acquisition
+					mutexAcquired = true;
+				}
 
-		public static async Task SafeWriteAllTextAsync(string path, string content, Encoding encoding)
-		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				await File.WriteAllTextAsync(newPath, content, encoding);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
+				if (mutexAcquired == false)
+				{
+					throw new IOException("Couldn't acquire Mutex on the file.");
+				}
+
+				try
+				{
+					File.WriteAllText(newPath, content);
+					SafeMove(newPath, path);
+				}
+				finally
+				{
+					mutex.ReleaseMutex();
+				}
 			}
 		}
 
 		public static void SafeWriteAllText(string path, string content, Encoding encoding)
 		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
+			var newPath = path + NewExtension;
+			var mutexName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{Path.GetFileNameWithoutExtension(path)}";
+			using (var mutex = new Mutex(false, mutexName))
 			{
-				File.WriteAllText(newPath, content, encoding);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
-		}
+				var mutexAcquired = false;
+				try
+				{
+					// acquire the mutex (or timeout after 60 seconds)
+					// will return false if it timed out
+					mutexAcquired = mutex.WaitOne(60000);
+				}
+				catch (AbandonedMutexException)
+				{
+					// abandoned mutexes are still acquired, we just need
+					// to handle the exception and treat it as acquisition
+					mutexAcquired = true;
+				}
 
-		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
-		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				await File.WriteAllLinesAsync(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
+				if (mutexAcquired == false)
+				{
+					throw new IOException("Couldn't acquire Mutex on the file.");
+				}
+
+				try
+				{
+					File.WriteAllText(newPath, content, encoding);
+					SafeMove(newPath, path);
+				}
+				finally
+				{
+					mutex.ReleaseMutex();
+				}
 			}
 		}
 
 		public static void SafeWriteAllLines(string path, IEnumerable<string> content)
 		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
+			var newPath = path + NewExtension;
+			var mutexName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{Path.GetFileNameWithoutExtension(path)}";
+			using (var mutex = new Mutex(false, mutexName))
 			{
-				File.WriteAllLines(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
-		}
-
-		public static async Task SafeWriteAllBytesAsync(string path, byte[] content)
-		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				await File.WriteAllBytesAsync(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
-		}
-
-		public static void SafeWriteAllBytes(string path, byte[] content)
-		{
-			string newPath = path + NewExtension;
-			string lockPath = CreateWeakLockOrDelayWhileExists(path);
-			try
-			{
-				File.WriteAllBytes(newPath, content);
-				SafeMove(newPath, path);
-			}
-			finally
-			{
-				RemoveWeakLock(lockPath);
-			}
-		}
-
-		/// <summary>This function blocks the thread!</summary>
-		/// <param name="delayTimesBeforeForceIn">Times * 100ms delay before it forces itself into the lock.</param>
-		/// <returns>lock file path</returns>
-		private static string CreateWeakLockOrDelayWhileExists(string path, int delayTimesBeforeForceIn = 70)
-		{
-			// This function is blocking, because .NET Core async brainfart.
-			string lockPath = path + WeakLockExtension;
-			var count = 0;
-			while (File.Exists(lockPath))
-			{
-				Thread.Sleep(100);
-				if (count > delayTimesBeforeForceIn)
+				var mutexAcquired = false;
+				try
 				{
-					return lockPath;
+					// acquire the mutex (or timeout after 60 seconds)
+					// will return false if it timed out
+					mutexAcquired = mutex.WaitOne(60000);
 				}
-				count++;
-			}
-			File.Create(lockPath);
-			return lockPath;
-		}
+				catch (AbandonedMutexException)
+				{
+					// abandoned mutexes are still acquired, we just need
+					// to handle the exception and treat it as acquisition
+					mutexAcquired = true;
+				}
 
-		private static void RemoveWeakLock(string lockPath)
-		{
-			try
-			{
-				// .NET Core brainfart
-				// https://stackoverflow.com/a/18278033/2061103
-				GC.Collect();
-				GC.WaitForPendingFinalizers();
-				File.Delete(lockPath);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug(ex, nameof(IoHelpers));
+				if (mutexAcquired == false)
+				{
+					throw new IOException("Couldn't acquire Mutex on the file.");
+				}
+
+				try
+				{
+					File.WriteAllLines(newPath, content);
+					SafeMove(newPath, path);
+				}
+				finally
+				{
+					mutex.ReleaseMutex();
+				}
 			}
 		}
 

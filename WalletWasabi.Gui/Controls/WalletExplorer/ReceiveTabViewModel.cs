@@ -53,21 +53,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					return;
 				}
 
-				HdPubKey newKey = Global.WalletService.GetReceiveKey(Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
-
-				AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
-				if (found != default)
+				Dispatcher.UIThread.Post(() =>
 				{
-					Addresses.Remove(found);
-				}
+					HdPubKey newKey = Global.WalletService.GetReceiveKey(Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
-				var newAddress = new AddressViewModel(newKey);
+					AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
+					if (found != default)
+					{
+						Addresses.Remove(found);
+					}
 
-				Addresses.Insert(0, newAddress);
+					var newAddress = new AddressViewModel(newKey);
 
-				SelectedAddress = newAddress;
+					Addresses.Insert(0, newAddress);
 
-				Label = string.Empty;
+					SelectedAddress = newAddress;
+
+					Label = string.Empty;
+				});
 			});
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
