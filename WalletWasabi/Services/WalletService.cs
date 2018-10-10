@@ -138,7 +138,7 @@ namespace WalletWasabi.Services
 
 		private void MemPool_TransactionReceived(object sender, SmartTransaction tx)
 		{
-			ProcessTransaction(tx, keys: null);
+			ProcessTransaction(tx);
 		}
 
 		private async void IndexDownloader_ReorgedAsync(object sender, uint256 invalidBlockHash)
@@ -216,7 +216,7 @@ namespace WalletWasabi.Services
 						{
 							await SendTransactionAsync(tx);
 
-							ProcessTransaction(tx, keys: null);
+							ProcessTransaction(tx);
 						}
 						catch (Exception ex)
 						{
@@ -367,11 +367,9 @@ namespace WalletWasabi.Services
 
 		private void ProcessBlock(Height height, Block block)
 		{
-			var keys = KeyManager.GetKeys().ToList();
-
 			foreach (var tx in block.Transactions)
 			{
-				ProcessTransaction(new SmartTransaction(tx, height), keys);
+				ProcessTransaction(new SmartTransaction(tx, height));
 			}
 
 			ProcessedBlocks.TryAdd(block.GetHash(), (height, block.Header.BlockTime));
@@ -379,7 +377,7 @@ namespace WalletWasabi.Services
 			NewBlockProcessed?.Invoke(this, block);
 		}
 
-		private void ProcessTransaction(SmartTransaction tx, List<HdPubKey> keys = null)
+		private void ProcessTransaction(SmartTransaction tx)
 		{
 			uint256 txId = tx.GetHash();
 
@@ -477,12 +475,6 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If key list is not provided refresh the key list.
-			if (keys is null)
-			{
-				keys = KeyManager.GetKeys().ToList();
-			}
-
 			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If transaction received to any of the wallet keys:
@@ -518,20 +510,12 @@ namespace WalletWasabi.Services
 					}
 
 					// Make sure there's always 21 clean keys generated and indexed.
-					if (KeyManager.AssertCleanKeysIndexed(21, foundKey.IsInternal()))
-					{
-						// If it generated a new key refresh the keys:
-						keys = KeyManager.GetKeys().ToList();
-					}
+					KeyManager.AssertCleanKeysIndexed(21, foundKey.IsInternal());
 
 					if (foundKey.IsInternal())
 					{
 						// Make sure there's always 14 internal locked keys generated and indexed.
-						if (KeyManager.AssertLockedInternalKeysIndexed(14))
-						{
-							// If it generated a new key refresh the keys:
-							keys = KeyManager.GetKeys().ToList();
-						}
+						KeyManager.AssertLockedInternalKeysIndexed(14);
 					}
 				}
 			}
