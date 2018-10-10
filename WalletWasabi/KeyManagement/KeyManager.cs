@@ -157,9 +157,9 @@ namespace WalletWasabi.KeyManagement
 				km.HdPubKeyScriptBytes.AddRange(km.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()));
 			}
 
-			lock(km.ScriptHdPubkeyMapLock)
+			lock (km.ScriptHdPubkeyMapLock)
 			{
-				foreach(var key in km.GetKeys())
+				foreach (var key in km.GetKeys())
 				{
 					km.ScriptHdPubkeyMap.Add(key.GetP2wpkhScript(), key);
 				}
@@ -261,14 +261,14 @@ namespace WalletWasabi.KeyManagement
 
 		public HdPubKey GetKeyForScriptPubKey(Script scriptPubkey)
 		{
-			lock(ScriptHdPubkeyMapLock)
+			lock (ScriptHdPubkeyMapLock)
 			{
-				if(ScriptHdPubkeyMap.TryGetValue(scriptPubkey, out var key))
+				if (ScriptHdPubkeyMap.TryGetValue(scriptPubkey, out var key))
 					return key;
-				return default(HdPubKey);
+				return default;
 			}
 		}
-		
+
 		public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
 		{
 			Key secret;

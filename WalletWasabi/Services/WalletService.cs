@@ -487,7 +487,7 @@ namespace WalletWasabi.Services
 			{
 				// If transaction received to any of the wallet keys:
 				var output = tx.Transaction.Outputs[i];
-				HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey( output.ScriptPubKey );
+				HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				if (foundKey != default)
 				{
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
