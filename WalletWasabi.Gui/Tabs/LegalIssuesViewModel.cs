@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Gui.ViewModels;
@@ -31,7 +31,7 @@ LIMITATION OF LIABILITY
 =====================
 
 Unless otherwise required by law, in no event shall the owners of, or contributors to, the Wasabi wallet be liable for any damages of any kind, including, but not limited to, loss of use, loss of profits, or loss of data arising out of or in any way connected with the use of the Website.
-
+
 WASABI WALLET’S TRADEMARKS
 ========================
 
