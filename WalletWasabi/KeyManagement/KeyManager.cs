@@ -34,6 +34,10 @@ namespace WalletWasabi.KeyManagement
 
 		private readonly object HdPubKeyScriptBytesLock;
 
+		private readonly Dictionary<Script, HdPubKey> ScriptHdPubkeyMap;
+
+		private readonly object ScriptHdPubkeyMapLock;
+
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
@@ -47,8 +51,10 @@ namespace WalletWasabi.KeyManagement
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
+			ScriptHdPubkeyMap = new Dictionary<Script, HdPubKey>();
 			HdPubKeysLock = new object();
 			HdPubKeyScriptBytesLock = new object();
+			ScriptHdPubkeyMapLock = new object();
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
@@ -62,8 +68,10 @@ namespace WalletWasabi.KeyManagement
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
+			ScriptHdPubkeyMap = new Dictionary<Script, HdPubKey>();
 			HdPubKeysLock = new object();
 			HdPubKeyScriptBytesLock = new object();
+			ScriptHdPubkeyMapLock = new object();
 
 			if (password is null)
 			{
@@ -148,6 +156,14 @@ namespace WalletWasabi.KeyManagement
 			{
 				km.HdPubKeyScriptBytes.AddRange(km.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()));
 			}
+
+			lock(km.ScriptHdPubkeyMapLock)
+			{
+				foreach(var key in km.GetKeys())
+				{
+					km.ScriptHdPubkeyMap.Add(key.GetP2wpkhScript(), key);
+				}
+			}
 			return km;
 		}
 
@@ -199,6 +215,11 @@ namespace WalletWasabi.KeyManagement
 					HdPubKeyScriptBytes.Add(hdPubKey.GetP2wpkhScript().ToCompressedBytes());
 				}
 
+				lock (ScriptHdPubkeyMapLock)
+				{
+					ScriptHdPubkeyMap.Add(hdPubKey.GetP2wpkhScript(), hdPubKey);
+				}
+
 				if (toFile)
 				{
 					ToFile();
@@ -238,6 +259,16 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
+		public HdPubKey GetKeyForScriptPubKey(Script scriptPubkey)
+		{
+			lock(ScriptHdPubkeyMapLock)
+			{
+				if(ScriptHdPubkeyMap.TryGetValue(scriptPubkey, out var key))
+					return key;
+				return default(HdPubKey);
+			}
+		}
+		
 		public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
 		{
 			Key secret;
