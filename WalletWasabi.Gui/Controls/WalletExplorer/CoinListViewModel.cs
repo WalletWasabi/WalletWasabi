@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using ReactiveUI;
-using System.Collections.ObjectModel;
-using WalletWasabi.Models;
-using WalletWasabi.Gui.ViewModels;
-using Avalonia;
-using Avalonia.Threading;
-using System.Threading.Tasks;
+﻿using ReactiveUI;
 using ReactiveUI.Legacy;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinListViewModel : ViewModelBase
 	{
+#pragma warning disable CS0618 // Type or member is obsolete
 		private IReactiveDerivedList<CoinViewModel> _coins;
 
 		public CoinListViewModel(IReactiveDerivedList<CoinViewModel> coins)
@@ -25,5 +19,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get { return _coins; }
 			set { this.RaiseAndSetIfChanged(ref _coins, value); }
 		}
+#pragma warning restore CS0618 // Type or member is obsolete
 	}
 }
