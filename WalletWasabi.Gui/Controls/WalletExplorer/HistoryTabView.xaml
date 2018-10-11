@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -42,7 +42,7 @@
                   </Grid.Styles>
                   <Path Grid.Column="0" HorizontalAlignment="Center" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" IsVisible="{Binding Confirmed}" Stretch="Fill">
                     <ToolTip.Tip>
-                      Confimed
+                      Confirmed
                     </ToolTip.Tip>
                   </Path>
                   <TextBlock Text="{Binding DateTime}" Grid.Column="1" />
