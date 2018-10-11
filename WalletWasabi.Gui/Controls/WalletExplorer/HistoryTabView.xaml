@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -25,7 +25,7 @@
           </Grid>
         </Grid>
         <DockPanel LastChildFill="True" DockPanel.Dock="Bottom">
-          <Grid ColumnDefinitions="30, 120, 100, *" Margin="5 0" DockPanel.Dock="Top">
+          <Grid ColumnDefinitions="40, 160, 100, *" Margin="5 0" DockPanel.Dock="Top">
             <TextBlock Text="" />
             <TextBlock Text="Date" Grid.Column="1" />
             <TextBlock Text="Amount (BTC)" Grid.Column="2" />
@@ -34,7 +34,7 @@
           <ListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
             <ListBox.ItemTemplate>
               <DataTemplate>
-                <Grid ColumnDefinitions="30, 120, 100, *">
+                <Grid ColumnDefinitions="40, 160, 100, *">
                   <Grid.Styles>
                     <Style Selector="TextBlock">
                       <Setter Property="VerticalAlignment" Value="Center" />
