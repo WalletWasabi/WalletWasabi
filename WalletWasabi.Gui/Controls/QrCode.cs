@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Controls
 	{
 		static QrCode()
 		{
-			AffectsMeasure(MatrixProperty);
+			AffectsMeasure<QrCode>(MatrixProperty);
 		}
 
 		public static readonly DirectProperty<QrCode, bool[,]> MatrixProperty =
