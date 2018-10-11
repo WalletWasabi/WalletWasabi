@@ -12,6 +12,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
+using ReactiveUI.Legacy;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

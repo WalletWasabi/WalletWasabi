@@ -7,6 +7,7 @@ using WalletWasabi.Gui.ViewModels;
 using Avalonia;
 using Avalonia.Threading;
 using System.Threading.Tasks;
+using ReactiveUI.Legacy;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
