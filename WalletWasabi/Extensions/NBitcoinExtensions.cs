@@ -34,6 +34,8 @@ namespace NBitcoin
 			me.FromBytes(ByteHelpers.FromHex(hex));
 		}
 
+		public static bool SpendsOrReceivesWitness(this Transaction me) => me.HasWitness || me.Outputs.Any(x => x.ScriptPubKey.IsWitness);
+
 		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me)
 		{
 			return me.Outputs.GroupBy(x => x.Value)
