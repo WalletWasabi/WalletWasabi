@@ -13,6 +13,12 @@
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
   </i:Interaction.Behaviors>
 
+  <UserControl.Styles>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+  </UserControl.Styles>
+
   <DockPanel LastChildFill="True">
     <Grid Classes="content">
       <DockPanel LastChildFill="True" Margin="20">

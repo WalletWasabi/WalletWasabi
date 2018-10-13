@@ -15,6 +15,7 @@
                       MinWidth="1100" MinHeight="530"
                       FontFamily="{DynamicResource UiFont}" FontSize="14"
                       Foreground="{DynamicResource ThemeForegroundBrush}" WindowState="Maximized"
+                      UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
                       id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False">
   <i:Interaction.Behaviors>
     <behaviors:PredicateCloseBehavior CanClose="{Binding CanClose}" />
