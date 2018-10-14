@@ -259,11 +259,8 @@ iframe {
     }
 
     .segments-2 button.btn.btn-outline-light {
-        margin-left: auto;
-        margin-right: auto;
+        margin: 40px auto 40px auto;
         display: block;
-        margin-bottom: 40px;
-        margin-top: 40px;
         font-size: 30px;
     }
 
