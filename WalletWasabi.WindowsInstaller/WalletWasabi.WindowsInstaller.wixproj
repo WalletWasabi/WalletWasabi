@@ -14,6 +14,9 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
+  <PropertyGroup>
+    <SuppressIces>ICE40</SuppressIces>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="Components.wxs" />
     <Compile Include="ComponentsGenerated.wxs" />
