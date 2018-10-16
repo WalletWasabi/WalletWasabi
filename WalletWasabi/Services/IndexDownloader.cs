@@ -260,7 +260,16 @@ namespace WalletWasabi.Services
 								}
 
 								IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
-								Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {startingFilter.BlockHeight + 1} to {BestKnownFilter.BlockHeight}.");
+								var startingFilterHeightPlusOne = startingFilter.BlockHeight + 1;
+								var bestKnownFilterHeight = BestKnownFilter.BlockHeight;
+								if (startingFilterHeightPlusOne == bestKnownFilterHeight)
+								{
+									Logger.LogInfo<IndexDownloader>($"Downloaded filter for block {startingFilterHeightPlusOne}.");
+								}
+								else
+								{
+									Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {startingFilterHeightPlusOne} to {bestKnownFilterHeight}.");
+								}
 							}
 
 							if (BestHeight == BestKnownFilter.BlockHeight) // if we're synced
