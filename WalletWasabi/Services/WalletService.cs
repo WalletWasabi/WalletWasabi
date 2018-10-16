@@ -20,6 +20,7 @@ using System.Collections.ObjectModel;
 using WalletWasabi.WebClients.Wasabi;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using NBitcoin.DataEncoders;
 
 namespace WalletWasabi.Services
 {
@@ -543,20 +544,20 @@ namespace WalletWasabi.Services
 			// Try get the block
 			using (await BlockFolderLock.LockAsync())
 			{
+				var encoder = new HexEncoder();
 				foreach (var filePath in Directory.EnumerateFiles(BlocksFolderPath))
 				{
 					var fileName = Path.GetFileName(filePath);
-					try
-					{
-						if (hash == new uint256(fileName))
-						{
-							var blockBytes = await File.ReadAllBytesAsync(filePath);
-							return Block.Load(blockBytes, IndexDownloader.Network);
-						}
-					}
-					catch (FormatException)
+					if (!encoder.IsValid(fileName)) 
 					{
 						Logger.LogTrace<WalletService>($"Filename is not a hash: {fileName}.");
+						continue;
+					}
+
+					if (hash == new uint256(fileName))
+					{
+						var blockBytes = await File.ReadAllBytesAsync(filePath);
+						return Block.Load(blockBytes, IndexDownloader.Network);
 					}
 				}
 			}
