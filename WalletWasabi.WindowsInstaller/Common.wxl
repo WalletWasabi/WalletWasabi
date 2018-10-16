@@ -6,9 +6,8 @@
   <String Id="Company">zkSNACKs</String>
 
   <String Id="Language">1033</String>
-  
+
   <String Id="Description">Privacy focused, ZeroLink compliant Bitcoin wallet.</String>
   <String Id="Keywords">bitcoin,cryptocurrency,blockchain,privacy,fungibility,anonymity</String>
   <String Id="Comments">Easy Peasy Lemon Squeezey</String>
-  
 </WixLocalization>
