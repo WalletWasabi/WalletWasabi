@@ -824,7 +824,7 @@ namespace WalletWasabi.Services
 			var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
 			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
 			Money fee = feePerBytes * vSize;
-			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi");
+			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi.");
 
 			// 5. How much to spend?
 			long toSendAmountSumInSatoshis = toSend.Select(x => x.Amount).Sum(); // Does it work if I simply go with Money class here? Is that copied by reference of value?
