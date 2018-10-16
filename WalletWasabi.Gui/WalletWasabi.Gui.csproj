@@ -68,7 +68,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Include="Avalonia.Native" Version="0.7.0-build42018101611" />
+    <PackageReference Include="Avalonia.Native" Version="0.7.0-build42018101614" />
   </ItemGroup>
 
   <ItemGroup>
