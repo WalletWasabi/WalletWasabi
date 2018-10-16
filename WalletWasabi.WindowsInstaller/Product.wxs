@@ -22,6 +22,7 @@
       Comments="!(loc.Comments)"
       Languages="!(loc.Language)" />
 
+    <Property Id="REINSTALLMODE" Value="amus" />
     <!-- Downgrade error message. -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
