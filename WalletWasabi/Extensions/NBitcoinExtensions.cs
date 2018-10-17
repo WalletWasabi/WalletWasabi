@@ -72,6 +72,9 @@ namespace NBitcoin
 			return me.GetIndistinguishableOutputs().Single(x => x.value == output.Value).count - 1;
 		}
 
+		/// <summary>
+		/// Careful, if it's in a legacy block then this won't work.
+		/// </summary>
 		public static bool HasWitness(this TxIn me)
 		{
 			Guard.NotNull(nameof(me), me);
