@@ -36,14 +36,14 @@ namespace NBitcoin
 
 		public static bool SpendsOrReceivesWitness(this Transaction me)
 		{
-			foreach(TxIn input in me.Inputs)
+			foreach (TxIn input in me.Inputs)
 			{
-				if(input.ScriptSig == null || input.ScriptSig == Script.Empty)
+				if (input.ScriptSig == null || input.ScriptSig == Script.Empty)
 					return true;
 			}
-			foreach(TxOut output in me.Outputs)
+			foreach (TxOut output in me.Outputs)
 			{
-				if(output.ScriptPubKey.IsWitness) 
+				if (output.ScriptPubKey.IsWitness)
 					return true;
 			}
 			return false;

@@ -399,7 +399,7 @@ namespace WalletWasabi.Services
 			}
 			else
 			{
-				if (!tx.Transaction.SpendsOrReceivesWitness()) 
+				if (!tx.Transaction.SpendsOrReceivesWitness())
 					return; // We don't care about non-witness transactions for other than mempool cleanup.
 			}
 
@@ -552,7 +552,7 @@ namespace WalletWasabi.Services
 				foreach (var filePath in Directory.EnumerateFiles(BlocksFolderPath))
 				{
 					var fileName = Path.GetFileName(filePath);
-					if (!encoder.IsValid(fileName)) 
+					if (!encoder.IsValid(fileName))
 					{
 						Logger.LogTrace<WalletService>($"Filename is not a hash: {fileName}.");
 						continue;
