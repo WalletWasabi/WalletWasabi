@@ -397,10 +397,9 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
-			else
+			else if (!tx.Transaction.SpendsOrReceivesWitness())
 			{
-				if (!tx.Transaction.SpendsOrReceivesWitness())
-					return; // We don't care about non-witness transactions for other than mempool cleanup.
+				return; // We don't care about non-witness transactions for other than mempool cleanup.
 			}
 
 			//iterate tx

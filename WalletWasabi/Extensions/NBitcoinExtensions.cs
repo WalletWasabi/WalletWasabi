@@ -38,13 +38,17 @@ namespace NBitcoin
 		{
 			foreach (TxIn input in me.Inputs)
 			{
-				if (input.ScriptSig == null || input.ScriptSig == Script.Empty)
+				if (input.ScriptSig is null || input.ScriptSig == Script.Empty)
+				{
 					return true;
+				}
 			}
 			foreach (TxOut output in me.Outputs)
 			{
 				if (output.ScriptPubKey.IsWitness)
+				{
 					return true;
+				}
 			}
 			return false;
 		}
