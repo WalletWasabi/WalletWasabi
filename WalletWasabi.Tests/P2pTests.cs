@@ -85,7 +85,8 @@ namespace WalletWasabi.Tests
 				new NodeRequirement
 				{
 					RequiredServices = NodeServices.Network,
-					MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION
+					MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
+					MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
 				});
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");

@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.Protocol;
 using Org.BouncyCastle.Math;
 using System;
 using WalletWasabi.Backend.Models.Responses;
@@ -12,6 +13,8 @@ namespace WalletWasabi.Helpers
 		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(), BackenMajordVersion = BackendMajorVersion };
 
 		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
+
+		public static readonly ProtocolCapabilities MinProtocolCapabilities = new ProtocolCapabilities() { SupportGetBlock = true, SupportWitness = true };
 
 		public const int P2wpkhInputSizeInBytes = 41;
 		public const int P2pkhInputSizeInBytes = 145;

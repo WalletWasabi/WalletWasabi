@@ -183,7 +183,8 @@ namespace WalletWasabi.Gui
 					requirements: new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION
+						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION,
+						MinProtocolCapabilities = Constants.MinProtocolCapabilities
 					});
 				Nodes.ConnectedNodes.Add(Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444)));
 
@@ -196,7 +197,8 @@ namespace WalletWasabi.Gui
 					new NodeRequirement
 					{
 						RequiredServices = NodeServices.Network,
-						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION
+						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION,
+						MinProtocolCapabilities = Constants.MinProtocolCapabilities
 					});
 
 				RegTestMemPoolServingNode = null;
