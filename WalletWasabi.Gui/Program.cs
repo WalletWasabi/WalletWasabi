@@ -76,7 +76,11 @@ namespace WalletWasabi.Gui
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 			{
-				builder.UseAvaloniaNative().UseSkia();
+				builder.UseAvaloniaNative(null, opts=>{
+					opts.UseDeferredRendering = true;
+					opts.UseGpu = true;
+					opts.MacOptions.ShowInDock = true;
+				}).UseSkia();
 			}
 			else
 			{
