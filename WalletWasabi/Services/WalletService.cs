@@ -397,7 +397,11 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
-			if (!tx.Transaction.SpendsOrReceivesWitness()) return; // We don't care about non-witness transactions for other than mempool cleanup.
+			else
+			{
+				if (!tx.Transaction.SpendsOrReceivesWitness()) 
+					return; // We don't care about non-witness transactions for other than mempool cleanup.
+			}
 
 			//iterate tx
 			//	if already have the coin
