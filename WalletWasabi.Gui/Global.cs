@@ -96,7 +96,7 @@ namespace WalletWasabi.Gui
 
 				if (WalletService is null || ChaumianClient is null)
 					return;
-				SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+				SmartCoin[] enqueuedCoins = WalletService.CoinsWhere(x => x.CoinJoinInProgress);
 				if (enqueuedCoins.Any())
 				{
 					Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));

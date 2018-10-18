@@ -52,7 +52,8 @@ namespace WalletWasabi.Services
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 		private AsyncLock WalletBlocksLock { get; }
 
-		public NotifyingConcurrentHashSet<SmartCoin> Coins { get; }
+		public ObservableHashSet<SmartCoin> Coins { get; }
+		private AsyncLock CoinsLock { get; }
 
 		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
 
@@ -87,7 +88,9 @@ namespace WalletWasabi.Services
 			WalletBlocksLock = new AsyncLock();
 			HandleFiltersLock = new AsyncLock();
 
-			Coins = new NotifyingConcurrentHashSet<SmartCoin>();
+			Coins = new ObservableHashSet<SmartCoin>();
+			CoinsLock = new AsyncLock();
+
 			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
@@ -137,6 +140,86 @@ namespace WalletWasabi.Services
 			MemPool.TransactionReceived += MemPool_TransactionReceived;
 		}
 
+		public bool CoinsAny()
+		{
+			using (CoinsLock.Lock())
+			{
+				return Coins.Any();
+			}
+		}
+
+		public bool CoinsEmpty()
+		{
+			using (CoinsLock.Lock())
+			{
+				return !Coins.Any();
+			}
+		}
+
+		public SmartCoin[] CoinsWhere(Func<SmartCoin, bool> predicate)
+		{
+			using (CoinsLock.Lock())
+			{
+				return Coins.Where(predicate).ToArray();
+			}
+		}
+
+		public SmartCoin[] GetCoins()
+		{
+			using (CoinsLock.Lock())
+			{
+				return Coins.ToArray();
+			}
+		}
+
+		public Money CoinsSum(Func<SmartCoin, long?> selector)
+		{
+			using (CoinsLock.Lock())
+			{
+				return Coins.Sum(selector);
+			}
+		}
+
+		public long? CoinsWhereSum(Func<SmartCoin, bool> wherePredicate, Func<SmartCoin, long?> sumSelector)
+		{
+			using (CoinsLock.Lock())
+			{
+				return Coins.Where(wherePredicate).Sum(sumSelector);
+			}
+		}
+
+		public SmartCoin CoinsSingle()
+		{
+			using (CoinsLock.Lock())
+			{
+				return Coins.Single();
+			}
+		}
+
+		public int CoinsCount()
+		{
+			using (CoinsLock.Lock())
+			{
+				return Coins.Count;
+			}
+		}
+
+		public int CoinsCount(Func<SmartCoin, bool> predicate)
+		{
+			using (CoinsLock.Lock())
+			{
+				return Coins.Count(predicate);
+			}
+		}
+
+		public bool CoinsAll(Func<SmartCoin, bool> predicate)
+		{
+			using (CoinsLock.Lock())
+			{
+				return Coins.All(predicate);
+			}
+		}
+
 		private void MemPool_TransactionReceived(object sender, SmartTransaction tx)
 		{
 			ProcessTransaction(tx);
@@ -153,25 +236,44 @@ namespace WalletWasabi.Services
 				ProcessedBlocks.TryRemove(invalidBlockHash, out _);
 				if (elem.Key != default(Height))
 				{
-					foreach (var toRemove in Coins.Where(x => x.Height == elem.Key).ToHashSet())
+					using (CoinsLock.Lock())
 					{
-						RemoveCoinRecursively(toRemove);
+						foreach (var toRemove in Coins.Where(x => x.Height == elem.Key))
+						{
+							RemoveCoinRecursivelyNoLock(toRemove);
+						}
 					}
 				}
 			}
 		}
 
-		private void RemoveCoinRecursively(SmartCoin toRemove)
+		private void RemoveCoinRecursivelyWithLock(SmartCoin toRemove)
+		{
+			using (CoinsLock.Lock())
+			{
+				if (!(toRemove.SpenderTransactionId is null))
+				{
+					foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId))
+					{
+						RemoveCoinRecursivelyNoLock(toAlsoRemove);
+					}
+				}
+
+				Coins.Remove(toRemove);
+			}
+		}
+
+		private void RemoveCoinRecursivelyNoLock(SmartCoin toRemove)
 		{
 			if (!(toRemove.SpenderTransactionId is null))
 			{
-				foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).ToHashSet())
+				foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId))
 				{
-					RemoveCoinRecursively(toAlsoRemove);
+					RemoveCoinRecursivelyNoLock(toAlsoRemove);
 				}
 			}
 
-			Coins.TryRemove(toRemove);
+			Coins.Remove(toRemove);
 		}
 
 		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
@@ -264,7 +366,10 @@ namespace WalletWasabi.Services
 				{
 					var block = await GetOrDownloadBlockAsync(blockRef.Value, CancellationToken.None);
 					ProcessedBlocks.Clear();
-					Coins.Clear();
+					using (CoinsLock.Lock())
+					{
+						Coins.Clear();
+					}
 					ProcessBlock(blockRef.Key, block);
 				}
 			}
@@ -304,12 +409,32 @@ namespace WalletWasabi.Services
 			}
 			var history = current.Concat(new List<SmartCoin> { coin }).ToList(); // the coin is the firs elem in its history
 
-			// If the script is the same then we have a match, no matter of the anonimity set.
-			foreach (var c in Coins)
+			using (CoinsLock.Lock())
 			{
-				if (c.ScriptPubKey == coin.ScriptPubKey)
+				// If the script is the same then we have a match, no matter of the anonimity set.
+				foreach (var c in Coins)
 				{
-					if (!history.Contains(c))
+					if (c.ScriptPubKey == coin.ScriptPubKey)
+					{
+						if (!history.Contains(c))
+						{
+							var h = GetHistory(c, history);
+							foreach (var hr in h)
+							{
+								if (!history.Contains(hr))
+								{
+									history.Add(hr);
+								}
+							}
+						}
+					}
+				}
+
+				// If it spends someone and haven't been sufficiently anonimized.
+				if (coin.AnonymitySet < 50)
+				{
+					var c = Coins.FirstOrDefault(x => x.SpenderTransactionId == coin.TransactionId && !history.Contains(x));
+					if (c != default)
 					{
 						var h = GetHistory(c, history);
 						foreach (var hr in h)
@@ -321,41 +446,24 @@ namespace WalletWasabi.Services
 						}
 					}
 				}
-			}
 
-			// If it spends someone and haven't been sufficiently anonimized.
-			if (coin.AnonymitySet < 50)
-			{
-				var c = Coins.FirstOrDefault(x => x.SpenderTransactionId == coin.TransactionId && !history.Contains(x));
-				if (c != default)
+				// If it's being spent by someone and that someone haven't been sufficiently anonimized.
+				if (!coin.Unspent)
 				{
-					var h = GetHistory(c, history);
-					foreach (var hr in h)
+					var c = Coins.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId && !history.Contains(x));
+					if (c != default)
 					{
-						if (!history.Contains(hr))
+						if (c.AnonymitySet < 50)
 						{
-							history.Add(hr);
-						}
-					}
-				}
-			}
-
-			// If it's being spent by someone and that someone haven't been sufficiently anonimized.
-			if (!coin.Unspent)
-			{
-				var c = Coins.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId && !history.Contains(x));
-				if (c != default)
-				{
-					if (c.AnonymitySet < 50)
-					{
-						if (c != default)
-						{
-							var h = GetHistory(c, history);
-							foreach (var hr in h)
+							if (c != default)
 							{
-								if (!history.Contains(hr))
+								var h = GetHistory(c, history);
+								foreach (var hr in h)
 								{
-									history.Add(hr);
+									if (!history.Contains(hr))
+									{
+										history.Add(hr);
+									}
 								}
 							}
 						}
@@ -419,124 +527,126 @@ namespace WalletWasabi.Services
 			//iterate tx
 			//	if came to our keys
 			//		add coin
-
-			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
+			using (CoinsLock.Lock())
 			{
-				// If we already had it, just update the height. Maybe got from mempool to block or reorged.
-				SmartCoin foundCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
-				if (foundCoin != default)
+				for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
 				{
-					// If tx height is mempool then don't, otherwise update the height.
-					if (tx.Height != Height.MemPool)
+					// If we already had it, just update the height. Maybe got from mempool to block or reorged.
+					SmartCoin foundCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
+					if (foundCoin != default)
 					{
-						foundCoin.Height = tx.Height;
-					}
-				}
-			}
-
-			var doubleSpends = new List<SmartCoin>();
-			foreach (SmartCoin coin in Coins)
-			{
-				var spent = false;
-				foreach (TxoRef spentOutput in coin.SpentOutputs)
-				{
-					foreach (TxIn txin in tx.Transaction.Inputs)
-					{
-						if (spentOutput.TransactionId == txin.PrevOut.Hash && spentOutput.Index == txin.PrevOut.N) // Don't do (spentOutput == txin.PrevOut), it's faster this way, because it won't check for null.
+						// If tx height is mempool then don't, otherwise update the height.
+						if (tx.Height != Height.MemPool)
 						{
-							doubleSpends.Add(coin);
-							spent = true;
-							break;
+							foundCoin.Height = tx.Height;
 						}
 					}
-					if (spent) break;
 				}
-			}
 
-			if (doubleSpends.Any())
-			{
-				if (tx.Height == Height.MemPool)
+				var doubleSpends = new List<SmartCoin>();
+				foreach (SmartCoin coin in Coins)
 				{
-					// if all double spent coins are mempool and RBF
-					if (doubleSpends.All(x => x.RBF && x.Height == Height.MemPool))
+					var spent = false;
+					foreach (TxoRef spentOutput in coin.SpentOutputs)
 					{
-						// remove double spent coins(if other coin spends it, remove that too and so on) // will add later if they came to our keys
+						foreach (TxIn txin in tx.Transaction.Inputs)
+						{
+							if (spentOutput.TransactionId == txin.PrevOut.Hash && spentOutput.Index == txin.PrevOut.N) // Don't do (spentOutput == txin.PrevOut), it's faster this way, because it won't check for null.
+							{
+								doubleSpends.Add(coin);
+								spent = true;
+								break;
+							}
+						}
+						if (spent) break;
+					}
+				}
+
+				if (doubleSpends.Any())
+				{
+					if (tx.Height == Height.MemPool)
+					{
+						// if all double spent coins are mempool and RBF
+						if (doubleSpends.All(x => x.RBF && x.Height == Height.MemPool))
+						{
+							// remove double spent coins(if other coin spends it, remove that too and so on) // will add later if they came to our keys
+							foreach (var doubleSpentCoin in doubleSpends)
+							{
+								RemoveCoinRecursivelyNoLock(doubleSpentCoin);
+							}
+						}
+						else
+						{
+							return;
+						}
+					}
+					else // new confirmation always enjoys priority
+					{
+						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
 						foreach (var doubleSpentCoin in doubleSpends)
 						{
-							RemoveCoinRecursively(doubleSpentCoin);
+							RemoveCoinRecursivelyNoLock(doubleSpentCoin);
 						}
 					}
-					else
-					{
-						return;
-					}
 				}
-				else // new confirmation always enjoys priority
-				{
-					// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
-					foreach (var doubleSpentCoin in doubleSpends)
-					{
-						RemoveCoinRecursively(doubleSpentCoin);
-					}
-				}
-			}
 
-			for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
-			{
-				// If transaction received to any of the wallet keys:
-				var output = tx.Transaction.Outputs[i];
-				HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
-				if (foundKey != default)
+				for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 				{
-					foundKey.SetKeyState(KeyState.Used, KeyManager);
-					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-					var mixin = tx.Transaction.GetMixin(i);
-					if (spentOwnCoins.Count != 0)
+					// If transaction received to any of the wallet keys:
+					var output = tx.Transaction.Outputs[i];
+					HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
+					if (foundKey != default)
 					{
-						mixin += spentOwnCoins.Min(x => x.Mixin);
-					}
-					var coin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false); // Don't inherit locked status from key, that's different.
-					ChaumianClient.State.UpdateCoin(coin);
-					Coins.TryAdd(coin);
-					TransactionCache.Add(tx);
-					CoinReceived?.Invoke(this, coin);
-					if (coin.Unspent && !(ChaumianClient.OnePiece is null) && coin.Label == "ZeroLink Change")
-					{
-						Task.Run(async () =>
+						foundKey.SetKeyState(KeyState.Used, KeyManager);
+						List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+						var mixin = tx.Transaction.GetMixin(i);
+						if (spentOwnCoins.Count != 0)
 						{
-							try
+							mixin += spentOwnCoins.Min(x => x.Mixin);
+						}
+						var coin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false); // Don't inherit locked status from key, that's different.
+						ChaumianClient.State.UpdateCoin(coin);
+						Coins.Add(coin);
+						TransactionCache.Add(tx);
+						CoinReceived?.Invoke(this, coin);
+						if (coin.Unspent && !(ChaumianClient.OnePiece is null) && coin.Label == "ZeroLink Change")
+						{
+							Task.Run(async () =>
 							{
-								await ChaumianClient.QueueCoinsToMixAsync(ChaumianClient.OnePiece, coin);
-							}
-							catch (Exception ex)
-							{
-								Logger.LogError<WalletService>(ex);
-							}
-						});
-					}
+								try
+								{
+									await ChaumianClient.QueueCoinsToMixAsync(ChaumianClient.OnePiece, coin);
+								}
+								catch (Exception ex)
+								{
+									Logger.LogError<WalletService>(ex);
+								}
+							});
+						}
 
-					// Make sure there's always 21 clean keys generated and indexed.
-					KeyManager.AssertCleanKeysIndexed(21, foundKey.IsInternal());
+						// Make sure there's always 21 clean keys generated and indexed.
+						KeyManager.AssertCleanKeysIndexed(21, foundKey.IsInternal());
 
-					if (foundKey.IsInternal())
-					{
-						// Make sure there's always 14 internal locked keys generated and indexed.
-						KeyManager.AssertLockedInternalKeysIndexed(14);
+						if (foundKey.IsInternal())
+						{
+							// Make sure there's always 14 internal locked keys generated and indexed.
+							KeyManager.AssertLockedInternalKeysIndexed(14);
+						}
 					}
 				}
-			}
 
-			// If spends any of our coin
-			for (var i = 0; i < tx.Transaction.Inputs.Count; i++)
-			{
-				var input = tx.Transaction.Inputs[i];
-
-				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
-				if (!(foundCoin is null))
+				// If spends any of our coin
+				for (var i = 0; i < tx.Transaction.Inputs.Count; i++)
 				{
-					foundCoin.SpenderTransactionId = txId;
-					TransactionCache.Add(tx);
-					CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
+					var input = tx.Transaction.Inputs[i];
+
+					var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
+					if (!(foundCoin is null))
+					{
+						foundCoin.SpenderTransactionId = txId;
+						TransactionCache.Add(tx);
+						CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
+					}
 				}
 			}
 		}
@@ -766,213 +876,216 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// Get allowed coins to spend.
-			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
-			if (!(allowedInputs is null)) // If allowedInputs are specified then select the coins from them.
+			using (await CoinsLock.LockAsync())
 			{
-				if (!allowedInputs.Any())
+				// Get allowed coins to spend.
+				List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
+				if (!(allowedInputs is null)) // If allowedInputs are specified then select the coins from them.
 				{
-					throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
-				}
-
-				if (allowUnconfirmed)
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
-				}
-				else
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
-				}
-			}
-			else
-			{
-				if (allowUnconfirmed)
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress).ToList();
-				}
-				else
-				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress && x.Confirmed).ToList();
-				}
-			}
-
-			// 4. Get and calculate fee
-			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
-
-			Money feePerBytes = null;
-			using (var client = new WasabiClient(IndexDownloader.WasabiClient.TorClient.DestinationUri, IndexDownloader.WasabiClient.TorClient.TorSocks5EndPoint))
-			{
-				var fees = await client.GetFeesAsync(feeTarget);
-				Money feeRate = fees.Single().Value.Conservative;
-				Money sanityCheckedFeeRate = Math.Max(feeRate, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
-				feePerBytes = new Money(sanityCheckedFeeRate);
-			}
-
-			bool spendAll = spendAllCount == 1;
-			int inNum;
-			if (spendAll)
-			{
-				inNum = allowedSmartCoinInputs.Count;
-			}
-			else
-			{
-				int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
-				inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Select(x => x.Amount).Sum() + feePerBytes * expectedMinTxSize).Count();
-			}
-
-			// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
-			// https://bitcoin.stackexchange.com/a/46379/26859
-			int outNum = spendAll ? toSend.Length : toSend.Length + 1; // number of addresses to send + 1 for change
-			var origTxSize = inNum * Constants.P2pkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10;
-			var newTxSize = inNum * Constants.P2wpkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10; // BEWARE: This assumes segwit only inputs!
-			var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
-			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
-			Money fee = feePerBytes * vSize;
-			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi.");
-
-			// 5. How much to spend?
-			long toSendAmountSumInSatoshis = toSend.Select(x => x.Amount).Sum(); // Does it work if I simply go with Money class here? Is that copied by reference of value?
-			var realToSend = new (Script script, Money amount, string label)[toSend.Length];
-			for (int i = 0; i < toSend.Length; i++) // clone
-			{
-				realToSend[i] = (
-					new Script(toSend[i].Script.ToString()),
-					new Money(toSend[i].Amount.Satoshi),
-					toSend[i].Label);
-			}
-			for (int i = 0; i < realToSend.Length; i++)
-			{
-				if (realToSend[i].amount == Money.Zero) // means spend all
-				{
-					realToSend[i].amount = allowedSmartCoinInputs.Select(x => x.Amount).Sum();
-
-					realToSend[i].amount -= new Money(toSendAmountSumInSatoshis);
-
-					if (subtractFeeFromAmountIndex is null)
+					if (!allowedInputs.Any())
 					{
-						realToSend[i].amount -= fee;
+						throw new ArgumentException($"{nameof(allowedInputs)} is not null, but empty.");
+					}
+
+					if (allowUnconfirmed)
+					{
+						allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+					}
+					else
+					{
+						allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+					}
+				}
+				else
+				{
+					if (allowUnconfirmed)
+					{
+						allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress).ToList();
+					}
+					else
+					{
+						allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress && x.Confirmed).ToList();
 					}
 				}
 
-				if (subtractFeeFromAmountIndex == i)
+				// 4. Get and calculate fee
+				Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
+
+				Money feePerBytes = null;
+				using (var client = new WasabiClient(IndexDownloader.WasabiClient.TorClient.DestinationUri, IndexDownloader.WasabiClient.TorClient.TorSocks5EndPoint))
 				{
-					realToSend[i].amount -= fee;
+					var fees = await client.GetFeesAsync(feeTarget);
+					Money feeRate = fees.Single().Value.Conservative;
+					Money sanityCheckedFeeRate = Math.Max(feeRate, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
+					feePerBytes = new Money(sanityCheckedFeeRate);
 				}
 
-				if (realToSend[i].amount < Money.Zero)
+				bool spendAll = spendAllCount == 1;
+				int inNum;
+				if (spendAll)
 				{
-					throw new InsufficientBalanceException(fee + 1, realToSend[i].amount + fee);
-				}
-			}
-
-			var toRemoveList = new List<(Script script, Money money, string label)>(realToSend);
-			toRemoveList.RemoveAll(x => x.money == Money.Zero);
-			realToSend = toRemoveList.ToArray();
-
-			// 1. Get the possible changes.
-			Script changeScriptPubKey;
-			var sb = new StringBuilder();
-			foreach (var item in realToSend)
-			{
-				sb.Append(item.label ?? "?");
-				sb.Append(", ");
-			}
-			var changeLabel = $"change of ({sb.ToString().TrimEnd(',', ' ')})";
-
-			if (customChange is null)
-			{
-				KeyManager.AssertCleanKeysIndexed(21, true);
-				KeyManager.AssertLockedInternalKeysIndexed(14);
-				var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
-
-				changeHdPubKey.SetLabel(changeLabel, KeyManager);
-				changeScriptPubKey = changeHdPubKey.GetP2wpkhScript();
-			}
-			else
-			{
-				changeScriptPubKey = customChange;
-			}
-
-			// 6. Do some checks
-			Money totalOutgoingAmountNoFee = realToSend.Select(x => x.amount).Sum();
-			Money totalOutgoingAmount = totalOutgoingAmountNoFee + fee;
-			decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
-
-			if (feePc > 1)
-			{
-				Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount."
-					+ Environment.NewLine + $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC."
-					+ Environment.NewLine + $"Fee:\t\t {fee.Satoshi} Satoshi.");
-			}
-			if (feePc > 100)
-			{
-				throw new InvalidOperationException($"The transaction fee is more than twice as much as your transaction amount: {feePc:0.#}%.");
-			}
-
-			var confirmedAvailableAmount = allowedSmartCoinInputs.Where(x => x.Confirmed).Select(x => x.Amount).Sum();
-			var spendsUnconfirmed = false;
-			if (confirmedAvailableAmount < totalOutgoingAmount)
-			{
-				spendsUnconfirmed = true;
-				Logger.LogInfo<WalletService>("Unconfirmed transaction are being spent.");
-			}
-
-			// 7. Select coins
-			Logger.LogInfo<WalletService>("Selecting coins...");
-			IEnumerable<SmartCoin> coinsToSpend = SelectCoinsToSpend(allowedSmartCoinInputs, totalOutgoingAmount);
-
-			// 8. Get signing keys
-			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(password, coinsToSpend.Select(x => x.ScriptPubKey).ToArray());
-
-			// 9. Build the transaction
-			Logger.LogInfo<WalletService>("Signing transaction...");
-			var builder = new TransactionBuilder();
-			builder = builder
-				.AddCoins(coinsToSpend.Select(x => x.GetCoin()))
-				.AddKeys(signingKeys.ToArray());
-
-			foreach ((Script scriptPubKey, Money amount, string label) output in realToSend)
-			{
-				builder = builder.Send(output.scriptPubKey, output.amount);
-			}
-
-			var tx = builder
-				.SetChange(changeScriptPubKey)
-				.SendFees(fee)
-				.Shuffle()
-				.BuildTransaction(true);
-
-			TransactionPolicyError[] checkResults = builder.Check(tx, fee);
-			if (checkResults.Length > 0)
-			{
-				throw new InvalidTxException(tx, checkResults);
-			}
-
-			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-
-			TxoRef[] spentOutputs = spentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).ToArray();
-
-			var outerWalletOutputs = new List<SmartCoin>();
-			var innerWalletOutputs = new List<SmartCoin>();
-			for (var i = 0U; i < tx.Outputs.Count; i++)
-			{
-				TxOut output = tx.Outputs[i];
-				var mixin = tx.GetMixin(i) + spentCoins.Min(x => x.Mixin);
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, mixin);
-				if (KeyManager.GetKeys(KeyState.Clean).Select(x => x.GetP2wpkhScript()).Contains(coin.ScriptPubKey))
-				{
-					coin.Label = changeLabel;
-					innerWalletOutputs.Add(coin);
+					inNum = allowedSmartCoinInputs.Count;
 				}
 				else
 				{
-					outerWalletOutputs.Add(coin);
+					int expectedMinTxSize = 1 * Constants.P2wpkhInputSizeInBytes + 1 * Constants.OutputSizeInBytes + 10;
+					inNum = SelectCoinsToSpend(allowedSmartCoinInputs, toSend.Select(x => x.Amount).Sum() + feePerBytes * expectedMinTxSize).Count();
 				}
+
+				// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
+				// https://bitcoin.stackexchange.com/a/46379/26859
+				int outNum = spendAll ? toSend.Length : toSend.Length + 1; // number of addresses to send + 1 for change
+				var origTxSize = inNum * Constants.P2pkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10;
+				var newTxSize = inNum * Constants.P2wpkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10; // BEWARE: This assumes segwit only inputs!
+				var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
+				Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
+				Money fee = feePerBytes * vSize;
+				Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi.");
+
+				// 5. How much to spend?
+				long toSendAmountSumInSatoshis = toSend.Select(x => x.Amount).Sum(); // Does it work if I simply go with Money class here? Is that copied by reference of value?
+				var realToSend = new (Script script, Money amount, string label)[toSend.Length];
+				for (int i = 0; i < toSend.Length; i++) // clone
+				{
+					realToSend[i] = (
+						new Script(toSend[i].Script.ToString()),
+						new Money(toSend[i].Amount.Satoshi),
+						toSend[i].Label);
+				}
+				for (int i = 0; i < realToSend.Length; i++)
+				{
+					if (realToSend[i].amount == Money.Zero) // means spend all
+					{
+						realToSend[i].amount = allowedSmartCoinInputs.Select(x => x.Amount).Sum();
+
+						realToSend[i].amount -= new Money(toSendAmountSumInSatoshis);
+
+						if (subtractFeeFromAmountIndex is null)
+						{
+							realToSend[i].amount -= fee;
+						}
+					}
+
+					if (subtractFeeFromAmountIndex == i)
+					{
+						realToSend[i].amount -= fee;
+					}
+
+					if (realToSend[i].amount < Money.Zero)
+					{
+						throw new InsufficientBalanceException(fee + 1, realToSend[i].amount + fee);
+					}
+				}
+
+				var toRemoveList = new List<(Script script, Money money, string label)>(realToSend);
+				toRemoveList.RemoveAll(x => x.money == Money.Zero);
+				realToSend = toRemoveList.ToArray();
+
+				// 1. Get the possible changes.
+				Script changeScriptPubKey;
+				var sb = new StringBuilder();
+				foreach (var item in realToSend)
+				{
+					sb.Append(item.label ?? "?");
+					sb.Append(", ");
+				}
+				var changeLabel = $"change of ({sb.ToString().TrimEnd(',', ' ')})";
+
+				if (customChange is null)
+				{
+					KeyManager.AssertCleanKeysIndexed(21, true);
+					KeyManager.AssertLockedInternalKeysIndexed(14);
+					var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
+
+					changeHdPubKey.SetLabel(changeLabel, KeyManager);
+					changeScriptPubKey = changeHdPubKey.GetP2wpkhScript();
+				}
+				else
+				{
+					changeScriptPubKey = customChange;
+				}
+
+				// 6. Do some checks
+				Money totalOutgoingAmountNoFee = realToSend.Select(x => x.amount).Sum();
+				Money totalOutgoingAmount = totalOutgoingAmountNoFee + fee;
+				decimal feePc = (100 * fee.ToDecimal(MoneyUnit.BTC)) / totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
+
+				if (feePc > 1)
+				{
+					Logger.LogInfo<WalletService>($"The transaction fee is {feePc:0.#}% of your transaction amount."
+						+ Environment.NewLine + $"Sending:\t {totalOutgoingAmount.ToString(fplus: false, trimExcessZero: true)} BTC."
+						+ Environment.NewLine + $"Fee:\t\t {fee.Satoshi} Satoshi.");
+				}
+				if (feePc > 100)
+				{
+					throw new InvalidOperationException($"The transaction fee is more than twice as much as your transaction amount: {feePc:0.#}%.");
+				}
+
+				var confirmedAvailableAmount = allowedSmartCoinInputs.Where(x => x.Confirmed).Select(x => x.Amount).Sum();
+				var spendsUnconfirmed = false;
+				if (confirmedAvailableAmount < totalOutgoingAmount)
+				{
+					spendsUnconfirmed = true;
+					Logger.LogInfo<WalletService>("Unconfirmed transaction are being spent.");
+				}
+
+				// 7. Select coins
+				Logger.LogInfo<WalletService>("Selecting coins...");
+				IEnumerable<SmartCoin> coinsToSpend = SelectCoinsToSpend(allowedSmartCoinInputs, totalOutgoingAmount);
+
+				// 8. Get signing keys
+				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(password, coinsToSpend.Select(x => x.ScriptPubKey).ToArray());
+
+				// 9. Build the transaction
+				Logger.LogInfo<WalletService>("Signing transaction...");
+				var builder = new TransactionBuilder();
+				builder = builder
+					.AddCoins(coinsToSpend.Select(x => x.GetCoin()))
+					.AddKeys(signingKeys.ToArray());
+
+				foreach ((Script scriptPubKey, Money amount, string label) output in realToSend)
+				{
+					builder = builder.Send(output.scriptPubKey, output.amount);
+				}
+
+				var tx = builder
+					.SetChange(changeScriptPubKey)
+					.SendFees(fee)
+					.Shuffle()
+					.BuildTransaction(true);
+
+				TransactionPolicyError[] checkResults = builder.Check(tx, fee);
+				if (checkResults.Length > 0)
+				{
+					throw new InvalidTxException(tx, checkResults);
+				}
+
+				List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+
+				TxoRef[] spentOutputs = spentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).ToArray();
+
+				var outerWalletOutputs = new List<SmartCoin>();
+				var innerWalletOutputs = new List<SmartCoin>();
+				for (var i = 0U; i < tx.Outputs.Count; i++)
+				{
+					TxOut output = tx.Outputs[i];
+					var mixin = tx.GetMixin(i) + spentCoins.Min(x => x.Mixin);
+					var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, mixin);
+					if (KeyManager.GetKeys(KeyState.Clean).Select(x => x.GetP2wpkhScript()).Contains(coin.ScriptPubKey))
+					{
+						coin.Label = changeLabel;
+						innerWalletOutputs.Add(coin);
+					}
+					else
+					{
+						outerWalletOutputs.Add(coin);
+					}
+				}
+
+				Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
+
+				return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), spendsUnconfirmed, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 			}
-
-			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
-
-			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), spendsUnconfirmed, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 
 		private IEnumerable<SmartCoin> SelectCoinsToSpend(IEnumerable<SmartCoin> unspentCoins, Money totalOutAmount)

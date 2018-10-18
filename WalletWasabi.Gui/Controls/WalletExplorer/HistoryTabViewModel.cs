@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Transactions = new ObservableCollection<TransactionViewModel>();
 			RewriteTable();
 
-			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged));
+			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
 			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
 			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
 
@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void RewriteTable()
 		{
 			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)>();
-			foreach (SmartCoin coin in Global.WalletService.Coins)
+			foreach (SmartCoin coin in Global.WalletService.GetCoins())
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 				SmartTransaction foundTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.TransactionId);

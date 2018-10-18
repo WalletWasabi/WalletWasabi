@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletViewModel(string name, bool receiveDominant)
 			: base(name)
 		{
-			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged));
+			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
 			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
 
 			coinsChanged
@@ -77,7 +77,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetBalance(string walletName)
 		{
-			Money balance = Global.WalletService.Coins.Where(c => c.Unspent).Sum(c => (long?)c.Amount) ?? 0;
+			Money balance = Global.WalletService.CoinsWhereSum(x => x.Unspent, y => y.Amount) ?? 0;
 			Title = $"{walletName} ({balance.ToString(false, true)} BTC)";
 		}
 	}
