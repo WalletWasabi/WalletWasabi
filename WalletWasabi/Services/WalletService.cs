@@ -181,7 +181,11 @@ namespace WalletWasabi.Services
 			{
 				if (!(filterModel.Filter is null) && !WalletBlocks.ContainsValue(filterModel.BlockHash))
 				{
-					await ProcessFilterModelAsync(filterModel, CancellationToken.None);
+					List<byte[]> scriptsToMatch = KeyManager.GetPubKeyScriptBytes().ToList();
+
+					bool matchFound = filterModel.Filter.MatchAny(scriptsToMatch, filterModel.FilterKey);
+					if(matchFound)
+						await ProcessFilterModelAsync(filterModel, CancellationToken.None);
 				}
 			}
 			NewFilterProcessed?.Invoke(this, filterModel);
@@ -214,7 +218,7 @@ namespace WalletWasabi.Services
 						matchedFilterTasks.Add(task);
 					}
 				}
-				Task.WaitAll(matchedFilterTasks.ToArray());
+				await Task.WhenAll(matchedFilterTasks.ToArray());
 				IOrderedEnumerable<FilterModel> filtersToProcess = matchedFilterTasks.Select(x=>x.Result).Where(x=>x!=null).OrderBy(x=>x.BlockHeight.Value);
 
 				foreach(FilterModel filterModel in filtersToProcess)
