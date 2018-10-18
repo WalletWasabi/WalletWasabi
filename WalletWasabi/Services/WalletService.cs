@@ -200,7 +200,24 @@ namespace WalletWasabi.Services
 				// Go through the filters and que to download the matches.
 				var filters = IndexDownloader.GetFiltersIncluding(IndexDownloader.StartingFilter.BlockHeight);
 
+				List<byte[]> scriptsToMatch = KeyManager.GetPubKeyScriptBytes().ToList();
+				List<Task<FilterModel>> matchedFilterTasks = new List<Task<FilterModel>>();
+
 				foreach (FilterModel filterModel in filters.Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
+				{
+					if (!ProcessedBlocks.ContainsKey(filterModel.BlockHash))
+					{
+						var task = Task.Run(()=>{
+							var matchFound = filterModel.Filter.MatchAny(scriptsToMatch, filterModel.FilterKey);
+							return matchFound ? filterModel : null;
+						});
+						matchedFilterTasks.Add(task);
+					}
+				}
+				Task.WaitAll(matchedFilterTasks.ToArray());
+				IOrderedEnumerable<FilterModel> filtersToProcess = matchedFilterTasks.Select(x=>x.Result).Where(x=>x!=null).OrderBy(x=>x.BlockHeight.Value);
+
+				foreach(FilterModel filterModel in filtersToProcess)
 				{
 					await ProcessFilterModelAsync(filterModel, cancel);
 				}
@@ -240,12 +257,6 @@ namespace WalletWasabi.Services
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
 		{
 			if (ProcessedBlocks.ContainsKey(filterModel.BlockHash))
-			{
-				return;
-			}
-
-			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
-			if (!matchFound)
 			{
 				return;
 			}
