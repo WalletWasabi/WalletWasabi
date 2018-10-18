@@ -184,8 +184,10 @@ namespace WalletWasabi.Services
 					List<byte[]> scriptsToMatch = KeyManager.GetPubKeyScriptBytes().ToList();
 
 					bool matchFound = filterModel.Filter.MatchAny(scriptsToMatch, filterModel.FilterKey);
-					if(matchFound)
+					if (matchFound)
+					{
 						await ProcessFilterModelAsync(filterModel, CancellationToken.None);
+					}
 				}
 			}
 			NewFilterProcessed?.Invoke(this, filterModel);
@@ -205,23 +207,25 @@ namespace WalletWasabi.Services
 				var filters = IndexDownloader.GetFiltersIncluding(IndexDownloader.StartingFilter.BlockHeight);
 
 				List<byte[]> scriptsToMatch = KeyManager.GetPubKeyScriptBytes().ToList();
-				List<Task<FilterModel>> matchedFilterTasks = new List<Task<FilterModel>>();
+				var matchedFilters = new List<FilterModel>();
+				var matchedFiltersLock = new object();
 
-				foreach (FilterModel filterModel in filters.Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
+				Parallel.ForEach(filters.Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash)), filterModel => // Filter can be null if there is no bech32 tx.
 				{
 					if (!ProcessedBlocks.ContainsKey(filterModel.BlockHash))
 					{
-						var task = Task.Run(()=>{
-							var matchFound = filterModel.Filter.MatchAny(scriptsToMatch, filterModel.FilterKey);
-							return matchFound ? filterModel : null;
-						});
-						matchedFilterTasks.Add(task);
+						var matchFound = filterModel.Filter.MatchAny(scriptsToMatch, filterModel.FilterKey);
+						if (matchFound)
+						{
+							lock (matchedFiltersLock)
+							{
+								matchedFilters.Add(filterModel);
+							}
+						}
 					}
-				}
-				await Task.WhenAll(matchedFilterTasks.ToArray());
-				IOrderedEnumerable<FilterModel> filtersToProcess = matchedFilterTasks.Select(x=>x.Result).Where(x=>x!=null).OrderBy(x=>x.BlockHeight.Value);
+				});
 
-				foreach(FilterModel filterModel in filtersToProcess)
+				foreach (FilterModel filterModel in matchedFilters.OrderBy(x => x.BlockHeight))
 				{
 					await ProcessFilterModelAsync(filterModel, cancel);
 				}
