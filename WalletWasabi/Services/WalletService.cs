@@ -181,7 +181,13 @@ namespace WalletWasabi.Services
 			{
 				if (!(filterModel.Filter is null) && !WalletBlocks.ContainsValue(filterModel.BlockHash))
 				{
-					await ProcessFilterModelAsync(filterModel, CancellationToken.None);
+					List<byte[]> scriptsToMatch = KeyManager.GetPubKeyScriptBytes().ToList();
+
+					bool matchFound = filterModel.Filter.MatchAny(scriptsToMatch, filterModel.FilterKey);
+					if (matchFound)
+					{
+						await ProcessFilterModelAsync(filterModel, CancellationToken.None);
+					}
 				}
 			}
 			NewFilterProcessed?.Invoke(this, filterModel);
@@ -200,7 +206,26 @@ namespace WalletWasabi.Services
 				// Go through the filters and que to download the matches.
 				var filters = IndexDownloader.GetFiltersIncluding(IndexDownloader.StartingFilter.BlockHeight);
 
-				foreach (FilterModel filterModel in filters.Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
+				List<byte[]> scriptsToMatch = KeyManager.GetPubKeyScriptBytes().ToList();
+				var matchedFilters = new List<FilterModel>();
+				var matchedFiltersLock = new object();
+
+				Parallel.ForEach(filters.Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash)), filterModel => // Filter can be null if there is no bech32 tx.
+				{
+					if (!ProcessedBlocks.ContainsKey(filterModel.BlockHash))
+					{
+						var matchFound = filterModel.Filter.MatchAny(scriptsToMatch, filterModel.FilterKey);
+						if (matchFound)
+						{
+							lock (matchedFiltersLock)
+							{
+								matchedFilters.Add(filterModel);
+							}
+						}
+					}
+				});
+
+				foreach (FilterModel filterModel in matchedFilters.OrderBy(x => x.BlockHeight))
 				{
 					await ProcessFilterModelAsync(filterModel, cancel);
 				}
@@ -240,12 +265,6 @@ namespace WalletWasabi.Services
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
 		{
 			if (ProcessedBlocks.ContainsKey(filterModel.BlockHash))
-			{
-				return;
-			}
-
-			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
-			if (!matchFound)
 			{
 				return;
 			}
