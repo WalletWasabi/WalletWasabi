@@ -181,7 +181,7 @@ namespace WalletWasabi.Services
 			{
 				if (!(filterModel.Filter is null) && !WalletBlocks.ContainsValue(filterModel.BlockHash))
 				{
-					await ProcessFilterModelAsync(filterModel, CancellationToken.None);
+					await ProcessFilterModelAsync(filterModel, false, CancellationToken.None);
 				}
 			}
 			NewFilterProcessed?.Invoke(this, filterModel);
@@ -200,9 +200,32 @@ namespace WalletWasabi.Services
 				// Go through the filters and que to download the matches.
 				var filters = IndexDownloader.GetFiltersIncluding(IndexDownloader.StartingFilter.BlockHeight);
 
-				foreach (FilterModel filterModel in filters.Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
+				List<byte[]> scriptsToMatch = KeyManager.GetPubKeyScriptBytes().ToList();
+				var matchedFilters = new List<FilterModel>();
+				var matchedFiltersLock = new object();
+
+				var filtersMayMatch = filters.Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash)); // Filter can be null if there is no bech32 tx.
+
+				Parallel.ForEach(filtersMayMatch, filterModel =>
 				{
-					await ProcessFilterModelAsync(filterModel, cancel);
+					if (ProcessedBlocks.ContainsKey(filterModel.BlockHash))
+					{
+						return;
+					}
+
+					var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
+					if (matchFound)
+					{
+						lock (matchedFiltersLock)
+						{
+							matchedFilters.Add(filterModel);
+						}
+					}
+				});
+
+				foreach (FilterModel filterModel in matchedFilters.OrderBy(x => x.BlockHeight))
+				{
+					await ProcessFilterModelAsync(filterModel, true, cancel);
 				}
 
 				// Load in dummy mempool
@@ -237,17 +260,20 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
+		private async Task ProcessFilterModelAsync(FilterModel filterModel, bool knownMatch, CancellationToken cancel)
 		{
-			if (ProcessedBlocks.ContainsKey(filterModel.BlockHash))
+			if (!knownMatch)
 			{
-				return;
-			}
+				if (ProcessedBlocks.ContainsKey(filterModel.BlockHash))
+				{
+					return;
+				}
 
-			var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
-			if (!matchFound)
-			{
-				return;
+				var matchFound = filterModel.Filter.MatchAny(KeyManager.GetPubKeyScriptBytes(), filterModel.FilterKey);
+				if (!matchFound)
+				{
+					return;
+				}
 			}
 
 			Block currentBlock = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
