@@ -618,7 +618,7 @@ namespace WalletWasabi.Backend.Controllers
 								}
 
 								// Check duplicates.
-								if (round.SignedCoinJoin.Inputs[index].HasWitness())
+								if (round.SignedCoinJoin.Inputs[index].HasWitScript())
 								{
 									return BadRequest($"Input is already signed.");
 								}

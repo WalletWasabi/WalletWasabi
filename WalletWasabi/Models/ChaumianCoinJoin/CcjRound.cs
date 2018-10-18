@@ -717,7 +717,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			using (await RoundSynchronizerLock.LockAsync())
 			{
 				// Check if fully signed.
-				if (SignedCoinJoin.Inputs.All(x => x.HasWitness()))
+				if (SignedCoinJoin.Inputs.All(x => x.HasWitScript()))
 				{
 					Logger.LogInfo<CcjRound>($"Round ({RoundId}): Trying to broadcast coinjoin.");
 

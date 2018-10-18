@@ -385,7 +385,7 @@ namespace WalletWasabi.Services
 			if (tx.Height.Type == HeightType.Chain)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				if (!tx.Transaction.SpendsOrReceivesWitness()) return; // We don't care about non-witness transactions for other than mempool cleanup.
+				if (!tx.Transaction.PossiblyNativeSegWitInvolved()) return; // We don't care about non-witness transactions for other than mempool cleanup.
 
 				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
 				if (isFoundTx)
@@ -397,7 +397,7 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
-			else if (!tx.Transaction.SpendsOrReceivesWitness())
+			else if (!tx.Transaction.PossiblyNativeSegWitInvolved())
 			{
 				return; // We don't care about non-witness transactions for other than mempool cleanup.
 			}

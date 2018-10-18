@@ -34,8 +34,14 @@ namespace NBitcoin
 			me.FromBytes(ByteHelpers.FromHex(hex));
 		}
 
-		public static bool SpendsOrReceivesWitness(this Transaction me)
+		/// <summary>
+		/// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
+		/// </summary>
+		public static bool PossiblyNativeSegWitInvolved(this Transaction me)
 		{
+			// We omit Guard, because it's performance critical in Wasabi.
+			// We start with the inputs, because, this check is faster.
+			// Note: by testing performance the order doesn't seem to affect the speed of loading the wallet.
 			foreach (TxIn input in me.Inputs)
 			{
 				if (input.ScriptSig is null || input.ScriptSig == Script.Empty)
@@ -75,7 +81,7 @@ namespace NBitcoin
 		/// <summary>
 		/// Careful, if it's in a legacy block then this won't work.
 		/// </summary>
-		public static bool HasWitness(this TxIn me)
+		public static bool HasWitScript(this TxIn me)
 		{
 			Guard.NotNull(nameof(me), me);
 
