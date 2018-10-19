@@ -655,29 +655,63 @@ namespace WalletWasabi.Services
 
 		public async Task DequeueCoinsFromMixAsync(params SmartCoin[] coins)
 		{
-			using (await MixLock.LockAsync())
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
-				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+				try
+				{
+					using (await MixLock.LockAsync(cts.Token))
+					{
+						await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
-				await DequeueCoinsFromMixNoLockAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
+						await DequeueCoinsFromMixNoLockAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
+					}
+				}
+				catch (TaskCanceledException)
+				{
+					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+
+					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
+				}
 			}
 		}
 
 		public async Task DequeueCoinsFromMixAsync(params (uint256 txid, uint index)[] coins)
 		{
-			using (await MixLock.LockAsync())
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
-				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+				try
+				{
+					using (await MixLock.LockAsync(cts.Token))
+					{
+						await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
-				await DequeueCoinsFromMixNoLockAsync(coins);
+						await DequeueCoinsFromMixNoLockAsync(coins);
+					}
+				}
+				catch (TaskCanceledException)
+				{
+					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+
+					await DequeueCoinsFromMixNoLockAsync(coins);
+				}
 			}
 		}
 
 		public async Task DequeueAllCoinsFromMixAsync()
 		{
-			using (await MixLock.LockAsync())
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
-				await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray());
+				try
+				{
+					using (await MixLock.LockAsync(cts.Token))
+					{
+						await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray());
+					}
+				}
+				catch (TaskCanceledException)
+				{
+					await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray());
+				}
 			}
 		}
 
