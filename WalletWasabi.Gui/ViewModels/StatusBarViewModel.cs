@@ -16,6 +16,7 @@ using AvalonStudio.Shell;
 using WalletWasabi.Gui.Tabs;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Dialogs;
+using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -235,8 +236,13 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 				else
 				{
-					// Show GenSocksServFail dialog.
-					MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter();
+					// Show GenSocksServFail dialog on OS-es we suspect Tor is outdated.
+					var osDesc = RuntimeInformation.OSDescription;
+					if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
+						|| osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
+					{
+						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter();
+					}
 				}
 			}
 			else
