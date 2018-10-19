@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			_addresses = new ObservableCollection<AddressViewModel>();
 
-			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
+			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(o =>
 			{
