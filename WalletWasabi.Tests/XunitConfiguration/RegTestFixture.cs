@@ -2,15 +2,11 @@
 using Microsoft.AspNetCore.Hosting;
 using NBitcoin;
 using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
 using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Tests.NodeBuilding;
-using Xunit;
 
 namespace WalletWasabi.Tests.XunitConfiguration
 {
@@ -52,20 +48,6 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)
-			string[] methods = GetMethodNames();
-			foreach (string name in methods)
-			{
-				string folder = Path.Combine(SharedFixture.DataDir, name);
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder).GetAwaiter().GetResult();
-				Directory.CreateDirectory(folder);
-			}
-		}
-
-		private static string[] GetMethodNames()
-		{
-			return typeof(RegTests).GetMethods().Where(x => !x.IsConstructor && x.IsPublic).Select(x => x.Name)
-				.Except(typeof(object).GetMethods().Select(x => x.Name))
-				.Distinct().ToArray();
 		}
 
 		public void Dispose()
@@ -76,13 +58,6 @@ namespace WalletWasabi.Tests.XunitConfiguration
 			BackendHost?.Dispose();
 			BackendRegTestNode?.Kill(cleanFolder: true);
 			BackendNodeBuilder?.Dispose();
-
-			string[] methods = GetMethodNames();
-			foreach (string name in methods)
-			{
-				string folder = Path.Combine(SharedFixture.DataDir, name);
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder).GetAwaiter().GetResult();
-			}
 		}
 	}
 }
