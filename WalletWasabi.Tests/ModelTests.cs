@@ -1,8 +1,10 @@
 ﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.XunitConfiguration;
@@ -10,11 +12,11 @@ using Xunit;
 
 namespace WalletWasabi.Tests
 {
-	public class SmartModelTests : IClassFixture<SharedFixture>
+	public class ModelTests : IClassFixture<SharedFixture>
 	{
 		private SharedFixture SharedFixture { get; }
 
-		public SmartModelTests(SharedFixture sharedFixture)
+		public ModelTests(SharedFixture sharedFixture)
 		{
 			SharedFixture = sharedFixture;
 		}
@@ -146,6 +148,108 @@ namespace WalletWasabi.Tests
 			for (int i = 0; i < coin.SpentOutputs.Length; i++)
 			{
 				Assert.Equal(coin.SpentOutputs[0], deserialized.SpentOutputs[0]);
+			}
+		}
+
+		[Fact]
+		[Trait("Category", "RunOnCi")]
+		public void ObservableConcurrentHashSetTest()
+		{
+			var set = new ObservableConcurrentHashSet<int>();
+
+			set.CollectionChanged += Set_CollectionChanged;
+			try
+			{
+				// CollectionChanged fire 1
+				set.TryAdd(1);
+				Assert.Contains(1, set);
+				Assert.Single(set);
+
+				// CollectionChanged don't fire
+				set.TryAdd(1);
+				Assert.Contains(1, set);
+				Assert.Single(set);
+
+				// CollectionChanged don't fire
+				set.TryRemove(2);
+				Assert.Single(set);
+
+				// CollectionChanged fire 2
+				set.TryAdd(2);
+				Assert.Contains(2, set);
+				Assert.Equal(2, set.Count);
+
+				// CollectionChanged fire 3
+				set.TryRemove(2);
+				Assert.Contains(1, set);
+				Assert.DoesNotContain(2, set);
+				Assert.Single(set);
+
+				// CollectionChanged fire 4
+				set.TryAdd(3);
+				Assert.Contains(1, set);
+				Assert.Contains(3, set);
+				Assert.Equal(2, set.Count);
+
+				// CollectionChanged fire 5
+				set.Clear();
+				Assert.NotNull(set);
+				Assert.Empty(set);
+			}
+			finally
+			{
+				set.CollectionChanged -= Set_CollectionChanged;
+			}
+		}
+
+		private long _set_CollectionChanged_InvokeCount = 0;
+
+		private void Set_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+		{
+			Interlocked.Increment(ref _set_CollectionChanged_InvokeCount);
+
+			switch (Interlocked.Read(ref _set_CollectionChanged_InvokeCount))
+			{
+				case 1:
+					{
+						Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+						Assert.Single(e.NewItems);
+						Assert.Null(e.OldItems);
+						Assert.Equal(1, e.NewItems[0]);
+						break;
+					}
+				case 2:
+					{
+						Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+						Assert.Single(e.NewItems);
+						Assert.Null(e.OldItems);
+						Assert.Equal(2, e.NewItems[0]);
+						break;
+					}
+				case 3:
+					{
+						Assert.Equal(NotifyCollectionChangedAction.Remove, e.Action);
+						Assert.Null(e.NewItems);
+						Assert.Single(e.OldItems);
+						Assert.Equal(2, e.OldItems[0]);
+						break;
+					}
+				case 4:
+					{
+						Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+						Assert.Single(e.NewItems);
+						Assert.Null(e.OldItems);
+						Assert.Equal(3, e.NewItems[0]);
+						break;
+					}
+				case 5:
+					{
+						Assert.Equal(NotifyCollectionChangedAction.Reset, e.Action);
+						Assert.Null(e.NewItems);
+						Assert.Null(e.OldItems); // "Reset action must be initialized with no changed items."
+						break;
+					}
+				default: throw new NotSupportedException();
 			}
 		}
 	}

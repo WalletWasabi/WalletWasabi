@@ -1202,7 +1202,7 @@ namespace WalletWasabi.Tests
 				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, true));
 
 				// Add new money with no confirmation
-				var txid2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+				var txid2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(2m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
