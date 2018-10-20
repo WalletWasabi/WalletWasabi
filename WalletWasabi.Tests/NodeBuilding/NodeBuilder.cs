@@ -16,23 +16,29 @@ namespace WalletWasabi.Tests.NodeBuilding
 	public class NodeBuilder : IDisposable
 	{
 		public static readonly AsyncLock Lock = new AsyncLock();
+		public static string WorkingDirectory { get; private set; }
 
 		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.17.0")
 		{
 			using (await Lock.LockAsync())
 			{
-				var directory = Path.Combine(SharedFixture.DataDir, caller);
+				WorkingDirectory = Path.Combine(SharedFixture.DataDir, caller);
 				version = version ?? "0.17.0";
 				var path = await EnsureDownloadedAsync(version);
-				try
-				{
-					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(directory);
-				}
-				catch (DirectoryNotFoundException)
-				{
-				}
-				Directory.CreateDirectory(directory);
-				return new NodeBuilder(directory, path);
+				await TryRemoveWorkingDirectoryAsync();
+				Directory.CreateDirectory(WorkingDirectory);
+				return new NodeBuilder(WorkingDirectory, path);
+			}
+		}
+
+		private static async Task TryRemoveWorkingDirectoryAsync()
+		{
+			try
+			{
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(WorkingDirectory);
+			}
+			catch (DirectoryNotFoundException)
+			{
 			}
 		}
 
@@ -146,10 +152,17 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		public void Dispose()
 		{
-			foreach (var node in Nodes)
+			foreach (CoreNode node in Nodes)
+			{
 				node.Kill();
-			foreach (var disposable in _disposables)
+			}
+
+			foreach (IDisposable disposable in _disposables)
+			{
 				disposable.Dispose();
+			}
+
+			TryRemoveWorkingDirectoryAsync().GetAwaiter().GetResult();
 		}
 
 		private List<IDisposable> _disposables = new List<IDisposable>();
