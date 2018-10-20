@@ -16,23 +16,29 @@ namespace WalletWasabi.Tests.NodeBuilding
 	public class NodeBuilder : IDisposable
 	{
 		public static readonly AsyncLock Lock = new AsyncLock();
+		public static string WorkingDirectory { get; private set; }
 
 		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.17.0")
 		{
 			using (await Lock.LockAsync())
 			{
-				var directory = Path.Combine(SharedFixture.DataDir, caller);
+				WorkingDirectory = Path.Combine(SharedFixture.DataDir, caller);
 				version = version ?? "0.17.0";
 				var path = await EnsureDownloadedAsync(version);
-				try
-				{
-					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(directory);
-				}
-				catch (DirectoryNotFoundException)
-				{
-				}
-				Directory.CreateDirectory(directory);
-				return new NodeBuilder(directory, path);
+				await TryRemoveWorkingDirectoryAsync();
+				Directory.CreateDirectory(WorkingDirectory);
+				return new NodeBuilder(WorkingDirectory, path);
+			}
+		}
+
+		private static async Task TryRemoveWorkingDirectoryAsync()
+		{
+			try
+			{
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(WorkingDirectory);
+			}
+			catch (DirectoryNotFoundException)
+			{
 			}
 		}
 
@@ -46,11 +52,27 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 			string zip;
 			string bitcoind;
+			string bitcoindFolderName = $"bitcoin-{version}";
+
+			// Remove old bitcoind folders.
+			IEnumerable<string> existingBitcoindFolderPaths = Directory.EnumerateDirectories(SharedFixture.DataDir, "bitcoin-*", SearchOption.TopDirectoryOnly);
+			foreach (string dirPath in existingBitcoindFolderPaths)
+			{
+				string dirName = Path.GetFileName(dirPath);
+				if (bitcoindFolderName != dirName)
+				{
+					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dirPath);
+				}
+			}
+
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				bitcoind = Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}", "bin", "bitcoind.exe");
+				bitcoind = Path.Combine(SharedFixture.DataDir, bitcoindFolderName, "bin", "bitcoind.exe");
 				if (File.Exists(bitcoind))
+				{
 					return bitcoind;
+				}
+
 				zip = Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-win32.zip");
 				var url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
 				using (var client = new HttpClient())
@@ -63,9 +85,11 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 			else
 			{
-				bitcoind = Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}", "bin", "bitcoind");
+				bitcoind = Path.Combine(SharedFixture.DataDir, bitcoindFolderName, "bin", "bitcoind");
 				if (File.Exists(bitcoind))
+				{
 					return bitcoind;
+				}
 
 				zip = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
 					Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
@@ -128,10 +152,17 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		public void Dispose()
 		{
-			foreach (var node in Nodes)
+			foreach (CoreNode node in Nodes)
+			{
 				node.Kill();
-			foreach (var disposable in _disposables)
+			}
+
+			foreach (IDisposable disposable in _disposables)
+			{
 				disposable.Dispose();
+			}
+
+			TryRemoveWorkingDirectoryAsync().GetAwaiter().GetResult();
 		}
 
 		private List<IDisposable> _disposables = new List<IDisposable>();

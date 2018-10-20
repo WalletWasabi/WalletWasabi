@@ -22,7 +22,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 		public RegTestFixture()
 		{
-			BackendNodeBuilder = NodeBuilder.CreateAsync().GetAwaiter().GetResult();
+			BackendNodeBuilder = NodeBuilder.CreateAsync(nameof(RegTestFixture)).GetAwaiter().GetResult();
 			BackendNodeBuilder.CreateNodeAsync().GetAwaiter().GetResult();
 			BackendNodeBuilder.StartAllAsync().GetAwaiter().GetResult();
 			BackendRegTestNode = BackendNodeBuilder.Nodes[0];
