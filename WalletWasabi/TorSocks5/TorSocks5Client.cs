@@ -95,18 +95,18 @@ namespace WalletWasabi.TorSocks5
 				}
 				// ex.Message must be checked, because I'm having difficulty catching SocketExceptionFactory+ExtendedSocketException
 				catch (Exception ex) when (ex.Message.StartsWith(
-					                           "No connection could be made because the target machine actively refused it")
-				                           || ex.Message.StartsWith("Connection refused"))
+											   "No connection could be made because the target machine actively refused it")
+										   || ex.Message.StartsWith("Connection refused"))
 				{
 					error = ex;
 				}
-				catch (SocketException ex) when(ex.ErrorCode == 10061)
+				catch (SocketException ex) when (ex.ErrorCode == 10061)
 				{
 					error = ex;
 				}
-				if (error!=null)
+				if (error != null)
 					throw new ConnectionException(
-						$"Couldn't connect to Tor SOCKSPort at {TorSocks5EndPoint.Address}:{TorSocks5EndPoint.Port}. Is Tor running?",error);
+						$"Couldn't connect to Tor SOCKSPort at {TorSocks5EndPoint.Address}:{TorSocks5EndPoint.Port}. Is Tor running?", error);
 
 				Stream = TcpClient.GetStream();
 				RemoteEndPoint = TcpClient.Client.RemoteEndPoint as IPEndPoint;
