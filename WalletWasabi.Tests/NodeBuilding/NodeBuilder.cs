@@ -46,11 +46,27 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 			string zip;
 			string bitcoind;
+			string bitcoindFolderName = $"bitcoin-{version}";
+
+			// Remove old bitcoind folders.
+			IEnumerable<string> existingBitcoindFolderPaths = Directory.EnumerateDirectories(SharedFixture.DataDir, "bitcoin-*", SearchOption.TopDirectoryOnly);
+			foreach (string dirPath in existingBitcoindFolderPaths)
+			{
+				string dirName = Path.GetFileName(dirPath);
+				if (bitcoindFolderName != dirName)
+				{
+					await IoHelpers.DeleteRecursivelyWithMagicDustAsync(dirPath);
+				}
+			}
+
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				bitcoind = Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}", "bin", "bitcoind.exe");
+				bitcoind = Path.Combine(SharedFixture.DataDir, bitcoindFolderName, "bin", "bitcoind.exe");
 				if (File.Exists(bitcoind))
+				{
 					return bitcoind;
+				}
+
 				zip = Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-win32.zip");
 				var url = string.Format("https://bitcoincore.org/bin/bitcoin-core-{0}/" + Path.GetFileName(zip), version);
 				using (var client = new HttpClient())
@@ -63,9 +79,11 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 			else
 			{
-				bitcoind = Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}", "bin", "bitcoind");
+				bitcoind = Path.Combine(SharedFixture.DataDir, bitcoindFolderName, "bin", "bitcoind");
 				if (File.Exists(bitcoind))
+				{
 					return bitcoind;
+				}
 
 				zip = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
 					Path.Combine(SharedFixture.DataDir, $"bitcoin-{version}-x86_64-linux-gnu.tar.gz")
