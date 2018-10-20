@@ -1590,8 +1590,7 @@ namespace WalletWasabi.Tests
 			var mempoolTxId = rpc.SendToAddress(new Key().PubKey.GetSegwitAddress(network), Money.Coins(1));
 
 			var folder = Path.Combine(SharedFixture.DataDir, nameof(CcjCoordinatorCtorTestsAsync));
-			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
-			Directory.CreateDirectory(folder);
+
 			var cjfile = Path.Combine(folder, $"CoinJoins{network}.txt");
 			File.WriteAllLines(cjfile, new[]{
 				coinbaseTxId.ToString(),
@@ -1607,8 +1606,6 @@ namespace WalletWasabi.Tests
 				Assert.Contains(mempoolTxId.ToString(), txIds);
 				Assert.DoesNotContain(offchainTxId.ToString(), txIds);
 
-				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
-				Directory.CreateDirectory(folder);
 				File.WriteAllLines(cjfile, new[]{
 				coinbaseTxId.ToString(),
 				"This line is invalid (the file is corrupted)",
@@ -2741,11 +2738,11 @@ namespace WalletWasabi.Tests
 			var chaumianClient2 = new CcjClient(network, coordinator.RsaKey.PubKey, keyManager2, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
-			var workDir = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync));
+			var workDir = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), "workDir");
 			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
-			var workDir2 = Path.Combine(SharedFixture.DataDir, $"{nameof(CoinJoinMultipleRoundTestsAsync)}2");
+			var workDir2 = Path.Combine(SharedFixture.DataDir, $"{nameof(CoinJoinMultipleRoundTestsAsync)}", "workDir2");
 			var wallet2 = new WalletService(keyManager2, indexDownloader2, chaumianClient2, memPoolService2, nodes2, workDir2);
 
 			// Get some money, make it confirm.
