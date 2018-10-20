@@ -206,7 +206,7 @@ namespace WalletWasabi.TorSocks5
 
 		private CancellationTokenSource Stop { get; }
 
-		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, TimeSpan tryRestartAfterTorMisbehavedFor, string dataDirToStartWith)
+		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, string dataDirToStartWith)
 		{
 			Logger.LogInfo<TorProcessManager>("Starting Tor monitor...");
 			Interlocked.Exchange(ref _running, 1);
@@ -228,47 +228,11 @@ namespace WalletWasabi.TorSocks5
 							{
 								TimeSpan torMisbehavedFor = (DateTimeOffset.UtcNow - TorHttpClient.TorDoesntWorkSince) ?? TimeSpan.Zero;
 
-								if (torMisbehavedFor > tryRestartAfterTorMisbehavedFor)
-								{
-									Logger.LogInfo<TorProcessManager>($"Tor didn't work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Attempting to restart...");
-									Logger.LogInfo<TorProcessManager>($"Attempting to kill Tor...");
-									// Try killing, then starting Tor.
-									if (TorProcess != null)
-									{
-										new Thread(delegate () // Don't ask. This is the only way it worked on Win10
-										{
-											TorProcess?.Kill();
-										}).Start();
-									}
-									else if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-									{
-										try
-										{
-											string runTorCmd = $"killall tor";
-											EnvironmentHelpers.ShellExec(runTorCmd, false); // Not always have permission and stuff.
-										}
-										catch (Exception ex)
-										{
-											Logger.LogInfo<TorProcessManager>($"Couldn't kill tor...");
-											Logger.LogDebug<TorProcessManager>(ex);
-										}
-									}
-									else
-									{
-										Logger.LogInfo<TorProcessManager>($"Couldn't kill Tor.");
-									}
-									Logger.LogInfo<TorProcessManager>($"Attempting to start Tor...");
-
-									// Give some time before trying to restart.
-									await Task.Delay(3000, Stop.Token).ConfigureAwait(false);
-									Start(true, dataDirToStartWith);
-									await Task.Delay(7000, Stop.Token).ConfigureAwait(false);
-								}
-								else if (torMisbehavedFor > checkIfRunningAfterTorMisbehavedFor)
+								if (torMisbehavedFor > checkIfRunningAfterTorMisbehavedFor)
 								{
 									Logger.LogInfo<TorProcessManager>($"Tor didn't work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
 									Start(true, dataDirToStartWith); // Try starting Tor, if doesn't work it'll be another issue.
-									await Task.Delay(7000, Stop.Token).ConfigureAwait(false);
+									await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
 								}
 							}
 						}
