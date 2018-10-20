@@ -20,6 +20,8 @@ namespace WalletWasabi.TorSocks5
 {
 	public class TorHttpClient : IDisposable
 	{
+		public static DateTimeOffset? TorDoesntWorkSince { get; private set; } = null; // This sets the first time the request failed with exception.
+
 		public Uri DestinationUri { get; }
 		public IPEndPoint TorSocks5EndPoint { get; }
 
@@ -64,7 +66,9 @@ namespace WalletWasabi.TorSocks5
 				{
 					try
 					{
-						return await SendAsync(request);
+						HttpResponseMessage ret = await SendAsync(request);
+						TorDoesntWorkSince = null;
+						return ret;
 					}
 					catch (Exception ex)
 					{
@@ -76,7 +80,9 @@ namespace WalletWasabi.TorSocks5
 						cancel.ThrowIfCancellationRequested();
 						try
 						{
-							return await SendAsync(request);
+							HttpResponseMessage ret2 = await SendAsync(request);
+							TorDoesntWorkSince = null;
+							return ret2;
 						}
 						// If we get ttlexpired then wait and retry again linux often do this.
 						catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
@@ -97,13 +103,28 @@ namespace WalletWasabi.TorSocks5
 						}
 
 						cancel.ThrowIfCancellationRequested();
-						return await SendAsync(request);
+
+						HttpResponseMessage ret3 = await SendAsync(request);
+						TorDoesntWorkSince = null;
+						return ret3;
 					}
 				}
 			}
 			catch (TaskCanceledException ex)
 			{
+				if (TorDoesntWorkSince == null)
+				{
+					TorDoesntWorkSince = DateTimeOffset.UtcNow;
+				}
 				throw new OperationCanceledException(ex.Message, ex, cancel);
+			}
+			catch
+			{
+				if (TorDoesntWorkSince == null)
+				{
+					TorDoesntWorkSince = DateTimeOffset.UtcNow;
+				}
+				throw;
 			}
 		}
 

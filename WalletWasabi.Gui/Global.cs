@@ -135,6 +135,7 @@ namespace WalletWasabi.Gui
 
 			TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
 			TorManager.Start(false, DataDir);
+			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir);
 
 			Logger.LogInfo<TorProcessManager>($"{nameof(TorProcessManager)} is initialized.");
 
@@ -329,6 +330,9 @@ namespace WalletWasabi.Gui
 					RegTestMemPoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
 				}
+
+				TorManager?.Dispose();
+				Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
 			}
 			catch (Exception ex)
 			{
