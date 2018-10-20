@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Transactions = new ObservableCollection<TransactionViewModel>();
 			RewriteTable();
 
-			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged));
+			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
 			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
 			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
 

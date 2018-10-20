@@ -52,7 +52,7 @@ namespace WalletWasabi.Services
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 		private AsyncLock WalletBlocksLock { get; }
 
-		public NotifyingConcurrentHashSet<SmartCoin> Coins { get; }
+		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
 
 		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
 
@@ -87,7 +87,7 @@ namespace WalletWasabi.Services
 			WalletBlocksLock = new AsyncLock();
 			HandleFiltersLock = new AsyncLock();
 
-			Coins = new NotifyingConcurrentHashSet<SmartCoin>();
+			Coins = new ObservableConcurrentHashSet<SmartCoin>();
 			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
