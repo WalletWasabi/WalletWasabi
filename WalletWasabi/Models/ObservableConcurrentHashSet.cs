@@ -21,26 +21,13 @@ namespace WalletWasabi.Models
 			Lock = new object();
 		}
 
-		public int Count
-		{
-			get
-			{
-				lock (Lock)
-				{
-					return Set.Count;
-				}
-			}
-		}
+		// Don't lock here, it results deadlock at wallet loading when filters arent synced.
+		public int Count => Set.Count;
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-		public IEnumerator<T> GetEnumerator()
-		{
-			lock (Lock)
-			{
-				return Set.GetEnumerator();
-			}
-		}
+		// Don't lock here, it results deadlock at wallet loading when filters arent synced.
+		public IEnumerator<T> GetEnumerator() => Set.GetEnumerator();
 
 		public bool TryAdd(T item)
 		{
@@ -80,12 +67,7 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		public bool Contains(T item)
-		{
-			lock (Lock)
-			{
-				return Set.Contains(item);
-			}
-		}
+		// Don't lock here, it results deadlock at wallet loading when filters arent synced.
+		public bool Contains(T item) => Set.Contains(item);
 	}
 }
