@@ -8,12 +8,12 @@ using System.Text;
 
 namespace WalletWasabi.Models
 {
-	public class ObservableConcurrentHashSet<T> : IReadOnlyCollection<T>, INotifyCollectionChanged
+	public class ObservableConcurrentHashSet<T> : IReadOnlyCollection<T> // DO NOT IMPLEMENT INotifyCollectionChanged!!! That'll break and crash the software: https://github.com/AvaloniaUI/Avalonia/issues/1988#issuecomment-431691863
 	{
 		private ConcurrentHashSet<T> Set { get; }
 		private object Lock { get; }
 
-		public event NotifyCollectionChangedEventHandler CollectionChanged;
+		public event EventHandler HashSetChanged; // Keep it as is! Unless with the modification this bug won't come out: https://github.com/AvaloniaUI/Avalonia/issues/1988#issuecomment-431691863
 
 		public ObservableConcurrentHashSet()
 		{
@@ -48,7 +48,7 @@ namespace WalletWasabi.Models
 			{
 				if (Set.Add(item))
 				{
-					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
+					HashSetChanged?.Invoke(this, EventArgs.Empty);
 					return true;
 				}
 				return false;
@@ -61,7 +61,7 @@ namespace WalletWasabi.Models
 			{
 				if (Set.TryRemove(item))
 				{
-					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
+					HashSetChanged?.Invoke(this, EventArgs.Empty);
 					return true;
 				}
 				return false;
@@ -75,8 +75,7 @@ namespace WalletWasabi.Models
 				if (Set.Count > 0)
 				{
 					Set.Clear();
-					// "Reset action must be initialized with no changed items."
-					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+					HashSetChanged?.Invoke(this, EventArgs.Empty);
 				}
 			}
 		}
