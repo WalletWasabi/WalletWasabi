@@ -18,9 +18,11 @@ namespace WalletWasabi.Packager
 			// 1. Publish with Packager.
 			// 2. Build WIX project with Release and x64 configuration.
 			// 3. Sign with Packager.
-			bool doPublish = true;
-			bool doSign = false;
+			var doPublish = true;
+			var doSign = false;
+			var pfxPassword = "dontcommit";
 
+			string pfxPath = "C:\\digicert.pfx";
 			string packagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
 			string solutionDirectory = Path.GetFullPath(Path.Combine(packagerProjectDirectory, "..\\"));
 			string guiProjectDirectory = Path.GetFullPath(Path.Combine(solutionDirectory, "WalletWasabi.Gui\\"));
@@ -203,6 +205,17 @@ namespace WalletWasabi.Packager
 						var msiFileName = Path.GetFileName(msiPath);
 						var newMsiPath = Path.Combine(binDistDirectory, msiFileName);
 						File.Move(msiPath, newMsiPath);
+
+						// Sign code with digicert.
+						var psiSigntool = new ProcessStartInfo
+						{
+							FileName = "cmd",
+							RedirectStandardInput = true,
+							WorkingDirectory = binDistDirectory
+						};
+						var signToolProcess = Process.Start(psiSigntool);
+						signToolProcess.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{pfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
+						signToolProcess.WaitForExit();
 					}
 					else if (target.StartsWith("linux", StringComparison.OrdinalIgnoreCase))
 					{
@@ -283,6 +296,7 @@ namespace WalletWasabi.Packager
 				}
 
 				IoHelpers.OpenFolderInFileExplorer(binDistDirectory);
+				return; // No need for readkey here.
 			}
 
 			Console.WriteLine();
