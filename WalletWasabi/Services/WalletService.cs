@@ -185,6 +185,12 @@ namespace WalletWasabi.Services
 				}
 			}
 			NewFilterProcessed?.Invoke(this, filterModel);
+
+			// Try perform mempool cleanup based on connected nodes' mempools.
+			if (!(IndexDownloader is null) && IndexDownloader.GetFiltersLeft() == 0)
+			{
+				MemPool?.TryPerformMempoolCleanupAsync(Nodes, CancellationToken.None);
+			}
 		}
 
 		public async Task InitializeAsync(CancellationToken cancel)

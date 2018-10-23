@@ -405,7 +405,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(Global.Config.Network,
 					requirements: new NodeRequirement
 					{
-						RequiredServices = NodeServices.Network,
+						RequiredServices = NodeServices.NODE_WITNESS,
 						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
 						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
 					});
@@ -644,7 +644,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(Global.Config.Network,
 					requirements: new NodeRequirement
 					{
-						RequiredServices = NodeServices.Network,
+						RequiredServices = NodeServices.NODE_WITNESS,
 						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
 						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
 					});
@@ -1087,7 +1087,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(Global.Config.Network,
 					requirements: new NodeRequirement
 					{
-						RequiredServices = NodeServices.Network,
+						RequiredServices = NodeServices.NODE_WITNESS,
 						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
 						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
 					});
@@ -1258,7 +1258,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(Global.Config.Network,
 					requirements: new NodeRequirement
 					{
-						RequiredServices = NodeServices.Network,
+						RequiredServices = NodeServices.NODE_WITNESS,
 						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
 						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
 					});
@@ -1430,7 +1430,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(Global.Config.Network,
 				requirements: new NodeRequirement
 				{
-					RequiredServices = NodeServices.Network,
+					RequiredServices = NodeServices.NODE_WITNESS,
 					MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
 					MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
 				});
@@ -2699,7 +2699,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(Global.Config.Network,
 					requirements: new NodeRequirement
 					{
-						RequiredServices = NodeServices.Network,
+						RequiredServices = NodeServices.NODE_WITNESS,
 						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
 						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
 					});
@@ -2708,7 +2708,7 @@ namespace WalletWasabi.Tests
 			var nodes2 = new NodesGroup(Global.Config.Network,
 					requirements: new NodeRequirement
 					{
-						RequiredServices = NodeServices.Network,
+						RequiredServices = NodeServices.NODE_WITNESS,
 						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
 						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
 					});

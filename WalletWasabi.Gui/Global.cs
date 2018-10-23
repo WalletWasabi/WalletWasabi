@@ -183,7 +183,7 @@ namespace WalletWasabi.Gui
 				Nodes = new NodesGroup(Network,
 					requirements: new NodeRequirement
 					{
-						RequiredServices = NodeServices.Network,
+						RequiredServices = NodeServices.NODE_WITNESS,
 						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION,
 						MinProtocolCapabilities = Constants.MinProtocolCapabilities
 					});
@@ -197,7 +197,7 @@ namespace WalletWasabi.Gui
 				Nodes = new NodesGroup(Network, connectionParameters,
 					new NodeRequirement
 					{
-						RequiredServices = NodeServices.Network,
+						RequiredServices = NodeServices.NODE_WITNESS,
 						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION,
 						MinProtocolCapabilities = Constants.MinProtocolCapabilities
 					});

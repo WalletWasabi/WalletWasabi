@@ -84,7 +84,7 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(network, connectionParameters,
 				new NodeRequirement
 				{
-					RequiredServices = NodeServices.Network,
+					RequiredServices = NodeServices.NODE_WITNESS,
 					MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
 					MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
 				});

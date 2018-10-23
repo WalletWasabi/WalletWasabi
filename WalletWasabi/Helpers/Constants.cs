@@ -14,7 +14,7 @@ namespace WalletWasabi.Helpers
 
 		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
 
-		public static readonly ProtocolCapabilities MinProtocolCapabilities = new ProtocolCapabilities() { SupportGetBlock = true, SupportWitness = true };
+		public static readonly ProtocolCapabilities MinProtocolCapabilities = new ProtocolCapabilities() { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true };
 
 		public const int P2wpkhInputSizeInBytes = 41;
 		public const int P2pkhInputSizeInBytes = 145;
