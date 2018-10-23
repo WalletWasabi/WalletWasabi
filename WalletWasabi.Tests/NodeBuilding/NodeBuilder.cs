@@ -133,7 +133,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			catch (DirectoryNotFoundException)
 			{
 			}
-			var node = new CoreNode(child, this);
+			var node = await CoreNode.CreateAsync(child, this);
 			Nodes.Add(node);
 			if (start)
 			{
