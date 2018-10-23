@@ -473,7 +473,6 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
-				// ToDo: randomly fails, times: 5/10
 				Assert.Equal(3, await wallet.CountBlocksAsync());
 
 				Assert.Equal(3, wallet.Coins.Count);
@@ -522,7 +521,7 @@ namespace WalletWasabi.Tests
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(2);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
-				// ToDo: randomly fails, times: 1/10
+
 				Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txid4));
 				var tip = await rpc.GetBestBlockHashAsync();
 				await rpc.InvalidateBlockAsync(tip); // Reorg 1
@@ -533,7 +532,6 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(3);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 
-				// ToDo: randomly fails, times: 4/10
 				Assert.Equal(4, await wallet.CountBlocksAsync());
 
 				Assert.Equal(4, wallet.Coins.Count);
