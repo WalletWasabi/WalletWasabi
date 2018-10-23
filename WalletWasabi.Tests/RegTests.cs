@@ -402,13 +402,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network,
-					requirements: new NodeRequirement
-					{
-						RequiredServices = NodeServices.NODE_WITNESS,
-						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
-						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
-					});
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
@@ -641,13 +635,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network,
-					requirements: new NodeRequirement
-					{
-						RequiredServices = NodeServices.NODE_WITNESS,
-						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
-						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
-					});
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
@@ -1084,13 +1072,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network,
-					requirements: new NodeRequirement
-					{
-						RequiredServices = NodeServices.NODE_WITNESS,
-						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
-						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
-					});
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
@@ -1255,13 +1237,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network,
-					requirements: new NodeRequirement
-					{
-						RequiredServices = NodeServices.NODE_WITNESS,
-						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
-						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
-					});
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
@@ -1427,13 +1403,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network,
-				requirements: new NodeRequirement
-				{
-					RequiredServices = NodeServices.NODE_WITNESS,
-					MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
-					MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
-				});
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
@@ -2696,22 +2666,10 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network,
-					requirements: new NodeRequirement
-					{
-						RequiredServices = NodeServices.NODE_WITNESS,
-						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
-						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
-					});
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
-			var nodes2 = new NodesGroup(Global.Config.Network,
-					requirements: new NodeRequirement
-					{
-						RequiredServices = NodeServices.NODE_WITNESS,
-						MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
-						MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
-					});
+			var nodes2 = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
 			nodes2.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.

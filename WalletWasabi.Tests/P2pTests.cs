@@ -81,13 +81,7 @@ namespace WalletWasabi.Tests
 			var memPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(memPoolService));
 
-			var nodes = new NodesGroup(network, connectionParameters,
-				new NodeRequirement
-				{
-					RequiredServices = NodeServices.NODE_WITNESS,
-					MinVersion = Helpers.Constants.ProtocolVersion_WITNESS_VERSION,
-					MinProtocolCapabilities = Helpers.Constants.MinProtocolCapabilities
-				});
+			var nodes = new NodesGroup(network, connectionParameters, requirements: Helpers.Constants.NodeRequirements);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
 			WalletService walletService = new WalletService(

@@ -180,13 +180,7 @@ namespace WalletWasabi.Gui
 
 			if (Network == Network.RegTest)
 			{
-				Nodes = new NodesGroup(Network,
-					requirements: new NodeRequirement
-					{
-						RequiredServices = NodeServices.NODE_WITNESS,
-						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION,
-						MinProtocolCapabilities = Constants.MinProtocolCapabilities
-					});
+				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 				Nodes.ConnectedNodes.Add(Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444)));
 
 				RegTestMemPoolServingNode = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
@@ -194,13 +188,7 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
-				Nodes = new NodesGroup(Network, connectionParameters,
-					new NodeRequirement
-					{
-						RequiredServices = NodeServices.NODE_WITNESS,
-						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION,
-						MinProtocolCapabilities = Constants.MinProtocolCapabilities
-					});
+				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 
 				RegTestMemPoolServingNode = null;
 			}
