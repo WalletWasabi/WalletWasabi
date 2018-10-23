@@ -133,9 +133,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 		}
 
-		private List<Transaction> _transactions = new List<Transaction>();
-		private HashSet<OutPoint> _locked = new HashSet<OutPoint>();
-
 		private readonly object _l = new object();
 
 		public void Kill(bool cleanFolder = true)
@@ -153,16 +150,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 					IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder).GetAwaiter().GetResult();
 				}
 			}
-		}
-
-		public Block[] Generate(int blockCount)
-		{
-			var rpc = CreateRpcClient();
-			var blocks = rpc.Generate(blockCount);
-			rpc = rpc.PrepareBatch();
-			var tasks = blocks.Select(b => rpc.GetBlockAsync(b)).ToArray();
-			rpc.SendBatch();
-			return tasks.Select(b => b.GetAwaiter().GetResult()).ToArray();
 		}
 
 		public void BroadcastBlocks(IEnumerable<Block> blocks)
