@@ -39,6 +39,16 @@ namespace WalletWasabi.Tests.NodeBuilding
 			FindPorts(_ports);
 		}
 
+		public Block[] Generate(int blockCount)
+		{
+			var rpc = CreateRpcClient();
+			var blocks = rpc.Generate(blockCount);
+			rpc = rpc.PrepareBatch();
+			var tasks = blocks.Select(b => rpc.GetBlockAsync(b)).ToArray();
+			rpc.SendBatch();
+			return tasks.Select(b => b.GetAwaiter().GetResult()).ToArray();
+		}
+
 		public static async Task<CoreNode> CreateAsync(string folder, NodeBuilder builder)
 		{
 			await IoHelpers.DeleteRecursivelyWithMagicDustAsync(folder);
