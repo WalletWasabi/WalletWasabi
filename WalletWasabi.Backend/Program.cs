@@ -80,11 +80,11 @@ namespace WalletWasabi.Backend
 				}
 
 				var endPoint = "http://localhost:37127/";
-				var endPoint2 = "http://*:80";
+				//var endPoint2 = "http://*:80";
 
 				using (var host = WebHost.CreateDefaultBuilder(args)
 					.UseStartup<Startup>()
-					.UseUrls(endPoint, endPoint2)
+					.UseUrls(endPoint)//, endPoint2)
 					.Build())
 				{
 					await host.RunAsync();
