@@ -218,7 +218,7 @@ Verify a browser displays the default landing page for Nginx. The landing page i
 
 Create a temporary self-signed certificate just so people would be able to access it if they write https. ToDo: purchase a real certificate.
 ```
-user@WalletWasabi:~$ mkdir ~/certs && cd ~/certs/ && openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out TempCert.crt -keyout TempCertKey.key && cd ~
+mkdir ~/certs && cd ~/certs/ && openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out TempCert.crt -keyout TempCertKey.key && cd ~
 ```
 
 ```sh
