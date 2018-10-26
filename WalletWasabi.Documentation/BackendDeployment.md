@@ -239,7 +239,7 @@ server {
     listen        [::]:80;
     listen        443 ssl;
     listen        [::]:443 ssl;
-    server_name   example.com *.example.com;
+    server_name   [InsertServerIPHere] wasabiwallet.io zerolink.info hiddenwallet.org;
     ssl_certificate     /home/user/certs/TempCert.crt;
     ssl_certificate_key /home/user/certs/TempCertKey.key;
     location / {
