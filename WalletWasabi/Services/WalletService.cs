@@ -945,7 +945,6 @@ namespace WalletWasabi.Services
 			var tx = builder
 				.SetChange(changeScriptPubKey)
 				.SendFees(fee)
-				.Shuffle()
 				.BuildTransaction(true);
 
 			TransactionPolicyError[] checkResults = builder.Check(tx, fee);

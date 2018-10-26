@@ -308,7 +308,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						var builder = Network.CreateTransactionBuilder();
 						UnsignedCoinJoin = builder
 							.ContinueToBuild(transaction)
-							.Shuffle()
 							.BuildTransaction(false);
 
 						// 8. Try optimize fees.
