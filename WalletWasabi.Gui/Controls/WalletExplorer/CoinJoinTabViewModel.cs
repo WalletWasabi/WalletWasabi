@@ -32,6 +32,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _amountQueued;
 		private string _warningMessageEnqueue;
 		private string _warningMessageDequeue;
+		private const int PreSelectMaxAnonSetExcludingCondition = 50;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
@@ -50,29 +51,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
+			UpdateRequiredBtcLabel(registrableRound, available, queued);
+
+			if (registrableRound != default)
+			{
+				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
+			}
+			else
+			{
+				CoordinatorFeePercent = "0.003";
+			}
+
 			if (!(registrableRound?.State?.Denomination is null) && registrableRound.State.Denomination != Money.Zero)
 			{
-				AvailableCoinsList = new CoinListViewModel(available, registrableRound.State.Denomination, 50);
+				AvailableCoinsList = new CoinListViewModel(available, RequiredBTC, PreSelectMaxAnonSetExcludingCondition);
 			}
 			else
 			{
 				AvailableCoinsList = new CoinListViewModel(available);
 			}
 
-			if (registrableRound != default)
-			{
-				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
-				RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
-			}
-			else
-			{
-				CoordinatorFeePercent = "0.003";
-				RequiredBTC = Money.Zero;
-			}
-
 			QueuedCoinsList = new CoinListViewModel(queued);
 
-			AmountQueued = Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
+			AmountQueued = Money.Zero;// Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
 			Global.ChaumianClient.CoinQueued += ChaumianClient_CoinQueued;
 			Global.ChaumianClient.CoinDequeued += ChaumianClient_CoinDequeued;
@@ -203,7 +204,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (registrableRound != default)
 			{
 				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
-				RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
+				UpdateRequiredBtcLabel(registrableRound, AvailableCoinsList.Coins, QueuedCoinsList.Coins);
 			}
 			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
 			if (mostAdvancedRound != default)
@@ -212,6 +213,38 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Phase = mostAdvancedRound.State.Phase;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
+			}
+		}
+
+#pragma warning disable CS0618 // Type or member is obsolete
+
+		private void UpdateRequiredBtcLabel(CcjClientRound registrableRound, IReactiveDerivedList<CoinViewModel> available, IReactiveDerivedList<CoinViewModel> queued)
+#pragma warning restore CS0618 // Type or member is obsolete
+		{
+			if (registrableRound == default)
+			{
+				if (RequiredBTC == default)
+				{
+					RequiredBTC = Money.Zero;
+				}
+			}
+			else
+			{
+				if (queued != default && queued.Any())
+				{
+					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
+				}
+				else
+				{
+					if (available != default && available.Any())
+					{
+						RequiredBTC = registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < PreSelectMaxAnonSetExcludingCondition).Select(x => x.Model.Amount).ToArray());
+					}
+					else
+					{
+						RequiredBTC = registrableRound.State.CalculateRequiredAmount();
+					}
+				}
 			}
 		}
 

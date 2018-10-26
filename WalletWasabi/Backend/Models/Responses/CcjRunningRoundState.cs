@@ -54,35 +54,43 @@ namespace WalletWasabi.Backend.Models.Responses
 		public Money CalculateRequiredAmount(params Money[] queuedCoinAmounts)
 		{
 			var tried = new List<Money>();
-			Money baseMinimum = Denomination + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount) + (FeePerOutputs * 2);
-			foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
+			Money baseMinimum = Denomination + (FeePerOutputs * 2);// + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
+			if (queuedCoinAmounts != default)
 			{
-				tried.Add(amount);
-				Money required = baseMinimum + (FeePerInputs * tried.Count);
-				if (required <= tried.Sum() || tried.Count == MaximumInputCountPerPeer)
+				foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
 				{
-					return required;
+					tried.Add(amount);
+					Money required = baseMinimum + (FeePerInputs * tried.Count);
+					if (required <= tried.Sum() || tried.Count == MaximumInputCountPerPeer)
+					{
+						return required;
+					}
 				}
 			}
 
-			return baseMinimum + (FeePerInputs * MaximumInputCountPerPeer);
+			return baseMinimum + FeePerInputs;
+			//return baseMinimum + (FeePerInputs * MaximumInputCountPerPeer);
 		}
 
 		public bool HaveEnoughQueued(params Money[] queuedCoinAmounts)
 		{
 			var tried = new List<Money>();
-			Money baseMinimum = Denomination + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount) + (FeePerOutputs * 2);
-			foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
+			Money baseMinimum = Denomination + (FeePerOutputs * 2);// + (Denomination.Percentange(CoordinatorFeePercent) * RequiredPeerCount);
+
+			if (queuedCoinAmounts != default)
 			{
-				tried.Add(amount);
-				Money required = baseMinimum + (FeePerInputs * tried.Count);
-				if (required <= tried.Sum())
+				foreach (Money amount in queuedCoinAmounts.OrderByDescending(x => x))
 				{
-					return true;
-				}
-				if (tried.Count == MaximumInputCountPerPeer)
-				{
-					return false;
+					tried.Add(amount);
+					Money required = baseMinimum + (FeePerInputs * tried.Count);
+					if (required <= tried.Sum())
+					{
+						return true;
+					}
+					if (tried.Count == MaximumInputCountPerPeer)
+					{
+						return false;
+					}
 				}
 			}
 
