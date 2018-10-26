@@ -119,9 +119,9 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		#region software
 
-		public async Task<(Version ClientVersion, int BackendMajorVersion)> GetVersionsAsync()
+		public async Task<(Version ClientVersion, int BackendMajorVersion)> GetVersionsAsync(CancellationToken cancel)
 		{
-			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions"))
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions", cancel: cancel))
 			{
 				if (response.StatusCode == HttpStatusCode.NotFound)
 				{
@@ -142,9 +142,9 @@ namespace WalletWasabi.WebClients.Wasabi
 			}
 		}
 
-		public async Task<(bool backendCompatible, bool clientUpToDate)> CheckUpdatesAsync()
+		public async Task<(bool backendCompatible, bool clientUpToDate)> CheckUpdatesAsync(CancellationToken cancel)
 		{
-			var versions = await GetVersionsAsync();
+			var versions = await GetVersionsAsync(cancel);
 			var clientUpToDate = Helpers.Constants.ClientVersion >= versions.ClientVersion; // If the client version locally is greater or equal to the backend's reported client version, then good.
 			var backendCompatible = int.Parse(Helpers.Constants.BackendMajorVersion) == versions.BackendMajorVersion; // If the backend major and the client major equals, then our softwares are compatible.
 

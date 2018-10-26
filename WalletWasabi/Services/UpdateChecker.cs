@@ -43,7 +43,7 @@ namespace WalletWasabi.Services
 							// If stop was requested return.
 							if (IsRunning == false) return;
 
-							(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync();
+							(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
 
 							if (!updates.backendCompatible)
 							{
@@ -56,10 +56,6 @@ namespace WalletWasabi.Services
 							}
 
 							await Task.Delay(period, Stop.Token);
-						}
-						catch (TaskCanceledException ex)
-						{
-							Logger.LogTrace<UpdateChecker>(ex);
 						}
 						catch (ConnectionException ex)
 						{
@@ -75,7 +71,14 @@ namespace WalletWasabi.Services
 						}
 						catch (Exception ex)
 						{
-							Logger.LogDebug<UpdateChecker>(ex);
+							if (ex is TaskCanceledException || ex is OperationCanceledException || ex is TimeoutException)
+							{
+								Logger.LogTrace<UpdateChecker>(ex);
+							}
+							else
+							{
+								Logger.LogDebug<UpdateChecker>(ex);
+							}
 						}
 					}
 				}
