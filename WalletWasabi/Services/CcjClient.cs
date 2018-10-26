@@ -310,7 +310,7 @@ namespace WalletWasabi.Services
 				throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
 			}
 
-			var builder = new TransactionBuilder();
+			var builder = Network.CreateTransactionBuilder();
 			var signedCoinJoin = builder
 				.ContinueToBuild(unsignedCoinJoin)
 				.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())

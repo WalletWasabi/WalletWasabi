@@ -2021,14 +2021,14 @@ namespace WalletWasabi.Tests
 					var partSignedCj1 = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
 					var partSignedCj2 = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
 
-					var builder = new TransactionBuilder();
+					var builder = Network.RegTest.CreateTransactionBuilder();
 					partSignedCj1 = builder
 						.ContinueToBuild(partSignedCj1)
 						.AddKeys(key1)
 						.AddCoins(new Coin(tx1, input1.N))
 						.BuildTransaction(true);
 
-					builder = new TransactionBuilder();
+					builder = Network.RegTest.CreateTransactionBuilder();
 					partSignedCj2 = builder
 						.ContinueToBuild(partSignedCj2)
 						.AddKeys(key2)
@@ -2355,7 +2355,7 @@ namespace WalletWasabi.Tests
 			foreach (var user in users)
 			{
 				var partSignedCj = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
-				partSignedCj = new TransactionBuilder()
+				partSignedCj = Network.RegTest.CreateTransactionBuilder()
 							.ContinueToBuild(partSignedCj)
 							.AddKeys(user.userInputData.Select(x => x.key).ToArray())
 							.AddCoins(user.userInputData.Select(x => new Coin(x.tx, x.input.N)))

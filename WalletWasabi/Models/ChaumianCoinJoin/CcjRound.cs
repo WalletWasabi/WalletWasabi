@@ -18,6 +18,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public long RoundId { get; }
 
 		public RPCClient RpcClient { get; }
+		public Network Network => RpcClient.Network;
 
 		public Money Denomination { get; }
 		public int ConfirmationTarget { get; }
@@ -248,7 +249,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 						// 1. Set new denomination: minor optimization.
 						Money newDenomination = Alices.Min(x => x.OutputSumWithoutCoordinatorFeeAndDenomination);
-						var transaction = RpcClient.Network.Consensus.ConsensusFactory.CreateTransaction();
+						var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
 
 						// 2. Add Bob outputs.
 						foreach (Bob bob in Bobs)
@@ -256,7 +257,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							transaction.AddOutput(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 						}
 
-						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(RpcClient.Network);
+						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(Network);
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
 						for (int i = 0; i < Alices.Count - Bobs.Count; i++)
 						{
@@ -304,7 +305,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						}
 
 						// 7. Create the unsigned transaction.
-						var builder = new TransactionBuilder();
+						var builder = Network.CreateTransactionBuilder();
 						UnsignedCoinJoin = builder
 							.ContinueToBuild(transaction)
 							.Shuffle()
@@ -365,7 +366,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							Logger.LogWarning<CcjRound>(ex);
 						}
 
-						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), RpcClient.Network);
+						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
 
 						Phase = CcjRoundPhase.Signing;
 					}
@@ -726,7 +727,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs.Select(y => new Coin(y.OutPoint, y.Output))).ToArray();
 						Money networkFee = SignedCoinJoin.GetFee(spentCoins);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(RpcClient.Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
 						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte.");
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");

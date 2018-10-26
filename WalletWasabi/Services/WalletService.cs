@@ -932,7 +932,7 @@ namespace WalletWasabi.Services
 
 			// 9. Build the transaction
 			Logger.LogInfo<WalletService>("Signing transaction...");
-			var builder = new TransactionBuilder();
+			var builder = Network.CreateTransactionBuilder();
 			builder = builder
 				.AddCoins(coinsToSpend.Select(x => x.GetCoin()))
 				.AddKeys(signingKeys.ToArray());
