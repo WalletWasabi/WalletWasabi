@@ -254,14 +254,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// 2. Add Bob outputs.
 						foreach (Bob bob in Bobs)
 						{
-							transaction.AddOutput(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
+							transaction.Outputs.Add(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 						}
 
 						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(Network);
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
 						for (int i = 0; i < Alices.Count - Bobs.Count; i++)
 						{
-							transaction.AddOutput(newDenomination, coordinatorAddress);
+							transaction.Outputs.Add(newDenomination, coordinatorAddress);
 						}
 
 						// 4. Start building Coordinator fee.
@@ -274,7 +274,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						{
 							foreach (var input in alice.Inputs)
 							{
-								transaction.AddInput(new TxIn(input.OutPoint));
+								transaction.Inputs.Add(new TxIn(input.OutPoint));
 								spentCoins.Add(new Coin(input.OutPoint, input.Output));
 							}
 							Money changeAmount = alice.GetChangeAmount(newDenomination, coordinatorFeePerAlice);
@@ -289,7 +289,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								}
 								else
 								{
-									transaction.AddOutput(changeAmount, alice.ChangeOutputAddress.ScriptPubKey);
+									transaction.Outputs.Add(changeAmount, alice.ChangeOutputAddress.ScriptPubKey);
 								}
 							}
 							else
@@ -301,7 +301,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
 						if (coordinatorFee > Money.Coins(0.0003m))
 						{
-							transaction.AddOutput(coordinatorFee, coordinatorAddress);
+							transaction.Outputs.Add(coordinatorFee, coordinatorAddress);
 						}
 
 						// 7. Create the unsigned transaction.
