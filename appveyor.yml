@@ -5,8 +5,8 @@ configuration:
 skip_branch_with_pr: true
 
 cache:
-#- '%USERPROFILE%\.nuget\packages -> **\*.csproj'
-#- '%APPDATA%\WalletWasabi'
+- '%USERPROFILE%\.nuget\packages -> **\*.csproj'
+- '%APPDATA%\WalletWasabi'
 
 build_script:
   - cd WalletWasabi.Tests
