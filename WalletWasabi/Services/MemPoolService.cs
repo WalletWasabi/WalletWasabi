@@ -62,7 +62,7 @@ namespace WalletWasabi.Services
 						}
 						catch (Exception ex)
 						{
-							if (ex is InvalidOperationException && ex.Message.StartsWith("The node is not in a connected state", StringComparison.InvariantCultureIgnoreCase)
+							if ((ex is InvalidOperationException && ex.Message.StartsWith("The node is not in a connected state", StringComparison.InvariantCultureIgnoreCase))
 								|| ex is OperationCanceledException
 								|| ex is TaskCanceledException
 								|| ex is TimeoutException)
