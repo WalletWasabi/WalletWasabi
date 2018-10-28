@@ -11,6 +11,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using WalletWasabi.Logging;
 using WalletWasabi.Interfaces;
 using Microsoft.AspNetCore.HttpOverrides;
+using WalletWasabi.Backend.Middlewares;
 
 namespace WalletWasabi.Backend
 {
@@ -57,6 +58,11 @@ namespace WalletWasabi.Backend
 			{
 				c.SwaggerEndpoint("/swagger/v2/swagger.json", "Wasabi Wallet API V2");
 			});
+
+			// So to correctly handle HEAD requests.
+			// https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
+			// https://github.com/tpeczek/Demo.AspNetCore.Mvc.CosmosDB/blob/master/Demo.AspNetCore.Mvc.CosmosDB/Middlewares/HeadMethodMiddleware.cs
+			app.UseMiddleware<HeadMethodMiddleware>();
 
 			app.UseMvc();
 
