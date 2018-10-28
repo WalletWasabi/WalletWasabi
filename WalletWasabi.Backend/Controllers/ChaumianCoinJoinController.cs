@@ -624,12 +624,19 @@ namespace WalletWasabi.Backend.Controllers
 								}
 
 								// Verify witness.
-								var cjCopy = Transaction.Parse(round.UnsignedCoinJoin.ToHex(), Network);
+								// 1. Copy UnsignedCoinJoin.
+								Transaction cjCopy = Transaction.Parse(round.UnsignedCoinJoin.ToHex(), Network);
+								// 2. Sign the copy.
 								cjCopy.Inputs[index].WitScript = witness;
-								TxOut output = alice.Inputs.Single(x => x.OutPoint == cjCopy.Inputs[index].PrevOut).Output;
-								if (!Script.VerifyScript(output.ScriptPubKey, cjCopy, index, output.Value, ScriptVerify.Standard, SigHash.All))
+								// 3. Convert the current input to IndexedTxIn.
+								IndexedTxIn currentIndexedInput = cjCopy.Inputs.AsIndexedInputs().Skip(index).First();
+								// 4. Find the corresponding registered input and convert it to Coin.
+								(OutPoint OutPoint, TxOut Output) registeredInput = alice.Inputs.Single(x => x.OutPoint == cjCopy.Inputs[index].PrevOut);
+								Coin registeredCoin = new Coin(registeredInput.OutPoint, registeredInput.Output);
+								// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
+								if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
 								{
-									return BadRequest($"Invalid witness is provided.");
+									return BadRequest($"Invalid witness is provided. ScriptError: {error}.");
 								}
 
 								// Finally add it to our CJ.
