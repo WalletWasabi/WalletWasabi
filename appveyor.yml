@@ -9,6 +9,7 @@ cache:
 - '%APPDATA%\WalletWasabi'
 
 build_script:
+  - tskill bitcoind # Make sure no hanging bticoind process is present.
   - cd WalletWasabi.Tests
   - dotnet build
 
