@@ -192,8 +192,8 @@ WantedBy=multi-user.target
 ```
 
 ```sh
-systemctl enable walletwasabi.service
-systemctl start walletwasabi.service
+sudo systemctl enable walletwasabi.service
+sudo systemctl start walletwasabi.service
 systemctl status walletwasabi.service
 tail -10 .walletwasabi/backend/Logs.txt
 ```
@@ -260,7 +260,7 @@ Consider updating the versions in `WalletWasabi.Helpers.Constants`. If versions 
 ```sh
 sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~
 sudo service nginx stop
-systemctl stop walletwasabi.service
+sudo systemctl stop walletwasabi.service
 sudo killall tor
 bitcoin-cli stop
 sudo apt-get upgrade -y && sudo apt-get autoremove -y
@@ -269,7 +269,7 @@ bitcoin-cli getblockchaininfo
 tor
 sudo service nginx start
 dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
-systemctl start walletwasabi.service
+sudo systemctl start walletwasabi.service
 pgrep -ilfa tor && pgrep -ilfa bitcoin && pgrep -ilfa wasabi && pgrep -ilfa nginx
 tail -10 ~/.walletwasabi/backend/Logs.txt
 ```
