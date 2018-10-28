@@ -225,7 +225,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							return;
 						}
 
-						RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(y => y.OutPoint));
+						RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(y => y.Outpoint));
 
 						Phase = CcjRoundPhase.ConnectionConfirmation;
 					}
@@ -274,8 +274,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						{
 							foreach (var input in alice.Inputs)
 							{
-								transaction.Inputs.Add(new TxIn(input.OutPoint));
-								spentCoins.Add(new Coin(input.OutPoint, input.Output));
+								transaction.Inputs.Add(new TxIn(input.Outpoint));
+								spentCoins.Add(input);
 							}
 							Money changeAmount = alice.GetChangeAmount(newDenomination, coordinatorFeePerAlice);
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
@@ -458,7 +458,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										IEnumerable<Alice> alicesToBan1 = GetAlicesBy(AliceState.InputsRegistered);
 										IEnumerable<Alice> alicesToBan2 = await RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
-										IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.OutPoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.OutPoint)).Distinct();
+										IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
 
 										if (inputsToBan.Any())
 										{
@@ -499,7 +499,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 											{
 												if (alice.State != AliceState.SignedCoinJoin)
 												{
-													outpointsToBan.AddRange(alice.Inputs.Select(x => x.OutPoint));
+													outpointsToBan.AddRange(alice.Inputs.Select(x => x.Outpoint));
 												}
 											}
 										}
@@ -612,7 +612,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				foreach (Alice alice in Alices)
 				{
-					if (alice.Inputs.Any(x => x.OutPoint == input))
+					if (alice.Inputs.Any(x => x.Outpoint == input))
 					{
 						alices.Add(alice);
 					}
@@ -723,7 +723,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 					try
 					{
-						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs.Select(y => new Coin(y.OutPoint, y.Output))).ToArray();
+						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs).ToArray();
 						Money networkFee = SignedCoinJoin.GetFee(spentCoins);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
@@ -831,7 +831,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				foreach (Alice alice in Alices)
 				{
-					foreach (OutPoint input in alice.Inputs.Select(y => y.OutPoint))
+					foreach (OutPoint input in alice.Inputs.Select(y => y.Outpoint))
 					{
 						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
 
@@ -883,7 +883,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
-				numberOfRemovedAlices = Alices.RemoveAll(x => x.Inputs.Any(y => y.OutPoint == input));
+				numberOfRemovedAlices = Alices.RemoveAll(x => x.Inputs.Any(y => y.Outpoint == input));
 			}
 
 			Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");

@@ -211,7 +211,7 @@ namespace WalletWasabi.Services
 				foreach (Alice alice in round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false)) // Because the event sometimes is raised from inside the lock.
 				{
 					// If its from any coinjoin, then don't ban.
-					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.OutPoint);
+					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.Outpoint);
 					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, utxosToBan.ToArray());
 				}
 			}

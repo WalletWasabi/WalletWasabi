@@ -132,13 +132,13 @@ namespace WalletWasabi.Backend.Controllers
 						return BadRequest($"Invalid ChangeOutputAddress. Details: {ex.Message}");
 					}
 
-					var inputs = new HashSet<(OutPoint OutPoint, TxOut Output)>();
+					var inputs = new HashSet<Coin>();
 
 					var alicesToRemove = new HashSet<Guid>();
 
 					foreach (InputProofModel inputProof in request.Inputs)
 					{
-						if (inputs.Any(x => x.OutPoint == inputProof.Input))
+						if (inputs.Any(x => x.Outpoint == inputProof.Input))
 						{
 							return BadRequest("Cannot register an input twice.");
 						}
@@ -222,11 +222,11 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest("Provided proof is invalid.");
 						}
 
-						inputs.Add((inputProof.Input.ToOutPoint(), txout));
+						inputs.Add(new Coin(inputProof.Input.ToOutPoint(), txout));
 					}
 
 					// Check if inputs have enough coins.
-					Money inputSum = inputs.Select(x => x.Output.Value).Sum();
+					Money inputSum = inputs.Sum(x => x.Amount);
 					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs) + (2 * round.FeePerOutputs);
 					Money changeAmount = inputSum - (round.Denomination + networkFeeToPay);
 					if (changeAmount < Money.Zero)
@@ -338,7 +338,7 @@ namespace WalletWasabi.Backend.Controllers
 
 							if (alicesToBan.Any())
 							{
-								await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.OutPoint).ToArray());
+								await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint).ToArray());
 							}
 
 							int aliceCountAfterConnectionConfirmationTimeout = round.CountAlices();
@@ -630,9 +630,8 @@ namespace WalletWasabi.Backend.Controllers
 								cjCopy.Inputs[index].WitScript = witness;
 								// 3. Convert the current input to IndexedTxIn.
 								IndexedTxIn currentIndexedInput = cjCopy.Inputs.AsIndexedInputs().Skip(index).First();
-								// 4. Find the corresponding registered input and convert it to Coin.
-								(OutPoint OutPoint, TxOut Output) registeredInput = alice.Inputs.Single(x => x.OutPoint == cjCopy.Inputs[index].PrevOut);
-								Coin registeredCoin = new Coin(registeredInput.OutPoint, registeredInput.Output);
+								// 4. Find the corresponding registered input.
+								Coin registeredCoin = alice.Inputs.Single(x => x.Outpoint == cjCopy.Inputs[index].PrevOut);
 								// 5. Verify if currentIndexedInput is correctly signed, if not, return the specific error.
 								if (!currentIndexedInput.VerifyScript(registeredCoin, out ScriptError error))
 								{

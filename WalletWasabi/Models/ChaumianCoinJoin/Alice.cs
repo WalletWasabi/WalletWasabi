@@ -18,7 +18,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public Money OutputSumWithoutCoordinatorFeeAndDenomination { get; }
 
-		public IEnumerable<(OutPoint OutPoint, TxOut Output)> Inputs { get; }
+		public IEnumerable<Coin> Inputs { get; }
 
 		public BitcoinAddress ChangeOutputAddress { get; }
 
@@ -28,7 +28,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public AliceState State { get; set; }
 
-		public Alice(IEnumerable<(OutPoint OutPoint, TxOut Output)> inputs, Money networkFeeToPay, BitcoinAddress changeOutputAddress, string blindedOutputScriptHex)
+		public Alice(IEnumerable<Coin> inputs, Money networkFeeToPay, BitcoinAddress changeOutputAddress, string blindedOutputScriptHex)
 		{
 			Inputs = Guard.NotNullOrEmpty(nameof(inputs), inputs);
 			NetworkFeeToPay = Guard.NotNull(nameof(networkFeeToPay), networkFeeToPay);
@@ -39,7 +39,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			UniqueId = Guid.NewGuid();
 
-			InputSum = inputs.Select(x => x.Output.Value).Sum();
+			InputSum = inputs.Sum(x => x.Amount);
 
 			OutputSumWithoutCoordinatorFeeAndDenomination = InputSum - NetworkFeeToPay;
 
