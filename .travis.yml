@@ -23,7 +23,7 @@ cache:
 
 before_install:
   - if [ $TRAVIS_OS_NAME = osx ]; then ulimit -S -n 4096; fi
-  - sudo killall bitcoind
+  - sudo killall bitcoind || true
 
 script:
   - travis_wait dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj --filter Category=RunOnCi
