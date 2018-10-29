@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -181,10 +182,19 @@ namespace WalletWasabi.Gui
 			if (Network == Network.RegTest)
 			{
 				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
-				Nodes.ConnectedNodes.Add(Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444)));
+				try
+				{
+					Node node = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					Nodes.ConnectedNodes.Add(node);
 
-				RegTestMemPoolServingNode = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
-				RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
+					RegTestMemPoolServingNode = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+
+					RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
+				}
+				catch (SocketException ex)
+				{
+					Logger.LogError(ex, nameof(Global));
+				}
 			}
 			else
 			{
