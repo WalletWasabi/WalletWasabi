@@ -64,7 +64,7 @@
   </Style>
 
   <Style Selector="ListBox">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderLowBrush}" />
   </Style>
 
   <Style Selector="ListBoxItem">
