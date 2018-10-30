@@ -222,16 +222,11 @@ sudo service nginx start
 ```
 Verify a browser displays the default landing page for Nginx. The landing page is reachable at `http://<server_IP_address>/index.nginx-debian.html`.
 
-Create a temporary self-signed certificate just so people would be able to access it if they write https. ToDo: purchase a real certificate.
-```
-mkdir ~/certs && cd ~/certs/ && openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out TempCert.crt -keyout TempCertKey.key && cd ~
-```
-
 ```sh
 sudo pico /etc/nginx/sites-available/default
 ```
 
-Fill out the server name with the server's IP and domain.
+Fill out the server name with the server's IP and domain. And remove the unneeded domains (note I use `wasabiwallet.co` for testnet.)
 
 ```
 server {
@@ -239,9 +234,7 @@ server {
     listen        [::]:80;
     listen        443 ssl;
     listen        [::]:443 ssl;
-    server_name   [InsertServerIPHere] wasabiwallet.io wasabiwallet.net wasabiwallet.org wasabiwallet.info wasabiwallet.co zerolink.info hiddenwallet.org;
-    ssl_certificate     /home/user/certs/TempCert.crt;
-    ssl_certificate_key /home/user/certs/TempCertKey.key;
+    server_name   [InsertServerIPHere] wasabiwallet.io www.wasabiwallet.io wasabiwallet.net www.wasabiwallet.net wasabiwallet.org www.wasabiwallet.org wasabiwallet.info www.wasabiwallet.info wasabiwallet.co www.wasabiwallet.co zerolink.info www.zerolink.info hiddenwallet.org www.hiddenwallet.org;
     location / {
         proxy_pass         http://localhost:37127;
     }
@@ -251,6 +244,12 @@ server {
 ```sh
 sudo nginx -t
 sudo nginx -s reload
+```
+
+Setup https, redirect to https when asks. This'll modify the above config file, but oh well.  
+
+```sh
+sudo certbot -d wasabiwallet.io -d www.wasabiwallet.io -d wasabiwallet.net -d www.wasabiwallet.net -d wasabiwallet.org -d www.wasabiwallet.org -d wasabiwallet.info -d www.wasabiwallet.info -d wasabiwallet.co -d www.wasabiwallet.co -d zerolink.info -d www.zerolink.info -d hiddenwallet.org -d www.hiddenwallet.org
 ```
 
 # Update
