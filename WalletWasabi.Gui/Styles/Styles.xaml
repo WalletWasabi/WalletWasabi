@@ -64,7 +64,7 @@
   </Style>
 
   <Style Selector="ListBox">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderLowBrush}" />
   </Style>
 
   <Style Selector="ListBoxItem">
@@ -72,7 +72,7 @@
   </Style>
 
   <Style Selector="TextBox">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
   </Style>
 
   <Style Selector="DataValidationErrors">
@@ -169,9 +169,9 @@
     </Setter>
   </Style>
   <Style Selector="TextBox:pointerover /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
   </Style>
   <Style Selector="TextBox:focus /template/ Border#border">
-    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderDarkBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderHighBrush}" />
   </Style>
 </Styles>
