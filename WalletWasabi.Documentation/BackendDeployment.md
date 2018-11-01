@@ -252,6 +252,20 @@ Setup https, redirect to https when asks. This'll modify the above config file, 
 sudo certbot -d wasabiwallet.io -d www.wasabiwallet.io -d wasabiwallet.net -d www.wasabiwallet.net -d wasabiwallet.org -d www.wasabiwallet.org -d wasabiwallet.info -d www.wasabiwallet.info -d wasabiwallet.co -d www.wasabiwallet.co -d zerolink.info -d www.zerolink.info -d hiddenwallet.org -d www.hiddenwallet.org
 ```
 
+certbot won't properly redirect www, so it must be setup by hand, one by one. Duplicate all entries like this by adding a `www.`:
+```
+server {
+    if ($host = wasabiwallet.co) {
+        return 301 https://$host$request_uri;
+    }
+}
+```
+
+```sh
+sudo nginx -t
+sudo nginx -s reload
+```
+
 # Update
 
 Consider updating the versions in `WalletWasabi.Helpers.Constants`. If versions are updated, make sure Client Release is already available before updating the backend.
