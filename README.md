@@ -32,7 +32,13 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 Clone & Restore & Build
 
 ```sh
-git clone https://github.com/zkSNACKs/WalletWasabi.git --recursive
+# configure the git client to use TOR
+WASABI_GITHUB_URL=https://github.com/zkSNACKs/WalletWasabi
+TOR_PROXY_ADDRESS=socks5://localhost:9050
+git config --global http.$WASABI_GITHUB_URL.proxy $TOR_PROXY_ADDRESS
+
+# clone WasabiWallet
+git clone $WASABI_GITHUB_URL --recursive
 cd WalletWasabi/WalletWasabi.Gui
 dotnet build
 ```
