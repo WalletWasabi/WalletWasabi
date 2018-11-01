@@ -29,7 +29,7 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
   
 ## Get Wasabi
 
-Clone & Restore & Build
+First, configure your local git client to clone WasabiWallet over TOR. `git pull` updates will also use TOR. After the repo is cloned, restore and build.
 
 ```sh
 # configure the git client to use TOR
