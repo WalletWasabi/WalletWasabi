@@ -1,4 +1,6 @@
-http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/
+http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/ - this website can be checked over Tor or over Clearnet
+
+https://wasabiwallet.io/ 
 
 # Windows
 
