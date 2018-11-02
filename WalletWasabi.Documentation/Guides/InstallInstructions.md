@@ -1,5 +1,7 @@
-- Clearnet: https://wasabiwallet.io/
-- Tor: http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/
+|          | Website                                                                |
+|----------|------------------------------------------------------------------------|
+| Clearnet | https://wasabiwallet.io/                                               |
+| Tor      | http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/ |
 
 # Windows
 
