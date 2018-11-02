@@ -54,7 +54,7 @@ namespace WalletWasabi.Services
 
 			Directory.CreateDirectory(FolderPath);
 
-			UtxoReferee = new UtxoReferee(Network, FolderPath, RpcClient);
+			UtxoReferee = new UtxoReferee(Network, FolderPath, RpcClient, RoundConfig);
 
 			// Initialize RsaKey
 			string rsaKeyPath = Path.Combine(FolderPath, "RsaKey.json");
