@@ -94,13 +94,20 @@ namespace WalletWasabi.TorSocks5
 					await TcpClient.ConnectAsync(TorSocks5EndPoint.Address, TorSocks5EndPoint.Port);
 				}
 				// ex.Message must be checked, because I'm having difficulty catching SocketExceptionFactory+ExtendedSocketException
+				// Only works on English Os-es.
 				catch (Exception ex) when (ex.Message.StartsWith(
-											   "No connection could be made because the target machine actively refused it")
-										   || ex.Message.StartsWith("Connection refused"))
+											   "No connection could be made because the target machine actively refused it") // Windows
+										   || ex.Message.StartsWith("Connection refused")) // Linux
 				{
 					error = ex;
 				}
+				// "No connection could be made because the target machine actively refused it" for non-English Windows.
 				catch (SocketException ex) when (ex.ErrorCode == 10061)
+				{
+					error = ex;
+				}
+				// "Connection refused" for non-English Linux.
+				catch (SocketException ex) when (ex.ErrorCode == 111)
 				{
 					error = ex;
 				}
