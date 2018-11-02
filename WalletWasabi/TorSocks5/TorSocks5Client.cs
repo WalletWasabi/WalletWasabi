@@ -111,6 +111,11 @@ namespace WalletWasabi.TorSocks5
 				{
 					error = ex;
 				}
+				// "Connection refused" for non-English OSX.
+				catch (SocketException ex) when (ex.ErrorCode == 61)
+				{
+					error = ex;
+				}
 				if (error != null)
 					throw new ConnectionException(
 						$"Couldn't connect to Tor SOCKSPort at {TorSocks5EndPoint.Address}:{TorSocks5EndPoint.Port}. Is Tor running?", error);
