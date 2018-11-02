@@ -9,6 +9,7 @@
 
 Download the Windows installer (.msi) and follow the instructions.
 Wasabi will be installed to your `C:\Program Files\WasabiWallet\` folder. You will also have an icon in your Start Menu and on your Desktop.  
+
 After first run, a working directory will be created: `%appdata%\WalletWasabi\`. Amongst others, here is where your wallet files and your logs reside.
 
 # Linux
