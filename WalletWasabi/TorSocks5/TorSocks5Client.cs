@@ -97,7 +97,7 @@ namespace WalletWasabi.TorSocks5
 				// Only works on English Os-es.
 				catch (Exception ex) when (ex.Message.StartsWith(
 											   "No connection could be made because the target machine actively refused it") // Windows
-										   || ex.Message.StartsWith("Connection refused")) // Linux
+										   || ex.Message.StartsWith("Connection refused")) // Linux && OSX
 				{
 					error = ex;
 				}
