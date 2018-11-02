@@ -274,7 +274,7 @@ namespace WalletWasabi.Services
 							var toLog = $"{nameof(unsignedCoinJoin)} hex: {unsignedCoinJoin.ToHex()}\n";
 							foreach (var elem in myDic)
 							{
-								toLog += $"\tInput Index: {elem.Key}\t Signature: {elem.Value.ToString()}/n";
+								toLog += $"\tInput Index: {elem.Key}\t Signature: {elem.Value.ToString()}\n";
 							}
 							Logger.LogWarning<CcjClient>(toLog);
 
