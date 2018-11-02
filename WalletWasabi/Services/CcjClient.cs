@@ -325,12 +325,17 @@ namespace WalletWasabi.Services
 				throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
 			}
 
-			var builder = Network.CreateTransactionBuilder();
-			var signedCoinJoin = builder
-				.ContinueToBuild(unsignedCoinJoin)
-				.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())
-				.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
-				.BuildTransaction(true);
+			var signedCoinJoin = unsignedCoinJoin.Clone();
+			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray(), ongoingRound.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
+
+			// Old way of signing, which randomly fails! https://github.com/zkSNACKs/WalletWasabi/issues/716#issuecomment-435498906
+			// Must be fixed in NBitcoin.
+			//var builder = Network.CreateTransactionBuilder();
+			//var signedCoinJoin = builder
+			//	.ContinueToBuild(unsignedCoinJoin)
+			//	.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())
+			//	.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
+			//	.BuildTransaction(true);
 
 			var myDic = new Dictionary<int, WitScript>();
 
