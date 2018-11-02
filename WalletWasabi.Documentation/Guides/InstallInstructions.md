@@ -2,18 +2,17 @@ http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/
 
 # Windows
 
+![](https://imgur.com/fzmCgpY.png)
+
 Download the Windows installer (.msi) and follow the instructions.
-
-![](https://i.imgur.com/fKnFI09.png)
-
 Wasabi will be installed to your `C:\Program Files\WasabiWallet\` folder. You will also have an icon in your Start Menu and on your Desktop.  
 After first run, a working directory will be created: `%appdata%\WalletWasabi\`. Amongst others, here is where your wallet files and your logs reside.
 
 # Linux
 
-Download the Linux archive and extract it, while keeping the file permissions: `tar -pxzf WasabiLinux.tar.gz`.
+![](https://imgur.com/tM4FqbB.png)
 
-![](https://i.imgur.com/vyHsf1t.png)
+Download the Linux archive and extract it, while keeping the file permissions: `tar -pxzf WasabiLinux.tar.gz` .
 
 You can run Wasabi by executing `./wassabee`.
 
@@ -21,9 +20,10 @@ After first run, a working directory will be created: `~/.walletwasabi/`. Amongs
 
 # OSX
 
-Download the OSX archive and extract it, while keeping the file permissions: `tar -pxzf WasabiOsx.tar.gz`.
+![](https://imgur.com/jpnKad7.png)
 
-![](https://i.imgur.com/b4uGJtE.png)
+
+Download the OSX archive and extract it, while keeping the file permissions: `tar -pxzf WasabiLinux.tar.gz` .
 
 You can run Wasabi by executing `./wassabee`.
 
