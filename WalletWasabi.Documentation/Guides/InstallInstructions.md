@@ -16,7 +16,7 @@ After first run, a working directory will be created: `%appdata%\WalletWasabi\`.
 
 ![](https://imgur.com/iZXWBAl.png)
 
-Download the Linux archive and extract it, while keeping the file permissions: `tar -pxzf WasabiLinux.tar.gz`.
+Download the Linux archive and extract it, while keeping the file permissions and write the following text in the terminal: `tar -pxzf WasabiLinux.tar.gz`.
 You can run Wasabi by executing `./wassabee`.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Amongst others, here is where your wallet files and your logs reside.
@@ -25,7 +25,7 @@ After first run, a working directory will be created: `~/.walletwasabi/`. Amongs
 
 ![](https://imgur.com/jpnKad7.png)
 
-Download the OSX archive and extract it, while keeping the file permissions: `tar -pxzf WasabiOsx.tar.gz`.
+Download the OSX archive and extract it, while keeping the file permissions and write the following text in the terminal: `tar -pxzf WasabiOsx.tar.gz`.
 You can run Wasabi by executing `./wassabee`.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Amongst others, here is where your wallet files and your logs reside.
