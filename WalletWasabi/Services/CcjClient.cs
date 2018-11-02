@@ -16,6 +16,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using System.Collections.Concurrent;
+using System.Net.Http;
 
 namespace WalletWasabi.Services
 {
@@ -264,7 +265,21 @@ namespace WalletWasabi.Services
 						Transaction unsignedCoinJoin = await ongoingRound.AliceClient.GetUnsignedCoinJoinAsync();
 						Dictionary<int, WitScript> myDic = SignCoinJoin(ongoingRound, unsignedCoinJoin);
 
-						await ongoingRound.AliceClient.PostSignaturesAsync(myDic);
+						try
+						{
+							await ongoingRound.AliceClient.PostSignaturesAsync(myDic);
+						}
+						catch (HttpRequestException)
+						{
+							var toLog = $"{nameof(unsignedCoinJoin)} hex: {unsignedCoinJoin.ToHex()}\n";
+							foreach (var elem in myDic)
+							{
+								toLog += $"\tInput Index: {elem.Key}\t Signature: {elem.Value.ToString()}/n";
+							}
+							Logger.LogWarning<CcjClient>(toLog);
+
+							throw;
+						}
 						ongoingRound.Signed = true;
 					}
 				}
