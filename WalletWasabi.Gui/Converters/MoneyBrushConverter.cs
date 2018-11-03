@@ -8,7 +8,6 @@ using AvalonStudio.Extensibility.Theme;
 using NBitcoin;
 using WalletWasabi.Models;
 
-
 namespace WalletWasabi.Gui.Converters
 {
 	public class MoneyBrushConverter : IValueConverter
