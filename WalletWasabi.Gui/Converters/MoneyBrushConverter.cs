@@ -8,6 +8,7 @@ using AvalonStudio.Extensibility.Theme;
 using NBitcoin;
 using WalletWasabi.Models;
 
+
 namespace WalletWasabi.Gui.Converters
 {
 	public class MoneyBrushConverter : IValueConverter
@@ -15,7 +16,7 @@ namespace WalletWasabi.Gui.Converters
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			var money = decimal.Parse((string)value);
-			return money < 0 ? Brushes.IndianRed : Brushes.MediumSeaGreen;
+			return money < 0 ? Brushes.IndianRed : new SolidColorBrush(Color.Parse("#22B14C"));
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
