@@ -15,7 +15,7 @@ namespace WalletWasabi.Gui.Converters
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			var money = decimal.Parse((string)value);
-			return money < 0 ? Brushes.IndianRed : Brushes.Green;
+			return money < 0 ? Brushes.IndianRed : Brushes.MediumSeaGreen;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
