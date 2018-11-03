@@ -466,10 +466,10 @@ namespace WalletWasabi.Services
 							{
 								// Find the first one that we did not try to register in the current session.
 								activeKey = allActiveKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
-								// If there is no such a key, then use the oldest.
+								// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
 								if (activeKey == default)
 								{
-									activeKey = AccessCache.Where(x => allActiveKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
+									activeKey = AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).First().Key;
 								}
 								activeKey.SetLabel(activeLabel);
 								activeKey.SetKeyState(KeyState.Locked);
@@ -477,7 +477,7 @@ namespace WalletWasabi.Services
 							}
 							else
 							{
-								activeKey = internalNotCachedLockedKeys.RandomElement();
+								activeKey = internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)).RandomElement();
 								activeKey.SetLabel(activeLabel);
 							}
 							activeAddress = activeKey.GetP2wpkhAddress(Network);
