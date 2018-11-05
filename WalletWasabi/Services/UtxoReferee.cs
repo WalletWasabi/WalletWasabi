@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Services
 {
@@ -22,16 +23,18 @@ namespace WalletWasabi.Services
 		public string BannedUtxosFilePath => Path.Combine(FolderPath, $"BannedUtxos{Network}.txt");
 
 		public RPCClient RpcClient { get; }
-
 		public Network Network { get; }
+
+		public CcjRoundConfig RoundConfig { get; }
 
 		public string FolderPath { get; }
 
-		public UtxoReferee(Network network, string folderPath, RPCClient rpc)
+		public UtxoReferee(Network network, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			FolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
+			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
 
 			BannedUtxos = new ConcurrentDictionary<OutPoint, (int severity, DateTimeOffset timeOfBan)>();
 
@@ -85,6 +88,11 @@ namespace WalletWasabi.Services
 
 		public async Task BanUtxosAsync(int severity, DateTimeOffset timeOfBan, params OutPoint[] toBan)
 		{
+			if (RoundConfig.DosSeverity == 0)
+			{
+				return;
+			}
+
 			var lines = new List<string>();
 			foreach (var utxo in toBan)
 			{

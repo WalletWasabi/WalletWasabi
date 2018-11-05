@@ -274,7 +274,7 @@ namespace WalletWasabi.Services
 							var toLog = $"{nameof(unsignedCoinJoin)} hex: {unsignedCoinJoin.ToHex()}\n";
 							foreach (var elem in myDic)
 							{
-								toLog += $"\tInput Index: {elem.Key}\t Signature: {elem.Value.ToString()}/n";
+								toLog += $"\tInput Index: {elem.Key}\t Signature: {elem.Value.ToString()}\n";
 							}
 							Logger.LogWarning<CcjClient>(toLog);
 
@@ -325,12 +325,17 @@ namespace WalletWasabi.Services
 				throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
 			}
 
-			var builder = Network.CreateTransactionBuilder();
-			var signedCoinJoin = builder
-				.ContinueToBuild(unsignedCoinJoin)
-				.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())
-				.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
-				.BuildTransaction(true);
+			var signedCoinJoin = unsignedCoinJoin.Clone();
+			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray(), ongoingRound.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
+
+			// Old way of signing, which randomly fails! https://github.com/zkSNACKs/WalletWasabi/issues/716#issuecomment-435498906
+			// Must be fixed in NBitcoin.
+			//var builder = Network.CreateTransactionBuilder();
+			//var signedCoinJoin = builder
+			//	.ContinueToBuild(unsignedCoinJoin)
+			//	.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())
+			//	.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
+			//	.BuildTransaction(true);
 
 			var myDic = new Dictionary<int, WitScript>();
 
@@ -461,10 +466,10 @@ namespace WalletWasabi.Services
 							{
 								// Find the first one that we did not try to register in the current session.
 								activeKey = allActiveKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
-								// If there is no such a key, then use the oldest.
+								// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
 								if (activeKey == default)
 								{
-									activeKey = AccessCache.Where(x => allActiveKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
+									activeKey = AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).First().Key;
 								}
 								activeKey.SetLabel(activeLabel);
 								activeKey.SetKeyState(KeyState.Locked);
@@ -472,7 +477,7 @@ namespace WalletWasabi.Services
 							}
 							else
 							{
-								activeKey = internalNotCachedLockedKeys.RandomElement();
+								activeKey = internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)).RandomElement();
 								activeKey.SetLabel(activeLabel);
 							}
 							activeAddress = activeKey.GetP2wpkhAddress(Network);
