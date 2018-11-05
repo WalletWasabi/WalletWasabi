@@ -25,7 +25,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Button Focusable="False" Content="{Binding}" Command="{Binding $parent[ItemsControl].DataContext.OnAddWord}" CommandParameter="{Binding}" />
+                <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" />
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>

@@ -1,11 +1,15 @@
-﻿using AvalonStudio.Extensibility;
+﻿using Avalonia.Threading;
+using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
@@ -20,7 +24,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _walletName;
 		private bool _termsAccepted;
 		private string _validationMessage;
-		private string[] _suggestions;
+		private ObservableCollection<MnemonicViewModel> _suggestions;
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
@@ -77,6 +81,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 				}
 			});
+			_suggestions = new ObservableCollection<MnemonicViewModel>();
 		}
 
 		public string Password
@@ -91,7 +96,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
 		}
 
-		public string[] Suggestions
+		public ObservableCollection<MnemonicViewModel> Suggestions
 		{
 			get { return _suggestions; }
 			set { this.RaiseAndSetIfChanged(ref _suggestions, value); }
@@ -153,21 +158,26 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			if (lastWorld.Length < 1)
 			{
-				Suggestions = new string[0];
+				_suggestions.Clear();
 				return;
 			}
 
 			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld));
-			Suggestions =  suggestedWords.ToArray();
+
+			_suggestions.Clear();
+			foreach(var suggestion in suggestedWords)
+			{
+				_suggestions.Add(new MnemonicViewModel(suggestion, OnAddWord));
+			}
 		}
 
 		public void OnAddWord(string word)
 		{
 			string[] words = MnemonicWords.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 			words[words.Length-1] = word;
-
-			Suggestions = new string[0];
 			MnemonicWords = string.Join(' ', words) + " ";
+			Task.Delay(50).ContinueWith(x=>
+				Dispatcher.UIThread.InvokeAsync(()=>_suggestions.Clear()));
 		}
 
 		private static IEnumerable<string> EnglishWords = Wordlist.English.GetWords();
