@@ -48,15 +48,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 		private void HandleAutoUpdate()
 		{
-			var textBox = AssociatedObject;
-			var text = textBox.Text;
-			var enteredWordList = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-			var lastWorld = enteredWordList.LastOrDefault();
-			var suggestions = SuggestionItems;
-			if(suggestions.Count() == 1)
-			{
-				suggestions.First().OnSelected();
-			}
+			SuggestionItems.FirstOrDefault()?.OnSelected();
 		}
 	}
 }
