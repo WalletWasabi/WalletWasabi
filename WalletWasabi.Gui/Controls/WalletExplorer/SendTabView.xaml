@@ -24,7 +24,11 @@
       <DockPanel LastChildFill="True" Margin="20">
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
           <TextBlock>Note that, you must select coins you want to spend from.</TextBlock>
-          <controls:ExtendedTextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
+          <controls:ExtendedTextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" >
+            <i:Interaction.Behaviors>
+              <behaviors:PasteAddressOnClickBehavior />
+            </i:Interaction.Behaviors>
+          </controls:ExtendedTextBox>
           <controls:ExtendedTextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True">
             <ToolTip.Tip>
               Start labelling today and your privacy will thank you tomorrow!
