@@ -15,6 +15,7 @@
           <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="MnemonicWords" UseFloatingWatermark="True" >
             <i:Interaction.Behaviors>
               <behaviors:MnemonicSuggestionBehavior SuggestionItems="{Binding Suggestions}" />
+              <behaviors:PutCursorAtEndTextBoxBehavior />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
           <ItemsControl Items="{Binding Suggestions}">
