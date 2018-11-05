@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _walletName;
 		private bool _termsAccepted;
 		private string _validationMessage;
-		private string _suggestions;
+		private string[] _suggestions;
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
@@ -91,7 +91,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
 		}
 
-		public string Suggestions
+		public string[] Suggestions
 		{
 			get { return _suggestions; }
 			set { this.RaiseAndSetIfChanged(ref _suggestions, value); }
@@ -153,12 +153,21 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			if (lastWorld.Length < 1)
 			{
-				Suggestions = string.Empty;
+				Suggestions = new string[0];
 				return;
 			}
 
 			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld));
-			Suggestions = string.Join("   ", suggestedWords.ToArray());
+			Suggestions =  suggestedWords.ToArray();
+		}
+
+		public void OnAddWord(string word)
+		{
+			string[] words = MnemonicWords.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			words[words.Length-1] = word;
+
+			Suggestions = new string[0];
+			MnemonicWords = string.Join(' ', words) + " ";
 		}
 
 		private static IEnumerable<string> EnglishWords = Wordlist.English.GetWords();

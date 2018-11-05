@@ -17,7 +17,18 @@
               <behaviors:MnemonicSuggestionBehavior SuggestionItems="{Binding Suggestions}" />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
-          <TextBlock Text="{Binding Suggestions}" FontWeight="Bold" />
+          <ItemsControl Items="{Binding Suggestions}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation ="Horizontal" Spacing="2"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Button Focusable="False" Content="{Binding}" Command="{Binding $parent[ItemsControl].DataContext.OnAddWord}" CommandParameter="{Binding}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
         </StackPanel>
       </Grid>
     </controls:GroupBox>

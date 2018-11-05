@@ -12,10 +12,10 @@ namespace WalletWasabi.Gui.Behaviors
 	{
 		private CompositeDisposable _disposables;
 
-		private static readonly AvaloniaProperty<string> SuggestionItemsProperty =
-			AvaloniaProperty.Register<MnemonicSuggestionBehavior, string>(nameof(SuggestionItems), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+		private static readonly AvaloniaProperty<string[]> SuggestionItemsProperty =
+			AvaloniaProperty.Register<MnemonicSuggestionBehavior, string[]>(nameof(SuggestionItems), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
-		public string SuggestionItems
+		public string[] SuggestionItems
 		{
 			get => GetValue(SuggestionItemsProperty);
 			set => SetValue(SuggestionItemsProperty, value);
@@ -50,11 +50,10 @@ namespace WalletWasabi.Gui.Behaviors
 			var text = textBox.Text;
 			var enteredWordList = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 			var lastWorld = enteredWordList.LastOrDefault();
-			var suggestions = SuggestionItems.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+			var suggestions = SuggestionItems;
 			if(suggestions.Length == 1)
 			{
 				textBox.Text = text.Substring(0, text.Length - lastWorld.Length) + suggestions[0] + " ";
-				textBox.CaretIndex = textBox.Text.Length;
 			}
 		}
 	}
