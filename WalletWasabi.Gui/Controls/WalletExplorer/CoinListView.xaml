@@ -47,8 +47,11 @@
                   <TextBlock Text="Label:" Grid.Row="2" />
                   <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Label}"  Grid.Column="1" Grid.Row="2" />
 
-                  <TextBlock Text="Anonymity Set:" Grid.Row="3" />
-                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding AnonymitySet}"  Grid.Column="1" Grid.Row="3" />
+                  <TextBlock Text="Address:" Grid.Row="3" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Address}"  Grid.Column="1" Grid.Row="3" />
+
+                  <TextBlock Text="Anonymity Set:" Grid.Row="4" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding AnonymitySet}"  Grid.Column="1" Grid.Row="4" />
                 </Grid>
               </StackPanel>
             </Expander>
