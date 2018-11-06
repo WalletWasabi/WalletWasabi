@@ -19,6 +19,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 {
 	internal class RecoverWalletViewModel : CategoryViewModel
 	{
+		private int _caretIndex;
 		private string _password;
 		private string _mnemonicWords;
 		private string _walletName;
@@ -28,6 +29,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
+			MnemonicWords = "";
+
 			RecoverCommand = ReactiveCommand.Create(() =>
 			{
 				WalletName = Guard.Correct(WalletName);
@@ -81,6 +84,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 				}
 			});
+
+			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
+			{
+				if(CaretIndex != MnemonicWords.Length)
+				{
+					CaretIndex = MnemonicWords.Length;
+				}
+			});
+
 			_suggestions = new ObservableCollection<MnemonicViewModel>();
 		}
 
@@ -120,6 +132,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _validationMessage, value); }
 		}
 
+		public int CaretIndex
+		{
+			get { return _caretIndex; }
+			set { this.RaiseAndSetIfChanged(ref _caretIndex, value); }
+		}
+		
 		public ReactiveCommand RecoverCommand { get; }
 
 		public void OnTermsClicked()
@@ -142,7 +160,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			base.OnCategorySelected();
 
 			Password = null;
-			MnemonicWords = null;
+			MnemonicWords = "";
 			WalletName = Utils.GetNextWalletName();
 			TermsAccepted = false;
 			ValidationMessage = null;
@@ -176,8 +194,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			string[] words = MnemonicWords.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 			words[words.Length-1] = word;
 			MnemonicWords = string.Join(' ', words) + " ";
-			Task.Delay(50).ContinueWith(x=>
-				Dispatcher.UIThread.InvokeAsync(()=>_suggestions.Clear()));
+
+			CaretIndex = MnemonicWords.Length;
+
+			Suggestions.Clear();
 		}
 
 		private static IEnumerable<string> EnglishWords = Wordlist.English.GetWords();
