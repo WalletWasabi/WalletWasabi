@@ -38,9 +38,12 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			_disposables = new CompositeDisposable
 			{
-				Observable.FromEventPattern<RoutedEventArgs>(AssociatedObject, nameof(AssociatedObject.LostFocus)).Subscribe(args=>
+				AssociatedObject.GetObservable(TextBox.IsFocusedProperty).Subscribe(focused =>
 				{
-					PasteClipboardContentIfBitcoinAddress();
+					if(focused && string.IsNullOrWhiteSpace(AssociatedObject.Text))
+					{
+						PasteClipboardContentIfBitcoinAddress();
+					}
 				})
 			};
 
