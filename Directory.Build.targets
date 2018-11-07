@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup>
-    <AvaloniaVersion>0.7.1-build534-beta</AvaloniaVersion>
+    <AvaloniaVersion>0.7.0</AvaloniaVersion>
     <AvaloniaBehaviorsVersion>0.6.2-build562</AvaloniaBehaviorsVersion>    
   </PropertyGroup>
 
