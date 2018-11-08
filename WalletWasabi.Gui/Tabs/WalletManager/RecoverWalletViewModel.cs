@@ -87,7 +87,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
-				if(CaretIndex != MnemonicWords.Length)
+				if (CaretIndex != MnemonicWords.Length)
 				{
 					CaretIndex = MnemonicWords.Length;
 				}
@@ -137,7 +137,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			get { return _caretIndex; }
 			set { this.RaiseAndSetIfChanged(ref _caretIndex, value); }
 		}
-		
+
 		public ReactiveCommand RecoverCommand { get; }
 
 		public void OnTermsClicked()
@@ -168,8 +168,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		private void UpdateSuggestions(string words)
 		{
-			if (string.IsNullOrEmpty(words))
+			if (string.IsNullOrWhiteSpace(words))
+			{
+				Suggestions?.Clear();
 				return;
+			}
 
 			string[] enteredWordList = words.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
@@ -180,10 +183,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				return;
 			}
 
-			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld));
+			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld)).Take(7);
 
 			_suggestions.Clear();
-			foreach(var suggestion in suggestedWords)
+			foreach (var suggestion in suggestedWords)
 			{
 				_suggestions.Add(new MnemonicViewModel(suggestion, OnAddWord));
 			}
@@ -192,8 +195,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public void OnAddWord(string word)
 		{
 			string[] words = MnemonicWords.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-			words[words.Length-1] = word;
-			MnemonicWords = string.Join(' ', words) + " ";
+			if (words.Length == 0)
+			{
+				MnemonicWords = word + " ";
+			}
+			else
+			{
+				words[words.Length - 1] = word;
+				MnemonicWords = string.Join(' ', words) + " ";
+			}
 
 			CaretIndex = MnemonicWords.Length;
 
