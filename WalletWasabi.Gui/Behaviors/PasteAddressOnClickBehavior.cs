@@ -7,6 +7,7 @@ using NBitcoin;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Behaviors
 {
@@ -16,22 +17,39 @@ namespace WalletWasabi.Gui.Behaviors
 
 		public void PasteClipboardContentIfBitcoinAddress()
 		{
-			var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)); 
-			var text = clipboard.GetTextAsync().GetAwaiter().GetResult();
+			if(IsThereABitcoinAddressOnTheClipboard(out string address))
+			{
+				if(string.IsNullOrWhiteSpace(AssociatedObject.Text) )
+					AssociatedObject.Text = address;
+			}
+		} 
 
+		public bool IsThereABitcoinAddressOnTheClipboard(out string address)
+		{
+			address = string.Empty;
+
+			var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));	
+			
+			// TODO: fix this
+			var clipboardTask = clipboard.GetTextAsync();
+			Task.WaitAny(Task.Delay(10), clipboardTask);
+			if(!clipboardTask.IsCompleted)
+			{
+				return false;
+			}
+
+			var text = clipboardTask.Result;
 			try
 			{
-				var address = BitcoinAddress.Create(text, Global.Network);
-				if(address is BitcoinWitPubKeyAddress)
-				{
-					if(string.IsNullOrWhiteSpace(AssociatedObject.Text) )
-						AssociatedObject.Text = text;
-				}
+				var bitcoinAddress = BitcoinAddress.Create(text, Global.Network);
+				address = text;
+				return bitcoinAddress is BitcoinWitPubKeyAddress;
 			}
 			catch(FormatException)
 			{
+				return false;
 			}
-		} 
+		}
 
 		protected override void OnAttached()
 		{
@@ -39,12 +57,40 @@ namespace WalletWasabi.Gui.Behaviors
 			{
 				AssociatedObject.GetObservable(TextBox.IsFocusedProperty).Subscribe(focused =>
 				{
-					if(focused && string.IsNullOrWhiteSpace(AssociatedObject.Text))
+					if(focused)
 					{
-						PasteClipboardContentIfBitcoinAddress();
+						if(string.IsNullOrWhiteSpace(AssociatedObject.Text))
+						{
+							PasteClipboardContentIfBitcoinAddress();
+						}
+					}
+				})				
+			};
+
+			_disposables.Add(
+				AssociatedObject.GetObservable(TextBox.PointerReleasedEvent).Subscribe(pointer =>
+				{
+					if(!string.IsNullOrWhiteSpace(AssociatedObject.Text))
+					{
+						AssociatedObject.SelectionStart = 0;
+						AssociatedObject.SelectionEnd = AssociatedObject.Text?.Length ?? 0;
 					}
 				})
-			};
+			);
+
+			_disposables.Add(
+				AssociatedObject.GetObservable(TextBox.PointerEnterEvent).Subscribe(pointerEnter =>
+				{
+					if(IsThereABitcoinAddressOnTheClipboard(out string address))
+					{
+						ToolTip.SetTip(AssociatedObject, "Click to paste address from clipboard");
+					}
+					else
+					{
+						ToolTip.SetTip(AssociatedObject, "");
+					}
+				})
+			);
 
 			base.OnAttached();
  		}
