@@ -13,6 +13,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using ReactiveUI.Legacy;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -128,6 +129,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					SuccessMessage = "Transaction is successfully sent!";
 					WarningMessage = "";
+				}
+				catch (InsufficientBalanceException ex)
+				{
+					SuccessMessage = "";
+					Money needed = ex.Minimum - ex.Actual;
+					WarningMessage = $"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.";
 				}
 				catch (Exception ex)
 				{
