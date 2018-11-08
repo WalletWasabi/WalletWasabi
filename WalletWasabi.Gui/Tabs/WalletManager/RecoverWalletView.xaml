@@ -12,12 +12,23 @@
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
           <TextBox Text="{Binding Password}" Watermark="Password" PasswordChar="*" UseFloatingWatermark="True" />
-          <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="MnemonicWords" UseFloatingWatermark="True" >
+          <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="MnemonicWords" UseFloatingWatermark="True" CaretIndex="{Binding CaretIndex, Mode=TwoWay}">
             <i:Interaction.Behaviors>
               <behaviors:MnemonicSuggestionBehavior SuggestionItems="{Binding Suggestions}" />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
-          <TextBlock Text="{Binding Suggestions}" FontWeight="Bold" />
+          <ItemsControl Items="{Binding Suggestions}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation ="Horizontal" Spacing="2"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
         </StackPanel>
       </Grid>
     </controls:GroupBox>
