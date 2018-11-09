@@ -29,6 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _password;
 		private string _address;
 		private string _label;
+		private string _labelToolTip;
 		private bool _isBusy;
 		private string _warningMessage;
 		private string _successMessage;
@@ -193,6 +194,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IgnoreAmountChanges = true;
 			Amount = "All Selected Coins!";
 			IgnoreAmountChanges = false;
+
+			LabelToolTip = "Spending whole coins doesn't generate change, thus labeling is unnecessary.";
 		}
 
 		private void ResetMax()
@@ -203,6 +206,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IgnoreAmountChanges = true;
 			Amount = "0.0";
 			IgnoreAmountChanges = false;
+
+			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
 		}
 
 		public CoinListViewModel CoinList
@@ -287,6 +292,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _label; }
 			set { this.RaiseAndSetIfChanged(ref _label, value); }
+		}
+
+		public string LabelToolTip
+		{
+			get { return _labelToolTip; }
+			set { this.RaiseAndSetIfChanged(ref _labelToolTip, value); }
 		}
 
 		public string WarningMessage
