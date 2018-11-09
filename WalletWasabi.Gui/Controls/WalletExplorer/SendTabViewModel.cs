@@ -93,7 +93,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					Password = Guard.Correct(Password);
-					if (string.IsNullOrWhiteSpace(Label))
+					if (!IsMax && string.IsNullOrWhiteSpace(Label))
 					{
 						throw new InvalidOperationException("Label is required.");
 					}
