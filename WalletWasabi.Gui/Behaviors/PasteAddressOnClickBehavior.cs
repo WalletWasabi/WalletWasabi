@@ -11,89 +11,137 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Behaviors
 {
+
 	internal class PasteAddressOnClickBehavior : Behavior<TextBox>
 	{
 		private CompositeDisposable _disposables = new CompositeDisposable();
 
-		public void PasteClipboardContentIfBitcoinAddress()
+		protected internal enum TextBoxState
 		{
-			if(IsThereABitcoinAddressOnTheClipboard(out string address))
-			{
-				if(string.IsNullOrWhiteSpace(AssociatedObject.Text) )
-					AssociatedObject.Text = address;
-			}
-		} 
+			None,
+			NormalTextBoxOperation,
+			AddressInsert,
+			SelectAll,
+		}
 
-		public bool IsThereABitcoinAddressOnTheClipboard(out string address)
+		private TextBoxState MyTextBoxState 
+		{ get => _textBoxState; 
+		  set
+		  { 
+				_textBoxState = value;
+				switch (value)
+				{
+					case TextBoxState.NormalTextBoxOperation:
+						{
+							ToolTip.SetTip(AssociatedObject, _originalToolTipText);
+							ToolTip.SetIsOpen(AssociatedObject, false);
+						}
+						break;
+					case TextBoxState.AddressInsert:
+						{
+							ToolTip.SetTip(AssociatedObject, "Click to paste address from clipboard");
+						}
+						break;
+					case TextBoxState.SelectAll:
+						{
+							ToolTip.SetTip(AssociatedObject, "Click to select all");
+						}
+						break;
+
+
+				}
+			}
+	    }
+		private string _originalToolTipText;
+		private string _addressToPaste;
+		private TextBoxState _textBoxState = TextBoxState.None;
+
+		public async Task<(bool isAddress, string address)> IsThereABitcoinAddressOnTheClipboardAsync()
 		{
-			address = string.Empty;
-
-			var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));	
-			
-			// TODO: fix this
-			var clipboardTask = clipboard.GetTextAsync();
-			Task.WaitAny(Task.Delay(10), clipboardTask);
-			if(!clipboardTask.IsCompleted)
-			{
-				return false;
-			}
-
-			var text = clipboardTask.Result;
+			var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
+			Task<string> clipboardTask = clipboard.GetTextAsync();
+			string text = await clipboardTask;
+			if (text.Length > 50) return (false, null);
+			text = text.Trim();
 			try
 			{
 				var bitcoinAddress = BitcoinAddress.Create(text, Global.Network);
-				address = text;
-				return bitcoinAddress is BitcoinWitPubKeyAddress;
+				return (bitcoinAddress is BitcoinWitPubKeyAddress, text);
 			}
-			catch(FormatException)
+			catch (FormatException)
 			{
-				return false;
+				return (false, null);
 			}
 		}
 
 		protected override void OnAttached()
 		{
+			_originalToolTipText = (string)ToolTip.GetTip(AssociatedObject);
 			_disposables = new CompositeDisposable
 			{
 				AssociatedObject.GetObservable(TextBox.IsFocusedProperty).Subscribe(focused =>
 				{
-					if(focused)
-					{
-						if(string.IsNullOrWhiteSpace(AssociatedObject.Text))
-						{
-							PasteClipboardContentIfBitcoinAddress();
-						}
-					}
-				})				
+					if (!focused) 
+						MyTextBoxState = TextBoxState.None;
+				})
 			};
+
+			
 
 			_disposables.Add(
 				AssociatedObject.GetObservable(TextBox.PointerReleasedEvent).Subscribe(pointer =>
 				{
-					if(!string.IsNullOrWhiteSpace(AssociatedObject.Text))
+					switch (MyTextBoxState)
 					{
-						AssociatedObject.SelectionStart = 0;
-						AssociatedObject.SelectionEnd = AssociatedObject.Text?.Length ?? 0;
+						case TextBoxState.AddressInsert:
+							{
+								AssociatedObject.Text = _addressToPaste;
+								MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+								var labeltextbox = AssociatedObject.Parent.FindControl<TextBox>("LabelTextBox");
+								if (labeltextbox != null) labeltextbox.Focus();
+							}
+							break;
+						case TextBoxState.SelectAll:
+							AssociatedObject.SelectionStart = 0;
+							AssociatedObject.SelectionEnd = AssociatedObject.Text.Length;
+							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+							break;
 					}
+
 				})
 			);
 
 			_disposables.Add(
-				AssociatedObject.GetObservable(TextBox.PointerEnterEvent).Subscribe(pointerEnter =>
+				AssociatedObject.GetObservable(TextBox.PointerEnterEvent).Subscribe(async pointerEnter =>
 				{
-					if(IsThereABitcoinAddressOnTheClipboard(out string address))
+					if (MyTextBoxState == TextBoxState.NormalTextBoxOperation) return;
+					_addressToPaste = null;
+
+					if (string.IsNullOrEmpty(AssociatedObject.Text))
 					{
-						ToolTip.SetTip(AssociatedObject, "Click to paste address from clipboard");
+						var result = await IsThereABitcoinAddressOnTheClipboardAsync();
+						if (result.isAddress)
+						{
+							_addressToPaste = result.address;
+							MyTextBoxState = TextBoxState.AddressInsert;
+							ToolTip.SetIsOpen(AssociatedObject, true);
+						}
+						else
+						{
+							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+						}
 					}
 					else
 					{
-						ToolTip.SetTip(AssociatedObject, "");
+						MyTextBoxState = TextBoxState.SelectAll;
 					}
+
+
 				})
 			);
 
 			base.OnAttached();
- 		}
+		}
 
 		protected override void OnDetaching()
 		{

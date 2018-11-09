@@ -29,7 +29,7 @@
               <behaviors:PasteAddressOnClickBehavior />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
-          <controls:ExtendedTextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True">
+          <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True">
             <ToolTip.Tip>
               Start labelling today and your privacy will thank you tomorrow!
             </ToolTip.Tip>
