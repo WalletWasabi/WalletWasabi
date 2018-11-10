@@ -96,14 +96,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Password = Guard.Correct(Password);
 					if (!IsMax && string.IsNullOrWhiteSpace(Label))
 					{
-						throw new InvalidOperationException("Label is required.");
+						SetWarningMessage("Label is required.");
+						return;
 					}
 
 					var selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
 
 					if (!selectedCoins.Any())
 					{
-						throw new InvalidOperationException("No coins are selected to spend.");
+						SetWarningMessage("No coins are selected to spend.");
+						return;
 					}
 
 					var address = BitcoinAddress.Create(Address.Trim(), Global.Network);
@@ -114,7 +116,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						amount = Money.Parse(Amount);
 						if (amount == Money.Zero)
 						{
-							throw new FormatException($"Invalid {nameof(Amount)}");
+							SetWarningMessage($"Invalid {nameof(Amount)}");
+							return;
 						}
 					}
 					var operation = new WalletService.Operation(script, amount, Label);
@@ -128,19 +131,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = "";
 					Password = "";
 
-					SuccessMessage = "Transaction is successfully sent!";
-					WarningMessage = "";
+					SetSuccessMessage("Transaction is successfully sent!");
 				}
 				catch (InsufficientBalanceException ex)
 				{
-					SuccessMessage = "";
 					Money needed = ex.Minimum - ex.Actual;
-					WarningMessage = $"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.";
+					SetWarningMessage($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
 				}
 				catch (Exception ex)
 				{
-					SuccessMessage = "";
-					WarningMessage = ex.ToTypeMessageString();
+					SetWarningMessage(ex.ToTypeMessageString());
 				}
 				finally
 				{
@@ -178,6 +178,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			});
+		}
+
+		private void SetWarningMessage(string message)
+		{
+			SuccessMessage = "";
+			WarningMessage = message;
+		}
+
+		private void SetSuccessMessage(string message)
+		{
+			SuccessMessage = message;
+			WarningMessage = "";
 		}
 
 		private void SetMax()
