@@ -17,6 +17,7 @@ using WalletWasabi.Gui.Tabs;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Dialogs;
 using System.Runtime.InteropServices;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -149,6 +150,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private long _clientOutOfDate;
 		private long _backendIncompatible;
+		private CompositeDisposable _disposables;
 
 		public StatusBarViewModel(NodesCollection nodes, MemPoolService memPoolService, IndexDownloader indexDownloader, UpdateChecker updateChecker)
 		{
@@ -177,11 +179,14 @@ namespace WalletWasabi.Gui.ViewModels
 
 			FiltersLeft = IndexDownloader.GetFiltersLeft();
 
-			IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-			{
-				FiltersLeft = IndexDownloader.GetFiltersLeft();
-			});
 
+
+			_disposables = new CompositeDisposable {
+				IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+					{
+						FiltersLeft = IndexDownloader.GetFiltersLeft();
+					})
+			};
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
 				SetStatusAndDoUpdateActions();
@@ -342,6 +347,7 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				if (disposing)
 				{
+					_disposables.Dispose();
 					Nodes.Added -= Nodes_Added;
 					Nodes.Removed -= Nodes_Removed;
 					MemPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
