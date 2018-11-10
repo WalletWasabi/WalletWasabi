@@ -171,12 +171,16 @@ namespace WalletWasabi.Gui.ViewModels
 			IndexDownloader = indexDownloader;
 			UpdateChecker = updateChecker;
 			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
-			IndexDownloader.BestHeightChanged += IndexDownloader_BestHeightChanged;
 			IndexDownloader.TorStatusChanged += IndexDownloader_TorStatusChanged;
 			IndexDownloader.BackendStatusChanged += IndexDownloader_BackendStatusChanged;
 			IndexDownloader.ResponseArrivedIsGenSocksServFail += IndexDownloader_ResponseArrivedIsGenSocksServFail;
 
 			FiltersLeft = IndexDownloader.GetFiltersLeft();
+
+			IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			{
+				FiltersLeft = IndexDownloader.GetFiltersLeft();
+			});
 
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
@@ -313,11 +317,6 @@ namespace WalletWasabi.Gui.ViewModels
 			FiltersLeft = IndexDownloader.GetFiltersLeft();
 		}
 
-		private void IndexDownloader_BestHeightChanged(object sender, Height e)
-		{
-			FiltersLeft = IndexDownloader.GetFiltersLeft();
-		}
-
 		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Mempool = MemPoolService.TransactionHashes.Count;
@@ -347,7 +346,6 @@ namespace WalletWasabi.Gui.ViewModels
 					Nodes.Removed -= Nodes_Removed;
 					MemPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
 					IndexDownloader.NewFilter -= IndexDownloader_NewFilter;
-					IndexDownloader.BestHeightChanged -= IndexDownloader_BestHeightChanged;
 					IndexDownloader.TorStatusChanged -= IndexDownloader_TorStatusChanged;
 					IndexDownloader.BackendStatusChanged -= IndexDownloader_BackendStatusChanged;
 					IndexDownloader.ResponseArrivedIsGenSocksServFail -= IndexDownloader_ResponseArrivedIsGenSocksServFail;
