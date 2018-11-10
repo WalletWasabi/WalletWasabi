@@ -108,7 +108,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					var address = BitcoinAddress.Create(Address.Trim(), Global.Network);
+					BitcoinAddress address;
+					try
+					{
+						address = BitcoinAddress.Create(Address.Trim(), Global.Network);
+					}
+					catch (FormatException)
+					{
+						SetWarningMessage("Invalid address.");
+						return;
+					}
+
 					var script = address.ScriptPubKey;
 					var amount = Money.Zero;
 					if (!IsMax)
@@ -116,7 +126,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						amount = Money.Parse(Amount);
 						if (amount == Money.Zero)
 						{
-							SetWarningMessage($"Invalid {nameof(Amount)}");
+							SetWarningMessage($"Invalid amount.");
 							return;
 						}
 					}
@@ -184,12 +194,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			SuccessMessage = "";
 			WarningMessage = message;
+
+			Dispatcher.UIThread.Post(async () =>
+			{
+				await Task.Delay(7000);
+				if (WarningMessage == message)
+				{
+					WarningMessage = "";
+				}
+			});
 		}
 
 		private void SetSuccessMessage(string message)
 		{
 			SuccessMessage = message;
 			WarningMessage = "";
+
+			Dispatcher.UIThread.Post(async () =>
+			{
+				await Task.Delay(7000);
+				if (SuccessMessage == message)
+				{
+					SuccessMessage = "";
+				}
+			});
 		}
 
 		private void SetMax()
