@@ -196,7 +196,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 
 					amountSoFar += coin.Amount;
-					if (amountSoFar > amountNeededExceptInputFees + (feePerInputs * coinsToRegister.Count))
+					if (amountSoFar >= amountNeededExceptInputFees + (feePerInputs * coinsToRegister.Count))
 					{
 						// If input count doesn't reach the max input registration AND there are enough coins queued, then can register to mix.
 						return coinsToRegister.Select(x => (x.TransactionId, x.Index)).ToArray();
