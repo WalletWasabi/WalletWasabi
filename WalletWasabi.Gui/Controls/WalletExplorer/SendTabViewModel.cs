@@ -29,6 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _password;
 		private string _address;
 		private string _label;
+		private string _labelToolTip;
 		private bool _isBusy;
 		private string _warningMessage;
 		private string _successMessage;
@@ -93,19 +94,31 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					Password = Guard.Correct(Password);
-					if (string.IsNullOrWhiteSpace(Label))
+					if (!IsMax && string.IsNullOrWhiteSpace(Label))
 					{
-						throw new InvalidOperationException("Label is required.");
+						SetWarningMessage("Label is required.");
+						return;
 					}
 
 					var selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
 
 					if (!selectedCoins.Any())
 					{
-						throw new InvalidOperationException("No coins are selected to spend.");
+						SetWarningMessage("No coins are selected to spend.");
+						return;
 					}
 
-					var address = BitcoinAddress.Create(Address.Trim(), Global.Network);
+					BitcoinAddress address;
+					try
+					{
+						address = BitcoinAddress.Create(Address.Trim(), Global.Network);
+					}
+					catch (FormatException)
+					{
+						SetWarningMessage("Invalid address.");
+						return;
+					}
+
 					var script = address.ScriptPubKey;
 					var amount = Money.Zero;
 					if (!IsMax)
@@ -113,7 +126,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						amount = Money.Parse(Amount);
 						if (amount == Money.Zero)
 						{
-							throw new FormatException($"Invalid {nameof(Amount)}");
+							SetWarningMessage($"Invalid amount.");
+							return;
 						}
 					}
 					var operation = new WalletService.Operation(script, amount, Label);
@@ -127,19 +141,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = "";
 					Password = "";
 
-					SuccessMessage = "Transaction is successfully sent!";
-					WarningMessage = "";
+					SetSuccessMessage("Transaction is successfully sent!");
 				}
 				catch (InsufficientBalanceException ex)
 				{
-					SuccessMessage = "";
 					Money needed = ex.Minimum - ex.Actual;
-					WarningMessage = $"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.";
+					SetWarningMessage($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
 				}
 				catch (Exception ex)
 				{
-					SuccessMessage = "";
-					WarningMessage = ex.ToTypeMessageString();
+					SetWarningMessage(ex.ToTypeMessageString());
 				}
 				finally
 				{
@@ -179,6 +190,36 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 		}
 
+		private void SetWarningMessage(string message)
+		{
+			SuccessMessage = "";
+			WarningMessage = message;
+
+			Dispatcher.UIThread.Post(async () =>
+			{
+				await Task.Delay(7000);
+				if (WarningMessage == message)
+				{
+					WarningMessage = "";
+				}
+			});
+		}
+
+		private void SetSuccessMessage(string message)
+		{
+			SuccessMessage = message;
+			WarningMessage = "";
+
+			Dispatcher.UIThread.Post(async () =>
+			{
+				await Task.Delay(7000);
+				if (SuccessMessage == message)
+				{
+					SuccessMessage = "";
+				}
+			});
+		}
+
 		private void SetMax()
 		{
 			if (IsMax)
@@ -193,6 +234,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IgnoreAmountChanges = true;
 			Amount = "All Selected Coins!";
 			IgnoreAmountChanges = false;
+
+			LabelToolTip = "Spending whole coins doesn't generate change, thus labeling is unnecessary.";
 		}
 
 		private void ResetMax()
@@ -203,6 +246,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IgnoreAmountChanges = true;
 			Amount = "0.0";
 			IgnoreAmountChanges = false;
+
+			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
 		}
 
 		public CoinListViewModel CoinList
@@ -287,6 +332,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _label; }
 			set { this.RaiseAndSetIfChanged(ref _label, value); }
+		}
+
+		public string LabelToolTip
+		{
+			get { return _labelToolTip; }
+			set { this.RaiseAndSetIfChanged(ref _labelToolTip, value); }
 		}
 
 		public string WarningMessage

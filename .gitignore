@@ -270,3 +270,4 @@ lcov.info
 /WalletWasabi.Backend/wwwroot/unversioned/*
 
 \.DS_Store
+*.DS_Store

@@ -29,11 +29,7 @@
               <behaviors:PasteAddressOnClickBehavior />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
-          <controls:ExtendedTextBox x:Name="LabelTextBox" Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True">
-            <ToolTip.Tip>
-              Start labelling today and your privacy will thank you tomorrow!
-            </ToolTip.Tip>
-          </controls:ExtendedTextBox>
+          <controls:ExtendedTextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" />
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Button Content="{Binding MaxClear}" Command="{Binding MaxCommand}" VerticalAlignment="Top" />
             <controls:ExtendedTextBox Foreground="{Binding IsMax, Converter={StaticResource AmountForegroundConverter}}" IsReadOnly="{Binding IsMax}" Text="{Binding Amount}" Watermark="Amount (BTC)" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />
