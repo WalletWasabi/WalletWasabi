@@ -112,6 +112,27 @@ namespace WalletWasabi.Services
 					File.Delete(CoinJoinsFilePath);
 				}
 			}
+
+			try
+			{
+				string roundCountFilePath = Path.Combine(folderPath, "RoundCount.txt");
+				if (File.Exists(roundCountFilePath))
+				{
+					string roundCount = File.ReadAllText(roundCountFilePath);
+					CcjRound.RoundCount = long.Parse(roundCount);
+				}
+				else
+				{
+					// First time initializes (so the first constructor will increment it and we'll start from 1.)
+					CcjRound.RoundCount = 0;
+				}
+			}
+			catch (Exception ex)
+			{
+				CcjRound.RoundCount = 0;
+				Logger.LogInfo<CcjCoordinator>($"{nameof(CcjRound.RoundCount)} file was corrupt. Resetting to 0.");
+				Logger.LogDebug<CcjCoordinator>(ex);
+			}
 		}
 
 		public async Task ProcessBlockAsync(Block block)
@@ -346,6 +367,18 @@ namespace WalletWasabi.Services
 						{
 							round.StatusChanged -= Round_StatusChangedAsync;
 							round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
+						}
+
+						try
+						{
+							string roundCountFilePath = Path.Combine(FolderPath, "RoundCount.txt");
+
+							IoHelpers.EnsureContainingDirectoryExists(roundCountFilePath);
+							File.WriteAllText(roundCountFilePath, CcjRound.RoundCount.ToString());
+						}
+						catch (Exception ex)
+						{
+							Logger.LogDebug<CcjCoordinator>(ex);
 						}
 					}
 				}
