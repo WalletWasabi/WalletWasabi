@@ -50,8 +50,11 @@
                   <TextBlock Text="Address:" Grid.Row="3" />
                   <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Address}"  Grid.Column="1" Grid.Row="3" />
 
-                  <TextBlock Text="Anonymity Set:" Grid.Row="4" />
-                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding AnonymitySet}"  Grid.Column="1" Grid.Row="4" />
+                  <TextBlock Text="Confirmations:" Grid.Row="4" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Confirmations}"  Grid.Column="1" Grid.Row="4" />
+
+                  <TextBlock Text="Anonymity Set:" Grid.Row="5" />
+                  <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding AnonymitySet}"  Grid.Column="1" Grid.Row="5" />
                 </Grid>
               </StackPanel>
             </Expander>
