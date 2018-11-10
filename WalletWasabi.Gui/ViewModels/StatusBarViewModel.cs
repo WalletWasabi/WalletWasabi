@@ -179,8 +179,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 			FiltersLeft = IndexDownloader.GetFiltersLeft();
 
-
-
 			_disposables = new CompositeDisposable {
 				IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 					{
