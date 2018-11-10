@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-
 	internal class PasteAddressOnClickBehavior : Behavior<TextBox>
 	{
 		private CompositeDisposable _disposables = new CompositeDisposable();
@@ -24,10 +23,11 @@ namespace WalletWasabi.Gui.Behaviors
 			SelectAll,
 		}
 
-		private TextBoxState MyTextBoxState 
-		{ get => _textBoxState; 
-		  set
-		  { 
+		private TextBoxState MyTextBoxState
+		{
+			get => _textBoxState;
+			set
+			{
 				_textBoxState = value;
 				switch (value)
 				{
@@ -38,23 +38,24 @@ namespace WalletWasabi.Gui.Behaviors
 							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Ibeam);
 						}
 						break;
+
 					case TextBoxState.AddressInsert:
 						{
 							ToolTip.SetTip(AssociatedObject, "Click to paste address from clipboard");
 							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
 						}
 						break;
+
 					case TextBoxState.SelectAll:
 						{
 							ToolTip.SetTip(AssociatedObject, "Click to select all");
 							AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
 						}
 						break;
-
-
 				}
 			}
-	    }
+		}
+
 		private string _originalToolTipText;
 		private string _addressToPaste;
 		private TextBoxState _textBoxState = TextBoxState.None;
@@ -84,7 +85,7 @@ namespace WalletWasabi.Gui.Behaviors
 			{
 				AssociatedObject.GetObservable(TextBox.IsFocusedProperty).Subscribe(focused =>
 				{
-					if (!focused) 
+					if (!focused)
 						MyTextBoxState = TextBoxState.None;
 				})
 			};
@@ -99,11 +100,13 @@ namespace WalletWasabi.Gui.Behaviors
 								AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Ibeam);
 							}
 							break;
+
 						case TextBoxState.AddressInsert:
 							{
 								AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
 							}
 							break;
+
 						case TextBoxState.SelectAll:
 							{
 								AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
@@ -126,13 +129,13 @@ namespace WalletWasabi.Gui.Behaviors
 								if (labeltextbox != null) labeltextbox.Focus();
 							}
 							break;
+
 						case TextBoxState.SelectAll:
 							AssociatedObject.SelectionStart = 0;
 							AssociatedObject.SelectionEnd = AssociatedObject.Text.Length;
 							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
 							break;
 					}
-
 				})
 			);
 
@@ -160,8 +163,6 @@ namespace WalletWasabi.Gui.Behaviors
 					{
 						MyTextBoxState = TextBoxState.SelectAll;
 					}
-
-
 				})
 			);
 
