@@ -1,4 +1,6 @@
-﻿using AvalonStudio.Extensibility;
+﻿using Avalonia;
+using Avalonia.Controls;
+using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Dialogs;
 using AvalonStudio.Shell;
 using NBitcoin;
@@ -21,6 +23,30 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get { return _title; }
 			internal set { this.RaiseAndSetIfChanged(ref _title, value); }
+		}
+
+		private double _height;
+
+		public double Height
+		{
+			get { return _height; }
+			internal set { this.RaiseAndSetIfChanged(ref _height, value); }
+		}
+
+		private double _width;
+
+		public double Width
+		{
+			get { return _width; }
+			internal set { this.RaiseAndSetIfChanged(ref _width, value); }
+		}
+
+		private WindowState _windowState;
+
+		public WindowState WindowState
+		{
+			get { return _windowState; }
+			internal set { this.RaiseAndSetIfChanged(ref _windowState, value); }
 		}
 
 		private StatusBarViewModel _statusBar;
@@ -61,6 +87,13 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get { return _canClose; }
 			set { this.RaiseAndSetIfChanged(ref _canClose, value); }
+		}
+
+		public void RefreshUiFromConfig(UiConfig config)
+		{
+			Width = (double)config.Width;
+			Height = (double)config.Height;
+			WindowState = (WindowState)config.WindowState;
 		}
 	}
 }

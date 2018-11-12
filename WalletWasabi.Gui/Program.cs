@@ -22,6 +22,13 @@ namespace WalletWasabi.Gui
 			try
 			{
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
+
+				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
+				var uiConfig = new UiConfig(uiConfigFilePath);
+				await uiConfig.LoadOrCreateDefaultFileAsync();
+				Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
+				Global.InitializeUiConfigs(uiConfig);
+
 				BuildAvaloniaApp().BeforeStarting(async builder =>
 				{
 					MainWindowViewModel.Instance = new MainWindowViewModel();
@@ -31,7 +38,8 @@ namespace WalletWasabi.Gui
 					await config.LoadOrCreateDefaultFileAsync();
 					Logger.LogInfo<Config>("Config is successfully initialized.");
 
-					Global.InitializeConfig(config);
+					Global.InitializeConfigs(config);
+					MainWindowViewModel.Instance.RefreshUiFromConfig(uiConfig);
 
 					if (!File.Exists(Global.IndexFilePath)) // Load the index file from working folder if we have it.
 					{
@@ -46,6 +54,12 @@ namespace WalletWasabi.Gui
 					statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader, Global.UpdateChecker);
 
 					MainWindowViewModel.Instance.StatusBar = statusBar;
+
+					//UiConfig conf = Global.UiConfig;
+					//MainWindowViewModel.Instance..WindowState = (Avalonia.Controls.WindowState)conf.WindowState;
+					//MainWindowViewModel.Instance.Width = (double)conf.Width;
+					//MainWindowViewModel.Instance.Height = (double)conf.Height;
+					//MainWindowViewModel.Instance.Position = new Point((double)conf.Left, (double)conf.Top);
 
 					if (Global.IndexDownloader.Network != Network.Main)
 					{

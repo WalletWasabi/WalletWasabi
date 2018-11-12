@@ -14,7 +14,9 @@
                       Title="{Binding Title}" BorderThickness="1" BorderBrush="{DynamicResource AvalonBorderBrush}"
                       MinWidth="1100" MinHeight="530"
                       FontFamily="{DynamicResource UiFont}" FontSize="14"
-                      Foreground="{DynamicResource ThemeForegroundBrush}" WindowState="Maximized"
+                      Foreground="{DynamicResource ThemeForegroundBrush}"
+                      Width ="{Binding Width}" Height ="{Binding Height}"
+                      WindowState ="{Binding WindowState}"
                       UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
                       id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False">
   <i:Interaction.Behaviors>
@@ -25,7 +27,7 @@
   <Grid>
     <DockPanel LastChildFill="True">
       <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
-      <shell:ShellView DataContext="{Binding Shell}"/>
+      <shell:ShellView DataContext="{Binding Shell}" />
     </DockPanel>
     <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
   </Grid>

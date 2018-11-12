@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -10,6 +11,7 @@ using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
 using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui
 {
@@ -35,13 +37,25 @@ namespace WalletWasabi.Gui
 		private void InitializeComponent()
 		{
 			Activated += OnActivated;
+			Closing += MainWindow_ClosingAsync;
 			AvaloniaXamlLoader.Load(this);
+		}
+
+		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
+		{
+			UiConfig conf = Global.UiConfig;
+			conf.WindowState = WindowState;
+			conf.Width = Width;
+			conf.Height = Height;
+
+			await conf.ToFileAsync();
 		}
 
 		private void OnActivated(object sender, EventArgs e)
 		{
 			Activated -= OnActivated;
 			DisplayWalletManager();
+			MainWindowViewModel.Instance.RefreshUiFromConfig(Global.UiConfig);
 		}
 
 		private void DisplayWalletManager()
