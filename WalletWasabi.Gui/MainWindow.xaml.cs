@@ -51,10 +51,18 @@ namespace WalletWasabi.Gui
 			await conf.ToFileAsync();
 		}
 
-		private void OnActivated(object sender, EventArgs e)
+#pragma warning disable IDE1006 // Naming Styles
+
+		private async void OnActivated(object sender, EventArgs e)
+#pragma warning restore IDE1006 // Naming Styles
 		{
 			Activated -= OnActivated;
 			DisplayWalletManager();
+			var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
+			var uiConfig = new UiConfig(uiConfigFilePath);
+			await uiConfig.LoadOrCreateDefaultFileAsync();
+			Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
+			Global.InitializeUiConfig(uiConfig);
 			MainWindowViewModel.Instance.RefreshUiFromConfig(Global.UiConfig);
 		}
 

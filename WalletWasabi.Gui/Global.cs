@@ -76,12 +76,12 @@ namespace WalletWasabi.Gui
 		public static Config Config { get; private set; }
 		public static UiConfig UiConfig { get; private set; }
 
-		public static void InitializeConfigs(Config config)
+		public static void InitializeConfig(Config config)
 		{
 			Config = Guard.NotNull(nameof(config), config);
 		}
 
-		public static void InitializeUiConfigs(UiConfig uiConfig)
+		public static void InitializeUiConfig(UiConfig uiConfig)
 		{
 			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
