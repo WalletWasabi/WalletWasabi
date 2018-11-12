@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui
 
 				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
 				var uiConfig = new UiConfig(uiConfigFilePath);
-				await uiConfig.LoadOrCreateDefaultFileAsync();
+				uiConfig.LoadOrCreateDefaultFile();
 				Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
 				Global.InitializeUiConfigs(uiConfig);
 
