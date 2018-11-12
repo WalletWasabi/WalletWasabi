@@ -74,16 +74,10 @@ namespace WalletWasabi.Gui
 		public static TorProcessManager TorManager { get; private set; }
 
 		public static Config Config { get; private set; }
-		public static UiConfig UiConfig { get; private set; }
 
 		public static void InitializeConfig(Config config)
 		{
 			Config = Guard.NotNull(nameof(config), config);
-		}
-
-		public static void InitializeUiConfig(UiConfig uiConfig)
-		{
-			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
 
 		private static long _triedDesperateDequeuing = 0;

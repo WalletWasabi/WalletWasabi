@@ -88,12 +88,5 @@ namespace WalletWasabi.Gui.ViewModels
 			get { return _canClose; }
 			set { this.RaiseAndSetIfChanged(ref _canClose, value); }
 		}
-
-		public void RefreshUiFromConfig(UiConfig config)
-		{
-			Width = (double)config.Width;
-			Height = (double)config.Height;
-			WindowState = (WindowState)config.WindowState;
-		}
 	}
 }

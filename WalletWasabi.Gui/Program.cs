@@ -49,12 +49,6 @@ namespace WalletWasabi.Gui
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
-						//UiConfig conf = Global.UiConfig;
-						//MainWindowViewModel.Instance..WindowState = (Avalonia.Controls.WindowState)conf.WindowState;
-						//MainWindowViewModel.Instance.Width = (double)conf.Width;
-						//MainWindowViewModel.Instance.Height = (double)conf.Height;
-						//MainWindowViewModel.Instance.Position = new Point((double)conf.Left, (double)conf.Top);
-
 						if (Global.IndexDownloader.Network != Network.Main)
 						{
 							MainWindowViewModel.Instance.Title += $" - {Global.IndexDownloader.Network}";

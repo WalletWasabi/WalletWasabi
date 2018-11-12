@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using AvalonStudio.Extensibility;
@@ -17,6 +18,8 @@ namespace WalletWasabi.Gui
 {
 	public class MainWindow : MetroWindow
 	{
+		public UiConfig UiConfig { get; private set; }
+
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -37,33 +40,51 @@ namespace WalletWasabi.Gui
 		private void InitializeComponent()
 		{
 			Activated += OnActivated;
+			Initialized += MainWindow_Initialized;
 			Closing += MainWindow_ClosingAsync;
 			AvaloniaXamlLoader.Load(this);
 		}
 
-		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
-		{
-			UiConfig conf = Global.UiConfig;
-			conf.WindowState = WindowState;
-			conf.Width = Width;
-			conf.Height = Height;
-
-			await conf.ToFileAsync();
-		}
-
 #pragma warning disable IDE1006 // Naming Styles
 
-		private async void OnActivated(object sender, EventArgs e)
+		private async void MainWindow_Initialized(object sender, EventArgs e)
 #pragma warning restore IDE1006 // Naming Styles
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
+				var uiConfig = new UiConfig(uiConfigFilePath);
+				await uiConfig.LoadOrCreateDefaultFileAsync();
+				Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
+				UiConfig = uiConfig;
+
+				MainWindowViewModel.Instance.Width = (double)uiConfig.Width;
+				MainWindowViewModel.Instance.Height = (double)uiConfig.Height;
+				MainWindowViewModel.Instance.WindowState = (WindowState)uiConfig.WindowState;
+			}
+			else
+			{
+				MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
+			}
+		}
+
+		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				UiConfig.WindowState = WindowState;
+				UiConfig.Width = Width;
+				UiConfig.Height = Height;
+
+				await UiConfig.ToFileAsync();
+				Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+			}
+		}
+
+		private void OnActivated(object sender, EventArgs e)
 		{
 			Activated -= OnActivated;
 			DisplayWalletManager();
-			var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
-			var uiConfig = new UiConfig(uiConfigFilePath);
-			await uiConfig.LoadOrCreateDefaultFileAsync();
-			Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
-			Global.InitializeUiConfig(uiConfig);
-			MainWindowViewModel.Instance.RefreshUiFromConfig(Global.UiConfig);
 		}
 
 		private void DisplayWalletManager()
