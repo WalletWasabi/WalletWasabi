@@ -14,18 +14,33 @@
           <DockPanel LastChildFill="True">
 
             <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
-              <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
-                <i:Interaction.Behaviors>
-                  <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
-                  <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
-                  <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
-                  <iac:FocusOnAttachedToVisualTreeBehavior />
-                </i:Interaction.Behaviors>
+              <StackPanel Spacing="8">
+                <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" CaretIndex="{Binding CaretIndex, Mode=TwoWay}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
+                  <i:Interaction.Behaviors>
+                    <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
+                    <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
+                    <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
+                    <iac:FocusOnAttachedToVisualTreeBehavior />
+                  </i:Interaction.Behaviors>
 
-                <ToolTip.Tip>
-                  Start labelling today and your privacy will thank you tomorrow!
-                </ToolTip.Tip>
-              </controls:ExtendedTextBox>
+                  <ToolTip.Tip>
+                    Start labelling today and your privacy will thank you tomorrow!
+                  </ToolTip.Tip>
+                </controls:ExtendedTextBox>
+                  <ItemsControl Items="{Binding Suggestions}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Orientation ="Horizontal" Spacing="2"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+              </StackPanel>
+              
               <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" VerticalAlignment="Top"  Grid.Column="1" />
             </Grid>
 

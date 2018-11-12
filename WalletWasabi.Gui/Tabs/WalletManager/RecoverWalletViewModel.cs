@@ -179,16 +179,16 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			if (lastWorld.Length < 1)
 			{
-				_suggestions.Clear();
+				Suggestions.Clear();
 				return;
 			}
 
 			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld)).Take(7);
 
-			_suggestions.Clear();
+			Suggestions.Clear();
 			foreach (var suggestion in suggestedWords)
 			{
-				_suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
+				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
 			}
 		}
 

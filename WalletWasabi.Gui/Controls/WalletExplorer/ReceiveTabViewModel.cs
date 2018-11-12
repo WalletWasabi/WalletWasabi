@@ -26,10 +26,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
-		private ReceiveTabViewModel(WalletViewModel walletViewModel)
+		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
 			_addresses = new ObservableCollection<AddressViewModel>();
+			Label = String.Empty;
 
 			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -89,6 +90,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						await Task.Delay(1000);
 						ClipboardNotificationOpacity = 0;
 					});
+				}
+			});
+
+			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
+			{
+				if (Label == null) return;
+				if (CaretIndex != Label.Length)
+				{
+					CaretIndex = Label.Length;
 				}
 			});
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
@@ -173,16 +183,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (lastWorld.Length < 1)
 			{
-				_suggestions.Clear();
+				Suggestions.Clear();
 				return;
 			}
 
-			var suggestedWords = Global.WalletService.GetNonSpecialLabels().Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase)).Take(7);
+			var suggestedWords = Global.WalletService.GetNonSpecialLabels().Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase))
+				.Concat(Global.WalletService.GetNonSpecialLabels().Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
+				.Distinct().Take(3);
 
-			_suggestions.Clear();
+			Suggestions.Clear();
 			foreach (var suggestion in suggestedWords)
 			{
-				_suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
+				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
 			}
 		}
 
