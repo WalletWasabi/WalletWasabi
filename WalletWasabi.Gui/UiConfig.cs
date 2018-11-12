@@ -53,17 +53,6 @@ namespace WalletWasabi.Gui
 		}
 
 		/// <inheritdoc />
-		public void ToFile()
-		{
-			AssertFilePathSet();
-
-			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-			File.WriteAllText(FilePath,
-			jsonString,
-			Encoding.UTF8);
-		}
-
-		/// <inheritdoc />
 		public async Task LoadOrCreateDefaultFileAsync()
 		{
 			AssertFilePathSet();
@@ -84,40 +73,9 @@ namespace WalletWasabi.Gui
 			await ToFileAsync();
 		}
 
-		/// <inheritdoc />
-		public void LoadOrCreateDefaultFile()
-		{
-			AssertFilePathSet();
-
-			WindowState = Avalonia.Controls.WindowState.Maximized;
-			Height = 530;
-			Width = 1100;
-
-			if (!File.Exists(FilePath))
-			{
-				Logging.Logger.LogInfo<Config>($"{nameof(Config)} file did not exist. Created at path: `{FilePath}`.");
-			}
-			else
-			{
-				LoadFile();
-			}
-
-			ToFile();
-		}
-
 		public async Task LoadFileAsync()
 		{
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-			var config = JsonConvert.DeserializeObject<UiConfig>(jsonString);
-
-			WindowState = config.WindowState ?? WindowState;
-			Height = config.Height ?? Height;
-			Width = config.Width ?? Width;
-		}
-
-		public void LoadFile()
-		{
-			string jsonString = File.ReadAllText(FilePath, Encoding.UTF8);
 			var config = JsonConvert.DeserializeObject<UiConfig>(jsonString);
 
 			WindowState = config.WindowState ?? WindowState;
