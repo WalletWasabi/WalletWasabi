@@ -40,24 +40,35 @@ namespace WalletWasabi.Gui
 		private void InitializeComponent()
 		{
 			Activated += OnActivated;
-			Initialized += MainWindow_Initialized;
 			Closing += MainWindow_ClosingAsync;
 			AvaloniaXamlLoader.Load(this);
 		}
 
-#pragma warning disable IDE1006 // Naming Styles
+		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				UiConfig.WindowState = WindowState;
+				UiConfig.Width = Width;
+				UiConfig.Height = Height;
+				await UiConfig.ToFileAsync();
+				Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+			}
+		}
 
-		private async void MainWindow_Initialized(object sender, EventArgs e)
+#pragma warning disable IDE1006 // Naming Styles
+		private async void OnActivated(object sender, EventArgs e)
 #pragma warning restore IDE1006 // Naming Styles
 		{
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			Activated -= OnActivated;
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
 				var uiConfig = new UiConfig(uiConfigFilePath);
 				await uiConfig.LoadOrCreateDefaultFileAsync();
 				Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
 				UiConfig = uiConfig;
-
 				MainWindowViewModel.Instance.Width = (double)uiConfig.Width;
 				MainWindowViewModel.Instance.Height = (double)uiConfig.Height;
 				MainWindowViewModel.Instance.WindowState = (WindowState)uiConfig.WindowState;
@@ -66,24 +77,6 @@ namespace WalletWasabi.Gui
 			{
 				MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
 			}
-		}
-
-		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
-		{
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				UiConfig.WindowState = WindowState;
-				UiConfig.Width = Width;
-				UiConfig.Height = Height;
-
-				await UiConfig.ToFileAsync();
-				Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
-			}
-		}
-
-		private void OnActivated(object sender, EventArgs e)
-		{
-			Activated -= OnActivated;
 			DisplayWalletManager();
 		}
 
