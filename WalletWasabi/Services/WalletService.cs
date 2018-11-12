@@ -1038,6 +1038,16 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted: {transaction.GetHash()}.");
 		}
 
+		public IEnumerable<string> GetAllLabels()
+		{
+			return Coins.Select(x => x.Label).Distinct();
+		}
+
+		public IEnumerable<string> GetNonSpecialLabels()
+		{
+			return Coins.Where(x => !x.Label.StartsWith("change of") && !x.Label.StartsWith("ZeroLink")).Select(x => x.Label).Distinct();
+		}
+
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
