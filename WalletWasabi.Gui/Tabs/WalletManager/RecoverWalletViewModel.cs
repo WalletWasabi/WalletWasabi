@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _walletName;
 		private bool _termsAccepted;
 		private string _validationMessage;
-		private ObservableCollection<MnemonicViewModel> _suggestions;
+		private ObservableCollection<SuggestionViewModel> _suggestions;
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
@@ -93,7 +93,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 			});
 
-			_suggestions = new ObservableCollection<MnemonicViewModel>();
+			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
 		public string Password
@@ -108,7 +108,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
 		}
 
-		public ObservableCollection<MnemonicViewModel> Suggestions
+		public ObservableCollection<SuggestionViewModel> Suggestions
 		{
 			get { return _suggestions; }
 			set { this.RaiseAndSetIfChanged(ref _suggestions, value); }
@@ -188,7 +188,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			_suggestions.Clear();
 			foreach (var suggestion in suggestedWords)
 			{
-				_suggestions.Add(new MnemonicViewModel(suggestion, OnAddWord));
+				_suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
 			}
 		}
 

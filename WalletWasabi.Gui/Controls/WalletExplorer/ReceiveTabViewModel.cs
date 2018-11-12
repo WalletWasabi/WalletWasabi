@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
 
@@ -22,8 +23,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _labelRequiredNotificationVisible;
 		private double _clipboardNotificationOpacity;
 		private bool _clipboardNotificationVisible;
+		private int _caretIndex;
+		private ObservableCollection<SuggestionViewModel> _suggestions;
 
-		public ReceiveTabViewModel(WalletViewModel walletViewModel)
+		private ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
 			_addresses = new ObservableCollection<AddressViewModel>();
@@ -72,7 +75,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = string.Empty;
 				});
 			});
-
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
 			{
 				if (!(address is null))
@@ -88,6 +91,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					});
 				}
 			});
+			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
 		private void InitializeAddresses()
@@ -142,6 +146,62 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _clipboardNotificationVisible; }
 			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value); }
+		}
+
+		public int CaretIndex
+		{
+			get { return _caretIndex; }
+			set { this.RaiseAndSetIfChanged(ref _caretIndex, value); }
+		}
+
+		public ObservableCollection<SuggestionViewModel> Suggestions
+		{
+			get { return _suggestions; }
+			set { this.RaiseAndSetIfChanged(ref _suggestions, value); }
+		}
+
+		private void UpdateSuggestions(string words)
+		{
+			if (string.IsNullOrWhiteSpace(words))
+			{
+				Suggestions?.Clear();
+				return;
+			}
+
+			string[] enteredWordList = words.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
+
+			if (lastWorld.Length < 1)
+			{
+				_suggestions.Clear();
+				return;
+			}
+
+			var suggestedWords = Global.WalletService.GetNonSpecialLabels().Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase)).Take(7);
+
+			_suggestions.Clear();
+			foreach (var suggestion in suggestedWords)
+			{
+				_suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
+			}
+		}
+
+		public void OnAddWord(string word)
+		{
+			string[] words = Label.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			if (words.Length == 0)
+			{
+				Label = word + " ";
+			}
+			else
+			{
+				words[words.Length - 1] = word;
+				Label = string.Join(' ', words) + " ";
+			}
+
+			CaretIndex = Label.Length;
+
+			Suggestions.Clear();
 		}
 
 		public ReactiveCommand GenerateCommand { get; }

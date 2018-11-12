@@ -10,14 +10,14 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-	internal class MnemonicSuggestionBehavior : Behavior<TextBox>
+	internal class SuggestionBehavior : Behavior<TextBox>
 	{
 		private CompositeDisposable _disposables;
 
-		private static readonly AvaloniaProperty<IEnumerable<MnemonicViewModel>> SuggestionItemsProperty =
-			AvaloniaProperty.Register<MnemonicSuggestionBehavior, IEnumerable<MnemonicViewModel>>(nameof(SuggestionItems), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+		private static readonly AvaloniaProperty<IEnumerable<SuggestionViewModel>> SuggestionItemsProperty =
+			AvaloniaProperty.Register<SuggestionBehavior, IEnumerable<SuggestionViewModel>>(nameof(SuggestionItems), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
-		public IEnumerable<MnemonicViewModel> SuggestionItems
+		public IEnumerable<SuggestionViewModel> SuggestionItems
 		{
 			get => GetValue(SuggestionItemsProperty);
 			set => SetValue(SuggestionItemsProperty, value);

@@ -5,12 +5,12 @@ using System.Linq;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class MnemonicViewModel 
+	public class SuggestionViewModel 
 	{
 		public string Word { get; }
 		public Action<string> OnSelection { get; }
 
-		public MnemonicViewModel(string word, Action<string> onSeleted)
+		public SuggestionViewModel(string word, Action<string> onSeleted)
 		{
 			Word = word;
 			OnSelection = onSeleted;

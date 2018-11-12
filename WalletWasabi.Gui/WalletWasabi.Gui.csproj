@@ -49,9 +49,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Assets\IndexMain.dat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
     <EmbeddedResource Include="Extensions\DummyHack.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>

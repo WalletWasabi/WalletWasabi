@@ -16,6 +16,7 @@
             <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
               <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
                 <i:Interaction.Behaviors>
+                  <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
                   <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
                   <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
                   <iac:FocusOnAttachedToVisualTreeBehavior />
