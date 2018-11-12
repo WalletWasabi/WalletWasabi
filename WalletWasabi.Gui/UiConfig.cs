@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Converters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Gui
 {
@@ -17,6 +19,7 @@ namespace WalletWasabi.Gui
 		public string FilePath { get; private set; }
 
 		[JsonProperty(PropertyName = "WindowState")]
+		[JsonConverter(typeof(WindowStateAfterSartJsonConverter))]
 		public WindowState? WindowState { get; internal set; }
 
 		[JsonProperty(PropertyName = "Height")]
