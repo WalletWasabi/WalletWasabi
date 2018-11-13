@@ -6,7 +6,7 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>54654468-4f58-4253-84bd-6f53a8d3d2c4</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>WasabiInstaller</OutputName>
+    <OutputName>Wasabi</OutputName>
     <OutputType>Package</OutputType>
     <Cultures>;</Cultures>
   </PropertyGroup>
