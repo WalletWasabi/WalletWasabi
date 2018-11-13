@@ -187,8 +187,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			var suggestedWords = Global.WalletService.GetNonSpecialLabels().Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase))
-				.Union(Global.WalletService.GetNonSpecialLabels().Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
+			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
+			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase))
+				.Union(nonSpecialLabels.Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
 				.Take(3);
 
 			Suggestions.Clear();
