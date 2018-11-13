@@ -53,5 +53,8 @@ namespace WalletWasabi.Helpers
 			// else regtest
 			return RegTestCoordinatorAddress;
 		}
+
+		public const string ChangeOfSpecialLabelStart = "change of (";
+		public const string ChangeOfSpecialLabelEnd = ")";
 	}
 }

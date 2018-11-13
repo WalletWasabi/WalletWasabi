@@ -883,7 +883,7 @@ namespace WalletWasabi.Services
 				sb.Append(item.label ?? "?");
 				sb.Append(", ");
 			}
-			var changeLabel = $"change of ({sb.ToString().TrimEnd(',', ' ')})";
+			var changeLabel = $"{Constants.ChangeOfSpecialLabelStart}{sb.ToString().TrimEnd(',', ' ')}{Constants.ChangeOfSpecialLabelEnd}";
 
 			if (customChange is null)
 			{
@@ -1040,7 +1040,10 @@ namespace WalletWasabi.Services
 
 		public IEnumerable<string> GetNonSpecialLabels()
 		{
-			return Coins.Where(x => !x.Label.StartsWith("change of") && !x.Label.StartsWith("ZeroLink")).SelectMany(x => x.Label.Split(',').Select(y => y.Trim())).Distinct();
+			return Coins.Where(x => !x.Label.StartsWith("ZeroLink"))
+				.SelectMany(x => x.Label.Split(new string[] { Constants.ChangeOfSpecialLabelStart, Constants.ChangeOfSpecialLabelEnd, "(", "," }, StringSplitOptions.RemoveEmptyEntries))
+				.Select(x => x.Trim())
+				.Distinct();
 		}
 
 		#region IDisposable Support

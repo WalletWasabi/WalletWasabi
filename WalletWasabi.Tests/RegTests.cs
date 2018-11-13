@@ -962,7 +962,7 @@ namespace WalletWasabi.Tests
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
-				Assert.Equal("change of (my label)", res.InnerWalletOutputs.Single().Label);
+				Assert.Equal($"{Helpers.Constants.ChangeOfSpecialLabelStart}my label{Helpers.Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
 
 				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 3;
 				res = await wallet.BuildTransactionAsync(password, new[] {
@@ -973,20 +973,20 @@ namespace WalletWasabi.Tests
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal(2, res.OuterWalletOutputs.Count());
-				Assert.Equal("change of (outgoing, outgoing2)", res.InnerWalletOutputs.Single().Label);
+				Assert.Equal($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
-				Assert.Contains("change of (outgoing, outgoing2)", wallet.Coins.Where(x => x.Height == Height.MemPool).Select(x => x.Label));
-				Assert.Contains("change of (outgoing, outgoing2)", keyManager.GetKeys().Select(x => x.Label));
+				Assert.Contains($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == Height.MemPool).Select(x => x.Label));
+				Assert.Contains($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 				var bestHeight = wallet.IndexDownloader.BestKnownFilter.BlockHeight;
-				Assert.Contains("change of (outgoing, outgoing2)", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
-				Assert.Contains("change of (outgoing, outgoing2)", keyManager.GetKeys().Select(x => x.Label));
+				Assert.Contains($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
+				Assert.Contains($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
 
 				#endregion Labeling
 

@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base("Receive", walletViewModel)
 		{
 			_addresses = new ObservableCollection<AddressViewModel>();
-			Label = String.Empty;
+			Label = "";
 
 			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
