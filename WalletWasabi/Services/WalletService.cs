@@ -1040,7 +1040,7 @@ namespace WalletWasabi.Services
 
 		public IEnumerable<string> GetNonSpecialLabels()
 		{
-			return Coins.Where(x => !x.Label.StartsWith("change of") && !x.Label.StartsWith("ZeroLink")).Select(x => x.Label).Distinct();
+			return Coins.Where(x => !x.Label.StartsWith("change of") && !x.Label.StartsWith("ZeroLink")).SelectMany(x => x.Label.Split(',').Select(y => y.Trim())).Distinct();
 		}
 
 		#region IDisposable Support
