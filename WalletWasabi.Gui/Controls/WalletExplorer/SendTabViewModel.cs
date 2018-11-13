@@ -177,10 +177,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-
-
-
-
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
 				if (x.NotNullAndNotEmpty())
