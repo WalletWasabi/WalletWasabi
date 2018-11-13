@@ -59,7 +59,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				Dispatcher.UIThread.Post(() =>
 				{
-					HdPubKey newKey = Global.WalletService.GetReceiveKey(Label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
+					var label = Label.Trim().Trim(',').Trim();
+					HdPubKey newKey = Global.WalletService.GetReceiveKey(label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
 					AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
 					if (found != default)
@@ -73,7 +74,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					SelectedAddress = newAddress;
 
-					Label = string.Empty;
+					Label = "";
 				});
 			});
 			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
@@ -178,7 +179,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				return;
 			}
 
-			string[] enteredWordList = words.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
 			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
 
 			if (lastWorld.Length < 1)
@@ -201,15 +202,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnAddWord(string word)
 		{
-			string[] words = Label.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			var words = Label.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
 			if (words.Length == 0)
 			{
-				Label = word + " ";
+				Label = word + ", ";
 			}
 			else
 			{
 				words[words.Length - 1] = word;
-				Label = string.Join(' ', words) + " ";
+				Label = string.Join(", ", words) + ", ";
 			}
 
 			CaretIndex = Label.Length;
