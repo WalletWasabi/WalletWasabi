@@ -36,6 +36,63 @@ namespace WalletWasabi.Gui.Behaviors
 					HandleAutoUpdate();
 					e.Handled = true;
 				}
+				if (e.Key == Avalonia.Input.Key.Down)
+				{
+					if (SuggestionItems != null)
+					{
+						if (SuggestionItems.All(x => !x.IsHighLighted))
+						{
+							var item = SuggestionItems.FirstOrDefault();
+							if (item != null)
+							{
+								item.IsHighLighted = true;
+							}
+						}
+						else
+						{
+							var index = SuggestionItems.Select((v, i) => new { sugg = v, index = i })?.FirstOrDefault(x => x.sugg.IsHighLighted)?.index;
+							if (index != null)
+							{
+								var suggItemsArray = SuggestionItems.ToArray();
+								suggItemsArray[index.Value].IsHighLighted = false;
+								index++;
+								if (suggItemsArray.Length <= index.Value)
+								{
+									index = 0;
+								}
+								suggItemsArray[index.Value].IsHighLighted = true;
+							}
+						}
+
+						e.Handled = true;
+					}
+				}
+				if (e.Key == Avalonia.Input.Key.Up)
+				{
+					if (SuggestionItems != null)
+					{
+						foreach (var item in SuggestionItems)
+						{
+							item.IsHighLighted = false;
+						}
+						e.Handled = true;
+					}
+				}
+				if (e.Key == Avalonia.Input.Key.Enter)
+				{
+					if (SuggestionItems != null)
+					{
+						foreach (var item in SuggestionItems)
+						{
+							if (item.IsHighLighted)
+							{
+								item.OnSelected();
+								break;
+							}
+						}
+						e.Handled = true;
+					}
+				}
 			}));
 		}
 
