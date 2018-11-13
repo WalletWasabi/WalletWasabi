@@ -5,12 +5,14 @@ using System.Linq;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class MnemonicViewModel 
+	public class SuggestionViewModel : ReactiveObject
 	{
 		public string Word { get; }
 		public Action<string> OnSelection { get; }
 
-		public MnemonicViewModel(string word, Action<string> onSeleted)
+		public bool _isHighLighted;
+
+		public SuggestionViewModel(string word, Action<string> onSeleted)
 		{
 			Word = word;
 			OnSelection = onSeleted;
@@ -19,6 +21,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public void OnSelected()
 		{
 			OnSelection(Word);
+		}
+
+		public bool IsHighLighted
+		{
+			get { return _isHighLighted; }
+			set { this.RaiseAndSetIfChanged(ref _isHighLighted, value); }
 		}
 	}
 }

@@ -14,18 +14,18 @@
           <TextBox Text="{Binding Password}" Watermark="Password" PasswordChar="*" UseFloatingWatermark="True" />
           <controls:ExtendedTextBox Text="{Binding MnemonicWords}" Watermark="MnemonicWords" UseFloatingWatermark="True" CaretIndex="{Binding CaretIndex, Mode=TwoWay}">
             <i:Interaction.Behaviors>
-              <behaviors:MnemonicSuggestionBehavior SuggestionItems="{Binding Suggestions}" />
+              <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
             </i:Interaction.Behaviors>
           </controls:ExtendedTextBox>
           <ItemsControl Items="{Binding Suggestions}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
-                <StackPanel Orientation ="Horizontal" Spacing="2"/>
+                <StackPanel Orientation ="Horizontal" Spacing="2" />
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" />
+                <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed ="{Binding IsHighLighted}" />
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>

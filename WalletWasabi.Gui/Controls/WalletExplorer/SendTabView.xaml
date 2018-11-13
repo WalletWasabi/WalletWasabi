@@ -2,6 +2,7 @@
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
@@ -25,7 +26,28 @@
         <StackPanel DockPanel.Dock="Bottom" Margin="0 10" Spacing="10" HorizontalAlignment="Left">
           <TextBlock>Note that, you must select coins you want to spend from.</TextBlock>
           <controls:ExtendedTextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
-          <controls:ExtendedTextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" />
+          <StackPanel Spacing="8">
+            <controls:ExtendedTextBox Text="{Binding Label}" Watermark="Label" UseFloatingWatermark="True" IsReadOnly="{Binding IsMax}" ToolTip.Tip="{Binding LabelToolTip}" CaretIndex="{Binding CaretIndex, Mode=TwoWay}">
+              <i:Interaction.Behaviors>
+                <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
+                <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
+                <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
+                <iac:FocusOnAttachedToVisualTreeBehavior />
+              </i:Interaction.Behaviors>
+            </controls:ExtendedTextBox>
+            <ItemsControl Items="{Binding Suggestions}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation ="Horizontal" Spacing="2" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed ="{Binding IsHighLighted}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="10">
             <Button Content="{Binding MaxClear}" Command="{Binding MaxCommand}" VerticalAlignment="Top" />
             <controls:ExtendedTextBox Foreground="{Binding IsMax, Converter={StaticResource AmountForegroundConverter}}" IsReadOnly="{Binding IsMax}" Text="{Binding Amount}" Watermark="Amount (BTC)" UseFloatingWatermark="True" MinWidth="124" MinHeight="46" />

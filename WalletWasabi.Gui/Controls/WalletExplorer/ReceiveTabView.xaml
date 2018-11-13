@@ -14,17 +14,33 @@
           <DockPanel LastChildFill="True">
 
             <Grid ColumnDefinitions="*,300" DockPanel.Dock="Top" Margin="0 0 0 10">
-              <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
-                <i:Interaction.Behaviors>
-                  <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
-                  <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
-                  <iac:FocusOnAttachedToVisualTreeBehavior />
-                </i:Interaction.Behaviors>
+              <StackPanel Spacing="8">
+                <controls:ExtendedTextBox Text="{Binding Label, Mode=TwoWay}" Watermark="Label (Required)" CaretIndex="{Binding CaretIndex, Mode=TwoWay}" UseFloatingWatermark="True" Grid.Column="0" Margin="0 0 10 0">
+                  <i:Interaction.Behaviors>
+                    <behaviors:SuggestionBehavior SuggestionItems="{Binding Suggestions}" />
+                    <behaviors:CommandOnEnterBehavior Command="{Binding GenerateCommand}" />
+                    <behaviors:FocusBehavior IsFocused="{Binding IsSelected}" />
+                    <iac:FocusOnAttachedToVisualTreeBehavior />
+                  </i:Interaction.Behaviors>
 
-                <ToolTip.Tip>
-                  Start labelling today and your privacy will thank you tomorrow!
-                </ToolTip.Tip>
-              </controls:ExtendedTextBox>
+                  <ToolTip.Tip>
+                    Start labelling today and your privacy will thank you tomorrow!
+                  </ToolTip.Tip>
+                </controls:ExtendedTextBox>
+                <ItemsControl Items="{Binding Suggestions}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <StackPanel Orientation ="Horizontal" Spacing="2" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Button Focusable="False" Content="{Binding Word}" Command="{Binding OnSelected}" IsPressed ="{Binding IsHighLighted}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+
               <Button Content="Generate Receive Address" Command="{Binding GenerateCommand}" VerticalAlignment="Top"  Grid.Column="1" />
             </Grid>
 
@@ -66,17 +82,17 @@
                     </Panel>
                   </Expander>
                   <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
-                    <TextBlock Text="{Binding Address}" >
+                    <TextBlock Text="{Binding Address}">
                       <TextBlock.ContextMenu>
                         <ContextMenu>
-                          <MenuItem Header="_Copy" Command="{Binding CopyToClipboard}" >
+                          <MenuItem Header="_Copy" Command="{Binding CopyToClipboard}">
                             <MenuItem.Icon>
                               <DrawingPresenter Height="16" Width="16">
-                                 <DrawingPresenter.Drawing>
-                                    <GeometryDrawing Brush="#FFFFFFFF" Geometry="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" />
-                                 </DrawingPresenter.Drawing>
-                               </DrawingPresenter>
-                             </MenuItem.Icon>
+                                <DrawingPresenter.Drawing>
+                                  <GeometryDrawing Brush="#FFFFFFFF" Geometry="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" />
+                                </DrawingPresenter.Drawing>
+                              </DrawingPresenter>
+                            </MenuItem.Icon>
                           </MenuItem>
                         </ContextMenu>
                       </TextBlock.ContextMenu>

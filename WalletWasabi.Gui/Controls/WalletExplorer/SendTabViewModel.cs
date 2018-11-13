@@ -14,6 +14,8 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using ReactiveUI.Legacy;
 using WalletWasabi.Exceptions;
+using System.Collections.ObjectModel;
+using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -35,10 +37,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _successMessage;
 		private const string BuildTransactionButtonTextString = "Send Transaction";
 		private const string BuildingTransactionButtonTextString = "Sending Transaction...";
+		private int _caretIndex;
+		private ObservableCollection<SuggestionViewModel> _suggestions;
 
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
+			Label = "";
+
 			var onCoinsSetModified = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
@@ -130,7 +136,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							return;
 						}
 					}
-					var operation = new WalletService.Operation(script, amount, Label);
+					var label = Label.Trim().Trim(',').Trim();
+					var operation = new WalletService.Operation(script, amount, label);
 
 					var result = await Task.Run(async () => await Global.WalletService.BuildTransactionAsync(Password, new[] { operation }, Fee, allowUnconfirmed: true, allowedInputs: selectedCoins));
 
@@ -188,6 +195,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			});
+
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
+			{
+				if (Label == null) return;
+				if (CaretIndex != Label.Length)
+				{
+					CaretIndex = Label.Length;
+				}
+			});
+			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
 		private void SetWarningMessage(string message)
@@ -296,6 +314,66 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _password; }
 			set { this.RaiseAndSetIfChanged(ref _password, value); }
+		}
+
+		public int CaretIndex
+		{
+			get { return _caretIndex; }
+			set { this.RaiseAndSetIfChanged(ref _caretIndex, value); }
+		}
+
+		public ObservableCollection<SuggestionViewModel> Suggestions
+		{
+			get { return _suggestions; }
+			set { this.RaiseAndSetIfChanged(ref _suggestions, value); }
+		}
+
+		private void UpdateSuggestions(string words)
+		{
+			if (string.IsNullOrWhiteSpace(words))
+			{
+				Suggestions?.Clear();
+				return;
+			}
+
+			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
+			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
+
+			if (lastWorld.Length < 1)
+			{
+				Suggestions.Clear();
+				return;
+			}
+
+			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
+			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase))
+				.Union(nonSpecialLabels.Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
+				.Except(enteredWordList)
+				.Take(3);
+
+			Suggestions.Clear();
+			foreach (var suggestion in suggestedWords)
+			{
+				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
+			}
+		}
+
+		public void OnAddWord(string word)
+		{
+			var words = Label.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
+			if (words.Length == 0)
+			{
+				Label = word + ", ";
+			}
+			else
+			{
+				words[words.Length - 1] = word;
+				Label = string.Join(", ", words) + ", ";
+			}
+
+			CaretIndex = Label.Length;
+
+			Suggestions.Clear();
 		}
 
 		public string ValidateAddress()
