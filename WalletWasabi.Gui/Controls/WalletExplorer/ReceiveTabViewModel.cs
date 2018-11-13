@@ -188,8 +188,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			var suggestedWords = Global.WalletService.GetNonSpecialLabels().Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase))
-				.Concat(Global.WalletService.GetNonSpecialLabels().Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
-				.Distinct().Take(3);
+				.Union(Global.WalletService.GetNonSpecialLabels().Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
+				.Take(3);
 
 			Suggestions.Clear();
 			foreach (var suggestion in suggestedWords)
