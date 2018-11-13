@@ -191,6 +191,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
 			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase))
 				.Union(nonSpecialLabels.Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
+				.Except(enteredWordList)
 				.Take(3);
 
 			Suggestions.Clear();

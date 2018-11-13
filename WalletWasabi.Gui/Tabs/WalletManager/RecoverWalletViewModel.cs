@@ -183,7 +183,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				return;
 			}
 
-			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld)).Take(7);
+			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld)).Except(enteredWordList).Take(7);
 
 			Suggestions.Clear();
 			foreach (var suggestion in suggestedWords)
