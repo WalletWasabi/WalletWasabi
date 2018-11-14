@@ -51,8 +51,8 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <TextBlock Text="Round ID:"></TextBlock>
-              <TextBlock Text="{Binding RoundId}"></TextBlock>
+              <TextBlock Text="Number of Successful Rounds:"></TextBlock>
+              <TextBlock Text="{Binding SuccessfulRoundCount}"></TextBlock>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 12" >
@@ -70,7 +70,7 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <TextBlock Text="Number Of Registered Peers:"></TextBlock>
+              <TextBlock Text="Number of Registered Peers:"></TextBlock>
               <TextBlock Foreground="YellowGreen" Text="{Binding PeersRegistered}"></TextBlock>
               <TextBlock Text="/"></TextBlock>
               <TextBlock Text="{Binding PeersNeeded}"></TextBlock>

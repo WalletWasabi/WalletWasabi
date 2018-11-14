@@ -23,6 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CoinListViewModel _availableCoinsList;
 		private CoinListViewModel _queuedCoinsList;
 		private long _roundId;
+		private int _successfulRoundCount;
 		private CcjRoundPhase _phase;
 		private Money _requiredBTC;
 		private string _coordinatorFeePercent;
@@ -82,6 +83,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
+				SuccessfulRoundCount = mostAdvancedRound.State.SuccessfulRoundCount;
 				Phase = mostAdvancedRound.State.Phase;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
@@ -89,6 +91,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			else
 			{
 				RoundId = -1;
+				SuccessfulRoundCount = -1;
 				Phase = CcjRoundPhase.InputRegistration;
 				PeersRegistered = 0;
 				PeersNeeded = 100;
@@ -210,6 +213,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
+				SuccessfulRoundCount = mostAdvancedRound.State.SuccessfulRoundCount;
 				Phase = mostAdvancedRound.State.Phase;
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
@@ -286,6 +290,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _roundId; }
 			set { this.RaiseAndSetIfChanged(ref _roundId, value); }
+		}
+
+		public int SuccessfulRoundCount
+		{
+			get { return _successfulRoundCount; }
+			set { this.RaiseAndSetIfChanged(ref _successfulRoundCount, value); }
 		}
 
 		public CcjRoundPhase Phase

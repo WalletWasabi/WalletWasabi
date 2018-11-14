@@ -37,8 +37,8 @@ namespace WalletWasabi.Backend.Controllers
 		/// <summary>
 		/// Satoshi gets various status information.
 		/// </summary>
-		/// <returns>List of CcjRunningRoundStatus (Phase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFeePercent)</returns>
-		/// <response code="200">List of CcjRunningRoundStatus (Phase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFeePercent)</response>
+		/// <returns>List of CcjRunningRoundStatus (Phase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFeePercent, RoundId, SuccessfulRoundCount)</returns>
+		/// <response code="200">List of CcjRunningRoundStatus (Phase, Denomination, RegisteredPeerCount, RequiredPeerCount, MaximumInputCountPerPeer, FeePerInputs, FeePerOutputs, CoordinatorFeePercent, RoundId, SuccessfulRoundCount)</response>
 		[HttpGet("states")]
 		[ProducesResponseType(200)]
 		public IActionResult GetStates()
@@ -58,7 +58,8 @@ namespace WalletWasabi.Backend.Controllers
 					FeePerInputs = round.FeePerInputs,
 					FeePerOutputs = round.FeePerOutputs,
 					CoordinatorFeePercent = round.CoordinatorFeePercent,
-					RoundId = round.RoundId
+					RoundId = round.RoundId,
+					SuccessfulRoundCount = Coordinator.GetCoinJoinCount() // This is round independent, it is only here because of backward compatibility.
 				};
 
 				response.Add(state);

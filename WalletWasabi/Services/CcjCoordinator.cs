@@ -317,6 +317,11 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public int GetCoinJoinCount()
+		{
+			return CoinJoins.Count;
+		}
+
 		public async Task<bool> IsUnconfirmedCoinJoinLimitReachedAsync()
 		{
 			using (await CoinJoinsLock.LockAsync())

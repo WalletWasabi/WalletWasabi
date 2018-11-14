@@ -34,6 +34,11 @@ namespace WalletWasabi.Backend.Models.Responses
 
 		public long RoundId { get; set; }
 
+		/// <summary>
+		/// This is round independent, it is only here because of backward compatibility.
+		/// </summary>
+		public int SuccessfulRoundCount { get; set; }
+
 		public static CcjRunningRoundState CloneExcept(CcjRunningRoundState state, long roundId, int registeredPeerCount)
 		{
 			return new CcjRunningRoundState
@@ -47,7 +52,8 @@ namespace WalletWasabi.Backend.Models.Responses
 				FeePerOutputs = state.FeePerOutputs,
 				MaximumInputCountPerPeer = state.MaximumInputCountPerPeer,
 				RegistrationTimeout = state.RegistrationTimeout,
-				RoundId = roundId
+				RoundId = roundId,
+				SuccessfulRoundCount = state.SuccessfulRoundCount
 			};
 		}
 
