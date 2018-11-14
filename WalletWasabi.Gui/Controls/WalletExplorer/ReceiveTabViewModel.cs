@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				Dispatcher.UIThread.Post(() =>
 				{
-					var label = Label.Trim().Trim(',').Trim();
+					var label = Label.Trim(',', ' ').Trim();
 					HdPubKey newKey = Global.WalletService.GetReceiveKey(label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
 					AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);

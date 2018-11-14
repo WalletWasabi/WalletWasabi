@@ -136,7 +136,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							return;
 						}
 					}
-					var label = Label.Trim().Trim(',').Trim();
+					var label = Label.Trim(',', ' ').Trim();
 					var operation = new WalletService.Operation(script, amount, label);
 
 					var result = await Task.Run(async () => await Global.WalletService.BuildTransactionAsync(Password, new[] { operation }, Fee, allowUnconfirmed: true, allowedInputs: selectedCoins));
