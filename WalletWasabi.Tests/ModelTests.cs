@@ -129,8 +129,10 @@ namespace WalletWasabi.Tests
 			var spentOutputs = tx.Inputs.ToTxoRefs().ToArray();
 			var height = Height.MemPool;
 			var label = "foo";
+			var bannedUntil = DateTimeOffset.UtcNow;
 
 			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetMixin(index), label, txId);
+			coin.BannedUntilUtc = bannedUntil;
 
 			var serialized = JsonConvert.SerializeObject(coin);
 			var deserialized = JsonConvert.DeserializeObject<SmartCoin>(serialized);
@@ -145,6 +147,7 @@ namespace WalletWasabi.Tests
 			Assert.Equal(coin.SpenderTransactionId, deserialized.SpenderTransactionId);
 			Assert.Equal(coin.TransactionId, deserialized.TransactionId);
 			Assert.Equal(coin.SpentOutputs.Length, deserialized.SpentOutputs.Length);
+			Assert.Equal(coin.BannedUntilUtc, deserialized.BannedUntilUtc);
 			for (int i = 0; i < coin.SpentOutputs.Length; i++)
 			{
 				Assert.Equal(coin.SpentOutputs[0], deserialized.SpentOutputs[0]);
