@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Converters
 			var phaseError = Global.ChaumianClient.State.IsInErrorState;
 
 			return ((CcjRoundPhase)p <= (CcjRoundPhase)value) 
-				? (phaseError? Brushes.Red : Brushes.Green)
+				? (phaseError? Brushes.IndianRed : Brushes.Green)
 				: Brushes.Gray;
 		}
 
