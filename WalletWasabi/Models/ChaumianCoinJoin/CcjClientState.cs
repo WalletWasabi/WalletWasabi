@@ -272,7 +272,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public void UpdateRoundsByStates(params CcjRunningRoundState[] allRunningRoundsStates)
 		{
 			Guard.NotNullOrEmpty(nameof(allRunningRoundsStates), allRunningRoundsStates);
-
+			IsInErrorState = false;
 			lock (StateLock)
 			{
 				// Find the rounds those aren't running anymore
@@ -301,6 +301,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 
 					round.AliceClient?.Dispose();
+
+					var newSuccessfulRoundCount = allRunningRoundsStates.FirstOrDefault()?.SuccessfulRoundCount;
+					if (newSuccessfulRoundCount != null && round.State.SuccessfulRoundCount == newSuccessfulRoundCount)
+					{ 
+						IsInErrorState = true;
+					}
+
 					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's not running anymore.");
 				}
 				Rounds.RemoveAll(x => roundsToRemove.Contains(x.State.RoundId));
@@ -324,6 +331,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 			}
 		}
+
+		public bool IsInErrorState { get; private set; }
 
 		public void AddOrReplaceRound(CcjClientRound round)
 		{
