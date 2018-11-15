@@ -64,7 +64,7 @@
                 </Canvas>
               </StackPanel>
               <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="0 12">
-                <TextBlock Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}" />
+                <TextBlock VerticalAlignment="Center" Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}" />
               </StackPanel>
 
               <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="4">
