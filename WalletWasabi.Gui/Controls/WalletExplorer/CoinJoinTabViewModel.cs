@@ -214,7 +214,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
 				SuccessfulRoundCount = mostAdvancedRound.State.SuccessfulRoundCount;
-				Phase = mostAdvancedRound.State.Phase;
+				if (!Global.ChaumianClient.State.IsInErrorState)
+				{
+					Phase = mostAdvancedRound.State.Phase;
+				}
+				this.RaisePropertyChanged(nameof(Phase));
 				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
 				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
 			}
@@ -301,7 +305,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CcjRoundPhase Phase
 		{
 			get { return _phase; }
-			set { this.RaiseAndSetIfChanged(ref _phase, value); }
+			set {
+				this.RaiseAndSetIfChanged(ref _phase, value);
+			}
 		}
 
 		public Money RequiredBTC
