@@ -10,15 +10,19 @@
     <converters:PhaseStringConverter x:Key="PhaseStringConverter" />
     <converters:PhaseColorConverter x:Key="PhaseColorConverter" />
   </UserControl.Resources>
-  <Grid RowDefinitions="4*,3*,4*">
-    <controls:GroupBox Title="Queue Coins For CoinJoin" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5">
+  <Grid RowDefinitions="8*,3*">
+    <controls:GroupBox Title="Coins" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5">
       <Grid Classes="content">
         <DockPanel LastChildFill="True">
           <StackPanel Spacing="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Right">
             <TextBlock Text="{Binding WarningMessageEnqueue}" Classes="warningMessage" />
             <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
             <DockPanel LastChildFill="True" VerticalAlignment="Top">
-              <Button Content="Enqueue" Command="{Binding EnqueueCommand}" DockPanel.Dock="Right" />
+              <Button Content="Dequeue" Command="{Binding DequeueCommand}" DockPanel.Dock="Right" />
+              <Grid />
+            </DockPanel>
+            <DockPanel LastChildFill="True" VerticalAlignment="Top">
+              <Button Content="Dequeue" Command="{Binding DequeueCommand}" DockPanel.Dock="Right" />
               <Grid />
             </DockPanel>
           </StackPanel>
@@ -88,21 +92,6 @@
             </Grid>
           </StackPanel>
         </ScrollViewer>
-      </Grid>
-    </controls:GroupBox>
-
-    <controls:GroupBox Title="Coins Being CoinJoined" TextBlock.FontSize="16" Padding="10" Margin="10 5" Grid.Row="2" IsVisible="{Binding AmountQueued, Converter={StaticResource CoinJoinedVisibilityConverter}}">
-      <Grid Classes="content">
-        <DockPanel LastChildFill="True">
-          <StackPanel Spacing="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Right">
-            <TextBlock Text="{Binding WarningMessageDequeue}" Classes="warningMessage" />
-            <DockPanel LastChildFill="True">
-              <Button Content="Dequeue" Command="{Binding DequeueCommand}" DockPanel.Dock="Right" VerticalAlignment="Top" />
-              <Grid />
-            </DockPanel>
-          </StackPanel>
-          <local:CoinListView DataContext="{Binding QueuedCoinsList}" />
-        </DockPanel>
       </Grid>
     </controls:GroupBox>
   </Grid>
