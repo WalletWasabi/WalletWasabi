@@ -23,6 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmed));
+				this.RaisePropertyChanged(nameof(Status));
 			});
 
 			model.WhenAnyValue(x => x.SpentOrCoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
@@ -35,9 +36,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(CoinJoinInProgress));
 			});
 
+			model.WhenAnyValue(x => x.IsBanned).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(Status));
+				this.RaisePropertyChanged(nameof(BannedCoinToolTip));
+			});
+
 			Global.IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmations));
+				this.RaisePropertyChanged(nameof(Status));
+				this.RaisePropertyChanged(nameof(BannedCoinToolTip));
 			});
 		}
 
@@ -61,6 +70,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _isSelected, value); }
 		}
 
+		public string BannedCoinToolTip => Model.IsBanned ? $"Banned until {Model.BannedUntilUtc.Value.ToLocalTime()}." : "This coin is not banned.";
+
 		public Money Amount => Model.Amount;
 
 		public string AmountBtc => Model.Amount.ToString(false, true);
@@ -81,7 +92,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public SmartCoinStatus Status
 		{
-			get => _status;
+			get
+			{
+				if (Model.IsBanned)
+				{
+					return SmartCoinStatus.MixingBanned;
+				}
+				else if (Model.Confirmed)
+				{
+					return SmartCoinStatus.Confirmed;
+				}
+				else
+				{
+					return SmartCoinStatus.Unconfirmed;
+				}
+			}
 			set { this.RaiseAndSetIfChanged(ref _status, value); }
 		}
 	}

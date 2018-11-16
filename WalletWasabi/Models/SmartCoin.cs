@@ -4,6 +4,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Models
 {
@@ -17,6 +18,7 @@ namespace WalletWasabi.Models
 		private string _label;
 		private uint256 _spenderTransactionId;
 		private bool _coinJoinInProgress;
+		private DateTimeOffset? _bannedUntilUtc;
 
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(Uint256JsonConverter))]
@@ -133,7 +135,27 @@ namespace WalletWasabi.Models
 		public int Mixin { get; }
 
 		[JsonProperty(Order = 12)]
-		public DateTimeOffset? BannedUntilUtc { get; set; }
+		public DateTimeOffset? BannedUntilUtc
+		{
+			get
+			{
+				return _bannedUntilUtc;
+			}
+			set
+			{
+				// ToDo: IsBanned doesn't get notified when it gets unbanned.
+				if (_bannedUntilUtc != value)
+				{
+					var rememberIsBanned = IsBanned;
+					_bannedUntilUtc = value;
+					OnPropertyChanged(nameof(BannedUntilUtc));
+					if (rememberIsBanned != IsBanned)
+					{
+						OnPropertyChanged(nameof(IsBanned));
+					}
+				}
+			}
+		}
 
 		public bool SpentOrCoinJoinInProgress => !(SpenderTransactionId is null) || CoinJoinInProgress;
 		public bool Unspent => SpenderTransactionId is null;
