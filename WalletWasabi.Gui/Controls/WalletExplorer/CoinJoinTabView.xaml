@@ -18,7 +18,7 @@
             <TextBlock Text="{Binding WarningMessageEnqueue}" Classes="warningMessage" />
             <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
             <DockPanel LastChildFill="True" VerticalAlignment="Top">
-              <Button Content="Dequeue" Command="{Binding DequeueCommand}" DockPanel.Dock="Right" />
+              <Button Content="Enqueue" Command="{Binding EnqueueCommand}" DockPanel.Dock="Right" />
               <Grid />
             </DockPanel>
             <DockPanel LastChildFill="True" VerticalAlignment="Top">
@@ -26,7 +26,7 @@
               <Grid />
             </DockPanel>
           </StackPanel>
-          <local:CoinListView DataContext="{Binding AvailableCoinsList}" />
+          <local:CoinListView DataContext="{Binding CoinsList}" />
         </DockPanel>
       </Grid>
     </controls:GroupBox>

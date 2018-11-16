@@ -20,8 +20,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
-		private CoinListViewModel _availableCoinsList;
-		private CoinListViewModel _queuedCoinsList;
+		private CoinListViewModel _coinsList;
 		private long _roundId;
 		private int _successfulRoundCount;
 		private CcjRoundPhase _phase;
@@ -46,13 +45,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var globalCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), null, (first, second) => second.Amount.CompareTo(first.Amount), signalReset: onCoinsSetModified, RxApp.MainThreadScheduler);
 			globalCoins.ChangeTrackingEnabled = true;
 
-			var available = globalCoins.CreateDerivedCollection(c => c, c => c.Confirmed && !c.SpentOrCoinJoinInProgress);
-
-			var queued = globalCoins.CreateDerivedCollection(c => c, c => c.CoinJoinInProgress);
+			var coins = globalCoins.CreateDerivedCollection(c => c, c => c.Unspent);
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
-			UpdateRequiredBtcLabel(registrableRound, available, queued);
+			UpdateRequiredBtcLabel(registrableRound);
 
 			if (registrableRound != default)
 			{
@@ -65,14 +62,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (!(registrableRound?.State?.Denomination is null) && registrableRound.State.Denomination != Money.Zero)
 			{
-				AvailableCoinsList = new CoinListViewModel(available, RequiredBTC, PreSelectMaxAnonSetExcludingCondition);
+				CoinsList = new CoinListViewModel(coins, RequiredBTC, PreSelectMaxAnonSetExcludingCondition);
 			}
 			else
 			{
-				AvailableCoinsList = new CoinListViewModel(available);
+				CoinsList = new CoinListViewModel(coins);
 			}
 
-			QueuedCoinsList = new CoinListViewModel(queued);
+			CoinsList = new CoinListViewModel(coins);
 
 			AmountQueued = Money.Zero;// Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
@@ -105,7 +102,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
 			{
-				var selectedCoins = QueuedCoinsList.Coins.Where(c => c.IsSelected).ToList();
+				var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 				foreach (var coin in selectedCoins)
 				{
@@ -150,7 +147,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private async Task DoEnqueueAsync()
 		{
 			Password = Guard.Correct(Password);
-			var selectedCoins = AvailableCoinsList.Coins.Where(c => c.IsSelected).ToList();
+			var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 			if (!selectedCoins.Any())
 			{
@@ -207,7 +204,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (registrableRound != default)
 			{
 				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
-				UpdateRequiredBtcLabel(registrableRound, AvailableCoinsList.Coins, QueuedCoinsList.Coins);
+				UpdateRequiredBtcLabel(registrableRound);
 			}
 			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
 			if (mostAdvancedRound != default)
@@ -226,7 +223,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 #pragma warning disable CS0618 // Type or member is obsolete
 
-		private void UpdateRequiredBtcLabel(CcjClientRound registrableRound, IReactiveDerivedList<CoinViewModel> available, IReactiveDerivedList<CoinViewModel> queued)
+		private void UpdateRequiredBtcLabel(CcjClientRound registrableRound)
 #pragma warning restore CS0618 // Type or member is obsolete
 		{
 			if (registrableRound == default)
@@ -238,15 +235,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				if (queued != default && queued.Any())
+				var queued = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress);
+				if (queued.Any())
 				{
 					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
 				}
 				else
 				{
-					if (available != default && available.Any())
+					var available = Global.WalletService.Coins.Where(x => x.Confirmed && !x.SpentOrCoinJoinInProgress);
+					if (available.Any())
 					{
-						RequiredBTC = registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < PreSelectMaxAnonSetExcludingCondition).Select(x => x.Model.Amount).ToArray());
+						RequiredBTC = registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < PreSelectMaxAnonSetExcludingCondition).Select(x => x.Amount).ToArray());
 					}
 					else
 					{
@@ -272,16 +271,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _password, value); }
 		}
 
-		public CoinListViewModel AvailableCoinsList
+		public CoinListViewModel CoinsList
 		{
-			get { return _availableCoinsList; }
-			set { this.RaiseAndSetIfChanged(ref _availableCoinsList, value); }
-		}
-
-		public CoinListViewModel QueuedCoinsList
-		{
-			get { return _queuedCoinsList; }
-			set { this.RaiseAndSetIfChanged(ref _queuedCoinsList, value); }
+			get { return _coinsList; }
+			set { this.RaiseAndSetIfChanged(ref _coinsList, value); }
 		}
 
 		public Money AmountQueued
@@ -305,7 +298,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CcjRoundPhase Phase
 		{
 			get { return _phase; }
-			set {
+			set
+			{
 				this.RaiseAndSetIfChanged(ref _phase, value);
 			}
 		}
