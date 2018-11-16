@@ -10,9 +10,14 @@ using System.Linq;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
+	public enum CoinStatusEnum
+	{
+		None,
+	}
 	public class CoinViewModel : ViewModelBase
 	{
 		private bool _isSelected;
+		private CoinStatusEnum _status;
 
 		public CoinViewModel(SmartCoin model)
 		{
@@ -76,5 +81,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
 		public string History => string.Join(", ", Global.WalletService.GetHistory(Model, Enumerable.Empty<SmartCoin>()).Select(x => x.Label).Distinct());
+
+		public CoinStatusEnum Status 
+		{ 
+			get => _status; 
+			set { this.RaiseAndSetIfChanged(ref _status, value); } 
+		}
+
+
 	}
 }
