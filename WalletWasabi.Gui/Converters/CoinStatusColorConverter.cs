@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using WalletWasabi.Gui.Controls.WalletExplorer;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Converters
@@ -13,12 +14,13 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if (value is CoinStatusEnum status)
+			if (value is SmartCoinStatus status)
 			{
 				switch (status)
 				{
-					case CoinStatusEnum.None:
+					case SmartCoinStatus.Confirmed:
 						return Brushes.Black;
+
 					default:
 						return Brushes.Transparent;
 				}

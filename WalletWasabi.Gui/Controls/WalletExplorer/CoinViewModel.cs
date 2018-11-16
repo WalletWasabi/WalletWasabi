@@ -7,17 +7,14 @@ using WalletWasabi.Models;
 using NBitcoin;
 using System.Reactive.Linq;
 using System.Linq;
+using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public enum CoinStatusEnum
-	{
-		None,
-	}
 	public class CoinViewModel : ViewModelBase
 	{
 		private bool _isSelected;
-		private CoinStatusEnum _status;
+		private SmartCoinStatus _status;
 
 		public CoinViewModel(SmartCoin model)
 		{
@@ -82,12 +79,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string History => string.Join(", ", Global.WalletService.GetHistory(Model, Enumerable.Empty<SmartCoin>()).Select(x => x.Label).Distinct());
 
-		public CoinStatusEnum Status 
-		{ 
-			get => _status; 
-			set { this.RaiseAndSetIfChanged(ref _status, value); } 
+		public SmartCoinStatus Status
+		{
+			get => _status;
+			set { this.RaiseAndSetIfChanged(ref _status, value); }
 		}
-
-
 	}
 }
