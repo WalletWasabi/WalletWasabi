@@ -26,12 +26,12 @@
   </UserControl.Styles>
 
   <DockPanel LastChildFill="True">
-    <Grid ColumnDefinitions="30,30,100,100,100,Auto" Margin="35 0" DockPanel.Dock="Top">
+    <Grid ColumnDefinitions="30,30,100,120,100,Auto" Margin="35 0" DockPanel.Dock="Top">
       <TextBlock Text="" />
       <TextBlock Text="" Grid.Column="1" />
       <TextBlock Text="Amount (BTC)" Grid.Column="2" />
       <TextBlock Text="Privacy" Grid.Column="3" Margin="20 0 0 0" />
-      <TextBlock Text="Status" Grid.Column="4" />
+      <TextBlock Text="Status" Grid.Column="4" Margin="40 0 0 0" />
       <TextBlock Text="History" Grid.Column="5" />
     </Grid>
     <ListBox Items="{Binding Coins}" VirtualizationMode="None">
@@ -61,7 +61,7 @@
                 </Grid>
               </StackPanel>
             </Expander>
-            <Grid ColumnDefinitions="30,30,100,100,100,Auto" Margin="30 0 0 0" VerticalAlignment="Top">
+            <Grid ColumnDefinitions="30,30,100,120,100,Auto" Margin="30 0 0 0" VerticalAlignment="Top">
               <CheckBox HorizontalContentAlignment="Left" IsChecked="{Binding IsSelected}" />
               <Path HorizontalAlignment="Left" Grid.Column="1" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" IsVisible="{Binding Confirmed}" Stretch="Fill">
                 <ToolTip.Tip>
@@ -74,7 +74,9 @@
                   ToolTip.Tip="{Binding ToolTip}">
                 <DrawingPresenter Drawing="{Binding Icon}" Margin="0 0 25 0" />
               </Panel>
-              <controls:ExtendedTextBox Classes="selectableTextBlock" Grid.Column="4" Text="{Binding Status, Converter={StaticResource CoinStatusStringConverter}}" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}"/>
+              <Border Padding="1" Grid.Column="4" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" HorizontalAlignment="Center" BorderBrush="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" BorderThickness="1,1,1,1" CornerRadius="6,6, 6, 6">
+                <controls:ExtendedTextBox Classes="selectableTextBlock"  Text="{Binding Status, Converter={StaticResource CoinStatusStringConverter}}" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}"/>
+              </Border>
               <controls:ExtendedTextBox Classes="selectableTextBlock" Grid.Column="5" Text="{Binding History}" />
               <TextBlock Text="" Grid.Column="6" />
             </Grid>

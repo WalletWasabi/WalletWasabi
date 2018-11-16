@@ -22,7 +22,7 @@ namespace WalletWasabi.Gui.Converters
 						return Brushes.Black;
 
 					default:
-						return Brushes.Transparent;
+						return Brushes.Black;
 				}
 			}
 			throw new InvalidOperationException();
