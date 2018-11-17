@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Tabs
 			}
 			if (IPAddress.TryParse(torHost, out var ip))
 			{
-				if(ip.AddressFamily == AddressFamily.InterNetworkV6 && !Socket.OSSupportsIPv6)
+				if (ip.AddressFamily == AddressFamily.InterNetworkV6 && !Socket.OSSupportsIPv6)
 				{
 					return "OS does not support IPv6 addresses.";
 				}
