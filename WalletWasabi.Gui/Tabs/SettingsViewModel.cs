@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using WalletWasabi.Gui.ViewModels.Validation;
 using System.Net;
 using System.Threading.Tasks;
+using System.Net.Sockets;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -117,6 +118,10 @@ namespace WalletWasabi.Gui.Tabs
 			}
 			if (IPAddress.TryParse(torHost, out var ip))
 			{
+				if (ip.AddressFamily == AddressFamily.InterNetworkV6 && !Socket.OSSupportsIPv6)
+				{
+					return "OS does not support IPv6 addresses.";
+				}
 				return string.Empty;
 			}
 
