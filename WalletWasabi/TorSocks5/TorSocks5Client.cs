@@ -60,7 +60,7 @@ namespace WalletWasabi.TorSocks5
 		internal TorSocks5Client(IPEndPoint ipEndPoint)
 		{
 			TorSocks5EndPoint = ipEndPoint;
-			TcpClient = new TcpClient();
+			TcpClient = new TcpClient(ipEndPoint.AddressFamily);
 			AsyncLock = new AsyncLock();
 		}
 
@@ -235,7 +235,14 @@ namespace WalletWasabi.TorSocks5
 				using (await AsyncLock.LockAsync())
 				{
 					TcpClient?.Dispose();
-					TcpClient = new TcpClient();
+					if(IPAddress.TryParse(host, out IPAddress ip))
+					{
+						TcpClient = new TcpClient(ip.AddressFamily);
+					}
+					else
+					{
+						TcpClient = new TcpClient();
+					}
 					await TcpClient.ConnectAsync(host, port);
 					Stream = TcpClient.GetStream();
 					RemoteEndPoint = TcpClient.Client.RemoteEndPoint as IPEndPoint;
