@@ -110,7 +110,7 @@ namespace WalletWasabi.TorSocks5
 							Logger.LogInfo<TorProcessManager>($"Tor instance found at {torPath}.");
 						}
 
-						string torArguments = $"--SOCKSPort {TorSocks5EndPoint.Port}";
+						string torArguments = $"--SOCKSPort {TorSocks5EndPoint}";
 						if (!string.IsNullOrEmpty(LogFile))
 						{
 							IoHelpers.EnsureContainingDirectoryExists(LogFile);
