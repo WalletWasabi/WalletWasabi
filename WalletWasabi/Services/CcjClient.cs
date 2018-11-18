@@ -521,6 +521,8 @@ namespace WalletWasabi.Services
 						coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
 
 						Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+
+						await DequeueCoinsFromMixNoLockAsync(coinReference);
 						return;
 					}
 
