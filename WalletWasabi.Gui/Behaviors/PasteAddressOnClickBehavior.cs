@@ -116,6 +116,9 @@ namespace WalletWasabi.Gui.Behaviors
 			_disposables.Add(
 				AssociatedObject.GetObservable(TextBox.PointerEnterEvent).Subscribe(async pointerEnter =>
 				{
+					if (!AssociatedObject.IsFocused && MyTextBoxState == TextBoxState.NormalTextBoxOperation)
+						MyTextBoxState = TextBoxState.None;
+
 					if (MyTextBoxState == TextBoxState.NormalTextBoxOperation) return;
 					_addressToPaste = null;
 
