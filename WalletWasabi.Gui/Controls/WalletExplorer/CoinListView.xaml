@@ -65,7 +65,7 @@
               </StackPanel>
             </Expander>
 
-            <Grid ColumnDefinitions="30,30,180,120,100,Auto" Margin="30 0 0 0" VerticalAlignment="Top">
+            <Grid ColumnDefinitions="30,30,180,113,100,Auto" Margin="30 0 0 0" VerticalAlignment="Top">
               <CheckBox HorizontalContentAlignment="Left" IsChecked="{Binding IsSelected}" />
               <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="1" ToolTip.Tip="Confirmed">
                 <Path HorizontalAlignment="Left" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16"  Stretch="Fill" />
