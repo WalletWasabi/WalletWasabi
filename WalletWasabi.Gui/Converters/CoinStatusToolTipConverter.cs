@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Converters
 					case SmartCoinStatus.MixingConnectionConfirmation: return "This coin is currently in Connection Confirmation phase.";
 					case SmartCoinStatus.MixingOutputRegistration: return "This coin is currently in Output Registration phase.";
 					case SmartCoinStatus.MixingSigning: return "This coin is currently in Signing phase.";
-					case SmartCoinStatus.SpentAccordingToBackend: return "According to the backend, this coin has been spent, but Wasabi's mempool do not know about it. Correct wallet state will appear after confirmation.";
+					case SmartCoinStatus.SpentAccordingToBackend: return "According to the Backend, this coin is spent. Wallet state will be corrected after confirmation.";
 					case SmartCoinStatus.MixingWaitingForConfirmation: return "Coinjoining unconfirmed coins is not allowed.";
 				}
 			}
