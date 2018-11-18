@@ -91,32 +91,6 @@ namespace WalletWasabi.Gui.Behaviors
 			};
 
 			_disposables.Add(
-			AssociatedObject.GetObservable(TextBox.PointerMovedEvent).Subscribe(pointer =>
-				{
-					switch (MyTextBoxState)
-					{
-						case TextBoxState.NormalTextBoxOperation:
-							{
-								AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Ibeam);
-							}
-							break;
-
-						case TextBoxState.AddressInsert:
-							{
-								AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
-							}
-							break;
-
-						case TextBoxState.SelectAll:
-							{
-								AssociatedObject.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
-							}
-							break;
-					}
-				})
-			);
-
-			_disposables.Add(
 				AssociatedObject.GetObservable(TextBox.PointerReleasedEvent).Subscribe(pointer =>
 				{
 					switch (MyTextBoxState)
