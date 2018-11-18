@@ -24,7 +24,7 @@
   </i:Interaction.Behaviors>
   <cont:MetroWindow.TitleBarContent>
   </cont:MetroWindow.TitleBarContent>
-  <Grid>
+  <Grid Margin="0,10,0,0">
     <DockPanel LastChildFill="True">
       <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
       <shell:ShellView DataContext="{Binding Shell}" />

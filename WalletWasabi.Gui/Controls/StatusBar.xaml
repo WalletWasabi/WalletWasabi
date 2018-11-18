@@ -2,7 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui">
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui" 
+             Height="25">
   <UserControl.Resources>
     <converters:FilterLeftValueConverter x:Key="FilterLeftValueConverter" />
     <converters:StatusColorConverter x:Key="StatusColorConverter" />
@@ -15,7 +16,7 @@
     <i:Interaction.Behaviors>
       <behaviors:CommandOnClickBehavior Command="{Binding UpdateCommand}" />
     </i:Interaction.Behaviors>
-    <DockPanel LastChildFill="True" Margin="10 0">
+    <DockPanel LastChildFill="True" Margin="10 0" VerticalAlignment="Center"  >
       <StackPanel Orientation="Horizontal" Spacing="20" DockPanel.Dock="Right">
 
         <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding !CriticalUpdateAvailable}">
