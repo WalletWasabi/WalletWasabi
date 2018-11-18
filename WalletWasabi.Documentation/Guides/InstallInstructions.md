@@ -5,6 +5,8 @@
 
 # Windows
 
+Check out this [video guide](https://www.youtube.com/watch?v=tkaaC8yET1o) or take a look at the instructions below:
+
 ![](https://imgur.com/Q3o9DBB.png)
 
 Download the Windows installer (.msi) and follow the instructions.

@@ -32,6 +32,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				this.RaisePropertyChanged(nameof(CoinJoinInProgress));
 			});
+
+			Global.IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(Confirmations));
+			});
 		}
 
 		public SmartCoin Model { get; }

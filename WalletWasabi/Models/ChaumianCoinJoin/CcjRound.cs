@@ -14,7 +14,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 {
 	public class CcjRound
 	{
-		private static long RoundCount = 0; // First time initializes (so the first constructor will increment it and we'll start from 1.)
+		public static long RoundCount;
 		public long RoundId { get; }
 
 		public RPCClient RpcClient { get; }

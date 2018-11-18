@@ -15,10 +15,11 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Exceptions;
 using WalletWasabi.WebClients.Wasabi;
+using System.ComponentModel;
 
 namespace WalletWasabi.Services
 {
-	public class IndexDownloader : IDisposable
+	public class IndexDownloader : IDisposable, INotifyPropertyChanged
 	{
 		public Network Network { get; }
 
@@ -35,14 +36,12 @@ namespace WalletWasabi.Services
 				if (_bestHeight != value)
 				{
 					_bestHeight = value;
-					BestHeightChanged?.Invoke(this, value);
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BestHeight)));
 				}
 			}
 		}
 
 		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
-
-		public event EventHandler<Height> BestHeightChanged;
 
 		private TorStatus _torStatus;
 
@@ -102,6 +101,8 @@ namespace WalletWasabi.Services
 		public event EventHandler<uint256> Reorged;
 
 		public event EventHandler<FilterModel> NewFilter;
+
+		public event PropertyChangedEventHandler PropertyChanged;
 
 		public static FilterModel GetStartingFilter(Network network)
 		{

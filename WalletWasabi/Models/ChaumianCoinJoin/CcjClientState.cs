@@ -183,10 +183,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				var amountSoFar = Money.Zero;
 				Money amountNeededExceptInputFees = denomination + (feePerOutputs * 2);
 				foreach (SmartCoin coin in WaitingList
-							.Where(y => y.Value <= DateTimeOffset.UtcNow).Select(z => z.Key) // Only if registering coins is already allowed.
-								.Where(x => x.Confirmed || x.Label.StartsWith("ZeroLink", StringComparison.Ordinal)) // Where our label contains CoinJoin, CoinJoins can be registered even if not confirmed, our label will likely be CoinJoin only if it was a previous CoinJoin, otherwise the server will refuse us.
-								.OrderByDescending(y => y.Amount) // First order by amount.
-								.ThenByDescending(z => z.Confirmed)) // Then order by the amount ordered ienumerable by confirmation, so first try to register confirmed coins.
+							.Where(x => x.Value <= DateTimeOffset.UtcNow)
+							.Select(x => x.Key) // Only if registering coins is already allowed.
+							.Where(x => x.Confirmed || x.Label.StartsWith("ZeroLink", StringComparison.Ordinal)) // Where our label contains CoinJoin, CoinJoins can be registered even if not confirmed, our label will likely be CoinJoin only if it was a previous CoinJoin, otherwise the server will refuse us.
+								.OrderBy(x => x.IsBanned) // First order non-banned coins to first.
+								.ThenByDescending(x => x.Amount) // Then order by amount.
+								.ThenByDescending(x => x.Confirmed)) // Then order by the amount ordered ienumerable by confirmation, so first try to register confirmed coins.
 				{
 					coinsToRegister.Add(coin);
 
@@ -196,7 +198,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 
 					amountSoFar += coin.Amount;
-					if (amountSoFar > amountNeededExceptInputFees + (feePerInputs * coinsToRegister.Count))
+					if (amountSoFar >= amountNeededExceptInputFees + (feePerInputs * coinsToRegister.Count))
 					{
 						// If input count doesn't reach the max input registration AND there are enough coins queued, then can register to mix.
 						return coinsToRegister.Select(x => (x.TransactionId, x.Index)).ToArray();
@@ -270,7 +272,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public void UpdateRoundsByStates(params CcjRunningRoundState[] allRunningRoundsStates)
 		{
 			Guard.NotNullOrEmpty(nameof(allRunningRoundsStates), allRunningRoundsStates);
-
+			IsInErrorState = false;
 			lock (StateLock)
 			{
 				// Find the rounds those aren't running anymore
@@ -299,6 +301,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 
 					round.AliceClient?.Dispose();
+
+					var newSuccessfulRoundCount = allRunningRoundsStates.FirstOrDefault()?.SuccessfulRoundCount;
+					if (newSuccessfulRoundCount != null && round.State.SuccessfulRoundCount == newSuccessfulRoundCount)
+					{ 
+						IsInErrorState = true;
+					}
+
 					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's not running anymore.");
 				}
 				Rounds.RemoveAll(x => roundsToRemove.Contains(x.State.RoundId));
@@ -322,6 +331,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 			}
 		}
+
+		public bool IsInErrorState { get; private set; }
 
 		public void AddOrReplaceRound(CcjClientRound round)
 		{

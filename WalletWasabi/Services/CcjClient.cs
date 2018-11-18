@@ -502,7 +502,27 @@ namespace WalletWasabi.Services
 						};
 						inputProofs.Add(inputProof);
 					}
-					AliceClient aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
+
+					AliceClient aliceClient = null;
+					try
+					{
+						aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
+					}
+					catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
+					{
+						string[] parts = ex.Message.Split(new[] { "Input is banned from participation for ", " minutes: " }, StringSplitOptions.RemoveEmptyEntries);
+						string minutesString = parts[1];
+						int minuteInt = int.Parse(minutesString);
+						string bannedInputString = parts[2].TrimEnd('.');
+						string[] bannedInputStringParts = bannedInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
+						(uint256 txid, uint index) coinReference = (new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+						if (coin is null) throw new NotSupportedException("This is impossible.");
+						coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
+
+						Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+						return;
+					}
 
 					byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
 

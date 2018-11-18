@@ -22,36 +22,38 @@ namespace WalletWasabi.Gui
 			try
 			{
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
-				BuildAvaloniaApp().BeforeStarting(async builder =>
-				{
-					MainWindowViewModel.Instance = new MainWindowViewModel();
 
-					var configFilePath = Path.Combine(Global.DataDir, "Config.json");
-					var config = new Config(configFilePath);
-					await config.LoadOrCreateDefaultFileAsync();
-					Logger.LogInfo<Config>("Config is successfully initialized.");
-
-					Global.InitializeConfig(config);
-
-					if (!File.Exists(Global.IndexFilePath)) // Load the index file from working folder if we have it.
+				BuildAvaloniaApp()
+					.BeforeStarting(async builder =>
 					{
-						var cachedIndexFilePath = Path.Combine("Assets", Path.GetFileName(Global.IndexFilePath));
-						if (File.Exists(cachedIndexFilePath))
+						MainWindowViewModel.Instance = new MainWindowViewModel();
+
+						var configFilePath = Path.Combine(Global.DataDir, "Config.json");
+						var config = new Config(configFilePath);
+						await config.LoadOrCreateDefaultFileAsync();
+						Logger.LogInfo<Config>("Config is successfully initialized.");
+
+						Global.InitializeConfig(config);
+
+						if (!File.Exists(Global.IndexFilePath)) // Load the index file from working folder if we have it.
 						{
-							File.Copy(cachedIndexFilePath, Global.IndexFilePath, overwrite: false);
+							var cachedIndexFilePath = Path.Combine("Assets", Path.GetFileName(Global.IndexFilePath));
+							if (File.Exists(cachedIndexFilePath))
+							{
+								File.Copy(cachedIndexFilePath, Global.IndexFilePath, overwrite: false);
+							}
 						}
-					}
 
-					Global.InitializeNoWallet();
-					statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader, Global.UpdateChecker);
+						Global.InitializeNoWallet();
+						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader, Global.UpdateChecker);
 
-					MainWindowViewModel.Instance.StatusBar = statusBar;
+						MainWindowViewModel.Instance.StatusBar = statusBar;
 
-					if (Global.IndexDownloader.Network != Network.Main)
-					{
-						MainWindowViewModel.Instance.Title += $" - {Global.IndexDownloader.Network}";
-					}
-				}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
+						if (Global.IndexDownloader.Network != Network.Main)
+						{
+							MainWindowViewModel.Instance.Title += $" - {Global.IndexDownloader.Network}";
+						}
+					}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
 			}
 			catch (Exception ex)
 			{

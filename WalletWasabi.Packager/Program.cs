@@ -197,13 +197,13 @@ namespace WalletWasabi.Packager
 					if (target.StartsWith("win", StringComparison.OrdinalIgnoreCase))
 					{
 						Console.WriteLine("Move created .msi");
-						var msiPath = Path.Combine(wixProjectDirectory, @"bin\Release\WasabiInstaller.msi");
+						var msiPath = Path.Combine(wixProjectDirectory, @"bin\Release\Wasabi.msi");
 						if (!File.Exists(msiPath))
 						{
-							throw new Exception(".msi doesn't exist. Expected path: WasabiInstaller.msi.");
+							throw new Exception(".msi doesn't exist. Expected path: Wasabi.msi.");
 						}
-						var msiFileName = Path.GetFileName(msiPath);
-						var newMsiPath = Path.Combine(binDistDirectory, msiFileName);
+						var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
+						var newMsiPath = Path.Combine(binDistDirectory, $"{msiFileName}-{versionPrefix}.msi");
 						File.Move(msiPath, newMsiPath);
 
 						// Sign code with digicert.
@@ -224,7 +224,7 @@ namespace WalletWasabi.Packager
 						{
 							throw new Exception($"{publishedFolder} doesn't exist.");
 						}
-						var newFolderName = "WasabiLinux";
+						var newFolderName = $"WasabiLinux-{versionPrefix}";
 						var newFolderPath = Path.Combine(binDistDirectory, newFolderName);
 						Directory.Move(publishedFolder, newFolderPath);
 						publishedFolder = newFolderPath;
@@ -246,7 +246,7 @@ namespace WalletWasabi.Packager
 						{
 							throw new Exception($"{publishedFolder} doesn't exist.");
 						}
-						var newFolderName = "WasabiOsx";
+						var newFolderName = $"WasabiOsx-{versionPrefix}";
 						var newFolderPath = Path.Combine(binDistDirectory, newFolderName);
 						Directory.Move(publishedFolder, newFolderPath);
 						publishedFolder = newFolderPath;

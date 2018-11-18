@@ -132,9 +132,13 @@ namespace WalletWasabi.Models
 		[JsonProperty(Order = 11)]
 		public int Mixin { get; }
 
+		[JsonProperty(Order = 12)]
+		public DateTimeOffset? BannedUntilUtc { get; set; }
+
 		public bool SpentOrCoinJoinInProgress => !(SpenderTransactionId is null) || CoinJoinInProgress;
 		public bool Unspent => SpenderTransactionId is null;
 		public bool Confirmed => Height != Height.MemPool && Height != Height.Unknown;
+		public bool IsBanned => BannedUntilUtc != null && BannedUntilUtc > DateTimeOffset.UtcNow;
 
 		/// <summary>
 		/// Mixin + 1
@@ -161,6 +165,7 @@ namespace WalletWasabi.Models
 			RBF = rbf;
 			CoinJoinInProgress = coinJoinInProgress;
 			Secret = null;
+			BannedUntilUtc = null;
 		}
 
 		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false)
