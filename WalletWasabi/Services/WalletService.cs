@@ -21,6 +21,7 @@ using WalletWasabi.WebClients.Wasabi;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using NBitcoin.DataEncoders;
+using System.Net.Http;
 
 namespace WalletWasabi.Services
 {
@@ -1029,7 +1030,23 @@ namespace WalletWasabi.Services
 		{
 			using (var client = new WasabiClient(IndexDownloader.WasabiClient.TorClient.DestinationUri, IndexDownloader.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
-				await client.BroadcastAsync(transaction);
+				try
+				{
+					await client.BroadcastAsync(transaction);
+				}
+				catch (HttpRequestException ex) when (ex.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
+				{
+					if (transaction.Transaction.Inputs.Count == 1)
+					{
+						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
+						SmartCoin coin = Coins.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
+						if (coin != default)
+						{
+							coin.SpentAccordingToBackend = true;
+						}
+					}
+					throw;
+				}
 			}
 
 			ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));

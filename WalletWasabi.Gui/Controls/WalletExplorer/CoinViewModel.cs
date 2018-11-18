@@ -44,6 +44,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(BannedCoinToolTip));
 			});
 
+			model.WhenAnyValue(x => x.SpentAccordingToBackend).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(Status));
+			});
+
 			Global.IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmations));
@@ -140,6 +145,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							}
 						}
 					}
+				}
+
+				if (Model.SpentAccordingToBackend)
+				{
+					return SmartCoinStatus.SpentAccordingToBackend;
 				}
 
 				if (Model.Confirmed)

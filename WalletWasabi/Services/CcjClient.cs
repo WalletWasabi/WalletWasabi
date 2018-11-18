@@ -525,7 +525,7 @@ namespace WalletWasabi.Services
 						await DequeueCoinsFromMixNoLockAsync(coinReference);
 						return;
 					}
-					catch (HttpRequestException ex) when (ex.Message.StartsWith("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
+					catch (HttpRequestException ex) when (ex.Message.Contains("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
 					{
 						string[] parts = ex.Message.Split(new[] { "Provided input is not unspent: " }, StringSplitOptions.RemoveEmptyEntries);
 						string spentInputString = parts[1].TrimEnd('.');
