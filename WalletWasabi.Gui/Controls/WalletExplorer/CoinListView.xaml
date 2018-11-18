@@ -6,6 +6,8 @@
     <converters:PrivacyLevelValueConverter x:Key="PrivacyLevelValueConverter" />
     <converters:CoinStatusStringConverter x:Key="CoinStatusStringConverter" />
     <converters:CoinStatusColorConverter x:Key="CoinStatusColorConverter" />
+    <converters:CoinStatusBorderBrushConverter x:Key="CoinStatusBorderBrushConverter" />
+    <converters:CoinStatusForegroundConverter x:Key="CoinStatusForegroundConverter" />
   </UserControl.Resources>
   <UserControl.Styles>
     <Style Selector="TextBlock">
@@ -26,7 +28,7 @@
   </UserControl.Styles>
 
   <DockPanel LastChildFill="True">
-    <Grid ColumnDefinitions="30,30,120,120,100,Auto" Margin="30 0" DockPanel.Dock="Top">
+    <Grid ColumnDefinitions="30,30,180,120,100,Auto" Margin="30 0" DockPanel.Dock="Top">
       <TextBlock Text="" />
       <TextBlock Text="" Grid.Column="1" />
       <TextBlock Text="CoinJoin Status" Grid.Column="2" Margin="10 0 0 0" />
@@ -62,14 +64,14 @@
               </StackPanel>
             </Expander>
 
-            <Grid ColumnDefinitions="30,30,120,120,100,Auto" Margin="30 0 0 0" VerticalAlignment="Top">
+            <Grid ColumnDefinitions="30,30,180,120,100,Auto" Margin="30 0 0 0" VerticalAlignment="Top">
               <CheckBox HorizontalContentAlignment="Left" IsChecked="{Binding IsSelected}" />
-              <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="1" ToolTip.Tip="Confirmed" >
-                <Path HorizontalAlignment="Left" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16"  Stretch="Fill"/>
+              <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="1" ToolTip.Tip="Confirmed">
+                <Path HorizontalAlignment="Left" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16"  Stretch="Fill" />
               </Border>
 
-              <Border Padding="1" Grid.Column="2" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" HorizontalAlignment="Left" BorderBrush="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" BorderThickness="1,1,1,1" CornerRadius="6,6,6,6">
-                <controls:ExtendedTextBox Classes="selectableTextBlock"  Text="{Binding Status, Converter={StaticResource CoinStatusStringConverter}, Mode=OneWay}" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" />
+              <Border Padding="1" Grid.Column="2" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" BorderBrush="{Binding Status, Converter={StaticResource CoinStatusBorderBrushConverter}}" HorizontalAlignment="Left"  BorderThickness="1" CornerRadius="0,6,6,0">
+                <TextBlock Text="{Binding Status, Converter={StaticResource CoinStatusStringConverter}, Mode=OneWay}" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" Foreground="{Binding Status, Converter={StaticResource CoinStatusForegroundConverter}}" />
               </Border>
 
               <TextBlock Grid.Column="3" Text="{Binding AmountBtc}" />
