@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var globalCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), null, (first, second) => second.Amount.CompareTo(first.Amount), signalReset: onCoinsSetModified, RxApp.MainThreadScheduler);
 			globalCoins.ChangeTrackingEnabled = true;
 
-			var filteredCoins = globalCoins.CreateDerivedCollection(c => c, c => !c.SpentOrCoinJoinInProgress);
+			var filteredCoins = globalCoins.CreateDerivedCollection(c => c, c => c.Unspent);
 
 			CoinList = new CoinListViewModel(filteredCoins);
 
