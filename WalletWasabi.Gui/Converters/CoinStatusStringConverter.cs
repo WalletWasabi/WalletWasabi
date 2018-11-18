@@ -15,7 +15,19 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is SmartCoinStatus status)
 			{
-				return status.ToString();
+				switch (status)
+				{
+					case SmartCoinStatus.Confirmed: return "";
+					case SmartCoinStatus.Unconfirmed: return "";
+					case SmartCoinStatus.MixingOnWaitingList: return "waiting";
+					case SmartCoinStatus.MixingBanned: return "banned";
+					case SmartCoinStatus.MixingInputRegistration: return "registered";
+					case SmartCoinStatus.MixingConnectionConfirmation: return "connection confirmed";
+					case SmartCoinStatus.MixingOutputRegistration: return "output registered";
+					case SmartCoinStatus.MixingSigning: return "signed";
+					case SmartCoinStatus.SpentAccordingToBackend: return "spent";
+					case SmartCoinStatus.MixingWaitingForConfirmation: return "waiting for confirmation";
+				}
 			}
 
 			throw new InvalidOperationException();
@@ -23,8 +35,7 @@ namespace WalletWasabi.Gui.Converters
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			var s = value.ToString();
-			return Enum.Parse<SmartCoinStatus>(s);
+			throw new NotSupportedException();
 		}
 	}
 }

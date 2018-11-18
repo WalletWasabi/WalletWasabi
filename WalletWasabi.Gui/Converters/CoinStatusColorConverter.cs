@@ -18,11 +18,16 @@ namespace WalletWasabi.Gui.Converters
 			{
 				switch (status)
 				{
-					case SmartCoinStatus.Confirmed:
-						return Brushes.Black;
-
-					default:
-						return Brushes.Black;
+					case SmartCoinStatus.Confirmed: return Brushes.Transparent;
+					case SmartCoinStatus.Unconfirmed: return Brushes.Transparent;
+					case SmartCoinStatus.MixingOnWaitingList: return Brushes.WhiteSmoke;
+					case SmartCoinStatus.MixingBanned: return Brushes.IndianRed;
+					case SmartCoinStatus.MixingInputRegistration: return Brushes.LimeGreen;
+					case SmartCoinStatus.MixingConnectionConfirmation: return Brushes.DarkGreen;
+					case SmartCoinStatus.MixingOutputRegistration: return Brushes.DarkGreen;
+					case SmartCoinStatus.MixingSigning: return Brushes.DarkGreen;
+					case SmartCoinStatus.SpentAccordingToBackend: return Brushes.IndianRed;
+					case SmartCoinStatus.MixingWaitingForConfirmation: return Brushes.LightYellow;
 				}
 			}
 			throw new InvalidOperationException();
@@ -30,7 +35,7 @@ namespace WalletWasabi.Gui.Converters
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			throw new InvalidOperationException();
+			throw new NotSupportedException();
 		}
 	}
 }
