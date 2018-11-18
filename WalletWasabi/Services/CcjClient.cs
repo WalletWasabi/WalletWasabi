@@ -525,6 +525,21 @@ namespace WalletWasabi.Services
 						await DequeueCoinsFromMixNoLockAsync(coinReference);
 						return;
 					}
+					catch (HttpRequestException ex) when (ex.Message.StartsWith("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
+					{
+						string[] parts = ex.Message.Split(new[] { "Provided input is not unspent: " }, StringSplitOptions.RemoveEmptyEntries);
+						string spentInputString = parts[1].TrimEnd('.');
+						string[] bannedInputStringParts = spentInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
+						(uint256 txid, uint index) coinReference = (new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+						if (coin is null) throw new NotSupportedException("This is impossible.");
+						coin.SpentAccordingToBackend = true;
+
+						Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+
+						await DequeueCoinsFromMixNoLockAsync(coinReference);
+						return;
+					}
 
 					byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
 
