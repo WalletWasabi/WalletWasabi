@@ -106,9 +106,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					var selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
+					var selectedCoinViewModels = CoinList.Coins.Where(cvm => cvm.IsSelected);
+					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
 
-					if (!selectedCoins.Any())
+					if (!selectedCoinReferences.Any())
 					{
 						SetWarningMessage("No coins are selected to spend.");
 						return;
@@ -139,7 +140,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var label = Label.Trim(',', ' ').Trim();
 					var operation = new WalletService.Operation(script, amount, label);
 
-					var result = await Task.Run(async () => await Global.WalletService.BuildTransactionAsync(Password, new[] { operation }, Fee, allowUnconfirmed: true, allowedInputs: selectedCoins));
+					try
+					{
+						await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoinReferences.Select(x => (x.TransactionId, x.Index)).ToArray());
+					}
+					catch
+					{
+						SetWarningMessage("Spending coins those are being actively mixed is not allowed.");
+						return;
+					}
+
+					var result = await Task.Run(async () => await Global.WalletService.BuildTransactionAsync(Password, new[] { operation }, Fee, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(result.Transaction));
 
@@ -164,7 +175,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = false;
 				}
 			},
-			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
+			(this).WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => ((isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)));
 
 			MaxCommand = ReactiveCommand.Create(() =>
