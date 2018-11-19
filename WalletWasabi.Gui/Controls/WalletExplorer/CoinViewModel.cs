@@ -105,7 +105,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					case SmartCoinStatus.MixingOutputRegistration: return "This coin is currently in Output Registration phase.";
 					case SmartCoinStatus.MixingSigning: return "This coin is currently in Signing phase.";
 					case SmartCoinStatus.SpentAccordingToBackend: return "According to the Backend, this coin is spent. Wallet state will be corrected after confirmation.";
-					case SmartCoinStatus.MixingWaitingForConfirmation: return "Coinjoining unconfirmed coins is not allowed.";
+					case SmartCoinStatus.MixingWaitingForConfirmation: return "Coinjoining unconfirmed coins is not allowed, unless the coin is a coinjoin output itself.";
 					default: return "This is impossible.";
 				}
 			}
