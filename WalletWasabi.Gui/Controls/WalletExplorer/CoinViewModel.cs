@@ -9,6 +9,7 @@ using System.Reactive.Linq;
 using System.Linq;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
+using System.Globalization;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -41,7 +42,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			model.WhenAnyValue(x => x.IsBanned).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Status));
-				this.RaisePropertyChanged(nameof(BannedCoinToolTip));
 			});
 
 			model.WhenAnyValue(x => x.SpentAccordingToBackend).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
@@ -49,11 +49,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(Status));
 			});
 
+			this.WhenAnyValue(x => x.Status).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(ToolTip));
+			});
+
 			Global.IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmations));
 				this.RaisePropertyChanged(nameof(Status));
-				this.RaisePropertyChanged(nameof(BannedCoinToolTip));
 			});
 
 			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
@@ -86,7 +90,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _isSelected, value); }
 		}
 
-		public string BannedCoinToolTip => Model.IsBanned ? $"Banned until {Model.BannedUntilUtc.Value.ToLocalTime()}." : "This coin is not banned.";
+		public string ToolTip
+		{
+			get
+			{
+				switch (Status)
+				{
+					case SmartCoinStatus.Confirmed: return "This coin is confirmed.";
+					case SmartCoinStatus.Unconfirmed: return "This coin is unconfirmed.";
+					case SmartCoinStatus.MixingOnWaitingList: return "This coin is waiting for its turn to be coinjoined.";
+					case SmartCoinStatus.MixingBanned: return $"The coordinator banned this coin from participation until {Model.BannedUntilUtc.Value.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}.";
+					case SmartCoinStatus.MixingInputRegistration: return "This coin is registered for coinjoin.";
+					case SmartCoinStatus.MixingConnectionConfirmation: return "This coin is currently in Connection Confirmation phase.";
+					case SmartCoinStatus.MixingOutputRegistration: return "This coin is currently in Output Registration phase.";
+					case SmartCoinStatus.MixingSigning: return "This coin is currently in Signing phase.";
+					case SmartCoinStatus.SpentAccordingToBackend: return "According to the Backend, this coin is spent. Wallet state will be corrected after confirmation.";
+					case SmartCoinStatus.MixingWaitingForConfirmation: return "Coinjoining unconfirmed coins is not allowed.";
+					default: return "This is impossible.";
+				}
+			}
+		}
 
 		public Money Amount => Model.Amount;
 
