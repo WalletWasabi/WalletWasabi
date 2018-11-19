@@ -226,6 +226,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void UpdateRequiredBtcLabel(CcjClientRound registrableRound)
 #pragma warning restore CS0618 // Type or member is obsolete
 		{
+			if (Global.WalletService is null)
+			{
+				return; // Otherwise NullReferenceException at shutdown.
+			}
+
 			if (registrableRound == default)
 			{
 				if (RequiredBTC == default)
