@@ -20,7 +20,7 @@ namespace WalletWasabi.Gui.Converters
 				}
 			}
 
-			if (Application.Current.Resources.TryGetResource("ApplicationAccentBrush", out object brush))
+			if (Application.Current.Resources.TryGetResource("ApplicationAccentBrushLow", out object brush))
 			{
 				return brush;
 			}
