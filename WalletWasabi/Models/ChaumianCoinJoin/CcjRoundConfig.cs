@@ -48,7 +48,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public decimal? CoordinatorFeePercent { get; internal set; }
 
 		[JsonProperty(PropertyName = "AnonymitySet")]
-		public int? AnonymitySet { get; internal set; }
+		public int? AnonymitySet { get; set; }
 
 		[JsonProperty(PropertyName = "InputRegistrationTimeout")]
 		public long? InputRegistrationTimeout { get; internal set; }
@@ -70,6 +70,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		[JsonProperty(PropertyName = "DosNoteBeforeBan")]
 		public bool? DosNoteBeforeBan { get; internal set; }
+		[JsonProperty(PropertyName = "ExpectedRoundsPerDay")]
+		public int? ExpectedRoundsPerDay { get; internal set; }
 
 		public CcjRoundConfig()
 		{
@@ -80,7 +82,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			SetFilePath(filePath);
 		}
 
-		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours, bool dosNoteBeforeBan)
+		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours, bool dosNoteBeforeBan, int? expectedRoundsPerDay)
 		{
 			FilePath = null;
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
@@ -94,6 +96,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			DosSeverity = Guard.NotNull(nameof(dosSeverity), dosSeverity);
 			DosDurationHours = Guard.NotNull(nameof(dosDurationHours), dosDurationHours);
 			DosNoteBeforeBan = Guard.NotNull(nameof(dosNoteBeforeBan), dosNoteBeforeBan);
+			ExpectedRoundsPerDay = Guard.NotNull(nameof(expectedRoundsPerDay), expectedRoundsPerDay);
 		}
 
 		/// <inheritdoc />
@@ -123,6 +126,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			DosSeverity = 1;
 			DosDurationHours = 730; // 1 month
 			DosNoteBeforeBan = true;
+			ExpectedRoundsPerDay = 2; 
 
 			if (!File.Exists(FilePath))
 			{
@@ -152,6 +156,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			DosSeverity = config.DosSeverity ?? DosSeverity;
 			DosDurationHours = config.DosDurationHours ?? DosDurationHours;
 			DosNoteBeforeBan = config.DosNoteBeforeBan ?? DosNoteBeforeBan;
+			ExpectedRoundsPerDay = config.ExpectedRoundsPerDay ?? ExpectedRoundsPerDay;
 		}
 
 		/// <inheritdoc />
@@ -208,6 +213,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				return true;
 			}
 			if (DosNoteBeforeBan != config.DosNoteBeforeBan)
+			if (ExpectedRoundsPerDay != config.ExpectedRoundsPerDay)
 			{
 				return true;
 			}

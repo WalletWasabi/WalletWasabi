@@ -39,6 +39,8 @@ namespace WalletWasabi.Backend
 
 		public static CcjRoundConfig RoundConfig { get; private set; }
 
+		public static CcjAnonSetTunner AnonSetTunner { get; private set; }
+
 		public async static Task InitializeAsync(Config config, CcjRoundConfig roundConfig, RPCClient rpc)
 		{
 			Config = Guard.NotNull(nameof(config), config);
@@ -80,6 +82,9 @@ namespace WalletWasabi.Backend
 				}); // Every 10 seconds check the config
 				Logger.LogInfo<ConfigWatcher>($"{nameof(RoundConfigWatcher)} is successfully started.");
 			}
+
+			AnonSetTunner = new CcjAnonSetTunner();
+			AnonSetTunner.Start();
 		}
 
 		public static async void IndexBuilderService_NewBlockAsync(object sender, Block block)

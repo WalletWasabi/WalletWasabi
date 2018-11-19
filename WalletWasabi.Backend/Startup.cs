@@ -80,6 +80,8 @@ namespace WalletWasabi.Backend
 			Global.Coordinator?.Dispose();
 			Logger.LogInfo<Startup>("Coordinator is disposed.");
 
+			Global.AnonSetTunner?.Dispose();
+
 			var stopTasks = new List<Task>();
 
 			if (!(Global.IndexBuilderService is null))

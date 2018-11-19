@@ -641,6 +641,7 @@ namespace WalletWasabi.Backend.Controllers
 							alice.State = AliceState.SignedCoinJoin;
 
 							await round.BroadcastCoinJoinIfFullySignedAsync();
+							Global.AnonSetTunner.RoundCompleted();
 						}
 
 						return NoContent();

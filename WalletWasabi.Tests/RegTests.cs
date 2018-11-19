@@ -1606,7 +1606,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.2m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 50;
-			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false);
+			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 2);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
@@ -2151,7 +2151,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 3;
 			int connectionConfirmationTimeout = 120;
-			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, true);
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, true, 2);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
@@ -2357,7 +2357,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.003m;
 			int anonymitySet = 100;
 			int connectionConfirmationTimeout = 120;
-			var roundConfig = new CcjRoundConfig(denomination, 144, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true);
+			var roundConfig = new CcjRoundConfig(denomination, 144, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 2);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(100); // So to make sure we have enough money.
@@ -2564,7 +2564,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 14;
-			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true);
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 2);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
@@ -2664,7 +2664,7 @@ namespace WalletWasabi.Tests
 
 				// Make sure if times out, it  tries again.
 				connectionConfirmationTimeout = 1;
-				roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true);
+				roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 2);
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
@@ -2709,7 +2709,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 14;
-			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true);
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 2);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
@@ -2806,7 +2806,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 14;
-			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true);
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 2);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
@@ -2973,5 +2973,34 @@ namespace WalletWasabi.Tests
 		}
 
 		#endregion ClientTests
+
+		[Fact]
+		public void CcjAnonSetTunnerTest()
+		{
+			Global.RoundConfig.AnonymitySet = 40;
+			Global.RoundConfig.ExpectedRoundsPerDay = 4;
+			var tunner = new CcjAnonSetTunner();
+	
+			// Less than expected: Reduce the AS
+			for(var i=0; i < Global.RoundConfig.ExpectedRoundsPerDay -1; i++)
+				tunner.RoundCompleted();
+
+			tunner.ControlRequiredAnonymitySet();
+			Assert.Equal(39, Global.RoundConfig.AnonymitySet);
+
+			// Equal to expected: Keep the AS 
+			for(var i=0; i < Global.RoundConfig.ExpectedRoundsPerDay; i++)
+				tunner.RoundCompleted();
+
+			tunner.ControlRequiredAnonymitySet();
+			Assert.Equal(39, Global.RoundConfig.AnonymitySet);
+
+			// More than expected: Increase the AS 
+			for(var i=0; i < Global.RoundConfig.ExpectedRoundsPerDay +1; i++)
+				tunner.RoundCompleted();
+
+			tunner.ControlRequiredAnonymitySet();
+			Assert.Equal(40, Global.RoundConfig.AnonymitySet);
+		}
 	}
 }
