@@ -9,6 +9,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 #pragma warning disable CS0618 // Type or member is obsolete
 		private IReactiveDerivedList<CoinViewModel> _coins;
+		private CoinViewModel _selectedCoin;
+
+		public ReactiveCommand EnqueueCoin { get; }
+		public ReactiveCommand DequeueCoin { get; }
+		public CoinViewModel SelectedCoin
+		{
+			get => _selectedCoin;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _selectedCoin, value);
+				this.RaisePropertyChanged(nameof(CanDeqeue));
+			}
+		}
+
+		public bool CanDeqeue
+		{
+			get 
+			{ 
+				if (SelectedCoin == null) return false;
+				return SelectedCoin.CoinJoinInProgress;
+			}
+		}
 
 		public CoinListViewModel(IReactiveDerivedList<CoinViewModel> coins, Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
 		{
@@ -24,6 +46,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			}
+			EnqueueCoin = ReactiveCommand.Create(() =>
+			{
+				if (SelectedCoin == null) return;
+				//await Global.ChaumianClient.QueueCoinsToMixAsync()
+			});
+			DequeueCoin = ReactiveCommand.Create(async () =>
+			{
+				if (SelectedCoin == null) return;
+				await Global.ChaumianClient.DequeueCoinsFromMixAsync(SelectedCoin.Model);
+			}, this.WhenAnyValue(x => x.CanDeqeue));
 		}
 
 		public IReactiveDerivedList<CoinViewModel> Coins
