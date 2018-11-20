@@ -49,11 +49,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				RefreshSmartCoinStatus();
 			});
 
-			this.WhenAnyValue(x => x.Status).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(ToolTip));
-			});
-
 			Global.IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmations));
@@ -65,7 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void ChaumianClient_StateUpdated(object sender, EventArgs e)
 		{
-			this.RaisePropertyChanged(nameof(Status));
+			RefreshSmartCoinStatus();
 		}
 
 		public SmartCoin Model { get; }
@@ -99,7 +94,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					case SmartCoinStatus.Confirmed: return "This coin is confirmed.";
 					case SmartCoinStatus.Unconfirmed: return "This coin is unconfirmed.";
 					case SmartCoinStatus.MixingOnWaitingList: return "This coin is waiting for its turn to be coinjoined.";
-					case SmartCoinStatus.MixingBanned: return $"The coordinator banned this coin from participation until {Model.BannedUntilUtc.Value.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}.";
+					case SmartCoinStatus.MixingBanned: return $"The coordinator banned this coin from participation until {Model?.BannedUntilUtc?.ToString("yyyy - MM - dd HH: mm", CultureInfo.InvariantCulture)}.";
 					case SmartCoinStatus.MixingInputRegistration: return "This coin is registered for coinjoin.";
 					case SmartCoinStatus.MixingConnectionConfirmation: return "This coin is currently in Connection Confirmation phase.";
 					case SmartCoinStatus.MixingOutputRegistration: return "This coin is currently in Output Registration phase.";
@@ -129,8 +124,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string History => string.Join(", ", Global.WalletService.GetHistory(Model, Enumerable.Empty<SmartCoin>()).Select(x => x.Label).Distinct());
 
-
-
 		public SmartCoinStatus Status
 		{
 			get
@@ -140,6 +133,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _smartCoinStatus, value);
+				this.RaisePropertyChanged(nameof(ToolTip));
 			}
 		}
 
