@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui.Converters
 				{
 					case SmartCoinStatus.Confirmed: return "";
 					case SmartCoinStatus.Unconfirmed: return "";
-					case SmartCoinStatus.MixingOnWaitingList: return " waiting  ";
+					case SmartCoinStatus.MixingOnWaitingList: return " queued  ";
 					case SmartCoinStatus.MixingBanned: return " banned  ";
 					case SmartCoinStatus.MixingInputRegistration: return " registered  ";
 					case SmartCoinStatus.MixingConnectionConfirmation: return " connection confirmed  ";
