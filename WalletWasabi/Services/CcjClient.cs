@@ -681,22 +681,31 @@ namespace WalletWasabi.Services
 				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 				var successful = new List<SmartCoin>();
+				var except = new List<SmartCoin>();
 
 				foreach (SmartCoin coin in coins)
 				{
 					if (State.Contains(coin))
 					{
 						successful.Add(coin);
+						except.Add(coin);
 						continue;
 					}
 
 					if (coin.SpentOrCoinJoinInProgress)
 					{
+						except.Add(coin);
 						continue;
 					}
+				}
 
-					coin.Secret = KeyManager.GetSecrets(password, coin.ScriptPubKey).Single();
-					OnePiece = OnePiece ?? password;
+				var coinsExcept = coins.Except(except);
+				var secPubs = KeyManager.GetSecretsAndPubKeyPairs(password, coinsExcept.Select(x => x.ScriptPubKey).ToArray());
+				OnePiece = OnePiece ?? password;
+
+				foreach (SmartCoin coin in coinsExcept)
+				{
+					coin.Secret = secPubs.Single(x => x.pubKey.GetP2wpkhScript() == coin.ScriptPubKey).secret;
 
 					coin.CoinJoinInProgress = true;
 
