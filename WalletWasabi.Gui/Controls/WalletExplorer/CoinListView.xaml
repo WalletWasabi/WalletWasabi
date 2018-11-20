@@ -16,7 +16,7 @@
     <Style Selector="TextBox.Transaparent">
       <Setter Property="Background" Value="Transparent" />
     </Style>
-    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+<!--    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
     </Style>
     <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
@@ -24,7 +24,7 @@
     </Style>
     <Style Selector="ListBoxItem:selected:focus /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
-    </Style>
+    </Style>-->
   </UserControl.Styles>
 
   <DockPanel LastChildFill="True">
@@ -36,12 +36,30 @@
       <TextBlock Text="Privacy" Grid.Column="4" Margin="20 0 0 0" />
       <TextBlock Text="History" Grid.Column="5" />
     </Grid>
-    <ListBox Items="{Binding Coins}" VirtualizationMode="None">
+    <ListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
+      <ListBox.ContextMenu>
+        <ContextMenu>
+          <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
+            <MenuItem  Command="{Binding EnqueueCoin}" IsVisible="false">
+               <MenuItem.Header>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Enqueue Coin, password:" VerticalAlignment="Center"/>
+                        <TextBox Width="50" Grid.Column="1"/>
+                    </Grid>
+                </MenuItem.Header>
+            </MenuItem>
+            <MenuItem Header="Dequeue from CoinJoin" Command="{Binding DequeueCoin}"/>
+        </ContextMenu>
+      </ListBox.ContextMenu>
       <ListBox.ItemTemplate>
         <DataTemplate>
           <Grid>
             <Expander ExpandDirection="Down">
-              <StackPanel Background="{DynamicResource ThemeControlBackgroundBrush}">
+              <StackPanel Background="Transparent">
                 <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800">
                   <TextBlock Text="Transaction Id:" Grid.Row="0" />
                   <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding TransactionId}" Background="Transparent" Grid.Column="1" Grid.Row="0" />
@@ -82,7 +100,7 @@
                 <DrawingPresenter Drawing="{Binding Icon}" Margin="0 0 25 0" />
               </Panel>
 
-              <controls:ExtendedTextBox Classes="selectableTextBlock" Grid.Column="5" Text="{Binding History}" />
+              <controls:ExtendedTextBox Classes="selectableTextBlock" Background="Transparent" Grid.Column="5" Text="{Binding History}" />
 
               <TextBlock Text="" Grid.Column="6" />
             </Grid>

@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class CoinViewModel : ViewModelBase
 	{
 		private bool _isSelected;
-		private SmartCoinStatus _status;
+		private SmartCoinStatus _smartCoinStatus;
 
 		public CoinViewModel(SmartCoin model)
 		{
@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmed));
-				this.RaisePropertyChanged(nameof(Status));
+				RefreshSmartCoinStatus();
 			});
 
 			model.WhenAnyValue(x => x.SpentOrCoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
@@ -36,17 +36,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			model.WhenAnyValue(x => x.CoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(CoinJoinInProgress));
-				this.RaisePropertyChanged(nameof(Status));
+				RefreshSmartCoinStatus();
 			});
 
 			model.WhenAnyValue(x => x.IsBanned).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(Status));
+				RefreshSmartCoinStatus();
 			});
 
 			model.WhenAnyValue(x => x.SpentAccordingToBackend).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(Status));
+				RefreshSmartCoinStatus();
 			});
 
 			this.WhenAnyValue(x => x.Status).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
@@ -57,7 +57,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Confirmations));
-				this.RaisePropertyChanged(nameof(Status));
+				RefreshSmartCoinStatus();
 			});
 
 			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
@@ -129,76 +129,92 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string History => string.Join(", ", Global.WalletService.GetHistory(Model, Enumerable.Empty<SmartCoin>()).Select(x => x.Label).Distinct());
 
+
+
 		public SmartCoinStatus Status
 		{
 			get
 			{
-				if (Model.IsBanned)
-				{
-					return SmartCoinStatus.MixingBanned;
-				}
+				return _smartCoinStatus;
+			}
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _smartCoinStatus, value);
+			}
+		}
 
-				CcjClientState clientState = Global.ChaumianClient.State;
+		void RefreshSmartCoinStatus()
+		{
+			Status = GetSmartCoinStatus(); 
+		}
 
-				if (Model.CoinJoinInProgress)
+		SmartCoinStatus GetSmartCoinStatus()
+		{
+			if (Model.IsBanned)
+			{
+				return SmartCoinStatus.MixingBanned;
+			}
+
+			CcjClientState clientState = Global.ChaumianClient.State;
+
+			if (Model.CoinJoinInProgress)
+			{
+				foreach (long roundId in clientState.GetAllMixingRounds())
 				{
-					foreach (long roundId in clientState.GetAllMixingRounds())
+					CcjClientRound round = clientState.GetSingleOrDefaultRound(roundId);
+					if (round != default)
 					{
-						CcjClientRound round = clientState.GetSingleOrDefaultRound(roundId);
-						if (round != default)
+						if (round.CoinsRegistered.Contains(Model))
 						{
-							if (round.CoinsRegistered.Contains(Model))
+							if (round.State.Phase == CcjRoundPhase.InputRegistration)
 							{
-								if (round.State.Phase == CcjRoundPhase.InputRegistration)
-								{
-									return SmartCoinStatus.MixingInputRegistration;
-								}
-								else if (round.State.Phase == CcjRoundPhase.ConnectionConfirmation)
-								{
-									return SmartCoinStatus.MixingConnectionConfirmation;
-								}
-								else if (round.State.Phase == CcjRoundPhase.OutputRegistration)
-								{
-									return SmartCoinStatus.MixingOutputRegistration;
-								}
-								else if (round.State.Phase == CcjRoundPhase.Signing)
-								{
-									return SmartCoinStatus.MixingSigning;
-								}
+								return SmartCoinStatus.MixingInputRegistration;
+							}
+							else if (round.State.Phase == CcjRoundPhase.ConnectionConfirmation)
+							{
+								return SmartCoinStatus.MixingConnectionConfirmation;
+							}
+							else if (round.State.Phase == CcjRoundPhase.OutputRegistration)
+							{
+								return SmartCoinStatus.MixingOutputRegistration;
+							}
+							else if (round.State.Phase == CcjRoundPhase.Signing)
+							{
+								return SmartCoinStatus.MixingSigning;
 							}
 						}
 					}
 				}
+			}
 
-				if (Model.SpentAccordingToBackend)
-				{
-					return SmartCoinStatus.SpentAccordingToBackend;
-				}
+			if (Model.SpentAccordingToBackend)
+			{
+				return SmartCoinStatus.SpentAccordingToBackend;
+			}
 
-				if (Model.Confirmed)
+			if (Model.Confirmed)
+			{
+				if (Model.CoinJoinInProgress)
 				{
-					if (Model.CoinJoinInProgress)
-					{
-						return SmartCoinStatus.MixingOnWaitingList;
-					}
-					else
-					{
-						return SmartCoinStatus.Confirmed;
-					}
+					return SmartCoinStatus.MixingOnWaitingList;
 				}
-				else // Unconfirmed
+				else
 				{
-					if (Model.CoinJoinInProgress)
-					{
-						return SmartCoinStatus.MixingWaitingForConfirmation;
-					}
-					else
-					{
-						return SmartCoinStatus.Unconfirmed;
-					}
+					return SmartCoinStatus.Confirmed;
 				}
 			}
-			set { this.RaiseAndSetIfChanged(ref _status, value); }
+			else // Unconfirmed
+			{
+				if (Model.CoinJoinInProgress)
+				{
+					return SmartCoinStatus.MixingWaitingForConfirmation;
+				}
+				else
+				{
+					return SmartCoinStatus.Unconfirmed;
+				}
+			}
 		}
+
 	}
 }
