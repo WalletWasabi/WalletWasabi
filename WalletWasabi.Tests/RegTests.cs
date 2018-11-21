@@ -1604,7 +1604,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.2m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 50;
-			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24);
+			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
@@ -1817,7 +1817,7 @@ namespace WalletWasabi.Tests
 				var spendingTx = network.Consensus.ConsensusFactory.CreateTransaction();
 				var bannedCoin = inputsRequest.Inputs.First().Input;
 				var utxos = coordinator.UtxoReferee;
-				Assert.Contains(utxos.BannedUtxos, x => x.Key == bannedCoin);
+				Assert.NotNull(await utxos.TryGetBannedAsync(bannedCoin.ToOutPoint(), false));
 				spendingTx.Inputs.Add(new TxIn(bannedCoin.ToOutPoint()));
 				spendingTx.Outputs.Add(new TxOut(Money.Coins(1), new Key().PubKey.GetSegwitAddress(network)));
 				var fakeBlockWithSpendingBannedCoins = network.Consensus.ConsensusFactory.CreateBlock();
@@ -1825,8 +1825,8 @@ namespace WalletWasabi.Tests
 
 				await coordinator.ProcessBlockAsync(fakeBlockWithSpendingBannedCoins);
 
-				Assert.Contains(utxos.BannedUtxos, x => x.Key == new OutPoint(spendingTx.GetHash(), 0));
-				Assert.DoesNotContain(utxos.BannedUtxos, x => x.Key == bannedCoin);
+				Assert.NotNull(await utxos.TryGetBannedAsync(new OutPoint(spendingTx.GetHash(), 0), false));
+				Assert.Null(await utxos.TryGetBannedAsync(bannedCoin.ToOutPoint(), false));
 
 				states = await satoshiClient.GetAllRoundStatesAsync();
 				foreach (var rs in states.Where(x => x.Phase == CcjRoundPhase.InputRegistration))
@@ -2073,9 +2073,10 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 3;
 			int connectionConfirmationTimeout = 120;
-			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24);
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, true);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
@@ -2179,18 +2180,87 @@ namespace WalletWasabi.Tests
 				}
 			}
 
-			await Task.Delay(3000);
-
 			using (var satoshiClient = new SatoshiClient(baseUri))
 			{
-				IEnumerable<CcjRunningRoundState> states = await satoshiClient.GetAllRoundStatesAsync();
-				foreach (CcjRoundPhase phase in states.Select(x => x.Phase))
+				var times = 0;
+				while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == CcjRoundPhase.InputRegistration))
 				{
-					Assert.Equal(CcjRoundPhase.InputRegistration, phase);
+					await Task.Delay(100);
+					if (times > 50) // 5 sec, 3 should be enough
+					{
+						throw new TimeoutException("Not all rouns were in InputRegistration.");
+					}
+					times++;
 				}
 			}
 
-			Assert.True(coordinator.UtxoReferee.BannedUtxos.Count >= roundConfig.AnonymitySet);
+			int bannedCount = coordinator.UtxoReferee.CountBanned(false);
+			Assert.Equal(0, bannedCount);
+
+			aliceClients.Clear();
+			foreach (var user in inputRegistrationUsers)
+			{
+				aliceClients.Add(AliceClient.CreateNewAsync(network, user.changeOutputAddress, user.blinded.blindedData, user.inputProofModels, baseUri));
+			}
+
+			roundId = 0;
+			users = new List<((BigInteger blindingFactor, byte[] blindedData) blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient aliceClient, byte[] unblindedSignature)>();
+			for (int i = 0; i < inputRegistrationUsers.Count; i++)
+			{
+				var user = inputRegistrationUsers[i];
+				var request = aliceClients[i];
+
+				var aliceClient = await request;
+				if (roundId == 0)
+				{
+					roundId = aliceClient.RoundId;
+				}
+				else
+				{
+					Assert.Equal(roundId, aliceClient.RoundId);
+				}
+				// Because it's valuetuple.
+				users.Add((user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, blindingKey.PubKey.UnblindSignature(aliceClient.BlindedOutputSignature, user.blinded.blindingFactor)));
+			}
+
+			Assert.Equal(users.Count, roundConfig.AnonymitySet);
+
+			confirmationRequests = new List<Task<string>>();
+
+			foreach (var user in users)
+			{
+				confirmationRequests.Add(user.aliceClient.PostConfirmationAsync());
+			}
+
+			roundHash = null;
+			foreach (var request in confirmationRequests)
+			{
+				if (roundHash is null)
+				{
+					roundHash = await request;
+				}
+				else
+				{
+					Assert.Equal(roundHash, await request);
+				}
+			}
+
+			using (var satoshiClient = new SatoshiClient(baseUri))
+			{
+				var times = 0;
+				while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == CcjRoundPhase.InputRegistration))
+				{
+					await Task.Delay(100);
+					if (times > 50) // 5 sec, 3 should be enough
+					{
+						throw new TimeoutException("Not all rouns were in InputRegistration.");
+					}
+					times++;
+				}
+			}
+
+			bannedCount = coordinator.UtxoReferee.CountBanned(false);
+			Assert.True(bannedCount >= roundConfig.AnonymitySet);
 
 			foreach (var aliceClient in aliceClients)
 			{
@@ -2209,7 +2279,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.003m;
 			int anonymitySet = 100;
 			int connectionConfirmationTimeout = 120;
-			var roundConfig = new CcjRoundConfig(denomination, 144, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24);
+			var roundConfig = new CcjRoundConfig(denomination, 144, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(100); // So to make sure we have enough money.
@@ -2416,7 +2486,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 14;
-			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24);
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
@@ -2516,7 +2586,7 @@ namespace WalletWasabi.Tests
 
 				// Make sure if times out, it  tries again.
 				connectionConfirmationTimeout = 1;
-				roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24);
+				roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true);
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
@@ -2561,7 +2631,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 14;
-			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24);
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
@@ -2658,7 +2728,7 @@ namespace WalletWasabi.Tests
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
 			int connectionConfirmationTimeout = 14;
-			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24);
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 

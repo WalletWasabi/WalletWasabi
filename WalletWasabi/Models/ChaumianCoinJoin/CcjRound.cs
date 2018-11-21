@@ -463,7 +463,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 										if (inputsToBan.Any())
 										{
-											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, inputsToBan.ToArray());
+											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, inputsToBan.ToArray());
 										}
 
 										RemoveAlicesBy(alicesToBan1.Select(x => x.UniqueId).Concat(alicesToBan2.Select(y => y.UniqueId)).Distinct().ToArray());
@@ -506,7 +506,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										}
 										if (outpointsToBan.Any())
 										{
-											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, outpointsToBan.ToArray());
+											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, outpointsToBan.ToArray());
 										}
 										Abort(nameof(CcjRound), "Not all Alices signed.");
 									}

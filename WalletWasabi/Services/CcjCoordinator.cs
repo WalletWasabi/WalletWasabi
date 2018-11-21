@@ -153,17 +153,18 @@ namespace WalletWasabi.Services
 					OutPoint prevOut = input.PrevOut;
 
 					// if coin is not banned
-					if (UtxoReferee.BannedUtxos.TryGetValue(prevOut, out (int severity, DateTimeOffset timeOfBan) found))
+					var foundElem = await UtxoReferee.TryGetBannedAsync(prevOut, notedToo: true);
+					if (foundElem != null)
 					{
 						if (!AnyRunningRoundContainsInput(prevOut, out _))
 						{
-							int newSeverity = found.severity + 1;
+							int newSeverity = foundElem.Value.severity + 1;
 							await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
 
 							if (RoundConfig.DosSeverity >= newSeverity)
 							{
 								var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
-								await UtxoReferee.BanUtxosAsync(newSeverity, found.timeOfBan, txCoins.ToArray());
+								await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.Value.timeOfBan, forceNoted: foundElem.Value.isNoted, foundElem.Value.bannedForRound, txCoins.ToArray());
 							}
 						}
 					}
@@ -233,7 +234,7 @@ namespace WalletWasabi.Services
 				{
 					// If its from any coinjoin, then don't ban.
 					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.Outpoint);
-					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, utxosToBan.ToArray());
+					await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, utxosToBan.ToArray());
 				}
 			}
 

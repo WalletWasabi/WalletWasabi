@@ -156,15 +156,10 @@ namespace WalletWasabi.Backend.Controllers
 						}
 
 						OutPoint outpoint = inputProof.Input.ToOutPoint();
-						if (Coordinator.UtxoReferee.BannedUtxos.TryGetValue(outpoint, out (int severity, DateTimeOffset timeOfBan) bannedElem))
+						var bannedElem = await Coordinator.UtxoReferee.TryGetBannedAsync(outpoint, notedToo: false);
+						if (bannedElem != null)
 						{
-							int maxBan = (int)TimeSpan.FromHours((long)Global.RoundConfig.DosDurationHours).TotalMinutes;
-							int banLeft = maxBan - (int)(DateTimeOffset.UtcNow - bannedElem.timeOfBan).TotalMinutes;
-							if (banLeft > 0)
-							{
-								return BadRequest($"Input is banned from participation for {banLeft} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
-							}
-							await Coordinator.UtxoReferee.UnbanAsync(outpoint);
+							return BadRequest($"Input is banned from participation for {(int)bannedElem.Value.bannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
 						}
 
 						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
@@ -339,7 +334,7 @@ namespace WalletWasabi.Backend.Controllers
 
 							if (alicesToBan.Any())
 							{
-								await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint).ToArray());
+								await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint).ToArray());
 							}
 
 							int aliceCountAfterConnectionConfirmationTimeout = round.CountAlices();
