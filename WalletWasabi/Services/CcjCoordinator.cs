@@ -173,7 +173,7 @@ namespace WalletWasabi.Services
 
 		public void UpdateRoundConfig(CcjRoundConfig roundConfig)
 		{
-			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
+			RoundConfig.UpdateOrDefault(roundConfig);
 		}
 
 		public async Task MakeSureTwoRunningRoundsAsync()
