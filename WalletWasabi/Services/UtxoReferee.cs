@@ -115,7 +115,7 @@ namespace WalletWasabi.Services
 			if (BannedUtxos.TryRemove(output, out _))
 			{
 				IEnumerable<string> lines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}");
-				await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
+				await File.WriteAllLinesAsync(BannedUtxosFilePath, lines);
 				Logger.LogInfo<UtxoReferee>($"UTXO unbanned: {output.N}:{output.Hash}.");
 			}
 		}

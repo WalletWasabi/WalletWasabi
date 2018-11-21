@@ -108,19 +108,24 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 				var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
 
-				Denomination = config.Denomination ?? Denomination;
-				ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
-				CoordinatorFeePercent = config.CoordinatorFeePercent ?? CoordinatorFeePercent;
-				AnonymitySet = config.AnonymitySet ?? AnonymitySet;
-				InputRegistrationTimeout = config.InputRegistrationTimeout ?? InputRegistrationTimeout;
-				ConnectionConfirmationTimeout = config.ConnectionConfirmationTimeout ?? ConnectionConfirmationTimeout;
-				OutputRegistrationTimeout = config.OutputRegistrationTimeout ?? OutputRegistrationTimeout;
-				SigningTimeout = config.SigningTimeout ?? SigningTimeout;
-				DosSeverity = config.DosSeverity ?? DosSeverity;
-				DosDurationHours = config.DosDurationHours ?? DosDurationHours;
+				UpdateOrDefault(config);
 			}
 
 			await ToFileAsync();
+		}
+
+		public void UpdateOrDefault(CcjRoundConfig config)
+		{
+			Denomination = config.Denomination ?? Denomination;
+			ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
+			CoordinatorFeePercent = config.CoordinatorFeePercent ?? CoordinatorFeePercent;
+			AnonymitySet = config.AnonymitySet ?? AnonymitySet;
+			InputRegistrationTimeout = config.InputRegistrationTimeout ?? InputRegistrationTimeout;
+			ConnectionConfirmationTimeout = config.ConnectionConfirmationTimeout ?? ConnectionConfirmationTimeout;
+			OutputRegistrationTimeout = config.OutputRegistrationTimeout ?? OutputRegistrationTimeout;
+			SigningTimeout = config.SigningTimeout ?? SigningTimeout;
+			DosSeverity = config.DosSeverity ?? DosSeverity;
+			DosDurationHours = config.DosDurationHours ?? DosDurationHours;
 		}
 
 		/// <inheritdoc />
