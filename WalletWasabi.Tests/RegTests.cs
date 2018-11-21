@@ -2973,34 +2973,5 @@ namespace WalletWasabi.Tests
 		}
 
 		#endregion ClientTests
-
-		[Fact]
-		public void CcjAnonSetTunnerTest()
-		{
-			Global.RoundConfig.AnonymitySet = 40;
-			Global.RoundConfig.ExpectedRoundsPerDay = 4;
-			var tunner = new CcjAnonSetTunner();
-	
-			// Less than expected: Reduce the AS
-			for(var i=0; i < Global.RoundConfig.ExpectedRoundsPerDay -1; i++)
-				tunner.RoundCompleted();
-
-			tunner.ControlRequiredAnonymitySet();
-			Assert.Equal(39, Global.RoundConfig.AnonymitySet);
-
-			// Equal to expected: Keep the AS 
-			for(var i=0; i < Global.RoundConfig.ExpectedRoundsPerDay; i++)
-				tunner.RoundCompleted();
-
-			tunner.ControlRequiredAnonymitySet();
-			Assert.Equal(39, Global.RoundConfig.AnonymitySet);
-
-			// More than expected: Increase the AS 
-			for(var i=0; i < Global.RoundConfig.ExpectedRoundsPerDay +1; i++)
-				tunner.RoundCompleted();
-
-			tunner.ControlRequiredAnonymitySet();
-			Assert.Equal(40, Global.RoundConfig.AnonymitySet);
-		}
 	}
 }
