@@ -157,7 +157,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Logger.LogInfo<CcjRound>($"New round ({RoundId}) is created.\n\t" +
 					$"{nameof(Denomination)}: {Denomination.ToString(false, true)} BTC.\n\t" +
 					$"{nameof(ConfirmationTarget)}: {ConfirmationTarget}.\n\t" +
-					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}.\n\t" +
+					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
 					$"{nameof(AnonymitySet)}: {AnonymitySet}.");
 			}
 			catch (Exception ex)

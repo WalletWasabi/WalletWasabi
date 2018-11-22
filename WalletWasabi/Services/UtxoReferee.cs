@@ -96,8 +96,7 @@ namespace WalletWasabi.Services
 			}
 
 			var lines = new List<string>();
-			var append = false;
-			var updatedOrAdded = false;
+			var updated = false;
 			foreach (var utxo in toBan)
 			{
 				var isNoted = true;
@@ -126,51 +125,32 @@ namespace WalletWasabi.Services
 						isNoted = false;
 					}
 				}
-				if (!BannedUtxos.TryAdd(utxo, (severity, timeOfBan, isNoted, bannedForRound)))
+				if (BannedUtxos.TryAdd(utxo, (severity, timeOfBan, isNoted, bannedForRound)))
 				{
-					var elem = BannedUtxos[utxo];
-					if (elem.severity != severity)
-					{
-						elem.severity = severity;
-						updatedOrAdded = true;
-					}
-					if (elem.isNoted != isNoted)
-					{
-						elem.isNoted = isNoted;
-						updatedOrAdded = true;
-					}
-					if (elem.bannedForRound != bannedForRound)
-					{
-						elem.bannedForRound = bannedForRound;
-						updatedOrAdded = true;
-					}
+					string line = $"{timeOfBan.ToString(CultureInfo.InvariantCulture)}:{severity}:{utxo.N}:{utxo.Hash}:{isNoted}:{bannedForRound}";
+					lines.Add(line);
 				}
 				else
 				{
-					append = true;
-					updatedOrAdded = true;
-
-					string line = $"{timeOfBan.ToString(CultureInfo.InvariantCulture)}:{severity}:{utxo.N}:{utxo.Hash}:{isNoted}:{bannedForRound}";
-					lines.Add(line);
+					var elem = BannedUtxos[utxo];
+					if (elem.isNoted != isNoted)
+					{
+						BannedUtxos[utxo] = (elem.severity, elem.timeOfBan, isNoted, elem.bannedForRound);
+						updated = true;
+					}
 				}
 
 				Logger.LogInfo<UtxoReferee>($"UTXO {(isNoted ? "noted" : "banned")} with severity: {severity}. UTXO: {utxo.N}:{utxo.Hash}.");
 			}
 
-			if (updatedOrAdded)
+			if (updated) // If at any time we set updated then we must update the whole thing.
 			{
-				if (append)
-				{
-					if (lines.Count != 0)
-					{
-						await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
-					}
-				}
-				else
-				{
-					var allLines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.isNoted}:{x.Value.bannedForRound}");
-					await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines);
-				}
+				var allLines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.isNoted}:{x.Value.bannedForRound}");
+				await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines);
+			}
+			else if (lines.Count != 0) // If we don't have to update the whole thing, we must check if we added a line and so only append.
+			{
+				await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
 			}
 		}
 
@@ -227,6 +207,12 @@ namespace WalletWasabi.Services
 			{
 				return BannedUtxos.Count(x => !x.Value.isNoted);
 			}
+		}
+
+		public void Clear()
+		{
+			BannedUtxos.Clear();
+			File.Delete(BannedUtxosFilePath);
 		}
 	}
 }

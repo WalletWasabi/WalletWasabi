@@ -17,6 +17,7 @@ using WalletWasabi.Backend;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Crypto;
 using WalletWasabi.Exceptions;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
@@ -75,6 +76,7 @@ namespace WalletWasabi.Tests
 			{
 				await Global.RpcClient.GenerateAsync(numberOfBlocksToGenerate); // Make sure everything is confirmed.
 			}
+			Global.Coordinator.UtxoReferee.Clear();
 			return ("password", Global.RpcClient, Global.RpcClient.Network, Global.Coordinator);
 		}
 
@@ -2058,6 +2060,82 @@ namespace WalletWasabi.Tests
 					Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
 
 					#endregion PostSignatures
+				}
+			}
+		}
+
+		[Fact, TestPriority(19)]
+		[Trait("Category", "RunOnCi")]
+		public async Task NotingTestsAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+
+			BlindingRsaKey blindingKey = coordinator.RsaKey;
+			Money denomination = Money.Coins(1m);
+			decimal coordinatorFeePercent = 0.1m;
+			int anonymitySet = 2;
+			int connectionConfirmationTimeout = 1;
+			bool doesNoteBeforeBan = true;
+			CcjRoundConfig roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, doesNoteBeforeBan);
+			coordinator.UpdateRoundConfig(roundConfig);
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+
+			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
+
+			var registerRequests = new List<(BitcoinWitPubKeyAddress changeOutputAddress, byte[] blindedData, InputProofModel[] inputsProofs)>();
+			for (int i = 0; i < roundConfig.AnonymitySet; i++)
+			{
+				BitcoinWitPubKeyAddress activeOutputAddress = new Key().PubKey.GetSegwitAddress(network);
+				BitcoinWitPubKeyAddress changeOutputAddress = new Key().PubKey.GetSegwitAddress(network);
+				Key inputKey = new Key();
+				BitcoinWitPubKeyAddress inputAddress = inputKey.PubKey.GetSegwitAddress(network);
+				var blinded = blindingKey.PubKey.Blind(activeOutputAddress.ScriptPubKey.ToBytes());
+
+				uint256 txHash = await rpc.SendToAddressAsync(inputAddress, Money.Coins(2));
+				await rpc.GenerateAsync(1);
+				Transaction transaction = await rpc.GetRawTransactionAsync(txHash);
+				Coin coin = transaction.Outputs.GetCoins(inputAddress.ScriptPubKey).Single();
+				OutPoint input = coin.Outpoint;
+
+				InputProofModel inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = inputKey.SignMessage(ByteHelpers.ToHex(blinded.BlindedData)) };
+				InputProofModel[] inputsProofs = new InputProofModel[] { inputProof };
+				registerRequests.Add((changeOutputAddress, blinded.BlindedData, inputsProofs));
+				await AliceClient.CreateNewAsync(network, changeOutputAddress, blinded.BlindedData, inputsProofs, baseUri);
+			}
+
+			await WaitForTimeoutAsync(baseUri);
+
+			int bannedCount = coordinator.UtxoReferee.CountBanned(false);
+			Assert.Equal(0, bannedCount);
+			int notedCount = coordinator.UtxoReferee.CountBanned(true);
+			Assert.Equal(anonymitySet, notedCount);
+
+			foreach (var registerRequest in registerRequests)
+			{
+				await AliceClient.CreateNewAsync(network, registerRequest.changeOutputAddress, registerRequest.blindedData, registerRequest.inputsProofs, baseUri);
+			}
+
+			await WaitForTimeoutAsync(baseUri);
+
+			bannedCount = coordinator.UtxoReferee.CountBanned(false);
+			Assert.Equal(anonymitySet, bannedCount);
+			notedCount = coordinator.UtxoReferee.CountBanned(true);
+			Assert.Equal(anonymitySet, notedCount);
+		}
+
+		private static async Task WaitForTimeoutAsync(Uri baseUri)
+		{
+			using (var satoshiClient = new SatoshiClient(baseUri))
+			{
+				var times = 0;
+				while (!(await satoshiClient.GetAllRoundStatesAsync()).All(x => x.Phase == CcjRoundPhase.InputRegistration))
+				{
+					await Task.Delay(100);
+					if (times > 50) // 5 sec, 3 should be enough
+					{
+						throw new TimeoutException("Not all rouns were in InputRegistration.");
+					}
+					times++;
 				}
 			}
 		}
