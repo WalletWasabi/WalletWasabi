@@ -18,8 +18,6 @@ namespace WalletWasabi.Gui.Converters
 			{
 				switch (status)
 				{
-					case SmartCoinStatus.MixingOutputRegistration:
-					case SmartCoinStatus.MixingSigning:
 					case SmartCoinStatus.MixingInputRegistration:
 					case SmartCoinStatus.MixingOnWaitingList:
 					case SmartCoinStatus.MixingWaitingForConfirmation: return Brushes.Black;
