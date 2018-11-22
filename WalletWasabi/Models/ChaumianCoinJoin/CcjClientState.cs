@@ -225,6 +225,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
+		public IEnumerable<long> GetAllMixingRounds()
+		{
+			lock (StateLock)
+			{
+				return Rounds.Where(x => !(x.AliceClient is null)).Select(x => x.State.RoundId).ToArray();
+			}
+		}
+
 		public CcjClientRound GetRegistrableRoundOrDefault()
 		{
 			lock (StateLock)
@@ -304,7 +312,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 					var newSuccessfulRoundCount = allRunningRoundsStates.FirstOrDefault()?.SuccessfulRoundCount;
 					if (newSuccessfulRoundCount != null && round.State.SuccessfulRoundCount == newSuccessfulRoundCount)
-					{ 
+					{
 						IsInErrorState = true;
 					}
 

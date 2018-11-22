@@ -147,7 +147,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var txinfo = new TransactionInfo
 				{
 					DateTime = txr.dateTime.ToLocalTime(),
-					Confirmed = txr.height != Models.Height.MemPool && txr.height != Models.Height.Unknown,
+					Confirmed = txr.height != WalletWasabi.Models.Height.MemPool && txr.height != WalletWasabi.Models.Height.Unknown,
 					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
 					Label = txr.label,
 					TransactionId = txr.transactionId.ToString()

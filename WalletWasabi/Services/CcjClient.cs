@@ -521,6 +521,23 @@ namespace WalletWasabi.Services
 						coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
 
 						Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+
+						await DequeueCoinsFromMixNoLockAsync(coinReference);
+						return;
+					}
+					catch (HttpRequestException ex) when (ex.Message.Contains("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
+					{
+						string[] parts = ex.Message.Split(new[] { "Provided input is not unspent: " }, StringSplitOptions.RemoveEmptyEntries);
+						string spentInputString = parts[1].TrimEnd('.');
+						string[] bannedInputStringParts = spentInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
+						(uint256 txid, uint index) coinReference = (new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+						if (coin is null) throw new NotSupportedException("This is impossible.");
+						coin.SpentAccordingToBackend = true;
+
+						Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+
+						await DequeueCoinsFromMixNoLockAsync(coinReference);
 						return;
 					}
 
@@ -664,22 +681,31 @@ namespace WalletWasabi.Services
 				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 				var successful = new List<SmartCoin>();
+				var except = new List<SmartCoin>();
 
 				foreach (SmartCoin coin in coins)
 				{
 					if (State.Contains(coin))
 					{
 						successful.Add(coin);
+						except.Add(coin);
 						continue;
 					}
 
 					if (coin.SpentOrCoinJoinInProgress)
 					{
+						except.Add(coin);
 						continue;
 					}
+				}
 
-					coin.Secret = KeyManager.GetSecrets(password, coin.ScriptPubKey).Single();
-					OnePiece = OnePiece ?? password;
+				var coinsExcept = coins.Except(except);
+				var secPubs = KeyManager.GetSecretsAndPubKeyPairs(password, coinsExcept.Select(x => x.ScriptPubKey).ToArray());
+				OnePiece = OnePiece ?? password;
+
+				foreach (SmartCoin coin in coinsExcept)
+				{
+					coin.Secret = secPubs.Single(x => x.pubKey.GetP2wpkhScript() == coin.ScriptPubKey).secret;
 
 					coin.CoinJoinInProgress = true;
 

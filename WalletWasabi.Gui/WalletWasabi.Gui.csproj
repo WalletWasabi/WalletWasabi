@@ -77,17 +77,5 @@
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Controls\WalletExplorer\SendTabView.xaml.BASE.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
-    <None Update="Controls\WalletExplorer\SendTabView.xaml.LOCAL.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
-    <None Update="Controls\WalletExplorer\SendTabView.xaml.REMOTE.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
-  </ItemGroup>
-
 </Project>
 
