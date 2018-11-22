@@ -65,7 +65,7 @@ namespace WalletWasabi.Gui.Behaviors
 			var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
 			Task<string> clipboardTask = clipboard.GetTextAsync();
 			string text = await clipboardTask;
-			if (text.Length > 50) return (false, null);
+			if (string.IsNullOrEmpty(text) || text.Length > 50) return (false, null);
 			text = text.Trim();
 			try
 			{
