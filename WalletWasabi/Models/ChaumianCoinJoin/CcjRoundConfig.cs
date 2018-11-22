@@ -48,6 +48,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		[JsonProperty(PropertyName = "DosDurationHours")]
 		public long? DosDurationHours { get; internal set; }
 
+		[JsonProperty(PropertyName = "DosNoteBeforeBan")]
+		public bool? DosNoteBeforeBan { get; internal set; }
+
 		public CcjRoundConfig()
 		{
 		}
@@ -57,7 +60,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			SetFilePath(filePath);
 		}
 
-		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours)
+		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours, bool dosNoteBeforeBan)
 		{
 			FilePath = null;
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
@@ -70,6 +73,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			SigningTimeout = Guard.NotNull(nameof(signingTimeout), signingTimeout);
 			DosSeverity = Guard.NotNull(nameof(dosSeverity), dosSeverity);
 			DosDurationHours = Guard.NotNull(nameof(dosDurationHours), dosDurationHours);
+			DosNoteBeforeBan = Guard.NotNull(nameof(dosNoteBeforeBan), dosNoteBeforeBan);
 		}
 
 		/// <inheritdoc />
@@ -98,6 +102,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			SigningTimeout = 60;
 			DosSeverity = 1;
 			DosDurationHours = 730; // 1 month
+			DosNoteBeforeBan = true;
 
 			if (!File.Exists(FilePath))
 			{
@@ -126,6 +131,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			SigningTimeout = config.SigningTimeout ?? SigningTimeout;
 			DosSeverity = config.DosSeverity ?? DosSeverity;
 			DosDurationHours = config.DosDurationHours ?? DosDurationHours;
+			DosNoteBeforeBan = config.DosNoteBeforeBan ?? DosNoteBeforeBan;
 		}
 
 		/// <inheritdoc />
@@ -178,6 +184,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				return true;
 			}
 			if (DosDurationHours != config.DosDurationHours)
+			{
+				return true;
+			}
+			if (DosNoteBeforeBan != config.DosNoteBeforeBan)
 			{
 				return true;
 			}
