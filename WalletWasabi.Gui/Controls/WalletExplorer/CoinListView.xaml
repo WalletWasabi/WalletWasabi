@@ -1,7 +1,9 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:PrivacyLevelValueConverter x:Key="PrivacyLevelValueConverter" />
     <converters:CoinStatusStringConverter x:Key="CoinStatusStringConverter" />
@@ -16,10 +18,11 @@
     </Style>
     <Style Selector="TextBox.Transaparent">
       <Setter Property="Background" Value="Transparent" />
-    </Style>
-    
+    </Style>   
   </UserControl.Styles>
-
+  <i:Interaction.Behaviors>
+    <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
+  </i:Interaction.Behaviors>
   <DockPanel LastChildFill="True">
     <Grid ColumnDefinitions="30,30,180,120,100,Auto" Margin="30 0" DockPanel.Dock="Top">
       <TextBlock Text="" Width="0" />
@@ -57,7 +60,6 @@
       <ListBox.ItemTemplate>
         <DataTemplate>
           <Grid>
-
             <Expander Name="coinExpander" ExpandDirection="Down"  Classes="coloredExpander"  Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}"> 
               
               <StackPanel>
