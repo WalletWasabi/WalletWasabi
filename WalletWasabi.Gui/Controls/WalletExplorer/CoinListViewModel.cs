@@ -122,9 +122,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			}
-
 			foreach (CoinViewModel coin in Coins)
+			{
 				coin.PropertyChanged += Coin_PropertyChanged;
+			}
+			coins.CollectionChanging += Coins_CollectionChanging;
+			coins.CollectionChanged += Coins_CollectionChanged;
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
@@ -194,19 +197,38 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 				}
 			});
+			SetSelections();
+		}
 
+		private void SetSelections()
+		{
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
 			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= 50);
 			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < 50);
+		}
+
+		private void Coins_CollectionChanging(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+			foreach (CoinViewModel coin in Coins)
+			{
+				coin.PropertyChanged -= Coin_PropertyChanged;
+			}
+		}
+
+		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+			foreach (CoinViewModel coin in Coins)
+			{
+				coin.PropertyChanged += Coin_PropertyChanged;
+			}
+			SetSelections();
 		}
 
 		private void Coin_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(CoinViewModel.IsSelected))
 			{
-				SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-				SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= 50);
-				SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < 50);
+				SetSelections();
 			}
 		}
 
