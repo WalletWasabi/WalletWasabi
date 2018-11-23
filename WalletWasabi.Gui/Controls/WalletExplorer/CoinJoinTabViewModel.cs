@@ -31,7 +31,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _password;
 		private Money _amountQueued;
 		private string _warningMessageEnqueue;
-		private string _warningMessageDequeue;
 		private const int PreSelectMaxAnonSetExcludingCondition = 50;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
@@ -116,18 +115,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					Logger.LogWarning<CoinJoinTabViewModel>(ex);
-					WarningMessageDequeue = ex.ToTypeMessageString();
+					WarningMessageEnqueueDequeue = ex.ToTypeMessageString();
 					if (ex is AggregateException aggex)
 					{
 						foreach (var iex in aggex.InnerExceptions)
 						{
-							WarningMessageDequeue += Environment.NewLine + iex.ToTypeMessageString();
+							WarningMessageEnqueueDequeue += Environment.NewLine + iex.ToTypeMessageString();
 						}
 					}
 					return;
 				}
 
-				WarningMessageDequeue = string.Empty;
+				WarningMessageEnqueueDequeue = "";
 			});
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
@@ -151,11 +150,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (!selectedCoins.Any())
 			{
-				WarningMessageEnqueue = "No coins are selected to enqueue.";
+				WarningMessageEnqueueDequeue = "No coins are selected to enqueue.";
 				return;
 			}
 
-			WarningMessageEnqueue = string.Empty;
+			WarningMessageEnqueueDequeue = string.Empty;
 
 			try
 			{
@@ -164,12 +163,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			catch (Exception ex)
 			{
 				Logger.LogWarning<CoinJoinTabViewModel>(ex);
-				WarningMessageEnqueue = ex.ToTypeMessageString();
+				WarningMessageEnqueueDequeue = ex.ToTypeMessageString();
 				if (ex is AggregateException aggex)
 				{
 					foreach (var iex in aggex.InnerExceptions)
 					{
-						WarningMessageEnqueue += Environment.NewLine + iex.ToTypeMessageString();
+						WarningMessageEnqueueDequeue += Environment.NewLine + iex.ToTypeMessageString();
 					}
 				}
 				Password = string.Empty;
@@ -177,7 +176,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			Password = string.Empty;
-			WarningMessageEnqueue = string.Empty;
+			WarningMessageEnqueueDequeue = string.Empty;
 		}
 
 		private void ChaumianClient_CoinDequeued(object sender, SmartCoin e)
@@ -333,16 +332,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _peersNeeded, value); }
 		}
 
-		public string WarningMessageEnqueue
+		public string WarningMessageEnqueueDequeue
 		{
 			get { return _warningMessageEnqueue; }
 			set { this.RaiseAndSetIfChanged(ref _warningMessageEnqueue, value); }
-		}
-
-		public string WarningMessageDequeue
-		{
-			get { return _warningMessageDequeue; }
-			set { this.RaiseAndSetIfChanged(ref _warningMessageDequeue, value); }
 		}
 
 		public ReactiveCommand EnqueueCommand { get; }
