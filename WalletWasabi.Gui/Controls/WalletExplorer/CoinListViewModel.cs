@@ -1,7 +1,9 @@
-﻿using NBitcoin;
+﻿using System.Collections.Generic;
+using NBitcoin;
 using ReactiveUI;
 using ReactiveUI.Legacy;
 using WalletWasabi.Gui.ViewModels;
+using System.Linq;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -9,8 +11,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 #pragma warning disable CS0618 // Type or member is obsolete
 		private IReactiveDerivedList<CoinViewModel> _coins;
+		private IReactiveDerivedList<CoinViewModel> _rootcoinlist;
 		private CoinViewModel _selectedCoin;
 		private bool? _selectAllCheckBoxState;
+		private bool? _statusSortDirection;
+		private bool? _privacySortDirection;
+		private bool? _amountSortDirection;
 
 		public ReactiveCommand EnqueueCoin { get; }
 		public ReactiveCommand DequeueCoin { get; }
@@ -43,8 +49,73 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				var changed = _selectAllCheckBoxState != value;
-				this.RaiseAndSetIfChanged(ref _selectAllCheckBoxState,value);
+				this.RaiseAndSetIfChanged(ref _selectAllCheckBoxState, value);
 			}
+		}
+		public bool? StatusSortDirection
+		{
+			get => _statusSortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _statusSortDirection, value);
+				switch (value)
+				{
+					case null:
+						break;
+					case true:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Status.CompareTo(y.Amount));
+						break;
+					case false:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Status.CompareTo(x.Amount));
+						break;
+				}
+
+			}
+		}
+		public bool? AmountSortDirection
+		{
+			get => _amountSortDirection;
+			set 
+			{
+				this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
+				switch (value)
+				{
+					case null:
+						break;
+					case true:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Amount.CompareTo(y.Amount));
+						break;
+					case false:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Amount.CompareTo(x.Amount));
+						break;
+				}
+				if (value != null)
+				{
+					PrivacySortDirection = true;
+					//AmountSortDirection = null;
+					StatusSortDirection = true;
+				}
+			}
+		}
+		public bool? PrivacySortDirection
+		{
+			get => _privacySortDirection; 
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _privacySortDirection,value);
+				switch (value)
+				{
+					case null:
+						break;
+					case true:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.AnonymitySet.CompareTo(y.AnonymitySet));
+						break;
+					case false:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.AnonymitySet.CompareTo(x.AnonymitySet));
+						break;
+				}
+
+			} 
 		}
 
 		private bool? GetCheckBoxesSelectedState()
@@ -74,11 +145,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel(IReactiveDerivedList<CoinViewModel> coins, Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
 		{
+			_rootcoinlist = coins;
 			Coins = coins;
 
 			if (preSelectMinAmountIncludingCondition != null && preSelectMaxAnonSetExcludingCondition != null)
 			{
-				foreach (CoinViewModel coin in Coins)
+				foreach (CoinViewModel coin in coins)
 				{
 					if (coin.Amount >= preSelectMinAmountIncludingCondition && coin.AnonymitySet < preSelectMaxAnonSetExcludingCondition)
 					{
@@ -87,7 +159,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			foreach (CoinViewModel coin in Coins)
+			foreach (CoinViewModel coin in coins)
 				coin.PropertyChanged += Coin_PropertyChanged;
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
@@ -119,6 +191,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState();
+
 		}
 
 		void Coin_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

@@ -27,15 +27,24 @@
     <Grid ColumnDefinitions="30,30,180,120,100,Auto" Margin="30 0" DockPanel.Dock="Top">
       <TextBlock Text="" Width="0" />
       <TextBlock Text="" Grid.Column="1" />
-      <TextBlock Text="CoinJoin Status" Grid.Column="2" Margin="10 0 0 0" />
-      <TextBlock Text="Amount (BTC)" Grid.Column="3" Margin="10 0 0 0" />
-      <TextBlock Text="Privacy" Grid.Column="4" Margin="20 0 0 0" />
+      <StackPanel Grid.Column="2" Margin="10 0 0 0" Orientation="Horizontal">
+        <TextBlock Text="CoinJoin Status"/>
+        <controls:SortingArrow SortDirection="{Binding StatusSortDirection} "/>
+      </StackPanel>
+      <StackPanel Grid.Column="3" Margin="10 0 0 0" Orientation="Horizontal">
+        <TextBlock Text="Amount (BTC)"/>
+        <controls:SortingArrow SortDirection="{Binding AmountSortDirection}"/>
+      </StackPanel>
+      <StackPanel Grid.Column="4" Margin="20 0 0 0" Orientation="Horizontal">
+        <TextBlock Text="Privacy"/>
+        <controls:SortingArrow SortDirection="{Binding PrivacySortDirection}"/>
+      </StackPanel>
       <TextBlock Text="History" Grid.Column="5" />
     </Grid>
     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" >
       <CheckBox Content = "Select All" IsThreeState="true" IsChecked = "{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" ToolTip.Tip="Select All"/>
     </StackPanel>
-    <ListBox  Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
+    <ListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
       <ListBox.ContextMenu>
         <ContextMenu>
           <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
