@@ -94,8 +94,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsAllDeselected = false;
 					break;
 				}
-			if (IsAllSelected) return true;
 			if (IsAllDeselected) return false;
+			if (IsAllSelected) return true;
 			return null;
 		}
 
