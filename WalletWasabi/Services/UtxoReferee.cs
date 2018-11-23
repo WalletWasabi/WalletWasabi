@@ -52,14 +52,9 @@ namespace WalletWasabi.Services
 					string[] allLines = File.ReadAllLines(BannedUtxosFilePath);
 					foreach (string line in allLines)
 					{
-						var parts = line.Split(':');
-						var isNoted = parts.Length <= 4 ? false : bool.Parse(parts[4]);
-						var bannedForRound = parts.Length <= 4 ? 0 : long.Parse(parts[5]);
-						var utxo = new OutPoint(new uint256(parts[3]), int.Parse(parts[2]));
-						var severity = int.Parse(parts[1]);
-						var timeOfBan = DateTimeOffset.Parse(parts[0], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+						var bannedRecord = BannedRecordFromLine(line);
 
-						GetTxOutResponse getTxOutResponse = RpcClient.GetTxOut(utxo.Hash, (int)utxo.N, includeMempool: true);
+						GetTxOutResponse getTxOutResponse = RpcClient.GetTxOut(bannedRecord.utxo.Hash, (int)bannedRecord.utxo.N, includeMempool: true);
 
 						// Check if inputs are unspent.
 						if (getTxOutResponse is null)
@@ -68,7 +63,7 @@ namespace WalletWasabi.Services
 						}
 						else
 						{
-							BannedUtxos.TryAdd(utxo, (severity, timeOfBan, isNoted, bannedForRound));
+							BannedUtxos.TryAdd(bannedRecord.utxo, (bannedRecord.severity, bannedRecord.timeOfBan, bannedRecord.isNoted, bannedRecord.bannedForRound));
 						}
 					}
 
@@ -137,7 +132,7 @@ namespace WalletWasabi.Services
 					}
 					if (BannedUtxos.TryAdd(utxo, (severity, timeOfBan, isNoted, bannedForRound)))
 					{
-						string line = $"{timeOfBan.ToString(CultureInfo.InvariantCulture)}:{severity}:{utxo.N}:{utxo.Hash}:{isNoted}:{bannedForRound}";
+						string line = BannedRecordToLine(utxo, severity, timeOfBan, isNoted, bannedForRound);
 						lines.Add(line);
 					}
 					else
@@ -171,7 +166,7 @@ namespace WalletWasabi.Services
 			{
 				if (BannedUtxos.TryRemove(output, out _))
 				{
-					IEnumerable<string> lines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.isNoted}:{x.Value.bannedForRound}");
+					IEnumerable<string> lines = BannedUtxos.Select(x => BannedRecordToLine(x.Key, x.Value.severity, x.Value.timeOfBan, x.Value.isNoted, x.Value.bannedForRound));
 					await File.WriteAllLinesAsync(BannedUtxosFilePath, lines);
 					Logger.LogInfo<UtxoReferee>($"UTXO unbanned: {output.N}:{output.Hash}.");
 				}
@@ -236,6 +231,24 @@ namespace WalletWasabi.Services
 				BannedUtxos.Clear();
 				File.Delete(BannedUtxosFilePath);
 			}
+		}
+
+		internal static string BannedRecordToLine(OutPoint utxo, int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)
+		{
+			return $"{timeOfBan.ToString("yyyy-MM-dd HH-mm-ss")}:{severity}:{utxo.N}:{utxo.Hash}:{isNoted}:{bannedForRound}";
+		}
+
+		internal static (OutPoint utxo, int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound) BannedRecordFromLine(string line)
+		{
+			var parts = line.Split(':');
+			var isNoted = bool.Parse(parts[4]);
+			var bannedForRound = long.Parse(parts[5]);
+			var utxo = new OutPoint(new uint256(parts[3]), int.Parse(parts[2]));
+			var severity = int.Parse(parts[1]);
+			var timeParts = parts[0].Split('-', ' ').Select(x => int.Parse(x)).ToArray();
+			var timeOfBan = new DateTimeOffset(timeParts[0], timeParts[1], timeParts[2], timeParts[3], timeParts[4], timeParts[5], TimeSpan.Zero);
+
+			return (utxo, severity, timeOfBan, isNoted, bannedForRound);
 		}
 	}
 }
