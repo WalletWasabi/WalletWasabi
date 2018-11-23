@@ -179,33 +179,28 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				var coinsToRegister = new List<SmartCoin>();
-				var amountSoFar = Money.Zero;
 				Money amountNeededExceptInputFees = denomination + (feePerOutputs * 2);
-				foreach (SmartCoin coin in WaitingList
+
+				var coins = WaitingList
 							.Where(x => x.Value <= DateTimeOffset.UtcNow)
 							.Select(x => x.Key) // Only if registering coins is already allowed.
-							.Where(x => x.Confirmed || x.Label.StartsWith("ZeroLink", StringComparison.Ordinal)) // Where our label contains CoinJoin, CoinJoins can be registered even if not confirmed, our label will likely be CoinJoin only if it was a previous CoinJoin, otherwise the server will refuse us.
-								.OrderBy(x => x.IsBanned) // First order non-banned coins to first.
-								.ThenByDescending(x => x.Amount) // Then order by amount.
-								.ThenByDescending(x => x.Confirmed)) // Then order by the amount ordered ienumerable by confirmation, so first try to register confirmed coins.
+							.Where(x => x.Confirmed || x.Label.StartsWith("ZeroLink", StringComparison.Ordinal));
+
+				for (int i = 1; i <= maximumInputCountPerPeer; i++) // The smallest number of coins we can register the better it is.
 				{
-					coinsToRegister.Add(coin);
-
-					if (maximumInputCountPerPeer < coinsToRegister.Count)
+					IEnumerable<SmartCoin> best = coins.GetPermutations(i)
+						.Where(x => x.Sum(y => y.Amount) >= amountNeededExceptInputFees + (feePerInputs * i)) // If the sum reaches the minimum amount.
+						.OrderBy(x => x.Count(y => y.Confirmed == false)) // Where the lowest amount of unconfirmed coins there are.
+						.ThenBy(x => x.Sum(y => y.AnonymitySet)) // First try t register with the smallest anonymity set.
+						.ThenBy(x => x.Sum(y => y.Amount)) // Then the lowest amount, so perfect mix should be more likely.
+						.FirstOrDefault();
+					if (best != default)
 					{
-						return Enumerable.Empty<(uint256 txid, uint index)>(); // Inputs are too small, max input to be registered is reached.
-					}
-
-					amountSoFar += coin.Amount;
-					if (amountSoFar >= amountNeededExceptInputFees + (feePerInputs * coinsToRegister.Count))
-					{
-						// If input count doesn't reach the max input registration AND there are enough coins queued, then can register to mix.
-						return coinsToRegister.Select(x => (x.TransactionId, x.Index)).ToArray();
+						return best.Select(x => (x.TransactionId, x.Index)).ToArray();
 					}
 				}
 
-				return Enumerable.Empty<(uint256 txid, uint index)>(); // Amount is never reached.
+				return Enumerable.Empty<(uint256 txid, uint index)>(); // Inputs are too small, max input to be registered is reached.
 			}
 		}
 
