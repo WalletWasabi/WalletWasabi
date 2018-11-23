@@ -173,6 +173,15 @@ namespace WalletWasabi.Gui
 					AddressManager = new AddressManager();
 					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
 				}
+				catch (FormatException ex)
+				{
+					// https://github.com/zkSNACKs/WalletWasabi/issues/880
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
+					File.Delete(AddressManagerFilePath);
+					Logger.LogTrace<AddressManager>(ex);
+					AddressManager = new AddressManager();
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+				}
 			}
 
 			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(AddressManager));
