@@ -1,6 +1,8 @@
 ﻿using NBitcoin;
 using ReactiveUI;
 using ReactiveUI.Legacy;
+using System;
+using System.Linq;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -11,10 +13,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private IReactiveDerivedList<CoinViewModel> _coins;
 		private CoinViewModel _selectedCoin;
 		private bool? _selectAllCheckBoxState;
+		private bool? _selectPrivateCheckBoxState;
+		private bool? _selectNonPrivateCheckBoxState;
 
 		public ReactiveCommand EnqueueCoin { get; }
 		public ReactiveCommand DequeueCoin { get; }
 		public ReactiveCommand SelectAllCheckBoxCommand { get; }
+		public ReactiveCommand SelectPrivateCheckBoxCommand { get; }
+		public ReactiveCommand SelectNonPrivateCheckBoxCommand { get; }
+
 		public CoinViewModel SelectedCoin
 		{
 			get => _selectedCoin;
@@ -42,22 +49,46 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			set
 			{
-				var changed = _selectAllCheckBoxState != value;
-				this.RaiseAndSetIfChanged(ref _selectAllCheckBoxState,value);
+				this.RaiseAndSetIfChanged(ref _selectAllCheckBoxState, value);
 			}
 		}
 
-		private bool? GetCheckBoxesSelectedState()
+		public bool? SelectPrivateCheckBoxState
 		{
+			get
+			{
+				return _selectPrivateCheckBoxState;
+			}
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _selectPrivateCheckBoxState, value);
+			}
+		}
+
+		public bool? SelectNonPrivateCheckBoxState
+		{
+			get
+			{
+				return _selectNonPrivateCheckBoxState;
+			}
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _selectNonPrivateCheckBoxState, value);
+			}
+		}
+
+		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)
+		{
+			var coins = Coins.Where(coinFilterPredicate).ToArray();
 			bool IsAllSelected = true;
-			foreach (CoinViewModel coin in Coins)
+			foreach (CoinViewModel coin in coins)
 				if (!coin.IsSelected)
 				{
 					IsAllSelected = false;
 					break;
 				}
 			bool IsAllDeselected = true;
-			foreach (CoinViewModel coin in Coins)
+			foreach (CoinViewModel coin in coins)
 				if (coin.IsSelected)
 				{
 					IsAllDeselected = false;
@@ -67,9 +98,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (IsAllDeselected) return false;
 			return null;
 		}
-		private void SelectAllCoins(bool valueOfSelected)
+
+		private void SelectAllCoins(bool valueOfSelected, Func<CoinViewModel, bool> coinFilterPredicate)
 		{
-			foreach (var c in Coins) c.IsSelected = valueOfSelected;
+			var coins = Coins.Where(coinFilterPredicate).ToArray();
+			foreach (var c in coins)
+			{
+				c.IsSelected = valueOfSelected;
+			}
 		}
 
 		public CoinListViewModel(IReactiveDerivedList<CoinViewModel> coins, Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
@@ -107,25 +143,70 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectAllCheckBoxState)
 				{
 					case true:
-						SelectAllCoins(true);
+						SelectAllCoins(true, x => true);
 						break;
+
 					case false:
-						SelectAllCoins(false);
+						SelectAllCoins(false, x => true);
 						break;
+
 					case null:
-						SelectAllCoins(false);
+						SelectAllCoins(false, x => true);
 						SelectAllCheckBoxState = false;
 						break;
 				}
 			});
-			SelectAllCheckBoxState = GetCheckBoxesSelectedState();
+
+			SelectPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
+			{
+				switch (SelectPrivateCheckBoxState)
+				{
+					case true:
+						SelectAllCoins(true, x => x.AnonymitySet >= 50);
+						break;
+
+					case false:
+						SelectAllCoins(false, x => x.AnonymitySet >= 50);
+						break;
+
+					case null:
+						SelectAllCoins(false, x => x.AnonymitySet >= 50);
+						SelectPrivateCheckBoxState = false;
+						break;
+				}
+			});
+
+			SelectNonPrivateCheckBoxCommand = ReactiveCommand.Create(() =>
+			{
+				switch (SelectNonPrivateCheckBoxState)
+				{
+					case true:
+						SelectAllCoins(true, x => x.AnonymitySet < 50);
+						break;
+
+					case false:
+						SelectAllCoins(false, x => x.AnonymitySet < 50);
+						break;
+
+					case null:
+						SelectAllCoins(false, x => x.AnonymitySet < 50);
+						SelectNonPrivateCheckBoxState = false;
+						break;
+				}
+			});
+
+			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= 50);
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < 50);
 		}
 
-		void Coin_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		private void Coin_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(CoinViewModel.IsSelected))
 			{
-				SelectAllCheckBoxState = GetCheckBoxesSelectedState();
+				SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
+				SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= 50);
+				SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < 50);
 			}
 		}
 
