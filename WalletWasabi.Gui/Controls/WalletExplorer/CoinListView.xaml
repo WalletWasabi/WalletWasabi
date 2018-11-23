@@ -32,7 +32,10 @@
       <TextBlock Text="Privacy" Grid.Column="4" Margin="20 0 0 0" />
       <TextBlock Text="History" Grid.Column="5" />
     </Grid>
-    <ListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" >
+      <CheckBox Content = "Select All" IsThreeState="true" IsChecked = "{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" ToolTip.Tip="Select All"/>
+    </StackPanel>
+    <ListBox  Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
       <ListBox.ContextMenu>
         <ContextMenu>
           <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
@@ -109,5 +112,7 @@
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
+
   </DockPanel>
+
 </UserControl>
