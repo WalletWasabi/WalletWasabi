@@ -58,17 +58,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _statusSortDirection, value);
-				switch (value)
-				{
-					case null:
-						break;
-					case true:
-						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Status.CompareTo(y.Amount));
-						break;
-					case false:
-						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Status.CompareTo(x.Amount));
-						break;
-				}
+				//switch (value)
+				//{
+				//	case null:
+				//		break;
+				//	case true:
+				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Status.CompareTo(y.Amount));
+				//		break;
+				//	case false:
+				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Status.CompareTo(x.Amount));
+				//		break;
+				//}
 
 			}
 		}
@@ -78,23 +78,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set 
 			{
 				this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
-				switch (value)
-				{
-					case null:
-						break;
-					case true:
-						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Amount.CompareTo(y.Amount));
-						break;
-					case false:
-						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Amount.CompareTo(x.Amount));
-						break;
-				}
-				if (value != null)
-				{
-					PrivacySortDirection = true;
-					//AmountSortDirection = null;
-					StatusSortDirection = true;
-				}
+				//switch (value)
+				//{
+				//	case null:
+				//		break;
+				//	case true:
+				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Amount.CompareTo(y.Amount));
+				//		break;
+				//	case false:
+				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Amount.CompareTo(x.Amount));
+				//		break;
+				//}
+				//if (value != null)
+				//{
+				//	PrivacySortDirection = true;
+				//	//AmountSortDirection = null;
+				//	StatusSortDirection = true;
+				//}
 			}
 		}
 		public bool? PrivacySortDirection
@@ -102,18 +102,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _privacySortDirection; 
 			set
 			{
-				this.RaiseAndSetIfChanged(ref _privacySortDirection,value);
-				switch (value)
-				{
-					case null:
-						break;
-					case true:
-						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.AnonymitySet.CompareTo(y.AnonymitySet));
-						break;
-					case false:
-						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.AnonymitySet.CompareTo(x.AnonymitySet));
-						break;
-				}
+
+				//switch (value)
+				//{
+				//	case null:
+				//		break;
+				//	case true:
+				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.AnonymitySet.CompareTo(y.AnonymitySet));
+				//		break;
+				//	case false:
+				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.AnonymitySet.CompareTo(x.AnonymitySet));
+				//		break;
+				//}
+				this.RaiseAndSetIfChanged(ref _privacySortDirection, value);
 
 			} 
 		}
@@ -191,7 +192,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState();
-
+			PrivacySortDirection = true;
+			AmountSortDirection = true;
+			StatusSortDirection = true;
 		}
 
 		void Coin_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

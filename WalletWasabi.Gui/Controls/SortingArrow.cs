@@ -78,7 +78,7 @@ namespace WalletWasabi.Gui.Controls
 		}
 
 		public static readonly StyledProperty<bool?> SortDirectionProperty =
-			AvaloniaProperty.Register<SortingArrow, bool?>(nameof(SortDirection), defaultBindingMode: BindingMode.TwoWay);
+		AvaloniaProperty.Register<SortingArrow, bool?>(nameof(SortDirection), defaultBindingMode: BindingMode.TwoWay);
 
 		public bool? SortDirection 
 		{ 
@@ -89,6 +89,8 @@ namespace WalletWasabi.Gui.Controls
 				RefreshArrowIcon();
 			} 
 		}
+
+
 
 		private void RefreshArrowIcon()
 		{
