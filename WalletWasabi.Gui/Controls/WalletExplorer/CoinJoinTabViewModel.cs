@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using ReactiveUI.Legacy;
@@ -30,7 +31,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _peersNeeded;
 		private string _password;
 		private Money _amountQueued;
-		private string _warningMessageEnqueue;
+		private string _warningMessage;
 		private const int PreSelectMaxAnonSetExcludingCondition = 50;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
@@ -101,6 +102,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
 			{
+				WarningMessage = "";
+
 				var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 				foreach (var coin in selectedCoins)
@@ -115,18 +118,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					Logger.LogWarning<CoinJoinTabViewModel>(ex);
-					WarningMessageEnqueueDequeue = ex.ToTypeMessageString();
+					var warningMessage = ex.ToTypeMessageString();
 					if (ex is AggregateException aggex)
 					{
 						foreach (var iex in aggex.InnerExceptions)
 						{
-							WarningMessageEnqueueDequeue += Environment.NewLine + iex.ToTypeMessageString();
+							warningMessage += Environment.NewLine + iex.ToTypeMessageString();
 						}
 					}
+					SetWarningMessage(warningMessage);
 					return;
 				}
-
-				WarningMessageEnqueueDequeue = "";
 			});
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
@@ -145,16 +147,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private async Task DoEnqueueAsync()
 		{
+			WarningMessage = "";
 			Password = Guard.Correct(Password);
 			var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 			if (!selectedCoins.Any())
 			{
-				WarningMessageEnqueueDequeue = "No coins are selected to enqueue.";
+				SetWarningMessage("No coins are selected to enqueue.");
 				return;
 			}
-
-			WarningMessageEnqueueDequeue = string.Empty;
 
 			try
 			{
@@ -163,20 +164,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			catch (Exception ex)
 			{
 				Logger.LogWarning<CoinJoinTabViewModel>(ex);
-				WarningMessageEnqueueDequeue = ex.ToTypeMessageString();
+				var warningMessage = ex.ToTypeMessageString();
 				if (ex is AggregateException aggex)
 				{
 					foreach (var iex in aggex.InnerExceptions)
 					{
-						WarningMessageEnqueueDequeue += Environment.NewLine + iex.ToTypeMessageString();
+						warningMessage += Environment.NewLine + iex.ToTypeMessageString();
 					}
 				}
+				SetWarningMessage(warningMessage);
 				Password = string.Empty;
 				return;
 			}
 
 			Password = string.Empty;
-			WarningMessageEnqueueDequeue = string.Empty;
 		}
 
 		private void ChaumianClient_CoinDequeued(object sender, SmartCoin e)
@@ -269,6 +270,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
+		private void SetWarningMessage(string message)
+		{
+			WarningMessage = message;
+
+			Dispatcher.UIThread.Post(async () =>
+			{
+				await Task.Delay(7000);
+				if (WarningMessage == message)
+				{
+					WarningMessage = "";
+				}
+			});
+		}
+
 		public string Password
 		{
 			get { return _password; }
@@ -332,10 +347,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _peersNeeded, value); }
 		}
 
-		public string WarningMessageEnqueueDequeue
+		public string WarningMessage
 		{
-			get { return _warningMessageEnqueue; }
-			set { this.RaiseAndSetIfChanged(ref _warningMessageEnqueue, value); }
+			get { return _warningMessage; }
+			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
 		}
 
 		public ReactiveCommand EnqueueCommand { get; }
