@@ -14,9 +14,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private IReactiveDerivedList<CoinViewModel> _rootcoinlist;
 		private CoinViewModel _selectedCoin;
 		private bool? _selectAllCheckBoxState;
-		private bool? _statusSortDirection;
-		private bool? _privacySortDirection;
-		private bool? _amountSortDirection;
+		private SortOrder _statusSortDirection;
+		private SortOrder _privacySortDirection;
+		private SortOrder _amountSortDirection;
 
 		public ReactiveCommand EnqueueCoin { get; }
 		public ReactiveCommand DequeueCoin { get; }
@@ -52,70 +52,74 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaiseAndSetIfChanged(ref _selectAllCheckBoxState, value);
 			}
 		}
-		public bool? StatusSortDirection
+		public SortOrder StatusSortDirection
 		{
 			get => _statusSortDirection;
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _statusSortDirection, value);
-				//switch (value)
-				//{
-				//	case null:
-				//		break;
-				//	case true:
-				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Status.CompareTo(y.Amount));
-				//		break;
-				//	case false:
-				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Status.CompareTo(x.Amount));
-				//		break;
-				//}
+				if (value != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					PrivacySortDirection = SortOrder.None;
+				}
 
+				switch (value)
+				{
+					case SortOrder.Increasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Status.CompareTo(y.Status));
+						break;
+					case SortOrder.Decreasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Status.CompareTo(x.Status));
+						break;
+				}
 			}
 		}
-		public bool? AmountSortDirection
+		public SortOrder AmountSortDirection
 		{
 			get => _amountSortDirection;
 			set 
 			{
 				this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
-				//switch (value)
-				//{
-				//	case null:
-				//		break;
-				//	case true:
-				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Amount.CompareTo(y.Amount));
-				//		break;
-				//	case false:
-				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Amount.CompareTo(x.Amount));
-				//		break;
-				//}
-				//if (value != null)
-				//{
-				//	PrivacySortDirection = true;
-				//	//AmountSortDirection = null;
-				//	StatusSortDirection = true;
-				//}
+				if (value != SortOrder.None)
+				{
+					PrivacySortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+				}
+
+				switch (value)
+				{
+					case SortOrder.Increasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Amount.CompareTo(y.Amount));
+						break;
+					case SortOrder.Decreasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Amount.CompareTo(x.Amount));
+						break;
+				}
+
 			}
 		}
-		public bool? PrivacySortDirection
+		public SortOrder PrivacySortDirection
 		{
 			get => _privacySortDirection; 
 			set
 			{
-
-				//switch (value)
-				//{
-				//	case null:
-				//		break;
-				//	case true:
-				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.AnonymitySet.CompareTo(y.AnonymitySet));
-				//		break;
-				//	case false:
-				//		Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.AnonymitySet.CompareTo(x.AnonymitySet));
-				//		break;
-				//}
 				this.RaiseAndSetIfChanged(ref _privacySortDirection, value);
+				if (value != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+				}
 
+				switch (value)
+				{
+					case SortOrder.Increasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.AnonymitySet.CompareTo(y.AnonymitySet));
+						break;
+					case SortOrder.Decreasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.AnonymitySet.CompareTo(x.AnonymitySet));
+						break;
+				}
 			} 
 		}
 
@@ -192,9 +196,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState();
-			PrivacySortDirection = true;
-			AmountSortDirection = true;
-			StatusSortDirection = true;
+			AmountSortDirection = SortOrder.Decreasing;
 		}
 
 		void Coin_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

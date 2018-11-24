@@ -72,8 +72,7 @@
       <ListBox.ItemTemplate>
         <DataTemplate>
           <Grid>
-            <Expander Name="coinExpander" ExpandDirection="Down"  Classes="coloredExpander"  Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}"> 
-              
+            <Expander Name="coinExpander" ExpandDirection="Down"  Classes="coloredExpander"  Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
               <StackPanel>
                 <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800">
                   <TextBlock Text="Transaction Id:" Grid.Row="0" />
@@ -121,7 +120,5 @@
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
-
   </DockPanel>
-
 </UserControl>
