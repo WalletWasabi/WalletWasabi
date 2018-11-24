@@ -1,10 +1,8 @@
-﻿using Avalonia.Controls;
-using NBitcoin;
+﻿using NBitcoin;
 using ReactiveUI;
 using ReactiveUI.Legacy;
 using System;
 using System.Linq;
-using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -17,7 +15,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectAllCheckBoxState;
 		private bool? _selectPrivateCheckBoxState;
 		private bool? _selectNonPrivateCheckBoxState;
-		private GridLength _coinJoinStatusWidth;
 
 		public ReactiveCommand EnqueueCoin { get; }
 		public ReactiveCommand DequeueCoin { get; }
@@ -35,30 +32,49 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public bool CanDeqeue => SelectedCoin is null ? false : SelectedCoin.CoinJoinInProgress;
+		public bool CanDeqeue
+		{
+			get
+			{
+				if (SelectedCoin == null) return false;
+				return SelectedCoin.CoinJoinInProgress;
+			}
+		}
 
 		public bool? SelectAllCheckBoxState
 		{
-			get => _selectAllCheckBoxState;
-			set => this.RaiseAndSetIfChanged(ref _selectAllCheckBoxState, value);
+			get
+			{
+				return _selectAllCheckBoxState;
+			}
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _selectAllCheckBoxState, value);
+			}
 		}
 
 		public bool? SelectPrivateCheckBoxState
 		{
-			get => _selectPrivateCheckBoxState;
-			set => this.RaiseAndSetIfChanged(ref _selectPrivateCheckBoxState, value);
+			get
+			{
+				return _selectPrivateCheckBoxState;
+			}
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _selectPrivateCheckBoxState, value);
+			}
 		}
 
 		public bool? SelectNonPrivateCheckBoxState
 		{
-			get => _selectNonPrivateCheckBoxState;
-			set => this.RaiseAndSetIfChanged(ref _selectNonPrivateCheckBoxState, value);
-		}
-
-		public GridLength CoinJoinStatusWidth
-		{
-			get => _coinJoinStatusWidth;
-			set => this.RaiseAndSetIfChanged(ref _coinJoinStatusWidth, value);
+			get
+			{
+				return _selectNonPrivateCheckBoxState;
+			}
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _selectNonPrivateCheckBoxState, value);
+			}
 		}
 
 		private bool? GetCheckBoxesSelectedState(Func<CoinViewModel, bool> coinFilterPredicate)
@@ -182,7 +198,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 			SetSelections();
-			SetCoinJoinStatusWidth();
 		}
 
 		private void SetSelections()
@@ -190,24 +205,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
 			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= 50);
 			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < 50);
-		}
-
-		private void SetCoinJoinStatusWidth()
-		{
-			if (Coins.Any(x => x.Status == SmartCoinStatus.MixingConnectionConfirmation
-				 || x.Status == SmartCoinStatus.MixingInputRegistration
-				 || x.Status == SmartCoinStatus.MixingOnWaitingList
-				 || x.Status == SmartCoinStatus.MixingOutputRegistration
-				 || x.Status == SmartCoinStatus.MixingSigning
-				 || x.Status == SmartCoinStatus.MixingWaitingForConfirmation
-				 || x.Status == SmartCoinStatus.SpentAccordingToBackend))
-			{
-				CoinJoinStatusWidth = new GridLength(180);
-			}
-			else
-			{
-				CoinJoinStatusWidth = new GridLength(0);
-			}
 		}
 
 		private void Coins_CollectionChanging(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -232,10 +229,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (e.PropertyName == nameof(CoinViewModel.IsSelected))
 			{
 				SetSelections();
-			}
-			if (e.PropertyName == nameof(CoinViewModel.Status))
-			{
-				SetCoinJoinStatusWidth();
 			}
 		}
 

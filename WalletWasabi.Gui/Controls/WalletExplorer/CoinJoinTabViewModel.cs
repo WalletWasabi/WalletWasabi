@@ -158,7 +158,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				WarningMessage = "";
 
-				var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected);
+				var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected).ToList();
+
+				foreach (var coin in selectedCoins)
+				{
+					coin.IsSelected = false;
+				}
 
 				try
 				{
