@@ -15,7 +15,7 @@
   </i:Interaction.Behaviors>
 
   <UserControl.Styles>
-<!--    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+    <!--    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
     </Style>-->
   </UserControl.Styles>

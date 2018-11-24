@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using ReactiveUI.Legacy;
@@ -30,9 +31,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _peersNeeded;
 		private string _password;
 		private Money _amountQueued;
-		private string _warningMessageEnqueue;
-		private string _warningMessageDequeue;
+		private string _warningMessage;
 		private const int PreSelectMaxAnonSetExcludingCondition = 50;
+		private bool _isEnqueueBusy;
+		private bool _isDequeueBusy;
+		private string _enqueueButtonText;
+		private const string EnqueueButtonTextString = "Enqueue Selected Coins for CoinJoin";
+		private const string EnqueuingButtonTextString = "Queuing coins...";
+		private string _dequeueButtonText;
+		private const string DequeueButtonTextString = "Dequeue";
+		private const string DequeuingButtonTextString = "Dequeuing coins...";
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
@@ -102,32 +110,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
 			{
-				var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected).ToList();
-
-				foreach (var coin in selectedCoins)
-				{
-					coin.IsSelected = false;
-				}
-
-				try
-				{
-					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
-				}
-				catch (Exception ex)
-				{
-					Logger.LogWarning<CoinJoinTabViewModel>(ex);
-					WarningMessageDequeue = ex.ToTypeMessageString();
-					if (ex is AggregateException aggex)
-					{
-						foreach (var iex in aggex.InnerExceptions)
-						{
-							WarningMessageDequeue += Environment.NewLine + iex.ToTypeMessageString();
-						}
-					}
-					return;
-				}
-
-				WarningMessageDequeue = string.Empty;
+				await DoDequeueAsync();
 			});
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
@@ -142,42 +125,107 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			});
+
+			this.WhenAnyValue(x => x.IsEnqueueBusy).Subscribe(busy =>
+			{
+				if (busy)
+				{
+					EnqueueButtonText = EnqueuingButtonTextString;
+				}
+				else
+				{
+					EnqueueButtonText = EnqueueButtonTextString;
+				}
+			});
+
+			this.WhenAnyValue(x => x.IsDequeueBusy).Subscribe(busy =>
+			{
+				if (busy)
+				{
+					DequeueButtonText = DequeuingButtonTextString;
+				}
+				else
+				{
+					DequeueButtonText = DequeueButtonTextString;
+				}
+			});
+		}
+
+		private async Task DoDequeueAsync()
+		{
+			IsDequeueBusy = true;
+			try
+			{
+				WarningMessage = "";
+
+				var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected);
+
+				try
+				{
+					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
+				}
+				catch (Exception ex)
+				{
+					Logger.LogWarning<CoinJoinTabViewModel>(ex);
+					var warningMessage = ex.ToTypeMessageString();
+					if (ex is AggregateException aggex)
+					{
+						foreach (var iex in aggex.InnerExceptions)
+						{
+							warningMessage += Environment.NewLine + iex.ToTypeMessageString();
+						}
+					}
+					SetWarningMessage(warningMessage);
+					return;
+				}
+			}
+			finally
+			{
+				IsDequeueBusy = false;
+			}
 		}
 
 		private async Task DoEnqueueAsync()
 		{
-			Password = Guard.Correct(Password);
-			var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected).ToList();
-
-			if (!selectedCoins.Any())
-			{
-				WarningMessageEnqueue = "No coins are selected to enqueue.";
-				return;
-			}
-
-			WarningMessageEnqueue = string.Empty;
-
+			IsEnqueueBusy = true;
 			try
 			{
-				await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning<CoinJoinTabViewModel>(ex);
-				WarningMessageEnqueue = ex.ToTypeMessageString();
-				if (ex is AggregateException aggex)
-				{
-					foreach (var iex in aggex.InnerExceptions)
-					{
-						WarningMessageEnqueue += Environment.NewLine + iex.ToTypeMessageString();
-					}
-				}
-				Password = string.Empty;
-				return;
-			}
+				WarningMessage = "";
+				Password = Guard.Correct(Password);
+				var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected).ToList();
 
-			Password = string.Empty;
-			WarningMessageEnqueue = string.Empty;
+				if (!selectedCoins.Any())
+				{
+					SetWarningMessage("No coins are selected to enqueue.");
+					return;
+				}
+
+				try
+				{
+					await Global.ChaumianClient.QueueCoinsToMixAsync(Password, selectedCoins.Select(c => c.Model).ToArray());
+				}
+				catch (Exception ex)
+				{
+					Logger.LogWarning<CoinJoinTabViewModel>(ex);
+					var warningMessage = ex.ToTypeMessageString();
+					if (ex is AggregateException aggex)
+					{
+						foreach (var iex in aggex.InnerExceptions)
+						{
+							warningMessage += Environment.NewLine + iex.ToTypeMessageString();
+						}
+					}
+					SetWarningMessage(warningMessage);
+					Password = string.Empty;
+					return;
+				}
+
+				Password = string.Empty;
+			}
+			finally
+			{
+				IsEnqueueBusy = false;
+			}
 		}
 
 		private void ChaumianClient_CoinDequeued(object sender, SmartCoin e)
@@ -270,6 +318,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
 		}
 
+		private void SetWarningMessage(string message)
+		{
+			WarningMessage = message;
+
+			Dispatcher.UIThread.Post(async () =>
+			{
+				await Task.Delay(7000);
+				if (WarningMessage == message)
+				{
+					WarningMessage = "";
+				}
+			});
+		}
+
 		public string Password
 		{
 			get { return _password; }
@@ -333,16 +395,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _peersNeeded, value); }
 		}
 
-		public string WarningMessageEnqueue
+		public string WarningMessage
 		{
-			get { return _warningMessageEnqueue; }
-			set { this.RaiseAndSetIfChanged(ref _warningMessageEnqueue, value); }
+			get { return _warningMessage; }
+			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
 		}
 
-		public string WarningMessageDequeue
+		public bool IsEnqueueBusy
 		{
-			get { return _warningMessageDequeue; }
-			set { this.RaiseAndSetIfChanged(ref _warningMessageDequeue, value); }
+			get { return _isEnqueueBusy; }
+			set { this.RaiseAndSetIfChanged(ref _isEnqueueBusy, value); }
+		}
+
+		public bool IsDequeueBusy
+		{
+			get { return _isDequeueBusy; }
+			set { this.RaiseAndSetIfChanged(ref _isDequeueBusy, value); }
+		}
+
+		public string EnqueueButtonText
+		{
+			get { return _enqueueButtonText; }
+			set { this.RaiseAndSetIfChanged(ref _enqueueButtonText, value); }
+		}
+
+		public string DequeueButtonText
+		{
+			get { return _dequeueButtonText; }
+			set { this.RaiseAndSetIfChanged(ref _dequeueButtonText, value); }
 		}
 
 		public ReactiveCommand EnqueueCommand { get; }

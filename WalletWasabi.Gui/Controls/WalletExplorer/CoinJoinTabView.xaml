@@ -15,14 +15,24 @@
       <Grid Classes="content">
         <DockPanel LastChildFill="True">
           <StackPanel Spacing="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Right">
-            <TextBlock Text="{Binding WarningMessageEnqueue}" Classes="warningMessage" />
+            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
             <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
-            <DockPanel LastChildFill="True" VerticalAlignment="Top">
-              <Button Content="Enqueue" Command="{Binding EnqueueCommand}" DockPanel.Dock="Right" />
+            <DockPanel LastChildFill="True" VerticalAlignment="Top" IsEnabled="{Binding !IsEnqueueBusy}">
+              <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
+                <StackPanel Orientation="Horizontal">
+                  <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsEnqueueBusy}" Margin="0 0 8 0" />
+                  <TextBlock Text="{Binding EnqueueButtonText}" />
+                </StackPanel>
+              </Button>
               <Grid />
             </DockPanel>
-            <DockPanel LastChildFill="True" VerticalAlignment="Top">
-              <Button Content="Dequeue" Command="{Binding DequeueCommand}" DockPanel.Dock="Right" />
+            <DockPanel LastChildFill="True" VerticalAlignment="Top" IsEnabled="{Binding !IsDequeueBusy}">
+              <Button Command="{Binding DequeueCommand}" DockPanel.Dock="Right">
+                <StackPanel Orientation="Horizontal">
+                  <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsDequeueBusy}" Margin="0 0 8 0" />
+                  <TextBlock Text="{Binding DequeueButtonText}" />
+                </StackPanel>
+              </Button>
               <Grid />
             </DockPanel>
           </StackPanel>
