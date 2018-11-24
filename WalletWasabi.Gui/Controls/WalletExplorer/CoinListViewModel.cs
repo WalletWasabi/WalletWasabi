@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using System.Collections.Generic;
 using NBitcoin;
 using ReactiveUI;
 using ReactiveUI.Legacy;
@@ -7,18 +8,23 @@ using System.Linq;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 
+using System.Linq;
+
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinListViewModel : ViewModelBase
 	{
 #pragma warning disable CS0618 // Type or member is obsolete
 		private IReactiveDerivedList<CoinViewModel> _coins;
+		private IReactiveDerivedList<CoinViewModel> _rootcoinlist;
 		private CoinViewModel _selectedCoin;
 		private bool? _selectAllCheckBoxState;
+		private SortOrder _statusSortDirection;
+		private SortOrder _privacySortDirection;
+		private SortOrder _amountSortDirection;
 		private bool? _selectPrivateCheckBoxState;
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
-
 		public ReactiveCommand EnqueueCoin { get; }
 		public ReactiveCommand DequeueCoin { get; }
 		public ReactiveCommand SelectAllCheckBoxCommand { get; }
@@ -47,6 +53,81 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectPrivateCheckBoxState;
 			set => this.RaiseAndSetIfChanged(ref _selectPrivateCheckBoxState, value);
+		}
+
+		public SortOrder StatusSortDirection
+		{
+			get => _statusSortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _statusSortDirection, value);
+				if (value != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					PrivacySortDirection = SortOrder.None;
+				}
+
+				switch (value)
+				{
+					case SortOrder.Increasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Status.CompareTo(y.Status));
+						break;
+
+					case SortOrder.Decreasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Status.CompareTo(x.Status));
+						break;
+				}
+			}
+		}
+
+		public SortOrder AmountSortDirection
+		{
+			get => _amountSortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
+				if (value != SortOrder.None)
+				{
+					PrivacySortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+				}
+
+				switch (value)
+				{
+					case SortOrder.Increasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.Amount.CompareTo(y.Amount));
+						break;
+
+					case SortOrder.Decreasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.Amount.CompareTo(x.Amount));
+						break;
+				}
+			}
+		}
+
+		public SortOrder PrivacySortDirection
+		{
+			get => _privacySortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _privacySortDirection, value);
+				if (value != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+				}
+
+				switch (value)
+				{
+					case SortOrder.Increasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => x.AnonymitySet.CompareTo(y.AnonymitySet));
+						break;
+
+					case SortOrder.Decreasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.AnonymitySet.CompareTo(x.AnonymitySet));
+						break;
+				}
+			}
 		}
 
 		public bool? SelectNonPrivateCheckBoxState
@@ -94,11 +175,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel(IReactiveDerivedList<CoinViewModel> coins, Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
 		{
+			_rootcoinlist = coins;
 			Coins = coins;
 
 			if (preSelectMinAmountIncludingCondition != null && preSelectMaxAnonSetExcludingCondition != null)
 			{
-				foreach (CoinViewModel coin in Coins)
+				foreach (CoinViewModel coin in coins)
 				{
 					if (coin.Amount >= preSelectMinAmountIncludingCondition && coin.AnonymitySet < preSelectMaxAnonSetExcludingCondition)
 					{
@@ -106,7 +188,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			}
-			foreach (CoinViewModel coin in Coins)
+			foreach (CoinViewModel coin in coins)
 			{
 				coin.PropertyChanged += Coin_PropertyChanged;
 			}
@@ -116,8 +198,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
 				if (SelectedCoin == null) return;
-				//await Global.ChaumianClient.QueueCoinsToMixAsync()
-			});
+			//await Global.ChaumianClient.QueueCoinsToMixAsync()
+		});
 
 			DequeueCoin = ReactiveCommand.Create(async () =>
 			{
@@ -183,6 +265,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 			SetSelections();
 			SetCoinJoinStatusWidth();
+			AmountSortDirection = SortOrder.Decreasing;
 		}
 
 		private void SetSelections()

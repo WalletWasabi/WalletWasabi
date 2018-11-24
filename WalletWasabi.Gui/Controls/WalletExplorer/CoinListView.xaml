@@ -23,9 +23,9 @@
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
   </i:Interaction.Behaviors>
-  <Grid IsSharedSizeScope="True">
-    <DockPanel LastChildFill="True">
-      <Grid Margin="30 0" DockPanel.Dock="Top">
+<Grid IsSharedSizeScope="True">  
+	<DockPanel LastChildFill="True">
+    <Grid Margin="30 0" DockPanel.Dock="Top">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="30" />
           <ColumnDefinition Width="30" />
@@ -34,22 +34,31 @@
           <ColumnDefinition Width="100" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <TextBlock Text="" Width="0" />
-        <TextBlock Text="" Grid.Column="1" />
-        <TextBlock Text="Status" Grid.Column="2" Margin="10 0 0 0" />
-        <TextBlock Text="Amount (BTC)" Grid.Column="3" Margin="10 0 0 0" />
-        <TextBlock Text="Privacy" Grid.Column="4" Margin="20 0 0 0" />
-        <TextBlock Text="History" Grid.Column="5" />
-      </Grid>
-      <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal">
-        <CheckBox Content = "Select All" IsThreeState="True" IsChecked = "{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" />
-        <CheckBox Content = "Select All Private" IsThreeState="True" IsChecked = "{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" ToolTip.Tip="Coins with anonymity set greater than 50." />
-        <CheckBox Content = "Select All Non-Private" IsThreeState="True" IsChecked = "{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" ToolTip.Tip="Coins with anonymity set less than 50." />
+      <TextBlock Text="" Width="0" />
+      <TextBlock Text="" Grid.Column="1" />
+      <StackPanel Grid.Column="2" Margin="10 0 0 0" Orientation="Horizontal">
+        <TextBlock Text="Status"/>
+        <controls:SortingArrow SortDirection="{Binding StatusSortDirection} "/>
       </StackPanel>
-      <ListBox  Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
-        <ListBox.ContextMenu>
-          <ContextMenu>
-            <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
+      <StackPanel Grid.Column="3" Margin="10 0 0 0" Orientation="Horizontal">
+        <TextBlock Text="Amount (BTC)"/>
+        <controls:SortingArrow SortDirection="{Binding AmountSortDirection}"/>
+      </StackPanel>
+      <StackPanel Grid.Column="4" Margin="20 0 0 0" Orientation="Horizontal">
+        <TextBlock Text="Privacy"/>
+        <controls:SortingArrow SortDirection="{Binding PrivacySortDirection}"/>
+      </StackPanel>
+      <TextBlock Text="History" Grid.Column="5" />
+    </Grid>
+    <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" >
+      	<CheckBox Content = "Select All" IsThreeState="True" IsChecked = "{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" ToolTip.Tip="Select All"/>
+		<CheckBox Content = "Select All Private" IsThreeState="True" IsChecked = "{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" ToolTip.Tip="Coins with anonymity set greater than 50." />
+        <CheckBox Content = "Select All Non-Private" IsThreeState="True" IsChecked = "{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" ToolTip.Tip="Coins with anonymity set less than 50." />
+    </StackPanel>
+    <ListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
+      <ListBox.ContextMenu>
+        <ContextMenu>
+          <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
             <MenuItem  Command="{Binding EnqueueCoin}" IsVisible="false">
               <MenuItem.Header>
                 <Grid>
@@ -117,9 +126,7 @@
                 <Border ToolTip.Tip="{Binding ToolTip}" Padding="1" Grid.Column="2" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" BorderBrush="{Binding Status, Converter={StaticResource CoinStatusBorderBrushConverter}}" HorizontalAlignment="Left"  BorderThickness="1" CornerRadius="0,6,6,0">
                   <TextBlock Text="{Binding Status, Converter={StaticResource CoinStatusStringConverter}, Mode=OneWay}" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" Foreground="{Binding Status, Converter={StaticResource CoinStatusForegroundConverter}}" />
                 </Border>
-
                 <TextBlock Grid.Column="3" Text="{Binding AmountBtc}" />
-
                 <Panel Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent"
                     DataContext="{Binding AnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}"
                     ToolTip.Tip="{Binding ToolTip}">
