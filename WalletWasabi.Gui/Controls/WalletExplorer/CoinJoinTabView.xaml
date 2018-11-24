@@ -18,11 +18,21 @@
             <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
             <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
             <DockPanel LastChildFill="True" VerticalAlignment="Top">
-              <Button Content="Enqueue Selected Coins for CoinJoin" Command="{Binding EnqueueCommand}" DockPanel.Dock="Right" />
+              <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right" IsEnabled="{Binding !IsEnqueueBusy}">
+                <StackPanel Orientation="Horizontal">
+                  <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsEnqueueBusy}" Margin="0 0 8 0" />
+                  <TextBlock Text="{Binding EnqueueButtonText}" />
+                </StackPanel>
+              </Button>
               <Grid />
             </DockPanel>
             <DockPanel LastChildFill="True" VerticalAlignment="Top">
-              <Button Content="Dequeue" Command="{Binding DequeueCommand}" DockPanel.Dock="Right" />
+              <Button Command="{Binding DequeueCommand}" DockPanel.Dock="Right" IsEnabled="{Binding !IsDequeueBusy}">
+                <StackPanel Orientation="Horizontal">
+                  <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsDequeueBusy}" Margin="0 0 8 0" />
+                  <TextBlock Text="{Binding DequeueButtonText}" />
+                </StackPanel>
+              </Button>
               <Grid />
             </DockPanel>
           </StackPanel>
