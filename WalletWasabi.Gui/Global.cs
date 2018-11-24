@@ -140,6 +140,7 @@ namespace WalletWasabi.Gui
 
 			Logger.LogInfo<TorProcessManager>($"{nameof(TorProcessManager)} is initialized.");
 
+			var needsToDiscoverPeers = true;
 			if (Network == Network.RegTest)
 			{
 				AddressManager = new AddressManager();
@@ -150,6 +151,7 @@ namespace WalletWasabi.Gui
 				try
 				{
 					AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
+					needsToDiscoverPeers = AddressManager.Count < 200;
 					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
@@ -184,7 +186,9 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(AddressManager));
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager);
+			addressManagerBehavior.Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None;
+			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 			MemPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
 
