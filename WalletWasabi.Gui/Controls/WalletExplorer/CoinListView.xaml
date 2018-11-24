@@ -36,7 +36,7 @@
         </Grid.ColumnDefinitions>
         <TextBlock Text="" Width="0" />
         <TextBlock Text="" Grid.Column="1" />
-        <TextBlock Text="" Grid.Column="2" Margin="10 0 0 0" />
+        <TextBlock Text="Status" Grid.Column="2" Margin="10 0 0 0" />
         <TextBlock Text="Amount (BTC)" Grid.Column="3" Margin="10 0 0 0" />
         <TextBlock Text="Privacy" Grid.Column="4" Margin="20 0 0 0" />
         <TextBlock Text="History" Grid.Column="5" />
