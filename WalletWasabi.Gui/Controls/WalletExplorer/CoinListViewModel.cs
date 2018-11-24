@@ -8,8 +8,6 @@ using System.Linq;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 
-using System.Linq;
-
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinListViewModel : ViewModelBase
@@ -198,8 +196,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
 				if (SelectedCoin == null) return;
-			//await Global.ChaumianClient.QueueCoinsToMixAsync()
-		});
+				//await Global.ChaumianClient.QueueCoinsToMixAsync()
+			});
 
 			DequeueCoin = ReactiveCommand.Create(async () =>
 			{
