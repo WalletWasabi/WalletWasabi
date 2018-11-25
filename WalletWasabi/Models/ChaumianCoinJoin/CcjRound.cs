@@ -131,7 +131,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
 				Guard.NotNull(nameof(config), config);
 
-				Denomination = config.Denomination;
+				Denomination = config.CurrentDenomination;
 				ConfirmationTarget = (int)config.ConfirmationTarget;
 				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 				AnonymitySet = (int)config.AnonymitySet;
@@ -168,7 +168,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public async Task ExecuteNextPhaseAsync(CcjRoundPhase expectedPhase)
+		public async Task ExecuteNextPhaseAsync(CcjRoundPhase expectedPhase, Money feePerInputs = null, Money feePerOutputs = null)
 		{
 			using (await RoundSynchronizerLock.LockAsync())
 			{
@@ -183,33 +183,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							return;
 						}
 
-						// Calculate fees
-						var inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
-						var outputSizeInBytes = Constants.OutputSizeInBytes;
-						try
+						// Calculate fees.
+						if (feePerInputs is null || feePerOutputs is null)
 						{
-							var estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
-							if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
-							var feeRate = estimateSmartFeeResponse.FeeRate;
-							Money feePerBytes = (feeRate.FeePerK / 1000);
-
-							// Make sure min relay fee (1000 sat) is hit.
-							FeePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
-							FeePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
+							(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, ConfirmationTarget);
+							FeePerInputs = feePerInputs ?? fees.feePerInputs;
+							FeePerOutputs = feePerOutputs ?? fees.feePerOutputs;
 						}
-						catch (Exception ex)
+						else
 						{
-							// If fee hasn't been initialized once, fall back.
-							if (FeePerInputs is null || FeePerOutputs is null)
-							{
-								var feePerBytes = new Money(100); // 100 satoshi per byte
-
-								// Make sure min relay fee (1000 sat) is hit.
-								FeePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
-								FeePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
-							}
-
-							Logger.LogError<CcjRound>(ex);
+							FeePerInputs = feePerInputs;
+							FeePerOutputs = feePerOutputs;
 						}
 
 						Status = CcjRoundStatus.Running;
@@ -523,6 +507,44 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 			});
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+		}
+
+		public static async Task<(Money feePerInputs, Money feePerOutputs)> CalculateFeesAsync(RPCClient rpc, int confirmationTarget)
+		{
+			Guard.NotNull(nameof(rpc), rpc);
+			Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
+
+			Money feePerInputs = null;
+			Money feePerOutputs = null;
+			var inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
+			var outputSizeInBytes = Constants.OutputSizeInBytes;
+			try
+			{
+				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
+				if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
+				var feeRate = estimateSmartFeeResponse.FeeRate;
+				Money feePerBytes = (feeRate.FeePerK / 1000);
+
+				// Make sure min relay fee (1000 sat) is hit.
+				feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
+				feePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
+			}
+			catch (Exception ex)
+			{
+				// If fee hasn't been initialized once, fall back.
+				if (feePerInputs is null || feePerOutputs is null)
+				{
+					var feePerBytes = new Money(100); // 100 satoshi per byte
+
+					// Make sure min relay fee (1000 sat) is hit.
+					feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
+					feePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
+				}
+
+				Logger.LogError<CcjRound>(ex);
+			}
+
+			return (feePerInputs, feePerOutputs);
 		}
 
 		public void Succeed(bool syncLock = true)

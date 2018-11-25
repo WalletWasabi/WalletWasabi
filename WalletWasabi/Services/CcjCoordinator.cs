@@ -177,7 +177,7 @@ namespace WalletWasabi.Services
 			RoundConfig.UpdateOrDefault(roundConfig);
 		}
 
-		public async Task MakeSureTwoRunningRoundsAsync()
+		public async Task MakeSureTwoRunningRoundsAsync(Money feePerInputs = null, Money feePerOutputs = null)
 		{
 			using (await RoundsListLock.LockAsync())
 			{
@@ -187,13 +187,13 @@ namespace WalletWasabi.Services
 					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					round.StatusChanged += Round_StatusChangedAsync;
-					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
+					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round);
 
 					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
 					round2.StatusChanged += Round_StatusChangedAsync;
 					round2.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
-					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
+					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round2);
 				}
 				else if (runningRoundCount == 1)
@@ -201,20 +201,23 @@ namespace WalletWasabi.Services
 					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
 					round.StatusChanged += Round_StatusChangedAsync;
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
-					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration);
+					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round);
 				}
 			}
 		}
 
-		private void Round_CoinJoinBroadcasted(object sender, Transaction e)
+		private void Round_CoinJoinBroadcasted(object sender, Transaction transaction)
 		{
-			CoinJoinBroadcasted?.Invoke(sender, e);
+			CoinJoinBroadcasted?.Invoke(sender, transaction);
 		}
 
 		private async void Round_StatusChangedAsync(object sender, CcjRoundStatus status)
 		{
 			var round = sender as CcjRound;
+
+			Money feePerInputs = null;
+			Money feePerOutputs = null;
 
 			// If success save the coinjoin.
 			if (status == CcjRoundStatus.Succeded)
@@ -224,6 +227,27 @@ namespace WalletWasabi.Services
 					uint256 coinJoinHash = round.SignedCoinJoin.GetHash();
 					CoinJoins.Add(coinJoinHash);
 					await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() });
+
+					// When a round succeeded, adjust the denomination as to users still be able to register with the latest round's active output amount.
+					IEnumerable<(Money value, int count)> outputs = round.SignedCoinJoin.GetIndistinguishableOutputs();
+					var bestOutput = outputs.OrderByDescending(x => x.count).FirstOrDefault();
+					if (bestOutput != default)
+					{
+						Money activeOutputAmount = bestOutput.value;
+
+						var fees = await CcjRound.CalculateFeesAsync(RpcClient, RoundConfig.ConfirmationTarget.Value);
+						feePerInputs = fees.feePerInputs;
+						feePerOutputs = fees.feePerOutputs;
+
+						Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + 2 * feePerOutputs);
+						if (newDenominationToGetInWithactiveOutputs < RoundConfig.CurrentDenomination)
+						{
+							if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
+							{
+								RoundConfig.CurrentDenomination = newDenominationToGetInWithactiveOutputs;
+							}
+						}
+					}
 				}
 			}
 
@@ -243,7 +267,7 @@ namespace WalletWasabi.Services
 			{
 				round.StatusChanged -= Round_StatusChangedAsync;
 				round.CoinJoinBroadcasted -= Round_CoinJoinBroadcasted;
-				await MakeSureTwoRunningRoundsAsync();
+				await MakeSureTwoRunningRoundsAsync(feePerInputs, feePerOutputs);
 			}
 		}
 

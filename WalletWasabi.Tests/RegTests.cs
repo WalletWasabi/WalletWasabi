@@ -1697,19 +1697,19 @@ namespace WalletWasabi.Tests
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
-				roundConfig.Denomination = Money.Coins(0.01m); // exactly the same as our output
+				roundConfig.SetDenomination(Money.Coins(0.01m)); // exactly the same as our output
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
-				roundConfig.Denomination = Money.Coins(0.00999999m); // one satoshi less than our output
+				roundConfig.SetDenomination(Money.Coins(0.00999999m)); // one satoshi less than our output
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
-				roundConfig.Denomination = Money.Coins(0.008m); // one satoshi less than our output
+				roundConfig.SetDenomination(Money.Coins(0.008m)); // one satoshi less than our output
 				roundConfig.ConnectionConfirmationTimeout = 2;
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
@@ -2545,7 +2545,7 @@ namespace WalletWasabi.Tests
 			Assert.True(2 * feeRateReal.FeePerK > feeRateTx.FeePerK); // Max 200% mistake.
 
 			var activeOutput = finalCoinjoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count).First();
-			Assert.True(activeOutput.value >= roundConfig.Denomination);
+			Assert.True(activeOutput.value >= roundConfig.CurrentDenomination);
 			Assert.True(activeOutput.value >= roundConfig.AnonymitySet);
 
 			foreach (var aliceClient in aliceClients)
