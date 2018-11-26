@@ -22,7 +22,8 @@ namespace WalletWasabi.Gui
 			try
 			{
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
-
+				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 				BuildAvaloniaApp()
 					.BeforeStarting(async builder =>
 					{
@@ -64,7 +65,23 @@ namespace WalletWasabi.Gui
 			{
 				statusBar?.Dispose();
 				await Global.DisposeAsync();
+
+				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
+				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 			}
+
+		}
+
+		static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+		{
+			var message = e.Exception!=null ? e.Exception.Message : "CurrentDomain_UnhandledException";
+			Logger.LogWarning<Program>(message);
+		}
+
+		static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+		{
+			var message = e.ExceptionObject is Exception ? ((Exception)e.ExceptionObject).Message : "CurrentDomain_UnhandledException";
+			Logger.LogWarning<Program>(message);
 		}
 
 		private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
