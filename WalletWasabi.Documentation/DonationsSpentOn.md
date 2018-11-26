@@ -15,3 +15,4 @@ Donate: [bc1q32xe73texphk3cgu33cyw7dajky9u76qltcv6m](https://www.smartbit.com.au
 |2018-07-30|0.38|Donate lontivero for contributing for one month.|[View in block explorer](https://chainflyer.bitflyer.jp/Transaction/18a704ca9f3765e01da37d6efe34dc862b8f79c49723bc5743bb872cb44e6e93)|
 |2018-08-28|0.43|Donate lontivero for contributing for one month.|[View in block explorer](https://www.smartbit.com.au/tx/0a87808b198ea11493d9154bee0e53dfe5b724eb49f7e4b2965cb554449eac69)|
 |2018-10-01|0.15254948|Pay for hosting.|[View in block explorer](https://www.smartbit.com.au/tx/79d50a3ded3f47c343782e0d4af911149bb648fb4fc8418d05ab0ee8248bb3d6)|
+|2018-11-26|0.25243545|Pay for hosting.|[View in block explorer](https://www.smartbit.com.au/tx/c67172eb272bc12df8af3d71a84c0d5ecc65b937930e7f4bb5fe488aba974996)|
