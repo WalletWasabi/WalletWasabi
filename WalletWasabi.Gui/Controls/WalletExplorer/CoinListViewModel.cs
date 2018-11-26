@@ -204,7 +204,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (SelectedCoin == null) return;
 				DequeueCoinsPressed?.Invoke();
-
 			}, this.WhenAnyValue(x => x.CanDeqeue));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
