@@ -77,7 +77,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				CoinsList = new CoinListViewModel(coins);
 			}
 
-			CoinsList = new CoinListViewModel(coins);
+			//CoinsList = new CoinListViewModel(coins);
 
 			AmountQueued = Money.Zero;// Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
@@ -110,7 +110,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
 			{
-				await DoDequeueAsync();
+				await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 			});
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
@@ -151,14 +151,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 		}
 
-		private async Task DoDequeueAsync()
+		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
 		{
 			IsDequeueBusy = true;
 			try
 			{
 				WarningMessage = "";
-
-				var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected);
 
 				try
 				{
@@ -341,7 +339,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinListViewModel CoinsList
 		{
 			get { return _coinsList; }
-			set { this.RaiseAndSetIfChanged(ref _coinsList, value); }
+			set 
+			{
+				bool changed = _coinsList != value;
+				if (_coinsList != null) _coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				this.RaiseAndSetIfChanged(ref _coinsList, value);
+				_coinsList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
+			}
+		}
+
+#pragma warning disable RECS0165 // Asynchronous methods should return a Task instead of void
+		private async void CoinsList_DequeueCoinsPressedAsync()
+#pragma warning restore RECS0165 // Asynchronous methods should return a Task instead of void
+		{
+			var selectedCoin = _coinsList?.SelectedCoin;
+			if (selectedCoin == null) return;
+			await DoDequeueAsync(new[] { selectedCoin });
 		}
 
 		public Money AmountQueued
