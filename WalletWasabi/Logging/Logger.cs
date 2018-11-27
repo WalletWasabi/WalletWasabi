@@ -165,8 +165,7 @@ namespace WalletWasabi.Logging
 									color = ConsoleColor.Red;
 									break;
 
-								default:
-									throw new NotSupportedException("This is impossible.");
+								default: break; // Keep original color.
 							}
 
 							Console.ForegroundColor = color;
