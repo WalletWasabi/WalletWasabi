@@ -70,7 +70,7 @@ namespace WalletWasabi.Gui.Behaviors
 			try
 			{
 				var bitcoinAddress = BitcoinAddress.Create(text, Global.Network);
-				return (bitcoinAddress is BitcoinWitPubKeyAddress, text);
+				return (true, bitcoinAddress.ToString());
 			}
 			catch (FormatException)
 			{
