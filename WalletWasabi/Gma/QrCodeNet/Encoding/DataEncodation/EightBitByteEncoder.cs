@@ -35,19 +35,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal override Mode Mode => Mode.EightBitByte;
 
-		protected byte[] EncodeContent(string content, string encoding)
-		{
-			byte[] contentBytes;
-			try
-			{
-				contentBytes = System.Text.Encoding.GetEncoding(encoding).GetBytes(content);
-			}
-			catch (ArgumentException ex)
-			{
-				throw ex;
-			}
-			return contentBytes;
-		}
+		protected byte[] EncodeContent(string content, string encoding) => System.Text.Encoding.GetEncoding(encoding).GetBytes(content);
 
 		/// <summary>
 		/// Bitcount, Chapter 8.4.4, P.24
@@ -76,16 +64,13 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			if (encodingName == "utf-8")
 			{
 				byte[] utf8BOM = QRCodeConstantVariable.UTF8ByteOrderMark;
-				int utf8BOMLength = utf8BOM.Length;
-				for (int index = 0; index < utf8BOMLength; index++)
+				for (int index = 0; index < utf8BOM.Length; index++)
 				{
 					dataBits.Add(utf8BOM[index], EIGHT_BIT_BYTE_BITCOUNT);
 				}
 			}
 
-			int encodeContentLength = encodeContent.Length;
-
-			for (int index = 0; index < encodeContentLength; index++)
+			for (int index = 0; index < encodeContent.Length; index++)
 			{
 				dataBits.Add(encodeContent[index], EIGHT_BIT_BYTE_BITCOUNT);
 			}
