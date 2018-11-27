@@ -18,7 +18,7 @@ namespace WalletWasabi.Helpers
 		{
 			RequiredServices = NodeServices.NODE_WITNESS,
 			MinVersion = ProtocolVersion_WITNESS_VERSION,
-			MinProtocolCapabilities = new ProtocolCapabilities() { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
+			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
 		};
 
 		public const int P2wpkhInputSizeInBytes = 41;
