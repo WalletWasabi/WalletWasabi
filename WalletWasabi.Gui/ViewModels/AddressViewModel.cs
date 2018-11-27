@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 					QrCode = await Task.Run(() =>
 					{
-						var encoder = new QrEncoder(ErrorCorrectionLevel.H);
+						var encoder = new QrEncoder(ErrorCorrectionLevel.M);
 						encoder.TryEncode(Address, out var qrCode);
 
 						return qrCode.Matrix.InternalArray;

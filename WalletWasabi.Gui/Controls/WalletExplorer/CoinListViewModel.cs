@@ -28,6 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand SelectAllCheckBoxCommand { get; }
 		public ReactiveCommand SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand SelectNonPrivateCheckBoxCommand { get; }
+		public event Action DequeueCoinsPressed; 
 
 		public CoinViewModel SelectedCoin
 		{
@@ -199,10 +200,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				//await Global.ChaumianClient.QueueCoinsToMixAsync()
 			});
 
-			DequeueCoin = ReactiveCommand.Create(async () =>
+			DequeueCoin = ReactiveCommand.Create(() =>
 			{
 				if (SelectedCoin == null) return;
-				await Global.ChaumianClient.DequeueCoinsFromMixAsync(SelectedCoin.Model);
+				DequeueCoinsPressed?.Invoke();
 			}, this.WhenAnyValue(x => x.CanDeqeue));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
