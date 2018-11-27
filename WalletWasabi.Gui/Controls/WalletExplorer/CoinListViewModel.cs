@@ -7,6 +7,8 @@ using System;
 using System.Linq;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
+using System.ComponentModel;
+using System.Collections.Specialized;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -28,7 +30,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand SelectAllCheckBoxCommand { get; }
 		public ReactiveCommand SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand SelectNonPrivateCheckBoxCommand { get; }
-		public event Action DequeueCoinsPressed; 
+
+		public event Action DequeueCoinsPressed;
 
 		public CoinViewModel SelectedCoin
 		{
@@ -292,7 +295,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void Coins_CollectionChanging(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void Coins_CollectionChanging(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			foreach (CoinViewModel coin in Coins)
 			{
@@ -300,16 +303,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		private void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			foreach (CoinViewModel coin in Coins)
 			{
 				coin.PropertyChanged += Coin_PropertyChanged;
 			}
 			SetSelections();
+			SetCoinJoinStatusWidth();
 		}
 
-		private void Coin_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		private void Coin_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(CoinViewModel.IsSelected))
 			{
