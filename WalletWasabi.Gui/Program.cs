@@ -73,14 +73,12 @@ namespace WalletWasabi.Gui
 
 		static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
 		{
-			var message = e.Exception!=null ? e.Exception.Message : "CurrentDomain_UnhandledException";
-			Logger.LogWarning<Program>(message);
+			Logger.LogWarning(e?.Exception, "UnobservedTaskException");
 		}
 
 		static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
-			var message = e.ExceptionObject is Exception ? ((Exception)e.ExceptionObject).Message : "CurrentDomain_UnhandledException";
-			Logger.LogWarning<Program>(message);
+			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
 		}
 
 		private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();

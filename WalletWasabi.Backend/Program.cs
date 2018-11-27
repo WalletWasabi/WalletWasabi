@@ -27,7 +27,8 @@ namespace WalletWasabi.Backend
 			try
 			{
 				Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
-
+				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 				var configFilePath = Path.Combine(Global.DataDir, "Config.json");
 				var config = new Config(configFilePath);
 				await config.LoadOrCreateDefaultFileAsync();
@@ -93,6 +94,16 @@ namespace WalletWasabi.Backend
 			{
 				Logger.LogCritical<Program>(ex);
 			}
+		}
+
+		static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+		{
+			Logger.LogWarning(e?.Exception, "UnobservedTaskException");
+		}
+
+		static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+		{
+			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
 		}
 
 		private static void Coordinator_CoinJoinBroadcasted(object sender, Transaction tx)
