@@ -43,8 +43,9 @@ namespace NBitcoin.RPC
 				{
 					return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
 				}
-				catch
+				catch (Exception ex)
 				{
+					Logger.LogTrace<RPCClient>(ex);
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
 					for (int i = 2; i <= 1008; i++)
 					{
@@ -52,8 +53,9 @@ namespace NBitcoin.RPC
 						{
 							return await rpc.EstimateSmartFeeAsync(i, estimateMode);
 						}
-						catch
+						catch (Exception ex2)
 						{
+							Logger.LogTrace<RPCClient>(ex2);
 						}
 					}
 				}
