@@ -236,17 +236,22 @@ namespace WalletWasabi.Logging
 
 		private static void Log(Exception ex, LogLevel level, string category = "")
 		{
-			Log(level, ex.ToString(), category);
+			Log(level, ExceptionToStringHandleNull(ex), category);
 		}
 
 		private static void Log<T>(Exception ex, LogLevel level)
 		{
-			Log<T>(level, ex.ToString());
+			Log<T>(level, ExceptionToStringHandleNull(ex));
 		}
 
 		private static void Log(Exception ex, LogLevel level, Type category = null)
+		{ 
+			Log(level, ExceptionToStringHandleNull(ex) , category);
+		}
+
+		private static string ExceptionToStringHandleNull(Exception ex)
 		{
-			Log(level, ex.ToString(), category);
+			return ex?.ToString() ?? "Exception was null.";
 		}
 
 		#endregion ExceptionLoggingMethods
