@@ -24,8 +24,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
 			{
-				this.RaisePropertyChanged(nameof(Confirmed));
 				RefreshSmartCoinStatus();
+				this.RaisePropertyChanged(nameof(Confirmed));
 			});
 
 			model.WhenAnyValue(x => x.SpentOrCoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
@@ -35,8 +35,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			model.WhenAnyValue(x => x.CoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(CoinJoinInProgress));
 				RefreshSmartCoinStatus();
+				this.RaisePropertyChanged(nameof(CoinJoinInProgress));
 			});
 
 			model.WhenAnyValue(x => x.IsBanned).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
@@ -51,8 +51,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(Confirmations));
 				RefreshSmartCoinStatus();
+				this.RaisePropertyChanged(nameof(Confirmations));
 			});
 
 			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
@@ -137,12 +137,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		void RefreshSmartCoinStatus()
+		private void RefreshSmartCoinStatus()
 		{
-			Status = GetSmartCoinStatus(); 
+			Status = GetSmartCoinStatus();
 		}
 
-		SmartCoinStatus GetSmartCoinStatus()
+		private SmartCoinStatus GetSmartCoinStatus()
 		{
 			if (Model.IsBanned)
 			{
@@ -209,6 +209,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 		}
-
 	}
 }
