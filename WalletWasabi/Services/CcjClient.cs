@@ -265,21 +265,7 @@ namespace WalletWasabi.Services
 						Transaction unsignedCoinJoin = await ongoingRound.AliceClient.GetUnsignedCoinJoinAsync();
 						Dictionary<int, WitScript> myDic = SignCoinJoin(ongoingRound, unsignedCoinJoin);
 
-						try
-						{
-							await ongoingRound.AliceClient.PostSignaturesAsync(myDic);
-						}
-						catch (HttpRequestException)
-						{
-							var toLog = $"{nameof(unsignedCoinJoin)} hex: {unsignedCoinJoin.ToHex()}\n";
-							foreach (var elem in myDic)
-							{
-								toLog += $"\tInput Index: {elem.Key}\t Signature: {elem.Value.ToString()}\n";
-							}
-							Logger.LogWarning<CcjClient>(toLog);
-
-							throw;
-						}
+						await ongoingRound.AliceClient.PostSignaturesAsync(myDic);
 						ongoingRound.Signed = true;
 					}
 				}
