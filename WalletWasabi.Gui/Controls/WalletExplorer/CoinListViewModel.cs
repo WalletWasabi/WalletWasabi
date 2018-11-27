@@ -25,6 +25,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectPrivateCheckBoxState;
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
+		private SortOrder _historySortDirection;
+
 		public ReactiveCommand EnqueueCoin { get; }
 		public ReactiveCommand DequeueCoin { get; }
 		public ReactiveCommand SelectAllCheckBoxCommand { get; }
@@ -67,6 +69,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					AmountSortDirection = SortOrder.None;
 					PrivacySortDirection = SortOrder.None;
+					HistorySortDirection = SortOrder.None;
 				}
 
 				switch (value)
@@ -92,6 +95,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					PrivacySortDirection = SortOrder.None;
 					StatusSortDirection = SortOrder.None;
+					HistorySortDirection = SortOrder.None;
 				}
 
 				switch (value)
@@ -117,6 +121,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					AmountSortDirection = SortOrder.None;
 					StatusSortDirection = SortOrder.None;
+					HistorySortDirection = SortOrder.None;
 				}
 
 				switch (value)
@@ -127,6 +132,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					case SortOrder.Decreasing:
 						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => y.AnonymitySet.CompareTo(x.AnonymitySet));
+						break;
+				}
+			}
+		}
+
+		public SortOrder HistorySortDirection
+		{
+			get => _historySortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _historySortDirection, value);
+				if (value != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+					PrivacySortDirection = SortOrder.None;
+				}
+
+				switch (value)
+				{
+					case SortOrder.Increasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => string.Compare(x.History, y.History, StringComparison.Ordinal));
+						break;
+
+					case SortOrder.Decreasing:
+						Coins = _rootcoinlist.CreateDerivedCollection(x => x, x => true, (x, y) => string.Compare(y.History, x.History, StringComparison.Ordinal));
 						break;
 				}
 			}

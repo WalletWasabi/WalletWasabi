@@ -25,31 +25,27 @@
   </i:Interaction.Behaviors>
 <Grid IsSharedSizeScope="True">  
 	<DockPanel LastChildFill="True">
-    <Grid Margin="30 0" DockPanel.Dock="Top">
+    <Grid Margin="30 0 0 0" DockPanel.Dock="Top">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="30" />
           <ColumnDefinition Width="30" />
           <ColumnDefinition SharedSizeGroup="A" Width="{Binding CoinJoinStatusWidth, Mode=OneWay}" />
-          <ColumnDefinition Width="120" />
+          <ColumnDefinition Width="130" />
           <ColumnDefinition Width="100" />
-          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-      <TextBlock Text="" Width="0" />
-      <TextBlock Text="" Grid.Column="1" />
-      <StackPanel Grid.Column="2" Margin="10 0 0 0" Orientation="Horizontal">
-        <TextBlock Text="Status"/>
-        <controls:SortingArrow SortDirection="{Binding StatusSortDirection} "/>
-      </StackPanel>
-      <StackPanel Grid.Column="3" Margin="10 0 0 0" Orientation="Horizontal">
-        <TextBlock Text="Amount (BTC)"/>
-        <controls:SortingArrow SortDirection="{Binding AmountSortDirection}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="4" Margin="20 0 0 0" Orientation="Horizontal">
-        <TextBlock Text="Privacy"/>
-        <controls:SortingArrow SortDirection="{Binding PrivacySortDirection}"/>
-      </StackPanel>
-      <TextBlock Text="History" Grid.Column="5" />
-    </Grid>
+        <TextBlock Text="" Width="0" />
+        <TextBlock Text="" Grid.Column="1" />
+
+        <controls:SortingArrow Grid.Column="2" Text="Status" SortDirection="{Binding StatusSortDirection} "/>
+
+        <controls:SortingArrow Grid.Column="3" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}"/>
+        
+        <controls:SortingArrow Grid.Column="4" Text="Privacy" SortDirection="{Binding PrivacySortDirection}"/>
+      
+        <controls:SortingArrow Grid.Column="5" Text="History" SortDirection="{Binding HistorySortDirection}"/>
+
+      </Grid>
     <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" >
       	<CheckBox Content = "Select All" IsThreeState="True" IsChecked = "{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" ToolTip.Tip="Select All"/>
 		<CheckBox Content = "Select All Private" IsThreeState="True" IsChecked = "{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" ToolTip.Tip="Coins with anonymity set greater than 50." />
@@ -113,7 +109,7 @@
                   <ColumnDefinition Width="30" />
                   <ColumnDefinition Width="30" />
                   <ColumnDefinition SharedSizeGroup="A" />
-                  <ColumnDefinition Width="113" />
+                  <ColumnDefinition Width="123" />
                   <ColumnDefinition Width="100" />
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>

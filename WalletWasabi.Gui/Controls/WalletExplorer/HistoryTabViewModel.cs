@@ -25,6 +25,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private double _clipboardNotificationOpacity;
 		private bool _clipboardNotificationVisible;
 		private long _disableClipboard;
+		private SortOrder _dateSortDirection;
+		private SortOrder _amountSortDirection;
+		private SortOrder _transactionSortDirection;
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
@@ -68,6 +71,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Interlocked.Exchange(ref _disableClipboard, 0);
 				}
 			});
+			DateSortDirection = SortOrder.Decreasing;
 		}
 
 		private void RewriteTable()
@@ -164,6 +168,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SelectedTransaction = txToSelect;
 				}
 			}
+			RefreshOrdering();
 		}
 
 		public ObservableCollection<TransactionViewModel> Transactions
@@ -188,6 +193,92 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _clipboardNotificationVisible; }
 			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value); }
+		}
+
+		public SortOrder DateSortDirection
+		{
+			get => _dateSortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _dateSortDirection, value);
+				if (value != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					TransactionSortDirection = SortOrder.None;
+				}
+				RefreshOrdering();
+
+			}
+		}
+		public SortOrder AmountSortDirection
+		{
+			get => _amountSortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
+				if (value != SortOrder.None)
+				{
+					DateSortDirection = SortOrder.None;
+					TransactionSortDirection = SortOrder.None;
+				}
+				RefreshOrdering();
+			}
+		}
+		public SortOrder TransactionSortDirection
+		{
+			get => _transactionSortDirection;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _transactionSortDirection, value);
+				if (value != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					DateSortDirection = SortOrder.None;
+				}
+				RefreshOrdering();
+			}
+		}
+		void RefreshOrdering()
+		{
+			if (TransactionSortDirection != SortOrder.None)
+			{
+				switch (TransactionSortDirection)
+				{
+					case SortOrder.Increasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.TransactionId));
+						break;
+
+					case SortOrder.Decreasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.TransactionId));
+						break;
+				}
+			}
+			else if (AmountSortDirection != SortOrder.None)
+			{
+				switch (AmountSortDirection)
+				{
+					case SortOrder.Increasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.AmountBtc));
+						break;
+
+					case SortOrder.Decreasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.AmountBtc));
+						break;
+				}
+			}
+			else if (DateSortDirection != SortOrder.None)
+			{
+				switch (DateSortDirection)
+				{
+					case SortOrder.Increasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.DateTime));
+						break;
+
+					case SortOrder.Decreasing:
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.DateTime));
+						break;
+				}
+			}
 		}
 	}
 }

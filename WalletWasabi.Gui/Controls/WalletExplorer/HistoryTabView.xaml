@@ -25,16 +25,16 @@
           </Grid>
         </Grid>
         <DockPanel LastChildFill="True" DockPanel.Dock="Bottom">
-          <Grid ColumnDefinitions="40, 160, 100, *" Margin="10 0" DockPanel.Dock="Top">
+          <Grid ColumnDefinitions="40, 160, 150, *" Margin="10 0 0 0" DockPanel.Dock="Top">
             <TextBlock Text="" />
-            <TextBlock Text="Date" Grid.Column="1" />
-            <TextBlock Text="Amount (BTC)" Grid.Column="2" />
-            <TextBlock Text="Transaction ID" Grid.Column="3"  Margin="20 0 0 0" />
+            <controls:SortingArrow Grid.Column="1" Text="Date" SortDirection="{Binding DateSortDirection}"/>
+            <controls:SortingArrow Grid.Column="2" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}"/>
+            <controls:SortingArrow Grid.Column="3" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}"/>
           </Grid>
           <ListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
             <ListBox.ItemTemplate>
               <DataTemplate>
-                <Grid ColumnDefinitions="40, 160, 100, *">
+                <Grid ColumnDefinitions="40, 160, 150, *">
                   <Grid.Styles>
                     <Style Selector="TextBlock">
                       <Setter Property="VerticalAlignment" Value="Center" />
@@ -45,7 +45,7 @@
                   </Border>
                   <TextBlock Text="{Binding DateTime}" Grid.Column="1" />
                   <TextBlock Text="{Binding AmountBtc}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
-                  <TextBlock Text="{Binding TransactionId}" Grid.Column="3" Margin="20 0 0 0" />
+                  <TextBlock Text="{Binding TransactionId}" Grid.Column="3" />
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>
