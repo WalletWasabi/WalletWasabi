@@ -240,11 +240,12 @@ namespace WalletWasabi.Services
 						feePerOutputs = fees.feePerOutputs;
 
 						Money newDenominationToGetInWithactiveOutputs = activeOutputAmount - (feePerInputs + 2 * feePerOutputs);
-						if (newDenominationToGetInWithactiveOutputs < RoundConfig.CurrentDenomination)
+						if (newDenominationToGetInWithactiveOutputs < RoundConfig.Denomination)
 						{
 							if (newDenominationToGetInWithactiveOutputs > Money.Coins(0.01m))
 							{
-								RoundConfig.CurrentDenomination = newDenominationToGetInWithactiveOutputs;
+								RoundConfig.Denomination = newDenominationToGetInWithactiveOutputs;
+								await RoundConfig.ToFileAsync();
 							}
 						}
 					}

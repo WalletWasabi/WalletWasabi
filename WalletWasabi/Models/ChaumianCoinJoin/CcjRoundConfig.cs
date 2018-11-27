@@ -14,32 +14,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 	[JsonObject(MemberSerialization.OptIn)]
 	public class CcjRoundConfig : IConfig
 	{
-		private Money _denomination;
-
 		/// <inheritdoc />
 		public string FilePath { get; internal set; }
 
-		public Money CurrentDenomination { get; internal set; }
-
 		[JsonProperty(PropertyName = "Denomination")]
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		private Money Denomination
-		{
-			get => _denomination;
-			set
-			{
-				if (value != _denomination)
-				{
-					_denomination = value;
-					CurrentDenomination = value;
-				}
-			}
-		}
-
-		internal void SetDenomination(Money denomination)
-		{
-			Denomination = denomination;
-		}
+		public Money Denomination { get; internal set; }
 
 		[JsonProperty(PropertyName = "ConfirmationTarget")]
 		public int? ConfirmationTarget { get; internal set; }
