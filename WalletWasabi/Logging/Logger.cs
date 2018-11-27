@@ -164,6 +164,9 @@ namespace WalletWasabi.Logging
 								case LogLevel.Critical:
 									color = ConsoleColor.Red;
 									break;
+
+								default:
+									throw new NotSupportedException("This is impossible.");
 							}
 
 							Console.ForegroundColor = color;
@@ -245,8 +248,8 @@ namespace WalletWasabi.Logging
 		}
 
 		private static void Log(Exception ex, LogLevel level, Type category = null)
-		{ 
-			Log(level, ExceptionToStringHandleNull(ex) , category);
+		{
+			Log(level, ExceptionToStringHandleNull(ex), category);
 		}
 
 		private static string ExceptionToStringHandleNull(Exception ex)

@@ -34,6 +34,9 @@ namespace Gma.QrCodeNet.Encoding.Masking
 
 				case MaskPatternType.Type7:
 					return new Pattern7();
+
+				default:
+					throw new NotSupportedException("This is impossible.");
 			}
 
 			throw new ArgumentException(string.Format("Usupported pattern type {0}", maskPatternType), "maskPatternType");
