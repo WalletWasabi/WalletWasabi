@@ -56,7 +56,7 @@ namespace WalletWasabi.Helpers
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
-			var process = new Process
+			using (var process = new Process
 			{
 				StartInfo = new ProcessStartInfo
 				{
@@ -67,16 +67,17 @@ namespace WalletWasabi.Helpers
 					FileName = "/bin/sh",
 					Arguments = $"-c \"{escapedArgs}\""
 				}
-			};
-
-			process.Start();
-
-			if (waitForExit)
+			})
 			{
-				process.WaitForExit();
-				if (process.ExitCode != 0)
+				process.Start();
+
+				if (waitForExit)
 				{
-					Logger.LogError($"{nameof(ShellExec)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.", nameof(EnvironmentHelpers));
+					process.WaitForExit();
+					if (process.ExitCode != 0)
+					{
+						Logger.LogError($"{nameof(ShellExec)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.", nameof(EnvironmentHelpers));
+					}
 				}
 			}
 		}
