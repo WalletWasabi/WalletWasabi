@@ -61,7 +61,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 		{
 			if (versionNum < 1 || versionNum > 40)
 			{
-				throw new InvalidOperationException(string.Format("Unexpected version number: {0}", versionNum));
+				throw new InvalidOperationException($"Unexpected version number: {versionNum}");
 			}
 
 			VersionControlStruct vcStruct = new VersionControlStruct();
@@ -111,7 +111,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 				}
 			}
 
-			throw new InputOutOfBoundaryException(string.Format("QRCode do not have enough space for {0} bits", (numBits + NUM_BITS_MODE_INDICATOR + charCountIndicator[2])));
+			throw new InputOutOfBoundaryException($"QRCode do not have enough space for {(numBits + NUM_BITS_MODE_INDICATOR + charCountIndicator[2])} bits");
 		}
 
 		/// <summary>

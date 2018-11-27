@@ -109,7 +109,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					return new KanjiEncoder();
 
 				default:
-					throw new ArgumentOutOfRangeException("mode", string.Format("Doesn't contain encoder for {0}", mode));
+					throw new ArgumentOutOfRangeException(nameof(mode), $"Doesn't contain encoder for {mode}");
 			}
 		}
 	}

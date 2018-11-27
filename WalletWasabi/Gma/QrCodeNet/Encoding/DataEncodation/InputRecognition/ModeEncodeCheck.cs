@@ -22,7 +22,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 					return KanjiCheck(content);
 
 				default:
-					throw new InvalidOperationException(string.Format("System does not contain mode: {0}", mode.ToString()));
+					throw new InvalidOperationException($"System does not contain mode: {mode.ToString()}");
 			}
 		}
 

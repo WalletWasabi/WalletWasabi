@@ -27,7 +27,7 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 					return new Penalty4();
 
 				default:
-					throw new ArgumentException(string.Format("Unsupport penalty rule : {0}", penaltyRule), "penaltyRule");
+					throw new ArgumentException($"Unsupport penalty rule : {penaltyRule}", nameof(penaltyRule));
 			}
 		}
 

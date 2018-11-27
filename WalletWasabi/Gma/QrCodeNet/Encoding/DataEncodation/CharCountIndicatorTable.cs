@@ -22,7 +22,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					return new int[] { 8, 10, 12 };
 
 				default:
-					throw new System.InvalidOperationException(string.Format("Unexpected Mode: {0}", mode.ToString()));
+					throw new System.InvalidOperationException($"Unexpected Mode: {mode.ToString()}");
 			}
 		} //
 
@@ -42,7 +42,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		{
 			if (version > 40)
 			{
-				throw new InvalidOperationException(string.Format("Unexpected version: {0}", version));
+				throw new InvalidOperationException($"Unexpected version: {version}");
 			}
 			else if (version >= 27)
 			{
@@ -57,7 +57,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 				return 0;
 			}
 			else
-				throw new InvalidOperationException(string.Format("Unexpected version: {0}", version));
+				throw new InvalidOperationException($"Unexpected version: {version}");
 		}
 	}
 }

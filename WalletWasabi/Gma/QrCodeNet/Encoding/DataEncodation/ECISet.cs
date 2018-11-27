@@ -91,7 +91,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			if (_s_NameToValue.TryGetValue(encodingName, out int ECIValue))
 				return ECIValue;
 			else
-				throw new ArgumentOutOfRangeException(string.Format("ECI doesn't contain encoding: {0}", encodingName));
+				throw new ArgumentOutOfRangeException($"ECI doesn't contain encoding: {encodingName}");
 		}
 
 		internal string GetECINameByValue(int ECIValue)
@@ -101,7 +101,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			if (_s_ValueToName.TryGetValue(ECIValue, out string ECIName))
 				return ECIName;
 			else
-				throw new ArgumentOutOfRangeException(string.Format("ECI doesn't contain value: {0}", ECIValue));
+				throw new ArgumentOutOfRangeException($"ECI doesn't contain value: {ECIValue}");
 		}
 
 		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>

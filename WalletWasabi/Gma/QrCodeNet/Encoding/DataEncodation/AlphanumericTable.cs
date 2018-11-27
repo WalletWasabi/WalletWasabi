@@ -68,7 +68,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			if (!S_AlphanumericTable.TryGetValue(inputChar, out int value))
 			{
 				throw new ArgumentOutOfRangeException(
-					"inputChar",
+					nameof(inputChar),
 					"Not an alphanumeric character found. Only characters from table from chapter 8.4.3 P21 are supported in alphanumeric mode.");
 			}
 			return value;

@@ -39,7 +39,7 @@ namespace Gma.QrCodeNet.Encoding.Masking
 					throw new NotSupportedException("This is impossible.");
 			}
 
-			throw new ArgumentException(string.Format("Usupported pattern type {0}", maskPatternType), "maskPatternType");
+			throw new ArgumentException($"Usupported pattern type {maskPatternType}", nameof(maskPatternType));
 		}
 
 		internal IEnumerable<Pattern> AllPatterns()

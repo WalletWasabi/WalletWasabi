@@ -31,9 +31,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		private static string EightBitByteRecognision(string content, int startPos, int contentLength)
 		{
 			if (string.IsNullOrEmpty(content))
-				throw new ArgumentNullException("content", "Input content is null or empty");
+				throw new ArgumentNullException(nameof(content), "Input content is null or empty");
 
-			ECISet eciSets = new ECISet(ECISet.AppendOption.NameToValue);
+			var eciSets = new ECISet(ECISet.AppendOption.NameToValue);
 
 			Dictionary<string, int> eciSet = eciSets.GetECITable();
 

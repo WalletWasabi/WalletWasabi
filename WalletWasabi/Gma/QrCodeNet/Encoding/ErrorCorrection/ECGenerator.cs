@@ -73,7 +73,7 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 			}
 
 			if (vd.NumTotalBytes != codewords.Count >> 3)
-				throw new ArgumentException(string.Format("total bytes: {0}, actual bits: {1}", vd.NumTotalBytes, codewords.Count));
+				throw new ArgumentException($"total bytes: {vd.NumTotalBytes}, actual bits: {codewords.Count}");
 
 			return codewords;
 		}

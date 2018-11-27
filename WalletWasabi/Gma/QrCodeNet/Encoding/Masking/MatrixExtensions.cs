@@ -33,7 +33,7 @@ namespace Gma.QrCodeNet.Encoding.Masking
 							break;
 
 						default:
-							throw new ArgumentException("TristateMatrix has None value cell.", "first");
+							throw new ArgumentException("TristateMatrix has None value cell.", nameof(first));
 					}
 				}
 			}

@@ -56,10 +56,10 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal override BitList GetDataBits(string content)
 		{
-			ECISet eciSet = new ECISet(ECISet.AppendOption.NameToValue);
+			var eciSet = new ECISet(ECISet.AppendOption.NameToValue);
 			if (!eciSet.ContainsECIName(Encoding))
 			{
-				throw new ArgumentOutOfRangeException("Encoding",
+				throw new ArgumentOutOfRangeException(nameof(Encoding),
 													  "Current ECI table does not support this encoding. Please check ECISet class for more info");
 			}
 
@@ -70,7 +70,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal BitList GetDataBitsByByteArray(byte[] encodeContent, string encodingName)
 		{
-			BitList dataBits = new BitList();
+			var dataBits = new BitList();
 			//Current plan for UTF8 support is put Byte order Mark in front of content byte.
 			//Also include ECI header before encoding header. Which will be add with encoding header.
 			if (encodingName == "utf-8")

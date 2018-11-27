@@ -29,6 +29,6 @@ namespace Gma.QrCodeNet.Encoding
 
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-		public override string ToString() => string.Format("Rectangle({0};{1}):({2} x {3})", Location.X, Location.Y, Size.Width, Size.Height);
+		public override string ToString() => $"Rectangle({Location.X};{Location.Y}):({Size.Width} x {Size.Height})";
 	}
 }

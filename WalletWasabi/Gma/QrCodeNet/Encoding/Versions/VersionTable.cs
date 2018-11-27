@@ -5,7 +5,7 @@
 		internal static QRCodeVersion GetVersionByNum(int versionNum)
 		{
 			if (versionNum < QRCodeConstantVariable.MinVersion || versionNum > QRCodeConstantVariable.MaxVersion)
-				throw new System.InvalidOperationException(string.Format("Unexpected version number: {0}", versionNum));
+				throw new System.InvalidOperationException($"Unexpected version number: {versionNum}");
 			return Version[versionNum - 1];
 		}
 
