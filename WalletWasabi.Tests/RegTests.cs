@@ -720,6 +720,14 @@ namespace WalletWasabi.Tests
 				Money amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 2;
 				var res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
 
+				foreach (SmartCoin coin in res.SpentCoins)
+				{
+					Assert.False(coin.CoinJoinInProgress);
+					Assert.True(coin.Confirmed);
+					Assert.Null(coin.SpenderTransactionId);
+					Assert.True(coin.Unspent);
+				}
+
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
 				var activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
