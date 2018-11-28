@@ -8,6 +8,29 @@ namespace WalletWasabi.Helpers
 {
 	public static class EnvironmentHelpers
 	{
+		private const int ProcessorCountRefreshIntervalMs = 30000;
+
+		private static volatile int _processorCount;
+		private static volatile int _lastProcessorCountRefreshTicks;
+
+		/// <summary>
+		/// https://github.com/i3arnon/ConcurrentHashSet/blob/master/src/ConcurrentHashSet/PlatformHelper.cs
+		/// </summary>
+		internal static int ProcessorCount
+		{
+			get
+			{
+				var now = Environment.TickCount;
+				if (_processorCount == 0 || now - _lastProcessorCountRefreshTicks >= ProcessorCountRefreshIntervalMs)
+				{
+					_processorCount = Environment.ProcessorCount;
+					_lastProcessorCountRefreshTicks = now;
+				}
+
+				return _processorCount;
+			}
+		}
+
 		public static string GetDataDir(string appName)
 		{
 			string directory = null;

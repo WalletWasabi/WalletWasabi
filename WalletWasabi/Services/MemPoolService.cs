@@ -1,5 +1,4 @@
-﻿using ConcurrentCollections;
-using WalletWasabi.Models;
+﻿using WalletWasabi.Models;
 using NBitcoin;
 using System;
 using System.Threading.Tasks;

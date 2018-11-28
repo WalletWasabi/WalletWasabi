@@ -1,5 +1,4 @@
-﻿using ConcurrentCollections;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -33,7 +32,7 @@ namespace WalletWasabi.Models
 		{
 			lock (Lock)
 			{
-				if (Set.Add(item))
+				if (Set.TryAdd(item))
 				{
 					HashSetChanged?.Invoke(this, EventArgs.Empty);
 					return true;
