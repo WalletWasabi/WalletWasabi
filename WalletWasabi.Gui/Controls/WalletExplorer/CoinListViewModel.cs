@@ -333,22 +333,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void Coins_CollectionGlobalChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			switch (e.Action)
+			Dispatcher.UIThread.Post(() =>
 			{
-				case NotifyCollectionChangedAction.Add:
-					foreach (var c in e.NewItems.Cast<SmartCoin>())
-						_rootlist.Add(new CoinViewModel(c));
-					break;
+				switch (e.Action)
+				{
+					case NotifyCollectionChangedAction.Add:
+						foreach (var c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
+							_rootlist.Add(new CoinViewModel(c));
+						break;
 
-				case NotifyCollectionChangedAction.Remove:
-					foreach (var c in e.OldItems.Cast<SmartCoin>())
-						_rootlist.Remove(new CoinViewModel(c));
-					break;
+					case NotifyCollectionChangedAction.Remove:
+						foreach (var c in e.OldItems.Cast<SmartCoin>())
+						{
+							var toRemove = _rootlist.Items.First(cvm => cvm.Model == c);
+							_rootlist.Remove(toRemove);
+						}
+						break;
 
-				case NotifyCollectionChangedAction.Reset:
-					_rootlist.Clear();
-					break;
-			}
+					case NotifyCollectionChangedAction.Reset:
+						_rootlist.Clear();
+						break;
+				}
+			});
 		}
 
 		private void SetSelections()
