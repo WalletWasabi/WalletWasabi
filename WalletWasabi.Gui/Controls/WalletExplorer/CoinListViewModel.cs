@@ -81,14 +81,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _statusSortDirection, value);
-				if (value != SortOrder.None)
-				{
-					AmountSortDirection = SortOrder.None;
-					PrivacySortDirection = SortOrder.None;
-					HistorySortDirection = SortOrder.None;
-				}
-				if (value != SortOrder.None)
-					RefreshOrdering();
 			}
 		}
 
@@ -98,14 +90,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _amountSortDirection, value);
-				if (value != SortOrder.None)
-				{
-					PrivacySortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					HistorySortDirection = SortOrder.None;
-				}
-				if (value!= SortOrder.None)
-					RefreshOrdering();
 			}
 		}
 
@@ -115,14 +99,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _privacySortDirection, value);
-				if (value != SortOrder.None)
-				{
-					AmountSortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					HistorySortDirection = SortOrder.None;
-				}
-				if (value != SortOrder.None)
-					RefreshOrdering();
 			}
 		}
 
@@ -132,14 +108,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _historySortDirection, value);
-				if (value != SortOrder.None)
-				{
-					AmountSortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-					PrivacySortDirection = SortOrder.None;
-				}
-				if (value != SortOrder.None)
-					RefreshOrdering();
 			}
 		}
 
@@ -161,14 +129,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else if (HistorySortDirection != SortOrder.None)
 			{
-				if (PrivacySortDirection == SortOrder.Increasing)
+				if (HistorySortDirection == SortOrder.Increasing)
 					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.History);
 				else
 					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.History);
 			}
 			else if (StatusSortDirection != SortOrder.None)
 			{
-				if (PrivacySortDirection == SortOrder.Increasing)
+				if (StatusSortDirection == SortOrder.Increasing)
 					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Status);
 				else
 					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Status);
@@ -221,6 +189,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinListViewModel(Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
 		{
 			AmountSortDirection = SortOrder.Decreasing;
+			RefreshOrdering();
+
 			var sortChanged = this.WhenValueChanged(@this => this.MyComparer)
 	  		.Select(_ =>
 				MyComparer);
@@ -250,6 +220,51 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			}
+
+			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
+			{
+				if (x != SortOrder.None)
+				{
+					PrivacySortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+					HistorySortDirection = SortOrder.None;
+				}
+				if (x != SortOrder.None)
+					RefreshOrdering();
+			});
+			this.WhenAnyValue(x => x.HistorySortDirection).Subscribe(x =>
+			{
+				if (x != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+					PrivacySortDirection = SortOrder.None;
+				}
+				if (x != SortOrder.None)
+					RefreshOrdering();
+			});
+			this.WhenAnyValue(x => x.StatusSortDirection).Subscribe(x =>
+			{
+				if (x != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					PrivacySortDirection = SortOrder.None;
+					HistorySortDirection = SortOrder.None;
+				}
+				if (x != SortOrder.None)
+					RefreshOrdering();
+			});
+			this.WhenAnyValue(x => x.PrivacySortDirection).Subscribe(x =>
+			{
+				if (x != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+					HistorySortDirection = SortOrder.None;
+				}
+				if (x != SortOrder.None)
+					RefreshOrdering();
+			});
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
