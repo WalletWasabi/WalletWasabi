@@ -398,7 +398,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					var cvm = (CoinViewModel)sender;
 					if (!cvm.Unspent)
+					{
 						_rootlist.Remove(cvm);
+					}
+
+					SetSelections();
+					SetCoinJoinStatusWidth();
 				}
 			});
 		}
