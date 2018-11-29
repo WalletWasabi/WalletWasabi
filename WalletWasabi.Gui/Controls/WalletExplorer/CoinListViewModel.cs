@@ -23,7 +23,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 		private readonly ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
-
 		SourceList<SmartCoin> _rootlist = new SourceList<SmartCoin>();
 		SortExpressionComparer<CoinViewModel> _myComparer;
 		SortExpressionComparer<CoinViewModel> MyComparer
@@ -35,8 +34,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
 		private CoinViewModel _selectedCoin;
 		private bool? _selectAllCheckBoxState;
 		private SortOrder _statusSortDirection;
@@ -46,7 +43,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
 		private SortOrder _historySortDirection;
-		private SortExpressionComparer<CoinViewModel> _myComparer1;
 
 		public ReactiveCommand EnqueueCoin { get; }
 		public ReactiveCommand DequeueCoin { get; }
@@ -92,9 +88,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PrivacySortDirection = SortOrder.None;
 					HistorySortDirection = SortOrder.None;
 				}
+				RefreshOrdering();
 			}
 		}
-
 
 		public SortOrder AmountSortDirection
 		{
@@ -124,6 +120,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					StatusSortDirection = SortOrder.None;
 					HistorySortDirection = SortOrder.None;
 				}
+				RefreshOrdering();
 			}
 		}
 
@@ -139,6 +136,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					StatusSortDirection = SortOrder.None;
 					PrivacySortDirection = SortOrder.None;
 				}
+				RefreshOrdering();
 			}
 		}
 
@@ -147,9 +145,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (AmountSortDirection != SortOrder.None)
 			{
 				if (AmountSortDirection == SortOrder.Increasing)
-					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cmv => cmv.Amount);
+					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Amount);
 				else
-					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cmv => cmv.Amount);
+					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Amount);
+			}
+			if (PrivacySortDirection != SortOrder.None)
+			{
+				if (PrivacySortDirection == SortOrder.Increasing)
+					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.AnonymitySet);
+				else
+					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.AnonymitySet);
+			}
+			if (HistorySortDirection != SortOrder.None)
+			{
+				if (PrivacySortDirection == SortOrder.Increasing)
+					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.History);
+				else
+					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.History);
+			}
+			if (StatusSortDirection != SortOrder.None)
+			{
+				if (PrivacySortDirection == SortOrder.Increasing)
+					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Status);
+				else
+					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Status);
 			}
 		}
 
@@ -198,18 +217,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel(Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
 		{
-			MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cmv => cmv.Amount);
 
-			//IObservable<IComparer<CoinViewModel>> comparerObservable = MyComparer.Subscribe();
+			AmountSortDirection = SortOrder.Increasing;
+			var sortChanged = this.WhenValueChanged(@this => this.MyComparer)
+	  		.Select(_ => 
+				MyComparer);
 
 			_rootlist.AddRange(Global.WalletService.Coins);
 
 			_rootlist.Connect()
+				.Filter(sm => sm.Unspent)
 				.Transform(sc => new CoinViewModel(sc))
-				.OnItemAdded(cvm => cvm.PropertyChanged += Coin_PropertyChanged)
-				.OnItemRemoved(cvm => cvm.PropertyChanged -= Coin_PropertyChanged)
-				.Filter(cvm => cvm.Unspent)
-				.Sort(MyComparer)
+				.OnItemAdded(cvm => 
+					cvm.PropertyChanged += Coin_PropertyChanged)
+				.OnItemRemoved(cvm => 
+					cvm.PropertyChanged -= Coin_PropertyChanged)	
+				.Sort(MyComparer, comparerChanged: sortChanged)
 				.Bind(out _coinViewModels)
 				.Subscribe();
 
@@ -240,7 +263,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 			{
-				Global.WalletService.Coins.TryRemove(Coins[0].Model);
 				switch (SelectAllCheckBoxState)
 				{
 					case true:
@@ -297,9 +319,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 			SetSelections();
 			SetCoinJoinStatusWidth();
-			//AmountSortDirection = SortOrder.Decreasing;
 		}
-
 
 		void Coins_CollectionGlobalChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
@@ -321,7 +341,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 		}
-
 
 		private void SetSelections()
 		{
@@ -359,7 +378,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetCoinJoinStatusWidth();
 			}
 		}
-
-#pragma warning restore CS0618 // Type or member is obsolete
 	}
 }
