@@ -20,12 +20,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinListViewModel : ViewModelBase
 	{
-
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 		private readonly ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
-		SourceList<SmartCoin> _rootlist = new SourceList<SmartCoin>();
-		SortExpressionComparer<CoinViewModel> _myComparer;
-		SortExpressionComparer<CoinViewModel> MyComparer
+		private SourceList<SmartCoin> _rootlist = new SourceList<SmartCoin>();
+		private SortExpressionComparer<CoinViewModel> _myComparer;
+
+		private SortExpressionComparer<CoinViewModel> MyComparer
 		{
 			get => _myComparer;
 			set
@@ -140,7 +140,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		void RefreshOrdering()
+		private void RefreshOrdering()
 		{
 			if (AmountSortDirection != SortOrder.None)
 			{
@@ -217,10 +217,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel(Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
 		{
-
 			AmountSortDirection = SortOrder.Increasing;
 			var sortChanged = this.WhenValueChanged(@this => this.MyComparer)
-	  		.Select(_ => 
+	  		.Select(_ =>
 				MyComparer);
 
 			_rootlist.AddRange(Global.WalletService.Coins);
@@ -228,10 +227,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_rootlist.Connect()
 				.Filter(sm => sm.Unspent)
 				.Transform(sc => new CoinViewModel(sc))
-				.OnItemAdded(cvm => 
+				.OnItemAdded(cvm =>
 					cvm.PropertyChanged += Coin_PropertyChanged)
-				.OnItemRemoved(cvm => 
-					cvm.PropertyChanged -= Coin_PropertyChanged)	
+				.OnItemRemoved(cvm =>
+					cvm.PropertyChanged -= Coin_PropertyChanged)
 				.Sort(MyComparer, comparerChanged: sortChanged)
 				.Bind(out _coinViewModels)
 				.Subscribe();
@@ -321,7 +320,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetCoinJoinStatusWidth();
 		}
 
-		void Coins_CollectionGlobalChanged(object sender, NotifyCollectionChangedEventArgs e)
+		private void Coins_CollectionGlobalChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			Dispatcher.UIThread.Post(() =>
 			{
@@ -331,10 +330,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						foreach (var c in e.NewItems.Cast<SmartCoin>())
 							_rootlist.Add(c);
 						break;
+
 					case NotifyCollectionChangedAction.Remove:
 						foreach (var c in e.OldItems.Cast<SmartCoin>())
 							_rootlist.Remove(c);
 						break;
+
 					case NotifyCollectionChangedAction.Reset:
 						_rootlist.Clear();
 						break;
