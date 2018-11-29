@@ -188,11 +188,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel(Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
 		{
-			foreach (var sc in Global.WalletService.Coins)
-			{
-				_rootlist.Add(new CoinViewModel(sc));
-			}
-
+		
 			AmountSortDirection = SortOrder.Decreasing;
 			RefreshOrdering();
 
@@ -201,16 +197,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				MyComparer);
 
 			_rootlist.Connect()
-				.AutoRefresh(sm => sm.Model.Unspent)
-				.Filter(sm => sm.Unspent)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.OnItemAdded(cvm =>
 					cvm.PropertyChanged += Coin_PropertyChanged)
 				.OnItemRemoved(cvm =>
 					cvm.PropertyChanged -= Coin_PropertyChanged)
-				.Sort(MyComparer, SortOptions.UseBinarySearch, comparerChanged: sortChanged, resetThreshold: 50)
+				.Sort(MyComparer, comparerChanged: sortChanged)
 				.Bind(out _coinViewModels)
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe();
+
+			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
+			{
+				_rootlist.Add(new CoinViewModel(sc));
+			}
 
 			Global.WalletService.Coins.CollectionChanged += Coins_CollectionGlobalChanged;
 
@@ -334,25 +333,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void Coins_CollectionGlobalChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			Dispatcher.UIThread.Post(() =>
+			switch (e.Action)
 			{
-				switch (e.Action)
-				{
-					case NotifyCollectionChangedAction.Add:
-						foreach (var c in e.NewItems.Cast<SmartCoin>())
-							_rootlist.Add(new CoinViewModel(c));
-						break;
+				case NotifyCollectionChangedAction.Add:
+					foreach (var c in e.NewItems.Cast<SmartCoin>())
+						_rootlist.Add(new CoinViewModel(c));
+					break;
 
-					case NotifyCollectionChangedAction.Remove:
-						foreach (var c in e.OldItems.Cast<SmartCoin>())
-							_rootlist.Remove(new CoinViewModel(c));
-						break;
+				case NotifyCollectionChangedAction.Remove:
+					foreach (var c in e.OldItems.Cast<SmartCoin>())
+						_rootlist.Remove(new CoinViewModel(c));
+					break;
 
-					case NotifyCollectionChangedAction.Reset:
-						_rootlist.Clear();
-						break;
-				}
-			});
+				case NotifyCollectionChangedAction.Reset:
+					_rootlist.Clear();
+					break;
+			}
 		}
 
 		private void SetSelections()
@@ -382,14 +378,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void Coin_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName == nameof(CoinViewModel.IsSelected))
+			Dispatcher.UIThread.Post(() =>
 			{
-				SetSelections();
-			}
-			if (e.PropertyName == nameof(CoinViewModel.Status))
-			{
-				SetCoinJoinStatusWidth();
-			}
+				if (e.PropertyName == nameof(CoinViewModel.IsSelected))
+				{
+					SetSelections();
+				}
+				if (e.PropertyName == nameof(CoinViewModel.Status))
+				{
+					SetCoinJoinStatusWidth();
+				}
+				if (e.PropertyName == nameof(CoinViewModel.Unspent))
+				{
+					var cvm = (CoinViewModel)sender;
+					if (!cvm.Unspent)
+						_rootlist.Remove(cvm);
+				}
+			});
 		}
 	}
 }

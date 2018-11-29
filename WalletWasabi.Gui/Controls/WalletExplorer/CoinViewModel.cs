@@ -49,6 +49,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				RefreshSmartCoinStatus();
 			});
 
+			model.WhenAnyValue(x => x.Unspent).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(Unspent));
+			});
+
 			Global.IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				RefreshSmartCoinStatus();
