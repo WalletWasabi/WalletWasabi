@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 		private readonly ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
-		private SourceList<SmartCoin> _rootlist = new SourceList<SmartCoin>();
+		private SourceList<CoinViewModel> _rootlist = new SourceList<CoinViewModel>();
 		private SortExpressionComparer<CoinViewModel> _myComparer;
 
 		private SortExpressionComparer<CoinViewModel> MyComparer
@@ -188,6 +188,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel(Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
 		{
+			foreach (var sc in Global.WalletService.Coins)
+			{
+				_rootlist.Add(new CoinViewModel(sc));
+			}
+
 			AmountSortDirection = SortOrder.Decreasing;
 			RefreshOrdering();
 
@@ -195,31 +200,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	  		.Select(_ =>
 				MyComparer);
 
-			_rootlist.AddRange(Global.WalletService.Coins);
-
 			_rootlist.Connect()
+				.AutoRefresh(sm => sm.Model.Unspent)
 				.Filter(sm => sm.Unspent)
-				.Transform(sc => new CoinViewModel(sc))
 				.OnItemAdded(cvm =>
 					cvm.PropertyChanged += Coin_PropertyChanged)
 				.OnItemRemoved(cvm =>
 					cvm.PropertyChanged -= Coin_PropertyChanged)
 				.Sort(MyComparer, SortOptions.UseBinarySearch, comparerChanged: sortChanged, resetThreshold: 50)
 				.Bind(out _coinViewModels)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe();
 
 			Global.WalletService.Coins.CollectionChanged += Coins_CollectionGlobalChanged;
-
-			if (preSelectMinAmountIncludingCondition != null && preSelectMaxAnonSetExcludingCondition != null)
-			{
-				foreach (CoinViewModel coin in Coins)
-				{
-					if (coin.Amount >= preSelectMinAmountIncludingCondition && coin.AnonymitySet < preSelectMaxAnonSetExcludingCondition)
-					{
-						coin.IsSelected = true;
-					}
-				}
-			}
 
 			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
 			{
@@ -280,6 +273,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 			{
+				//Global.WalletService.Coins.First(c => c.Unspent).Unspent = false;
 				switch (SelectAllCheckBoxState)
 				{
 					case true:
@@ -346,12 +340,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					case NotifyCollectionChangedAction.Add:
 						foreach (var c in e.NewItems.Cast<SmartCoin>())
-							_rootlist.Add(c);
+							_rootlist.Add(new CoinViewModel(c));
 						break;
 
 					case NotifyCollectionChangedAction.Remove:
 						foreach (var c in e.OldItems.Cast<SmartCoin>())
-							_rootlist.Remove(c);
+							_rootlist.Remove(new CoinViewModel(c));
 						break;
 
 					case NotifyCollectionChangedAction.Reset:
