@@ -188,7 +188,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel(Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
 		{
-		
 			AmountSortDirection = SortOrder.Decreasing;
 			RefreshOrdering();
 
@@ -346,7 +345,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						foreach (var c in e.OldItems.Cast<SmartCoin>())
 						{
 							var toRemove = _rootlist.Items.First(cvm => cvm.Model == c);
-							if (toRemove!=null)
+							if (toRemove != null)
 								_rootlist.Remove(toRemove);
 						}
 						break;
