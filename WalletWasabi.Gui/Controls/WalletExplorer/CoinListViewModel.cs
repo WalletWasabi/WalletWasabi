@@ -191,7 +191,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			AmountSortDirection = SortOrder.Decreasing;
 			RefreshOrdering();
 
-			var sortChanged = this.WhenValueChanged(@this => this.MyComparer)
+			var sortChanged = this.WhenValueChanged(@this => MyComparer)
 	  		.Select(_ =>
 				MyComparer);
 
