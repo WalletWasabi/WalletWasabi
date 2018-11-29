@@ -197,13 +197,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				MyComparer);
 
 			_rootlist.Connect()
-				.ObserveOn(RxApp.MainThreadScheduler)
 				.OnItemAdded(cvm =>
 					cvm.PropertyChanged += Coin_PropertyChanged)
 				.OnItemRemoved(cvm =>
 					cvm.PropertyChanged -= Coin_PropertyChanged)
 				.Sort(MyComparer, comparerChanged: sortChanged)
 				.Bind(out _coinViewModels)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe();
 
 			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
@@ -346,7 +346,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						foreach (var c in e.OldItems.Cast<SmartCoin>())
 						{
 							var toRemove = _rootlist.Items.First(cvm => cvm.Model == c);
-							_rootlist.Remove(toRemove);
+							if (toRemove!=null)
+								_rootlist.Remove(toRemove);
 						}
 						break;
 
