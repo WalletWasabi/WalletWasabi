@@ -23,9 +23,9 @@
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedCoin}" />
   </i:Interaction.Behaviors>
-<Grid IsSharedSizeScope="True">  
-	<DockPanel LastChildFill="True">
-    <Grid Margin="30 0 0 0" DockPanel.Dock="Top">
+  <Grid IsSharedSizeScope="True">
+    <DockPanel LastChildFill="True">
+      <Grid Margin="30 0 0 0" DockPanel.Dock="Top">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="30" />
           <ColumnDefinition Width="30" />
@@ -37,24 +37,23 @@
         <TextBlock Text="" Width="0" />
         <TextBlock Text="" Grid.Column="1" />
 
-        <controls:SortingArrow Grid.Column="2" Text="Status" SortDirection="{Binding StatusSortDirection} "/>
+        <controls:SortingArrow Grid.Column="2" Text="Status" SortDirection="{Binding StatusSortDirection} " />
 
-        <controls:SortingArrow Grid.Column="3" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}"/>
-        
-        <controls:SortingArrow Grid.Column="4" Text="Privacy" SortDirection="{Binding PrivacySortDirection}"/>
-      
-        <controls:SortingArrow Grid.Column="5" Text="History" SortDirection="{Binding HistorySortDirection}"/>
+        <controls:SortingArrow Grid.Column="3" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}" />
 
+        <controls:SortingArrow Grid.Column="4" Text="Privacy" SortDirection="{Binding PrivacySortDirection}" />
+
+        <controls:SortingArrow Grid.Column="5" Text="History" SortDirection="{Binding HistorySortDirection}" />
       </Grid>
-    <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal" >
-      	<CheckBox Content = "Select All" IsThreeState="True" IsChecked = "{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" ToolTip.Tip="Select All"/>
-		<CheckBox Content = "Select All Private" IsThreeState="True" IsChecked = "{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" ToolTip.Tip="Coins with anonymity set greater than 50." />
+      <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal">
+        <CheckBox Content = "Select All" IsThreeState="True" IsChecked = "{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" ToolTip.Tip="Select All" />
+        <CheckBox Content = "Select All Private" IsThreeState="True" IsChecked = "{Binding SelectPrivateCheckBoxState}" Command="{Binding SelectPrivateCheckBoxCommand}" ToolTip.Tip="Coins with anonymity set greater than 50." />
         <CheckBox Content = "Select All Non-Private" IsThreeState="True" IsChecked = "{Binding SelectNonPrivateCheckBoxState}" Command="{Binding SelectNonPrivateCheckBoxCommand}" ToolTip.Tip="Coins with anonymity set less than 50." />
-    </StackPanel>
-    <ListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
-      <ListBox.ContextMenu>
-        <ContextMenu>
-          <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
+      </StackPanel>
+      <ListBox Items="{Binding Coins}" VirtualizationMode="None" SelectedItem="{Binding Path=SelectedCoin, Mode=TwoWay}">
+        <ListBox.ContextMenu>
+          <ContextMenu>
+            <!--Enqueuing needs password, TODO: jump to password box OR display pw box in context menu + send button-->
             <MenuItem  Command="{Binding EnqueueCoin}" IsVisible="false">
               <MenuItem.Header>
                 <Grid>
