@@ -35,7 +35,6 @@ namespace WalletWasabi.Models
 			{
 				if (Set.TryAdd(item))
 				{
-					HashSetChanged?.Invoke(this, EventArgs.Empty);
 					invoke = true;
 				}
 			}
