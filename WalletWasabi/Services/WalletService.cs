@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ConcurrentCollections;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
@@ -505,7 +504,7 @@ namespace WalletWasabi.Services
 					var coin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false); // Don't inherit locked status from key, that's different.
 					ChaumianClient.State.UpdateCoin(coin);
 					Coins.TryAdd(coin);
-					TransactionCache.Add(tx);
+					TransactionCache.TryAdd(tx);
 					CoinReceived?.Invoke(this, coin);
 					if (coin.Unspent && !(ChaumianClient.OnePiece is null) && coin.Label == "ZeroLink Change")
 					{
@@ -542,7 +541,7 @@ namespace WalletWasabi.Services
 				if (!(foundCoin is null))
 				{
 					foundCoin.SpenderTransactionId = txId;
-					TransactionCache.Add(tx);
+					TransactionCache.TryAdd(tx);
 					CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
 				}
 			}
@@ -1050,7 +1049,7 @@ namespace WalletWasabi.Services
 			}
 
 			ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));
-			MemPool.TransactionHashes.Add(transaction.GetHash());
+			MemPool.TransactionHashes.TryAdd(transaction.GetHash());
 
 			Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted: {transaction.GetHash()}.");
 		}

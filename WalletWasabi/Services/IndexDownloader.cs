@@ -248,18 +248,21 @@ namespace WalletWasabi.Services
 							}
 							BestHeight = filtersResponse.BestHeight;
 
-							using (await IndexLock.LockAsync(Cancel.Token))
+							var filtersList = filtersResponse.Filters.ToList(); // performance
+							for (int i = 0; i < filtersList.Count; i++)
 							{
-								var filtersList = filtersResponse.Filters.ToList(); // performance
-								for (int i = 0; i < filtersList.Count; i++)
+								FilterModel filterModel;
+								using (await IndexLock.LockAsync(Cancel.Token))
 								{
-									var filterModel = FilterModel.FromLine(filtersList[i], BestKnownFilter.BlockHeight + 1);
+									filterModel = FilterModel.FromLine(filtersList[i], BestKnownFilter.BlockHeight + 1);
 
 									Index.Add(filterModel);
 									BestKnownFilter = filterModel;
-									NewFilter?.Invoke(this, filterModel);
 								}
-
+								NewFilter?.Invoke(this, filterModel);
+							}
+							using (await IndexLock.LockAsync(Cancel.Token))
+							{
 								IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 								var startingFilterHeightPlusOne = startingFilter.BlockHeight + 1;
 								var bestKnownFilterHeight = BestKnownFilter.BlockHeight;

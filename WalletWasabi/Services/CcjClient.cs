@@ -182,7 +182,6 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					StateUpdated?.Invoke(this, null);
 					if (maxDelayReplySeconds == minDelayReplySeconds)
 					{
 						delay = minDelayReplySeconds;
@@ -196,6 +195,7 @@ namespace WalletWasabi.Services
 						delay = new Random().Next(minDelayReplySeconds, maxDelayReplySeconds); // delay the response to defend timing attack privacy
 					}
 				}
+				StateUpdated?.Invoke(this, null);
 
 				await Task.Delay(TimeSpan.FromSeconds(delay), Cancel.Token);
 
@@ -662,11 +662,11 @@ namespace WalletWasabi.Services
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 		{
+			var successful = new List<SmartCoin>();
 			using (await MixLock.LockAsync())
 			{
 				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
-				var successful = new List<SmartCoin>();
 				var except = new List<SmartCoin>();
 
 				foreach (SmartCoin coin in coins)
@@ -697,12 +697,15 @@ namespace WalletWasabi.Services
 
 					State.AddCoinToWaitingList(coin);
 					successful.Add(coin);
-					CoinQueued?.Invoke(this, coin);
 					Logger.LogInfo<CcjClient>($"Coin queued: {coin.Index}:{coin.TransactionId}.");
 				}
-
-				return successful;
 			}
+
+			foreach (var coin in successful)
+			{
+				CoinQueued?.Invoke(this, coin);
+			}
+			return successful;
 		}
 
 		public async Task DequeueCoinsFromMixAsync(params SmartCoin[] coins)

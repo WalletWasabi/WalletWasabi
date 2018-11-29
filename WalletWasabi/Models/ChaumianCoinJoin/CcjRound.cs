@@ -64,13 +64,18 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			private set
 			{
+				var invoke = false;
 				lock (PhaseLock)
 				{
 					if (_phase != value)
 					{
 						_phase = value;
-						PhaseChanged?.Invoke(this, value);
+						invoke = true;
 					}
+				}
+				if (invoke)
+				{
+					PhaseChanged?.Invoke(this, value);
 				}
 			}
 		}
@@ -93,13 +98,18 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			private set
 			{
+				var invoke = false;
 				lock (StatusLock)
 				{
 					if (_status != value)
 					{
 						_status = value;
-						StatusChanged?.Invoke(this, value);
+						invoke = true;
 					}
+				}
+				if (invoke)
+				{
+					StatusChanged?.Invoke(this, value);
 				}
 			}
 		}

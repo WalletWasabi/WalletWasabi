@@ -70,7 +70,7 @@ namespace WalletWasabi.Services
 			foreach (var inv in invPayload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX)))
 			{
 				// if we already have it continue;
-				if (!MemPoolService.TransactionHashes.Add(inv.Hash))
+				if (!MemPoolService.TransactionHashes.TryAdd(inv.Hash))
 				{
 					continue;
 				}
