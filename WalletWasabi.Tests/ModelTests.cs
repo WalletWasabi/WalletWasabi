@@ -187,82 +187,96 @@ namespace WalletWasabi.Tests
 		{
 			var set = new ObservableConcurrentHashSet<int>();
 
-			set.HashSetChanged += Set_HashSetChanged;
+			set.CollectionChanged += Set_CollectionChanged;
 			try
 			{
-				// HashSetChanged fire 1
+				// CollectionChanged fire 1
 				set.TryAdd(1);
 				Assert.Contains(1, set);
 				Assert.Single(set);
 
-				// HashSetChanged don't fire
+				// CollectionChanged don't fire
 				set.TryAdd(1);
 				Assert.Contains(1, set);
 				Assert.Single(set);
 
-				// HashSetChanged don't fire
+				// CollectionChanged don't fire
 				set.TryRemove(2);
 				Assert.Single(set);
 
-				// HashSetChanged fire 2
+				// CollectionChanged fire 2
 				set.TryAdd(2);
 				Assert.Contains(2, set);
 				Assert.Equal(2, set.Count);
 
-				// HashSetChanged fire 3
+				// CollectionChanged fire 3
 				set.TryRemove(2);
 				Assert.Contains(1, set);
 				Assert.DoesNotContain(2, set);
 				Assert.Single(set);
 
-				// HashSetChanged fire 4
+				// CollectionChanged fire 4
 				set.TryAdd(3);
 				Assert.Contains(1, set);
 				Assert.Contains(3, set);
 				Assert.Equal(2, set.Count);
 
-				// HashSetChanged fire 5
+				// CollectionChanged fire 5
 				set.Clear();
 				Assert.NotNull(set);
 				Assert.Empty(set);
 			}
 			finally
 			{
-				set.HashSetChanged -= Set_HashSetChanged;
+				set.CollectionChanged -= Set_CollectionChanged;
 			}
 		}
 
-		private long _set_HashSetChanged_InvokeCount = 0;
+		private long _set_CollectionChanged_InvokeCount = 0;
 
-		private void Set_HashSetChanged(object sender, EventArgs e)
+		private void Set_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			Interlocked.Increment(ref _set_HashSetChanged_InvokeCount);
+			Interlocked.Increment(ref _set_CollectionChanged_InvokeCount);
 
-			switch (Interlocked.Read(ref _set_HashSetChanged_InvokeCount))
+			switch (Interlocked.Read(ref _set_CollectionChanged_InvokeCount))
 			{
 				case 1:
 					{
-						Assert.Equal(EventArgs.Empty, e);
+						Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+						Assert.Single(e.NewItems);
+						Assert.Null(e.OldItems);
+						Assert.Equal(1, e.NewItems[0]);
 						break;
 					}
 				case 2:
 					{
-						Assert.Equal(EventArgs.Empty, e);
+						Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+						Assert.Single(e.NewItems);
+						Assert.Null(e.OldItems);
+						Assert.Equal(2, e.NewItems[0]);
 						break;
 					}
 				case 3:
 					{
-						Assert.Equal(EventArgs.Empty, e);
+						Assert.Equal(NotifyCollectionChangedAction.Remove, e.Action);
+						Assert.Null(e.NewItems);
+						Assert.Single(e.OldItems);
+						Assert.Equal(2, e.OldItems[0]);
 						break;
 					}
 				case 4:
 					{
-						Assert.Equal(EventArgs.Empty, e);
+						Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+						Assert.Single(e.NewItems);
+						Assert.Null(e.OldItems);
+						Assert.Equal(3, e.NewItems[0]);
 						break;
 					}
 				case 5:
 					{
-						Assert.Equal(EventArgs.Empty, e);
+						Assert.Equal(NotifyCollectionChangedAction.Reset, e.Action);
+						Assert.Null(e.NewItems);
+						Assert.Null(e.OldItems); // "Reset action must be initialized with no changed items."
 						break;
 					}
 				default: throw new NotSupportedException();

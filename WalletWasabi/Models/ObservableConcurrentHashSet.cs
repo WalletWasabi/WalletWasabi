@@ -12,8 +12,6 @@ namespace WalletWasabi.Models
 		private ConcurrentHashSet<T> Set { get; }
 		private object Lock { get; }
 
-		public event EventHandler HashSetChanged;
-
 		public event NotifyCollectionChangedEventHandler CollectionChanged;
 
 		public ObservableConcurrentHashSet()
@@ -32,7 +30,7 @@ namespace WalletWasabi.Models
 
 		public bool TryAdd(T item)
 		{
-			var invoke=false;
+			var invoke = false;
 			lock (Lock)
 			{
 				if (Set.TryAdd(item))
@@ -42,8 +40,7 @@ namespace WalletWasabi.Models
 			}
 			if (invoke)
 			{
-				HashSetChanged?.Invoke(this, EventArgs.Empty);
-				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new[] { item }));
+				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
 			}
 			return invoke;
 		}
@@ -60,8 +57,7 @@ namespace WalletWasabi.Models
 			}
 			if (invoke)
 			{
-				HashSetChanged?.Invoke(this, EventArgs.Empty);
-				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new[] { item }));
+				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
 			}
 			return invoke;
 		}
@@ -79,7 +75,7 @@ namespace WalletWasabi.Models
 			}
 			if (invoke)
 			{
-				HashSetChanged?.Invoke(this, EventArgs.Empty);
+				// "Reset action must be initialized with no changed items."
 				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 			}
 		}

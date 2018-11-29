@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Transactions = new ObservableCollection<TransactionViewModel>();
 			RewriteTable();
 
-			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged));
+			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
 			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
 			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
 
@@ -207,9 +207,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					TransactionSortDirection = SortOrder.None;
 				}
 				RefreshOrdering();
-
 			}
 		}
+
 		public SortOrder AmountSortDirection
 		{
 			get => _amountSortDirection;
@@ -224,6 +224,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				RefreshOrdering();
 			}
 		}
+
 		public SortOrder TransactionSortDirection
 		{
 			get => _transactionSortDirection;
@@ -238,7 +239,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				RefreshOrdering();
 			}
 		}
-		void RefreshOrdering()
+
+		private void RefreshOrdering()
 		{
 			if (TransactionSortDirection != SortOrder.None)
 			{
