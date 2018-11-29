@@ -7,7 +7,7 @@ using System.Text;
 
 namespace WalletWasabi.Models
 {
-	public class ObservableConcurrentHashSet<T> : IReadOnlyCollection<T>, INotifyCollectionChanged, IObservable<T>
+	public class ObservableConcurrentHashSet<T> : IReadOnlyCollection<T>, INotifyCollectionChanged
 	{
 		private ConcurrentHashSet<T> Set { get; }
 		private object Lock { get; }
@@ -32,51 +32,59 @@ namespace WalletWasabi.Models
 
 		public bool TryAdd(T item)
 		{
+			var invoke=false;
 			lock (Lock)
 			{
 				if (Set.TryAdd(item))
 				{
-					HashSetChanged?.Invoke(this, EventArgs.Empty);
-					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new[] { item }));
-					return true;
+					invoke = true;
 				}
-				return false;
 			}
+			if (invoke)
+			{
+				HashSetChanged?.Invoke(this, EventArgs.Empty);
+				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, new[] { item }));
+			}
+			return invoke;
 		}
 
 		public bool TryRemove(T item)
 		{
+			var invoke = false;
 			lock (Lock)
 			{
 				if (Set.TryRemove(item))
 				{
-					HashSetChanged?.Invoke(this, EventArgs.Empty);
-					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new[] { item }));
-					return true;
+					invoke = true;
 				}
-				return false;
 			}
+			if (invoke)
+			{
+				HashSetChanged?.Invoke(this, EventArgs.Empty);
+				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new[] { item }));
+			}
+			return invoke;
 		}
 
 		public void Clear()
 		{
+			var invoke = false;
 			lock (Lock)
 			{
 				if (Set.Count > 0)
 				{
 					Set.Clear();
-					HashSetChanged?.Invoke(this, EventArgs.Empty);
-					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+					invoke = true;
 				}
+			}
+			if (invoke)
+			{
+				HashSetChanged?.Invoke(this, EventArgs.Empty);
+				CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 			}
 		}
 
 		// Don't lock here, it results deadlock at wallet loading when filters arent synced.
 		public bool Contains(T item) => Set.Contains(item);
-
-		public IDisposable Subscribe(IObserver<T> observer)
-		{
-			throw new NotImplementedException();
-		}
 	}
 }
