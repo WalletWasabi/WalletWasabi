@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using NBitcoin;
 using ReactiveUI;
-using ReactiveUI.Legacy;
 using System;
 using System.Linq;
 using WalletWasabi.Gui.Models;
@@ -88,7 +87,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PrivacySortDirection = SortOrder.None;
 					HistorySortDirection = SortOrder.None;
 				}
-				RefreshOrdering();
+				if (value != SortOrder.None)
+					RefreshOrdering();
 			}
 		}
 
@@ -104,7 +104,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					StatusSortDirection = SortOrder.None;
 					HistorySortDirection = SortOrder.None;
 				}
-				RefreshOrdering();
+				if (value!= SortOrder.None)
+					RefreshOrdering();
 			}
 		}
 
@@ -120,7 +121,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					StatusSortDirection = SortOrder.None;
 					HistorySortDirection = SortOrder.None;
 				}
-				RefreshOrdering();
+				if (value != SortOrder.None)
+					RefreshOrdering();
 			}
 		}
 
@@ -136,7 +138,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					StatusSortDirection = SortOrder.None;
 					PrivacySortDirection = SortOrder.None;
 				}
-				RefreshOrdering();
+				if (value != SortOrder.None)
+					RefreshOrdering();
 			}
 		}
 
@@ -149,21 +152,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				else
 					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Amount);
 			}
-			if (PrivacySortDirection != SortOrder.None)
+			else if (PrivacySortDirection != SortOrder.None)
 			{
 				if (PrivacySortDirection == SortOrder.Increasing)
 					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.AnonymitySet);
 				else
 					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.AnonymitySet);
 			}
-			if (HistorySortDirection != SortOrder.None)
+			else if (HistorySortDirection != SortOrder.None)
 			{
 				if (PrivacySortDirection == SortOrder.Increasing)
 					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.History);
 				else
 					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.History);
 			}
-			if (StatusSortDirection != SortOrder.None)
+			else if (StatusSortDirection != SortOrder.None)
 			{
 				if (PrivacySortDirection == SortOrder.Increasing)
 					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Status);
@@ -217,7 +220,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel(Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
 		{
-			AmountSortDirection = SortOrder.Increasing;
+			AmountSortDirection = SortOrder.Decreasing;
 			var sortChanged = this.WhenValueChanged(@this => this.MyComparer)
 	  		.Select(_ =>
 				MyComparer);
