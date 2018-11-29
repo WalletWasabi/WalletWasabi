@@ -77,7 +77,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetBalance(string walletName)
 		{
-			Money balance = Global.WalletService.Coins.Where(c => c.Unspent).Sum(c => (long?)c.Amount) ?? 0;
+			Money balance = Enumerable.Where(Global.WalletService.Coins, c => c.Unspent).Sum(c => (long?)c.Amount) ?? 0;
 			Title = $"{walletName} ({balance.ToString(false, true)} BTC)";
 		}
 	}

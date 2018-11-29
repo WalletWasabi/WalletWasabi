@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -47,14 +46,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Password = "";
 
-			var onCoinsSetModified = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
-				.ObserveOn(RxApp.MainThreadScheduler);
-
-			var globalCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), null, (first, second) => second.Amount.CompareTo(first.Amount), signalReset: onCoinsSetModified, RxApp.MainThreadScheduler);
-			globalCoins.ChangeTrackingEnabled = true;
-
-			var coins = globalCoins.CreateDerivedCollection(c => c, c => c.Unspent);
-
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
 			UpdateRequiredBtcLabel(registrableRound);
@@ -70,11 +61,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (!(registrableRound?.State?.Denomination is null) && registrableRound.State.Denomination != Money.Zero)
 			{
-				CoinsList = new CoinListViewModel(coins, RequiredBTC, PreSelectMaxAnonSetExcludingCondition);
+				CoinsList = new CoinListViewModel(RequiredBTC, PreSelectMaxAnonSetExcludingCondition);
 			}
 			else
 			{
-				CoinsList = new CoinListViewModel(coins);
+				CoinsList = new CoinListViewModel();
 			}
 
 			//CoinsList = new CoinListViewModel(coins);

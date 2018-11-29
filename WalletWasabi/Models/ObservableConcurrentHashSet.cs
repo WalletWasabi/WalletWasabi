@@ -8,12 +8,13 @@ using System.Text;
 
 namespace WalletWasabi.Models
 {
-	public class ObservableConcurrentHashSet<T> : IReadOnlyCollection<T> // DO NOT IMPLEMENT INotifyCollectionChanged!!! That'll break and crash the software: https://github.com/AvaloniaUI/Avalonia/issues/1988#issuecomment-431691863
+	public class ObservableConcurrentHashSet<T> : IReadOnlyCollection<T>,INotifyCollectionChanged, IObservable<T>// DO NOT IMPLEMENT INotifyCollectionChanged!!! That'll break and crash the software: https://github.com/AvaloniaUI/Avalonia/issues/1988#issuecomment-431691863
 	{
 		private ConcurrentHashSet<T> Set { get; }
 		private object Lock { get; }
 
 		public event EventHandler HashSetChanged; // Keep it as is! Unless with the modification this bug won't come out: https://github.com/AvaloniaUI/Avalonia/issues/1988#issuecomment-431691863
+		public event NotifyCollectionChangedEventHandler CollectionChanged;
 
 		public ObservableConcurrentHashSet()
 		{
@@ -36,6 +37,7 @@ namespace WalletWasabi.Models
 				if (Set.Add(item))
 				{
 					HashSetChanged?.Invoke(this, EventArgs.Empty);
+					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,new[] {item}));
 					return true;
 				}
 				return false;
@@ -49,6 +51,7 @@ namespace WalletWasabi.Models
 				if (Set.TryRemove(item))
 				{
 					HashSetChanged?.Invoke(this, EventArgs.Empty);
+					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, new[] { item }));
 					return true;
 				}
 				return false;
@@ -63,11 +66,17 @@ namespace WalletWasabi.Models
 				{
 					Set.Clear();
 					HashSetChanged?.Invoke(this, EventArgs.Empty);
+					CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
 				}
 			}
 		}
 
 		// Don't lock here, it results deadlock at wallet loading when filters arent synced.
 		public bool Contains(T item) => Set.Contains(item);
+
+		public IDisposable Subscribe(IObserver<T> observer)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

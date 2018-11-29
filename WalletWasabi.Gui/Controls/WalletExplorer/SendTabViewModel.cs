@@ -45,15 +45,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Label = "";
 
-			var onCoinsSetModified = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
-				.ObserveOn(RxApp.MainThreadScheduler);
-
-			var globalCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), null, (first, second) => second.Amount.CompareTo(first.Amount), signalReset: onCoinsSetModified, RxApp.MainThreadScheduler);
-			globalCoins.ChangeTrackingEnabled = true;
-
-			var filteredCoins = globalCoins.CreateDerivedCollection(c => c, c => c.Unspent);
-
-			CoinList = new CoinListViewModel(filteredCoins);
+			CoinList = new CoinListViewModel();
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
