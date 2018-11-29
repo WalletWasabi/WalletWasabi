@@ -426,6 +426,7 @@ namespace WalletWasabi.Services
 			//	if came to our keys
 			//		add coin
 
+			var justUpdate = new List<SmartCoin>();
 			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
 			{
 				// If we already had it, just update the height. Maybe got from mempool to block or reorged.
@@ -436,6 +437,7 @@ namespace WalletWasabi.Services
 					if (tx.Height != Height.MemPool)
 					{
 						foundCoin.Height = tx.Height;
+						justUpdate.Add(foundCoin);
 					}
 				}
 			}
@@ -459,6 +461,8 @@ namespace WalletWasabi.Services
 				}
 			}
 
+			doubleSpends = doubleSpends.Except(justUpdate).ToList(); // We have already been working with this coin, it was in our mempool and we updated it.
+
 			if (doubleSpends.Any())
 			{
 				if (tx.Height == Height.MemPool)
@@ -467,7 +471,7 @@ namespace WalletWasabi.Services
 					if (doubleSpends.All(x => x.RBF && x.Height == Height.MemPool))
 					{
 						// remove double spent coins(if other coin spends it, remove that too and so on) // will add later if they came to our keys
-						foreach (var doubleSpentCoin in doubleSpends)
+						foreach (SmartCoin doubleSpentCoin in doubleSpends)
 						{
 							RemoveCoinRecursively(doubleSpentCoin);
 						}
@@ -480,7 +484,7 @@ namespace WalletWasabi.Services
 				else // new confirmation always enjoys priority
 				{
 					// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
-					foreach (var doubleSpentCoin in doubleSpends)
+					foreach (SmartCoin doubleSpentCoin in doubleSpends)
 					{
 						RemoveCoinRecursively(doubleSpentCoin);
 					}
