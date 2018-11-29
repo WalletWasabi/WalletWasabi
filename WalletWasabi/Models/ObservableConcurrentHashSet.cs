@@ -30,39 +30,53 @@ namespace WalletWasabi.Models
 
 		public bool TryAdd(T item)
 		{
+			var invoke = false;
 			lock (Lock)
 			{
 				if (Set.TryAdd(item))
 				{
 					HashSetChanged?.Invoke(this, EventArgs.Empty);
-					return true;
+					invoke = true;
 				}
-				return false;
 			}
+			if (invoke)
+			{
+				HashSetChanged?.Invoke(this, EventArgs.Empty);
+			}
+			return invoke;
 		}
 
 		public bool TryRemove(T item)
 		{
+			var invoke = false;
 			lock (Lock)
 			{
 				if (Set.TryRemove(item))
 				{
-					HashSetChanged?.Invoke(this, EventArgs.Empty);
-					return true;
+					invoke = true;
 				}
-				return false;
 			}
+			if (invoke)
+			{
+				HashSetChanged?.Invoke(this, EventArgs.Empty);
+			}
+			return invoke;
 		}
 
 		public void Clear()
 		{
+			var invoke = false;
 			lock (Lock)
 			{
 				if (Set.Count > 0)
 				{
 					Set.Clear();
-					HashSetChanged?.Invoke(this, EventArgs.Empty);
+					invoke = true;
 				}
+			}
+			if (invoke)
+			{
+				HashSetChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
