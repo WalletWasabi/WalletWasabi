@@ -32,6 +32,11 @@ namespace WalletWasabi.Gui.Controls
 
 		public SortingArrow()
 		{
+			if (!Design.IsDesignMode)
+			{
+				Background = (IBrush)Application.Current.Resources["ThemeBackgroundBrush"];
+			}
+
 			HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
 			_iconPath = new Path()
 			{
@@ -59,10 +64,10 @@ namespace WalletWasabi.Gui.Controls
 						Orientation = Orientation.Horizontal, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
 						Children =
 						{
-							_iconPath,
-							new Line() {StartPoint = new Point(0, 0), EndPoint = new Point(0, 20), StrokeThickness = 1, Stroke = Brushes.White } }
+							_iconPath
 						}
 					}
+				}
 			};
 
 			Content = stackPnl;
