@@ -425,14 +425,14 @@ namespace WalletWasabi.Services
 			//		add coin
 
 			var justUpdate = new List<SmartCoin>();
-			for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
+			// If tx height is mempool then don't, otherwise update the height.
+			if (tx.Height != Height.MemPool)
 			{
-				// If we already had it, just update the height. Maybe got from mempool to block or reorged.
-				SmartCoin foundCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
-				if (foundCoin != default)
+				for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
 				{
-					// If tx height is mempool then don't, otherwise update the height.
-					if (tx.Height != Height.MemPool)
+					// If we already had it, just update the height. Maybe got from mempool to block or reorged.
+					SmartCoin foundCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
+					if (foundCoin != default)
 					{
 						foundCoin.Height = tx.Height;
 						justUpdate.Add(foundCoin);
