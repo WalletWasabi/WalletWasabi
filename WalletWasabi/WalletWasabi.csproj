@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NBitcoin" Version="4.1.1.71" />
+    <PackageReference Include="NBitcoin" Version="4.1.1.72" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.8.4" />
   </ItemGroup>
 
