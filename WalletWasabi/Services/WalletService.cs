@@ -506,11 +506,21 @@ namespace WalletWasabi.Services
 					{
 						mixin += spentOwnCoins.Min(x => x.Mixin);
 					}
-					var coin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false); // Don't inherit locked status from key, that's different.
+
+					SmartCoin coin = justUpdate.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
+					if (coin is null)
+					{
+						coin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false); // Don't inherit locked status from key, that's different.
+
+						Coins.TryAdd(coin);
+						TransactionCache.TryAdd(tx);
+						CoinReceived?.Invoke(this, coin);
+					}
+					else
+					{
+						coin.Height = tx.Height;
+					}
 					ChaumianClient.State.UpdateCoin(coin);
-					Coins.TryAdd(coin);
-					TransactionCache.TryAdd(tx);
-					CoinReceived?.Invoke(this, coin);
 					if (coin.Unspent && !(ChaumianClient.OnePiece is null) && coin.Label == "ZeroLink Change")
 					{
 						Task.Run(async () =>

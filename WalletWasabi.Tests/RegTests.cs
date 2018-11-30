@@ -1537,11 +1537,10 @@ namespace WalletWasabi.Tests
 
 				Assert.True(wallet.Coins.All(x => x.Confirmed));
 
-				// Test coin count
+				// Test coin basic count.
 				var coinCount = wallet.Coins.Count;
 				var to = wallet.GetReceiveKey("foo");
 				var res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(to.GetP2wpkhScript(), Money.Coins(0.2345m), "bar") }, 2, allowUnconfirmed: true);
-				Debug.WriteLine(res.Transaction.Transaction);
 				await wallet.SendTransactionAsync(res.Transaction);
 				Assert.Equal(coinCount + 2, wallet.Coins.Count);
 				Assert.Equal(2, wallet.Coins.Count(x => !x.Confirmed));
