@@ -198,8 +198,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_rootlist.Connect()
 				.OnItemAdded(cvm =>
 					cvm.PropertyChanged += Coin_PropertyChanged)
-				.OnItemRemoved(cvm =>
-					cvm.PropertyChanged -= Coin_PropertyChanged)
+				//.OnItemRemoved(cvm => //TODO: possible memory leak. If I uncomment this line, that Unspent propchange not triggered in some cases => spent money stays in list
+				//	cvm.PropertyChanged -= Coin_PropertyChanged)
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold:5)
 				.Bind(out _coinViewModels)
 				.ObserveOn(RxApp.MainThreadScheduler)
