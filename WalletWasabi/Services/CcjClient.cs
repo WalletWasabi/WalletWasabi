@@ -662,6 +662,8 @@ namespace WalletWasabi.Services
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 		{
+			if (coins is null || !coins.Any()) return Enumerable.Empty<SmartCoin>();
+
 			var successful = new List<SmartCoin>();
 			using (await MixLock.LockAsync())
 			{
@@ -710,6 +712,8 @@ namespace WalletWasabi.Services
 
 		public async Task DequeueCoinsFromMixAsync(params SmartCoin[] coins)
 		{
+			if (coins is null || !coins.Any()) return;
+
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
 				try
@@ -732,6 +736,8 @@ namespace WalletWasabi.Services
 
 		public async Task DequeueCoinsFromMixAsync(params (uint256 txid, uint index)[] coins)
 		{
+			if (coins is null || !coins.Any()) return;
+
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
 				try
@@ -777,6 +783,8 @@ namespace WalletWasabi.Services
 
 		private async Task DequeueCoinsFromMixNoLockAsync(params (uint256 txid, uint index)[] coins)
 		{
+			if (coins is null || !coins.Any()) return;
+
 			List<Exception> exceptions = new List<Exception>();
 
 			foreach (var coinReference in coins)
