@@ -60,8 +60,6 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<SmartCoin> CoinSpentOrSpenderConfirmed;
 
-		public event EventHandler<SmartCoin> CoinReceived;
-
 		public event EventHandler<Block> NewBlockProcessed;
 
 		public Network Network => IndexDownloader.Network;
@@ -514,7 +512,6 @@ namespace WalletWasabi.Services
 
 						Coins.TryAdd(coin);
 						TransactionCache.TryAdd(tx);
-						CoinReceived?.Invoke(this, coin);
 					}
 					else
 					{

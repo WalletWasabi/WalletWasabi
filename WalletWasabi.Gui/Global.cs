@@ -6,6 +6,7 @@ using NBitcoin.Protocol.Behaviors;
 using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -250,35 +251,38 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("WalletService started.");
 			}
 			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
-			WalletService.CoinReceived += OnCoinReceived;
+			WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
 		}
 
-		private static void OnCoinReceived(object sender, SmartCoin coin)
+		private static void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				foreach (SmartCoin coin in e.NewItems)
 				{
-					Process.Start(new ProcessStartInfo
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 					{
-						FileName = "notify-send",
-						Arguments = $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
-						CreateNoWindow = true
-					});
-				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					Process.Start(new ProcessStartInfo
+						Process.Start(new ProcessStartInfo
+						{
+							FileName = "notify-send",
+							Arguments = $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
+							CreateNoWindow = true
+						});
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 					{
-						FileName = "osascript",
-						Arguments = $"-e display notification \"Received {coin.Amount.ToString(false, true)} BTC\" with title \"Wasabi\"",
-						CreateNoWindow = true
-					});
+						Process.Start(new ProcessStartInfo
+						{
+							FileName = "osascript",
+							Arguments = $"-e display notification \"Received {coin.Amount.ToString(false, true)} BTC\" with title \"Wasabi\"",
+							CreateNoWindow = true
+						});
+					}
+					//else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
+					//{
+					//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
+					//}
 				}
-				//else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
-				//{
-				//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
-				//}
 			}
 			catch (Exception ex)
 			{
@@ -290,7 +294,7 @@ namespace WalletWasabi.Gui
 		{
 			if (WalletService != null)
 			{
-				WalletService.CoinReceived -= OnCoinReceived;
+				WalletService.Coins.CollectionChanged -= Coins_CollectionChanged;
 			}
 			CancelWalletServiceInitialization?.Cancel();
 			CancelWalletServiceInitialization = null;
