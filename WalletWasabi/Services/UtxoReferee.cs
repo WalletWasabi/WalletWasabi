@@ -21,8 +21,6 @@ namespace WalletWasabi.Services
 		/// </summary>
 		private ConcurrentDictionary<OutPoint, (int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)> BannedUtxos { get; }
 
-		public AsyncLock BannedUtxosLock { get; }
-
 		public string BannedUtxosFilePath => Path.Combine(FolderPath, $"BannedUtxos{Network}.txt");
 
 		public RPCClient RpcClient { get; }
@@ -40,7 +38,6 @@ namespace WalletWasabi.Services
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
 
 			BannedUtxos = new ConcurrentDictionary<OutPoint, (int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)>();
-			BannedUtxosLock = new AsyncLock();
 
 			Directory.CreateDirectory(FolderPath);
 
@@ -89,148 +86,133 @@ namespace WalletWasabi.Services
 
 		public async Task BanUtxosAsync(int severity, DateTimeOffset timeOfBan, bool forceNoted, long bannedForRound, params OutPoint[] toBan)
 		{
-			using (await BannedUtxosLock.LockAsync())
+			if (RoundConfig.DosSeverity == 0)
 			{
-				if (RoundConfig.DosSeverity == 0)
+				return;
+			}
+
+			var lines = new List<string>();
+			var updated = false;
+			foreach (var utxo in toBan)
+			{
+				(int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)? foundElem = null;
+				if (BannedUtxos.TryGetValue(utxo, out (int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound) fe))
 				{
-					return;
+					foundElem = fe;
+					bool bannedForTheSameRound = foundElem.Value.bannedForRound == bannedForRound;
+					if (bannedForTheSameRound && (!forceNoted || foundElem.Value.isNoted))
+					{
+						continue; // We would be simply duplicating this ban.
+					}
 				}
 
-				var lines = new List<string>();
-				var updated = false;
-				foreach (var utxo in toBan)
+				var isNoted = true;
+				if (forceNoted)
 				{
-					(int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)? foundElem = null;
-					if (BannedUtxos.TryGetValue(utxo, out (int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound) fe))
+					isNoted = true;
+				}
+				else
+				{
+					if (RoundConfig.DosNoteBeforeBan.Value)
 					{
-						foundElem = fe;
-						bool bannedForTheSameRound = foundElem.Value.bannedForRound == bannedForRound;
-						if (bannedForTheSameRound && (!forceNoted || foundElem.Value.isNoted))
-						{
-							continue; // We would be simply duplicating this ban.
-						}
-					}
-
-					var isNoted = true;
-					if (forceNoted)
-					{
-						isNoted = true;
-					}
-					else
-					{
-						if (RoundConfig.DosNoteBeforeBan.Value)
-						{
-							if (foundElem.HasValue)
-							{
-								isNoted = false;
-							}
-						}
-						else
+						if (foundElem.HasValue)
 						{
 							isNoted = false;
 						}
 					}
-					if (BannedUtxos.TryAdd(utxo, (severity, timeOfBan, isNoted, bannedForRound)))
-					{
-						string line = BannedRecordToLine(utxo, severity, timeOfBan, isNoted, bannedForRound);
-						lines.Add(line);
-					}
 					else
 					{
-						var elem = BannedUtxos[utxo];
-						if (elem.isNoted != isNoted || elem.bannedForRound != bannedForRound)
-						{
-							BannedUtxos[utxo] = (elem.severity, elem.timeOfBan, isNoted, bannedForRound);
-							updated = true;
-						}
+						isNoted = false;
 					}
-
-					Logger.LogInfo<UtxoReferee>($"UTXO {(isNoted ? "noted" : "banned")} with severity: {severity}. UTXO: {utxo.N}:{utxo.Hash} for disrupting Round {bannedForRound}.");
 				}
-
-				if (updated) // If at any time we set updated then we must update the whole thing.
+				if (BannedUtxos.TryAdd(utxo, (severity, timeOfBan, isNoted, bannedForRound)))
 				{
-					var allLines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.isNoted}:{x.Value.bannedForRound}");
-					await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines);
+					string line = BannedRecordToLine(utxo, severity, timeOfBan, isNoted, bannedForRound);
+					lines.Add(line);
 				}
-				else if (lines.Count != 0) // If we don't have to update the whole thing, we must check if we added a line and so only append.
+				else
 				{
-					await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
+					var elem = BannedUtxos[utxo];
+					if (elem.isNoted != isNoted || elem.bannedForRound != bannedForRound)
+					{
+						BannedUtxos[utxo] = (elem.severity, elem.timeOfBan, isNoted, bannedForRound);
+						updated = true;
+					}
 				}
+
+				Logger.LogInfo<UtxoReferee>($"UTXO {(isNoted ? "noted" : "banned")} with severity: {severity}. UTXO: {utxo.N}:{utxo.Hash} for disrupting Round {bannedForRound}.");
+			}
+
+			if (updated) // If at any time we set updated then we must update the whole thing.
+			{
+				var allLines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.isNoted}:{x.Value.bannedForRound}");
+				await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines);
+			}
+			else if (lines.Count != 0) // If we don't have to update the whole thing, we must check if we added a line and so only append.
+			{
+				await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
 			}
 		}
 
 		public async Task UnbanAsync(OutPoint output)
 		{
-			using (await BannedUtxosLock.LockAsync())
+			if (BannedUtxos.TryRemove(output, out _))
 			{
-				if (BannedUtxos.TryRemove(output, out _))
-				{
-					IEnumerable<string> lines = BannedUtxos.Select(x => BannedRecordToLine(x.Key, x.Value.severity, x.Value.timeOfBan, x.Value.isNoted, x.Value.bannedForRound));
-					await File.WriteAllLinesAsync(BannedUtxosFilePath, lines);
-					Logger.LogInfo<UtxoReferee>($"UTXO unbanned: {output.N}:{output.Hash}.");
-				}
+				IEnumerable<string> lines = BannedUtxos.Select(x => BannedRecordToLine(x.Key, x.Value.severity, x.Value.timeOfBan, x.Value.isNoted, x.Value.bannedForRound));
+				await File.WriteAllLinesAsync(BannedUtxosFilePath, lines);
+				Logger.LogInfo<UtxoReferee>($"UTXO unbanned: {output.N}:{output.Hash}.");
 			}
 		}
 
 		public async Task<(int severity, TimeSpan bannedRemaining, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)?> TryGetBannedAsync(OutPoint outpoint, bool notedToo)
 		{
-			using (await BannedUtxosLock.LockAsync())
+			if (BannedUtxos.TryGetValue(outpoint, out (int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound) bannedElem))
 			{
-				if (BannedUtxos.TryGetValue(outpoint, out (int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound) bannedElem))
+				int maxBan = (int)TimeSpan.FromHours(RoundConfig.DosDurationHours.Value).TotalMinutes;
+				var bannedRemaining = DateTimeOffset.UtcNow - bannedElem.timeOfBan;
+				int banLeftMinutes = maxBan - (int)bannedRemaining.TotalMinutes;
+				if (banLeftMinutes > 0)
 				{
-					int maxBan = (int)TimeSpan.FromHours(RoundConfig.DosDurationHours.Value).TotalMinutes;
-					var bannedRemaining = DateTimeOffset.UtcNow - bannedElem.timeOfBan;
-					int banLeftMinutes = maxBan - (int)bannedRemaining.TotalMinutes;
-					if (banLeftMinutes > 0)
+					if (bannedElem.isNoted)
 					{
-						if (bannedElem.isNoted)
+						if (notedToo)
 						{
-							if (notedToo)
-							{
-								return (bannedElem.severity, bannedRemaining, bannedElem.timeOfBan, true, bannedElem.bannedForRound);
-							}
-							else
-							{
-								return null;
-							}
+							return (bannedElem.severity, bannedRemaining, bannedElem.timeOfBan, true, bannedElem.bannedForRound);
 						}
 						else
 						{
-							return (bannedElem.severity, bannedRemaining, bannedElem.timeOfBan, false, bannedElem.bannedForRound);
+							return null;
 						}
 					}
 					else
 					{
-						await UnbanAsync(outpoint);
+						return (bannedElem.severity, bannedRemaining, bannedElem.timeOfBan, false, bannedElem.bannedForRound);
 					}
 				}
-				return null;
+				else
+				{
+					await UnbanAsync(outpoint);
+				}
 			}
+			return null;
 		}
 
 		public int CountBanned(bool notedToo)
 		{
-			using (BannedUtxosLock.Lock())
+			if (notedToo)
 			{
-				if (notedToo)
-				{
-					return BannedUtxos.Count;
-				}
-				else
-				{
-					return BannedUtxos.Count(x => !x.Value.isNoted);
-				}
+				return BannedUtxos.Count;
+			}
+			else
+			{
+				return BannedUtxos.Count(x => !x.Value.isNoted);
 			}
 		}
 
 		public void Clear()
 		{
-			using (BannedUtxosLock.Lock())
-			{
-				BannedUtxos.Clear();
-				File.Delete(BannedUtxosFilePath);
-			}
+			BannedUtxos.Clear();
+			File.Delete(BannedUtxosFilePath);
 		}
 
 		internal static string BannedRecordToLine(OutPoint utxo, int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)
