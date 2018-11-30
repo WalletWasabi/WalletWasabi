@@ -135,8 +135,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					try
 					{
 						(uint256 TransactionId, uint Index)[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => (x.Model.TransactionId, x.Model.Index)).ToArray();
-						if (toDequeue!=null && toDequeue.Length!=0) 
+						if (toDequeue != null && toDequeue.Any())
+						{
 							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue);
+						}
 					}
 					catch
 					{
