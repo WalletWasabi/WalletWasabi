@@ -212,22 +212,30 @@ namespace WalletWasabi.Services
 				// Load in dummy mempool
 				if (File.Exists(TransactionsFilePath))
 				{
-					string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
-					var serializedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString);
-
-					foreach (SmartTransaction tx in serializedTransactions.Where(x => !x.Confirmed))
+					try
 					{
-						try
-						{
-							await SendTransactionAsync(tx);
+						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
+						var serializedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString);
 
-							ProcessTransaction(tx);
-						}
-						catch (Exception ex)
+						foreach (SmartTransaction tx in serializedTransactions.Where(x => !x.Confirmed))
 						{
-							Logger.LogWarning<WalletService>(ex);
+							try
+							{
+								await SendTransactionAsync(tx);
+
+								ProcessTransaction(tx);
+							}
+							catch (Exception ex)
+							{
+								Logger.LogWarning<WalletService>(ex);
+							}
 						}
 					}
+					catch(Exception ex)
+					{
+						Logger.LogWarning<WalletService>(ex);
+					}
+
 					try
 					{
 						File.Delete(TransactionsFilePath);
