@@ -386,6 +386,7 @@ namespace WalletWasabi.Services
 		{
 			uint256 txId = tx.GetHash();
 
+			bool justUpdate = false;
 			if (tx.Height.Type == HeightType.Chain)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
@@ -398,6 +399,7 @@ namespace WalletWasabi.Services
 					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
 					{
 						foundTx.SetHeight(tx.Height);
+						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
 					}
 				}
 			}
@@ -406,86 +408,53 @@ namespace WalletWasabi.Services
 				return; // We don't care about non-witness transactions for other than mempool cleanup.
 			}
 
-			//iterate tx
-			//	if already have the coin
-			//		if NOT mempool
-			//			update height
-
-			//if double spend
-			//	if mempool
-			//		if all double spent coins are mempool and RBF
-			//			remove double spent coins(if other coin spends it, remove that too and so on) // will add later if they came to our keys
-			//		else
-			//			return
-			//	else // new confirmation always enjoys priority
-			//		remove double spent coins recursively(if other coin spends it, remove that too and so on)// will add later if they came to our keys
-
-			//iterate tx
-			//	if came to our keys
-			//		add coin
-
-			var justUpdate = new List<SmartCoin>();
-			// If tx height is mempool then don't, otherwise update the height.
-			if (tx.Height != Height.MemPool)
+			if (!justUpdate) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
-				for (var i = 0; i < tx.Transaction.Outputs.Count; i++)
+				var doubleSpends = new List<SmartCoin>();
+				foreach (SmartCoin coin in Coins)
 				{
-					// If we already had it, just update the height. Maybe got from mempool to block or reorged.
-					SmartCoin foundCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
-					if (foundCoin != default)
+					var spent = false;
+					foreach (TxoRef spentOutput in coin.SpentOutputs)
 					{
-						foundCoin.Height = tx.Height;
-						justUpdate.Add(foundCoin);
+						foreach (TxIn txin in tx.Transaction.Inputs)
+						{
+							if (spentOutput.TransactionId == txin.PrevOut.Hash && spentOutput.Index == txin.PrevOut.N) // Don't do (spentOutput == txin.PrevOut), it's faster this way, because it won't check for null.
+							{
+								doubleSpends.Add(coin);
+								spent = true;
+								break;
+							}
+						}
+						if (spent) break;
 					}
 				}
-			}
 
-			var doubleSpends = new List<SmartCoin>();
-			foreach (SmartCoin coin in Coins)
-			{
-				var spent = false;
-				foreach (TxoRef spentOutput in coin.SpentOutputs)
+				if (doubleSpends.Any())
 				{
-					foreach (TxIn txin in tx.Transaction.Inputs)
+					if (tx.Height == Height.MemPool)
 					{
-						if (spentOutput.TransactionId == txin.PrevOut.Hash && spentOutput.Index == txin.PrevOut.N) // Don't do (spentOutput == txin.PrevOut), it's faster this way, because it won't check for null.
+						// if all double spent coins are mempool and RBF
+						if (doubleSpends.All(x => x.RBF && x.Height == Height.MemPool))
 						{
-							doubleSpends.Add(coin);
-							spent = true;
-							break;
+							// remove double spent coins (if other coin spends it, remove that too and so on)
+							// will add later if they came to our keys
+							foreach (SmartCoin doubleSpentCoin in doubleSpends)
+							{
+								RemoveCoinRecursively(doubleSpentCoin);
+							}
+						}
+						else
+						{
+							return;
 						}
 					}
-					if (spent) break;
-				}
-			}
-
-			doubleSpends = doubleSpends.Except(justUpdate).ToList(); // We have already been working with this coin, it was in our mempool and we updated it.
-
-			if (doubleSpends.Any())
-			{
-				if (tx.Height == Height.MemPool)
-				{
-					// if all double spent coins are mempool and RBF
-					if (doubleSpends.All(x => x.RBF && x.Height == Height.MemPool))
+					else // new confirmation always enjoys priority
 					{
-						// remove double spent coins (if other coin spends it, remove that too and so on)
-						// will add later if they came to our keys
+						// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
 						foreach (SmartCoin doubleSpentCoin in doubleSpends)
 						{
 							RemoveCoinRecursively(doubleSpentCoin);
 						}
-					}
-					else
-					{
-						return;
-					}
-				}
-				else // new confirmation always enjoys priority
-				{
-					// remove double spent coins recursively (if other coin spends it, remove that too and so on), will add later if they came to our keys
-					foreach (SmartCoin doubleSpentCoin in doubleSpends)
-					{
-						RemoveCoinRecursively(doubleSpentCoin);
 					}
 				}
 			}
@@ -505,41 +474,47 @@ namespace WalletWasabi.Services
 						mixin += spentOwnCoins.Min(x => x.Mixin);
 					}
 
-					SmartCoin coin = justUpdate.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
-					if (coin is null)
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false); // Don't inherit locked status from key, that's different.
+																																																										 // If we didn't have it.
+					if (Coins.TryAdd(newCoin))
 					{
-						coin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false); // Don't inherit locked status from key, that's different.
-
-						Coins.TryAdd(coin);
 						TransactionCache.TryAdd(tx);
-					}
-					else
-					{
-						coin.Height = tx.Height;
-					}
-					ChaumianClient.State.UpdateCoin(coin);
-					if (coin.Unspent && !(ChaumianClient.OnePiece is null) && coin.Label == "ZeroLink Change")
-					{
-						Task.Run(async () =>
+
+						// If it's a dequeued change, then queue it.
+						if (newCoin.Unspent && !(ChaumianClient.OnePiece is null) && newCoin.Label == "ZeroLink Change")
 						{
-							try
+							Task.Run(async () =>
 							{
-								await ChaumianClient.QueueCoinsToMixAsync(ChaumianClient.OnePiece, coin);
-							}
-							catch (Exception ex)
-							{
-								Logger.LogError<WalletService>(ex);
-							}
-						});
+								try
+								{
+									await ChaumianClient.QueueCoinsToMixAsync(ChaumianClient.OnePiece, newCoin);
+								}
+								catch (Exception ex)
+								{
+									Logger.LogError<WalletService>(ex);
+								}
+							});
+						}
+
+						// Make sure there's always 21 clean keys generated and indexed.
+						KeyManager.AssertCleanKeysIndexed(21, foundKey.IsInternal());
+
+						if (foundKey.IsInternal())
+						{
+							// Make sure there's always 14 internal locked keys generated and indexed.
+							KeyManager.AssertLockedInternalKeysIndexed(14);
+						}
 					}
-
-					// Make sure there's always 21 clean keys generated and indexed.
-					KeyManager.AssertCleanKeysIndexed(21, foundKey.IsInternal());
-
-					if (foundKey.IsInternal())
+					else // If we had this coin already.
 					{
-						// Make sure there's always 14 internal locked keys generated and indexed.
-						KeyManager.AssertLockedInternalKeysIndexed(14);
+						if (newCoin.Height != Height.MemPool) // Update the height of this old coin we already had.
+						{
+							SmartCoin oldCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
+							if (oldCoin != null) // Just to be sure, it is a concurrent collection.
+							{
+								oldCoin.Height = newCoin.Height;
+							}
+						}
 					}
 				}
 			}

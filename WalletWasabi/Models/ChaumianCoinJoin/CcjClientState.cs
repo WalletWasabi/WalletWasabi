@@ -26,35 +26,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			Rounds = new List<CcjClientRound>();
 		}
 
-		public void UpdateCoin(SmartCoin coin)
-		{
-			lock (StateLock)
-			{
-				SmartCoin found = WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).FirstOrDefault(x => x == coin);
-				if (found != default)
-				{
-					if (WaitingList.Keys.Contains(coin))
-					{
-						coin.CoinJoinInProgress = true;
-						WaitingList.Remove(found);
-						WaitingList.Add(coin, DateTimeOffset.UtcNow);
-						return;
-					}
-
-					foreach (CcjClientRound round in Rounds)
-					{
-						if (round.CoinsRegistered.Contains(coin))
-						{
-							coin.CoinJoinInProgress = true;
-							round.CoinsRegistered.Remove(found);
-							round.CoinsRegistered.Add(coin);
-							return;
-						}
-					}
-				}
-			}
-		}
-
 		public void AddCoinToWaitingList(SmartCoin coin)
 		{
 			lock (StateLock)
