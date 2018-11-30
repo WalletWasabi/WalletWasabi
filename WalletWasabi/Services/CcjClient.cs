@@ -732,6 +732,8 @@ namespace WalletWasabi.Services
 
 		public async Task DequeueCoinsFromMixAsync(params (uint256 txid, uint index)[] coins)
 		{
+			if (coins == null || coins.Length == 0) return;
+
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
 				try
