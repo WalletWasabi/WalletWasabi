@@ -5,6 +5,7 @@ using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -1535,6 +1536,20 @@ namespace WalletWasabi.Tests
 				Assert.Contains(block.Transactions, x => x.GetHash() == tx0Id);
 
 				Assert.True(wallet.Coins.All(x => x.Confirmed));
+
+				// Test coin count
+				var coinCount = wallet.Coins.Count;
+				var to = wallet.GetReceiveKey("foo");
+				var res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(to.GetP2wpkhScript(), Money.Coins(0.2345m), "bar") }, 2, allowUnconfirmed: true);
+				Debug.WriteLine(res.Transaction.Transaction);
+				await wallet.SendTransactionAsync(res.Transaction);
+				Assert.Equal(coinCount + 2, wallet.Coins.Count);
+				Assert.Equal(2, wallet.Coins.Count(x => !x.Confirmed));
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
+				await rpc.GenerateAsync(1);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
+				Assert.Equal(coinCount + 2, wallet.Coins.Count);
+				Assert.Equal(0, wallet.Coins.Count(x => !x.Confirmed));
 			}
 			finally
 			{

@@ -470,7 +470,8 @@ namespace WalletWasabi.Services
 					// if all double spent coins are mempool and RBF
 					if (doubleSpends.All(x => x.RBF && x.Height == Height.MemPool))
 					{
-						// remove double spent coins(if other coin spends it, remove that too and so on) // will add later if they came to our keys
+						// remove double spent coins (if other coin spends it, remove that too and so on)
+						// will add later if they came to our keys
 						foreach (SmartCoin doubleSpentCoin in doubleSpends)
 						{
 							RemoveCoinRecursively(doubleSpentCoin);
