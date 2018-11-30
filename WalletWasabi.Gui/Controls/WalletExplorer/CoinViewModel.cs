@@ -54,6 +54,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(Unspent));
 			});
 
+			this.WhenAnyValue(x => x.Status).Subscribe(_ => 
+			{
+				this.RaisePropertyChanged(nameof(ToolTip));
+			});
+
 			Global.IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				RefreshSmartCoinStatus();
@@ -138,7 +143,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				this.RaiseAndSetIfChanged(ref _smartCoinStatus, value);
-				this.RaisePropertyChanged(nameof(ToolTip));
 			}
 		}
 
