@@ -200,7 +200,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					cvm.PropertyChanged += Coin_PropertyChanged)
 				.OnItemRemoved(cvm =>
 					cvm.PropertyChanged -= Coin_PropertyChanged)
-				.Sort(MyComparer, comparerChanged: sortChanged)
+				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold:5)
 				.Bind(out _coinViewModels)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe();
