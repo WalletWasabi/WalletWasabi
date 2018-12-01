@@ -352,7 +352,7 @@ namespace WalletWasabi.Services
 		{
 			using (await CoinJoinsLock.LockAsync())
 			{
-				if (UnconfirmedCoinJoins.Count < 24)
+				if (UnconfirmedCoinJoins.Count < 7) // ToDo, size limits must be checked here, it should be 24, it's only temporarily lowered now.
 				{
 					return false;
 				}
@@ -378,7 +378,7 @@ namespace WalletWasabi.Services
 					}
 				}
 
-				return UnconfirmedCoinJoins.Count >= 24;
+				return UnconfirmedCoinJoins.Count >= 7; // ToDo, size limits must be checked here, it should be 24, it's only temporarily lowered now.
 			}
 		}
 
