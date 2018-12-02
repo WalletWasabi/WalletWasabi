@@ -15,19 +15,19 @@ namespace WalletWasabi.Gui.Converters
 			{
 				if (phase == CcjRoundPhase.InputRegistration)
 				{
-					return "Registration";
+					return "Registration...";
 				}
 				else if (phase == CcjRoundPhase.ConnectionConfirmation)
 				{
-					return "Connection Confirmation";
+					return "Connection Confirmation...";
 				}
 				else if (phase == CcjRoundPhase.OutputRegistration)
 				{
-					return "Output Registration";
+					return "Output Registration...";
 				}
 				else if (phase == CcjRoundPhase.Signing)
 				{
-					return "Signing";
+					return "Signing...";
 				}
 
 				throw new InvalidOperationException();
