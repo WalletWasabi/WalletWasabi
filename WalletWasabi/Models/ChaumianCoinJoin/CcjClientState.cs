@@ -207,6 +207,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
+		public CcjClientRound GetLatestRoundOrDefault()
+		{
+			lock (StateLock)
+			{
+				return Rounds.LastOrDefault();
+			}
+		}
+
 		public CcjClientRound GetMostAdvancedRoundOrDefault()
 		{
 			lock (StateLock)

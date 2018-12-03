@@ -35,6 +35,8 @@ namespace WalletWasabi.Services
 		public Uri CcjHostUri { get; }
 		private IPEndPoint TorSocks5EndPoint { get; }
 
+		private decimal? CoordinatorFeepercentToCheck { get; set; }
+
 		/// <summary>
 		/// Used to avoid address reuse as much as possible but still not bloating the wallet.
 		/// </summary>
@@ -70,6 +72,7 @@ namespace WalletWasabi.Services
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
 			TorSocks5EndPoint = torSocks5EndPoint;
+			CoordinatorFeepercentToCheck = null;
 			SatoshiClient = new SatoshiClient(ccjHostUri, torSocks5EndPoint);
 
 			_running = 0;
@@ -176,7 +179,15 @@ namespace WalletWasabi.Services
 					CcjClientRound registrableRound = State.GetRegistrableRoundOrDefault();
 					if (registrableRound != default)
 					{
-						if (!registrableRound.State.HaveEnoughQueued(State.GetAllQueuedCoinAmounts().ToArray()))
+						// If the coordinator increases fees, don't register. Let the users register manually again.
+						bool dequeueBecauseCoordinatorFeeChanged = false;
+						if (CoordinatorFeepercentToCheck != default)
+						{
+							dequeueBecauseCoordinatorFeeChanged = registrableRound.State.CoordinatorFeePercent > CoordinatorFeepercentToCheck;
+						}
+
+						if (!registrableRound.State.HaveEnoughQueued(State.GetAllQueuedCoinAmounts().ToArray())
+							|| dequeueBecauseCoordinatorFeeChanged)
 						{
 							await DequeueAllCoinsFromMixNoLockAsync();
 						}
@@ -668,6 +679,10 @@ namespace WalletWasabi.Services
 			using (await MixLock.LockAsync())
 			{
 				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+
+				// Every time the user enqueues (intentionally writes in password) then the coordinator fee percent must be noted and dequeue later if changes.
+				CcjClientRound latestRound = State.GetLatestRoundOrDefault();
+				CoordinatorFeepercentToCheck = latestRound?.State?.CoordinatorFeePercent;
 
 				var except = new List<SmartCoin>();
 
