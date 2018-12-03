@@ -274,7 +274,7 @@ namespace WalletWasabi.Gui
 						Process.Start(new ProcessStartInfo
 						{
 							FileName = "osascript",
-							Arguments = $"-e display notification \"Received {coin.Amount.ToString(false, true)} BTC\" with title \"Wasabi\"",
+							Arguments = $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"",
 							CreateNoWindow = true
 						});
 					}
