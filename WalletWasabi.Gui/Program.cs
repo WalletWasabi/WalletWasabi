@@ -18,15 +18,6 @@ namespace WalletWasabi.Gui
 		private static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
-			var rpc = new RPCClient(new RPCCredentialString { UserPassword = new System.Net.NetworkCredential("bitcoinuser", "Polip69") }, Network.Main);
-			WalletWasabi.Models.AllFeeEstimate estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, true, true);
-			foreach (var est in estimations.Estimations)
-			{
-				Console.WriteLine($"{est.Key} {est.Value}");
-			}
-
-			Console.ReadKey();
-			return;
 			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
 			StatusBarViewModel statusBar = null;
 			try
