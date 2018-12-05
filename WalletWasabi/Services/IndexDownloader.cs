@@ -209,7 +209,11 @@ namespace WalletWasabi.Services
 							FiltersResponse filtersResponse = null;
 							try
 							{
-								filtersResponse = await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
+								using (var timeout = new CancellationTokenSource(10_000))
+								using (var ct = CancellationTokenSource.CreateLinkedTokenSource(Cancel.Token, timeout.Token))
+								{
+									filtersResponse = await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, ct.Token ).WithAwaitCancellationAsync(ct.Token, 300);
+								}
 								// NOT GenSocksServErr
 								DoNotGenSocksServFail();
 							}
@@ -226,6 +230,14 @@ namespace WalletWasabi.Services
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;
 
+								HandleIfGenSocksServFail(ex);
+
+								throw;
+							}
+							catch (OperationCanceledException ex)
+							{
+								TorStatus = TorStatus.Running;
+								BackendStatus = BackendStatus.NotConnected;
 								HandleIfGenSocksServFail(ex);
 
 								throw;
