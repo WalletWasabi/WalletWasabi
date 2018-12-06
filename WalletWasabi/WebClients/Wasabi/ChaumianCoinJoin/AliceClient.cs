@@ -27,14 +27,20 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		public Network Network { get; }
 
 		/// <inheritdoc/>
-		private AliceClient(Network network, Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
+		private AliceClient(Network network, Uri baseUri, Uri backupUri, IPEndPoint torSocks5EndPoint = null) 
+			: base(baseUri, backupUri, torSocks5EndPoint)
 		{
 			Network = network;
 		}
 
 		public static async Task<AliceClient> CreateNewAsync(Network network, InputsRequest request, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
-			AliceClient client = new AliceClient(network, baseUri, torSocks5EndPoint);
+			return await CreateNewAsync(network, request, baseUri, baseUri, torSocks5EndPoint);
+		}
+
+		public static async Task<AliceClient> CreateNewAsync(Network network, InputsRequest request, Uri baseUri, Uri backupUri, IPEndPoint torSocks5EndPoint = null)
+		{
+			AliceClient client = new AliceClient(network, baseUri, backupUri, torSocks5EndPoint);
 			try
 			{
 				using (HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -63,13 +69,18 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 
 		public static async Task<AliceClient> CreateNewAsync(Network network, BitcoinAddress changeOutput, byte[] blindedData, IEnumerable<InputProofModel> inputs, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
+			return await CreateNewAsync(network, changeOutput, blindedData, inputs, baseUri, baseUri, torSocks5EndPoint);
+		}
+
+		public static async Task<AliceClient> CreateNewAsync(Network network, BitcoinAddress changeOutput, byte[] blindedData, IEnumerable<InputProofModel> inputs, Uri baseUri, Uri backupUri, IPEndPoint torSocks5EndPoint = null)
+		{
 			var request = new InputsRequest
 			{
 				BlindedOutputScriptHex = ByteHelpers.ToHex(blindedData),
 				ChangeOutputAddress = changeOutput.ToString(),
 				Inputs = inputs
 			};
-			return await CreateNewAsync(network, request, baseUri, torSocks5EndPoint);
+			return await CreateNewAsync(network, request, baseUri, backupUri, torSocks5EndPoint);
 		}
 
 		/// <returns>null or roundHash</returns>

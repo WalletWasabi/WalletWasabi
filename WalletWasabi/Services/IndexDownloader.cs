@@ -16,6 +16,7 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Exceptions;
 using WalletWasabi.WebClients.Wasabi;
 using System.ComponentModel;
+using WalletWasabi.Bases;
 
 namespace WalletWasabi.Services
 {
@@ -134,9 +135,13 @@ namespace WalletWasabi.Services
 		private CancellationTokenSource Cancel { get; }
 
 		public IndexDownloader(Network network, string indexFilePath, Uri indexHostUri, IPEndPoint torSocks5EndPoint = null)
+			: this(network, indexFilePath, indexHostUri, indexHostUri, torSocks5EndPoint)
+		{}
+
+		public IndexDownloader(Network network, string indexFilePath, Uri indexHostUri, Uri indexHostBackupUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			WasabiClient = new WasabiClient(indexHostUri, torSocks5EndPoint);
+			WasabiClient = new WasabiClient(indexHostUri, indexHostBackupUri, torSocks5EndPoint);
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 
 			Index = new List<FilterModel>();
@@ -229,7 +234,7 @@ namespace WalletWasabi.Services
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;
-
+								TorDisposableBase.UseFallbackClients();
 								HandleIfGenSocksServFail(ex);
 
 								throw;
@@ -238,6 +243,7 @@ namespace WalletWasabi.Services
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;
+								TorDisposableBase.UseFallbackClients();
 								HandleIfGenSocksServFail(ex);
 
 								throw;

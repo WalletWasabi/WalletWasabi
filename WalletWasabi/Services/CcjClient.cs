@@ -33,6 +33,7 @@ namespace WalletWasabi.Services
 
 		public SatoshiClient SatoshiClient { get; }
 		public Uri CcjHostUri { get; }
+		public Uri CcjBackupHostUri { get; }
 		private IPEndPoint TorSocks5EndPoint { get; }
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
@@ -65,15 +66,20 @@ namespace WalletWasabi.Services
 		private CancellationTokenSource Cancel { get; }
 
 		public CcjClient(Network network, BlindingRsaPubKey coordinatorPubKey, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
+			: this(network, coordinatorPubKey, keyManager, ccjHostUri, ccjHostUri, torSocks5EndPoint)
+		{}
+
+		public CcjClient(Network network, BlindingRsaPubKey coordinatorPubKey, KeyManager keyManager, Uri ccjHostUri, Uri ccjBackupHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			AccessCache = new ConcurrentDictionary<HdPubKey, DateTimeOffset>();
 			Network = Guard.NotNull(nameof(network), network);
 			CoordinatorPubKey = Guard.NotNull(nameof(coordinatorPubKey), coordinatorPubKey);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
+			CcjBackupHostUri = Guard.NotNull(nameof(ccjBackupHostUri), ccjBackupHostUri);
 			TorSocks5EndPoint = torSocks5EndPoint;
 			CoordinatorFeepercentToCheck = null;
-			SatoshiClient = new SatoshiClient(ccjHostUri, torSocks5EndPoint);
+			SatoshiClient = new SatoshiClient(ccjHostUri, ccjBackupHostUri, torSocks5EndPoint);
 
 			_running = 0;
 			Cancel = new CancellationTokenSource();
@@ -350,7 +356,7 @@ namespace WalletWasabi.Services
 
 		private async Task RegisterOutputAsync(CcjClientRound ongoingRound)
 		{
-			using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
+			using (var bobClient = new BobClient(CcjHostUri, CcjBackupHostUri, TorSocks5EndPoint))
 			{
 				await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutputAddress, ongoingRound.UnblindedSignature);
 				ongoingRound.PostedOutput = true;
@@ -503,7 +509,7 @@ namespace WalletWasabi.Services
 					AliceClient aliceClient = null;
 					try
 					{
-						aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
+						aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blind.BlindedData, inputProofs, CcjHostUri, CcjBackupHostUri, TorSocks5EndPoint);
 					}
 					catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 					{
@@ -522,7 +528,7 @@ namespace WalletWasabi.Services
 						await DequeueCoinsFromMixNoLockAsync(coinReference);
 						return;
 					}
-					catch (HttpRequestException ex) when (ex.Message.Contains("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
+ 					catch (HttpRequestException ex) when (ex.Message.Contains("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
 					{
 						string[] parts = ex.Message.Split(new[] { "Provided input is not unspent: " }, StringSplitOptions.RemoveEmptyEntries);
 						string spentInputString = parts[1].TrimEnd('.');

@@ -8,18 +8,20 @@ namespace WalletWasabi.Bases
 	public abstract class TorDisposableBase : IDisposable
 	{
 		private static List<TorDisposableBase> Clients = new List<TorDisposableBase>();
+		private static object sync = new object();
 
 		public TorHttpClient TorClient { get; private set; }
 		private TorHttpClient _torHSClient;
 		private TorHttpClient _torCNClient;
 
 		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
-		protected TorDisposableBase(Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		protected TorDisposableBase(Uri baseUri, Uri backupUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			_torHSClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
-			_torCNClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
+			_torCNClient = new TorHttpClient(backupUri, torSocks5EndPoint, isolateStream: true);
 			TorClient = _torHSClient;
-			Clients.Add(this);
+			
+			lock(sync) Clients.Add(this);
 		}
 
 		public TorDisposableBase()
@@ -33,9 +35,12 @@ namespace WalletWasabi.Bases
 
 		public static void UseFallbackClients()
 		{
-			foreach(var client in Clients)
+			lock(sync)
 			{
-				client.UseFallbackClient();
+				foreach(var client in Clients)
+				{
+					client.UseFallbackClient();
+				}
 			}
 		}
 
@@ -51,6 +56,7 @@ namespace WalletWasabi.Bases
 				{
 					_torHSClient?.Dispose();
 					_torCNClient?.Dispose();
+					lock(sync) Clients.Remove(this);
 				}
 
 				_disposedValue = true;

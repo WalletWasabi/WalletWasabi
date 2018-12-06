@@ -34,6 +34,12 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "RegTestBackendUriV3")]
 		public string RegTestBackendUriV3 { get; private set; }
 
+		[JsonProperty(PropertyName = "MainNetBackendClearNetUri")]
+		public string MainNetBackendClearNetUri { get; private set; }
+
+		[JsonProperty(PropertyName = "TestNetBackendClearNetUri")]
+		public string TestNetBackendClearNetUri { get; private set; }
+
 		[JsonProperty(PropertyName = "TestNetBlindingRsaPubKey")]
 		public string TestNetBlindingRsaPubKey { get; private set; }
 
@@ -69,6 +75,23 @@ namespace WalletWasabi.Gui
 			}
 
 			return _backendUri;
+		}
+
+		public Uri GetCurrentBackendClearNetUri()
+		{
+
+			if (Network == Network.Main)
+			{
+				return new Uri(MainNetBackendClearNetUri);
+			}
+			else if (Network == Network.TestNet)
+			{
+				return new Uri(TestNetBackendClearNetUri);
+			}
+			else // RegTest
+			{
+				return new Uri(RegTestBackendUriV3);
+			}
 		}
 
 		private IPEndPoint _torSocks5EndPoint;
@@ -119,13 +142,19 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public Config(Network network, string mainNetBackendUriV3, string testNetBackendUriV3, string regTestBackendUriV3, string mainNetBlindingRsaPubKey, string testNetBlindingRsaPubKey, string regTestBlindingRsaPubKey, string torHost, int? torSocks5Port)
+		public Config(Network network, 
+			string mainNetBackendUriV3, string testNetBackendUriV3, string regTestBackendUriV3, 
+			string mainNetBackendClearNetUri, string testNetBackendClearNetUri, 
+			string mainNetBlindingRsaPubKey, string testNetBlindingRsaPubKey, string regTestBlindingRsaPubKey, string torHost, int? torSocks5Port)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 
 			MainNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBackendUriV3), mainNetBackendUriV3);
 			TestNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUriV3), testNetBackendUriV3);
 			RegTestBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBackendUriV3), regTestBackendUriV3);
+
+			MainNetBackendClearNetUri = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBackendClearNetUri), mainNetBackendClearNetUri);
+			TestNetBackendClearNetUri = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendClearNetUri), testNetBackendClearNetUri);
 
 			MainNetBlindingRsaPubKey = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBlindingRsaPubKey), mainNetBlindingRsaPubKey);
 			TestNetBlindingRsaPubKey = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBlindingRsaPubKey), testNetBlindingRsaPubKey);
@@ -156,6 +185,9 @@ namespace WalletWasabi.Gui
 			MainNetBackendUriV3 = "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/";
 			TestNetBackendUriV3 = "http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/";
 			RegTestBackendUriV3 = "http://localhost:37127/";
+
+			MainNetBackendClearNetUri = "http://wasabiwallet.io/";
+			TestNetBackendClearNetUri = "http://wasabiwallet.co/";
 
 			MainNetBlindingRsaPubKey = "16421152619146079007287475569112871971988560541093277613438316709041030720662622782033859387192362542996510605015506477964793447620206674394713753349543444988246276357919473682408472170521463339860947351211455351029147665615454176157348164935212551240942809518428851690991984017733153078846480521091423447691527000770982623947706172997649440619968085147635776736938871139581019988225202983052255684151711253254086264386774936200194229277914886876824852466823571396538091430866082004097086602287294474304344865162932126041736158327600847754258634325228417149098062181558798532036659383679712667027126535424484318399849";
 			TestNetBlindingRsaPubKey = "19473594448380717274202325076521698699373476167359253614775896809797414915031772455344343455269320444157176520539924715307970060890094127521516100754263825112231545354422893125394219335109864514907655429499954825469485252969706079992227103439161156022844535556626007277544637236136559868400854764962522288139619969507311597914908752685925185380735570791798593290356424409633800092336087046668579610273133131498947353719917407262847070395909920415822288443947309434039008038907229064999576278651443575362470457496666718250346530518268694562965606704838796709743032825816642704620776596590683042135764246115456630753521";
@@ -190,6 +222,9 @@ namespace WalletWasabi.Gui
 			MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
 			TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
 			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
+
+			MainNetBackendClearNetUri = config.MainNetBackendClearNetUri ?? MainNetBackendClearNetUri;
+			TestNetBackendClearNetUri = config.TestNetBackendClearNetUri ?? TestNetBackendClearNetUri;
 
 			MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
 			TestNetBlindingRsaPubKey = config.TestNetBlindingRsaPubKey ?? TestNetBlindingRsaPubKey;
@@ -232,6 +267,16 @@ namespace WalletWasabi.Gui
 			}
 
 			if (!MainNetBackendUriV3.Equals(config.MainNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+
+			if (!MainNetBackendClearNetUri.Equals(config.MainNetBackendClearNetUri, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+
+			if (!TestNetBackendClearNetUri.Equals(config.TestNetBackendClearNetUri, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
 			}

@@ -217,7 +217,7 @@ namespace WalletWasabi.Gui
 				RegTestMemPoolServingNode = null;
 			}
 
-			IndexDownloader = new IndexDownloader(Network, IndexFilePath, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			IndexDownloader = new IndexDownloader(Network, IndexFilePath, Config.GetCurrentBackendUri(), Config.GetCurrentBackendClearNetUri(), Config.GetTorSocks5EndPoint());
 
 			UpdateChecker = new UpdateChecker(IndexDownloader.WasabiClient);
 
@@ -238,7 +238,7 @@ namespace WalletWasabi.Gui
 
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
-			ChaumianClient = new CcjClient(Network, BlindingPubKey, keyManager, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			ChaumianClient = new CcjClient(Network, BlindingPubKey, keyManager, Config.GetCurrentBackendUri(), Config.GetCurrentBackendClearNetUri(), Config.GetTorSocks5EndPoint());
 			WalletService = new WalletService(keyManager, IndexDownloader, ChaumianClient, MemPoolService, Nodes, DataDir);
 
 			ChaumianClient.Start(0, 3);
