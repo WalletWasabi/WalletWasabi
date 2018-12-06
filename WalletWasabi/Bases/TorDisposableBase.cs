@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using WalletWasabi.TorSocks5;
 
@@ -6,12 +7,36 @@ namespace WalletWasabi.Bases
 {
 	public abstract class TorDisposableBase : IDisposable
 	{
-		public TorHttpClient TorClient { get; }
+		private static List<TorDisposableBase> Clients = new List<TorDisposableBase>();
+
+		public TorHttpClient TorClient { get; private set; }
+		private TorHttpClient _torHSClient;
+		private TorHttpClient _torCNClient;
 
 		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
 		protected TorDisposableBase(Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
-			TorClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
+			_torHSClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
+			_torCNClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
+			TorClient = _torHSClient;
+			Clients.Add(this);
+		}
+
+		public TorDisposableBase()
+		{
+		}
+
+		private void UseFallbackClient()
+		{
+			TorClient = _torCNClient;
+		}
+
+		public static void UseFallbackClients()
+		{
+			foreach(var client in Clients)
+			{
+				client.UseFallbackClient();
+			}
 		}
 
 		#region IDisposable Support
@@ -24,7 +49,8 @@ namespace WalletWasabi.Bases
 			{
 				if (disposing)
 				{
-					TorClient?.Dispose();
+					_torHSClient?.Dispose();
+					_torCNClient?.Dispose();
 				}
 
 				_disposedValue = true;
