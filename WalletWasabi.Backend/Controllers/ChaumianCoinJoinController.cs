@@ -178,10 +178,26 @@ namespace WalletWasabi.Backend.Controllers
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
-							// After 24 unconfirmed cj in the mempool dont't let unconfirmed coinjoin to be registered.
-							if (await Coordinator.IsUnconfirmedCoinJoinLimitReachedAsync())
+
+							// Check general limits: https://github.com/bitcoin/bitcoin/issues/14867#issuecomment-444113950
+							// These are not the only limits, but most of the limits are ensured by not letting non-CJ txs here.
+							// ToDo: explore all the limits to check so we can let in non-CJ unconfirmed transactions, too.
+							MempoolEntry entry = await RpcClient.GetMempoolEntryAsync(inputProof.Input.TransactionId);
+							if (entry.AncestorCount >= Helpers.Constants.DefaultAncestorLimit)
 							{
 								return BadRequest("Provided input is from an unconfirmed coinjoin, but the maximum number of unconfirmed coinjoins is reached.");
+							}
+							if (entry.AncestorVirtualSizeBytes >= ((Helpers.Constants.DefaultAncestorSizeLimitKb - 10) * 1000)) // Assume 10kb coinjoin.
+							{
+								return BadRequest("Provided input is from an unconfirmed coinjoin, but the maximum size of unconfirmed coinjoins is reached.");
+							}
+							if (entry.DescendantCount >= Helpers.Constants.DefaultDescendantLimit)
+							{
+								return BadRequest("Provided input is from an unconfirmed coinjoin, but the maximum number of unconfirmed descendants is reached.");
+							}
+							if (entry.DescendantVirtualSizeBytes >= ((Helpers.Constants.DefaultDescendantSizeLimitKb - 10) * 1000)) // Assume 10kb coinjoin.
+							{
+								return BadRequest("Provided input is from an unconfirmed coinjoin, but the maximum size of unconfirmed descendants is reached.");
 							}
 						}
 

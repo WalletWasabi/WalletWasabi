@@ -29,6 +29,30 @@ namespace WalletWasabi.Helpers
 		// There are a maximum of 2,099,999,997,690,000 Bitcoin elements (called satoshis), which are currently most commonly measured in units of 100,000,000 known as BTC. Stated another way, no more than 21 million BTC can ever be created.
 		public const long MaximumNumberOfSatoshis = 2099999997690000;
 
+		/// <summary>
+		/// Default for -limitancestorcount, max number of in-mempool ancestors.
+		/// https://github.com/bitcoin/bitcoin/pull/6771
+		/// </summary>
+		public const int DefaultAncestorLimit = 25;
+
+		/// <summary>
+		/// Default for -limitancestorsize, maximum kilobytes of tx + all in-mempool ancestors.
+		/// https://github.com/bitcoin/bitcoin/pull/6771
+		/// </summary>
+		public const int DefaultAncestorSizeLimitKb = 101;
+
+		/// <summary>
+		/// Default for -limitdescendantcount, max number of in-mempool descendants.
+		/// https://github.com/bitcoin/bitcoin/pull/6771
+		/// </summary>
+		public const int DefaultDescendantLimit = 25;
+
+		/// <summary>
+		/// Default for -limitdescendantsize, maximum kilobytes of in-mempool descendants
+		/// https://github.com/bitcoin/bitcoin/pull/6771
+		/// </summary>
+		public const int DefaultDescendantSizeLimitKb = 101;
+
 		// https://crypto.stackexchange.com/questions/3110/impacts-of-not-using-rsa-exponent-of-65537
 		public static readonly BigInteger RsaPubKeyExponent = BigInteger.ValueOf(65537);
 

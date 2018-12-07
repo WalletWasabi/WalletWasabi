@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -113,6 +115,57 @@ namespace NBitcoin.RPC
 			FeeRate feeRate = new FeeRate(feePerK);
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 			return resp;
+		}
+
+		public static async Task<MempoolEntry> GetMempoolEntryAsync(this RPCClient rpc, uint256 transactionId)
+		{
+			var namedArgs = new Dictionary<string, object>(1)
+			{
+				{ "txid", transactionId.ToString() }
+			};
+			RPCResponse resp = await rpc.SendCommandWithNamedArgsAsync("getmempoolentry", namedArgs);
+
+			var size = int.Parse(resp.Result["size"].ToString());
+			var time = DateTimeOffset.FromUnixTimeSeconds(long.Parse(resp.Result["time"].ToString()));
+			var height = int.Parse(resp.Result["height"].ToString());
+			var descendantcount = int.Parse(resp.Result["descendantcount"].ToString());
+			var descendantsize = int.Parse(resp.Result["descendantsize"].ToString());
+			var ancestorcount = int.Parse(resp.Result["ancestorcount"].ToString());
+			var ancestorsize = int.Parse(resp.Result["ancestorsize"].ToString());
+			var wtxid = uint256.Parse(resp.Result["wtxid"].ToString());
+			var baseFee = Money.Parse(resp.Result["fees"]["base"].ToString());
+			var modifiedFee = Money.Parse(resp.Result["fees"]["modified"].ToString());
+			var ancestorFees = Money.Parse(resp.Result["fees"]["ancestor"].ToString());
+			var descendantFees = Money.Parse(resp.Result["fees"]["descendant"].ToString());
+			var depends = new List<uint256>();
+			foreach (var dep in resp.Result["depends"].Children())
+			{
+				depends.Add(uint256.Parse(dep.ToString()));
+			}
+			var spentby = new List<uint256>();
+			foreach (var spent in resp.Result["spentby"].Children())
+			{
+				spentby.Add(uint256.Parse(spent.ToString()));
+			}
+
+			var entry = new MempoolEntry(
+				transactionId,
+				size,
+				time,
+				height,
+				descendantcount,
+				descendantsize,
+				ancestorcount,
+				ancestorsize,
+				wtxid,
+				baseFee,
+				modifiedFee,
+				ancestorFees,
+				descendantFees,
+				depends,
+				spentby);
+
+			return entry;
 		}
 	}
 }
