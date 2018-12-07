@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
-using Gma.QrCodeNet.Encoding.Versions;
 using Gma.QrCodeNet.Encoding.ReedSolomon;
 
 namespace Gma.QrCodeNet.Encoding.ErrorCorrection

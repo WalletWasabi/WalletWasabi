@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Swagger;
 using WalletWasabi.Logging;
 using WalletWasabi.Interfaces;
-using Microsoft.AspNetCore.HttpOverrides;
 using WalletWasabi.Backend.Middlewares;
 
 namespace WalletWasabi.Backend

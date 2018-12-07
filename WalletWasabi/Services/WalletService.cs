@@ -15,7 +15,6 @@ using NBitcoin;
 using NBitcoin.Policy;
 using NBitcoin.Protocol;
 using Nito.AsyncEx;
-using System.Collections.ObjectModel;
 using WalletWasabi.WebClients.Wasabi;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;

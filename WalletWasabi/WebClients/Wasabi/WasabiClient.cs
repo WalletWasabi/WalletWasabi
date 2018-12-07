@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Services;
-using WalletWasabi.TorSocks5;
 using WalletWasabi.Bases;
 using WalletWasabi.Models;
 using System.Text;
-using NBitcoin.RPC;
 using System.Threading;
 using WalletWasabi.Backend.Models.Responses;
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using Gma.QrCodeNet.Encoding.Positioning;
 using Gma.QrCodeNet.Encoding.Masking;
 
 namespace Gma.QrCodeNet.Encoding.EncodingRegion

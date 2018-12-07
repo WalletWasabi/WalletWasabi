@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Requests;
-using WalletWasabi.TorSocks5;
 using WalletWasabi.Bases;
 
 namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Gma.QrCodeNet.Encoding.Versions;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 {

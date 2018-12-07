@@ -1,6 +1,4 @@
-﻿using Gma.QrCodeNet.Encoding.Positioning;
-
-namespace Gma.QrCodeNet.Encoding
+﻿namespace Gma.QrCodeNet.Encoding
 {
 	public abstract class BitMatrix
 	{
