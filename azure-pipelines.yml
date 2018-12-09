@@ -21,7 +21,7 @@ jobs:
     
 - job: macOS
   pool:
-    vmImage: 'macos10.13'
+    vmImage: 'macOS-10.13'
   steps:
   - script: dotnet build --configuration $(buildConfiguration)
 
