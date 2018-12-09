@@ -41,4 +41,4 @@ jobs:
 #    inputs:
 #      command: test
 #      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
+#      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
