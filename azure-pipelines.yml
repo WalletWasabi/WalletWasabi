@@ -3,18 +3,42 @@
 # Add steps that run tests, create a NuGet package, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
-pool:
-  vmImage: 'ubuntu-16.04', 'macOS-10.13', 'vs2017-win2016'
-
 variables:
   buildConfiguration: 'Debug'
-
-steps:
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
-
-- task: DotNetCoreCLI@2
+  
+jobs:
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - script: dotnet build --configuration $(buildConfiguration)
+  
+  - task: DotNetCoreCLI@2
   inputs:
     command: test
-    projects: '**/*WalletWasabi.Tests/*.csproj'
+    projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+    
+- job: macOS
+  pool:
+    vmImage: 'macos10.13'
+  steps:
+  - script: dotnet build --configuration $(buildConfiguration)
+    
+  - task: DotNetCoreCLI@2
+  inputs:
+    command: test
+    projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+  
+- job: Windows
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: dotnet build --configuration $(buildConfiguration)
+    
+  - task: DotNetCoreCLI@2
+  inputs:
+    command: test
+    projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
     arguments: '--configuration $(buildConfiguration)'
