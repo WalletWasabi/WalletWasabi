@@ -15,7 +15,7 @@ jobs:
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: '--filter Category=RunOnCi' '--configuration $(buildConfiguration)'
+      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
     
 - job: macOS
   pool:
@@ -25,7 +25,7 @@ jobs:
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: '--filter Category=RunOnCi' '--configuration $(buildConfiguration)'
+      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
   
 - job: Windows
   pool:
@@ -35,4 +35,4 @@ jobs:
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: '--filter Category=RunOnCi' '--configuration $(buildConfiguration)'
+      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
