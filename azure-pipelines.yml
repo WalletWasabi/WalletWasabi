@@ -11,28 +11,34 @@ jobs:
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
-  - task: DotNetCoreCLI@2
-    inputs:
-      command: test
-      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
+  - script: 'dotnet build --configuration $(buildConfiguration)'
+# Commented out until Azure Pipelines adds support to .NET Core 2.2
+#  - task: DotNetCoreCLI@2
+#    inputs:
+#      command: test
+#      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+#      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
     
 - job: macOS
   pool:
     vmImage: 'macOS-10.13'
   steps:
-  - task: DotNetCoreCLI@2
-    inputs:
-      command: test
-      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
+  - script: 'dotnet build --configuration $(buildConfiguration)'
+# Commented out until Azure Pipelines adds support to .NET Core 2.2
+#  - task: DotNetCoreCLI@2
+#    inputs:
+#      command: test
+#      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+#      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
   
 - job: Windows
   pool:
     vmImage: 'vs2017-win2016'
   steps:
-  - task: DotNetCoreCLI@2
-    inputs:
-      command: test
-      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+  - script: 'dotnet build --configuration $(buildConfiguration)'
+# Commented out until Azure Pipelines adds support to .NET Core 2.2
+#  - task: DotNetCoreCLI@2
+#    inputs:
+#      command: test
+#      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
       arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
