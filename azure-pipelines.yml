@@ -10,8 +10,8 @@ jobs:
 - job: Linux
   pool:
     vmImage: 'ubuntu-16.04'
-  steps:
 # Commented out until Azure Pipelines adds support to .NET Core 2.2
+#  steps:
 #  - script: 'dotnet build --configuration $(buildConfiguration)'
 #  - task: DotNetCoreCLI@2
 #    inputs:
@@ -22,8 +22,8 @@ jobs:
 - job: macOS
   pool:
     vmImage: 'macOS-10.13'
-  steps:
 # Commented out until Azure Pipelines adds support to .NET Core 2.2
+#  steps:
 #  - script: 'dotnet build --configuration $(buildConfiguration)'
 #  - task: DotNetCoreCLI@2
 #    inputs:
@@ -34,8 +34,8 @@ jobs:
 - job: Windows
   pool:
     vmImage: 'vs2017-win2016'
-  steps:
 # Commented out until Azure Pipelines adds support to .NET Core 2.2
+#  steps:
 #  - script: 'dotnet build --configuration $(buildConfiguration)'
 #  - task: DotNetCoreCLI@2
 #    inputs:
