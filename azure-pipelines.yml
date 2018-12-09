@@ -12,33 +12,33 @@ jobs:
     vmImage: 'ubuntu-16.04'
   steps:
   - script: dotnet build --configuration $(buildConfiguration)
-  
+
   - task: DotNetCoreCLI@2
-  inputs:
-    command: test
-    projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+    inputs:
+      command: test
+      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+      arguments: '--configuration $(buildConfiguration)'
     
 - job: macOS
   pool:
     vmImage: 'macos10.13'
   steps:
   - script: dotnet build --configuration $(buildConfiguration)
-    
+
   - task: DotNetCoreCLI@2
-  inputs:
-    command: test
-    projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+    inputs:
+      command: test
+      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+      arguments: '--configuration $(buildConfiguration)'
   
 - job: Windows
   pool:
     vmImage: 'vs2017-win2016'
   steps:
   - script: dotnet build --configuration $(buildConfiguration)
-    
+  
   - task: DotNetCoreCLI@2
-  inputs:
-    command: test
-    projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+    inputs:
+      command: test
+      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+      arguments: '--configuration $(buildConfiguration)'
