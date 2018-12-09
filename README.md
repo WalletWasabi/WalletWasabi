@@ -4,7 +4,7 @@ Wasabi Wallet, formerly known as HiddenWallet is a [ZeroLink](https://github.com
 HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zkSNACKs/WalletWasabi/tree/hiddenwallet-v0.6) branch of this repository.
 
 | Code Quality | CI Tests | License |
-| :----| :---- | :------ | :------| :------ |
+| :----------- | :------- | :------ |
 | [![CodeFactor][9]][10] | Disabled until CI adds support to .NET Core 2.2 |[![GitHub license][7]][8] |
 
 [7]: https://img.shields.io/github/license/zkSNACKs/WalletWasabi.svg
