@@ -185,6 +185,64 @@ namespace WalletWasabi.Packager
 						var pRcedit = Process.Start(psiRcedit);
 						pRcedit.WaitForExit();
 					}
+					if (target.StartsWith("osx"))
+					{
+						var appbindistdir = currentBinDistDirectory + "app";
+						string appdir = Path.Combine(appbindistdir, "WasabiWallet.App","Contents","MacOS");
+						string resdir = Path.Combine(appbindistdir, "WasabiWallet.App", "Contents", "Resources");
+						string infoFilePath = Path.Combine(appbindistdir, "WasabiWallet.App", "Contents", "Info.plist");
+						IoHelpers.CopyFilesRecursively(new DirectoryInfo(currentBinDistDirectory), new DirectoryInfo(appdir));
+
+						Directory.CreateDirectory(resdir);
+						var iconpath = Path.Combine(new DirectoryInfo(currentBinDistDirectory).Parent.Parent.Parent.FullName,"Assets", "WasabiLogo.icns");
+						File.Copy(iconpath, Path.Combine(resdir, "WasabiLogo.icns"));
+
+						string infoContent = $@"<?xml version=""1.0"" encoding=""UTF - 8""?>
+<!DOCTYPE plist PUBLIC ""-//Apple//DTD PLIST 1.0//EN"" ""http://www.apple.com/DTDs/PropertyList-1.0.dtd"">
+<plist version = ""1.0"">
+<dict>
+	<key>NSAppleScriptEnabled </key>
+	<true/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.developer-tools</string>
+	<key>NSPrincipalClass</key>
+	<string>WasabiWalletApplication</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>CFBundleIconFile</key>
+	<string>WasabiLogo.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>zksnacks.wasabiwallet</string>
+	<key>CFBundleName</key>
+	<string>WasabiWallet</string>
+	<key>CFBundleVersion</key>
+	<string>{versionPrefix}</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.12</string>
+	<key>CFBundleExecutable</key>
+	<string>wassabee</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>{versionPrefix}</string>
+</dict>
+</plist>
+";
+						File.WriteAllText(infoFilePath, infoContent);
+						//https://github.com/Linuxbrew/brew
+						//sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
+						var psiTar = new ProcessStartInfo
+						{
+							FileName = "cmd",
+							RedirectStandardInput = true,
+							WorkingDirectory = binDistDirectory
+						};
+						var tarProcess = Process.Start(psiTar);
+						tarProcess.StandardInput.WriteLine($"wsl genisoimage -V wassabee -D -R -apple -no-pad -o \"WasabiWallet{versionPrefix}.dmg\" osx-x64app && exit");
+						tarProcess.WaitForExit();
+					}
 				}
 			}
 
