@@ -2,12 +2,15 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.TorSocks5
 {
@@ -15,6 +18,8 @@ namespace WalletWasabi.TorSocks5
 	{
 		public IPEndPoint TorSocks5EndPoint { get; }
 		public string LogFile { get; }
+
+		public static bool RequestFallbackAddressUsage { get; private set; } = false;
 
 		public Process TorProcess { get; private set; }
 
@@ -206,7 +211,7 @@ namespace WalletWasabi.TorSocks5
 
 		private CancellationTokenSource Stop { get; }
 
-		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, string dataDirToStartWith)
+		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, string dataDirToStartWith, Uri fallBackTestRequestUri)
 		{
 			Logger.LogInfo<TorProcessManager>("Starting Tor monitor...");
 			Interlocked.Exchange(ref _running, 1);
@@ -224,19 +229,48 @@ namespace WalletWasabi.TorSocks5
 
 							await Task.Delay(torMisbehaviorCheckPeriod, Stop.Token).ConfigureAwait(false);
 
-							if (!(TorHttpClient.TorDoesntWorkSince is null)) // If Tor misbehaves.
+							if (TorHttpClient.TorDoesntWorkSince != null) // If Tor misbehaves.
 							{
 								TimeSpan torMisbehavedFor = (DateTimeOffset.UtcNow - TorHttpClient.TorDoesntWorkSince) ?? TimeSpan.Zero;
 
 								if (torMisbehavedFor > checkIfRunningAfterTorMisbehavedFor)
 								{
-									Logger.LogInfo<TorProcessManager>($"Tor didn't work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
-									Start(true, dataDirToStartWith); // Try starting Tor, if doesn't work it'll be another issue.
-									await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
+									if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx)
+									{
+										if (torEx.RepField == RepField.HostUnreachable)
+										{
+											using (var client = new TorHttpClient(new Uri(fallBackTestRequestUri.DnsSafeHost), TorSocks5EndPoint))
+											{
+												var message = new HttpRequestMessage(HttpMethod.Get, fallBackTestRequestUri);
+												await client.SendAsync(message, Stop.Token);
+											}
+
+											// Check if it changed in the meantime...
+											if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx2 && torEx2.RepField == RepField.HostUnreachable)
+											{
+												// Fallback here...
+												RequestFallbackAddressUsage = true;
+											}
+										}
+									}
+									else
+									{
+										Logger.LogInfo<TorProcessManager>($"Tor didn't work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. Maybe it crashed. Attempting to start it...");
+										Start(true, dataDirToStartWith); // Try starting Tor, if doesn't work it'll be another issue.
+										await Task.Delay(14000, Stop.Token).ConfigureAwait(false);
+									}
 								}
 							}
 						}
 						catch (TaskCanceledException ex)
+						{
+							Logger.LogTrace<TorProcessManager>(ex);
+						}
+						catch (OperationCanceledException ex)
+						{
+							Logger.LogTrace<TorProcessManager>(ex);
+						}
+						catch (TimeoutException ex)
 						{
 							Logger.LogTrace<TorProcessManager>(ex);
 						}
