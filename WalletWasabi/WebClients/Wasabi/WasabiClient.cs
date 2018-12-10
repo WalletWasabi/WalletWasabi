@@ -115,7 +115,7 @@ namespace WalletWasabi.WebClients.Wasabi
 
 		#region software
 
-		public async Task<(Version ClientVersion, int BackendMajorVersion)> GetVersionsAsync(CancellationToken cancel)
+		public async Task<(Version ClientVersion, int BackendMajorVersion)> GetVersionsAsync(CancellationToken cancel, bool setErrorState = true)
 		{
 			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get, HttpStatusCode.OK, "/api/software/versions", cancel: cancel))
 			{
