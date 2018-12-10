@@ -14,6 +14,11 @@ namespace WalletWasabi.Bases
 			TorClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
 		}
 
+		public void SetBaseUri(Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		{
+			TorClient?.SetBaseUri(baseUri, torSocks5EndPoint);
+		}
+
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls

@@ -137,6 +137,8 @@ namespace WalletWasabi.Gui
 
 			TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
 			TorManager.Start(false, DataDir);
+
+			TorProcessManager.FallBackAddressUsageChanged += TorProcessManager_FallBackAddressUsageChanged;
 			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
 
@@ -233,6 +235,15 @@ namespace WalletWasabi.Gui
 
 			IndexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(21));
 			Logger.LogInfo("Start synchronizing filters...");
+		}
+
+		private static void TorProcessManager_FallBackAddressUsageChanged()
+		{
+			if (TorProcessManager.RequestFallbackAddressUsage)
+			{
+				ChaumianClient?.SetHostUri(Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+				IndexDownloader?.SetHostUri(Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			}
 		}
 
 		private static CancellationTokenSource CancelWalletServiceInitialization = null;
@@ -346,6 +357,8 @@ namespace WalletWasabi.Gui
 					RegTestMemPoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
 				}
+
+				TorProcessManager.FallBackAddressUsageChanged -= TorProcessManager_FallBackAddressUsageChanged;
 
 				TorManager?.Dispose();
 				Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));

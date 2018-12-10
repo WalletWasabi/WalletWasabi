@@ -16,12 +16,27 @@ namespace WalletWasabi.TorSocks5
 {
 	public class TorProcessManager : IDisposable
 	{
+		private static bool RequestFallbackAddressUsageBacking = false;
+
 		public IPEndPoint TorSocks5EndPoint { get; }
 		public string LogFile { get; }
 
-		public static bool RequestFallbackAddressUsage { get; private set; } = false;
+		public static bool RequestFallbackAddressUsage
+		{
+			get => RequestFallbackAddressUsageBacking;
+			private set
+			{
+				if (value != RequestFallbackAddressUsage)
+				{
+					RequestFallbackAddressUsageBacking = value;
+					FallBackAddressUsageChanged?.Invoke();
+				}
+			}
+		}
 
 		public Process TorProcess { get; private set; }
+
+		public static event Action FallBackAddressUsageChanged;
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
 		/// <param name="logFile">Opt out of logging with null.</param>
@@ -237,9 +252,11 @@ namespace WalletWasabi.TorSocks5
 								{
 									if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx)
 									{
-										if (torEx.RepField == RepField.HostUnreachable)
+										Logger.LogInfo<TorProcessManager>($"Tor didn't work properly for {(int)torMisbehavedFor.TotalSeconds} seconds. It reported unreachable host. Testing fallback endpoint...");
+
+										if (torEx.RepField == RepField.HostUnreachable && !RequestFallbackAddressUsage) // And fallback wasn't requested already.
 										{
-											using (var client = new TorHttpClient(new Uri(fallBackTestRequestUri.DnsSafeHost), TorSocks5EndPoint))
+											using (var client = new TorHttpClient(new Uri($"{fallBackTestRequestUri.Scheme}://{ fallBackTestRequestUri.DnsSafeHost }"), TorSocks5EndPoint))
 											{
 												var message = new HttpRequestMessage(HttpMethod.Get, fallBackTestRequestUri);
 												await client.SendAsync(message, Stop.Token);
@@ -249,6 +266,7 @@ namespace WalletWasabi.TorSocks5
 											if (TorHttpClient.LatestTorException is TorSocks5FailureResponseException torEx2 && torEx2.RepField == RepField.HostUnreachable)
 											{
 												// Fallback here...
+												Logger.LogInfo<TorProcessManager>($"Fallback endpoint test is successful. Falling back...");
 												RequestFallbackAddressUsage = true;
 											}
 										}
@@ -262,21 +280,18 @@ namespace WalletWasabi.TorSocks5
 								}
 							}
 						}
-						catch (TaskCanceledException ex)
-						{
-							Logger.LogTrace<TorProcessManager>(ex);
-						}
-						catch (OperationCanceledException ex)
-						{
-							Logger.LogTrace<TorProcessManager>(ex);
-						}
-						catch (TimeoutException ex)
-						{
-							Logger.LogTrace<TorProcessManager>(ex);
-						}
 						catch (Exception ex)
 						{
-							Logger.LogDebug<TorProcessManager>(ex);
+							if (ex is TaskCanceledException
+								|| ex is OperationCanceledException
+								|| ex is TimeoutException)
+							{
+								Logger.LogTrace<TorProcessManager>(ex);
+							}
+							else
+							{
+								Logger.LogDebug<TorProcessManager>(ex);
+							}
 						}
 					}
 				}

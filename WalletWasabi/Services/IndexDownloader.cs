@@ -187,6 +187,11 @@ namespace WalletWasabi.Services
 			BestHeight = Height.Unknown; // At this point we don't know it.
 		}
 
+		public void SetHostUri(Uri indexHostUri, IPEndPoint torSocks5EndPoint = null)
+		{
+			WasabiClient?.SetBaseUri(indexHostUri, torSocks5EndPoint);
+		}
+
 		public void Synchronize(TimeSpan requestInterval)
 		{
 			Guard.NotNull(nameof(requestInterval), requestInterval);

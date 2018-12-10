@@ -40,8 +40,8 @@ namespace WalletWasabi.TorSocks5
 
 		public static Exception LatestTorException { get; private set; } = null;
 
-		public Uri DestinationUri { get; }
-		public IPEndPoint TorSocks5EndPoint { get; }
+		public Uri DestinationUri { get; private set; }
+		public IPEndPoint TorSocks5EndPoint { get; private set; }
 
 		public bool IsolateStream { get; }
 
@@ -51,7 +51,14 @@ namespace WalletWasabi.TorSocks5
 
 		public TorHttpClient(Uri baseUri, IPEndPoint torSocks5EndPoint, bool isolateStream = false)
 		{
-			DestinationUri = Guard.NotNull(nameof(baseUri), baseUri);
+			SetBaseUri(baseUri, torSocks5EndPoint);
+			TorSocks5Client = null;
+			IsolateStream = isolateStream;
+		}
+
+		public void SetBaseUri(Uri newBaseUri, IPEndPoint torSocks5EndPoint = null)
+		{
+			DestinationUri = Guard.NotNull(nameof(newBaseUri), newBaseUri);
 			if (DestinationUri.IsLoopback)
 			{
 				TorSocks5EndPoint = null;
@@ -60,8 +67,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				TorSocks5EndPoint = torSocks5EndPoint ?? new IPEndPoint(IPAddress.Loopback, 9050);
 			}
-			TorSocks5Client = null;
-			IsolateStream = isolateStream;
+			DestinationUri = newBaseUri;
 		}
 
 		/// <remarks>
