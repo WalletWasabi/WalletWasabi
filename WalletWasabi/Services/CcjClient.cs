@@ -32,7 +32,7 @@ namespace WalletWasabi.Services
 		private object CustomActiveAddressesLock { get; }
 
 		public SatoshiClient SatoshiClient { get; }
-		public Uri CcjHostUri { get; }
+		public Uri CcjHostUri { get; private set; }
 		private IPEndPoint TorSocks5EndPoint { get; }
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
@@ -70,7 +70,8 @@ namespace WalletWasabi.Services
 			Network = Guard.NotNull(nameof(network), network);
 			CoordinatorPubKey = Guard.NotNull(nameof(coordinatorPubKey), coordinatorPubKey);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
+			SetHostUri(ccjHostUri);
+
 			TorSocks5EndPoint = torSocks5EndPoint;
 			CoordinatorFeepercentToCheck = null;
 			SatoshiClient = new SatoshiClient(ccjHostUri, torSocks5EndPoint);
@@ -85,6 +86,12 @@ namespace WalletWasabi.Services
 			CustomActiveAddresses = new List<BitcoinAddress>();
 			CustomChangeAddressesLock = new object();
 			CustomActiveAddressesLock = new object();
+		}
+
+		public void SetHostUri(Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
+		{
+			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
+			if (SatoshiClient != null) SatoshiClient.SetBaseUri(ccjHostUri, torSocks5EndPoint);
 		}
 
 		public void Start(int minDelayReplySeconds, int maxDelayReplySeconds)

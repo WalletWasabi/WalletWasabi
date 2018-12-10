@@ -16,12 +16,24 @@ namespace WalletWasabi.TorSocks5
 {
 	public class TorProcessManager : IDisposable
 	{
+		private static bool RequestFallbackAddressUsage1 = false;
+
 		public IPEndPoint TorSocks5EndPoint { get; }
 		public string LogFile { get; }
 
-		public static bool RequestFallbackAddressUsage { get; private set; } = false;
+		public static bool RequestFallbackAddressUsage
+		{
+			get => RequestFallbackAddressUsage1;
+			private set
+			{
+				RequestFallbackAddressUsage1 = value;
+				FallBackAddressUsageChanged?.Invoke();
+			}
+		}
 
 		public Process TorProcess { get; private set; }
+
+		public static event Action FallBackAddressUsageChanged;
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
 		/// <param name="logFile">Opt out of logging with null.</param>
@@ -239,7 +251,7 @@ namespace WalletWasabi.TorSocks5
 									{
 										if (torEx.RepField == RepField.HostUnreachable)
 										{
-											using (var client = new TorHttpClient(new Uri(fallBackTestRequestUri.DnsSafeHost), TorSocks5EndPoint))
+											using (var client = new TorHttpClient(new Uri($"{fallBackTestRequestUri.Scheme}://{ fallBackTestRequestUri.DnsSafeHost }"), TorSocks5EndPoint))
 											{
 												var message = new HttpRequestMessage(HttpMethod.Get, fallBackTestRequestUri);
 												await client.SendAsync(message, Stop.Token);
