@@ -189,7 +189,7 @@ namespace WalletWasabi.Services
 
 		public void SetHostUri(Uri indexHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
-			WasabiClient.SetBaseUri(indexHostUri, torSocks5EndPoint);
+			WasabiClient?.SetBaseUri(indexHostUri, torSocks5EndPoint);
 		}
 
 		public void Synchronize(TimeSpan requestInterval)

@@ -16,7 +16,7 @@ namespace WalletWasabi.Bases
 
 		public void SetBaseUri(Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
-			TorClient.SetBaseUri(baseUri, torSocks5EndPoint);
+			TorClient?.SetBaseUri(baseUri, torSocks5EndPoint);
 		}
 
 		#region IDisposable Support

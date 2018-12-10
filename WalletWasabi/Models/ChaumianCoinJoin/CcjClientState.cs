@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -376,6 +377,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 					round.ClearRegistration();
 					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) registration is cleared.");
+				}
+			}
+		}
+
+		public void SetAllAliceBaseUri(Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		{
+			lock (StateLock)
+			{
+				foreach (var aliceClient in Rounds?.Select(x => x.AliceClient))
+				{
+					aliceClient?.SetBaseUri(baseUri, torSocks5EndPoint);
 				}
 			}
 		}

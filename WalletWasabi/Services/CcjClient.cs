@@ -91,7 +91,8 @@ namespace WalletWasabi.Services
 		public void SetHostUri(Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
-			if (SatoshiClient != null) SatoshiClient.SetBaseUri(ccjHostUri, torSocks5EndPoint);
+			SatoshiClient?.SetBaseUri(ccjHostUri, torSocks5EndPoint);
+			State?.SetAllAliceBaseUri(ccjHostUri, torSocks5EndPoint);
 		}
 
 		public void Start(int minDelayReplySeconds, int maxDelayReplySeconds)
