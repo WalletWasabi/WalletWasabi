@@ -33,10 +33,6 @@
     <Style Selector="Menu > MenuItem">
       <Setter Property="Padding" Value="7 0"/>
     </Style>
-
-    <Style Selector="MenuItem">
-      <Setter Property="BorderThickness" Value="0"/>
-    </Style>
   </cont:MetroWindow.Styles>
   <Grid>
     <DockPanel LastChildFill="True">
