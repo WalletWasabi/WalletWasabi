@@ -44,21 +44,10 @@
 
   <ItemGroup>
     <None Remove="Extensions\DummyHack.txt" />
-    <None Remove="msvcp140.dll" />
-    <None Remove="vcruntime140.dll" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Extensions\DummyHack.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="msvcp140.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="vcruntime140.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
