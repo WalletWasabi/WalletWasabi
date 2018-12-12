@@ -230,7 +230,7 @@ namespace WalletWasabi.Services
 							}
 						}
 					}
-					catch(Exception ex)
+					catch (Exception ex)
 					{
 						Logger.LogWarning<WalletService>(ex);
 					}
