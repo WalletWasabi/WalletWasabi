@@ -70,6 +70,7 @@ namespace WalletWasabi.Packager
 			});
 			Console.WriteLine();
 
+			string dmgFilePath = "";
 			if (doPublish)
 			{
 				if (Directory.Exists(binDistDirectory))
@@ -103,7 +104,18 @@ namespace WalletWasabi.Packager
 
 				foreach (string target in targets)
 				{
-					string currentBinDistDirectory = Path.GetFullPath(Path.Combine(binDistDirectory, target));
+					string currentBinDistDirectory;
+					string targetDir = Path.Combine(binDistDirectory, target);
+					string macWasabiAppDir = Path.Combine(targetDir, "Wasabi Wallet.App");
+					string macContentsDir = Path.Combine(macWasabiAppDir, "Contents");
+					if (target.StartsWith("osx"))
+					{
+						currentBinDistDirectory = Path.GetFullPath(Path.Combine(macContentsDir, "MacOS"));
+					}
+					else
+					{
+						currentBinDistDirectory = targetDir;
+					}
 					Console.WriteLine();
 					Console.WriteLine($"{nameof(currentBinDistDirectory)}:\t{currentBinDistDirectory}");
 
@@ -143,7 +155,7 @@ namespace WalletWasabi.Packager
 					var psiPublish = new ProcessStartInfo
 					{
 						FileName = "dotnet",
-						Arguments = $"publish --configuration Release --force --output {currentBinDistDirectory} --self-contained true --runtime {target} /p:VersionPrefix={versionPrefix} --disable-parallel --no-cache",
+						Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" --self-contained true --runtime \"{target}\" /p:VersionPrefix={versionPrefix} --disable-parallel --no-cache",
 						WorkingDirectory = guiProjectDirectory
 					};
 					var pPublish = Process.Start(psiPublish);
@@ -185,63 +197,77 @@ namespace WalletWasabi.Packager
 						var pRcedit = Process.Start(psiRcedit);
 						pRcedit.WaitForExit();
 					}
-					if (target.StartsWith("osx"))
+					else if (target.StartsWith("osx"))
 					{
-						var appbindistdir = currentBinDistDirectory + "app";
-						string appdir = Path.Combine(appbindistdir, "WasabiWallet.App","Contents","MacOS");
-						string resdir = Path.Combine(appbindistdir, "WasabiWallet.App", "Contents", "Resources");
-						string infoFilePath = Path.Combine(appbindistdir, "WasabiWallet.App", "Contents", "Info.plist");
-						IoHelpers.CopyFilesRecursively(new DirectoryInfo(currentBinDistDirectory), new DirectoryInfo(appdir));
+						string resourcesDir = Path.Combine(macContentsDir, "Resources");
+						string infoFilePath = Path.Combine(macContentsDir, "Info.plist");
 
-						Directory.CreateDirectory(resdir);
-						var iconpath = Path.Combine(new DirectoryInfo(currentBinDistDirectory).Parent.Parent.Parent.FullName,"Assets", "WasabiLogo.icns");
-						File.Copy(iconpath, Path.Combine(resdir, "WasabiLogo.icns"));
+						Directory.CreateDirectory(resourcesDir);
+						var iconpath = Path.Combine(guiProjectDirectory, "Assets", "WasabiLogo.icns");
+						File.Copy(iconpath, Path.Combine(resourcesDir, "WasabiLogo.icns"));
 
-						string infoContent = $@"<?xml version=""1.0"" encoding=""UTF - 8""?>
+						string infoContent = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
 <!DOCTYPE plist PUBLIC ""-//Apple//DTD PLIST 1.0//EN"" ""http://www.apple.com/DTDs/PropertyList-1.0.dtd"">
 <plist version = ""1.0"">
 <dict>
-	<key>NSAppleScriptEnabled </key>
-	<true/>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.developer-tools</string>
-	<key>NSPrincipalClass</key>
-	<string>WasabiWalletApplication</string>
-	<key>NSHighResolutionCapable</key>
-	<true/>
-	<key>CFBundleIconFile</key>
-	<string>WasabiLogo.icns</string>
-	<key>CFBundleIdentifier</key>
-	<string>zksnacks.wasabiwallet</string>
-	<key>CFBundleName</key>
-	<string>WasabiWallet</string>
-	<key>CFBundleVersion</key>
-	<string>{versionPrefix}</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.12</string>
-	<key>CFBundleExecutable</key>
-	<string>wassabee</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
+
+	<key>LSArchitecturePriority</key>
+	<array>
+		<string>x86_64</string>
+	</array>
+
+	<key>CFBundleIconFile</key>
+	<string>WasabiLogo.icns</string>
+
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+
 	<key>CFBundleShortVersionString</key>
 	<string>{versionPrefix}</string>
+
+	<key>CFBundleVersion</key>
+	<string>{versionPrefix}</string>
+
+	<key>CFBundleExecutable</key>
+	<string>wassabee</string>
+
+	<key>CFBundleName</key>
+	<string>Wasabi Wallet</string>
+
+	<key>CFBundleIdentifier</key>
+	<string>zksnacks.wasabiwallet</string>
+
+	<key>NSHighResolutionCapable</key>
+	<true/>
+
+	<key>NSAppleScriptEnabled</key>
+	<true/>
+
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.finance</string>
+
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
 </dict>
 </plist>
 ";
 						File.WriteAllText(infoFilePath, infoContent);
-						//https://github.com/Linuxbrew/brew
-						//sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
-						var psiTar = new ProcessStartInfo
+
+						var psiGenIsoImage = new ProcessStartInfo
 						{
 							FileName = "cmd",
 							RedirectStandardInput = true,
 							WorkingDirectory = binDistDirectory
 						};
-						var tarProcess = Process.Start(psiTar);
-						tarProcess.StandardInput.WriteLine($"wsl genisoimage -V wassabee -D -R -apple -no-pad -o \"WasabiWallet{versionPrefix}.dmg\" osx-x64app && exit");
-						tarProcess.WaitForExit();
+						var genIsoImageProcess = Process.Start(psiGenIsoImage);
+						var dmgFileName = $"Wasabi-{versionPrefix}.dmg";
+						dmgFilePath = Path.Combine(binDistDirectory, dmgFileName);
+						genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -V wassabee -D -R -apple -no-pad -o \"{dmgFileName}\" \"{new DirectoryInfo(targetDir).Name}\" && exit");
+						genIsoImageProcess.WaitForExit();
+
+						IoHelpers.DeleteRecursivelyWithMagicDustAsync(targetDir).GetAwaiter().GetResult();
 					}
 				}
 			}
@@ -283,28 +309,6 @@ namespace WalletWasabi.Packager
 							throw new Exception($"{publishedFolder} doesn't exist.");
 						}
 						var newFolderName = $"WasabiLinux-{versionPrefix}";
-						var newFolderPath = Path.Combine(binDistDirectory, newFolderName);
-						Directory.Move(publishedFolder, newFolderPath);
-						publishedFolder = newFolderPath;
-
-						var psiTar = new ProcessStartInfo
-						{
-							FileName = "cmd",
-							RedirectStandardInput = true,
-							WorkingDirectory = binDistDirectory
-						};
-						var tarProcess = Process.Start(psiTar);
-						tarProcess.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
-						tarProcess.WaitForExit();
-					}
-					else // if (target.StartsWith("osx", StringComparison.OrdinalIgnoreCase))
-					{
-						Console.WriteLine("Create OSX .tar.gz");
-						if (!Directory.Exists(publishedFolder))
-						{
-							throw new Exception($"{publishedFolder} doesn't exist.");
-						}
-						var newFolderName = $"WasabiOsx-{versionPrefix}";
 						var newFolderPath = Path.Combine(binDistDirectory, newFolderName);
 						Directory.Move(publishedFolder, newFolderPath);
 						publishedFolder = newFolderPath;
