@@ -1,9 +1,11 @@
 ﻿using Avalonia;
+using Avalonia.Gtk3;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Logging;
@@ -81,6 +83,29 @@ namespace WalletWasabi.Gui
 			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
 		}
 
-		private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
+		private static AppBuilder BuildAvaloniaApp()
+		{
+			var result = AppBuilder.Configure<App>();
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				result
+					.UseWin32()
+					.UseDirect2D1();
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				result.UseGtk3(new Gtk3PlatformOptions
+				{
+					UseDeferredRendering = true,
+					UseGpuAcceleration = true
+				}).UseSkia();
+			}
+			{
+				result.UsePlatformDetect();
+			}
+
+			return result;
+		}
 	}
 }

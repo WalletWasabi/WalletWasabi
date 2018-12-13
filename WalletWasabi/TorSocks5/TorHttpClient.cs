@@ -20,7 +20,25 @@ namespace WalletWasabi.TorSocks5
 {
 	public class TorHttpClient : IDisposable
 	{
-		public static DateTimeOffset? TorDoesntWorkSince { get; private set; } = null; // This sets the first time the request failed with exception.
+		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
+
+		public static DateTimeOffset? TorDoesntWorkSince
+		{
+			get => TorDoesntWorkSinceBacking;
+			private set
+			{
+				if (value != TorDoesntWorkSinceBacking)
+				{
+					TorDoesntWorkSinceBacking = value;
+					if (value is null)
+					{
+						LatestTorException = null;
+					}
+				}
+			}
+		}
+
+		public static Exception LatestTorException { get; private set; } = null;
 
 		public Uri DestinationUri { get; }
 		public IPEndPoint TorSocks5EndPoint { get; }
@@ -112,26 +130,29 @@ namespace WalletWasabi.TorSocks5
 			}
 			catch (TaskCanceledException ex)
 			{
-				if (TorDoesntWorkSince == null)
-				{
-					TorDoesntWorkSince = DateTimeOffset.UtcNow;
-				}
+				SetTorNotWorkingState(ex);
 				throw new OperationCanceledException(ex.Message, ex, cancel);
 			}
-			catch
+			catch (Exception ex)
 			{
-				if (TorDoesntWorkSince == null)
-				{
-					TorDoesntWorkSince = DateTimeOffset.UtcNow;
-				}
+				SetTorNotWorkingState(ex);
 				throw;
 			}
+		}
+
+		private static void SetTorNotWorkingState(Exception ex)
+		{
+			if (TorDoesntWorkSince == null)
+			{
+				TorDoesntWorkSince = DateTimeOffset.UtcNow;
+			}
+			LatestTorException = ex;
 		}
 
 		/// <remarks>
 		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
 		/// </remarks>
-		private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
 		{
 			Guard.NotNull(nameof(request), request);
 

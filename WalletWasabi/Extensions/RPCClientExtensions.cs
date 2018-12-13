@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -112,6 +115,13 @@ namespace NBitcoin.RPC
 			Money feePerK = new Money(staoshiPerBytes * 1000, MoneyUnit.Satoshi);
 			FeeRate feeRate = new FeeRate(feePerK);
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
+			return resp;
+		}
+
+		public static async Task<RPCResponse> TestMempoolAcceptAsync(this RPCClient rpc, bool allowHighFees, params Transaction[] transactions)
+		{
+			RPCResponse resp = await rpc.SendCommandAsync("testmempoolaccept", transactions.Select(x => x.ToHex()).ToArray(), allowHighFees);
+
 			return resp;
 		}
 	}
