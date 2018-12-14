@@ -20,7 +20,7 @@ namespace WalletWasabi.Packager
 			// 3. Sign with Packager.
 			var doPublish = true;
 			var doSign = false;
-			var pfxPassword = "dontcommit";
+			var pfxPassword = "???";
 
 			string pfxPath = "C:\\digicert.pfx";
 			string packagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
@@ -70,7 +70,6 @@ namespace WalletWasabi.Packager
 			});
 			Console.WriteLine();
 
-			string dmgFilePath = "";
 			if (doPublish)
 			{
 				if (Directory.Exists(binDistDirectory))
@@ -262,12 +261,49 @@ namespace WalletWasabi.Packager
 							WorkingDirectory = binDistDirectory
 						};
 						var genIsoImageProcess = Process.Start(psiGenIsoImage);
-						var dmgFileName = $"Wasabi-{versionPrefix}.dmg";
-						dmgFilePath = Path.Combine(binDistDirectory, dmgFileName);
-						genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -V wassabee -D -R -apple -no-pad -o \"{dmgFileName}\" \"{new DirectoryInfo(targetDir).Name}\" && exit");
+						string uncompressedDmgFileName = $"Wasabi-{versionPrefix}-uncompressed.dmg";
+						string uncompressedDmgFilePath = Path.Combine(binDistDirectory, uncompressedDmgFileName);
+						string dmgFileName = $"Wasabi-{versionPrefix}.dmg";
+
+						// http://www.nathancoulson.com/proj_cross_tools.php
+						// -D: Do not use deep directory relocation, and instead just pack them in the way we see them
+						// -V: Volume Label
+						// -no-pad: Do not pad the end by 150 sectors (300kb). As it is not a cd image, not required
+						// -apple -r: Creates a .dmg image
+						genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(targetDir).Name}\" && exit");
 						genIsoImageProcess.WaitForExit();
 
+						// cd ~
+						// git clone https://github.com/planetbeing/libdmg-hfsplus.git && cd libdmg-hfsplus
+						// https://github.com/planetbeing/libdmg-hfsplus/issues/14
+						// mkdir build && cd build
+						// sudo apt-get install zlib1g-dev
+						// cmake ..
+						// sudo apt-get install libssl1.0-dev
+						// make
+						var psiDmg = new ProcessStartInfo
+						{
+							FileName = "cmd",
+							RedirectStandardInput = true,
+							WorkingDirectory = binDistDirectory
+						};
+						var dmgProcess = Process.Start(psiDmg);
+						dmgProcess.StandardInput.WriteLine($"wsl ~/libdmg-hfsplus/build/dmg/./dmg dmg \"{uncompressedDmgFileName}\" \"{dmgFileName}\" && exit");
+						dmgProcess.WaitForExit();
+
+						// In case compression above doesn't work:
+						//var psiBzip = new ProcessStartInfo
+						//{
+						//	FileName = "cmd",
+						//	RedirectStandardInput = true,
+						//	WorkingDirectory = binDistDirectory
+						//};
+						//var bzipProcess = Process.Start(psiBzip);
+						//bzipProcess.StandardInput.WriteLine($"wsl bzip2 \"{uncompressedDmgFileName}\" && exit");
+						//bzipProcess.WaitForExit();
+
 						IoHelpers.DeleteRecursivelyWithMagicDustAsync(targetDir).GetAwaiter().GetResult();
+						File.Delete(uncompressedDmgFilePath);
 					}
 				}
 			}
