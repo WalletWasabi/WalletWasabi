@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
+using NBitcoin.Protocol;
 using NBitcoin.RPC;
+using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Crypto;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
@@ -178,10 +181,14 @@ namespace WalletWasabi.Backend.Controllers
 							{
 								return BadRequest("Provided input is neither confirmed, nor is from an unconfirmed coinjoin.");
 							}
-							// After 24 unconfirmed cj in the mempool dont't let unconfirmed coinjoin to be registered.
-							if (await Coordinator.IsUnconfirmedCoinJoinLimitReachedAsync())
+
+							// Check if mempool would accept a fake transaction created with the registered inputs.
+							// This will catch ascendant/descendant count and size limits for example.
+							var result = await RpcClient.TestMempoolAcceptAsync(new Coin(inputProof.Input.ToOutPoint(), getTxOutResponse.TxOut));
+
+							if (!result.accept)
 							{
-								return BadRequest("Provided input is from an unconfirmed coinjoin, but the maximum number of unconfirmed coinjoins is reached.");
+								return BadRequest($"Provided input is from an unconfirmed coinjoin, but a limit is reached: {result.rejectReason}");
 							}
 						}
 
@@ -261,7 +268,7 @@ namespace WalletWasabi.Backend.Controllers
 					// Progress round if needed.
 					if (round.CountAlices() >= round.AnonymitySet)
 					{
-						await round.RemoveAlicesIfInputsSpentAsync();
+						await round.RemoveAlicesIfAnInputRefusedByMempoolAsync();
 
 						if (round.CountAlices() >= round.AnonymitySet)
 						{
@@ -330,7 +337,7 @@ namespace WalletWasabi.Backend.Controllers
 						// Progress round if needed.
 						if (round.AllAlices(AliceState.ConnectionConfirmed))
 						{
-							IEnumerable<Alice> alicesToBan = await round.RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
+							IEnumerable<Alice> alicesToBan = await round.RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
 							if (alicesToBan.Any())
 							{

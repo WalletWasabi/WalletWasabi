@@ -1,5 +1,6 @@
 ﻿using NBitcoin;
 using NBitcoin.RPC;
+using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -427,7 +428,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									{
 										// Only abort if less than two one Alice is registered.
 										// Don't ban anyone, it's ok if they lost connection.
-										await RemoveAlicesIfInputsSpentAsync();
+										await RemoveAlicesIfAnInputRefusedByMempoolAsync();
 										int aliceCountAfterInputRegistrationTimeout = CountAlices();
 										if (aliceCountAfterInputRegistrationTimeout < 2)
 										{
@@ -451,7 +452,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										// THEN connection confirmation will go with 2 alices in every round
 										// Therefore Alices those didn't confirm, nor requested dsconnection should be banned:
 										IEnumerable<Alice> alicesToBan1 = GetAlicesBy(AliceState.InputsRegistered);
-										IEnumerable<Alice> alicesToBan2 = await RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
+										IEnumerable<Alice> alicesToBan2 = await RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
 										IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
 
@@ -851,9 +852,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			return numberOfRemovedAlices;
 		}
 
-		public async Task<IEnumerable<Alice>> RemoveAlicesIfInputsSpentAsync()
+		public async Task<IEnumerable<Alice>> RemoveAlicesIfAnInputRefusedByMempoolAsync()
 		{
 			var alicesRemoved = new List<Alice>();
+			var key = new Key();
 
 			using (RoundSynchronizerLock.Lock())
 			{
@@ -864,12 +866,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				foreach (Alice alice in Alices)
 				{
-					foreach (OutPoint input in alice.Inputs.Select(y => y.Outpoint))
+					foreach (Coin input in alice.Inputs)
 					{
-						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+						// Check if mempool would accept a fake transaction created with the registered inputs.
+						// This will catch ascendant/descendant count and size limits for example.
+						var result = await RpcClient.TestMempoolAcceptAsync(input);
 
-						// Check if inputs are unspent.
-						if (getTxOutResponse is null)
+						if (!result.accept)
 						{
 							alicesRemoved.Add(alice);
 							Alices.Remove(alice);

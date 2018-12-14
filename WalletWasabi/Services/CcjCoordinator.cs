@@ -19,7 +19,6 @@ namespace WalletWasabi.Services
 		private List<CcjRound> Rounds { get; }
 		private AsyncLock RoundsListLock { get; }
 
-		private List<uint256> UnconfirmedCoinJoins { get; }
 		private List<uint256> CoinJoins { get; }
 		public string CoinJoinsFilePath => Path.Combine(FolderPath, $"CoinJoins{Network}.txt");
 		private AsyncLock CoinJoinsLock { get; }
@@ -49,7 +48,6 @@ namespace WalletWasabi.Services
 			RoundsListLock = new AsyncLock();
 
 			CoinJoins = new List<uint256>();
-			UnconfirmedCoinJoins = new List<uint256>();
 			CoinJoinsLock = new AsyncLock();
 
 			Directory.CreateDirectory(FolderPath);
@@ -83,10 +81,6 @@ namespace WalletWasabi.Services
 							uint256 txHash = new uint256(line);
 							RPCResponse getRawTransactionResponse = RpcClient.SendCommand(RPCOperations.getrawtransaction, txHash.ToString(), true);
 							CoinJoins.Add(txHash);
-							if (getRawTransactionResponse.Result.Value<int>("confirmations") <= 0)
-							{
-								UnconfirmedCoinJoins.Add(txHash);
-							}
 						}
 						catch (Exception ex)
 						{
@@ -346,40 +340,6 @@ namespace WalletWasabi.Services
 		public int GetCoinJoinCount()
 		{
 			return CoinJoins.Count;
-		}
-
-		public async Task<bool> IsUnconfirmedCoinJoinLimitReachedAsync()
-		{
-			using (await CoinJoinsLock.LockAsync())
-			{
-				if (UnconfirmedCoinJoins.Count < 24)
-				{
-					return false;
-				}
-				foreach (var cjHash in UnconfirmedCoinJoins.ToArray())
-				{
-					try
-					{
-						var txInfo = await RpcClient.GetRawTransactionInfoAsync(cjHash);
-
-						// if confirmed remove only from unconfirmed
-						if (txInfo.Confirmations > 0)
-						{
-							UnconfirmedCoinJoins.Remove(cjHash);
-						}
-					}
-					catch (Exception ex)
-					{
-						// If aborted remove from everywhere (should not happen normally).
-						UnconfirmedCoinJoins.Remove(cjHash);
-						CoinJoins.Remove(cjHash);
-						await File.WriteAllLinesAsync(CoinJoinsFilePath, CoinJoins.Select(x => x.ToString()));
-						Logger.LogWarning<CcjCoordinator>(ex);
-					}
-				}
-
-				return UnconfirmedCoinJoins.Count >= 24;
-			}
 		}
 
 		#region IDisposable Support

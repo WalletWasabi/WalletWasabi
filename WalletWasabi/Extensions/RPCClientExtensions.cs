@@ -1,8 +1,10 @@
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
@@ -123,6 +125,34 @@ namespace NBitcoin.RPC
 			RPCResponse resp = await rpc.SendCommandAsync("testmempoolaccept", transactions.Select(x => x.ToHex()).ToArray(), allowHighFees);
 
 			return resp;
+		}
+
+		/// <returns>(allowed, reject-reason)</returns>
+		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this RPCClient rpc, Coin coin)
+		{
+			// Check if mempool would accept a fake transaction created with the registered inputs.
+			// This will catch ascendant/descendant count and size limits for example.
+			var fakeTransaction = rpc.Network.CreateTransaction();
+			fakeTransaction.Inputs.Add(new TxIn(coin.Outpoint));
+			Money fakeOutputValue = NBitcoinHelpers.TakeAReasonableFee(coin.TxOut.Value);
+			fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
+			RPCResponse testMempoolAcceptResponse = await rpc.TestMempoolAcceptAsync(allowHighFees: true, fakeTransaction);
+
+			JToken first = testMempoolAcceptResponse.Result[0];
+			bool allowed = first["allowed"].Value<bool>();
+
+			var rejectedReason = string.Empty;
+			if (!allowed)
+			{
+				string rejected = first["reject-reason"].Value<string>();
+
+				if (!(rejected.Contains("mandatory-script-verify-flag-failed", StringComparison.OrdinalIgnoreCase)
+					|| rejected.Contains("non-mandatory-script-verify-flag", StringComparison.OrdinalIgnoreCase)))
+				{
+					return (false, rejected);
+				}
+			}
+			return (true, "");
 		}
 	}
 }
