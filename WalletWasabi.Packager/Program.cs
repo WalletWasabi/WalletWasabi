@@ -17,9 +17,10 @@ namespace WalletWasabi.Packager
 			// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
 			// 1. Publish with Packager.
 			// 2. Build WIX project with Release and x64 configuration.
-			// 3. Sign with Packager.
+			// 3. Sign with Packager, set restore true so the password won't be kept.
 			var doPublish = true;
 			var doSign = false;
+			var doRestoreThisFile = false;
 			var pfxPassword = "???";
 
 			string pfxPath = "C:\\digicert.pfx";
@@ -391,6 +392,19 @@ namespace WalletWasabi.Packager
 					var restoreHeatProcess = Process.Start(psiRestoreHeat);
 					restoreHeatProcess.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
 					restoreHeatProcess.WaitForExit();
+
+					if (doRestoreThisFile)
+					{
+						var psiRestoreThisFile = new ProcessStartInfo
+						{
+							FileName = "cmd",
+							RedirectStandardInput = true,
+							WorkingDirectory = packagerProjectDirectory
+						};
+						var restoreThisFileProcess = Process.Start(psiRestoreHeat);
+						restoreThisFileProcess.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
+						restoreThisFileProcess.WaitForExit();
+					}
 				}
 
 				IoHelpers.OpenFolderInFileExplorer(binDistDirectory);
