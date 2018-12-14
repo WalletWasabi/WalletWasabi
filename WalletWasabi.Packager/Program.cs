@@ -21,7 +21,7 @@ namespace WalletWasabi.Packager
 			var doPublish = true;
 			var doSign = false;
 			var doRestoreThisFile = false;
-			var pfxPassword = "???";
+			var pfxPassword = "dontcommit";
 
 			string pfxPath = "C:\\digicert.pfx";
 			string packagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
@@ -401,7 +401,7 @@ namespace WalletWasabi.Packager
 							RedirectStandardInput = true,
 							WorkingDirectory = packagerProjectDirectory
 						};
-						var restoreThisFileProcess = Process.Start(psiRestoreHeat);
+						var restoreThisFileProcess = Process.Start(psiRestoreThisFile);
 						restoreThisFileProcess.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
 						restoreThisFileProcess.WaitForExit();
 					}
