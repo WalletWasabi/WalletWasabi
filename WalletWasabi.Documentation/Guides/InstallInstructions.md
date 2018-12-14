@@ -31,7 +31,5 @@ Check out this [video guide](https://www.youtube.com/watch?v=qFbv_b-bju4) or tak
 
 ![](https://imgur.com/jpnKad7.png)
 
-Download the OSX archive and extract it, while keeping the file permissions: `tar -pxzf WasabiOsx-1.0.3.tar.gz`.
-You can run Wasabi by executing `./wassabee`.
-
-After first run, a working directory will be created: `~/.walletwasabi/`. Amongst others, here is where your wallet files and your logs reside.
+Download the .dmg file, and open it in the following way:
+Hold down ctrl and click on the file, and select "open". Then Wasabi Wallet icon will show up, do the same way with that too: hold down ctrl and click on it, and select "open". 
