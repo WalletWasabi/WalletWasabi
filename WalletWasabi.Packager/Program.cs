@@ -85,9 +85,11 @@ namespace WalletWasabi.Packager
 					RedirectStandardInput = true,
 					WorkingDirectory = guiProjectDirectory
 				};
-				var pBuild = Process.Start(psiBuild);
-				pBuild.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
-				pBuild.WaitForExit();
+				using (var pBuild = Process.Start(psiBuild))
+				{
+					pBuild.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
+					pBuild.WaitForExit();
+				}
 
 				var guiBinReleaseDirectory = Path.GetFullPath(Path.Combine(guiProjectDirectory, "bin\\Release"));
 				var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(libraryProjectDirectory, "bin\\Release"));
@@ -158,8 +160,10 @@ namespace WalletWasabi.Packager
 						Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" --self-contained true --runtime \"{target}\" /p:VersionPrefix={versionPrefix} --disable-parallel --no-cache",
 						WorkingDirectory = guiProjectDirectory
 					};
-					var pPublish = Process.Start(psiPublish);
-					pPublish.WaitForExit();
+					using (var pPublish = Process.Start(psiPublish))
+					{
+						pPublish.WaitForExit();
+					}
 
 					// Rename the final exe.
 					string oldExecutablePath;
@@ -184,8 +188,10 @@ namespace WalletWasabi.Packager
 							Arguments = $"\"{newExecutablePath}\" /SUBSYSTEM:WINDOWS",
 							WorkingDirectory = currentBinDistDirectory
 						};
-						var pEditbin = Process.Start(psiEditbin);
-						pEditbin.WaitForExit();
+						using (var pEditbin = Process.Start(psiEditbin))
+						{
+							pEditbin.WaitForExit();
+						}
 
 						var icoPath = Path.Combine(guiProjectDirectory, "Assets", "WasabiLogo.ico");
 						var psiRcedit = new ProcessStartInfo
@@ -194,8 +200,10 @@ namespace WalletWasabi.Packager
 							Arguments = $"\"{newExecutablePath}\" --set-icon \"{icoPath}\" --set-file-version \"{versionPrefix}\" --set-product-version \"{versionPrefix}\" --set-version-string \"LegalCopyright\" \"MIT\" --set-version-string \"CompanyName\" \"zkSNACKs\" --set-version-string \"FileDescription\" \"Privacy focused, ZeroLink compliant Bitcoin wallet.\" --set-version-string \"ProductName\" \"Wasabi Wallet\"",
 							WorkingDirectory = currentBinDistDirectory
 						};
-						var pRcedit = Process.Start(psiRcedit);
-						pRcedit.WaitForExit();
+						using (var pRcedit = Process.Start(psiRcedit))
+						{
+							pRcedit.WaitForExit();
+						}
 					}
 					else if (target.StartsWith("osx"))
 					{
@@ -255,25 +263,42 @@ namespace WalletWasabi.Packager
 ";
 						File.WriteAllText(infoFilePath, infoContent);
 
+						var psiCreateSymLink = new ProcessStartInfo
+						{
+							FileName = "cmd",
+							RedirectStandardInput = true,
+							WorkingDirectory = targetDir
+						};
+						using (var createSymLinkProcess = Process.Start(psiCreateSymLink))
+						{
+							createSymLinkProcess.StandardInput.WriteLine($"wsl ln -s /Applications && exit");
+							createSymLinkProcess.WaitForExit();
+						}
+
+						//how to generate .DS_Store file - https://github.com/zkSNACKs/WalletWasabi/pull/928/commits/e38ed672dee25f6e45a3eb16584887cc6d48c4e6
+						var dmgContentDir = Path.Combine(packagerProjectDirectory, "Content", "Osx");
+						IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentDir), new DirectoryInfo(targetDir));
+
 						var psiGenIsoImage = new ProcessStartInfo
 						{
 							FileName = "cmd",
 							RedirectStandardInput = true,
 							WorkingDirectory = binDistDirectory
 						};
-						var genIsoImageProcess = Process.Start(psiGenIsoImage);
-						string uncompressedDmgFileName = $"Wasabi-{versionPrefix}-uncompressed.dmg";
+
+						string uncompressedDmgFileName = $"Wasabi-uncompressed.dmg";
 						string uncompressedDmgFilePath = Path.Combine(binDistDirectory, uncompressedDmgFileName);
 						string dmgFileName = $"Wasabi-{versionPrefix}.dmg";
-
-						// http://www.nathancoulson.com/proj_cross_tools.php
-						// -D: Do not use deep directory relocation, and instead just pack them in the way we see them
-						// -V: Volume Label
-						// -no-pad: Do not pad the end by 150 sectors (300kb). As it is not a cd image, not required
-						// -apple -r: Creates a .dmg image
-						genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(targetDir).Name}\" && exit");
-						genIsoImageProcess.WaitForExit();
-
+						using (var genIsoImageProcess = Process.Start(psiGenIsoImage))
+						{
+							// http://www.nathancoulson.com/proj_cross_tools.php
+							// -D: Do not use deep directory relocation, and instead just pack them in the way we see them
+							// -V: Volume Label
+							// -no-pad: Do not pad the end by 150 sectors (300kb). As it is not a cd image, not required
+							// -apple -r: Creates a .dmg image
+							genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(targetDir).Name}\" && exit");
+							genIsoImageProcess.WaitForExit();
+						}
 						// cd ~
 						// git clone https://github.com/planetbeing/libdmg-hfsplus.git && cd libdmg-hfsplus
 						// https://github.com/planetbeing/libdmg-hfsplus/issues/14
@@ -291,10 +316,11 @@ namespace WalletWasabi.Packager
 							RedirectStandardInput = true,
 							WorkingDirectory = binDistDirectory
 						};
-						var dmgProcess = Process.Start(psiDmg);
-						dmgProcess.StandardInput.WriteLine($"wsl ~/libdmg-hfsplus/build/dmg/./dmg dmg \"{uncompressedDmgFileName}\" \"{dmgFileName}\" && exit");
-						dmgProcess.WaitForExit();
-
+						using (var dmgProcess = Process.Start(psiDmg))
+						{
+							dmgProcess.StandardInput.WriteLine($"wsl ~/libdmg-hfsplus/build/dmg/./dmg dmg \"{uncompressedDmgFileName}\" \"{dmgFileName}\" && exit");
+							dmgProcess.WaitForExit();
+						}
 						// In case compression above doesn't work:
 						//var psiBzip = new ProcessStartInfo
 						//{
@@ -337,9 +363,11 @@ namespace WalletWasabi.Packager
 							RedirectStandardInput = true,
 							WorkingDirectory = binDistDirectory
 						};
-						var signToolProcess = Process.Start(psiSigntool);
-						signToolProcess.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{pfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
-						signToolProcess.WaitForExit();
+						using (var signToolProcess = Process.Start(psiSigntool))
+						{
+							signToolProcess.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{pfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
+							signToolProcess.WaitForExit();
+						}
 					}
 					else if (target.StartsWith("linux", StringComparison.OrdinalIgnoreCase))
 					{
@@ -359,9 +387,11 @@ namespace WalletWasabi.Packager
 							RedirectStandardInput = true,
 							WorkingDirectory = binDistDirectory
 						};
-						var tarProcess = Process.Start(psiTar);
-						tarProcess.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
-						tarProcess.WaitForExit();
+						using (var tarProcess = Process.Start(psiTar))
+						{
+							tarProcess.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
+							tarProcess.WaitForExit();
+						}
 					}
 
 					if (Directory.Exists(publishedFolder))
@@ -382,9 +412,11 @@ namespace WalletWasabi.Packager
 						RedirectStandardInput = true,
 						WorkingDirectory = binDistDirectory
 					};
-					var signProcess = Process.Start(psiSignProcess);
-					signProcess.StandardInput.WriteLine($"gpg --armor --detach-sign {finalFile} && exit");
-					signProcess.WaitForExit();
+					using (var signProcess = Process.Start(psiSignProcess))
+					{
+						signProcess.StandardInput.WriteLine($"gpg --armor --detach-sign {finalFile} && exit");
+						signProcess.WaitForExit();
+					}
 
 					var psiRestoreHeat = new ProcessStartInfo
 					{
@@ -392,9 +424,11 @@ namespace WalletWasabi.Packager
 						RedirectStandardInput = true,
 						WorkingDirectory = wixProjectDirectory
 					};
-					var restoreHeatProcess = Process.Start(psiRestoreHeat);
-					restoreHeatProcess.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
-					restoreHeatProcess.WaitForExit();
+					using (var restoreHeatProcess = Process.Start(psiRestoreHeat))
+					{
+						restoreHeatProcess.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
+						restoreHeatProcess.WaitForExit();
+					}
 
 					if (doRestoreThisFile)
 					{
@@ -404,9 +438,11 @@ namespace WalletWasabi.Packager
 							RedirectStandardInput = true,
 							WorkingDirectory = packagerProjectDirectory
 						};
-						var restoreThisFileProcess = Process.Start(psiRestoreThisFile);
-						restoreThisFileProcess.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
-						restoreThisFileProcess.WaitForExit();
+						using (var restoreThisFileProcess = Process.Start(psiRestoreThisFile))
+						{
+							restoreThisFileProcess.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
+							restoreThisFileProcess.WaitForExit();
+						}
 					}
 				}
 
