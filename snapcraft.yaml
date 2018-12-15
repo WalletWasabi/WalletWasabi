@@ -1,0 +1,18 @@
+name: wassabee
+version: 1.0.3
+summary: Privacy focused Bitcoin wallet.
+description: >
+  Open-source, non-custodial and cross-platform privacy focused Bitcoin wallet.
+  Built-in Tor, CoinJoin and coin control features.
+
+confinement: devmode
+base: core18
+
+parts:
+  wassabee:
+    plugin: dump
+    source: https://github.com/zkSNACKs/WalletWasabi/releases/download/v$SNAPCRAFT_PROJECT_VERSION/WasabiLinux-$SNAPCRAFT_PROJECT_VERSION.tar.gz
+
+apps:
+  wassabee:
+    command: wassabee
