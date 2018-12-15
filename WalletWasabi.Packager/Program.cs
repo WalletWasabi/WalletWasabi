@@ -280,7 +280,10 @@ namespace WalletWasabi.Packager
 						// mkdir build && cd build
 						// sudo apt-get install zlib1g-dev
 						// cmake ..
+						// cd build
 						// sudo apt-get install libssl1.0-dev
+						// cmake ..
+						// cd ~/libdmg-hfsplus/build/
 						// make
 						var psiDmg = new ProcessStartInfo
 						{
