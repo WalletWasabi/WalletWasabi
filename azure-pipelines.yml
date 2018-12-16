@@ -16,11 +16,8 @@ jobs:
       version: '2.2.101'
   - script: 'dotnet build --configuration Debug'
   - script: 'dotnet build --configuration Release'
-#  - task: DotNetCoreCLI@2
-#    inputs:
-#      command: test
-#      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-#      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
+  - script: 'cd WalletWasabi.Tests'
+  - script: 'dotnet test --filter Category=RunOnCi --configuration $(buildConfiguration)'
     
 - job: macOS
   pool:
@@ -31,11 +28,8 @@ jobs:
       version: '2.2.101'
   - script: 'dotnet build --configuration Debug'
   - script: 'dotnet build --configuration Release'
-#  - task: DotNetCoreCLI@2
-#    inputs:
-#      command: test
-#      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-#      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
+  - script: 'cd WalletWasabi.Tests'
+  - script: 'dotnet test --filter Category=RunOnCi --configuration $(buildConfiguration)'
   
 - job: Windows
   pool:
@@ -46,8 +40,5 @@ jobs:
       version: '2.2.101'
   - script: 'dotnet build --configuration Debug'
   - script: 'dotnet build --configuration Release'
-#  - task: DotNetCoreCLI@2
-#    inputs:
-#      command: test
-#      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-#      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
+  - script: 'cd WalletWasabi.Tests'
+  - script: 'dotnet test --filter Category=RunOnCi --configuration $(buildConfiguration)'
