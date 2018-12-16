@@ -4,7 +4,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 variables:
-  buildConfiguration: 'Debug'
+  testConfiguration: 'Debug'
   
 jobs:
 - job: Linux
@@ -14,10 +14,18 @@ jobs:
   - task: DotNetCoreInstaller@0
     inputs:
       version: '2.2.101'
-  - script: 'dotnet build --configuration Debug'
-  - script: 'dotnet build --configuration Release'
-  - script: 'cd WalletWasabi.Tests'
-  - script: 'dotnet test --filter Category=RunOnCi --configuration $(buildConfiguration)'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+      arguments: --configuration Debug
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+      arguments: --configuration Release
+   - task: DotNetCoreCLI@2
+    inputs:
+      command: test
+      arguments: --filter Category=RunOnCi --configuration $(testConfiguration)
     
 - job: macOS
   pool:
@@ -26,10 +34,18 @@ jobs:
   - task: DotNetCoreInstaller@0
     inputs:
       version: '2.2.101'
-  - script: 'dotnet build --configuration Debug'
-  - script: 'dotnet build --configuration Release'
-  - script: 'cd WalletWasabi.Tests'
-  - script: 'dotnet test --filter Category=RunOnCi --configuration $(buildConfiguration)'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+      arguments: --configuration Debug
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+      arguments: --configuration Release
+   - task: DotNetCoreCLI@2
+    inputs:
+      command: test
+      arguments: --filter Category=RunOnCi --configuration $(testConfiguration)
   
 - job: Windows
   pool:
@@ -38,7 +54,16 @@ jobs:
   - task: DotNetCoreInstaller@0
     inputs:
       version: '2.2.101'
-  - script: 'dotnet build --configuration Debug'
-  - script: 'dotnet build --configuration Release'
-  - script: 'cd WalletWasabi.Tests'
-  - script: 'dotnet test --filter Category=RunOnCi --configuration $(buildConfiguration)'
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+      arguments: --configuration Debug
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+      arguments: --configuration Release
+   - task: DotNetCoreCLI@2
+    inputs:
+      command: test
+      arguments: --filter Category=RunOnCi --configuration $(testConfiguration)
