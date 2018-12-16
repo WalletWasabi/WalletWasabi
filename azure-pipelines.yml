@@ -25,6 +25,7 @@ jobs:
    - task: DotNetCoreCLI@2
     inputs:
       command: test
+      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'	
       arguments: --filter Category=RunOnCi --configuration $(testConfiguration)
     
 - job: macOS
@@ -45,6 +46,7 @@ jobs:
    - task: DotNetCoreCLI@2
     inputs:
       command: test
+      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'	
       arguments: --filter Category=RunOnCi --configuration $(testConfiguration)
   
 - job: Windows
@@ -65,4 +67,5 @@ jobs:
    - task: DotNetCoreCLI@2
     inputs:
       command: test
+      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'	
       arguments: --filter Category=RunOnCi --configuration $(testConfiguration)
