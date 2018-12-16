@@ -1,0 +1,23 @@
+variables:
+  testConfiguration: 'Debug'
+  
+- job: Windows
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - task: DotNetCoreInstaller@0
+    inputs:
+      version: '2.2.101'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+      arguments: --configuration Debug
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+      arguments: --configuration Release
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: test
+      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'	
+      arguments: --filter Category=RunOnCi --configuration $(testConfiguration)
