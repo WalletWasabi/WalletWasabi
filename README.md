@@ -3,12 +3,16 @@
 Wasabi Wallet, formerly known as HiddenWallet is a [ZeroLink](https://github.com/nopara73/ZeroLink) compliant Bitcoin wallet. We are dedicated to restore Bitcoin's fungibility and provide the highest possible privacy for our users.  
 HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zkSNACKs/WalletWasabi/tree/hiddenwallet-v0.6) branch of this repository.
 
-| Code Quality           | Tests                   | License                   |
-| :----------------------| :-----------------------| :-------------------------|
-| [![CodeFactor][9]][10] | [![Build status][1]][2] | [![GitHub license][7]][8] |
+| Code Quality           | Windows Tests           | Linux Tests             | OSX Tests               | License                   |
+| :----------------------| :-----------------------| :-----------------------| :-----------------------| :-------------------------|
+| [![CodeFactor][9]][10] | [![Build Status][1]][2] | [![Build Status][3]][4] | [![Build Status][5]][6] | [![GitHub license][7]][8] |
 
-[1]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/zkSNACKs.WalletWasabi?branchName=master
-[2]: https://dev.azure.com/zkSNACKs/Wasabi/_build
+[1]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.Windows?branchName=master
+[2]: https://dev.azure.com/zkSNACKs/Wasabi/_build?definitionId=3
+[3]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.Linux?branchName=master
+[4]: https://dev.azure.com/zkSNACKs/Wasabi/_build?definitionId=1
+[5]: https://dev.azure.com/zkSNACKs/Wasabi/_apis/build/status/Wasabi.Osx?branchName=master
+[6]: https://dev.azure.com/zkSNACKs/Wasabi/_build?definitionId=2
 [7]: https://img.shields.io/github/license/zkSNACKs/WalletWasabi.svg
 [8]: https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md
 [9]: https://www.codefactor.io/repository/github/zksnacks/walletwasabi/badge
