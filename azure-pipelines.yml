@@ -12,12 +12,15 @@ jobs:
     vmImage: 'ubuntu-16.04'
 # Commented out until Azure Pipelines adds support to .NET Core 2.2
   steps:
-  - script: 'dotnet build --configuration $(buildConfiguration)'
-  - task: DotNetCoreCLI@2
+  - task: DotNetCoreInstaller@0
     inputs:
-      command: test
-      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
-      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
+      version: '2.2.101'
+  - script: 'dotnet build --configuration $(buildConfiguration)'
+#  - task: DotNetCoreCLI@2
+#    inputs:
+#      command: test
+#      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+#      arguments: '--filter Category=RunOnCi --configuration $(buildConfiguration)'
     
 - job: macOS
   pool:
