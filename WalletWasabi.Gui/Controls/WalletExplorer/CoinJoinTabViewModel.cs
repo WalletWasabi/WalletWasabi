@@ -96,16 +96,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
-				await DoEnqueueAsync();
+				await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 			});
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
 			{
-				if (!CoinsList.Coins.Any(c => c.IsSelected))
-				{
-					SetWarningMessage("No coins are selected to dequeue.");
-					return;
-				}
 				await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 			});
 
@@ -117,7 +112,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
 					{
 						Password = x.TrimEnd('\r', '\n');
-						await DoEnqueueAsync();
+						await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 					}
 				}
 			});
@@ -154,6 +149,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				WarningMessage = "";
 
+				if (!selectedCoins.Any())
+				{
+					SetWarningMessage("No coins are selected to dequeue.");
+					return;
+				}
+
 				try
 				{
 					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
@@ -179,14 +180,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private async Task DoEnqueueAsync()
+		private async Task DoEnqueueAsync(IEnumerable<CoinViewModel> selectedCoins)
 		{
 			IsEnqueueBusy = true;
 			try
 			{
 				WarningMessage = "";
 				Password = Guard.Correct(Password);
-				var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 				if (!selectedCoins.Any())
 				{
