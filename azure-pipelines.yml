@@ -22,7 +22,7 @@ jobs:
     inputs:
       command: build
       arguments: --configuration Release
-   - task: DotNetCoreCLI@2
+  - task: DotNetCoreCLI@2
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'	
@@ -43,7 +43,7 @@ jobs:
     inputs:
       command: build
       arguments: --configuration Release
-   - task: DotNetCoreCLI@2
+  - task: DotNetCoreCLI@2
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'	
@@ -64,7 +64,7 @@ jobs:
     inputs:
       command: build
       arguments: --configuration Release
-   - task: DotNetCoreCLI@2
+  - task: DotNetCoreCLI@2
     inputs:
       command: test
       projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'	
