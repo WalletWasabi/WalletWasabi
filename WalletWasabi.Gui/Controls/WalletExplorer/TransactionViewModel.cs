@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using NBitcoin;
+using ReactiveUI;
 using System;
 using System.Globalization;
 using WalletWasabi.Gui.ViewModels;
@@ -31,6 +32,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string AmountBtc
 		{
 			get => _model.AmountBtc;
+		}
+
+		public Money Amount
+		{
+			get => Money.TryParse(_model.AmountBtc, out Money money) ? money : Money.Zero;
 		}
 
 		public string Label

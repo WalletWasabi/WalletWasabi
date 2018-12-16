@@ -260,11 +260,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (AmountSortDirection)
 				{
 					case SortOrder.Increasing:
-						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.AmountBtc));
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.Amount));
 						break;
 
 					case SortOrder.Decreasing:
-						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.AmountBtc));
+						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.Amount));
 						break;
 				}
 			}
