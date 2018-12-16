@@ -101,6 +101,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
 			{
+				if (!CoinsList.Coins.Any(c => c.IsSelected))
+				{
+					SetWarningMessage("No coins are selected to dequeue.");
+					return;
+				}
 				await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 			});
 
@@ -330,7 +335,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinListViewModel CoinsList
 		{
 			get { return _coinsList; }
-			set 
+			set
 			{
 				bool changed = _coinsList != value;
 				if (_coinsList != null) _coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
@@ -340,6 +345,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 #pragma warning disable RECS0165 // Asynchronous methods should return a Task instead of void
+
 		private async void CoinsList_DequeueCoinsPressedAsync()
 #pragma warning restore RECS0165 // Asynchronous methods should return a Task instead of void
 		{
