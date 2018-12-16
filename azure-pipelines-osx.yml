@@ -1,6 +1,7 @@
 variables:
   testConfiguration: 'Debug'
-    
+
+jobs:
 - job: macOS
   pool:
     vmImage: 'macOS-10.13'

@@ -1,6 +1,6 @@
 variables:
   testConfiguration: 'Debug'
-  
+
 jobs:
 - job: Linux
   pool:
