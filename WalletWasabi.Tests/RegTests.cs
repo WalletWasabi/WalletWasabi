@@ -195,7 +195,6 @@ namespace WalletWasabi.Tests
 				Assert.True(found);
 				var bestHash = await rpc.GetBestBlockHashAsync();
 				Assert.Empty(indexBuilderService.GetFilterLinesExcluding(bestHash, 1, out bool found2).filters);
-				Assert.True(found2);
 				Assert.Empty(indexBuilderService.GetFilterLinesExcluding(uint256.Zero, 1, out bool found3).filters);
 				Assert.False(found3);
 
@@ -207,7 +206,6 @@ namespace WalletWasabi.Tests
 					var expectedHash = await rpc.GetBlockHashAsync(i + 1);
 					var filterModel = FilterModel.FromLine(filters[i], i);
 					Assert.Equal(expectedHash, filterModel.BlockHash);
-					Assert.Null(filterModel.Filter);
 				}
 			}
 			finally
