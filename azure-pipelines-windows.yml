@@ -20,5 +20,5 @@ jobs:
   - task: DotNetCoreCLI@2
     inputs:
       command: test
-      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'	
-      arguments: --filter Category=RunOnCi --configuration $(testConfiguration)
+      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+      arguments: --filter --configuration $(testConfiguration) --filter "CryptoTests | ModelTests | KeyManagementTests | LiveServerTests | ModelTests | P2pTests"
