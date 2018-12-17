@@ -1,6 +1,8 @@
 ﻿using NBitcoin;
+using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
@@ -174,6 +176,24 @@ namespace WalletWasabi.Tests
 			{
 				Assert.Equal(coin.SpentOutputs[0], deserialized.SpentOutputs[0]);
 			}
+		}
+
+		[Fact]
+		public void AllFeeEstimateSerialization()
+		{
+			var estimations = new Dictionary<int, decimal>
+			{
+				{ 2, 102.3m },
+				{ 3, 20.3m },
+				{ 19, 1.223m }
+			};
+			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations);
+			var serialized = JsonConvert.SerializeObject(allFee);
+			var deserialized = JsonConvert.DeserializeObject<AllFeeEstimate>(serialized);
+			Assert.Equal(estimations[2], deserialized.Estimations[2]);
+			Assert.Equal(estimations[3], deserialized.Estimations[3]);
+			Assert.Equal(estimations[19], deserialized.Estimations[19]);
+			Assert.Equal(EstimateSmartFeeMode.Conservative, deserialized.Type);
 		}
 
 		[Fact]

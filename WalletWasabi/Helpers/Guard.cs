@@ -73,6 +73,26 @@ namespace WalletWasabi.Helpers
 			return value;
 		}
 
+		public static IDictionary<TKey, TValue> NotNullOrEmpty<TKey, TValue>(string parameterName, IDictionary<TKey, TValue> value)
+		{
+			NotNull(parameterName, value);
+			if (!value.Any())
+			{
+				throw new ArgumentException("Parameter cannot be empty.", parameterName);
+			}
+			return value;
+		}
+
+		public static Dictionary<TKey, TValue> NotNullOrEmpty<TKey, TValue>(string parameterName, Dictionary<TKey, TValue> value)
+		{
+			NotNull(parameterName, value);
+			if (!value.Any())
+			{
+				throw new ArgumentException("Parameter cannot be empty.", parameterName);
+			}
+			return value;
+		}
+
 		public static string NotNullOrEmptyOrWhitespace(string parameterName, string value, bool trim = false)
 		{
 			NotNullOrEmpty(parameterName, value);

@@ -48,7 +48,7 @@ namespace NBitcoin.RPC
 				{
 					return await rpc.EstimateSmartFeeAsync(confirmationTarget, estimateMode);
 				}
-				catch (Exception ex)
+				catch (RPCException ex)
 				{
 					Logger.LogTrace<RPCClient>(ex);
 					// Hopefully Bitcoin Core brainfart: https://github.com/bitcoin/bitcoin/issues/14431
@@ -58,7 +58,7 @@ namespace NBitcoin.RPC
 						{
 							return await rpc.EstimateSmartFeeAsync(i, estimateMode);
 						}
-						catch (Exception ex2)
+						catch (RPCException ex2)
 						{
 							Logger.LogTrace<RPCClient>(ex2);
 						}
@@ -118,6 +118,19 @@ namespace NBitcoin.RPC
 			FeeRate feeRate = new FeeRate(feePerK);
 			var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
 			return resp;
+		}
+
+		public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this RPCClient rpc, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, bool simulateIfRegTest = false, bool tolerateBitcoinCoreBrainfuck = true)
+		{
+			var estimations = new Dictionary<int, decimal>();
+			for (int i = 1008; i >= 2; i--)
+			{
+				EstimateSmartFeeResponse estimation = await rpc.EstimateSmartFeeAsync(i, estimateMode, simulateIfRegTest, tolerateBitcoinCoreBrainfuck);
+				estimations.TryAdd(estimation.Blocks, estimation.FeeRate.SatoshiPerByte);
+				i = estimation.Blocks; // So the next estimation will be minus 1.
+			}
+			var allFeeEstimate = new AllFeeEstimate(estimateMode, estimations);
+			return allFeeEstimate;
 		}
 
 		public static async Task<RPCResponse> TestMempoolAcceptAsync(this RPCClient rpc, bool allowHighFees, params Transaction[] transactions)

@@ -217,6 +217,29 @@ namespace WalletWasabi.Tests
 			}
 		}
 
+		[Fact]
+		public async Task AllFeeEstimateRpcAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+
+			var estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+			Assert.Equal(144, estimations.Estimations.Count);
+			Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
+			Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
+			Assert.Equal(EstimateSmartFeeMode.Conservative, estimations.Type);
+			estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+			Assert.Equal(145, estimations.Estimations.Count);
+			Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
+			Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
+			Assert.Equal(EstimateSmartFeeMode.Economical, estimations.Type);
+			await Assert.ThrowsAsync<NoEstimationException>(async () => await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical, simulateIfRegTest: false, tolerateBitcoinCoreBrainfuck: true));
+			estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: false);
+			Assert.Equal(145, estimations.Estimations.Count);
+			Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
+			Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
+			Assert.Equal(EstimateSmartFeeMode.Economical, estimations.Type);
+		}
+
 		#endregion BackendTests
 
 		#region ServicesTests
