@@ -124,7 +124,6 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			var estimation = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
-			Console.WriteLine($"Queried {estimateSmartFeeMode}");
 			return Ok(estimation.Estimations);
 		}
 
