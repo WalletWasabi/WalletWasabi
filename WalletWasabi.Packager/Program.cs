@@ -128,6 +128,17 @@ namespace WalletWasabi.Packager
 						Console.WriteLine($"Created {currentBinDistDirectory}");
 					}
 
+					var psiClean = new ProcessStartInfo
+					{
+						FileName = "dotnet",
+						Arguments = $"clean",
+						WorkingDirectory = guiProjectDirectory
+					};
+					using (var pClean = Process.Start(psiClean))
+					{
+						pClean.WaitForExit();
+					}
+
 					// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish?tabs=netcore21
 					// -c|--configuration {Debug|Release}
 					//		Defines the build configuration. The default value is Debug.
