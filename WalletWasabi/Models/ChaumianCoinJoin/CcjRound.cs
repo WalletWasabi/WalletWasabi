@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -29,6 +30,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Money FeePerInputs { get; private set; }
 		public Money FeePerOutputs { get; private set; }
 
+		public BlindingRsaKey RsaKey { get; private set; }
+		
 		public string RoundHash { get; private set; }
 
 		public Transaction UnsignedCoinJoin { get; private set; }
@@ -151,6 +154,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				OutputRegistrationTimeout = TimeSpan.FromSeconds((long)config.OutputRegistrationTimeout);
 				SigningTimeout = TimeSpan.FromSeconds((long)config.SigningTimeout);
 
+				RsaKey = new BlindingRsaKey();
+				
 				PhaseLock = new object();
 				Phase = CcjRoundPhase.InputRegistration;
 				StatusLock = new object();

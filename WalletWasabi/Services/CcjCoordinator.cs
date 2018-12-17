@@ -33,8 +33,6 @@ namespace WalletWasabi.Services
 
 		public string FolderPath { get; }
 
-		public BlindingRsaKey RsaKey { get; }
-
 		public UtxoReferee UtxoReferee { get; }
 
 		public CcjCoordinator(Network network, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
@@ -53,20 +51,6 @@ namespace WalletWasabi.Services
 			Directory.CreateDirectory(FolderPath);
 
 			UtxoReferee = new UtxoReferee(Network, FolderPath, RpcClient, RoundConfig);
-
-			// Initialize RsaKey
-			string rsaKeyPath = Path.Combine(FolderPath, "RsaKey.json");
-			if (File.Exists(rsaKeyPath))
-			{
-				string rsaKeyJson = File.ReadAllText(rsaKeyPath, encoding: Encoding.UTF8);
-				RsaKey = BlindingRsaKey.CreateFromJson(rsaKeyJson);
-			}
-			else
-			{
-				RsaKey = new BlindingRsaKey();
-				File.WriteAllText(rsaKeyPath, RsaKey.ToJson(), encoding: Encoding.UTF8);
-				Logger.LogInfo<CcjCoordinator>($"Created RSA key at: {rsaKeyPath}");
-			}
 
 			if (File.Exists(CoinJoinsFilePath))
 			{

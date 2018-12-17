@@ -35,8 +35,6 @@ namespace WalletWasabi.Backend.Controllers
 
 		private static CcjCoordinator Coordinator => Global.Coordinator;
 
-		private static BlindingRsaKey RsaKey => Coordinator.RsaKey;
-
 		/// <summary>
 		/// Satoshi gets various status information.
 		/// </summary>
@@ -53,6 +51,7 @@ namespace WalletWasabi.Backend.Controllers
 				var state = new CcjRunningRoundState
 				{
 					Phase = round.Phase,
+					BlindingPubKey = round.RsaKey.PubKey,
 					Denomination = round.Denomination,
 					RegisteredPeerCount = round.CountAlices(syncLock: false),
 					RequiredPeerCount = round.AnonymitySet,
@@ -257,7 +256,7 @@ namespace WalletWasabi.Backend.Controllers
 						return BadRequest("Invalid blinded output hex.");
 					}
 
-					byte[] signature = RsaKey.SignBlindedData(blindedData);
+					byte[] signature = round.RsaKey.SignBlindedData(blindedData);
 
 					// Check if phase changed since.
 					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
@@ -482,7 +481,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest($"Invalid OutputAddress. Details: {ex.Message}");
 			}
 
-			if (RsaKey.PubKey.Verify(ByteHelpers.FromHex(request.SignatureHex), outputAddress.ScriptPubKey.ToBytes()))
+			if (round.RsaKey.PubKey.Verify(ByteHelpers.FromHex(request.SignatureHex), outputAddress.ScriptPubKey.ToBytes()))
 			{
 				using (await OutputLock.LockAsync())
 				{

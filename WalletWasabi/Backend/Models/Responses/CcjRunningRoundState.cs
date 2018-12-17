@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Crypto;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models.ChaumianCoinJoin;
 
@@ -39,11 +40,15 @@ namespace WalletWasabi.Backend.Models.Responses
 		/// </summary>
 		public int SuccessfulRoundCount { get; set; }
 
+		[JsonConverter(typeof(RsaPubKeyJsonConverter))]
+		public BlindingRsaPubKey BlindingPubKey { get; set; } 
+
 		public static CcjRunningRoundState CloneExcept(CcjRunningRoundState state, long roundId, int registeredPeerCount)
 		{
 			return new CcjRunningRoundState
 			{
 				Phase = state.Phase,
+				BlindingPubKey = state.BlindingPubKey,
 				Denomination = state.Denomination,
 				RegisteredPeerCount = registeredPeerCount,
 				RequiredPeerCount = state.RequiredPeerCount,

@@ -87,7 +87,7 @@ namespace WalletWasabi.Tests
 			WalletService walletService = new WalletService(
 			   keyManager,
 			   new IndexDownloader(network, Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345")),
-			   new CcjClient(network, new BlindingRsaKey().PubKey, keyManager, new Uri("http://localhost:12345")),
+			   new CcjClient(network, keyManager, new Uri("http://localhost:12345")),
 			   memPoolService,
 			   nodes,
 			   SharedFixture.DataDir);

@@ -23,7 +23,6 @@ namespace WalletWasabi.Services
 	public class CcjClient
 	{
 		public Network Network { get; }
-		private BlindingRsaPubKey CoordinatorPubKey { get; }
 		public KeyManager KeyManager { get; }
 
 		public List<BitcoinAddress> CustomChangeAddresses { get; }
@@ -64,11 +63,10 @@ namespace WalletWasabi.Services
 
 		private CancellationTokenSource Cancel { get; }
 
-		public CcjClient(Network network, BlindingRsaPubKey coordinatorPubKey, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
+		public CcjClient(Network network, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			AccessCache = new ConcurrentDictionary<HdPubKey, DateTimeOffset>();
 			Network = Guard.NotNull(nameof(network), network);
-			CoordinatorPubKey = Guard.NotNull(nameof(coordinatorPubKey), coordinatorPubKey);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
 			TorSocks5EndPoint = torSocks5EndPoint;
@@ -397,6 +395,8 @@ namespace WalletWasabi.Services
 
 				if (registrableCoins.Any())
 				{
+					BlindingRsaPubKey coordinatorPubKey = inputRegistrableRound.State.BlindingPubKey;
+
 					BitcoinAddress changeAddress = null;
 					BitcoinAddress activeAddress = null;
 					lock (CustomChangeAddressesLock)
@@ -484,7 +484,7 @@ namespace WalletWasabi.Services
 
 					KeyManager.ToFile();
 
-					var blind = CoordinatorPubKey.Blind(activeAddress.ScriptPubKey.ToBytes());
+					var blind = coordinatorPubKey.Blind(activeAddress.ScriptPubKey.ToBytes());
 
 					var inputProofs = new List<InputProofModel>();
 					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
@@ -538,9 +538,9 @@ namespace WalletWasabi.Services
 						return;
 					}
 
-					byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
+					byte[] unblindedSignature = coordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
 
-					if (!CoordinatorPubKey.Verify(unblindedSignature, activeAddress.ScriptPubKey.ToBytes()))
+					if (!coordinatorPubKey.Verify(unblindedSignature, activeAddress.ScriptPubKey.ToBytes()))
 					{
 						throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
 					}

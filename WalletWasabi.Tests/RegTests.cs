@@ -422,7 +422,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 5. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync));
@@ -652,7 +652,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
@@ -1097,7 +1097,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
@@ -1262,7 +1262,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
@@ -1430,7 +1430,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
@@ -1765,7 +1765,9 @@ namespace WalletWasabi.Tests
 					Assert.Equal(1, roundState.RegisteredPeerCount);
 				}
 
-				var blindingKey = coordinator.RsaKey;
+				CcjRound round = coordinator.GetCurrentInputRegisterableRound();
+
+				var blindingKey = round.RsaKey;
 				byte[] scriptBytes = key.ScriptPubKey.ToBytes();
 				var (BlindingFactor, BlindedData) = blindingKey.PubKey.Blind(scriptBytes);
 				inputsRequest.BlindedOutputScriptHex = ByteHelpers.ToHex(BlindedData);
@@ -1971,6 +1973,10 @@ namespace WalletWasabi.Tests
 					}
 				}
 
+				round = coordinator.GetCurrentInputRegisterableRound();
+
+				blindingKey = round.RsaKey;
+
 				var blinded1 = blindingKey.PubKey.Blind(outputAddress1.ScriptPubKey.ToBytes());
 				var blinded2 = blindingKey.PubKey.Blind(outputAddress2.ScriptPubKey.ToBytes());
 
@@ -2092,7 +2098,6 @@ namespace WalletWasabi.Tests
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
-			BlindingRsaKey blindingKey = coordinator.RsaKey;
 			Money denomination = Money.Coins(1m);
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
@@ -2101,6 +2106,8 @@ namespace WalletWasabi.Tests
 			CcjRoundConfig roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, doesNoteBeforeBan);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			CcjRound round = coordinator.GetCurrentInputRegisterableRound();
+			BlindingRsaKey blindingKey = round.RsaKey;
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 
@@ -2168,7 +2175,6 @@ namespace WalletWasabi.Tests
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
-			var blindingKey = coordinator.RsaKey;
 			Money denomination = Money.Coins(0.1m);
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 3;
@@ -2176,6 +2182,8 @@ namespace WalletWasabi.Tests
 			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 1, 1, 1, 24, true);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			CcjRound round = coordinator.GetCurrentInputRegisterableRound();
+			var blindingKey = round.RsaKey;
 
 			await rpc.GenerateAsync(3); // So to make sure we have enough money.
 
@@ -2374,7 +2382,6 @@ namespace WalletWasabi.Tests
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
-			var blindingKey = coordinator.RsaKey;
 			Money denomination = Money.Coins(0.1m);
 			decimal coordinatorFeePercent = 0.003m;
 			int anonymitySet = 100;
@@ -2382,6 +2389,9 @@ namespace WalletWasabi.Tests
 			var roundConfig = new CcjRoundConfig(denomination, 144, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true);
 			coordinator.UpdateRoundConfig(roundConfig);
 			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			CcjRound round = coordinator.GetCurrentInputRegisterableRound();
+			var blindingKey = round.RsaKey;
+
 			await rpc.GenerateAsync(100); // So to make sure we have enough money.
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
@@ -2627,8 +2637,8 @@ namespace WalletWasabi.Tests
 			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(bech3Coin.Outpoint.N));
 			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx4.GetMixin(bech4Coin.Outpoint.N));
 
-			var chaumianClient1 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
-			var chaumianClient2 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient1 = new CcjClient(rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
 				chaumianClient1.Start(2, 2); // Exactly delay it for 2 seconds, this will make sure of timeout later.
@@ -2765,8 +2775,8 @@ namespace WalletWasabi.Tests
 			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx2.GetMixin(bech2Coin.Outpoint.N));
 			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(bech3Coin.Outpoint.N));
 
-			var chaumianClient1 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
-			var chaumianClient2 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient1 = new CcjClient(rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
 				chaumianClient1.Start(0, 0);
@@ -2862,9 +2872,9 @@ namespace WalletWasabi.Tests
 			var keyManager2 = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
-			var chaumianClient2 = new CcjClient(network, coordinator.RsaKey.PubKey, keyManager2, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(network, keyManager2, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync));
