@@ -20,7 +20,8 @@ namespace WalletWasabi.Backend
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddMemoryCache();
-			services.AddMvc();
+			services.AddMvc()
+					.AddControllersAsServices();
 
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>
