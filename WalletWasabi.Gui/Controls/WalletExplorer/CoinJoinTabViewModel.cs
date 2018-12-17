@@ -96,7 +96,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
-				await DoEnqueueAsync();
+				await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 			});
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
@@ -112,7 +112,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
 					{
 						Password = x.TrimEnd('\r', '\n');
-						await DoEnqueueAsync();
+						await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 					}
 				}
 			});
@@ -149,6 +149,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				WarningMessage = "";
 
+				if (!selectedCoins.Any())
+				{
+					SetWarningMessage("No coins are selected to dequeue.");
+					return;
+				}
+
 				try
 				{
 					await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
@@ -174,14 +180,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private async Task DoEnqueueAsync()
+		private async Task DoEnqueueAsync(IEnumerable<CoinViewModel> selectedCoins)
 		{
 			IsEnqueueBusy = true;
 			try
 			{
 				WarningMessage = "";
 				Password = Guard.Correct(Password);
-				var selectedCoins = CoinsList.Coins.Where(c => c.IsSelected).ToList();
 
 				if (!selectedCoins.Any())
 				{
@@ -330,7 +335,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinListViewModel CoinsList
 		{
 			get { return _coinsList; }
-			set 
+			set
 			{
 				bool changed = _coinsList != value;
 				if (_coinsList != null) _coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
@@ -340,6 +345,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 #pragma warning disable RECS0165 // Asynchronous methods should return a Task instead of void
+
 		private async void CoinsList_DequeueCoinsPressedAsync()
 #pragma warning restore RECS0165 // Asynchronous methods should return a Task instead of void
 		{

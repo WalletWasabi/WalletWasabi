@@ -52,7 +52,6 @@ namespace WalletWasabi.Tests
 		[Theory]
 		[InlineData("test")]
 		[InlineData("main")]
-		[Trait("Category", "RunOnCi")]
 		public async Task BlockCypherTestsAsync(string networkString)
 		{
 			if (!await TestAsync("https://api.blockcypher.com/v1/btc/main"))

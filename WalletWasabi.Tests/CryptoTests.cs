@@ -18,7 +18,6 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "RunOnCi")]
 		public void CipherTests()
 		{
 			var toEncrypt = "hello";
@@ -52,7 +51,6 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "RunOnCi")]
 		public void AuthenticateMessageTest()
 		{
 			var count = 0;
@@ -80,7 +78,6 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "RunOnCi")]
 		public void CanBlindSign()
 		{
 			// generate rsa keypair
@@ -102,7 +99,6 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "RunOnCi")]
 		public void CanSerialize()
 		{
 			var key = new BlindingRsaKey();
@@ -132,7 +128,6 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		[Trait("Category", "RunOnCi")]
 		public void CanEncodeDecodeBlinding()
 		{
 			var key = new BlindingRsaKey();

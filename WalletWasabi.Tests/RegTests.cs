@@ -34,7 +34,6 @@ using Xunit;
 namespace WalletWasabi.Tests
 {
 	[Collection("RegTest collection")]
-	[TestCaseOrderer("WalletWasabi.Tests.XunitConfiguration.PriorityOrderer", "WalletWasabi.Tests")]
 	public class RegTests : IClassFixture<SharedFixture>
 	{
 		private SharedFixture SharedFixture { get; }
@@ -83,8 +82,7 @@ namespace WalletWasabi.Tests
 
 		#region BackendTests
 
-		[Fact, TestPriority(1)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task GetExchangeRatesAsync()
 		{
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), SharedFixture.TorSocks5Endpoint))
@@ -101,8 +99,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(1)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task GetClientVersionAsync()
 		{
 			using (var client = new WasabiClient(new Uri(RegTestFixture.BackendEndPoint)))
@@ -113,8 +110,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(3)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task BroadcastReplayTxAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -134,8 +130,7 @@ namespace WalletWasabi.Tests
 			Logger.TurnOn();
 		}
 
-		[Fact, TestPriority(4)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task BroadcastInvalidTxAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -153,12 +148,80 @@ namespace WalletWasabi.Tests
 			Logger.TurnOn();
 		}
 
+		[Fact]
+		public async Task FilterBuilderTestAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+
+			var indexBuilderServiceDir = Path.Combine(SharedFixture.DataDir, nameof(IndexBuilderService));
+			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
+			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{rpc.Network}.dat");
+
+			var indexBuilderService = new IndexBuilderService(rpc, indexFilePath, utxoSetFilePath);
+			try
+			{
+				indexBuilderService.Synchronize();
+
+				// Test initial synchronization.
+				var times = 0;
+				uint256 firstHash = await rpc.GetBlockHashAsync(0);
+				while (indexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+				{
+					if (times > 500) // 30 sec
+					{
+						throw new TimeoutException($"{nameof(IndexBuilderService)} test timed out.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+
+				// Test later synchronization.
+				await rpc.GenerateAsync(10);
+				times = 0;
+				while (indexBuilderService.GetFilterLinesExcluding(firstHash, 111, out bool found5).filters.Count() != 111)
+				{
+					Assert.True(found5);
+					if (times > 500) // 30 sec
+					{
+						throw new TimeoutException($"{nameof(IndexBuilderService)} test timed out.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+
+				// Test correct number of filters is received.
+				var hundredthHash = await rpc.GetBlockHashAsync(100);
+				Assert.Equal(11, indexBuilderService.GetFilterLinesExcluding(hundredthHash, 11, out bool found).filters.Count());
+				Assert.True(found);
+				var bestHash = await rpc.GetBestBlockHashAsync();
+				Assert.Empty(indexBuilderService.GetFilterLinesExcluding(bestHash, 1, out bool found2).filters);
+				Assert.Empty(indexBuilderService.GetFilterLinesExcluding(uint256.Zero, 1, out bool found3).filters);
+				Assert.False(found3);
+
+				// Test filter block hashes are correct.
+				var filters = indexBuilderService.GetFilterLinesExcluding(firstHash, 111, out bool found4).filters.ToArray();
+				Assert.True(found4);
+				for (int i = 0; i < 111; i++)
+				{
+					var expectedHash = await rpc.GetBlockHashAsync(i + 1);
+					var filterModel = FilterModel.FromLine(filters[i], i);
+					Assert.Equal(expectedHash, filterModel.BlockHash);
+				}
+			}
+			finally
+			{
+				if (!(indexBuilderService is null))
+				{
+					await indexBuilderService.StopAsync();
+				}
+			}
+		}
+
 		#endregion BackendTests
 
 		#region ServicesTests
 
-		[Fact, TestPriority(5)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task MempoolAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -203,11 +266,10 @@ namespace WalletWasabi.Tests
 		private void MempoolAsync_MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
 			Interlocked.Increment(ref _mempoolTransactionCount);
-			Logger.LogDebug<P2pTests>($"Mempool transaction received: {e.GetHash()}.");
+			Logger.LogDebug<RegTests>($"Mempool transaction received: {e.GetHash()}.");
 		}
 
-		[Fact, TestPriority(6)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task FilterDownloaderTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -262,8 +324,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(7)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task ReorgTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -397,8 +458,7 @@ namespace WalletWasabi.Tests
 
 		#region ClientTests
 
-		[Fact, TestPriority(8)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task WalletTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -628,8 +688,7 @@ namespace WalletWasabi.Tests
 		{
 		}
 
-		[Fact, TestPriority(9)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task SendTestsFromHiddenWalletAsync() // These tests are taken from HiddenWallet, they were tests on the testnet.
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1073,8 +1132,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(11)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task BuildTransactionValidationsTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1238,8 +1296,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(12)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task BuildTransactionReorgsTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1404,8 +1461,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(0)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task SpendUnconfirmedTxTestAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1567,8 +1623,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(13)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task CcjCoordinatorCtorTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -1618,8 +1673,7 @@ namespace WalletWasabi.Tests
 			Logger.TurnOn();
 		}
 
-		[Fact, TestPriority(14)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task CcjTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -2086,8 +2140,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(19)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task NotingTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -2162,8 +2215,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(19)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task BanningTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -2368,8 +2420,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(15)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task Ccj100ParticipantsTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -2576,8 +2627,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(16)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task CcjClientTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -2721,8 +2771,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(17)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task CcjClientCustomOutputScriptTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
@@ -2818,8 +2867,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact, TestPriority(18)]
-		[Trait("Category", "RunOnCi")]
+		[Fact]
 		public async Task CoinJoinMultipleRoundTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(3);
