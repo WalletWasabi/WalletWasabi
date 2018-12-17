@@ -191,8 +191,7 @@ namespace WalletWasabi.Tests
 
 				// Test correct number of filters is received.
 				var hundredthHash = await rpc.GetBlockHashAsync(100);
-				var expected = (await rpc.GetBlockCountAsync()) - 100;
-				Assert.Equal(expected, indexBuilderService.GetFilterLinesExcluding(hundredthHash, 12, out bool found).filters.Count());
+				Assert.Equal(12, indexBuilderService.GetFilterLinesExcluding(hundredthHash, 12, out bool found).filters.Count());
 				Assert.True(found);
 				var bestHash = await rpc.GetBestBlockHashAsync();
 				Assert.Empty(indexBuilderService.GetFilterLinesExcluding(bestHash, 1, out bool found2).filters);
