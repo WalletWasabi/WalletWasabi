@@ -115,7 +115,7 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpGet("all-fees")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
-		[ResponseCache(Duration = 10, Location = ResponseCacheLocation.Client)]
+		[ResponseCache(Duration = 180, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetAllFeesAsync(string estimateSmartFeeMode)
 		{
 			if (string.IsNullOrWhiteSpace(estimateSmartFeeMode) || !ModelState.IsValid || !Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
