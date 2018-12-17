@@ -148,6 +148,78 @@ namespace WalletWasabi.Tests
 			Logger.TurnOn();
 		}
 
+		[Fact]
+		public async Task FilterBuilderTestAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+
+			var indexBuilderServiceDir = Path.Combine(SharedFixture.DataDir, nameof(IndexBuilderService));
+			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
+			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{rpc.Network}.dat");
+
+			var indexBuilderService = new IndexBuilderService(rpc, indexFilePath, utxoSetFilePath);
+			try
+			{
+				indexBuilderService.Synchronize();
+
+				// Test initial synchronization.
+				var times = 0;
+				uint256 firstHash = await rpc.GetBlockHashAsync(0);
+				while (indexBuilderService.GetFilterLinesExcluding(firstHash, 102, out _).filters.Count() != await rpc.GetBlockCountAsync())
+				{
+					if (times > 500) // 30 sec
+					{
+						throw new TimeoutException($"{nameof(IndexBuilderService)} test timed out.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+
+				// Test later synchronization.
+				await rpc.GenerateAsync(10);
+				times = 0;
+				while (indexBuilderService.GetFilterLinesExcluding(firstHash, 112, out bool found5).filters.Count() != await rpc.GetBlockCountAsync())
+				{
+					Assert.True(found5);
+					if (times > 500) // 30 sec
+					{
+						throw new TimeoutException($"{nameof(IndexBuilderService)} test timed out.");
+					}
+					await Task.Delay(100);
+					times++;
+				}
+
+				// Test correct number of filters is received.
+				var hundredthHash = await rpc.GetBlockHashAsync(100);
+				var expected = (await rpc.GetBlockCountAsync()) - 100;
+				Assert.Equal(expected, indexBuilderService.GetFilterLinesExcluding(hundredthHash, 12, out bool found).filters.Count());
+				Assert.True(found);
+				var bestHash = await rpc.GetBestBlockHashAsync();
+				Assert.Empty(indexBuilderService.GetFilterLinesExcluding(bestHash, 1, out bool found2).filters);
+				Assert.True(found2);
+				Assert.Empty(indexBuilderService.GetFilterLinesExcluding(uint256.Zero, 1, out bool found3).filters);
+				Assert.False(found3);
+
+				// Test filter block hashes are correct.
+				var filters = indexBuilderService.GetFilterLinesExcluding(firstHash, 112, out bool found4).filters.ToArray();
+				Assert.True(found4);
+				for (int i = 0; i < 111; i++)
+				{
+					var expectedHash = await rpc.GetBlockHashAsync(i + 1);
+					var filterModel = FilterModel.FromLine(filters[i], i);
+					Assert.Equal(expectedHash, filterModel.BlockHash);
+					Assert.Null(filterModel.Filter);
+				}
+			}
+			finally
+			{
+				if (!(indexBuilderService is null))
+				{
+					await indexBuilderService.StopAsync();
+				}
+			}
+		}
+
 		#endregion BackendTests
 
 		#region ServicesTests
