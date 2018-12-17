@@ -61,10 +61,15 @@ namespace WalletWasabi.Backend.Controllers
 				if (int.TryParse(targetParam, out var target))
 				{
 					if (target < 2 || target > 1008)
+					{
 						return BadRequest("All requested confirmation target must be >=2 AND <= 1008.");
+					}
 
 					if (confirmationTargetsInts.Contains(target))
+					{
 						continue;
+					}
+
 					confirmationTargetsInts.Add(target);
 				}
 				else
@@ -92,6 +97,35 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			return Ok(feeEstimations);
+		}
+
+		/// <summary>
+		/// Get all fees.
+		/// </summary>
+		/// <remarks>
+		/// Sample request:
+		///
+		///     GET /fees/ECONOMICAL
+		///
+		/// </remarks>
+		/// <param name="estimateSmartFeeMode">Bitcoin Core's estimatesmartfee mode: ECONOMICAL/CONSERVATIVE.</param>
+		/// <returns>A dictionary of fee targets and estimations.</returns>
+		/// <response code="200">A dictionary of fee targets and estimations.</response>
+		/// <response code="400">If invalid estimation mode was specified (ECONOMICAL/CONSERVATIVE). </response>
+		[HttpGet("all-fees")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400)]
+		[ResponseCache(Duration = 10, Location = ResponseCacheLocation.Client)]
+		public async Task<IActionResult> GetAllFeesAsync(string estimateSmartFeeMode)
+		{
+			if (string.IsNullOrWhiteSpace(estimateSmartFeeMode) || !ModelState.IsValid || !Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
+			{
+				return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
+			}
+
+			var estimation = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+			Console.WriteLine($"Queried {estimateSmartFeeMode}");
+			return Ok(estimation.Estimations);
 		}
 
 		/// <summary>
