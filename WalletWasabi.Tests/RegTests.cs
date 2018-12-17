@@ -165,7 +165,7 @@ namespace WalletWasabi.Tests
 				// Test initial synchronization.
 				var times = 0;
 				uint256 firstHash = await rpc.GetBlockHashAsync(0);
-				while (indexBuilderService.GetFilterLinesExcluding(firstHash, 102, out _).filters.Count() != await rpc.GetBlockCountAsync())
+				while (indexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
 				{
 					if (times > 500) // 30 sec
 					{
@@ -178,7 +178,7 @@ namespace WalletWasabi.Tests
 				// Test later synchronization.
 				await rpc.GenerateAsync(10);
 				times = 0;
-				while (indexBuilderService.GetFilterLinesExcluding(firstHash, 112, out bool found5).filters.Count() != await rpc.GetBlockCountAsync())
+				while (indexBuilderService.GetFilterLinesExcluding(firstHash, 111, out bool found5).filters.Count() != 111)
 				{
 					Assert.True(found5);
 					if (times > 500) // 30 sec
