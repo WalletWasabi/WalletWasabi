@@ -39,11 +39,18 @@ namespace WalletWasabi.Backend.Models.Responses
 		/// </summary>
 		public int SuccessfulRoundCount { get; set; }
 
+		[JsonConverter(typeof(PubKeyJsonConverter))]
+		public PubKey PubKey { get; set; }
+		[JsonConverter(typeof(PubKeyJsonConverter))]
+		public PubKey R { get; set; }
+
 		public static CcjRunningRoundState CloneExcept(CcjRunningRoundState state, long roundId, int registeredPeerCount)
 		{
 			return new CcjRunningRoundState
 			{
 				Phase = state.Phase,
+				PubKey = state.PubKey,
+				R = state.R,
 				Denomination = state.Denomination,
 				RegisteredPeerCount = registeredPeerCount,
 				RequiredPeerCount = state.RequiredPeerCount,

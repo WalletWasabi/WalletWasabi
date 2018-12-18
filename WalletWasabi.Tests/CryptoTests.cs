@@ -77,27 +77,9 @@ namespace WalletWasabi.Tests
 			Assert.True(rate < 0.000001 && rate > -0.000001);
 		}
 
-		[Fact]
-		public void CanBlindSign()
-		{
-			// generate rsa keypair
-			var key = new BlindingRsaKey();
 
-			// generate blinding factor with pubkey
-			// blind message
-			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			var (BlindingFactor, BlindedData) = key.PubKey.Blind(message);
 
-			// sign the blinded message
-			var signature = key.SignBlindedData(BlindedData);
-
-			// unblind the signature
-			var unblindedSignature = key.PubKey.UnblindSignature(signature, BlindingFactor);
-
-			// verify the original data is signed
-			Assert.True(key.PubKey.Verify(unblindedSignature, message));
-		}
-
+/*
 		[Fact]
 		public void CanSerialize()
 		{
@@ -137,5 +119,6 @@ namespace WalletWasabi.Tests
 			byte[] decoded = ByteHelpers.FromHex(encoded);
 			Assert.Equal(blindedData, decoded);
 		}
+*/
 	}
 }

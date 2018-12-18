@@ -1,7 +1,6 @@
 ﻿using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -117,38 +116,14 @@ namespace WalletWasabi.Gui
 			return _torSocks5EndPoint;
 		}
 
-		private BlindingRsaPubKey _blindingRsaPubKey;
-
-		public BlindingRsaPubKey GetBlindingRsaPubKey()
-		{
-			if (!(_blindingRsaPubKey is null)) return _blindingRsaPubKey;
-
-			if (Network == Network.Main)
-			{
-				_blindingRsaPubKey = new BlindingRsaPubKey(new BigInteger(MainNetBlindingRsaPubKey), Constants.RsaPubKeyExponent);
-			}
-			else if (Network == Network.TestNet)
-			{
-				_blindingRsaPubKey = new BlindingRsaPubKey(new BigInteger(TestNetBlindingRsaPubKey), Constants.RsaPubKeyExponent);
-			}
-			else // RegTest
-			{
-				_blindingRsaPubKey = new BlindingRsaPubKey(new BigInteger(RegTestBlindingRsaPubKey), Constants.RsaPubKeyExponent);
-			}
-
-			return _blindingRsaPubKey;
-		}
-
 		public Config()
 		{
 			_backendUri = null;
-			_blindingRsaPubKey = null;
 		}
 
 		public Config(string filePath)
 		{
 			_backendUri = null;
-			_blindingRsaPubKey = null;
 			SetFilePath(filePath);
 		}
 
@@ -213,7 +188,6 @@ namespace WalletWasabi.Gui
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
-			_blindingRsaPubKey = GetBlindingRsaPubKey();
 
 			await ToFileAsync();
 		}
@@ -240,7 +214,6 @@ namespace WalletWasabi.Gui
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
-			_blindingRsaPubKey = GetBlindingRsaPubKey();
 		}
 
 		/// <inheritdoc />

@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
@@ -29,6 +30,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Money FeePerInputs { get; private set; }
 		public Money FeePerOutputs { get; private set; }
 
+		public ECDSABlinding.Signer Signer { get; private set; }
 		public string RoundHash { get; private set; }
 
 		public Transaction UnsignedCoinJoin { get; private set; }
@@ -156,6 +158,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				StatusLock = new object();
 				Status = CcjRoundStatus.NotStarted;
 
+				Signer = new ECDSABlinding.Signer(new Key());
 				RoundHash = null;
 				_unsignedCoinJoinHex = null;
 

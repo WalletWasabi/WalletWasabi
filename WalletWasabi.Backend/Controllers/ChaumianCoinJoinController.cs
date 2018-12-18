@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
+using NBitcoin.Crypto;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
@@ -35,8 +36,6 @@ namespace WalletWasabi.Backend.Controllers
 
 		private static CcjCoordinator Coordinator => Global.Coordinator;
 
-		private static BlindingRsaKey RsaKey => Coordinator.RsaKey;
-
 		/// <summary>
 		/// Satoshi gets various status information.
 		/// </summary>
@@ -60,6 +59,8 @@ namespace WalletWasabi.Backend.Controllers
 				var state = new CcjRunningRoundState
 				{
 					Phase = round.Phase,
+					PubKey = round.Signer.Key.PubKey,
+					R = round.Signer.R.PubKey,
 					Denomination = round.Denomination,
 					RegisteredPeerCount = round.CountAlices(syncLock: false),
 					RequiredPeerCount = round.AnonymitySet,
@@ -266,7 +267,7 @@ namespace WalletWasabi.Backend.Controllers
 						return BadRequest("Invalid blinded output hex.");
 					}
 
-					byte[] signature = RsaKey.SignBlindedData(blindedData);
+					byte[] signature = round.Signer.SignData(blindedData);
 
 					// Check if phase changed since.
 					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
@@ -458,7 +459,7 @@ namespace WalletWasabi.Backend.Controllers
 			if (string.IsNullOrWhiteSpace(roundHash)
 				|| request is null
 				|| string.IsNullOrWhiteSpace(request.OutputAddress)
-				|| string.IsNullOrWhiteSpace(request.SignatureHex)
+				|| request.Signature is null
 				|| !ModelState.IsValid)
 			{
 				return BadRequest();
@@ -491,7 +492,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest($"Invalid OutputAddress. Details: {ex.Message}");
 			}
 
-			if (RsaKey.PubKey.Verify(ByteHelpers.FromHex(request.SignatureHex), outputAddress.ScriptPubKey.ToBytes()))
+			if (round.Signer.VerifySignature(outputAddress.ScriptPubKey.ToBytes(), request.Signature.Unwrap() ))
 			{
 				using (await OutputLock.LockAsync())
 				{

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using NBitcoin.DataEncoders;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Text;
@@ -11,7 +12,7 @@ namespace WalletWasabi.Backend.Models.Requests
 		public string OutputAddress { get; set; }
 
 		[Required]
-		public string SignatureHex { get; set; }
+		public WrappedBlindSignature Signature { get; set; }
 
 		public StringContent ToHttpStringContent()
 		{

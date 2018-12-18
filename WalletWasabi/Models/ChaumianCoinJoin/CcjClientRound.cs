@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.Crypto;
 using System.Collections.Generic;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
@@ -17,7 +18,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public BitcoinAddress ChangeOutputAddress { get; set; }
 		public BitcoinAddress ActiveOutputAddress { get; set; }
 
-		public byte[] UnblindedSignature { get; set; }
+		public BlindSignature UnblindedSignature { get; set; }
 
 		public string RoundHash { get; set; }
 

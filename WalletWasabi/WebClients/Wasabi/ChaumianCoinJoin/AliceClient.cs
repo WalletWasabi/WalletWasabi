@@ -59,11 +59,11 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			}
 		}
 
-		public static async Task<AliceClient> CreateNewAsync(Network network, BitcoinAddress changeOutput, byte[] blindedData, IEnumerable<InputProofModel> inputs, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		public static async Task<AliceClient> CreateNewAsync(Network network, BitcoinAddress changeOutput, uint256 blindedData, IEnumerable<InputProofModel> inputs, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			var request = new InputsRequest
 			{
-				BlindedOutputScriptHex = ByteHelpers.ToHex(blindedData),
+				BlindedOutputScriptHex = ByteHelpers.ToHex(blindedData.ToBytes()),
 				ChangeOutputAddress = changeOutput.ToString(),
 				Inputs = inputs
 			};
