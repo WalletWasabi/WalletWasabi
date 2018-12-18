@@ -10,6 +10,7 @@ using WalletWasabi.Models;
 using System.Text;
 using System.Threading;
 using WalletWasabi.Backend.Models.Responses;
+using NBitcoin.RPC;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
@@ -19,6 +20,39 @@ namespace WalletWasabi.WebClients.Wasabi
 		public WasabiClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
 		}
+
+		#region batch
+
+		/// <remarks>
+		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
+		/// </remarks>
+		public async Task<SynchronizeResponse> GetSynchronizeAsync(uint256 bestKnownBlockHash, int count, EstimateSmartFeeMode? estimateMode = null, CancellationToken cancel = default)
+		{
+			string relativeUri = $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/batch/synchronize?bestKnownBlockHash={bestKnownBlockHash}&maxNumberOfFilters={count}";
+			if (estimateMode != null)
+			{
+				relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";
+			}
+
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
+																	HttpStatusCode.OK,
+																	relativeUri,
+																	cancel: cancel))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync();
+				}
+
+				using (HttpContent content = response.Content)
+				{
+					var ret = await content.ReadAsJsonAsync<SynchronizeResponse>();
+					return ret;
+				}
+			}
+		}
+
+		#endregion batch
 
 		#region blockchain
 

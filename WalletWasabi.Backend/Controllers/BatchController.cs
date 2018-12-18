@@ -34,9 +34,13 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpGet("synchronize")]
 		public async Task<IActionResult> GetSynchronizeAsync([FromQuery]string bestKnownBlockHash, [FromQuery]int maxNumberOfFilters, [FromQuery]string estimateSmartFeeMode)
 		{
-			if (string.IsNullOrWhiteSpace(bestKnownBlockHash) || maxNumberOfFilters <= 0)
+			if (string.IsNullOrWhiteSpace(bestKnownBlockHash))
 			{
-				return BadRequest("Invalid block hash or count is provided.");
+				return BadRequest("Invalid block hash is provided.");
+			}
+			if (maxNumberOfFilters <= 0)
+			{
+				return BadRequest("Invalid maxNumberOfFilters is provided.");
 			}
 
 			bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
