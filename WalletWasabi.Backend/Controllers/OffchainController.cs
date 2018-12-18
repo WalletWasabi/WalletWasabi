@@ -32,7 +32,7 @@ namespace WalletWasabi.Backend.Controllers
 		/// <response code="200">Returns an array of exchange rates.</response>
 		[HttpGet("exchange-rates")]
 		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]
-		[ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
+		[ResponseCache(Duration = 500, Location = ResponseCacheLocation.Client)]
 		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
 		{
 			if (Cache.TryGetValue(nameof(GetExchangeRatesAsync), out List<ExchangeRate> exchangeRates))

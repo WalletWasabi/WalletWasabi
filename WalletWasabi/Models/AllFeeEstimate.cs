@@ -19,17 +19,17 @@ namespace WalletWasabi.Models
 		/// int: fee target, decimal: satoshi/bytes
 		/// </summary>
 		[JsonProperty]
-		public Dictionary<int, decimal> Estimations { get; }
+		public Dictionary<int, int> Estimations { get; }
 
 		[JsonConstructor]
-		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, decimal> estimations)
+		public AllFeeEstimate(EstimateSmartFeeMode type, IDictionary<int, int> estimations)
 		{
 			Type = type;
 			Guard.NotNullOrEmpty(nameof(estimations), estimations);
-			Estimations = new Dictionary<int, decimal>();
+			Estimations = new Dictionary<int, int>();
 			var valueSet = new HashSet<decimal>();
 			// Make sure values are unique and in the correct order.
-			foreach (KeyValuePair<int, decimal> estimation in estimations.OrderBy(x => x.Key))
+			foreach (KeyValuePair<int, int> estimation in estimations.OrderBy(x => x.Key))
 			{
 				if (valueSet.Add(estimation.Value))
 				{

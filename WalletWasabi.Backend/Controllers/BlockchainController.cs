@@ -43,16 +43,16 @@ namespace WalletWasabi.Backend.Controllers
 		/// <param name="confirmationTargets">Confirmation targets in blocks wit comma separation. (2 - 1008)</param>
 		/// <returns>Array of fee estimations for the requested confirmation targets. A fee estimation contains estimation mode (Conservative/Economical) and byte per satoshi pairs.</returns>
 		/// <response code="200">Returns array of fee estimations for the requested confirmation targets.</response>
-		/// <response code="400">If invalid conformation targets were specified. (2 - 1008 integers)</response>
+		/// <response code="400">If invalid conformation targets were provided. (2 - 1008 integers)</response>
 		[HttpGet("fees/{confirmationTargets}")]
 		[ProducesResponseType(200)] // Note: If you add typeof(SortedDictionary<int, FeeEstimationPair>) then swagger UI will visualize incorrectly.
 		[ProducesResponseType(400)]
-		[ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
+		[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetFeesAsync(string confirmationTargets)
 		{
 			if (string.IsNullOrWhiteSpace(confirmationTargets) || !ModelState.IsValid)
 			{
-				return BadRequest($"Invalid {nameof(confirmationTargets)} are specified.");
+				return BadRequest($"Invalid {nameof(confirmationTargets)} are provided.");
 			}
 
 			var confirmationTargetsInts = new HashSet<int>();
@@ -74,7 +74,7 @@ namespace WalletWasabi.Backend.Controllers
 				}
 				else
 				{
-					return BadRequest($"Invalid {nameof(confirmationTargets)} are specified.");
+					return BadRequest($"Invalid {nameof(confirmationTargets)} are provided.");
 				}
 			}
 
@@ -111,19 +111,20 @@ namespace WalletWasabi.Backend.Controllers
 		/// <param name="estimateSmartFeeMode">Bitcoin Core's estimatesmartfee mode: ECONOMICAL/CONSERVATIVE.</param>
 		/// <returns>A dictionary of fee targets and estimations.</returns>
 		/// <response code="200">A dictionary of fee targets and estimations.</response>
-		/// <response code="400">If invalid estimation mode was specified (ECONOMICAL/CONSERVATIVE). </response>
+		/// <response code="400">Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.</response>
 		[HttpGet("all-fees")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
-		[ResponseCache(Duration = 180, Location = ResponseCacheLocation.Client)]
+		[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
 		public async Task<IActionResult> GetAllFeesAsync(string estimateSmartFeeMode)
 		{
-			if (string.IsNullOrWhiteSpace(estimateSmartFeeMode) || !ModelState.IsValid || !Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
+			if (!ModelState.IsValid || string.IsNullOrWhiteSpace(estimateSmartFeeMode) || !Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
 			{
 				return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
 			}
 
-			var estimation = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+			AllFeeEstimate estimation = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+
 			return Ok(estimation.Estimations);
 		}
 
@@ -180,7 +181,7 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		/// <summary>
-		/// Gets block filters from the specified block hash.
+		/// Gets block filters from the provided block hash.
 		/// </summary>
 		/// <remarks>
 		/// Filter examples:

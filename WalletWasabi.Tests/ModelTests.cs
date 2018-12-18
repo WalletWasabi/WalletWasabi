@@ -181,11 +181,11 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void AllFeeEstimateSerialization()
 		{
-			var estimations = new Dictionary<int, decimal>
+			var estimations = new Dictionary<int, int>
 			{
-				{ 2, 102.3m },
-				{ 3, 20.3m },
-				{ 19, 1.223m }
+				{ 2, 102 },
+				{ 3, 20 },
+				{ 19, 1 }
 			};
 			var allFee = new AllFeeEstimate(EstimateSmartFeeMode.Conservative, estimations);
 			var serialized = JsonConvert.SerializeObject(allFee);
