@@ -46,6 +46,13 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		public IActionResult GetStates()
 		{
+			IEnumerable<CcjRunningRoundState> response = GetStatesCollection();
+
+			return Ok(response);
+		}
+
+		public static IEnumerable<CcjRunningRoundState> GetStatesCollection()
+		{
 			var response = new List<CcjRunningRoundState>();
 
 			foreach (CcjRound round in Coordinator.GetRunningRounds())
@@ -68,7 +75,7 @@ namespace WalletWasabi.Backend.Controllers
 				response.Add(state);
 			}
 
-			return Ok(response);
+			return response;
 		}
 
 		private static AsyncLock InputsLock { get; } = new AsyncLock();

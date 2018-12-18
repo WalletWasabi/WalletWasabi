@@ -1,8 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NBitcoin;
+using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
+using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Controllers
 {
@@ -26,10 +31,61 @@ namespace WalletWasabi.Backend.Controllers
 			OffchainController = offchainController;
 		}
 
-		[HttpPost("synchronize")]
-		public IActionResult PostSynchronizeAsync()
+		[HttpGet("synchronize")]
+		public async Task<IActionResult> GetSynchronizeAsync([FromQuery]string bestKnownBlockHash, [FromQuery]int maxNumberOfFilters, [FromQuery]string estimateSmartFeeMode)
 		{
-			return Ok();
+			if (string.IsNullOrWhiteSpace(bestKnownBlockHash) || maxNumberOfFilters <= 0)
+			{
+				return BadRequest("Invalid block hash or count is provided.");
+			}
+
+			bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
+			EstimateSmartFeeMode mode = EstimateSmartFeeMode.Conservative;
+			if (estimateSmartFee)
+			{
+				if (!Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out mode))
+				{
+					return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
+				}
+			}
+
+			if (!ModelState.IsValid)
+			{
+				return BadRequest("Wrong body is provided.");
+			}
+
+			var knownHash = new uint256(bestKnownBlockHash);
+
+			(Height bestHeight, IEnumerable<string> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
+
+			var response = new SynchronizeResponse();
+			response.Filters = new string[0];
+			response.BestHeight = bestHeight;
+
+			if (!found)
+			{
+				response.FiltersResponseState = FiltersResponseState.BestKnownHashNotFound;
+			}
+			else if (!filters.Any())
+			{
+				response.FiltersResponseState = FiltersResponseState.NoNewFilter;
+			}
+			else
+			{
+				response.FiltersResponseState = FiltersResponseState.NewFilters;
+				response.Filters = filters;
+			}
+
+			response.CcjRoundStates = ChaumianCoinJoinController.GetStatesCollection();
+
+			if (estimateSmartFee)
+			{
+				response.AllFeeEstimate = await BlockchainController.GetAllFeeEstimateAsync(mode);
+			}
+
+			response.ExchangeRates = await OffchainController.GetExchangeRatesCollectionAsync();
+
+			return Ok(response);
 		}
 	}
 }

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -30,26 +31,40 @@ namespace WalletWasabi.Backend.Controllers
 		/// </summary>
 		/// <returns>ExchangeRates[] contains ticker and exchange rate pairs.</returns>
 		/// <response code="200">Returns an array of exchange rates.</response>
+		/// <response code="404">Exchange rates are not available.</response>
 		[HttpGet("exchange-rates")]
-		[ProducesResponseType(typeof(IEnumerable<ExchangeRate>), 200)]
-		[ResponseCache(Duration = 500, Location = ResponseCacheLocation.Client)]
-		public async Task<IEnumerable<ExchangeRate>> GetExchangeRatesAsync()
+		[ProducesResponseType(200)]
+		[ProducesResponseType(404)]
+		public async Task<IActionResult> GetExchangeRatesAsync()
 		{
-			if (Cache.TryGetValue(nameof(GetExchangeRatesAsync), out List<ExchangeRate> exchangeRates))
-				return exchangeRates;
+			IEnumerable<ExchangeRate> exchangeRates = await GetExchangeRatesCollectionAsync();
 
-			exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();
-
-			if (exchangeRates is null)
+			if (!exchangeRates.Any())
 			{
-				throw new HttpRequestException("BTC/USD exchange rate is not available.");
+				return NotFound("Exchange rates are not available.");
 			}
 
-			var cacheEntryOptions = new MemoryCacheEntryOptions()
-				.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
+			return Ok(exchangeRates);
+		}
 
-			Cache.Set(nameof(GetExchangeRatesAsync), exchangeRates, cacheEntryOptions);
+		internal async Task<IEnumerable<ExchangeRate>> GetExchangeRatesCollectionAsync()
+		{
+			var cacheKey = nameof(GetExchangeRatesCollectionAsync);
 
+			if (!Cache.TryGetValue(cacheKey, out IEnumerable<ExchangeRate> exchangeRates))
+			{
+				exchangeRates = await ExchangeRateProvider.GetExchangeRateAsync();
+
+				if (exchangeRates is null)
+				{
+					return Enumerable.Empty<ExchangeRate>();
+				}
+
+				var cacheEntryOptions = new MemoryCacheEntryOptions()
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
+
+				Cache.Set(cacheKey, exchangeRates, cacheEntryOptions);
+			}
 			return exchangeRates;
 		}
 	}

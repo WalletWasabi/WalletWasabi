@@ -123,9 +123,25 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
 			}
 
-			AllFeeEstimate estimation = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+			AllFeeEstimate estimation = await GetAllFeeEstimateAsync(mode);
 
 			return Ok(estimation.Estimations);
+		}
+
+		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
+		{
+			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
+
+			if (!Cache.TryGetValue(cacheKey, out AllFeeEstimate allFee))
+			{
+				allFee = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+
+				var cacheEntryOptions = new MemoryCacheEntryOptions()
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
+
+				Cache.Set(cacheKey, allFee, cacheEntryOptions);
+			}
+			return allFee;
 		}
 
 		/// <summary>
@@ -235,14 +251,14 @@ namespace WalletWasabi.Backend.Controllers
 
 		private async Task<EstimateSmartFeeResponse> GetEstimateSmartFeeAsync(int target, EstimateSmartFeeMode mode)
 		{
-			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{Enum.GetName(typeof(EstimateSmartFeeMode), mode)}";
+			var cacheKey = $"{nameof(GetEstimateSmartFeeAsync)}_{target}_{mode}";
 
 			if (!Cache.TryGetValue(cacheKey, out EstimateSmartFeeResponse feeResponse))
 			{
 				feeResponse = await RpcClient.EstimateSmartFeeAsync(target, mode, simulateIfRegTest: true, tryOtherFeeRates: true);
 
 				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(20));
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(300));
 
 				Cache.Set(cacheKey, feeResponse, cacheEntryOptions);
 			}
