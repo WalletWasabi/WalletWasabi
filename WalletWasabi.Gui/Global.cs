@@ -244,10 +244,10 @@ namespace WalletWasabi.Gui
 
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
-			ChaumianClient = new CcjClient(Network, BlindingPubKey, keyManager, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			ChaumianClient = new CcjClient(Synchronizer, Network, BlindingPubKey, keyManager, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
 			WalletService = new WalletService(keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir);
 
-			ChaumianClient.Start(0, 3);
+			ChaumianClient.Start();
 			Logger.LogInfo("Start Chaumian CoinJoin service...");
 
 			using (CancelWalletServiceInitialization = new CancellationTokenSource())

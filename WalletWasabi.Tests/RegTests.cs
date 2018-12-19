@@ -504,7 +504,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 5. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync));
@@ -522,7 +522,7 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 1000); // Start wasabi synchronizer service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -733,7 +733,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
@@ -755,7 +755,7 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -1177,7 +1177,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
@@ -1251,7 +1251,7 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -1341,7 +1341,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
@@ -1366,7 +1366,7 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -1508,7 +1508,7 @@ namespace WalletWasabi.Tests
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
@@ -1525,7 +1525,7 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -2654,6 +2654,10 @@ namespace WalletWasabi.Tests
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(CcjClientTestsAsync), $"Index{network}.dat");
+			var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+
 			Money denomination = Money.Coins(0.1m);
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
@@ -2699,12 +2703,12 @@ namespace WalletWasabi.Tests
 			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(bech3Coin.Outpoint.N));
 			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx4.GetMixin(bech4Coin.Outpoint.N));
 
-			var chaumianClient1 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
-			var chaumianClient2 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient1 = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
-				chaumianClient1.Start(2, 2); // Exactly delay it for 2 seconds, this will make sure of timeout later.
-				chaumianClient2.Start(0, 0);
+				chaumianClient1.Start(); // Exactly delay it for 2 seconds, this will make sure of timeout later.
+				chaumianClient2.Start();
 
 				smartCoin1.CoinJoinInProgress = true;
 				Assert.True(!(await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any());
@@ -2798,6 +2802,10 @@ namespace WalletWasabi.Tests
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(CcjClientCustomOutputScriptTestsAsync), $"Index{network}.dat");
+			var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+
 			Money denomination = Money.Coins(0.1m);
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
@@ -2836,12 +2844,12 @@ namespace WalletWasabi.Tests
 			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx2.GetMixin(bech2Coin.Outpoint.N));
 			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(bech3Coin.Outpoint.N));
 
-			var chaumianClient1 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
-			var chaumianClient2 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient1 = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
-				chaumianClient1.Start(0, 0);
-				chaumianClient2.Start(0, 0);
+				chaumianClient1.Start();
+				chaumianClient2.Start();
 
 				var customChange1 = new Key().PubKey.GetAddress(network);
 				var customActive1 = new Key().PubKey.GetAddress(network);
@@ -2932,9 +2940,9 @@ namespace WalletWasabi.Tests
 			var keyManager2 = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
-			var chaumianClient2 = new CcjClient(network, coordinator.RsaKey.PubKey, keyManager2, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(synchronizer, network, coordinator.RsaKey.PubKey, keyManager2, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync));
@@ -2963,11 +2971,11 @@ namespace WalletWasabi.Tests
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
 				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 				nodes2.Connect(); // Start connection service.
 				node2.VersionHandshake(); // Start mempool service.
 				synchronizer2.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
-				chaumianClient2.Start(0, 0); // Start chaumian coinjoin client.
+				chaumianClient2.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -3006,7 +3014,7 @@ namespace WalletWasabi.Tests
 				Assert.True(1 == (await chaumianClient.QueueCoinsToMixAsync(password, wallet.Coins.ToArray())).Count());
 				Assert.True(3 == (await chaumianClient2.QueueCoinsToMixAsync(password, wallet2.Coins.ToArray())).Count());
 
-				Task timeout = Task.Delay(TimeSpan.FromSeconds(2 * (connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2)));
+				Task timeout = Task.Delay(TimeSpan.FromSeconds(2 * (1 + 11 + 7 + 3 * (3 + 7))));
 				while (wallet.Coins.Count != 7)
 				{
 					if (timeout.IsCompletedSuccessfully)

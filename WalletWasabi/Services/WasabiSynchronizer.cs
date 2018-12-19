@@ -92,6 +92,8 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public TimeSpan MinRequestIntervalForMixing { get; set; }
+
 		public string IndexFilePath { get; private set; }
 		private List<FilterModel> Index { get; set; }
 		private object IndexLock { get; set; }
@@ -103,6 +105,8 @@ namespace WalletWasabi.Services
 		public event EventHandler<FilterModel> NewFilter;
 
 		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
+
+		public event EventHandler<SynchronizeResponse> ResponseArrived;
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -186,6 +190,8 @@ namespace WalletWasabi.Services
 			Guard.NotNull(nameof(requestInterval), requestInterval);
 			Guard.MinimumAndNotNull(nameof(feeQueryRequestInterval), feeQueryRequestInterval, requestInterval);
 			Guard.MinimumAndNotNull(nameof(maxFiltersToSyncAtInitialization), maxFiltersToSyncAtInitialization, 0);
+
+			MinRequestIntervalForMixing = requestInterval; // Let's start with this, it'll be modified from outside.
 
 			Interlocked.Exchange(ref _running, 1);
 
@@ -320,6 +326,8 @@ namespace WalletWasabi.Services
 							{
 								// We are syced.
 							}
+
+							ResponseArrived?.Invoke(this, response);
 						}
 						catch (Exception ex)
 						{
@@ -350,7 +358,8 @@ namespace WalletWasabi.Services
 							{
 								try
 								{
-									await Task.Delay(requestInterval, Cancel.Token); // Ask for new index in every requestInterval.
+									int delay = (int)Math.Min(requestInterval.TotalMilliseconds, MinRequestIntervalForMixing.TotalMilliseconds);
+									await Task.Delay(delay, Cancel.Token); // Ask for new index in every requestInterval.
 								}
 								catch (TaskCanceledException ex)
 								{
