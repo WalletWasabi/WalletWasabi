@@ -1,33 +1,28 @@
 ﻿using NBitcoin;
+using NBitcoin.BouncyCastle.Math;
 using Newtonsoft.Json;
 using System;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class BitcoinAddressConverter : JsonConverter
+	public class BigIntegerJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(BitcoinAddress);
+			return objectType == typeof(BigInteger);
 		}
 
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			var serialized = (string)reader.Value;
-			if(string.IsNullOrEmpty(serialized))
-				return null;
-			return Network.Parse<BitcoinAddress>(serialized);
+			return new BigInteger(((string)reader.Value).Trim());
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			var address = (BitcoinAddress)value;
-
-			writer.WriteValue(address.ToString());
+			writer.WriteValue(((BigInteger)value).ToString());
 		}
 	}
 }

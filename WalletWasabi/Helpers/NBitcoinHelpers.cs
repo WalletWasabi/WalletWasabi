@@ -22,25 +22,6 @@ namespace WalletWasabi.Helpers
 			return HashHelpers.GenerateSha256Hash(sb.ToString());
 		}
 
-		public static BitcoinAddress ParseBitcoinAddress(string address)
-		{
-			try
-			{
-				return BitcoinAddress.Create(address, Network.RegTest);
-			}
-			catch (FormatException)
-			{
-				try
-				{
-					return BitcoinAddress.Create(address, Network.TestNet);
-				}
-				catch (FormatException)
-				{
-					return BitcoinAddress.Create(address, Network.Main);
-				}
-			}
-		}
-
 		public static Money TakeAReasonableFee(Money outputValue)
 		{
 			Money fee = Money.Coins(0.002m);
@@ -87,9 +68,16 @@ namespace WalletWasabi.Helpers
 			return requester.UnblindSignature(blinded);
 		}
 
-		public static WrappedBlindSignature Wrap(this BlindSignature signature)
+		public static uint256 BlindScript(this ECDSABlinding.Requester requester, Script script, PubKey signerPubKey, PubKey RPubKey)
 		{
-			return WrappedBlindSignature.Wrap(signature);
+			var msg = new uint256(Hashes.SHA256(script.ToBytes()));
+			return requester.BlindMessage(msg, RPubKey, signerPubKey);
+		}
+
+		public static bool VerifyMessage(this BitcoinWitPubKeyAddress address, uint256 hash, byte[] signature)
+		{
+			var key = PubKey.RecoverCompact(hash, signature);
+			return key.WitHash == address.Hash;
 		}
 	}
 }

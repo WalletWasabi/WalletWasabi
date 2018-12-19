@@ -31,6 +31,7 @@ using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using Xunit;
+using NBitcoin.BouncyCastle.Math;
 
 namespace WalletWasabi.Tests
 {
@@ -1701,6 +1702,7 @@ namespace WalletWasabi.Tests
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
+			byte[] dummySignature = new byte[65];
 			Money denomination = Money.Coins(0.2m);
 			decimal coordinatorFeePercent = 0.2m;
 			int anonymitySet = 2;
@@ -1741,7 +1743,7 @@ namespace WalletWasabi.Tests
 				// Inputs request tests
 				var inputsRequest = new InputsRequest
 				{
-					BlindedOutputScriptHex = null,
+					BlindedOutputScript = null,
 					ChangeOutputAddress = null,
 					Inputs = null,
 				};
@@ -1749,9 +1751,9 @@ namespace WalletWasabi.Tests
 				HttpRequestException httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid request.", httpRequestException.Message);
 
-				inputsRequest.BlindedOutputScriptHex = "c";
-				inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(network).ToString();
-				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new TxoRef(uint256.One, 0), Proof = "b" } };
+				inputsRequest.BlindedOutputScript = uint256.Zero;
+				inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(network);
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new TxoRef(uint256.One, 0), Proof = dummySignature } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is not unspent", httpRequestException.Message);
 
@@ -1760,7 +1762,7 @@ namespace WalletWasabi.Tests
 				var tx = await rpc.GetRawTransactionAsync(hash);
 				var coin = tx.Outputs.GetCoins(addr.ScriptPubKey).Single();
 
-				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = "b" } };
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = dummySignature } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is neither confirmed, nor is from an unconfirmed coinjoin.", httpRequestException.Message);
 
@@ -1771,7 +1773,7 @@ namespace WalletWasabi.Tests
 				var blockHash = blocks.Single();
 				var block = await rpc.GetBlockAsync(blockHash);
 				var coinbase = block.Transactions.First();
-				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new TxoRef(coinbase.GetHash(), 0), Proof = "b" } };
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new TxoRef(coinbase.GetHash(), 0), Proof = dummySignature } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided input is immature.", httpRequestException.Message);
 
@@ -1781,11 +1783,11 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				tx = await rpc.GetRawTransactionAsync(hash);
 				coin = tx.Outputs.GetCoins(witnessAddress.ScriptPubKey).Single();
-				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = "b" } };
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = dummySignature } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}", httpRequestException.Message);
 
-				var proof = key.SignMessage("foo");
+				var proof = key.SignCompact(uint256.One);
 				inputsRequest.Inputs.First().Proof = proof;
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided proof is invalid.", httpRequestException.Message);
@@ -1806,8 +1808,9 @@ namespace WalletWasabi.Tests
 				ECDSABlinding.Requester requester = new ECDSABlinding.Requester();
 				uint256 msg = new uint256(Hashes.SHA256(network.Consensus.ConsensusFactory.CreateTransaction().ToBytes()));
 				uint256 blindedData = requester.BlindMessage(msg, round.Signer.R.PubKey, round.Signer.Key.PubKey);
-				inputsRequest.BlindedOutputScriptHex = ByteHelpers.ToHex(blindedData.ToBytes());
-				proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
+				inputsRequest.BlindedOutputScript = blindedData;
+				proof = key.SignCompact(inputsRequest.BlindedOutputScript);
+
 				inputsRequest.Inputs.First().Proof = proof;
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
@@ -1828,6 +1831,15 @@ namespace WalletWasabi.Tests
 				roundConfig.ConnectionConfirmationTimeout = 2;
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+
+				round = coordinator.GetCurrentInputRegisterableRound();
+				requester = new ECDSABlinding.Requester();
+				msg = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
+				blindedData = requester.BlindMessage(msg, round.Signer.R.PubKey, round.Signer.Key.PubKey);
+				inputsRequest.BlindedOutputScript = blindedData;
+				proof = key.SignCompact(inputsRequest.BlindedOutputScript);
+				inputsRequest.Inputs.First().Proof = proof;
+
 				using (var aliceClient = await AliceClient.CreateNewAsync(network, inputsRequest, baseUri))
 				{
 					Assert.NotNull(aliceClient.BlindedOutputSignature);
@@ -1847,12 +1859,6 @@ namespace WalletWasabi.Tests
 					Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
 					Assert.Equal(1, roundState.RegisteredPeerCount);
 
-					inputsRequest.BlindedOutputScriptHex = "foo";
-					proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
-					inputsRequest.Inputs.First().Proof = proof;
-					httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
-					Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid blinded output hex.", httpRequestException.Message);
-
 					roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
 					Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
 					Assert.Equal(1, roundState.RegisteredPeerCount);
@@ -1861,10 +1867,9 @@ namespace WalletWasabi.Tests
 				round = coordinator.GetCurrentInputRegisterableRound();
 				requester = new ECDSABlinding.Requester();
 
-				msg = new uint256(Hashes.SHA256(key.ScriptPubKey.ToBytes()));
-				blindedData = requester.BlindMessage(msg, round.Signer.R.PubKey, round.Signer.Key.PubKey);
-				inputsRequest.BlindedOutputScriptHex = ByteHelpers.ToHex(blindedData.ToBytes());
-				proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
+				blindedData = requester.BlindScript(key.ScriptPubKey, round.Signer.Key.PubKey, round.Signer.R.PubKey);
+				inputsRequest.BlindedOutputScript = blindedData;
+				proof = key.SignCompact(inputsRequest.BlindedOutputScript);
 				inputsRequest.Inputs.First().Proof = proof;
 				using (var aliceClient = await AliceClient.CreateNewAsync(network, inputsRequest, baseUri))
 				{
@@ -1877,8 +1882,8 @@ namespace WalletWasabi.Tests
 					Assert.Equal(1, roundState.RegisteredPeerCount);
 				}
 
-				inputsRequest.BlindedOutputScriptHex = ByteHelpers.ToHex(uint256.One.ToBytes());
-				proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
+				inputsRequest.BlindedOutputScript = uint256.One;
+				proof = key.SignCompact(inputsRequest.BlindedOutputScript);
 				inputsRequest.Inputs.First().Proof = proof;
 				inputsRequest.Inputs = new List<InputProofModel> { inputsRequest.Inputs.First(), inputsRequest.Inputs.First() };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
@@ -1893,7 +1898,7 @@ namespace WalletWasabi.Tests
 					await rpc.GenerateAsync(1);
 					tx = await rpc.GetRawTransactionAsync(hash);
 					coin = tx.Outputs.GetCoins(witnessAddress.ScriptPubKey).Single();
-					proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
+					proof = key.SignCompact(inputsRequest.BlindedOutputScript);
 					inputProofs.Add(new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = proof });
 				}
 				await rpc.GenerateAsync(1);
@@ -1970,11 +1975,10 @@ namespace WalletWasabi.Tests
 				
 				round = coordinator.GetCurrentInputRegisterableRound();
 				requester = new ECDSABlinding.Requester();
-				byte[] scriptBytes = new Key().PubKey.GetSegwitAddress(network).ScriptPubKey.ToBytes();
-				msg = new uint256(Hashes.SHA256(scriptBytes));
-				blindedData = requester.BlindMessage(msg, round.Signer.R.PubKey, round.Signer.Key.PubKey);
+				Script script = new Key().PubKey.GetSegwitAddress(network).ScriptPubKey;
+				blindedData = requester.BlindScript(script, round.Signer.Key.PubKey, round.Signer.R.PubKey);
 
-				using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blindedData, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignMessage(ByteHelpers.ToHex(blindedData.ToBytes())) } }, baseUri))
+				using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blindedData, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedData) } }, baseUri))
 				{
 					Assert.NotNull(aliceClient.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
@@ -2018,7 +2022,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nRound is not running.", httpRequestException.Message);
 				}
 
-				using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blindedData, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignMessage(ByteHelpers.ToHex(blindedData.ToBytes())) } }, baseUri))
+				using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blindedData, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedData) } }, baseUri))
 				{
 					Assert.NotNull(aliceClient.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
@@ -2072,21 +2076,16 @@ namespace WalletWasabi.Tests
 
 				round = coordinator.GetCurrentInputRegisterableRound();
 				ECDSABlinding.Requester requester1 = new ECDSABlinding.Requester();
-				msg = new uint256(Hashes.SHA256(outputAddress1.ScriptPubKey.ToBytes()));
-				uint256 blinded1 = requester1.BlindMessage(msg, round.Signer.R.PubKey, round.Signer.Key.PubKey);
+				uint256 blinded1 = requester1.BlindScript(outputAddress1.ScriptPubKey, round.Signer.Key.PubKey, round.Signer.R.PubKey);
 
 				ECDSABlinding.Requester requester2 = new ECDSABlinding.Requester();
-				msg = new uint256(Hashes.SHA256(outputAddress2.ScriptPubKey.ToBytes()));
-				uint256 blinded2 = requester2.BlindMessage(msg, round.Signer.R.PubKey, round.Signer.Key.PubKey);
-
-				string blindedOutputScriptHex1 = ByteHelpers.ToHex(blinded1.ToBytes());
-				string blindedOutputScriptHex2 = ByteHelpers.ToHex(blinded2.ToBytes());
+				uint256 blinded2 = requester2.BlindScript(outputAddress2.ScriptPubKey, round.Signer.Key.PubKey, round.Signer.R.PubKey);
 
 				var input1 = new OutPoint(hash1, index1);
 				var input2 = new OutPoint(hash2, index2);
 
-				using (var aliceClient1 = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blinded1, new InputProofModel[] { new InputProofModel { Input = input1.ToTxoRef(), Proof = key1.SignMessage(blindedOutputScriptHex1) } }, baseUri))
-				using (var aliceClient2 = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blinded2, new InputProofModel[] { new InputProofModel { Input = input2.ToTxoRef(), Proof = key2.SignMessage(blindedOutputScriptHex2) } }, baseUri))
+				using (var aliceClient1 = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blinded1, new InputProofModel[] { new InputProofModel { Input = input1.ToTxoRef(), Proof = key1.SignCompact(blinded1) } }, baseUri))
+				using (var aliceClient2 = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blinded2, new InputProofModel[] { new InputProofModel { Input = input2.ToTxoRef(), Proof = key2.SignCompact(blinded2) } }, baseUri))
 				{
 					Assert.Equal(aliceClient2.RoundId, aliceClient1.RoundId);
 					Assert.NotEqual(aliceClient2.UniqueId, aliceClient1.UniqueId);
@@ -2217,8 +2216,7 @@ namespace WalletWasabi.Tests
 
 				CcjRound round = coordinator.GetCurrentInputRegisterableRound();
 				ECDSABlinding.Requester requester = new ECDSABlinding.Requester();
-				uint256 msg = new uint256(Hashes.SHA256(activeOutputAddress.ScriptPubKey.ToBytes()));
-				uint256 blinded = requester.BlindMessage(msg, round.Signer.R.PubKey, round.Signer.Key.PubKey);
+				uint256 blinded = requester.BlindScript(activeOutputAddress.ScriptPubKey, round.Signer.Key.PubKey, round.Signer.R.PubKey);
 
 				uint256 txHash = await rpc.SendToAddressAsync(inputAddress, Money.Coins(2));
 				await rpc.GenerateAsync(1);
@@ -2226,7 +2224,7 @@ namespace WalletWasabi.Tests
 				Coin coin = transaction.Outputs.GetCoins(inputAddress.ScriptPubKey).Single();
 				OutPoint input = coin.Outpoint;
 
-				InputProofModel inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = inputKey.SignMessage(ByteHelpers.ToHex(blinded.ToBytes())) };
+				InputProofModel inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = inputKey.SignCompact(blinded) };
 				InputProofModel[] inputsProofs = new InputProofModel[] { inputProof };
 				registerRequests.Add((changeOutputAddress, blinded, inputsProofs));
 				await AliceClient.CreateNewAsync(network, changeOutputAddress, blinded, inputsProofs, baseUri);
@@ -2295,8 +2293,7 @@ namespace WalletWasabi.Tests
 
 				CcjRound round = coordinator.GetCurrentInputRegisterableRound();
 				ECDSABlinding.Requester requester = new ECDSABlinding.Requester();
-				uint256 msg = new uint256(Hashes.SHA256(activeOutputAddress.ScriptPubKey.ToBytes()));
-				uint256 blinded = requester.BlindMessage(msg, round.Signer.R.PubKey, round.Signer.Key.PubKey);
+				uint256 blinded = requester.BlindScript(activeOutputAddress.ScriptPubKey, round.Signer.Key.PubKey, round.Signer.R.PubKey);
 
 				var inputProofModels = new List<InputProofModel>();
 				int numberOfInputs = new Random().Next(1, 7);
@@ -2319,7 +2316,7 @@ namespace WalletWasabi.Tests
 					var coin = transaction.Outputs.GetCoins(inputAddress.ScriptPubKey).Single();
 
 					OutPoint input = coin.Outpoint;
-					var inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = key.SignMessage(ByteHelpers.ToHex(blinded.ToBytes())) };
+					var inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = key.SignCompact(blinded) };
 					inputProofModels.Add(inputProof);
 
 					GetTxOutResponse getTxOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
@@ -2502,8 +2499,7 @@ namespace WalletWasabi.Tests
 
 				CcjRound round = coordinator.GetCurrentInputRegisterableRound();
 				ECDSABlinding.Requester requester = new ECDSABlinding.Requester();
-				uint256 msg = new uint256(Hashes.SHA256(activeOutputAddress.ScriptPubKey.ToBytes()));
-				uint256 blinded = requester.BlindMessage(msg, round.Signer.R.PubKey, round.Signer.Key.PubKey);
+				uint256 blinded = requester.BlindScript(activeOutputAddress.ScriptPubKey, round.Signer.Key.PubKey, round.Signer.R.PubKey);
 
 				var inputProofModels = new List<InputProofModel>();
 				int numberOfInputs = new Random().Next(1, 7);
@@ -2526,7 +2522,7 @@ namespace WalletWasabi.Tests
 					var coin = transaction.Outputs.GetCoins(inputAddress.ScriptPubKey).Single();
 
 					OutPoint input = coin.Outpoint;
-					var inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = key.SignMessage(ByteHelpers.ToHex(blinded.ToBytes())) };
+					var inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = key.SignCompact(blinded) };
 					inputProofModels.Add(inputProof);
 
 					GetTxOutResponse getTxOutResponse = await rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);

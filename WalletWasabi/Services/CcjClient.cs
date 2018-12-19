@@ -511,7 +511,7 @@ namespace WalletWasabi.Services
 						var inputProof = new InputProofModel
 						{
 							Input = coin.GetTxoRef(),
-							Proof = coin.Secret.PrivateKey.SignMessage(ByteHelpers.ToHex(blind.ToBytes()))
+							Proof = coin.Secret.PrivateKey.SignCompact(blind)
 						};
 						inputProofs.Add(inputProof);
 					}
@@ -554,8 +554,7 @@ namespace WalletWasabi.Services
 						return;
 					}
 
-					BigInteger blinded = new BigInteger(aliceClient.BlindedOutputSignature);
-					BlindSignature unblindedSignature = requester.UnblindSignature(blinded);
+					BlindSignature unblindedSignature = requester.UnblindSignature(aliceClient.BlindedOutputSignature);
 					hash = new uint256(Hashes.SHA256(activeAddress.ScriptPubKey.ToBytes()));
 					if (!ECDSABlinding.VerifySignature(hash, unblindedSignature, roundPubKey))
 					{

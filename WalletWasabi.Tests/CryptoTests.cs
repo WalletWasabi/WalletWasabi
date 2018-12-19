@@ -76,49 +76,5 @@ namespace WalletWasabi.Tests
 			var rate = (double)errorCount / (double)count;
 			Assert.True(rate < 0.000001 && rate > -0.000001);
 		}
-
-
-
-/*
-		[Fact]
-		public void CanSerialize()
-		{
-			var key = new BlindingRsaKey();
-			string jsonKey = key.ToJson();
-			var key2 = BlindingRsaKey.CreateFromJson(jsonKey);
-
-			Assert.Equal(key, key2);
-			Assert.Equal(key.PubKey, key2.PubKey);
-
-			var jsonPubKey = key.PubKey.ToJson();
-			var pubKey2 = BlindingRsaPubKey.CreateFromJson(jsonPubKey);
-			Assert.Equal(key.PubKey, pubKey2);
-
-			// generate blinding factor with pubkey
-			// blind message
-			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			var (BlindingFactor, BlindedData) = pubKey2.Blind(message);
-
-			// sign the blinded message
-			var signature = key.SignBlindedData(BlindedData);
-
-			// unblind the signature
-			var unblindedSignature = key2.PubKey.UnblindSignature(signature, BlindingFactor);
-
-			// verify the original data is signed
-			Assert.True(key2.PubKey.Verify(unblindedSignature, message));
-		}
-
-		[Fact]
-		public void CanEncodeDecodeBlinding()
-		{
-			var key = new BlindingRsaKey();
-			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			byte[] blindedData = key.PubKey.Blind(message).BlindedData;
-			string encoded = ByteHelpers.ToHex(blindedData);
-			byte[] decoded = ByteHelpers.FromHex(encoded);
-			Assert.Equal(blindedData, decoded);
-		}
-*/
 	}
 }

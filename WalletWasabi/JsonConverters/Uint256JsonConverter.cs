@@ -15,7 +15,8 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			return new uint256(((string)reader.Value).Trim());
+			var value = (string)reader.Value;
+			return string.IsNullOrEmpty(value) ? null : new uint256(value);
 		}
 
 		/// <inheritdoc />

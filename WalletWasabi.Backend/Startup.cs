@@ -11,6 +11,8 @@ using Swashbuckle.AspNetCore.Swagger;
 using WalletWasabi.Logging;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Backend.Middlewares;
+using NBitcoin;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace WalletWasabi.Backend
 {
@@ -20,8 +22,11 @@ namespace WalletWasabi.Backend
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddMemoryCache();
-			services.AddMvc()
-					.AddControllersAsServices();
+			services.AddMvc(options =>
+			{
+				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress)));
+			})
+			.AddControllersAsServices();
 
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>

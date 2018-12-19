@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
+using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
@@ -8,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -27,7 +29,7 @@ namespace WalletWasabi.Backend.Controllers
 	/// To interact with the Chaumian CoinJoin Coordinator.
 	/// </summary>
 	[Produces("application/json")]
-	[Route("api/v" + Helpers.Constants.BackendMajorVersion + "/btc/[controller]")]
+	[Route("api/vgit log " + Helpers.Constants.BackendMajorVersion + "/btc/[controller]")]
 	public class ChaumianCoinJoinController : Controller
 	{
 		private static RPCClient RpcClient => Global.RpcClient;
@@ -101,25 +103,13 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(503)]
-		public async Task<IActionResult> PostInputsAsync([FromBody]InputsRequest request)
+		public async Task<IActionResult> PostInputsAsync([FromBody, Required]InputsRequest request)
 		{
 			// Validate request.
-			if (!ModelState.IsValid
-				|| request is null
-				|| string.IsNullOrWhiteSpace(request.BlindedOutputScriptHex)
-				|| string.IsNullOrWhiteSpace(request.ChangeOutputAddress)
-				|| request.Inputs is null
-				|| !request.Inputs.Any()
-				|| request.Inputs.Any(x => x.Input == default(TxoRef)
-					|| x.Input.TransactionId is null
-					|| string.IsNullOrWhiteSpace(x.Proof)))
+			if (!ModelState.IsValid)
 			{
-				return BadRequest("Invalid request.");
-			}
-
-			if (request.Inputs.Count() > 7)
-			{
-				return BadRequest("Maximum 7 inputs can be registered.");
+				var error = ModelState.Values.SelectMany(e => e.Errors).Select(e => e.ErrorMessage).FirstOrDefault();
+				return BadRequest(!error.EndsWith("field is required.") ? error : "Invalid request.");
 			}
 
 			using (await InputsLock.LockAsync())
@@ -129,19 +119,9 @@ namespace WalletWasabi.Backend.Controllers
 				// Do more checks.
 				try
 				{
-					if (round.ContainsBlindedOutputScriptHex(request.BlindedOutputScriptHex, out _))
+					if (round.ContainsBlindedOutputScript(request.BlindedOutputScript, out _))
 					{
 						return BadRequest("Blinded output has already been registered.");
-					}
-
-					BitcoinAddress changeOutputAddress;
-					try
-					{
-						changeOutputAddress = BitcoinAddress.Create(request.ChangeOutputAddress, Network);
-					}
-					catch (FormatException ex)
-					{
-						return BadRequest($"Invalid ChangeOutputAddress. Details: {ex.Message}");
 					}
 
 					var inputs = new HashSet<Coin>();
@@ -222,7 +202,7 @@ namespace WalletWasabi.Backend.Controllers
 						bool validProof;
 						try
 						{
-							validProof = address.VerifyMessage(request.BlindedOutputScriptHex, inputProof.Proof);
+							validProof = address.VerifyMessage(request.BlindedOutputScript, inputProof.Proof);
 						}
 						catch (FormatException ex)
 						{
@@ -248,7 +228,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Make sure Alice checks work.
-					var alice = new Alice(inputs, networkFeeToPay, changeOutputAddress, request.BlindedOutputScriptHex);
+					var alice = new Alice(inputs, networkFeeToPay, request.ChangeOutputAddress, request.BlindedOutputScript);
 
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{
@@ -256,18 +236,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 					round.AddAlice(alice);
 
-					// All checks are good. Sign.
-					byte[] blindedData;
-					try
-					{
-						blindedData = ByteHelpers.FromHex(request.BlindedOutputScriptHex);
-					}
-					catch
-					{
-						return BadRequest("Invalid blinded output hex.");
-					}
-
-					byte[] signature = round.Signer.SignData(blindedData);
+					BigInteger signature = round.Signer.Sign(request.BlindedOutputScript);
 
 					// Check if phase changed since.
 					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
@@ -492,7 +461,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest($"Invalid OutputAddress. Details: {ex.Message}");
 			}
 
-			if (round.Signer.VerifySignature(outputAddress.ScriptPubKey.ToBytes(), request.Signature.Unwrap() ))
+			if (round.Signer.VerifySignature(outputAddress.ScriptPubKey.ToBytes(), request.Signature ))
 			{
 				using (await OutputLock.LockAsync())
 				{

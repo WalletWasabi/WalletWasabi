@@ -14,6 +14,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Bases;
 using System.Threading;
 using WalletWasabi.Exceptions;
+using NBitcoin.BouncyCastle.Math;
 
 namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 {
@@ -21,7 +22,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 	{
 		public long RoundId { get; private set; }
 		public Guid UniqueId { get; private set; }
-		public byte[] BlindedOutputSignature { get; private set; }
+		public BigInteger BlindedOutputSignature { get; private set; }
 		public Network Network { get; }
 
 		/// <inheritdoc/>
@@ -63,8 +64,8 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		{
 			var request = new InputsRequest
 			{
-				BlindedOutputScriptHex = ByteHelpers.ToHex(blindedData.ToBytes()),
-				ChangeOutputAddress = changeOutput.ToString(),
+				BlindedOutputScript = blindedData,
+				ChangeOutputAddress = changeOutput,
 				Inputs = inputs
 			};
 			return await CreateNewAsync(network, request, baseUri, torSocks5EndPoint);

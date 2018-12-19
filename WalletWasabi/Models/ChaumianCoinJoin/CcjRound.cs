@@ -623,7 +623,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public bool ContainsBlindedOutputScriptHex(string blindedOutputScriptHex, out List<Alice> alices)
+		public bool ContainsBlindedOutputScript(uint256 blindedOutputScript, out List<Alice> alices)
 		{
 			alices = new List<Alice>();
 
@@ -631,7 +631,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				foreach (Alice alice in Alices)
 				{
-					if (alice.BlindedOutputScriptHex == blindedOutputScriptHex)
+					if (alice.BlindedOutputScript == blindedOutputScript)
 					{
 						alices.Add(alice);
 					}
