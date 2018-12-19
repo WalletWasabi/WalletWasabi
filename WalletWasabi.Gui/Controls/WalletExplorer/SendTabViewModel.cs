@@ -146,7 +146,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					var result = await Task.Run(async () => await Global.WalletService.BuildTransactionAsync(Password, new[] { operation }, Fee, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, Fee, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(result.Transaction));
 

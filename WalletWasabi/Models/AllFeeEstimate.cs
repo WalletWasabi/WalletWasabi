@@ -39,6 +39,16 @@ namespace WalletWasabi.Models
 			_hashCode = null;
 		}
 
+		public Money GetFeeRate(int feeTarget)
+		{
+			int staoshiPerByte = Estimations
+				.Where(x => x.Key <= feeTarget) // Where the target is still under or equals to the the requested target.
+				.Last() // The last should be the largest feeTarget.
+				.Value;
+
+			return Money.Satoshis(staoshiPerByte);
+		}
+
 		#region Equality
 
 		public override bool Equals(object obj) => obj is AllFeeEstimate && this == (AllFeeEstimate)obj;

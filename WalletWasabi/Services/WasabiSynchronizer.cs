@@ -499,6 +499,11 @@ namespace WalletWasabi.Services
 
 		public int CountFilters() => Index.Count;
 
+		public Money GetFeeRate(int feeTarget)
+		{
+			return AllFeeEstimate.GetFeeRate(feeTarget);
+		}
+
 		#endregion Methods
 
 		#region IDisposable Support

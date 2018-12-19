@@ -714,13 +714,13 @@ namespace WalletWasabi.Services
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public async Task<BuildTransactionResult> BuildTransactionAsync(string password,
-																		Operation[] toSend,
-																		int feeTarget,
-																		bool allowUnconfirmed = false,
-																		int? subtractFeeFromAmountIndex = null,
-																		Script customChange = null,
-																		IEnumerable<TxoRef> allowedInputs = null)
+		public BuildTransactionResult BuildTransaction(string password,
+														Operation[] toSend,
+														int feeTarget,
+														bool allowUnconfirmed = false,
+														int? subtractFeeFromAmountIndex = null,
+														Script customChange = null,
+														IEnumerable<TxoRef> allowedInputs = null)
 		{
 			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
@@ -801,8 +801,7 @@ namespace WalletWasabi.Services
 			Money feePerBytes = null;
 			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUri, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
-				var fees = await client.GetFeesAsync(feeTarget);
-				Money feeRate = fees.Single().Value.Conservative;
+				Money feeRate = Synchronizer.GetFeeRate(feeTarget);
 				Money sanityCheckedFeeRate = Math.Max(feeRate, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
 				feePerBytes = new Money(sanityCheckedFeeRate);
 			}
