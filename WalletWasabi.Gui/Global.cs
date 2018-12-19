@@ -67,7 +67,7 @@ namespace WalletWasabi.Gui
 		public static AddressManager AddressManager { get; private set; }
 		public static MemPoolService MemPoolService { get; private set; }
 		public static NodesGroup Nodes { get; private set; }
-		public static IndexDownloader IndexDownloader { get; private set; }
+		public static WasabiSynchronizer Synchronizer { get; private set; }
 		public static CcjClient ChaumianClient { get; private set; }
 		public static WalletService WalletService { get; private set; }
 		public static Node RegTestMemPoolServingNode { get; private set; }
@@ -218,9 +218,9 @@ namespace WalletWasabi.Gui
 				RegTestMemPoolServingNode = null;
 			}
 
-			IndexDownloader = new IndexDownloader(Network, IndexFilePath, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
 
-			UpdateChecker = new UpdateChecker(IndexDownloader.WasabiClient);
+			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
 
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
@@ -231,7 +231,7 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
 			}
 
-			IndexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(21));
+			Synchronizer.Start(requestInterval: TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5), 1000);
 			Logger.LogInfo("Start synchronizing filters...");
 		}
 
@@ -240,7 +240,7 @@ namespace WalletWasabi.Gui
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
 			ChaumianClient = new CcjClient(Network, BlindingPubKey, keyManager, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
-			WalletService = new WalletService(keyManager, IndexDownloader, ChaumianClient, MemPoolService, Nodes, DataDir);
+			WalletService = new WalletService(keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir);
 
 			ChaumianClient.Start(0, 3);
 			Logger.LogInfo("Start Chaumian CoinJoin service...");
@@ -331,8 +331,8 @@ namespace WalletWasabi.Gui
 				UpdateChecker?.Dispose();
 				Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
 
-				IndexDownloader?.Dispose();
-				Logger.LogInfo($"{nameof(IndexDownloader)} is stopped.", nameof(Global));
+				Synchronizer?.Dispose();
+				Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
 
 				IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
 				AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);

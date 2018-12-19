@@ -48,13 +48,13 @@ namespace WalletWasabi.Gui
 						}
 
 						Global.InitializeNoWallet();
-						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader, Global.UpdateChecker);
+						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.Synchronizer, Global.UpdateChecker);
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
-						if (Global.IndexDownloader.Network != Network.Main)
+						if (Global.Synchronizer.Network != Network.Main)
 						{
-							MainWindowViewModel.Instance.Title += $" - {Global.IndexDownloader.Network}";
+							MainWindowViewModel.Instance.Title += $" - {Global.Synchronizer.Network}";
 						}
 					}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
 			}

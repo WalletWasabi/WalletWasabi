@@ -93,10 +93,14 @@ namespace WalletWasabi.Services
 		}
 
 		public string IndexFilePath { get; private set; }
-		private ObservableCollection<FilterModel> Index { get; set; }
+		private List<FilterModel> Index { get; set; }
 		private object IndexLock { get; set; }
 
 		public event PropertyChangedEventHandler PropertyChanged;
+
+		public event EventHandler<FilterModel> Reorged;
+
+		public event EventHandler<FilterModel> NewFilter;
 
 		public event EventHandler<bool> ResponseArrivedIsGenSocksServFail;
 
@@ -133,7 +137,7 @@ namespace WalletWasabi.Services
 			Cancel = new CancellationTokenSource();
 			BestBlockchainHeight = Height.Unknown;
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath, trim: true);
-			Index = new ObservableCollection<FilterModel>();
+			Index = new List<FilterModel>();
 			IndexLock = new object();
 
 			IoHelpers.EnsureContainingDirectoryExists(indexFilePath);
@@ -261,40 +265,46 @@ namespace WalletWasabi.Services
 							{
 								List<string> filtersList = response.Filters.ToList(); // performance
 
-								lock (IndexLock)
+								for (int i = 0; i < filtersList.Count; i++)
 								{
-									for (int i = 0; i < filtersList.Count; i++)
+									FilterModel filterModel;
+									lock (IndexLock)
 									{
-										FilterModel filterModel = FilterModel.FromLine(filtersList[i], BestKnownFilter.BlockHeight + 1);
-
+										filterModel = FilterModel.FromLine(filtersList[i], BestKnownFilter.BlockHeight + 1);
 										Index.Add(filterModel);
 										BestKnownFilter = filterModel;
 									}
 
+									NewFilter?.Invoke(this, filterModel);
+								}
+
+								lock (IndexLock)
+								{
 									IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
 									var startingFilterHeightPlusOne = startingFilter.BlockHeight + 1;
 									var bestKnownFilterHeight = BestKnownFilter.BlockHeight;
 									if (startingFilterHeightPlusOne == bestKnownFilterHeight)
 									{
-										Logger.LogInfo<IndexDownloader>($"Downloaded filter for block {startingFilterHeightPlusOne}.");
+										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filter for block {startingFilterHeightPlusOne}.");
 									}
 									else
 									{
-										Logger.LogInfo<IndexDownloader>($"Downloaded filters for blocks from {startingFilterHeightPlusOne} to {bestKnownFilterHeight}.");
+										Logger.LogInfo<WasabiSynchronizer>($"Downloaded filters for blocks from {startingFilterHeightPlusOne} to {bestKnownFilterHeight}.");
 									}
 								}
 							}
 							else if (response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 							{
 								// Reorg happened
-								var reorgedHash = BestKnownFilter.BlockHash;
-								Logger.LogInfo<IndexDownloader>($"REORG Invalid Block: {reorgedHash}");
+								var reorgedFilter = BestKnownFilter;
+								Logger.LogInfo<WasabiSynchronizer>($"REORG Invalid Block: {reorgedFilter.BlockHash}");
 								// 1. Rollback index
 								lock (IndexLock)
 								{
-									Index.RemoveAt(Index.Count - 1);
+									Index.RemoveLast();
 									BestKnownFilter = Index.Last();
 								}
+								Reorged?.Invoke(this, reorgedFilter);
 
 								// 2. Serialize Index. (Remove last line.)
 								string[] lines = null;
@@ -412,11 +422,11 @@ namespace WalletWasabi.Services
 			ResponseArrivedIsGenSocksServFail?.Invoke(this, false);
 		}
 
-		public Height TryGetHeight(uint256 blockHash)
+		public Height? TryGetHeight(uint256 blockHash)
 		{
 			lock (IndexLock)
 			{
-				return Index.First(x => x.BlockHash == blockHash).BlockHeight;
+				return Index.FirstOrDefault(x => x.BlockHash == blockHash)?.BlockHeight;
 			}
 		}
 
@@ -428,6 +438,16 @@ namespace WalletWasabi.Services
 			}
 			return BestBlockchainHeight.Value - BestKnownFilter.BlockHeight.Value;
 		}
+
+		public IEnumerable<FilterModel> GetFilters()
+		{
+			lock (IndexLock)
+			{
+				return Index.ToList();
+			}
+		}
+
+		public int CountFilters() => Index.Count;
 
 		#endregion Methods
 
