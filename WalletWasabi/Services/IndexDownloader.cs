@@ -211,6 +211,8 @@ namespace WalletWasabi.Services
 							{
 								filtersResponse = await WasabiClient.GetFiltersAsync(BestKnownFilter.BlockHash, 1000, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 								// NOT GenSocksServErr
+								BackendStatus = BackendStatus.Connected;
+								TorStatus = TorStatus.Running;
 								DoNotGenSocksServFail();
 							}
 							catch (ConnectionException ex)
@@ -218,16 +220,13 @@ namespace WalletWasabi.Services
 								TorStatus = TorStatus.NotRunning;
 								BackendStatus = BackendStatus.NotConnected;
 								HandleIfGenSocksServFail(ex);
-
 								throw;
 							}
 							catch (TorSocks5FailureResponseException ex)
 							{
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.NotConnected;
-
 								HandleIfGenSocksServFail(ex);
-
 								throw;
 							}
 							catch (Exception ex)
@@ -235,11 +234,8 @@ namespace WalletWasabi.Services
 								TorStatus = TorStatus.Running;
 								BackendStatus = BackendStatus.Connected;
 								HandleIfGenSocksServFail(ex);
-
 								throw;
 							}
-							BackendStatus = BackendStatus.Connected;
-							TorStatus = TorStatus.Running;
 
 							if (filtersResponse is null) // no-content, we are synced
 							{
