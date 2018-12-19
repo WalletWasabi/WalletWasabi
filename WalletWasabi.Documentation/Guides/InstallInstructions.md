@@ -31,18 +31,10 @@ Check out this [video guide](https://www.youtube.com/watch?v=qFbv_b-bju4) or tak
 
 ![](https://imgur.com/jpnKad7.png)
 
-Download the .dmg file and open it by double clicking on it.
+Download and open the `.dmg` file, then install Wasabi by dragging it into your `Applications` folder.
 
-Then the Wasabi Wallet icon will show up, click on the icon, then drag and drop it at the “Applications” on the sidebar to the left.
+![](https://i.imgur.com/7UEZ8wI.png)
 
-![](https://imgur.com/3glKtcl.png)
-
-![](https://imgur.com/6YdjJKq.png)
-
-Open the Wasabi Wallet at the “Applications” tab in the following way: Hold down ctrl, click on the file and select “Open".
-
-![](https://imgur.com/FYODGMQ.png)
-
-A security question will pop up, asking you if you're sure that you want to open it. Select "Open".
+After opening Wasabi, you may encounter a security popup. You can bypass it in multiple ways. One way would be to keep the control key down while opening Wasabi.
 
 ![](https://imgur.com/dy1zfJG.png)
