@@ -44,6 +44,41 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		private decimal _usdExchangeRate;
+
+		/// <summary>
+		/// The Bitcoin price in USD.
+		/// </summary>
+		public decimal UsdExchangeRate
+		{
+			get => _usdExchangeRate;
+
+			private set
+			{
+				if (_usdExchangeRate != value)
+				{
+					_usdExchangeRate = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UsdExchangeRate)));
+				}
+			}
+		}
+
+		private AllFeeEstimate _allFeeEstimate;
+
+		public AllFeeEstimate AllFeeEstimate
+		{
+			get => _allFeeEstimate;
+
+			private set
+			{
+				if (_allFeeEstimate != value)
+				{
+					_allFeeEstimate = value;
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AllFeeEstimate)));
+				}
+			}
+		}
+
 		private FilterModel _bestKnownFilter;
 
 		public FilterModel BestKnownFilter
@@ -254,6 +289,7 @@ namespace WalletWasabi.Services
 							if (response.AllFeeEstimate != null && response.AllFeeEstimate.Estimations.Any())
 							{
 								lastFeeQueried = DateTimeOffset.UtcNow;
+								AllFeeEstimate = response.AllFeeEstimate;
 							}
 
 							if (response.Filters.Count() == maxFiltersToSyncAtInitialization)
@@ -266,6 +302,11 @@ namespace WalletWasabi.Services
 							}
 
 							BestBlockchainHeight = response.BestHeight;
+							ExchangeRate exchangeRate = response.ExchangeRates.FirstOrDefault();
+							if (exchangeRate != default && exchangeRate.Rate != 0)
+							{
+								UsdExchangeRate = exchangeRate.Rate;
+							}
 
 							if (response.FiltersResponseState == FiltersResponseState.NewFilters)
 							{
