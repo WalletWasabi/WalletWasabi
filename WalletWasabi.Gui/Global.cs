@@ -231,7 +231,12 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
 			}
 
-			Synchronizer.Start(requestInterval: TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5), 1000);
+			var requestInterval = TimeSpan.FromSeconds(30);
+			if (Network == Network.RegTest)
+			{
+				requestInterval = TimeSpan.FromSeconds(5);
+			}
+			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), 1000);
 			Logger.LogInfo("Start synchronizing filters...");
 		}
 
@@ -259,30 +264,33 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				foreach (SmartCoin coin in e.NewItems)
+				if (e.Action == NotifyCollectionChangedAction.Add)
 				{
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					foreach (SmartCoin coin in e.NewItems)
 					{
-						Process.Start(new ProcessStartInfo
+						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						{
-							FileName = "notify-send",
-							Arguments = $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
-							CreateNoWindow = true
-						});
-					}
-					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-					{
-						Process.Start(new ProcessStartInfo
+							Process.Start(new ProcessStartInfo
+							{
+								FileName = "notify-send",
+								Arguments = $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
+								CreateNoWindow = true
+							});
+						}
+						else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 						{
-							FileName = "osascript",
-							Arguments = $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"",
-							CreateNoWindow = true
-						});
+							Process.Start(new ProcessStartInfo
+							{
+								FileName = "osascript",
+								Arguments = $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"",
+								CreateNoWindow = true
+							});
+						}
+						//else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
+						//{
+						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
+						//}
 					}
-					//else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
-					//{
-					//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
-					//}
 				}
 			}
 			catch (Exception ex)

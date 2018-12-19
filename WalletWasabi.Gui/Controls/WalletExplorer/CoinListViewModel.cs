@@ -200,7 +200,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					cvm.PropertyChanged += Coin_PropertyChanged)
 				//.OnItemRemoved(cvm => //TODO: possible memory leak. If I uncomment this line, that Unspent propchange not triggered in some cases => spent money stays in list
 				//	cvm.PropertyChanged -= Coin_PropertyChanged)
-				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold:5)
+				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.Bind(out _coinViewModels)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe();
@@ -337,16 +337,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (e.Action)
 				{
 					case NotifyCollectionChangedAction.Add:
-						foreach (var c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
+						foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
+						{
 							_rootlist.Add(new CoinViewModel(c));
+						}
 						break;
 
 					case NotifyCollectionChangedAction.Remove:
 						foreach (var c in e.OldItems.Cast<SmartCoin>())
 						{
-							var toRemove = _rootlist.Items.First(cvm => cvm.Model == c);
-							if (toRemove != null)
+							CoinViewModel toRemove = _rootlist.Items.FirstOrDefault(cvm => cvm.Model == c);
+							if (toRemove != default)
+							{
 								_rootlist.Remove(toRemove);
+							}
 						}
 						break;
 
