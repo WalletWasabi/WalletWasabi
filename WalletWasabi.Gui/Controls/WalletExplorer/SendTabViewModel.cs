@@ -42,6 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _address;
 		private string _label;
 		private string _labelToolTip;
+		private string _feeToolTip;
 		private bool _isBusy;
 		private string _warningMessage;
 		private string _successMessage;
@@ -257,7 +258,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void SetFeesAndTexts()
 		{
 			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
-
+			decimal exchangeRate = Global.Synchronizer.UsdExchangeRate;
 			var feeTarget = FeeTarget;
 
 			if (allFeeEstimate != null)
@@ -298,7 +299,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				ConfirmationExpectedText = $"two weeks™";
 			}
 
-			SetFees(allFeeEstimate, feeTarget);
+			SetFees(allFeeEstimate, feeTarget, exchangeRate);
 
 			if (allFeeEstimate != null)
 			{
@@ -306,18 +307,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					case FeeDisplayFormat.SatoshiPerByte:
 						FeeText = $"(~ {SatoshiPerByteFeeRate.Satoshi} sat/byte)";
+						FeeToolTip = "Expected fee rate in satoshi / vbyte.";
 						break;
 
 					case FeeDisplayFormat.USD:
 						FeeText = $"(~ ${UsdFee.ToString("0.##")})";
+						FeeToolTip = $"Estimated total fees in USD. Exchange rate: {(int)exchangeRate} BTC/USD.";
 						break;
 
 					case FeeDisplayFormat.BTC:
 						FeeText = $"(~ {BtcFee.ToString(false, false)} BTC)";
+						FeeToolTip = "Estimated total fees in BTC.";
 						break;
 
 					case FeeDisplayFormat.Percentage:
 						FeeText = $"(~ {FeePercentage.ToString("0.#")} %)";
+						FeeToolTip = "Expected percentage of fees against the amount to be sent.";
 						break;
 
 					default:
@@ -326,7 +331,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget)
+		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget, decimal exchangeRate)
 		{
 			SatoshiPerByteFeeRate = allFeeEstimate.GetFeeRate(feeTarget);
 
@@ -378,7 +383,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			decimal exchangeRate = Global.Synchronizer.UsdExchangeRate;
 			if (exchangeRate != 0)
 			{
 				UsdFee = BtcFee.ToUsd(exchangeRate);
@@ -690,6 +694,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _successMessage;
 			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
+		}
+
+		public string FeeToolTip
+		{
+			get => _feeToolTip;
+			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
 		}
 
 		public ReactiveCommand BuildTransactionCommand { get; }
