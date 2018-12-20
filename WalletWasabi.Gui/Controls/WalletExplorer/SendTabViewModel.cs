@@ -233,14 +233,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetConfirmationExpectedText()
 		{
-			Dictionary<int, int> estimations = Global.Synchronizer?.AllFeeEstimate?.Estimations;
+			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
 
 			var feeTarget = FeeTarget;
 
-			if (estimations != null)
+			if (allFeeEstimate != null)
 			{
-				int prevKey = estimations.Keys.First();
-				foreach (int target in estimations.Keys)
+				int prevKey = allFeeEstimate.Estimations.Keys.First();
+				foreach (int target in allFeeEstimate.Estimations.Keys)
 				{
 					if (feeTarget == target)
 					{
@@ -260,15 +260,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				ConfirmationExpectedText = $"{feeTarget}0 minutes";
 			}
-			if (feeTarget >= 7 && feeTarget <= 144) // hours
+			else if (feeTarget >= 7 && feeTarget <= 144) // hours
 			{
 				var h = feeTarget / 6;
 				ConfirmationExpectedText = $"{h} hours";
 			}
-			if (feeTarget >= 145 && feeTarget <= 1008) // days
+			else if (feeTarget >= 145 && feeTarget < 1008) // days
 			{
 				var d = feeTarget / 144;
 				ConfirmationExpectedText = $"{d} days";
+			}
+			else if (feeTarget == 10008)
+			{
+				ConfirmationExpectedText = $"two weeks™";
+			}
+
+			if (allFeeEstimate != null)
+			{
+				ConfirmationExpectedText += $" ({allFeeEstimate.GetFeeRate(feeTarget).Satoshi} sat/byte)";
 			}
 		}
 
