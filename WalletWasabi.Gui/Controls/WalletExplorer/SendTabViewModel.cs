@@ -33,6 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _minimumFeeTarget;
 		private int _maximumFeeTarget;
 		private string _confirmationExpectedText;
+		private string _feeText;
 		private string _password;
 		private string _address;
 		private string _label;
@@ -57,7 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetMax();
 			SetFeeTargetLimits();
 			FeeTarget = MinimumFeeTarget;
-			SetConfirmationExpectedText();
+			SetFeeTexts();
 
 			Global.Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 
@@ -225,13 +226,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
 			{
-				SetConfirmationExpectedText();
+				SetFeeTexts();
 			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
-		private void SetConfirmationExpectedText()
+		private void SetFeeTexts()
 		{
 			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
 
@@ -277,7 +278,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (allFeeEstimate != null)
 			{
-				ConfirmationExpectedText += $" ({allFeeEstimate.GetFeeRate(feeTarget).Satoshi} sat/byte)";
+				FeeText = $"({allFeeEstimate.GetFeeRate(feeTarget).Satoshi} sat/byte)";
 			}
 		}
 
@@ -294,7 +295,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					FeeTarget = MaximumFeeTarget;
 				}
-				SetConfirmationExpectedText();
+				SetFeeTexts();
 			}
 		}
 
@@ -432,6 +433,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _confirmationExpectedText;
 			set => this.RaiseAndSetIfChanged(ref _confirmationExpectedText, value);
+		}
+
+		public string FeeText
+		{
+			get => _feeText;
+			set => this.RaiseAndSetIfChanged(ref _feeText, value);
 		}
 
 		public string Password

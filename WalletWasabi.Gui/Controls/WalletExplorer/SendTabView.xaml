@@ -72,7 +72,7 @@
                   </DrawingPresenter>
                 </Grid>
 
-                <Slider Minimum="{Binding MinimumFeeTarget}" Maximum="{Binding MaximumFeeTarget}" Value="{Binding FeeTarget}" Width="190" />
+                <Slider Minimum="{Binding MinimumFeeTarget}" Maximum="{Binding MaximumFeeTarget}" Value="{Binding FeeTarget}" Width="270" />
 
                 <Grid Height="10" Width="10">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -91,7 +91,8 @@
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="4">
                 <TextBlock Text="Confirmation Expected In:" />
-                <TextBlock Foreground="YellowGreen" Text="{Binding ConfirmationExpectedText}" />
+                <TextBlock Foreground="YellowGreen" Text="{Binding ConfirmationExpectedText}" Width="80" />
+                <TextBlock Foreground="{DynamicResource ThemeBorderHighBrush}" Text="{Binding FeeText}" />
               </StackPanel>
             </StackPanel>
           </StackPanel>
