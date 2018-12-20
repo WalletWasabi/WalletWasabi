@@ -59,6 +59,8 @@ sudo apt-get update && sudo apt-get dist-upgrade -y
 
 https://www.microsoft.com/net/learn/get-started/linux/ubuntu18-04
 
+Opt out of the telemetry: `export DOTNET_CLI_TELEMETRY_OPTOUT=1`.
+
 # 4. Install Tor
 
 ```sh
