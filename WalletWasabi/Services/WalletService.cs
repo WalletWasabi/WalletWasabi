@@ -821,9 +821,7 @@ namespace WalletWasabi.Services
 			// https://bitcoincore.org/en/segwit_wallet_dev/#transaction-fee-estimation
 			// https://bitcoin.stackexchange.com/a/46379/26859
 			int outNum = spendAll ? toSend.Length : toSend.Length + 1; // number of addresses to send + 1 for change
-			var origTxSize = inNum * Constants.P2pkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10;
-			var newTxSize = inNum * Constants.P2wpkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10; // BEWARE: This assumes segwit only inputs!
-			var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
+			int vSize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, outNum);
 			Logger.LogInfo<WalletService>($"Estimated tx size: {vSize} vbytes.");
 			Money fee = feePerBytes * vSize;
 			Logger.LogInfo<WalletService>($"Fee: {fee.Satoshi} Satoshi.");

@@ -18,6 +18,7 @@ using System.Collections.ObjectModel;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Backend.Models.Responses;
 using System.ComponentModel;
+using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -49,6 +50,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private bool IgnoreAmountChanges { get; set; }
+		private FeeDisplayFormat FeeDisplayFormat { get; set; }
 
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
@@ -189,10 +191,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			(this).WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => ((isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)));
 
-			MaxCommand = ReactiveCommand.Create(() =>
-			{
-				SetMax();
-			});
+			MaxCommand = ReactiveCommand.Create(SetMax);
+
+			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
 
 			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
 			{
@@ -240,6 +241,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void CoinList_SelectionChanged(object sender, CoinViewModel e)
 		{
+			SetFeesAndTexts();
+		}
+
+		private void ChangeFeeRateDisplay()
+		{
+			var nextval = (from FeeDisplayFormat val in Enum.GetValues(typeof(FeeDisplayFormat))
+						   where val > FeeDisplayFormat
+						   orderby val
+						   select val).DefaultIfEmpty().First();
+			FeeDisplayFormat = nextval;
 			SetFeesAndTexts();
 		}
 
@@ -291,8 +302,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (allFeeEstimate != null)
 			{
-				//FeeText = $"(~ {SatoshiPerByteFeeRate.Satoshi} sat/byte)";
-				FeeText = $"(~ {BtcFee.ToString(false, false)} BTC)";
+				switch (FeeDisplayFormat)
+				{
+					case FeeDisplayFormat.SatoshiPerByte:
+						FeeText = $"(~ {SatoshiPerByteFeeRate.Satoshi} sat/byte)";
+						break;
+
+					case FeeDisplayFormat.USD:
+						FeeText = $"(~ ${UsdFee.ToString("0.##")})";
+						break;
+
+					case FeeDisplayFormat.BTC:
+						FeeText = $"(~ {BtcFee.ToString(false, false)} BTC)";
+						break;
+
+					case FeeDisplayFormat.Percentage:
+						FeeText = $"(~ {FeePercentage.ToString("0.#")} %)";
+						break;
+
+					default:
+						throw new NotSupportedException("This is impossible.");
+				}
 			}
 		}
 
@@ -331,6 +361,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			BtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
+
+			if (IsMax)
+			{
+				long all = selectedCoins.Sum(x => x.Amount);
+				if (all != 0)
+				{
+					FeePercentage = 100 * (decimal)BtcFee.Satoshi / all;
+				}
+			}
+			else
+			{
+				if (Money.TryParse(Amount, out Money amount) && amount.Satoshi != 0)
+				{
+					FeePercentage = 100 * (decimal)BtcFee.Satoshi / amount.Satoshi;
+				}
+			}
+
+			decimal exchangeRate = Global.Synchronizer.UsdExchangeRate;
+			if (exchangeRate != 0)
+			{
+				UsdFee = BtcFee.ToUsd(exchangeRate);
+			}
 		}
 
 		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -643,5 +695,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand BuildTransactionCommand { get; }
 
 		public ReactiveCommand MaxCommand { get; }
+
+		public ReactiveCommand FeeRateCommand { get; }
 	}
 }
