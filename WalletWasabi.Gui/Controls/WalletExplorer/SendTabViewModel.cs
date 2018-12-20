@@ -28,12 +28,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isMax;
 		private string _maxClear;
 		private string _amount;
-		private bool IgnoreAmountChanges { get; set; }
 		private int _feeTarget;
 		private int _minimumFeeTarget;
 		private int _maximumFeeTarget;
 		private string _confirmationExpectedText;
 		private string _feeText;
+		private decimal _usdFee;
+		private Money _btcFee;
+		private Money _satoshiPerByteFeeRate;
+		private decimal _feePercentage;
 		private string _password;
 		private string _address;
 		private string _label;
@@ -45,6 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string BuildingTransactionButtonTextString = "Sending Transaction...";
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
+		private bool IgnoreAmountChanges { get; set; }
 
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
@@ -58,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetMax();
 			SetFeeTargetLimits();
 			FeeTarget = MinimumFeeTarget;
-			SetFeeTexts();
+			SetFeesAndTexts();
 
 			Global.Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 
@@ -95,6 +99,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						});
 					}
 				}
+				SetFeesAndTexts();
 			});
 
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
@@ -133,7 +138,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var amount = Money.Zero;
 					if (!IsMax)
 					{
-						amount = Money.Parse(Amount);
 						if (amount == Money.Zero)
 						{
 							SetWarningMessage($"Invalid amount.");
@@ -226,13 +230,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
 			{
-				SetFeeTexts();
+				SetFeesAndTexts();
 			});
+
+			CoinList.SelectionChanged += CoinList_SelectionChanged;
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
-		private void SetFeeTexts()
+		private void CoinList_SelectionChanged(object sender, CoinViewModel e)
+		{
+			SetFeesAndTexts();
+		}
+
+		private void SetFeesAndTexts()
 		{
 			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
 
@@ -276,10 +287,50 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				ConfirmationExpectedText = $"two weeks™";
 			}
 
+			SetFees(allFeeEstimate, feeTarget);
+
 			if (allFeeEstimate != null)
 			{
-				FeeText = $"(~ {allFeeEstimate.GetFeeRate(feeTarget).Satoshi} sat/byte)";
+				//FeeText = $"(~ {SatoshiPerByteFeeRate.Satoshi} sat/byte)";
+				FeeText = $"(~ {BtcFee.ToString(false, false)} BTC)";
 			}
+		}
+
+		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget)
+		{
+			SatoshiPerByteFeeRate = allFeeEstimate.GetFeeRate(feeTarget);
+
+			IEnumerable<SmartCoin> selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(x => x.Model);
+
+			int vsize = 150;
+			if (selectedCoins.Any())
+			{
+				if (IsMax)
+				{
+					vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(selectedCoins.Count(), 1);
+				}
+				else
+				{
+					if (Money.TryParse(Amount, out Money amount))
+					{
+						var inNum = 0;
+						var amountSoFar = Money.Zero;
+						foreach (SmartCoin coin in selectedCoins.OrderByDescending(x => x.Amount))
+						{
+							amountSoFar += coin.Amount;
+							inNum++;
+							if (amountSoFar > amount)
+							{
+								break;
+							}
+						}
+						vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, 2);
+					}
+					// Else whatever, don't change.
+				}
+			}
+
+			BtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
 		}
 
 		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -295,7 +346,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					FeeTarget = MaximumFeeTarget;
 				}
-				SetFeeTexts();
+				SetFeesAndTexts();
+			}
+			if (e.PropertyName == nameof(Global.Synchronizer.UsdExchangeRate))
+			{
+				SetFeesAndTexts();
 			}
 		}
 
@@ -439,6 +494,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _feeText;
 			set => this.RaiseAndSetIfChanged(ref _feeText, value);
+		}
+
+		public decimal UsdFee
+		{
+			get => _usdFee;
+			set => this.RaiseAndSetIfChanged(ref _usdFee, value);
+		}
+
+		public Money BtcFee
+		{
+			get => _btcFee;
+			set => this.RaiseAndSetIfChanged(ref _btcFee, value);
+		}
+
+		public Money SatoshiPerByteFeeRate
+		{
+			get => _satoshiPerByteFeeRate;
+			set => this.RaiseAndSetIfChanged(ref _satoshiPerByteFeeRate, value);
+		}
+
+		public decimal FeePercentage
+		{
+			get => _feePercentage;
+			set => this.RaiseAndSetIfChanged(ref _feePercentage, value);
 		}
 
 		public string Password

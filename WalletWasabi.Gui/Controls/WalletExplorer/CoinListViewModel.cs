@@ -51,6 +51,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public event Action DequeueCoinsPressed;
 
+		public event EventHandler<CoinViewModel> SelectionChanged;
+
 		public CoinViewModel SelectedCoin
 		{
 			get => _selectedCoin;
@@ -393,6 +395,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (e.PropertyName == nameof(CoinViewModel.IsSelected))
 				{
 					SetSelections();
+					var cvm = sender as CoinViewModel;
+					SelectionChanged?.Invoke(this, cvm);
 				}
 				if (e.PropertyName == nameof(CoinViewModel.Status))
 				{
