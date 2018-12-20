@@ -38,6 +38,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _btcFee;
 		private Money _satoshiPerByteFeeRate;
 		private decimal _feePercentage;
+		private Money _allSelectedAmount;
 		private string _password;
 		private string _address;
 		private string _label;
@@ -57,6 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base("Send", walletViewModel)
 		{
 			Label = "";
+			AllSelectedAmount = Money.Zero;
 
 			CoinList = new CoinListViewModel();
 
@@ -329,6 +331,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						throw new NotSupportedException("This is impossible.");
 				}
 			}
+
+			SetAmountIfMax();
+		}
+
+		private void SetAmountIfMax()
+		{
+			IgnoreAmountChanges = true;
+			if (IsMax)
+			{
+				if (AllSelectedAmount == Money.Zero)
+				{
+					Amount = "No Coins Selected";
+				}
+				else
+				{
+					Amount = $"~ {AllSelectedAmount.ToString(false, true)}";
+				}
+			}
+			IgnoreAmountChanges = false;
 		}
 
 		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget, decimal exchangeRate)
@@ -367,9 +388,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			BtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
 
+			long all = selectedCoins.Sum(x => x.Amount);
 			if (IsMax)
 			{
-				long all = selectedCoins.Sum(x => x.Amount);
 				if (all != 0)
 				{
 					FeePercentage = 100 * (decimal)BtcFee.Satoshi / all;
@@ -387,6 +408,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				UsdFee = BtcFee.ToUsd(exchangeRate);
 			}
+
+			AllSelectedAmount = Math.Max(Money.Zero, all - BtcFee);
 		}
 
 		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -467,9 +490,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsMax = true;
 			MaxClear = "Clear";
 
-			IgnoreAmountChanges = true;
-			Amount = "All Selected Coins!";
-			IgnoreAmountChanges = false;
+			SetAmountIfMax();
 
 			LabelToolTip = "Spending whole coins doesn't generate change, thus labeling is unnecessary.";
 		}
@@ -574,6 +595,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _feePercentage;
 			set => this.RaiseAndSetIfChanged(ref _feePercentage, value);
+		}
+
+		public Money AllSelectedAmount
+		{
+			get => _allSelectedAmount;
+			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
 		}
 
 		public string Password
