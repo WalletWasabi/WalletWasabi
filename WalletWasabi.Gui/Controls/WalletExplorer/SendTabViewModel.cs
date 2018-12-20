@@ -16,6 +16,8 @@ using ReactiveUI.Legacy;
 using WalletWasabi.Exceptions;
 using System.Collections.ObjectModel;
 using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Backend.Models.Responses;
+using System.ComponentModel;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -27,7 +29,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _maxClear;
 		private string _amount;
 		private bool IgnoreAmountChanges { get; set; }
-		private int _fee;
+		private int _feeTarget;
+		private int _minimumFeeTarget;
+		private int _maximumFeeTarget;
 		private string _password;
 		private string _address;
 		private string _label;
@@ -50,6 +54,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
 			ResetMax();
+			SetFeeTargets();
+
+			Global.Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 
 			this.WhenAnyValue(x => x.Amount).Subscribe(amount =>
 			{
@@ -146,7 +153,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, Fee, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(result.Transaction));
 
@@ -213,6 +220,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+		}
+
+		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == nameof(Global.Synchronizer.AllFeeEstimate))
+			{
+				SetFeeTargets();
+			}
+		}
+
+		private void SetFeeTargets()
+		{
+			var allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
+
+			if (allFeeEstimate != null)
+			{
+				MinimumFeeTarget = allFeeEstimate.Estimations.Min(x => x.Key); // This should be always 2, but bugs will be seen at least if it isn't.
+				MaximumFeeTarget = allFeeEstimate.Estimations.Max(x => x.Key);
+			}
+			else
+			{
+				MinimumFeeTarget = 2;
+				MaximumFeeTarget = 1008;
+			}
 		}
 
 		private void SetWarningMessage(string message)
@@ -311,10 +342,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _amount, value); }
 		}
 
-		public int Fee
+		public int FeeTarget
 		{
-			get { return _fee; }
-			set { this.RaiseAndSetIfChanged(ref _fee, value); }
+			get { return _feeTarget; }
+			set { this.RaiseAndSetIfChanged(ref _feeTarget, value); }
+		}
+
+		public int MinimumFeeTarget
+		{
+			get { return _minimumFeeTarget; }
+			set { this.RaiseAndSetIfChanged(ref _minimumFeeTarget, value); }
+		}
+
+		public int MaximumFeeTarget
+		{
+			get { return _maximumFeeTarget; }
+			set { this.RaiseAndSetIfChanged(ref _maximumFeeTarget, value); }
 		}
 
 		public string Password

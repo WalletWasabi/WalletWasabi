@@ -73,7 +73,7 @@
                   </DrawingPresenter>
                 </Grid>
 
-                <Slider Minimum="2" Maximum="1008" Value="{Binding Fee}" Width="190" />
+                <Slider Minimum="{Binding MinimumFeeTarget}" Maximum="{Binding MaximumFeeTarget}" Value="{Binding FeeTarget}" Width="190" />
 
                 <Grid Height="10" Width="10">
                   <DrawingPresenter VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -92,7 +92,7 @@
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="4">
                 <TextBlock Text="Confirmation Expected In:" />
-                <TextBlock Foreground="YellowGreen" Text="{Binding Fee, Converter={StaticResource FeeConfirmationTargetConverter}}" />
+                <TextBlock Foreground="YellowGreen" Text="{Binding FeeTarget, Converter={StaticResource FeeConfirmationTargetConverter}}" />
               </StackPanel>
             </StackPanel>
           </StackPanel>
