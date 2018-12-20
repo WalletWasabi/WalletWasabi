@@ -26,7 +26,7 @@ namespace WalletWasabi.Services
 	public class WalletService : IDisposable
 	{
 		public KeyManager KeyManager { get; }
-		public IndexDownloader IndexDownloader { get; }
+		public WasabiSynchronizer Synchronizer { get; }
 		public CcjClient ChaumianClient { get; }
 		public MemPoolService MemPool { get; }
 
@@ -61,7 +61,7 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<Block> NewBlockProcessed;
 
-		public Network Network => IndexDownloader.Network;
+		public Network Network => Synchronizer.Network;
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
@@ -71,11 +71,11 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		public WalletService(KeyManager keyManager, IndexDownloader indexDownloader, CcjClient chaumianClient, MemPoolService memPool, NodesGroup nodes, string workFolderDir)
+		public WalletService(KeyManager keyManager, WasabiSynchronizer syncer, CcjClient chaumianClient, MemPoolService memPool, NodesGroup nodes, string workFolderDir)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
-			IndexDownloader = Guard.NotNull(nameof(indexDownloader), indexDownloader);
+			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
 			MemPool = Guard.NotNull(nameof(memPool), memPool);
 
@@ -99,7 +99,7 @@ namespace WalletWasabi.Services
 
 			if (Directory.Exists(BlocksFolderPath))
 			{
-				if (IndexDownloader.Network == Network.RegTest)
+				if (Synchronizer.Network == Network.RegTest)
 				{
 					Directory.Delete(BlocksFolderPath, true);
 					Directory.CreateDirectory(BlocksFolderPath);
@@ -111,7 +111,7 @@ namespace WalletWasabi.Services
 			}
 			if (Directory.Exists(TransactionsFolderPath))
 			{
-				if (IndexDownloader.Network == Network.RegTest)
+				if (Synchronizer.Network == Network.RegTest)
 				{
 					Directory.Delete(TransactionsFolderPath, true);
 					Directory.CreateDirectory(TransactionsFolderPath);
@@ -129,8 +129,8 @@ namespace WalletWasabi.Services
 			}
 			TransactionsFilePath = Path.Combine(TransactionsFolderPath, $"{walletName}Transactions.json");
 
-			IndexDownloader.NewFilter += IndexDownloader_NewFilterAsync;
-			IndexDownloader.Reorged += IndexDownloader_ReorgedAsync;
+			Synchronizer.NewFilter += IndexDownloader_NewFilterAsync;
+			Synchronizer.Reorged += IndexDownloader_ReorgedAsync;
 			MemPool.TransactionReceived += MemPool_TransactionReceived;
 		}
 
@@ -139,18 +139,19 @@ namespace WalletWasabi.Services
 			ProcessTransaction(tx);
 		}
 
-		private async void IndexDownloader_ReorgedAsync(object sender, uint256 invalidBlockHash)
+		private async void IndexDownloader_ReorgedAsync(object sender, FilterModel invalidFilter)
 		{
 			using (HandleFiltersLock.Lock())
 			using (WalletBlocksLock.Lock())
 			{
-				var elem = WalletBlocks.FirstOrDefault(x => x.Value == invalidBlockHash);
+				uint256 invalidBlockHash = invalidFilter.BlockHash;
+				KeyValuePair<Height, uint256> elem = WalletBlocks.FirstOrDefault(x => x.Value == invalidBlockHash);
 				await DeleteBlockAsync(invalidBlockHash);
-				WalletBlocks.RemoveByValue(invalidBlockHash);
+				WalletBlocks.Remove(elem.Key);
 				ProcessedBlocks.TryRemove(invalidBlockHash, out _);
 				if (elem.Key != default(Height))
 				{
-					foreach (var toRemove in Coins.Where(x => x.Height == elem.Key).ToHashSet())
+					foreach (var toRemove in Coins.Where(x => x.Height == elem.Key).Distinct().ToList())
 					{
 						RemoveCoinRecursively(toRemove);
 					}
@@ -162,7 +163,7 @@ namespace WalletWasabi.Services
 		{
 			if (!(toRemove.SpenderTransactionId is null))
 			{
-				foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).ToHashSet())
+				foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
 				{
 					RemoveCoinRecursively(toAlsoRemove);
 				}
@@ -184,7 +185,7 @@ namespace WalletWasabi.Services
 			NewFilterProcessed?.Invoke(this, filterModel);
 
 			// Try perform mempool cleanup based on connected nodes' mempools.
-			if (!(IndexDownloader is null) && IndexDownloader.GetFiltersLeft() == 0)
+			if (!(Synchronizer is null) && Synchronizer.GetFiltersLeft() == 0)
 			{
 				MemPool?.TryPerformMempoolCleanupAsync(Nodes, CancellationToken.None);
 			}
@@ -192,18 +193,16 @@ namespace WalletWasabi.Services
 
 		public async Task InitializeAsync(CancellationToken cancel)
 		{
-			if (!IndexDownloader.IsRunning)
+			if (!Synchronizer.IsRunning)
 			{
-				throw new NotSupportedException($"{nameof(IndexDownloader)} is not running.");
+				throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
 			}
 
 			using (HandleFiltersLock.Lock())
 			using (WalletBlocksLock.Lock())
 			{
 				// Go through the filters and que to download the matches.
-				var filters = IndexDownloader.GetFiltersIncluding(IndexDownloader.StartingFilter.BlockHeight);
-
-				foreach (FilterModel filterModel in filters.Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
+				foreach (FilterModel filterModel in Synchronizer.GetFilters().Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
 				{
 					await ProcessFilterModelAsync(filterModel, cancel);
 				}
@@ -560,7 +559,7 @@ namespace WalletWasabi.Services
 					if (hash == new uint256(fileName))
 					{
 						var blockBytes = await File.ReadAllBytesAsync(filePath);
-						return Block.Load(blockBytes, IndexDownloader.Network);
+						return Block.Load(blockBytes, Synchronizer.Network);
 					}
 				}
 			}
@@ -588,7 +587,7 @@ namespace WalletWasabi.Services
 							continue;
 						}
 
-						if (!node.IsConnected && !(IndexDownloader.Network != Network.RegTest))
+						if (!node.IsConnected && !(Synchronizer.Network != Network.RegTest))
 						{
 							await Task.Delay(100);
 							continue;
@@ -715,13 +714,13 @@ namespace WalletWasabi.Services
 		/// <exception cref="ArgumentException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
 		/// <exception cref="ArgumentOutOfRangeException"></exception>
-		public async Task<BuildTransactionResult> BuildTransactionAsync(string password,
-																		Operation[] toSend,
-																		int feeTarget,
-																		bool allowUnconfirmed = false,
-																		int? subtractFeeFromAmountIndex = null,
-																		Script customChange = null,
-																		IEnumerable<TxoRef> allowedInputs = null)
+		public BuildTransactionResult BuildTransaction(string password,
+														Operation[] toSend,
+														int feeTarget,
+														bool allowUnconfirmed = false,
+														int? subtractFeeFromAmountIndex = null,
+														Script customChange = null,
+														IEnumerable<TxoRef> allowedInputs = null)
 		{
 			password = password ?? ""; // Correction.
 			toSend = Guard.NotNullOrEmpty(nameof(toSend), toSend);
@@ -800,10 +799,9 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 
 			Money feePerBytes = null;
-			using (var client = new WasabiClient(IndexDownloader.WasabiClient.TorClient.DestinationUri, IndexDownloader.WasabiClient.TorClient.TorSocks5EndPoint))
+			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUri, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
-				var fees = await client.GetFeesAsync(feeTarget);
-				Money feeRate = fees.Single().Value.Conservative;
+				Money feeRate = Synchronizer.GetFeeRate(feeTarget);
 				Money sanityCheckedFeeRate = Math.Max(feeRate, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
 				feePerBytes = new Money(sanityCheckedFeeRate);
 			}
@@ -1021,7 +1019,7 @@ namespace WalletWasabi.Services
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
-			using (var client = new WasabiClient(IndexDownloader.WasabiClient.TorClient.DestinationUri, IndexDownloader.WasabiClient.TorClient.TorSocks5EndPoint))
+			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUri, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
 				try
 				{
@@ -1066,8 +1064,8 @@ namespace WalletWasabi.Services
 			{
 				if (disposing)
 				{
-					IndexDownloader.NewFilter -= IndexDownloader_NewFilterAsync;
-					IndexDownloader.Reorged -= IndexDownloader_ReorgedAsync;
+					Synchronizer.NewFilter -= IndexDownloader_NewFilterAsync;
+					Synchronizer.Reorged -= IndexDownloader_ReorgedAsync;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
 
 					IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);

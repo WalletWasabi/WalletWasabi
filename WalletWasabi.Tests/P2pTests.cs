@@ -83,10 +83,11 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(network, connectionParameters, requirements: Helpers.Constants.NodeRequirements);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
+			WasabiSynchronizer syncer = new WasabiSynchronizer(network, Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345"));
 			WalletService walletService = new WalletService(
 			   keyManager,
-			   new IndexDownloader(network, Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345")),
-			   new CcjClient(network, new BlindingRsaKey().PubKey, keyManager, new Uri("http://localhost:12345")),
+			   syncer,
+			   new CcjClient(syncer, network, new BlindingRsaKey().PubKey, keyManager, new Uri("http://localhost:12345")),
 			   memPoolService,
 			   nodes,
 			   SharedFixture.DataDir);

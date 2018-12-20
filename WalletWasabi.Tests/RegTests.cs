@@ -217,6 +217,28 @@ namespace WalletWasabi.Tests
 			}
 		}
 
+		[Fact]
+		public async Task AllFeeEstimateRpcAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+
+			var estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+			Assert.Equal(144, estimations.Estimations.Count);
+			Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
+			Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
+			Assert.Equal(EstimateSmartFeeMode.Conservative, estimations.Type);
+			estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+			Assert.Equal(145, estimations.Estimations.Count);
+			Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
+			Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
+			Assert.Equal(EstimateSmartFeeMode.Economical, estimations.Type);
+			estimations = await rpc.EstimateAllFeeAsync(EstimateSmartFeeMode.Economical, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: false);
+			Assert.Equal(145, estimations.Estimations.Count);
+			Assert.True(estimations.Estimations.First().Key < estimations.Estimations.Last().Key);
+			Assert.True(estimations.Estimations.First().Value > estimations.Estimations.Last().Value);
+			Assert.Equal(EstimateSmartFeeMode.Economical, estimations.Type);
+		}
+
 		#endregion BackendTests
 
 		#region ServicesTests
@@ -276,19 +298,19 @@ namespace WalletWasabi.Tests
 
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(FilterDownloaderTestAsync), $"Index{rpc.Network}.dat");
 
-			using (var downloader = new IndexDownloader(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint)))
+			using (var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint)))
 			{
-				downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(1));
+				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), 1000);
 
 				// Test initial synchronization.
 
 				var times = 0;
 				int filterCount;
-				while ((filterCount = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).Count()) < 102)
+				while ((filterCount = synchronizer.CountFilters()) < 102)
 				{
 					if (times > 500) // 30 sec
 					{
-						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {102}, got only: {filterCount}.");
+						throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Needed filters: {102}, got only: {filterCount}.");
 					}
 					await Task.Delay(100);
 					times++;
@@ -297,11 +319,11 @@ namespace WalletWasabi.Tests
 				// Test later synchronization.
 				RegTestFixture.BackendRegTestNode.Generate(10);
 				times = 0;
-				while ((filterCount = downloader.GetFiltersIncluding(new Height(0)).Count()) < 112)
+				while ((filterCount = synchronizer.CountFilters()) < 112)
 				{
 					if (times > 500) // 30 sec
 					{
-						throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Needed filters: {112}, got only: {filterCount}.");
+						throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Needed filters: {112}, got only: {filterCount}.");
 					}
 					await Task.Delay(100);
 					times++;
@@ -309,10 +331,10 @@ namespace WalletWasabi.Tests
 
 				// Test correct number of filters is received.
 				var hundredthHash = await rpc.GetBlockHashAsync(100);
-				Assert.Equal(100, downloader.GetFiltersIncluding(hundredthHash).First().BlockHeight.Value);
+				Assert.Equal(new Height(100), synchronizer.TryGetHeight(hundredthHash));
 
 				// Test filter block hashes are correct.
-				var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
+				var filters = synchronizer.GetFilters().ToArray();
 				for (int i = 0; i < 101; i++)
 				{
 					var expectedHash = await rpc.GetBlockHashAsync(i);
@@ -348,16 +370,16 @@ namespace WalletWasabi.Tests
 			var node = RegTestFixture.BackendRegTestNode;
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(ReorgTestAsync), $"Index{rpc.Network}.dat");
 
-			using (var downloader = new IndexDownloader(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint)))
+			using (var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint)))
 			{
 				try
 				{
-					downloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3));
+					synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 1000);
 
-					downloader.Reorged += ReorgTestAsync_Downloader_Reorged;
+					synchronizer.Reorged += ReorgTestAsync_Downloader_Reorged;
 
 					// Test initial synchronization.
-					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
+					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), synchronizer);
 
 					var indexLines = await File.ReadAllLinesAsync(indexFilePath);
 					var lastFilter = indexLines.Last();
@@ -381,7 +403,7 @@ namespace WalletWasabi.Tests
 					var tx1bumpRes = await rpc.BumpFeeAsync(tx1); // RBF it
 
 					await rpc.GenerateAsync(5);
-					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), downloader);
+					await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), synchronizer);
 
 					utxoLines = await File.ReadAllTextAsync(utxoPath);
 					Assert.Contains(tx1bumpRes.TransactionId.ToString(), utxoLines); // assert the tx1bump is the correct tx
@@ -396,7 +418,7 @@ namespace WalletWasabi.Tests
 					Assert.DoesNotContain(tipBlock.HashPrevBlock.ToString(), indexLines);
 
 					// Test filter block hashes are correct after fork.
-					var filters = downloader.GetFiltersIncluding(Network.RegTest.GenesisHash).ToArray();
+					var filters = synchronizer.GetFilters().ToArray();
 					var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
 					for (int i = 0; i < blockCountIncludingGenesis; i++)
 					{
@@ -425,21 +447,21 @@ namespace WalletWasabi.Tests
 				}
 				finally
 				{
-					downloader.Reorged -= ReorgTestAsync_Downloader_Reorged;
+					synchronizer.Reorged -= ReorgTestAsync_Downloader_Reorged;
 				}
 			}
 		}
 
-		private async Task WaitForIndexesToSyncAsync(TimeSpan timeout, IndexDownloader downloader)
+		private async Task WaitForIndexesToSyncAsync(TimeSpan timeout, WasabiSynchronizer synchronizer)
 		{
 			var bestHash = await Global.RpcClient.GetBestBlockHashAsync();
 
 			var times = 0;
-			while (downloader.GetFiltersIncluding(new Height(0)).SingleOrDefault(x => x.BlockHash == bestHash) is null)
+			while (synchronizer.GetFilters().SingleOrDefault(x => x.BlockHash == bestHash) is null)
 			{
 				if (times > timeout.TotalSeconds)
 				{
-					throw new TimeoutException($"{nameof(IndexDownloader)} test timed out. Filter wasn't downloaded.");
+					throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Filter wasn't downloaded.");
 				}
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
@@ -448,7 +470,7 @@ namespace WalletWasabi.Tests
 
 		private long _reorgTestAsync_ReorgCount;
 
-		private void ReorgTestAsync_Downloader_Reorged(object sender, uint256 e)
+		private void ReorgTestAsync_Downloader_Reorged(object sender, FilterModel e)
 		{
 			Assert.NotNull(e);
 			Interlocked.Increment(ref _reorgTestAsync_ReorgCount);
@@ -474,19 +496,19 @@ namespace WalletWasabi.Tests
 			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
-			// 3. Create index downloader service.
+			// 3. Create wasabi synchronizer service.
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync), $"Index{rpc.Network}.dat");
-			var indexDownloader = new IndexDownloader(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 5. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(WalletTestsAsync));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
+			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -499,8 +521,8 @@ namespace WalletWasabi.Tests
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
-				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 1000); // Start wasabi synchronizer service.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -515,7 +537,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(wallet.Coins);
 				var firstCoin = wallet.Coins.Single();
 				Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
-				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight, firstCoin.Height);
+				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight, firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0U, 1U);
 				Assert.False(firstCoin.SpentOrCoinJoinInProgress);
 				Assert.Equal("foo label", firstCoin.Label);
@@ -544,9 +566,9 @@ namespace WalletWasabi.Tests
 				var thirdCoin = wallet.Coins.OrderBy(x => x.Height).Last();
 				Assert.Equal(Money.Coins(0.01m), secondCoin.Amount);
 				Assert.Equal(Money.Coins(0.02m), thirdCoin.Amount);
-				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight.Value - 2, firstCoin.Height.Value);
-				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight.Value - 1, secondCoin.Height.Value);
-				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight, thirdCoin.Height);
+				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight.Value - 2, firstCoin.Height.Value);
+				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight.Value - 1, secondCoin.Height.Value);
+				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight, thirdCoin.Height);
 				Assert.False(thirdCoin.SpentOrCoinJoinInProgress);
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal("bar label", secondCoin.Label);
@@ -603,7 +625,7 @@ namespace WalletWasabi.Tests
 				var rbfCoin = wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId).Single();
 
 				Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
-				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight.Value - 2, rbfCoin.Height.Value);
+				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight.Value - 2, rbfCoin.Height.Value);
 				Assert.False(rbfCoin.SpentOrCoinJoinInProgress);
 				Assert.Equal("bar label", rbfCoin.Label);
 				Assert.Equal(key2.GetP2wpkhScript(), rbfCoin.ScriptPubKey);
@@ -637,14 +659,14 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 				var res = await rpc.GetTxOutAsync(mempoolCoin.TransactionId, (int)mempoolCoin.Index, true);
-				Assert.Equal(indexDownloader.BestKnownFilter.BlockHeight, mempoolCoin.Height);
+				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight, mempoolCoin.Height);
 			}
 			finally
 			{
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
 				wallet?.Dispose();
-				// Dispose index downloader service.
-				indexDownloader?.Dispose();
+				// Dispose wasabi synchronizer service.
+				synchronizer?.Dispose();
 
 				// Dispose mempool service.
 				memPoolService.TransactionReceived -= WalletTestsAsync_MemPoolService_TransactionReceived;
@@ -703,19 +725,19 @@ namespace WalletWasabi.Tests
 			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
-			// 3. Create index downloader service.
+			// 3. Create wasabi synchronizer service.
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Index{rpc.Network}.dat");
-			var indexDownloader = new IndexDownloader(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
+			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			// Get some money, make it confirm.
@@ -732,8 +754,8 @@ namespace WalletWasabi.Tests
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
-				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -757,7 +779,7 @@ namespace WalletWasabi.Tests
 				}
 
 				var scp = new Key().ScriptPubKey;
-				var res2 = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(scp, Money.Coins(0.05m), "foo") }, 5, false);
+				var res2 = wallet.BuildTransaction(password, new[] { new WalletService.Operation(scp, Money.Coins(0.05m), "foo") }, 5, false);
 
 				Assert.NotNull(res2.Transaction);
 				Assert.Single(res2.OuterWalletOutputs);
@@ -778,7 +800,7 @@ namespace WalletWasabi.Tests
 
 				Script receive = wallet.GetReceiveKey("Basic").GetP2wpkhScript();
 				Money amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 2;
-				var res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
+				var res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
 
 				foreach (SmartCoin coin in res.SpentCoins)
 				{
@@ -826,7 +848,7 @@ namespace WalletWasabi.Tests
 
 				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").GetP2wpkhScript();
 				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 3;
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -859,7 +881,7 @@ namespace WalletWasabi.Tests
 
 				#region LowFee
 
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -892,7 +914,7 @@ namespace WalletWasabi.Tests
 
 				#region MediumFee
 
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 144, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 144, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -925,7 +947,7 @@ namespace WalletWasabi.Tests
 
 				#region HighFee
 
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 2, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 2, allowUnconfirmed: true);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
 				Assert.Empty(res.OuterWalletOutputs);
@@ -964,7 +986,7 @@ namespace WalletWasabi.Tests
 				#region MaxAmount
 
 				receive = wallet.GetReceiveKey("MaxAmount").GetP2wpkhScript();
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008, allowUnconfirmed: true);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008, allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
@@ -992,7 +1014,7 @@ namespace WalletWasabi.Tests
 				receive = wallet.GetReceiveKey("InputSelection").GetP2wpkhScript();
 
 				var inputCountBefore = res.SpentCoins.Count();
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
 					allowUnconfirmed: true,
 					allowedInputs: wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1));
 
@@ -1012,7 +1034,7 @@ namespace WalletWasabi.Tests
 
 				Assert.Single(res.Transaction.Transaction.Outputs);
 
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
 					allowUnconfirmed: true,
 					allowedInputs: new[] { res.SpentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).First() });
 
@@ -1028,14 +1050,14 @@ namespace WalletWasabi.Tests
 
 				#region Labeling
 
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(receive, Money.Zero, "my label") }, 1008,
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "my label") }, 1008,
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal($"{Helpers.Constants.ChangeOfSpecialLabelStart}my label{Helpers.Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
 
 				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 3;
-				res = await wallet.BuildTransactionAsync(password, new[] {
+				res = wallet.BuildTransaction(password, new[] {
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing"),
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing2")
 				}, 1008,
@@ -1054,7 +1076,7 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
-				var bestHeight = wallet.IndexDownloader.BestKnownFilter.BlockHeight;
+				var bestHeight = wallet.Synchronizer.BestKnownFilter.BlockHeight;
 				Assert.Contains($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
 				Assert.Contains($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
 
@@ -1072,7 +1094,7 @@ namespace WalletWasabi.Tests
 				// covers:
 				// disallow unconfirmed with allowed inputs
 				// feeTarget < 2 // NOTE: need to correct alowing 0 and 1
-				res = await wallet.BuildTransactionAsync(password, toSend, 0, false, allowedInputs: allowedInputs);
+				res = wallet.BuildTransaction(password, toSend, 0, false, allowedInputs: allowedInputs);
 
 				activeOutput = res.InnerWalletOutputs.Single(x => x.ScriptPubKey == receive);
 				Assert.Single(res.InnerWalletOutputs);
@@ -1102,7 +1124,7 @@ namespace WalletWasabi.Tests
 				// covers:
 				// customchange
 				// feePc > 1
-				res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.0003m), "outgoing") }, 2, customChange: new Key().ScriptPubKey);
+				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.0003m), "outgoing") }, 2, customChange: new Key().ScriptPubKey);
 
 				Assert.True(res.FeePercentOfSent > 1);
 
@@ -1118,8 +1140,8 @@ namespace WalletWasabi.Tests
 			{
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
 				wallet?.Dispose();
-				// Dispose index downloader service.
-				indexDownloader?.Dispose();
+				// Dispose wasabi synchronizer service.
+				synchronizer?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -1147,19 +1169,19 @@ namespace WalletWasabi.Tests
 			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
-			// 3. Create index downloader service.
+			// 3. Create wasabi synchronizer service.
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Index{rpc.Network}.dat");
-			var indexDownloader = new IndexDownloader(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
+			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var scp = new Key().ScriptPubKey;
@@ -1173,49 +1195,49 @@ namespace WalletWasabi.Tests
 
 			Logger.TurnOff();
 			// toSend cannot be null
-			await Assert.ThrowsAsync<ArgumentNullException>(async () => await wallet.BuildTransactionAsync(null, null, 0));
+			Assert.Throws<ArgumentNullException>(() => wallet.BuildTransaction(null, null, 0));
 
 			// toSend cannot have a null element
-			await Assert.ThrowsAsync<ArgumentNullException>(async () => await wallet.BuildTransactionAsync(null, new[] { (WalletService.Operation)null }, 0));
+			Assert.Throws<ArgumentNullException>(() => wallet.BuildTransaction(null, new[] { (WalletService.Operation)null }, 0));
 
 			// toSend cannot have a zero elements
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, new WalletService.Operation[0], 0));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, new WalletService.Operation[0], 0));
 
 			// feeTarget has to be in the range 0 to 1008
-			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, -10));
-			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2000));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validOperationList, -10));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validOperationList, 2000));
 
 			// subtractFeeFromAmountIndex has to be valid
-			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2, false, -10));
-			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2, false, 1));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validOperationList, 2, false, -10));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, validOperationList, 2, false, 1));
 
 			// toSend amount sum has to be in range 0 to 2099999997690000
-			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await wallet.BuildTransactionAsync(null, invalidOperationList, 2));
+			Assert.Throws<ArgumentOutOfRangeException>(() => wallet.BuildTransaction(null, invalidOperationList, 2));
 
 			// toSend negative sum amount
 			var operations = new[]{
 				new WalletService.Operation(scp, -10000, "") };
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2));
 
 			// toSend negative operation amount
 			operations = new[]{
 				new WalletService.Operation(scp,  20000, ""),
 				new WalletService.Operation(scp, -10000, "") };
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2));
 
 			// allowedInputs cannot be empty
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, validOperationList, 2, false, null, null, new TxoRef[0]));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, validOperationList, 2, false, null, null, new TxoRef[0]));
 
 			// "Only one element can contain Money.Zero
 			var toSendWithTwoZeros = new[]{
 				new WalletService.Operation(scp, Money.Zero, "zero"),
 				new WalletService.Operation(scp, Money.Zero, "zero") };
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(password, toSendWithTwoZeros, 1008, false));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, toSendWithTwoZeros, 1008, false));
 
 			// cannot specify spend all and custom change
 			var spendAll = new[]{
 				new WalletService.Operation(scp, Money.Zero, "spendAll") };
-			await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(password, spendAll, 1008, false, customChange: new Key().ScriptPubKey));
+			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(password, spendAll, 1008, false, customChange: new Key().ScriptPubKey));
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("foo label");
@@ -1228,8 +1250,8 @@ namespace WalletWasabi.Tests
 			{
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
-				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -1244,24 +1266,24 @@ namespace WalletWasabi.Tests
 				operations = new[]{
 					new WalletService.Operation(scp,  Money.Coins(1m), ""),
 					new WalletService.Operation(scp, Money.Coins(0.5m), "") };
-				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(password, operations, 2, false, 0));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(password, operations, 2, false, 0));
 
 				// No enough money (only one confirmed coin, no unconfirmed allowed)
 				operations = new[] { new WalletService.Operation(scp, Money.Coins(1.5m), "") };
-				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(null, operations, 2));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, 2));
 
 				// No enough money (only one confirmed coin, unconfirmed allowed)
-				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, true));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, 2, true));
 
 				// Add new money with no confirmation
 				var txid2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(2m));
 				await Task.Delay(1000); // Wait tx to arrive and get processed.
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are NOT allowed)
-				await Assert.ThrowsAsync<InsufficientBalanceException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, false));
+				Assert.Throws<InsufficientBalanceException>(() => wallet.BuildTransaction(null, operations, 2, false));
 
 				// Enough money (one confirmed coin and one unconfirmed coin, unconfirmed are allowed)
-				var btx = await wallet.BuildTransactionAsync(password, operations, 2, true);
+				var btx = wallet.BuildTransaction(password, operations, 2, true);
 				Assert.Equal(2, btx.SpentCoins.Count());
 				Assert.Equal(1, btx.SpentCoins.Count(c => c.Confirmed));
 				Assert.Equal(1, btx.SpentCoins.Count(c => !c.Confirmed));
@@ -1270,20 +1292,20 @@ namespace WalletWasabi.Tests
 				operations = new[]{
 					new WalletService.Operation(scp, Money.Zero, ""),
 					new WalletService.Operation(scp, Money.Zero, "") };
-				await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2));
+				Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2));
 
 				// `Custom change` and `spend all` cannot be specified at the same time
-				await Assert.ThrowsAsync<ArgumentException>(async () => await wallet.BuildTransactionAsync(null, operations, 2, false, null, Script.Empty));
+				Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2, false, null, Script.Empty));
 				Logger.TurnOn();
 
 				operations = new[] { new WalletService.Operation(scp, Money.Coins(0.5m), "") };
-				btx = await wallet.BuildTransactionAsync(password, operations, 2);
+				btx = wallet.BuildTransaction(password, operations, 2);
 			}
 			finally
 			{
 				wallet?.Dispose();
-				// Dispose index downloader service.
-				indexDownloader?.Dispose();
+				// Dispose wasabi synchronizer service.
+				synchronizer?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -1311,19 +1333,19 @@ namespace WalletWasabi.Tests
 			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
-			// 3. Create index downloader service.
+			// 3. Create wasabi synchronizer service.
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync), $"Index{rpc.Network}.dat");
-			var indexDownloader = new IndexDownloader(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
+			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1343,8 +1365,8 @@ namespace WalletWasabi.Tests
 			{
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
-				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -1359,12 +1381,12 @@ namespace WalletWasabi.Tests
 				// Send money before reorg.
 				var operations = new[]{
 					new WalletService.Operation(scp, Money.Coins(0.011m), "") };
-				var btx1 = await wallet.BuildTransactionAsync(password, operations, 2);
+				var btx1 = wallet.BuildTransaction(password, operations, 2);
 				await wallet.SendTransactionAsync(btx1.Transaction);
 
 				operations = new[]{
 					new WalletService.Operation(scp, Money.Coins(0.012m), "") };
-				var btx2 = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true);
+				var btx2 = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(btx2.Transaction);
 
 				// Test synchronization after fork.
@@ -1384,12 +1406,12 @@ namespace WalletWasabi.Tests
 				// are reintroduced when we generate a new block though the rpc call
 				operations = new[]{
 					new WalletService.Operation(scp, Money.Coins(0.013m), "") };
-				var btx3 = await wallet.BuildTransactionAsync(password, operations, 2);
+				var btx3 = wallet.BuildTransaction(password, operations, 2);
 				await wallet.SendTransactionAsync(btx3.Transaction);
 
 				operations = new[]{
 					new WalletService.Operation(scp, Money.Coins(0.014m), "") };
-				var btx4 = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true);
+				var btx4 = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(btx4.Transaction);
 
 				// Test synchronization after fork with different transactions.
@@ -1447,8 +1469,8 @@ namespace WalletWasabi.Tests
 			finally
 			{
 				wallet?.Dispose();
-				// Dispose index downloader service.
-				indexDownloader?.Dispose();
+				// Dispose wasabi synchronizer service.
+				synchronizer?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -1476,21 +1498,21 @@ namespace WalletWasabi.Tests
 			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
-			// 3. Create index downloader service.
+			// 3. Create wasabi synchronizer service.
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync),
 				$"Index{rpc.Network}.dat");
-			var indexDownloader =
-				new IndexDownloader(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer =
+				new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
+			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			Assert.Empty(wallet.Coins);
@@ -1502,8 +1524,8 @@ namespace WalletWasabi.Tests
 			{
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
-				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -1530,12 +1552,12 @@ namespace WalletWasabi.Tests
 					new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.01m), ""),
 					new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.01m), "")
 				};
-				var tx1Res = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true);
+				var tx1Res = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true);
 				Assert.Equal(2, tx1Res.OuterWalletOutputs.Single(x => x.ScriptPubKey == key.GetP2wpkhScript()).Mixin);
 
 				// Spend the unconfirmed coin (send it to ourself)
 				operations = new[] { new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "") };
-				tx1Res = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true);
+				tx1Res = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(tx1Res.Transaction);
 
 				while (wallet.Coins.Count != 3)
@@ -1555,7 +1577,7 @@ namespace WalletWasabi.Tests
 
 				// Spend the unconfirmed and unspent coin (send it to ourself)
 				operations = new[] { new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "") };
-				var tx2Res = await wallet.BuildTransactionAsync(password, operations, 2, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
+				var tx2Res = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 				await wallet.SendTransactionAsync(tx2Res.Transaction);
 
 				while (wallet.Coins.Count != 4)
@@ -1596,7 +1618,7 @@ namespace WalletWasabi.Tests
 				// Test coin basic count.
 				var coinCount = wallet.Coins.Count;
 				var to = wallet.GetReceiveKey("foo");
-				var res = await wallet.BuildTransactionAsync(password, new[] { new WalletService.Operation(to.GetP2wpkhScript(), Money.Coins(0.2345m), "bar") }, 2, allowUnconfirmed: true);
+				var res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(to.GetP2wpkhScript(), Money.Coins(0.2345m), "bar") }, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(res.Transaction);
 				Assert.Equal(coinCount + 2, wallet.Coins.Count);
 				Assert.Equal(2, wallet.Coins.Count(x => !x.Confirmed));
@@ -1609,8 +1631,8 @@ namespace WalletWasabi.Tests
 			finally
 			{
 				wallet?.Dispose();
-				// Dispose index downloader service.
-				indexDownloader?.Dispose();
+				// Dispose wasabi synchronizer service.
+				synchronizer?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -2632,6 +2654,10 @@ namespace WalletWasabi.Tests
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
 
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(CcjClientTestsAsync), $"Index{network}.dat");
+			var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+
 			Money denomination = Money.Coins(0.1m);
 			decimal coordinatorFeePercent = 0.1m;
 			int anonymitySet = 2;
@@ -2677,12 +2703,12 @@ namespace WalletWasabi.Tests
 			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(bech3Coin.Outpoint.N));
 			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx4.GetMixin(bech4Coin.Outpoint.N));
 
-			var chaumianClient1 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
-			var chaumianClient2 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient1 = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
-				chaumianClient1.Start(2, 2); // Exactly delay it for 2 seconds, this will make sure of timeout later.
-				chaumianClient2.Start(0, 0);
+				chaumianClient1.Start(); // Exactly delay it for 2 seconds, this will make sure of timeout later.
+				chaumianClient2.Start();
 
 				smartCoin1.CoinJoinInProgress = true;
 				Assert.True(!(await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any());
@@ -2753,9 +2779,18 @@ namespace WalletWasabi.Tests
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
 				Assert.Empty(chaumianClient1.State.GetAllWaitingCoins());
 				Assert.NotEmpty(chaumianClient1.State.GetAllRegisteredCoins());
-				await Task.Delay(3000); // Make sure to wait until times out.
+				int times = 0;
+				while (!chaumianClient1.State.GetAllWaitingCoins().Any()) // // Make sure to wait until times out.
+				{
+					await Task.Delay(1000);
+					if (times > 21)
+					{
+						throw new TimeoutException("State.GetAllWaitingCoins() always empty.");
+					}
+					times++;
+				}
+
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
-				Assert.NotEmpty(chaumianClient1.State.GetAllWaitingCoins());
 				Assert.Empty(chaumianClient1.State.GetAllRegisteredCoins());
 			}
 			finally
@@ -2775,6 +2810,10 @@ namespace WalletWasabi.Tests
 		public async Task CcjClientCustomOutputScriptTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(CcjClientCustomOutputScriptTestsAsync), $"Index{network}.dat");
+			var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
 
 			Money denomination = Money.Coins(0.1m);
 			decimal coordinatorFeePercent = 0.1m;
@@ -2814,12 +2853,12 @@ namespace WalletWasabi.Tests
 			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx2.GetMixin(bech2Coin.Outpoint.N));
 			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(bech3Coin.Outpoint.N));
 
-			var chaumianClient1 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
-			var chaumianClient2 = new CcjClient(rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient1 = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(synchronizer, rpc.Network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 			try
 			{
-				chaumianClient1.Start(0, 0);
-				chaumianClient2.Start(0, 0);
+				chaumianClient1.Start();
+				chaumianClient2.Start();
 
 				var customChange1 = new Key().PubKey.GetAddress(network);
 				var customActive1 = new Key().PubKey.GetAddress(network);
@@ -2897,12 +2936,12 @@ namespace WalletWasabi.Tests
 			Node node2 = RegTestFixture.BackendRegTestNode.CreateNodeClient();
 			node2.Behaviors.Add(new MemPoolBehavior(memPoolService2));
 
-			// 3. Create index downloader service.
+			// 3. Create wasabi synchronizer service.
 			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Index{network}.dat");
-			var indexDownloader = new IndexDownloader(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
 			var indexFilePath2 = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Index{network}2.dat");
-			var indexDownloader2 = new IndexDownloader(network, indexFilePath2, new Uri(RegTestFixture.BackendEndPoint));
+			var synchronizer2 = new WasabiSynchronizer(network, indexFilePath2, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 4. Create key manager service.
 			var keyManager = KeyManager.CreateNew(out _, password);
@@ -2910,17 +2949,17 @@ namespace WalletWasabi.Tests
 			var keyManager2 = KeyManager.CreateNew(out _, password);
 
 			// 5. Create chaumian coinjoin client.
-			var chaumianClient = new CcjClient(network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient = new CcjClient(synchronizer, network, coordinator.RsaKey.PubKey, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
-			var chaumianClient2 = new CcjClient(network, coordinator.RsaKey.PubKey, keyManager2, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(synchronizer, network, coordinator.RsaKey.PubKey, keyManager2, new Uri(RegTestFixture.BackendEndPoint));
 
 			// 6. Create wallet service.
 			var workDir = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync));
-			var wallet = new WalletService(keyManager, indexDownloader, chaumianClient, memPoolService, nodes, workDir);
+			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir);
 			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
 			var workDir2 = Path.Combine(SharedFixture.DataDir, $"{nameof(CoinJoinMultipleRoundTestsAsync)}2");
-			var wallet2 = new WalletService(keyManager2, indexDownloader2, chaumianClient2, memPoolService2, nodes2, workDir2);
+			var wallet2 = new WalletService(keyManager2, synchronizer2, chaumianClient2, memPoolService2, nodes2, workDir2);
 
 			// Get some money, make it confirm.
 			var key = wallet.GetReceiveKey("fundZeroLink");
@@ -2940,12 +2979,12 @@ namespace WalletWasabi.Tests
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				nodes.Connect(); // Start connection service.
 				node.VersionHandshake(); // Start mempool service.
-				indexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient.Start(0, 0); // Start chaumian coinjoin client.
+				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
 				nodes2.Connect(); // Start connection service.
 				node2.VersionHandshake(); // Start mempool service.
-				indexDownloader2.Synchronize(requestInterval: TimeSpan.FromSeconds(3)); // Start index downloader service.
-				chaumianClient2.Start(0, 0); // Start chaumian coinjoin client.
+				synchronizer2.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+				chaumianClient2.Start(); // Start chaumian coinjoin client.
 
 				// Wait until the filter our previous transaction is present.
 				var blockCount = await rpc.GetBlockCountAsync();
@@ -2984,7 +3023,7 @@ namespace WalletWasabi.Tests
 				Assert.True(1 == (await chaumianClient.QueueCoinsToMixAsync(password, wallet.Coins.ToArray())).Count());
 				Assert.True(3 == (await chaumianClient2.QueueCoinsToMixAsync(password, wallet2.Coins.ToArray())).Count());
 
-				Task timeout = Task.Delay(TimeSpan.FromSeconds(2 * (connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2)));
+				Task timeout = Task.Delay(TimeSpan.FromSeconds(2 * (1 + 11 + 7 + 3 * (3 + 7))));
 				while (wallet.Coins.Count != 7)
 				{
 					if (timeout.IsCompletedSuccessfully)
@@ -3018,8 +3057,8 @@ namespace WalletWasabi.Tests
 			{
 				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
 				wallet?.Dispose();
-				// Dispose index downloader service.
-				indexDownloader?.Dispose();
+				// Dispose wasabi synchronizer service.
+				synchronizer?.Dispose();
 				// Dispose connection service.
 				nodes?.Dispose();
 				// Dispose mempool serving node.
@@ -3030,8 +3069,8 @@ namespace WalletWasabi.Tests
 					await chaumianClient.StopAsync();
 				}
 				wallet2?.Dispose();
-				// Dispose index downloader service.
-				indexDownloader2?.Dispose();
+				// Dispose wasabi synchronizer service.
+				synchronizer2?.Dispose();
 				// Dispose connection service.
 				nodes2?.Dispose();
 				// Dispose chaumian coinjoin client.

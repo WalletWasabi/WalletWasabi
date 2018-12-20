@@ -52,7 +52,7 @@ namespace WalletWasabi.Tests
 		{
 			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType]))
 			{
-				var filterModel = IndexDownloader.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
+				var filterModel = WasabiSynchronizer.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
 
 				FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.BlockHash, 2);
 

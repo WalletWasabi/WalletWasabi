@@ -18,6 +18,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Gui.Dialogs;
 using System.Runtime.InteropServices;
 using System.Reactive.Disposables;
+using System.ComponentModel;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -32,7 +33,7 @@ namespace WalletWasabi.Gui.ViewModels
 	{
 		public NodesCollection Nodes { get; }
 		public MemPoolService MemPoolService { get; }
-		public IndexDownloader IndexDownloader { get; }
+		public WasabiSynchronizer Synchronizer { get; }
 		public UpdateChecker UpdateChecker { get; }
 
 		private UpdateStatus _updateStatus;
@@ -150,9 +151,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private long _clientOutOfDate;
 		private long _backendIncompatible;
-		private CompositeDisposable _disposables;
 
-		public StatusBarViewModel(NodesCollection nodes, MemPoolService memPoolService, IndexDownloader indexDownloader, UpdateChecker updateChecker)
+		public StatusBarViewModel(NodesCollection nodes, MemPoolService memPoolService, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
 			_clientOutOfDate = 0;
 			_backendIncompatible = 0;
@@ -170,21 +170,14 @@ namespace WalletWasabi.Gui.ViewModels
 			MemPoolService.TransactionReceived += MemPoolService_TransactionReceived;
 			Mempool = MemPoolService.TransactionHashes.Count;
 
-			IndexDownloader = indexDownloader;
+			Synchronizer = synchronizer;
 			UpdateChecker = updateChecker;
-			IndexDownloader.NewFilter += IndexDownloader_NewFilter;
-			IndexDownloader.TorStatusChanged += IndexDownloader_TorStatusChanged;
-			IndexDownloader.BackendStatusChanged += IndexDownloader_BackendStatusChanged;
-			IndexDownloader.ResponseArrivedIsGenSocksServFail += IndexDownloader_ResponseArrivedIsGenSocksServFail;
+			Synchronizer.NewFilter += IndexDownloader_NewFilter;
+			Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
+			Synchronizer.ResponseArrivedIsGenSocksServFail += IndexDownloader_ResponseArrivedIsGenSocksServFail;
 
-			FiltersLeft = IndexDownloader.GetFiltersLeft();
+			FiltersLeft = Synchronizer.GetFiltersLeft();
 
-			_disposables = new CompositeDisposable {
-				IndexDownloader.WhenAnyValue(x => x.BestHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
-					{
-						FiltersLeft = IndexDownloader.GetFiltersLeft();
-					})
-			};
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
 				SetStatusAndDoUpdateActions();
@@ -230,6 +223,22 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
+		}
+
+		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == nameof(Synchronizer.TorStatus))
+			{
+				Tor = Synchronizer.TorStatus;
+			}
+			else if (e.PropertyName == nameof(Synchronizer.BackendStatus))
+			{
+				Backend = Synchronizer.BackendStatus;
+			}
+			else if (e.PropertyName == nameof(Synchronizer.BestBlockchainHeight))
+			{
+				FiltersLeft = Synchronizer.GetFiltersLeft();
+			}
 		}
 
 		private void IndexDownloader_ResponseArrivedIsGenSocksServFail(object sender, bool isGenSocksServFail)
@@ -305,19 +314,9 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private void IndexDownloader_BackendStatusChanged(object sender, BackendStatus e)
-		{
-			Backend = e;
-		}
-
-		private void IndexDownloader_TorStatusChanged(object sender, TorStatus e)
-		{
-			Tor = e;
-		}
-
 		private void IndexDownloader_NewFilter(object sender, Backend.Models.FilterModel e)
 		{
-			FiltersLeft = IndexDownloader.GetFiltersLeft();
+			FiltersLeft = Synchronizer.GetFiltersLeft();
 		}
 
 		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
@@ -345,14 +344,12 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				if (disposing)
 				{
-					_disposables.Dispose();
 					Nodes.Added -= Nodes_Added;
 					Nodes.Removed -= Nodes_Removed;
 					MemPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
-					IndexDownloader.NewFilter -= IndexDownloader_NewFilter;
-					IndexDownloader.TorStatusChanged -= IndexDownloader_TorStatusChanged;
-					IndexDownloader.BackendStatusChanged -= IndexDownloader_BackendStatusChanged;
-					IndexDownloader.ResponseArrivedIsGenSocksServFail -= IndexDownloader_ResponseArrivedIsGenSocksServFail;
+					Synchronizer.NewFilter -= IndexDownloader_NewFilter;
+					Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
+					Synchronizer.ResponseArrivedIsGenSocksServFail -= IndexDownloader_ResponseArrivedIsGenSocksServFail;
 				}
 
 				_disposedValue = true;
