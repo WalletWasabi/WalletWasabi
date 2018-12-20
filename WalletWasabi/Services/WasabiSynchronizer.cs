@@ -127,7 +127,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public TimeSpan MinRequestIntervalForMixing { get; set; }
+		public TimeSpan MaxRequestIntervalForMixing { get; set; }
 
 		public string IndexFilePath { get; private set; }
 		private List<FilterModel> Index { get; set; }
@@ -226,7 +226,7 @@ namespace WalletWasabi.Services
 			Guard.MinimumAndNotNull(nameof(feeQueryRequestInterval), feeQueryRequestInterval, requestInterval);
 			Guard.MinimumAndNotNull(nameof(maxFiltersToSyncAtInitialization), maxFiltersToSyncAtInitialization, 0);
 
-			MinRequestIntervalForMixing = requestInterval; // Let's start with this, it'll be modified from outside.
+			MaxRequestIntervalForMixing = requestInterval; // Let's start with this, it'll be modified from outside.
 
 			Interlocked.Exchange(ref _running, 1);
 
@@ -399,7 +399,7 @@ namespace WalletWasabi.Services
 							{
 								try
 								{
-									int delay = (int)Math.Min(requestInterval.TotalMilliseconds, MinRequestIntervalForMixing.TotalMilliseconds);
+									int delay = (int)Math.Min(requestInterval.TotalMilliseconds, MaxRequestIntervalForMixing.TotalMilliseconds);
 									await Task.Delay(delay, Cancel.Token); // Ask for new index in every requestInterval.
 								}
 								catch (TaskCanceledException ex)

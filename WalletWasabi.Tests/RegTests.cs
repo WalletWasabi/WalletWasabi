@@ -2779,11 +2779,18 @@ namespace WalletWasabi.Tests
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
 				Assert.Empty(chaumianClient1.State.GetAllWaitingCoins());
 				Assert.NotEmpty(chaumianClient1.State.GetAllRegisteredCoins());
-				await Task.Delay(3000); // Make sure to wait until times out.
-				IEnumerable<(uint256 txid, uint index)> collection = chaumianClient1.State.GetAllQueuedCoins();
-				Assert.NotEmpty(collection);
-				IEnumerable<(uint256 txid, uint index)> collection1 = chaumianClient1.State.GetAllWaitingCoins();
-				Assert.NotEmpty(collection1);
+				int times = 0;
+				while (!chaumianClient1.State.GetAllWaitingCoins().Any()) // // Make sure to wait until times out.
+				{
+					await Task.Delay(1000);
+					if (times > 21)
+					{
+						throw new TimeoutException("State.GetAllWaitingCoins() always empty.");
+					}
+					times++;
+				}
+
+				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
 				Assert.Empty(chaumianClient1.State.GetAllRegisteredCoins());
 			}
 			finally

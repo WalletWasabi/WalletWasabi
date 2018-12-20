@@ -62,6 +62,8 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
+		private long _statusProcessing;
+
 		private CancellationTokenSource Cancel { get; }
 
 		public CcjClient(WasabiSynchronizer synchronizer, Network network, BlindingRsaPubKey coordinatorPubKey, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
@@ -80,6 +82,7 @@ namespace WalletWasabi.Services
 			_frequentStatusProcessingIfNotMixing = 0;
 			State = new CcjClientState();
 			MixLock = new AsyncLock();
+			_statusProcessing = 0;
 
 			CustomChangeAddresses = new List<BitcoinAddress>();
 			CustomActiveAddresses = new List<BitcoinAddress>();
@@ -100,9 +103,7 @@ namespace WalletWasabi.Services
 		{
 			Interlocked.Exchange(ref _running, 1);
 
-			// At start the client asks for status.
-
-			// The client is asking for status periodically, randomly between every 0.2 * connConfTimeout and 0.8 * connConfTimeout.
+			// The client is asking for status periodically, randomly between every 0.2 * connConfTimeout and 0.7 * connConfTimeout.
 			// - if the GUI is at the mixer tab -Activate(), DeactivateIfNotMixing().
 			// - if coins are queued to mix.
 			// The client is asking for status periodically, randomly between every 2 to 7 seconds.
@@ -130,16 +131,19 @@ namespace WalletWasabi.Services
 								// if mixing >= connConf
 								if (State.GetActivelyMixingRounds().Any())
 								{
-									Synchronizer.MinRequestIntervalForMixing = TimeSpan.FromSeconds(3);
+									int delaySeconds = new Random().Next(2, 7);
+									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
 								}
 								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
 								{
-									Synchronizer.MinRequestIntervalForMixing = TimeSpan.FromSeconds(11);
+									double rand = double.Parse($"0.{new Random().Next(2, 7)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.7 * connConfTimeout
+									int delaySeconds = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
+
+									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
 								}
-								else
+								else // dormant
 								{
-									// dormant
-									Synchronizer.MinRequestIntervalForMixing = TimeSpan.FromMinutes(3);
+									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromMinutes(3);
 								}
 							}
 						}
@@ -172,8 +176,14 @@ namespace WalletWasabi.Services
 
 		private async Task ProcessStatusAsync(IEnumerable<CcjRunningRoundState> states)
 		{
+			if (Interlocked.Read(ref _statusProcessing) == 1) // It's ok to wait for status processing next time.
+			{
+				return;
+			}
+
 			try
 			{
+				Interlocked.Exchange(ref _statusProcessing, 1);
 				using (await MixLock.LockAsync())
 				{
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
@@ -200,8 +210,14 @@ namespace WalletWasabi.Services
 				}
 				StateUpdated?.Invoke(this, null);
 
-				int delay = new Random().Next(0, 7); // delay the response to defend timing attack privacy.
-				await Task.Delay(TimeSpan.FromSeconds(delay), Cancel.Token);
+				int delaySeconds = new Random().Next(0, 7); // delay the response to defend timing attack privacy.
+
+				if (Network == Network.RegTest)
+				{
+					delaySeconds = 0;
+				}
+
+				await Task.Delay(TimeSpan.FromSeconds(delaySeconds), Cancel.Token);
 
 				using (await MixLock.LockAsync())
 				{
@@ -233,6 +249,10 @@ namespace WalletWasabi.Services
 			catch (Exception ex)
 			{
 				Logger.LogError<CcjClient>(ex);
+			}
+			finally
+			{
+				Interlocked.Exchange(ref _statusProcessing, 0);
 			}
 		}
 
