@@ -4,7 +4,6 @@
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
-    <converters:FeeConfirmationTargetConverter x:Key="FeeConfirmationTargetConverter" />
     <converters:CoinJoinedVisibilityConverter x:Key="CoinJoinedVisibilityConverter" />
     <converters:MoneyStringConverter x:Key="MoneyStringConverter" />
     <converters:PhaseStringConverter x:Key="PhaseStringConverter" />

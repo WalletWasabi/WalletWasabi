@@ -32,6 +32,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _feeTarget;
 		private int _minimumFeeTarget;
 		private int _maximumFeeTarget;
+		private string _confirmationExpectedText;
 		private string _password;
 		private string _address;
 		private string _label;
@@ -54,7 +55,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
 			ResetMax();
-			SetFeeTargets();
+			SetFeeTargetLimits();
+			FeeTarget = MinimumFeeTarget;
+			SetConfirmationExpectedText();
 
 			Global.Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 
@@ -219,18 +222,74 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					CaretIndex = Label.Length;
 				}
 			});
+
+			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
+			{
+				SetConfirmationExpectedText();
+			});
+
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+		}
+
+		private void SetConfirmationExpectedText()
+		{
+			Dictionary<int, int> estimations = Global.Synchronizer?.AllFeeEstimate?.Estimations;
+
+			var feeTarget = FeeTarget;
+
+			if (estimations != null)
+			{
+				int prevKey = estimations.Keys.First();
+				foreach (int target in estimations.Keys)
+				{
+					if (feeTarget == target)
+					{
+						feeTarget = target;
+						break;
+					}
+					else if (feeTarget < target)
+					{
+						feeTarget = prevKey;
+						break;
+					}
+					prevKey = target;
+				}
+			}
+
+			if (feeTarget >= 2 && feeTarget <= 6) // minutes
+			{
+				ConfirmationExpectedText = $"{feeTarget}0 minutes";
+			}
+			if (feeTarget >= 7 && feeTarget <= 144) // hours
+			{
+				var h = feeTarget / 6;
+				ConfirmationExpectedText = $"{h} hours";
+			}
+			if (feeTarget >= 145 && feeTarget <= 1008) // days
+			{
+				var d = feeTarget / 144;
+				ConfirmationExpectedText = $"{d} days";
+			}
 		}
 
 		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(Global.Synchronizer.AllFeeEstimate))
 			{
-				SetFeeTargets();
+				SetFeeTargetLimits();
+				if (FeeTarget < MinimumFeeTarget) // Should never happen.
+				{
+					FeeTarget = MinimumFeeTarget;
+				}
+				else if (FeeTarget > MaximumFeeTarget)
+				{
+					FeeTarget = MaximumFeeTarget;
+				}
+				SetConfirmationExpectedText();
 			}
 		}
 
-		private void SetFeeTargets()
+		private void SetFeeTargetLimits()
 		{
 			var allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
 
@@ -308,74 +367,80 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel CoinList
 		{
-			get { return _coinList; }
-			set { this.RaiseAndSetIfChanged(ref _coinList, value); }
+			get => _coinList;
+			set => this.RaiseAndSetIfChanged(ref _coinList, value);
 		}
 
 		public bool IsBusy
 		{
-			get { return _isBusy; }
-			set { this.RaiseAndSetIfChanged(ref _isBusy, value); }
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
 		public string BuildTransactionButtonText
 		{
-			get { return _buildTransactionButtonText; }
-			set { this.RaiseAndSetIfChanged(ref _buildTransactionButtonText, value); }
+			get => _buildTransactionButtonText;
+			set => this.RaiseAndSetIfChanged(ref _buildTransactionButtonText, value);
 		}
 
 		public bool IsMax
 		{
-			get { return _isMax; }
-			set { this.RaiseAndSetIfChanged(ref _isMax, value); }
+			get => _isMax;
+			set => this.RaiseAndSetIfChanged(ref _isMax, value);
 		}
 
 		public string MaxClear
 		{
-			get { return _maxClear; }
-			set { this.RaiseAndSetIfChanged(ref _maxClear, value); }
+			get => _maxClear;
+			set => this.RaiseAndSetIfChanged(ref _maxClear, value);
 		}
 
 		public string Amount
 		{
-			get { return _amount; }
-			set { this.RaiseAndSetIfChanged(ref _amount, value); }
+			get => _amount;
+			set => this.RaiseAndSetIfChanged(ref _amount, value);
 		}
 
 		public int FeeTarget
 		{
-			get { return _feeTarget; }
-			set { this.RaiseAndSetIfChanged(ref _feeTarget, value); }
+			get => _feeTarget;
+			set => this.RaiseAndSetIfChanged(ref _feeTarget, value);
 		}
 
 		public int MinimumFeeTarget
 		{
-			get { return _minimumFeeTarget; }
-			set { this.RaiseAndSetIfChanged(ref _minimumFeeTarget, value); }
+			get => _minimumFeeTarget;
+			set => this.RaiseAndSetIfChanged(ref _minimumFeeTarget, value);
 		}
 
 		public int MaximumFeeTarget
 		{
-			get { return _maximumFeeTarget; }
-			set { this.RaiseAndSetIfChanged(ref _maximumFeeTarget, value); }
+			get => _maximumFeeTarget;
+			set => this.RaiseAndSetIfChanged(ref _maximumFeeTarget, value);
+		}
+
+		public string ConfirmationExpectedText
+		{
+			get => _confirmationExpectedText;
+			set => this.RaiseAndSetIfChanged(ref _confirmationExpectedText, value);
 		}
 
 		public string Password
 		{
-			get { return _password; }
-			set { this.RaiseAndSetIfChanged(ref _password, value); }
+			get => _password;
+			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
 		public int CaretIndex
 		{
-			get { return _caretIndex; }
-			set { this.RaiseAndSetIfChanged(ref _caretIndex, value); }
+			get => _caretIndex;
+			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
 		public ObservableCollection<SuggestionViewModel> Suggestions
 		{
-			get { return _suggestions; }
-			set { this.RaiseAndSetIfChanged(ref _suggestions, value); }
+			get => _suggestions;
+			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
 		}
 
 		private void UpdateSuggestions(string words)
@@ -452,32 +517,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		[ValidateMethod(nameof(ValidateAddress))]
 		public string Address
 		{
-			get { return _address; }
-			set { this.RaiseAndSetIfChanged(ref _address, value); }
+			get => _address;
+			set => this.RaiseAndSetIfChanged(ref _address, value);
 		}
 
 		public string Label
 		{
-			get { return _label; }
-			set { this.RaiseAndSetIfChanged(ref _label, value); }
+			get => _label;
+			set => this.RaiseAndSetIfChanged(ref _label, value);
 		}
 
 		public string LabelToolTip
 		{
-			get { return _labelToolTip; }
-			set { this.RaiseAndSetIfChanged(ref _labelToolTip, value); }
+			get => _labelToolTip;
+			set => this.RaiseAndSetIfChanged(ref _labelToolTip, value);
 		}
 
 		public string WarningMessage
 		{
-			get { return _warningMessage; }
-			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
+			get => _warningMessage;
+			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
 		public string SuccessMessage
 		{
-			get { return _successMessage; }
-			set { this.RaiseAndSetIfChanged(ref _successMessage, value); }
+			get => _successMessage;
+			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
 		}
 
 		public ReactiveCommand BuildTransactionCommand { get; }
