@@ -92,7 +92,7 @@
               <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
                 <TextBlock Text="Confirmation Expected In:" VerticalAlignment="Center"/>
                 <TextBlock Foreground="YellowGreen" Text="{Binding ConfirmationExpectedText}" Width="80" VerticalAlignment="Center" />
-                <Button Content="{Binding FeeText}" Padding="0" Background="{DynamicResource EditorBackgroundBrush}" BorderBrush="{DynamicResource EditorBackgroundBrush}" VerticalAlignment="Top" />
+                <Button Content="{Binding FeeText}" Command="{Binding FeeRateCommand}" Padding="0" Background="{DynamicResource EditorBackgroundBrush}" BorderBrush="{DynamicResource EditorBackgroundBrush}" VerticalAlignment="Top" />
               </StackPanel>
             </StackPanel>
           </StackPanel>

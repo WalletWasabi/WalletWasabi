@@ -23,6 +23,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class SendTabViewModel : WalletActionViewModel
 	{
+		enum FeeRateDisplayFormatEnum
+		{
+			SatoshiPerByte,
+			USD,
+			BTC
+		};
 		private CoinListViewModel _coinList;
 		private string _buildTransactionButtonText;
 		private bool _isMax;
@@ -45,6 +51,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string BuildingTransactionButtonTextString = "Sending Transaction...";
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
+		FeeRateDisplayFormatEnum FeeRateDisplayFormat { get; set; }
 
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
@@ -185,10 +192,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			(this).WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => ((isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)));
 
-			MaxCommand = ReactiveCommand.Create(() =>
-			{
-				SetMax();
-			});
+			MaxCommand = ReactiveCommand.Create(SetMax);
+
+			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
 
 			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
 			{
@@ -230,6 +236,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+		}
+
+		private void ChangeFeeRateDisplay()
+		{
+			var nextval= (from FeeRateDisplayFormatEnum val in Enum.GetValues(typeof(FeeRateDisplayFormatEnum))
+					where val > FeeRateDisplayFormat
+					orderby val
+					select val).DefaultIfEmpty().First();
+			FeeRateDisplayFormat = nextval;
+			SetFeeTexts();
 		}
 
 		private void SetFeeTexts()
@@ -278,6 +294,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (allFeeEstimate != null)
 			{
+				//TODO: display values according to FeeRateDisplayFormat
 				FeeText = $"({allFeeEstimate.GetFeeRate(feeTarget).Satoshi} sat/byte)";
 			}
 		}
@@ -564,5 +581,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand BuildTransactionCommand { get; }
 
 		public ReactiveCommand MaxCommand { get; }
+
+		public ReactiveCommand FeeRateCommand { get; }
 	}
 }
