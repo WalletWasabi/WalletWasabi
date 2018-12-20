@@ -89,10 +89,10 @@
                   </DrawingPresenter>
                 </Grid>
               </StackPanel>
-              <StackPanel Orientation="Horizontal" Spacing="4">
-                <TextBlock Text="Confirmation Expected In:" />
-                <TextBlock Foreground="YellowGreen" Text="{Binding ConfirmationExpectedText}" Width="80" />
-                <TextBlock Foreground="{DynamicResource ThemeBorderHighBrush}" Text="{Binding FeeText}" />
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
+                <TextBlock Text="Confirmation Expected In:" VerticalAlignment="Center"/>
+                <TextBlock Foreground="YellowGreen" Text="{Binding ConfirmationExpectedText}" Width="80" VerticalAlignment="Center" />
+                <Button Content="{Binding FeeText}" Padding="0" Background="{DynamicResource EditorBackgroundBrush}" BorderBrush="{DynamicResource EditorBackgroundBrush}" VerticalAlignment="Top" />
               </StackPanel>
             </StackPanel>
           </StackPanel>
