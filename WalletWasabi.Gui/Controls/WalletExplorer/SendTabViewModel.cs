@@ -278,7 +278,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (allFeeEstimate != null)
 			{
-				FeeText = $"({allFeeEstimate.GetFeeRate(feeTarget).Satoshi} sat/byte)";
+				FeeText = $"(~ {allFeeEstimate.GetFeeRate(feeTarget).Satoshi} sat/byte)";
 			}
 		}
 
