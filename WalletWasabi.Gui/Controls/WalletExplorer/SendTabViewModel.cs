@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			ResetMax();
 			SetFeeTargetLimits();
-			FeeTarget = MinimumFeeTarget;
+			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
 			SetFeesAndTexts();
 
 			Global.Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
@@ -525,7 +525,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public int FeeTarget
 		{
 			get => _feeTarget;
-			set => this.RaiseAndSetIfChanged(ref _feeTarget, value);
+			set 
+			{ 
+				this.RaiseAndSetIfChanged(ref _feeTarget, value);
+				Global.UiConfig.FeeTarget = value;
+			}
 		}
 
 		public int MinimumFeeTarget

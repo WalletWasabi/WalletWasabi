@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui
 {
 	public class MainWindow : MetroWindow
 	{
-		public UiConfig UiConfig { get; private set; }
+
 
 		public MainWindow()
 		{
@@ -46,14 +46,11 @@ namespace WalletWasabi.Gui
 
 		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
 		{
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				UiConfig.WindowState = WindowState;
-				UiConfig.Width = Width;
-				UiConfig.Height = Height;
-				await UiConfig.ToFileAsync();
-				Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
-			}
+			Global.UiConfig.WindowState = WindowState;
+			Global.UiConfig.Width = Width;
+			Global.UiConfig.Height = Height;
+			await Global.UiConfig.ToFileAsync();
+			Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
 		}
 
 #pragma warning disable IDE1006 // Naming Styles
@@ -62,13 +59,14 @@ namespace WalletWasabi.Gui
 		{
 			Activated -= OnActivated;
 
+			var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
+			var uiConfig = new UiConfig(uiConfigFilePath);
+			await uiConfig.LoadOrCreateDefaultFileAsync();
+			Global.InitializeUiConfig(uiConfig);
+			Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
+
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
-				var uiConfig = new UiConfig(uiConfigFilePath);
-				await uiConfig.LoadOrCreateDefaultFileAsync();
-				Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
-				UiConfig = uiConfig;
 				MainWindowViewModel.Instance.Width = (double)uiConfig.Width;
 				MainWindowViewModel.Instance.Height = (double)uiConfig.Height;
 				MainWindowViewModel.Instance.WindowState = (WindowState)uiConfig.WindowState;

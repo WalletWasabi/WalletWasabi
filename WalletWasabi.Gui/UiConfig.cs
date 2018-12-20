@@ -28,6 +28,9 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "Width")]
 		public double? Width { get; internal set; }
 
+		[JsonProperty(PropertyName = "FeeTarget")]
+		public int? FeeTarget { get; internal set; }
+
 		public UiConfig()
 		{
 		}
@@ -37,11 +40,12 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public UiConfig(WindowState windowState, double height, double width)
+		public UiConfig(WindowState windowState, double height, double width, int feeTarget)
 		{
 			WindowState = Guard.NotNull(nameof(windowState), windowState);
 			Height = Guard.NotNull(nameof(height), height);
 			Width = Guard.NotNull(nameof(width), width);
+			FeeTarget = Guard.NotNull(nameof(feeTarget), feeTarget);
 		}
 
 		/// <inheritdoc />
@@ -63,6 +67,7 @@ namespace WalletWasabi.Gui
 			WindowState = Avalonia.Controls.WindowState.Maximized;
 			Height = 530;
 			Width = 1100;
+			FeeTarget = 2;
 
 			if (!File.Exists(FilePath))
 			{
@@ -84,6 +89,7 @@ namespace WalletWasabi.Gui
 			WindowState = config.WindowState ?? WindowState;
 			Height = config.Height ?? Height;
 			Width = config.Width ?? Width;
+			FeeTarget = config.FeeTarget ?? FeeTarget;
 		}
 
 		/// <inheritdoc />
@@ -110,6 +116,11 @@ namespace WalletWasabi.Gui
 			}
 
 			if (Width != config.Width)
+			{
+				return true;
+			}
+
+			if (FeeTarget != config.FeeTarget)
 			{
 				return true;
 			}
