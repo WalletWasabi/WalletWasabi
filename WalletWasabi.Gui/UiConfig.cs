@@ -34,7 +34,6 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "FeeDisplayFormat")]
 		public int? FeeDisplayFormat { get; internal set; }
-
      
 		public UiConfig()
 		{
