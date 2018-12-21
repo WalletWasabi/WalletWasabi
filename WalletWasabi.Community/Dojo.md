@@ -1,6 +1,6 @@
 # Dojo
 
-Here are the 2 Rules of zkSNACKs-Ryu Karate. Rule Number 1: **Wasabi is for defense only.** Rule Number 2: ‘First learn rule number 1.’ - Mr. Miyagi
+> Here are the 2 Rules of zkSNACKs-Ryu Karate. Rule Number 1: **Wasabi is for defense only.** Rule Number 2: ‘First learn rule number 1.’ - Mr. Miyagi
 
 ![](https://i.imgur.com/kvs43Jm.jpg)
 
@@ -12,8 +12,11 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 
 ## Wasabikas
 
-| Wasabika       | Belt | Contact                                      | Achievements                                                                                                              | Promotions                                      |
-|----------------|------|----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------|
-| Max Hillebrand | Blue | [Twitter](https://twitter.com/HillebrandMax) | - [Wasabi and ZeroLink Video Series](https://www.youtube.com/watch?v=y8wQK-Ndl3Q&list=PLPj3KCksGbSaEmjU0sywoTYDVYYSu8LsS) | - 2018-12-21: Promoted to Blue Belt by nopara73 |
-|                |      |                                              |                                                                                                                           |                                                 |
-|                |      |                                              |                                                                                                                           |                                                 |
+| Wasabika         | Belt  | Contact                                                                                  | Achievements                                                                                               | Promotions                                   |
+|------------------|-------|------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|----------------------------------------------|
+| Nicolas Dorier   | Black | [Twitter](https://twitter.com/NicolasDorier) [GitHub](https://github.com/NicolasDorier/) | [NBitcoin](https://github.com/MetacoSA/NBitcoin/)                                                          |                                              |
+| Max Hillebrand   | Blue  | [Twitter](https://twitter.com/HillebrandMax)                                             | [Wasabi Video Series](https://www.youtube.com/watch?v=y8wQK-Ndl3Q&list=PLPj3KCksGbSaEmjU0sywoTYDVYYSu8LsS) | 2018-12: Promoted to Blue Belt by nopara73.  |
+| KryptoKidz       | White | [Twitter](https://twitter.com/kryptokidz_)                                               | [Wasabi Telegram Group](https://t.me/WasabiWallet)                                                         | 2018-12: Promoted to White Belt by nopara73. |
+| Patrícia Estevão | White | [Twitter](https://twitter.com/patestevao)                                                | [Wasabi Infographics](https://wasabiwallet.io/images/infographics.jpg)                                     | 2018-12: Promoted to White Belt by nopara73. |
+| Anonymous        | White | [Twitter]                                                                                | [Wasabi Round Announcer Twitter Bot](https://twitter.com/WasabiAnnouncer)                                  | 2018-12: Promoted to White Belt by nopara73. |
+|                  |       |                                                                                          |                                                                                                            |                                              |
