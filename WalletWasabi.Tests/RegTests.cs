@@ -1802,7 +1802,6 @@ namespace WalletWasabi.Tests
 				tx = await rpc.GetRawTransactionAsync(hash);
 				coin = tx.Outputs.GetCoins(witnessAddress.ScriptPubKey).Single();
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = null } };
-				inputsRequest.BlindedOutputScriptHex = network.Consensus.ConsensusFactory.CreateTransaction().ToHex();
 
 				CcjRound round = coordinator.GetCurrentInputRegisterableRound();
 				ECDSABlinding.Requester requester = new ECDSABlinding.Requester();
