@@ -8,7 +8,7 @@
 
 White -> Blue -> Yellow -> Green -> Brown -> Black
 
-You can only be promoted by someone two belts above you. Consequently you can promote anyone two belts below you. For example if you are a a Blue belt you can promote anyone to be a White belt. It is advised that you only promote someone if he or she deserves it. Promotion happens through Pull Requests to this page. Osu!
+You can only be promoted by someone two belts above you. Consequently you can promote anyone two belts below you. For example if you are a Blue belt you can promote anyone to be a White belt. It is advised that you only promote someone if he or she deserves it. Promotion happens through Pull Requests to this page. Osu!
 
 ## Wasabikas
 
