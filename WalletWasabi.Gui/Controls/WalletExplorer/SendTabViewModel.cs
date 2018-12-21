@@ -289,12 +289,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			else if (feeTarget >= 7 && feeTarget <= 144) // hours
 			{
 				var h = feeTarget / 6;
-				ConfirmationExpectedText = $"{h} hours";
+				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
 			}
 			else if (feeTarget >= 145 && feeTarget < 1008) // days
 			{
 				var d = feeTarget / 144;
-				ConfirmationExpectedText = $"{d} days";
+				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
 			}
 			else if (feeTarget == 10008)
 			{
@@ -333,6 +333,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			SetAmountIfMax();
+		}
+
+		private static string IfPlural(int val, string singular, string plural)
+		{
+			if (val == 1)
+			{
+				return singular;
+			}
+
+			return plural;
 		}
 
 		private void SetAmountIfMax()
@@ -546,8 +556,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public int FeeTarget
 		{
 			get => _feeTarget;
-			set 
-			{ 
+			set
+			{
 				this.RaiseAndSetIfChanged(ref _feeTarget, value);
 				Global.UiConfig.FeeTarget = value;
 			}
