@@ -1789,6 +1789,16 @@ namespace WalletWasabi.Tests
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided proof is invalid.", httpRequestException.Message);
 
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
+				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nInput is banned from participation for", httpRequestException.Message);
+
+				key = new Key();
+				witnessAddress = key.PubKey.GetSegwitAddress(network);
+				hash = await rpc.SendToAddressAsync(witnessAddress, Money.Coins(0.01m));
+				await rpc.GenerateAsync(1);
+				tx = await rpc.GetRawTransactionAsync(hash);
+				coin = tx.Outputs.GetCoins(witnessAddress.ScriptPubKey).Single();
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = null } };
 				inputsRequest.BlindedOutputScriptHex = network.Consensus.ConsensusFactory.CreateTransaction().ToHex();
 				proof = key.SignMessage(inputsRequest.BlindedOutputScriptHex);
 				inputsRequest.Inputs.First().Proof = proof;
