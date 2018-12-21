@@ -38,6 +38,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private Money _btcFee;
 		private Money _satoshiPerByteFeeRate;
 		private decimal _feePercentage;
+		private decimal _usdExchangeRate;
 		private Money _allSelectedAmount;
 		private string _password;
 		private string _address;
@@ -56,14 +57,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private FeeDisplayFormat _feeDisplayFormat;
 
 		private bool IgnoreAmountChanges { get; set; }
-		private FeeDisplayFormat FeeDisplayFormat 
-		{ 
-			get => _feeDisplayFormat; 
+
+		private FeeDisplayFormat FeeDisplayFormat
+		{
+			get => _feeDisplayFormat;
 			set
-			{ 
+			{
 				_feeDisplayFormat = value;
 				Global.UiConfig.FeeDisplayFormat = (int)value;
-			} 
+			}
 		}
 
 		public SendTabViewModel(WalletViewModel walletViewModel)
@@ -71,6 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Label = "";
 			AllSelectedAmount = Money.Zero;
+			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
 			CoinList = new CoinListViewModel();
@@ -268,18 +271,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetAmountWatermarkAndToolTip(Money amount)
 		{
-			decimal? exchangeRate = Global.Synchronizer?.UsdExchangeRate;
-
 			if (amount == Money.Zero)
 			{
 				AmountWatermarkText = "Amount (BTC)";
 			}
-			else if (exchangeRate != null)
+			else
 			{
 				long amountUsd = 0;
 				try
 				{
-					amountUsd = (long)amount.ToUsd(exchangeRate.Value);
+					amountUsd = (long)amount.ToUsd(UsdExchangeRate);
 				}
 				catch (OverflowException ex)
 				{
@@ -295,10 +296,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			if (exchangeRate != null)
-			{
-				AmountToolTip = $"Exchange Rate: {(int)exchangeRate} BTC/USD.";
-			}
+			AmountToolTip = $"Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
 		}
 
 		private void CoinList_SelectionChanged(object sender, CoinViewModel e)
@@ -319,7 +317,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void SetFeesAndTexts()
 		{
 			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
-			decimal exchangeRate = Global.Synchronizer.UsdExchangeRate;
+
 			var feeTarget = FeeTarget;
 
 			if (allFeeEstimate != null)
@@ -360,7 +358,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				ConfirmationExpectedText = $"two weeks™";
 			}
 
-			SetFees(allFeeEstimate, feeTarget, exchangeRate);
+			SetFees(allFeeEstimate, feeTarget);
 
 			if (allFeeEstimate != null)
 			{
@@ -373,7 +371,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					case FeeDisplayFormat.USD:
 						FeeText = $"(~ ${UsdFee.ToString("0.##")})";
-						FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(int)exchangeRate} BTC/USD.";
+						FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
 						break;
 
 					case FeeDisplayFormat.BTC:
@@ -421,7 +419,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IgnoreAmountChanges = false;
 		}
 
-		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget, decimal exchangeRate)
+		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget)
 		{
 			SatoshiPerByteFeeRate = allFeeEstimate.GetFeeRate(feeTarget);
 
@@ -473,9 +471,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 
-			if (exchangeRate != 0)
+			if (UsdExchangeRate != 0)
 			{
-				UsdFee = BtcFee.ToUsd(exchangeRate);
+				UsdFee = BtcFee.ToUsd(UsdExchangeRate);
 			}
 
 			AllSelectedAmount = Math.Max(Money.Zero, all - BtcFee);
@@ -496,8 +494,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				SetFeesAndTexts();
 			}
-			if (e.PropertyName == nameof(Global.Synchronizer.UsdExchangeRate))
+			else if (e.PropertyName == nameof(Global.Synchronizer.UsdExchangeRate))
 			{
+				var exchangeRate = Global.Synchronizer.UsdExchangeRate;
+				if (exchangeRate != 0)
+				{
+					UsdExchangeRate = exchangeRate;
+				}
 				SetFeesAndTexts();
 			}
 		}
@@ -668,6 +671,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _feePercentage;
 			set => this.RaiseAndSetIfChanged(ref _feePercentage, value);
+		}
+
+		public decimal UsdExchangeRate
+		{
+			get => _usdExchangeRate;
+			set => this.RaiseAndSetIfChanged(ref _usdExchangeRate, value);
 		}
 
 		public Money AllSelectedAmount
