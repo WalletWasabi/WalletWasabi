@@ -141,6 +141,15 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
+		public string BtcPrice
+		{
+			get => _btcPrice;
+			set 
+			{
+				this.RaiseAndSetIfChanged(ref _btcPrice, value);
+			}
+		}
+
 		private string _status;
 
 		public string Status
@@ -238,6 +247,10 @@ namespace WalletWasabi.Gui.ViewModels
 			else if (e.PropertyName == nameof(Synchronizer.BestBlockchainHeight))
 			{
 				FiltersLeft = Synchronizer.GetFiltersLeft();
+			}
+			else if (e.PropertyName == nameof(Synchronizer.UsdExchangeRate))
+			{
+				BtcPrice = $"${(long)Synchronizer.UsdExchangeRate}";
 			}
 		}
 
@@ -337,6 +350,7 @@ namespace WalletWasabi.Gui.ViewModels
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
+		private string _btcPrice;
 
 		protected virtual void Dispose(bool disposing)
 		{

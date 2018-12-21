@@ -158,6 +158,11 @@
           <TextBlock>Mempool:</TextBlock>
           <TextBlock Text="{Binding Mempool}" />
         </StackPanel>
+        
+        <StackPanel Orientation="Horizontal" Spacing="0" IsVisible="{Binding !CriticalUpdateAvailable}">
+          <TextBlock Text="Price: "/>
+          <TextBlock Text="{Binding BtcPrice}"/>
+        </StackPanel>
       </StackPanel>
 
       <StackPanel Orientation="Horizontal" Spacing="4">
