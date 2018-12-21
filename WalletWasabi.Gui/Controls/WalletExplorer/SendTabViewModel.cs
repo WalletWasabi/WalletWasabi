@@ -44,6 +44,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _label;
 		private string _labelToolTip;
 		private string _feeToolTip;
+		private string _amountWaterMarkText;
+		private string _amountToolTip;
 		private bool _isBusy;
 		private string _warningMessage;
 		private string _successMessage;
@@ -59,6 +61,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Label = "";
 			AllSelectedAmount = Money.Zero;
+			SetAmountWatermarkAndToolTip(Money.Zero);
 
 			CoinList = new CoinListViewModel();
 
@@ -104,6 +107,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						});
 					}
 				}
+
+				if (Money.TryParse(amount, out Money amountBtc))
+				{
+					SetAmountWatermarkAndToolTip(amountBtc);
+				}
+				else
+				{
+					SetAmountWatermarkAndToolTip(Money.Zero);
+				}
+
 				SetFeesAndTexts();
 			});
 
@@ -242,6 +255,41 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
+		private void SetAmountWatermarkAndToolTip(Money amount)
+		{
+			decimal? exchangeRate = Global.Synchronizer?.UsdExchangeRate;
+
+			if (amount == Money.Zero)
+			{
+				AmountWatermarkText = "Amount (BTC)";
+			}
+			else if (exchangeRate != null)
+			{
+				long amountUsd = 0;
+				try
+				{
+					amountUsd = (long)amount.ToUsd(exchangeRate.Value);
+				}
+				catch (OverflowException ex)
+				{
+					Logging.Logger.LogTrace<SendTabViewModel>(ex);
+				}
+				if (amountUsd != 0)
+				{
+					AmountWatermarkText = $"Amount (BTC) ~ ${amountUsd}";
+				}
+				else
+				{
+					AmountWatermarkText = "Amount (BTC)";
+				}
+			}
+
+			if (exchangeRate != null)
+			{
+				AmountToolTip = $"Exchange Rate: {(int)exchangeRate} BTC/USD.";
+			}
+		}
+
 		private void CoinList_SelectionChanged(object sender, CoinViewModel e)
 		{
 			SetFeesAndTexts();
@@ -314,7 +362,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					case FeeDisplayFormat.USD:
 						FeeText = $"(~ ${UsdFee.ToString("0.##")})";
-						FeeToolTip = $"Estimated total fees in USD. Exchange rate: {(int)exchangeRate} BTC/USD.";
+						FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(int)exchangeRate} BTC/USD.";
 						break;
 
 					case FeeDisplayFormat.BTC:
@@ -741,6 +789,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _feeToolTip;
 			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
+		}
+
+		public string AmountWatermarkText
+		{
+			get => _amountWaterMarkText;
+			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
+		}
+
+		public string AmountToolTip
+		{
+			get => _amountToolTip;
+			set => this.RaiseAndSetIfChanged(ref _amountToolTip, value);
 		}
 
 		public ReactiveCommand BuildTransactionCommand { get; }
