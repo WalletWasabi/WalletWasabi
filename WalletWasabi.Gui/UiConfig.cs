@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Converters;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
@@ -31,6 +32,10 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "FeeTarget")]
 		public int? FeeTarget { get; internal set; }
 
+		[JsonProperty(PropertyName = "FeeDisplayFormat")]
+		public int? FeeDisplayFormat { get; internal set; }
+
+     
 		public UiConfig()
 		{
 		}
@@ -40,12 +45,13 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public UiConfig(WindowState windowState, double height, double width, int feeTarget)
+		public UiConfig(WindowState windowState, double height, double width, int feeTarget,int feeDisplayFormat)
 		{
 			WindowState = Guard.NotNull(nameof(windowState), windowState);
 			Height = Guard.NotNull(nameof(height), height);
 			Width = Guard.NotNull(nameof(width), width);
 			FeeTarget = Guard.NotNull(nameof(feeTarget), feeTarget);
+			FeeDisplayFormat = Guard.NotNull(nameof(feeDisplayFormat), feeDisplayFormat);
 		}
 
 		/// <inheritdoc />
@@ -68,6 +74,7 @@ namespace WalletWasabi.Gui
 			Height = 530;
 			Width = 1100;
 			FeeTarget = 2;
+			FeeDisplayFormat = 0;
 
 			if (!File.Exists(FilePath))
 			{
@@ -90,6 +97,7 @@ namespace WalletWasabi.Gui
 			Height = config.Height ?? Height;
 			Width = config.Width ?? Width;
 			FeeTarget = config.FeeTarget ?? FeeTarget;
+			FeeDisplayFormat = config.FeeDisplayFormat ?? FeeDisplayFormat;
 		}
 
 		/// <inheritdoc />
@@ -121,6 +129,11 @@ namespace WalletWasabi.Gui
 			}
 
 			if (FeeTarget != config.FeeTarget)
+			{
+				return true;
+			}
+
+			if (FeeDisplayFormat != config.FeeDisplayFormat)
 			{
 				return true;
 			}

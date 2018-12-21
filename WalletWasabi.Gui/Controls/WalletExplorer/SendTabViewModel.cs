@@ -51,8 +51,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string BuildingTransactionButtonTextString = "Sending Transaction...";
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
+		private FeeDisplayFormat _feeDisplayFormat;
+
 		private bool IgnoreAmountChanges { get; set; }
-		private FeeDisplayFormat FeeDisplayFormat { get; set; }
+		private FeeDisplayFormat FeeDisplayFormat 
+		{ 
+			get => _feeDisplayFormat; 
+			set
+			{ 
+				_feeDisplayFormat = value;
+				Global.UiConfig.FeeDisplayFormat = (int)value;
+			} 
+		}
 
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
@@ -67,6 +77,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ResetMax();
 			SetFeeTargetLimits();
 			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
+			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
 
 			Global.Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
