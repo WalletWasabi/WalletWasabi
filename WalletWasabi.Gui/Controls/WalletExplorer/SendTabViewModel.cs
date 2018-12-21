@@ -122,7 +122,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 
-				if (Money.TryParse(amount, out Money amountBtc))
+				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
 				{
 					SetAmountWatermarkAndToolTip(amountBtc);
 				}
@@ -434,7 +434,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				else
 				{
-					if (Money.TryParse(Amount, out Money amount))
+					if (Money.TryParse(Amount.TrimStart('~', ' '), out Money amount))
 					{
 						var inNum = 0;
 						var amountSoFar = Money.Zero;
@@ -465,7 +465,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				if (Money.TryParse(Amount, out Money amount) && amount.Satoshi != 0)
+				if (Money.TryParse(Amount.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
 				{
 					FeePercentage = 100 * (decimal)BtcFee.Satoshi / amount.Satoshi;
 				}
