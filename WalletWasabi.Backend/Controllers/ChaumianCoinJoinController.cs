@@ -229,6 +229,8 @@ namespace WalletWasabi.Backend.Controllers
 						}
 						if (!validProof)
 						{
+							await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, outpoint);
+
 							return BadRequest("Provided proof is invalid.");
 						}
 
