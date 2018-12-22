@@ -380,6 +380,11 @@ namespace WalletWasabi.Packager
 						var debUsrBinFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "bin");
 						var debUsrBinFolderPath = Path.Combine(binDistDirectory, debUsrBinFolderRelativePath);
 						Directory.CreateDirectory(debUsrBinFolderPath);
+						var debUsrAppFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "applications");
+						var debUsrAppFolderPath = Path.Combine(binDistDirectory, debUsrAppFolderRelativePath);
+						Directory.CreateDirectory(debUsrAppFolderPath);
+						var debUsrShareIconsFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "icons");
+						var debUsrShareIconsFolderPath = Path.Combine(binDistDirectory, debUsrShareIconsFolderRelativePath);
 						var debianFolderRelativePath = Path.Combine(debFolderRelativePath, "DEBIAN");
 						var debianFolderPath = Path.Combine(binDistDirectory, debianFolderRelativePath);
 						Directory.CreateDirectory(debianFolderPath);
@@ -387,6 +392,19 @@ namespace WalletWasabi.Packager
 						var newFolderRelativePath = Path.Combine(debUsrBinFolderRelativePath, newFolderName);
 						var newFolderPath = Path.Combine(binDistDirectory, newFolderRelativePath);
 						Directory.Move(publishedFolder, newFolderPath);
+
+						var assetsFolder = Path.Combine(guiProjectDirectory, "Assets");
+						var assetsInfo = new DirectoryInfo(assetsFolder);
+						foreach (var file in assetsInfo.EnumerateFiles())
+						{
+							var number = file.Name.Split(new string[] { "WasabiLogo", ".png" }, StringSplitOptions.RemoveEmptyEntries);
+							if (number.Count() == 1 && int.TryParse(number.First(), out int size))
+							{
+								string destFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
+								Directory.CreateDirectory(destFolder);
+								file.CopyTo(Path.Combine(destFolder, "wassabee.png"));
+							}
+						}
 
 						var controlFilePath = Path.Combine(debianFolderPath, "control");
 						var controlFileContent = $@"Package: wassabee
@@ -398,7 +416,6 @@ Homepage: http://wasabiwallet.io
 Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git
 Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi
 Architecture: amd64
-License: MIT
 Depends:
 Description: open-source, non-custodial, privacy focused Bitcoin wallet
   Built-in Tor, CoinJoin and Coin Control features.
