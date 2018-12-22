@@ -52,9 +52,9 @@ namespace WalletWasabi.Packager
 			// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
 			var targets = new List<string>
 			{
-				"win7-x64",
+				//"win7-x64",
 				"linux-x64",
-				"osx-x64"
+				//"osx-x64"
 			};
 			Console.WriteLine();
 			Console.Write($"{nameof(targets)}:\t\t\t");
@@ -351,30 +351,72 @@ namespace WalletWasabi.Packager
 					}
 					else if (target.StartsWith("linux"))
 					{
-						Console.WriteLine("Create Linux .tar.gz");
-						if (!Directory.Exists(publishedFolder))
-						{
-							throw new Exception($"{publishedFolder} doesn't exist.");
-						}
-						var newFolderName = $"WasabiLinux-{versionPrefix}";
-						var newFolderPath = Path.Combine(binDistDirectory, newFolderName);
-						Directory.Move(publishedFolder, newFolderPath);
-						publishedFolder = newFolderPath;
+						//Console.WriteLine("Create Linux .tar.gz");
+						//if (!Directory.Exists(publishedFolder))
+						//{
+						//	throw new Exception($"{publishedFolder} doesn't exist.");
+						//}
+						//var newFolderName = $"WasabiLinux-{versionPrefix}";
+						//var newFolderPath = Path.Combine(binDistDirectory, newFolderName);
+						//Directory.Move(publishedFolder, newFolderPath);
+						//publishedFolder = newFolderPath;
 
-						var psiTar = new ProcessStartInfo
+						//var psiTar = new ProcessStartInfo
+						//{
+						//	FileName = "cmd",
+						//	RedirectStandardInput = true,
+						//	WorkingDirectory = binDistDirectory
+						//};
+						//using (var tarProcess = Process.Start(psiTar))
+						//{
+						//	tarProcess.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
+						//	tarProcess.WaitForExit();
+						//}
+
+						Console.WriteLine("Create Linux .deb");
+
+						var debFolderRelativePath = "deb";
+						var debFolderPath = Path.Combine(binDistDirectory, debFolderRelativePath);
+						var debUsrBinFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "bin");
+						var debUsrBinFolderPath = Path.Combine(binDistDirectory, debUsrBinFolderRelativePath);
+						Directory.CreateDirectory(debUsrBinFolderPath);
+						var debianFolderRelativePath = Path.Combine(debFolderRelativePath, "DEBIAN");
+						var debianFolderPath = Path.Combine(binDistDirectory, debianFolderRelativePath);
+						Directory.CreateDirectory(debianFolderPath);
+						var newFolderName = "wasabiwallet";
+						var newFolderRelativePath = Path.Combine(debUsrBinFolderRelativePath, newFolderName);
+						var newFolderPath = Path.Combine(binDistDirectory, newFolderRelativePath);
+						Directory.Move(publishedFolder, newFolderPath);
+
+						var controlFilePath = Path.Combine(debianFolderPath, "control");
+						var controlFileContent = $@"Package: wassabee
+Priority: optional
+Section: utils
+Maintainer: nopara73 <adam.ficsor73@gmail.com>
+Version: {versionPrefix}
+Homepage: http://wasabiwallet.io
+Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git
+Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi
+Architecture: amd64
+License: MIT
+Depends:
+Description: open-source, non-custodial, privacy focused Bitcoin wallet
+  Built-in Tor, CoinJoin and Coin Control features.
+";
+
+						File.WriteAllText(controlFilePath, controlFileContent);
+
+						var psi = new ProcessStartInfo
 						{
 							FileName = "cmd",
 							RedirectStandardInput = true,
 							WorkingDirectory = binDistDirectory
 						};
-						using (var tarProcess = Process.Start(psiTar))
+						using (var p = Process.Start(psi))
 						{
-							tarProcess.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
-							tarProcess.WaitForExit();
+							p.StandardInput.WriteLine($"wsl chmod +x {Path.Combine(newFolderRelativePath, executableName).Replace(@"\", @"/")} && wsl chmod -R 0775 {debianFolderRelativePath.Replace(@"\", @"/")} && wsl dpkg --build {debFolderRelativePath.Replace(@"\", @"/")} $(pwd) && exit");
+							p.WaitForExit();
 						}
-
-						IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
-						Console.WriteLine($"Deleted {publishedFolder}");
 					}
 				}
 			}
