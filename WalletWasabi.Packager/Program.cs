@@ -406,17 +406,20 @@ Description: open-source, non-custodial, privacy focused Bitcoin wallet
 
 						File.WriteAllText(controlFilePath, controlFileContent);
 
+						string debExeLinuxPath = LinuxPathCombine(newFolderRelativePath, executableName);
 						var psi = new ProcessStartInfo
 						{
-							FileName = "cmd",
+							FileName = "wsl",
+							Arguments = $"cd ~ && sudo umount /mnt/c && sudo mount -t drvfs C: /mnt/c -o metadata && cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist && sudo chmod +x {debExeLinuxPath} && sudo chmod -R 0775 {LinuxPath(debianFolderRelativePath)} && dpkg --build {LinuxPath(debFolderRelativePath)} $(pwd)",
 							RedirectStandardInput = true,
 							WorkingDirectory = binDistDirectory
 						};
 						using (var p = Process.Start(psi))
 						{
-							p.StandardInput.WriteLine($"wsl chmod +x {Path.Combine(newFolderRelativePath, executableName).Replace(@"\", @"/")} && wsl chmod -R 0775 {debianFolderRelativePath.Replace(@"\", @"/")} && wsl dpkg --build {debFolderRelativePath.Replace(@"\", @"/")} $(pwd) && exit");
 							p.WaitForExit();
 						}
+
+						IoHelpers.DeleteRecursivelyWithMagicDustAsync(debFolderPath).GetAwaiter().GetResult();
 					}
 				}
 			}
@@ -505,6 +508,16 @@ Description: open-source, non-custodial, privacy focused Bitcoin wallet
 				IoHelpers.OpenFolderInFileExplorer(binDistDirectory);
 				return; // No need for readkey here.
 			}
+		}
+
+		private static string LinuxPathCombine(params string[] paths)
+		{
+			return LinuxPath(Path.Combine(paths));
+		}
+
+		private static string LinuxPath(string path)
+		{
+			return path.Replace(@"\", @"/");
 		}
 	}
 }
