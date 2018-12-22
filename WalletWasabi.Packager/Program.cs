@@ -107,8 +107,8 @@ namespace WalletWasabi.Packager
 				foreach (string target in targets)
 				{
 					string currentBinDistDirectory;
-					string targetDir = Path.Combine(binDistDirectory, target);
-					string macWasabiAppDir = Path.Combine(targetDir, "Wasabi Wallet.App");
+					string publishedFolder = Path.Combine(binDistDirectory, target);
+					string macWasabiAppDir = Path.Combine(publishedFolder, "Wasabi Wallet.App");
 					string macContentsDir = Path.Combine(macWasabiAppDir, "Contents");
 					if (target.StartsWith("osx"))
 					{
@@ -116,7 +116,7 @@ namespace WalletWasabi.Packager
 					}
 					else
 					{
-						currentBinDistDirectory = targetDir;
+						currentBinDistDirectory = publishedFolder;
 					}
 					Console.WriteLine();
 					Console.WriteLine($"{nameof(currentBinDistDirectory)}:\t{currentBinDistDirectory}");
@@ -278,7 +278,7 @@ namespace WalletWasabi.Packager
 						{
 							FileName = "cmd",
 							RedirectStandardInput = true,
-							WorkingDirectory = targetDir
+							WorkingDirectory = publishedFolder
 						};
 						using (var createSymLinkProcess = Process.Start(psiCreateSymLink))
 						{
@@ -288,7 +288,7 @@ namespace WalletWasabi.Packager
 
 						//how to generate .DS_Store file - https://github.com/zkSNACKs/WalletWasabi/pull/928/commits/e38ed672dee25f6e45a3eb16584887cc6d48c4e6
 						var dmgContentDir = Path.Combine(packagerProjectDirectory, "Content", "Osx");
-						IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentDir), new DirectoryInfo(targetDir));
+						IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentDir), new DirectoryInfo(publishedFolder));
 
 						var psiGenIsoImage = new ProcessStartInfo
 						{
@@ -307,7 +307,7 @@ namespace WalletWasabi.Packager
 							// -V: Volume Label
 							// -no-pad: Do not pad the end by 150 sectors (300kb). As it is not a cd image, not required
 							// -apple -r: Creates a .dmg image
-							genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(targetDir).Name}\" && exit");
+							genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(publishedFolder).Name}\" && exit");
 							genIsoImageProcess.WaitForExit();
 						}
 						// cd ~
@@ -343,44 +343,13 @@ namespace WalletWasabi.Packager
 						//bzipProcess.StandardInput.WriteLine($"wsl bzip2 \"{uncompressedDmgFileName}\" && exit");
 						//bzipProcess.WaitForExit();
 
-						IoHelpers.DeleteRecursivelyWithMagicDustAsync(targetDir).GetAwaiter().GetResult();
+						IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
 						File.Delete(uncompressedDmgFilePath);
+
+						IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+						Console.WriteLine($"Deleted {publishedFolder}");
 					}
-				}
-			}
-
-			if (doSign is true)
-			{
-				foreach (string target in targets)
-				{
-					var publishedFolder = Path.Combine(binDistDirectory, $"{target}");
-
-					if (target.StartsWith("win", StringComparison.OrdinalIgnoreCase))
-					{
-						Console.WriteLine("Move created .msi");
-						var msiPath = Path.Combine(wixProjectDirectory, @"bin\Release\Wasabi.msi");
-						if (!File.Exists(msiPath))
-						{
-							throw new Exception(".msi doesn't exist. Expected path: Wasabi.msi.");
-						}
-						var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
-						var newMsiPath = Path.Combine(binDistDirectory, $"{msiFileName}-{versionPrefix}.msi");
-						File.Move(msiPath, newMsiPath);
-
-						// Sign code with digicert.
-						var psiSigntool = new ProcessStartInfo
-						{
-							FileName = "cmd",
-							RedirectStandardInput = true,
-							WorkingDirectory = binDistDirectory
-						};
-						using (var signToolProcess = Process.Start(psiSigntool))
-						{
-							signToolProcess.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{pfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
-							signToolProcess.WaitForExit();
-						}
-					}
-					else if (target.StartsWith("linux", StringComparison.OrdinalIgnoreCase))
+					else if (target.StartsWith("linux"))
 					{
 						Console.WriteLine("Create Linux .tar.gz");
 						if (!Directory.Exists(publishedFolder))
@@ -403,10 +372,44 @@ namespace WalletWasabi.Packager
 							tarProcess.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
 							tarProcess.WaitForExit();
 						}
-					}
 
-					if (Directory.Exists(publishedFolder))
+						IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+						Console.WriteLine($"Deleted {publishedFolder}");
+					}
+				}
+			}
+
+			if (doSign is true)
+			{
+				foreach (string target in targets)
+				{
+					if (target.StartsWith("win", StringComparison.OrdinalIgnoreCase))
 					{
+						string publishedFolder = Path.Combine(binDistDirectory, target);
+
+						Console.WriteLine("Move created .msi");
+						var msiPath = Path.Combine(wixProjectDirectory, @"bin\Release\Wasabi.msi");
+						if (!File.Exists(msiPath))
+						{
+							throw new Exception(".msi doesn't exist. Expected path: Wasabi.msi.");
+						}
+						var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
+						var newMsiPath = Path.Combine(binDistDirectory, $"{msiFileName}-{versionPrefix}.msi");
+						File.Move(msiPath, newMsiPath);
+
+						// Sign code with digicert.
+						var psiSigntool = new ProcessStartInfo
+						{
+							FileName = "cmd",
+							RedirectStandardInput = true,
+							WorkingDirectory = binDistDirectory
+						};
+						using (var signToolProcess = Process.Start(psiSigntool))
+						{
+							signToolProcess.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{pfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
+							signToolProcess.WaitForExit();
+						}
+
 						IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
 						Console.WriteLine($"Deleted {publishedFolder}");
 					}
@@ -460,10 +463,6 @@ namespace WalletWasabi.Packager
 				IoHelpers.OpenFolderInFileExplorer(binDistDirectory);
 				return; // No need for readkey here.
 			}
-
-			Console.WriteLine();
-			Console.WriteLine("FINISHED! Press key to exit...");
-			Console.ReadKey();
 		}
 	}
 }
