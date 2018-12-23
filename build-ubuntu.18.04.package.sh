@@ -28,6 +28,7 @@ dotnet publish --force \
 	--output $PACKAGE_BIN_FOLDER \
 	--runtime ubuntu.18.04-x64 
 )
+INSTALLATION_SIZE=$(du -sb $PACKAGE_BIN_FOLDER | cut -d$'\t' -f1)
 
 mkdir -p $PACKAGE_BIN_FOLDER 
 mkdir -p $DEBIAN_FOLDER
@@ -45,9 +46,28 @@ Version: 1.0.0-beta
 Maintainer: Adam Ficsor <adam.ficsor@gmail.com>
 Architecture: all
 Homepage: https://www.wasabiwallet.io/
+Source: https://github.com/zksnarks/WalletWasabi
+Installed-Size: $INSTALLATION_SIZE
+Description: Wasabi is an open-source, non-custodial, privacy focused Bitcoin wallet.
+ Wasabi is an open-source, non-custodial, privacy focused Bitcoin wallet that implements trustless coin shuffling with mathematically provable anonymity, Chaumian CoinJoin, it is the first of its kind. However, "anonymity loves company", the more users there are, the better your privacy, and the faster the CoinJoin rounds will be. Whether you are looking for state of the art operational security or you are philosophically aligned with the principles of freedom and privacy, now it is YOUR time to contribute. Fire up your Wasabi and start providing liquidity for CoinJoins to bootstrap the system!
 License: MIT
-Description: The privacy-oriented light bitcoin wallet
- is an open source light Bitcoin wallet for desktop focused on privacy distributed under MIT license.
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software and associated documentation files (the "Software"),
+ to deal in the Software without restriction, including without limitation
+ the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software, and to permit persons to whom the
+ Software is furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included
+ in all copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 EOT
 
 cat <<EOT > $POST_INST_FILE
