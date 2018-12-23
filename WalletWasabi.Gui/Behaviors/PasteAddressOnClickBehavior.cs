@@ -89,8 +89,10 @@ namespace WalletWasabi.Gui.Behaviors
 				AssociatedObject.GetObservable(TextBox.IsFocusedProperty).Subscribe(focused =>
 				{
 					if (!focused)
-{                       MyTextBoxState = TextBoxState.None;
-}               })
+					{
+						MyTextBoxState = TextBoxState.None;
+					}
+				})
 			};
 
 			_disposables.Add(
