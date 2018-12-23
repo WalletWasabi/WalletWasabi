@@ -191,6 +191,8 @@ namespace WalletWasabi.Packager
 					}
 					File.Move(oldExecutablePath, newExecutablePath);
 
+					long installedSizeKb = DirSize(new DirectoryInfo(publishedFolder)) / 1000;
+
 					if (target.StartsWith("win"))
 					{
 						var psiEditbin = new ProcessStartInfo
@@ -407,6 +409,7 @@ namespace WalletWasabi.Packager
 						}
 
 						var controlFilePath = Path.Combine(debianFolderPath, "control");
+						// License format doesn't yet work, but should work in the future, it's work in progress: https://bugs.launchpad.net/ubuntu/+source/software-center/+bug/435183
 						var controlFileContent = $@"Package: wassabee
 Priority: optional
 Section: utils
@@ -416,6 +419,8 @@ Homepage: http://wasabiwallet.io
 Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git
 Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi
 Architecture: amd64
+License: Open source (MIT)
+Installed-Size: {installedSizeKb}
 Depends:
 Description: open-source, non-custodial, privacy focused Bitcoin wallet
   Built-in Tor, CoinJoin and Coin Control features.
@@ -437,6 +442,10 @@ Description: open-source, non-custodial, privacy focused Bitcoin wallet
 						}
 
 						IoHelpers.DeleteRecursivelyWithMagicDustAsync(debFolderPath).GetAwaiter().GetResult();
+
+						string oldDeb = Path.Combine(binDistDirectory, $"wassabee_{versionPrefix}_amd64.deb");
+						string newDeb = Path.Combine(binDistDirectory, $"Wasabi-{versionPrefix}.deb");
+						File.Move(oldDeb, newDeb);
 					}
 				}
 			}
@@ -535,6 +544,24 @@ Description: open-source, non-custodial, privacy focused Bitcoin wallet
 		private static string LinuxPath(string path)
 		{
 			return path.Replace(@"\", @"/");
+		}
+
+		public static long DirSize(DirectoryInfo d)
+		{
+			long size = 0;
+			// Add file sizes.
+			FileInfo[] fis = d.GetFiles();
+			foreach (FileInfo fi in fis)
+			{
+				size += fi.Length;
+			}
+			// Add subdirectory sizes.
+			DirectoryInfo[] dis = d.GetDirectories();
+			foreach (DirectoryInfo di in dis)
+			{
+				size += DirSize(di);
+			}
+			return size;
 		}
 	}
 }
