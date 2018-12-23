@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -252,7 +253,7 @@ namespace WalletWasabi.Packager
 	<string>{versionPrefix}</string>
 
 	<key>CFBundleExecutable</key>
-	<string>wassabee</string>
+	<string>{executableName}</string>
 
 	<key>CFBundleName</key>
 	<string>Wasabi Wallet</string>
@@ -383,7 +384,7 @@ namespace WalletWasabi.Packager
 						var debUsrBinFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "bin");
 						var debUsrBinFolderPath = Path.Combine(binDistDirectory, debUsrBinFolderRelativePath);
 						Directory.CreateDirectory(debUsrBinFolderPath);
-						var debUsrAppFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "applications");
+						var debUsrAppFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "applications");
 						var debUsrAppFolderPath = Path.Combine(binDistDirectory, debUsrAppFolderRelativePath);
 						Directory.CreateDirectory(debUsrAppFolderPath);
 						var debUsrShareIconsFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "icons");
@@ -406,51 +407,57 @@ namespace WalletWasabi.Packager
 							{
 								string destFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
 								Directory.CreateDirectory(destFolder);
-								file.CopyTo(Path.Combine(destFolder, "wassabee.png"));
+								file.CopyTo(Path.Combine(destFolder, $"{executableName}.png"));
 							}
 						}
 
 						var controlFilePath = Path.Combine(debianFolderPath, "control");
 						// License format doesn't yet work, but should work in the future, it's work in progress: https://bugs.launchpad.net/ubuntu/+source/software-center/+bug/435183
-						var controlFileContent = $@"Package: wassabee
-Priority: optional
-Section: utils
-Maintainer: nopara73 <adam.ficsor73@gmail.com>
-Version: {versionPrefix}
-Homepage: http://wasabiwallet.io
-Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git
-Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi
-Architecture: amd64
-License: Open source (MIT)
-Installed-Size: {installedSizeKb}
-Depends:
-Description: open-source, non-custodial, privacy focused Bitcoin wallet
-  Built-in Tor, CoinJoin and Coin Control features.
-";
+						var controlFileContent = $@"Package: {executableName}\n" +
+													$"Priority: optional\n" +
+													$"Section: utils\n" +
+													$"Maintainer: nopara73 <adam.ficsor73@gmail.com>\n" +
+													$"Version: {versionPrefix}\n" +
+													$"Homepage: http://wasabiwallet.io\n" +
+													$"Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git\n" +
+													$"Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi\n" +
+													$"Architecture: amd64\n" +
+													$"License: Open Source (MIT)\n" +
+													$"Installed-Size: {installedSizeKb}\n" +
+													$"Depends:\n" +
+													$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
+													$"  Built-in Tor, CoinJoin and Coin Control features.\n";
 
-						File.WriteAllText(controlFilePath, controlFileContent);
+						File.WriteAllText(controlFilePath, controlFileContent, Encoding.UTF8);
 
-						var desktopFilePath = Path.Combine(debUsrAppFolderPath, "wassabee.desktop");
-						var desktopFileContent = $@"[Desktop Entry]
-Type=Application
-Name=Wasabi Wallet
-GenericName=Bitcoin Wallet
-Comment=Privacy focused Bitcoin wallet.
-Icon=wassabee
-Terminal=false
-Terminal=false
-Exec=wassabee
-Categories=Office;Finance;
-Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe
-";
+						var desktopFilePath = Path.Combine(debUsrAppFolderPath, $"{executableName}.desktop");
+						var desktopFileContent = $"[Desktop Entry]\n" +
+													$"Type=Application\n" +
+													$"Encoding=UTF-8\n" +
+													$"Name=Wasabi Wallet\n" +
+													$"GenericName=Bitcoin Wallet\n" +
+													$"Comment=Privacy focused Bitcoin wallet.\n" +
+													$"Icon={executableName}\n" +
+													$"Terminal=false\n" +
+													$"Terminal=false\n" +
+													$"Exec={executableName}\nCategories=Office;Finance;\n" +
+													$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;\n";
 
-						File.WriteAllText(desktopFilePath, desktopFileContent);
+						File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.UTF8);
+
+						var wasabiStarterScriptPath = Path.Combine(debUsrBinFolderPath, $"{executableName}");
+						var wasabiStarterScriptContent = $"#!/bin/sh\n" +
+															$"{ linuxWasabiWalletFolder.TrimEnd('/')}/./{executableName}\n";
+
+						File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.UTF8);
 
 						string debExeLinuxPath = LinuxPathCombine(newFolderRelativePath, executableName);
+						string debDestopFileLinuxPath = LinuxPathCombine(debUsrAppFolderRelativePath, $"{executableName}.desktop");
+						var wasabiStarterScriptLinuxPath = LinuxPathCombine(debUsrBinFolderRelativePath, $"{executableName}");
 						var psi = new ProcessStartInfo
 						{
 							FileName = "wsl",
-							Arguments = $"cd ~ && sudo umount /mnt/c && sudo mount -t drvfs C: /mnt/c -o metadata && cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist && sudo chmod +x {debExeLinuxPath} && sudo chmod -R 0775 {LinuxPath(debianFolderRelativePath)} && dpkg --build {LinuxPath(debFolderRelativePath)} $(pwd)",
+							Arguments = $"cd ~ && sudo umount /mnt/c && sudo mount -t drvfs C: /mnt/c -o metadata && cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist && sudo chmod +x {debExeLinuxPath} && sudo chmod +x {wasabiStarterScriptLinuxPath} && sudo chmod -R 0644 {debDestopFileLinuxPath} && sudo chmod -R 0775 {LinuxPath(debianFolderRelativePath)} && dpkg --build {LinuxPath(debFolderRelativePath)} $(pwd)",
 							RedirectStandardInput = true,
 							WorkingDirectory = binDistDirectory
 						};
@@ -461,7 +468,7 @@ Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe
 
 						IoHelpers.DeleteRecursivelyWithMagicDustAsync(debFolderPath).GetAwaiter().GetResult();
 
-						string oldDeb = Path.Combine(binDistDirectory, $"wassabee_{versionPrefix}_amd64.deb");
+						string oldDeb = Path.Combine(binDistDirectory, $"{executableName}_{versionPrefix}_all.deb");
 						string newDeb = Path.Combine(binDistDirectory, $"Wasabi-{versionPrefix}.deb");
 						File.Move(oldDeb, newDeb);
 					}
