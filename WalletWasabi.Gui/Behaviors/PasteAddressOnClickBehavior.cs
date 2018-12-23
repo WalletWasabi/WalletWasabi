@@ -57,7 +57,6 @@ namespace WalletWasabi.Gui.Behaviors
 		}
 
 		private string _originalToolTipText;
-		private string _addressToPaste;
 		private TextBoxState _textBoxState = TextBoxState.None;
 
 		public async Task<(bool isAddress, string address)> IsThereABitcoinAddressOnTheClipboardAsync()
@@ -91,17 +90,19 @@ namespace WalletWasabi.Gui.Behaviors
 			};
 
 			_disposables.Add(
-				AssociatedObject.GetObservable(TextBox.PointerReleasedEvent).Subscribe(pointer =>
+				AssociatedObject.GetObservable(TextBox.PointerReleasedEvent).Subscribe(async pointer =>
 				{
 					switch (MyTextBoxState)
 					{
 						case TextBoxState.AddressInsert:
-							{
-								AssociatedObject.Text = _addressToPaste;
-								MyTextBoxState = TextBoxState.NormalTextBoxOperation;
-								var labeltextbox = AssociatedObject.Parent.FindControl<TextBox>("LabelTextBox");
-								if (labeltextbox != null) labeltextbox.Focus();
+							var result = await IsThereABitcoinAddressOnTheClipboardAsync();
+
+							if(result.isAddress){
+								AssociatedObject.Text = result.address;
 							}
+							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
+							var labeltextbox = AssociatedObject.Parent.FindControl<TextBox>("LabelTextBox");
+							if (labeltextbox != null) labeltextbox.Focus();
 							break;
 
 						case TextBoxState.SelectAll:
@@ -120,14 +121,12 @@ namespace WalletWasabi.Gui.Behaviors
 						MyTextBoxState = TextBoxState.None;
 
 					if (MyTextBoxState == TextBoxState.NormalTextBoxOperation) return;
-					_addressToPaste = null;
 
 					if (string.IsNullOrEmpty(AssociatedObject.Text))
 					{
 						var result = await IsThereABitcoinAddressOnTheClipboardAsync();
 						if (result.isAddress)
 						{
-							_addressToPaste = result.address;
 							MyTextBoxState = TextBoxState.AddressInsert;
 							ToolTip.SetIsOpen(AssociatedObject, true);
 						}
