@@ -64,7 +64,11 @@ namespace WalletWasabi.Gui.Behaviors
 			var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
 			Task<string> clipboardTask = clipboard.GetTextAsync();
 			string text = await clipboardTask;
-			if (string.IsNullOrEmpty(text) || text.Length > 100) return (false, null);
+			if (string.IsNullOrEmpty(text) || text.Length > 100)
+			{
+				return (false, null);
+			}
+
 			text = text.Trim();
 			try
 			{
@@ -85,8 +89,8 @@ namespace WalletWasabi.Gui.Behaviors
 				AssociatedObject.GetObservable(TextBox.IsFocusedProperty).Subscribe(focused =>
 				{
 					if (!focused)
-						MyTextBoxState = TextBoxState.None;
-				})
+{                       MyTextBoxState = TextBoxState.None;
+}               })
 			};
 
 			_disposables.Add(
@@ -97,12 +101,17 @@ namespace WalletWasabi.Gui.Behaviors
 						case TextBoxState.AddressInsert:
 							var result = await IsThereABitcoinAddressOnTheClipboardAsync();
 
-							if(result.isAddress){
+							if (result.isAddress)
+							{
 								AssociatedObject.Text = result.address;
 							}
 							MyTextBoxState = TextBoxState.NormalTextBoxOperation;
 							var labeltextbox = AssociatedObject.Parent.FindControl<TextBox>("LabelTextBox");
-							if (labeltextbox != null) labeltextbox.Focus();
+							if (labeltextbox != null)
+							{
+								labeltextbox.Focus();
+							}
+
 							break;
 
 						case TextBoxState.SelectAll:
@@ -118,9 +127,14 @@ namespace WalletWasabi.Gui.Behaviors
 				AssociatedObject.GetObservable(TextBox.PointerEnterEvent).Subscribe(async pointerEnter =>
 				{
 					if (!AssociatedObject.IsFocused && MyTextBoxState == TextBoxState.NormalTextBoxOperation)
+					{
 						MyTextBoxState = TextBoxState.None;
+					}
 
-					if (MyTextBoxState == TextBoxState.NormalTextBoxOperation) return;
+					if (MyTextBoxState == TextBoxState.NormalTextBoxOperation)
+					{
+						return;
+					}
 
 					if (string.IsNullOrEmpty(AssociatedObject.Text))
 					{
