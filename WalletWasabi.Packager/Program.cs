@@ -379,6 +379,7 @@ namespace WalletWasabi.Packager
 
 						var debFolderRelativePath = "deb";
 						var debFolderPath = Path.Combine(binDistDirectory, debFolderRelativePath);
+						var linuxUsrBinFolder = "/usr/bin/";
 						var debUsrBinFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "bin");
 						var debUsrBinFolderPath = Path.Combine(binDistDirectory, debUsrBinFolderRelativePath);
 						Directory.CreateDirectory(debUsrBinFolderPath);
@@ -391,6 +392,7 @@ namespace WalletWasabi.Packager
 						var debianFolderPath = Path.Combine(binDistDirectory, debianFolderRelativePath);
 						Directory.CreateDirectory(debianFolderPath);
 						var newFolderName = "wasabiwallet";
+						var linuxWasabiWalletFolder = LinuxPathCombine(linuxUsrBinFolder, newFolderName);
 						var newFolderRelativePath = Path.Combine(debUsrBinFolderRelativePath, newFolderName);
 						var newFolderPath = Path.Combine(binDistDirectory, newFolderRelativePath);
 						Directory.Move(publishedFolder, newFolderPath);
@@ -427,6 +429,22 @@ Description: open-source, non-custodial, privacy focused Bitcoin wallet
 ";
 
 						File.WriteAllText(controlFilePath, controlFileContent);
+
+						var desktopFilePath = Path.Combine(debUsrAppFolderPath, "wassabee.desktop");
+						var desktopFileContent = $@"[Desktop Entry]
+Type=Application
+Name=Wasabi Wallet
+GenericName=Bitcoin Wallet
+Comment=Privacy focused Bitcoin wallet.
+Icon=wassabee
+Terminal=false
+Terminal=false
+Exec=wassabee
+Categories=Office;Finance;
+Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe
+";
+
+						File.WriteAllText(desktopFilePath, desktopFileContent);
 
 						string debExeLinuxPath = LinuxPathCombine(newFolderRelativePath, executableName);
 						var psi = new ProcessStartInfo
