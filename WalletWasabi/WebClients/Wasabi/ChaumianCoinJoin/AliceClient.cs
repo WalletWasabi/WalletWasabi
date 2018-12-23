@@ -11,8 +11,9 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Logging;
-using WalletWasabi.TorSocks5;
 using WalletWasabi.Bases;
+using System.Threading;
+using WalletWasabi.Exceptions;
 
 namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 {
@@ -94,14 +95,40 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		/// <returns>null or roundHash</returns>
 		public async Task PostUnConfirmationAsync()
 		{
-			using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={UniqueId}&roundId={RoundId}"))
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
-				if (!response.IsSuccessStatusCode)
+				try
 				{
-					await response.ThrowRequestExceptionFromContentAsync();
+					using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={UniqueId}&roundId={RoundId}", cancel: cts.Token))
+					{
+						if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Gone) // Otherwise maybe some internet connection issue there's. Let's consider that as timed out.
+						{
+							await response.ThrowRequestExceptionFromContentAsync();
+						}
+					}
 				}
-				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Unconfirmed connection.");
+				catch (TaskCanceledException) // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
+				{
+					return;
+				}
+				catch (OperationCanceledException) // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
+				{
+					return;
+				}
+				catch (TimeoutException) // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
+				{
+					return;
+				}
+				catch (ConnectionException)  // If some internet connection issue then it'll likely time out and take it as unconfirmed.
+				{
+					return;
+				}
+				catch (TorSocks5FailureResponseException) // If some Tor connection issue then it'll likely time out and take it as unconfirmed.
+				{
+					return;
+				}
 			}
+			Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Unconfirmed connection.");
 		}
 
 		public async Task<Transaction> GetUnsignedCoinJoinAsync()

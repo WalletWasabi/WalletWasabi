@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
@@ -35,19 +34,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal override Mode Mode => Mode.EightBitByte;
 
-		protected byte[] EncodeContent(string content, string encoding)
-		{
-			byte[] contentBytes;
-			try
-			{
-				contentBytes = System.Text.Encoding.GetEncoding(encoding).GetBytes(content);
-			}
-			catch (ArgumentException ex)
-			{
-				throw ex;
-			}
-			return contentBytes;
-		}
+		protected byte[] EncodeContent(string content, string encoding) => System.Text.Encoding.GetEncoding(encoding).GetBytes(content);
 
 		/// <summary>
 		/// Bitcount, Chapter 8.4.4, P.24
@@ -56,10 +43,10 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal override BitList GetDataBits(string content)
 		{
-			ECISet eciSet = new ECISet(ECISet.AppendOption.NameToValue);
+			var eciSet = new ECISet(ECISet.AppendOption.NameToValue);
 			if (!eciSet.ContainsECIName(Encoding))
 			{
-				throw new ArgumentOutOfRangeException("Encoding",
+				throw new ArgumentOutOfRangeException(nameof(Encoding),
 													  "Current ECI table does not support this encoding. Please check ECISet class for more info");
 			}
 
@@ -70,22 +57,19 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal BitList GetDataBitsByByteArray(byte[] encodeContent, string encodingName)
 		{
-			BitList dataBits = new BitList();
+			var dataBits = new BitList();
 			//Current plan for UTF8 support is put Byte order Mark in front of content byte.
 			//Also include ECI header before encoding header. Which will be add with encoding header.
 			if (encodingName == "utf-8")
 			{
 				byte[] utf8BOM = QRCodeConstantVariable.UTF8ByteOrderMark;
-				int utf8BOMLength = utf8BOM.Length;
-				for (int index = 0; index < utf8BOMLength; index++)
+				for (int index = 0; index < utf8BOM.Length; index++)
 				{
 					dataBits.Add(utf8BOM[index], EIGHT_BIT_BYTE_BITCOUNT);
 				}
 			}
 
-			int encodeContentLength = encodeContent.Length;
-
-			for (int index = 0; index < encodeContentLength; index++)
+			for (int index = 0; index < encodeContent.Length; index++)
 			{
 				dataBits.Add(encodeContent[index], EIGHT_BIT_BYTE_BITCOUNT);
 			}

@@ -45,7 +45,7 @@ namespace Gma.QrCodeNet.Encoding.Terminate
 
 			if (baseList.Count != numTotalDataBits)
 				throw new ArgumentException(
-					string.Format("Generate terminator and Padding fail. Num of bits need: {0}, Actually length: {1}", numFillerBytes, baseList.Count - numDataBits));
+					$"Generate terminator and Padding fail. Num of bits need: {numFillerBytes}, Actually length: {baseList.Count - numDataBits}");
 		}
 
 		private static void PadeCodewords(this BitList mainList, int numOfPadeCodewords)

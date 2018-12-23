@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -24,7 +26,7 @@ namespace WalletWasabi.Tests
 			LiveServerTestsFixture = liveServerTestsFixture;
 
 			var torManager = new TorProcessManager(SharedFixture.TorSocks5Endpoint, SharedFixture.TorLogsFile);
-			torManager.Start(ensureRunning: true);
+			torManager.Start(ensureRunning: true, dataDir: Path.GetFullPath(AppContext.BaseDirectory));
 			Task.Delay(3000).GetAwaiter().GetResult();
 		}
 
@@ -50,7 +52,7 @@ namespace WalletWasabi.Tests
 		{
 			using (var client = new WasabiClient(LiveServerTestsFixture.UriMappings[networkType]))
 			{
-				var filterModel = IndexDownloader.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
+				var filterModel = WasabiSynchronizer.GetStartingFilter(Network.GetNetwork(networkType.ToString()));
 
 				FiltersResponse filtersResponse = await client.GetFiltersAsync(filterModel.BlockHash, 2);
 

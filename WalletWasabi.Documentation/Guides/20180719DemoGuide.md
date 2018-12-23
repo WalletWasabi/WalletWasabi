@@ -14,7 +14,7 @@
 ## Get The Requirements
 
 1. Get Git: https://git-scm.com/downloads
-2. Get .NET Core 2.1 SDK: https://www.microsoft.com/net/download
+2. Get .NET Core 2.2 SDK: https://www.microsoft.com/net/download
 3. [OSX] Get Brew: https://stackoverflow.com/a/20381183/2061103
 4. Get Tor:  
   [Windows] Install the Tor Expert Bundle: https://www.torproject.org/download/  

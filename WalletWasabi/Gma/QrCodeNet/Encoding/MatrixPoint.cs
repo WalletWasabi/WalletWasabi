@@ -16,6 +16,6 @@
 
 		internal MatrixPoint Offset(int offsetX, int offsetY) => Offset(new MatrixPoint(offsetX, offsetY));
 
-		public override string ToString() => string.Format("Point({0};{1})", X, Y);
+		public override string ToString() => $"Point({X};{Y})";
 	}
 }

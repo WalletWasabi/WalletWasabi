@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.Protocol;
 using Org.BouncyCastle.Math;
 using System;
 using WalletWasabi.Backend.Models.Responses;
@@ -7,11 +8,18 @@ namespace WalletWasabi.Helpers
 {
 	public static class Constants
 	{
-		public static readonly Version ClientVersion = new Version(0, 9, 1);
+		public static readonly Version ClientVersion = new Version(1, 0, 3);
 		public const string BackendMajorVersion = "2";
 		public static readonly VersionsResponse VersionsResponse = new VersionsResponse { ClientVersion = ClientVersion.ToString(), BackenMajordVersion = BackendMajorVersion };
 
 		public const uint ProtocolVersion_WITNESS_VERSION = 70012;
+
+		public static readonly NodeRequirement NodeRequirements = new NodeRequirement
+		{
+			RequiredServices = NodeServices.NODE_WITNESS,
+			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
+		};
 
 		public const int P2wpkhInputSizeInBytes = 41;
 		public const int P2pkhInputSizeInBytes = 145;
@@ -45,5 +53,8 @@ namespace WalletWasabi.Helpers
 			// else regtest
 			return RegTestCoordinatorAddress;
 		}
+
+		public const string ChangeOfSpecialLabelStart = "change of (";
+		public const string ChangeOfSpecialLabelEnd = ")";
 	}
 }

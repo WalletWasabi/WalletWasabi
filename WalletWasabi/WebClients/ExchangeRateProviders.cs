@@ -9,6 +9,7 @@ using WalletWasabi.WebClients.BlockchainInfo;
 using WalletWasabi.WebClients.Coinbase;
 using WalletWasabi.WebClients.Gemini;
 using WalletWasabi.WebClients.ItBit;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.WebClients
 {
@@ -33,9 +34,10 @@ namespace WalletWasabi.WebClients
 					exchangeRates = await provider.GetExchangeRateAsync();
 					break;
 				}
-				catch (Exception)
+				catch (Exception ex)
 				{
 					// Ignore it and try with the next one
+					Logger.LogTrace<ExchangeRateProvider>(ex);
 				}
 			}
 			return exchangeRates;

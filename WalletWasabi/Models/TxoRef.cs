@@ -51,7 +51,7 @@ namespace WalletWasabi.Models
 
 		public static bool operator ==(OutPoint x, TxoRef y) => y?.TransactionId == x?.Hash && y?.Index == x?.N;
 
-		public static bool operator ==(TxoRef x, OutPoint y) => y?.Hash == x?.TransactionId && y?.N == x?.Index;
+		public static bool operator ==(TxoRef x, OutPoint y) => y?.Hash == x?.TransactionId && y?.N == x?.Index; // Hash first, index second is faster.
 
 		public static bool operator !=(OutPoint x, TxoRef y) => !(x == y);
 

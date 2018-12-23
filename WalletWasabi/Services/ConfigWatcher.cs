@@ -43,7 +43,7 @@ namespace WalletWasabi.Services
 						try
 						{
 							// If stop was requested return.
-							if (IsRunning == false) return;
+							if (!IsRunning) return;
 
 							await Task.Delay(period, Stop.Token);
 
@@ -51,7 +51,7 @@ namespace WalletWasabi.Services
 							{
 								await Config.LoadOrCreateDefaultFileAsync();
 
-								await executeWhenChangedAsync();
+								await executeWhenChangedAsync?.Invoke();
 							}
 						}
 						catch (TaskCanceledException ex)

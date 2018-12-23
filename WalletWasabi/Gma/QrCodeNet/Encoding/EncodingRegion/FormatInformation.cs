@@ -1,5 +1,4 @@
 ﻿using System;
-using Gma.QrCodeNet.Encoding.Positioning;
 using Gma.QrCodeNet.Encoding.Masking;
 
 namespace Gma.QrCodeNet.Encoding.EncodingRegion
@@ -108,7 +107,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 					return 0x03;
 
 				default:
-					throw new ArgumentException(string.Format("Unsupported error correction level [{0}]", errorLevel), "errorLevel");
+					throw new ArgumentException($"Unsupported error correction level [{errorLevel}]", nameof(errorLevel));
 			}
 		}
 	}

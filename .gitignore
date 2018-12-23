@@ -267,3 +267,7 @@ __pycache__/
 # Coverlet
 lcov.info
 /WalletWasabi.Tests/coverage.json
+/WalletWasabi.Backend/wwwroot/unversioned/*
+
+\.DS_Store
+*.DS_Store

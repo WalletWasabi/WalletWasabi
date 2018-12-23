@@ -1,5 +1,4 @@
 ﻿using System;
-using Gma.QrCodeNet.Encoding.Positioning;
 
 namespace Gma.QrCodeNet.Encoding.EncodingRegion
 {
@@ -53,7 +52,7 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			}
 
 			if (bitIndex != codewordsSize)
-				throw new Exception(string.Format("Not all bits from codewords consumed by matrix: {0} / {1}", bitIndex, codewordsSize));
+				throw new Exception($"Not all bits from codewords consumed by matrix: {bitIndex} / {codewordsSize}");
 		}
 
 		internal static int NextY(int y, int directionUp)

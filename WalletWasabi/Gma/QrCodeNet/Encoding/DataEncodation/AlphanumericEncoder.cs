@@ -66,7 +66,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 					return 11;
 
 				default:
-					throw new InvalidOperationException(string.Format("Unexpected group length {0}", groupLength));
+					throw new InvalidOperationException($"Unexpected group length {groupLength}");
 			}
 		}
 	}

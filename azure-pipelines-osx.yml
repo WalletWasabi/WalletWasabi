@@ -1,0 +1,24 @@
+variables:
+  testConfiguration: 'Debug'
+
+jobs:
+- job: macOS
+  pool:
+    vmImage: 'macOS-10.13'
+  steps:
+  - task: DotNetCoreInstaller@0
+    inputs:
+      version: '2.2.101'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+      arguments: --configuration Debug
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: build
+      arguments: --configuration Release
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: test
+      projects: 'WalletWasabi.Tests/WalletWasabi.Tests.csproj'
+      arguments: --filter --configuration $(testConfiguration) --filter "CryptoTests | ModelTests | KeyManagementTests | ModelTests"

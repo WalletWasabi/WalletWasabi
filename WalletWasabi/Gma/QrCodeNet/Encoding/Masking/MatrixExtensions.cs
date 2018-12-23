@@ -1,5 +1,4 @@
 ﻿using System;
-using Gma.QrCodeNet.Encoding.Positioning;
 using Gma.QrCodeNet.Encoding.EncodingRegion;
 
 namespace Gma.QrCodeNet.Encoding.Masking
@@ -33,7 +32,7 @@ namespace Gma.QrCodeNet.Encoding.Masking
 							break;
 
 						default:
-							throw new ArgumentException("TristateMatrix has None value cell.", "first");
+							throw new ArgumentException("TristateMatrix has None value cell.", nameof(first));
 					}
 				}
 			}

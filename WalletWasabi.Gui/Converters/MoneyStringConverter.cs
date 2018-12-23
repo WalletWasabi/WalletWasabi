@@ -15,6 +15,10 @@ namespace WalletWasabi.Gui.Converters
 			{
 				return money.ToString(fplus: false, trimExcessZero: true);
 			}
+			else if (value is null)
+			{
+				return "0";
+			}
 
 			throw new InvalidOperationException();
 		}

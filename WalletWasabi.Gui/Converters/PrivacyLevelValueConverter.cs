@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Converters
 				{
 					shield = "Some";
 				}
-				else if (integer < 49)
+				else if (integer < 50)
 				{
 					shield = "Fine";
 				}

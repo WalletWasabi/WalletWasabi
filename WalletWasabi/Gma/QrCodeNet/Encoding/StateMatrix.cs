@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Gma.QrCodeNet.Encoding
+﻿namespace Gma.QrCodeNet.Encoding
 {
 	public sealed class StateMatrix
 	{

@@ -60,7 +60,7 @@ namespace WalletWasabi.TorSocks5
 		internal TorSocks5Client(IPEndPoint ipEndPoint)
 		{
 			TorSocks5EndPoint = ipEndPoint;
-			TcpClient = new TcpClient();
+			TcpClient = ipEndPoint is null ? new TcpClient() : new TcpClient(ipEndPoint.AddressFamily);
 			AsyncLock = new AsyncLock();
 		}
 
@@ -88,16 +88,38 @@ namespace WalletWasabi.TorSocks5
 
 			using (await AsyncLock.LockAsync())
 			{
+				Exception error = null;
 				try
 				{
 					await TcpClient.ConnectAsync(TorSocks5EndPoint.Address, TorSocks5EndPoint.Port);
 				}
 				// ex.Message must be checked, because I'm having difficulty catching SocketExceptionFactory+ExtendedSocketException
-				catch (Exception ex) when (ex.Message.StartsWith("No connection could be made because the target machine actively refused it")
-				|| ex.Message.StartsWith("Connection refused"))
+				// Only works on English Os-es.
+				catch (Exception ex) when (ex.Message.StartsWith(
+											   "No connection could be made because the target machine actively refused it") // Windows
+										   || ex.Message.StartsWith("Connection refused")) // Linux && OSX
 				{
-					throw new ConnectionException($"Couldn't connect to Tor SOCKSPort at {TorSocks5EndPoint.Address}:{TorSocks5EndPoint.Port}. Is Tor running?", ex);
+					error = ex;
 				}
+				// "No connection could be made because the target machine actively refused it" for non-English Windows.
+				catch (SocketException ex) when (ex.ErrorCode == 10061)
+				{
+					error = ex;
+				}
+				// "Connection refused" for non-English Linux.
+				catch (SocketException ex) when (ex.ErrorCode == 111)
+				{
+					error = ex;
+				}
+				// "Connection refused" for non-English OSX.
+				catch (SocketException ex) when (ex.ErrorCode == 61)
+				{
+					error = ex;
+				}
+				if (error != null)
+					throw new ConnectionException(
+						$"Couldn't connect to Tor SOCKSPort at {TorSocks5EndPoint.Address}:{TorSocks5EndPoint.Port}. Is Tor running?", error);
+
 				Stream = TcpClient.GetStream();
 				RemoteEndPoint = TcpClient.Client.RemoteEndPoint as IPEndPoint;
 			}
@@ -213,7 +235,14 @@ namespace WalletWasabi.TorSocks5
 				using (await AsyncLock.LockAsync())
 				{
 					TcpClient?.Dispose();
-					TcpClient = new TcpClient();
+					if (IPAddress.TryParse(host, out IPAddress ip))
+					{
+						TcpClient = new TcpClient(ip.AddressFamily);
+					}
+					else
+					{
+						TcpClient = new TcpClient();
+					}
 					await TcpClient.ConnectAsync(host, port);
 					Stream = TcpClient.GetStream();
 					RemoteEndPoint = TcpClient.Client.RemoteEndPoint as IPEndPoint;

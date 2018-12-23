@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace Gma.QrCodeNet.Encoding.DataEncodation
+﻿namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
 	public abstract class EncoderBase
 	{

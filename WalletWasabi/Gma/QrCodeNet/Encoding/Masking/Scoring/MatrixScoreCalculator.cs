@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Gma.QrCodeNet.Encoding.Positioning;
 
 namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 {

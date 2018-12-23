@@ -45,6 +45,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		[JsonProperty(PropertyName = "DosSeverity")]
 		public int? DosSeverity { get; internal set; }
 
+		[JsonProperty(PropertyName = "DosDurationHours")]
+		public long? DosDurationHours { get; internal set; }
+
+		[JsonProperty(PropertyName = "DosNoteBeforeBan")]
+		public bool? DosNoteBeforeBan { get; internal set; }
+
 		public CcjRoundConfig()
 		{
 		}
@@ -54,7 +60,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			SetFilePath(filePath);
 		}
 
-		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity)
+		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours, bool dosNoteBeforeBan)
 		{
 			FilePath = null;
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
@@ -66,6 +72,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			OutputRegistrationTimeout = Guard.NotNull(nameof(outputRegistrationTimeout), outputRegistrationTimeout);
 			SigningTimeout = Guard.NotNull(nameof(signingTimeout), signingTimeout);
 			DosSeverity = Guard.NotNull(nameof(dosSeverity), dosSeverity);
+			DosDurationHours = Guard.NotNull(nameof(dosDurationHours), dosDurationHours);
+			DosNoteBeforeBan = Guard.NotNull(nameof(dosNoteBeforeBan), dosNoteBeforeBan);
 		}
 
 		/// <inheritdoc />
@@ -93,6 +101,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			OutputRegistrationTimeout = 60;
 			SigningTimeout = 60;
 			DosSeverity = 1;
+			DosDurationHours = 730; // 1 month
+			DosNoteBeforeBan = true;
 
 			if (!File.Exists(FilePath))
 			{
@@ -103,18 +113,25 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
 				var config = JsonConvert.DeserializeObject<CcjRoundConfig>(jsonString);
 
-				Denomination = config.Denomination ?? Denomination;
-				ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
-				CoordinatorFeePercent = config.CoordinatorFeePercent ?? CoordinatorFeePercent;
-				AnonymitySet = config.AnonymitySet ?? AnonymitySet;
-				InputRegistrationTimeout = config.InputRegistrationTimeout ?? InputRegistrationTimeout;
-				ConnectionConfirmationTimeout = config.ConnectionConfirmationTimeout ?? ConnectionConfirmationTimeout;
-				OutputRegistrationTimeout = config.OutputRegistrationTimeout ?? OutputRegistrationTimeout;
-				SigningTimeout = config.SigningTimeout ?? SigningTimeout;
-				DosSeverity = config.DosSeverity ?? DosSeverity;
+				UpdateOrDefault(config);
 			}
 
 			await ToFileAsync();
+		}
+
+		public void UpdateOrDefault(CcjRoundConfig config)
+		{
+			Denomination = config.Denomination ?? Denomination;
+			ConfirmationTarget = config.ConfirmationTarget ?? ConfirmationTarget;
+			CoordinatorFeePercent = config.CoordinatorFeePercent ?? CoordinatorFeePercent;
+			AnonymitySet = config.AnonymitySet ?? AnonymitySet;
+			InputRegistrationTimeout = config.InputRegistrationTimeout ?? InputRegistrationTimeout;
+			ConnectionConfirmationTimeout = config.ConnectionConfirmationTimeout ?? ConnectionConfirmationTimeout;
+			OutputRegistrationTimeout = config.OutputRegistrationTimeout ?? OutputRegistrationTimeout;
+			SigningTimeout = config.SigningTimeout ?? SigningTimeout;
+			DosSeverity = config.DosSeverity ?? DosSeverity;
+			DosDurationHours = config.DosDurationHours ?? DosDurationHours;
+			DosNoteBeforeBan = config.DosNoteBeforeBan ?? DosNoteBeforeBan;
 		}
 
 		/// <inheritdoc />
@@ -163,6 +180,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				return true;
 			}
 			if (DosSeverity != config.DosSeverity)
+			{
+				return true;
+			}
+			if (DosDurationHours != config.DosDurationHours)
+			{
+				return true;
+			}
+			if (DosNoteBeforeBan != config.DosNoteBeforeBan)
 			{
 				return true;
 			}

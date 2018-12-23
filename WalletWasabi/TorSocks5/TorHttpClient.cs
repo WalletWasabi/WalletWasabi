@@ -20,6 +20,26 @@ namespace WalletWasabi.TorSocks5
 {
 	public class TorHttpClient : IDisposable
 	{
+		private static DateTimeOffset? TorDoesntWorkSinceBacking = null;
+
+		public static DateTimeOffset? TorDoesntWorkSince
+		{
+			get => TorDoesntWorkSinceBacking;
+			private set
+			{
+				if (value != TorDoesntWorkSinceBacking)
+				{
+					TorDoesntWorkSinceBacking = value;
+					if (value is null)
+					{
+						LatestTorException = null;
+					}
+				}
+			}
+		}
+
+		public static Exception LatestTorException { get; private set; } = null;
+
 		public Uri DestinationUri { get; }
 		public IPEndPoint TorSocks5EndPoint { get; }
 
@@ -27,7 +47,7 @@ namespace WalletWasabi.TorSocks5
 
 		public TorSocks5Client TorSocks5Client { get; private set; }
 
-		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable
+		private static AsyncLock AsyncLock { get; } = new AsyncLock(); // We make everything synchronous, so slow, but at least stable.
 
 		public TorHttpClient(Uri baseUri, IPEndPoint torSocks5EndPoint, bool isolateStream = false)
 		{
@@ -64,7 +84,9 @@ namespace WalletWasabi.TorSocks5
 				{
 					try
 					{
-						return await SendAsync(request);
+						HttpResponseMessage ret = await SendAsync(request);
+						TorDoesntWorkSince = null;
+						return ret;
 					}
 					catch (Exception ex)
 					{
@@ -76,7 +98,9 @@ namespace WalletWasabi.TorSocks5
 						cancel.ThrowIfCancellationRequested();
 						try
 						{
-							return await SendAsync(request);
+							HttpResponseMessage ret2 = await SendAsync(request);
+							TorDoesntWorkSince = null;
+							return ret2;
 						}
 						// If we get ttlexpired then wait and retry again linux often do this.
 						catch (TorSocks5FailureResponseException ex2) when (ex2.RepField == RepField.TtlExpired)
@@ -97,20 +121,38 @@ namespace WalletWasabi.TorSocks5
 						}
 
 						cancel.ThrowIfCancellationRequested();
-						return await SendAsync(request);
+
+						HttpResponseMessage ret3 = await SendAsync(request);
+						TorDoesntWorkSince = null;
+						return ret3;
 					}
 				}
 			}
 			catch (TaskCanceledException ex)
 			{
+				SetTorNotWorkingState(ex);
 				throw new OperationCanceledException(ex.Message, ex, cancel);
 			}
+			catch (Exception ex)
+			{
+				SetTorNotWorkingState(ex);
+				throw;
+			}
+		}
+
+		private static void SetTorNotWorkingState(Exception ex)
+		{
+			if (TorDoesntWorkSince == null)
+			{
+				TorDoesntWorkSince = DateTimeOffset.UtcNow;
+			}
+			LatestTorException = ex;
 		}
 
 		/// <remarks>
 		/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
 		/// </remarks>
-		private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancel = default)
 		{
 			Guard.NotNull(nameof(request), request);
 

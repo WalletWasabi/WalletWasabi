@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
+﻿namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 {
 	public struct RecognitionStruct
 	{

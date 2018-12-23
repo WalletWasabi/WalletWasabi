@@ -79,10 +79,10 @@ namespace WalletWasabi.Crypto
 		public static BlindingRsaKey CreateFromJson(string json)
 		{
 			var token = JToken.Parse(json);
-			var privMod = new BigInteger(token.Value<string>("PrivateModulus"));
-			var privExp = new BigInteger(token.Value<string>("PrivateExponent"));
-			var pubMod = new BigInteger(token.Value<string>("PublicModulus"));
-			var pubExp = new BigInteger(token.Value<string>("PublicExponent"));
+			var privMod = new BigInteger(token.Value<string>(nameof(PrivateModulus)));
+			var privExp = new BigInteger(token.Value<string>(nameof(PrivateExponent)));
+			var pubMod = new BigInteger(token.Value<string>(nameof(PublicModulus)));
+			var pubExp = new BigInteger(token.Value<string>(nameof(PublicExponent)));
 
 			return new BlindingRsaKey(privMod, privExp, pubMod, pubExp);
 		}

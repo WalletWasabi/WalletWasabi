@@ -28,12 +28,20 @@ namespace WalletWasabi.KeyManagement
 		[JsonProperty(Order = 4)]
 		private List<HdPubKey> HdPubKeys { get; }
 
+		private readonly object HdPubKeysLock;
+
+		private List<byte[]> HdPubKeyScriptBytes { get; }
+
+		private readonly object HdPubKeyScriptBytesLock;
+
+		private readonly Dictionary<Script, HdPubKey> ScriptHdPubkeyMap;
+
+		private readonly object ScriptHdPubkeyMapLock;
+
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
 		private static readonly KeyPath AccountKeyPath = new KeyPath("m/84'/0'/0'");
-
-		private readonly object HdPubKeysLock;
 
 		public string FilePath { get; private set; }
 		private object ToFileLock { get; }
@@ -42,7 +50,11 @@ namespace WalletWasabi.KeyManagement
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, string filePath = null)
 		{
 			HdPubKeys = new List<HdPubKey>();
+			HdPubKeyScriptBytes = new List<byte[]>();
+			ScriptHdPubkeyMap = new Dictionary<Script, HdPubKey>();
 			HdPubKeysLock = new object();
+			HdPubKeyScriptBytesLock = new object();
+			ScriptHdPubkeyMapLock = new object();
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
@@ -55,7 +67,11 @@ namespace WalletWasabi.KeyManagement
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, string filePath = null)
 		{
 			HdPubKeys = new List<HdPubKey>();
+			HdPubKeyScriptBytes = new List<byte[]>();
+			ScriptHdPubkeyMap = new Dictionary<Script, HdPubKey>();
 			HdPubKeysLock = new object();
+			HdPubKeyScriptBytesLock = new object();
+			ScriptHdPubkeyMapLock = new object();
 
 			if (password is null)
 			{
@@ -120,7 +136,7 @@ namespace WalletWasabi.KeyManagement
 			lock (ToFileLock)
 			{
 				string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-				IoHelpers.SafeWriteAllText(filePath, jsonString, Encoding.UTF8);
+				File.WriteAllText(filePath, jsonString, Encoding.UTF8);
 			}
 		}
 
@@ -136,6 +152,18 @@ namespace WalletWasabi.KeyManagement
 			string jsonString = File.ReadAllText(safestFile, Encoding.UTF8);
 			var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
 			km.SetFilePath(filePath);
+			lock (km.HdPubKeyScriptBytesLock)
+			{
+				km.HdPubKeyScriptBytes.AddRange(km.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()));
+			}
+
+			lock (km.ScriptHdPubkeyMapLock)
+			{
+				foreach (var key in km.GetKeys())
+				{
+					km.ScriptHdPubkeyMap.Add(key.GetP2wpkhScript(), key);
+				}
+			}
 			return km;
 		}
 
@@ -182,6 +210,15 @@ namespace WalletWasabi.KeyManagement
 
 				var hdPubKey = new HdPubKey(pubKey, fullPath, label, keyState);
 				HdPubKeys.Add(hdPubKey);
+				lock (HdPubKeyScriptBytesLock)
+				{
+					HdPubKeyScriptBytes.Add(hdPubKey.GetP2wpkhScript().ToCompressedBytes());
+				}
+
+				lock (ScriptHdPubkeyMapLock)
+				{
+					ScriptHdPubkeyMap.Add(hdPubKey.GetP2wpkhScript(), hdPubKey);
+				}
 
 				if (toFile)
 				{
@@ -202,7 +239,7 @@ namespace WalletWasabi.KeyManagement
 				{
 					return HdPubKeys;
 				}
-				if (!(keyState is null) && isInternal is null)
+				if (isInternal is null && !(keyState is null))
 				{
 					return HdPubKeys.Where(x => x.KeyState == keyState);
 				}
@@ -210,11 +247,34 @@ namespace WalletWasabi.KeyManagement
 				{
 					return HdPubKeys.Where(x => x.IsInternal() == isInternal);
 				}
-				return HdPubKeys.Where(x => x.KeyState == keyState && x.IsInternal() == isInternal);
+				return HdPubKeys.Where(x => x.IsInternal() == isInternal && x.KeyState == keyState);
+			}
+		}
+
+		public IEnumerable<byte[]> GetPubKeyScriptBytes()
+		{
+			lock (HdPubKeyScriptBytesLock)
+			{
+				return HdPubKeyScriptBytes;
+			}
+		}
+
+		public HdPubKey GetKeyForScriptPubKey(Script scriptPubkey)
+		{
+			lock (ScriptHdPubkeyMapLock)
+			{
+				if (ScriptHdPubkeyMap.TryGetValue(scriptPubkey, out var key))
+					return key;
+				return default;
 			}
 		}
 
 		public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
+		{
+			return GetSecretsAndPubKeyPairs(password, scripts).Select(x => x.secret);
+		}
+
+		public IEnumerable<(ExtKey secret, HdPubKey pubKey)> GetSecretsAndPubKeyPairs(string password, params Script[] scripts)
 		{
 			Key secret;
 			try
@@ -226,7 +286,7 @@ namespace WalletWasabi.KeyManagement
 				throw new SecurityException("Invalid password.", ex);
 			}
 			var extKey = new ExtKey(secret, ChainCode);
-			var extKeys = new List<ExtKey>();
+			var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
 
 			lock (HdPubKeysLock)
 			{
@@ -237,9 +297,9 @@ namespace WalletWasabi.KeyManagement
 					|| scripts.Contains(x.GetP2pkScript())))
 				{
 					ExtKey ek = extKey.Derive(key.FullKeyPath);
-					extKeys.Add(ek);
+					extKeysAndPubs.Add((ek, key));
 				}
-				return extKeys;
+				return extKeysAndPubs;
 			}
 		}
 

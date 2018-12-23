@@ -8,6 +8,29 @@ namespace WalletWasabi.Helpers
 {
 	public static class EnvironmentHelpers
 	{
+		private const int ProcessorCountRefreshIntervalMs = 30000;
+
+		private static volatile int _processorCount;
+		private static volatile int _lastProcessorCountRefreshTicks;
+
+		/// <summary>
+		/// https://github.com/i3arnon/ConcurrentHashSet/blob/master/src/ConcurrentHashSet/PlatformHelper.cs
+		/// </summary>
+		internal static int ProcessorCount
+		{
+			get
+			{
+				var now = Environment.TickCount;
+				if (_processorCount == 0 || now - _lastProcessorCountRefreshTicks >= ProcessorCountRefreshIntervalMs)
+				{
+					_processorCount = Environment.ProcessorCount;
+					_lastProcessorCountRefreshTicks = now;
+				}
+
+				return _processorCount;
+			}
+		}
+
 		public static string GetDataDir(string appName)
 		{
 			string directory = null;
@@ -56,7 +79,7 @@ namespace WalletWasabi.Helpers
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
-			var process = new Process
+			using (var process = new Process
 			{
 				StartInfo = new ProcessStartInfo
 				{
@@ -67,16 +90,17 @@ namespace WalletWasabi.Helpers
 					FileName = "/bin/sh",
 					Arguments = $"-c \"{escapedArgs}\""
 				}
-			};
-
-			process.Start();
-
-			if (waitForExit)
+			})
 			{
-				process.WaitForExit();
-				if (process.ExitCode != 0)
+				process.Start();
+
+				if (waitForExit)
 				{
-					Logger.LogError($"{nameof(ShellExec)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.", nameof(EnvironmentHelpers));
+					process.WaitForExit();
+					if (process.ExitCode != 0)
+					{
+						Logger.LogError($"{nameof(ShellExec)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.", nameof(EnvironmentHelpers));
+					}
 				}
 			}
 		}

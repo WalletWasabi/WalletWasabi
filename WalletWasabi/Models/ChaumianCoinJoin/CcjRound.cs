@@ -1,5 +1,6 @@
 ﻿using NBitcoin;
 using NBitcoin.RPC;
+using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -14,10 +15,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 {
 	public class CcjRound
 	{
-		private static long RoundCount = 0; // First time initializes (so the first constructor will increment it and we'll start from 1.)
+		public static long RoundCount;
 		public long RoundId { get; }
 
 		public RPCClient RpcClient { get; }
+		public Network Network => RpcClient.Network;
 
 		public Money Denomination { get; }
 		public int ConfirmationTarget { get; }
@@ -63,13 +65,18 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			private set
 			{
+				var invoke = false;
 				lock (PhaseLock)
 				{
 					if (_phase != value)
 					{
 						_phase = value;
-						PhaseChanged?.Invoke(this, value);
+						invoke = true;
 					}
+				}
+				if (invoke)
+				{
+					PhaseChanged?.Invoke(this, value);
 				}
 			}
 		}
@@ -92,18 +99,25 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			private set
 			{
+				var invoke = false;
 				lock (StatusLock)
 				{
 					if (_status != value)
 					{
 						_status = value;
-						StatusChanged?.Invoke(this, value);
+						invoke = true;
 					}
+				}
+				if (invoke)
+				{
+					StatusChanged?.Invoke(this, value);
 				}
 			}
 		}
 
 		public event EventHandler<CcjRoundStatus> StatusChanged;
+
+		public event EventHandler<Transaction> CoinJoinBroadcasted;
 
 		public TimeSpan AliceRegistrationTimeout => ConnectionConfirmationTimeout;
 
@@ -154,7 +168,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Logger.LogInfo<CcjRound>($"New round ({RoundId}) is created.\n\t" +
 					$"{nameof(Denomination)}: {Denomination.ToString(false, true)} BTC.\n\t" +
 					$"{nameof(ConfirmationTarget)}: {ConfirmationTarget}.\n\t" +
-					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}.\n\t" +
+					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
 					$"{nameof(AnonymitySet)}: {AnonymitySet}.");
 			}
 			catch (Exception ex)
@@ -165,7 +179,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public async Task ExecuteNextPhaseAsync(CcjRoundPhase expectedPhase)
+		public async Task ExecuteNextPhaseAsync(CcjRoundPhase expectedPhase, Money feePerInputs = null, Money feePerOutputs = null)
 		{
 			using (await RoundSynchronizerLock.LockAsync())
 			{
@@ -180,33 +194,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							return;
 						}
 
-						// Calculate fees
-						var inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
-						var outputSizeInBytes = Constants.OutputSizeInBytes;
-						try
+						// Calculate fees.
+						if (feePerInputs is null || feePerOutputs is null)
 						{
-							var estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
-							if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
-							var feeRate = estimateSmartFeeResponse.FeeRate;
-							Money feePerBytes = (feeRate.FeePerK / 1000);
-
-							// Make sure min relay fee (1000 sat) is hit.
-							FeePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
-							FeePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
+							(Money feePerInputs, Money feePerOutputs) fees = await CalculateFeesAsync(RpcClient, ConfirmationTarget);
+							FeePerInputs = feePerInputs ?? fees.feePerInputs;
+							FeePerOutputs = feePerOutputs ?? fees.feePerOutputs;
 						}
-						catch (Exception ex)
+						else
 						{
-							// If fee hasn't been initialized once, fall back.
-							if (FeePerInputs is null || FeePerOutputs is null)
-							{
-								var feePerBytes = new Money(100); // 100 satoshi per byte
-
-								// Make sure min relay fee (1000 sat) is hit.
-								FeePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
-								FeePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
-							}
-
-							Logger.LogError<CcjRound>(ex);
+							FeePerInputs = feePerInputs;
+							FeePerOutputs = feePerOutputs;
 						}
 
 						Status = CcjRoundStatus.Running;
@@ -222,7 +220,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							return;
 						}
 
-						RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(y => y.OutPoint));
+						RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(y => y.Outpoint));
 
 						Phase = CcjRoundPhase.ConnectionConfirmation;
 					}
@@ -246,19 +244,19 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 						// 1. Set new denomination: minor optimization.
 						Money newDenomination = Alices.Min(x => x.OutputSumWithoutCoordinatorFeeAndDenomination);
-						var transaction = RpcClient.Network.Consensus.ConsensusFactory.CreateTransaction();
+						var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
 
 						// 2. Add Bob outputs.
 						foreach (Bob bob in Bobs)
 						{
-							transaction.AddOutput(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
+							transaction.Outputs.Add(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 						}
 
-						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(RpcClient.Network);
+						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(Network);
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
 						for (int i = 0; i < Alices.Count - Bobs.Count; i++)
 						{
-							transaction.AddOutput(newDenomination, coordinatorAddress);
+							transaction.Outputs.Add(newDenomination, coordinatorAddress);
 						}
 
 						// 4. Start building Coordinator fee.
@@ -271,8 +269,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						{
 							foreach (var input in alice.Inputs)
 							{
-								transaction.AddInput(new TxIn(input.OutPoint));
-								spentCoins.Add(new Coin(input.OutPoint, input.Output));
+								transaction.Inputs.Add(new TxIn(input.Outpoint));
+								spentCoins.Add(input);
 							}
 							Money changeAmount = alice.GetChangeAmount(newDenomination, coordinatorFeePerAlice);
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
@@ -286,7 +284,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								}
 								else
 								{
-									transaction.AddOutput(changeAmount, alice.ChangeOutputAddress.ScriptPubKey);
+									transaction.Outputs.Add(changeAmount, alice.ChangeOutputAddress.ScriptPubKey);
 								}
 							}
 							else
@@ -298,14 +296,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
 						if (coordinatorFee > Money.Coins(0.0003m))
 						{
-							transaction.AddOutput(coordinatorFee, coordinatorAddress);
+							transaction.Outputs.Add(coordinatorFee, coordinatorAddress);
 						}
 
 						// 7. Create the unsigned transaction.
-						var builder = new TransactionBuilder();
+						var builder = Network.CreateTransactionBuilder();
 						UnsignedCoinJoin = builder
 							.ContinueToBuild(transaction)
-							.Shuffle()
+							.AddCoins(spentCoins) // It makes sure the UnsignedCoinJoin goes through TransactionBuilder optimizations.
 							.BuildTransaction(false);
 
 						// 8. Try optimize fees.
@@ -319,7 +317,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							FeeRate currentFeeRate = fee is null ? null : new FeeRate(fee, estimatedFinalTxSize);
 
 							// 8.2. Get the most optimal FeeRate.
-							EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true);
+							EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
 							if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
 							FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
@@ -363,7 +361,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							Logger.LogWarning<CcjRound>(ex);
 						}
 
-						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), RpcClient.Network);
+						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
 
 						Phase = CcjRoundPhase.Signing;
 					}
@@ -430,7 +428,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									{
 										// Only abort if less than two one Alice is registered.
 										// Don't ban anyone, it's ok if they lost connection.
-										await RemoveAlicesIfInputsSpentAsync();
+										await RemoveAlicesIfAnInputRefusedByMempoolAsync();
 										int aliceCountAfterInputRegistrationTimeout = CountAlices();
 										if (aliceCountAfterInputRegistrationTimeout < 2)
 										{
@@ -454,13 +452,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										// THEN connection confirmation will go with 2 alices in every round
 										// Therefore Alices those didn't confirm, nor requested dsconnection should be banned:
 										IEnumerable<Alice> alicesToBan1 = GetAlicesBy(AliceState.InputsRegistered);
-										IEnumerable<Alice> alicesToBan2 = await RemoveAlicesIfInputsSpentAsync(); // So ban only those who confirmed participation, yet spent their inputs.
+										IEnumerable<Alice> alicesToBan2 = await RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
-										IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.OutPoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.OutPoint)).Distinct();
+										IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
 
 										if (inputsToBan.Any())
 										{
-											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, inputsToBan.ToArray());
+											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, inputsToBan.ToArray());
 										}
 
 										RemoveAlicesBy(alicesToBan1.Select(x => x.UniqueId).Concat(alicesToBan2.Select(y => y.UniqueId)).Distinct().ToArray());
@@ -497,13 +495,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 											{
 												if (alice.State != AliceState.SignedCoinJoin)
 												{
-													outpointsToBan.AddRange(alice.Inputs.Select(x => x.OutPoint));
+													outpointsToBan.AddRange(alice.Inputs.Select(x => x.Outpoint));
 												}
 											}
 										}
 										if (outpointsToBan.Any())
 										{
-											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, outpointsToBan.ToArray());
+											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, outpointsToBan.ToArray());
 										}
 										Abort(nameof(CcjRound), "Not all Alices signed.");
 									}
@@ -520,6 +518,44 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 			});
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+		}
+
+		public static async Task<(Money feePerInputs, Money feePerOutputs)> CalculateFeesAsync(RPCClient rpc, int confirmationTarget)
+		{
+			Guard.NotNull(nameof(rpc), rpc);
+			Guard.NotNull(nameof(confirmationTarget), confirmationTarget);
+
+			Money feePerInputs = null;
+			Money feePerOutputs = null;
+			var inputSizeInBytes = (int)Math.Ceiling(((3 * Constants.P2wpkhInputSizeInBytes) + Constants.P2pkhInputSizeInBytes) / 4m);
+			var outputSizeInBytes = Constants.OutputSizeInBytes;
+			try
+			{
+				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
+				if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
+				var feeRate = estimateSmartFeeResponse.FeeRate;
+				Money feePerBytes = (feeRate.FeePerK / 1000);
+
+				// Make sure min relay fee (1000 sat) is hit.
+				feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
+				feePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
+			}
+			catch (Exception ex)
+			{
+				// If fee hasn't been initialized once, fall back.
+				if (feePerInputs is null || feePerOutputs is null)
+				{
+					var feePerBytes = new Money(100); // 100 satoshi per byte
+
+					// Make sure min relay fee (1000 sat) is hit.
+					feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
+					feePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
+				}
+
+				Logger.LogError<CcjRound>(ex);
+			}
+
+			return (feePerInputs, feePerOutputs);
 		}
 
 		public void Succeed(bool syncLock = true)
@@ -610,7 +646,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				foreach (Alice alice in Alices)
 				{
-					if (alice.Inputs.Any(x => x.OutPoint == input))
+					if (alice.Inputs.Any(x => x.Outpoint == input))
 					{
 						alices.Add(alice);
 					}
@@ -715,16 +751,16 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			using (await RoundSynchronizerLock.LockAsync())
 			{
 				// Check if fully signed.
-				if (SignedCoinJoin.Inputs.All(x => x.HasWitness()))
+				if (SignedCoinJoin.Inputs.All(x => x.HasWitScript()))
 				{
 					Logger.LogInfo<CcjRound>($"Round ({RoundId}): Trying to broadcast coinjoin.");
 
 					try
 					{
-						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs.Select(y => new Coin(y.OutPoint, y.Output))).ToArray();
+						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs).ToArray();
 						Money networkFee = SignedCoinJoin.GetFee(spentCoins);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(RpcClient.Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
 						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte.");
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
@@ -737,6 +773,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						}
 
 						await RpcClient.SendRawTransactionAsync(SignedCoinJoin);
+						CoinJoinBroadcasted?.Invoke(this, SignedCoinJoin);
 						Succeed(syncLock: false);
 						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
 					}
@@ -815,9 +852,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			return numberOfRemovedAlices;
 		}
 
-		public async Task<IEnumerable<Alice>> RemoveAlicesIfInputsSpentAsync()
+		public async Task<IEnumerable<Alice>> RemoveAlicesIfAnInputRefusedByMempoolAsync()
 		{
 			var alicesRemoved = new List<Alice>();
+			var key = new Key();
 
 			using (RoundSynchronizerLock.Lock())
 			{
@@ -828,12 +866,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				foreach (Alice alice in Alices)
 				{
-					foreach (OutPoint input in alice.Inputs.Select(y => y.OutPoint))
+					foreach (Coin input in alice.Inputs)
 					{
-						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true);
+						// Check if mempool would accept a fake transaction created with the registered inputs.
+						// This will catch ascendant/descendant count and size limits for example.
+						var result = await RpcClient.TestMempoolAcceptAsync(input);
 
-						// Check if inputs are unspent.
-						if (getTxOutResponse is null)
+						if (!result.accept)
 						{
 							alicesRemoved.Add(alice);
 							Alices.Remove(alice);
@@ -880,7 +919,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
 				}
-				numberOfRemovedAlices = Alices.RemoveAll(x => x.Inputs.Any(y => y.OutPoint == input));
+				numberOfRemovedAlices = Alices.RemoveAll(x => x.Inputs.Any(y => y.Outpoint == input));
 			}
 
 			Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");

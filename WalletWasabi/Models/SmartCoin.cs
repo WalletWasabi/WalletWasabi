@@ -1,9 +1,9 @@
-﻿using WalletWasabi.JsonConverters;
-using WalletWasabi.Helpers;
-using NBitcoin;
+﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
+using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Models
 {
@@ -13,52 +13,126 @@ namespace WalletWasabi.Models
 	[JsonObject(MemberSerialization.OptIn)]
 	public class SmartCoin : IEquatable<SmartCoin>, INotifyPropertyChanged
 	{
+		#region Events
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		private void OnPropertyChanged(string propertyName)
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		#endregion Events
+
+		#region Fields
+
+		private uint256 _transactionId;
+		private uint _index;
+		private Script _scriptPubKey;
+		private Money _amount;
 		private Height _height;
 		private string _label;
+		private TxoRef[] _spentOutputs;
+		private bool _rbf;
+		private int _mixin;
 		private uint256 _spenderTransactionId;
 		private bool _coinJoinInProgress;
+		private DateTimeOffset? _bannedUntilUtc;
+		private bool _spentAccordingToBackend;
 
-		[JsonProperty(Order = 1)]
+		private ISecret _secret;
+
+		private bool _confirmed;
+		private bool _spentOrCoinJoinInProgress;
+		private bool _unspent;
+		private bool _isBanned;
+		private int _anonymitySet;
+
+		#endregion Fields
+
+		#region Properties
+
+		#region SerializableProperties
+
+		[JsonProperty]
 		[JsonConverter(typeof(Uint256JsonConverter))]
-		public uint256 TransactionId { get; }
-
-		[JsonProperty(Order = 2)]
-		public uint Index { get; }
-
-		[JsonProperty(Order = 3)]
-		[JsonConverter(typeof(ScriptJsonConverter))]
-		public Script ScriptPubKey { get; }
-
-		[JsonProperty(Order = 4)]
-		[JsonConverter(typeof(MoneyBtcJsonConverter))]
-		public Money Amount { get; }
-
-		[JsonProperty(Order = 5)]
-		[JsonConverter(typeof(HeightJsonConverter))]
-		public Height Height
+		public uint256 TransactionId
 		{
-			get { return _height; }
+			get => _transactionId;
 			set
 			{
-				if (value != _height)
+				if (value != _transactionId)
 				{
-					var rememberConfirmed = Confirmed;
-
-					_height = value;
-					OnPropertyChanged(nameof(Height));
-
-					if (rememberConfirmed != Confirmed)
-					{
-						OnPropertyChanged(nameof(Confirmed));
-					}
+					_transactionId = value;
+					OnPropertyChanged(nameof(TransactionId));
 				}
 			}
 		}
 
-		[JsonProperty(Order = 6)]
+		[JsonProperty]
+		public uint Index
+		{
+			get => _index;
+			set
+			{
+				if (value != _index)
+				{
+					_index = value;
+					OnPropertyChanged(nameof(Index));
+				}
+			}
+		}
+
+		[JsonProperty]
+		[JsonConverter(typeof(ScriptJsonConverter))]
+		public Script ScriptPubKey
+		{
+			get => _scriptPubKey;
+			set
+			{
+				if (value != _scriptPubKey)
+				{
+					_scriptPubKey = value;
+					OnPropertyChanged(nameof(ScriptPubKey));
+				}
+			}
+		}
+
+		[JsonProperty]
+		[JsonConverter(typeof(MoneyBtcJsonConverter))]
+		public Money Amount
+		{
+			get => _amount;
+			set
+			{
+				if (value != _amount)
+				{
+					_amount = value;
+					OnPropertyChanged(nameof(Amount));
+				}
+			}
+		}
+
+		[JsonProperty]
+		[JsonConverter(typeof(HeightJsonConverter))]
+		public Height Height
+		{
+			get => _height;
+			set
+			{
+				if (value != _height)
+				{
+					_height = value;
+					OnPropertyChanged(nameof(Height));
+					SetConfirmed();
+				}
+			}
+		}
+
+		[JsonProperty]
 		public string Label
 		{
-			get { return _label; }
+			get => _label;
 			set
 			{
 				if (value != _label)
@@ -69,42 +143,71 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		[JsonProperty(Order = 7)]
-		[JsonConverter(typeof(Uint256JsonConverter))]
-		public uint256 SpenderTransactionId
+		[JsonProperty]
+		public TxoRef[] SpentOutputs
 		{
-			get { return _spenderTransactionId; }
+			get => _spentOutputs;
 			set
 			{
-				if (value != _spenderTransactionId)
+				if (value != _spentOutputs)
 				{
-					var rememberSpentOrCoinJoinInProgress = SpentOrCoinJoinInProgress;
-					var rememberUnspent = Unspent;
-
-					_spenderTransactionId = value;
-					OnPropertyChanged(nameof(SpenderTransactionId));
-
-					if (rememberUnspent != Unspent)
-					{
-						OnPropertyChanged(nameof(Unspent));
-					}
-
-					if (rememberSpentOrCoinJoinInProgress != SpentOrCoinJoinInProgress)
-					{
-						OnPropertyChanged(nameof(SpentOrCoinJoinInProgress));
-					}
+					_spentOutputs = value;
+					OnPropertyChanged(nameof(SpentOutputs));
 				}
 			}
 		}
 
-		[JsonProperty(Order = 8)]
-		public TxoRef[] SpentOutputs { get; }
-
-		[JsonProperty(Order = 9)]
+		[JsonProperty]
 		[JsonConverter(typeof(FunnyBoolJsonConverter))]
-		public bool RBF { get; }
+		public bool RBF
+		{
+			get => _rbf;
+			set
+			{
+				if (value != _rbf)
+				{
+					_rbf = value;
+					OnPropertyChanged(nameof(RBF));
+				}
+			}
+		}
 
-		[JsonProperty(Order = 10)]
+		/// <summary>
+		/// AnonymitySet - 1
+		/// </summary>
+		[JsonProperty]
+		public int Mixin
+		{
+			get => _mixin;
+			set
+			{
+				if (value != _mixin)
+				{
+					_mixin = value;
+					OnPropertyChanged(nameof(Mixin));
+					SetAnonymitySet();
+				}
+			}
+		}
+
+		[JsonProperty]
+		[JsonConverter(typeof(Uint256JsonConverter))]
+		public uint256 SpenderTransactionId
+		{
+			get => _spenderTransactionId;
+			set
+			{
+				if (value != _spenderTransactionId)
+				{
+					_spenderTransactionId = value;
+					OnPropertyChanged(nameof(SpenderTransactionId));
+
+					SetUnspent();
+				}
+			}
+		}
+
+		[JsonProperty]
 		[JsonConverter(typeof(FunnyBoolJsonConverter))]
 		public bool CoinJoinInProgress
 		{
@@ -113,79 +216,221 @@ namespace WalletWasabi.Models
 			{
 				if (_coinJoinInProgress != value)
 				{
-					var rememberSpentOrCoinJoinInProgress = SpentOrCoinJoinInProgress;
-
 					_coinJoinInProgress = value;
 					OnPropertyChanged(nameof(CoinJoinInProgress));
+					SetSpentOrCoinJoinInProgress();
+				}
+			}
+		}
 
-					if (rememberSpentOrCoinJoinInProgress != SpentOrCoinJoinInProgress)
-					{
-						OnPropertyChanged(nameof(SpentOrCoinJoinInProgress));
-					}
+		[JsonProperty]
+		public DateTimeOffset? BannedUntilUtc
+		{
+			get => _bannedUntilUtc;
+			set
+			{
+				// ToDo: IsBanned doesn't get notified when it gets unbanned.
+				if (_bannedUntilUtc != value)
+				{
+					_bannedUntilUtc = value;
+					OnPropertyChanged(nameof(BannedUntilUtc));
+					SetIsBanned();
 				}
 			}
 		}
 
 		/// <summary>
-		/// AnonymitySet - 1
+		/// If the backend thinks it's spent, but Wasabi doesn't yet know.
 		/// </summary>
-		[JsonProperty(Order = 11)]
-		public int Mixin { get; }
+		[JsonProperty]
+		public bool SpentAccordingToBackend
+		{
+			get { return _spentAccordingToBackend; }
+			set
+			{
+				if (value != _spentAccordingToBackend)
+				{
+					_spentAccordingToBackend = value;
+					OnPropertyChanged(nameof(SpentAccordingToBackend));
+				}
+			}
+		}
 
-		public bool SpentOrCoinJoinInProgress => !(SpenderTransactionId is null) || CoinJoinInProgress;
-		public bool Unspent => SpenderTransactionId is null;
-		public bool Confirmed => Height != Height.MemPool && Height != Height.Unknown;
+		#endregion SerializableProperties
+
+		#region NonSerializableProperties
+
+		/// <summary>
+		/// It's a secret, so it's usually going to be null. Don't use it.
+		/// This will not get serialized, because that's a security risk.
+		/// </summary>
+		public ISecret Secret
+		{
+			get => _secret;
+			set
+			{
+				if (value != _secret)
+				{
+					_secret = value;
+					OnPropertyChanged(nameof(Secret));
+				}
+			}
+		}
+
+		#endregion NonSerializableProperties
+
+		#region DependentProperties
+
+		public bool Confirmed
+		{
+			get => _confirmed;
+			private set
+			{
+				if (value != _confirmed)
+				{
+					_confirmed = value;
+					OnPropertyChanged(nameof(Confirmed));
+				}
+			}
+		}
+
+		public bool SpentOrCoinJoinInProgress
+		{
+			get => _spentOrCoinJoinInProgress;
+			private set
+			{
+				if (value != _spentOrCoinJoinInProgress)
+				{
+					_spentOrCoinJoinInProgress = value;
+					OnPropertyChanged(nameof(SpentOrCoinJoinInProgress));
+				}
+			}
+		}
+
+		public bool Unspent
+		{
+			get => _unspent;
+			private set
+			{
+				if (value != _unspent)
+				{
+					_unspent = value;
+					OnPropertyChanged(nameof(Unspent));
+
+					SetSpentOrCoinJoinInProgress();
+				}
+			}
+		}
+
+		public bool IsBanned
+		{
+			get => _isBanned;
+			private set
+			{
+				if (value != _isBanned)
+				{
+					_isBanned = value;
+					OnPropertyChanged(nameof(IsBanned));
+				}
+			}
+		}
 
 		/// <summary>
 		/// Mixin + 1
 		/// </summary>
-		public int AnonymitySet => Mixin + 1;
+		public int AnonymitySet
+		{
+			get => _anonymitySet;
+			private set
+			{
+				if (value != _anonymitySet)
+				{
+					_anonymitySet = value;
+					OnPropertyChanged(nameof(AnonymitySet));
+				}
+			}
+		}
 
-		/// <summary>
-		/// It's a secret, so it's usually going to be null. Don't use it.
-		/// </summary>
-		public ISecret Secret { get; set; }
+		#endregion DependentProperties
+
+		#region PropertySetters
+
+		private void SetConfirmed()
+		{
+			Confirmed = Height != Height.MemPool && Height != Height.Unknown;
+		}
+
+		private void SetAnonymitySet()
+		{
+			AnonymitySet = Mixin + 1;
+		}
+
+		private void SetUnspent()
+		{
+			Unspent = SpenderTransactionId is null;
+		}
+
+		private void SetIsBanned()
+		{
+			IsBanned = BannedUntilUtc != null && BannedUntilUtc > DateTimeOffset.UtcNow;
+		}
+
+		private void SetSpentOrCoinJoinInProgress()
+		{
+			SpentOrCoinJoinInProgress = !Unspent || CoinJoinInProgress;
+		}
+
+		#endregion PropertySetters
+
+		#endregion Properties
+
+		#region Constructors
 
 		[JsonConstructor]
-		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false)
+		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false)
+		{
+			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, rbf, mixin, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend);
+		}
+
+		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false)
+		{
+			OutPoint outpoint = Guard.NotNull($"{coin}.{coin?.Outpoint}", coin?.Outpoint);
+			uint256 transactionId = outpoint.Hash;
+			uint index = outpoint.N;
+			Script scriptPubKey = Guard.NotNull($"{coin}.{coin?.ScriptPubKey}", coin?.ScriptPubKey);
+			Money amount = Guard.NotNull($"{coin}.{coin?.Amount}", coin?.Amount);
+
+			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, rbf, mixin, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend);
+		}
+
+		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend)
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
 			ScriptPubKey = Guard.NotNull(nameof(scriptPubKey), scriptPubKey);
 			Amount = Guard.NotNull(nameof(amount), amount);
-			SpentOutputs = Guard.NotNull(nameof(spentOutputs), spentOutputs);
-			Mixin = Guard.InRangeAndNotNull(nameof(mixin), mixin, 0, int.MaxValue);
 			Height = height;
 			Label = Guard.Correct(label);
-			SpenderTransactionId = spenderTransactionId;
+			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
 			RBF = rbf;
-			CoinJoinInProgress = coinJoinInProgress;
-			Secret = null;
-		}
-
-		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false)
-		{
-			Guard.NotNull(nameof(coin), coin);
-			TransactionId = coin.Outpoint.Hash;
-			Index = coin.Outpoint.N;
-			ScriptPubKey = coin.ScriptPubKey;
-			Amount = coin.Amount;
-			SpentOutputs = Guard.NotNull(nameof(spentOutputs), spentOutputs);
 			Mixin = Guard.InRangeAndNotNull(nameof(mixin), mixin, 0, int.MaxValue);
-			Height = height;
-			Label = Guard.Correct(label);
+
 			SpenderTransactionId = spenderTransactionId;
-			RBF = rbf;
+
 			CoinJoinInProgress = coinJoinInProgress;
-			Secret = null;
+			BannedUntilUtc = bannedUntilUtc;
+			SpentAccordingToBackend = spentAccordingToBackend;
+
+			SetConfirmed();
+			SetAnonymitySet();
+			SetUnspent();
+			SetIsBanned();
+			SetSpentOrCoinJoinInProgress();
 		}
 
-		public event PropertyChangedEventHandler PropertyChanged;
+		#endregion Constructors
 
-		private void OnPropertyChanged(string propertyName)
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
+		#region Methods
 
 		public Coin GetCoin()
 		{
@@ -203,6 +448,8 @@ namespace WalletWasabi.Models
 		}
 
 		public bool HasLabel() => !string.IsNullOrWhiteSpace(Label);
+
+		#endregion Methods
 
 		#region EqualityAndComparison
 

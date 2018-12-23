@@ -6,10 +6,12 @@ using NBitcoin.Protocol.Behaviors;
 using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -65,7 +67,7 @@ namespace WalletWasabi.Gui
 		public static AddressManager AddressManager { get; private set; }
 		public static MemPoolService MemPoolService { get; private set; }
 		public static NodesGroup Nodes { get; private set; }
-		public static IndexDownloader IndexDownloader { get; private set; }
+		public static WasabiSynchronizer Synchronizer { get; private set; }
 		public static CcjClient ChaumianClient { get; private set; }
 		public static WalletService WalletService { get; private set; }
 		public static Node RegTestMemPoolServingNode { get; private set; }
@@ -73,10 +75,16 @@ namespace WalletWasabi.Gui
 		public static TorProcessManager TorManager { get; private set; }
 
 		public static Config Config { get; private set; }
+		public static UiConfig UiConfig { get; private set; }
 
 		public static void InitializeConfig(Config config)
 		{
 			Config = Guard.NotNull(nameof(config), config);
+		}
+
+		public static void InitializeUiConfig(UiConfig uiConfig)
+		{
+			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
 
 		private static long _triedDesperateDequeuing = 0;
@@ -134,10 +142,13 @@ namespace WalletWasabi.Gui
 			TorManager = null;
 
 			TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
-			TorManager.Start(false);
+			TorManager.Start(false, DataDir);
+			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
+			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
 
 			Logger.LogInfo<TorProcessManager>($"{nameof(TorProcessManager)} is initialized.");
 
+			var needsToDiscoverPeers = true;
 			if (Network == Network.RegTest)
 			{
 				AddressManager = new AddressManager();
@@ -148,6 +159,7 @@ namespace WalletWasabi.Gui
 				try
 				{
 					AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
+					needsToDiscoverPeers = AddressManager.Count < 200;
 					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
@@ -162,40 +174,59 @@ namespace WalletWasabi.Gui
 					Logger.LogTrace<AddressManager>(ex);
 					AddressManager = new AddressManager();
 				}
+				catch (OverflowException ex)
+				{
+					// https://github.com/zkSNACKs/WalletWasabi/issues/712
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
+					File.Delete(AddressManagerFilePath);
+					Logger.LogTrace<AddressManager>(ex);
+					AddressManager = new AddressManager();
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+				}
+				catch (FormatException ex)
+				{
+					// https://github.com/zkSNACKs/WalletWasabi/issues/880
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
+					File.Delete(AddressManagerFilePath);
+					Logger.LogTrace<AddressManager>(ex);
+					AddressManager = new AddressManager();
+					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+				}
 			}
 
-			connectionParameters.TemplateBehaviors.Add(new AddressManagerBehavior(AddressManager));
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager);
+			addressManagerBehavior.Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None;
+			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 			MemPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
 
 			if (Network == Network.RegTest)
 			{
-				Nodes = new NodesGroup(Network,
-					requirements: new NodeRequirement
-					{
-						RequiredServices = NodeServices.Network,
-						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION
-					});
-				Nodes.ConnectedNodes.Add(Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444)));
+				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
+				try
+				{
+					Node node = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					Nodes.ConnectedNodes.Add(node);
 
-				RegTestMemPoolServingNode = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
-				RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
+					RegTestMemPoolServingNode = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+
+					RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
+				}
+				catch (SocketException ex)
+				{
+					Logger.LogError(ex, nameof(Global));
+				}
 			}
 			else
 			{
-				Nodes = new NodesGroup(Network, connectionParameters,
-					new NodeRequirement
-					{
-						RequiredServices = NodeServices.Network,
-						MinVersion = Constants.ProtocolVersion_WITNESS_VERSION
-					});
+				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 
 				RegTestMemPoolServingNode = null;
 			}
 
-			IndexDownloader = new IndexDownloader(Network, IndexFilePath, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
 
-			UpdateChecker = new UpdateChecker(IndexDownloader.WasabiClient);
+			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
 
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
@@ -206,7 +237,12 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
 			}
 
-			IndexDownloader.Synchronize(requestInterval: TimeSpan.FromSeconds(21));
+			var requestInterval = TimeSpan.FromSeconds(30);
+			if (Network == Network.RegTest)
+			{
+				requestInterval = TimeSpan.FromSeconds(5);
+			}
+			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), 1000);
 			Logger.LogInfo("Start synchronizing filters...");
 		}
 
@@ -214,10 +250,10 @@ namespace WalletWasabi.Gui
 
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
-			ChaumianClient = new CcjClient(Network, BlindingPubKey, keyManager, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
-			WalletService = new WalletService(keyManager, IndexDownloader, ChaumianClient, MemPoolService, Nodes, DataDir);
+			ChaumianClient = new CcjClient(Synchronizer, Network, BlindingPubKey, keyManager, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			WalletService = new WalletService(keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir);
 
-			ChaumianClient.Start(0, 7);
+			ChaumianClient.Start();
 			Logger.LogInfo("Start Chaumian CoinJoin service...");
 
 			using (CancelWalletServiceInitialization = new CancellationTokenSource())
@@ -227,35 +263,41 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("WalletService started.");
 			}
 			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
-			WalletService.CoinReceived += OnCoinReceived;
+			WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
 		}
 
-		private static void OnCoinReceived(object sender, SmartCoin coin)
+		private static void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				if (e.Action == NotifyCollectionChangedAction.Add)
 				{
-					Process.Start(new ProcessStartInfo
+					foreach (SmartCoin coin in e.NewItems)
 					{
-						FileName = "notify-send",
-						Arguments = $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
-						CreateNoWindow = true
-					});
+						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+						{
+							Process.Start(new ProcessStartInfo
+							{
+								FileName = "notify-send",
+								Arguments = $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
+								CreateNoWindow = true
+							});
+						}
+						else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+						{
+							Process.Start(new ProcessStartInfo
+							{
+								FileName = "osascript",
+								Arguments = $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"",
+								CreateNoWindow = true
+							});
+						}
+						//else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
+						//{
+						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
+						//}
+					}
 				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					Process.Start(new ProcessStartInfo
-					{
-						FileName = "osascript",
-						Arguments = $"-e display notification \"Received {coin.Amount.ToString(false, true)} BTC\" with title \"Wasabi\"",
-						CreateNoWindow = true
-					});
-				}
-				//else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
-				//{
-				//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
-				//}
 			}
 			catch (Exception ex)
 			{
@@ -267,7 +309,7 @@ namespace WalletWasabi.Gui
 		{
 			if (WalletService != null)
 			{
-				WalletService.CoinReceived -= OnCoinReceived;
+				WalletService.Coins.CollectionChanged -= Coins_CollectionChanged;
 			}
 			CancelWalletServiceInitialization?.Cancel();
 			CancelWalletServiceInitialization = null;
@@ -296,25 +338,35 @@ namespace WalletWasabi.Gui
 
 		public static async Task DisposeAsync()
 		{
-			await DisposeInWalletDependentServicesAsync();
-
-			UpdateChecker?.Dispose();
-			Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
-
-			IndexDownloader?.Dispose();
-			Logger.LogInfo($"{nameof(IndexDownloader)} is stopped.", nameof(Global));
-
-			IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
-			AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
-			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
-
-			Nodes?.Dispose();
-			Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
-
-			if (!(RegTestMemPoolServingNode is null))
+			try
 			{
-				RegTestMemPoolServingNode.Disconnect();
-				Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
+				await DisposeInWalletDependentServicesAsync();
+
+				UpdateChecker?.Dispose();
+				Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
+
+				Synchronizer?.Dispose();
+				Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
+
+				IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
+				AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
+				Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
+
+				Nodes?.Dispose();
+				Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
+
+				if (!(RegTestMemPoolServingNode is null))
+				{
+					RegTestMemPoolServingNode.Disconnect();
+					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
+				}
+
+				TorManager?.Dispose();
+				Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex, nameof(Global));
 			}
 		}
 	}

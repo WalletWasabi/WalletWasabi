@@ -73,6 +73,26 @@ namespace WalletWasabi.Helpers
 			return value;
 		}
 
+		public static IDictionary<TKey, TValue> NotNullOrEmpty<TKey, TValue>(string parameterName, IDictionary<TKey, TValue> value)
+		{
+			NotNull(parameterName, value);
+			if (!value.Any())
+			{
+				throw new ArgumentException("Parameter cannot be empty.", parameterName);
+			}
+			return value;
+		}
+
+		public static Dictionary<TKey, TValue> NotNullOrEmpty<TKey, TValue>(string parameterName, Dictionary<TKey, TValue> value)
+		{
+			NotNull(parameterName, value);
+			if (!value.Any())
+			{
+				throw new ArgumentException("Parameter cannot be empty.", parameterName);
+			}
+			return value;
+		}
+
 		public static string NotNullOrEmptyOrWhitespace(string parameterName, string value, bool trim = false)
 		{
 			NotNullOrEmpty(parameterName, value);
@@ -93,38 +113,43 @@ namespace WalletWasabi.Helpers
 			}
 		}
 
-		public static int MinimumAndNotNull(string parameterName, int? value, int smallest)
+		public static T MinimumAndNotNull<T>(string parameterName, T value, T smallest) where T : IComparable
 		{
 			NotNull(parameterName, value);
 
-			if (value < smallest)
+			if (value.CompareTo(smallest) < 0)
 			{
 				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter cannot be less than {smallest}.");
 			}
 
-			return (int)value;
+			return value;
 		}
 
-		public static int MaximumAndNotNull(string parameterName, int? value, int greatest)
+		public static T MaximumAndNotNull<T>(string parameterName, T value, T greatest) where T : IComparable
 		{
 			NotNull(parameterName, value);
 
-			if (value > greatest)
+			if (value.CompareTo(greatest) > 0)
 			{
 				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter cannot be greater than {greatest}.");
 			}
 
-			return (int)value;
+			return value;
 		}
 
 		public static T InRangeAndNotNull<T>(string parameterName, T value, T smallest, T greatest) where T : IComparable
 		{
 			NotNull(parameterName, value);
+
 			if (value.CompareTo(smallest) < 0)
+			{
 				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter cannot be less than {smallest}.");
+			}
 
 			if (value.CompareTo(greatest) > 0)
+			{
 				throw new ArgumentOutOfRangeException(parameterName, value, $"Parameter cannot be greater than {greatest}.");
+			}
 
 			return value;
 		}

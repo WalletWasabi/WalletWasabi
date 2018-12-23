@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
@@ -46,19 +45,7 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			return dataBits;
 		}
 
-		protected byte[] EncodeContent(string content)
-		{
-			byte[] contentBytes;
-			try
-			{
-				contentBytes = System.Text.Encoding.GetEncoding("shift_jis").GetBytes(content);
-			}
-			catch (ArgumentException ex)
-			{
-				throw ex;
-			}
-			return contentBytes;
-		}
+		protected byte[] EncodeContent(string content) => System.Text.Encoding.GetEncoding("shift_jis").GetBytes(content);
 
 		private const int FST_GROUP_LOWER_BOUNDARY = 0x8140;
 		private const int FST_GROUP_UPPER_BOUNDARY = 0x9FFC;

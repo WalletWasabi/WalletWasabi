@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
+﻿namespace Gma.QrCodeNet.Encoding.Positioning.Stencils
 {
 	internal class PositionDetectionPattern : PatternStencilBase
 	{

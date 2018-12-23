@@ -24,7 +24,7 @@ namespace WalletWasabi.Logging
 
 		public static string FileEntryEncryptionPassword { get; private set; } = null;
 
-		private static long _logerFailed = 0;
+		private static long _loggerFailed = 0;
 
 		private static readonly object Lock = new object();
 
@@ -164,6 +164,8 @@ namespace WalletWasabi.Logging
 								case LogLevel.Critical:
 									color = ConsoleColor.Red;
 									break;
+
+								default: break; // Keep original color.
 							}
 
 							Console.ForegroundColor = color;
@@ -206,10 +208,10 @@ namespace WalletWasabi.Logging
 			}
 			catch (Exception ex)
 			{
-				Interlocked.Increment(ref _logerFailed);
-				if (Interlocked.Read(ref _logerFailed) > 1)
+				Interlocked.Increment(ref _loggerFailed);
+				if (Interlocked.Read(ref _loggerFailed) > 1)
 				{
-					Interlocked.Exchange(ref _logerFailed, 0);
+					Interlocked.Exchange(ref _loggerFailed, 0);
 					return;
 				}
 				LogDebug($"Logging failed: {ex}", $"{nameof(Logger)}.{nameof(Logging)}.{nameof(Logger)}");
@@ -236,17 +238,22 @@ namespace WalletWasabi.Logging
 
 		private static void Log(Exception ex, LogLevel level, string category = "")
 		{
-			Log(level, ex.ToString(), category);
+			Log(level, ExceptionToStringHandleNull(ex), category);
 		}
 
 		private static void Log<T>(Exception ex, LogLevel level)
 		{
-			Log<T>(level, ex.ToString());
+			Log<T>(level, ExceptionToStringHandleNull(ex));
 		}
 
 		private static void Log(Exception ex, LogLevel level, Type category = null)
 		{
-			Log(level, ex.ToString(), category);
+			Log(level, ExceptionToStringHandleNull(ex), category);
+		}
+
+		private static string ExceptionToStringHandleNull(Exception ex)
+		{
+			return ex?.ToString() ?? "Exception was null.";
 		}
 
 		#endregion ExceptionLoggingMethods

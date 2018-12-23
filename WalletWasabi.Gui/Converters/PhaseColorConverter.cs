@@ -14,9 +14,10 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if(!Enum.TryParse(typeof(CcjRoundPhase), parameter.ToString(), false, out var p))
 				throw new ArgumentException($"Unknown '{parameter}' value");
+			var phaseError = Global.ChaumianClient.State.IsInErrorState;
 
 			return ((CcjRoundPhase)p <= (CcjRoundPhase)value) 
-				? Brushes.Green
+				? (phaseError? Brushes.IndianRed : Brushes.Green)
 				: Brushes.Gray;
 		}
 

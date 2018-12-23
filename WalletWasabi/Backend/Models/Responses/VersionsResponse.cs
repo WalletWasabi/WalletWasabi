@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WalletWasabi.Backend.Models.Responses
+﻿namespace WalletWasabi.Backend.Models.Responses
 {
 	public class VersionsResponse
 	{

@@ -12,7 +12,7 @@
                         Content="{TemplateBinding Title}"
                         HorizontalAlignment="Left"
                         ZIndex="1" Padding="10 0 10 0" />
-                    <Border Name="PART_Border"  BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{DynamicResource ThemeBorderDarkBrush}">
+                    <Border Name="PART_Border"  BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{DynamicResource ThemeBorderLowBrush}">
                         <ContentPresenter Name="PART_ContentPresenter"
                         Background="{TemplateBinding Background}"
                         ContentTemplate="{TemplateBinding ContentTemplate}"

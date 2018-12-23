@@ -12,6 +12,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
+using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Gui
 {
@@ -30,6 +31,12 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "TestNetBackendUriV3")]
 		public string TestNetBackendUriV3 { get; private set; }
+
+		[JsonProperty(PropertyName = "MainNetFallbackBackendUri")]
+		public string MainNetFallbackBackendUri { get; private set; }
+
+		[JsonProperty(PropertyName = "TestNetFallbackBackendUri")]
+		public string TestNetFallbackBackendUri { get; private set; }
 
 		[JsonProperty(PropertyName = "RegTestBackendUriV3")]
 		public string RegTestBackendUriV3 { get; private set; }
@@ -50,10 +57,16 @@ namespace WalletWasabi.Gui
 		public int? TorSocks5Port { get; internal set; }
 
 		private Uri _backendUri;
+		private Uri _fallbackBackendUri;
 
 		public Uri GetCurrentBackendUri()
 		{
-			if (!(_backendUri is null)) return _backendUri;
+			if (TorProcessManager.RequestFallbackAddressUsage)
+			{
+				return GetFallbackBackendUri();
+			}
+
+			if (_backendUri != null) return _backendUri;
 
 			if (Network == Network.Main)
 			{
@@ -69,6 +82,26 @@ namespace WalletWasabi.Gui
 			}
 
 			return _backendUri;
+		}
+
+		public Uri GetFallbackBackendUri()
+		{
+			if (_fallbackBackendUri != null) return _fallbackBackendUri;
+
+			if (Network == Network.Main)
+			{
+				_fallbackBackendUri = new Uri(MainNetFallbackBackendUri);
+			}
+			else if (Network == Network.TestNet)
+			{
+				_fallbackBackendUri = new Uri(TestNetFallbackBackendUri);
+			}
+			else // RegTest
+			{
+				_fallbackBackendUri = new Uri(RegTestBackendUriV3);
+			}
+
+			return _fallbackBackendUri;
 		}
 
 		private IPEndPoint _torSocks5EndPoint;
@@ -119,11 +152,14 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public Config(Network network, string mainNetBackendUriV3, string testNetBackendUriV3, string regTestBackendUriV3, string mainNetBlindingRsaPubKey, string testNetBlindingRsaPubKey, string regTestBlindingRsaPubKey, string torHost, int? torSocks5Port)
+		public Config(Network network, string mainNetBackendUriV3, string testNetBackendUriV3, string mainNetFallbackBackendUri, string testNetFallbackBackendUri, string regTestBackendUriV3, string mainNetBlindingRsaPubKey, string testNetBlindingRsaPubKey, string regTestBlindingRsaPubKey, string torHost, int? torSocks5Port)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 
 			MainNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBackendUriV3), mainNetBackendUriV3);
+			TestNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUriV3), testNetBackendUriV3);
+			MainNetFallbackBackendUri = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetFallbackBackendUri), mainNetFallbackBackendUri);
+			TestNetFallbackBackendUri = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetFallbackBackendUri), testNetFallbackBackendUri);
 			TestNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUriV3), testNetBackendUriV3);
 			RegTestBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBackendUriV3), regTestBackendUriV3);
 
@@ -155,6 +191,8 @@ namespace WalletWasabi.Gui
 
 			MainNetBackendUriV3 = "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/";
 			TestNetBackendUriV3 = "http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/";
+			MainNetFallbackBackendUri = "https://wasabiwallet.io/";
+			TestNetFallbackBackendUri = "https://wasabiwallet.co/";
 			RegTestBackendUriV3 = "http://localhost:37127/";
 
 			MainNetBlindingRsaPubKey = "16421152619146079007287475569112871971988560541093277613438316709041030720662622782033859387192362542996510605015506477964793447620206674394713753349543444988246276357919473682408472170521463339860947351211455351029147665615454176157348164935212551240942809518428851690991984017733153078846480521091423447691527000770982623947706172997649440619968085147635776736938871139581019988225202983052255684151711253254086264386774936200194229277914886876824852466823571396538091430866082004097086602287294474304344865162932126041736158327600847754258634325228417149098062181558798532036659383679712667027126535424484318399849";
@@ -189,6 +227,8 @@ namespace WalletWasabi.Gui
 
 			MainNetBackendUriV3 = config.MainNetBackendUriV3 ?? MainNetBackendUriV3;
 			TestNetBackendUriV3 = config.TestNetBackendUriV3 ?? TestNetBackendUriV3;
+			MainNetFallbackBackendUri = config.MainNetFallbackBackendUri ?? MainNetFallbackBackendUri;
+			TestNetFallbackBackendUri = config.TestNetFallbackBackendUri ?? TestNetFallbackBackendUri;
 			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
 
 			MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
@@ -221,17 +261,23 @@ namespace WalletWasabi.Gui
 				return true;
 			}
 
+			if (!MainNetBackendUriV3.Equals(config.MainNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
 			if (!TestNetBackendUriV3.Equals(config.TestNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
 			}
-
-			if (!RegTestBackendUriV3.Equals(config.RegTestBackendUriV3, StringComparison.OrdinalIgnoreCase))
+			if (!MainNetFallbackBackendUri.Equals(config.MainNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
 			}
-
-			if (!MainNetBackendUriV3.Equals(config.MainNetBackendUriV3, StringComparison.OrdinalIgnoreCase))
+			if (!TestNetFallbackBackendUri.Equals(config.TestNetFallbackBackendUri, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+			if (!RegTestBackendUriV3.Equals(config.RegTestBackendUriV3, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
 			}

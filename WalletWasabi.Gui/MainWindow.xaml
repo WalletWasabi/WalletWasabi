@@ -11,20 +11,33 @@
                       xmlns:beh="clr-namespace:AvalonStudio.Utils.Behaviors;assembly=AvalonStudio.Utils"
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                       Icon="resm:WalletWasabi.Gui.Assets.WasabiLogo.png?assembly=WalletWasabi.Gui"
-                      Title="{Binding Title}" BorderThickness="1" BorderBrush="{DynamicResource AvalonBorderBrush}"
+                      Title="{Binding Title}"
                       MinWidth="1100" MinHeight="530"
                       FontFamily="{DynamicResource UiFont}" FontSize="14"
-                      Foreground="{DynamicResource ThemeForegroundBrush}" WindowState="Maximized"
+                      Foreground="{DynamicResource ThemeForegroundBrush}"
+                      Width ="{Binding Width}" Height ="{Binding Height}"
+                      WindowState ="{Binding WindowState}"
+                      UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
                       id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False">
   <i:Interaction.Behaviors>
     <behaviors:PredicateCloseBehavior CanClose="{Binding CanClose}" />
   </i:Interaction.Behaviors>
   <cont:MetroWindow.TitleBarContent>
+    <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0"  Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
   </cont:MetroWindow.TitleBarContent>
+  <cont:MetroWindow.Styles>
+    <Style Selector="Menu > MenuItem:selected /template/ Border#root">
+      <Setter Property="Background" Value="{DynamicResource ThemeControlMidBrush}"/>
+    </Style>
+
+    <Style Selector="Menu > MenuItem">
+      <Setter Property="Padding" Value="7 0"/>
+    </Style>
+  </cont:MetroWindow.Styles>
   <Grid>
     <DockPanel LastChildFill="True">
       <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
-      <shell:ShellView DataContext="{Binding Shell}"/>
+      <shell:ShellView DataContext="{Binding Shell}" />
     </DockPanel>
     <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />
   </Grid>

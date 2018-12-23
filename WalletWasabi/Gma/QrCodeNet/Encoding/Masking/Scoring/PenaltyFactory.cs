@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 {
@@ -27,7 +25,7 @@ namespace Gma.QrCodeNet.Encoding.Masking.Scoring
 					return new Penalty4();
 
 				default:
-					throw new ArgumentException(string.Format("Unsupport penalty rule : {0}", penaltyRule), "penaltyRule");
+					throw new ArgumentException($"Unsupport penalty rule : {penaltyRule}", nameof(penaltyRule));
 			}
 		}
 

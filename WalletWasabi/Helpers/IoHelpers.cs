@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
@@ -10,6 +13,7 @@ namespace System.IO
 	{
 		private const string OldExtension = ".old";
 		private const string NewExtension = ".new";
+		private const string WeakLockExtension = ".weaklock";
 
 		// http://stackoverflow.com/a/14933880/2061103
 		public static async Task DeleteRecursivelyWithMagicDustAsync(string destinationDir)
@@ -74,50 +78,112 @@ namespace System.IO
 		public static void SafeWriteAllText(string path, string content)
 		{
 			var newPath = path + NewExtension;
-			File.WriteAllText(newPath, content);
-			SafeMove(newPath, path);
+			var mutexName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{Path.GetFileNameWithoutExtension(path)}";
+			using (var mutex = new Mutex(false, mutexName))
+			{
+				var mutexAcquired = false;
+				try
+				{
+					// acquire the mutex (or timeout after 60 seconds)
+					// will return false if it timed out
+					mutexAcquired = mutex.WaitOne(60000);
+				}
+				catch (AbandonedMutexException)
+				{
+					// abandoned mutexes are still acquired, we just need
+					// to handle the exception and treat it as acquisition
+					mutexAcquired = true;
+				}
+
+				if (mutexAcquired == false)
+				{
+					throw new IOException("Couldn't acquire Mutex on the file.");
+				}
+
+				try
+				{
+					File.WriteAllText(newPath, content);
+					SafeMove(newPath, path);
+				}
+				finally
+				{
+					mutex.ReleaseMutex();
+				}
+			}
 		}
 
 		public static void SafeWriteAllText(string path, string content, Encoding encoding)
 		{
 			var newPath = path + NewExtension;
-			File.WriteAllText(newPath, content, encoding);
-			SafeMove(newPath, path);
-		}
+			var mutexName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{Path.GetFileNameWithoutExtension(path)}";
+			using (var mutex = new Mutex(false, mutexName))
+			{
+				var mutexAcquired = false;
+				try
+				{
+					// acquire the mutex (or timeout after 60 seconds)
+					// will return false if it timed out
+					mutexAcquired = mutex.WaitOne(60000);
+				}
+				catch (AbandonedMutexException)
+				{
+					// abandoned mutexes are still acquired, we just need
+					// to handle the exception and treat it as acquisition
+					mutexAcquired = true;
+				}
 
-		public static async Task SafeWriteAllTextAsync(string path, string content)
-		{
-			var newPath = path + NewExtension;
-			await File.WriteAllTextAsync(newPath, content);
-			SafeMove(newPath, path);
-		}
+				if (mutexAcquired == false)
+				{
+					throw new IOException("Couldn't acquire Mutex on the file.");
+				}
 
-		public static async Task SafeWriteAllTextAsync(string path, string content, Encoding encoding)
-		{
-			var newPath = path + NewExtension;
-			await File.WriteAllTextAsync(newPath, content, encoding);
-			SafeMove(newPath, path);
+				try
+				{
+					File.WriteAllText(newPath, content, encoding);
+					SafeMove(newPath, path);
+				}
+				finally
+				{
+					mutex.ReleaseMutex();
+				}
+			}
 		}
 
 		public static void SafeWriteAllLines(string path, IEnumerable<string> content)
 		{
 			var newPath = path + NewExtension;
-			File.WriteAllLines(newPath, content);
-			SafeMove(newPath, path);
-		}
+			var mutexName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{Path.GetFileNameWithoutExtension(path)}";
+			using (var mutex = new Mutex(false, mutexName))
+			{
+				var mutexAcquired = false;
+				try
+				{
+					// acquire the mutex (or timeout after 60 seconds)
+					// will return false if it timed out
+					mutexAcquired = mutex.WaitOne(60000);
+				}
+				catch (AbandonedMutexException)
+				{
+					// abandoned mutexes are still acquired, we just need
+					// to handle the exception and treat it as acquisition
+					mutexAcquired = true;
+				}
 
-		public static async Task SafeWriteAllLinesAsync(string path, IEnumerable<string> content)
-		{
-			var newPath = path + NewExtension;
-			await File.WriteAllLinesAsync(newPath, content);
-			SafeMove(newPath, path);
-		}
+				if (mutexAcquired == false)
+				{
+					throw new IOException("Couldn't acquire Mutex on the file.");
+				}
 
-		public static async Task SafeWriteAllBytesAsync(string path, byte[] content)
-		{
-			var newPath = path + NewExtension;
-			await File.WriteAllBytesAsync(newPath, content);
-			SafeMove(newPath, path);
+				try
+				{
+					File.WriteAllLines(newPath, content);
+					SafeMove(newPath, path);
+				}
+				finally
+				{
+					mutex.ReleaseMutex();
+				}
+			}
 		}
 
 		public static async Task BetterExtractZipToDirectoryAsync(string src, string dest)
@@ -177,6 +243,38 @@ namespace System.IO
 			if (!string.IsNullOrEmpty(dir)) // root
 			{
 				Directory.CreateDirectory(dir); // It does not fail if it exists.
+			}
+		}
+
+		public static void OpenFolderInFileExplorer(string dirPath)
+		{
+			if (Directory.Exists(dirPath))
+			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{dirPath}\"" });
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = dirPath, CreateNoWindow = true });
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				{
+					Process.Start(new ProcessStartInfo { FileName = "open", Arguments = dirPath, CreateNoWindow = true });
+				}
+			}
+		}
+
+		public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target)
+		{
+			foreach (DirectoryInfo dir in source.GetDirectories())
+			{
+				CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name));
+			}
+
+			foreach (FileInfo file in source.GetFiles())
+			{
+				file.CopyTo(Path.Combine(target.FullName, file.Name));
 			}
 		}
 	}

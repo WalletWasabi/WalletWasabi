@@ -1,11 +1,15 @@
-﻿using AvalonStudio.Extensibility;
+﻿using Avalonia.Threading;
+using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
@@ -15,19 +19,23 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 {
 	internal class RecoverWalletViewModel : CategoryViewModel
 	{
+		private int _caretIndex;
 		private string _password;
 		private string _mnemonicWords;
 		private string _walletName;
 		private bool _termsAccepted;
 		private string _validationMessage;
-		private string _suggestions;
+		private ObservableCollection<SuggestionViewModel> _suggestions;
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
+			MnemonicWords = "";
+
 			RecoverCommand = ReactiveCommand.Create(() =>
 			{
 				WalletName = Guard.Correct(WalletName);
 				MnemonicWords = Guard.Correct(MnemonicWords);
+				Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
 
 				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 
@@ -65,6 +73,27 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			},
 			this.WhenAnyValue(x => x.TermsAccepted));
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.Password).Subscribe(x =>
+			{
+				if (x.NotNullAndNotEmpty())
+				{
+					char lastChar = x.Last();
+					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					{
+						Password = x.TrimEnd('\r', '\n');
+					}
+				}
+			});
+
+			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
+			{
+				if (CaretIndex != MnemonicWords.Length)
+				{
+					CaretIndex = MnemonicWords.Length;
+				}
+			});
+
+			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
 		public string Password
@@ -79,7 +108,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
 		}
 
-		public string Suggestions
+		public ObservableCollection<SuggestionViewModel> Suggestions
 		{
 			get { return _suggestions; }
 			set { this.RaiseAndSetIfChanged(ref _suggestions, value); }
@@ -101,6 +130,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			get { return _validationMessage; }
 			set { this.RaiseAndSetIfChanged(ref _validationMessage, value); }
+		}
+
+		public int CaretIndex
+		{
+			get { return _caretIndex; }
+			set { this.RaiseAndSetIfChanged(ref _caretIndex, value); }
 		}
 
 		public ReactiveCommand RecoverCommand { get; }
@@ -125,7 +160,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			base.OnCategorySelected();
 
 			Password = null;
-			MnemonicWords = null;
+			MnemonicWords = "";
 			WalletName = Utils.GetNextWalletName();
 			TermsAccepted = false;
 			ValidationMessage = null;
@@ -133,20 +168,46 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		private void UpdateSuggestions(string words)
 		{
-			if(string.IsNullOrEmpty(words))
-				return;
-
-			var enteredWordList = words.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
-		
-			if(lastWorld.Length < 1)
+			if (string.IsNullOrWhiteSpace(words))
 			{
-				Suggestions = string.Empty;
+				Suggestions?.Clear();
 				return;
 			}
 
-			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld));
-			Suggestions = string.Join("   ", suggestedWords.ToArray());
+			string[] enteredWordList = words.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
+
+			if (lastWorld.Length < 1)
+			{
+				Suggestions.Clear();
+				return;
+			}
+
+			var suggestedWords = EnglishWords.Where(w => w.StartsWith(lastWorld)).Except(enteredWordList).Take(7);
+
+			Suggestions.Clear();
+			foreach (var suggestion in suggestedWords)
+			{
+				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
+			}
+		}
+
+		public void OnAddWord(string word)
+		{
+			string[] words = MnemonicWords.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			if (words.Length == 0)
+			{
+				MnemonicWords = word + " ";
+			}
+			else
+			{
+				words[words.Length - 1] = word;
+				MnemonicWords = string.Join(' ', words) + " ";
+			}
+
+			CaretIndex = MnemonicWords.Length;
+
+			Suggestions.Clear();
 		}
 
 		private static IEnumerable<string> EnglishWords = Wordlist.English.GetWords();

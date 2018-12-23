@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Gtk3;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
@@ -18,16 +19,17 @@ namespace WalletWasabi.Gui
 		private static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
+			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
 			StatusBarViewModel statusBar = null;
 			try
 			{
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
-				BuildAvaloniaApp().BeforeStarting(async builder =>
-				{
-					try
+				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+				BuildAvaloniaApp()
+					.BeforeStarting(async builder =>
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel();
-						Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
 
 						var configFilePath = Path.Combine(Global.DataDir, "Config.json");
 						var config = new Config(configFilePath);
@@ -46,35 +48,64 @@ namespace WalletWasabi.Gui
 						}
 
 						Global.InitializeNoWallet();
-						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.IndexDownloader, Global.UpdateChecker);
+						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.Synchronizer, Global.UpdateChecker);
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
-						if (Global.IndexDownloader.Network != Network.Main)
+						if (Global.Synchronizer.Network != Network.Main)
 						{
-							MainWindowViewModel.Instance.Title += $" - {Global.IndexDownloader.Network}";
+							MainWindowViewModel.Instance.Title += $" - {Global.Synchronizer.Network}";
 						}
-					}
-					catch (Exception ex)
-					{
-						Logger.LogCritical<Program>(ex);
-					}
-				}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
+					}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogCritical<Program>(ex);
+				throw;
 			}
 			finally
 			{
 				statusBar?.Dispose();
 				await Global.DisposeAsync();
+
+				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
+				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 			}
+		}
+
+		static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+		{
+			Logger.LogWarning(e?.Exception, "UnobservedTaskException");
+		}
+
+		static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+		{
+			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
 		}
 
 		private static AppBuilder BuildAvaloniaApp()
 		{
-			return AppBuilder.Configure<App>().UsePlatformDetect().UseReactiveUI();
+			var result = AppBuilder.Configure<App>();
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				result
+					.UseWin32()
+					.UseDirect2D1();
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				result.UseGtk3(new Gtk3PlatformOptions
+				{
+					UseDeferredRendering = true,
+					UseGpuAcceleration = true
+				}).UseSkia();
+			}
+			{
+				result.UsePlatformDetect();
+			}
+
+			return result;
 		}
 	}
 }

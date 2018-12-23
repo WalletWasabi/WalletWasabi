@@ -1,5 +1,4 @@
-﻿using System;
-using Gma.QrCodeNet.Encoding.DataEncodation;
+﻿using Gma.QrCodeNet.Encoding.DataEncodation;
 using Gma.QrCodeNet.Encoding.ErrorCorrection;
 using Gma.QrCodeNet.Encoding.Positioning;
 using Gma.QrCodeNet.Encoding.EncodingRegion;

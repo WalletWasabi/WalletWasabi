@@ -16,6 +16,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using System.Collections.Concurrent;
+using System.Net.Http;
 
 namespace WalletWasabi.Services
 {
@@ -30,9 +31,11 @@ namespace WalletWasabi.Services
 		public List<BitcoinAddress> CustomActiveAddresses { get; }
 		private object CustomActiveAddressesLock { get; }
 
-		public SatoshiClient SatoshiClient { get; }
 		public Uri CcjHostUri { get; }
+		public WasabiSynchronizer Synchronizer { get; }
 		private IPEndPoint TorSocks5EndPoint { get; }
+
+		private decimal? CoordinatorFeepercentToCheck { get; set; }
 
 		/// <summary>
 		/// Used to avoid address reuse as much as possible but still not bloating the wallet.
@@ -59,37 +62,48 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
+		private long _statusProcessing;
+
 		private CancellationTokenSource Cancel { get; }
 
-		public CcjClient(Network network, BlindingRsaPubKey coordinatorPubKey, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
+		public CcjClient(WasabiSynchronizer synchronizer, Network network, BlindingRsaPubKey coordinatorPubKey, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			AccessCache = new ConcurrentDictionary<HdPubKey, DateTimeOffset>();
 			Network = Guard.NotNull(nameof(network), network);
 			CoordinatorPubKey = Guard.NotNull(nameof(coordinatorPubKey), coordinatorPubKey);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
+			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			TorSocks5EndPoint = torSocks5EndPoint;
-			SatoshiClient = new SatoshiClient(ccjHostUri, torSocks5EndPoint);
+			CoordinatorFeepercentToCheck = null;
 
 			_running = 0;
 			Cancel = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
 			State = new CcjClientState();
 			MixLock = new AsyncLock();
+			_statusProcessing = 0;
 
 			CustomChangeAddresses = new List<BitcoinAddress>();
 			CustomActiveAddresses = new List<BitcoinAddress>();
 			CustomChangeAddressesLock = new object();
 			CustomActiveAddressesLock = new object();
+
+			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 		}
 
-		public void Start(int minDelayReplySeconds, int maxDelayReplySeconds)
+		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
+		{
+			IEnumerable<CcjRunningRoundState> newRoundStates = e.CcjRoundStates;
+
+			await ProcessStatusAsync(newRoundStates);
+		}
+
+		public void Start()
 		{
 			Interlocked.Exchange(ref _running, 1);
 
-			// At start the client asks for status.
-
-			// The client is asking for status periodically, randomly between every 0.2 * connConfTimeout and 0.8 * connConfTimeout.
+			// The client is asking for status periodically, randomly between every 0.2 * connConfTimeout and 0.7 * connConfTimeout.
 			// - if the GUI is at the mixer tab -Activate(), DeactivateIfNotMixing().
 			// - if coins are queued to mix.
 			// The client is asking for status periodically, randomly between every 2 to 7 seconds.
@@ -101,15 +115,12 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					await ProcessStatusAsync(minDelayReplySeconds, maxDelayReplySeconds);
-
 					Logger.LogInfo<CcjClient>("CcjClient is successfully initialized.");
 
 					while (IsRunning)
 					{
 						try
 						{
-							int delay;
 							using (await MixLock.LockAsync())
 							{
 								await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
@@ -117,34 +128,39 @@ namespace WalletWasabi.Services
 								// If stop was requested return.
 								if (IsRunning == false) return;
 
-								// if mixing >= connConf: delay = new Random().Next(2, 7);
+								// if mixing >= connConf
 								if (State.GetActivelyMixingRounds().Any())
 								{
-									delay = new Random().Next(2, 7);
+									int delaySeconds = new Random().Next(2, 7);
+									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
 								}
 								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
 								{
-									double rand = double.Parse($"0.{new Random().Next(2, 8)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.8 * connConfTimeout
-									delay = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
+									double rand = double.Parse($"0.{new Random().Next(2, 7)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.7 * connConfTimeout
+									int delaySeconds = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
+
+									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
 								}
-								else
+								else // dormant
 								{
-									// dormant
-									await Task.Delay(1000); // dormant
-									continue;
+									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromMinutes(3);
 								}
 							}
-
-							await Task.Delay(TimeSpan.FromSeconds(delay), Cancel.Token);
-							await ProcessStatusAsync(minDelayReplySeconds, maxDelayReplySeconds);
-						}
-						catch (TaskCanceledException ex)
-						{
-							Logger.LogTrace<CcjClient>(ex);
 						}
 						catch (Exception ex)
 						{
 							Logger.LogError<CcjClient>(ex);
+						}
+						finally
+						{
+							try
+							{
+								await Task.Delay(1000, Cancel.Token);
+							}
+							catch (TaskCanceledException ex)
+							{
+								Logger.LogTrace<CcjClient>(ex);
+							}
 						}
 					}
 				}
@@ -158,48 +174,58 @@ namespace WalletWasabi.Services
 			});
 		}
 
-		private async Task ProcessStatusAsync(int minDelayReplySeconds, int maxDelayReplySeconds)
+		private async Task ProcessStatusAsync(IEnumerable<CcjRunningRoundState> states)
 		{
+			if (Interlocked.Read(ref _statusProcessing) == 1) // It's ok to wait for status processing next time.
+			{
+				return;
+			}
+
 			try
 			{
-				IEnumerable<CcjRunningRoundState> states;
-				int delay;
+				Interlocked.Exchange(ref _statusProcessing, 1);
 				using (await MixLock.LockAsync())
 				{
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
-					states = await SatoshiClient.GetAllRoundStatesAsync();
 					State.UpdateRoundsByStates(states.ToArray());
 
 					// If we don't have enough coin queued to register a round, then dequeue all.
 					CcjClientRound registrableRound = State.GetRegistrableRoundOrDefault();
 					if (registrableRound != default)
 					{
-						if (!registrableRound.State.HaveEnoughQueued(State.GetAllQueuedCoinAmounts().ToArray()))
+						// If the coordinator increases fees, don't register. Let the users register manually again.
+						bool dequeueBecauseCoordinatorFeeChanged = false;
+						if (CoordinatorFeepercentToCheck != default)
+						{
+							dequeueBecauseCoordinatorFeeChanged = registrableRound.State.CoordinatorFeePercent > CoordinatorFeepercentToCheck;
+						}
+
+						if (!registrableRound.State.HaveEnoughQueued(State.GetAllQueuedCoinAmounts().ToArray())
+							|| dequeueBecauseCoordinatorFeeChanged)
 						{
 							await DequeueAllCoinsFromMixNoLockAsync();
 						}
 					}
+				}
+				StateUpdated?.Invoke(this, null);
 
-					StateUpdated?.Invoke(this, null);
-					if (maxDelayReplySeconds == minDelayReplySeconds)
-					{
-						delay = minDelayReplySeconds;
-					}
-					if (maxDelayReplySeconds < minDelayReplySeconds || maxDelayReplySeconds <= 0)
-					{
-						delay = 0;
-					}
-					else
-					{
-						delay = new Random().Next(minDelayReplySeconds, maxDelayReplySeconds); // delay the response to defend timing attack privacy
-					}
+				int delaySeconds = new Random().Next(0, 7); // delay the response to defend timing attack privacy.
+
+				if (Network == Network.RegTest)
+				{
+					delaySeconds = 0;
 				}
 
-				await Task.Delay(TimeSpan.FromSeconds(delay), Cancel.Token);
+				await Task.Delay(TimeSpan.FromSeconds(delaySeconds), Cancel.Token);
 
 				using (await MixLock.LockAsync())
 				{
+					foreach (long ongoingRoundId in State.GetActivelyMixingRounds())
+					{
+						await TryProcessRoundStateAsync(ongoingRoundId);
+					}
+
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
@@ -214,11 +240,6 @@ namespace WalletWasabi.Services
 							await TryConfirmConnectionAsync(inputRegistrableRound);
 						}
 					}
-
-					foreach (long ongoingRoundId in State.GetActivelyMixingRounds())
-					{
-						await TryProcessRoundStateAsync(ongoingRoundId);
-					}
 				}
 			}
 			catch (TaskCanceledException ex)
@@ -228,6 +249,10 @@ namespace WalletWasabi.Services
 			catch (Exception ex)
 			{
 				Logger.LogError<CcjClient>(ex);
+			}
+			finally
+			{
+				Interlocked.Exchange(ref _statusProcessing, 0);
 			}
 		}
 
@@ -310,12 +335,17 @@ namespace WalletWasabi.Services
 				throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
 			}
 
-			var builder = new TransactionBuilder();
-			var signedCoinJoin = builder
-				.ContinueToBuild(unsignedCoinJoin)
-				.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())
-				.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
-				.BuildTransaction(true);
+			var signedCoinJoin = unsignedCoinJoin.Clone();
+			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray(), ongoingRound.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
+
+			// Old way of signing, which randomly fails! https://github.com/zkSNACKs/WalletWasabi/issues/716#issuecomment-435498906
+			// Must be fixed in NBitcoin.
+			//var builder = Network.CreateTransactionBuilder();
+			//var signedCoinJoin = builder
+			//	.ContinueToBuild(unsignedCoinJoin)
+			//	.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())
+			//	.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
+			//	.BuildTransaction(true);
 
 			var myDic = new Dictionary<int, WitScript>();
 
@@ -446,10 +476,10 @@ namespace WalletWasabi.Services
 							{
 								// Find the first one that we did not try to register in the current session.
 								activeKey = allActiveKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
-								// If there is no such a key, then use the oldest.
+								// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
 								if (activeKey == default)
 								{
-									activeKey = AccessCache.Where(x => allActiveKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
+									activeKey = AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).First().Key;
 								}
 								activeKey.SetLabel(activeLabel);
 								activeKey.SetKeyState(KeyState.Locked);
@@ -457,7 +487,7 @@ namespace WalletWasabi.Services
 							}
 							else
 							{
-								activeKey = internalNotCachedLockedKeys.RandomElement();
+								activeKey = internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)).RandomElement();
 								activeKey.SetLabel(activeLabel);
 							}
 							activeAddress = activeKey.GetP2wpkhAddress(Network);
@@ -482,7 +512,44 @@ namespace WalletWasabi.Services
 						};
 						inputProofs.Add(inputProof);
 					}
-					AliceClient aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
+
+					AliceClient aliceClient = null;
+					try
+					{
+						aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
+					}
+					catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
+					{
+						string[] parts = ex.Message.Split(new[] { "Input is banned from participation for ", " minutes: " }, StringSplitOptions.RemoveEmptyEntries);
+						string minutesString = parts[1];
+						int minuteInt = int.Parse(minutesString);
+						string bannedInputString = parts[2].TrimEnd('.');
+						string[] bannedInputStringParts = bannedInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
+						(uint256 txid, uint index) coinReference = (new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+						if (coin is null) throw new NotSupportedException("This is impossible.");
+						coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
+
+						Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+
+						await DequeueCoinsFromMixNoLockAsync(coinReference);
+						return;
+					}
+					catch (HttpRequestException ex) when (ex.Message.Contains("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
+					{
+						string[] parts = ex.Message.Split(new[] { "Provided input is not unspent: " }, StringSplitOptions.RemoveEmptyEntries);
+						string spentInputString = parts[1].TrimEnd('.');
+						string[] bannedInputStringParts = spentInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
+						(uint256 txid, uint index) coinReference = (new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+						if (coin is null) throw new NotSupportedException("This is impossible.");
+						coin.SpentAccordingToBackend = true;
+
+						Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+
+						await DequeueCoinsFromMixNoLockAsync(coinReference);
+						return;
+					}
 
 					byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
 
@@ -619,65 +686,121 @@ namespace WalletWasabi.Services
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 		{
+			if (coins is null || !coins.Any()) return Enumerable.Empty<SmartCoin>();
+
+			var successful = new List<SmartCoin>();
 			using (await MixLock.LockAsync())
 			{
 				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
-				var successful = new List<SmartCoin>();
+				// Every time the user enqueues (intentionally writes in password) then the coordinator fee percent must be noted and dequeue later if changes.
+				CcjClientRound latestRound = State.GetLatestRoundOrDefault();
+				CoordinatorFeepercentToCheck = latestRound?.State?.CoordinatorFeePercent;
+
+				var except = new List<SmartCoin>();
 
 				foreach (SmartCoin coin in coins)
 				{
 					if (State.Contains(coin))
 					{
 						successful.Add(coin);
+						except.Add(coin);
 						continue;
 					}
 
 					if (coin.SpentOrCoinJoinInProgress)
 					{
+						except.Add(coin);
 						continue;
 					}
+				}
 
-					coin.Secret = KeyManager.GetSecrets(password, coin.ScriptPubKey).Single();
-					OnePiece = OnePiece ?? password;
+				var coinsExcept = coins.Except(except);
+				var secPubs = KeyManager.GetSecretsAndPubKeyPairs(password, coinsExcept.Select(x => x.ScriptPubKey).ToArray());
+				OnePiece = OnePiece ?? password;
+
+				foreach (SmartCoin coin in coinsExcept)
+				{
+					coin.Secret = secPubs.Single(x => x.pubKey.GetP2wpkhScript() == coin.ScriptPubKey).secret;
 
 					coin.CoinJoinInProgress = true;
 
 					State.AddCoinToWaitingList(coin);
 					successful.Add(coin);
-					CoinQueued?.Invoke(this, coin);
 					Logger.LogInfo<CcjClient>($"Coin queued: {coin.Index}:{coin.TransactionId}.");
 				}
-
-				return successful;
 			}
+
+			foreach (var coin in successful)
+			{
+				CoinQueued?.Invoke(this, coin);
+			}
+			return successful;
 		}
 
 		public async Task DequeueCoinsFromMixAsync(params SmartCoin[] coins)
 		{
-			using (await MixLock.LockAsync())
-			{
-				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+			if (coins is null || !coins.Any()) return;
 
-				await DequeueCoinsFromMixNoLockAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+			{
+				try
+				{
+					using (await MixLock.LockAsync(cts.Token))
+					{
+						await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+
+						await DequeueCoinsFromMixNoLockAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
+					}
+				}
+				catch (TaskCanceledException)
+				{
+					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+
+					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
+				}
 			}
 		}
 
 		public async Task DequeueCoinsFromMixAsync(params (uint256 txid, uint index)[] coins)
 		{
-			using (await MixLock.LockAsync())
-			{
-				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+			if (coins is null || !coins.Any()) return;
 
-				await DequeueCoinsFromMixNoLockAsync(coins);
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
+			{
+				try
+				{
+					using (await MixLock.LockAsync(cts.Token))
+					{
+						await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+
+						await DequeueCoinsFromMixNoLockAsync(coins);
+					}
+				}
+				catch (TaskCanceledException)
+				{
+					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+
+					await DequeueCoinsFromMixNoLockAsync(coins);
+				}
 			}
 		}
 
 		public async Task DequeueAllCoinsFromMixAsync()
 		{
-			using (await MixLock.LockAsync())
+			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
-				await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray());
+				try
+				{
+					using (await MixLock.LockAsync(cts.Token))
+					{
+						await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray());
+					}
+				}
+				catch (TaskCanceledException)
+				{
+					await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray());
+				}
 			}
 		}
 
@@ -688,6 +811,8 @@ namespace WalletWasabi.Services
 
 		private async Task DequeueCoinsFromMixNoLockAsync(params (uint256 txid, uint index)[] coins)
 		{
+			if (coins is null || !coins.Any()) return;
+
 			List<Exception> exceptions = new List<Exception>();
 
 			foreach (var coinReference in coins)
@@ -771,6 +896,8 @@ namespace WalletWasabi.Services
 
 		public async Task StopAsync()
 		{
+			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
+
 			if (IsRunning)
 			{
 				Interlocked.Exchange(ref _running, 2);
@@ -787,7 +914,6 @@ namespace WalletWasabi.Services
 			{
 				await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
-				SatoshiClient?.Dispose();
 				State.DisposeAllAliceClients();
 
 				IEnumerable<(uint256 txid, uint index)> allCoins = State.GetAllQueuedCoins();

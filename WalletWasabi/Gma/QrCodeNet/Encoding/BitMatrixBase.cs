@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Gma.QrCodeNet.Encoding
+﻿namespace Gma.QrCodeNet.Encoding
 {
 	public abstract class BitMatrixBase : BitMatrix
 	{
@@ -26,14 +24,7 @@ namespace Gma.QrCodeNet.Encoding
 			if (internalArray is null)
 				return false;
 
-			if (internalArray.GetLength(0) == internalArray.GetLength(1))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			return internalArray.GetLength(0) == internalArray.GetLength(1) ? true : false;
 		}
 
 		/// <summary>

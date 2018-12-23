@@ -11,6 +11,14 @@ using ReactiveUI;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Gui.ViewModels.Validation;
+using WalletWasabi.Helpers;
+using ReactiveUI.Legacy;
+using WalletWasabi.Exceptions;
+using System.Collections.ObjectModel;
+using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Backend.Models.Responses;
+using System.ComponentModel;
+using WalletWasabi.Gui.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -21,35 +29,66 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isMax;
 		private string _maxClear;
 		private string _amount;
-		private bool IgnoreAmountChanges { get; set; }
-		private int _fee;
+		private int _feeTarget;
+		private int _minimumFeeTarget;
+		private int _maximumFeeTarget;
+		private string _confirmationExpectedText;
+		private string _feeText;
+		private decimal _usdFee;
+		private Money _btcFee;
+		private Money _satoshiPerByteFeeRate;
+		private decimal _feePercentage;
+		private decimal _usdExchangeRate;
+		private Money _allSelectedAmount;
 		private string _password;
 		private string _address;
 		private string _label;
+		private string _labelToolTip;
+		private string _feeToolTip;
+		private string _amountWaterMarkText;
+		private string _amountToolTip;
 		private bool _isBusy;
 		private string _warningMessage;
 		private string _successMessage;
 		private const string BuildTransactionButtonTextString = "Send Transaction";
 		private const string BuildingTransactionButtonTextString = "Sending Transaction...";
+		private int _caretIndex;
+		private ObservableCollection<SuggestionViewModel> _suggestions;
+		private FeeDisplayFormat _feeDisplayFormat;
+
+		private bool IgnoreAmountChanges { get; set; }
+
+		private FeeDisplayFormat FeeDisplayFormat
+		{
+			get => _feeDisplayFormat;
+			set
+			{
+				_feeDisplayFormat = value;
+				Global.UiConfig.FeeDisplayFormat = (int)value;
+			}
+		}
 
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
-			var onCoinsSetModified = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.HashSetChanged))
-				.ObserveOn(RxApp.MainThreadScheduler);
+			Label = "";
+			AllSelectedAmount = Money.Zero;
+			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
+			SetAmountWatermarkAndToolTip(Money.Zero);
 
-			var globalCoins = Global.WalletService.Coins.CreateDerivedCollection(c => new CoinViewModel(c), null, (first, second) => second.Amount.CompareTo(first.Amount), signalReset: onCoinsSetModified, RxApp.MainThreadScheduler);
-			globalCoins.ChangeTrackingEnabled = true;
-
-			var filteredCoins = globalCoins.CreateDerivedCollection(c => c, c => !c.SpentOrCoinJoinInProgress);
-
-			CoinList = new CoinListViewModel(filteredCoins);
+			CoinList = new CoinListViewModel();
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
 			ResetMax();
+			SetFeeTargetLimits();
+			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
+			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
+			SetFeesAndTexts();
 
-			(this).WhenAnyValue(x => x.Amount).Subscribe(amount =>
+			Global.Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
+
+			this.WhenAnyValue(x => x.Amount).Subscribe(amount =>
 			{
 				if (!IgnoreAmountChanges)
 				{
@@ -82,6 +121,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						});
 					}
 				}
+
+				if (Money.TryParse(amount.TrimStart('~', ' '), out Money amountBtc))
+				{
+					SetAmountWatermarkAndToolTip(amountBtc);
+				}
+				else
+				{
+					SetAmountWatermarkAndToolTip(Money.Zero);
+				}
+
+				SetFeesAndTexts();
 			});
 
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
@@ -89,32 +139,61 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				IsBusy = true;
 				try
 				{
-					if (string.IsNullOrWhiteSpace(Label))
+					Password = Guard.Correct(Password);
+					if (!IsMax && string.IsNullOrWhiteSpace(Label))
 					{
-						throw new InvalidOperationException("Label is required.");
+						SetWarningMessage("Label is required.");
+						return;
 					}
 
-					var selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
+					var selectedCoinViewModels = CoinList.Coins.Where(cvm => cvm.IsSelected);
+					var selectedCoinReferences = selectedCoinViewModels.Select(cvm => new TxoRef(cvm.Model.TransactionId, cvm.Model.Index)).ToList();
 
-					if (!selectedCoins.Any())
+					if (!selectedCoinReferences.Any())
 					{
-						throw new InvalidOperationException("No coins are selected to spend.");
+						SetWarningMessage("No coins are selected to spend.");
+						return;
 					}
 
-					var address = BitcoinAddress.Create(Address.Trim(), Global.Network);
+					BitcoinAddress address;
+					try
+					{
+						address = BitcoinAddress.Create(Address.Trim(), Global.Network);
+					}
+					catch (FormatException)
+					{
+						SetWarningMessage("Invalid address.");
+						return;
+					}
+
 					var script = address.ScriptPubKey;
 					var amount = Money.Zero;
 					if (!IsMax)
 					{
-						amount = Money.Parse(Amount);
 						if (amount == Money.Zero)
 						{
-							throw new FormatException($"Invalid {nameof(Amount)}");
+							SetWarningMessage($"Invalid amount.");
+							return;
 						}
 					}
-					var operation = new WalletService.Operation(script, amount, Label);
+					var label = Label.Trim(',', ' ').Trim();
+					var operation = new WalletService.Operation(script, amount, label);
 
-					var result = await Task.Run(async () => await Global.WalletService.BuildTransactionAsync(Password, new[] { operation }, Fee, allowUnconfirmed: true, allowedInputs: selectedCoins));
+					try
+					{
+						(uint256 TransactionId, uint Index)[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => (x.Model.TransactionId, x.Model.Index)).ToArray();
+						if (toDequeue != null && toDequeue.Any())
+						{
+							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue);
+						}
+					}
+					catch
+					{
+						SetWarningMessage("Spending coins those are being actively mixed is not allowed.");
+						return;
+					}
+
+					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(result.Transaction));
 
@@ -123,26 +202,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = "";
 					Password = "";
 
-					SuccessMessage = "Transaction is successfully sent!";
-					WarningMessage = "";
+					SetSuccessMessage("Transaction is successfully sent!");
+				}
+				catch (InsufficientBalanceException ex)
+				{
+					Money needed = ex.Minimum - ex.Actual;
+					SetWarningMessage($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
 				}
 				catch (Exception ex)
 				{
-					SuccessMessage = "";
-					WarningMessage = ex.ToTypeMessageString();
+					SetWarningMessage(ex.ToTypeMessageString());
 				}
 				finally
 				{
 					IsBusy = false;
 				}
 			},
-			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
+			(this).WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => ((isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)));
 
-			MaxCommand = ReactiveCommand.Create(() =>
-			{
-				SetMax();
-			});
+			MaxCommand = ReactiveCommand.Create(SetMax);
+
+			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
 
 			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
 			{
@@ -153,6 +234,319 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				else
 				{
 					BuildTransactionButtonText = BuildTransactionButtonTextString;
+				}
+			});
+
+			this.WhenAnyValue(x => x.Password).Subscribe(x =>
+			{
+				if (x.NotNullAndNotEmpty())
+				{
+					char lastChar = x.Last();
+					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					{
+						Password = x.TrimEnd('\r', '\n');
+					}
+				}
+			});
+
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
+			{
+				if (Label == null) return;
+				if (CaretIndex != Label.Length)
+				{
+					CaretIndex = Label.Length;
+				}
+			});
+
+			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
+			{
+				SetFeesAndTexts();
+			});
+
+			CoinList.SelectionChanged += CoinList_SelectionChanged;
+
+			_suggestions = new ObservableCollection<SuggestionViewModel>();
+		}
+
+		private void SetAmountWatermarkAndToolTip(Money amount)
+		{
+			if (amount == Money.Zero)
+			{
+				AmountWatermarkText = "Amount (BTC)";
+			}
+			else
+			{
+				long amountUsd = 0;
+				try
+				{
+					amountUsd = (long)amount.ToUsd(UsdExchangeRate);
+				}
+				catch (OverflowException ex)
+				{
+					Logging.Logger.LogTrace<SendTabViewModel>(ex);
+				}
+				if (amountUsd != 0)
+				{
+					AmountWatermarkText = $"Amount (BTC) ~ ${amountUsd}";
+				}
+				else
+				{
+					AmountWatermarkText = "Amount (BTC)";
+				}
+			}
+
+			AmountToolTip = $"Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
+		}
+
+		private void CoinList_SelectionChanged(object sender, CoinViewModel e)
+		{
+			SetFeesAndTexts();
+		}
+
+		private void ChangeFeeRateDisplay()
+		{
+			var nextval = (from FeeDisplayFormat val in Enum.GetValues(typeof(FeeDisplayFormat))
+						   where val > FeeDisplayFormat
+						   orderby val
+						   select val).DefaultIfEmpty().First();
+			FeeDisplayFormat = nextval;
+			SetFeesAndTexts();
+		}
+
+		private void SetFeesAndTexts()
+		{
+			AllFeeEstimate allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
+
+			var feeTarget = FeeTarget;
+
+			if (allFeeEstimate != null)
+			{
+				int prevKey = allFeeEstimate.Estimations.Keys.First();
+				foreach (int target in allFeeEstimate.Estimations.Keys)
+				{
+					if (feeTarget == target)
+					{
+						feeTarget = target;
+						break;
+					}
+					else if (feeTarget < target)
+					{
+						feeTarget = prevKey;
+						break;
+					}
+					prevKey = target;
+				}
+			}
+
+			if (feeTarget >= 2 && feeTarget <= 6) // minutes
+			{
+				ConfirmationExpectedText = $"{feeTarget}0 minutes";
+			}
+			else if (feeTarget >= 7 && feeTarget <= 144) // hours
+			{
+				var h = feeTarget / 6;
+				ConfirmationExpectedText = $"{h} {IfPlural(h, "hour", "hours")}";
+			}
+			else if (feeTarget >= 145 && feeTarget < 1008) // days
+			{
+				var d = feeTarget / 144;
+				ConfirmationExpectedText = $"{d} {IfPlural(d, "day", "days")}";
+			}
+			else if (feeTarget == 10008)
+			{
+				ConfirmationExpectedText = $"two weeks™";
+			}
+
+			SetFees(allFeeEstimate, feeTarget);
+
+			if (allFeeEstimate != null)
+			{
+				switch (FeeDisplayFormat)
+				{
+					case FeeDisplayFormat.SatoshiPerByte:
+						FeeText = $"(~ {SatoshiPerByteFeeRate.Satoshi} sat/byte)";
+						FeeToolTip = "Expected fee rate in satoshi / vbyte.";
+						break;
+
+					case FeeDisplayFormat.USD:
+						FeeText = $"(~ ${UsdFee.ToString("0.##")})";
+						FeeToolTip = $"Estimated total fees in USD. Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
+						break;
+
+					case FeeDisplayFormat.BTC:
+						FeeText = $"(~ {BtcFee.ToString(false, false)} BTC)";
+						FeeToolTip = "Estimated total fees in BTC.";
+						break;
+
+					case FeeDisplayFormat.Percentage:
+						FeeText = $"(~ {FeePercentage.ToString("0.#")} %)";
+						FeeToolTip = "Expected percentage of fees against the amount to be sent.";
+						break;
+
+					default:
+						throw new NotSupportedException("This is impossible.");
+				}
+			}
+
+			SetAmountIfMax();
+		}
+
+		private static string IfPlural(int val, string singular, string plural)
+		{
+			if (val == 1)
+			{
+				return singular;
+			}
+
+			return plural;
+		}
+
+		private void SetAmountIfMax()
+		{
+			IgnoreAmountChanges = true;
+			if (IsMax)
+			{
+				if (AllSelectedAmount == Money.Zero)
+				{
+					Amount = "No Coins Selected";
+				}
+				else
+				{
+					Amount = $"~ {AllSelectedAmount.ToString(false, true)}";
+				}
+			}
+			IgnoreAmountChanges = false;
+		}
+
+		private void SetFees(AllFeeEstimate allFeeEstimate, int feeTarget)
+		{
+			SatoshiPerByteFeeRate = allFeeEstimate.GetFeeRate(feeTarget);
+
+			IEnumerable<SmartCoin> selectedCoins = CoinList.Coins.Where(cvm => cvm.IsSelected).Select(x => x.Model);
+
+			int vsize = 150;
+			if (selectedCoins.Any())
+			{
+				if (IsMax)
+				{
+					vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(selectedCoins.Count(), 1);
+				}
+				else
+				{
+					if (Money.TryParse(Amount.TrimStart('~', ' '), out Money amount))
+					{
+						var inNum = 0;
+						var amountSoFar = Money.Zero;
+						foreach (SmartCoin coin in selectedCoins.OrderByDescending(x => x.Amount))
+						{
+							amountSoFar += coin.Amount;
+							inNum++;
+							if (amountSoFar > amount)
+							{
+								break;
+							}
+						}
+						vsize = NBitcoinHelpers.CalculateVsizeAssumeSegwit(inNum, 2);
+					}
+					// Else whatever, don't change.
+				}
+			}
+
+			BtcFee = Money.Satoshis(vsize * SatoshiPerByteFeeRate);
+
+			long all = selectedCoins.Sum(x => x.Amount);
+			if (IsMax)
+			{
+				if (all != 0)
+				{
+					FeePercentage = 100 * (decimal)BtcFee.Satoshi / all;
+				}
+			}
+			else
+			{
+				if (Money.TryParse(Amount.TrimStart('~', ' '), out Money amount) && amount.Satoshi != 0)
+				{
+					FeePercentage = 100 * (decimal)BtcFee.Satoshi / amount.Satoshi;
+				}
+			}
+
+			if (UsdExchangeRate != 0)
+			{
+				UsdFee = BtcFee.ToUsd(UsdExchangeRate);
+			}
+
+			AllSelectedAmount = Math.Max(Money.Zero, all - BtcFee);
+		}
+
+		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == nameof(Global.Synchronizer.AllFeeEstimate))
+			{
+				SetFeeTargetLimits();
+				if (FeeTarget < MinimumFeeTarget) // Should never happen.
+				{
+					FeeTarget = MinimumFeeTarget;
+				}
+				else if (FeeTarget > MaximumFeeTarget)
+				{
+					FeeTarget = MaximumFeeTarget;
+				}
+				SetFeesAndTexts();
+			}
+			else if (e.PropertyName == nameof(Global.Synchronizer.UsdExchangeRate))
+			{
+				var exchangeRate = Global.Synchronizer.UsdExchangeRate;
+				if (exchangeRate != 0)
+				{
+					UsdExchangeRate = exchangeRate;
+				}
+				SetFeesAndTexts();
+			}
+		}
+
+		private void SetFeeTargetLimits()
+		{
+			var allFeeEstimate = Global.Synchronizer?.AllFeeEstimate;
+
+			if (allFeeEstimate != null)
+			{
+				MinimumFeeTarget = allFeeEstimate.Estimations.Min(x => x.Key); // This should be always 2, but bugs will be seen at least if it isn't.
+				MaximumFeeTarget = allFeeEstimate.Estimations.Max(x => x.Key);
+			}
+			else
+			{
+				MinimumFeeTarget = 2;
+				MaximumFeeTarget = 1008;
+			}
+		}
+
+		private void SetWarningMessage(string message)
+		{
+			SuccessMessage = "";
+			WarningMessage = message;
+
+			Dispatcher.UIThread.Post(async () =>
+			{
+				await Task.Delay(7000);
+				if (WarningMessage == message)
+				{
+					WarningMessage = "";
+				}
+			});
+		}
+
+		private void SetSuccessMessage(string message)
+		{
+			SuccessMessage = message;
+			WarningMessage = "";
+
+			Dispatcher.UIThread.Post(async () =>
+			{
+				await Task.Delay(7000);
+				if (SuccessMessage == message)
+				{
+					SuccessMessage = "";
 				}
 			});
 		}
@@ -168,9 +562,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IsMax = true;
 			MaxClear = "Clear";
 
-			IgnoreAmountChanges = true;
-			Amount = "All Selected Coins!";
-			IgnoreAmountChanges = false;
+			SetAmountIfMax();
+
+			LabelToolTip = "Spending whole coins doesn't generate change, thus labeling is unnecessary.";
 		}
 
 		private void ResetMax()
@@ -181,54 +575,180 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			IgnoreAmountChanges = true;
 			Amount = "0.0";
 			IgnoreAmountChanges = false;
+
+			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
 		}
 
 		public CoinListViewModel CoinList
 		{
-			get { return _coinList; }
-			set { this.RaiseAndSetIfChanged(ref _coinList, value); }
+			get => _coinList;
+			set => this.RaiseAndSetIfChanged(ref _coinList, value);
 		}
 
 		public bool IsBusy
 		{
-			get { return _isBusy; }
-			set { this.RaiseAndSetIfChanged(ref _isBusy, value); }
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
 		}
 
 		public string BuildTransactionButtonText
 		{
-			get { return _buildTransactionButtonText; }
-			set { this.RaiseAndSetIfChanged(ref _buildTransactionButtonText, value); }
+			get => _buildTransactionButtonText;
+			set => this.RaiseAndSetIfChanged(ref _buildTransactionButtonText, value);
 		}
 
 		public bool IsMax
 		{
-			get { return _isMax; }
-			set { this.RaiseAndSetIfChanged(ref _isMax, value); }
+			get => _isMax;
+			set => this.RaiseAndSetIfChanged(ref _isMax, value);
 		}
 
 		public string MaxClear
 		{
-			get { return _maxClear; }
-			set { this.RaiseAndSetIfChanged(ref _maxClear, value); }
+			get => _maxClear;
+			set => this.RaiseAndSetIfChanged(ref _maxClear, value);
 		}
 
 		public string Amount
 		{
-			get { return _amount; }
-			set { this.RaiseAndSetIfChanged(ref _amount, value); }
+			get => _amount;
+			set => this.RaiseAndSetIfChanged(ref _amount, value);
 		}
 
-		public int Fee
+		public int FeeTarget
 		{
-			get { return _fee; }
-			set { this.RaiseAndSetIfChanged(ref _fee, value); }
+			get => _feeTarget;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _feeTarget, value);
+				Global.UiConfig.FeeTarget = value;
+			}
+		}
+
+		public int MinimumFeeTarget
+		{
+			get => _minimumFeeTarget;
+			set => this.RaiseAndSetIfChanged(ref _minimumFeeTarget, value);
+		}
+
+		public int MaximumFeeTarget
+		{
+			get => _maximumFeeTarget;
+			set => this.RaiseAndSetIfChanged(ref _maximumFeeTarget, value);
+		}
+
+		public string ConfirmationExpectedText
+		{
+			get => _confirmationExpectedText;
+			set => this.RaiseAndSetIfChanged(ref _confirmationExpectedText, value);
+		}
+
+		public string FeeText
+		{
+			get => _feeText;
+			set => this.RaiseAndSetIfChanged(ref _feeText, value);
+		}
+
+		public decimal UsdFee
+		{
+			get => _usdFee;
+			set => this.RaiseAndSetIfChanged(ref _usdFee, value);
+		}
+
+		public Money BtcFee
+		{
+			get => _btcFee;
+			set => this.RaiseAndSetIfChanged(ref _btcFee, value);
+		}
+
+		public Money SatoshiPerByteFeeRate
+		{
+			get => _satoshiPerByteFeeRate;
+			set => this.RaiseAndSetIfChanged(ref _satoshiPerByteFeeRate, value);
+		}
+
+		public decimal FeePercentage
+		{
+			get => _feePercentage;
+			set => this.RaiseAndSetIfChanged(ref _feePercentage, value);
+		}
+
+		public decimal UsdExchangeRate
+		{
+			get => _usdExchangeRate;
+			set => this.RaiseAndSetIfChanged(ref _usdExchangeRate, value);
+		}
+
+		public Money AllSelectedAmount
+		{
+			get => _allSelectedAmount;
+			set => this.RaiseAndSetIfChanged(ref _allSelectedAmount, value);
 		}
 
 		public string Password
 		{
-			get { return _password; }
-			set { this.RaiseAndSetIfChanged(ref _password, value); }
+			get => _password;
+			set => this.RaiseAndSetIfChanged(ref _password, value);
+		}
+
+		public int CaretIndex
+		{
+			get => _caretIndex;
+			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
+		}
+
+		public ObservableCollection<SuggestionViewModel> Suggestions
+		{
+			get => _suggestions;
+			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
+		}
+
+		private void UpdateSuggestions(string words)
+		{
+			if (string.IsNullOrWhiteSpace(words))
+			{
+				Suggestions?.Clear();
+				return;
+			}
+
+			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
+			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
+
+			if (lastWorld.Length < 1)
+			{
+				Suggestions.Clear();
+				return;
+			}
+
+			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
+			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase))
+				.Union(nonSpecialLabels.Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
+				.Except(enteredWordList)
+				.Take(3);
+
+			Suggestions.Clear();
+			foreach (var suggestion in suggestedWords)
+			{
+				Suggestions.Add(new SuggestionViewModel(suggestion, OnAddWord));
+			}
+		}
+
+		public void OnAddWord(string word)
+		{
+			var words = Label.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
+			if (words.Length == 0)
+			{
+				Label = word + ", ";
+			}
+			else
+			{
+				words[words.Length - 1] = word;
+				Label = string.Join(", ", words) + ", ";
+			}
+
+			CaretIndex = Label.Length;
+
+			Suggestions.Clear();
 		}
 
 		public string ValidateAddress()
@@ -257,30 +777,56 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		[ValidateMethod(nameof(ValidateAddress))]
 		public string Address
 		{
-			get { return _address; }
-			set { this.RaiseAndSetIfChanged(ref _address, value); }
+			get => _address;
+			set => this.RaiseAndSetIfChanged(ref _address, value);
 		}
 
 		public string Label
 		{
-			get { return _label; }
-			set { this.RaiseAndSetIfChanged(ref _label, value); }
+			get => _label;
+			set => this.RaiseAndSetIfChanged(ref _label, value);
+		}
+
+		public string LabelToolTip
+		{
+			get => _labelToolTip;
+			set => this.RaiseAndSetIfChanged(ref _labelToolTip, value);
 		}
 
 		public string WarningMessage
 		{
-			get { return _warningMessage; }
-			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
+			get => _warningMessage;
+			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
 		public string SuccessMessage
 		{
-			get { return _successMessage; }
-			set { this.RaiseAndSetIfChanged(ref _successMessage, value); }
+			get => _successMessage;
+			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
+		}
+
+		public string FeeToolTip
+		{
+			get => _feeToolTip;
+			set => this.RaiseAndSetIfChanged(ref _feeToolTip, value);
+		}
+
+		public string AmountWatermarkText
+		{
+			get => _amountWaterMarkText;
+			set => this.RaiseAndSetIfChanged(ref _amountWaterMarkText, value);
+		}
+
+		public string AmountToolTip
+		{
+			get => _amountToolTip;
+			set => this.RaiseAndSetIfChanged(ref _amountToolTip, value);
 		}
 
 		public ReactiveCommand BuildTransactionCommand { get; }
 
 		public ReactiveCommand MaxCommand { get; }
+
+		public ReactiveCommand FeeRateCommand { get; }
 	}
 }

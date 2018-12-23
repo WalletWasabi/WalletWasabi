@@ -114,7 +114,7 @@ namespace WalletWasabi.Services
 
 		public Height StartingHeight => GetStartingHeight(RpcClient.Network);
 
-		public static FilterModel GetStartingFilter(Network network) => IndexDownloader.GetStartingFilter(network);
+		public static FilterModel GetStartingFilter(Network network) => WasabiSynchronizer.GetStartingFilter(network);
 
 		public FilterModel StartingFilter => GetStartingFilter(RpcClient.Network);
 

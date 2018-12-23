@@ -9,21 +9,21 @@ namespace WalletWasabi.WebClients.SmartBit
 {
 	public class SmartBitExchangeRateProvider : IExchangeRateProvider
 	{
-		private SmartBitClient _client;
+		private SmartBitClient Client { get; }
 
 		public SmartBitExchangeRateProvider(SmartBitClient smartBitClient)
 		{
-			_client = smartBitClient;
+			Client = smartBitClient;
 		}
 
 		public async Task<List<ExchangeRate>> GetExchangeRateAsync()
 		{
-			var rates = await _client.GetExchangeRatesAsync(CancellationToken.None);
+			var rates = await Client.GetExchangeRatesAsync(CancellationToken.None);
 			var rate = rates.Single(x => x.Code == "USD");
 
 			var exchangeRates = new List<ExchangeRate>
 			{
-				new ExchangeRate() { Rate = rate.Rate, Ticker = "USD" },
+				new ExchangeRate { Rate = rate.Rate, Ticker = "USD" },
 			};
 
 			return exchangeRates;

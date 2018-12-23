@@ -35,7 +35,7 @@ namespace Gma.QrCodeNet.Encoding
 			{
 				if (MStatus(i, j) == MatrixStatus.None || MStatus(i, j) == MatrixStatus.NoMask)
 				{
-					throw new InvalidOperationException(string.Format("The value of cell [{0},{1}] is not set or is Stencil.", i, j));
+					throw new InvalidOperationException($"The value of cell [{i},{j}] is not set or is Stencil.");
 				}
 				M_InternalArray[i, j] = value;
 			}
