@@ -3,6 +3,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -32,7 +33,7 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		[HttpGet("synchronize")]
-		public async Task<IActionResult> GetSynchronizeAsync([FromQuery]string bestKnownBlockHash, [FromQuery]int maxNumberOfFilters, [FromQuery]string estimateSmartFeeMode)
+		public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required]string bestKnownBlockHash, [FromQuery, Required]int maxNumberOfFilters, [FromQuery]string estimateSmartFeeMode)
 		{
 			if (string.IsNullOrWhiteSpace(bestKnownBlockHash))
 			{

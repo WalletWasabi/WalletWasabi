@@ -4,6 +4,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -116,7 +117,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
 		[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
-		public async Task<IActionResult> GetAllFeesAsync(string estimateSmartFeeMode)
+		public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required]string estimateSmartFeeMode)
 		{
 			if (!ModelState.IsValid || string.IsNullOrWhiteSpace(estimateSmartFeeMode) || !Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
 			{
@@ -161,7 +162,7 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpPost("broadcast")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
-		public async Task<IActionResult> BroadcastAsync([FromBody]string hex)
+		public async Task<IActionResult> BroadcastAsync([FromBody, Required]string hex)
 		{
 			if (string.IsNullOrWhiteSpace(hex) || !ModelState.IsValid)
 			{
@@ -219,7 +220,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
-		public IActionResult GetFilters([FromQuery]string bestKnownBlockHash, [FromQuery]int count)
+		public IActionResult GetFilters([FromQuery, Required]string bestKnownBlockHash, [FromQuery, Required]int count)
 		{
 			if (string.IsNullOrWhiteSpace(bestKnownBlockHash) || count <= 0 || !ModelState.IsValid)
 			{

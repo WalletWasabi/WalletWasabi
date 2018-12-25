@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -100,7 +101,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(503)]
-		public async Task<IActionResult> PostInputsAsync([FromBody]InputsRequest request)
+		public async Task<IActionResult> PostInputsAsync([FromBody, Required]InputsRequest request)
 		{
 			// Validate request.
 			if (!ModelState.IsValid
@@ -316,7 +317,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
 		[ProducesResponseType(410)]
-		public async Task<IActionResult> PostConfirmationAsync([FromQuery]string uniqueId, [FromQuery]long roundId)
+		public async Task<IActionResult> PostConfirmationAsync([FromQuery, Required]string uniqueId, [FromQuery, Required]long roundId)
 		{
 			if (roundId <= 0 || !ModelState.IsValid)
 			{
@@ -389,7 +390,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(410)]
-		public IActionResult PostUnconfimation([FromQuery]string uniqueId, [FromQuery]long roundId)
+		public IActionResult PostUnconfimation([FromQuery, Required]string uniqueId, [FromQuery, Required]long roundId)
 		{
 			if (roundId <= 0 || !ModelState.IsValid)
 			{
@@ -452,7 +453,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(404)]
 		[ProducesResponseType(409)]
 		[ProducesResponseType(410)]
-		public async Task<IActionResult> PostOutputAsync([FromQuery]long roundId, [FromBody]OutputRequest request)
+		public async Task<IActionResult> PostOutputAsync([FromQuery, Required]long roundId, [FromBody, Required]OutputRequest request)
 		{
 			if (roundId < 0
 				|| request is null
@@ -533,7 +534,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(404)]
 		[ProducesResponseType(409)]
 		[ProducesResponseType(410)]
-		public IActionResult GetCoinJoin([FromQuery]string uniqueId, [FromQuery]long roundId)
+		public IActionResult GetCoinJoin([FromQuery, Required]string uniqueId, [FromQuery, Required]long roundId)
 		{
 			if (roundId <= 0 || !ModelState.IsValid)
 			{
@@ -580,7 +581,7 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(404)]
 		[ProducesResponseType(409)]
 		[ProducesResponseType(410)]
-		public async Task<IActionResult> PostSignaturesAsync([FromQuery]string uniqueId, [FromQuery]long roundId, [FromBody]IDictionary<int, string> signatures)
+		public async Task<IActionResult> PostSignaturesAsync([FromQuery, Required]string uniqueId, [FromQuery, Required]long roundId, [FromBody, Required]IDictionary<int, string> signatures)
 		{
 			if (roundId <= 0
 				|| signatures is null
