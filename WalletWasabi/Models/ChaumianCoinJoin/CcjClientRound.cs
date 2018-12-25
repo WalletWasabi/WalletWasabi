@@ -19,7 +19,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public byte[] UnblindedSignature { get; set; }
 
-		public string RoundHash { get; set; }
+		/// <summary>
+		/// Connection has been confirmed in ConnectionConfirmation Phase. Used to avoid duplicate Connection Confirmation requests.
+		/// </summary>
+		public bool ConnectionFinalConfirmed { get; set; }
 
 		public bool Signed { get; set; }
 		public bool PostedOutput { get; set; }
@@ -37,7 +40,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			ChangeOutputAddress = null;
 			ActiveOutputAddress = null;
 			UnblindedSignature = null;
-			RoundHash = null;
+			ConnectionFinalConfirmed = false;
 			AliceClient?.Dispose();
 			AliceClient = null;
 			Signed = false;

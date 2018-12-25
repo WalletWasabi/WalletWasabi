@@ -306,15 +306,13 @@ namespace WalletWasabi.Backend.Controllers
 		/// </summary>
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
 		/// <param name="roundId">Round identifier, obtained previously.</param>
-		/// <returns>RoundHash if the phase is already ConnectionConfirmation.</returns>
-		/// <response code="200">RoundHash if the phase is already ConnectionConfirmation.</response>
-		/// <response code="204">If the phase is InputRegistration and Alice is found.</response>
+		/// <returns>Current Phase and Alice is found.</returns>
+		/// <response code="200">Current Phase and Alice is found.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
 		/// <response code="404">If Alice or the round is not found.</response>
 		/// <response code="410">Participation can be only confirmed from a Running round's InputRegistration or ConnectionConfirmation phase.</response>
 		[HttpPost("confirmation")]
 		[ProducesResponseType(200)]
-		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
 		[ProducesResponseType(410)]
@@ -337,7 +335,7 @@ namespace WalletWasabi.Backend.Controllers
 				case CcjRoundPhase.InputRegistration:
 					{
 						round.StartAliceTimeout(alice.UniqueId);
-						return NoContent();
+						break;
 					}
 				case CcjRoundPhase.ConnectionConfirmation:
 					{
@@ -366,13 +364,15 @@ namespace WalletWasabi.Backend.Controllers
 							}
 						}
 
-						return Ok(round.RoundHash); // Participation can be confirmed multiple times, whatever.
+						break;
 					}
 				default:
 					{
 						return Gone($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
 					}
 			}
+
+			return Ok(phase);
 		}
 
 		/// <summary>
@@ -440,10 +440,9 @@ namespace WalletWasabi.Backend.Controllers
 		/// <summary>
 		/// Bob registers his output.
 		/// </summary>
-		/// <param name="roundHash">Hash of the round, obtained previously.</param>
-		/// <returns>RoundHash if the phase is already ConnectionConfirmation.</returns>
+		/// <param name="roundId">RoundId.</param>
 		/// <response code="204">Output is successfully registered.</response>
-		/// <response code="400">The provided roundHash or outpurRequest was malformed.</response>
+		/// <response code="400">The provided roundId or outputRequest was malformed.</response>
 		/// <response code="409">Output registration can only be done from OutputRegistration phase.</response>
 		/// <response code="410">Output registration can only be done from a Running round.</response>
 		/// <response code="404">If round not found.</response>
@@ -453,9 +452,9 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(404)]
 		[ProducesResponseType(409)]
 		[ProducesResponseType(410)]
-		public async Task<IActionResult> PostOutputAsync([FromQuery]string roundHash, [FromBody]OutputRequest request)
+		public async Task<IActionResult> PostOutputAsync([FromQuery]long roundId, [FromBody]OutputRequest request)
 		{
-			if (string.IsNullOrWhiteSpace(roundHash)
+			if (roundId < 0
 				|| request is null
 				|| string.IsNullOrWhiteSpace(request.OutputAddress)
 				|| string.IsNullOrWhiteSpace(request.SignatureHex)
@@ -464,7 +463,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			CcjRound round = Coordinator.TryGetRound(roundHash);
+			CcjRound round = Coordinator.TryGetRound(roundId);
 			if (round is null)
 			{
 				return NotFound("Round not found.");

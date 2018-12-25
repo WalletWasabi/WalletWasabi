@@ -1827,8 +1827,6 @@ namespace WalletWasabi.Tests
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 					Assert.True(aliceClient.RoundId > 0);
 
-					Assert.Null(await aliceClient.PostConfirmationAsync());
-
 					CcjRunningRoundState roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
 					Assert.Equal(CcjRoundPhase.InputRegistration, roundState.Phase);
 					Assert.Equal(1, roundState.RegisteredPeerCount);
@@ -1966,10 +1964,7 @@ namespace WalletWasabi.Tests
 					Assert.NotNull(aliceClient.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 					Assert.True(aliceClient.RoundId > 0);
-
-					Assert.Null(await aliceClient.PostConfirmationAsync());
 					// Double the request.
-					Assert.Null(await aliceClient.PostConfirmationAsync());
 					// badrequests
 					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation"))
 					{
@@ -1996,7 +1991,6 @@ namespace WalletWasabi.Tests
 						Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 						Assert.Null(await response.Content.ReadAsJsonAsync<string>());
 					}
-					Assert.Null(await aliceClient.PostConfirmationAsync());
 
 					roundConfig.ConnectionConfirmationTimeout = 60;
 					coordinator.UpdateRoundConfig(roundConfig);
@@ -2010,8 +2004,6 @@ namespace WalletWasabi.Tests
 					Assert.NotNull(aliceClient.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 					Assert.True(aliceClient.RoundId > 0);
-
-					Assert.Null(await aliceClient.PostConfirmationAsync());
 					await aliceClient.PostUnConfirmationAsync();
 					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={aliceClient.UniqueId}&roundId={aliceClient.RoundId}"))
 					{
@@ -2080,9 +2072,9 @@ namespace WalletWasabi.Tests
 						throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
 					}
 
-					var roundHash = await aliceClient1.PostConfirmationAsync();
-					Assert.Equal(roundHash, await aliceClient1.PostConfirmationAsync()); // Make sure it won't throw error for double confirming.
-					Assert.Equal(roundHash, await aliceClient2.PostConfirmationAsync());
+					var phase = await aliceClient1.PostConfirmationAsync();
+					Assert.Equal(phase, await aliceClient1.PostConfirmationAsync()); // Make sure it won't throw error for double confirming.
+					Assert.Equal(phase, await aliceClient2.PostConfirmationAsync());
 					httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient2.PostConfirmationAsync());
 					Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nParticipation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: OutputRegistration.", httpRequestException.Message);
 
@@ -2092,8 +2084,8 @@ namespace WalletWasabi.Tests
 					using (var bobClient1 = new BobClient(baseUri))
 					using (var bobClient2 = new BobClient(baseUri))
 					{
-						await bobClient1.PostOutputAsync(roundHash, outputAddress1, unblindedSignature1);
-						await bobClient2.PostOutputAsync(roundHash, outputAddress2, unblindedSignature2);
+						await bobClient1.PostOutputAsync(aliceClient1.RoundId, outputAddress1, unblindedSignature1);
+						await bobClient2.PostOutputAsync(aliceClient2.RoundId, outputAddress2, unblindedSignature2);
 					}
 
 					roundState = await satoshiClient.GetRoundStateAsync(aliceClient1.RoundId);
@@ -2344,23 +2336,23 @@ namespace WalletWasabi.Tests
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
 
-			var confirmationRequests = new List<Task<string>>();
+			var confirmationRequests = new List<Task<CcjRoundPhase>>();
 
 			foreach (var user in users)
 			{
 				confirmationRequests.Add(user.aliceClient.PostConfirmationAsync());
 			}
 
-			string roundHash = null;
+			CcjRoundPhase roundPhase = CcjRoundPhase.InputRegistration;
 			foreach (var request in confirmationRequests)
 			{
-				if (roundHash is null)
+				if (roundPhase == CcjRoundPhase.InputRegistration)
 				{
-					roundHash = await request;
+					roundPhase = await request;
 				}
 				else
 				{
-					Assert.Equal(roundHash, await request);
+					Assert.Equal(roundPhase, await request);
 				}
 			}
 
@@ -2409,23 +2401,23 @@ namespace WalletWasabi.Tests
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
 
-			confirmationRequests = new List<Task<string>>();
+			confirmationRequests = new List<Task<CcjRoundPhase>>();
 
 			foreach (var user in users)
 			{
 				confirmationRequests.Add(user.aliceClient.PostConfirmationAsync());
 			}
 
-			roundHash = null;
+			roundPhase = CcjRoundPhase.InputRegistration;
 			foreach (var request in confirmationRequests)
 			{
-				if (roundHash is null)
+				if (roundPhase == CcjRoundPhase.InputRegistration)
 				{
-					roundHash = await request;
+					roundPhase = await request;
 				}
 				else
 				{
-					Assert.Equal(roundHash, await request);
+					Assert.Equal(roundPhase, await request);
 				}
 			}
 
@@ -2552,23 +2544,23 @@ namespace WalletWasabi.Tests
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
 
-			var confirmationRequests = new List<Task<string>>();
+			var confirmationRequests = new List<Task<CcjRoundPhase>>();
 
 			foreach (var user in users)
 			{
 				confirmationRequests.Add(user.aliceClient.PostConfirmationAsync());
 			}
 
-			string roundHash = null;
+			CcjRoundPhase roundPhase = CcjRoundPhase.InputRegistration;
 			foreach (var request in confirmationRequests)
 			{
-				if (roundHash is null)
+				if (roundPhase == CcjRoundPhase.InputRegistration)
 				{
-					roundHash = await request;
+					roundPhase = await request;
 				}
 				else
 				{
-					Assert.Equal(roundHash, await request);
+					Assert.Equal(roundPhase, await request);
 				}
 			}
 
@@ -2576,7 +2568,7 @@ namespace WalletWasabi.Tests
 			foreach (var user in users)
 			{
 				var bobClient = new BobClient(baseUri);
-				outputRequests.Add((bobClient, bobClient.PostOutputAsync(roundHash, user.activeOutputAddress, user.unblindedSignature)));
+				outputRequests.Add((bobClient, bobClient.PostOutputAsync(roundId, user.activeOutputAddress, user.unblindedSignature)));
 			}
 
 			foreach (var request in outputRequests)
