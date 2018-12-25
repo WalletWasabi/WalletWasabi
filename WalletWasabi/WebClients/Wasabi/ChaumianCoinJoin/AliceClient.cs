@@ -70,15 +70,15 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			return await CreateNewAsync(network, request, baseUri, torSocks5EndPoint);
 		}
 
-		/// <returns>null or roundHash</returns>
-		public async Task<string> PostConfirmationAsync()
+		/// <returns>True if already in ConnectionConfirmation.</returns>
+		public async Task<bool> PostConfirmationAsync()
 		{
 			using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={UniqueId}&roundId={RoundId}"))
 			{
 				if (response.StatusCode == HttpStatusCode.NoContent)
 				{
 					Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection.");
-					return null;
+					return false;
 				}
 
 				if (response.StatusCode != HttpStatusCode.OK)
@@ -86,13 +86,12 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 					await response.ThrowRequestExceptionFromContentAsync();
 				}
 
-				string roundHash = await response.Content.ReadAsJsonAsync<string>();
-				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Acquired roundHash: {roundHash}.");
-				return roundHash;
+				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Phase changed to ConnectionConfirmation.");
+				return true;
 			}
 		}
 
-		/// <returns>null or roundHash</returns>
+		/// <returns>True if progressed phase.</returns>
 		public async Task PostUnConfirmationAsync()
 		{
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))

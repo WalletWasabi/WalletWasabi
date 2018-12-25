@@ -29,8 +29,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Money FeePerInputs { get; private set; }
 		public Money FeePerOutputs { get; private set; }
 
-		public string RoundHash { get; private set; }
-
 		public Transaction UnsignedCoinJoin { get; private set; }
 		private string _unsignedCoinJoinHex;
 
@@ -156,7 +154,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				StatusLock = new object();
 				Status = CcjRoundStatus.NotStarted;
 
-				RoundHash = null;
 				_unsignedCoinJoinHex = null;
 
 				UnsignedCoinJoin = null;
@@ -219,8 +216,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						{
 							return;
 						}
-
-						RoundHash = NBitcoinHelpers.HashOutpoints(Alices.SelectMany(x => x.Inputs).Select(y => y.Outpoint));
 
 						Phase = CcjRoundPhase.ConnectionConfirmation;
 					}

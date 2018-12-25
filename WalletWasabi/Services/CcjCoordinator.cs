@@ -302,14 +302,6 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public CcjRound TryGetRound(string roundHash)
-		{
-			using (RoundsListLock.Lock())
-			{
-				return Rounds.SingleOrDefault(x => x.RoundHash == roundHash);
-			}
-		}
-
 		public bool AnyRunningRoundContainsInput(OutPoint input, out List<Alice> alices)
 		{
 			using (RoundsListLock.Lock())

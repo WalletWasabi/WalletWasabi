@@ -12,14 +12,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public List<SmartCoin> CoinsRegistered { get; }
 
+		public bool ConnectionConfirmed { get; set; }
+
 		public AliceClient AliceClient { get; set; }
 
 		public BitcoinAddress ChangeOutputAddress { get; set; }
 		public BitcoinAddress ActiveOutputAddress { get; set; }
 
 		public byte[] UnblindedSignature { get; set; }
-
-		public string RoundHash { get; set; }
 
 		public bool Signed { get; set; }
 		public bool PostedOutput { get; set; }
@@ -37,11 +37,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			ChangeOutputAddress = null;
 			ActiveOutputAddress = null;
 			UnblindedSignature = null;
-			RoundHash = null;
 			AliceClient?.Dispose();
 			AliceClient = null;
 			Signed = false;
 			PostedOutput = false;
+			ConnectionConfirmed = false;
 		}
 	}
 }

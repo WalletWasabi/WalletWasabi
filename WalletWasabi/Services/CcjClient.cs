@@ -260,25 +260,21 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				var ongoingRound = State.GetSingleOrDefaultRound(ongoingRoundId);
+				CcjClientRound ongoingRound = State.GetSingleOrDefaultRound(ongoingRoundId);
 				if (ongoingRound is null) throw new NotSupportedException("This is impossible.");
 
 				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
 				{
-					if (ongoingRound.RoundHash is null) // If we didn't already obtained our roundHash obtain it.
+					if (!ongoingRound.ConnectionConfirmed) // If we didn't already confirmed connection in connection confirmation phase confirm it.
 					{
-						await ObtainRoundHashAsync(ongoingRound);
+						await ongoingRound.AliceClient.PostConfirmationAsync();
+						ongoingRound.ConnectionConfirmed = true;
 					}
 				}
 				else if (ongoingRound.State.Phase == CcjRoundPhase.OutputRegistration)
 				{
 					if (!ongoingRound.PostedOutput)
 					{
-						if (ongoingRound.RoundHash is null)
-						{
-							throw new NotSupportedException("Coordinator progressed to OutputRegistration phase, even though we didn't obtain roundHash.");
-						}
-
 						await RegisterOutputAsync(ongoingRound);
 					}
 				}
@@ -306,10 +302,6 @@ namespace WalletWasabi.Services
 
 		private Dictionary<int, WitScript> SignCoinJoin(CcjClientRound ongoingRound, Transaction unsignedCoinJoin)
 		{
-			if (NBitcoinHelpers.HashOutpoints(unsignedCoinJoin.Inputs.Select(x => x.PrevOut)) != ongoingRound.RoundHash)
-			{
-				throw new NotSupportedException("Coordinator provided invalid roundHash.");
-			}
 			Money amountBack = unsignedCoinJoin.Outputs
 				.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutputAddress.ScriptPubKey || x.ScriptPubKey == ongoingRound.ChangeOutputAddress.ScriptPubKey)
 				.Select(y => y.Value)
@@ -365,26 +357,19 @@ namespace WalletWasabi.Services
 		{
 			using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
 			{
-				await bobClient.PostOutputAsync(ongoingRound.RoundHash, ongoingRound.ActiveOutputAddress, ongoingRound.UnblindedSignature);
+				await bobClient.PostOutputAsync(ongoingRound.AliceClient.RoundId, ongoingRound.ActiveOutputAddress, ongoingRound.UnblindedSignature);
 				ongoingRound.PostedOutput = true;
 				Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted output.");
 			}
-		}
-
-		private static async Task ObtainRoundHashAsync(CcjClientRound ongoingRound)
-		{
-			string roundHash = await ongoingRound.AliceClient.PostConfirmationAsync();
-			ongoingRound.RoundHash = roundHash ?? throw new NotSupportedException($"Coordinator didn't gave us the expected {nameof(roundHash)}, even though it's in ConnectionConfirmation phase.");
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
 		{
 			try
 			{
-				string roundHash = await inputRegistrableRound.AliceClient.PostConfirmationAsync();
-				if (!(roundHash is null)) // Then the phase went to connection confirmation.
+				if (await inputRegistrableRound.AliceClient.PostConfirmationAsync()) // Then the phase went to connection confirmation.
 				{
-					inputRegistrableRound.RoundHash = roundHash;
+					inputRegistrableRound.ConnectionConfirmed = true;
 					inputRegistrableRound.State.Phase = CcjRoundPhase.ConnectionConfirmation;
 				}
 			}
