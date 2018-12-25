@@ -105,10 +105,6 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			// Validate request.
 			if (!ModelState.IsValid
-				|| request is null
-				|| string.IsNullOrWhiteSpace(request.BlindedOutputScriptHex)
-				|| string.IsNullOrWhiteSpace(request.ChangeOutputAddress)
-				|| request.Inputs is null
 				|| !request.Inputs.Any()
 				|| request.Inputs.Any(x => x.Input == default(TxoRef)
 					|| x.Input.TransactionId is null
@@ -456,9 +452,6 @@ namespace WalletWasabi.Backend.Controllers
 		public async Task<IActionResult> PostOutputAsync([FromQuery, Required]long roundId, [FromBody, Required]OutputRequest request)
 		{
 			if (roundId < 0
-				|| request is null
-				|| string.IsNullOrWhiteSpace(request.OutputAddress)
-				|| string.IsNullOrWhiteSpace(request.SignatureHex)
 				|| !ModelState.IsValid)
 			{
 				return BadRequest();
@@ -584,7 +577,6 @@ namespace WalletWasabi.Backend.Controllers
 		public async Task<IActionResult> PostSignaturesAsync([FromQuery, Required]string uniqueId, [FromQuery, Required]long roundId, [FromBody, Required]IDictionary<int, string> signatures)
 		{
 			if (roundId <= 0
-				|| signatures is null
 				|| !signatures.Any()
 				|| signatures.Any(x => x.Key < 0 || string.IsNullOrWhiteSpace(x.Value))
 				|| !ModelState.IsValid)

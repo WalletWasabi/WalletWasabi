@@ -35,13 +35,9 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpGet("synchronize")]
 		public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required]string bestKnownBlockHash, [FromQuery, Required]int maxNumberOfFilters, [FromQuery]string estimateSmartFeeMode)
 		{
-			if (string.IsNullOrWhiteSpace(bestKnownBlockHash))
+			if (!ModelState.IsValid)
 			{
-				return BadRequest("Invalid block hash is provided.");
-			}
-			if (maxNumberOfFilters <= 0)
-			{
-				return BadRequest("Invalid maxNumberOfFilters is provided.");
+				return BadRequest("Wrong body is provided.");
 			}
 
 			bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
@@ -52,11 +48,6 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
 				}
-			}
-
-			if (!ModelState.IsValid)
-			{
-				return BadRequest("Wrong body is provided.");
 			}
 
 			var knownHash = new uint256(bestKnownBlockHash);
