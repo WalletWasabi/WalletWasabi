@@ -58,7 +58,7 @@ namespace WalletWasabi.Gui
 		public static string WalletsDir => Path.Combine(DataDir, "Wallets");
 		public static string WalletBackupsDir => Path.Combine(DataDir, "WalletBackups");
 		public static Network Network => Config.Network;
-		public static string IndexFilePath => Path.Combine(DataDir, $"Index{Network}.dat");
+		public static string IndexFilePath => Path.Combine(DataDir, $"Index{Network}.bin");
 
 		public static string AddressManagerFilePath { get; private set; }
 		public static AddressManager AddressManager { get; private set; }

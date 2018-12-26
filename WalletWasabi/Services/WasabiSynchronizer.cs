@@ -186,7 +186,7 @@ namespace WalletWasabi.Services
 				{
 					File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
 					Index.Add(StartingFilter);
-					IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
+					IoHelpers.SafeWriteAllBytes(IndexFilePath, Index.Select(x => x.ToBinary()));
 				}
 				else
 				{
@@ -195,9 +195,10 @@ namespace WalletWasabi.Services
 					{
 						if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
 						{
-							foreach (var line in File.ReadAllLines(safestFileVerion))
+							using(var stream = File.OpenRead(IndexFilePath))
+							while(stream.Position < stream.Length)
 							{
-								var filter = FilterModel.FromHeightlessLine(line, height);
+								var filter = FilterModel.FromStream(stream, height);
 								height++;
 								Index.Add(filter);
 							}
@@ -207,14 +208,14 @@ namespace WalletWasabi.Services
 					{
 						// We found a corrupted entry. Stop here.
 						// Fix the currupted file.
-						IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
+						IoHelpers.SafeWriteAllBytes(IndexFilePath, Index.Select(x => x.ToBinary()));
 					}
 				}
 			}
 			else
 			{
 				Index.Add(StartingFilter);
-				IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
+				IoHelpers.SafeWriteAllBytes(IndexFilePath, Index.Select(x => x.ToBinary()));
 			}
 
 			BestKnownFilter = Index.Last();
@@ -327,7 +328,7 @@ namespace WalletWasabi.Services
 
 								lock (IndexLock)
 								{
-									IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
+									IoHelpers.SafeWriteAllBytes(IndexFilePath, Index.Select(x => x.ToBinary()));
 									var startingFilterHeightPlusOne = startingFilter.BlockHeight + 1;
 									var bestKnownFilterHeight = BestKnownFilter.BlockHeight;
 									if (startingFilterHeightPlusOne == bestKnownFilterHeight)
@@ -353,13 +354,7 @@ namespace WalletWasabi.Services
 								}
 								Reorged?.Invoke(this, reorgedFilter);
 
-								// 2. Serialize Index. (Remove last line.)
-								string[] lines = null;
-								if (IoHelpers.TryGetSafestFileVersion(IndexFilePath, out var safestFileVerion))
-								{
-									lines = File.ReadAllLines(safestFileVerion);
-								}
-								IoHelpers.SafeWriteAllLines(IndexFilePath, lines.Take(lines.Length - 1).ToArray()); // It's not async for a reason, I think.
+								IoHelpers.SafeWriteAllBytes(IndexFilePath, Index.Select(x=>x.ToBinary())); // It's not async for a reason, I think.
 
 								ignoreRequestInterval = true;
 							}

@@ -149,7 +149,7 @@ namespace System.IO
 			}
 		}
 
-		public static void SafeWriteAllLines(string path, IEnumerable<string> content)
+		public static void SafeWriteAllBytes(string path, IEnumerable<byte[]> content)
 		{
 			var newPath = path + NewExtension;
 			var mutexName = $"Global\\4AA0E5A2-A94F-4B92-B962-F2BBC7A68323-{Path.GetFileNameWithoutExtension(path)}";
@@ -176,7 +176,13 @@ namespace System.IO
 
 				try
 				{
-					File.WriteAllLines(newPath, content);
+					using(var file = File.Open(newPath, FileMode.Create))
+					{
+						foreach(var buffer in content)
+						{
+							file.Write(buffer);
+						}
+					}
 					SafeMove(newPath, path);
 				}
 				finally
