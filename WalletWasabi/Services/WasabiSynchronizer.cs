@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -180,6 +181,19 @@ namespace WalletWasabi.Services
 			IndexLock = new object();
 
 			IoHelpers.EnsureContainingDirectoryExists(indexFilePath);
+			if (!File.Exists(IndexFilePath) && Network != Network.RegTest)
+			{
+				Logger.LogInfo<WasabiSynchronizer>($"Index filter not found. Downloading...");
+				try
+				{
+					using(var stream = DownloadFiltersFormGithubAsync().GetAwaiter().GetResult())
+					using(var file = File.OpenWrite(IndexFilePath))
+					stream.CopyTo(file);
+				}
+				catch(Exception)
+				{}
+			}
+
 			if (File.Exists(IndexFilePath))
 			{
 				if (Network == Network.RegTest)
@@ -204,7 +218,7 @@ namespace WalletWasabi.Services
 							}
 						}
 					}
-					catch (FormatException)
+					catch (Exception)
 					{
 						// We found a corrupted entry. Stop here.
 						// Fix the currupted file.
@@ -217,9 +231,22 @@ namespace WalletWasabi.Services
 				Index.Add(StartingFilter);
 				IoHelpers.SafeWriteAllBytes(IndexFilePath, Index.Select(x => x.ToBinary()));
 			}
-
 			BestKnownFilter = Index.Last();
 		}
+
+		private async Task<Stream> DownloadFiltersFormGithubAsync()
+		{
+			var uriBuilder = new UriBuilder("https", "github.com", 443, $"zkSNACKs/WalletWasabi/releases/Index{Network}.bin");
+			using (var client = new HttpClient())
+			{
+				client.BaseAddress = new Uri(uriBuilder.ToString());
+				var response = await client.GetAsync(uriBuilder.ToString()).ConfigureAwait(false);
+
+				response.EnsureSuccessStatusCode();
+				return await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+			}
+		}
+
 
 		public void Start(TimeSpan requestInterval, TimeSpan feeQueryRequestInterval, int maxFiltersToSyncAtInitialization)
 		{
