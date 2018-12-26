@@ -170,7 +170,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var amount = Money.Zero;
 					if (!IsMax)
 					{
-						if (amount == Money.Zero)
+						if (!Money.TryParse(Amount, out amount) || amount == Money.Zero)
 						{
 							SetWarningMessage($"Invalid amount.");
 							return;
