@@ -181,13 +181,6 @@ namespace NBitcoin.RPC
 			return newEstimations;
 		}
 
-		public static async Task<RPCResponse> TestMempoolAcceptAsync(this RPCClient rpc, bool allowHighFees, params Transaction[] transactions)
-		{
-			RPCResponse resp = await rpc.SendCommandAsync("testmempoolaccept", transactions.Select(x => x.ToHex()).ToArray(), allowHighFees);
-
-			return resp;
-		}
-
 		/// <returns>(allowed, reject-reason)</returns>
 		public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this RPCClient rpc, Coin coin)
 		{
@@ -197,15 +190,11 @@ namespace NBitcoin.RPC
 			fakeTransaction.Inputs.Add(new TxIn(coin.Outpoint));
 			Money fakeOutputValue = NBitcoinHelpers.TakeAReasonableFee(coin.TxOut.Value);
 			fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
-			RPCResponse testMempoolAcceptResponse = await rpc.TestMempoolAcceptAsync(allowHighFees: true, fakeTransaction);
+			MempoolAcceptResult testMempoolAcceptResult = await rpc.TestMempoolAcceptAsync(fakeTransaction, allowHighFees: true);
 
-			JToken first = testMempoolAcceptResponse.Result[0];
-			bool allowed = first["allowed"].Value<bool>();
-
-			var rejectedReason = string.Empty;
-			if (!allowed)
+			if (!testMempoolAcceptResult.IsAllowed)
 			{
-				string rejected = first["reject-reason"].Value<string>();
+				string rejected = testMempoolAcceptResult.RejectReason;
 
 				if (!(rejected.Contains("mandatory-script-verify-flag-failed", StringComparison.OrdinalIgnoreCase)
 					|| rejected.Contains("non-mandatory-script-verify-flag", StringComparison.OrdinalIgnoreCase)))
