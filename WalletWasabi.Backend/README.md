@@ -11,10 +11,10 @@
 ## HTTP
 
   Requests and Responses are JSON.
-  Requests have the following format: `/api/v2/{coin}/{controller}/`.
+  Requests have the following format: `/api/v3/{coin}/{controller}/`.
   Currently supported coins: `btc`.
   
-  For example requesting fees: `GET /api/v2/btc/offchain/exchange-rates`.
+  For example requesting fees: `GET /api/v3/btc/offchain/exchange-rates`.
 
 ### Controller: Blockchain, Coin: BTC
 

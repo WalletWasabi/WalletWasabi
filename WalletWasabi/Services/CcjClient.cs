@@ -551,7 +551,7 @@ namespace WalletWasabi.Services
 					CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 					if (roundRegistered is null)
 					{
-						// If our SatoshiClient doesn't yet know about the round because of the dealy create it.
+						// If our SatoshiClient doesn't yet know about the round because of the dealy, create it.
 						// Make its state as it'd be the same as our assumed round was, except the roundId and registeredPeerCount, it'll be updated later.
 						roundRegistered = new CcjClientRound(CcjRunningRoundState.CloneExcept(inputRegistrableRound.State, aliceClient.RoundId, registeredPeerCount: 1));
 						State.AddOrReplaceRound(roundRegistered);
