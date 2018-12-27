@@ -22,17 +22,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public BitcoinAddress ChangeOutputAddress { get; }
 
-		public string BlindedOutputScriptHex { get; }
+		public uint256 BlindedOutputScript { get; }
 
 		public Money GetChangeAmount(Money denomination, Money coordinatorFee) => OutputSumWithoutCoordinatorFeeAndDenomination - denomination - coordinatorFee;
 
 		public AliceState State { get; set; }
 
-		public Alice(IEnumerable<Coin> inputs, Money networkFeeToPay, BitcoinAddress changeOutputAddress, string blindedOutputScriptHex)
+		public Alice(IEnumerable<Coin> inputs, Money networkFeeToPay, BitcoinAddress changeOutputAddress, uint256 blindedOutputScript)
 		{
 			Inputs = Guard.NotNullOrEmpty(nameof(inputs), inputs);
 			NetworkFeeToPay = Guard.NotNull(nameof(networkFeeToPay), networkFeeToPay);
-			BlindedOutputScriptHex = Guard.NotNullOrEmptyOrWhitespace(nameof(blindedOutputScriptHex), blindedOutputScriptHex);
+			BlindedOutputScript = Guard.NotNull(nameof(blindedOutputScript), blindedOutputScript);
 
 			ChangeOutputAddress = Guard.NotNull(nameof(changeOutputAddress), changeOutputAddress);
 			LastSeen = DateTimeOffset.UtcNow;

@@ -1,17 +1,22 @@
-﻿using Newtonsoft.Json;
+﻿using NBitcoin;
+using NBitcoin.Crypto;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Text;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Requests
 {
 	public class OutputRequest
 	{
 		[Required]
-		public string OutputAddress { get; set; }
+		[JsonConverter(typeof(BitcoinAddressJsonConverter))]
+		public BitcoinAddress OutputAddress { get; set; }
 
 		[Required]
-		public string SignatureHex { get; set; }
+		[JsonConverter(typeof(BlindSignatureJsonConverter))]
+		public BlindSignature UnblindedSignature { get; set; }
 
 		public StringContent ToHttpStringContent()
 		{

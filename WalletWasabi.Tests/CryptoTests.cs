@@ -1,10 +1,14 @@
-﻿using System;
+﻿using NBitcoin;
+using NBitcoin.BouncyCastle.Math;
+using NBitcoin.Crypto;
+using System;
 using System.Security.Cryptography;
 using System.Text;
 using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
+using static NBitcoin.Crypto.ECDSABlinding;
 
 namespace WalletWasabi.Tests
 {
@@ -80,62 +84,46 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void CanBlindSign()
 		{
-			// generate rsa keypair
-			var key = new BlindingRsaKey();
+			// Generate ECDSA keypairs.
+			var r = new Key();
+			var key = new Key();
+			Signer signer = new Signer(key, r);
 
-			// generate blinding factor with pubkey
-			// blind message
+			// Generate ECDSA requester.
+			// Get the r's pubkey and the key's pubkey.
+			// Blind messages.
+			Requester requester = new Requester();
+			PubKey rPubkey = r.PubKey;
+			PubKey keyPubkey = key.PubKey;
+
 			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			var (BlindingFactor, BlindedData) = key.PubKey.Blind(message);
+			byte[] hashBytes = Hashes.SHA256(message);
+			uint256 hash = new uint256(hashBytes);
+			uint256 blindedMessageHash = requester.BlindMessage(hash, rPubkey, keyPubkey);
 
-			// sign the blinded message
-			var signature = key.SignBlindedData(BlindedData);
+			// Sign the blinded message hash.
+			BigInteger blindedSignature = signer.Sign(blindedMessageHash);
 
-			// unblind the signature
-			var unblindedSignature = key.PubKey.UnblindSignature(signature, BlindingFactor);
+			// Unblind the signature.
+			BlindSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
 
 			// verify the original data is signed
-			Assert.True(key.PubKey.Verify(unblindedSignature, message));
-		}
 
-		[Fact]
-		public void CanSerialize()
-		{
-			var key = new BlindingRsaKey();
-			string jsonKey = key.ToJson();
-			var key2 = BlindingRsaKey.CreateFromJson(jsonKey);
-
-			Assert.Equal(key, key2);
-			Assert.Equal(key.PubKey, key2.PubKey);
-
-			var jsonPubKey = key.PubKey.ToJson();
-			var pubKey2 = BlindingRsaPubKey.CreateFromJson(jsonPubKey);
-			Assert.Equal(key.PubKey, pubKey2);
-
-			// generate blinding factor with pubkey
-			// blind message
-			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			var (BlindingFactor, BlindedData) = pubKey2.Blind(message);
-
-			// sign the blinded message
-			var signature = key.SignBlindedData(BlindedData);
-
-			// unblind the signature
-			var unblindedSignature = key2.PubKey.UnblindSignature(signature, BlindingFactor);
-
-			// verify the original data is signed
-			Assert.True(key2.PubKey.Verify(unblindedSignature, message));
+			Assert.True(VerifySignature(hash, unblindedSignature, keyPubkey));
 		}
 
 		[Fact]
 		public void CanEncodeDecodeBlinding()
 		{
-			var key = new BlindingRsaKey();
+			var key = new Key();
+			var r = new Key();
 			byte[] message = Encoding.UTF8.GetBytes("áéóúősing me please~!@#$%^&*())_+");
-			byte[] blindedData = key.PubKey.Blind(message).BlindedData;
-			string encoded = ByteHelpers.ToHex(blindedData);
-			byte[] decoded = ByteHelpers.FromHex(encoded);
-			Assert.Equal(blindedData, decoded);
+			var hash = new uint256(Hashes.SHA256(message));
+			var requester = new Requester();
+			uint256 blindedHash = requester.BlindMessage(hash, r.PubKey, key.PubKey);
+			string encoded = blindedHash.ToString();
+			uint256 decoded = new uint256(encoded);
+			Assert.Equal(blindedHash, decoded);
 		}
 	}
 }

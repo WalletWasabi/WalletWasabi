@@ -1,16 +1,17 @@
 ﻿using NBitcoin;
+using NBitcoin.BouncyCastle.Math;
 using Newtonsoft.Json;
 using System;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class Uint256JsonConverter : JsonConverter
+	public class BigIntegerJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(uint256);
+			return objectType == typeof(BigInteger);
 		}
 
 		/// <inheritdoc />
@@ -18,13 +19,13 @@ namespace WalletWasabi.JsonConverters
 		{
 			var value = Guard.Correct((string)reader.Value);
 
-			return string.IsNullOrWhiteSpace(value) ? default : new uint256(value);
+			return string.IsNullOrWhiteSpace(value) ? default : new BigInteger(value);
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((uint256)value).ToString());
+			writer.WriteValue(((BigInteger)value).ToString());
 		}
 	}
 }

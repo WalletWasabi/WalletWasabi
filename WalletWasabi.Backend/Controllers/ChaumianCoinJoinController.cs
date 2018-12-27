@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
+using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
@@ -36,8 +37,6 @@ namespace WalletWasabi.Backend.Controllers
 
 		private static CcjCoordinator Coordinator => Global.Coordinator;
 
-		private static BlindingRsaKey RsaKey => Coordinator.RsaKey;
-
 		/// <summary>
 		/// Satoshi gets various status information.
 		/// </summary>
@@ -61,6 +60,8 @@ namespace WalletWasabi.Backend.Controllers
 				var state = new CcjRunningRoundState
 				{
 					Phase = round.Phase,
+					SignerPubKey = round.Signer.Key.PubKey,
+					RpubKey = round.Signer.R.PubKey,
 					Denomination = round.Denomination,
 					RegisteredPeerCount = round.CountAlices(syncLock: false),
 					RequiredPeerCount = round.AnonymitySet,
@@ -107,8 +108,7 @@ namespace WalletWasabi.Backend.Controllers
 			if (!ModelState.IsValid
 				|| !request.Inputs.Any()
 				|| request.Inputs.Any(x => x.Input == default(TxoRef)
-					|| x.Input.TransactionId is null
-					|| string.IsNullOrWhiteSpace(x.Proof)))
+					|| x.Input.TransactionId is null))
 			{
 				return BadRequest("Invalid request.");
 			}
@@ -125,19 +125,18 @@ namespace WalletWasabi.Backend.Controllers
 				// Do more checks.
 				try
 				{
-					if (round.ContainsBlindedOutputScriptHex(request.BlindedOutputScriptHex, out _))
+					if (round.ContainsBlindedOutputScript(request.BlindedOutputScript, out _))
 					{
 						return BadRequest("Blinded output has already been registered.");
 					}
 
-					BitcoinAddress changeOutputAddress;
-					try
+					if (request.ChangeOutputAddress.Network != Network)
 					{
-						changeOutputAddress = BitcoinAddress.Create(request.ChangeOutputAddress, Network);
-					}
-					catch (FormatException ex)
-					{
-						return BadRequest($"Invalid ChangeOutputAddress. Details: {ex.Message}");
+						// RegTest and TestNet address formats are sometimes the same.
+						if (Network == Network.Main)
+						{
+							return BadRequest($"Invalid ChangeOutputAddress Network.");
+						}
 					}
 
 					var inputs = new HashSet<Coin>();
@@ -215,16 +214,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						var address = (BitcoinWitPubKeyAddress)txout.ScriptPubKey.GetDestinationAddress(Network);
 						// Check if proofs are valid.
-						bool validProof;
-						try
-						{
-							validProof = address.VerifyMessage(request.BlindedOutputScriptHex, inputProof.Proof);
-						}
-						catch (FormatException ex)
-						{
-							return BadRequest($"Provided proof is invalid: {ex.Message}");
-						}
-						if (!validProof)
+						if (!address.VerifyMessage(request.BlindedOutputScript, inputProof.Proof))
 						{
 							await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, outpoint);
 
@@ -244,7 +234,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Make sure Alice checks work.
-					var alice = new Alice(inputs, networkFeeToPay, changeOutputAddress, request.BlindedOutputScriptHex);
+					var alice = new Alice(inputs, networkFeeToPay, request.ChangeOutputAddress, request.BlindedOutputScript);
 
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{
@@ -253,17 +243,7 @@ namespace WalletWasabi.Backend.Controllers
 					round.AddAlice(alice);
 
 					// All checks are good. Sign.
-					byte[] blindedData;
-					try
-					{
-						blindedData = ByteHelpers.FromHex(request.BlindedOutputScriptHex);
-					}
-					catch
-					{
-						return BadRequest("Invalid blinded output hex.");
-					}
-
-					byte[] signature = RsaKey.SignBlindedData(blindedData);
+					BigInteger blindSignature = round.Signer.Sign(request.BlindedOutputScript);
 
 					// Check if phase changed since.
 					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
@@ -285,7 +265,7 @@ namespace WalletWasabi.Backend.Controllers
 					var resp = new InputsResponse
 					{
 						UniqueId = alice.UniqueId,
-						BlindedOutputSignature = signature,
+						BlindedOutputSignature = blindSignature,
 						RoundId = round.RoundId
 					};
 					return Ok(resp);
@@ -474,24 +454,23 @@ namespace WalletWasabi.Backend.Controllers
 				return Conflict($"Output registration can only be done from OutputRegistration phase. Current phase: {phase}.");
 			}
 
-			BitcoinAddress outputAddress;
-			try
+			if (request.OutputAddress.Network != Network)
 			{
-				outputAddress = BitcoinAddress.Create(request.OutputAddress, Network);
-			}
-			catch (FormatException ex)
-			{
-				return BadRequest($"Invalid OutputAddress. Details: {ex.Message}");
+				// RegTest and TestNet address formats are sometimes the same.
+				if (Network == Network.Main)
+				{
+					return BadRequest($"Invalid OutputAddress Network.");
+				}
 			}
 
-			if (RsaKey.PubKey.Verify(ByteHelpers.FromHex(request.SignatureHex), outputAddress.ScriptPubKey.ToBytes()))
+			if (round.Signer.VerifyUnblindedSignature(request.UnblindedSignature, request.OutputAddress.ScriptPubKey.ToBytes()))
 			{
 				using (await OutputLock.LockAsync())
 				{
 					Bob bob = null;
 					try
 					{
-						bob = new Bob(outputAddress);
+						bob = new Bob(request.OutputAddress);
 						round.AddBob(bob);
 					}
 					catch (Exception ex)

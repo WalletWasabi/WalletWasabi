@@ -1,6 +1,5 @@
 ﻿using NBitcoin;
 using NBitcoin.Protocol;
-using Org.BouncyCastle.Math;
 using System;
 using WalletWasabi.Backend.Models.Responses;
 
@@ -28,9 +27,6 @@ namespace WalletWasabi.Helpers
 		// https://en.bitcoin.it/wiki/Bitcoin
 		// There are a maximum of 2,099,999,997,690,000 Bitcoin elements (called satoshis), which are currently most commonly measured in units of 100,000,000 known as BTC. Stated another way, no more than 21 million BTC can ever be created.
 		public const long MaximumNumberOfSatoshis = 2099999997690000;
-
-		// https://crypto.stackexchange.com/questions/3110/impacts-of-not-using-rsa-exponent-of-65537
-		public static readonly BigInteger RsaPubKeyExponent = BigInteger.ValueOf(65537);
 
 		private static readonly BitcoinWitPubKeyAddress MainNetCoordinatorAddress = new BitcoinWitPubKeyAddress("bc1qs604c7jv6amk4cxqlnvuxv26hv3e48cds4m0ew", Network.Main);
 		private static readonly BitcoinWitPubKeyAddress TestNetCoordinatorAddress = new BitcoinWitPubKeyAddress("tb1qecaheev3hjzs9a3w9x33wr8n0ptu7txp359exs", Network.TestNet);

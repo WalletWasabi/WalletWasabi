@@ -1,3 +1,4 @@
+using NBitcoin.Crypto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -98,6 +99,29 @@ namespace NBitcoin
 		public static decimal ToUsd(this Money me, decimal btcExchangeRate)
 		{
 			return me.ToDecimal(MoneyUnit.BTC) * btcExchangeRate;
+		}
+
+		public static bool VerifyMessage(this BitcoinWitPubKeyAddress address, uint256 messageHash, byte[] signature)
+		{
+			PubKey pubKey = PubKey.RecoverCompact(messageHash, signature);
+			return pubKey.WitHash == address.Hash;
+		}
+
+		public static bool VerifyUnblindedSignature(this ECDSABlinding.Signer signer, BlindSignature signature, byte[] data)
+		{
+			uint256 hash = new uint256(Hashes.SHA256(data));
+			return ECDSABlinding.VerifySignature(hash, signature, signer.Key.PubKey);
+		}
+
+		public static bool VerifyUnblindedSignature(this ECDSABlinding.Signer signer, BlindSignature signature, uint256 dataHash)
+		{
+			return ECDSABlinding.VerifySignature(dataHash, signature, signer.Key.PubKey);
+		}
+
+		public static uint256 BlindScript(this ECDSABlinding.Requester requester, PubKey signerPubKey, PubKey RPubKey, Script script)
+		{
+			var msg = new uint256(Hashes.SHA256(script.ToBytes()));
+			return requester.BlindMessage(msg, RPubKey, signerPubKey);
 		}
 	}
 }

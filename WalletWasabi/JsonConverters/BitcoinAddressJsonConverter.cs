@@ -5,7 +5,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class BitcoinAddressConverter : JsonConverter
+	public class BitcoinAddressJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
@@ -16,9 +16,9 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			var serialized = (string)reader.Value;
+			var value = Guard.Correct((string)reader.Value);
 
-			return NBitcoinHelpers.ParseBitcoinAddress(serialized);
+			return string.IsNullOrWhiteSpace(value) ? default : Network.Parse<BitcoinAddress>(value);
 		}
 
 		/// <inheritdoc />

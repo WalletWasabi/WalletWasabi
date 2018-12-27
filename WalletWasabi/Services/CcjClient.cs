@@ -17,13 +17,14 @@ using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using System.Collections.Concurrent;
 using System.Net.Http;
+using NBitcoin.Crypto;
+using static NBitcoin.Crypto.ECDSABlinding;
 
 namespace WalletWasabi.Services
 {
 	public class CcjClient
 	{
 		public Network Network { get; }
-		private BlindingRsaPubKey CoordinatorPubKey { get; }
 		public KeyManager KeyManager { get; }
 
 		public List<BitcoinAddress> CustomChangeAddresses { get; }
@@ -66,11 +67,10 @@ namespace WalletWasabi.Services
 
 		private CancellationTokenSource Cancel { get; }
 
-		public CcjClient(WasabiSynchronizer synchronizer, Network network, BlindingRsaPubKey coordinatorPubKey, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
+		public CcjClient(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			AccessCache = new ConcurrentDictionary<HdPubKey, DateTimeOffset>();
 			Network = Guard.NotNull(nameof(network), network);
-			CoordinatorPubKey = Guard.NotNull(nameof(coordinatorPubKey), coordinatorPubKey);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
@@ -483,7 +483,11 @@ namespace WalletWasabi.Services
 
 					KeyManager.ToFile();
 
-					var blind = CoordinatorPubKey.Blind(activeAddress.ScriptPubKey.ToBytes());
+					PubKey roundSignerPubKey = inputRegistrableRound.State.SignerPubKey;
+					PubKey roundRpubKey = inputRegistrableRound.State.RpubKey;
+					var outputScriptHash = new uint256(Hashes.SHA256(activeAddress.ScriptPubKey.ToBytes()));
+					var requester = new Requester();
+					uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, roundRpubKey, roundSignerPubKey);
 
 					var inputProofs = new List<InputProofModel>();
 					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
@@ -494,7 +498,7 @@ namespace WalletWasabi.Services
 						var inputProof = new InputProofModel
 						{
 							Input = coin.GetTxoRef(),
-							Proof = coin.Secret.PrivateKey.SignMessage(ByteHelpers.ToHex(blind.BlindedData))
+							Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptHash)
 						};
 						inputProofs.Add(inputProof);
 					}
@@ -502,7 +506,7 @@ namespace WalletWasabi.Services
 					AliceClient aliceClient = null;
 					try
 					{
-						aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blind.BlindedData, inputProofs, CcjHostUri, TorSocks5EndPoint);
+						aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blindedOutputScriptHash, inputProofs, CcjHostUri, TorSocks5EndPoint);
 					}
 					catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 					{
@@ -537,9 +541,9 @@ namespace WalletWasabi.Services
 						return;
 					}
 
-					byte[] unblindedSignature = CoordinatorPubKey.UnblindSignature(aliceClient.BlindedOutputSignature, blind.BlindingFactor);
+					BlindSignature unblindedSignature = requester.UnblindSignature(aliceClient.BlindedOutputSignature);
 
-					if (!CoordinatorPubKey.Verify(unblindedSignature, activeAddress.ScriptPubKey.ToBytes()))
+					if (!VerifySignature(outputScriptHash, unblindedSignature, roundSignerPubKey))
 					{
 						throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
 					}
