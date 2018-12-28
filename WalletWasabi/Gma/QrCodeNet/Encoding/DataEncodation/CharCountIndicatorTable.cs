@@ -5,30 +5,14 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 	public static class CharCountIndicatorTable
 	{
 		/// <remarks>ISO/IEC 18004:2000 Table 3 Page 18</remarks>
-		public static int[] GetCharCountIndicatorSet(Mode mode)
+		public static int[] GetCharCountIndicatorSet()
 		{
-			switch (mode)
-			{
-				case Mode.Numeric:
-					return new int[] { 10, 12, 14 };
-
-				case Mode.Alphanumeric:
-					return new int[] { 9, 11, 13 };
-
-				case Mode.EightBitByte:
-					return new int[] { 8, 16, 16 };
-
-				case Mode.Kanji:
-					return new int[] { 8, 10, 12 };
-
-				default:
-					throw new System.InvalidOperationException($"Unexpected Mode: {mode.ToString()}");
-			}
+			return new int[] { 8, 16, 16 };
 		} //
 
-		public static int GetBitCountInCharCountIndicator(Mode mode, int version)
+		public static int GetBitCountInCharCountIndicator(int version)
 		{
-			int[] charCountIndicatorSet = GetCharCountIndicatorSet(mode);
+			int[] charCountIndicatorSet = GetCharCountIndicatorSet();
 			int versionGroup = GetVersionGroup(version);
 
 			return charCountIndicatorSet[versionGroup];
