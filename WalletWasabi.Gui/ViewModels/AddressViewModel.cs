@@ -10,7 +10,6 @@ namespace WalletWasabi.Gui.ViewModels
 	public class AddressViewModel : ViewModelBase
 	{
 		private bool _isExpanded;
-		private bool _isBusy;
 		private bool[,] _qrCode;
 
 		public HdPubKey Model { get; }
@@ -18,7 +17,6 @@ namespace WalletWasabi.Gui.ViewModels
 		public AddressViewModel(HdPubKey model)
 		{
 			Model = model;
-			IsBusy = true;
 
 			Task.Run(() =>
 			{
@@ -28,14 +26,7 @@ namespace WalletWasabi.Gui.ViewModels
 				return qrCode.Matrix.InternalArray;
 			}).ContinueWith(x=> {
 				QrCode = x.Result;
-				IsBusy = false;
 			});
-		}
-
-		public bool IsBusy
-		{
-			get { return _isBusy; }
-			set { this.RaiseAndSetIfChanged(ref _isBusy, value); }
 		}
 
 		public bool IsExpanded

@@ -126,7 +126,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public AddressViewModel SelectedAddress
 		{
 			get { return _selectedAddress; }
-			set { this.RaiseAndSetIfChanged(ref _selectedAddress, value); }
+			set { 
+				this.RaiseAndSetIfChanged(ref _selectedAddress, value);
+				_selectedAddress.IsExpanded = true; 
+			}
 		}
 
 		public string Label

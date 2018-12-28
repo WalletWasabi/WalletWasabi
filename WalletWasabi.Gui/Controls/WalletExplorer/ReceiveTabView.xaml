@@ -75,10 +75,9 @@
                 <Grid>
                   <Expander ExpandDirection="Down" IsExpanded="{Binding IsExpanded}">
                     <Panel>
-                      <Panel Width="240" Background="#FFFEFEFE">
-                        <controls:QrCode Matrix="{Binding QrCode}" HorizontalAlignment="Center" Margin="20" />
+                      <Panel Width="200" Background="#FFFEFEFE">
+                        <controls:QrCode Matrix="{Binding QrCode}" HorizontalAlignment="Center" Margin="15" />
                       </Panel>
-                      <controls:Spinner Height="100" Width="100" IsVisible="{Binding IsBusy}" />
                     </Panel>
                   </Expander>
                   <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
