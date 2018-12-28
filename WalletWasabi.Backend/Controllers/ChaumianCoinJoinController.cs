@@ -216,8 +216,6 @@ namespace WalletWasabi.Backend.Controllers
 						// Check if proofs are valid.
 						if (!address.VerifyMessage(request.BlindedOutputScript, inputProof.Proof))
 						{
-							await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, outpoint);
-
 							return BadRequest("Provided proof is invalid.");
 						}
 
