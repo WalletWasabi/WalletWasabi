@@ -14,54 +14,14 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		internal static EncodationStruct Encode(string content, ErrorCorrectionLevel ecLevel)
 		{
 			RecognitionStruct recognitionResult = InputRecognise.Recognise(content);
-			EncoderBase encoderBase = CreateEncoder(recognitionResult.Mode, recognitionResult.EncodingName);
+			EncoderBase encoderBase = CreateEncoder(recognitionResult.EncodingName);
 
 			BitList encodeContent = encoderBase.GetDataBits(content);
 
 			int encodeContentLength = encodeContent.Count;
 
 			VersionControlStruct vcStruct =
-				VersionControl.InitialSetup(encodeContentLength, recognitionResult.Mode, ecLevel, recognitionResult.EncodingName);
-
-			BitList dataCodewords = new BitList();
-			//Eci header
-			if (vcStruct.IsContainECI && !(vcStruct.ECIHeader is null))
-				dataCodewords.Add(vcStruct.ECIHeader);
-			//Header
-			dataCodewords.Add(encoderBase.GetModeIndicator());
-			int numLetter = recognitionResult.Mode == Mode.EightBitByte ? encodeContentLength >> 3 : content.Length;
-			dataCodewords.Add(encoderBase.GetCharCountIndicator(numLetter, vcStruct.VersionDetail.Version));
-			//Data
-			dataCodewords.Add(encodeContent);
-			//Terminator Padding
-			dataCodewords.TerminateBites(dataCodewords.Count, vcStruct.VersionDetail.NumDataBytes);
-
-			int dataCodewordsCount = dataCodewords.Count;
-			if ((dataCodewordsCount & 0x7) != 0)
-				throw new ArgumentException("data codewords is not byte sized.");
-			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
-			{
-				throw new ArgumentException("datacodewords num of bytes not equal to NumDataBytes for current version");
-			}
-
-			var encStruct = new EncodationStruct(vcStruct)
-			{
-				Mode = recognitionResult.Mode,
-				DataCodewords = dataCodewords
-			};
-			return encStruct;
-		}
-
-		internal static EncodationStruct Encode(IEnumerable<byte> content, ErrorCorrectionLevel eclevel)
-		{
-			EncoderBase encoderBase = CreateEncoder(Mode.EightBitByte, QRCodeConstantVariable.DefaultEncoding);
-
-			BitList encodeContent = new BitList(content);
-
-			int encodeContentLength = encodeContent.Count;
-
-			VersionControlStruct vcStruct =
-				VersionControl.InitialSetup(encodeContentLength, Mode.EightBitByte, eclevel, QRCodeConstantVariable.DefaultEncoding);
+				VersionControl.InitialSetup(encodeContentLength, ecLevel, recognitionResult.EncodingName);
 
 			BitList dataCodewords = new BitList();
 			//Eci header
@@ -86,31 +46,53 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 			var encStruct = new EncodationStruct(vcStruct)
 			{
-				Mode = Mode.EightBitByte,
 				DataCodewords = dataCodewords
 			};
 			return encStruct;
 		}
 
-		private static EncoderBase CreateEncoder(Mode mode, string encodingName)
+		internal static EncodationStruct Encode(IEnumerable<byte> content, ErrorCorrectionLevel eclevel)
 		{
-			switch (mode)
+			EncoderBase encoderBase = CreateEncoder(QRCodeConstantVariable.DefaultEncoding);
+
+			BitList encodeContent = new BitList(content);
+
+			int encodeContentLength = encodeContent.Count;
+
+			VersionControlStruct vcStruct =
+				VersionControl.InitialSetup(encodeContentLength, eclevel, QRCodeConstantVariable.DefaultEncoding);
+
+			BitList dataCodewords = new BitList();
+			//Eci header
+			if (vcStruct.IsContainECI && !(vcStruct.ECIHeader is null))
+				dataCodewords.Add(vcStruct.ECIHeader);
+			//Header
+			dataCodewords.Add(encoderBase.GetModeIndicator());
+			int numLetter = encodeContentLength >> 3;
+			dataCodewords.Add(encoderBase.GetCharCountIndicator(numLetter, vcStruct.VersionDetail.Version));
+			//Data
+			dataCodewords.Add(encodeContent);
+			//Terminator Padding
+			dataCodewords.TerminateBites(dataCodewords.Count, vcStruct.VersionDetail.NumDataBytes);
+
+			int dataCodewordsCount = dataCodewords.Count;
+			if ((dataCodewordsCount & 0x7) != 0)
+				throw new ArgumentException("data codewords is not byte sized.");
+			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
 			{
-				case Mode.Numeric:
-					return new NumericEncoder();
-
-				case Mode.Alphanumeric:
-					return new AlphanumericEncoder();
-
-				case Mode.EightBitByte:
-					return new EightBitByteEncoder(encodingName);
-
-				case Mode.Kanji:
-					return new KanjiEncoder();
-
-				default:
-					throw new ArgumentOutOfRangeException(nameof(mode), $"Doesn't contain encoder for {mode}");
+				throw new ArgumentException("datacodewords num of bytes not equal to NumDataBytes for current version");
 			}
+
+			var encStruct = new EncodationStruct(vcStruct)
+			{
+				DataCodewords = dataCodewords
+			};
+			return encStruct;
+		}
+
+		private static EncoderBase CreateEncoder(string encodingName)
+		{
+			return new EightBitByteEncoder(encodingName);
 		}
 	}
 }

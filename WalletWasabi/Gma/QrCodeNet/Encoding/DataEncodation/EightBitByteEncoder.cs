@@ -32,8 +32,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			Encoding = _defaultEncoding;
 		}
 
-		internal override Mode Mode => Mode.EightBitByte;
-
 		protected byte[] EncodeContent(string content, string encoding) => System.Text.Encoding.GetEncoding(encoding).GetBytes(content);
 
 		/// <summary>
@@ -76,6 +74,6 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			return dataBits;
 		}
 
-		protected override int GetBitCountInCharCountIndicator(int version) => CharCountIndicatorTable.GetBitCountInCharCountIndicator(Mode.EightBitByte, version);
+		protected override int GetBitCountInCharCountIndicator(int version) => CharCountIndicatorTable.GetBitCountInCharCountIndicator(version);
 	}
 }
