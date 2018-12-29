@@ -108,12 +108,16 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			// Validate request.
 			if (!ModelState.IsValid
-				|| !request.AdditionalBlindedOutputScripts.Any()
 				|| !request.Inputs.Any()
 				|| request.Inputs.Any(x => x.Input == default(TxoRef)
 					|| x.Input.TransactionId is null))
 			{
 				return BadRequest("Invalid request.");
+			}
+
+			if (request.AdditionalBlindedOutputScripts is null) // Old clients.
+			{
+				request.AdditionalBlindedOutputScripts = new List<string>();
 			}
 
 			if (request.Inputs.Count() > 7)
