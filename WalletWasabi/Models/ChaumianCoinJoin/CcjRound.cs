@@ -34,7 +34,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Transaction UnsignedCoinJoin { get; private set; }
 		private string _unsignedCoinJoinHex;
 
-		public Key Rkey { get; }
 		public Signer Signer { get; }
 
 		public (Money denomination, Signer signer)[] AdditionalMixingLevels { get; }
@@ -161,13 +160,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				StatusLock = new object();
 				Status = CcjRoundStatus.NotStarted;
 
-				Rkey = new Key();
-				Signer = new Signer(new Key(), Rkey);
+				Signer = new Signer(new Key());
 
 				AdditionalMixingLevels = new (Money denomination, Signer signer)[10];
 				for (int i = 0; i < AdditionalMixingLevels.Length; i++)
 				{
-					var signer = new Signer(new Key(), Rkey);
+					var signer = new Signer(new Key());
 					Money denomination;
 					if (i == 0)
 					{

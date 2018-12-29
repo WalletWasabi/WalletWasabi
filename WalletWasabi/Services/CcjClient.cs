@@ -19,6 +19,7 @@ using System.Collections.Concurrent;
 using System.Net.Http;
 using NBitcoin.Crypto;
 using static NBitcoin.Crypto.ECDSABlinding;
+using NBitcoin.BouncyCastle.Math;
 
 namespace WalletWasabi.Services
 {
@@ -466,7 +467,7 @@ namespace WalletWasabi.Services
 						{
 							string activeLabel = "ZeroLink Mixed Coin";
 							IEnumerable<HdPubKey> allActiveKeys = allUnusedInternalKeys.Where(x => x.Label == activeLabel);
-							HdPubKey activeKey = null;
+							List<HdPubKey> activeKeys = new List<HdPubKey>();
 
 							KeyManager.AssertLockedInternalKeysIndexed(14);
 							IEnumerable<HdPubKey> internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
@@ -474,26 +475,46 @@ namespace WalletWasabi.Services
 							if (allActiveKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
 							{
 								// Find the first one that we did not try to register in the current session.
-								activeKey = allActiveKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
-								// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
-								if (activeKey == default)
+								foreach (var ac in allActiveKeys.Where(x => !AccessCache.ContainsKey(x)))
 								{
-									activeKey = AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).First().Key;
+									if (activeKeys.Count >= 10)
+									{
+										break;
+									}
+									activeKeys.Add(ac);
 								}
-								activeKey.SetLabel(activeLabel);
-								activeKey.SetKeyState(KeyState.Locked);
-
-								//activeAddress = activeKey.GetP2wpkhAddress(Network);
-								activeOutputAddresses.Add(activeKey.GetP2wpkhAddress(Network));
+								// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
+								if (activeKeys.Count < 10)
+								{
+									foreach (var ac in AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).Select(x => x.Key))
+									{
+										if (activeKeys.Count >= 10)
+										{
+											break;
+										}
+										activeKeys.Add(ac);
+									}
+								}
 							}
 							else
 							{
-								activeKey = internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)).RandomElement();
-								activeKey.SetLabel(activeLabel);
+								foreach (var ac in internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)))
+								{
+									if (activeKeys.Count >= 10)
+									{
+										break;
+									}
+									activeKeys.Add(ac);
+								}
 							}
-							//activeAddress = activeKey.GetP2wpkhAddress(Network);
-							activeOutputAddresses.Add(activeKey.GetP2wpkhAddress(Network));
-							AccessCache.AddOrReplace(activeKey, DateTimeOffset.UtcNow);
+
+							foreach (HdPubKey ac in activeKeys)
+							{
+								ac.SetLabel(activeLabel);
+								ac.SetKeyState(KeyState.Locked);
+								activeOutputAddresses.Add(ac.GetP2wpkhAddress(Network));
+								AccessCache.AddOrReplace(ac, DateTimeOffset.UtcNow);
+							}
 						}
 					}
 
@@ -502,19 +523,25 @@ namespace WalletWasabi.Services
 					var activeAddress = activeOutputAddresses.First();
 					var additionalActiveOutputAddresses = activeOutputAddresses.Skip(1);
 					PubKey signerPubKey = inputRegistrableRound.State.SignerPubKey;
+					PubKey rPubKey = inputRegistrableRound.State.RpubKey;
 					PubKey[] additionalSignerPubKeys = inputRegistrableRound.State.AdditionalSignerPubKeys.Select(x => new PubKey(x)).ToArray();
-					PubKey roundRpubKey = inputRegistrableRound.State.RpubKey;
+					PubKey[] additionalRpubKeys = inputRegistrableRound.State.AdditionalRPubKeys.Select(x => new PubKey(x)).ToArray();
+
 					var outputScriptHash = new uint256(Hashes.SHA256(activeAddress.ScriptPubKey.ToBytes()));
 					var requester = new Requester();
-					uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, roundRpubKey, signerPubKey);
+					uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, rPubKey, signerPubKey);
 
 					var additionalBlindedOutputScriptHashes = new List<uint256>();
+					var additionalRequesters = new List<Requester>();
 					uint256[] array = additionalActiveOutputAddresses.Select(x => new uint256(Hashes.SHA256(x.ScriptPubKey.ToBytes()))).ToArray();
 					for (int i = 0; i < array.Length; i++)
 					{
+						var ar = new Requester();
 						uint256 osh = (uint256)array[i];
-						PubKey skp = additionalSignerPubKeys[i];
-						additionalBlindedOutputScriptHashes.Add(requester.BlindMessage(osh, roundRpubKey, skp));
+						PubKey spk = additionalSignerPubKeys[i];
+						PubKey rpk = additionalRpubKeys[i];
+						additionalBlindedOutputScriptHashes.Add(ar.BlindMessage(osh, rpk, spk));
+						additionalRequesters.Add(ar);
 					}
 
 					var inputProofs = new List<InputProofModel>();
@@ -576,9 +603,11 @@ namespace WalletWasabi.Services
 					}
 
 					var additionalUnblindedSignatures = new List<BlindSignature>();
-					foreach (var blindedOutputSignature in aliceClient.AdditionalBlindedOutputSignatures)
+					for (int i = 0; i < aliceClient.AdditionalBlindedOutputSignatures.Length; i++)
 					{
-						BlindSignature us = requester.UnblindSignature(blindedOutputSignature);
+						BigInteger blindedOutputSignature = aliceClient.AdditionalBlindedOutputSignatures[i];
+						var ar = additionalRequesters.ToArray()[i];
+						BlindSignature us = ar.UnblindSignature(blindedOutputSignature);
 						if (!VerifySignature(outputScriptHash, us, signerPubKey))
 						{
 							throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
