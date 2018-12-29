@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using static NBitcoin.Crypto.ECDSABlinding;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
@@ -33,7 +34,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Transaction UnsignedCoinJoin { get; private set; }
 		private string _unsignedCoinJoinHex;
 
-		public ECDSABlinding.Signer Signer { get; private set; }
+		public Key Rkey { get; private set; }
+		public Signer[] Signers { get; private set; }
 
 		public string GetUnsignedCoinJoinHex()
 		{
@@ -157,7 +159,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				StatusLock = new object();
 				Status = CcjRoundStatus.NotStarted;
 
-				Signer = new ECDSABlinding.Signer(new Key());
+				Rkey = new Key();
+				var numberOfSigners = 11;
+				Signers = new Signer[numberOfSigners];
+				for (int i = 0; i < 11; i++)
+				{
+					Signers[i] = new Signer(new Key(), Rkey);
+				}
 
 				_unsignedCoinJoinHex = null;
 
@@ -629,6 +637,24 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				foreach (Alice alice in Alices)
 				{
 					if (alice.BlindedOutputScript == blindedOutputScript)
+					{
+						alices.Add(alice);
+					}
+				}
+			}
+
+			return alices.Count > 0;
+		}
+
+		public bool ContainsAnyBlindedOutputScript(IEnumerable<uint256> blindedOutputScripts, out List<Alice> alices)
+		{
+			alices = new List<Alice>();
+
+			using (RoundSynchronizerLock.Lock())
+			{
+				foreach (Alice alice in Alices)
+				{
+					if (blindedOutputScripts.Contains(alice.BlindedOutputScript))
 					{
 						alices.Add(alice);
 					}

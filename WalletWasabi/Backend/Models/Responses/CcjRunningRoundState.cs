@@ -17,7 +17,7 @@ namespace WalletWasabi.Backend.Models.Responses
 		public Money Denomination { get; set; }
 
 		[JsonConverter(typeof(PubKeyJsonConverter))]
-		public PubKey SignerPubKey { get; set; }
+		public IEnumerable<PubKey> SignerPubKeys { get; set; }
 
 		[JsonConverter(typeof(PubKeyJsonConverter))]
 		public PubKey RpubKey { get; set; }
@@ -51,7 +51,7 @@ namespace WalletWasabi.Backend.Models.Responses
 			{
 				Phase = state.Phase,
 				Denomination = state.Denomination,
-				SignerPubKey = state.SignerPubKey,
+				SignerPubKeys = state.SignerPubKeys,
 				RpubKey = state.RpubKey,
 				RegisteredPeerCount = registeredPeerCount,
 				RequiredPeerCount = state.RequiredPeerCount,

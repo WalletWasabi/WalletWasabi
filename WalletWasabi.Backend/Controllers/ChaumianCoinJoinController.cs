@@ -60,8 +60,8 @@ namespace WalletWasabi.Backend.Controllers
 				var state = new CcjRunningRoundState
 				{
 					Phase = round.Phase,
-					SignerPubKey = round.Signer.Key.PubKey,
-					RpubKey = round.Signer.R.PubKey,
+					SignerPubKeys = round.Signers.Select(x => x.R.PubKey),
+					RpubKey = round.Rkey.PubKey,
 					Denomination = round.Denomination,
 					RegisteredPeerCount = round.CountAlices(syncLock: false),
 					RequiredPeerCount = round.AnonymitySet,
@@ -106,6 +106,7 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			// Validate request.
 			if (!ModelState.IsValid
+				|| !request.BlindedOutputScripts.Any()
 				|| !request.Inputs.Any()
 				|| request.Inputs.Any(x => x.Input == default(TxoRef)
 					|| x.Input.TransactionId is null))
@@ -125,7 +126,15 @@ namespace WalletWasabi.Backend.Controllers
 				// Do more checks.
 				try
 				{
-					if (round.ContainsBlindedOutputScript(request.BlindedOutputScript, out _))
+					var blindedOutputScriptArray = request.BlindedOutputScripts.ToArray();
+					int blindedOutputCount = blindedOutputScriptArray.Length;
+					int maximumBlindedOutputCount = round.Signers.Length;
+					if (blindedOutputCount > maximumBlindedOutputCount)
+					{
+						return BadRequest($"Too many blinded output was provided: {blindedOutputCount}, maximum: {maximumBlindedOutputCount}.");
+					}
+
+					if (round.ContainsAnyBlindedOutputScript(blindedOutputScriptArray, out _))
 					{
 						return BadRequest("Blinded output has already been registered.");
 					}
@@ -214,7 +223,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						var address = (BitcoinWitPubKeyAddress)txout.ScriptPubKey.GetDestinationAddress(Network);
 						// Check if proofs are valid.
-						if (!address.VerifyMessage(request.BlindedOutputScript, inputProof.Proof))
+						if (!address.VerifyMessage(blindedOutputScriptArray.First(), inputProof.Proof))
 						{
 							return BadRequest("Provided proof is invalid.");
 						}
@@ -224,7 +233,7 @@ namespace WalletWasabi.Backend.Controllers
 
 					// Check if inputs have enough coins.
 					Money inputSum = inputs.Sum(x => x.Amount);
-					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs) + (2 * round.FeePerOutputs);
+					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs) + (blindedOutputCount * round.FeePerOutputs);
 					Money changeAmount = inputSum - (round.Denomination + networkFeeToPay);
 					if (changeAmount < Money.Zero)
 					{
@@ -232,7 +241,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Make sure Alice checks work.
-					var alice = new Alice(inputs, networkFeeToPay, request.ChangeOutputAddress, request.BlindedOutputScript);
+					var alice = new Alice(inputs, networkFeeToPay, request.ChangeOutputAddress, blindedOutputScriptArray);
 
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{
@@ -240,8 +249,13 @@ namespace WalletWasabi.Backend.Controllers
 					}
 					round.AddAlice(alice);
 
+					var blindSignatures = new List<BigInteger>();
 					// All checks are good. Sign.
-					BigInteger blindSignature = round.Signer.Sign(request.BlindedOutputScript);
+					for (int i = 0; i < blindedOutputCount; i++)
+					{
+						var bs = round.Signers[i].Sign(blindedOutputScriptArray[i]);
+						blindSignatures.Add(bs);
+					}
 
 					// Check if phase changed since.
 					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
@@ -263,7 +277,7 @@ namespace WalletWasabi.Backend.Controllers
 					var resp = new InputsResponse
 					{
 						UniqueId = alice.UniqueId,
-						BlindedOutputSignature = blindSignature,
+						BlindedOutputSignature = blindSignatures,
 						RoundId = round.RoundId
 					};
 					return Ok(resp);
