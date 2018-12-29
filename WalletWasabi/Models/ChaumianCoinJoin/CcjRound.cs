@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using static NBitcoin.Crypto.ECDSABlinding;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {
@@ -33,7 +34,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Transaction UnsignedCoinJoin { get; private set; }
 		private string _unsignedCoinJoinHex;
 
-		public ECDSABlinding.Signer Signer { get; private set; }
+		public Signer Signer { get; private set; }
 
 		public string GetUnsignedCoinJoinHex()
 		{
