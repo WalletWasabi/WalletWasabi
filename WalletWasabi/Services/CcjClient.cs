@@ -303,7 +303,9 @@ namespace WalletWasabi.Services
 		private Dictionary<int, WitScript> SignCoinJoin(CcjClientRound ongoingRound, Transaction unsignedCoinJoin)
 		{
 			Money amountBack = unsignedCoinJoin.Outputs
-				.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutputAddress.ScriptPubKey || x.ScriptPubKey == ongoingRound.ChangeOutputAddress.ScriptPubKey)
+				.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutputAddress.ScriptPubKey
+					|| x.ScriptPubKey == ongoingRound.ChangeOutputAddress.ScriptPubKey
+					|| ongoingRound.AdditionalActiveOutputAddresses.Select(y => y.ScriptPubKey).Contains(x.ScriptPubKey))
 				.Select(y => y.Value)
 				.Sum();
 			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
@@ -357,10 +359,21 @@ namespace WalletWasabi.Services
 		{
 			using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
 			{
-				await bobClient.PostOutputAsync(ongoingRound.AliceClient.RoundId, ongoingRound.ActiveOutputAddress, ongoingRound.UnblindedSignature);
-				ongoingRound.PostedOutput = true;
-				Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted output.");
+				await bobClient.PostOutputAsync(ongoingRound.AliceClient.RoundId, ongoingRound.ActiveOutputAddress, ongoingRound.UnblindedSignature, 0);
 			}
+
+			for (int i = 0; i < ongoingRound.AdditionalUnblindedSignatures.Length; i++)
+			{
+				BlindSignature unblindedSignature = ongoingRound.AdditionalUnblindedSignatures[i];
+				BitcoinAddress activeOutputAddress = ongoingRound.AdditionalActiveOutputAddresses[i];
+				using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
+				{
+					await bobClient.PostOutputAsync(ongoingRound.AliceClient.RoundId, activeOutputAddress, unblindedSignature, i + 1);
+				}
+			}
+
+			ongoingRound.PostedOutput = true;
+			Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {ongoingRound.AdditionalUnblindedSignatures.Length + 1}.");
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
@@ -397,7 +410,7 @@ namespace WalletWasabi.Services
 				if (registrableCoins.Any())
 				{
 					BitcoinAddress changeAddress = null;
-					BitcoinAddress activeAddress = null;
+					var activeOutputAddresses = new List<BitcoinAddress>();
 					lock (CustomChangeAddressesLock)
 					{
 						if (CustomChangeAddresses.Count > 0)
@@ -408,14 +421,14 @@ namespace WalletWasabi.Services
 					}
 					lock (CustomActiveAddressesLock)
 					{
-						if (CustomActiveAddresses.Count > 0)
+						foreach (BitcoinAddress customActiveAddress in CustomActiveAddresses.Take(10))
 						{
-							activeAddress = CustomActiveAddresses.First();
-							CustomActiveAddresses.RemoveFirst();
+							activeOutputAddresses.Add(customActiveAddress);
 						}
+						RemoveCustomActiveAddresses(activeOutputAddresses, noLock: true);
 					}
 
-					if (changeAddress is null || activeAddress is null)
+					if (changeAddress is null || !activeOutputAddresses.Any())
 					{
 						IEnumerable<HdPubKey> allUnusedInternalKeys = KeyManager.GetKeys(keyState: null, isInternal: true).Where(x => x.KeyState != KeyState.Used);
 
@@ -449,7 +462,7 @@ namespace WalletWasabi.Services
 							AccessCache.AddOrReplace(changeKey, DateTimeOffset.UtcNow);
 						}
 
-						if (activeAddress is null)
+						if (!activeOutputAddresses.Any())
 						{
 							string activeLabel = "ZeroLink Mixed Coin";
 							IEnumerable<HdPubKey> allActiveKeys = allUnusedInternalKeys.Where(x => x.Label == activeLabel);
@@ -469,25 +482,40 @@ namespace WalletWasabi.Services
 								}
 								activeKey.SetLabel(activeLabel);
 								activeKey.SetKeyState(KeyState.Locked);
-								activeAddress = activeKey.GetP2wpkhAddress(Network);
+
+								//activeAddress = activeKey.GetP2wpkhAddress(Network);
+								activeOutputAddresses.Add(activeKey.GetP2wpkhAddress(Network));
 							}
 							else
 							{
 								activeKey = internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)).RandomElement();
 								activeKey.SetLabel(activeLabel);
 							}
-							activeAddress = activeKey.GetP2wpkhAddress(Network);
+							//activeAddress = activeKey.GetP2wpkhAddress(Network);
+							activeOutputAddresses.Add(activeKey.GetP2wpkhAddress(Network));
 							AccessCache.AddOrReplace(activeKey, DateTimeOffset.UtcNow);
 						}
 					}
 
 					KeyManager.ToFile();
 
-					PubKey roundSignerPubKey = inputRegistrableRound.State.SignerPubKey;
+					var activeAddress = activeOutputAddresses.First();
+					var additionalActiveOutputAddresses = activeOutputAddresses.Skip(1);
+					PubKey signerPubKey = inputRegistrableRound.State.SignerPubKey;
+					PubKey[] additionalSignerPubKeys = inputRegistrableRound.State.AdditionalSignerPubKeys.Select(x => new PubKey(x)).ToArray();
 					PubKey roundRpubKey = inputRegistrableRound.State.RpubKey;
 					var outputScriptHash = new uint256(Hashes.SHA256(activeAddress.ScriptPubKey.ToBytes()));
 					var requester = new Requester();
-					uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, roundRpubKey, roundSignerPubKey);
+					uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, roundRpubKey, signerPubKey);
+
+					var additionalBlindedOutputScriptHashes = new List<uint256>();
+					uint256[] array = additionalActiveOutputAddresses.Select(x => new uint256(Hashes.SHA256(x.ScriptPubKey.ToBytes()))).ToArray();
+					for (int i = 0; i < array.Length; i++)
+					{
+						uint256 osh = (uint256)array[i];
+						PubKey skp = additionalSignerPubKeys[i];
+						additionalBlindedOutputScriptHashes.Add(requester.BlindMessage(osh, roundRpubKey, skp));
+					}
 
 					var inputProofs = new List<InputProofModel>();
 					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
@@ -506,7 +534,7 @@ namespace WalletWasabi.Services
 					AliceClient aliceClient = null;
 					try
 					{
-						aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blindedOutputScriptHash, inputProofs, CcjHostUri, TorSocks5EndPoint);
+						aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blindedOutputScriptHash, additionalBlindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
 					}
 					catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 					{
@@ -542,10 +570,20 @@ namespace WalletWasabi.Services
 					}
 
 					BlindSignature unblindedSignature = requester.UnblindSignature(aliceClient.BlindedOutputSignature);
-
-					if (!VerifySignature(outputScriptHash, unblindedSignature, roundSignerPubKey))
+					if (!VerifySignature(outputScriptHash, unblindedSignature, signerPubKey))
 					{
 						throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
+					}
+
+					var additionalUnblindedSignatures = new List<BlindSignature>();
+					foreach (var blindedOutputSignature in aliceClient.AdditionalBlindedOutputSignatures)
+					{
+						BlindSignature us = requester.UnblindSignature(blindedOutputSignature);
+						if (!VerifySignature(outputScriptHash, us, signerPubKey))
+						{
+							throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
+						}
+						additionalUnblindedSignatures.Add(us);
 					}
 
 					CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
@@ -565,8 +603,10 @@ namespace WalletWasabi.Services
 						State.RemoveCoinFromWaitingList(coin);
 					}
 					roundRegistered.ActiveOutputAddress = activeAddress;
+					roundRegistered.AdditionalActiveOutputAddresses = additionalActiveOutputAddresses.Take(additionalUnblindedSignatures.Count()).ToArray();
 					roundRegistered.ChangeOutputAddress = changeAddress;
 					roundRegistered.UnblindedSignature = unblindedSignature;
+					roundRegistered.AdditionalUnblindedSignatures = additionalUnblindedSignatures.ToArray();
 					roundRegistered.AliceClient = aliceClient;
 				}
 			}
@@ -666,6 +706,21 @@ namespace WalletWasabi.Services
 				if (CustomActiveAddresses.Contains(address))
 				{
 					CustomActiveAddresses.Remove(address);
+				}
+			}
+		}
+
+		public void RemoveCustomActiveAddresses(IEnumerable<BitcoinAddress> addresses, bool noLock = false)
+		{
+			if (noLock)
+			{
+				CustomActiveAddresses.RemoveAll(x => addresses.Contains(x));
+			}
+			else
+			{
+				lock (CustomActiveAddressesLock)
+				{
+					CustomActiveAddresses.RemoveAll(x => addresses.Contains(x));
 				}
 			}
 		}

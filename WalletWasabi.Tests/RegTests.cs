@@ -1958,7 +1958,7 @@ namespace WalletWasabi.Tests
 				Script script = new Key().PubKey.GetSegwitAddress(network).ScriptPubKey;
 				blindedData = requester.BlindScript(round.Signer.Key.PubKey, round.Signer.R.PubKey, script);
 
-				using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blindedData, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedData) } }, baseUri))
+				using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blindedData, Enumerable.Empty<uint256>(), new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedData) } }, baseUri))
 				{
 					Assert.NotNull(aliceClient.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
@@ -1998,7 +1998,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nRound is not running.", httpRequestException.Message);
 				}
 
-				using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blindedData, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedData) } }, baseUri))
+				using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blindedData, Enumerable.Empty<uint256>(), new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedData) } }, baseUri))
 				{
 					Assert.NotNull(aliceClient.BlindedOutputSignature);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
@@ -2058,8 +2058,8 @@ namespace WalletWasabi.Tests
 				var input1 = new OutPoint(hash1, index1);
 				var input2 = new OutPoint(hash2, index2);
 
-				using (var aliceClient1 = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blinded1, new InputProofModel[] { new InputProofModel { Input = input1.ToTxoRef(), Proof = key1.SignCompact(blinded1) } }, baseUri))
-				using (var aliceClient2 = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blinded2, new InputProofModel[] { new InputProofModel { Input = input2.ToTxoRef(), Proof = key2.SignCompact(blinded2) } }, baseUri))
+				using (var aliceClient1 = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blinded1, Enumerable.Empty<uint256>(), new InputProofModel[] { new InputProofModel { Input = input1.ToTxoRef(), Proof = key1.SignCompact(blinded1) } }, baseUri))
+				using (var aliceClient2 = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), blinded2, Enumerable.Empty<uint256>(), new InputProofModel[] { new InputProofModel { Input = input2.ToTxoRef(), Proof = key2.SignCompact(blinded2) } }, baseUri))
 				{
 					Assert.Equal(aliceClient2.RoundId, aliceClient1.RoundId);
 					Assert.NotEqual(aliceClient2.UniqueId, aliceClient1.UniqueId);
@@ -2084,8 +2084,8 @@ namespace WalletWasabi.Tests
 					using (var bobClient1 = new BobClient(baseUri))
 					using (var bobClient2 = new BobClient(baseUri))
 					{
-						await bobClient1.PostOutputAsync(aliceClient1.RoundId, outputAddress1, unblindedSignature1);
-						await bobClient2.PostOutputAsync(aliceClient2.RoundId, outputAddress2, unblindedSignature2);
+						await bobClient1.PostOutputAsync(aliceClient1.RoundId, outputAddress1, unblindedSignature1, 0);
+						await bobClient2.PostOutputAsync(aliceClient2.RoundId, outputAddress2, unblindedSignature2, 0);
 					}
 
 					roundState = await satoshiClient.GetRoundStateAsync(aliceClient1.RoundId);
@@ -2201,7 +2201,7 @@ namespace WalletWasabi.Tests
 				InputProofModel inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = inputKey.SignCompact(blinded) };
 				InputProofModel[] inputsProofs = new InputProofModel[] { inputProof };
 				registerRequests.Add((changeOutputAddress, blinded, inputsProofs));
-				await AliceClient.CreateNewAsync(network, changeOutputAddress, blinded, inputsProofs, baseUri);
+				await AliceClient.CreateNewAsync(network, changeOutputAddress, blinded, Enumerable.Empty<uint256>(), inputsProofs, baseUri);
 			}
 
 			await WaitForTimeoutAsync(baseUri);
@@ -2213,7 +2213,7 @@ namespace WalletWasabi.Tests
 
 			foreach (var registerRequest in registerRequests)
 			{
-				await AliceClient.CreateNewAsync(network, registerRequest.changeOutputAddress, registerRequest.blindedData, registerRequest.inputsProofs, baseUri);
+				await AliceClient.CreateNewAsync(network, registerRequest.changeOutputAddress, registerRequest.blindedData, Enumerable.Empty<uint256>(), registerRequest.inputsProofs, baseUri);
 			}
 
 			await WaitForTimeoutAsync(baseUri);
@@ -2314,7 +2314,7 @@ namespace WalletWasabi.Tests
 
 			foreach (var user in inputRegistrationUsers)
 			{
-				aliceClients.Add(AliceClient.CreateNewAsync(network, user.changeOutputAddress, user.blinded, user.inputProofModels, baseUri));
+				aliceClients.Add(AliceClient.CreateNewAsync(network, user.changeOutputAddress, user.blinded, Enumerable.Empty<uint256>(), user.inputProofModels, baseUri));
 			}
 
 			long roundId = 0;
@@ -2379,7 +2379,7 @@ namespace WalletWasabi.Tests
 			aliceClients.Clear();
 			foreach (var user in inputRegistrationUsers)
 			{
-				aliceClients.Add(AliceClient.CreateNewAsync(network, user.changeOutputAddress, user.blinded, user.inputProofModels, baseUri));
+				aliceClients.Add(AliceClient.CreateNewAsync(network, user.changeOutputAddress, user.blinded, Enumerable.Empty<uint256>(), user.inputProofModels, baseUri));
 			}
 
 			roundId = 0;
@@ -2521,7 +2521,7 @@ namespace WalletWasabi.Tests
 
 			foreach (var user in inputRegistrationUsers)
 			{
-				aliceClients.Add(AliceClient.CreateNewAsync(network, user.changeOutputAddress, user.blinded, user.inputProofModels, baseUri));
+				aliceClients.Add(AliceClient.CreateNewAsync(network, user.changeOutputAddress, user.blinded, Enumerable.Empty<uint256>(), user.inputProofModels, baseUri));
 			}
 
 			long roundId = 0;
@@ -2572,7 +2572,7 @@ namespace WalletWasabi.Tests
 			foreach (var user in users)
 			{
 				var bobClient = new BobClient(baseUri);
-				outputRequests.Add((bobClient, bobClient.PostOutputAsync(roundId, user.activeOutputAddress, user.unblindedSignature)));
+				outputRequests.Add((bobClient, bobClient.PostOutputAsync(roundId, user.activeOutputAddress, user.unblindedSignature, 0)));
 			}
 
 			foreach (var request in outputRequests)

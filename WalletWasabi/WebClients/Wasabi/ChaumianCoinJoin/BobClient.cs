@@ -16,9 +16,9 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		{
 		}
 
-		public async Task PostOutputAsync(long roundId, BitcoinAddress activeOutputAddress, BlindSignature unblindedSignature)
+		public async Task PostOutputAsync(long roundId, BitcoinAddress activeOutputAddress, BlindSignature unblindedSignature, int level)
 		{
-			var request = new OutputRequest { OutputAddress = activeOutputAddress, UnblindedSignature = unblindedSignature };
+			var request = new OutputRequest { OutputAddress = activeOutputAddress, UnblindedSignature = unblindedSignature, Level = level };
 			using (var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/output?roundId={roundId}", request.ToHttpStringContent()))
 			{
 				if (response.StatusCode != HttpStatusCode.NoContent)
