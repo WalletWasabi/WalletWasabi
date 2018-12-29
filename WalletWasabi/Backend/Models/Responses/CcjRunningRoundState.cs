@@ -19,7 +19,7 @@ namespace WalletWasabi.Backend.Models.Responses
 		[JsonConverter(typeof(PubKeyJsonConverter))]
 		public PubKey SignerPubKey { get; set; }
 
-		[JsonConverter(typeof(PubKeyJsonConverter))]
+		[JsonConverter(typeof(IEnumerable<PubKeyJsonConverter>))]
 		public IEnumerable<PubKey> AdditionalSignerPubKeys { get; set; }
 
 		[JsonConverter(typeof(PubKeyJsonConverter))]
