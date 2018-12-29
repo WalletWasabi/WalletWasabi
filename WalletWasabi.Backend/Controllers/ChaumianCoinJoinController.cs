@@ -61,7 +61,7 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					Phase = round.Phase,
 					SignerPubKey = round.Signer.Key.PubKey,
-					RpubKey = round.Signer.R.PubKey,
+					RpubKey = round.Rkey.PubKey,
 					Denomination = round.Denomination,
 					RegisteredPeerCount = round.CountAlices(syncLock: false),
 					RequiredPeerCount = round.AnonymitySet,

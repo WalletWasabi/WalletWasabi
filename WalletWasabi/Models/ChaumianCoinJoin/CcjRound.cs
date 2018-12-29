@@ -34,7 +34,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Transaction UnsignedCoinJoin { get; private set; }
 		private string _unsignedCoinJoinHex;
 
-		public Signer Signer { get; private set; }
+		public Key Rkey { get; }
+		public Signer Signer { get; }
 
 		public string GetUnsignedCoinJoinHex()
 		{
@@ -158,7 +159,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				StatusLock = new object();
 				Status = CcjRoundStatus.NotStarted;
 
-				Signer = new ECDSABlinding.Signer(new Key());
+				Rkey = new Key();
+				Signer = new Signer(new Key(), Rkey);
 
 				_unsignedCoinJoinHex = null;
 
