@@ -23,7 +23,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public RPCClient RpcClient { get; }
 		public Network Network => RpcClient.Network;
 
-		public Money Denomination { get; }
 		public int ConfirmationTarget { get; }
 		public decimal CoordinatorFeePercent { get; }
 		public int AnonymitySet { get; private set; }
@@ -34,8 +33,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Transaction UnsignedCoinJoin { get; private set; }
 		private string _unsignedCoinJoinHex;
 
-		public Key Rkey { get; private set; }
-		public Signer[] Signers { get; private set; }
+		public Key Rkey { get; }
+		public Signer[] Signers { get; }
+		public Money[] Denominations { get; }
 
 		public string GetUnsignedCoinJoinHex()
 		{
@@ -145,7 +145,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
 				Guard.NotNull(nameof(config), config);
 
-				Denomination = config.Denomination;
 				ConfirmationTarget = (int)config.ConfirmationTarget;
 				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 				AnonymitySet = (int)config.AnonymitySet;
@@ -159,12 +158,22 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				StatusLock = new object();
 				Status = CcjRoundStatus.NotStarted;
 
+				Money baseDenomination = config.Denomination;
 				Rkey = new Key();
 				var numberOfSigners = 11;
 				Signers = new Signer[numberOfSigners];
+				Denominations = new Money[numberOfSigners];
 				for (int i = 0; i < 11; i++)
 				{
 					Signers[i] = new Signer(new Key(), Rkey);
+					if (i == 0)
+					{
+						Denominations[i] = baseDenomination;
+					}
+					else
+					{
+						Denominations[i] = 2 * Denominations[i - 1];
+					}
 				}
 
 				_unsignedCoinJoinHex = null;
@@ -176,7 +185,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Bobs = new List<Bob>();
 
 				Logger.LogInfo<CcjRound>($"New round ({RoundId}) is created.\n\t" +
-					$"{nameof(Denomination)}: {Denomination.ToString(false, true)} BTC.\n\t" +
+					$"Denomination: {Denominations.First().ToString(false, true)} BTC.\n\t" +
 					$"{nameof(ConfirmationTarget)}: {ConfirmationTarget}.\n\t" +
 					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
 					$"{nameof(AnonymitySet)}: {AnonymitySet}.");
@@ -251,7 +260,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// Build CoinJoin
 
 						// 1. Set new denomination: minor optimization.
-						Money newDenomination = Alices.Min(x => x.OutputSumWithoutCoordinatorFeeAndDenomination);
+						Money newDenomination = Alices.Min(x => x.InputSum - x.NetworkFeeToPay);
 						var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
 
 						// 2. Add Bob outputs.
@@ -280,7 +289,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								transaction.Inputs.Add(new TxIn(input.Outpoint));
 								spentCoins.Add(input);
 							}
-							Money changeAmount = alice.GetChangeAmount(newDenomination, coordinatorFeePerAlice);
+							Money changeAmount = alice.InputSum - alice.NetworkFeeToPay - newDenomination - coordinatorFeePerAlice;
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
 							{
 								Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.

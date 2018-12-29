@@ -62,7 +62,7 @@ namespace WalletWasabi.Backend.Controllers
 					Phase = round.Phase,
 					SignerPubKeys = round.Signers.Select(x => x.R.PubKey),
 					RpubKey = round.Rkey.PubKey,
-					Denomination = round.Denomination,
+					Denomination = round.Denominations[0],
 					RegisteredPeerCount = round.CountAlices(syncLock: false),
 					RequiredPeerCount = round.AnonymitySet,
 					MaximumInputCountPerPeer = 7, // Constant for now. If we want to do something with it later, we'll put it to the config file.
@@ -233,11 +233,11 @@ namespace WalletWasabi.Backend.Controllers
 
 					// Check if inputs have enough coins.
 					Money inputSum = inputs.Sum(x => x.Amount);
-					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs) + (blindedOutputCount * round.FeePerOutputs);
-					Money changeAmount = inputSum - (round.Denomination + networkFeeToPay);
+					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs) + (blindedOutputCount + 1 * round.FeePerOutputs);
+					Money changeAmount = inputSum - (round.Denominations[0] + networkFeeToPay);
 					if (changeAmount < Money.Zero)
 					{
-						return BadRequest($"Not enough inputs are provided. Fee to pay: {networkFeeToPay.ToString(false, true)} BTC. Round denomination: {round.Denomination.ToString(false, true)} BTC. Only provided: {inputSum.ToString(false, true)} BTC.");
+						return BadRequest($"Not enough inputs are provided. Fee to pay: {networkFeeToPay.ToString(false, true)} BTC. Round denomination: {round.Denominations[0].ToString(false, true)} BTC. Only provided: {inputSum.ToString(false, true)} BTC.");
 					}
 
 					// Make sure Alice checks work.
