@@ -1,6 +1,7 @@
 ﻿using NBitcoin.BouncyCastle.Math;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Responses
@@ -9,6 +10,9 @@ namespace WalletWasabi.Backend.Models.Responses
 	{
 		[JsonConverter(typeof(BigIntegerJsonConverter))]
 		public BigInteger BlindedOutputSignature { get; set; }
+
+		[JsonConverter(typeof(IEnumerable<BigIntegerJsonConverter>))]
+		public IEnumerable<BigInteger> AdditionalBlindedOutputSignatures { get; set; }
 
 		[JsonConverter(typeof(GuidJsonConverter))]
 		public Guid UniqueId { get; set; }

@@ -37,6 +37,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Key Rkey { get; }
 		public Signer Signer { get; }
 
+		public (Money denomination, Signer signer)[] AdditionalMixingLevels { get; }
+
 		public string GetUnsignedCoinJoinHex()
 		{
 			if (_unsignedCoinJoinHex is null)
@@ -162,6 +164,23 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Rkey = new Key();
 				Signer = new Signer(new Key(), Rkey);
 
+				AdditionalMixingLevels = new (Money denomination, Signer signer)[10];
+				for (int i = 0; i < AdditionalMixingLevels.Length; i++)
+				{
+					var signer = new Signer(new Key(), Rkey);
+					Money denomination;
+					if (i == 0)
+					{
+						denomination = 2 * Denomination;
+					}
+					else
+					{
+						denomination = 2 * AdditionalMixingLevels[i - 1].denomination;
+					}
+
+					AdditionalMixingLevels[i] = (denomination, signer);
+				}
+
 				_unsignedCoinJoinHex = null;
 
 				UnsignedCoinJoin = null;
@@ -246,18 +265,38 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// Build CoinJoin
 
 						// 1. Set new denomination: minor optimization.
-						Money newDenomination = Alices.Min(x => x.OutputSumWithoutCoordinatorFeeAndDenomination);
+						Money newDenomination = Alices.Min(x => x.InputSum - x.NetworkFeeToPay);
 						var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
 
 						// 2. Add Bob outputs.
-						foreach (Bob bob in Bobs)
+						foreach (Bob bob in Bobs.Where(x => x.Level == 0))
 						{
 							transaction.Outputs.Add(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 						}
 
+						// 2.1 If the newDenomination equals to the Denomination, then we knew the denomination at
+						// registration time so we can tinker with additional mixing levels.
+						int missingBobCount = Alices.Count - Bobs.Count(x => x.Level == 0);
+						bool tinkerWithAdditionalMixingLevels = missingBobCount == 0 && newDenomination == Denomination;
+						if (tinkerWithAdditionalMixingLevels)
+						{
+							for (int i = 0; i < AdditionalMixingLevels.Length; i++)
+							{
+								(Money denomination, Signer signer) mixingLevel = AdditionalMixingLevels[i];
+								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == i + 1);
+								int numberOfBobsOnThisLevel = bobsOnThisLevel.Count();
+								if (numberOfBobsOnThisLevel == 1) break;
+
+								foreach (Bob bob in bobsOnThisLevel)
+								{
+									transaction.Outputs.Add(mixingLevel.denomination, bob.ActiveOutputAddress.ScriptPubKey);
+								}
+							}
+						}
+
 						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(Network);
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
-						for (int i = 0; i < Alices.Count - Bobs.Count; i++)
+						for (int i = 0; i < missingBobCount; i++)
 						{
 							transaction.Outputs.Add(newDenomination, coordinatorAddress);
 						}
@@ -265,6 +304,19 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// 4. Start building Coordinator fee.
 						Money coordinatorFeePerAlice = newDenomination.Percentange(CoordinatorFeePercent) * Alices.Count;
 						Money coordinatorFee = Alices.Count * coordinatorFeePerAlice;
+
+						if (tinkerWithAdditionalMixingLevels)
+						{
+							for (int i = 0; i < AdditionalMixingLevels.Length; i++)
+							{
+								(Money denomination, Signer signer) mixingLevel = AdditionalMixingLevels[i];
+								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == i + 1);
+								int numberOfBobsOnThisLevel = bobsOnThisLevel.Count();
+								if (numberOfBobsOnThisLevel == 1) break;
+
+								coordinatorFee += mixingLevel.denomination.Percentange(CoordinatorFeePercent) * numberOfBobsOnThisLevel * numberOfBobsOnThisLevel;
+							}
+						}
 
 						// 5. Add the inputs and the changes of Alices.
 						var spentCoins = new List<Coin>();
@@ -275,7 +327,22 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								transaction.Inputs.Add(new TxIn(input.Outpoint));
 								spentCoins.Add(input);
 							}
-							Money changeAmount = alice.GetChangeAmount(newDenomination, coordinatorFeePerAlice);
+
+							Money changeAmount = alice.InputSum - alice.NetworkFeeToPay - newDenomination - coordinatorFeePerAlice;
+
+							if (tinkerWithAdditionalMixingLevels)
+							{
+								for (int i = 0; i < alice.AdditionalBlindedOutputScripts.Length; i++)
+								{
+									(Money denomination, Signer signer) mixingLevel = AdditionalMixingLevels[i];
+									IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == i + 1);
+									int numberOfBobsOnThisLevel = bobsOnThisLevel.Count();
+									if (numberOfBobsOnThisLevel == 1) break;
+
+									changeAmount -= mixingLevel.denomination - FeePerOutputs - mixingLevel.denomination.Percentange(CoordinatorFeePercent) * numberOfBobsOnThisLevel;
+								}
+							}
+
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
 							{
 								Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
@@ -310,59 +377,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							.BuildTransaction(false);
 
 						// 8. Try optimize fees.
-						try
-						{
-							// 8.1. Estimate the current FeeRate. Note, there are no signatures yet!
-							int estimatedSigSizeBytes = UnsignedCoinJoin.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
-							int estimatedFinalTxSize = UnsignedCoinJoin.GetSerializedSize() + estimatedSigSizeBytes;
-							Money fee = UnsignedCoinJoin.GetFee(spentCoins.ToArray());
-							// There is a currentFeeRate null check later.
-							FeeRate currentFeeRate = fee is null ? null : new FeeRate(fee, estimatedFinalTxSize);
-
-							// 8.2. Get the most optimal FeeRate.
-							EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
-							if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
-							FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
-
-							if (!(optimalFeeRate is null) && optimalFeeRate != FeeRate.Zero && !(currentFeeRate is null) && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
-							{
-								var sanityFeeRate = new FeeRate(2m); // 2 s/b
-								optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
-								if (optimalFeeRate < currentFeeRate)
-								{
-									// 8.2 If the fee can be lowered, lower it.
-									// 8.2.1. How much fee can we save?
-									Money feeShouldBePaid = new Money(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
-									Money toSave = fee - feeShouldBePaid;
-
-									// 8.2.2. Get the outputs to divide  the savings between.
-									int maxMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs().Max(x => x.count);
-									Money bestMixAmount = UnsignedCoinJoin.GetIndistinguishableOutputs().Where(x => x.count == maxMixCount).Max(x => x.value);
-									int bestMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs().First(x => x.value == bestMixAmount).count;
-
-									// 8.2.3. Get the savings per best mix outputs.
-									long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
-
-									// 8.2.4. Modify the best mix outputs in the transaction.
-									if (toSavePerBestMixOutputs > 0)
-									{
-										foreach (TxOut output in UnsignedCoinJoin.Outputs.Where(x => x.Value == bestMixAmount))
-										{
-											output.Value += toSavePerBestMixOutputs;
-										}
-									}
-								}
-							}
-							else
-							{
-								Logger.LogError<CcjRound>($"This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
-							}
-						}
-						catch (Exception ex)
-						{
-							Logger.LogWarning<CcjRound>("Couldn't optimize fees. Fallback to normal fees.");
-							Logger.LogWarning<CcjRound>(ex);
-						}
+						await OptimizeFeesAsync(spentCoins);
 
 						SignedCoinJoin = Transaction.Parse(UnsignedCoinJoin.ToHex(), Network);
 
@@ -523,6 +538,63 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
+		private async Task OptimizeFeesAsync(List<Coin> spentCoins)
+		{
+			try
+			{
+				// 8.1. Estimate the current FeeRate. Note, there are no signatures yet!
+				int estimatedSigSizeBytes = UnsignedCoinJoin.Inputs.Count * Constants.P2wpkhInputSizeInBytes;
+				int estimatedFinalTxSize = UnsignedCoinJoin.GetSerializedSize() + estimatedSigSizeBytes;
+				Money fee = UnsignedCoinJoin.GetFee(spentCoins.ToArray());
+				// There is a currentFeeRate null check later.
+				FeeRate currentFeeRate = fee is null ? null : new FeeRate(fee, estimatedFinalTxSize);
+
+				// 8.2. Get the most optimal FeeRate.
+				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
+				if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
+				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
+
+				if (!(optimalFeeRate is null) && optimalFeeRate != FeeRate.Zero && !(currentFeeRate is null) && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
+				{
+					var sanityFeeRate = new FeeRate(2m); // 2 s/b
+					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;
+					if (optimalFeeRate < currentFeeRate)
+					{
+						// 8.2 If the fee can be lowered, lower it.
+						// 8.2.1. How much fee can we save?
+						Money feeShouldBePaid = new Money(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
+						Money toSave = fee - feeShouldBePaid;
+
+						// 8.2.2. Get the outputs to divide  the savings between.
+						int maxMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs().Max(x => x.count);
+						Money bestMixAmount = UnsignedCoinJoin.GetIndistinguishableOutputs().Where(x => x.count == maxMixCount).Max(x => x.value);
+						int bestMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs().First(x => x.value == bestMixAmount).count;
+
+						// 8.2.3. Get the savings per best mix outputs.
+						long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
+
+						// 8.2.4. Modify the best mix outputs in the transaction.
+						if (toSavePerBestMixOutputs > 0)
+						{
+							foreach (TxOut output in UnsignedCoinJoin.Outputs.Where(x => x.Value == bestMixAmount))
+							{
+								output.Value += toSavePerBestMixOutputs;
+							}
+						}
+					}
+				}
+				else
+				{
+					Logger.LogError<CcjRound>($"This is impossible. {nameof(optimalFeeRate)}: {optimalFeeRate}, {nameof(currentFeeRate)}: {currentFeeRate}.");
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<CcjRound>("Couldn't optimize fees. Fallback to normal fees.");
+				Logger.LogWarning<CcjRound>(ex);
+			}
+		}
+
 		public static async Task<(Money feePerInputs, Money feePerOutputs)> CalculateFeesAsync(RPCClient rpc, int confirmationTarget)
 		{
 			Guard.NotNull(nameof(rpc), rpc);
@@ -632,6 +704,24 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				foreach (Alice alice in Alices)
 				{
 					if (alice.BlindedOutputScript == blindedOutputScript)
+					{
+						alices.Add(alice);
+					}
+				}
+			}
+
+			return alices.Count > 0;
+		}
+
+		public bool ContainsAnyBlindedOutputScript(IEnumerable<uint256> blindedOutputScripts, out List<Alice> alices)
+		{
+			alices = new List<Alice>();
+
+			using (RoundSynchronizerLock.Lock())
+			{
+				foreach (Alice alice in Alices)
+				{
+					if (blindedOutputScripts.Contains(alice.BlindedOutputScript))
 					{
 						alices.Add(alice);
 					}
