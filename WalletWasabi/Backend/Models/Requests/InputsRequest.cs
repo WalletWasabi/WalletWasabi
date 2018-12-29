@@ -18,8 +18,7 @@ namespace WalletWasabi.Backend.Models.Requests
 		public uint256 BlindedOutputScript { get; set; }
 
 		[Required]
-		[JsonConverter(typeof(IEnumerable<Uint256JsonConverter>))]
-		public IEnumerable<uint256> AdditionalBlindedOutputScripts { get; set; }
+		public IEnumerable<string> AdditionalBlindedOutputScripts { get; set; }
 
 		[Required]
 		[JsonConverter(typeof(BitcoinAddressJsonConverter))]

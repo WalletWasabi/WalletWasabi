@@ -62,7 +62,7 @@ namespace WalletWasabi.Backend.Controllers
 				{
 					Phase = round.Phase,
 					SignerPubKey = round.Signer.Key.PubKey,
-					AdditionalSignerPubKeys = round.AdditionalMixingLevels.Select(x => x.signer.Key.PubKey),
+					AdditionalSignerPubKeys = round.AdditionalMixingLevels.Select(x => x.signer.Key.PubKey.ToHex()),
 					RpubKey = round.Rkey.PubKey,
 					Denomination = round.Denomination,
 					RegisteredPeerCount = round.CountAlices(syncLock: false),
@@ -128,7 +128,7 @@ namespace WalletWasabi.Backend.Controllers
 				// Do more checks.
 				try
 				{
-					var additionalBlindedOutputScriptArray = request.AdditionalBlindedOutputScripts.ToArray();
+					var additionalBlindedOutputScriptArray = request.AdditionalBlindedOutputScripts.Select(x => new uint256(x)).ToArray();
 					int additionalBlindedOutputCount = additionalBlindedOutputScriptArray.Length;
 					int maximumAdditionalBlindedOutputCount = round.AdditionalMixingLevels.Length;
 					if (additionalBlindedOutputCount > maximumAdditionalBlindedOutputCount)
@@ -136,14 +136,14 @@ namespace WalletWasabi.Backend.Controllers
 						return BadRequest($"Too many blinded output was provided: {additionalBlindedOutputCount}, maximum: {maximumAdditionalBlindedOutputCount}.");
 					}
 
-					IEnumerable<uint256> allBlindedOutputScript = additionalBlindedOutputScriptArray.Concat(new uint256[] { request.BlindedOutputScript });
+					IEnumerable<uint256> allBlindedOutputScripts = additionalBlindedOutputScriptArray.Concat(new uint256[] { request.BlindedOutputScript });
 
-					if (allBlindedOutputScript.Distinct().Count() < allBlindedOutputScript.Count())
+					if (allBlindedOutputScripts.Distinct().Count() < allBlindedOutputScripts.Count())
 					{
 						return BadRequest("Duplicate blinded output found.");
 					}
 
-					if (round.ContainsAnyBlindedOutputScript(allBlindedOutputScript, out _))
+					if (round.ContainsAnyBlindedOutputScript(allBlindedOutputScripts, out _))
 					{
 						return BadRequest("Blinded output has already been registered.");
 					}
@@ -254,8 +254,8 @@ namespace WalletWasabi.Backend.Controllers
 					var acceptedAdditionalBlindedOutputScripts = new List<uint256>();
 					for (int i = 0; i < additionalBlindedOutputCount; i++)
 					{
-						(Money denomination, Signer signer) mixingLevel = round.AdditionalMixingLevels[i];
-						changeAmount -= mixingLevel.denomination - round.FeePerOutputs - mixingLevel.denomination.Percentange(round.CoordinatorFeePercent) * round.AnonymitySet; // It should be the number of bobs, but we must make sure they'd have money to pay all.
+						Money denomination = round.AdditionalMixingLevels[i].denomination;
+						changeAmount -= denomination - round.FeePerOutputs - denomination.Percentange(round.CoordinatorFeePercent) * round.AnonymitySet; // It should be the number of bobs, but we must make sure they'd have money to pay all.
 
 						if (changeAmount >= Money.Zero)
 						{
@@ -277,9 +277,9 @@ namespace WalletWasabi.Backend.Controllers
 					var additionalBlindSignatures = new List<BigInteger>();
 					for (int i = 0; i < acceptedAdditionalBlindedOutputScripts.Count; i++)
 					{
-						(Money denomination, Signer signer) mixingLevel = round.AdditionalMixingLevels[i];
-						var bs = mixingLevel.signer.Sign(acceptedAdditionalBlindedOutputScripts[i]);
-						additionalBlindSignatures.Add(bs);
+						Signer signer = round.AdditionalMixingLevels[i].signer;
+						BigInteger blindedSignature = signer.Sign(acceptedAdditionalBlindedOutputScripts[i]);
+						additionalBlindSignatures.Add(blindedSignature);
 					}
 
 					// Check if phase changed since.
@@ -303,7 +303,7 @@ namespace WalletWasabi.Backend.Controllers
 					{
 						UniqueId = alice.UniqueId,
 						BlindedOutputSignature = blindSignature,
-						AdditionalBlindedOutputSignatures = additionalBlindSignatures,
+						AdditionalBlindedOutputSignatures = additionalBlindSignatures.Select(x => x.ToString()),
 						RoundId = round.RoundId
 					};
 					return Ok(resp);

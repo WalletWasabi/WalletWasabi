@@ -11,8 +11,7 @@ namespace WalletWasabi.Backend.Models.Responses
 		[JsonConverter(typeof(BigIntegerJsonConverter))]
 		public BigInteger BlindedOutputSignature { get; set; }
 
-		[JsonConverter(typeof(IEnumerable<BigIntegerJsonConverter>))]
-		public IEnumerable<BigInteger> AdditionalBlindedOutputSignatures { get; set; }
+		public IEnumerable<string> AdditionalBlindedOutputSignatures { get; set; }
 
 		[JsonConverter(typeof(GuidJsonConverter))]
 		public Guid UniqueId { get; set; }
