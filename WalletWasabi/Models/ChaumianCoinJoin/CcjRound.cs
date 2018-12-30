@@ -324,7 +324,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
 									if (bobsOnThisLevel.Count() <= 1) break;
 
-									changeAmount -= (level.Denomination + FeePerOutputs + level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel.Count());
+									changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel.Count()));
 								}
 							}
 
