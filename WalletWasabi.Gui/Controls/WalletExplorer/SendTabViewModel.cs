@@ -358,10 +358,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				ConfirmationExpectedText = $"two weeks™";
 			}
 
-			SetFees(allFeeEstimate, feeTarget);
-
 			if (allFeeEstimate != null)
 			{
+				SetFees(allFeeEstimate, feeTarget);
+
 				switch (FeeDisplayFormat)
 				{
 					case FeeDisplayFormat.SatoshiPerByte:
