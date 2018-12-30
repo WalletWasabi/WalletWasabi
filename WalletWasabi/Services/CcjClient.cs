@@ -413,90 +413,84 @@ namespace WalletWasabi.Services
 					BitcoinAddress changeAddress = null;
 					var activeOutputAddresses = new List<BitcoinAddress>();
 
-					IEnumerable<HdPubKey> allUnusedInternalKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used);
+					string changeLabel = "ZeroLink Change";
+					string activeLabel = "ZeroLink Mixed Coin";
 
-					if (changeAddress is null)
+					IEnumerable<HdPubKey> allChangeKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == changeLabel);
+					HdPubKey changeKey = null;
+
+					KeyManager.AssertLockedInternalKeysIndexed(14);
+					IEnumerable<HdPubKey> internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
+
+					if (allChangeKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
 					{
-						string changeLabel = "ZeroLink Change";
-						IEnumerable<HdPubKey> allChangeKeys = allUnusedInternalKeys.Where(x => x.Label == changeLabel);
-						HdPubKey changeKey = null;
-
-						KeyManager.AssertLockedInternalKeysIndexed(14);
-						IEnumerable<HdPubKey> internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
-
-						if (allChangeKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
+						// Find the first one that we did not try to register in the current session.
+						changeKey = allChangeKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
+						// If there is no such a key, then use the oldest.
+						if (changeKey == default)
 						{
-							// Find the first one that we did not try to register in the current session.
-							changeKey = allChangeKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
-							// If there is no such a key, then use the oldest.
-							if (changeKey == default)
+							changeKey = AccessCache.Where(x => allChangeKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
+						}
+						changeKey.SetLabel(changeLabel);
+						changeKey.SetKeyState(KeyState.Locked);
+					}
+					else
+					{
+						changeKey = internalNotCachedLockedKeys.RandomElement();
+						changeKey.SetLabel(changeLabel);
+					}
+					changeAddress = changeKey.GetP2wpkhAddress(Network);
+					AccessCache.AddOrReplace(changeKey, DateTimeOffset.UtcNow);
+
+					IEnumerable<HdPubKey> allActiveKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == activeLabel);
+					List<HdPubKey> activeKeys = new List<HdPubKey>();
+
+					KeyManager.AssertLockedInternalKeysIndexed(14);
+
+					internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
+
+					if (allActiveKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
+					{
+						// Find the first one that we did not try to register in the current session.
+						foreach (var ac in allActiveKeys.Where(x => !AccessCache.ContainsKey(x)))
+						{
+							if (activeKeys.Count >= Constants.MaximumMixingLevelCount)
 							{
-								changeKey = AccessCache.Where(x => allChangeKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
+								break;
 							}
-							changeKey.SetLabel(changeLabel);
-							changeKey.SetKeyState(KeyState.Locked);
+							activeKeys.Add(ac);
 						}
-						else
+						// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
+						if (activeKeys.Count < Constants.MaximumMixingLevelCount)
 						{
-							changeKey = internalNotCachedLockedKeys.RandomElement();
-							changeKey.SetLabel(changeLabel);
+							foreach (var ac in AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).Select(x => x.Key))
+							{
+								if (activeKeys.Count >= Constants.MaximumMixingLevelCount)
+								{
+									break;
+								}
+								activeKeys.Add(ac);
+							}
 						}
-						changeAddress = changeKey.GetP2wpkhAddress(Network);
-						AccessCache.AddOrReplace(changeKey, DateTimeOffset.UtcNow);
+					}
+					else
+					{
+						foreach (var ac in internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)))
+						{
+							if (activeKeys.Count >= Constants.MaximumMixingLevelCount)
+							{
+								break;
+							}
+							activeKeys.Add(ac);
+						}
 					}
 
-					if (!activeOutputAddresses.Any())
+					foreach (HdPubKey ac in activeKeys)
 					{
-						string activeLabel = "ZeroLink Mixed Coin";
-						IEnumerable<HdPubKey> allActiveKeys = allUnusedInternalKeys.Where(x => x.Label == activeLabel);
-						List<HdPubKey> activeKeys = new List<HdPubKey>();
-
-						KeyManager.AssertLockedInternalKeysIndexed(14);
-						IEnumerable<HdPubKey> internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
-
-						if (allActiveKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
-						{
-							// Find the first one that we did not try to register in the current session.
-							foreach (var ac in allActiveKeys.Where(x => !AccessCache.ContainsKey(x)))
-							{
-								if (activeKeys.Count >= 10)
-								{
-									break;
-								}
-								activeKeys.Add(ac);
-							}
-							// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
-							if (activeKeys.Count < 10)
-							{
-								foreach (var ac in AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).Select(x => x.Key))
-								{
-									if (activeKeys.Count >= 10)
-									{
-										break;
-									}
-									activeKeys.Add(ac);
-								}
-							}
-						}
-						else
-						{
-							foreach (var ac in internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)))
-							{
-								if (activeKeys.Count >= 10)
-								{
-									break;
-								}
-								activeKeys.Add(ac);
-							}
-						}
-
-						foreach (HdPubKey ac in activeKeys)
-						{
-							ac.SetLabel(activeLabel);
-							ac.SetKeyState(KeyState.Locked);
-							activeOutputAddresses.Add(ac.GetP2wpkhAddress(Network));
-							AccessCache.AddOrReplace(ac, DateTimeOffset.UtcNow);
-						}
+						ac.SetLabel(activeLabel);
+						ac.SetKeyState(KeyState.Locked);
+						activeOutputAddresses.Add(ac.GetP2wpkhAddress(Network));
+						AccessCache.AddOrReplace(ac, DateTimeOffset.UtcNow);
 					}
 
 					KeyManager.ToFile();
