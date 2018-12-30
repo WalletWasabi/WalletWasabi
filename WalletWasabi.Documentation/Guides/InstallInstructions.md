@@ -27,7 +27,7 @@ After first run, a working directory will be created: `~/.walletwasabi/`. Amongs
 
 # OSX
 
-Check out this [video guide](https://www.youtube.com/watch?v=qFbv_b-bju4) or take a look at the instructions below:
+Check out this [video guide](https://www.youtube.com/watch?v=_Zmc54XYzBA&t=7s) or take a look at the instructions below:
 
 ![](https://imgur.com/k0cEYjz.png)
 
