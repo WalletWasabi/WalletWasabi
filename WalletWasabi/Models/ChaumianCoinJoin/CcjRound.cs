@@ -262,11 +262,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// 2.1 If the newDenomination equals to the Denomination, then we knew the denomination at
 						// registration time so we can tinker with additional mixing levels.
 
-						bool tinkerWithAdditionalMixingLevels = true;
+						bool tinkerWithAdditionalMixingLevels = !Alices.All(x => x.BlindedOutputScripts.Length == 1);
 						foreach (Alice alice in Alices)
 						{
-							// Check if inputs have enough coins.
+							if (!tinkerWithAdditionalMixingLevels) break;
 
+							// Check if inputs have enough coins.
 							Money networkFeeToPay = (alice.Inputs.Count() * FeePerInputs) + (2 * FeePerOutputs);
 							Money changeAmount = alice.InputSum - (newDenomination + networkFeeToPay);
 							var acceptedBlindedOutputScriptsCount = 1;
@@ -277,17 +278,27 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							{
 								MixingLevel level = MixingLevels.GetLevel(i);
 								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-								if (bobsOnThisLevel.Count() <= 1) break;
+								if (bobsOnThisLevel.Count() <= 1)
+								{
+									if (i == 1)
+									{
+										tinkerWithAdditionalMixingLevels = false;
+									}
+									break;
+								}
 
 								changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel.Count()));
 
-								if (changeAmount < Money.Zero) break;
-								acceptedBlindedOutputScriptsCount++;
-							}
+								if (changeAmount < Money.Zero)
+								{
+									if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Count())
+									{
+										tinkerWithAdditionalMixingLevels = false;
+									}
+									break;
+								}
 
-							if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Count())
-							{
-								tinkerWithAdditionalMixingLevels = false;
+								acceptedBlindedOutputScriptsCount++;
 							}
 						}
 
