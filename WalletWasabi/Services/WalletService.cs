@@ -1008,7 +1008,7 @@ namespace WalletWasabi.Services
 		{
 			newLabel = Guard.Correct(newLabel);
 			coin.Label = newLabel;
-			var key = KeyManager.GetKeys().SingleOrDefault(x => x.GetP2wpkhScript() == coin.ScriptPubKey);
+			var key = KeyManager.GetKeys(x => x.GetP2wpkhScript() == coin.ScriptPubKey).SingleOrDefault();
 			if (!(key is null))
 			{
 				key.SetLabel(newLabel, KeyManager);

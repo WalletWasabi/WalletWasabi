@@ -15,6 +15,9 @@ namespace WalletWasabi.Backend.Models.Requests
 		public BitcoinAddress OutputAddress { get; set; }
 
 		[Required]
+		public int Level { get; set; }
+
+		[Required]
 		[JsonConverter(typeof(BlindSignatureJsonConverter))]
 		public BlindSignature UnblindedSignature { get; set; }
 

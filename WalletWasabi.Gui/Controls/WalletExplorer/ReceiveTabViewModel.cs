@@ -115,6 +115,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				_addresses.Add(new AddressViewModel(key));
 			}
+
+			foreach (HdPubKey key in Global.WalletService.KeyManager.GetKeys(x =>
+																		x.HasLabel()
+																		&& !x.IsInternal()
+																		&& x.KeyState == KeyState.Clean)
+																	.Reverse())
+			{
+				_addresses.Add(new AddressViewModel(key));
+			}
 		}
 
 		public ObservableCollection<AddressViewModel> Addresses

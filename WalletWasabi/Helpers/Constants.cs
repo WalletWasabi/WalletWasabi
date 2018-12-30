@@ -20,6 +20,8 @@ namespace WalletWasabi.Helpers
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
 		};
 
+		public const int MaximumMixingLevelCount = 11;
+
 		public const int P2wpkhInputSizeInBytes = 41;
 		public const int P2pkhInputSizeInBytes = 145;
 		public const int OutputSizeInBytes = 33;
