@@ -28,11 +28,6 @@ namespace WalletWasabi.Services
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
 
-		public List<BitcoinAddress> CustomChangeAddresses { get; }
-		private object CustomChangeAddressesLock { get; }
-		public List<BitcoinAddress> CustomActiveAddresses { get; }
-		private object CustomActiveAddressesLock { get; }
-
 		public Uri CcjHostUri { get; }
 		public WasabiSynchronizer Synchronizer { get; }
 		private IPEndPoint TorSocks5EndPoint { get; }
@@ -84,11 +79,6 @@ namespace WalletWasabi.Services
 			State = new CcjClientState();
 			MixLock = new AsyncLock();
 			_statusProcessing = 0;
-
-			CustomChangeAddresses = new List<BitcoinAddress>();
-			CustomActiveAddresses = new List<BitcoinAddress>();
-			CustomChangeAddressesLock = new object();
-			CustomActiveAddressesLock = new object();
 
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 		}
@@ -422,22 +412,6 @@ namespace WalletWasabi.Services
 				{
 					BitcoinAddress changeAddress = null;
 					var activeOutputAddresses = new List<BitcoinAddress>();
-					lock (CustomChangeAddressesLock)
-					{
-						if (CustomChangeAddresses.Count > 0)
-						{
-							changeAddress = CustomChangeAddresses.First();
-							CustomChangeAddresses.RemoveFirst();
-						}
-					}
-					lock (CustomActiveAddressesLock)
-					{
-						foreach (BitcoinAddress customActiveAddress in CustomActiveAddresses.Take(10))
-						{
-							activeOutputAddresses.Add(customActiveAddress);
-						}
-						RemoveCustomActiveAddresses(activeOutputAddresses, noLock: true);
-					}
 
 					if (changeAddress is null || !activeOutputAddresses.Any())
 					{
@@ -657,107 +631,6 @@ namespace WalletWasabi.Services
 		{
 			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
 		}
-
-		#region CustomAddressesLists
-
-		public IEnumerable<BitcoinAddress> GetCustomChangeAddresses()
-		{
-			lock (CustomChangeAddressesLock)
-			{
-				return CustomChangeAddresses;
-			}
-		}
-
-		public IEnumerable<BitcoinAddress> GetCustomActiveAddresses()
-		{
-			lock (CustomActiveAddressesLock)
-			{
-				return CustomActiveAddresses;
-			}
-		}
-
-		/// <summary>
-		/// Best effort. For example if a round is disrupted my malicious actors, the address won't be registered again, therefore it's not guaranteed money will arrive.
-		/// </summary>
-		public void AddCustomActiveAddress(BitcoinAddress address, bool beginning = false)
-		{
-			lock (CustomActiveAddressesLock)
-			{
-				if (CustomActiveAddresses.Contains(address))
-				{
-					CustomActiveAddresses.Remove(address);
-				}
-				if (beginning)
-				{
-					CustomActiveAddresses.Insert(0, address);
-				}
-				else
-				{
-					CustomActiveAddresses.Add(address);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Best effort. For example if a round is disrupted my malicious actors, the address won't be registered again, therefore it's not guaranteed money will arrive.
-		/// </summary>
-		public void AddCustomChangeAddress(BitcoinAddress address, bool beginning = false)
-		{
-			lock (CustomChangeAddressesLock)
-			{
-				if (CustomChangeAddresses.Contains(address))
-				{
-					CustomChangeAddresses.Remove(address);
-				}
-				if (beginning)
-				{
-					CustomChangeAddresses.Insert(0, address);
-				}
-				else
-				{
-					CustomChangeAddresses.Add(address);
-				}
-			}
-		}
-
-		public void RemoveCustomChangeAddress(BitcoinAddress address)
-		{
-			lock (CustomChangeAddressesLock)
-			{
-				if (CustomChangeAddresses.Contains(address))
-				{
-					CustomChangeAddresses.Remove(address);
-				}
-			}
-		}
-
-		public void RemoveCustomActiveAddress(BitcoinAddress address)
-		{
-			lock (CustomActiveAddressesLock)
-			{
-				if (CustomActiveAddresses.Contains(address))
-				{
-					CustomActiveAddresses.Remove(address);
-				}
-			}
-		}
-
-		public void RemoveCustomActiveAddresses(IEnumerable<BitcoinAddress> addresses, bool noLock = false)
-		{
-			if (noLock)
-			{
-				CustomActiveAddresses.RemoveAll(x => addresses.Contains(x));
-			}
-			else
-			{
-				lock (CustomActiveAddressesLock)
-				{
-					CustomActiveAddresses.RemoveAll(x => addresses.Contains(x));
-				}
-			}
-		}
-
-		#endregion CustomAddressesLists
 
 		internal string OnePiece { get; private set; } = null;
 

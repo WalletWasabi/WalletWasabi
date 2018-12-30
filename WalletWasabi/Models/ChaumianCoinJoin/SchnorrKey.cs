@@ -26,6 +26,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		[JsonConverter(typeof(KeyJsonConverter))]
 		public Key Rkey { get; }
 
+		public SchnorrPubKey SchnorrPubKey => new SchnorrPubKey(SignerKey, Rkey);
+
 		#region EqualityAndComparison
 
 		public override bool Equals(object obj) => obj is SchnorrKey && this == (SchnorrKey)obj;
