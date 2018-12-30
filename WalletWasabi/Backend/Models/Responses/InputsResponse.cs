@@ -8,10 +8,7 @@ namespace WalletWasabi.Backend.Models.Responses
 {
 	public class InputsResponse
 	{
-		[JsonConverter(typeof(BigIntegerJsonConverter))]
-		public BigInteger BlindedOutputSignature { get; set; }
-
-		public IEnumerable<string> AdditionalBlindedOutputSignatures { get; set; }
+		public IEnumerable<string> BlindedOutputSignatures { get; set; }
 
 		[JsonConverter(typeof(GuidJsonConverter))]
 		public Guid UniqueId { get; set; }

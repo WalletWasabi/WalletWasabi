@@ -5,13 +5,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 {
 	public class Bob
 	{
-		public int Level { get; }
+		public MixingLevel Level { get; }
 		public BitcoinAddress ActiveOutputAddress { get; }
 
-		public Bob(BitcoinAddress activeOutputAddress, int level)
+		public Bob(BitcoinAddress activeOutputAddress, MixingLevel level)
 		{
 			ActiveOutputAddress = Guard.NotNull(nameof(activeOutputAddress), activeOutputAddress);
-			Level = Guard.MinimumAndNotNull(nameof(level), level, 0);
+			Level = Guard.NotNull(nameof(level), level);
 		}
 	}
 }

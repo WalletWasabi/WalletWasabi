@@ -202,23 +202,21 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void InputsResponseSerialization()
 		{
-			BigInteger[] bigIntegers = new BigInteger[] { new BigInteger("2"), new BigInteger("3") };
+			BigInteger[] bigIntegers = new BigInteger[] { new BigInteger("1"), new BigInteger("2"), new BigInteger("3") };
 			var resp = new InputsResponse
 			{
 				UniqueId = Guid.NewGuid(),
-				BlindedOutputSignature = new BigInteger("1"),
 				RoundId = 1,
-				AdditionalBlindedOutputSignatures = bigIntegers.Select(x => x.ToString())
+				BlindedOutputSignatures = bigIntegers.Select(x => x.ToString())
 			};
 
 			var serialized = JsonConvert.SerializeObject(resp);
 			var deserialized = JsonConvert.DeserializeObject<InputsResponse>(serialized);
 			Assert.Equal(resp.RoundId, deserialized.RoundId);
 			Assert.Equal(resp.UniqueId, deserialized.UniqueId);
-			Assert.Equal(resp.BlindedOutputSignature, deserialized.BlindedOutputSignature);
 			for (int i = 0; i < bigIntegers.Length; i++)
 			{
-				Assert.Equal(bigIntegers[i], deserialized.AdditionalBlindedOutputSignatures.Select(x => new BigInteger(x)).ToArray()[i]);
+				Assert.Equal(bigIntegers[i], deserialized.BlindedOutputSignatures.Select(x => new BigInteger(x)).ToArray()[i]);
 			}
 		}
 

@@ -274,7 +274,7 @@ namespace WalletWasabi.Services
 				}
 				else if (ongoingRound.State.Phase == CcjRoundPhase.OutputRegistration)
 				{
-					if (!ongoingRound.PostedOutput)
+					if (!ongoingRound.PostedOutputs)
 					{
 						await RegisterOutputAsync(ongoingRound);
 					}
@@ -303,23 +303,34 @@ namespace WalletWasabi.Services
 
 		private Dictionary<int, WitScript> SignCoinJoin(CcjClientRound ongoingRound, Transaction unsignedCoinJoin)
 		{
-			Money amountBack = unsignedCoinJoin.Outputs
-				.Where(x => x.ScriptPubKey == ongoingRound.ActiveOutputAddress.ScriptPubKey
-					|| x.ScriptPubKey == ongoingRound.ChangeOutputAddress.ScriptPubKey
-					|| ongoingRound.AdditionalActiveOutputAddresses.Select(y => y.ScriptPubKey).Contains(x.ScriptPubKey))
-				.Select(y => y.Value)
-				.Sum();
+			TxOut[] myOutputs = unsignedCoinJoin.Outputs
+				.Where(x => x.ScriptPubKey == ongoingRound.ChangeOutputAddress.ScriptPubKey
+					|| ongoingRound.ActiveOutputAddresses.Select(y => y.ScriptPubKey).Contains(x.ScriptPubKey))
+					.ToArray();
+			Money amountBack = myOutputs.Sum(y => y.Value);
+
+			bool iHaveChange = myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.ChangeOutputAddress.ScriptPubKey);
+			// Make sure change is counted.
 			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
-			minAmountBack -= ongoingRound.State.FeePerOutputs * 2 + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
-			Money actualDenomination = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count).First().value; // Denomination may grow.
-			Money expectedCoordinatorFee = actualDenomination.Percentange(ongoingRound.State.CoordinatorFeePercent) * ongoingRound.State.RequiredPeerCount;
-			minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
+			minAmountBack -= ongoingRound.State.FeePerOutputs * (iHaveChange ? myOutputs.Length : myOutputs.Length + 1) + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
+
+			IOrderedEnumerable<(Money value, int count)> indistinguishableOutputs = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count);
+			foreach ((Money value, int count) denomPair in indistinguishableOutputs)
+			{
+				if (myOutputs.Select(x => x.Value).Contains(denomPair.value))
+				{
+					Money denomination = denomPair.value;
+					Money expectedCoordinatorFee = denomination.Percentange(ongoingRound.State.CoordinatorFeePercent) * denomPair.count;
+					minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
+				}
+			}
 
 			// If there's no change output then coordinator protection may happened:
-			if (unsignedCoinJoin.Outputs.All(x => x.ScriptPubKey != ongoingRound.ChangeOutputAddress.ScriptPubKey))
+			if (!iHaveChange)
 			{
 				Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
-				Money onePercentOfDenomination = actualDenomination.Percentange(1m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
+				Money baseDenomination = indistinguishableOutputs.First().value;
+				Money onePercentOfDenomination = baseDenomination.Percentange(1m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
 				Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
 
 				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
@@ -358,23 +369,22 @@ namespace WalletWasabi.Services
 
 		private async Task RegisterOutputAsync(CcjClientRound ongoingRound)
 		{
-			using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
+			int i;
+			for (i = 0; i < ongoingRound.UnblindedSignatures.Length; i++)
 			{
-				await bobClient.PostOutputAsync(ongoingRound.AliceClient.RoundId, ongoingRound.ActiveOutputAddress, ongoingRound.UnblindedSignature, 0);
-			}
-
-			for (int i = 0; i < ongoingRound.AdditionalUnblindedSignatures.Length; i++)
-			{
-				BlindSignature unblindedSignature = ongoingRound.AdditionalUnblindedSignatures[i];
-				BitcoinAddress activeOutputAddress = ongoingRound.AdditionalActiveOutputAddresses[i];
+				BlindSignature unblindedSignature = ongoingRound.UnblindedSignatures[i];
+				BitcoinAddress activeOutputAddress = ongoingRound.ActiveOutputAddresses[i];
 				using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
 				{
-					await bobClient.PostOutputAsync(ongoingRound.AliceClient.RoundId, activeOutputAddress, unblindedSignature, i + 1);
+					if (!await bobClient.PostOutputAsync(ongoingRound.AliceClient.RoundId, activeOutputAddress, unblindedSignature, i))
+					{
+						break;
+					}
 				}
 			}
 
-			ongoingRound.PostedOutput = true;
-			Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {ongoingRound.AdditionalUnblindedSignatures.Length + 1}.");
+			ongoingRound.PostedOutputs = true;
+			Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {i}/{ongoingRound.UnblindedSignatures.Length}.");
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
@@ -520,28 +530,25 @@ namespace WalletWasabi.Services
 
 					KeyManager.ToFile();
 
-					var activeAddress = activeOutputAddresses.First();
-					var additionalActiveOutputAddresses = activeOutputAddresses.Skip(1);
-					PubKey signerPubKey = inputRegistrableRound.State.SignerPubKey;
-					PubKey rPubKey = inputRegistrableRound.State.RpubKey;
-					PubKey[] additionalSignerPubKeys = inputRegistrableRound.State.AdditionalSignerPubKeys.Select(x => new PubKey(x)).ToArray();
-					PubKey[] additionalRpubKeys = inputRegistrableRound.State.AdditionalRPubKeys.Select(x => new PubKey(x)).ToArray();
+					SchnorrPubKey[] schnorrPubKeys = inputRegistrableRound.State.SchnorrPubKeys.ToArray();
+					var requesters = new List<Requester>();
+					var outputScriptHashes = new List<uint256>();
+					var blindedOutputScriptHashes = new List<uint256>();
 
-					var outputScriptHash = new uint256(Hashes.SHA256(activeAddress.ScriptPubKey.ToBytes()));
-					var requester = new Requester();
-					uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, rPubKey, signerPubKey);
-
-					var additionalBlindedOutputScriptHashes = new List<uint256>();
-					var additionalRequesters = new List<Requester>();
-					uint256[] array = additionalActiveOutputAddresses.Select(x => new uint256(Hashes.SHA256(x.ScriptPubKey.ToBytes()))).ToArray();
-					for (int i = 0; i < array.Length; i++)
+					var registeredAddresses = new List<BitcoinAddress>();
+					for (int i = 0; i < schnorrPubKeys.Length; i++)
 					{
-						var ar = new Requester();
-						uint256 osh = (uint256)array[i];
-						PubKey spk = additionalSignerPubKeys[i];
-						PubKey rpk = additionalRpubKeys[i];
-						additionalBlindedOutputScriptHashes.Add(ar.BlindMessage(osh, rpk, spk));
-						additionalRequesters.Add(ar);
+						if (activeOutputAddresses.Count <= i) break;
+						BitcoinAddress address = activeOutputAddresses.ElementAt(i);
+
+						SchnorrPubKey schnorrPubKey = schnorrPubKeys[i];
+						var outputScriptHash = new uint256(Hashes.SHA256(address.ScriptPubKey.ToBytes()));
+						var requester = new Requester();
+						uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, schnorrPubKey);
+						outputScriptHashes.Add(outputScriptHash);
+						requesters.Add(requester);
+						blindedOutputScriptHashes.Add(blindedOutputScriptHash);
+						registeredAddresses.Add(address);
 					}
 
 					var inputProofs = new List<InputProofModel>();
@@ -553,7 +560,7 @@ namespace WalletWasabi.Services
 						var inputProof = new InputProofModel
 						{
 							Input = coin.GetTxoRef(),
-							Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptHash)
+							Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptHashes.First())
 						};
 						inputProofs.Add(inputProof);
 					}
@@ -561,7 +568,7 @@ namespace WalletWasabi.Services
 					AliceClient aliceClient = null;
 					try
 					{
-						aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blindedOutputScriptHash, additionalBlindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
+						aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
 					}
 					catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 					{
@@ -596,23 +603,21 @@ namespace WalletWasabi.Services
 						return;
 					}
 
-					BlindSignature unblindedSignature = requester.UnblindSignature(aliceClient.BlindedOutputSignature);
-					if (!VerifySignature(outputScriptHash, unblindedSignature, signerPubKey))
+					var unblindedSignatures = new List<BlindSignature>();
+					for (int i = 0; i < aliceClient.BlindedOutputSignatures.Length; i++)
 					{
-						throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
-					}
+						BigInteger blindedSignature = aliceClient.BlindedOutputSignatures[i];
+						Requester requester = requesters.ElementAt(i);
+						BlindSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
 
-					var additionalUnblindedSignatures = new List<BlindSignature>();
-					for (int i = 0; i < aliceClient.AdditionalBlindedOutputSignatures.Length; i++)
-					{
-						BigInteger blindedOutputSignature = aliceClient.AdditionalBlindedOutputSignatures[i];
-						var ar = additionalRequesters.ToArray()[i];
-						BlindSignature us = ar.UnblindSignature(blindedOutputSignature);
-						if (!VerifySignature(outputScriptHash, us, signerPubKey))
+						uint256 outputScriptHash = outputScriptHashes.ElementAt(i);
+						PubKey signerPubKey = schnorrPubKeys[i].SignerPubKey;
+						if (!VerifySignature(outputScriptHash, unblindedSignature, signerPubKey))
 						{
-							throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
+							throw new NotSupportedException($"Coordinator did not sign the blinded output properly for level: {i}.");
 						}
-						additionalUnblindedSignatures.Add(us);
+
+						unblindedSignatures.Add(unblindedSignature);
 					}
 
 					CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
@@ -631,11 +636,9 @@ namespace WalletWasabi.Services
 						roundRegistered.CoinsRegistered.Add(coin);
 						State.RemoveCoinFromWaitingList(coin);
 					}
-					roundRegistered.ActiveOutputAddress = activeAddress;
-					roundRegistered.AdditionalActiveOutputAddresses = additionalActiveOutputAddresses.Take(additionalUnblindedSignatures.Count()).ToArray();
+					roundRegistered.ActiveOutputAddresses = registeredAddresses.ToArray();
 					roundRegistered.ChangeOutputAddress = changeAddress;
-					roundRegistered.UnblindedSignature = unblindedSignature;
-					roundRegistered.AdditionalUnblindedSignatures = additionalUnblindedSignatures.ToArray();
+					roundRegistered.UnblindedSignatures = unblindedSignatures.ToArray();
 					roundRegistered.AliceClient = aliceClient;
 				}
 			}

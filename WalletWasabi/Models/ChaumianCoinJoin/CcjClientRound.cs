@@ -16,11 +16,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public AliceClient AliceClient { get; set; }
 
 		public BitcoinAddress ChangeOutputAddress { get; set; }
-		public BitcoinAddress ActiveOutputAddress { get; set; }
-		public BitcoinAddress[] AdditionalActiveOutputAddresses { get; set; }
+		public BitcoinAddress[] ActiveOutputAddresses { get; set; }
 
-		public BlindSignature UnblindedSignature { get; set; }
-		public BlindSignature[] AdditionalUnblindedSignatures { get; set; }
+		public BlindSignature[] UnblindedSignatures { get; set; }
 
 		/// <summary>
 		/// Connection has been confirmed in ConnectionConfirmation Phase. Used to avoid duplicate Connection Confirmation requests.
@@ -28,7 +26,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public bool ConnectionFinalConfirmed { get; set; }
 
 		public bool Signed { get; set; }
-		public bool PostedOutput { get; set; }
+		public bool PostedOutputs { get; set; }
 
 		public CcjClientRound(CcjRunningRoundState state)
 		{
@@ -41,15 +39,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			CoinsRegistered.Clear();
 			ChangeOutputAddress = null;
-			ActiveOutputAddress = null;
-			AdditionalActiveOutputAddresses = null;
-			UnblindedSignature = null;
-			AdditionalUnblindedSignatures = null;
+			ActiveOutputAddresses = null;
+			UnblindedSignatures = null;
 			ConnectionFinalConfirmed = false;
 			AliceClient?.Dispose();
 			AliceClient = null;
 			Signed = false;
-			PostedOutput = false;
+			PostedOutputs = false;
 		}
 	}
 }

@@ -61,11 +61,8 @@ namespace WalletWasabi.Backend.Controllers
 				var state = new CcjRunningRoundState
 				{
 					Phase = round.Phase,
-					SignerPubKey = round.Signer.Key.PubKey,
-					RpubKey = round.Signer.R.PubKey,
-					AdditionalSignerPubKeys = round.AdditionalMixingLevels.Select(x => x.signer.Key.PubKey.ToHex()),
-					AdditionalRPubKeys = round.AdditionalMixingLevels.Select(x => x.signer.R.PubKey.ToHex()),
-					Denomination = round.Denomination,
+					SchnorrPubKeys = round.MixingLevels.SchnorrPubKeys,
+					Denomination = round.MixingLevels.GetBaseDenomination(),
 					RegisteredPeerCount = round.CountAlices(syncLock: false),
 					RequiredPeerCount = round.AnonymitySet,
 					MaximumInputCountPerPeer = 7, // Constant for now. If we want to do something with it later, we'll put it to the config file.
@@ -109,16 +106,12 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			// Validate request.
 			if (!ModelState.IsValid
+				|| !request.BlindedOutputScripts.Any()
 				|| !request.Inputs.Any()
 				|| request.Inputs.Any(x => x.Input == default(TxoRef)
 					|| x.Input.TransactionId is null))
 			{
 				return BadRequest("Invalid request.");
-			}
-
-			if (request.AdditionalBlindedOutputScripts is null) // Old clients.
-			{
-				request.AdditionalBlindedOutputScripts = new List<string>();
 			}
 
 			if (request.Inputs.Count() > 7)
@@ -133,22 +126,20 @@ namespace WalletWasabi.Backend.Controllers
 				// Do more checks.
 				try
 				{
-					var additionalBlindedOutputScriptArray = request.AdditionalBlindedOutputScripts.Select(x => new uint256(x)).ToArray();
-					int additionalBlindedOutputCount = additionalBlindedOutputScriptArray.Length;
-					int maximumAdditionalBlindedOutputCount = round.AdditionalMixingLevels.Length;
-					if (additionalBlindedOutputCount > maximumAdditionalBlindedOutputCount)
+					uint256[] blindedOutputs = request.BlindedOutputScripts.Select(x => new uint256(x)).ToArray();
+					int blindedOutputCount = blindedOutputs.Length;
+					int maxBlindedOutputCount = round.MixingLevels.Count();
+					if (blindedOutputCount > maxBlindedOutputCount)
 					{
-						return BadRequest($"Too many blinded output was provided: {additionalBlindedOutputCount}, maximum: {maximumAdditionalBlindedOutputCount}.");
+						return BadRequest($"Too many blinded output was provided: {blindedOutputCount}, maximum: {maxBlindedOutputCount}.");
 					}
 
-					IEnumerable<uint256> allBlindedOutputScripts = additionalBlindedOutputScriptArray.Concat(new uint256[] { request.BlindedOutputScript });
-
-					if (allBlindedOutputScripts.Distinct().Count() < allBlindedOutputScripts.Count())
+					if (blindedOutputs.Distinct().Count() < blindedOutputs.Length)
 					{
 						return BadRequest("Duplicate blinded output found.");
 					}
 
-					if (round.ContainsAnyBlindedOutputScript(allBlindedOutputScripts, out _))
+					if (round.ContainsAnyBlindedOutputScript(blindedOutputs))
 					{
 						return BadRequest("Blinded output has already been registered.");
 					}
@@ -237,7 +228,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						var address = (BitcoinWitPubKeyAddress)txout.ScriptPubKey.GetDestinationAddress(Network);
 						// Check if proofs are valid.
-						if (!address.VerifyMessage(request.BlindedOutputScript, inputProof.Proof))
+						if (!address.VerifyMessage(blindedOutputs.First(), inputProof.Proof))
 						{
 							return BadRequest("Provided proof is invalid.");
 						}
@@ -245,31 +236,39 @@ namespace WalletWasabi.Backend.Controllers
 						inputs.Add(new Coin(inputProof.Input.ToOutPoint(), txout));
 					}
 
+					var acceptedBlindedOutputScripts = new List<uint256>();
+
 					// Check if inputs have enough coins.
 					Money inputSum = inputs.Sum(x => x.Amount);
 					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs) + (2 * round.FeePerOutputs);
-					Money changeAmount = inputSum - (round.Denomination + networkFeeToPay);
+					Money changeAmount = inputSum - (round.MixingLevels.GetBaseDenomination() + networkFeeToPay);
 					if (changeAmount < Money.Zero)
 					{
-						return BadRequest($"Not enough inputs are provided. Fee to pay: {networkFeeToPay.ToString(false, true)} BTC. Round denomination: {round.Denomination.ToString(false, true)} BTC. Only provided: {inputSum.ToString(false, true)} BTC.");
+						return BadRequest($"Not enough inputs are provided. Fee to pay: {networkFeeToPay.ToString(false, true)} BTC. Round denomination: {round.MixingLevels.GetBaseDenomination().ToString(false, true)} BTC. Only provided: {inputSum.ToString(false, true)} BTC.");
 					}
+					acceptedBlindedOutputScripts.Add(blindedOutputs.First());
 
 					// Make sure we sign the proper number of additional blinded outputs.
 					var moneySoFar = Money.Zero;
-					var acceptedAdditionalBlindedOutputScripts = new List<uint256>();
-					for (int i = 0; i < additionalBlindedOutputCount; i++)
+					for (int i = 1; i < blindedOutputCount; i++)
 					{
-						Money denomination = round.AdditionalMixingLevels[i].denomination;
+						if (!round.MixingLevels.TryGetDenomination(i, out Money denomination))
+						{
+							break;
+						}
+
 						changeAmount -= denomination - round.FeePerOutputs - denomination.Percentange(round.CoordinatorFeePercent) * round.AnonymitySet; // It should be the number of bobs, but we must make sure they'd have money to pay all.
 
-						if (changeAmount >= Money.Zero)
+						if (changeAmount < Money.Zero)
 						{
-							acceptedAdditionalBlindedOutputScripts.Add(additionalBlindedOutputScriptArray[i]);
+							break;
 						}
+
+						acceptedBlindedOutputScripts.Add(blindedOutputs[i]);
 					}
 
 					// Make sure Alice checks work.
-					var alice = new Alice(inputs, networkFeeToPay, request.ChangeOutputAddress, request.BlindedOutputScript, acceptedAdditionalBlindedOutputScripts);
+					var alice = new Alice(inputs, networkFeeToPay, request.ChangeOutputAddress, acceptedBlindedOutputScripts);
 
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{
@@ -278,13 +277,13 @@ namespace WalletWasabi.Backend.Controllers
 					round.AddAlice(alice);
 
 					// All checks are good. Sign.
-					BigInteger blindSignature = round.Signer.Sign(request.BlindedOutputScript);
-					var additionalBlindSignatures = new List<BigInteger>();
-					for (int i = 0; i < acceptedAdditionalBlindedOutputScripts.Count; i++)
+					var blindSignatures = new List<BigInteger>();
+					for (int i = 0; i < acceptedBlindedOutputScripts.Count; i++)
 					{
-						Signer signer = round.AdditionalMixingLevels[i].signer;
-						BigInteger blindedSignature = signer.Sign(acceptedAdditionalBlindedOutputScripts[i]);
-						additionalBlindSignatures.Add(blindedSignature);
+						var blindedOutput = acceptedBlindedOutputScripts[i];
+						var signer = round.MixingLevels.GetLevel(i).Signer;
+						BigInteger blindSignature = signer.Sign(blindedOutput);
+						blindSignatures.Add(blindSignature);
 					}
 
 					// Check if phase changed since.
@@ -307,8 +306,7 @@ namespace WalletWasabi.Backend.Controllers
 					var resp = new InputsResponse
 					{
 						UniqueId = alice.UniqueId,
-						BlindedOutputSignature = blindSignature,
-						AdditionalBlindedOutputSignatures = additionalBlindSignatures.Select(x => x.ToString()),
+						BlindedOutputSignatures = blindSignatures.Select(x => x.ToString()),
 						RoundId = round.RoundId
 					};
 					return Ok(resp);
@@ -507,20 +505,13 @@ namespace WalletWasabi.Backend.Controllers
 				}
 			}
 
-			if (request.Level > round.AdditionalMixingLevels.Length)
+			if (request.Level > round.MixingLevels.GetMaxLevel())
 			{
-				return BadRequest($"Invalid mixing Level is provided. Provided: {request.Level}. Maximum: {round.AdditionalMixingLevels.Length}.");
+				return BadRequest($"Invalid mixing Level is provided. Provided: {request.Level}. Maximum: {round.MixingLevels.GetMaxLevel()}.");
 			}
 
-			Signer signer;
-			if (request.Level == 0)
-			{
-				signer = round.Signer;
-			}
-			else
-			{
-				signer = round.AdditionalMixingLevels[request.Level - 1].signer;
-			}
+			MixingLevel mixinglevel = round.MixingLevels.GetLevel(request.Level);
+			Signer signer = mixinglevel.Signer;
 
 			if (signer.VerifyUnblindedSignature(request.UnblindedSignature, request.OutputAddress.ScriptPubKey.ToBytes()))
 			{
@@ -529,7 +520,7 @@ namespace WalletWasabi.Backend.Controllers
 					Bob bob = null;
 					try
 					{
-						bob = new Bob(request.OutputAddress, request.Level);
+						bob = new Bob(request.OutputAddress, mixinglevel);
 						round.AddBob(bob);
 					}
 					catch (Exception ex)
@@ -537,7 +528,7 @@ namespace WalletWasabi.Backend.Controllers
 						return BadRequest($"Invalid outputAddress is provided. Details: {ex.Message}");
 					}
 
-					if (round.CountBobs() == round.AnonymitySet)
+					if (round.CountBobs() == round.BlindSignatureCount)
 					{
 						await round.ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
 					}

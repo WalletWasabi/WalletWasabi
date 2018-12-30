@@ -23,10 +23,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public RPCClient RpcClient { get; }
 		public Network Network => RpcClient.Network;
 
-		public Money Denomination { get; }
 		public int ConfirmationTarget { get; }
 		public decimal CoordinatorFeePercent { get; }
 		public int AnonymitySet { get; private set; }
+
+		public int BlindSignatureCount { get; private set; }
 
 		public Money FeePerInputs { get; private set; }
 		public Money FeePerOutputs { get; private set; }
@@ -34,9 +35,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Transaction UnsignedCoinJoin { get; private set; }
 		private string _unsignedCoinJoinHex;
 
-		public Signer Signer { get; }
-
-		public (Money denomination, Signer signer)[] AdditionalMixingLevels { get; }
+		public MixingLevels MixingLevels { get; }
 
 		public string GetUnsignedCoinJoinHex()
 		{
@@ -146,7 +145,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
 				Guard.NotNull(nameof(config), config);
 
-				Denomination = config.Denomination;
 				ConfirmationTarget = (int)config.ConfirmationTarget;
 				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 				AnonymitySet = (int)config.AnonymitySet;
@@ -160,23 +158,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				StatusLock = new object();
 				Status = CcjRoundStatus.NotStarted;
 
-				Signer = new Signer(new Key());
-
-				AdditionalMixingLevels = new (Money denomination, Signer signer)[10];
-				for (int i = 0; i < AdditionalMixingLevels.Length; i++)
+				MixingLevels = new MixingLevels(config.Denomination, new Signer(new Key()));
+				for (int i = 0; i < Constants.MaximumMixingLevelCount - 1; i++)
 				{
-					var signer = new Signer(new Key());
-					Money denomination;
-					if (i == 0)
-					{
-						denomination = 2 * Denomination;
-					}
-					else
-					{
-						denomination = 2 * AdditionalMixingLevels[i - 1].denomination;
-					}
-
-					AdditionalMixingLevels[i] = (denomination, signer);
+					MixingLevels.AddNewLevel();
 				}
 
 				_unsignedCoinJoinHex = null;
@@ -188,7 +173,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Bobs = new List<Bob>();
 
 				Logger.LogInfo<CcjRound>($"New round ({RoundId}) is created.\n\t" +
-					$"{nameof(Denomination)}: {Denomination.ToString(false, true)} BTC.\n\t" +
+					$"BaseDenomination: {MixingLevels.GetBaseDenomination().ToString(false, true)} BTC.\n\t" +
 					$"{nameof(ConfirmationTarget)}: {ConfirmationTarget}.\n\t" +
 					$"{nameof(CoordinatorFeePercent)}: {CoordinatorFeePercent}%.\n\t" +
 					$"{nameof(AnonymitySet)}: {AnonymitySet}.");
@@ -242,6 +227,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							return;
 						}
 
+						BlindSignatureCount = Alices.Sum(x => x.BlindedOutputScripts.Length);
+
 						Phase = CcjRoundPhase.ConnectionConfirmation;
 					}
 					else if (Phase == CcjRoundPhase.ConnectionConfirmation)
@@ -267,36 +254,39 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
 
 						// 2. Add Bob outputs.
-						foreach (Bob bob in Bobs.Where(x => x.Level == 0))
+						foreach (Bob bob in Bobs.Where(x => x.Level == MixingLevels.GetBaseLevel()))
 						{
 							transaction.Outputs.Add(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 						}
 
 						// 2.1 If the newDenomination equals to the Denomination, then we knew the denomination at
 						// registration time so we can tinker with additional mixing levels.
-						int missingBobCount = Alices.Count - Bobs.Count(x => x.Level == 0);
-						bool tinkerWithAdditionalMixingLevels = missingBobCount == 0 && newDenomination == Denomination;
+						bool tinkerWithAdditionalMixingLevels = newDenomination == MixingLevels.GetBaseDenomination();
 						if (tinkerWithAdditionalMixingLevels)
 						{
-							for (int i = 0; i < AdditionalMixingLevels.Length; i++)
+							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
 							{
-								(Money denomination, Signer signer) mixingLevel = AdditionalMixingLevels[i];
-								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == i + 1);
-								int numberOfBobsOnThisLevel = bobsOnThisLevel.Count();
-								if (numberOfBobsOnThisLevel == 1) break;
+								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
+								if (bobsOnThisLevel.Count() <= 1) break;
 
 								foreach (Bob bob in bobsOnThisLevel)
 								{
-									transaction.Outputs.Add(mixingLevel.denomination, bob.ActiveOutputAddress.ScriptPubKey);
+									transaction.Outputs.Add(level.Denomination, bob.ActiveOutputAddress.ScriptPubKey);
 								}
 							}
 						}
 
 						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(Network);
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
-						for (int i = 0; i < missingBobCount; i++)
+						for (int i = 0; i < MixingLevels.Count(); i++)
 						{
-							transaction.Outputs.Add(newDenomination, coordinatorAddress);
+							var aliceCountInLevel = Alices.Count(x => i < x.BlindedOutputScripts.Length);
+							var missingBobCount = aliceCountInLevel - Bobs.Count(x => x.Level == MixingLevels.GetLevel(i));
+							for (int j = 0; j < missingBobCount; j++)
+							{
+								var denomination = MixingLevels.GetLevel(i).Denomination;
+								transaction.Outputs.Add(denomination, coordinatorAddress);
+							}
 						}
 
 						// 4. Start building Coordinator fee.
@@ -305,14 +295,12 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 						if (tinkerWithAdditionalMixingLevels)
 						{
-							for (int i = 0; i < AdditionalMixingLevels.Length; i++)
+							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
 							{
-								(Money denomination, Signer signer) mixingLevel = AdditionalMixingLevels[i];
-								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == i + 1);
-								int numberOfBobsOnThisLevel = bobsOnThisLevel.Count();
-								if (numberOfBobsOnThisLevel == 1) break;
+								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
+								if (bobsOnThisLevel.Count() <= 1) break;
 
-								coordinatorFee += mixingLevel.denomination.Percentange(CoordinatorFeePercent) * numberOfBobsOnThisLevel * numberOfBobsOnThisLevel;
+								coordinatorFee += level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel.Count() * bobsOnThisLevel.Count();
 							}
 						}
 
@@ -330,14 +318,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 							if (tinkerWithAdditionalMixingLevels)
 							{
-								for (int i = 0; i < alice.AdditionalBlindedOutputScripts.Length; i++)
+								for (int i = 1; i < alice.BlindedOutputScripts.Length; i++)
 								{
-									(Money denomination, Signer signer) mixingLevel = AdditionalMixingLevels[i];
-									IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == i + 1);
-									int numberOfBobsOnThisLevel = bobsOnThisLevel.Count();
-									if (numberOfBobsOnThisLevel == 1) break;
+									MixingLevel level = MixingLevels.GetLevel(i);
+									IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
+									if (bobsOnThisLevel.Count() <= 1) break;
 
-									changeAmount -= mixingLevel.denomination - FeePerOutputs - mixingLevel.denomination.Percentange(CoordinatorFeePercent) * numberOfBobsOnThisLevel;
+									changeAmount -= (level.Denomination + FeePerOutputs + level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel.Count());
 								}
 							}
 
@@ -431,7 +418,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 				if (executeRunAbortion)
 				{
-					Logger.LogInfo<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds. Aborting...");
+					if (expectedPhase == CcjRoundPhase.OutputRegistration)
+					{
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds. Progressing to next phase to blame...");
+					}
+					else
+					{
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds. Aborting...");
+					}
 
 					// This will happen outside the lock.
 					Task.Run(async () =>
@@ -693,40 +687,39 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public bool ContainsBlindedOutputScript(uint256 blindedOutputScript, out List<Alice> alices)
+		public bool ContainsBlindedOutputScript(uint256 blindedOutputScript)
 		{
-			alices = new List<Alice>();
-
 			using (RoundSynchronizerLock.Lock())
 			{
 				foreach (Alice alice in Alices)
 				{
-					if (alice.BlindedOutputScript == blindedOutputScript)
+					if (alice.BlindedOutputScripts.Contains(blindedOutputScript))
 					{
-						alices.Add(alice);
+						return true;
 					}
 				}
 			}
 
-			return alices.Count > 0;
+			return false;
 		}
 
-		public bool ContainsAnyBlindedOutputScript(IEnumerable<uint256> blindedOutputScripts, out List<Alice> alices)
+		public bool ContainsAnyBlindedOutputScript(IEnumerable<uint256> blindedOutputScripts)
 		{
-			alices = new List<Alice>();
-
 			using (RoundSynchronizerLock.Lock())
 			{
-				foreach (Alice alice in Alices)
+				foreach (var bis in blindedOutputScripts)
 				{
-					if (blindedOutputScripts.Contains(alice.BlindedOutputScript))
+					foreach (Alice alice in Alices)
 					{
-						alices.Add(alice);
+						if (alice.BlindedOutputScripts.Contains(bis))
+						{
+							return true;
+						}
 					}
 				}
 			}
 
-			return alices.Count > 0;
+			return false;
 		}
 
 		public bool ContainsInput(OutPoint input, out List<Alice> alices)
