@@ -449,24 +449,47 @@ namespace WalletWasabi.Services
 
 					internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
 
-					var maximumMixingLevelCount = inputRegistrableRound.State.SchnorrPubKeys.Count();
+					Money inputSum = Money.Zero;
+					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
+					{
+						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+						inputSum += coin.Amount;
+					}
+
+					int maximumMixingLevel = 0;
+
+					var denominations = new List<Money>
+					{
+						inputRegistrableRound.State.Denomination
+					};
+
+					for (int i = 1; i < inputRegistrableRound.State.SchnorrPubKeys.Count(); i++)
+					{
+						Money denom = denominations.Last() * 2;
+						denominations.Add(denom);
+						if (inputSum > denom)
+						{
+							maximumMixingLevel = i;
+						}
+					}
+
 					if (allActiveKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
 					{
 						// Find the first one that we did not try to register in the current session.
 						foreach (var ac in allActiveKeys.Where(x => !AccessCache.ContainsKey(x)))
 						{
-							if (activeKeys.Count >= maximumMixingLevelCount)
+							if (activeKeys.Count >= maximumMixingLevel)
 							{
 								break;
 							}
 							activeKeys.Add(ac);
 						}
 						// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
-						if (activeKeys.Count < maximumMixingLevelCount)
+						if (activeKeys.Count < maximumMixingLevel)
 						{
 							foreach (var ac in AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).Select(x => x.Key))
 							{
-								if (activeKeys.Count >= maximumMixingLevelCount)
+								if (activeKeys.Count >= maximumMixingLevel)
 								{
 									break;
 								}
@@ -478,7 +501,7 @@ namespace WalletWasabi.Services
 					{
 						foreach (var ac in internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)))
 						{
-							if (activeKeys.Count >= maximumMixingLevelCount)
+							if (activeKeys.Count >= maximumMixingLevel)
 							{
 								break;
 							}
