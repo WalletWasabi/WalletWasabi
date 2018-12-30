@@ -456,7 +456,7 @@ namespace WalletWasabi.Services
 						inputSum += coin.Amount;
 					}
 
-					int maximumMixingLevel = 0;
+					int maximumMixingLevelCount = 1;
 
 					var denominations = new List<Money>
 					{
@@ -469,7 +469,7 @@ namespace WalletWasabi.Services
 						denominations.Add(denom);
 						if (inputSum > denom)
 						{
-							maximumMixingLevel = i;
+							maximumMixingLevelCount = i + 1;
 						}
 					}
 
@@ -478,18 +478,18 @@ namespace WalletWasabi.Services
 						// Find the first one that we did not try to register in the current session.
 						foreach (var ac in allActiveKeys.Where(x => !AccessCache.ContainsKey(x)))
 						{
-							if (activeKeys.Count >= maximumMixingLevel)
+							if (activeKeys.Count >= maximumMixingLevelCount)
 							{
 								break;
 							}
 							activeKeys.Add(ac);
 						}
 						// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
-						if (activeKeys.Count < maximumMixingLevel)
+						if (activeKeys.Count < maximumMixingLevelCount)
 						{
 							foreach (var ac in AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).Select(x => x.Key))
 							{
-								if (activeKeys.Count >= maximumMixingLevel)
+								if (activeKeys.Count >= maximumMixingLevelCount)
 								{
 									break;
 								}
@@ -501,7 +501,7 @@ namespace WalletWasabi.Services
 					{
 						foreach (var ac in internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)))
 						{
-							if (activeKeys.Count >= maximumMixingLevel)
+							if (activeKeys.Count >= maximumMixingLevelCount)
 							{
 								break;
 							}
