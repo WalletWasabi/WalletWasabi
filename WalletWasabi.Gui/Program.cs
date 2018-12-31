@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui
 						}
 
 						Global.InitializeNoWallet();
-						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.Synchronizer, Global.UpdateChecker);
+						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
