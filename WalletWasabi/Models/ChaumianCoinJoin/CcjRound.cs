@@ -259,8 +259,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							transaction.Outputs.Add(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 						}
 
-						// 2.1 If the newDenomination equals to the Denomination, then we knew the denomination at
-						// registration time so we can tinker with additional mixing levels.
+						// 2.1 newDenomination may differs from the Denomination at registration, so we may not be able to tinker with
+						// additional outputs.
 						bool tinkerWithAdditionalMixingLevels = CanUseAdditionalOutputs(newDenomination, transaction);
 
 						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(Network);
