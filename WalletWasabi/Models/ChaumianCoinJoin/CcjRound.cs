@@ -261,60 +261,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 						// 2.1 If the newDenomination equals to the Denomination, then we knew the denomination at
 						// registration time so we can tinker with additional mixing levels.
-
-						bool tinkerWithAdditionalMixingLevels = !Alices.All(x => x.BlindedOutputScripts.Length == 1);
-						foreach (Alice alice in Alices)
-						{
-							if (!tinkerWithAdditionalMixingLevels) break;
-
-							// Check if inputs have enough coins.
-							Money networkFeeToPay = (alice.Inputs.Count() * FeePerInputs) + (2 * FeePerOutputs);
-							Money changeAmount = alice.InputSum - (newDenomination + networkFeeToPay);
-							var acceptedBlindedOutputScriptsCount = 1;
-
-							// Make sure we sign the proper number of additional blinded outputs.
-							var moneySoFar = Money.Zero;
-							for (int i = 1; i < alice.BlindedOutputScripts.Length; i++)
-							{
-								MixingLevel level = MixingLevels.GetLevel(i);
-								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-								if (bobsOnThisLevel.Count() <= 1)
-								{
-									if (i == 1)
-									{
-										tinkerWithAdditionalMixingLevels = false;
-									}
-									break;
-								}
-
-								changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel.Count()));
-
-								if (changeAmount < Money.Zero)
-								{
-									if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Count())
-									{
-										tinkerWithAdditionalMixingLevels = false;
-									}
-									break;
-								}
-
-								acceptedBlindedOutputScriptsCount++;
-							}
-						}
-
-						if (tinkerWithAdditionalMixingLevels)
-						{
-							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
-							{
-								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-								if (bobsOnThisLevel.Count() <= 1) break;
-
-								foreach (Bob bob in bobsOnThisLevel)
-								{
-									transaction.Outputs.Add(level.Denomination, bob.ActiveOutputAddress.ScriptPubKey);
-								}
-							}
-						}
+						bool tinkerWithAdditionalMixingLevels = CanUseAdditionalOutputs(newDenomination, transaction);
 
 						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(Network);
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
@@ -568,6 +515,65 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 			});
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+		}
+
+		private bool CanUseAdditionalOutputs(Money newDenomination, Transaction transaction)
+		{
+			bool tinkerWithAdditionalMixingLevels = !Alices.All(x => x.BlindedOutputScripts.Length == 1);
+			foreach (Alice alice in Alices)
+			{
+				if (!tinkerWithAdditionalMixingLevels) break;
+
+				// Check if inputs have enough coins.
+				Money networkFeeToPay = (alice.Inputs.Count() * FeePerInputs) + (2 * FeePerOutputs);
+				Money changeAmount = alice.InputSum - (newDenomination + networkFeeToPay);
+				var acceptedBlindedOutputScriptsCount = 1;
+
+				// Make sure we sign the proper number of additional blinded outputs.
+				var moneySoFar = Money.Zero;
+				for (int i = 1; i < alice.BlindedOutputScripts.Length; i++)
+				{
+					MixingLevel level = MixingLevels.GetLevel(i);
+					IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
+					if (bobsOnThisLevel.Count() <= 1)
+					{
+						if (i == 1)
+						{
+							tinkerWithAdditionalMixingLevels = false;
+						}
+						break;
+					}
+
+					changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel.Count()));
+
+					if (changeAmount < Money.Zero)
+					{
+						if (acceptedBlindedOutputScriptsCount < alice.BlindedOutputScripts.Count())
+						{
+							tinkerWithAdditionalMixingLevels = false;
+						}
+						break;
+					}
+
+					acceptedBlindedOutputScriptsCount++;
+				}
+			}
+
+			if (tinkerWithAdditionalMixingLevels)
+			{
+				foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
+				{
+					IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
+					if (bobsOnThisLevel.Count() <= 1) break;
+
+					foreach (Bob bob in bobsOnThisLevel)
+					{
+						transaction.Outputs.Add(level.Denomination, bob.ActiveOutputAddress.ScriptPubKey);
+					}
+				}
+			}
+
+			return tinkerWithAdditionalMixingLevels;
 		}
 
 		private async Task OptimizeFeesAsync(List<Coin> spentCoins)
