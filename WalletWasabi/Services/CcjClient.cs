@@ -609,6 +609,15 @@ namespace WalletWasabi.Services
 						unblindedSignatures.Add(unblindedSignature);
 					}
 
+					var coinsRegistered = new List<SmartCoin>();
+					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
+					{
+						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+						if (coin is null) throw new NotSupportedException("This is impossible.");
+						coinsRegistered.Add(coin);
+						State.RemoveCoinFromWaitingList(coin);
+					}
+
 					CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 					if (roundRegistered is null)
 					{
@@ -618,12 +627,9 @@ namespace WalletWasabi.Services
 						State.AddOrReplaceRound(roundRegistered);
 					}
 
-					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
+					foreach (SmartCoin coin in coinsRegistered)
 					{
-						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-						if (coin is null) throw new NotSupportedException("This is impossible.");
 						roundRegistered.CoinsRegistered.Add(coin);
-						State.RemoveCoinFromWaitingList(coin);
 					}
 					roundRegistered.ActiveOutputAddresses = registeredAddresses.ToArray();
 					roundRegistered.ChangeOutputAddress = changeAddress;
