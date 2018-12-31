@@ -18,7 +18,7 @@ Wasabi users must be careful not to combine coins from each of their ZeroLink ou
 
 ### 4. Treat each ZeroLink output as separate identities
 
-If a Wasabi user uses one ZeroLink output to purchase something from a merchant under a name and uses a different ZeroLink output to purchase something from the same merchant under the same name, the merchant can link those ZeroLink outputs together even though they weren't explicitly linked in the same transaction (ditto for payment processors if the user pays different merchants who happen to use the same centralized payment processor e.g. BitPay and Coinbase Commerce).
+If a Wasabi user uses one ZeroLink output to purchase something from a merchant under a name and uses a different ZeroLink output to purchase something from the same merchant under the same name, the merchant can link those ZeroLink outputs together even though they weren't explicitly linked in the same transaction (ditto for payment processors if the user pays different merchants who happen to use the same centralized payment processor e.g. BitPay and Coinbase Commerce). Wasabi has a built-in labeling system that can be used to label addresses and transactions to avoid combining coins from different ZeroLink rounds together.
 
 ### 5. Be careful with same-origin ZeroLink outputs
 
