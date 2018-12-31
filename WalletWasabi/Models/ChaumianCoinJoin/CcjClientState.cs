@@ -118,7 +118,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Count + Rounds.Sum(x => x.CoinsRegistered.Count);
+				return WaitingList.Count + Rounds.Sum(x => x.CoinsRegistered.Count());
 			}
 		}
 
@@ -211,7 +211,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => !(x.AliceClient is null) && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => !(x.Registration is null) && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 
@@ -219,7 +219,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => !(x.AliceClient is null) && x.State.Phase == CcjRoundPhase.InputRegistration).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => !(x.Registration is null) && x.State.Phase == CcjRoundPhase.InputRegistration).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 
@@ -227,7 +227,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => !(x.AliceClient is null)).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => !(x.Registration is null)).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 
@@ -301,7 +301,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					foreach (SmartCoin coin in round.CoinsRegistered)
 					{
-						if (round.Signed)
+						if (round.Registration.IsPhaseActionsComleted(CcjRoundPhase.Signing))
 						{
 							var delayRegistration = TimeSpan.FromSeconds(60);
 							WaitingList.Add(coin, DateTimeOffset.UtcNow + delayRegistration);
@@ -314,7 +314,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						}
 					}
 
-					round.AliceClient?.Dispose();
+					round?.Registration?.AliceClient?.Dispose();
 
 					var newSuccessfulRoundCount = allRunningRoundsStates.FirstOrDefault()?.SuccessfulRoundCount;
 					if (newSuccessfulRoundCount != null && round.State.SuccessfulRoundCount == newSuccessfulRoundCount)
@@ -354,7 +354,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				foreach (var r in Rounds.Where(x => x.State.RoundId == round.State.RoundId))
 				{
-					r.AliceClient?.Dispose();
+					r?.Registration?.AliceClient?.Dispose();
 					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's being replaced.");
 				}
 				Rounds.RemoveAll(x => x.State.RoundId == round.State.RoundId);
@@ -384,7 +384,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				foreach (var aliceClient in Rounds.Select(x => x.AliceClient))
+				foreach (var aliceClient in Rounds?.Select(x => x?.Registration?.AliceClient))
 				{
 					aliceClient?.Dispose();
 				}

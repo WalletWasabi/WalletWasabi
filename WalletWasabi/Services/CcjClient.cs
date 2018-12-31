@@ -222,7 +222,7 @@ namespace WalletWasabi.Services
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
 					if (!(inputRegistrableRound is null))
 					{
-						if (inputRegistrableRound.AliceClient is null) // If didn't register already, check what can we register.
+						if (inputRegistrableRound.Registration is null) // If didn't register already, check what can we register.
 						{
 							await TryRegisterCoinsAsync(inputRegistrableRound);
 						}
@@ -256,28 +256,28 @@ namespace WalletWasabi.Services
 
 				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
 				{
-					if (!ongoingRound.ConnectionFinalConfirmed) // If we didn't already confirmed connection in connection confirmation phase confirm it.
+					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.ConnectionConfirmation)) // If we didn't already confirmed connection in connection confirmation phase confirm it.
 					{
-						await ongoingRound.AliceClient.PostConfirmationAsync();
-						ongoingRound.ConnectionFinalConfirmed = true;
+						await ongoingRound.Registration.AliceClient.PostConfirmationAsync();
+						ongoingRound.Registration.SetPhaseCompleted(CcjRoundPhase.ConnectionConfirmation);
 					}
 				}
 				else if (ongoingRound.State.Phase == CcjRoundPhase.OutputRegistration)
 				{
-					if (!ongoingRound.PostedOutputs)
+					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.OutputRegistration))
 					{
 						await RegisterOutputAsync(ongoingRound);
 					}
 				}
 				else if (ongoingRound.State.Phase == CcjRoundPhase.Signing)
 				{
-					if (!ongoingRound.Signed)
+					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.Signing))
 					{
-						Transaction unsignedCoinJoin = await ongoingRound.AliceClient.GetUnsignedCoinJoinAsync();
+						Transaction unsignedCoinJoin = await ongoingRound.Registration.AliceClient.GetUnsignedCoinJoinAsync();
 						Dictionary<int, WitScript> myDic = SignCoinJoin(ongoingRound, unsignedCoinJoin);
 
-						await ongoingRound.AliceClient.PostSignaturesAsync(myDic);
-						ongoingRound.Signed = true;
+						await ongoingRound.Registration.AliceClient.PostSignaturesAsync(myDic);
+						ongoingRound.Registration.SetPhaseCompleted(CcjRoundPhase.Signing);
 					}
 				}
 			}
@@ -294,15 +294,15 @@ namespace WalletWasabi.Services
 		private Dictionary<int, WitScript> SignCoinJoin(CcjClientRound ongoingRound, Transaction unsignedCoinJoin)
 		{
 			TxOut[] myOutputs = unsignedCoinJoin.Outputs
-				.Where(x => x.ScriptPubKey == ongoingRound.ChangeOutputAddress.ScriptPubKey
-					|| ongoingRound.ActiveOutputAddresses.Select(y => y.ScriptPubKey).Contains(x.ScriptPubKey))
+				.Where(x => x.ScriptPubKey == ongoingRound.Registration.ChangeAddress.ScriptPubKey
+					|| ongoingRound.Registration.ActiveOutputs.Select(y => y.address.ScriptPubKey).Contains(x.ScriptPubKey))
 					.ToArray();
 			Money amountBack = myOutputs.Sum(y => y.Value);
 
-			bool iHaveChange = myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.ChangeOutputAddress.ScriptPubKey);
+			bool iHaveChange = myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.Registration.ChangeAddress.ScriptPubKey);
 			// Make sure change is counted.
 			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
-			minAmountBack -= ongoingRound.State.FeePerOutputs * (iHaveChange ? myOutputs.Length : myOutputs.Length + 1) + ongoingRound.State.FeePerInputs * ongoingRound.CoinsRegistered.Count; // Minus miner fee.
+			minAmountBack -= ongoingRound.State.FeePerOutputs * (iHaveChange ? myOutputs.Length : myOutputs.Length + 1) + ongoingRound.State.FeePerInputs * ongoingRound.Registration.CoinsRegistered.Count(); // Minus miner fee.
 
 			IOrderedEnumerable<(Money value, int count)> indistinguishableOutputs = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count);
 			foreach ((Money value, int count) denomPair in indistinguishableOutputs)
@@ -332,15 +332,15 @@ namespace WalletWasabi.Services
 			}
 
 			var signedCoinJoin = unsignedCoinJoin.Clone();
-			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray(), ongoingRound.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
+			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray(), ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
 
 			// Old way of signing, which randomly fails! https://github.com/zkSNACKs/WalletWasabi/issues/716#issuecomment-435498906
 			// Must be fixed in NBitcoin.
 			//var builder = Network.CreateTransactionBuilder();
 			//var signedCoinJoin = builder
 			//	.ContinueToBuild(unsignedCoinJoin)
-			//	.AddKeys(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())
-			//	.AddCoins(ongoingRound.CoinsRegistered.Select(x => x.GetCoin()))
+			//	.AddKeys(ongoingRound.Registration.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray())
+			//	.AddCoins(ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()))
 			//	.BuildTransaction(true);
 
 			var myDic = new Dictionary<int, WitScript>();
@@ -359,32 +359,32 @@ namespace WalletWasabi.Services
 
 		private async Task RegisterOutputAsync(CcjClientRound ongoingRound)
 		{
-			int i;
-			for (i = 0; i < ongoingRound.UnblindedSignatures.Length; i++)
+			// ToDo: randomize these requests to avoid patterns.
+			var i = 0;
+			foreach ((BitcoinAddress address, BlindSignature signature, int mixingLevel) activeOutput in ongoingRound.Registration.ActiveOutputs)
 			{
-				BlindSignature unblindedSignature = ongoingRound.UnblindedSignatures[i];
-				BitcoinAddress activeOutputAddress = ongoingRound.ActiveOutputAddresses[i];
 				using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
 				{
-					if (!await bobClient.PostOutputAsync(ongoingRound.AliceClient.RoundId, activeOutputAddress, unblindedSignature, i))
+					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput.address, activeOutput.signature, activeOutput.mixingLevel))
 					{
 						break;
 					}
+					i++;
 				}
 			}
 
-			ongoingRound.PostedOutputs = true;
-			Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {i}/{ongoingRound.UnblindedSignatures.Length}.");
+			ongoingRound.Registration.SetPhaseCompleted(CcjRoundPhase.OutputRegistration);
+			Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {i}/{ongoingRound.Registration.ActiveOutputs.Count()}.");
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
 		{
 			try
 			{
-				CcjRoundPhase phase = await inputRegistrableRound.AliceClient.PostConfirmationAsync();
+				CcjRoundPhase phase = await inputRegistrableRound.Registration.AliceClient.PostConfirmationAsync();
 				if (phase > CcjRoundPhase.InputRegistration) // Then the phase went to connection confirmation (probably).
 				{
-					inputRegistrableRound.ConnectionFinalConfirmed = true;
+					inputRegistrableRound.Registration.SetPhaseCompleted(CcjRoundPhase.ConnectionConfirmation);
 					inputRegistrableRound.State.Phase = phase;
 				}
 			}
@@ -618,6 +618,16 @@ namespace WalletWasabi.Services
 						State.RemoveCoinFromWaitingList(coin);
 					}
 
+					var activeOutputs = new List<(BitcoinAddress output, BlindSignature signature, int level)>();
+					for (int i = 0; i < Math.Min(unblindedSignatures.Count, registeredAddresses.Count); i++)
+					{
+						var sig = unblindedSignatures[i];
+						var addr = registeredAddresses[i];
+						var lvl = i;
+						activeOutputs.Add((addr, sig, lvl));
+					}
+					var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, activeOutputs, changeAddress);
+
 					CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 					if (roundRegistered is null)
 					{
@@ -627,14 +637,7 @@ namespace WalletWasabi.Services
 						State.AddOrReplaceRound(roundRegistered);
 					}
 
-					foreach (SmartCoin coin in coinsRegistered)
-					{
-						roundRegistered.CoinsRegistered.Add(coin);
-					}
-					roundRegistered.ActiveOutputAddresses = registeredAddresses.ToArray();
-					roundRegistered.ChangeOutputAddress = changeAddress;
-					roundRegistered.UnblindedSignatures = unblindedSignatures.ToArray();
-					roundRegistered.AliceClient = aliceClient;
+					roundRegistered.Registration = registration;
 				}
 			}
 			catch (Exception ex)
@@ -800,7 +803,7 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							await round.AliceClient.PostUnConfirmationAsync(); // AliceUniqueId must be there.
+							await round.Registration.AliceClient.PostUnConfirmationAsync(); // AliceUniqueId must be there.
 							State.ClearRoundRegistration(round.State.RoundId);
 						}
 						catch (Exception ex)
