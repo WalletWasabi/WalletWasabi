@@ -1827,6 +1827,17 @@ namespace WalletWasabi.Tests
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				using (var aliceClient = await AliceClient.CreateNewAsync(network, inputsRequest, baseUri))
 				{
+					// Test DelayedClientRoundRegistration logic.
+					ClientRoundRegistration first = null;
+					var second = new ClientRoundRegistration(aliceClient,
+						new[] { new SmartCoin(uint256.One, 1, Script.Empty, Money.Zero, new[] { new TxoRef(uint256.One, 1) }, Height.Unknown, true, 1) },
+						new List<(BitcoinAddress, BlindSignature, int)> { (BitcoinAddress.Create("12Rty3c8j3QiZSwLVaBtch6XUMZaja3RC7", Network.Main), null, 1) },
+						BitcoinAddress.Create("12Rty3c8j3QiZSwLVaBtch6XUMZaja3RC7", Network.Main));
+					first = second;
+					second = null;
+					Assert.NotNull(first);
+					Assert.Null(second);
+
 					Assert.NotNull(aliceClient.BlindedOutputSignatures);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 					Assert.True(aliceClient.RoundId > 0);

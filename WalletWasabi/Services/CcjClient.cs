@@ -28,6 +28,8 @@ namespace WalletWasabi.Services
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
 
+		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
+
 		public Uri CcjHostUri { get; }
 		public WasabiSynchronizer Synchronizer { get; }
 		private IPEndPoint TorSocks5EndPoint { get; }
@@ -79,6 +81,7 @@ namespace WalletWasabi.Services
 			State = new CcjClientState();
 			MixLock = new AsyncLock();
 			_statusProcessing = 0;
+			DelayedRoundRegistration = null;
 
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 		}
@@ -177,6 +180,14 @@ namespace WalletWasabi.Services
 				Interlocked.Exchange(ref _statusProcessing, 1);
 				using (await MixLock.LockAsync())
 				{
+					// First, if there's delayed round registration update based on the state.
+					if (DelayedRoundRegistration != null)
+					{
+						CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(DelayedRoundRegistration.AliceClient.RoundId);
+						roundRegistered.Registration = DelayedRoundRegistration;
+						DelayedRoundRegistration = null; // Don't dispose.
+					}
+
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 					State.UpdateRoundsByStates(states.ToArray());
@@ -631,10 +642,9 @@ namespace WalletWasabi.Services
 					CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 					if (roundRegistered is null)
 					{
-						// If our SatoshiClient doesn't yet know about the round because of the dealy, create it.
-						// Make its state as it'd be the same as our assumed round was, except the roundId and registeredPeerCount, it'll be updated later.
-						roundRegistered = new CcjClientRound(CcjRunningRoundState.CloneExcept(inputRegistrableRound.State, aliceClient.RoundId, registeredPeerCount: 1));
-						State.AddOrReplaceRound(roundRegistered);
+						// If our SatoshiClient doesn't yet know about the round, because of delay, then delay the round registration.
+						DelayedRoundRegistration?.Dispose();
+						DelayedRoundRegistration = registration;
 					}
 
 					roundRegistered.Registration = registration;

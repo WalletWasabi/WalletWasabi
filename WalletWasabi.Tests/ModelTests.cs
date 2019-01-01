@@ -12,8 +12,10 @@ using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
+using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using Xunit;
 
 namespace WalletWasabi.Tests

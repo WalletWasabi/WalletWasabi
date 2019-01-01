@@ -41,25 +41,6 @@ namespace WalletWasabi.Backend.Models.Responses
 		/// </summary>
 		public int SuccessfulRoundCount { get; set; }
 
-		public static CcjRunningRoundState CloneExcept(CcjRunningRoundState state, long roundId, int registeredPeerCount)
-		{
-			return new CcjRunningRoundState
-			{
-				Phase = state.Phase,
-				Denomination = state.Denomination,
-				SchnorrPubKeys = state.SchnorrPubKeys,
-				RegisteredPeerCount = registeredPeerCount,
-				RequiredPeerCount = state.RequiredPeerCount,
-				CoordinatorFeePercent = state.CoordinatorFeePercent,
-				FeePerInputs = state.FeePerInputs,
-				FeePerOutputs = state.FeePerOutputs,
-				MaximumInputCountPerPeer = state.MaximumInputCountPerPeer,
-				RegistrationTimeout = state.RegistrationTimeout,
-				RoundId = roundId,
-				SuccessfulRoundCount = state.SuccessfulRoundCount
-			};
-		}
-
 		public Money CalculateRequiredAmount(params Money[] queuedCoinAmounts)
 		{
 			var tried = new List<Money>();
