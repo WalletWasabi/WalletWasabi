@@ -48,7 +48,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 
 					client.RoundId = inputsResponse.RoundId;
 					client.UniqueId = inputsResponse.UniqueId;
-					client.BlindedOutputSignatures = inputsResponse.BlindedOutputSignatures.Select(x => new BigInteger(x)).ToArray();
+					client.BlindedOutputSignatures = inputsResponse.BlindedOutputSignatures.ToArray();
 					Logger.LogInfo<AliceClient>($"Round ({client.RoundId}), Alice ({client.UniqueId}): Registered {request.Inputs.Count()} inputs.");
 
 					return client;
@@ -65,7 +65,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		{
 			var request = new InputsRequest
 			{
-				BlindedOutputScripts = blindedOutputScriptHashes.Select(x => x.ToString()),
+				BlindedOutputScripts = blindedOutputScriptHashes,
 				ChangeOutputAddress = changeOutput,
 				Inputs = inputs
 			};

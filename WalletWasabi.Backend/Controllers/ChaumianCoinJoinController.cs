@@ -126,7 +126,7 @@ namespace WalletWasabi.Backend.Controllers
 				// Do more checks.
 				try
 				{
-					uint256[] blindedOutputs = request.BlindedOutputScripts.Select(x => new uint256(x)).ToArray();
+					uint256[] blindedOutputs = request.BlindedOutputScripts.ToArray();
 					int blindedOutputCount = blindedOutputs.Length;
 					int maxBlindedOutputCount = round.MixingLevels.Count();
 					if (blindedOutputCount > maxBlindedOutputCount)
@@ -306,7 +306,7 @@ namespace WalletWasabi.Backend.Controllers
 					var resp = new InputsResponse
 					{
 						UniqueId = alice.UniqueId,
-						BlindedOutputSignatures = blindSignatures.Select(x => x.ToString()),
+						BlindedOutputSignatures = blindSignatures,
 						RoundId = round.RoundId
 					};
 					return Ok(resp);

@@ -3,6 +3,7 @@ using WalletWasabi.Helpers;
 using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace WalletWasabi.Models
 {
@@ -12,6 +13,7 @@ namespace WalletWasabi.Models
 	[JsonObject(MemberSerialization.OptIn)]
 	public class TxoRef : IEquatable<TxoRef>, IEquatable<OutPoint>
 	{
+		[Required]
 		[JsonProperty(Order = 1)]
 		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 TransactionId { get; }

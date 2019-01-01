@@ -1751,7 +1751,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid request.", httpRequestException.Message);
 
 				byte[] dummySignature = new byte[65];
-				inputsRequest.BlindedOutputScripts = new string[] { uint256.Zero.ToString() };
+				inputsRequest.BlindedOutputScripts = new[] { uint256.Zero };
 				inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(network);
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new TxoRef(uint256.One, 0), Proof = dummySignature } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
@@ -1796,8 +1796,8 @@ namespace WalletWasabi.Tests
 				var requester = new Requester();
 				uint256 msg = new uint256(Hashes.SHA256(network.Consensus.ConsensusFactory.CreateTransaction().ToBytes()));
 				uint256 blindedData = requester.BlindMessage(msg, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey);
-				inputsRequest.BlindedOutputScripts = new string[] { blindedData.ToString() };
-				proof = key.SignCompact(new uint256(inputsRequest.BlindedOutputScripts.First()));
+				inputsRequest.BlindedOutputScripts = new[] { blindedData };
+				proof = key.SignCompact(inputsRequest.BlindedOutputScripts.First());
 				inputsRequest.Inputs.First().Proof = proof;
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
@@ -1821,8 +1821,8 @@ namespace WalletWasabi.Tests
 				requester = new Requester();
 				msg = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
 				blindedData = requester.BlindMessage(msg, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey);
-				inputsRequest.BlindedOutputScripts = new string[] { blindedData.ToString() };
-				proof = key.SignCompact(new uint256(inputsRequest.BlindedOutputScripts.First()));
+				inputsRequest.BlindedOutputScripts = new [] { blindedData };
+				proof = key.SignCompact(inputsRequest.BlindedOutputScripts.First());
 				inputsRequest.Inputs.First().Proof = proof;
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				using (var aliceClient = await AliceClient.CreateNewAsync(network, inputsRequest, baseUri))
@@ -1861,7 +1861,7 @@ namespace WalletWasabi.Tests
 				round = coordinator.GetCurrentInputRegisterableRound();
 				requester = new Requester();
 				blindedData = requester.BlindScript(round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey.SignerPubKey, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey.RpubKey, key.ScriptPubKey);
-				inputsRequest.BlindedOutputScripts = new string[] { blindedData.ToString() };
+				inputsRequest.BlindedOutputScripts = new[] { blindedData };
 				proof = key.SignCompact(new uint256(inputsRequest.BlindedOutputScripts.First()));
 				inputsRequest.Inputs.First().Proof = proof;
 				using (var aliceClient = await AliceClient.CreateNewAsync(network, inputsRequest, baseUri))
@@ -1875,7 +1875,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal(1, roundState.RegisteredPeerCount);
 				}
 
-				inputsRequest.BlindedOutputScripts = new string[] { uint256.One.ToString() };
+				inputsRequest.BlindedOutputScripts = new[] { uint256.One };
 				proof = key.SignCompact(new uint256(inputsRequest.BlindedOutputScripts.First()));
 				inputsRequest.Inputs.First().Proof = proof;
 				inputsRequest.Inputs = new List<InputProofModel> { inputsRequest.Inputs.First(), inputsRequest.Inputs.First() };

@@ -10,11 +10,12 @@ namespace WalletWasabi.Backend.Models.Requests
 {
 	public class InputsRequest
 	{
-		[Required]
+		[Required, MinLength(1)]
 		public IEnumerable<InputProofModel> Inputs { get; set; }
 
-		[Required]
-		public IEnumerable<string> BlindedOutputScripts { get; set; }
+		[Required, MinLength(1)]
+		[JsonProperty (ItemConverterType = typeof(Uint256JsonConverter))]
+		public IEnumerable<uint256> BlindedOutputScripts { get; set; }
 
 		[Required]
 		[JsonConverter(typeof(BitcoinAddressJsonConverter))]
