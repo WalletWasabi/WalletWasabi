@@ -942,7 +942,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			StartAliceTimeout(alice.UniqueId);
 
-			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Alice ({alice.UniqueId}) added.");
+			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Alice ({alice.InputSum.ToString(false, false)}) added.");
 		}
 
 		public void AddBob(Bob bob)
@@ -961,7 +961,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Bobs.Add(bob);
 			}
 
-			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Bob added.");
+			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Bob ({bob.Level.Denomination}) added.");
 		}
 
 		public int RemoveAlicesBy(AliceState state)
