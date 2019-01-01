@@ -370,22 +370,38 @@ namespace WalletWasabi.Services
 
 		private async Task RegisterOutputAsync(CcjClientRound ongoingRound)
 		{
-			// ToDo: randomize these requests to avoid patterns.
-			var i = 0;
-			foreach ((BitcoinAddress address, BlindSignature signature, int mixingLevel) activeOutput in ongoingRound.Registration.ActiveOutputs)
+			var clients = new List<BobClient>();
+			try
 			{
-				using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
+				var requests = new List<Task<bool>>();
+				foreach ((BitcoinAddress address, BlindSignature signature, int mixingLevel) activeOutput in ongoingRound.Registration.ActiveOutputs)
 				{
-					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput.address, activeOutput.signature, activeOutput.mixingLevel))
+					var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint);
+					Task<bool> request = bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput.address, activeOutput.signature, activeOutput.mixingLevel);
+					requests.Add(request);
+				}
+
+				requests.Shuffle();
+
+				foreach (Task<bool> request in requests)
+				{
+					if (!await request)
 					{
+						Logger.LogWarning<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.)");
 						break;
 					}
-					i++;
+				}
+			}
+			finally
+			{
+				foreach (BobClient client in clients)
+				{
+					client?.Dispose();
 				}
 			}
 
 			ongoingRound.Registration.SetPhaseCompleted(CcjRoundPhase.OutputRegistration);
-			Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {i}/{ongoingRound.Registration.ActiveOutputs.Count()}.");
+			Logger.LogInfo<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bob Posted outputs: {ongoingRound.Registration.ActiveOutputs.Count()}.");
 		}
 
 		private async Task TryConfirmConnectionAsync(CcjClientRound inputRegistrableRound)
