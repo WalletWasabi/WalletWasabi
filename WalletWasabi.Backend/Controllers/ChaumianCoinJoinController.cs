@@ -52,7 +52,7 @@ namespace WalletWasabi.Backend.Controllers
 			return Ok(response);
 		}
 
-		public static IEnumerable<CcjRunningRoundState> GetStatesCollection()
+		internal static IEnumerable<CcjRunningRoundState> GetStatesCollection()
 		{
 			var response = new List<CcjRunningRoundState>();
 
@@ -106,10 +106,7 @@ namespace WalletWasabi.Backend.Controllers
 		{
 			// Validate request.
 			if (!ModelState.IsValid
-				|| !request.BlindedOutputScripts.Any()
-				|| !request.Inputs.Any()
-				|| request.Inputs.Any(x => x.Input == default(TxoRef)
-					|| x.Input.TransactionId is null))
+				|| request.Inputs.Any(x => x.Input == default(TxoRef)))
 			{
 				return BadRequest("Invalid request.");
 			}
@@ -153,16 +150,24 @@ namespace WalletWasabi.Backend.Controllers
 						}
 					}
 
-					var inputs = new HashSet<Coin>();
-
-					var alicesToRemove = new HashSet<Guid>();
-
+					var uniqueInputs = new HashSet<TxoRef>();
 					foreach (InputProofModel inputProof in request.Inputs)
 					{
-						if (inputs.Any(x => x.Outpoint == inputProof.Input))
+						if (uniqueInputs.Contains(inputProof.Input))
 						{
 							return BadRequest("Cannot register an input twice.");
 						}
+						uniqueInputs.Add(inputProof.Input);
+					}
+
+
+					var alicesToRemove = new HashSet<Guid>();
+					var getTxOutResponses = new List<(InputProofModel inputModel, Task<GetTxOutResponse> getTxOutTask)>();
+
+					var batch = RpcClient.PrepareBatch();
+
+					foreach (InputProofModel inputProof in request.Inputs)
+					{
 						if (round.ContainsInput(inputProof.Input.ToOutPoint(), out List<Alice> tr))
 						{
 							alicesToRemove.UnionWith(tr.Select(x => x.UniqueId)); // Input is already registered by this alice, remove it later if all the checks are completed fine.
@@ -182,7 +187,22 @@ namespace WalletWasabi.Backend.Controllers
 							return BadRequest($"Input is banned from participation for {(int)bannedElem.Value.bannedRemaining.TotalMinutes} minutes: {inputProof.Input.Index}:{inputProof.Input.TransactionId}.");
 						}
 
-						GetTxOutResponse getTxOutResponse = await RpcClient.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
+						var txoutResponseTask = batch.GetTxOutAsync(inputProof.Input.TransactionId, (int)inputProof.Input.Index, includeMempool: true);
+						getTxOutResponses.Add((inputProof, txoutResponseTask));
+					}
+
+					// Perform all RPC request at once
+					var waiting = Task.WhenAll(getTxOutResponses.Select(x=>x.getTxOutTask));
+					await batch.SendBatchAsync();
+					await waiting;
+
+
+					var inputs = new HashSet<Coin>();
+
+					foreach (var responses in getTxOutResponses)
+					{
+						var (inputProof, getTxOutResponseTask) = responses;
+						var getTxOutResponse = getTxOutResponseTask.Result;
 
 						// Check if inputs are unspent.
 						if (getTxOutResponse is null)
@@ -289,7 +309,7 @@ namespace WalletWasabi.Backend.Controllers
 					// Check if phase changed since.
 					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
 					{
-						return base.StatusCode(StatusCodes.Status503ServiceUnavailable, "The state of the round changed while handling the request. Try again.");
+						return StatusCode(StatusCodes.Status503ServiceUnavailable, "The state of the round changed while handling the request. Try again.");
 					}
 
 					// Progress round if needed.
