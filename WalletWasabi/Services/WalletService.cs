@@ -598,7 +598,7 @@ namespace WalletWasabi.Services
 							Interlocked.Increment(ref _concurrentBlockDownload);
 							ConcurrentBlockDownloadNumberChanged?.Invoke(this, _concurrentBlockDownload);
 
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(32))) // ADSL	512 kbit/s	00:00:32
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
 							{
 								block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
 							}
