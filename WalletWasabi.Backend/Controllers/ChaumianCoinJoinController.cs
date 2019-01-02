@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using NBitcoin.BouncyCastle.Math;
+using NBitcoin.Crypto;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
@@ -196,6 +197,8 @@ namespace WalletWasabi.Backend.Controllers
 					await batch.SendBatchAsync();
 					await waiting;
 
+					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputs.Select(x=>x.ToBytes()));
+					uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
 
 					var inputs = new HashSet<Coin>();
 
@@ -248,7 +251,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						var address = (BitcoinWitPubKeyAddress)txout.ScriptPubKey.GetDestinationAddress(Network);
 						// Check if proofs are valid.
-						if (!address.VerifyMessage(blindedOutputs.First(), inputProof.Proof))
+						if (!address.VerifyMessage(blindedOutputScriptsHash, inputProof.Proof))
 						{
 							return BadRequest("Provided proof is invalid.");
 						}

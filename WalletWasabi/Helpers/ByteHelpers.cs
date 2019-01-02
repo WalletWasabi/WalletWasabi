@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace System
@@ -11,6 +12,11 @@ namespace System
 		/// </summary>
 		public static byte[] Combine(params byte[][] arrays)
 		{
+			return Combine(arrays.AsEnumerable());
+		}
+
+		public static byte[] Combine(IEnumerable<byte[]> arrays)
+		{
 			byte[] ret = new byte[arrays.Sum(x => x.Length)];
 			int offset = 0;
 			foreach (byte[] data in arrays)
@@ -20,6 +26,7 @@ namespace System
 			}
 			return ret;
 		}
+
 
 		// https://stackoverflow.com/a/8808245/2061103
 		// Copyright (c) 2008-2013 Hafthor Stefansson

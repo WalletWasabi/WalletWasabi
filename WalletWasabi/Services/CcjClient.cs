@@ -567,6 +567,9 @@ namespace WalletWasabi.Services
 						registeredAddresses.Add(address);
 					}
 
+					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x=>x.ToBytes()));
+					uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
+
 					var inputProofs = new List<InputProofModel>();
 					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
 					{
@@ -576,7 +579,7 @@ namespace WalletWasabi.Services
 						var inputProof = new InputProofModel
 						{
 							Input = coin.GetTxoRef(),
-							Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptHashes.First())
+							Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptsHash)
 						};
 						inputProofs.Add(inputProof);
 					}
