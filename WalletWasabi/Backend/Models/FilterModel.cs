@@ -1,15 +1,22 @@
 ﻿using NBitcoin;
+using Newtonsoft.Json;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Backend.Models
 {
 	public class FilterModel
 	{
+		[JsonConverter(typeof(HeightJsonConverter))]
 		public Height BlockHeight { get; set; }
+
+		[JsonConverter(typeof(Uint256JsonConverter))]
 		public uint256 BlockHash { get; set; }
+
+		[JsonConverter(typeof(GolombRiceFilterJsonConverter))]
 		public GolombRiceFilter Filter { get; set; }
 
 		// https://github.com/bitcoin/bips/blob/master/bip-0158.mediawiki

@@ -206,7 +206,7 @@ namespace WalletWasabi.Tests
 				for (int i = 0; i < 111; i++)
 				{
 					var expectedHash = await rpc.GetBlockHashAsync(i + 1);
-					var filterModel = FilterModel.FromLine(filters[i], i);
+					var filterModel = filters[i];
 					Assert.Equal(expectedHash, filterModel.BlockHash);
 				}
 			}

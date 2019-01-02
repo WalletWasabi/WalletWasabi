@@ -8,7 +8,9 @@ namespace WalletWasabi.Backend.Models.Responses
 	public class SynchronizeResponse
 	{
 		public FiltersResponseState FiltersResponseState { get; set; }
-		public IEnumerable<string> Filters { get; set; }
+
+
+		public IEnumerable<FilterModel> Filters { get; set; }
 
 		public int BestHeight { get; set; }
 

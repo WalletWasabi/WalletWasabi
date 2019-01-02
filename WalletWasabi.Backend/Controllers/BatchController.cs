@@ -52,10 +52,10 @@ namespace WalletWasabi.Backend.Controllers
 
 			var knownHash = new uint256(bestKnownBlockHash);
 
-			(Height bestHeight, IEnumerable<string> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
+			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
 
 			var response = new SynchronizeResponse();
-			response.Filters = new string[0];
+			response.Filters = new List<FilterModel>();
 			response.BestHeight = bestHeight;
 
 			if (!found)

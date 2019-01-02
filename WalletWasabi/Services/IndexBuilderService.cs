@@ -368,17 +368,17 @@ namespace WalletWasabi.Services
 			});
 		}
 
-		public (Height bestHeight, IEnumerable<string> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
+		public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
 		{
 			using (IndexLock.Lock())
 			{
 				found = false; // Only build the filter list from when the known hash is found.
-				var filters = new List<string>();
+				var filters = new List<FilterModel>();
 				foreach (var filter in Index)
 				{
 					if (found)
 					{
-						filters.Add(filter.ToLine());
+						filters.Add(filter);
 						if (filters.Count >= count)
 						{
 							break;
@@ -395,7 +395,7 @@ namespace WalletWasabi.Services
 
 				if (Index.Count == 0)
 				{
-					return (Height.Unknown, Enumerable.Empty<string>());
+					return (Height.Unknown, Enumerable.Empty<FilterModel>());
 				}
 				else
 				{

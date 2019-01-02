@@ -310,14 +310,14 @@ namespace WalletWasabi.Services
 
 							if (response.FiltersResponseState == FiltersResponseState.NewFilters)
 							{
-								List<string> filtersList = response.Filters.ToList(); // performance
+								List<FilterModel> filtersList = response.Filters.ToList(); // performance
 
 								for (int i = 0; i < filtersList.Count; i++)
 								{
 									FilterModel filterModel;
 									lock (IndexLock)
 									{
-										filterModel = FilterModel.FromLine(filtersList[i], BestKnownFilter.BlockHeight + 1);
+										filterModel = filtersList[i];
 										Index.Add(filterModel);
 										BestKnownFilter = filterModel;
 									}
