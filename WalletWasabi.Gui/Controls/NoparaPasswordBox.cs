@@ -187,6 +187,7 @@ namespace WalletWasabi.Gui.Controls
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
 			OnTextInput(e.Text);
+			e.Handled = true;
 		}
 
 		private void OnTextInput(string text)
