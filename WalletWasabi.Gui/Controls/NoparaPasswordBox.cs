@@ -5,6 +5,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Styling;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -98,14 +99,15 @@ namespace WalletWasabi.Gui.Controls
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				fontName = "ttf-wqy-zenhei"; //https://help.ubuntu.com/community/Fonts
+				fontName = "Noto Sans CJK TC"; //https://www.pinyinjoe.com/linux/ubuntu-10-chinese-fonts-openoffice-language-features.htm
+											   //The best and simplest way is to use console command (this command should be available for all ubuntu-based distributions)
+											   //fc - list
 			}
 
 			try
 			{
-				var fontTester = new FontFamily(fontName); //test if the font is exists on the system
-
-				if (fontTester.Name == fontName)
+				var fontTester = SKTypeface.FromFamilyName(fontName);
+				if (fontTester.FamilyName == fontName)
 				{
 					FontFamily = FontFamily.Parse(fontName); //use the font
 				}
