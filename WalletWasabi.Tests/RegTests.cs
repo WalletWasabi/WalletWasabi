@@ -2184,6 +2184,172 @@ namespace WalletWasabi.Tests
 			}
 		}
 
+
+		[Fact]
+		public async Task CcjUnequalOutputsTestsAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator) = await InitializeTestEnvironmentAsync(1);
+
+			Money denomination = Money.Coins(0.1m);
+			decimal coordinatorFeePercent = 0.0002m;
+			int anonymitySet = 4;
+			int connectionConfirmationTimeout = 50;
+			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false);
+			coordinator.UpdateRoundConfig(roundConfig);
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+
+			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
+			using (var torClient = new TorHttpClient(baseUri, SharedFixture.TorSocks5Endpoint))
+			using (var satoshiClient = new SatoshiClient(baseUri))
+			{
+				var round = coordinator.GetCurrentInputRegisterableRound();
+				var roundId = round.RoundId;
+
+				// We have to 4 participant so, this data structure is for keeping track of
+				// important data for each of the participants in the coinjoin session.
+				var participants = new List<(AliceClient aliceClient, 
+											 List<(Requester requester, BitcoinWitPubKeyAddress outputAddress, uint256 blindedScript)> outouts,
+											 List<BlindSignature> signatures,
+											 List<(TxoRef input, byte[] proof, Coin coin, Key key)> inputs)>();
+
+
+				// INPUS REGISTRATION PHASE --
+				for(var anosetIdx = 0; anosetIdx < anonymitySet; anosetIdx++)
+				{
+					// Create as many outputs as mixin levels (even when we don't have funds enough)
+					var outputs = new List<(Requester requester, BitcoinWitPubKeyAddress outputAddress, uint256 blindedScript)>();
+					foreach(var level in round.MixingLevels.Levels)
+					{
+						var requester = new Requester();
+						var outputsAddress = new Key().PubKey.GetSegwitAddress(network);
+						var scriptPubKey = outputsAddress.ScriptPubKey;
+						// We blind the scriptPubKey with a new requester by mixin level
+						var blindedScript = requester.BlindScript(level.Signer.Key.PubKey, level.Signer.R.PubKey, scriptPubKey);
+						outputs.Add((requester, outputsAddress, blindedScript));
+					}
+
+					// Calculate the SHA256( blind1 || blind2 || .....|| blindN )
+					var blindedOutputScriptList = outputs.Select(x=>x.blindedScript);
+					var blindedOutputScriptListBytes = ByteHelpers.Combine(blindedOutputScriptList.Select(x=>x.ToBytes())); 
+					var blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptListBytes));
+
+					// Create 4 new coins that we want to mix
+					var inputs = new List<(TxoRef input, byte[] proof, Coin coin, Key key)>();
+					for (var inputIdx = 0; inputIdx < 4; inputIdx++)
+					{
+						var key = new Key();
+						var outputAddress = key.PubKey.GetSegwitAddress(network);
+						var hash = await rpc.SendToAddressAsync(outputAddress, Money.Coins(0.1m));
+						await rpc.GenerateAsync(1);
+						var tx = await rpc.GetRawTransactionAsync(hash);
+						var index = tx.Outputs.FindIndex(x=>x.ScriptPubKey == outputAddress.ScriptPubKey);
+						var input = new OutPoint(hash, index);
+	
+						inputs.Add((
+							input.ToTxoRef(), 
+							key.SignCompact(blindedOutputScriptsHash), 
+							new Coin(tx, (uint)index),
+							key 
+						));
+					}
+
+					// Save alice client and the outputs, requesters, etc
+					var changeOutput = new Key().PubKey.GetAddress(network);
+					var inputProof = inputs.Select(x=> new InputProofModel{ Input = x.input, Proof = x.proof});
+					var aliceClient = await AliceClient.CreateNewAsync(network, changeOutput, blindedOutputScriptList, inputProof, baseUri);
+
+					// Coordinator only signs as outputs that can be funded by the registered inputs
+					Assert.True(aliceClient.BlindedOutputSignatures.Length < blindedOutputScriptList.Count());
+
+					// We check the coordinator signed all the alice blinded outputs
+					var i=0;
+					var signatures = new List<BlindSignature>();
+					foreach(var signature in aliceClient.BlindedOutputSignatures)
+					{
+						var (requester, outputsAddress, _) = outputs[i];
+						BlindSignature unblindedSignature = requester.UnblindSignature(signature);
+
+						var level = round.MixingLevels.Levels[i];
+						if (!level.Signer.VerifyUnblindedSignature(unblindedSignature, outputsAddress.ScriptPubKey.ToBytes()))
+						{
+							throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
+						}
+						signatures.Add(unblindedSignature);
+						i++;
+					}
+
+					participants.Add((aliceClient, outputs, signatures, inputs));
+				}
+
+				// CONNECTION CONFIRMATION PHASE --
+				foreach(var (aliceClient, _, _, _) in participants)
+				{
+					var phase = await aliceClient.PostConfirmationAsync();
+				}
+
+				// OUTPUTS REGISTRATION PHASE --
+				var roundState = await satoshiClient.GetRoundStateAsync(roundId);
+				Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
+
+				foreach(var (aliceClient, outputs, signatures, _) in participants)
+				{
+					using(var bobClient = new BobClient(baseUri))
+					{
+						var i = 0;
+						foreach(var output in outputs.Take(aliceClient.BlindedOutputSignatures.Length))
+						{
+							await bobClient.PostOutputAsync(aliceClient.RoundId, output.outputAddress, signatures[i], i);
+							i++;
+						}
+					}
+				}
+
+				// SIGNING PHASE --
+				roundState = await satoshiClient.GetRoundStateAsync(roundId);
+				Assert.Equal(CcjRoundPhase.Signing, roundState.Phase);
+
+				uint256 transactionId = null;
+				foreach(var (aliceClient, outputs, _, inputs) in participants)
+				{
+					var unsignedTransaction = await aliceClient.GetUnsignedCoinJoinAsync();
+					transactionId = unsignedTransaction.GetHash();
+
+					// Verify the transaction contains the expected inputs and outputs
+#if REVIEW
+					// Verify the outputs are the expected ones.
+					foreach(var output in outputs.Take(aliceClient.BlindedOutputSignatures.Length))
+					{
+						// What is going on here? I would expect 0.1 + 0.2 + 0.1 (change) 
+						Assert.Contains(output.outputAddress.ScriptPubKey, unsignedTransaction.Outputs.Select(x=>x.ScriptPubKey));
+					}
+#endif
+					// Verify the inputs are the expected ones.
+					foreach(var input in inputs)
+					{
+						Assert.Contains(input.input, unsignedTransaction.Inputs.Select(x=>x.PrevOut.ToTxoRef()));
+					}
+
+					// Sign the transaction
+					var builder = Network.RegTest.CreateTransactionBuilder();
+					var partSignedCj = builder
+						.ContinueToBuild(unsignedTransaction)
+						.AddKeys(inputs.Select(x=> x.key).ToArray())
+						.AddCoins(inputs.Select(x=> x.coin))
+						.BuildTransaction(true);
+
+					var witnesses = partSignedCj.Inputs
+						.AsIndexedInputs()
+						.Where(x=>x.WitScript != WitScript.Empty)
+						.ToDictionary(x=>(int)x.Index, x=>x.WitScript);
+
+					await aliceClient.PostSignaturesAsync(witnesses);
+				}
+
+				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
+				Assert.Contains(transactionId, mempooltxs);
+			}
+		}
+
 		[Fact]
 		public async Task NotingTestsAsync()
 		{
