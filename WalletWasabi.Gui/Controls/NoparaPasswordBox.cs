@@ -89,16 +89,23 @@ namespace WalletWasabi.Gui.Controls
 			});
 
 			const string fontName = "SimSun"; //https://docs.microsoft.com/en-us/typography/font-list/simsun
-			using (Font fontTester = new Font(fontName, 14)) //test if the font is exists on the system
+			try
 			{
-				if (fontTester.Name == fontName)
+				using (Font fontTester = new Font(fontName, 14)) //test if the font is exists on the system
 				{
-					FontFamily = Avalonia.Media.FontFamily.Parse(fontName); //use the font
+					if (fontTester.Name == fontName)
+					{
+						FontFamily = Avalonia.Media.FontFamily.Parse(fontName); //use the font
+					}
+					else
+					{
+						throw new FormatException("font is missing fallback to default font");
+					}
 				}
-				else
-				{
-					PasswordChar = '*'; //use passwordchar instead
-				}
+			}
+			catch (Exception)
+			{
+				PasswordChar = '*'; //use passwordchar instead
 			}
 		}
 
