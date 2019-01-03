@@ -16,7 +16,7 @@ After first run, a working directory will be created: `%appdata%\WalletWasabi\`.
 
 # Linux
 
-Check out this [video guide](https://www.youtube.com/watch?v=qFbv_b-bju4) or take a look at the instructions below. Note, while this is for OSX, it's the same for Linux.
+Check out this short, to-the-point [video guide](https://www.youtube.com/watch?v=qFbv_b-bju4), or [this other funnier one](https://www.youtube.com/watch?time_continue=4&v=zPKpC9cRcZo) with more explanation, or take a look at the instructions below. Note that, the first video was created on OSX, but the steps are the same for Linux.
 
 ![](https://imgur.com/wsJ66Qt.png)
 
