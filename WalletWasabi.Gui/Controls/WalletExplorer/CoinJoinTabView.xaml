@@ -15,7 +15,7 @@
         <DockPanel LastChildFill="True">
           <StackPanel Spacing="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Right">
             <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-            <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
+            <controls:NoparaPasswordBox Password="{Binding Password}" Text="你吃饭了吗？" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
             <DockPanel LastChildFill="True" VerticalAlignment="Top" IsEnabled="{Binding !IsEnqueueBusy}">
               <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">

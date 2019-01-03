@@ -1,53 +1,190 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Styling;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace WalletWasabi.Gui.Controls
 {
-	public class NoparaPasswordBox : ExtendedTextBox
+	public class NoparaPasswordBox : ExtendedTextBox, IStyleable
 	{
-		//public static readonly string[] Titles = { "你吃饭了吗？", "你多吃一点。", "慢慢吃。", " 慢走。", "我跟你讲。", "你去忙你的吧。" };
-		public static readonly string[] Titles = { "alma körte banán", "második mondat", "harmadik mondat" };
+		Type IStyleable.StyleKey => typeof(TextBox);
 
-		public string ContentText;
+		public static readonly string[] Titles =
+		{
+			"这个笨老外不知道自己在写什么。", // This silly foreigner does not know what he is writing.
+			"法式炸薯条法式炸薯条法式炸薯条", //French fries, french fries, french fries
+			"只有一支筷子的人会挨饿。", //Man with one chopstick go hungry.
+			"说太多灯泡笑话的人，很快就会心力交瘁。", // Man who tell one too many light bulb jokes soon burn out!
+			"汤面火锅", //Noodle soup, hot pot
+			"你是我见过的最可爱的僵尸。", //You’re the cutest zombie I’ve ever seen.
+			"永不放弃。", //Never don't give up.
+			"如果你是只宠物小精灵，我就选你。" //If you were a Pokemon, I'd choose you.
+		};
+
+		//public static readonly string[] Titles =
+		//{
+		//	"apple",
+		//	"banana",
+		//	"grape",
+		//	"orange",
+		//	"blackberry",
+		//};
+
+		private bool _supressChanges;
 		public string DisplayText;
 		private Random _random = new Random();
+		private StringBuilder _sb = new StringBuilder();
+		public int SelectionLength => SelectionEnd - SelectionStart;
+		private const int MaxPasswordLength = 50;
 
-		protected override void OnTextInput(TextInputEventArgs e)
+		public static readonly StyledProperty<string> PasswordProperty =
+			AvaloniaProperty.Register<NoparaPasswordBox, string>(nameof(Password), defaultBindingMode: BindingMode.TwoWay);
+
+		public string Password
 		{
-			ContentText += e.Text;
-			var index = (ContentText.Length - 1) % ContentText.Length;
-			e.Text = DisplayText[index].ToString();
-			base.OnTextInput(e);
+			get => GetValue(PasswordProperty);
+			set
+			{
+				SetValue(PasswordProperty, value);
+			}
 		}
 
 		private void GenerateNewRandomSequence()
 		{
-			var randomSequence = Titles.Select(_ => Titles[_random.Next(0, Titles.Length - 1)]).ToArray();
-			DisplayText = string.Join(' ', randomSequence);
+			StringBuilder sb = new StringBuilder();
+			do
+			{
+				List<string> ls = new List<string>(Titles);
+				do
+				{
+					var s = ls[_random.Next(0, ls.Count - 1)];
+					sb.Append(s);
+					ls.Remove(s);
+				}
+				while (ls.Count > 0);
+			}
+			while (sb.Length < MaxPasswordLength);
+			DisplayText = string.Concat(sb.ToString());
+		}
+
+		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		{
+			this.GetObservable(PasswordProperty).Subscribe(x =>
+			{
+				Password = x;
+			});
+			base.OnTemplateApplied(e);
+		}
+
+		protected override void OnKeyDown(KeyEventArgs e)
+		{
+			if (e.Key == Key.Back && _sb.Length > 0)
+			{
+				if (SelectionLength != 0)
+				{
+					_sb.Clear();
+				}
+				else
+				{
+					if (CaretIndex == base.Text.Length)
+					{
+						_sb.Remove(_sb.Length - 1, 1);
+					}
+				}
+			}
+			else if (e.Key == Key.Delete && _sb.Length > 0)
+			{
+				if (SelectionLength != 0)
+				{
+					_sb.Clear();
+				}
+				else
+				{
+					if (CaretIndex == 0)
+					{
+						_sb.Remove(0, 1);
+					}
+				}
+			}
+			else
+			{
+				if (SelectionLength != 0)
+					_sb.Clear();
+				base.OnKeyDown(e);
+			}
+			PaintText();
+		}
+
+		protected override void OnTextInput(TextInputEventArgs e)
+		{
+			if (_supressChanges) return;
+			if (SelectionLength != 0)
+			{
+				_sb.Clear();
+				_supressChanges = true;
+				SelectionStart = SelectionEnd = CaretIndex = 0;
+				_supressChanges = false;
+			}
+			if (CaretIndex == 0) _sb.Insert(0, e.Text);
+			else _sb.Append(e.Text);
+			PaintText();
+		}
+
+		protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
+		{
+			if (_supressChanges) return;
+
+			if (e.Property.Name == nameof(CaretIndex))
+			{
+				CaretIndex = base.Text.Length;
+			}
+			else if (e.Property.Name == nameof(SelectionStart) || e.Property.Name == nameof(SelectionEnd))
+			{
+				var len = SelectionEnd - SelectionStart;
+				if (len > 0)
+				{
+					SelectionStart = 0;
+					SelectionEnd = base.Text.Length;
+				}
+				else
+				{
+					SelectionStart = SelectionEnd = CaretIndex;
+				}
+			}
+			else
+				base.OnPropertyChanged(e);
+		}
+
+		private void PaintText()
+		{
+			_supressChanges = true;
+			try
+			{
+				if (_sb.Length > MaxPasswordLength)
+					_sb.Remove(MaxPasswordLength, _sb.Length - MaxPasswordLength);
+				Password = _sb.ToString();
+				base.Text = DisplayText.Substring(0, _sb.Length);
+				CaretIndex = base.Text.Length;
+			}
+			finally
+			{
+				_supressChanges = false;
+			}
 		}
 
 		protected override void OnGotFocus(GotFocusEventArgs e)
 		{
 			GenerateNewRandomSequence();
 			base.OnGotFocus(e);
-		}
-
-		protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
-		{
-			if (e.Property.ToString() == nameof(Text))
-			{
-				if (((string)e.NewValue).Length < ((string)e.OldValue).Length)
-				{
-				}
-			}
-			base.OnPropertyChanged(e);
 		}
 	}
 }
