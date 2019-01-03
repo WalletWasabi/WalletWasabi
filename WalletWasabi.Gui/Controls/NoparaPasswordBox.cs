@@ -220,6 +220,7 @@ namespace WalletWasabi.Gui.Controls
 					_sb.Remove(MaxPasswordLength, _sb.Length - MaxPasswordLength);
 				Password = _sb.ToString();
 				Text = DisplayText.Substring(0, _sb.Length);
+				//Text = Password; //for debugging
 				CaretIndex = Text.Length;
 			}
 			finally
