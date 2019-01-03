@@ -27,7 +27,6 @@ namespace System
 			return ret;
 		}
 
-
 		// https://stackoverflow.com/a/8808245/2061103
 		// Copyright (c) 2008-2013 Hafthor Stefansson
 		// Distributed under the MIT/X11 software license

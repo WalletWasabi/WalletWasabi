@@ -1823,7 +1823,7 @@ namespace WalletWasabi.Tests
 				requester = new Requester();
 				msg = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
 				blindedData = requester.BlindMessage(msg, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey);
-				inputsRequest.BlindedOutputScripts = new [] { blindedData };
+				inputsRequest.BlindedOutputScripts = new[] { blindedData };
 				blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedData.ToBytes()));
 				proof = key.SignCompact(blindedOutputScriptsHash);
 				inputsRequest.Inputs.First().Proof = proof;

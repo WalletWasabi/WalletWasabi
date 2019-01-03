@@ -1,18 +1,18 @@
-﻿using NBitcoin;
-using NBitcoin.BouncyCastle.Math;
-using NBitcoin.DataEncoders;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Text;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class GolombRiceFilterJsonConverter : JsonConverter
+	public class FilterModelJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(GolombRiceFilter);
+			return objectType == typeof(FilterModel);
 		}
 
 		/// <inheritdoc />
@@ -20,14 +20,13 @@ namespace WalletWasabi.JsonConverters
 		{
 			var value = Guard.Correct((string)reader.Value);
 
-			var data = Encoders.Hex.DecodeData(value);
-			return data.Length == 0 ? null : new GolombRiceFilter(data, 20, 1 << 20);
+			return string.IsNullOrWhiteSpace(value) ? default : FilterModel.FromFullLine(value);
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((GolombRiceFilter)value).ToString());
+			writer.WriteValue(((FilterModel)value).ToFullLine());
 		}
 	}
 }

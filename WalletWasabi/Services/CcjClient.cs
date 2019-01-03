@@ -567,7 +567,7 @@ namespace WalletWasabi.Services
 						registeredAddresses.Add(address);
 					}
 
-					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x=>x.ToBytes()));
+					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x => x.ToBytes()));
 					uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
 
 					var inputProofs = new List<InputProofModel>();

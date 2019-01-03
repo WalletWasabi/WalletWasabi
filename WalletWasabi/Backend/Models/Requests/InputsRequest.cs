@@ -14,7 +14,7 @@ namespace WalletWasabi.Backend.Models.Requests
 		public IEnumerable<InputProofModel> Inputs { get; set; }
 
 		[Required, MinLength(1)]
-		[JsonProperty (ItemConverterType = typeof(Uint256JsonConverter))]
+		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
 		public IEnumerable<uint256> BlindedOutputScripts { get; set; }
 
 		[Required]

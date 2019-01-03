@@ -1,5 +1,7 @@
 ﻿using NBitcoin;
+using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
+using System;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
@@ -37,6 +39,51 @@ namespace WalletWasabi.Backend.Models
 			return builder.ToString();
 		}
 
+		public string ToFullLine()
+		{
+			var builder = new StringBuilder();
+			builder.Append(BlockHeight.ToString());
+			builder.Append(":");
+			builder.Append(BlockHash);
+			if (Filter != null) // bech found here
+			{
+				builder.Append(":");
+				builder.Append(Filter);
+			}
+
+			return builder.ToString();
+		}
+
+		public static FilterModel FromFullLine(string line)
+		{
+			Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
+			string[] parts = line.Split(':');
+
+			if (parts.Length <= 1)
+			{
+				throw new ArgumentException(nameof(line), line);
+			}
+			else if (parts.Length == 2) // no bech here
+			{
+				return new FilterModel
+				{
+					BlockHeight = new Height(parts[0]),
+					BlockHash = new uint256(parts[1]),
+					Filter = null
+				};
+			}
+
+			var data = Encoders.Hex.DecodeData(parts[2]);
+			var filter = new GolombRiceFilter(data, 20, 1 << 20);
+
+			return new FilterModel
+			{
+				BlockHeight = new Height(parts[0]),
+				BlockHash = new uint256(parts[1]),
+				Filter = filter
+			};
+		}
+
 		public static FilterModel FromLine(string line, Height height)
 		{
 			Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
@@ -52,7 +99,7 @@ namespace WalletWasabi.Backend.Models
 				};
 			}
 
-			var data = NBitcoin.DataEncoders.Encoders.Hex.DecodeData(parts[1]);
+			var data = Encoders.Hex.DecodeData(parts[1]);
 			var filter = new GolombRiceFilter(data, 20, 1 << 20);
 
 			return new FilterModel
