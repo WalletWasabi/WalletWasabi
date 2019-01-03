@@ -21,7 +21,9 @@ HiddenWallet's code is archived in the [hiddenwallet-v0.6](https://github.com/zk
 
 # [Download Wasabi](https://github.com/zkSNACKs/WalletWasabi/releases)
 
-# How To Run?
+![](https://i.imgur.com/kpjT9ZV.png)
+
+# Build From Source Code
 
 ## Get The Requirements
 
@@ -52,5 +54,3 @@ git submodule update --init --recursive
 ### Notes:
 
 - Configuration, wallet and similar files can be found in `%appdata%\WalletWasabi` folder on Windows and in `~/.walletwasabi` folder on Linux/OSX.
-- Note, we have OSX bugs in our GUI library, which we are currently fixing. You may follow our progress here: https://github.com/AvaloniaUI/Avalonia/pull/1789
-- If you already have Tor and it's out of date, then you'll get many error messages. Make sure it's not out of date: Check Tor version: `tor --version`. If it's not at least `0.3.2.2`, then see [this writeup](https://github.com/zkSNACKs/WalletWasabi/issues/606#issuecomment-412470662) on how to update it.
