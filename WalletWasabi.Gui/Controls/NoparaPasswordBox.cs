@@ -7,6 +7,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -58,6 +59,27 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
+		public NoparaPasswordBox()
+		{
+			this.GetObservable(PasswordProperty).Subscribe(x =>
+			{
+				Password = x;
+			});
+
+			const string fontName = "SimSun"; //https://docs.microsoft.com/en-us/typography/font-list/simsun
+			using (Font fontTester = new Font(fontName, 14))
+			{
+				if (fontTester.Name == fontName)
+				{
+					FontFamily = Avalonia.Media.FontFamily.Parse(fontName);
+				}
+				else
+				{
+					PasswordChar = '*';
+				}
+			}
+		}
+
 		private void GenerateNewRandomSequence()
 		{
 			StringBuilder sb = new StringBuilder();
@@ -74,15 +96,6 @@ namespace WalletWasabi.Gui.Controls
 			}
 			while (sb.Length < MaxPasswordLength);
 			DisplayText = string.Concat(sb.ToString());
-		}
-
-		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
-		{
-			this.GetObservable(PasswordProperty).Subscribe(x =>
-			{
-				Password = x;
-			});
-			base.OnTemplateApplied(e);
 		}
 
 		protected override void OnKeyDown(KeyEventArgs e)
