@@ -59,6 +59,18 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
+		public static readonly StyledProperty<string> FixedPasswordTextProperty =
+			AvaloniaProperty.Register<NoparaPasswordBox, string>(nameof(FixedPasswordText), defaultBindingMode: BindingMode.TwoWay);
+
+		public string FixedPasswordText
+		{
+			get => GetValue(FixedPasswordTextProperty);
+			set
+			{
+				SetValue(FixedPasswordTextProperty, value);
+			}
+		}
+
 		public NoparaPasswordBox()
 		{
 			this.GetObservable(PasswordProperty).Subscribe(x =>
@@ -69,6 +81,11 @@ namespace WalletWasabi.Gui.Controls
 					_sb.Clear();
 					OnTextInput(x);
 				}
+			});
+
+			this.GetObservable(FixedPasswordTextProperty).Subscribe(x =>
+			{
+				FixedPasswordText = x;
 			});
 
 			const string fontName = "SimSun"; //https://docs.microsoft.com/en-us/typography/font-list/simsun
@@ -90,7 +107,13 @@ namespace WalletWasabi.Gui.Controls
 			StringBuilder sb = new StringBuilder();
 			do
 			{
-				List<string> ls = new List<string>(Titles);
+				List<string> ls = new List<string>();
+				if (string.IsNullOrEmpty(FixedPasswordText))
+				{
+					ls.AddRange(Titles);
+				}
+				else ls.Add(FixedPasswordText);
+
 				do
 				{
 					var s = ls[_random.Next(0, ls.Count - 1)];
