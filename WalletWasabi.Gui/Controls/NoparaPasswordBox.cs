@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Controls
 		//};
 
 		private bool _supressChanges;
-		public string DisplayText;
+		public string DisplayText = "";
 		private Random _random = new Random();
 		private StringBuilder _sb = new StringBuilder();
 		public int SelectionLength => SelectionEnd - SelectionStart;
@@ -64,6 +64,11 @@ namespace WalletWasabi.Gui.Controls
 			this.GetObservable(PasswordProperty).Subscribe(x =>
 			{
 				Password = x;
+				if (string.IsNullOrEmpty(x)) //clean the passwordbox
+				{
+					_sb.Clear();
+					OnTextInput(x);
+				}
 			});
 
 			const string fontName = "SimSun"; //https://docs.microsoft.com/en-us/typography/font-list/simsun
@@ -101,7 +106,7 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
-			if (e.Key == Key.Back && _sb.Length > 0)
+			if (e.Key == Key.Back && _sb.Length > 0) //backspace button -> delete from the end
 			{
 				if (SelectionLength != 0)
 				{
@@ -115,7 +120,7 @@ namespace WalletWasabi.Gui.Controls
 					}
 				}
 			}
-			else if (e.Key == Key.Delete && _sb.Length > 0)
+			else if (e.Key == Key.Delete && _sb.Length > 0) //delete button -> delete from the beginning
 			{
 				if (SelectionLength != 0)
 				{
@@ -140,16 +145,21 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
-			if (_supressChanges) return;
+			OnTextInput(e.Text);
+		}
+
+		private void OnTextInput(string text)
+		{
+			if (_supressChanges) return; //avoid recursive calls
 			if (SelectionLength != 0)
 			{
 				_sb.Clear();
-				_supressChanges = true;
+				_supressChanges = true; //avoid recursive calls
 				SelectionStart = SelectionEnd = CaretIndex = 0;
 				_supressChanges = false;
 			}
-			if (CaretIndex == 0) _sb.Insert(0, e.Text);
-			else _sb.Append(e.Text);
+			if (CaretIndex == 0) _sb.Insert(0, text);
+			else _sb.Append(text);
 			PaintText();
 		}
 
@@ -183,7 +193,7 @@ namespace WalletWasabi.Gui.Controls
 			_supressChanges = true;
 			try
 			{
-				if (_sb.Length > MaxPasswordLength)
+				if (_sb.Length > MaxPasswordLength) //ensure the maximum length
 					_sb.Remove(MaxPasswordLength, _sb.Length - MaxPasswordLength);
 				Password = _sb.ToString();
 				Text = DisplayText.Substring(0, _sb.Length);
