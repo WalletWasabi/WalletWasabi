@@ -26,7 +26,7 @@ namespace WalletWasabi.Backend.Models
 		// is constructed.This ensures the key is deterministic while still varying from block to block.
 		public byte[] FilterKey => BlockHash.ToBytes().Take(16).ToArray();
 
-		public string ToLine()
+		public string ToHeightlessLine()
 		{
 			var builder = new StringBuilder();
 			builder.Append(BlockHash);
@@ -84,7 +84,7 @@ namespace WalletWasabi.Backend.Models
 			};
 		}
 
-		public static FilterModel FromLine(string line, Height height)
+		public static FilterModel FromHeightlessLine(string line, Height height)
 		{
 			Guard.NotNullOrEmptyOrWhitespace(nameof(line), line);
 			var parts = line.Split(':');

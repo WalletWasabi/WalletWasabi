@@ -186,7 +186,7 @@ namespace WalletWasabi.Services
 				{
 					File.Delete(IndexFilePath); // RegTest is not a global ledger, better to delete it.
 					Index.Add(StartingFilter);
-					IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+					IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
 				}
 				else
 				{
@@ -197,7 +197,7 @@ namespace WalletWasabi.Services
 						{
 							foreach (var line in File.ReadAllLines(safestFileVerion))
 							{
-								var filter = FilterModel.FromLine(line, height);
+								var filter = FilterModel.FromHeightlessLine(line, height);
 								height++;
 								Index.Add(filter);
 							}
@@ -207,14 +207,14 @@ namespace WalletWasabi.Services
 					{
 						// We found a corrupted entry. Stop here.
 						// Fix the currupted file.
-						IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+						IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
 					}
 				}
 			}
 			else
 			{
 				Index.Add(StartingFilter);
-				IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+				IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
 			}
 
 			BestKnownFilter = Index.Last();
@@ -327,7 +327,7 @@ namespace WalletWasabi.Services
 
 								lock (IndexLock)
 								{
-									IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToLine()));
+									IoHelpers.SafeWriteAllLines(IndexFilePath, Index.Select(x => x.ToHeightlessLine()));
 									var startingFilterHeightPlusOne = startingFilter.BlockHeight + 1;
 									var bestKnownFilterHeight = BestKnownFilter.BlockHeight;
 									if (startingFilterHeightPlusOne == bestKnownFilterHeight)
@@ -428,15 +428,15 @@ namespace WalletWasabi.Services
 		{
 			if (network == Network.Main)
 			{
-				return FilterModel.FromLine("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893:02832810ec08a0", GetStartingHeight(network));
+				return FilterModel.FromHeightlessLine("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893:02832810ec08a0", GetStartingHeight(network));
 			}
 			if (network == Network.TestNet)
 			{
-				return FilterModel.FromLine("00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a:017821b8", GetStartingHeight(network));
+				return FilterModel.FromHeightlessLine("00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a:017821b8", GetStartingHeight(network));
 			}
 			if (network == Network.RegTest)
 			{
-				return FilterModel.FromLine("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206", GetStartingHeight(network));
+				return FilterModel.FromHeightlessLine("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206", GetStartingHeight(network));
 			}
 			throw new NotSupportedException($"{network} is not supported.");
 		}

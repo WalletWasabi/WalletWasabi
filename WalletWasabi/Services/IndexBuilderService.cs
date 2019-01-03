@@ -151,7 +151,7 @@ namespace WalletWasabi.Services
 					var height = StartingHeight;
 					foreach (var line in File.ReadAllLines(IndexFilePath))
 					{
-						var filter = FilterModel.FromLine(line, height);
+						var filter = FilterModel.FromHeightlessLine(line, height);
 						height++;
 						Index.Add(filter);
 					}
@@ -329,7 +329,7 @@ namespace WalletWasabi.Services
 								Filter = filter
 							};
 
-							await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToLine() });
+							await File.AppendAllLinesAsync(IndexFilePath, new[] { filterModel.ToHeightlessLine() });
 							using (await IndexLock.LockAsync())
 							{
 								Index.Add(filterModel);
