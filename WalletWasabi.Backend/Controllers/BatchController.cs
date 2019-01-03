@@ -55,7 +55,7 @@ namespace WalletWasabi.Backend.Controllers
 			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
 
 			var response = new SynchronizeResponse();
-			response.Filters = new List<FilterModel>();
+			response.Filters = Enumerable.Empty<FilterModel>();
 			response.BestHeight = bestHeight;
 
 			if (!found)

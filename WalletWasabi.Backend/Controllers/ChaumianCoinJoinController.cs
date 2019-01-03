@@ -53,7 +53,7 @@ namespace WalletWasabi.Backend.Controllers
 			return Ok(response);
 		}
 
-		internal static IEnumerable<CcjRunningRoundState> GetStatesCollection()
+		public static IEnumerable<CcjRunningRoundState> GetStatesCollection()
 		{
 			var response = new List<CcjRunningRoundState>();
 
@@ -106,8 +106,7 @@ namespace WalletWasabi.Backend.Controllers
 		public async Task<IActionResult> PostInputsAsync([FromBody, Required]InputsRequest request)
 		{
 			// Validate request.
-			if (!ModelState.IsValid
-				|| request.Inputs.Any(x => x.Input == default(TxoRef)))
+			if (!ModelState.IsValid)
 			{
 				return BadRequest("Invalid request.");
 			}
@@ -161,7 +160,6 @@ namespace WalletWasabi.Backend.Controllers
 						uniqueInputs.Add(inputProof.Input);
 					}
 
-
 					var alicesToRemove = new HashSet<Guid>();
 					var getTxOutResponses = new List<(InputProofModel inputModel, Task<GetTxOutResponse> getTxOutTask)>();
 
@@ -193,11 +191,11 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Perform all RPC request at once
-					var waiting = Task.WhenAll(getTxOutResponses.Select(x=>x.getTxOutTask));
+					var waiting = Task.WhenAll(getTxOutResponses.Select(x => x.getTxOutTask));
 					await batch.SendBatchAsync();
 					await waiting;
 
-					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputs.Select(x=>x.ToBytes()));
+					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputs.Select(x => x.ToBytes()));
 					uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
 
 					var inputs = new HashSet<Coin>();
@@ -205,7 +203,7 @@ namespace WalletWasabi.Backend.Controllers
 					foreach (var responses in getTxOutResponses)
 					{
 						var (inputProof, getTxOutResponseTask) = responses;
-						var getTxOutResponse = getTxOutResponseTask.Result;
+						var getTxOutResponse = await getTxOutResponseTask;
 
 						// Check if inputs are unspent.
 						if (getTxOutResponse is null)
