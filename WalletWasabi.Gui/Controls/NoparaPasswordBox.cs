@@ -8,10 +8,13 @@ using Avalonia.Styling;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Text;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using FontFamily = Avalonia.Media.FontFamily;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -88,20 +91,28 @@ namespace WalletWasabi.Gui.Controls
 				FixedPasswordText = x;
 			});
 
-			const string fontName = "SimSun"; //https://docs.microsoft.com/en-us/typography/font-list/simsun
+			string fontName = "SimSun"; //https://docs.microsoft.com/en-us/typography/font-list/simsun
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				fontName = "PingFang TC"; //https://en.wikipedia.org/wiki/List_of_typefaces_included_with_macOS
+			}
+			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				fontName = "ttf-wqy-zenhei"; //https://help.ubuntu.com/community/Fonts
+			}
+
 			try
 			{
-				using (Font fontTester = new Font(fontName, 14)) //test if the font is exists on the system
-				{
+				var fontTester = new FontFamily(fontName); //test if the font is exists on the system
+				
 					if (fontTester.Name == fontName)
 					{
-						FontFamily = Avalonia.Media.FontFamily.Parse(fontName); //use the font
+						FontFamily = FontFamily.Parse(fontName); //use the font
 					}
 					else
 					{
 						throw new FormatException("font is missing fallback to default font");
 					}
-				}
 			}
 			catch (Exception)
 			{
