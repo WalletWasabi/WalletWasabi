@@ -67,15 +67,15 @@ namespace WalletWasabi.Gui.Controls
 			});
 
 			const string fontName = "SimSun"; //https://docs.microsoft.com/en-us/typography/font-list/simsun
-			using (Font fontTester = new Font(fontName, 14))
+			using (Font fontTester = new Font(fontName, 14)) //test if the font is exists on the system
 			{
 				if (fontTester.Name == fontName)
 				{
-					FontFamily = Avalonia.Media.FontFamily.Parse(fontName);
+					FontFamily = Avalonia.Media.FontFamily.Parse(fontName); //use the font
 				}
 				else
 				{
-					PasswordChar = '*';
+					PasswordChar = '*'; //use passwordchar instead
 				}
 			}
 		}
@@ -91,11 +91,12 @@ namespace WalletWasabi.Gui.Controls
 					var s = ls[_random.Next(0, ls.Count - 1)];
 					sb.Append(s);
 					ls.Remove(s);
+					if (sb.Length >= MaxPasswordLength) break;
 				}
 				while (ls.Count > 0);
 			}
-			while (sb.Length < MaxPasswordLength);
-			DisplayText = string.Concat(sb.ToString());
+			while (sb.Length < MaxPasswordLength); //generate more text using the same sentences
+			DisplayText = sb.ToString();
 		}
 
 		protected override void OnKeyDown(KeyEventArgs e)
@@ -108,7 +109,7 @@ namespace WalletWasabi.Gui.Controls
 				}
 				else
 				{
-					if (CaretIndex == base.Text.Length)
+					if (CaretIndex == Text.Length)
 					{
 						_sb.Remove(_sb.Length - 1, 1);
 					}
@@ -158,7 +159,7 @@ namespace WalletWasabi.Gui.Controls
 
 			if (e.Property.Name == nameof(CaretIndex))
 			{
-				CaretIndex = base.Text.Length;
+				CaretIndex = Text.Length;
 			}
 			else if (e.Property.Name == nameof(SelectionStart) || e.Property.Name == nameof(SelectionEnd))
 			{
@@ -166,7 +167,7 @@ namespace WalletWasabi.Gui.Controls
 				if (len > 0)
 				{
 					SelectionStart = 0;
-					SelectionEnd = base.Text.Length;
+					SelectionEnd = Text.Length;
 				}
 				else
 				{
@@ -185,8 +186,8 @@ namespace WalletWasabi.Gui.Controls
 				if (_sb.Length > MaxPasswordLength)
 					_sb.Remove(MaxPasswordLength, _sb.Length - MaxPasswordLength);
 				Password = _sb.ToString();
-				base.Text = DisplayText.Substring(0, _sb.Length);
-				CaretIndex = base.Text.Length;
+				Text = DisplayText.Substring(0, _sb.Length);
+				CaretIndex = Text.Length;
 			}
 			finally
 			{
