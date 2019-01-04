@@ -159,7 +159,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Status = CcjRoundStatus.NotStarted;
 
 				MixingLevels = new MixingLevels(config.Denomination, new Signer(new Key()));
-				for (int i = 0; i < Constants.MaximumMixingLevelCount - 1; i++)
+				for (int i = 0; i < config.MaximumMixingLevelCount - 1; i++)
 				{
 					MixingLevels.AddNewLevel();
 				}
