@@ -162,7 +162,28 @@ namespace WalletWasabi.Gui.Controls
 				return;
 			}
 
-			if (e.Key == Key.V && e.Modifiers == InputModifiers.Control) //paste
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				if (e.Key == Key.V && e.Modifiers == InputModifiers.Control) //prevent paste
+				{
+					return;
+				}
+			}
+
+			bool paste = false;
+			if (e.Key == Key.V)
+			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				{
+					if (e.Modifiers == InputModifiers.Windows) paste = true;
+				}
+				else
+				{
+					if (e.Modifiers == InputModifiers.Control) paste = true;
+				}
+			}
+
+			if (paste) //paste
 			{
 				var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
 				Task<string> clipboardTask = clipboard.GetTextAsync();
