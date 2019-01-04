@@ -58,7 +58,7 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 [18]: https://twitter.com/WasabiAnnouncer
 [19]: https://twitter.com/Deezbitbies/
 [20]: https://www.youtube.com/watch?v=6OveKiFw89o&list=PLbdPWjvnsOMy1Pz87E-Sc9RtBPdTP8JTu
-[21]: https://medium.com/@rickytheghost1981/bitcoin-anonymity-guide-2019-how-to-use-btc-like-a-straight-up-g-e3bf55f680fa/
+[21]: https://www.coincache.net/2019/01/02/bitcoin-anonymity-guide-2019-how-to-use-btc-like-a-straight-up-g/
 [22]: https://www.bitcoinproductreview.com/wallet-review-wasabi-wallet/
 
 [24]: 
