@@ -2,12 +2,14 @@
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Styling;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using FontFamily = Avalonia.Media.FontFamily;
 
@@ -38,10 +40,14 @@ namespace WalletWasabi.Gui.Controls
 		//	"blackberry",
 		//};
 
+		private static readonly Key[] SuppressedKeys = { Key.LeftCtrl, Key.RightCtrl, Key.LeftAlt, Key.RightAlt, Key.LeftShift, Key.RightShift, Key.Escape, Key.CapsLock, Key.NumLock };
+
 		private bool _supressChanges;
-		public string DisplayText = "";
+		private string _displayText = "";
 		private Random _random = new Random();
 		private StringBuilder _sb = new StringBuilder();
+		private HashSet<Key> _supressedKeys;
+
 		public int SelectionLength => SelectionEnd - SelectionStart;
 
 		public static readonly StyledProperty<string> PasswordProperty =
@@ -115,6 +121,7 @@ namespace WalletWasabi.Gui.Controls
 			{
 				PasswordChar = '*'; //use passwordchar instead
 			}
+			_supressedKeys = new HashSet<Key>(SuppressedKeys);
 		}
 
 		private void GenerateNewRandomSequence()
@@ -139,12 +146,27 @@ namespace WalletWasabi.Gui.Controls
 				while (ls.Count > 0);
 			}
 			while (sb.Length < Constants.MaxPasswordLength); //generate more text using the same sentences
-			DisplayText = sb.ToString();
+			_displayText = sb.ToString();
 		}
 
-		protected override void OnKeyDown(KeyEventArgs e)
+		protected override async void OnKeyDown(KeyEventArgs e)
 		{
-			if (e.Key == Key.Back && _sb.Length > 0) //backspace button -> delete from the end
+			if (_supressedKeys.Contains(e.Key))
+			{
+				return;
+			}
+
+			if (e.Key == Key.V && e.Modifiers == InputModifiers.Control) //paste
+			{
+				var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
+				Task<string> clipboardTask = clipboard.GetTextAsync();
+				string text = await clipboardTask;
+				if (!string.IsNullOrEmpty(text))
+				{
+					e.Handled = OnTextInput(text);
+				}
+			}
+			else if (e.Key == Key.Back && _sb.Length > 0) //backspace button -> delete from the end
 			{
 				if (SelectionLength != 0)
 				{
@@ -157,6 +179,7 @@ namespace WalletWasabi.Gui.Controls
 						_sb.Remove(_sb.Length - 1, 1);
 					}
 				}
+				e.Handled = true;
 			}
 			else if (e.Key == Key.Delete && _sb.Length > 0) //delete button -> delete from the beginning
 			{
@@ -171,6 +194,7 @@ namespace WalletWasabi.Gui.Controls
 						_sb.Remove(0, 1);
 					}
 				}
+				e.Handled = true;
 			}
 			else
 			{
@@ -183,13 +207,13 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
-			OnTextInput(e.Text);
-			e.Handled = true;
+			e.Handled = OnTextInput(e.Text);
 		}
 
-		private void OnTextInput(string text)
+		private bool OnTextInput(string text)
 		{
-			if (_supressChanges) return; //avoid recursive calls
+			if (_supressChanges) return true; //avoid recursive calls
+			bool handledCorrectly = true;
 			if (SelectionLength != 0)
 			{
 				_sb.Clear();
@@ -199,7 +223,13 @@ namespace WalletWasabi.Gui.Controls
 			}
 			if (CaretIndex == 0) _sb.Insert(0, text);
 			else _sb.Append(text);
+			if (_sb.Length > Constants.MaxPasswordLength) //ensure the maximum length
+			{
+				_sb.Remove(Constants.MaxPasswordLength, _sb.Length - Constants.MaxPasswordLength);
+				handledCorrectly = false; //should play beep sound not working on windows
+			}
 			PaintText();
+			return handledCorrectly;
 		}
 
 		protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
@@ -229,13 +259,12 @@ namespace WalletWasabi.Gui.Controls
 
 		private void PaintText()
 		{
+			Password = _sb.ToString();
+			Text = _displayText.Substring(0, _sb.Length);
+
 			_supressChanges = true;
 			try
 			{
-				if (_sb.Length > Constants.MaxPasswordLength) //ensure the maximum length
-					_sb.Remove(Constants.MaxPasswordLength, _sb.Length - Constants.MaxPasswordLength);
-				Password = _sb.ToString();
-				Text = DisplayText.Substring(0, _sb.Length);
 				//Text = Password; //for debugging
 				CaretIndex = Text.Length;
 			}
