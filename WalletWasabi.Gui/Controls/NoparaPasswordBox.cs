@@ -75,6 +75,8 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
+		protected override bool IsCopyEnabled => false;
+
 		public NoparaPasswordBox()
 		{
 			this.GetObservable(PasswordProperty).Subscribe(x =>
