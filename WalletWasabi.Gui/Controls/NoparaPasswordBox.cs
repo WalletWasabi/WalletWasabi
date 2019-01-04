@@ -40,7 +40,8 @@ namespace WalletWasabi.Gui.Controls
 		//	"blackberry",
 		//};
 
-		private static readonly Key[] SuppressedKeys = { Key.LeftCtrl, Key.RightCtrl, Key.LeftAlt, Key.RightAlt, Key.LeftShift, Key.RightShift, Key.Escape, Key.CapsLock, Key.NumLock };
+		private static readonly Key[] SuppressedKeys =
+			{ Key.LeftCtrl, Key.RightCtrl, Key.LeftAlt, Key.RightAlt, Key.LeftShift, Key.RightShift, Key.Escape, Key.CapsLock, Key.NumLock, Key.LWin, Key.RWin };
 
 		private bool _supressChanges;
 		private string _displayText = "";
@@ -152,6 +153,11 @@ namespace WalletWasabi.Gui.Controls
 		protected override async void OnKeyDown(KeyEventArgs e)
 		{
 			if (_supressedKeys.Contains(e.Key))
+			{
+				return;
+			}
+			//prevent copy
+			if ((e.Key == Key.C || e.Key == Key.Insert) && (e.Modifiers == InputModifiers.Control || e.Modifiers == InputModifiers.Windows))
 			{
 				return;
 			}
