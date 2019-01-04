@@ -36,7 +36,7 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 | Patrícia Estevão | [Twitter][15]               | [Wasabi Infographics][16]                | 2018-12: white belt by nopara73 |
 | OneSirMeow       | [Twitter][17]               | [Wasabi Round Announcer Twitter Bot][18] | 2018-12: white belt by nopara73 |
 | Deja John        | [Twitter][19]               | [Cypherpunks 101: Bitcoin Privacy Interview Series][20] | 2018-12: white belt by nopara73 |
-| Rmr1981          | [Twitter][24]               | [Bitcoin Anonymity Guide 2019][21]       | 2019-01: white belt by nopara73 |
+| Rmr1981          | [Reddit][24]               | [Bitcoin Anonymity Guide 2019][21]       | 2019-01: white belt by nopara73 |
 | Anonymous        |                             | [Wallet Review – Wasabi Wallet][22]      | 2019-01: white belt by nopara73 |
 
 [1]: https://twitter.com/NicolasDorier/
