@@ -1,20 +1,14 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
-using Avalonia.Media;
 using Avalonia.Styling;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Text;
-using System.Globalization;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
+using WalletWasabi.Helpers;
 using FontFamily = Avalonia.Media.FontFamily;
 
 namespace WalletWasabi.Gui.Controls
@@ -49,7 +43,6 @@ namespace WalletWasabi.Gui.Controls
 		private Random _random = new Random();
 		private StringBuilder _sb = new StringBuilder();
 		public int SelectionLength => SelectionEnd - SelectionStart;
-		private const int MaxPasswordLength = 50;
 
 		public static readonly StyledProperty<string> PasswordProperty =
 			AvaloniaProperty.Register<NoparaPasswordBox, string>(nameof(Password), defaultBindingMode: BindingMode.TwoWay);
@@ -141,11 +134,11 @@ namespace WalletWasabi.Gui.Controls
 					var s = ls[_random.Next(0, ls.Count - 1)];
 					sb.Append(s);
 					ls.Remove(s);
-					if (sb.Length >= MaxPasswordLength) break;
+					if (sb.Length >= Constants.MaxPasswordLength) break;
 				}
 				while (ls.Count > 0);
 			}
-			while (sb.Length < MaxPasswordLength); //generate more text using the same sentences
+			while (sb.Length < Constants.MaxPasswordLength); //generate more text using the same sentences
 			DisplayText = sb.ToString();
 		}
 
@@ -239,8 +232,8 @@ namespace WalletWasabi.Gui.Controls
 			_supressChanges = true;
 			try
 			{
-				if (_sb.Length > MaxPasswordLength) //ensure the maximum length
-					_sb.Remove(MaxPasswordLength, _sb.Length - MaxPasswordLength);
+				if (_sb.Length > Constants.MaxPasswordLength) //ensure the maximum length
+					_sb.Remove(Constants.MaxPasswordLength, _sb.Length - Constants.MaxPasswordLength);
 				Password = _sb.ToString();
 				Text = DisplayText.Substring(0, _sb.Length);
 				//Text = Password; //for debugging
