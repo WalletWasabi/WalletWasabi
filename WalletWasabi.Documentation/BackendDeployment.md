@@ -197,7 +197,7 @@ WantedBy=multi-user.target
 sudo systemctl enable walletwasabi.service
 sudo systemctl start walletwasabi.service
 systemctl status walletwasabi.service
-tail -10 .walletwasabi/backend/Logs.txt
+tail -1000 .walletwasabi/backend/Logs.txt
 ```
 
 ## Tor
@@ -288,7 +288,7 @@ sudo service nginx start
 dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 sudo systemctl start walletwasabi.service
 pgrep -ilfa tor && pgrep -ilfa bitcoin && pgrep -ilfa wasabi && pgrep -ilfa nginx
-tail -10 ~/.walletwasabi/backend/Logs.txt
+tail -1000 ~/.walletwasabi/backend/Logs.txt
 ```
 
 # Check If Everything Works
@@ -303,6 +303,6 @@ http://www.wasabiwallet.io/
 
 ```sh
 tail -f ~/.bitcoin/debug.log
-tail -10 .walletwasabi/backend/Logs.txt
+tail -1000 .walletwasabi/backend/Logs.txt
 du -bsh .walletwasabi/backend/IndexBuilderService/*
 ```
