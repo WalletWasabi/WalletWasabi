@@ -38,3 +38,25 @@ Download and open the `.dmg` file, then install Wasabi by dragging it into your 
 After opening Wasabi, you may encounter a security popup. You can bypass it in multiple ways. One way would be to keep the control key down while opening Wasabi.
 
 ![](https://imgur.com/dy1zfJG.png)
+
+# GPG Verification
+
+[Get GnuPG](https://www.gnupg.org/download/index.html), then save [nopara73's PGP](https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt).
+
+Import the key you downloaded to GnuPG. Open the terminal/command line:
+
+```sh
+gpg --import PGP.txt
+```
+
+With this public key, from now on, you will be able to make sure the Wasabi software you download was not tampered by checking against the corresponding `.asc` file:
+
+```sh
+gpg --verify {path to downloaded signature}.asc {path to binary}
+```
+
+Example: `gpg --verify WasabiInstaller.msi.asc WasabiInstaller.msi`.
+ 
+If the message returned says Good signature and that it was signed by `Ficsór Ádám` with a Primary key fingerprint: `21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E`, then the software wasn't tampered with since the developer signed it.
+ 
+Remember to check again the PGP signature every time you make a new download.
