@@ -429,7 +429,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				List<(uint256 txid, uint index)> registrableCoins = State.GetRegistrableCoins(
+				List<TxoRef> registrableCoins = State.GetRegistrableCoins(
 					inputRegistrableRound.State.MaximumInputCountPerPeer,
 					inputRegistrableRound.State.Denomination,
 					inputRegistrableRound.State.FeePerInputs,
@@ -477,7 +477,7 @@ namespace WalletWasabi.Services
 					internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
 
 					Money inputSum = Money.Zero;
-					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
+					foreach (TxoRef coinReference in registrableCoins)
 					{
 						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						inputSum += coin.Amount;
@@ -571,7 +571,7 @@ namespace WalletWasabi.Services
 					uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
 
 					var inputProofs = new List<InputProofModel>();
-					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
+					foreach (TxoRef coinReference in registrableCoins)
 					{
 						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin is null) throw new NotSupportedException("This is impossible.");
@@ -596,7 +596,7 @@ namespace WalletWasabi.Services
 						int minuteInt = int.Parse(minutesString);
 						string bannedInputString = parts[2].TrimEnd('.');
 						string[] bannedInputStringParts = bannedInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
-						(uint256 txid, uint index) coinReference = (new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+						TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
 						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin is null) throw new NotSupportedException("This is impossible.");
 						coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
@@ -611,7 +611,7 @@ namespace WalletWasabi.Services
 						string[] parts = ex.Message.Split(new[] { "Provided input is not unspent: " }, StringSplitOptions.RemoveEmptyEntries);
 						string spentInputString = parts[1].TrimEnd('.');
 						string[] bannedInputStringParts = spentInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
-						(uint256 txid, uint index) coinReference = (new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+						TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
 						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin is null) throw new NotSupportedException("This is impossible.");
 						coin.SpentAccordingToBackend = true;
@@ -640,7 +640,7 @@ namespace WalletWasabi.Services
 					}
 
 					var coinsRegistered = new List<SmartCoin>();
-					foreach ((uint256 txid, uint index) coinReference in registrableCoins)
+					foreach (TxoRef coinReference in registrableCoins)
 					{
 						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin is null) throw new NotSupportedException("This is impossible.");
@@ -753,19 +753,19 @@ namespace WalletWasabi.Services
 					{
 						await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
-						await DequeueCoinsFromMixNoLockAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
+						await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray());
 					}
 				}
 				catch (TaskCanceledException)
 				{
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
-					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => (x.TransactionId, x.Index)).ToArray());
+					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray());
 				}
 			}
 		}
 
-		public async Task DequeueCoinsFromMixAsync(params (uint256 txid, uint index)[] coins)
+		public async Task DequeueCoinsFromMixAsync(params TxoRef[] coins)
 		{
 			if (coins is null || !coins.Any()) return;
 
@@ -812,7 +812,7 @@ namespace WalletWasabi.Services
 			await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray());
 		}
 
-		private async Task DequeueCoinsFromMixNoLockAsync(params (uint256 txid, uint index)[] coins)
+		private async Task DequeueCoinsFromMixNoLockAsync(params TxoRef[] coins)
 		{
 			if (coins is null || !coins.Any()) return;
 
@@ -919,7 +919,7 @@ namespace WalletWasabi.Services
 
 				State.DisposeAllAliceClients();
 
-				IEnumerable<(uint256 txid, uint index)> allCoins = State.GetAllQueuedCoins();
+				IEnumerable<TxoRef> allCoins = State.GetAllQueuedCoins();
 				foreach (var coinReference in allCoins)
 				{
 					try
@@ -929,7 +929,7 @@ namespace WalletWasabi.Services
 						{
 							continue; // The coin isn't present anymore. Good. This should never happen though.
 						}
-						await DequeueCoinsFromMixNoLockAsync((coin.TransactionId, coin.Index));
+						await DequeueCoinsFromMixNoLockAsync(coin.GetTxoRef());
 					}
 					catch (Exception ex)
 					{

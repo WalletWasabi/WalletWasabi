@@ -38,11 +38,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetSpentCoins()
+		public IEnumerable<TxoRef> GetSpentCoins()
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => !x.Unspent).Select(x => (x.TransactionId, x.Index)).ToArray();
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => !x.Unspent).Select(x => x.GetTxoRef()).ToArray();
 			}
 		}
 
@@ -74,11 +74,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public SmartCoin GetSingleOrDefaultCoin((uint256 txid, uint index) coinReference)
+		public SmartCoin GetSingleOrDefaultCoin(TxoRef coinReference)
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).SingleOrDefault(x => x.TransactionId == coinReference.txid && x.Index == coinReference.index);
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).SingleOrDefault(x => x.GetTxoRef() == coinReference);
 			}
 		}
 
@@ -90,19 +90,19 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public SmartCoin GetSingleOrDefaultFromWaitingList((uint256 txid, uint index) coinReference)
+		public SmartCoin GetSingleOrDefaultFromWaitingList(TxoRef coinReference)
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.SingleOrDefault(x => x.TransactionId == coinReference.txid && x.Index == coinReference.index);
+				return WaitingList.Keys.SingleOrDefault(x => x.GetTxoRef() == coinReference);
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetAllQueuedCoins()
+		public IEnumerable<TxoRef> GetAllQueuedCoins()
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => (x.TransactionId, x.Index)).ToArray();
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => x.GetTxoRef()).ToArray();
 			}
 		}
 
@@ -130,29 +130,29 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetAllWaitingCoins()
+		public IEnumerable<TxoRef> GetAllWaitingCoins()
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Select(x => (x.TransactionId, x.Index)).ToArray();
+				return WaitingList.Keys.Select(x => x.GetTxoRef()).ToArray();
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetAllRegisteredCoins()
+		public IEnumerable<TxoRef> GetAllRegisteredCoins()
 		{
 			lock (StateLock)
 			{
-				return Rounds.SelectMany(x => x.CoinsRegistered).Select(x => (x.TransactionId, x.Index)).ToArray();
+				return Rounds.SelectMany(x => x.CoinsRegistered).Select(x => x.GetTxoRef()).ToArray();
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetRegistrableCoins(int maximumInputCountPerPeer, Money denomination, Money feePerInputs, Money feePerOutputs)
+		public IEnumerable<TxoRef> GetRegistrableCoins(int maximumInputCountPerPeer, Money denomination, Money feePerInputs, Money feePerOutputs)
 		{
 			lock (StateLock)
 			{
 				if (!WaitingList.Any()) // To avoid computations.
 				{
-					return Enumerable.Empty<(uint256 txid, uint index)>();
+					return Enumerable.Empty<TxoRef>();
 				}
 
 				Money amountNeededExceptInputFees = denomination + (feePerOutputs * 2);
@@ -168,11 +168,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		private IEnumerable<(uint256 txid, uint index)> GetRegistrableCoinsNoLock(int maximumInputCountPerPeer, Money feePerInputs, Money amountNeededExceptInputFees, bool allowUnconfirmedZeroLink)
+		private IEnumerable<TxoRef> GetRegistrableCoinsNoLock(int maximumInputCountPerPeer, Money feePerInputs, Money amountNeededExceptInputFees, bool allowUnconfirmedZeroLink)
 		{
 			if (!WaitingList.Any()) // To avoid computations.
 			{
-				return Enumerable.Empty<(uint256 txid, uint index)>();
+				return Enumerable.Empty<TxoRef>();
 			}
 
 			Func<SmartCoin, bool> confirmationPredicate;
@@ -200,11 +200,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					.FirstOrDefault();
 				if (best != default)
 				{
-					return best.Select(x => (x.TransactionId, x.Index)).ToArray();
+					return best.Select(x => x.GetTxoRef()).ToArray();
 				}
 			}
 
-			return Enumerable.Empty<(uint256 txid, uint index)>(); // Inputs are too small, max input to be registered is reached.
+			return Enumerable.Empty<TxoRef>(); // Inputs are too small, max input to be registered is reached.
 		}
 
 		public IEnumerable<long> GetActivelyMixingRounds()
