@@ -41,22 +41,22 @@ After opening Wasabi, you may encounter a security popup. You can bypass it in m
 
 # GPG Verification
 
-First, you need nopara73 fingerprint. 
+[Get GnuPG](https://www.gnupg.org/download/index.html), then save [nopara73's PGP](https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt).
 
-Open your terminal and type:
+Import the key you downloaded to GnuPG. Open the terminal/command line:
 
-gpg --recv-keys 21D7CA45565DBCCEBE45115DB4B72266C47E075E
- 
-Or save from: https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt as nopara73.asc
+```sh
+gpg --import PGP.txt
+```
 
-Go back to Wasabi website (https://www.wasabiwallet.io/) and download WasabiLinux-X.X.X.tar.gz and its signature WasabiLinux-X.X.X.tar.gz.asc
+With this public key, from now on, you will be able to make sure the Wasabi software you download was not tampered by checking against the corresponding `.asc` file:
+
+```sh
+gpg --verify {path to downloaded signature}.asc {path to binary}
+```
+
+Example: `gpg --verify WasabiInstaller.msi.asc WasabiInstaller.msi`.
  
-Copy all the 3 files to the same folder, open the terminal and use command 'cd' to navigate to that folder or right click on the folder and select "Open in Terminal" and run these commands.
+If the message returned says Good signature and that it was signed by `Ficsór Ádám` with a Primary key fingerprint: `21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E`, then the software wasn't tampered with since the developer signed it.
  
-gpg --import nopara73.asc
-  
-gpg --verify WasabiLinux-X.X.X.tar.gz.asc WasabiLinux-X.X.X.tar.gz
- 
-If the message returned says Good signature and that it was signed by Ficsór Ádám with a Primary key fingerprint: 21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E, then the software is authentic.
- 
-Remember to check again the pgp signature every time you make a new download.
+Remember to check again the PGP signature every time you make a new download.
