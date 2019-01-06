@@ -850,14 +850,17 @@ namespace WalletWasabi.Services
 					var round = State.GetSingleOrDefaultRound(roundId);
 					if (round is null) continue;
 
-					if (!coinToDequeue.Unspent) // If coin was spent, well that sucks, except if it was spent by the tumbler in signing phase.
-					{
-						State.ClearRoundRegistration(round.State.RoundId);
-						continue;
-					}
 					if (round.CoinsRegistered.Contains(coinToDequeue))
 					{
-						exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}."));
+						if (!coinToDequeue.Unspent) // If coin was spent, well that sucks, except if it was spent by the tumbler in signing phase.
+						{
+							State.ClearRoundRegistration(round.State.RoundId);
+							continue;
+						}
+						else
+						{
+							exceptions.Add(new NotSupportedException($"Cannot deque coin in {round.State.Phase} phase. Coin: {coinToDequeue.Index}:{coinToDequeue.TransactionId}."));
+						}
 					}
 				}
 
