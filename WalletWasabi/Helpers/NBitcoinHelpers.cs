@@ -38,68 +38,32 @@ namespace WalletWasabi.Helpers
 			}
 		}
 
-		//public static Money TakeAReasonableFee(Money outputValue)
-		//{
-		//	Money fee1 = Money.Coins(0.002m);
-		//	Money ret = outputValue - fee;
-		//	var half = outputValue / 2;
-		//	if (ret <= half)
-		//	{
-		//		return half;
-		//	}
+		private static readonly Money[] ReasonableFees = new[] {
+				Money.Coins(0.002m),
+				Money.Coins(0.001m),
+				Money.Coins(0.0005m),
+				Money.Coins(0.0002m),
+				Money.Coins(0.0001m),
+				Money.Coins(0.00005m),
+				Money.Coins(0.00002m),
+				Money.Coins(0.00001m)
+			};
 
-		//	return ret;
-		//}
-
-		public static Money TakeAReasonableFee(Money outputValue)
+		public static Money TakeAReasonableFee(Money inputValue)
 		{
-			// sanity check
-			var sanity = Money.Coins(0.00001m);
-			if (outputValue <= sanity)
-			{
-				return outputValue;
-			}
+			Money half = inputValue / 2;
 
-			Money fee = Money.Coins(0.002m);
-			var remaining = Money.Zero;
-
-			for (int i = 0; i < 100; i++)
+			foreach (Money fee in ReasonableFees)
 			{
-				remaining = outputValue - fee;
-				if (remaining >= sanity)
+				Money diff = inputValue - fee;
+				if (diff > half)
 				{
-					break;
+					return diff;
 				}
-				fee = fee.Percentange(50);
 			}
 
-			return remaining <= 0 ? outputValue : remaining;
+			return half;
 		}
-
-		//public static Money TakeAReasonableFee(Money outputValue)
-		//{
-		//	// sanity check
-		//	var sanity = Money.Coins(0.00001m);
-		//	if (outputValue <= sanity)
-		//	{
-		//		return outputValue;
-		//	}
-
-		//	Money fee = Money.Coins(0.002m);
-		//	var remaining = Money.Zero;
-
-		//	while (true)
-		//	{
-		//		remaining = outputValue - fee;
-		//		if (remaining > sanity)
-		//		{
-		//			break;
-		//		}
-		//		fee = fee.Percentange(50);
-		//	}
-
-		//	return remaining <= 0 ? outputValue : remaining;
-		//}
 
 		public static int CalculateVsizeAssumeSegwit(int inNum, int outNum)
 		{
