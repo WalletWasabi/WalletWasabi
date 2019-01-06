@@ -37,3 +37,19 @@ If a user wants to make a transaction larger than 0.1 BTC that is anonymized, th
 For example, if Alice sends 2 BTC from bc1abc123 through the mixer in 20 rounds, and combines 1.5 BTC from ZeroLink outputs into a single transaction later, then a blockchain observer can infer that the owner of bc1abc123 may also be the same user spending 1.5 BTC worth of ZeroLink outputs from the same rounds that bc1acb123 participated in.
 
 TL;DR It is not easy or advisable after mixing coins through ZeroLink to spend amounts smaller or larger than the exact amount that was mixed in one round because these spend transactions could then be linked together and used to deanonymize the spender (and possiby other users who participated in the same rounds). (See also point #2 and #3 above.)
+
+### 7. Consider mixing coins through ZeroLink multiple times
+
+When coins are mixed using ZeroLink, a Wasabi user can send them back through ZeroLink to "re-mix" them and increase the anonymity set, further breaking the link between the ZeroLink outputs and the addresses where the coins originated from.
+
+### 8. Use Tor when looking up information using a third-party block explorer
+
+When visiting a third-party block explorer to look up information, such as the balance of an address or the status of a transaction, use a tool like the Tor Browser to visit the block explorer's website. Be aware that any information sent to the block explorer during the same browsing session can be linked together to correlate that the information originated from the same visitor.
+
+### 9. Use Tor when converting wallet balances into other values
+
+When looking up the current value of a wallet or address as denominated in another asset e.g. fiat currency, use Tor so that the pricing service cannot correlate the wallet balance with an IP address (and potentially, a unique individual).
+
+### 10. Use an encrypted messaging protocol when exchanging bitcoin addresses
+
+When sending and receiving addresses over the internet, an encrypted messaging protocol should be used to prevent a third-party from connecting the addresses to the individuals involved in the exchange.
