@@ -487,13 +487,13 @@ namespace WalletWasabi.Services
 						TransactionCache.TryAdd(tx);
 
 						// If it's a dequeued change, then queue it.
-						if (newCoin.Unspent && !(ChaumianClient.OnePiece is null) && newCoin.Label == "ZeroLink Change")
+						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.Label == "ZeroLink Change")
 						{
 							Task.Run(async () =>
 							{
 								try
 								{
-									await ChaumianClient.QueueCoinsToMixAsync(ChaumianClient.OnePiece, newCoin);
+									await ChaumianClient.QueueCoinsToMixAsync(newCoin);
 								}
 								catch (Exception ex)
 								{

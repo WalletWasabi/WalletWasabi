@@ -343,7 +343,7 @@ namespace WalletWasabi.Services
 			}
 
 			var signedCoinJoin = unsignedCoinJoin.Clone();
-			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(OnePiece, x.ScriptPubKey).Single()).ToArray(), ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
+			signedCoinJoin.Sign(ongoingRound.CoinsRegistered.Select(x => x.Secret = x.Secret ?? KeyManager.GetSecrets(SaltSoup(), x.ScriptPubKey).Single()).ToArray(), ongoingRound.Registration.CoinsRegistered.Select(x => x.GetCoin()).ToArray());
 
 			// Old way of signing, which randomly fails! https://github.com/zkSNACKs/WalletWasabi/issues/716#issuecomment-435498906
 			// Must be fixed in NBitcoin.
@@ -575,7 +575,7 @@ namespace WalletWasabi.Services
 					{
 						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 						if (coin is null) throw new NotSupportedException("This is impossible.");
-						coin.Secret = coin.Secret ?? KeyManager.GetSecrets(OnePiece, coin.ScriptPubKey).Single();
+						coin.Secret = coin.Secret ?? KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
 						var inputProof = new InputProofModel
 						{
 							Input = coin.GetTxoRef(),
@@ -675,6 +675,11 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public async Task QueueCoinsToMixAsync(params SmartCoin[] coins)
+		{
+			await QueueCoinsToMixAsync(SaltSoup(), coins);
+		}
+
 		public void ActivateFrequentStatusProcessing()
 		{
 			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 1);
@@ -685,7 +690,8 @@ namespace WalletWasabi.Services
 			Interlocked.Exchange(ref _frequentStatusProcessingIfNotMixing, 0);
 		}
 
-		internal string OnePiece { get; private set; } = null;
+		private string Salt { get; set; } = null;
+		private string Soup { get; set; } = null;
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 		{
@@ -720,7 +726,8 @@ namespace WalletWasabi.Services
 
 				var coinsExcept = coins.Except(except);
 				var secPubs = KeyManager.GetSecretsAndPubKeyPairs(password, coinsExcept.Select(x => x.ScriptPubKey).ToArray());
-				OnePiece = OnePiece ?? password;
+
+				Cook(password);
 
 				foreach (SmartCoin coin in coinsExcept)
 				{
@@ -763,6 +770,29 @@ namespace WalletWasabi.Services
 					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray());
 				}
 			}
+		}
+
+		public bool HasIngredients => Salt is null || Soup is null ? false : true;
+
+		private string SaltSoup()
+		{
+			if (!HasIngredients)
+			{
+				return null;
+			}
+
+			var res = StringCipher.Decrypt(Soup, Salt);
+			Cook(res);
+
+			return res;
+		}
+
+		private void Cook(string ingredients)
+		{
+			ingredients = ingredients ?? "";
+
+			Salt = TokenGenerator.GetUniqueKey(21);
+			Soup = StringCipher.Encrypt(ingredients, Salt);
 		}
 
 		public async Task DequeueCoinsFromMixAsync(params TxoRef[] coins)
