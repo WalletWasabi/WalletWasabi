@@ -37,7 +37,3 @@ If a user wants to make a transaction larger than 0.1 BTC that is anonymized, th
 For example, if Alice sends 2 BTC from bc1abc123 through the mixer in 20 rounds, and combines 1.5 BTC from ZeroLink outputs into a single transaction later, then a blockchain observer can infer that the owner of bc1abc123 may also be the same user spending 1.5 BTC worth of ZeroLink outputs from the same rounds that bc1acb123 participated in.
 
 TL;DR It is not easy or advisable after mixing coins through ZeroLink to spend amounts smaller or larger than the exact amount that was mixed in one round because these spend transactions could then be linked together and used to deanonymize the spender (and possiby other users who participated in the same rounds). (See also point #2 and #3 above.)
-
-### 7. Users in the ZeroLink round could be attackers attempting to denanonymize other users
-
-Even with 41 users and 0.1 BTC per round required from each user, Wasabi's ZeroLink rounds are relatively cheap to Sybil attack, at a cost of 4 BTC plus fees to completely deanonymize a single user. There is no guarantee an attacker will be able to fill every other spot in a round, but they can fill _n_ spots per round and decrease the anonymity set by _n_.
