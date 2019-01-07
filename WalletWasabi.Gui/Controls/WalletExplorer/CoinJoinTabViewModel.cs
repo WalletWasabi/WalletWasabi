@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base("CoinJoin", walletViewModel)
 		{
 			Password = "";
-			CoinJoinUntilAnonimitySet = 20;
+			CoinJoinUntilAnonimitySet = 80;
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
