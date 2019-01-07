@@ -35,16 +35,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _isEnqueueBusy;
 		private bool _isDequeueBusy;
 		private string _enqueueButtonText;
-		private const string EnqueueButtonTextString = "Enqueue Selected Coins for CoinJoin";
+		private const string EnqueueButtonTextString = "Enqueue Selected Coins";
 		private const string EnqueuingButtonTextString = "Queuing coins...";
 		private string _dequeueButtonText;
-		private const string DequeueButtonTextString = "Dequeue";
+		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
 			Password = "";
+			CoinJoinUntilAnonimitySet = 20;
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
@@ -433,6 +434,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get { return _dequeueButtonText; }
 			set { this.RaiseAndSetIfChanged(ref _dequeueButtonText, value); }
+		}
+
+		int _coinJoinUntilAnonimitySet;
+		public int CoinJoinUntilAnonimitySet
+		{
+			get { return _coinJoinUntilAnonimitySet; }
+			set { this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value); }
 		}
 
 		public ReactiveCommand EnqueueCommand { get; }
