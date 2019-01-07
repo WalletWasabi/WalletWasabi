@@ -66,7 +66,7 @@ namespace WalletWasabi.Services
 					if (toRemove.Count != 0) // a little performance boost, often it'll be empty
 					{
 						var newAllLines = allLines.Where(x => !toRemove.Contains(x));
-						File.WriteAllLines(BannedUtxosFilePath, newAllLines);
+						IoHelpers.SafeWriteAllLines(BannedUtxosFilePath, newAllLines);
 					}
 
 					Logger.LogInfo<UtxoReferee>($"{allLines.Length} banned UTXOs are loaded from {BannedUtxosFilePath}.");
@@ -91,7 +91,6 @@ namespace WalletWasabi.Services
 			}
 
 			var lines = new List<string>();
-			var updated = false;
 			foreach (var utxo in toBan)
 			{
 				(int severity, DateTimeOffset timeOfBan, bool isNoted, long bannedForRound)? foundElem = null;
@@ -135,22 +134,14 @@ namespace WalletWasabi.Services
 					if (elem.isNoted != isNoted || elem.bannedForRound != bannedForRound)
 					{
 						BannedUtxos[utxo] = (elem.severity, elem.timeOfBan, isNoted, bannedForRound);
-						updated = true;
 					}
 				}
 
 				Logger.LogInfo<UtxoReferee>($"UTXO {(isNoted ? "noted" : "banned")} with severity: {severity}. UTXO: {utxo.N}:{utxo.Hash} for disrupting Round {bannedForRound}.");
 			}
 
-			if (updated) // If at any time we set updated then we must update the whole thing.
-			{
-				var allLines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.isNoted}:{x.Value.bannedForRound}");
-				await File.WriteAllLinesAsync(BannedUtxosFilePath, allLines);
-			}
-			else if (lines.Count != 0) // If we don't have to update the whole thing, we must check if we added a line and so only append.
-			{
-				await File.AppendAllLinesAsync(BannedUtxosFilePath, lines);
-			}
+			var allLines = BannedUtxos.Select(x => $"{x.Value.timeOfBan.ToString(CultureInfo.InvariantCulture)}:{x.Value.severity}:{x.Key.N}:{x.Key.Hash}:{x.Value.isNoted}:{x.Value.bannedForRound}");
+			await Task.Run(()=> IoHelpers.SafeWriteAllLines(BannedUtxosFilePath, lines));
 		}
 
 		public async Task UnbanAsync(OutPoint output)
@@ -158,7 +149,7 @@ namespace WalletWasabi.Services
 			if (BannedUtxos.TryRemove(output, out _))
 			{
 				IEnumerable<string> lines = BannedUtxos.Select(x => BannedRecordToLine(x.Key, x.Value.severity, x.Value.timeOfBan, x.Value.isNoted, x.Value.bannedForRound));
-				await File.WriteAllLinesAsync(BannedUtxosFilePath, lines);
+				await Task.Run(()=> IoHelpers.SafeWriteAllLines(BannedUtxosFilePath, lines));
 				Logger.LogInfo<UtxoReferee>($"UTXO unbanned: {output.N}:{output.Hash}.");
 			}
 		}
