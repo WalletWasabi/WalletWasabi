@@ -12,6 +12,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui
 {
@@ -46,8 +47,78 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "TorSocks5Port")]
 		public int? TorSocks5Port { get; internal set; }
 
+		[JsonProperty(PropertyName = "MixUntilAnonymitySet")]
+		public int? MixUntilAnonymitySet
+		{
+			get => _mixUntilAnonymitySet;
+			internal set
+			{
+				if (_mixUntilAnonymitySet != value)
+				{
+					_mixUntilAnonymitySet = value;
+					if (value.HasValue && ServiceConfiguration != default)
+					{
+						ServiceConfiguration.MixUntilAnonymitySet = value.Value;
+					}
+				}
+			}
+		}
+
+		[JsonProperty(PropertyName = "PrivacyLevelSome")]
+		public int? PrivacyLevelSome
+		{
+			get => _privacyLevelSome;
+			internal set
+			{
+				if (_privacyLevelSome != value)
+				{
+					_privacyLevelSome = value;
+					if (value.HasValue && ServiceConfiguration != default)
+					{
+						ServiceConfiguration.PrivacyLevelSome = value.Value;
+					}
+				}
+			}
+		}
+
+		[JsonProperty(PropertyName = "PrivacyLevelFine")]
+		public int? PrivacyLevelFine
+		{
+			get => _privacyLevelFine;
+			internal set
+			{
+				if (_privacyLevelFine != value)
+				{
+					_privacyLevelFine = value;
+					if (value.HasValue && ServiceConfiguration != default)
+					{
+						ServiceConfiguration.PrivacyLevelFine = value.Value;
+					}
+				}
+			}
+		}
+
+		[JsonProperty(PropertyName = "PrivacyLevelStrong")]
+		public int? PrivacyLevelStrong
+		{
+			get => _privacyLevelStrong;
+			internal set
+			{
+				if (_privacyLevelStrong != value)
+				{
+					_privacyLevelStrong = value;
+					if (value.HasValue && ServiceConfiguration != default)
+					{
+						ServiceConfiguration.PrivacyLevelStrong = value.Value;
+					}
+				}
+			}
+		}
+
 		private Uri _backendUri;
 		private Uri _fallbackBackendUri;
+
+		public ServiceConfiguration ServiceConfiguration { get; private set; }
 
 		public Uri GetCurrentBackendUri()
 		{
@@ -95,6 +166,11 @@ namespace WalletWasabi.Gui
 		}
 
 		private IPEndPoint _torSocks5EndPoint;
+		private int? _mixUntilAnonymitySet;
+		private int? _privacyLevelSome;
+		private int? _privacyLevelFine;
+		private int? _privacyLevelStrong;
+		private bool? _autoMix;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
@@ -118,7 +194,22 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public Config(Network network, string mainNetBackendUriV3, string testNetBackendUriV3, string mainNetFallbackBackendUri, string testNetFallbackBackendUri, string regTestBackendUriV3, string mainNetBlindingRsaPubKey, string testNetBlindingRsaPubKey, string regTestBlindingRsaPubKey, string torHost, int? torSocks5Port)
+		public Config(
+			Network network,
+			string mainNetBackendUriV3,
+			string testNetBackendUriV3,
+			string mainNetFallbackBackendUri,
+			string testNetFallbackBackendUri,
+			string regTestBackendUriV3,
+			string mainNetBlindingRsaPubKey,
+			string testNetBlindingRsaPubKey,
+			string regTestBlindingRsaPubKey,
+			string torHost,
+			int? torSocks5Port,
+			int? mixUntilAnonymitySet,
+			int? privacyLevelSome,
+			int? privacyLevelFine,
+			int? privacyLevelStrong)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 
@@ -131,6 +222,13 @@ namespace WalletWasabi.Gui
 
 			TorHost = Guard.NotNullOrEmptyOrWhitespace(nameof(torHost), torHost);
 			TorSocks5Port = Guard.NotNull(nameof(torSocks5Port), torSocks5Port);
+
+			MixUntilAnonymitySet = Guard.NotNull(nameof(mixUntilAnonymitySet), mixUntilAnonymitySet);
+			PrivacyLevelSome = Guard.NotNull(nameof(privacyLevelSome), privacyLevelSome);
+			PrivacyLevelFine = Guard.NotNull(nameof(privacyLevelFine), privacyLevelFine);
+			PrivacyLevelStrong = Guard.NotNull(nameof(privacyLevelStrong), privacyLevelStrong);
+
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value);
 		}
 
 		/// <inheritdoc />
@@ -159,6 +257,13 @@ namespace WalletWasabi.Gui
 
 			TorHost = IPAddress.Loopback.ToString();
 			TorSocks5Port = 9050;
+
+			MixUntilAnonymitySet = 50;
+			PrivacyLevelSome = 2;
+			PrivacyLevelFine = 21;
+			PrivacyLevelStrong = 50;
+
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value);
 
 			if (!File.Exists(FilePath))
 			{
@@ -190,6 +295,13 @@ namespace WalletWasabi.Gui
 
 			TorHost = config.TorHost ?? TorHost;
 			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
+
+			MixUntilAnonymitySet = config.MixUntilAnonymitySet ?? MixUntilAnonymitySet;
+			PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;
+			PrivacyLevelFine = config.PrivacyLevelFine ?? PrivacyLevelFine;
+			PrivacyLevelStrong = config.PrivacyLevelStrong ?? PrivacyLevelStrong;
+
+			ServiceConfiguration = config.ServiceConfiguration ?? ServiceConfiguration;
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
@@ -238,8 +350,24 @@ namespace WalletWasabi.Gui
 			{
 				return true;
 			}
-
 			if (TorSocks5Port != config.TorSocks5Port)
+			{
+				return true;
+			}
+
+			if (MixUntilAnonymitySet != config.MixUntilAnonymitySet)
+			{
+				return true;
+			}
+			if (PrivacyLevelSome != config.PrivacyLevelSome)
+			{
+				return true;
+			}
+			if (PrivacyLevelFine != config.PrivacyLevelFine)
+			{
+				return true;
+			}
+			if (PrivacyLevelStrong != config.PrivacyLevelStrong)
 			{
 				return true;
 			}

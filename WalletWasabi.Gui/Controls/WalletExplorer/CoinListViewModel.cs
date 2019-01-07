@@ -188,7 +188,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel(Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
+		public CoinListViewModel()
 		{
 			AmountSortDirection = SortOrder.Decreasing;
 			RefreshOrdering();
@@ -296,15 +296,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectPrivateCheckBoxState)
 				{
 					case true:
-						SelectAllCoins(true, x => x.AnonymitySet >= 50);
+						SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
 						break;
 
 					case false:
-						SelectAllCoins(false, x => x.AnonymitySet >= 50);
+						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
 						break;
 
 					case null:
-						SelectAllCoins(false, x => x.AnonymitySet >= 50);
+						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
 						SelectPrivateCheckBoxState = false;
 						break;
 				}
@@ -315,15 +315,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectNonPrivateCheckBoxState)
 				{
 					case true:
-						SelectAllCoins(true, x => x.AnonymitySet < 50);
+						SelectAllCoins(true, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
 						break;
 
 					case false:
-						SelectAllCoins(false, x => x.AnonymitySet < 50);
+						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
 						break;
 
 					case null:
-						SelectAllCoins(false, x => x.AnonymitySet < 50);
+						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
 						SelectNonPrivateCheckBoxState = false;
 						break;
 				}
@@ -366,8 +366,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void SetSelections()
 		{
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= 50);
-			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < 50);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
 		}
 
 		private void SetCoinJoinStatusWidth()

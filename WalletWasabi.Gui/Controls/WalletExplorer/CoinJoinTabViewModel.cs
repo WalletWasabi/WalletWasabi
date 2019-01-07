@@ -31,7 +31,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _password;
 		private Money _amountQueued;
 		private string _warningMessage;
-		private const int PreSelectMaxAnonSetExcludingCondition = 50;
 		private bool _isEnqueueBusy;
 		private bool _isDequeueBusy;
 		private string _enqueueButtonText;
@@ -61,7 +60,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (!(registrableRound?.State?.Denomination is null) && registrableRound.State.Denomination != Money.Zero)
 			{
-				CoinsList = new CoinListViewModel(RequiredBTC, PreSelectMaxAnonSetExcludingCondition);
+				CoinsList = new CoinListViewModel();
 			}
 			else
 			{
@@ -292,7 +291,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var available = Global.WalletService.Coins.Where(x => x.Confirmed && !x.SpentOrCoinJoinInProgress);
 					if (available.Any())
 					{
-						RequiredBTC = registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < PreSelectMaxAnonSetExcludingCondition).Select(x => x.Amount).ToArray());
+						RequiredBTC = registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray());
 					}
 					else
 					{

@@ -47,6 +47,8 @@ namespace WalletWasabi.Services
 		/// </summary>
 		public static event EventHandler<int> ConcurrentBlockDownloadNumberChanged;
 
+		public ServiceConfiguration ServiceConfiguration { get; }
+
 		public SortedDictionary<Height, uint256> WalletBlocks { get; }
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 		private AsyncLock WalletBlocksLock { get; }
@@ -71,13 +73,21 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		public WalletService(KeyManager keyManager, WasabiSynchronizer syncer, CcjClient chaumianClient, MemPoolService memPool, NodesGroup nodes, string workFolderDir)
+		public WalletService(
+			KeyManager keyManager,
+			WasabiSynchronizer syncer,
+			CcjClient chaumianClient,
+			MemPoolService memPool,
+			NodesGroup nodes,
+			string workFolderDir,
+			ServiceConfiguration serviceConfiguration)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
 			MemPool = Guard.NotNull(nameof(memPool), memPool);
+			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 
 			WalletBlocks = new SortedDictionary<Height, uint256>();
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
@@ -334,7 +344,7 @@ namespace WalletWasabi.Services
 			}
 
 			// If it spends someone and haven't been sufficiently anonimized.
-			if (coin.AnonymitySet < 50)
+			if (coin.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 			{
 				var c = Coins.FirstOrDefault(x => x.SpenderTransactionId == coin.TransactionId && !history.Contains(x));
 				if (c != default)
@@ -356,7 +366,7 @@ namespace WalletWasabi.Services
 				var c = Coins.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId && !history.Contains(x));
 				if (c != default)
 				{
-					if (c.AnonymitySet < 50)
+					if (c.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 					{
 						if (c != default)
 						{

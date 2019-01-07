@@ -90,7 +90,8 @@ namespace WalletWasabi.Tests
 			   new CcjClient(syncer, network, keyManager, new Uri("http://localhost:12345")),
 			   memPoolService,
 			   nodes,
-			   SharedFixture.DataDir);
+			   SharedFixture.DataDir,
+			   new ServiceConfiguration(false, 50, 2, 21, 50));
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try
