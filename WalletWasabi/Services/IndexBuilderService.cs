@@ -121,10 +121,10 @@ namespace WalletWasabi.Services
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
-		private long _running;
+		private int _running;
 
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
+		public bool IsRunning => _running == 1;
+		public bool IsStopping => _running == 2;
 
 		public IndexBuilderService(RPCClient rpc, string indexFilePath, string bech32UtxoSetFilePath)
 		{

@@ -146,8 +146,8 @@ namespace WalletWasabi.Gui.ViewModels
 			set { this.RaiseAndSetIfChanged(ref _status, value); }
 		}
 
-		private long _clientOutOfDate;
-		private long _backendIncompatible;
+		private int _clientOutOfDate;
+		private int _backendIncompatible;
 
 		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
@@ -287,12 +287,12 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void SetStatusAndDoUpdateActions()
 		{
-			if (Interlocked.Read(ref _backendIncompatible) != 0)
+			if (_backendIncompatible != 0)
 			{
 				Status = "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR SOFTWARE";
 				UpdateStatus = UpdateStatus.Critical;
 			}
-			else if (Interlocked.Read(ref _clientOutOfDate) != 0)
+			else if (_clientOutOfDate != 0)
 			{
 				Status = "New Version Is Available";
 				UpdateStatus = UpdateStatus.Optional;

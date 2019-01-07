@@ -12,7 +12,7 @@ namespace WalletWasabi.Logging
 	{
 		#region PropertiesAndMembers
 
-		private static long On = 1;
+		private static int On = 1;
 
 		public static LogLevel MinimumLevel { get; private set; } = LogLevel.Critical;
 
@@ -24,7 +24,7 @@ namespace WalletWasabi.Logging
 
 		public static string FileEntryEncryptionPassword { get; private set; } = null;
 
-		private static long _loggerFailed = 0;
+		private static int _loggerFailed = 0;
 
 		private static readonly object Lock = new object();
 
@@ -91,7 +91,7 @@ namespace WalletWasabi.Logging
 
 		public static void TurnOn() => Interlocked.Exchange(ref On, 1);
 
-		public static bool IsOn() => Interlocked.Read(ref On) == 1;
+		public static bool IsOn() => On == 1;
 
 		public static void DecryptLogEntries(string destination)
 		{
@@ -209,7 +209,7 @@ namespace WalletWasabi.Logging
 			catch (Exception ex)
 			{
 				Interlocked.Increment(ref _loggerFailed);
-				if (Interlocked.Read(ref _loggerFailed) > 1)
+				if (_loggerFailed > 1)
 				{
 					Interlocked.Exchange(ref _loggerFailed, 0);
 					return;

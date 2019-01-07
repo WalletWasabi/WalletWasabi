@@ -24,11 +24,11 @@ namespace WalletWasabi.Services
 			_cleanupInProcess = 0;
 		}
 
-		private long _cleanupInProcess;
+		private int _cleanupInProcess;
 
 		public void TryPerformMempoolCleanupAsync(NodesGroup nodes, CancellationToken cancel)
 		{
-			if (Interlocked.Read(ref _cleanupInProcess) == 1) return; // If already cleaning, then no need to run it that often.
+			if (_cleanupInProcess == 1) return; // If already cleaning, then no need to run it that often.
 			Interlocked.Exchange(ref _cleanupInProcess, 1);
 			Task.Run(async () =>
 			{

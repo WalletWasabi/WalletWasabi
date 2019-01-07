@@ -246,13 +246,13 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		private long _set_CollectionChanged_InvokeCount = 0;
+		private int _set_CollectionChanged_InvokeCount = 0;
 
 		private void Set_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			Interlocked.Increment(ref _set_CollectionChanged_InvokeCount);
 
-			switch (Interlocked.Read(ref _set_CollectionChanged_InvokeCount))
+			switch (_set_CollectionChanged_InvokeCount)
 			{
 				case 1:
 					{

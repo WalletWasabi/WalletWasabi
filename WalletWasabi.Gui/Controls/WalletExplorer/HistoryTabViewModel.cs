@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private TransactionViewModel _selectedTransaction;
 		private double _clipboardNotificationOpacity;
 		private bool _clipboardNotificationVisible;
-		private long _disableClipboard;
+		private int _disableClipboard;
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
-				if (Interlocked.Read(ref _disableClipboard) == 0)
+				if (_disableClipboard == 0)
 				{
 					if (!(transaction is null))
 					{

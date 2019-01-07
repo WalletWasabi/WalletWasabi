@@ -87,13 +87,13 @@ namespace WalletWasabi.Gui
 			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
 
-		private static long _triedDesperateDequeuing = 0;
+		private static int _triedDesperateDequeuing = 0;
 
 		private static async Task TryDesperateDequeueAllCoinsAsync()
 		{
 			try
 			{
-				if (Interlocked.Read(ref _triedDesperateDequeuing) == 1)
+				if (_triedDesperateDequeuing == 1)
 				{
 					return;
 				}

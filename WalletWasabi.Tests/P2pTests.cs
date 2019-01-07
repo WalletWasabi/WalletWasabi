@@ -103,7 +103,7 @@ namespace WalletWasabi.Tests
 				// Using the interlocked, not because it makes sense in this context, but to
 				// set an example that these values are often concurrency sensitive
 				var times = 0;
-				while (Interlocked.Read(ref _nodeCount) < 3)
+				while (_nodeCount < 3)
 				{
 					if (times > 4200) // 7 minutes
 					{
@@ -114,7 +114,7 @@ namespace WalletWasabi.Tests
 				}
 
 				times = 0;
-				while (Interlocked.Read(ref _mempoolTransactionCount) < 3)
+				while (_mempoolTransactionCount < 3)
 				{
 					if (times > 3000) // 3 minutes
 					{
@@ -159,18 +159,18 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		private long _nodeCount = 0;
+		private int _nodeCount = 0;
 
 		private void ConnectedNodes_Added(object sender, NodeEventArgs e)
 		{
 			var nodes = sender as NodesCollection;
 			Interlocked.Increment(ref _nodeCount);
-			if (Interlocked.Read(ref _nodeCount) == 8)
+			if (_nodeCount == 8)
 			{
-				Logger.LogTrace<P2pTests>($"Max node count reached: {Interlocked.Read(ref _nodeCount)}.");
+				Logger.LogTrace<P2pTests>($"Max node count reached: {_nodeCount}.");
 			}
 
-			Logger.LogTrace<P2pTests>($"Node count: {Interlocked.Read(ref _nodeCount)}.");
+			Logger.LogTrace<P2pTests>($"Node count: {_nodeCount}.");
 		}
 
 		private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
@@ -178,10 +178,10 @@ namespace WalletWasabi.Tests
 			var nodes = sender as NodesCollection;
 			Interlocked.Decrement(ref _nodeCount);
 			// Trace is fine here, building the connections is more exciting than removing them.
-			Logger.LogTrace<P2pTests>($"Node count: {Interlocked.Read(ref _nodeCount)}.");
+			Logger.LogTrace<P2pTests>($"Node count: {_nodeCount}.");
 		}
 
-		private long _mempoolTransactionCount = 0;
+		private int _mempoolTransactionCount = 0;
 
 		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{

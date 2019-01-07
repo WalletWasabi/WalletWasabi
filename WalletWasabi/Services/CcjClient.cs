@@ -52,17 +52,17 @@ namespace WalletWasabi.Services
 
 		public event EventHandler<SmartCoin> CoinDequeued;
 
-		private long _frequentStatusProcessingIfNotMixing;
+		private int _frequentStatusProcessingIfNotMixing;
 
 		/// <summary>
 		/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
 		/// </summary>
-		private long _running;
+		private int _running;
 
-		public bool IsRunning => Interlocked.Read(ref _running) == 1;
-		public bool IsStopping => Interlocked.Read(ref _running) == 2;
+		public bool IsRunning => _running == 1;
+		public bool IsStopping => _running == 2;
 
-		private long _statusProcessing;
+		private int _statusProcessing;
 
 		private CancellationTokenSource Cancel { get; }
 
@@ -134,7 +134,7 @@ namespace WalletWasabi.Services
 									int delaySeconds = new Random().Next(2, 7);
 									Synchronizer.MaxRequestIntervalForMixing = TimeSpan.FromSeconds(delaySeconds);
 								}
-								else if (Interlocked.Read(ref _frequentStatusProcessingIfNotMixing) == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
+								else if (_frequentStatusProcessingIfNotMixing == 1 || State.GetPassivelyMixingRounds().Any() || State.GetWaitingListCount() > 0)
 								{
 									double rand = double.Parse($"0.{new Random().Next(2, 7)}"); // randomly between every 0.2 * connConfTimeout - 7 and 0.7 * connConfTimeout
 									int delaySeconds = Math.Max(0, (int)(rand * State.GetSmallestRegistrationTimeout() - 7));
@@ -176,7 +176,7 @@ namespace WalletWasabi.Services
 
 		private async Task ProcessStatusAsync(IEnumerable<CcjRunningRoundState> states)
 		{
-			if (Interlocked.Read(ref _statusProcessing) == 1) // It's ok to wait for status processing next time.
+			if (_statusProcessing == 1) // It's ok to wait for status processing next time.
 			{
 				return;
 			}

@@ -267,7 +267,7 @@ namespace WalletWasabi.Tests
 				}
 
 				var times = 0;
-				while (Interlocked.Read(ref _mempoolTransactionCount) < 10)
+				while (_mempoolTransactionCount < 10)
 				{
 					if (times > 100) // 10 seconds
 					{
@@ -283,7 +283,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		private long _mempoolTransactionCount = 0;
+		private int _mempoolTransactionCount = 0;
 
 		private void MempoolAsync_MemPoolService_TransactionReceived(object sender, SmartTransaction e)
 		{
@@ -443,7 +443,7 @@ namespace WalletWasabi.Tests
 					}
 
 					// Assert reorg happened exactly as many times as we reorged.
-					Assert.Equal(2, Interlocked.Read(ref _reorgTestAsync_ReorgCount));
+					Assert.Equal(2, _reorgTestAsync_ReorgCount);
 				}
 				finally
 				{
@@ -468,7 +468,7 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		private long _reorgTestAsync_ReorgCount;
+		private int _reorgTestAsync_ReorgCount;
 
 		private void ReorgTestAsync_Downloader_Reorged(object sender, FilterModel e)
 		{
@@ -688,18 +688,18 @@ namespace WalletWasabi.Tests
 		private async Task WaitForFiltersToBeProcessedAsync(TimeSpan timeout, int numberOfFiltersToWaitFor)
 		{
 			var times = 0;
-			while (Interlocked.Read(ref _filtersProcessedByWalletCount) < numberOfFiltersToWaitFor)
+			while (_filtersProcessedByWalletCount < numberOfFiltersToWaitFor)
 			{
 				if (times > timeout.TotalSeconds)
 				{
-					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter wasn't processed. Needed: {numberOfFiltersToWaitFor}, got only: {Interlocked.Read(ref _filtersProcessedByWalletCount)}.");
+					throw new TimeoutException($"{nameof(WalletService)} test timed out. Filter wasn't processed. Needed: {numberOfFiltersToWaitFor}, got only: {_filtersProcessedByWalletCount}.");
 				}
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				times++;
 			}
 		}
 
-		private long _filtersProcessedByWalletCount;
+		private int _filtersProcessedByWalletCount;
 
 		private void Wallet_NewFilterProcessed(object sender, FilterModel e)
 		{

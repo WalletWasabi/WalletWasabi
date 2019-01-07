@@ -113,7 +113,7 @@ namespace WalletWasabi.Services
 				if (File.Exists(roundCountFilePath))
 				{
 					string roundCount = File.ReadAllText(roundCountFilePath);
-					CcjRound.RoundCount = long.Parse(roundCount);
+					CcjRound.RoundCount = int.Parse(roundCount);
 				}
 				else
 				{
