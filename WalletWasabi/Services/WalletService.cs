@@ -497,7 +497,7 @@ namespace WalletWasabi.Services
 						TransactionCache.TryAdd(tx);
 
 						// If it's a dequeued change, then queue it.
-						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.Label == "ZeroLink Change")
+						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
 						{
 							Task.Run(async () =>
 							{
@@ -1056,7 +1056,7 @@ namespace WalletWasabi.Services
 
 		public IEnumerable<string> GetNonSpecialLabels()
 		{
-			return Coins.Where(x => !x.Label.StartsWith("ZeroLink"))
+			return Coins.Where(x => !x.Label.StartsWith("ZeroLink", StringComparison.Ordinal))
 				.SelectMany(x => x.Label.Split(new string[] { Constants.ChangeOfSpecialLabelStart, Constants.ChangeOfSpecialLabelEnd, "(", "," }, StringSplitOptions.RemoveEmptyEntries))
 				.Select(x => x.Trim())
 				.Distinct();

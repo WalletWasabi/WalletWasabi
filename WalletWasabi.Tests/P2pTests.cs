@@ -91,7 +91,7 @@ namespace WalletWasabi.Tests
 			   memPoolService,
 			   nodes,
 			   SharedFixture.DataDir,
-			   new ServiceConfiguration(false, 50, 2, 21, 50));
+			   new ServiceConfiguration(50, 2, 21, 50));
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try

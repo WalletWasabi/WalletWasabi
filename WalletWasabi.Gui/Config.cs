@@ -170,7 +170,6 @@ namespace WalletWasabi.Gui
 		private int? _privacyLevelSome;
 		private int? _privacyLevelFine;
 		private int? _privacyLevelStrong;
-		private bool? _autoMix;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{

@@ -80,7 +80,7 @@ namespace WalletWasabi.Tests
 			}
 			Global.Coordinator.UtxoReferee.Clear();
 
-			var serviceConfiguration = new ServiceConfiguration(false, 50, 2, 21, 50);
+			var serviceConfiguration = new ServiceConfiguration(50, 2, 21, 50);
 			return ("password", Global.RpcClient, Global.RpcClient.Network, Global.Coordinator, serviceConfiguration);
 		}
 

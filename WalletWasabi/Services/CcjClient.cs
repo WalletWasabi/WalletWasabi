@@ -65,7 +65,12 @@ namespace WalletWasabi.Services
 
 		private CancellationTokenSource Cancel { get; }
 
-		public CcjClient(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Uri ccjHostUri, IPEndPoint torSocks5EndPoint = null)
+		public CcjClient(
+			WasabiSynchronizer synchronizer,
+			Network network,
+			KeyManager keyManager,
+			Uri ccjHostUri,
+			IPEndPoint torSocks5EndPoint = null)
 		{
 			AccessCache = new ConcurrentDictionary<HdPubKey, DateTimeOffset>();
 			Network = Guard.NotNull(nameof(network), network);
@@ -429,245 +434,246 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
+				// Select the most suitable coins to regiter.
 				List<TxoRef> registrableCoins = State.GetRegistrableCoins(
 					inputRegistrableRound.State.MaximumInputCountPerPeer,
 					inputRegistrableRound.State.Denomination,
 					inputRegistrableRound.State.FeePerInputs,
 					inputRegistrableRound.State.FeePerOutputs).ToList();
 
-				if (registrableCoins.Any())
+				// If there are no suitable coins to register return.
+				if (!registrableCoins.Any()) return;
+
+				BitcoinAddress changeAddress = null;
+				var activeOutputAddresses = new List<BitcoinAddress>();
+
+				string changeLabel = "ZeroLink Change";
+				string activeLabel = "ZeroLink Mixed Coin";
+
+				IEnumerable<HdPubKey> allChangeKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == changeLabel);
+				HdPubKey changeKey = null;
+
+				KeyManager.AssertLockedInternalKeysIndexed(14);
+				IEnumerable<HdPubKey> internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
+
+				if (allChangeKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
 				{
-					BitcoinAddress changeAddress = null;
-					var activeOutputAddresses = new List<BitcoinAddress>();
-
-					string changeLabel = "ZeroLink Change";
-					string activeLabel = "ZeroLink Mixed Coin";
-
-					IEnumerable<HdPubKey> allChangeKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == changeLabel);
-					HdPubKey changeKey = null;
-
-					KeyManager.AssertLockedInternalKeysIndexed(14);
-					IEnumerable<HdPubKey> internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
-
-					if (allChangeKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
+					// Find the first one that we did not try to register in the current session.
+					changeKey = allChangeKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
+					// If there is no such a key, then use the oldest.
+					if (changeKey == default)
 					{
-						// Find the first one that we did not try to register in the current session.
-						changeKey = allChangeKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
-						// If there is no such a key, then use the oldest.
-						if (changeKey == default)
-						{
-							changeKey = AccessCache.Where(x => allChangeKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
-						}
-						changeKey.SetLabel(changeLabel);
-						changeKey.SetKeyState(KeyState.Locked);
+						changeKey = AccessCache.Where(x => allChangeKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
 					}
-					else
-					{
-						changeKey = internalNotCachedLockedKeys.RandomElement();
-						changeKey.SetLabel(changeLabel);
-					}
-					changeAddress = changeKey.GetP2wpkhAddress(Network);
-					AccessCache.AddOrReplace(changeKey, DateTimeOffset.UtcNow);
+					changeKey.SetLabel(changeLabel);
+					changeKey.SetKeyState(KeyState.Locked);
+				}
+				else
+				{
+					changeKey = internalNotCachedLockedKeys.RandomElement();
+					changeKey.SetLabel(changeLabel);
+				}
+				changeAddress = changeKey.GetP2wpkhAddress(Network);
+				AccessCache.AddOrReplace(changeKey, DateTimeOffset.UtcNow);
 
-					IEnumerable<HdPubKey> allActiveKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == activeLabel);
-					List<HdPubKey> activeKeys = new List<HdPubKey>();
+				IEnumerable<HdPubKey> allActiveKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == activeLabel);
+				List<HdPubKey> activeKeys = new List<HdPubKey>();
 
-					KeyManager.AssertLockedInternalKeysIndexed(14);
+				KeyManager.AssertLockedInternalKeysIndexed(14);
 
-					internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
+				internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
 
-					Money inputSum = Money.Zero;
-					foreach (TxoRef coinReference in registrableCoins)
-					{
-						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-						inputSum += coin.Amount;
-					}
+				Money inputSum = Money.Zero;
+				foreach (TxoRef coinReference in registrableCoins)
+				{
+					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+					inputSum += coin.Amount;
+				}
 
-					int maximumMixingLevelCount = 1;
+				int maximumMixingLevelCount = 1;
 
-					var denominations = new List<Money>
+				var denominations = new List<Money>
 					{
 						inputRegistrableRound.State.Denomination
 					};
 
-					for (int i = 1; i < inputRegistrableRound.State.SchnorrPubKeys.Count(); i++)
+				for (int i = 1; i < inputRegistrableRound.State.SchnorrPubKeys.Count(); i++)
+				{
+					Money denom = denominations.Last() * 2;
+					denominations.Add(denom);
+					if (inputSum > denom)
 					{
-						Money denom = denominations.Last() * 2;
-						denominations.Add(denom);
-						if (inputSum > denom)
-						{
-							maximumMixingLevelCount = i + 1;
-						}
+						maximumMixingLevelCount = i + 1;
 					}
-
-					if (allActiveKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
-					{
-						// Find the first one that we did not try to register in the current session.
-						foreach (var ac in allActiveKeys.Where(x => !AccessCache.ContainsKey(x)))
-						{
-							if (activeKeys.Count >= maximumMixingLevelCount)
-							{
-								break;
-							}
-							activeKeys.Add(ac);
-						}
-						// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
-						if (activeKeys.Count < maximumMixingLevelCount)
-						{
-							foreach (var ac in AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).Select(x => x.Key))
-							{
-								if (activeKeys.Count >= maximumMixingLevelCount)
-								{
-									break;
-								}
-								activeKeys.Add(ac);
-							}
-						}
-					}
-					else
-					{
-						foreach (var ac in internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)))
-						{
-							if (activeKeys.Count >= maximumMixingLevelCount)
-							{
-								break;
-							}
-							activeKeys.Add(ac);
-						}
-					}
-
-					foreach (HdPubKey ac in activeKeys)
-					{
-						ac.SetLabel(activeLabel);
-						ac.SetKeyState(KeyState.Locked);
-						activeOutputAddresses.Add(ac.GetP2wpkhAddress(Network));
-						AccessCache.AddOrReplace(ac, DateTimeOffset.UtcNow);
-					}
-
-					KeyManager.ToFile();
-
-					SchnorrPubKey[] schnorrPubKeys = inputRegistrableRound.State.SchnorrPubKeys.ToArray();
-					var requesters = new List<Requester>();
-					var outputScriptHashes = new List<uint256>();
-					var blindedOutputScriptHashes = new List<uint256>();
-
-					var registeredAddresses = new List<BitcoinAddress>();
-					for (int i = 0; i < schnorrPubKeys.Length; i++)
-					{
-						if (activeOutputAddresses.Count <= i) break;
-						BitcoinAddress address = activeOutputAddresses.ElementAt(i);
-
-						SchnorrPubKey schnorrPubKey = schnorrPubKeys[i];
-						var outputScriptHash = new uint256(Hashes.SHA256(address.ScriptPubKey.ToBytes()));
-						var requester = new Requester();
-						uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, schnorrPubKey);
-						outputScriptHashes.Add(outputScriptHash);
-						requesters.Add(requester);
-						blindedOutputScriptHashes.Add(blindedOutputScriptHash);
-						registeredAddresses.Add(address);
-					}
-
-					byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x => x.ToBytes()));
-					uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
-
-					var inputProofs = new List<InputProofModel>();
-					foreach (TxoRef coinReference in registrableCoins)
-					{
-						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-						if (coin is null) throw new NotSupportedException("This is impossible.");
-						coin.Secret = coin.Secret ?? KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
-						var inputProof = new InputProofModel
-						{
-							Input = coin.GetTxoRef(),
-							Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptsHash)
-						};
-						inputProofs.Add(inputProof);
-					}
-
-					AliceClient aliceClient = null;
-					try
-					{
-						aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
-					}
-					catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
-					{
-						string[] parts = ex.Message.Split(new[] { "Input is banned from participation for ", " minutes: " }, StringSplitOptions.RemoveEmptyEntries);
-						string minutesString = parts[1];
-						int minuteInt = int.Parse(minutesString);
-						string bannedInputString = parts[2].TrimEnd('.');
-						string[] bannedInputStringParts = bannedInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
-						TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
-						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-						if (coin is null) throw new NotSupportedException("This is impossible.");
-						coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
-
-						Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
-
-						await DequeueCoinsFromMixNoLockAsync(coinReference);
-						return;
-					}
-					catch (HttpRequestException ex) when (ex.Message.Contains("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
-					{
-						string[] parts = ex.Message.Split(new[] { "Provided input is not unspent: " }, StringSplitOptions.RemoveEmptyEntries);
-						string spentInputString = parts[1].TrimEnd('.');
-						string[] bannedInputStringParts = spentInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
-						TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
-						SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-						if (coin is null) throw new NotSupportedException("This is impossible.");
-						coin.SpentAccordingToBackend = true;
-
-						Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
-
-						await DequeueCoinsFromMixNoLockAsync(coinReference);
-						return;
-					}
-
-					var unblindedSignatures = new List<BlindSignature>();
-					for (int i = 0; i < aliceClient.BlindedOutputSignatures.Length; i++)
-					{
-						BigInteger blindedSignature = aliceClient.BlindedOutputSignatures[i];
-						Requester requester = requesters.ElementAt(i);
-						BlindSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
-
-						uint256 outputScriptHash = outputScriptHashes.ElementAt(i);
-						PubKey signerPubKey = schnorrPubKeys[i].SignerPubKey;
-						if (!VerifySignature(outputScriptHash, unblindedSignature, signerPubKey))
-						{
-							throw new NotSupportedException($"Coordinator did not sign the blinded output properly for level: {i}.");
-						}
-
-						unblindedSignatures.Add(unblindedSignature);
-					}
-
-					var coinsRegistered = new List<SmartCoin>();
-					foreach (TxoRef coinReference in registrableCoins)
-					{
-						var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-						if (coin is null) throw new NotSupportedException("This is impossible.");
-						coinsRegistered.Add(coin);
-						State.RemoveCoinFromWaitingList(coin);
-					}
-
-					var activeOutputs = new List<(BitcoinAddress output, BlindSignature signature, int level)>();
-					for (int i = 0; i < Math.Min(unblindedSignatures.Count, registeredAddresses.Count); i++)
-					{
-						var sig = unblindedSignatures[i];
-						var addr = registeredAddresses[i];
-						var lvl = i;
-						activeOutputs.Add((addr, sig, lvl));
-					}
-					var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, activeOutputs, changeAddress);
-
-					CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
-					if (roundRegistered is null)
-					{
-						// If our SatoshiClient doesn't yet know about the round, because of delay, then delay the round registration.
-						DelayedRoundRegistration?.Dispose();
-						DelayedRoundRegistration = registration;
-					}
-
-					roundRegistered.Registration = registration;
 				}
+
+				if (allActiveKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
+				{
+					// Find the first one that we did not try to register in the current session.
+					foreach (var ac in allActiveKeys.Where(x => !AccessCache.ContainsKey(x)))
+					{
+						if (activeKeys.Count >= maximumMixingLevelCount)
+						{
+							break;
+						}
+						activeKeys.Add(ac);
+					}
+					// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
+					if (activeKeys.Count < maximumMixingLevelCount)
+					{
+						foreach (var ac in AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).Select(x => x.Key))
+						{
+							if (activeKeys.Count >= maximumMixingLevelCount)
+							{
+								break;
+							}
+							activeKeys.Add(ac);
+						}
+					}
+				}
+				else
+				{
+					foreach (var ac in internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)))
+					{
+						if (activeKeys.Count >= maximumMixingLevelCount)
+						{
+							break;
+						}
+						activeKeys.Add(ac);
+					}
+				}
+
+				foreach (HdPubKey ac in activeKeys)
+				{
+					ac.SetLabel(activeLabel);
+					ac.SetKeyState(KeyState.Locked);
+					activeOutputAddresses.Add(ac.GetP2wpkhAddress(Network));
+					AccessCache.AddOrReplace(ac, DateTimeOffset.UtcNow);
+				}
+
+				KeyManager.ToFile();
+
+				SchnorrPubKey[] schnorrPubKeys = inputRegistrableRound.State.SchnorrPubKeys.ToArray();
+				var requesters = new List<Requester>();
+				var outputScriptHashes = new List<uint256>();
+				var blindedOutputScriptHashes = new List<uint256>();
+
+				var registeredAddresses = new List<BitcoinAddress>();
+				for (int i = 0; i < schnorrPubKeys.Length; i++)
+				{
+					if (activeOutputAddresses.Count <= i) break;
+					BitcoinAddress address = activeOutputAddresses.ElementAt(i);
+
+					SchnorrPubKey schnorrPubKey = schnorrPubKeys[i];
+					var outputScriptHash = new uint256(Hashes.SHA256(address.ScriptPubKey.ToBytes()));
+					var requester = new Requester();
+					uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, schnorrPubKey);
+					outputScriptHashes.Add(outputScriptHash);
+					requesters.Add(requester);
+					blindedOutputScriptHashes.Add(blindedOutputScriptHash);
+					registeredAddresses.Add(address);
+				}
+
+				byte[] blindedOutputScriptHashesByte = ByteHelpers.Combine(blindedOutputScriptHashes.Select(x => x.ToBytes()));
+				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptHashesByte));
+
+				var inputProofs = new List<InputProofModel>();
+				foreach (TxoRef coinReference in registrableCoins)
+				{
+					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+					if (coin is null) throw new NotSupportedException("This is impossible.");
+					coin.Secret = coin.Secret ?? KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
+					var inputProof = new InputProofModel
+					{
+						Input = coin.GetTxoRef(),
+						Proof = coin.Secret.PrivateKey.SignCompact(blindedOutputScriptsHash)
+					};
+					inputProofs.Add(inputProof);
+				}
+
+				AliceClient aliceClient = null;
+				try
+				{
+					aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
+				}
+				catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
+				{
+					string[] parts = ex.Message.Split(new[] { "Input is banned from participation for ", " minutes: " }, StringSplitOptions.RemoveEmptyEntries);
+					string minutesString = parts[1];
+					int minuteInt = int.Parse(minutesString);
+					string bannedInputString = parts[2].TrimEnd('.');
+					string[] bannedInputStringParts = bannedInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
+					TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+					if (coin is null) throw new NotSupportedException("This is impossible.");
+					coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
+
+					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+
+					await DequeueCoinsFromMixNoLockAsync(coinReference);
+					return;
+				}
+				catch (HttpRequestException ex) when (ex.Message.Contains("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
+				{
+					string[] parts = ex.Message.Split(new[] { "Provided input is not unspent: " }, StringSplitOptions.RemoveEmptyEntries);
+					string spentInputString = parts[1].TrimEnd('.');
+					string[] bannedInputStringParts = spentInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
+					TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
+					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+					if (coin is null) throw new NotSupportedException("This is impossible.");
+					coin.SpentAccordingToBackend = true;
+
+					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
+
+					await DequeueCoinsFromMixNoLockAsync(coinReference);
+					return;
+				}
+
+				var unblindedSignatures = new List<BlindSignature>();
+				for (int i = 0; i < aliceClient.BlindedOutputSignatures.Length; i++)
+				{
+					BigInteger blindedSignature = aliceClient.BlindedOutputSignatures[i];
+					Requester requester = requesters.ElementAt(i);
+					BlindSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
+
+					uint256 outputScriptHash = outputScriptHashes.ElementAt(i);
+					PubKey signerPubKey = schnorrPubKeys[i].SignerPubKey;
+					if (!VerifySignature(outputScriptHash, unblindedSignature, signerPubKey))
+					{
+						throw new NotSupportedException($"Coordinator did not sign the blinded output properly for level: {i}.");
+					}
+
+					unblindedSignatures.Add(unblindedSignature);
+				}
+
+				var coinsRegistered = new List<SmartCoin>();
+				foreach (TxoRef coinReference in registrableCoins)
+				{
+					var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+					if (coin is null) throw new NotSupportedException("This is impossible.");
+					coinsRegistered.Add(coin);
+					State.RemoveCoinFromWaitingList(coin);
+				}
+
+				var activeOutputs = new List<(BitcoinAddress output, BlindSignature signature, int level)>();
+				for (int i = 0; i < Math.Min(unblindedSignatures.Count, registeredAddresses.Count); i++)
+				{
+					var sig = unblindedSignatures[i];
+					var addr = registeredAddresses[i];
+					var lvl = i;
+					activeOutputs.Add((addr, sig, lvl));
+				}
+				var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, activeOutputs, changeAddress);
+
+				CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
+				if (roundRegistered is null)
+				{
+					// If our SatoshiClient doesn't yet know about the round, because of delay, then delay the round registration.
+					DelayedRoundRegistration?.Dispose();
+					DelayedRoundRegistration = registration;
+				}
+
+				roundRegistered.Registration = registration;
 			}
 			catch (Exception ex)
 			{
@@ -692,6 +698,7 @@ namespace WalletWasabi.Services
 
 		private string Salt { get; set; } = null;
 		private string Soup { get; set; } = null;
+		private object RefrigeratorLock { get; } = new object();
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 		{
@@ -781,7 +788,12 @@ namespace WalletWasabi.Services
 				return null;
 			}
 
-			var res = StringCipher.Decrypt(Soup, Salt);
+			string res;
+			lock (RefrigeratorLock)
+			{
+				res = StringCipher.Decrypt(Soup, Salt);
+			}
+
 			Cook(res);
 
 			return res;
@@ -789,10 +801,13 @@ namespace WalletWasabi.Services
 
 		private void Cook(string ingredients)
 		{
-			ingredients = ingredients ?? "";
+			lock (RefrigeratorLock)
+			{
+				ingredients = ingredients ?? "";
 
-			Salt = TokenGenerator.GetUniqueKey(21);
-			Soup = StringCipher.Encrypt(ingredients, Salt);
+				Salt = TokenGenerator.GetUniqueKey(21);
+				Soup = StringCipher.Encrypt(ingredients, Salt);
+			}
 		}
 
 		public async Task DequeueCoinsFromMixAsync(params TxoRef[] coins)
