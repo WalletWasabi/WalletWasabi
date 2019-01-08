@@ -111,11 +111,22 @@
                 <Panel Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding CoinJoinUntilAnonimitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
                     <DrawingPresenter Drawing="{Binding Icon}" VerticalAlignment="Center" Height="100" Width="75" />
                     <Panel.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Menu item 1" />
-                            <MenuItem Header="Menu item 2" />
-                            <Separator />
-                            <MenuItem Header="Menu item 3" />
+                        <ContextMenu DataContext="{Binding RelativeSource={RelativeSource Self}}">
+                            <MenuItem Header="Set anonimity level target to Some" Command="{Binding PrivacySomeCommand}">
+                                <!--<MenuItem.Icon>
+                              <DrawingPresenter Drawing="{Binding Icon}" Margin="0 0 25 0" />
+                            </MenuItem.Icon>-->
+                            </MenuItem>
+                            <MenuItem Header="Set anonimity level target to Fine" Command="{Binding PrivacyFineCommand}">
+                                <!--<MenuItem.Icon>
+                              <DrawingPresenter Drawing="{Binding Icon}" Margin="0 0 25 0" />
+                            </MenuItem.Icon>-->
+                            </MenuItem>
+                            <MenuItem Header="Set anonimity level target to Strong" Command="{Binding PrivacyStrongCommand}">
+                                <!--<MenuItem.Icon>
+                              <DrawingPresenter Drawing="{Binding Icon}" Margin="0 0 25 0" />
+                            </MenuItem.Icon>-->
+                            </MenuItem>
                         </ContextMenu>
                     </Panel.ContextMenu>
                 </Panel>
