@@ -23,7 +23,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public AliceState State { get; set; }
 
-		public uint256[] BlindedOutputScripts { get; }
+		public uint256[] BlindedOutputScripts { get; set; }
 
 		public IEnumerable<BigInteger> BlindedOutputSignatures { get; set; }
 

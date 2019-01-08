@@ -757,7 +757,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			using (RoundSynchronizerLock.Lock())
 			{
-				return Alices.Sum(x => x.BlindedOutputScripts.Length);
+				return Alices.Sum(x => x.BlindedOutputSignatures.Count());
 			}
 		}
 
