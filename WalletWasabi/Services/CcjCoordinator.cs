@@ -235,6 +235,25 @@ namespace WalletWasabi.Services
 			{
 				IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
 
+				CcjRound nextRound = GetCurrentInputRegisterableRoundOrDefault(syncLock: false);
+
+				if (nextRound != null)
+				{
+					int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
+					var newAnonymitySet = Math.Max(nextRound.AnonymitySet - alicesDidntSign.Count(), nextRoundAlicesCount);
+
+					if (nextRound.AnonymitySet != newAnonymitySet)
+					{
+						nextRound.UpdateAnonymitySet(newAnonymitySet, syncLock: false);
+
+						if (nextRoundAlicesCount >= nextRound.AnonymitySet)
+						{
+							// Progress to the next phase, which will be OutputRegistration
+							await nextRound.ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+						}
+					}
+				}
+
 				foreach (Alice alice in alicesDidntSign) // Because the event sometimes is raised from inside the lock.
 				{
 					// If its from any coinjoin, then don't ban.

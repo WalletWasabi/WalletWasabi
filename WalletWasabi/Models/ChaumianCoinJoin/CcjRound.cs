@@ -823,7 +823,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					return Bobs.Count;
 				}
 			}
-			return Alices.Count;
+			return Bobs.Count;
 		}
 
 		public IEnumerable<Alice> GetAlicesBy(AliceState state)
@@ -944,9 +944,20 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public void UpdateAnonymitySet(int anonymitySet)
+		public void UpdateAnonymitySet(int anonymitySet, bool syncLock = true)
 		{
-			using (RoundSynchronizerLock.Lock())
+			if (syncLock)
+			{
+				using (RoundSynchronizerLock.Lock())
+				{
+					if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
+					{
+						throw new InvalidOperationException($"Updating anonymity set is not allowed in {Phase.ToString()} phase.");
+					}
+					AnonymitySet = anonymitySet;
+				}
+			}
+			else
 			{
 				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
 				{
