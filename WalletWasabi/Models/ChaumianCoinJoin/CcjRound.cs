@@ -450,7 +450,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										// Therefore Alices those didn't confirm, nor requested dsconnection should be banned:
 										IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
-										await ProgressToOutputRegistrationOrFailAsync(alicesToBan);
+										await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray());
 									}
 									break;
 
@@ -497,7 +497,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
-		public async Task ProgressToOutputRegistrationOrFailAsync(IEnumerable<Alice> additionalAlicesToBan)
+		public async Task ProgressToOutputRegistrationOrFailAsync(params Alice[] additionalAlicesToBan)
 		{
 			IEnumerable<Alice> alicesToBan = await RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 

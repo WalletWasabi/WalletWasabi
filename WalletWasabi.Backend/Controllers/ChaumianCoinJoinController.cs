@@ -383,7 +383,7 @@ namespace WalletWasabi.Backend.Controllers
 						// Progress round if needed.
 						if (round.AllAlices(AliceState.ConnectionConfirmed))
 						{
-							await round.ProgressToOutputRegistrationOrFailAsync(Enumerable.Empty<Alice>());
+							await round.ProgressToOutputRegistrationOrFailAsync();
 						}
 
 						break;
