@@ -1050,25 +1050,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 			}
 
-			Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");
-
-			return numberOfRemovedAlices;
-		}
-
-		public int RemoveAliceIfContains(OutPoint input)
-		{
-			var numberOfRemovedAlices = 0;
-
-			using (RoundSynchronizerLock.Lock())
+			if (numberOfRemovedAlices > 0)
 			{
-				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
-				{
-					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
-				}
-				numberOfRemovedAlices = Alices.RemoveAll(x => x.Inputs.Any(y => y.Outpoint == input));
+				Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");
 			}
-
-			Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");
 
 			return numberOfRemovedAlices;
 		}
