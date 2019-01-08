@@ -118,7 +118,11 @@ namespace WalletWasabi.Backend.Controllers
 
 			using (await InputsLock.LockAsync())
 			{
-				CcjRound round = Coordinator.GetCurrentInputRegisterableRound();
+				CcjRound round = Coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				if (round == default)
+				{
+					return StatusCode(StatusCodes.Status503ServiceUnavailable, "No input registrable rounds available. Try again later.");
+				}
 
 				// Do more checks.
 				try

@@ -1794,7 +1794,7 @@ namespace WalletWasabi.Tests
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided proof is invalid.", httpRequestException.Message);
 
-				CcjRound round = coordinator.GetCurrentInputRegisterableRound();
+				CcjRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				var requester = new Requester();
 				uint256 msg = new uint256(Hashes.SHA256(network.Consensus.ConsensusFactory.CreateTransaction().ToBytes()));
 				uint256 blindedData = requester.BlindMessage(msg, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey);
@@ -1821,7 +1821,7 @@ namespace WalletWasabi.Tests
 				roundConfig.Denomination = Money.Coins(0.008m); // one satoshi less than our output
 				roundConfig.ConnectionConfirmationTimeout = 2;
 				coordinator.UpdateRoundConfig(roundConfig);
-				round = coordinator.GetCurrentInputRegisterableRound();
+				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				requester = new Requester();
 				msg = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
 				blindedData = requester.BlindMessage(msg, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey);
@@ -1863,7 +1863,7 @@ namespace WalletWasabi.Tests
 					Assert.Equal(1, roundState.RegisteredPeerCount);
 				}
 
-				round = coordinator.GetCurrentInputRegisterableRound();
+				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				requester = new Requester();
 				blindedData = requester.BlindScript(round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey.SignerPubKey, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey.RpubKey, key.ScriptPubKey);
 				inputsRequest.BlindedOutputScripts = new[] { blindedData };
@@ -1972,7 +1972,7 @@ namespace WalletWasabi.Tests
 				await rpc.GenerateAsync(1);
 				tx = await rpc.GetRawTransactionAsync(hash);
 				coin = tx.Outputs.GetCoins(witnessAddress.ScriptPubKey).Single();
-				round = coordinator.GetCurrentInputRegisterableRound();
+				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				requester = new Requester();
 				Script script = new Key().PubKey.GetSegwitAddress(network).ScriptPubKey;
 				blindedData = requester.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, script);
@@ -2068,7 +2068,7 @@ namespace WalletWasabi.Tests
 					}
 				}
 
-				round = coordinator.GetCurrentInputRegisterableRound();
+				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				var requester1 = new Requester();
 				var requester2 = new Requester();
 
@@ -2203,7 +2203,7 @@ namespace WalletWasabi.Tests
 			using (var torClient = new TorHttpClient(baseUri, SharedFixture.TorSocks5Endpoint))
 			using (var satoshiClient = new SatoshiClient(baseUri))
 			{
-				var round = coordinator.GetCurrentInputRegisterableRound();
+				var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				var roundId = round.RoundId;
 
 				// We have to 4 participant so, this data structure is for keeping track of
@@ -2367,7 +2367,7 @@ namespace WalletWasabi.Tests
 				Key inputKey = new Key();
 				BitcoinWitPubKeyAddress inputAddress = inputKey.PubKey.GetSegwitAddress(network);
 
-				CcjRound round = coordinator.GetCurrentInputRegisterableRound();
+				CcjRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				var requester = new Requester();
 				uint256 blinded = requester.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, activeOutputAddress.ScriptPubKey);
 				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blinded.ToBytes()));
@@ -2444,7 +2444,7 @@ namespace WalletWasabi.Tests
 				var userInputData = new List<(Key key, BitcoinWitPubKeyAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)>();
 				var activeOutputAddress = new Key().PubKey.GetAddress(network);
 				var changeOutputAddress = new Key().PubKey.GetAddress(network);
-				CcjRound round = coordinator.GetCurrentInputRegisterableRound();
+				CcjRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				Requester requester = new Requester();
 				uint256 blinded = requester.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, activeOutputAddress.ScriptPubKey);
 				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blinded.ToBytes()));
@@ -2650,7 +2650,7 @@ namespace WalletWasabi.Tests
 				var userInputData = new List<(Key key, BitcoinWitPubKeyAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)>();
 				var activeOutputAddress = new Key().PubKey.GetAddress(network);
 				var changeOutputAddress = new Key().PubKey.GetAddress(network);
-				CcjRound round = coordinator.GetCurrentInputRegisterableRound();
+				CcjRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				ECDSABlinding.Requester requester = new ECDSABlinding.Requester();
 				uint256 blinded = requester.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, activeOutputAddress.ScriptPubKey);
 				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blinded.ToBytes()));

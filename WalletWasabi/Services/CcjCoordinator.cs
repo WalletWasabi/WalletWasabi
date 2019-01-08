@@ -272,12 +272,17 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public CcjRound GetCurrentInputRegisterableRound()
+		public CcjRound GetCurrentInputRegisterableRoundOrDefault(bool syncLock = true)
 		{
-			using (RoundsListLock.Lock())
+			if (syncLock)
 			{
-				return Rounds.First(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration); // not FirstOrDefault, it must always exist
+				using (RoundsListLock.Lock())
+				{
+					return Rounds.FirstOrDefault(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration);
+				}
 			}
+
+			return Rounds.FirstOrDefault(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration);
 		}
 
 		public CcjRound TryGetRound(long roundId)
