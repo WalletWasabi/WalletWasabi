@@ -27,8 +27,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public decimal CoordinatorFeePercent { get; }
 		public int AnonymitySet { get; private set; }
 
-		public int BlindSignatureCount { get; private set; }
-
 		public Money FeePerInputs { get; private set; }
 		public Money FeePerOutputs { get; private set; }
 
@@ -226,8 +224,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						{
 							return;
 						}
-
-						BlindSignatureCount = Alices.Sum(x => x.BlindedOutputScripts.Length);
 
 						Phase = CcjRoundPhase.ConnectionConfirmation;
 					}
@@ -740,6 +736,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			using (RoundSynchronizerLock.Lock())
 			{
 				return Alices.All(x => x.State == state);
+			}
+		}
+
+		public int CountBlindSignatures()
+		{
+			using (RoundSynchronizerLock.Lock())
+			{
+				return Alices.Sum(x => x.BlindedOutputScripts.Length);
 			}
 		}
 

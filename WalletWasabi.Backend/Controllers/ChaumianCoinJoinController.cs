@@ -536,7 +536,7 @@ namespace WalletWasabi.Backend.Controllers
 						return BadRequest($"Invalid outputAddress is provided. Details: {ex.Message}");
 					}
 
-					if (round.CountBobs() == round.BlindSignatureCount)
+					if (round.CountBobs() == round.CountBlindSignatures()) // If there'll be more bobs, then round failed. Someone may broke the crypto.
 					{
 						await round.ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
 					}
