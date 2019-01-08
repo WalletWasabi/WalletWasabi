@@ -118,7 +118,11 @@ namespace WalletWasabi.Backend.Controllers
 
 			using (await InputsLock.LockAsync())
 			{
-				CcjRound round = Coordinator.GetCurrentInputRegisterableRound();
+				CcjRound round = Coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				if (round == default)
+				{
+					return StatusCode(StatusCodes.Status503ServiceUnavailable, "The state of the round changed while handling the request. Try again.");
+				}
 
 				// Do more checks.
 				try

@@ -1050,7 +1050,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 			}
 
-			Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");
+			if (numberOfRemovedAlices > 0)
+			{
+				Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");
+			}
 
 			return numberOfRemovedAlices;
 		}
@@ -1068,7 +1071,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				numberOfRemovedAlices = Alices.RemoveAll(x => x.Inputs.Any(y => y.Outpoint == input));
 			}
 
-			Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");
+			if (numberOfRemovedAlices > 0)
+			{
+				Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices are removed.");
+			}
 
 			return numberOfRemovedAlices;
 		}

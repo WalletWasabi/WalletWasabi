@@ -233,9 +233,28 @@ namespace WalletWasabi.Services
 			// If aborted in signing phase, then ban Alices those didn't sign.
 			if (status == CcjRoundStatus.Aborted && round.Phase == CcjRoundPhase.Signing)
 			{
+				// Because the event sometimes is raised from inside the lock.
 				IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
 
-				foreach (Alice alice in alicesDidntSign) // Because the event sometimes is raised from inside the lock.
+				CcjRound nextRound = GetCurrentInputRegisterableRoundOrDefault(syncLock: false);
+
+				if (nextRound != default)
+				{
+					var newAnonymitySet = Math.Max(alicesDidntSign.Count(), nextRound.CountAlices(syncLock: false));
+					newAnonymitySet = Math.Min(nextRound.AnonymitySet, newAnonymitySet);
+					if (nextRound.AnonymitySet != newAnonymitySet)
+					{
+						nextRound.UpdateAnonymitySet(newAnonymitySet);
+
+						if (nextRound.CountAlices() >= nextRound.AnonymitySet && nextRound.Phase == CcjRoundPhase.InputRegistration)
+						{
+							// Progress to the next phase, which will be OutputRegistration
+							await nextRound.ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+						}
+					}
+				}
+
+				foreach (Alice alice in alicesDidntSign)
 				{
 					// If its from any coinjoin, then don't ban.
 					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.Outpoint);
@@ -272,11 +291,20 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public CcjRound GetCurrentInputRegisterableRound()
+		public CcjRound GetCurrentInputRegisterableRoundOrDefault(bool syncLock = true)
 		{
-			using (RoundsListLock.Lock())
+			bool predicate(CcjRound x) => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration;
+
+			if (syncLock)
 			{
-				return Rounds.First(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration); // not FirstOrDefault, it must always exist
+				using (RoundsListLock.Lock())
+				{
+					return Rounds.FirstOrDefault(predicate);
+				}
+			}
+			else
+			{
+				return Rounds.FirstOrDefault(predicate);
 			}
 		}
 
