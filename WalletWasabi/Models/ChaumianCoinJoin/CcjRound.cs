@@ -405,13 +405,19 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 				if (executeRunAbortion)
 				{
-					if (expectedPhase == CcjRoundPhase.OutputRegistration)
+					string timedOutLogString = $"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.";
+
+					if (expectedPhase == CcjRoundPhase.ConnectionConfirmation)
 					{
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds. Progressing to next phase to blame...");
+						Logger.LogInfo<CcjRound>(timedOutLogString);
+					}
+					else if (expectedPhase == CcjRoundPhase.OutputRegistration)
+					{
+						Logger.LogInfo<CcjRound>($"{timedOutLogString} Progressing to signing phase to blame...");
 					}
 					else
 					{
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds. Aborting...");
+						Logger.LogInfo<CcjRound>($"{timedOutLogString} Aborting...");
 					}
 
 					// This will happen outside the lock.
@@ -442,12 +448,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 								case CcjRoundPhase.ConnectionConfirmation:
 									{
-										// Only abort if less than two one alices are registered.
-										// What if an attacker registers all the time many alices, then drops out. He'll achieve only 2 alices to participate?
-										// If he registers many alices at InputRegistration
-										// AND never confirms in connection confirmation
-										// THEN connection confirmation will go with 2 alices in every round
-										// Therefore Alices those didn't confirm, nor requested dsconnection should be banned:
 										IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
 										await ProgressToOutputRegistrationOrFailAsync(alicesToBan.ToArray());
@@ -499,6 +499,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public async Task ProgressToOutputRegistrationOrFailAsync(params Alice[] additionalAlicesToBan)
 		{
+			// Only abort if less than two one alices are registered.
+			// What if an attacker registers all the time many alices, then drops out. He'll achieve only 2 alices to participate?
+			// If he registers many alices at InputRegistration
+			// AND never confirms in connection confirmation
+			// THEN connection confirmation will go with 2 alices in every round
+			// Therefore Alices those didn't confirm, nor requested disconnection should be banned:
+
 			IEnumerable<Alice> alicesToBan = await RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
 
 			IEnumerable<OutPoint> inputsToBan = alicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(additionalAlicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
@@ -512,12 +519,18 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
 			int didNotConfirmeCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
-			if (didNotConfirmeCount > 0)
+			if (aliceCountAfterConnectionConfirmationTimeout < 2)
 			{
 				Abort(nameof(CcjRound), $"{didNotConfirmeCount} Alices did not confirm their connection.");
 			}
 			else
 			{
+				if (didNotConfirmeCount > 0)
+				{
+					// Adjust anonymity set.
+					AnonymitySet = aliceCountAfterConnectionConfirmationTimeout;
+					Logger.LogInfo<CcjRound>($"{didNotConfirmeCount} Alices did not confirm their connection. Anonymity set is lowered to {AnonymitySet}.");
+				}
 				// Progress to the next phase, which will be OutputRegistration
 				await ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
 			}
