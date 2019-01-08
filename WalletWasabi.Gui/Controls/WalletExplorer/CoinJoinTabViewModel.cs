@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using AvalonStudio.Commands;
 using NBitcoin;
 using ReactiveUI;
 using ReactiveUI.Legacy;
@@ -27,6 +28,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Fine,
 			Strong,
 		}
+
 		private CoinListViewModel _coinsList;
 		private long _roundId;
 		private int _successfulRoundCount;
@@ -46,8 +48,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _dequeueButtonText;
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
-
-
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
@@ -161,6 +161,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DequeueButtonText = DequeueButtonTextString;
 				}
+			});
+
+			this.WhenAnyValue(x => x.CoinJoinUntilAnonimitySet).Subscribe(async coinJoinUntilAnonimitySet =>
+			{
+				Global.Config.MixUntilAnonymitySet = coinJoinUntilAnonimitySet;
+				await Global.Config.ToFileAsync();
 			});
 		}
 
@@ -457,35 +463,41 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _dequeueButtonText, value); }
 		}
 
-		int _coinJoinUntilAnonimitySet;
+		private int _coinJoinUntilAnonimitySet;
 		private ETargetPrivacy _targetPrivacy;
 
 		public int CoinJoinUntilAnonimitySet
 		{
 			get { return _coinJoinUntilAnonimitySet; }
-			set { this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value); }
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value);
+			}
 		}
 
 		private ETargetPrivacy TargetPrivacy
 		{
 			get => _targetPrivacy;
-			set 
-			{ 
+			set
+			{
 				_targetPrivacy = value;
 				CoinJoinUntilAnonimitySet = GetTargetPrivacy(value);
-			 }
+			}
 		}
 
-		static int GetTargetPrivacy(ETargetPrivacy target)
+		private static int GetTargetPrivacy(ETargetPrivacy target)
 		{
 			switch (target)
 			{
 				case ETargetPrivacy.None:
 					return 0;
+
 				case ETargetPrivacy.Some:
 					return Global.Config.PrivacyLevelSome.Value;
+
 				case ETargetPrivacy.Fine:
 					return Global.Config.PrivacyLevelFine.Value;
+
 				case ETargetPrivacy.Strong:
 					return Global.Config.PrivacyLevelStrong.Value;
 			}
@@ -499,6 +511,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand PrivacySomeCommand { get; }
 		public ReactiveCommand PrivacyFineCommand { get; }
 		public ReactiveCommand PrivacyStrongCommand { get; }
-
 	}
 }
