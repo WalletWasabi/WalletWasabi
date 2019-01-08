@@ -383,24 +383,7 @@ namespace WalletWasabi.Backend.Controllers
 						// Progress round if needed.
 						if (round.AllAlices(AliceState.ConnectionConfirmed))
 						{
-							IEnumerable<Alice> alicesToBan = await round.RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
-
-							if (alicesToBan.Any())
-							{
-								await Coordinator.UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, round.RoundId, alicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint).ToArray());
-							}
-
-							int aliceCountAfterConnectionConfirmationTimeout = round.CountAlices();
-							int didNotConfirmeCount = round.AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
-							if (didNotConfirmeCount > 0)
-							{
-								round.Abort(nameof(ChaumianCoinJoinController), $"{didNotConfirmeCount} Alices did not confirm their connection.");
-							}
-							else
-							{
-								// Progress to the next phase, which will be OutputRegistration
-								await round.ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
-							}
+							await round.ProgressToOutputRegistrationOrFailAsync(Enumerable.Empty<Alice>());
 						}
 
 						break;

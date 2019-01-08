@@ -448,29 +448,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										// AND never confirms in connection confirmation
 										// THEN connection confirmation will go with 2 alices in every round
 										// Therefore Alices those didn't confirm, nor requested dsconnection should be banned:
-										IEnumerable<Alice> alicesToBan1 = GetAlicesBy(AliceState.InputsRegistered);
-										IEnumerable<Alice> alicesToBan2 = await RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
+										IEnumerable<Alice> alicesToBan = GetAlicesBy(AliceState.InputsRegistered);
 
-										IEnumerable<OutPoint> inputsToBan = alicesToBan1.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(alicesToBan2.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
-
-										if (inputsToBan.Any())
-										{
-											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, inputsToBan.ToArray());
-										}
-
-										RemoveAlicesBy(alicesToBan1.Select(x => x.UniqueId).Concat(alicesToBan2.Select(y => y.UniqueId)).Distinct().ToArray());
-
-										int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
-										int didNotConfirmeCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
-										if (didNotConfirmeCount > 0)
-										{
-											Abort(nameof(CcjRound), $"{didNotConfirmeCount} Alices did not confirm their connection.");
-										}
-										else
-										{
-											// Progress to the next phase, which will be OutputRegistration
-											await ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
-										}
+										await ProgressToOutputRegistrationOrFailAsync(alicesToBan);
 									}
 									break;
 
@@ -515,6 +495,32 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 			});
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+		}
+
+		public async Task ProgressToOutputRegistrationOrFailAsync(IEnumerable<Alice> additionalAlicesToBan)
+		{
+			IEnumerable<Alice> alicesToBan = await RemoveAlicesIfAnInputRefusedByMempoolAsync(); // So ban only those who confirmed participation, yet spent their inputs.
+
+			IEnumerable<OutPoint> inputsToBan = alicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint).Concat(additionalAlicesToBan.SelectMany(x => x.Inputs).Select(y => y.Outpoint)).Distinct();
+
+			if (inputsToBan.Any())
+			{
+				await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, inputsToBan.ToArray());
+			}
+
+			RemoveAlicesBy(additionalAlicesToBan.Select(x => x.UniqueId).Concat(alicesToBan.Select(y => y.UniqueId)).Distinct().ToArray());
+
+			int aliceCountAfterConnectionConfirmationTimeout = CountAlices();
+			int didNotConfirmeCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
+			if (didNotConfirmeCount > 0)
+			{
+				Abort(nameof(CcjRound), $"{didNotConfirmeCount} Alices did not confirm their connection.");
+			}
+			else
+			{
+				// Progress to the next phase, which will be OutputRegistration
+				await ExecuteNextPhaseAsync(CcjRoundPhase.OutputRegistration);
+			}
 		}
 
 		private bool CanUseAdditionalOutputs(Money newDenomination, Transaction transaction)
