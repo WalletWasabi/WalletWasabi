@@ -464,7 +464,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 										int didNotConfirmeCount = AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
 										if (didNotConfirmeCount > 0)
 										{
-											Abort(nameof(CcjRound), $"{didNotConfirmeCount} Alices did not confirem their connection.");
+											Abort(nameof(CcjRound), $"{didNotConfirmeCount} Alices did not confirm their connection.");
 										}
 										else
 										{
@@ -1000,16 +1000,16 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					// Check if mempool would accept a fake transaction created with the registered inputs.
 					// This will catch ascendant/descendant count and size limits for example.
-					checkingTasks.Add( (alice, batch.TestMempoolAcceptAsync(alice.Inputs)) );
+					checkingTasks.Add((alice, batch.TestMempoolAcceptAsync(alice.Inputs)));
 				}
-				var waiting = Task.WhenAll(checkingTasks.Select(t=>t.task));
+				var waiting = Task.WhenAll(checkingTasks.Select(t => t.task));
 				await batch.SendBatchAsync();
 				await waiting;
 
-				foreach(var t in checkingTasks)
+				foreach (var t in checkingTasks)
 				{
-					var result = await t.task; 
-					if(!result.accepted)
+					var result = await t.task;
+					if (!result.accepted)
 					{
 						alicesRemoved.Add(t.alice);
 						Alices.Remove(t.alice);

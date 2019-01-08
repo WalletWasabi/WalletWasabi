@@ -394,7 +394,7 @@ namespace WalletWasabi.Backend.Controllers
 							int didNotConfirmeCount = round.AnonymitySet - aliceCountAfterConnectionConfirmationTimeout;
 							if (didNotConfirmeCount > 0)
 							{
-								round.Abort(nameof(ChaumianCoinJoinController), $"{didNotConfirmeCount} Alices did not confirem their connection.");
+								round.Abort(nameof(ChaumianCoinJoinController), $"{didNotConfirmeCount} Alices did not confirm their connection.");
 							}
 							else
 							{
