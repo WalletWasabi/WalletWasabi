@@ -18,7 +18,7 @@
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="150" />
-        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" MinWidth="460" />
       </Grid.ColumnDefinitions>
       <controls:GroupBox Grid.Row="0" Grid.Column="2" Title="Status" Padding="5" Margin="5 5 0 0">
         <ScrollViewer>
