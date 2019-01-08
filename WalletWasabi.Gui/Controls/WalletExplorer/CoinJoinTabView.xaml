@@ -13,13 +13,14 @@
         </Grid>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="150" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <controls:GroupBox Grid.Row="0" Grid.Column="1" Title="Status" Padding="10">
+            <controls:GroupBox Grid.Row="0" Grid.Column="2" Title="Status" Padding="5" Margin="5 5 0 0">
                 <ScrollViewer>
                     <StackPanel Orientation="Vertical">
                         <StackPanel Orientation="Horizontal" Spacing="4">
@@ -73,38 +74,42 @@
                     </StackPanel>
                 </ScrollViewer>
             </controls:GroupBox>
-            <Grid Grid.Row="0" Grid.Column="0" Classes="content">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="150" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0" Margin="0 10">Note that, you must select coins you want to enqueu or dequeue.</TextBlock>
-                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0 10" Spacing="10">
-                    <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
-                    <DockPanel Grid.Row="0" Grid.Column="1" LastChildFill="True" IsEnabled="{Binding !IsEnqueueBusy}">
-                        <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
-                            <StackPanel Orientation="Horizontal">
-                                <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsEnqueueBusy}" Margin="0 0 8 0" />
-                                <TextBlock Text="{Binding EnqueueButtonText}" />
-                            </StackPanel>
-                        </Button>
-                    </DockPanel>
-                    <DockPanel LastChildFill="True" IsEnabled="{Binding !IsDequeueBusy}">
-                        <Button Command="{Binding DequeueCommand}" DockPanel.Dock="Right">
-                            <StackPanel Orientation="Horizontal">
-                                <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsDequeueBusy}" Margin="0 0 8 0" />
-                                <TextBlock Text="{Binding DequeueButtonText}" />
-                            </StackPanel>
-                        </Button>
-                    </DockPanel>
-                    <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-                </StackPanel>
-                <Panel Grid.Row="1" Grid.Column="1" VerticalAlignment="Top" Margin="0 0 120 0" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding CoinJoinUntilAnonimitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
-                    <DrawingPresenter Drawing="{Binding Icon}" VerticalAlignment="Bottom" Height="150" Width="100" />
+            <controls:GroupBox Grid.Row="0" Grid.Column="0" Title="CoinJoin" Padding="5" Margin="0 5 5 0">
+                <Grid Grid.Row="0" Grid.Column="0" Classes="content">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="150" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="0 5">Note that, you must select coins you want to enqueu or dequeue.</TextBlock>
+                    <StackPanel Grid.Row="1" Grid.Column="0" Spacing="10">
+                        <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
+                        <DockPanel Grid.Row="0" Grid.Column="1" LastChildFill="True" IsEnabled="{Binding !IsEnqueueBusy}">
+                            <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
+                                <StackPanel Orientation="Horizontal">
+                                    <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsEnqueueBusy}" Margin="0 0 8 0" />
+                                    <TextBlock Text="{Binding EnqueueButtonText}" />
+                                </StackPanel>
+                            </Button>
+                        </DockPanel>
+                        <DockPanel LastChildFill="True" IsEnabled="{Binding !IsDequeueBusy}">
+                            <Button Command="{Binding DequeueCommand}" DockPanel.Dock="Right">
+                                <StackPanel Orientation="Horizontal">
+                                    <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsDequeueBusy}" Margin="0 0 8 0" />
+                                    <TextBlock Text="{Binding DequeueButtonText}" />
+                                </StackPanel>
+                            </Button>
+                        </DockPanel>
+                        <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+                    </StackPanel>
+                </Grid>
+            </controls:GroupBox>
+            <controls:GroupBox Grid.Row="0" Grid.Column="1" Title="Target" Padding="5" Margin="5 0">
+                <Panel Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding CoinJoinUntilAnonimitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
+                    <DrawingPresenter Drawing="{Binding Icon}" VerticalAlignment="Center" Height="100" Width="75" />
                     <Panel.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Menu item 1" />
@@ -114,7 +119,7 @@
                         </ContextMenu>
                     </Panel.ContextMenu>
                 </Panel>
-            </Grid>
+            </controls:GroupBox>
         </Grid>
     </Grid>
 </UserControl>
