@@ -9,10 +9,6 @@ namespace WalletWasabi.Backend.Models.Responses
 {
 	public class InputsResponse
 	{
-		[Required, MinLength(1)]
-		[JsonProperty(ItemConverterType = typeof(BigIntegerJsonConverter))]
-		public IEnumerable<BigInteger> BlindedOutputSignatures { get; set; }
-
 		[JsonConverter(typeof(GuidJsonConverter))]
 		public Guid UniqueId { get; set; }
 

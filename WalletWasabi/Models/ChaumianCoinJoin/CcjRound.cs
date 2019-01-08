@@ -739,6 +739,20 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
+		public int CountUsedMixingLevels()
+		{
+			using (RoundSynchronizerLock.Lock())
+			{
+				int i;
+				for (i = 1; i < MixingLevels.Count() + 1; i++)
+				{
+					if (Alices.Count(x => x.BlindedOutputSignatures.Count() > i) <= 1) break;
+				}
+
+				return i;
+			}
+		}
+
 		public int CountBlindSignatures()
 		{
 			using (RoundSynchronizerLock.Lock())
@@ -976,24 +990,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 
 			Logger.LogInfo<CcjRound>($"Round ({RoundId}): Bob ({bob.Level.Denomination}) added.");
-		}
-
-		public int RemoveAlicesBy(AliceState state)
-		{
-			int numberOfRemovedAlices = 0;
-			using (RoundSynchronizerLock.Lock())
-			{
-				if ((Phase != CcjRoundPhase.InputRegistration && Phase != CcjRoundPhase.ConnectionConfirmation) || Status != CcjRoundStatus.Running)
-				{
-					throw new InvalidOperationException("Removing Alice is only allowed in InputRegistration and ConnectionConfirmation phases.");
-				}
-				numberOfRemovedAlices = Alices.RemoveAll(x => x.State == state);
-			}
-			if (numberOfRemovedAlices != 0)
-			{
-				Logger.LogInfo<CcjRound>($"Round ({RoundId}): {numberOfRemovedAlices} alices in {state} state are removed.");
-			}
-			return numberOfRemovedAlices;
 		}
 
 		public async Task<IEnumerable<Alice>> RemoveAlicesIfAnInputRefusedByMempoolAsync()

@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public uint256[] BlindedOutputScripts { get; }
 
+		public IEnumerable<BigInteger> BlindedOutputSignatures { get; set; }
+
 		public Alice(IEnumerable<Coin> inputs, Money networkFeeToPay, BitcoinAddress changeOutputAddress, IEnumerable<uint256> blindedOutputScripts)
 		{
 			Inputs = Guard.NotNullOrEmpty(nameof(inputs), inputs);
@@ -39,6 +42,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			InputSum = inputs.Sum(x => x.Amount);
 
 			State = AliceState.InputsRegistered;
+
+			BlindedOutputSignatures = new List<BigInteger>();
 		}
 	}
 }

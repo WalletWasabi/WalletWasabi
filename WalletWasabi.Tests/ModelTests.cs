@@ -209,17 +209,12 @@ namespace WalletWasabi.Tests
 			{
 				UniqueId = Guid.NewGuid(),
 				RoundId = 1,
-				BlindedOutputSignatures = bigIntegers
 			};
 
 			var serialized = JsonConvert.SerializeObject(resp);
 			var deserialized = JsonConvert.DeserializeObject<InputsResponse>(serialized);
 			Assert.Equal(resp.RoundId, deserialized.RoundId);
 			Assert.Equal(resp.UniqueId, deserialized.UniqueId);
-			for (int i = 0; i < bigIntegers.Length; i++)
-			{
-				Assert.Equal(bigIntegers[i], deserialized.BlindedOutputSignatures.ToArray()[i]);
-			}
 		}
 
 		[Fact]

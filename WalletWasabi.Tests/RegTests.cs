@@ -1836,14 +1836,12 @@ namespace WalletWasabi.Tests
 					ClientRoundRegistration first = null;
 					var second = new ClientRoundRegistration(aliceClient,
 						new[] { new SmartCoin(uint256.One, 1, Script.Empty, Money.Zero, new[] { new TxoRef(uint256.One, 1) }, Height.Unknown, true, 1) },
-						new List<(BitcoinAddress, BlindSignature, int)> { (BitcoinAddress.Create("12Rty3c8j3QiZSwLVaBtch6XUMZaja3RC7", Network.Main), null, 1) },
 						BitcoinAddress.Create("12Rty3c8j3QiZSwLVaBtch6XUMZaja3RC7", Network.Main));
 					first = second;
 					second = null;
 					Assert.NotNull(first);
 					Assert.Null(second);
 
-					Assert.NotNull(aliceClient.BlindedOutputSignatures);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 					Assert.True(aliceClient.RoundId > 0);
 
@@ -1872,7 +1870,6 @@ namespace WalletWasabi.Tests
 				inputsRequest.Inputs.First().Proof = proof;
 				using (var aliceClient = await AliceClient.CreateNewAsync(network, inputsRequest, baseUri))
 				{
-					Assert.NotNull(aliceClient.BlindedOutputSignatures);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 					Assert.True(aliceClient.RoundId > 0);
 
@@ -1910,7 +1907,6 @@ namespace WalletWasabi.Tests
 				inputsRequest.Inputs = inputProofs;
 				using (var aliceClient = await AliceClient.CreateNewAsync(network, inputsRequest, baseUri))
 				{
-					Assert.NotEmpty(aliceClient.BlindedOutputSignatures);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 					Assert.True(aliceClient.RoundId > 0);
 
@@ -1980,7 +1976,6 @@ namespace WalletWasabi.Tests
 
 				using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), new[] { blindedData }, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedOutputScriptsHash) } }, baseUri))
 				{
-					Assert.NotEmpty(aliceClient.BlindedOutputSignatures);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 					Assert.True(aliceClient.RoundId > 0);
 					// Double the request.
@@ -2020,7 +2015,6 @@ namespace WalletWasabi.Tests
 
 				using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), new[] { blindedData }, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedOutputScriptsHash) } }, baseUri))
 				{
-					Assert.NotEmpty(aliceClient.BlindedOutputSignatures);
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 					Assert.True(aliceClient.RoundId > 0);
 					await aliceClient.PostUnConfirmationAsync();
@@ -2086,28 +2080,29 @@ namespace WalletWasabi.Tests
 					Assert.Equal(aliceClient2.RoundId, aliceClient1.RoundId);
 					Assert.NotEqual(aliceClient2.UniqueId, aliceClient1.UniqueId);
 
-					BlindSignature unblindedSignature1 = requester1.UnblindSignature(aliceClient1.BlindedOutputSignatures.First());
-					BlindSignature unblindedSignature2 = requester2.UnblindSignature(aliceClient2.BlindedOutputSignatures.First());
+					aliceClient1.Requesters = new[] { requester1 };
+					aliceClient2.Requesters = new[] { requester2 };
 
-					if (!round.MixingLevels.GetBaseLevel().Signer.VerifyUnblindedSignature(unblindedSignature2, outputAddress2.ScriptPubKey.ToBytes()))
-					{
-						throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
-					}
-
-					var phase = await aliceClient1.PostConfirmationAsync();
-					Assert.Equal(phase, await aliceClient1.PostConfirmationAsync()); // Make sure it won't throw error for double confirming.
-					Assert.Equal(phase, await aliceClient2.PostConfirmationAsync());
+					var connConfResp = await aliceClient1.PostConfirmationAsync();
+					var connConfResp2 = await aliceClient2.PostConfirmationAsync();
+					Assert.Equal(connConfResp.currentPhase, (await aliceClient1.PostConfirmationAsync()).currentPhase); // Make sure it won't throw error for double confirming.
+					Assert.Equal(connConfResp.currentPhase, connConfResp2.currentPhase);
 					httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient2.PostConfirmationAsync());
 					Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nParticipation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: OutputRegistration.", httpRequestException.Message);
 
 					var roundState = await satoshiClient.GetRoundStateAsync(aliceClient1.RoundId);
 					Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
 
+					if (!round.MixingLevels.GetBaseLevel().Signer.VerifyUnblindedSignature(connConfResp2.activeOutputs.First().signature, outputAddress2.ScriptPubKey.ToBytes()))
+					{
+						throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
+					}
+
 					using (var bobClient1 = new BobClient(baseUri))
 					using (var bobClient2 = new BobClient(baseUri))
 					{
-						await bobClient1.PostOutputAsync(aliceClient1.RoundId, outputAddress1, unblindedSignature1, 0);
-						await bobClient2.PostOutputAsync(aliceClient2.RoundId, outputAddress2, unblindedSignature2, 0);
+						await bobClient1.PostOutputAsync(aliceClient1.RoundId, outputAddress1, connConfResp.activeOutputs.First().signature, 0);
+						await bobClient2.PostOutputAsync(aliceClient2.RoundId, outputAddress2, connConfResp2.activeOutputs.First().signature, 0);
 					}
 
 					roundState = await satoshiClient.GetRoundStateAsync(aliceClient1.RoundId);
@@ -2210,7 +2205,6 @@ namespace WalletWasabi.Tests
 				// important data for each of the participants in the coinjoin session.
 				var participants = new List<(AliceClient aliceClient,
 											 List<(Requester requester, BitcoinWitPubKeyAddress outputAddress, uint256 blindedScript)> outouts,
-											 List<BlindSignature> signatures,
 											 List<(TxoRef input, byte[] proof, Coin coin, Key key)> inputs)>();
 
 				// INPUS REGISTRATION PHASE --
@@ -2258,47 +2252,35 @@ namespace WalletWasabi.Tests
 					var inputProof = inputs.Select(x => new InputProofModel { Input = x.input, Proof = x.proof });
 					var aliceClient = await AliceClient.CreateNewAsync(network, changeOutput, blindedOutputScriptList, inputProof, baseUri);
 
-					// Coordinator only signs as outputs that can be funded by the registered inputs
-					Assert.True(aliceClient.BlindedOutputSignatures.Length < blindedOutputScriptList.Count());
-
 					// We check the coordinator signed all the alice blinded outputs
-					var i = 0;
-					var signatures = new List<BlindSignature>();
-					foreach (var signature in aliceClient.BlindedOutputSignatures)
-					{
-						var (requester, outputsAddress, _) = outputs[i];
-						BlindSignature unblindedSignature = requester.UnblindSignature(signature);
+					aliceClient.Requesters = outputs.Select(x => x.requester).ToArray();
+					aliceClient.RegisteredAddresses = outputs.Select(x => x.outputAddress).ToArray();
 
-						var level = round.MixingLevels.Levels[i];
-						if (!level.Signer.VerifyUnblindedSignature(unblindedSignature, outputsAddress.ScriptPubKey.ToBytes()))
-						{
-							throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
-						}
-						signatures.Add(unblindedSignature);
-						i++;
-					}
-
-					participants.Add((aliceClient, outputs, signatures, inputs));
+					participants.Add((aliceClient, outputs, inputs));
 				}
 
 				// CONNECTION CONFIRMATION PHASE --
-				foreach (var (aliceClient, _, _, _) in participants)
+				List<IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)>> activeOutputs = new List<IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)>>();
+				var j = 0;
+				foreach (var (aliceClient, _, _) in participants)
 				{
-					var phase = await aliceClient.PostConfirmationAsync();
+					var res = await aliceClient.PostConfirmationAsync();
+					activeOutputs.Add(res.activeOutputs);
+					j++;
 				}
 
 				// OUTPUTS REGISTRATION PHASE --
 				var roundState = await satoshiClient.GetRoundStateAsync(roundId);
 				Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
 
-				foreach (var (aliceClient, outputs, signatures, _) in participants)
+				foreach (var (aliceClient, outputs, _) in participants)
 				{
 					using (var bobClient = new BobClient(baseUri))
 					{
 						var i = 0;
-						foreach (var output in outputs.Take(aliceClient.BlindedOutputSignatures.Length))
+						foreach (var output in outputs.Take(activeOutputs[i].Count()))
 						{
-							await bobClient.PostOutputAsync(aliceClient.RoundId, output.outputAddress, signatures[i], i);
+							await bobClient.PostOutputAsync(aliceClient.RoundId, output.outputAddress, activeOutputs[i].ElementAt(i).signature, i);
 							i++;
 						}
 					}
@@ -2309,7 +2291,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(CcjRoundPhase.Signing, roundState.Phase);
 
 				uint256 transactionId = null;
-				foreach (var (aliceClient, outputs, _, inputs) in participants)
+				foreach (var (aliceClient, outputs, inputs) in participants)
 				{
 					var unsignedTransaction = await aliceClient.GetUnsignedCoinJoinAsync();
 					transactionId = unsignedTransaction.GetHash();
@@ -2515,12 +2497,12 @@ namespace WalletWasabi.Tests
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
 				// Because it's valuetuple.
-				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, user.requester.UnblindSignature(aliceClient.BlindedOutputSignatures.First())));
+				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
 
-			var confirmationRequests = new List<Task<CcjRoundPhase>>();
+			var confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)>)>>();
 
 			foreach (var user in users)
 			{
@@ -2528,16 +2510,21 @@ namespace WalletWasabi.Tests
 			}
 
 			CcjRoundPhase roundPhase = CcjRoundPhase.InputRegistration;
+			int k = 0;
 			foreach (var request in confirmationRequests)
 			{
+				var resp = await request;
 				if (roundPhase == CcjRoundPhase.InputRegistration)
 				{
-					roundPhase = await request;
+					roundPhase = resp.currentPhase;
 				}
 				else
 				{
-					Assert.Equal(roundPhase, await request);
+					Assert.Equal(roundPhase, resp.currentPhase);
 				}
+
+				var user = users.ElementAt(k);
+				user.unblindedSignature = resp.Item2.First().signature;
 			}
 
 			using (var satoshiClient = new SatoshiClient(baseUri))
@@ -2580,12 +2567,12 @@ namespace WalletWasabi.Tests
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
 				// Because it's valuetuple.
-				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, user.requester.UnblindSignature(aliceClient.BlindedOutputSignatures.First())));
+				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
 
-			confirmationRequests = new List<Task<CcjRoundPhase>>();
+			confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)>)>>();
 
 			foreach (var user in users)
 			{
@@ -2593,16 +2580,21 @@ namespace WalletWasabi.Tests
 			}
 
 			roundPhase = CcjRoundPhase.InputRegistration;
+			k = 0;
 			foreach (var request in confirmationRequests)
 			{
+				var resp = await request;
 				if (roundPhase == CcjRoundPhase.InputRegistration)
 				{
-					roundPhase = await request;
+					roundPhase = resp.currentPhase;
 				}
 				else
 				{
-					Assert.Equal(roundPhase, await request);
+					Assert.Equal(roundPhase, resp.currentPhase);
 				}
+
+				var user = users.ElementAt(k);
+				user.unblindedSignature = resp.Item2.First().signature;
 			}
 
 			using (var satoshiClient = new SatoshiClient(baseUri))
@@ -2723,14 +2715,13 @@ namespace WalletWasabi.Tests
 					Assert.Equal(roundId, aliceClient.RoundId);
 				}
 				// Because it's valuetuple.
-				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, user.requester.UnblindSignature(aliceClient.BlindedOutputSignatures.First())));
+				users.Add((user.requester, user.blinded, user.activeOutputAddress, user.changeOutputAddress, user.inputProofModels, user.userInputData, aliceClient, null));
 			}
 
 			Logger.TurnOn();
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
-
-			var confirmationRequests = new List<Task<CcjRoundPhase>>();
+			var confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)>)>>();
 
 			foreach (var user in users)
 			{
@@ -2738,16 +2729,21 @@ namespace WalletWasabi.Tests
 			}
 
 			CcjRoundPhase roundPhase = CcjRoundPhase.InputRegistration;
+			int k = 0;
 			foreach (var request in confirmationRequests)
 			{
+				var resp = await request;
 				if (roundPhase == CcjRoundPhase.InputRegistration)
 				{
-					roundPhase = await request;
+					roundPhase = resp.currentPhase;
 				}
 				else
 				{
-					Assert.Equal(roundPhase, await request);
+					Assert.Equal(roundPhase, resp.currentPhase);
 				}
+
+				var user = users.ElementAt(k);
+				user.unblindedSignature = resp.Item2.First().signature;
 			}
 
 			var outputRequests = new List<(BobClient, Task)>();

@@ -310,6 +310,7 @@ namespace WalletWasabi.Backend.Controllers
 						BigInteger blindSignature = signer.Sign(blindedOutput);
 						blindSignatures.Add(blindSignature);
 					}
+					alice.BlindedOutputSignatures = blindSignatures;
 
 					// Check if phase changed since.
 					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
@@ -331,7 +332,6 @@ namespace WalletWasabi.Backend.Controllers
 					var resp = new InputsResponse
 					{
 						UniqueId = alice.UniqueId,
-						BlindedOutputSignatures = blindSignatures,
 						RoundId = round.RoundId
 					};
 					return Ok(resp);
@@ -349,8 +349,8 @@ namespace WalletWasabi.Backend.Controllers
 		/// </summary>
 		/// <param name="uniqueId">Unique identifier, obtained previously.</param>
 		/// <param name="roundId">Round identifier, obtained previously.</param>
-		/// <returns>Current Phase and Alice is found.</returns>
-		/// <response code="200">Current Phase and Alice is found.</response>
+		/// <returns>Current phase and blinded output sinatures if Alice is found.</returns>
+		/// <response code="200">Current phase and blinded output sinatures if Alice is found.</response>
 		/// <response code="400">The provided uniqueId or roundId was malformed.</response>
 		/// <response code="404">If Alice or the round is not found.</response>
 		/// <response code="410">Participation can be only confirmed from a Running round's InputRegistration or ConnectionConfirmation phase.</response>
@@ -373,6 +373,13 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			CcjRoundPhase phase = round.Phase;
+
+			// Start building the response.
+			var resp = new ConnConfResp
+			{
+				CurrentPhase = phase
+			};
+
 			switch (phase)
 			{
 				case CcjRoundPhase.InputRegistration:
@@ -383,6 +390,8 @@ namespace WalletWasabi.Backend.Controllers
 				case CcjRoundPhase.ConnectionConfirmation:
 					{
 						alice.State = AliceState.ConnectionConfirmed;
+
+						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(round.CountUsedMixingLevels()); // Don't give back more mixing levels than we'll use.
 
 						// Progress round if needed.
 						if (round.AllAlices(AliceState.ConnectionConfirmed))
@@ -398,7 +407,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 			}
 
-			return Ok(phase);
+			return Ok(resp);
 		}
 
 		/// <summary>

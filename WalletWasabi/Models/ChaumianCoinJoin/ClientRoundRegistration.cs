@@ -2,6 +2,7 @@
 using NBitcoin.Crypto;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
@@ -18,18 +19,19 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public BitcoinAddress ChangeAddress { get; }
 
-		public IEnumerable<(BitcoinAddress address, BlindSignature signature, int mixingLevel)> ActiveOutputs { get; }
+		public IEnumerable<(BitcoinAddress address, BlindSignature signature, int mixingLevel)> ActiveOutputs { get; set; }
 
 		public IEnumerable<SmartCoin> CoinsRegistered { get; }
 
 		public AliceClient AliceClient { get; }
 
-		public ClientRoundRegistration(AliceClient aliceClient, IEnumerable<SmartCoin> coinsRegistereds, IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)> activeOutputs, BitcoinAddress changeAddress)
+		public ClientRoundRegistration(AliceClient aliceClient, IEnumerable<SmartCoin> coinsRegistereds, BitcoinAddress changeAddress)
 		{
 			AliceClient = Guard.NotNull(nameof(aliceClient), aliceClient);
 			CoinsRegistered = Guard.NotNullOrEmpty(nameof(coinsRegistereds), coinsRegistereds);
-			ActiveOutputs = Guard.NotNullOrEmpty(nameof(activeOutputs), activeOutputs);
 			ChangeAddress = Guard.NotNull(nameof(changeAddress), changeAddress);
+
+			ActiveOutputs = Enumerable.Empty<(BitcoinAddress address, BlindSignature signature, int mixingLevel)>();
 		}
 
 		public bool IsPhaseActionsComleted(CcjRoundPhase phase) => CompletedPhase >= phase;

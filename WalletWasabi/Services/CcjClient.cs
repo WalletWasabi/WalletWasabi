@@ -274,7 +274,11 @@ namespace WalletWasabi.Services
 				{
 					if (!ongoingRound.Registration.IsPhaseActionsComleted(CcjRoundPhase.ConnectionConfirmation)) // If we didn't already confirmed connection in connection confirmation phase confirm it.
 					{
-						await ongoingRound.Registration.AliceClient.PostConfirmationAsync();
+						var res = await ongoingRound.Registration.AliceClient.PostConfirmationAsync();
+						if (res.activeOutputs.Any())
+						{
+							ongoingRound.Registration.ActiveOutputs = res.activeOutputs;
+						}
 						ongoingRound.Registration.SetPhaseCompleted(CcjRoundPhase.ConnectionConfirmation);
 					}
 				}
@@ -413,11 +417,17 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
-				CcjRoundPhase phase = await inputRegistrableRound.Registration.AliceClient.PostConfirmationAsync();
-				if (phase > CcjRoundPhase.InputRegistration) // Then the phase went to connection confirmation (probably).
+				var res = await inputRegistrableRound.Registration.AliceClient.PostConfirmationAsync();
+
+				if (res.activeOutputs.Any())
+				{
+					inputRegistrableRound.Registration.ActiveOutputs = res.activeOutputs;
+				}
+
+				if (res.currentPhase > CcjRoundPhase.InputRegistration) // Then the phase went to connection confirmation (probably).
 				{
 					inputRegistrableRound.Registration.SetPhaseCompleted(CcjRoundPhase.ConnectionConfirmation);
-					inputRegistrableRound.State.Phase = phase;
+					inputRegistrableRound.State.Phase = res.currentPhase;
 				}
 			}
 			catch (Exception ex)
@@ -554,7 +564,7 @@ namespace WalletWasabi.Services
 				KeyManager.ToFile();
 
 				SchnorrPubKey[] schnorrPubKeys = inputRegistrableRound.State.SchnorrPubKeys.ToArray();
-				var requesters = new List<Requester>();
+				List<Requester> requesters = new List<Requester>();
 				var outputScriptHashes = new List<uint256>();
 				var blindedOutputScriptHashes = new List<uint256>();
 
@@ -629,22 +639,10 @@ namespace WalletWasabi.Services
 					return;
 				}
 
-				var unblindedSignatures = new List<BlindSignature>();
-				for (int i = 0; i < aliceClient.BlindedOutputSignatures.Length; i++)
-				{
-					BigInteger blindedSignature = aliceClient.BlindedOutputSignatures[i];
-					Requester requester = requesters.ElementAt(i);
-					BlindSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
-
-					uint256 outputScriptHash = outputScriptHashes.ElementAt(i);
-					PubKey signerPubKey = schnorrPubKeys[i].SignerPubKey;
-					if (!VerifySignature(outputScriptHash, unblindedSignature, signerPubKey))
-					{
-						throw new NotSupportedException($"Coordinator did not sign the blinded output properly for level: {i}.");
-					}
-
-					unblindedSignatures.Add(unblindedSignature);
-				}
+				aliceClient.RegisteredAddresses = registeredAddresses.ToArray();
+				aliceClient.SchnorrPubKeys = schnorrPubKeys;
+				aliceClient.Requesters = requesters.ToArray();
+				aliceClient.OutputScriptHashes = outputScriptHashes.ToArray();
 
 				var coinsRegistered = new List<SmartCoin>();
 				foreach (TxoRef coinReference in registrableCoins)
@@ -655,15 +653,7 @@ namespace WalletWasabi.Services
 					State.RemoveCoinFromWaitingList(coin);
 				}
 
-				var activeOutputs = new List<(BitcoinAddress output, BlindSignature signature, int level)>();
-				for (int i = 0; i < Math.Min(unblindedSignatures.Count, registeredAddresses.Count); i++)
-				{
-					var sig = unblindedSignatures[i];
-					var addr = registeredAddresses[i];
-					var lvl = i;
-					activeOutputs.Add((addr, sig, lvl));
-				}
-				var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, activeOutputs, changeAddress);
+				var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, changeAddress);
 
 				CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 				if (roundRegistered is null)
