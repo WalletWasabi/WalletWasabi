@@ -465,22 +465,23 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 								case CcjRoundPhase.Signing:
 									{
-										var outpointsToBan = new List<OutPoint>();
+										var alicesToBan = new List<Alice>();
+
 										using (await RoundSynchronizerLock.LockAsync())
 										{
 											foreach (Alice alice in Alices)
 											{
 												if (alice.State != AliceState.SignedCoinJoin)
 												{
-													outpointsToBan.AddRange(alice.Inputs.Select(x => x.Outpoint));
+													alicesToBan.Add(alice);
 												}
 											}
 										}
-										if (outpointsToBan.Any())
+										if (alicesToBan.Any())
 										{
-											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, outpointsToBan.ToArray());
+											await UtxoReferee.BanUtxosAsync(1, DateTimeOffset.UtcNow, forceNoted: false, RoundId, alicesToBan.SelectMany(x => x.Inputs.Select(y => y.Outpoint)).ToArray());
 										}
-										Abort(nameof(CcjRound), "Not all Alices signed.");
+										Abort(nameof(CcjRound), $"{alicesToBan.Count} Alices did not sign.");
 									}
 									break;
 
