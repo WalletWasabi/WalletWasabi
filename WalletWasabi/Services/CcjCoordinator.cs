@@ -242,7 +242,7 @@ namespace WalletWasabi.Services
 					int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
 					var newAnonymitySet = Math.Max(nextRound.AnonymitySet - alicesDidntSign.Count(), nextRoundAlicesCount);
 
-					if (nextRound.AnonymitySet != newAnonymitySet)
+					if (nextRound.AnonymitySet != newAnonymitySet && newAnonymitySet > 1)
 					{
 						nextRound.UpdateAnonymitySet(newAnonymitySet, syncLock: false);
 
