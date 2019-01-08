@@ -20,6 +20,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
+		private enum ETargetPrivacy
+		{
+			None,
+			Some,
+			Fine,
+			Strong,
+		}
 		private CoinListViewModel _coinsList;
 		private long _roundId;
 		private int _successfulRoundCount;
@@ -40,11 +47,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
 
+
+
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
 			Password = "";
-			CoinJoinUntilAnonimitySet = 80;
+			CoinJoinUntilAnonimitySet = Global.Config.MixUntilAnonymitySet.Value;
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
@@ -102,6 +111,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			DequeueCommand = ReactiveCommand.Create(async () =>
 			{
 				await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected));
+			});
+
+			PrivacySomeCommand = ReactiveCommand.Create(() =>
+			{
+				TargetPrivacy = ETargetPrivacy.Some;
+			});
+			PrivacyFineCommand = ReactiveCommand.Create(() =>
+			{
+				TargetPrivacy = ETargetPrivacy.Fine;
+			});
+			PrivacyStrongCommand = ReactiveCommand.Create(() =>
+			{
+				TargetPrivacy = ETargetPrivacy.Strong;
 			});
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
@@ -436,14 +458,47 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		int _coinJoinUntilAnonimitySet;
+		private ETargetPrivacy _targetPrivacy;
+
 		public int CoinJoinUntilAnonimitySet
 		{
 			get { return _coinJoinUntilAnonimitySet; }
 			set { this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value); }
 		}
 
+		private ETargetPrivacy TargetPrivacy
+		{
+			get => _targetPrivacy;
+			set 
+			{ 
+				_targetPrivacy = value;
+				CoinJoinUntilAnonimitySet = GetTargetPrivacy(value);
+			 }
+		}
+
+		static int GetTargetPrivacy(ETargetPrivacy target)
+		{
+			switch (target)
+			{
+				case ETargetPrivacy.None:
+					return 0;
+				case ETargetPrivacy.Some:
+					return Global.Config.PrivacyLevelSome.Value;
+				case ETargetPrivacy.Fine:
+					return Global.Config.PrivacyLevelFine.Value;
+				case ETargetPrivacy.Strong:
+					return Global.Config.PrivacyLevelStrong.Value;
+			}
+			return 0;
+		}
+
 		public ReactiveCommand EnqueueCommand { get; }
 
 		public ReactiveCommand DequeueCommand { get; }
+
+		public ReactiveCommand PrivacySomeCommand { get; }
+		public ReactiveCommand PrivacyFineCommand { get; }
+		public ReactiveCommand PrivacyStrongCommand { get; }
+
 	}
 }
