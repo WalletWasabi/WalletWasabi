@@ -9,12 +9,7 @@
     </UserControl.Resources>
     <Grid RowDefinitions="8*,3*" Margin="20">
         <Grid Classes="content" Grid.Row="0">
-            <DockPanel LastChildFill="True">
-                <StackPanel Spacing="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Left">
-                    <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-                </StackPanel>
-                <local:CoinListView DataContext="{Binding CoinsList}" />
-            </DockPanel>
+            <local:CoinListView DataContext="{Binding CoinsList}" />
         </Grid>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
@@ -87,8 +82,8 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0">Note that, you must select coins you want to spend from.</TextBlock>
-                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="8">
+                <TextBlock Grid.Row="0" Grid.Column="0" Margin="0 10">Note that, you must select coins you want to enqueu or dequeue.</TextBlock>
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0 10" Spacing="10">
                     <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
                     <DockPanel Grid.Row="0" Grid.Column="1" LastChildFill="True" IsEnabled="{Binding !IsEnqueueBusy}">
                         <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
@@ -106,6 +101,7 @@
                             </StackPanel>
                         </Button>
                     </DockPanel>
+                    <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
                 </StackPanel>
                 <Panel Grid.Row="1" Grid.Column="1" VerticalAlignment="Top" Margin="0 0 120 0" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding CoinJoinUntilAnonimitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
                     <DrawingPresenter Drawing="{Binding Icon}" VerticalAlignment="Bottom" Height="150" Width="100" />
