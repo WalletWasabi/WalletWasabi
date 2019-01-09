@@ -11,24 +11,19 @@ using AvalonStudio.Commands;
 using NBitcoin;
 using ReactiveUI;
 using ReactiveUI.Legacy;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
+using static WalletWasabi.Gui.Models.ShieldLevelHelper;
+using static WalletWasabi.Models.ServiceConfiguration;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
-		private enum ETargetPrivacy
-		{
-			None,
-			Some,
-			Fine,
-			Strong,
-		}
-
 		private CoinListViewModel _coinsList;
 		private long _roundId;
 		private int _successfulRoundCount;
@@ -53,7 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base("CoinJoin", walletViewModel)
 		{
 			Password = "";
-			CoinJoinUntilAnonimitySet = Global.Config.MixUntilAnonymitySet.Value;
+			TargetPrivacy = ShieldLevelHelper.GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
@@ -115,15 +110,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			PrivacySomeCommand = ReactiveCommand.Create(() =>
 			{
-				TargetPrivacy = ETargetPrivacy.Some;
+				TargetPrivacy = TargetPrivacy.Some;
 			});
 			PrivacyFineCommand = ReactiveCommand.Create(() =>
 			{
-				TargetPrivacy = ETargetPrivacy.Fine;
+				TargetPrivacy = TargetPrivacy.Fine;
 			});
 			PrivacyStrongCommand = ReactiveCommand.Create(() =>
 			{
-				TargetPrivacy = ETargetPrivacy.Strong;
+				TargetPrivacy = TargetPrivacy.Strong;
 			});
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
@@ -167,6 +162,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				Global.Config.MixUntilAnonymitySet = coinJoinUntilAnonimitySet;
 				await Global.Config.ToFileAsync();
+			});
+
+			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
+			{
+				CoinJoinUntilAnonimitySet = GetTargetLevel(target);
 			});
 		}
 
@@ -464,7 +464,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		private int _coinJoinUntilAnonimitySet;
-		private ETargetPrivacy _targetPrivacy;
+		private TargetPrivacy _targetPrivacy;
 
 		public int CoinJoinUntilAnonimitySet
 		{
@@ -475,33 +475,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private ETargetPrivacy TargetPrivacy
+		private TargetPrivacy TargetPrivacy
 		{
 			get => _targetPrivacy;
+
 			set
 			{
-				_targetPrivacy = value;
-				CoinJoinUntilAnonimitySet = GetTargetPrivacy(value);
+				this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 			}
-		}
-
-		private static int GetTargetPrivacy(ETargetPrivacy target)
-		{
-			switch (target)
-			{
-				case ETargetPrivacy.None:
-					return 0;
-
-				case ETargetPrivacy.Some:
-					return Global.Config.PrivacyLevelSome.Value;
-
-				case ETargetPrivacy.Fine:
-					return Global.Config.PrivacyLevelFine.Value;
-
-				case ETargetPrivacy.Strong:
-					return Global.Config.PrivacyLevelStrong.Value;
-			}
-			return 0;
 		}
 
 		public ReactiveCommand EnqueueCommand { get; }
