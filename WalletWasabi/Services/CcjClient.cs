@@ -454,7 +454,7 @@ namespace WalletWasabi.Services
 				// If there are no suitable coins to register return.
 				if (!registrableCoins.Any()) return;
 
-				(BitcoinAddress change, IEnumerable<BitcoinAddress> active) outputAddresses = GetOutputAddressesToRegister(inputRegistrableRound, registrableCoins);
+				(BitcoinAddress change, IEnumerable<BitcoinAddress> active) outputAddresses = GetOutputAddressesToRegister(inputRegistrableRound.State.Denomination, inputRegistrableRound.State.SchnorrPubKeys.Count(), registrableCoins);
 
 				SchnorrPubKey[] schnorrPubKeys = inputRegistrableRound.State.SchnorrPubKeys.ToArray();
 				List<Requester> requesters = new List<Requester>();
@@ -564,7 +564,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private (BitcoinAddress change, IEnumerable<BitcoinAddress> active) GetOutputAddressesToRegister(CcjClientRound inputRegistrableRound, List<TxoRef> registrableCoins)
+		private (BitcoinAddress change, IEnumerable<BitcoinAddress> active) GetOutputAddressesToRegister(Money baseDenomination, int mixingLevelCount, IEnumerable<TxoRef> coinsToRegister)
 		{
 			BitcoinAddress changeOutputAddress = null;
 			var activeOutputAddresses = new List<BitcoinAddress>();
@@ -605,7 +605,7 @@ namespace WalletWasabi.Services
 			internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
 
 			Money inputSum = Money.Zero;
-			foreach (TxoRef coinReference in registrableCoins)
+			foreach (TxoRef coinReference in coinsToRegister)
 			{
 				SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
 				inputSum += coin.Amount;
@@ -615,10 +615,10 @@ namespace WalletWasabi.Services
 
 			var denominations = new List<Money>
 					{
-						inputRegistrableRound.State.Denomination
+						baseDenomination
 					};
 
-			for (int i = 1; i < inputRegistrableRound.State.SchnorrPubKeys.Count(); i++)
+			for (int i = 1; i < mixingLevelCount; i++)
 			{
 				Money denom = denominations.Last() * 2;
 				denominations.Add(denom);
