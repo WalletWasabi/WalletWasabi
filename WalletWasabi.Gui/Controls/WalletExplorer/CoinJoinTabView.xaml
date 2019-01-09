@@ -12,7 +12,7 @@
       <RowDefinition Height="8*" />
       <RowDefinition Height="3*" MinHeight="200" />
     </Grid.RowDefinitions>
-    <Grid Classes="content" Grid.Row="0">
+    <Grid Classes="content" Grid.Row="0" Margin="0 0 0 10">
       <local:CoinListView DataContext="{Binding CoinsList}" />
     </Grid>
     <Grid Grid.Row="1">
@@ -81,15 +81,13 @@
       <controls:GroupBox Grid.Row="0" Grid.Column="0" Title="CoinJoin" Padding="5" Margin="0 5 5 0">
         <Grid Grid.Row="0" Grid.Column="0" Classes="content">
           <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="150" />
           </Grid.RowDefinitions>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
-          <TextBlock Grid.Row="0" Grid.Column="0" Margin="0 5">Note that, you must select coins you want to enqueu or dequeue.</TextBlock>
-          <StackPanel Grid.Row="1" Grid.Column="0" Spacing="10">
+          <StackPanel Grid.Column="0" Spacing="10">
             <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
             <DockPanel Grid.Row="0" Grid.Column="1" LastChildFill="True" IsEnabled="{Binding !IsEnqueueBusy}">
               <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
@@ -111,7 +109,7 @@
           </StackPanel>
         </Grid>
       </controls:GroupBox>
-      <controls:GroupBox Grid.Row="0" Grid.Column="1" Title="Target" Padding="5" Margin="5 0">
+      <controls:GroupBox Grid.Column="1" Title="Target" Padding="5" Margin="5 0">
         <Button Command="{Binding TargetButtonCommand}">
           <Panel Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding CoinJoinUntilAnonimitySet, Converter={StaticResource PrivacyLevelValueConverter}}">
             <DrawingPresenter Drawing="{Binding Icon}" VerticalAlignment="Center" Height="100" Width="75" />
