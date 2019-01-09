@@ -36,10 +36,7 @@ namespace WalletWasabi.Services
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
 
-		/// <summary>
-		/// Used to avoid address reuse as much as possible but still not bloating the wallet.
-		/// </summary>
-		private ConcurrentDictionary<HdPubKey, DateTimeOffset> AccessCache { get; }
+		private ConcurrentHashSet<ExposedLink> ExposedLinks { get; }
 
 		private AsyncLock MixLock { get; }
 
@@ -66,13 +63,20 @@ namespace WalletWasabi.Services
 		private CancellationTokenSource Cancel { get; }
 
 		public CcjClient(
+			IEnumerable<ExposedLink> exposedLinks,
 			WasabiSynchronizer synchronizer,
 			Network network,
 			KeyManager keyManager,
 			Uri ccjHostUri,
 			IPEndPoint torSocks5EndPoint = null)
 		{
-			AccessCache = new ConcurrentDictionary<HdPubKey, DateTimeOffset>();
+			var els = new ConcurrentHashSet<ExposedLink>();
+			foreach (var el in exposedLinks ?? Enumerable.Empty<ExposedLink>())
+			{
+				els.TryAdd(el);
+			}
+			ExposedLinks = els;
+
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
@@ -564,6 +568,58 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		private (BitcoinAddress change, IEnumerable<BitcoinAddress> active) GetOutputAddressesToRegister2(Money baseDenomination, int mixingLevelCount, IEnumerable<TxoRef> coinsToRegister)
+		{
+			// 1. Figure out how many mixing level we need to register active outputs.
+
+			Money inputSum = Money.Zero;
+			foreach (TxoRef coinReference in coinsToRegister)
+			{
+				SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+				inputSum += coin.Amount;
+			}
+
+			int maximumMixingLevelCount = 1;
+			var denominations = new List<Money>
+					{
+						baseDenomination
+					};
+			for (int i = 1; i < mixingLevelCount; i++)
+			{
+				Money denom = denominations.Last() * 2;
+				denominations.Add(denom);
+				if (inputSum > denom)
+				{
+					maximumMixingLevelCount = i + 1;
+				}
+			}
+
+			string changeLabel = "ZeroLink Change";
+			string activeLabel = "ZeroLink Mixed Coin";
+
+			// 2. Get all locked internal keys we have and assert we have enough.
+			KeyManager.AssertLockedInternalKeysIndexed(howMany: maximumMixingLevelCount + 1);
+			IEnumerable<HdPubKey> allLockedInternalKeys = KeyManager.GetKeys(x => x.IsInternal() && x.KeyState == KeyState.Locked);
+
+			// 3. Select the change and active keys to register and label them accordingly.
+			HdPubKey change = allLockedInternalKeys.First();
+			change.SetLabel(changeLabel);
+
+			var actives = new List<HdPubKey>();
+			foreach (HdPubKey active in allLockedInternalKeys.Skip(1).Take(maximumMixingLevelCount))
+			{
+				actives.Add(active);
+				change.SetLabel(activeLabel);
+			}
+
+			ExposedLink link = new ExposedLink(coinsToRegister, change, actives, Network);
+			ExposedLinks.TryAdd(link);
+
+			// Save our modifications in the keymanager before we give back the selected keys.
+			KeyManager.ToFile();
+			return (change.GetP2wpkhAddress(Network), actives.Select(x => x.GetP2wpkhAddress(Network) as BitcoinAddress));
+		}
+
 		private (BitcoinAddress change, IEnumerable<BitcoinAddress> active) GetOutputAddressesToRegister(Money baseDenomination, int mixingLevelCount, IEnumerable<TxoRef> coinsToRegister)
 		{
 			BitcoinAddress changeOutputAddress = null;
@@ -612,12 +668,10 @@ namespace WalletWasabi.Services
 			}
 
 			int maximumMixingLevelCount = 1;
-
 			var denominations = new List<Money>
 					{
 						baseDenomination
 					};
-
 			for (int i = 1; i < mixingLevelCount; i++)
 			{
 				Money denom = denominations.Last() * 2;
