@@ -31,15 +31,6 @@ namespace WalletWasabi.Gui.Controls
 			"如果你是只宠物小精灵，我就选你。" //If you were a Pokemon, I'd choose you.
 		};
 
-		//public static readonly string[] Titles =
-		//{
-		//	"apple",
-		//	"banana",
-		//	"grape",
-		//	"orange",
-		//	"blackberry",
-		//};
-
 		private static readonly Key[] SuppressedKeys =
 			{ Key.LeftCtrl, Key.RightCtrl, Key.LeftAlt, Key.RightAlt, Key.LeftShift, Key.RightShift, Key.Escape, Key.CapsLock, Key.NumLock, Key.LWin, Key.RWin };
 
