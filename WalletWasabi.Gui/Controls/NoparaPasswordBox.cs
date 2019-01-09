@@ -40,7 +40,7 @@ namespace WalletWasabi.Gui.Controls
 		private StringBuilder _sb = new StringBuilder();
 		private HashSet<Key> _supressedKeys;
 
-		public int SelectionLength => SelectionEnd - SelectionStart;
+		public int SelectionLength => Math.Abs(SelectionEnd - SelectionStart);
 
 		public static readonly StyledProperty<string> PasswordProperty =
 			AvaloniaProperty.Register<NoparaPasswordBox, string>(nameof(Password), defaultBindingMode: BindingMode.TwoWay);
