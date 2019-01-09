@@ -240,8 +240,15 @@ namespace WalletWasabi.Services
 				if (nextRound != null)
 				{
 					int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
-					var newAnonymitySet = Math.Max(nextRound.AnonymitySet - alicesDidntSign.Count(), nextRoundAlicesCount);
+					var alicesSignedCount = round.AnonymitySet - alicesDidntSign.Count();
 
+					// New round's anonset should be the number of alices those signed in this round.
+					// Except if the number of alices in the next round is already larger.
+					var newAnonymitySet = Math.Max(alicesSignedCount, nextRoundAlicesCount);
+					// But it cannot be larger than the current anonset of that round.
+					newAnonymitySet = Math.Min(newAnonymitySet, nextRound.AnonymitySet);
+
+					// Only change the anonymity set of the next round if new anonset doesnt equal and newanonset larger than 1.
 					if (nextRound.AnonymitySet != newAnonymitySet && newAnonymitySet > 1)
 					{
 						nextRound.UpdateAnonymitySet(newAnonymitySet, syncLock: false);
