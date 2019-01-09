@@ -12,7 +12,7 @@
       <RowDefinition Height="8*" />
       <RowDefinition Height="3*" MinHeight="200" />
     </Grid.RowDefinitions>
-    <Grid Classes="content" Grid.Row="0">
+    <Grid Classes="content" Grid.Row="0" Margin="0 0 0 10">
       <local:CoinListView DataContext="{Binding CoinsList}" />
     </Grid>
     <Grid Grid.Row="1">
@@ -81,15 +81,13 @@
       <controls:GroupBox Grid.Row="0" Grid.Column="0" Title="CoinJoin" Padding="5" Margin="0 5 5 0">
         <Grid Grid.Row="0" Grid.Column="0" Classes="content">
           <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="150" />
           </Grid.RowDefinitions>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
-          <TextBlock Grid.Row="0" Grid.Column="0" Margin="0 5">Note that, you must select coins you want to enqueu or dequeue.</TextBlock>
-          <StackPanel Grid.Row="1" Grid.Column="0" Spacing="10">
+          <StackPanel Grid.Column="0" Spacing="10">
             <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
             <DockPanel Grid.Row="0" Grid.Column="1" LastChildFill="True" IsEnabled="{Binding !IsEnqueueBusy}">
               <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
@@ -111,36 +109,13 @@
           </StackPanel>
         </Grid>
       </controls:GroupBox>
-      <controls:GroupBox Grid.Row="0" Grid.Column="1" Title="Target" Padding="5" Margin="5 0">
-        <Panel>
-          <Panel.Styles>
-            <StyleInclude Source="resm:WalletWasabi.Gui.Icons.Icons.xaml?assembly=WalletWasabi.Gui" />
-          </Panel.Styles>
-          <Panel.ContextMenu>
-            <ContextMenu>
-              <MenuItem Header="Set anonimity level target to Some" Command="{Binding PrivacySomeCommand}">
-                <!--<MenuItem.Icon>
-                  <DrawingPresenter Drawing="{Binding PrivacySome}" Margin="0 0 25 0" />
-                </MenuItem.Icon>-->
-              </MenuItem>
-              <MenuItem Header="Set anonimity level target to Fine" Command="{Binding PrivacyFineCommand}">
-                <!--<MenuItem.Icon>
-                  <DrawingPresenter Drawing="{Binding FineShieldIcon}" Margin="0 0 25 0" />
-                </MenuItem.Icon>-->
-              </MenuItem>
-              <MenuItem Header="Set anonimity level target to Strong" Command="{Binding PrivacyStrongCommand}">
-                <!--<MenuItem.Icon>
-                  <DrawingPresenter Drawing="{Binding StrongShieldIcon}" Margin="0 0 25 0" />
-                </MenuItem.Icon>-->
-              </MenuItem>
-            </ContextMenu>
-          </Panel.ContextMenu>
-          <Button Click="TargetButton_Click">
-            <Panel Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding CoinJoinUntilAnonimitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
-              <DrawingPresenter Drawing="{Binding Icon}" VerticalAlignment="Center" Height="100" Width="75" />
-            </Panel>
-          </Button>
-        </Panel>
+      <controls:GroupBox Grid.Column="1" Title="Target" Padding="5" Margin="5 0">
+        <Button Command="{Binding TargetButtonCommand}">
+          <Panel Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding CoinJoinUntilAnonimitySet, Converter={StaticResource PrivacyLevelValueConverter}}">
+            <DrawingPresenter Drawing="{Binding Icon}" VerticalAlignment="Center" Height="100" Width="75" />
+            <TextBlock Text="{Binding ToolTip}" VerticalAlignment="Bottom" />
+          </Panel>
+        </Button>
       </controls:GroupBox>
     </Grid>
   </Grid>
