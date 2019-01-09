@@ -36,7 +36,7 @@ namespace WalletWasabi.Services
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
 
-		private ConcurrentHashSet<ExposedLink> ExposedLinks { get; }
+		public ConcurrentDictionary<TxoRef, IEnumerable<BitcoinAddressBlindedPair>> ExposedLinks { get; set; }
 
 		private AsyncLock MixLock { get; }
 
@@ -63,17 +63,18 @@ namespace WalletWasabi.Services
 		private CancellationTokenSource Cancel { get; }
 
 		public CcjClient(
-			IEnumerable<ExposedLink> exposedLinks,
+			IDictionary<TxoRef, IEnumerable<BitcoinAddressBlindedPair>> exposedLinks,
 			WasabiSynchronizer synchronizer,
 			Network network,
 			KeyManager keyManager,
 			Uri ccjHostUri,
 			IPEndPoint torSocks5EndPoint = null)
 		{
-			var els = new ConcurrentHashSet<ExposedLink>();
-			foreach (var el in exposedLinks ?? Enumerable.Empty<ExposedLink>())
+			Guard.NotNull(nameof(exposedLinks), exposedLinks);
+			var els = new ConcurrentDictionary<TxoRef, IEnumerable<BitcoinAddressBlindedPair>>();
+			foreach (var el in exposedLinks)
 			{
-				els.TryAdd(el);
+				els.TryAdd(el.Key, el.Value);
 			}
 			ExposedLinks = els;
 
@@ -383,33 +384,37 @@ namespace WalletWasabi.Services
 
 		private async Task RegisterOutputAsync(CcjClientRound ongoingRound)
 		{
-			var clients = new List<BobClient>();
-			try
+			IEnumerable<TxoRef> registeredInputs = ongoingRound.Registration.CoinsRegistered.Select(x => x.GetTxoRef());
+
+			var shuffledOutputs = ongoingRound.Registration.ActiveOutputs.ToList();
+			shuffledOutputs.Shuffle();
+			foreach ((BitcoinAddress address, BlindSignature signature, int mixingLevel) activeOutput in shuffledOutputs)
 			{
-				var requests = new List<Task<bool>>();
-				foreach ((BitcoinAddress address, BlindSignature signature, int mixingLevel) activeOutput in ongoingRound.Registration.ActiveOutputs)
+				using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
 				{
-					var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint);
-					Task<bool> request = bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput.address, activeOutput.signature, activeOutput.mixingLevel);
-					requests.Add(request);
-				}
-
-				requests.Shuffle();
-
-				foreach (Task<bool> request in requests)
-				{
-					if (!await request)
+					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput.address, activeOutput.signature, activeOutput.mixingLevel))
 					{
 						Logger.LogWarning<AliceClient>($"Round ({ongoingRound.State.RoundId}) Bobs did not have enough time to post outputs before timeout. If you see this message, contact nopara73, so he can optimize the phase timeout periods to the worst Internet/Tor connections, which may be yours.)");
 						break;
 					}
-				}
-			}
-			finally
-			{
-				foreach (BobClient client in clients)
-				{
-					client?.Dispose();
+
+					// Unblind our exposed links.
+					foreach (TxoRef input in registeredInputs)
+					{
+						if (ExposedLinks.ContainsKey(input)) // Should never not contain, but oh well, let's not disrupt the round for this.
+						{
+							var found = ExposedLinks[input].FirstOrDefault(x => x.Address == activeOutput.address);
+							if (found != default)
+							{
+								found.IsBlinded = false;
+							}
+							else
+							{
+								// Should never happen, but oh well we can autocorrect it so why not.
+								ExposedLinks[input] = ExposedLinks[input].Append(new BitcoinAddressBlindedPair(activeOutput.address, false));
+							}
+						}
+					}
 				}
 			}
 
@@ -568,10 +573,9 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private (BitcoinAddress change, IEnumerable<BitcoinAddress> active) GetOutputAddressesToRegister2(Money baseDenomination, int mixingLevelCount, IEnumerable<TxoRef> coinsToRegister)
+		private (BitcoinAddress change, IEnumerable<BitcoinAddress> active) GetOutputAddressesToRegister(Money baseDenomination, int mixingLevelCount, IEnumerable<TxoRef> coinsToRegister)
 		{
-			// 1. Figure out how many mixing level we need to register active outputs.
-
+			// Figure out how many mixing level we need to register active outputs.
 			Money inputSum = Money.Zero;
 			foreach (TxoRef coinReference in coinsToRegister)
 			{
@@ -597,11 +601,11 @@ namespace WalletWasabi.Services
 			string changeLabel = "ZeroLink Change";
 			string activeLabel = "ZeroLink Mixed Coin";
 
-			// 2. Get all locked internal keys we have and assert we have enough.
+			// Get all locked internal keys we have and assert we have enough.
 			KeyManager.AssertLockedInternalKeysIndexed(howMany: maximumMixingLevelCount + 1);
 			IEnumerable<HdPubKey> allLockedInternalKeys = KeyManager.GetKeys(x => x.IsInternal() && x.KeyState == KeyState.Locked);
 
-			// 3. Select the change and active keys to register and label them accordingly.
+			// Select the change and active keys to register and label them accordingly.
 			HdPubKey change = allLockedInternalKeys.First();
 			change.SetLabel(changeLabel);
 
@@ -612,123 +616,48 @@ namespace WalletWasabi.Services
 				change.SetLabel(activeLabel);
 			}
 
-			ExposedLink link = new ExposedLink(coinsToRegister, change, actives, Network);
-			ExposedLinks.TryAdd(link);
+			// Remember which links we are exposing.
+			var outLinks = new List<BitcoinAddressBlindedPair>();
+			BitcoinWitPubKeyAddress changeAddress = change.GetP2wpkhAddress(Network);
+			outLinks.Add(new BitcoinAddressBlindedPair(changeAddress, isBlinded: false));
+			BitcoinAddress[] activeAddresses = actives.Select(x => x.GetP2wpkhAddress(Network) as BitcoinAddress).ToArray();
+			foreach (var activeAddress in activeAddresses)
+			{
+				outLinks.Add(new BitcoinAddressBlindedPair(changeAddress, isBlinded: true));
+			}
+			foreach (TxoRef coin in coinsToRegister)
+			{
+				if (!ExposedLinks.TryAdd(coin, outLinks))
+				{
+					var newOutLinks = new List<BitcoinAddressBlindedPair>();
+					foreach (BitcoinAddressBlindedPair link in ExposedLinks[coin])
+					{
+						newOutLinks.Add(link);
+					}
+					foreach (BitcoinAddressBlindedPair link in outLinks)
+					{
+						BitcoinAddressBlindedPair found = newOutLinks.FirstOrDefault(x => x.Address == link.Address);
+
+						if (found != default)
+						{
+							newOutLinks.Add(link);
+						}
+						else // If already in it then update the blinded value if it's getting exposed just now. (eg. the change)
+						{
+							if (found.IsBlinded)
+							{
+								found.IsBlinded = link.IsBlinded;
+							}
+						}
+					}
+
+					ExposedLinks[coin] = newOutLinks;
+				}
+			}
 
 			// Save our modifications in the keymanager before we give back the selected keys.
 			KeyManager.ToFile();
-			return (change.GetP2wpkhAddress(Network), actives.Select(x => x.GetP2wpkhAddress(Network) as BitcoinAddress));
-		}
-
-		private (BitcoinAddress change, IEnumerable<BitcoinAddress> active) GetOutputAddressesToRegister(Money baseDenomination, int mixingLevelCount, IEnumerable<TxoRef> coinsToRegister)
-		{
-			BitcoinAddress changeOutputAddress = null;
-			var activeOutputAddresses = new List<BitcoinAddress>();
-			string changeLabel = "ZeroLink Change";
-			string activeLabel = "ZeroLink Mixed Coin";
-
-			IEnumerable<HdPubKey> allChangeKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == changeLabel);
-			HdPubKey changeKey = null;
-
-			KeyManager.AssertLockedInternalKeysIndexed(14);
-			IEnumerable<HdPubKey> internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
-
-			if (allChangeKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
-			{
-				// Find the first one that we did not try to register in the current session.
-				changeKey = allChangeKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
-				// If there is no such a key, then use the oldest.
-				if (changeKey == default)
-				{
-					changeKey = AccessCache.Where(x => allChangeKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
-				}
-				changeKey.SetLabel(changeLabel);
-				changeKey.SetKeyState(KeyState.Locked);
-			}
-			else
-			{
-				changeKey = internalNotCachedLockedKeys.RandomElement();
-				changeKey.SetLabel(changeLabel);
-			}
-			changeOutputAddress = changeKey.GetP2wpkhAddress(Network);
-			AccessCache.AddOrReplace(changeKey, DateTimeOffset.UtcNow);
-
-			IEnumerable<HdPubKey> allActiveKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == activeLabel);
-			List<HdPubKey> activeKeys = new List<HdPubKey>();
-
-			KeyManager.AssertLockedInternalKeysIndexed(14);
-
-			internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
-
-			Money inputSum = Money.Zero;
-			foreach (TxoRef coinReference in coinsToRegister)
-			{
-				SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-				inputSum += coin.Amount;
-			}
-
-			int maximumMixingLevelCount = 1;
-			var denominations = new List<Money>
-					{
-						baseDenomination
-					};
-			for (int i = 1; i < mixingLevelCount; i++)
-			{
-				Money denom = denominations.Last() * 2;
-				denominations.Add(denom);
-				if (inputSum > denom)
-				{
-					maximumMixingLevelCount = i + 1;
-				}
-			}
-
-			if (allActiveKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
-			{
-				// Find the first one that we did not try to register in the current session.
-				foreach (var ac in allActiveKeys.Where(x => !AccessCache.ContainsKey(x)))
-				{
-					if (activeKeys.Count >= maximumMixingLevelCount)
-					{
-						break;
-					}
-					activeKeys.Add(ac);
-				}
-				// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
-				if (activeKeys.Count < maximumMixingLevelCount)
-				{
-					foreach (var ac in AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeOutputAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).Select(x => x.Key))
-					{
-						if (activeKeys.Count >= maximumMixingLevelCount)
-						{
-							break;
-						}
-						activeKeys.Add(ac);
-					}
-				}
-			}
-			else
-			{
-				foreach (var ac in internalNotCachedLockedKeys.Where(x => changeOutputAddress != x.GetP2wpkhAddress(Network)))
-				{
-					if (activeKeys.Count >= maximumMixingLevelCount)
-					{
-						break;
-					}
-					activeKeys.Add(ac);
-				}
-			}
-
-			foreach (HdPubKey ac in activeKeys)
-			{
-				ac.SetLabel(activeLabel);
-				ac.SetKeyState(KeyState.Locked);
-				activeOutputAddresses.Add(ac.GetP2wpkhAddress(Network));
-				AccessCache.AddOrReplace(ac, DateTimeOffset.UtcNow);
-			}
-
-			KeyManager.ToFile();
-
-			return (changeOutputAddress, activeOutputAddresses);
+			return (changeAddress, activeAddresses);
 		}
 
 		public async Task QueueCoinsToMixAsync(params SmartCoin[] coins)
