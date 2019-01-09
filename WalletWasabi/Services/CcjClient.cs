@@ -454,114 +454,7 @@ namespace WalletWasabi.Services
 				// If there are no suitable coins to register return.
 				if (!registrableCoins.Any()) return;
 
-				BitcoinAddress changeAddress = null;
-				var activeOutputAddresses = new List<BitcoinAddress>();
-
-				string changeLabel = "ZeroLink Change";
-				string activeLabel = "ZeroLink Mixed Coin";
-
-				IEnumerable<HdPubKey> allChangeKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == changeLabel);
-				HdPubKey changeKey = null;
-
-				KeyManager.AssertLockedInternalKeysIndexed(14);
-				IEnumerable<HdPubKey> internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
-
-				if (allChangeKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
-				{
-					// Find the first one that we did not try to register in the current session.
-					changeKey = allChangeKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
-					// If there is no such a key, then use the oldest.
-					if (changeKey == default)
-					{
-						changeKey = AccessCache.Where(x => allChangeKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
-					}
-					changeKey.SetLabel(changeLabel);
-					changeKey.SetKeyState(KeyState.Locked);
-				}
-				else
-				{
-					changeKey = internalNotCachedLockedKeys.RandomElement();
-					changeKey.SetLabel(changeLabel);
-				}
-				changeAddress = changeKey.GetP2wpkhAddress(Network);
-				AccessCache.AddOrReplace(changeKey, DateTimeOffset.UtcNow);
-
-				IEnumerable<HdPubKey> allActiveKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == activeLabel);
-				List<HdPubKey> activeKeys = new List<HdPubKey>();
-
-				KeyManager.AssertLockedInternalKeysIndexed(14);
-
-				internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
-
-				Money inputSum = Money.Zero;
-				foreach (TxoRef coinReference in registrableCoins)
-				{
-					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-					inputSum += coin.Amount;
-				}
-
-				int maximumMixingLevelCount = 1;
-
-				var denominations = new List<Money>
-					{
-						inputRegistrableRound.State.Denomination
-					};
-
-				for (int i = 1; i < inputRegistrableRound.State.SchnorrPubKeys.Count(); i++)
-				{
-					Money denom = denominations.Last() * 2;
-					denominations.Add(denom);
-					if (inputSum > denom)
-					{
-						maximumMixingLevelCount = i + 1;
-					}
-				}
-
-				if (allActiveKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
-				{
-					// Find the first one that we did not try to register in the current session.
-					foreach (var ac in allActiveKeys.Where(x => !AccessCache.ContainsKey(x)))
-					{
-						if (activeKeys.Count >= maximumMixingLevelCount)
-						{
-							break;
-						}
-						activeKeys.Add(ac);
-					}
-					// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
-					if (activeKeys.Count < maximumMixingLevelCount)
-					{
-						foreach (var ac in AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).Select(x => x.Key))
-						{
-							if (activeKeys.Count >= maximumMixingLevelCount)
-							{
-								break;
-							}
-							activeKeys.Add(ac);
-						}
-					}
-				}
-				else
-				{
-					foreach (var ac in internalNotCachedLockedKeys.Where(x => changeAddress != x.GetP2wpkhAddress(Network)))
-					{
-						if (activeKeys.Count >= maximumMixingLevelCount)
-						{
-							break;
-						}
-						activeKeys.Add(ac);
-					}
-				}
-
-				foreach (HdPubKey ac in activeKeys)
-				{
-					ac.SetLabel(activeLabel);
-					ac.SetKeyState(KeyState.Locked);
-					activeOutputAddresses.Add(ac.GetP2wpkhAddress(Network));
-					AccessCache.AddOrReplace(ac, DateTimeOffset.UtcNow);
-				}
-
-				KeyManager.ToFile();
+				(BitcoinAddress change, IEnumerable<BitcoinAddress> active) outputAddresses = GetOutputAddressesToRegister(inputRegistrableRound, registrableCoins);
 
 				SchnorrPubKey[] schnorrPubKeys = inputRegistrableRound.State.SchnorrPubKeys.ToArray();
 				List<Requester> requesters = new List<Requester>();
@@ -571,8 +464,8 @@ namespace WalletWasabi.Services
 				var registeredAddresses = new List<BitcoinAddress>();
 				for (int i = 0; i < schnorrPubKeys.Length; i++)
 				{
-					if (activeOutputAddresses.Count <= i) break;
-					BitcoinAddress address = activeOutputAddresses.ElementAt(i);
+					if (outputAddresses.active.Count() <= i) break;
+					BitcoinAddress address = outputAddresses.active.ElementAt(i);
 
 					SchnorrPubKey schnorrPubKey = schnorrPubKeys[i];
 					var outputScriptHash = new uint256(Hashes.SHA256(address.ScriptPubKey.ToBytes()));
@@ -604,7 +497,7 @@ namespace WalletWasabi.Services
 				AliceClient aliceClient = null;
 				try
 				{
-					aliceClient = await AliceClient.CreateNewAsync(Network, changeAddress, blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
+					aliceClient = await AliceClient.CreateNewAsync(Network, outputAddresses.change, blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 				{
@@ -653,7 +546,7 @@ namespace WalletWasabi.Services
 					State.RemoveCoinFromWaitingList(coin);
 				}
 
-				var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, changeAddress);
+				var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, outputAddresses.change);
 
 				CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 				if (roundRegistered is null)
@@ -669,6 +562,119 @@ namespace WalletWasabi.Services
 			{
 				Logger.LogError<CcjClient>(ex);
 			}
+		}
+
+		private (BitcoinAddress change, IEnumerable<BitcoinAddress> active) GetOutputAddressesToRegister(CcjClientRound inputRegistrableRound, List<TxoRef> registrableCoins)
+		{
+			BitcoinAddress changeOutputAddress = null;
+			var activeOutputAddresses = new List<BitcoinAddress>();
+			string changeLabel = "ZeroLink Change";
+			string activeLabel = "ZeroLink Mixed Coin";
+
+			IEnumerable<HdPubKey> allChangeKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == changeLabel);
+			HdPubKey changeKey = null;
+
+			KeyManager.AssertLockedInternalKeysIndexed(14);
+			IEnumerable<HdPubKey> internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
+
+			if (allChangeKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
+			{
+				// Find the first one that we did not try to register in the current session.
+				changeKey = allChangeKeys.FirstOrDefault(x => !AccessCache.ContainsKey(x));
+				// If there is no such a key, then use the oldest.
+				if (changeKey == default)
+				{
+					changeKey = AccessCache.Where(x => allChangeKeys.Contains(x.Key)).OrderBy(x => x.Value).First().Key;
+				}
+				changeKey.SetLabel(changeLabel);
+				changeKey.SetKeyState(KeyState.Locked);
+			}
+			else
+			{
+				changeKey = internalNotCachedLockedKeys.RandomElement();
+				changeKey.SetLabel(changeLabel);
+			}
+			changeOutputAddress = changeKey.GetP2wpkhAddress(Network);
+			AccessCache.AddOrReplace(changeKey, DateTimeOffset.UtcNow);
+
+			IEnumerable<HdPubKey> allActiveKeys = KeyManager.GetKeys(x => x.KeyState != KeyState.Used && x.Label == activeLabel);
+			List<HdPubKey> activeKeys = new List<HdPubKey>();
+
+			KeyManager.AssertLockedInternalKeysIndexed(14);
+
+			internalNotCachedLockedKeys = KeyManager.GetKeys(KeyState.Locked, isInternal: true).Except(AccessCache.Keys);
+
+			Money inputSum = Money.Zero;
+			foreach (TxoRef coinReference in registrableCoins)
+			{
+				SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
+				inputSum += coin.Amount;
+			}
+
+			int maximumMixingLevelCount = 1;
+
+			var denominations = new List<Money>
+					{
+						inputRegistrableRound.State.Denomination
+					};
+
+			for (int i = 1; i < inputRegistrableRound.State.SchnorrPubKeys.Count(); i++)
+			{
+				Money denom = denominations.Last() * 2;
+				denominations.Add(denom);
+				if (inputSum > denom)
+				{
+					maximumMixingLevelCount = i + 1;
+				}
+			}
+
+			if (allActiveKeys.Count() >= 7 || !internalNotCachedLockedKeys.Any()) // Then don't generate new keys, because it'd bloat the wallet.
+			{
+				// Find the first one that we did not try to register in the current session.
+				foreach (var ac in allActiveKeys.Where(x => !AccessCache.ContainsKey(x)))
+				{
+					if (activeKeys.Count >= maximumMixingLevelCount)
+					{
+						break;
+					}
+					activeKeys.Add(ac);
+				}
+				// If there is no such a key, then use the oldest, but make sure it's not the same as the change.
+				if (activeKeys.Count < maximumMixingLevelCount)
+				{
+					foreach (var ac in AccessCache.Where(x => allActiveKeys.Contains(x.Key) && changeOutputAddress != x.Key.GetP2wpkhAddress(Network)).OrderBy(x => x.Value).Select(x => x.Key))
+					{
+						if (activeKeys.Count >= maximumMixingLevelCount)
+						{
+							break;
+						}
+						activeKeys.Add(ac);
+					}
+				}
+			}
+			else
+			{
+				foreach (var ac in internalNotCachedLockedKeys.Where(x => changeOutputAddress != x.GetP2wpkhAddress(Network)))
+				{
+					if (activeKeys.Count >= maximumMixingLevelCount)
+					{
+						break;
+					}
+					activeKeys.Add(ac);
+				}
+			}
+
+			foreach (HdPubKey ac in activeKeys)
+			{
+				ac.SetLabel(activeLabel);
+				ac.SetKeyState(KeyState.Locked);
+				activeOutputAddresses.Add(ac.GetP2wpkhAddress(Network));
+				AccessCache.AddOrReplace(ac, DateTimeOffset.UtcNow);
+			}
+
+			KeyManager.ToFile();
+
+			return (changeOutputAddress, activeOutputAddresses);
 		}
 
 		public async Task QueueCoinsToMixAsync(params SmartCoin[] coins)
