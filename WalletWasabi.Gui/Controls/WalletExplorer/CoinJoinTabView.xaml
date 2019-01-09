@@ -135,9 +135,11 @@
               </MenuItem>
             </ContextMenu>
           </Panel.ContextMenu>
-          <Panel Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding CoinJoinUntilAnonimitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
-            <DrawingPresenter Drawing="{Binding Icon}" VerticalAlignment="Center" Height="100" Width="75" />
-          </Panel>
+          <Button Click="TargetButton_Click">
+            <Panel Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent" DataContext="{Binding CoinJoinUntilAnonimitySet, Converter={StaticResource PrivacyLevelValueConverter}}" ToolTip.Tip="{Binding ToolTip}">
+              <DrawingPresenter Drawing="{Binding Icon}" VerticalAlignment="Center" Height="100" Width="75" />
+            </Panel>
+          </Button>
         </Panel>
       </controls:GroupBox>
     </Grid>

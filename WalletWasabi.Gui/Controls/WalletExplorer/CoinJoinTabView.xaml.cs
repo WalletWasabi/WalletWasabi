@@ -14,5 +14,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			AvaloniaXamlLoader.Load(this);
 		}
+
+		private void TargetButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+		{
+			var panel = ((Button)sender).Parent as Panel;
+			if (panel == null) return;
+			panel.ContextMenu.Open(panel);
+		}
 	}
 }
