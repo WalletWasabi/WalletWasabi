@@ -268,7 +268,8 @@ namespace WalletWasabi.Gui.Controls
 				}
 				else
 				{
-					SelectionStart = SelectionEnd = CaretIndex;
+					SelectionStart = SelectionEnd = 0;
+					CaretIndex = Text.Length;
 				}
 			}
 			else
@@ -294,7 +295,7 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnGotFocus(GotFocusEventArgs e)
 		{
-			GenerateNewRandomSequence();
+			if (string.IsNullOrEmpty(Text)) GenerateNewRandomSequence();
 			base.OnGotFocus(e);
 		}
 	}
