@@ -310,7 +310,7 @@ namespace WalletWasabi.Backend.Controllers
 						BigInteger blindSignature = signer.Sign(blindedOutput);
 						blindSignatures.Add(blindSignature);
 					}
-					alice.BlindedOutputSignatures = blindSignatures;
+					alice.BlindedOutputSignatures = blindSignatures.ToArray();
 
 					// Check if phase changed since.
 					if (round.Status != CcjRoundStatus.Running || round.Phase != CcjRoundPhase.InputRegistration)
@@ -393,7 +393,7 @@ namespace WalletWasabi.Backend.Controllers
 
 						int takeBlindCount = round.CountUsedMixingLevels();
 						alice.BlindedOutputScripts = alice.BlindedOutputScripts.Take(takeBlindCount).ToArray();
-						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(takeBlindCount);
+						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(takeBlindCount).ToArray();
 						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Don't give back more mixing levels than we'll use.
 
 						// Progress round if needed.

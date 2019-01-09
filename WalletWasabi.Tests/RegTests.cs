@@ -2489,7 +2489,6 @@ namespace WalletWasabi.Tests
 
 				var aliceClient = await request;
 				aliceClient.Requesters = new[] { user.requester };
-				aliceClient.OutputScriptHashes = new[] { user.activeOutputAddress };
 
 				if (roundId == 0)
 				{

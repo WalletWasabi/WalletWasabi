@@ -242,11 +242,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						{
 							return;
 						}
-
-						// Build CoinJoin
-
-						// 1. Set new denomination: minor optimization.
-						Money newDenomination = Alices.Min(x => x.InputSum - x.NetworkFeeToPay);
+						Money newDenomination = CalculateNewDenomination();
 						var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
 
 						// 2. Add Bob outputs.
@@ -257,7 +253,21 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 						// 2.1 newDenomination may differs from the Denomination at registration, so we may not be able to tinker with
 						// additional outputs.
-						bool tinkerWithAdditionalMixingLevels = CanUseAdditionalOutputs(newDenomination, transaction);
+						bool tinkerWithAdditionalMixingLevels = CanUseAdditionalOutputs(newDenomination);
+
+						if (tinkerWithAdditionalMixingLevels)
+						{
+							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
+							{
+								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
+								if (bobsOnThisLevel.Count() <= 1) break;
+
+								foreach (Bob bob in bobsOnThisLevel)
+								{
+									transaction.Outputs.Add(level.Denomination, bob.ActiveOutputAddress.ScriptPubKey);
+								}
+							}
+						}
 
 						BitcoinWitPubKeyAddress coordinatorAddress = Constants.GetCoordinatorAddress(Network);
 						// 3. If there are less Bobs than Alices, then add our own address. The malicious Alice, who will refuse to sign.
@@ -485,6 +495,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
+		private Money CalculateNewDenomination()
+		{
+			// Build CoinJoin
+
+			// 1. Set new denomination: minor optimization.
+			return Alices.Min(x => x.InputSum - x.NetworkFeeToPay);
+		}
+
 		public async Task ProgressToOutputRegistrationOrFailAsync(params Alice[] additionalAlicesToBan)
 		{
 			// Only abort if less than two one alices are registered.
@@ -523,7 +541,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		private bool CanUseAdditionalOutputs(Money newDenomination, Transaction transaction)
+		private bool CanUseAdditionalOutputs(Money newDenomination)
 		{
 			bool tinkerWithAdditionalMixingLevels = !Alices.All(x => x.BlindedOutputScripts.Length == 1);
 			foreach (Alice alice in Alices)
@@ -562,20 +580,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 
 					acceptedBlindedOutputScriptsCount++;
-				}
-			}
-
-			if (tinkerWithAdditionalMixingLevels)
-			{
-				foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
-				{
-					IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-					if (bobsOnThisLevel.Count() <= 1) break;
-
-					foreach (Bob bob in bobsOnThisLevel)
-					{
-						transaction.Outputs.Add(level.Denomination, bob.ActiveOutputAddress.ScriptPubKey);
-					}
 				}
 			}
 
@@ -746,7 +750,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				int i;
 				for (i = 1; i < MixingLevels.Count() + 1; i++)
 				{
-					if (Alices.Count(x => x.BlindedOutputSignatures.Count() > i) <= 1) break;
+					if (Alices.Count(x => x.BlindedOutputSignatures.Length > i) <= 1) break;
 				}
 
 				return i;
@@ -757,7 +761,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			using (RoundSynchronizerLock.Lock())
 			{
-				return Alices.Sum(x => x.BlindedOutputSignatures.Count());
+				return Alices.Sum(x => x.BlindedOutputSignatures.Length);
 			}
 		}
 
