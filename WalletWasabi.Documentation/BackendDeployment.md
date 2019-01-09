@@ -284,7 +284,7 @@ server {
 }
 ```
 
-Add `add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;` and `server_tokens off;` to every `server` block.
+Add `add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always; preload;` and `server_tokens off;` to every HTTPS `server` block.
 
 ```sh
 sudo nginx -t
