@@ -558,8 +558,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				for (int i = 1; i < alice.BlindedOutputScripts.Length; i++)
 				{
 					MixingLevel level = MixingLevels.GetLevel(i);
-					IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-					if (bobsOnThisLevel.Count() <= 1)
+					int bobsOnThisLevel = Bobs.Count(x => x.Level == level);
+					if (bobsOnThisLevel <= 1)
 					{
 						if (i == 1)
 						{
@@ -568,7 +568,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						break;
 					}
 
-					changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel.Count()));
+					changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel));
 
 					if (changeAmount < Money.Zero)
 					{
@@ -584,6 +584,39 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 
 			return tinkerWithAdditionalMixingLevels;
+		}
+
+		public int EstimateBestMixingLevel(Alice alice)
+		{
+			Money newDenomination = CalculateNewDenomination();
+
+			// Check if inputs have enough coins.
+			Money networkFeeToPay = (alice.Inputs.Count() * FeePerInputs) + (2 * FeePerOutputs);
+			Money changeAmount = alice.InputSum - (newDenomination + networkFeeToPay);
+			var acceptedBlindedOutputScriptsCount = 1;
+
+			// Make sure we sign the proper number of additional blinded outputs.
+			var moneySoFar = Money.Zero;
+			for (int i = 1; i < alice.BlindedOutputScripts.Length; i++)
+			{
+				MixingLevel level = MixingLevels.GetLevel(i);
+				var potentialAlicesOnThisLevel = Alices.Count(x => x.BlindedOutputSignatures.Length > i);
+				if (potentialAlicesOnThisLevel <= 1)
+				{
+					break;
+				}
+
+				changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent) * potentialAlicesOnThisLevel));
+
+				if (changeAmount < Money.Zero)
+				{
+					break;
+				}
+
+				acceptedBlindedOutputScriptsCount++;
+			}
+
+			return acceptedBlindedOutputScriptsCount;
 		}
 
 		private async Task OptimizeFeesAsync(List<Coin> spentCoins)
@@ -740,20 +773,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			using (RoundSynchronizerLock.Lock())
 			{
 				return Alices.All(x => x.State == state);
-			}
-		}
-
-		public int CountUsedMixingLevels()
-		{
-			using (RoundSynchronizerLock.Lock())
-			{
-				int i;
-				for (i = 1; i < MixingLevels.Count() + 1; i++)
-				{
-					if (Alices.Count(x => x.BlindedOutputSignatures.Length > i) <= 1) break;
-				}
-
-				return i;
 			}
 		}
 

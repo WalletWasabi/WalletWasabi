@@ -391,7 +391,7 @@ namespace WalletWasabi.Backend.Controllers
 					{
 						alice.State = AliceState.ConnectionConfirmed;
 
-						int takeBlindCount = round.CountUsedMixingLevels();
+						int takeBlindCount = round.EstimateBestMixingLevel(alice);
 						alice.BlindedOutputScripts = alice.BlindedOutputScripts.Take(takeBlindCount).ToArray();
 						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(takeBlindCount).ToArray();
 						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Don't give back more mixing levels than we'll use.
