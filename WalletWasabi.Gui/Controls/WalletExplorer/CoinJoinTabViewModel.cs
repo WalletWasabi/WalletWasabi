@@ -7,14 +7,18 @@ using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using AvalonStudio.Commands;
 using NBitcoin;
 using ReactiveUI;
 using ReactiveUI.Legacy;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
+using static WalletWasabi.Gui.Models.ShieldLevelHelper;
+using static WalletWasabi.Models.ServiceConfiguration;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -44,7 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base("CoinJoin", walletViewModel)
 		{
 			Password = "";
-			CoinJoinUntilAnonimitySet = 80;
+			TargetPrivacy = ShieldLevelHelper.GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
@@ -104,6 +108,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 			});
 
+			PrivacySomeCommand = ReactiveCommand.Create(() =>
+			{
+				TargetPrivacy = TargetPrivacy.Some;
+			});
+			PrivacyFineCommand = ReactiveCommand.Create(() =>
+			{
+				TargetPrivacy = TargetPrivacy.Fine;
+			});
+			PrivacyStrongCommand = ReactiveCommand.Create(() =>
+			{
+				TargetPrivacy = TargetPrivacy.Strong;
+			});
+
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
 			{
 				if (x.NotNullAndNotEmpty())
@@ -139,6 +156,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DequeueButtonText = DequeueButtonTextString;
 				}
+			});
+
+			this.WhenAnyValue(x => x.CoinJoinUntilAnonimitySet).Subscribe(async coinJoinUntilAnonimitySet =>
+			{
+				Global.Config.MixUntilAnonymitySet = coinJoinUntilAnonimitySet;
+				await Global.Config.ToFileAsync();
+			});
+
+			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
+			{
+				CoinJoinUntilAnonimitySet = GetTargetLevel(target);
 			});
 		}
 
@@ -435,15 +463,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set { this.RaiseAndSetIfChanged(ref _dequeueButtonText, value); }
 		}
 
-		int _coinJoinUntilAnonimitySet;
+		private int _coinJoinUntilAnonimitySet;
+		private TargetPrivacy _targetPrivacy;
+
 		public int CoinJoinUntilAnonimitySet
 		{
 			get { return _coinJoinUntilAnonimitySet; }
-			set { this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value); }
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value);
+			}
+		}
+
+		private TargetPrivacy TargetPrivacy
+		{
+			get => _targetPrivacy;
+
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
+			}
 		}
 
 		public ReactiveCommand EnqueueCommand { get; }
 
 		public ReactiveCommand DequeueCommand { get; }
+
+		public ReactiveCommand PrivacySomeCommand { get; }
+		public ReactiveCommand PrivacyFineCommand { get; }
+		public ReactiveCommand PrivacyStrongCommand { get; }
 	}
 }
