@@ -120,6 +120,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				TargetPrivacy = TargetPrivacy.Strong;
 			});
+			TargetButtonCommand = ReactiveCommand.Create(() =>
+			{
+				switch (TargetPrivacy)
+				{
+					case TargetPrivacy.None:
+						TargetPrivacy = TargetPrivacy.Some;
+						break;
+
+					case TargetPrivacy.Some:
+						TargetPrivacy = TargetPrivacy.Fine;
+						break;
+
+					case TargetPrivacy.Fine:
+						TargetPrivacy = TargetPrivacy.Strong;
+						break;
+
+					case TargetPrivacy.Strong:
+						TargetPrivacy = TargetPrivacy.Some;
+						break;
+				}
+			});
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
 			{
@@ -492,5 +513,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand PrivacySomeCommand { get; }
 		public ReactiveCommand PrivacyFineCommand { get; }
 		public ReactiveCommand PrivacyStrongCommand { get; }
+		public ReactiveCommand TargetButtonCommand { get; }
 	}
 }
