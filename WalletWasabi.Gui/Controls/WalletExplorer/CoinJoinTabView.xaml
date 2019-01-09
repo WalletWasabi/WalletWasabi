@@ -7,7 +7,11 @@
     <converters:PhaseColorConverter x:Key="PhaseColorConverter" />
     <converters:PrivacyLevelValueConverter x:Key="PrivacyLevelValueConverter" />
   </UserControl.Resources>
-  <Grid RowDefinitions="8*,3*" Margin="20">
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="8*" />
+      <RowDefinition Height="3*" MinHeight="200" />
+    </Grid.RowDefinitions>
     <Grid Classes="content" Grid.Row="0">
       <local:CoinListView DataContext="{Binding CoinsList}" />
     </Grid>
