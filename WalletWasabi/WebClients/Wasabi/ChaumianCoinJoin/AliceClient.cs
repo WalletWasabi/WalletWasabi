@@ -30,14 +30,12 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		public BitcoinAddress[] RegisteredAddresses { get; }
 		public SchnorrPubKey[] SchnorrPubKeys { get; }
 		public Requester[] Requesters { get; }
-		public uint256[] OutputScriptHashes { get; }
 
 		/// <inheritdoc/>
 		private AliceClient(
 			IEnumerable<BitcoinAddress> registeredAddresses,
 			IEnumerable<SchnorrPubKey> schnorrPubKeys,
 			IEnumerable<Requester> requesters,
-			IEnumerable<uint256> outputScriptHashes,
 			Network network,
 			Uri baseUri,
 			IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
@@ -45,7 +43,6 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			RegisteredAddresses = registeredAddresses.ToArray();
 			SchnorrPubKeys = schnorrPubKeys.ToArray();
 			Requesters = requesters.ToArray();
-			OutputScriptHashes = outputScriptHashes.ToArray();
 			Network = network;
 		}
 
@@ -53,13 +50,12 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			IEnumerable<BitcoinAddress> registeredAddresses,
 			IEnumerable<SchnorrPubKey> schnorrPubKeys,
 			IEnumerable<Requester> requesters,
-			IEnumerable<uint256> outputScriptHashes,
 			Network network,
 			InputsRequest request,
 			Uri baseUri,
 			IPEndPoint torSocks5EndPoint = null)
 		{
-			AliceClient client = new AliceClient(registeredAddresses, schnorrPubKeys, requesters, outputScriptHashes, network, baseUri, torSocks5EndPoint);
+			AliceClient client = new AliceClient(registeredAddresses, schnorrPubKeys, requesters, network, baseUri, torSocks5EndPoint);
 			try
 			{
 				using (HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -89,7 +85,6 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			IEnumerable<BitcoinAddress> registeredAddresses,
 			IEnumerable<SchnorrPubKey> schnorrPubKeys,
 			IEnumerable<Requester> requesters,
-			IEnumerable<uint256> outputScriptHashes,
 			Network network,
 			BitcoinAddress changeOutput,
 			IEnumerable<uint256> blindedOutputScriptHashes,
@@ -103,7 +98,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 				ChangeOutputAddress = changeOutput,
 				Inputs = inputs
 			};
-			return await CreateNewAsync(registeredAddresses, schnorrPubKeys, requesters, outputScriptHashes, network, request, baseUri, torSocks5EndPoint);
+			return await CreateNewAsync(registeredAddresses, schnorrPubKeys, requesters, network, request, baseUri, torSocks5EndPoint);
 		}
 
 		public async Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)> activeOutputs)> PostConfirmationAsync()
@@ -129,7 +124,9 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 						Requester requester = Requesters[i];
 						UnblindedSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
 
-						uint256 outputScriptHash = OutputScriptHashes[i];
+						var address = RegisteredAddresses[i];
+
+						uint256 outputScriptHash = new uint256(Hashes.SHA256(address.ScriptPubKey.ToBytes()));
 						PubKey signerPubKey = SchnorrPubKeys[i].SignerPubKey;
 						if (!VerifySignature(outputScriptHash, unblindedSignature, signerPubKey))
 						{

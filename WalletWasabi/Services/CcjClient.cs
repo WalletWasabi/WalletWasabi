@@ -459,7 +459,6 @@ namespace WalletWasabi.Services
 
 				SchnorrPubKey[] schnorrPubKeys = inputRegistrableRound.State.SchnorrPubKeys.ToArray();
 				List<Requester> requesters = new List<Requester>();
-				var outputScriptHashes = new List<uint256>();
 				var blindedOutputScriptHashes = new List<uint256>();
 
 				var registeredAddresses = new List<BitcoinAddress>();
@@ -472,7 +471,6 @@ namespace WalletWasabi.Services
 					var outputScriptHash = new uint256(Hashes.SHA256(address.ScriptPubKey.ToBytes()));
 					var requester = new Requester();
 					uint256 blindedOutputScriptHash = requester.BlindMessage(outputScriptHash, schnorrPubKey);
-					outputScriptHashes.Add(outputScriptHash);
 					requesters.Add(requester);
 					blindedOutputScriptHashes.Add(blindedOutputScriptHash);
 					registeredAddresses.Add(address);
@@ -498,7 +496,7 @@ namespace WalletWasabi.Services
 				AliceClient aliceClient = null;
 				try
 				{
-					aliceClient = await AliceClient.CreateNewAsync(registeredAddresses, schnorrPubKeys, requesters, outputScriptHashes, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
+					aliceClient = await AliceClient.CreateNewAsync(registeredAddresses, schnorrPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 				{
