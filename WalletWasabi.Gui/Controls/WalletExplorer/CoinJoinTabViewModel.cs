@@ -120,7 +120,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				TargetPrivacy = TargetPrivacy.Strong;
 			});
-			TargetButtonCommand = ReactiveCommand.Create(() =>
+			TargetButtonCommand = ReactiveCommand.Create(async () =>
 			{
 				switch (TargetPrivacy)
 				{
@@ -140,6 +140,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						TargetPrivacy = TargetPrivacy.Some;
 						break;
 				}
+				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonimitySet;
+				await Global.Config.ToFileAsync();
 			});
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
@@ -177,12 +179,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DequeueButtonText = DequeueButtonTextString;
 				}
-			});
-
-			this.WhenAnyValue(x => x.CoinJoinUntilAnonimitySet).Subscribe(async coinJoinUntilAnonimitySet =>
-			{
-				Global.Config.MixUntilAnonymitySet = coinJoinUntilAnonimitySet;
-				await Global.Config.ToFileAsync();
 			});
 
 			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
