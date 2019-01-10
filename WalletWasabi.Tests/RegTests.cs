@@ -2264,11 +2264,13 @@ namespace WalletWasabi.Tests
 					// Save alice client and the outputs, requesters, etc
 					var changeOutput = new Key().PubKey.GetAddress(network);
 					var inputProof = inputs.Select(x => new InputProofModel { Input = x.input, Proof = x.proof });
-					var aliceClient = await AliceClient.CreateNewAsync(network, changeOutput, blindedOutputScriptList, inputProof, baseUri);
+					var aliceClient = await AliceClient.CreateNewAsync(
+						outputs.Select(x => x.outputAddress),
+
+						network, changeOutput, blindedOutputScriptList, inputProof, baseUri);
 
 					// We check the coordinator signed all the alice blinded outputs
 					aliceClient.Requesters = outputs.Select(x => x.requester).ToArray();
-					aliceClient.RegisteredAddresses = outputs.Select(x => x.outputAddress).ToArray();
 
 					participants.Add((aliceClient, outputs, inputs));
 				}
@@ -2502,7 +2504,6 @@ namespace WalletWasabi.Tests
 				var request = aliceClients[i];
 
 				var aliceClient = await request;
-				aliceClient.Requesters = new[] { user.requester };
 
 				if (roundId == 0)
 				{

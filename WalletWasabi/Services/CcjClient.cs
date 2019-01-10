@@ -498,7 +498,7 @@ namespace WalletWasabi.Services
 				AliceClient aliceClient = null;
 				try
 				{
-					aliceClient = await AliceClient.CreateNewAsync(Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
+					aliceClient = await AliceClient.CreateNewAsync(registeredAddresses, schnorrPubKeys, requesters, outputScriptHashes, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 				{
@@ -532,11 +532,6 @@ namespace WalletWasabi.Services
 					await DequeueCoinsFromMixNoLockAsync(coinReference);
 					return;
 				}
-
-				aliceClient.RegisteredAddresses = registeredAddresses.ToArray();
-				aliceClient.SchnorrPubKeys = schnorrPubKeys;
-				aliceClient.Requesters = requesters.ToArray();
-				aliceClient.OutputScriptHashes = outputScriptHashes.ToArray();
 
 				var coinsRegistered = new List<SmartCoin>();
 				foreach (TxoRef coinReference in registrableCoins)
