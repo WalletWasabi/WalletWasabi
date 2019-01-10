@@ -14,10 +14,11 @@ using System.Reactive.Linq;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinListViewModel : ViewModelBase
+	public class CoinListViewModel : ViewModelBase, IDisposable
 	{
 		public ReadOnlyObservableCollection<CoinViewModel> Coins => _coinViewModels;
 		private readonly ReadOnlyObservableCollection<CoinViewModel> _coinViewModels;
@@ -52,6 +53,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public event Action DequeueCoinsPressed;
 
 		public event EventHandler<CoinViewModel> SelectionChanged;
+
+		private CompositeDisposable _disposables;
 
 		public CoinViewModel SelectedCoin
 		{
@@ -190,6 +193,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel(Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
 		{
+			_disposables = new CompositeDisposable();
+
 			AmountSortDirection = SortOrder.Decreasing;
 			RefreshOrdering();
 
@@ -197,15 +202,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	  		.Select(_ =>
 				MyComparer);
 
+			_disposables.Add(
 			_rootlist.Connect()
 				.OnItemAdded(cvm =>
 					cvm.PropertyChanged += Coin_PropertyChanged)
-				//.OnItemRemoved(cvm => //TODO: possible memory leak. If I uncomment this line, that Unspent propchange not triggered in some cases => spent money stays in list
-				//	cvm.PropertyChanged -= Coin_PropertyChanged)
+				.OnItemRemoved(cvm => { 
+					cvm.PropertyChanged -= Coin_PropertyChanged;
+					cvm.Dispose();})
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.Bind(out _coinViewModels)
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe();
+				.DisposeMany()
+				.Subscribe());
 
 			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
 			{
@@ -213,7 +221,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			Global.WalletService.Coins.CollectionChanged += Coins_CollectionGlobalChanged;
-
+/*
+			_disposables.Add(
 			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
 			{
 				if (x != SortOrder.None)
@@ -224,7 +233,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				if (x != SortOrder.None)
 					RefreshOrdering();
-			});
+			}));
+			_disposables.Add(
 			this.WhenAnyValue(x => x.HistorySortDirection).Subscribe(x =>
 			{
 				if (x != SortOrder.None)
@@ -235,7 +245,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				if (x != SortOrder.None)
 					RefreshOrdering();
-			});
+			}));
+			_disposables.Add(
 			this.WhenAnyValue(x => x.StatusSortDirection).Subscribe(x =>
 			{
 				if (x != SortOrder.None)
@@ -246,7 +257,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				if (x != SortOrder.None)
 					RefreshOrdering();
-			});
+			}));
+			_disposables.Add(
 			this.WhenAnyValue(x => x.PrivacySortDirection).Subscribe(x =>
 			{
 				if (x != SortOrder.None)
@@ -257,8 +269,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				if (x != SortOrder.None)
 					RefreshOrdering();
-			});
-
+			}));
+*/
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
 				if (SelectedCoin == null) return;
@@ -352,6 +364,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							if (toRemove != default)
 							{
 								_rootlist.Remove(toRemove);
+								toRemove.Dispose();
 							}
 						}
 						break;
@@ -408,12 +421,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					if (!cvm.Unspent)
 					{
 						_rootlist.Remove(cvm);
+						cvm.Dispose();
 					}
 
 					SetSelections();
 					SetCoinJoinStatusWidth();
 				}
 			});
+		}
+
+		private bool _disposed = false;
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if(_disposed) return;
+			Global.WalletService.Coins.CollectionChanged -= Coins_CollectionGlobalChanged;
+			_disposables.Dispose();
+			_disposed = true;
+		}
+
+		~CoinListViewModel()
+		{
+			Dispose(false);
 		}
 	}
 }

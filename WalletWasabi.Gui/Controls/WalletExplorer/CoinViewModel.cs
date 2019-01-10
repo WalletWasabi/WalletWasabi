@@ -10,60 +10,71 @@ using System.Linq;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using System.Globalization;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinViewModel : ViewModelBase
+	public class CoinViewModel : ViewModelBase, IDisposable
 	{
 		private bool _isSelected;
 		private SmartCoinStatus _smartCoinStatus;
+		private CompositeDisposable _disposables;
 
 		public CoinViewModel(SmartCoin model)
 		{
+			_disposables = new CompositeDisposable();
 			Model = model;
 
+			_disposables.Add(
 			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
 			{
 				RefreshSmartCoinStatus();
 				this.RaisePropertyChanged(nameof(Confirmed));
-			});
+			}));
 
+			_disposables.Add(
 			model.WhenAnyValue(x => x.SpentOrCoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(SpentOrCoinJoinInProgress));
-			});
+			}));
 
+			_disposables.Add(
 			model.WhenAnyValue(x => x.CoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				RefreshSmartCoinStatus();
 				this.RaisePropertyChanged(nameof(CoinJoinInProgress));
-			});
+			}));
 
+			_disposables.Add(
 			model.WhenAnyValue(x => x.IsBanned).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				RefreshSmartCoinStatus();
-			});
+			}));
 
+			_disposables.Add(
 			model.WhenAnyValue(x => x.SpentAccordingToBackend).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				RefreshSmartCoinStatus();
-			});
+			}));
 
+			_disposables.Add(
 			model.WhenAnyValue(x => x.Unspent).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Unspent));
-			});
+			}));
 
+			_disposables.Add(
 			this.WhenAnyValue(x => x.Status).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(ToolTip));
-			});
+			}));
 
+			_disposables.Add(
 			Global.Synchronizer.WhenAnyValue(x => x.BestBlockchainHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				RefreshSmartCoinStatus();
 				this.RaisePropertyChanged(nameof(Confirmations));
-			});
+			}));
 
 			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
 		}
@@ -73,7 +84,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			RefreshSmartCoinStatus();
 		}
 
-		public SmartCoin Model { get; }
+		public SmartCoin Model { get; private set; }
 
 		public bool Confirmed => Model.Confirmed;
 
@@ -217,6 +228,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					return SmartCoinStatus.Unconfirmed;
 				}
 			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private bool _disposed = false;
+		protected virtual void Dispose(bool disposing)
+		{
+			if(_disposed) return;
+			Global.ChaumianClient.StateUpdated -= ChaumianClient_StateUpdated;
+			_disposables.Dispose();
+			Model = null;
+			_disposed = true;
+		}
+
+		~CoinViewModel()
+		{
+			Dispose(false);
 		}
 	}
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -18,7 +19,7 @@ using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinJoinTabViewModel : WalletActionViewModel
+	public class CoinJoinTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private CoinListViewModel _coinsList;
 		private long _roundId;
@@ -41,11 +42,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string DequeueButtonTextString = "Dequeue";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
 
+		private CompositeDisposable _disposables;
+
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
 			Password = "";
 
+			_disposables = new CompositeDisposable();
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
 			UpdateRequiredBtcLabel(registrableRound);
@@ -69,6 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			//CoinsList = new CoinListViewModel(coins);
+			_disposables.Add(CoinsList);
 
 			AmountQueued = Money.Zero;// Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
@@ -104,6 +109,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 			});
 
+			_disposables.Add(
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
 			{
 				if (x.NotNullAndNotEmpty())
@@ -115,8 +121,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 					}
 				}
-			});
+			}));
 
+			_disposables.Add(
 			this.WhenAnyValue(x => x.IsEnqueueBusy).Subscribe(busy =>
 			{
 				if (busy)
@@ -127,8 +134,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					EnqueueButtonText = EnqueueButtonTextString;
 				}
-			});
+			}));
 
+			_disposables.Add(
 			this.WhenAnyValue(x => x.IsDequeueBusy).Subscribe(busy =>
 			{
 				if (busy)
@@ -139,7 +147,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DequeueButtonText = DequeueButtonTextString;
 				}
-			});
+			}));
 		}
 
 		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
@@ -338,8 +346,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				bool changed = _coinsList != value;
-				if (_coinsList != null) _coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				if (_coinsList != null){
+					_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+					_coinsList.Dispose();
+				}
 				this.RaiseAndSetIfChanged(ref _coinsList, value);
+				_disposables.Add(_coinsList);
+
 				_coinsList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
 			}
 		}
@@ -438,5 +451,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand EnqueueCommand { get; }
 
 		public ReactiveCommand DequeueCommand { get; }
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private bool _disposed = false;
+		protected virtual void Dispose(bool disposing)
+		{
+			if(_disposed) return;
+			Global.ChaumianClient.CoinQueued -= ChaumianClient_CoinQueued;
+			Global.ChaumianClient.CoinDequeued -= ChaumianClient_CoinDequeued;
+			Global.ChaumianClient.StateUpdated -= ChaumianClient_StateUpdated;
+
+			_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+
+			_disposables.Dispose();
+			_disposables = null;
+			_coinsList = null;
+			_disposed = true;
+		}
+
+		~CoinJoinTabViewModel()
+		{
+			Dispose(false);
+		}
 	}
 }

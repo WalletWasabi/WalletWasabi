@@ -19,10 +19,11 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Backend.Models.Responses;
 using System.ComponentModel;
 using WalletWasabi.Gui.Models;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendTabViewModel : WalletActionViewModel
+	public class SendTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private CoinListViewModel _coinList;
 		private string _buildTransactionButtonText;
@@ -58,6 +59,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private bool IgnoreAmountChanges { get; set; }
 
+		private CompositeDisposable _disposables;
+
 		private FeeDisplayFormat FeeDisplayFormat
 		{
 			get => _feeDisplayFormat;
@@ -77,6 +80,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
 			CoinList = new CoinListViewModel();
+			_disposables = new CompositeDisposable();
+			_disposables.Add(CoinList);
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
@@ -88,6 +93,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 
+			_disposables.Add(
 			this.WhenAnyValue(x => x.Amount).Subscribe(amount =>
 			{
 				if (!IgnoreAmountChanges)
@@ -132,7 +138,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				SetFeesAndTexts();
-			});
+			}));
 
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
 			{
@@ -225,6 +231,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
 
+			_disposables.Add(
 			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
 			{
 				if (busy)
@@ -235,8 +242,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					BuildTransactionButtonText = BuildTransactionButtonTextString;
 				}
-			});
+			}));
 
+			_disposables.Add(
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
 				if (x.NotNullAndNotEmpty())
@@ -247,9 +255,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Password = x.TrimEnd('\r', '\n');
 					}
 				}
-			});
+			}));
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+			_disposables.Add(
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)));
+
+			_disposables.Add(
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
 				if (Label == null) return;
@@ -257,12 +268,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			});
+			}));
 
+			_disposables.Add(
 			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
 			{
 				SetFeesAndTexts();
-			});
+			}));
 
 			CoinList.SelectionChanged += CoinList_SelectionChanged;
 
@@ -828,5 +840,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand MaxCommand { get; }
 
 		public ReactiveCommand FeeRateCommand { get; }
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private bool _disposed = false;
+		protected virtual void Dispose(bool disposing)
+		{
+			if(_disposed) return;
+			Global.Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
+			CoinList.SelectionChanged -= CoinList_SelectionChanged;
+			_disposables.Dispose();
+			_disposed = true;
+		}
+
+		~SendTabViewModel()
+		{
+			Dispose(false);
+		}
 	}
 }
