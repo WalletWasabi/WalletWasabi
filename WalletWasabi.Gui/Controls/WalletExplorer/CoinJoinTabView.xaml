@@ -88,7 +88,7 @@
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
           <StackPanel Grid.Column="0" Spacing="10">
-            <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
+            <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" Margin="0 20 0 0" />
             <DockPanel Grid.Row="0" Grid.Column="1" LastChildFill="True" IsEnabled="{Binding !IsEnqueueBusy}">
               <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">

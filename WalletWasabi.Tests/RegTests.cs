@@ -1753,6 +1753,20 @@ namespace WalletWasabi.Tests
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nInvalid request.", httpRequestException.Message);
 
 				byte[] dummySignature = new byte[65];
+				CcjRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+
+				inputsRequest.BlindedOutputScripts = Enumerable.Range(0, round.MixingLevels.Count()+1).Select(x=>uint256.One);
+				inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(network);
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new TxoRef(uint256.One, 0), Proof = dummySignature } };
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
+				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nToo many blinded output was provided", httpRequestException.Message);
+
+				inputsRequest.BlindedOutputScripts = Enumerable.Range(0, round.MixingLevels.Count() -2).Select(x=>uint256.One);
+				inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(network);
+				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new TxoRef(uint256.One, 0), Proof = dummySignature } };
+				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
+				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nDuplicate blinded output found", httpRequestException.Message);
+
 				inputsRequest.BlindedOutputScripts = new[] { uint256.Zero };
 				inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(network);
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new TxoRef(uint256.One, 0), Proof = dummySignature } };
@@ -1794,7 +1808,7 @@ namespace WalletWasabi.Tests
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.Equal($"{HttpStatusCode.BadRequest.ToReasonString()}\nProvided proof is invalid.", httpRequestException.Message);
 
-				CcjRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				var requester = new Requester();
 				uint256 msg = new uint256(Hashes.SHA256(network.Consensus.ConsensusFactory.CreateTransaction().ToBytes()));
 				uint256 blindedData = requester.BlindMessage(msg, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey);
