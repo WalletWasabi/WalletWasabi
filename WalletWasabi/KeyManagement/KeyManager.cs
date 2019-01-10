@@ -134,10 +134,13 @@ namespace WalletWasabi.KeyManagement
 		public void ToFile(string filePath)
 		{
 			IoHelpers.EnsureContainingDirectoryExists(filePath);
-			lock (ToFileLock)
+			lock (HdPubKeysLock)
 			{
-				string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-				File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+				lock (ToFileLock)
+				{
+					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+					File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+				}
 			}
 		}
 
