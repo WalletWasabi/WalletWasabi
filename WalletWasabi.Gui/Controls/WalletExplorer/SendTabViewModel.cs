@@ -581,8 +581,54 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel CoinList
 		{
-			get => _coinList;
-			set => this.RaiseAndSetIfChanged(ref _coinList, value);
+			get { return _coinList; }
+			set
+			{
+				bool changed = _coinList != value;
+				if (_coinList != null) _coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				this.RaiseAndSetIfChanged(ref _coinList, value);
+				_coinList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
+			}
+		}
+
+#pragma warning disable RECS0165 // Asynchronous methods should return a Task instead of void
+
+		private async void CoinsList_DequeueCoinsPressedAsync()
+#pragma warning restore RECS0165 // Asynchronous methods should return a Task instead of void
+		{
+			var selectedCoin = _coinList?.SelectedCoin;
+			if (selectedCoin == null) return;
+			await DoDequeueAsync(new[] { selectedCoin });
+		}
+
+		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
+		{
+			WarningMessage = "";
+
+			if (!selectedCoins.Any())
+			{
+				SetWarningMessage("No coins are selected to dequeue.");
+				return;
+			}
+
+			try
+			{
+				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<CoinJoinTabViewModel>(ex);
+				var warningMessage = ex.ToTypeMessageString();
+				if (ex is AggregateException aggex)
+				{
+					foreach (var iex in aggex.InnerExceptions)
+					{
+						warningMessage += Environment.NewLine + iex.ToTypeMessageString();
+					}
+				}
+				SetWarningMessage(warningMessage);
+				return;
+			}
 		}
 
 		public bool IsBusy
