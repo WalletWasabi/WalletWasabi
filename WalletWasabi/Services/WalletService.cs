@@ -488,6 +488,12 @@ namespace WalletWasabi.Services
 					if (spentOwnCoins.Count != 0)
 					{
 						mixin += spentOwnCoins.Min(x => x.Mixin);
+
+						// Cleanup exposed links where the txo has been spent.
+						foreach (var input in spentOwnCoins.Select(x => x.GetTxoRef()))
+						{
+							ChaumianClient.ExposedLinks.TryRemove(input, out _);
+						}
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false); // Don't inherit locked status from key, that's different.
@@ -496,7 +502,7 @@ namespace WalletWasabi.Services
 					{
 						TransactionCache.TryAdd(tx);
 
-						// If it's a dequeued change, then queue it.
+						// If it's being mixed and anonset is not sufficient, then queue it.
 						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
 						{
 							Task.Run(async () =>
