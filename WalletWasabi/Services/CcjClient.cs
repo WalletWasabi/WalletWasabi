@@ -36,7 +36,7 @@ namespace WalletWasabi.Services
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
 
-		public ConcurrentDictionary<TxoRef, IEnumerable<BitcoinAddressBlindedPair>> ExposedLinks { get; set; }
+		public ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> ExposedLinks { get; set; }
 
 		private AsyncLock MixLock { get; }
 
@@ -63,21 +63,12 @@ namespace WalletWasabi.Services
 		private CancellationTokenSource Cancel { get; }
 
 		public CcjClient(
-			IDictionary<TxoRef, IEnumerable<BitcoinAddressBlindedPair>> exposedLinks,
 			WasabiSynchronizer synchronizer,
 			Network network,
 			KeyManager keyManager,
 			Uri ccjHostUri,
 			IPEndPoint torSocks5EndPoint = null)
 		{
-			Guard.NotNull(nameof(exposedLinks), exposedLinks);
-			var els = new ConcurrentDictionary<TxoRef, IEnumerable<BitcoinAddressBlindedPair>>();
-			foreach (var el in exposedLinks)
-			{
-				els.TryAdd(el.Key, el.Value);
-			}
-			ExposedLinks = els;
-
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
@@ -85,6 +76,7 @@ namespace WalletWasabi.Services
 			TorSocks5EndPoint = torSocks5EndPoint;
 			CoordinatorFeepercentToCheck = null;
 
+			ExposedLinks = new ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>>();
 			_running = 0;
 			Cancel = new CancellationTokenSource();
 			_frequentStatusProcessingIfNotMixing = 0;
@@ -200,7 +192,7 @@ namespace WalletWasabi.Services
 
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
-					State.UpdateRoundsByStates(states.ToArray());
+					State.UpdateRoundsByStates(ExposedLinks, states.ToArray());
 
 					// If we don't have enough coin queued to register a round, then dequeue all.
 					CcjClientRound registrableRound = State.GetRegistrableRoundOrDefault();
@@ -403,7 +395,7 @@ namespace WalletWasabi.Services
 					{
 						if (ExposedLinks.ContainsKey(input)) // Should never not contain, but oh well, let's not disrupt the round for this.
 						{
-							var found = ExposedLinks[input].FirstOrDefault(x => x.Address == activeOutput.address);
+							var found = ExposedLinks[input].FirstOrDefault(x => x.Key.GetP2wpkhAddress(Network) == activeOutput.address);
 							if (found != default)
 							{
 								found.IsBlinded = false;
@@ -411,7 +403,7 @@ namespace WalletWasabi.Services
 							else
 							{
 								// Should never happen, but oh well we can autocorrect it so why not.
-								ExposedLinks[input] = ExposedLinks[input].Append(new BitcoinAddressBlindedPair(activeOutput.address, false));
+								ExposedLinks[input] = ExposedLinks[input].Append(new HdPubKeyBlindedPair(KeyManager.GetKeyForScriptPubKey(activeOutput.address.ScriptPubKey), false));
 							}
 						}
 					}
@@ -463,7 +455,7 @@ namespace WalletWasabi.Services
 				// If there are no suitable coins to register return.
 				if (!registrableCoins.Any()) return;
 
-				(BitcoinAddress change, IEnumerable<BitcoinAddress> active) outputAddresses = GetOutputAddressesToRegister(inputRegistrableRound.State.Denomination, inputRegistrableRound.State.SchnorrPubKeys.Count(), registrableCoins);
+				(HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses = GetOutputsToRegister(inputRegistrableRound.State.Denomination, inputRegistrableRound.State.SchnorrPubKeys.Count(), registrableCoins);
 
 				SchnorrPubKey[] schnorrPubKeys = inputRegistrableRound.State.SchnorrPubKeys.ToArray();
 				List<Requester> requesters = new List<Requester>();
@@ -473,8 +465,8 @@ namespace WalletWasabi.Services
 				var registeredAddresses = new List<BitcoinAddress>();
 				for (int i = 0; i < schnorrPubKeys.Length; i++)
 				{
-					if (outputAddresses.active.Count() <= i) break;
-					BitcoinAddress address = outputAddresses.active.ElementAt(i);
+					if (outputAddresses.actives.Count() <= i) break;
+					BitcoinAddress address = outputAddresses.actives.Select(x => x.GetP2wpkhAddress(Network)).ElementAt(i);
 
 					SchnorrPubKey schnorrPubKey = schnorrPubKeys[i];
 					var outputScriptHash = new uint256(Hashes.SHA256(address.ScriptPubKey.ToBytes()));
@@ -506,7 +498,7 @@ namespace WalletWasabi.Services
 				AliceClient aliceClient = null;
 				try
 				{
-					aliceClient = await AliceClient.CreateNewAsync(Network, outputAddresses.change, blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
+					aliceClient = await AliceClient.CreateNewAsync(Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 				{
@@ -555,7 +547,7 @@ namespace WalletWasabi.Services
 					State.RemoveCoinFromWaitingList(coin);
 				}
 
-				var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, outputAddresses.change);
+				var registration = new ClientRoundRegistration(aliceClient, coinsRegistered, outputAddresses.change.GetP2wpkhAddress(Network));
 
 				CcjClientRound roundRegistered = State.GetSingleOrDefaultRound(aliceClient.RoundId);
 				if (roundRegistered is null)
@@ -573,7 +565,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private (BitcoinAddress change, IEnumerable<BitcoinAddress> active) GetOutputAddressesToRegister(Money baseDenomination, int mixingLevelCount, IEnumerable<TxoRef> coinsToRegister)
+		private (HdPubKey change, IEnumerable<HdPubKey> active) GetOutputsToRegister(Money baseDenomination, int mixingLevelCount, IEnumerable<TxoRef> coinsToRegister)
 		{
 			// Figure out how many mixing level we need to register active outputs.
 			Money inputSum = Money.Zero;
@@ -601,9 +593,23 @@ namespace WalletWasabi.Services
 			string changeLabel = "ZeroLink Change";
 			string activeLabel = "ZeroLink Mixed Coin";
 
+			var keysToSurelyRegister = ExposedLinks.Where(x => coinsToRegister.Contains(x.Key)).SelectMany(x => x.Value).Select(x => x.Key).ToArray();
+			var keysTryNotToRegister = ExposedLinks.SelectMany(x => x.Value).Select(x => x.Key).Except(keysToSurelyRegister).ToArray();
+
 			// Get all locked internal keys we have and assert we have enough.
 			KeyManager.AssertLockedInternalKeysIndexed(howMany: maximumMixingLevelCount + 1);
-			IEnumerable<HdPubKey> allLockedInternalKeys = KeyManager.GetKeys(x => x.IsInternal() && x.KeyState == KeyState.Locked);
+			IEnumerable<HdPubKey> allLockedInternalKeys = KeyManager.GetKeys(x => x.IsInternal() && x.KeyState == KeyState.Locked && !keysTryNotToRegister.Contains(x));
+
+			// If any of our inputs have exposed address relationship then prefer that.
+			allLockedInternalKeys = keysToSurelyRegister.Concat(allLockedInternalKeys).Distinct();
+
+			var newKeys = new List<HdPubKey>();
+			for (int i = allLockedInternalKeys.Count(); i <= maximumMixingLevelCount + 1; i++)
+			{
+				HdPubKey k = KeyManager.GenerateNewKey("", KeyState.Locked, isInternal: true, toFile: false);
+				newKeys.Add(k);
+			}
+			allLockedInternalKeys = allLockedInternalKeys.Concat(newKeys);
 
 			// Select the change and active keys to register and label them accordingly.
 			HdPubKey change = allLockedInternalKeys.First();
@@ -613,32 +619,32 @@ namespace WalletWasabi.Services
 			foreach (HdPubKey active in allLockedInternalKeys.Skip(1).Take(maximumMixingLevelCount))
 			{
 				actives.Add(active);
-				change.SetLabel(activeLabel);
+				active.SetLabel(activeLabel);
 			}
 
 			// Remember which links we are exposing.
-			var outLinks = new List<BitcoinAddressBlindedPair>();
-			BitcoinWitPubKeyAddress changeAddress = change.GetP2wpkhAddress(Network);
-			outLinks.Add(new BitcoinAddressBlindedPair(changeAddress, isBlinded: false));
-			BitcoinAddress[] activeAddresses = actives.Select(x => x.GetP2wpkhAddress(Network) as BitcoinAddress).ToArray();
-			foreach (var activeAddress in activeAddresses)
+			var outLinks = new List<HdPubKeyBlindedPair>
 			{
-				outLinks.Add(new BitcoinAddressBlindedPair(changeAddress, isBlinded: true));
+				new HdPubKeyBlindedPair(change, isBlinded: false)
+			};
+			foreach (var active in actives)
+			{
+				outLinks.Add(new HdPubKeyBlindedPair(active, isBlinded: true));
 			}
 			foreach (TxoRef coin in coinsToRegister)
 			{
 				if (!ExposedLinks.TryAdd(coin, outLinks))
 				{
-					var newOutLinks = new List<BitcoinAddressBlindedPair>();
-					foreach (BitcoinAddressBlindedPair link in ExposedLinks[coin])
+					var newOutLinks = new List<HdPubKeyBlindedPair>();
+					foreach (HdPubKeyBlindedPair link in ExposedLinks[coin])
 					{
 						newOutLinks.Add(link);
 					}
-					foreach (BitcoinAddressBlindedPair link in outLinks)
+					foreach (HdPubKeyBlindedPair link in outLinks)
 					{
-						BitcoinAddressBlindedPair found = newOutLinks.FirstOrDefault(x => x.Address == link.Address);
+						HdPubKeyBlindedPair found = newOutLinks.FirstOrDefault(x => x == link);
 
-						if (found != default)
+						if (found == default)
 						{
 							newOutLinks.Add(link);
 						}
@@ -657,7 +663,7 @@ namespace WalletWasabi.Services
 
 			// Save our modifications in the keymanager before we give back the selected keys.
 			KeyManager.ToFile();
-			return (changeAddress, activeAddresses);
+			return (change, actives);
 		}
 
 		public async Task QueueCoinsToMixAsync(params SmartCoin[] coins)

@@ -1,5 +1,6 @@
 ﻿using NBitcoin;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Backend.Models.Responses;
@@ -283,7 +284,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public void UpdateRoundsByStates(params CcjRunningRoundState[] allRunningRoundsStates)
+		public void UpdateRoundsByStates(ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> exposedLinks, params CcjRunningRoundState[] allRunningRoundsStates)
 		{
 			Guard.NotNullOrEmpty(nameof(allRunningRoundsStates), allRunningRoundsStates);
 			IsInErrorState = false;
@@ -299,6 +300,13 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				foreach (CcjClientRound round in Rounds.Where(x => roundsToRemove.Contains(x.State.RoundId)))
 				{
+					var newSuccessfulRoundCount = allRunningRoundsStates.FirstOrDefault()?.SuccessfulRoundCount;
+					bool roundFailed = newSuccessfulRoundCount != null && round.State.SuccessfulRoundCount == newSuccessfulRoundCount;
+					if (roundFailed)
+					{
+						IsInErrorState = true;
+					}
+
 					foreach (SmartCoin coin in round.CoinsRegistered)
 					{
 						if (round.Registration.IsPhaseActionsComleted(CcjRoundPhase.Signing))
@@ -306,6 +314,18 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							var delayRegistration = TimeSpan.FromSeconds(60);
 							WaitingList.Add(coin, DateTimeOffset.UtcNow + delayRegistration);
 							Logger.LogInfo<CcjClientState>($"Coin added to the waiting list: {coin.Index}:{coin.TransactionId}, but its registration is not allowed till {delayRegistration.TotalSeconds} seconds, because this coin might already be spent.");
+
+							if (roundFailed)
+							{
+								// Cleanup non-exposed links.
+								foreach (TxoRef input in round.Registration.CoinsRegistered.Select(x => x.GetTxoRef()))
+								{
+									if (exposedLinks.ContainsKey(input)) // This should always be the case.
+									{
+										exposedLinks[input] = exposedLinks[input].Where(x => !x.IsBlinded);
+									}
+								}
+							}
 						}
 						else
 						{
@@ -315,12 +335,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 
 					round?.Registration?.AliceClient?.Dispose();
-
-					var newSuccessfulRoundCount = allRunningRoundsStates.FirstOrDefault()?.SuccessfulRoundCount;
-					if (newSuccessfulRoundCount != null && round.State.SuccessfulRoundCount == newSuccessfulRoundCount)
-					{
-						IsInErrorState = true;
-					}
 
 					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's not running anymore.");
 				}
