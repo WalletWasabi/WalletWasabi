@@ -8,7 +8,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.XunitConfiguration;
 using Xunit;
-using static NBitcoin.Crypto.ECDSABlinding;
+using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Tests
 {
@@ -102,10 +102,10 @@ namespace WalletWasabi.Tests
 			uint256 blindedMessageHash = requester.BlindMessage(hash, rPubkey, keyPubkey);
 
 			// Sign the blinded message hash.
-			BigInteger blindedSignature = signer.Sign(blindedMessageHash);
+			uint256 blindedSignature = signer.Sign(blindedMessageHash);
 
 			// Unblind the signature.
-			BlindSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
+			UnblindedSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
 
 			// verify the original data is signed
 

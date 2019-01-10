@@ -5,7 +5,7 @@ using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
-using static NBitcoin.Crypto.ECDSABlinding;
+using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace NBitcoin
 {
@@ -109,15 +109,15 @@ namespace NBitcoin
 			return pubKey.WitHash == address.Hash;
 		}
 
-		public static bool VerifyUnblindedSignature(this Signer signer, BlindSignature signature, byte[] data)
+		public static bool VerifyUnblindedSignature(this Signer signer, UnblindedSignature signature, byte[] data)
 		{
 			uint256 hash = new uint256(Hashes.SHA256(data));
-			return ECDSABlinding.VerifySignature(hash, signature, signer.Key.PubKey);
+			return VerifySignature(hash, signature, signer.Key.PubKey);
 		}
 
-		public static bool VerifyUnblindedSignature(this Signer signer, BlindSignature signature, uint256 dataHash)
+		public static bool VerifyUnblindedSignature(this Signer signer, UnblindedSignature signature, uint256 dataHash)
 		{
-			return ECDSABlinding.VerifySignature(dataHash, signature, signer.Key.PubKey);
+			return VerifySignature(dataHash, signature, signer.Key.PubKey);
 		}
 
 		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey RPubKey, Script script)

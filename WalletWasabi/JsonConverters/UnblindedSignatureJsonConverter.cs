@@ -7,12 +7,12 @@ using System;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class BlindSignatureJsonConverter : JsonConverter
+	public class UnblindedSignatureJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(BlindSignature);
+			return objectType == typeof(UnblindedSignature);
 		}
 
 		/// <inheritdoc />
@@ -23,13 +23,13 @@ namespace WalletWasabi.JsonConverters
 			string c = arr[0].Value<string>();
 			string s = arr[1].Value<string>();
 
-			return new BlindSignature(new BigInteger(c), new BigInteger(s));
+			return new UnblindedSignature(new BigInteger(c), new BigInteger(s));
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			BlindSignature signature = (BlindSignature)value;
+			UnblindedSignature signature = (UnblindedSignature)value;
 			writer.WriteStartArray();
 			writer.WriteValue(signature.C.ToString());
 			writer.WriteValue(signature.S.ToString());

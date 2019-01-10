@@ -18,8 +18,8 @@ namespace WalletWasabi.Backend.Models.Requests
 		public int Level { get; set; }
 
 		[Required]
-		[JsonConverter(typeof(BlindSignatureJsonConverter))]
-		public BlindSignature UnblindedSignature { get; set; }
+		[JsonConverter(typeof(UnblindedSignatureJsonConverter))]
+		public UnblindedSignature UnblindedSignature { get; set; }
 
 		public StringContent ToHttpStringContent()
 		{

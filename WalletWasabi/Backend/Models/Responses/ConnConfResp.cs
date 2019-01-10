@@ -1,4 +1,5 @@
-﻿using NBitcoin.BouncyCastle.Math;
+﻿using NBitcoin;
+using NBitcoin.BouncyCastle.Math;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -11,8 +12,8 @@ namespace WalletWasabi.Backend.Models.Responses
 {
 	public class ConnConfResp
 	{
-		[JsonProperty(ItemConverterType = typeof(BigIntegerJsonConverter))]
-		public IEnumerable<BigInteger> BlindedOutputSignatures { get; set; }
+		[JsonProperty(ItemConverterType = typeof(Uint256JsonConverter))]
+		public IEnumerable<uint256> BlindedOutputSignatures { get; set; }
 
 		[Required]
 		public CcjRoundPhase CurrentPhase { get; set; }

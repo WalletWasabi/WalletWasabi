@@ -17,7 +17,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using NBitcoin.BouncyCastle.Math;
 using NBitcoin.Crypto;
-using static NBitcoin.Crypto.ECDSABlinding;
+using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 {
@@ -77,7 +77,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			return await CreateNewAsync(network, request, baseUri, torSocks5EndPoint);
 		}
 
-		public async Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)> activeOutputs)> PostConfirmationAsync()
+		public async Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)> activeOutputs)> PostConfirmationAsync()
 		{
 			using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={UniqueId}&roundId={RoundId}"))
 			{
@@ -89,16 +89,16 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 				ConnConfResp resp = await response.Content.ReadAsJsonAsync<ConnConfResp>();
 				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Phase: {resp.CurrentPhase}.");
 
-				var activeOutputs = new List<(BitcoinAddress output, BlindSignature signature, int level)>();
+				var activeOutputs = new List<(BitcoinAddress output, UnblindedSignature signature, int level)>();
 				if (resp.BlindedOutputSignatures != null && resp.BlindedOutputSignatures.Any())
 				{
-					var unblindedSignatures = new List<BlindSignature>();
+					var unblindedSignatures = new List<UnblindedSignature>();
 					var blindedSignatures = resp.BlindedOutputSignatures.ToArray();
 					for (int i = 0; i < blindedSignatures.Length; i++)
 					{
-						BigInteger blindedSignature = blindedSignatures[i];
+						uint256 blindedSignature = blindedSignatures[i];
 						Requester requester = Requesters[i];
-						BlindSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
+						UnblindedSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
 
 						uint256 outputScriptHash = OutputScriptHashes[i];
 						PubKey signerPubKey = SchnorrPubKeys[i].SignerPubKey;

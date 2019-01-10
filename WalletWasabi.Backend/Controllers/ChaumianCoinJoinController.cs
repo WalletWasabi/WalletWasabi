@@ -22,7 +22,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
-using static NBitcoin.Crypto.ECDSABlinding;
+using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Backend.Controllers
 {
@@ -302,12 +302,12 @@ namespace WalletWasabi.Backend.Controllers
 					round.AddAlice(alice);
 
 					// All checks are good. Sign.
-					var blindSignatures = new List<BigInteger>();
+					var blindSignatures = new List<uint256>();
 					for (int i = 0; i < acceptedBlindedOutputScripts.Count; i++)
 					{
 						var blindedOutput = acceptedBlindedOutputScripts[i];
 						var signer = round.MixingLevels.GetLevel(i).Signer;
-						BigInteger blindSignature = signer.Sign(blindedOutput);
+						uint256 blindSignature = signer.Sign(blindedOutput);
 						blindSignatures.Add(blindSignature);
 					}
 					alice.BlindedOutputSignatures = blindSignatures.ToArray();

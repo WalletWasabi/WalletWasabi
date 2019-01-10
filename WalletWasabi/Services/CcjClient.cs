@@ -18,7 +18,7 @@ using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using System.Collections.Concurrent;
 using System.Net.Http;
 using NBitcoin.Crypto;
-using static NBitcoin.Crypto.ECDSABlinding;
+using static NBitcoin.Crypto.SchnorrBlinding;
 using NBitcoin.BouncyCastle.Math;
 
 namespace WalletWasabi.Services
@@ -380,7 +380,7 @@ namespace WalletWasabi.Services
 
 			var shuffledOutputs = ongoingRound.Registration.ActiveOutputs.ToList();
 			shuffledOutputs.Shuffle();
-			foreach ((BitcoinAddress address, BlindSignature signature, int mixingLevel) activeOutput in shuffledOutputs)
+			foreach ((BitcoinAddress address, UnblindedSignature signature, int mixingLevel) activeOutput in shuffledOutputs)
 			{
 				using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
 				{

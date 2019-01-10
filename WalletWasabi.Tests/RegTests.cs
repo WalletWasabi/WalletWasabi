@@ -31,7 +31,7 @@ using WalletWasabi.TorSocks5;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using Xunit;
-using static NBitcoin.Crypto.ECDSABlinding;
+using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Tests
 {
@@ -1755,13 +1755,13 @@ namespace WalletWasabi.Tests
 				byte[] dummySignature = new byte[65];
 				CcjRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 
-				inputsRequest.BlindedOutputScripts = Enumerable.Range(0, round.MixingLevels.Count()+1).Select(x=>uint256.One);
+				inputsRequest.BlindedOutputScripts = Enumerable.Range(0, round.MixingLevels.Count() + 1).Select(x => uint256.One);
 				inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(network);
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new TxoRef(uint256.One, 0), Proof = dummySignature } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nToo many blinded output was provided", httpRequestException.Message);
 
-				inputsRequest.BlindedOutputScripts = Enumerable.Range(0, round.MixingLevels.Count() -2).Select(x=>uint256.One);
+				inputsRequest.BlindedOutputScripts = Enumerable.Range(0, round.MixingLevels.Count() - 2).Select(x => uint256.One);
 				inputsRequest.ChangeOutputAddress = new Key().PubKey.GetAddress(network);
 				inputsRequest.Inputs = new List<InputProofModel> { new InputProofModel { Input = new TxoRef(uint256.One, 0), Proof = dummySignature } };
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(network, inputsRequest, baseUri));
@@ -2274,7 +2274,7 @@ namespace WalletWasabi.Tests
 				}
 
 				// CONNECTION CONFIRMATION PHASE --
-				List<IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)>> activeOutputs = new List<IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)>>();
+				List<IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>> activeOutputs = new List<IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>>();
 				var j = 0;
 				foreach (var (aliceClient, _, _) in participants)
 				{
@@ -2495,7 +2495,7 @@ namespace WalletWasabi.Tests
 			}
 
 			long roundId = 0;
-			var users = new List<(Requester requester, uint256 blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient aliceClient, BlindSignature unblindedSignature)>();
+			var users = new List<(Requester requester, uint256 blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient aliceClient, UnblindedSignature unblindedSignature)>();
 			for (int i = 0; i < inputRegistrationUsers.Count; i++)
 			{
 				var user = inputRegistrationUsers[i];
@@ -2518,7 +2518,7 @@ namespace WalletWasabi.Tests
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
 
-			var confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)>)>>();
+			var confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>)>>();
 
 			foreach (var user in users)
 			{
@@ -2567,7 +2567,7 @@ namespace WalletWasabi.Tests
 			}
 
 			roundId = 0;
-			users = new List<(Requester requester, uint256 blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient aliceClient, BlindSignature unblindedSignature)>();
+			users = new List<(Requester requester, uint256 blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient aliceClient, UnblindedSignature unblindedSignature)>();
 			for (int i = 0; i < inputRegistrationUsers.Count; i++)
 			{
 				var user = inputRegistrationUsers[i];
@@ -2588,7 +2588,7 @@ namespace WalletWasabi.Tests
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
 
-			confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)>)>>();
+			confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>)>>();
 
 			foreach (var user in users)
 			{
@@ -2652,14 +2652,14 @@ namespace WalletWasabi.Tests
 
 			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
 			var fundingTxCount = 0;
-			var inputRegistrationUsers = new List<(ECDSABlinding.Requester requester, uint256 blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData)>();
+			var inputRegistrationUsers = new List<(Requester requester, uint256 blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData)>();
 			for (int i = 0; i < roundConfig.AnonymitySet; i++)
 			{
 				var userInputData = new List<(Key key, BitcoinWitPubKeyAddress inputAddress, uint256 txHash, Transaction tx, OutPoint input)>();
 				var activeOutputAddress = new Key().PubKey.GetAddress(network);
 				var changeOutputAddress = new Key().PubKey.GetAddress(network);
 				CcjRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
-				ECDSABlinding.Requester requester = new ECDSABlinding.Requester();
+				var requester = new Requester();
 				uint256 blinded = requester.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, activeOutputAddress.ScriptPubKey);
 				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blinded.ToBytes()));
 
@@ -2715,7 +2715,7 @@ namespace WalletWasabi.Tests
 			}
 
 			long roundId = 0;
-			var users = new List<(ECDSABlinding.Requester requester, uint256 blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient aliceClient, BlindSignature unblindedSignature)>();
+			var users = new List<(Requester requester, uint256 blinded, BitcoinAddress activeOutputAddress, BitcoinAddress changeOutputAddress, IEnumerable<InputProofModel> inputProofModels, List<(Key key, BitcoinWitPubKeyAddress address, uint256 txHash, Transaction tx, OutPoint input)> userInputData, AliceClient aliceClient, UnblindedSignature unblindedSignature)>();
 			for (int i = 0; i < inputRegistrationUsers.Count; i++)
 			{
 				var user = inputRegistrationUsers[i];
@@ -2737,7 +2737,7 @@ namespace WalletWasabi.Tests
 			Logger.TurnOn();
 
 			Assert.Equal(users.Count, roundConfig.AnonymitySet);
-			var confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, BlindSignature signature, int level)>)>>();
+			var confirmationRequests = new List<Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>)>>();
 
 			foreach (var user in users)
 			{

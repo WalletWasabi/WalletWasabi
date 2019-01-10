@@ -25,7 +25,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public uint256[] BlindedOutputScripts { get; set; }
 
-		public BigInteger[] BlindedOutputSignatures { get; set; }
+		public uint256[] BlindedOutputSignatures { get; set; }
 
 		public Alice(IEnumerable<Coin> inputs, Money networkFeeToPay, BitcoinAddress changeOutputAddress, IEnumerable<uint256> blindedOutputScripts)
 		{
@@ -43,7 +43,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			State = AliceState.InputsRegistered;
 
-			BlindedOutputSignatures = new BigInteger[0];
+			BlindedOutputSignatures = new uint256[0];
 		}
 	}
 }

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
-using static NBitcoin.Crypto.ECDSABlinding;
+using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
 {

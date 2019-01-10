@@ -204,7 +204,7 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void InputsResponseSerialization()
 		{
-			BigInteger[] bigIntegers = new BigInteger[] { new BigInteger("1"), new BigInteger("2"), new BigInteger("3") };
+			uint256[] bigIntegers = new uint256[] { uint256.One, uint256.One, uint256.Zero };
 			var resp = new InputsResponse
 			{
 				UniqueId = Guid.NewGuid(),
