@@ -62,6 +62,18 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			AliceClient client = new AliceClient(roundId, registeredAddresses, schnorrPubKeys, requesters, network, baseUri, torSocks5EndPoint);
 			try
 			{
+				// Correct it if forgot to set.
+				if (request.RoundId != roundId)
+				{
+					if (request.RoundId == 0)
+					{
+						request.RoundId = roundId;
+					}
+					else
+					{
+						throw new NotSupportedException($"InputRequest roundId doesn't match to the provided roundId: {request.RoundId} != {roundId}.");
+					}
+				}
 				using (HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
 					if (response.StatusCode != HttpStatusCode.OK)

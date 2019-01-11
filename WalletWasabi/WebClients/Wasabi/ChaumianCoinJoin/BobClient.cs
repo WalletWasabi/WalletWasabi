@@ -20,7 +20,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		/// <returns>If the phase is still in OutputRegistration.</returns>
 		public async Task<bool> PostOutputAsync(long roundId, BitcoinAddress activeOutputAddress, UnblindedSignature unblindedSignature, int level)
 		{
-			Guard.MinimumAndNotNull(nameof(roundId), roundId, 1);
+			Guard.MinimumAndNotNull(nameof(roundId), roundId, 0);
 			Guard.NotNull(nameof(activeOutputAddress), activeOutputAddress);
 			Guard.NotNull(nameof(unblindedSignature), unblindedSignature);
 			Guard.MinimumAndNotNull(nameof(level), level, 0);
