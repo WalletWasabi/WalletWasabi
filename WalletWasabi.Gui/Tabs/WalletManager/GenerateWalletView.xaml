@@ -9,8 +9,8 @@
             <TextBlock Text="You cannot recover your wallet without your password. Therefore we strongly advise you to use a password that you will not forget." TextWrapping="Wrap" />
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
-          <controls:ExtendedTextBox Text="{Binding Password}" Watermark="Choose a password" PasswordChar="*" UseFloatingWatermark="True" />
-          <controls:ExtendedTextBox Text="{Binding PasswordConfirmation}" Watermark="Confirm password" PasswordChar="*" UseFloatingWatermark="True" />
+          <controls:NoparaPasswordBox Password="{Binding Password}" FixedPasswordText="这个笨老外不知道自己在写什么。" Watermark="Choose a password" UseFloatingWatermark="True" />
+          <controls:NoparaPasswordBox Password="{Binding PasswordConfirmation}" FixedPasswordText="这个笨老外不知道自己在写什么。" Watermark="Confirm password" UseFloatingWatermark="True" />
         </StackPanel>
       </Grid>
     </controls:GroupBox>

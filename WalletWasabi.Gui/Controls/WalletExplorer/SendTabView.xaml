@@ -97,7 +97,7 @@
             </StackPanel>
           </StackPanel>
           <StackPanel Spacing="10" Orientation="Horizontal">
-            <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
+            <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
             <DockPanel VerticalAlignment="Top" LastChildFill="True">
               <Button Command="{Binding BuildTransactionCommand}" DockPanel.Dock="Right">
                 <StackPanel Orientation="Horizontal">
