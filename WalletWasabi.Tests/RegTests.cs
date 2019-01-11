@@ -2994,180 +2994,180 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		//[Fact]
-		//public async Task CoinJoinMultipleRoundTestsAsync()
-		//{
-		//	(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(3);
+		[Fact]
+		public async Task CoinJoinMultipleRoundTestsAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(3);
 
-		//	Money denomination = Money.Coins(0.1m);
-		//	decimal coordinatorFeePercent = 0.1m;
-		//	int anonymitySet = 2;
-		//	int connectionConfirmationTimeout = 14;
-		//	var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
-		//	coordinator.UpdateRoundConfig(roundConfig);
-		//	coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			Money denomination = Money.Coins(0.1m);
+			decimal coordinatorFeePercent = 0.1m;
+			int anonymitySet = 2;
+			int connectionConfirmationTimeout = 14;
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
+			coordinator.UpdateRoundConfig(roundConfig);
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
-		//	// Create the services.
-		//	// 1. Create connection service.
-		//	var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
-		//	nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			// Create the services.
+			// 1. Create connection service.
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
+			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
-		//	var nodes2 = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
-		//	nodes2.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			var nodes2 = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
+			nodes2.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
-		//	// 2. Create mempool service.
-		//	var memPoolService = new MemPoolService();
-		//	Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
-		//	node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+			// 2. Create mempool service.
+			var memPoolService = new MemPoolService();
+			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
-		//	var memPoolService2 = new MemPoolService();
-		//	Node node2 = RegTestFixture.BackendRegTestNode.CreateNodeClient();
-		//	node2.Behaviors.Add(new MemPoolBehavior(memPoolService2));
+			var memPoolService2 = new MemPoolService();
+			Node node2 = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			node2.Behaviors.Add(new MemPoolBehavior(memPoolService2));
 
-		//	// 3. Create wasabi synchronizer service.
-		//	var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Index{network}.dat");
-		//	var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			// 3. Create wasabi synchronizer service.
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Index{network}.dat");
+			var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
 
-		//	var indexFilePath2 = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Index{network}2.dat");
-		//	var synchronizer2 = new WasabiSynchronizer(network, indexFilePath2, new Uri(RegTestFixture.BackendEndPoint));
+			var indexFilePath2 = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync), $"Index{network}2.dat");
+			var synchronizer2 = new WasabiSynchronizer(network, indexFilePath2, new Uri(RegTestFixture.BackendEndPoint));
 
-		//	// 4. Create key manager service.
-		//	var keyManager = KeyManager.CreateNew(out _, password);
+			// 4. Create key manager service.
+			var keyManager = KeyManager.CreateNew(out _, password);
 
-		//	var keyManager2 = KeyManager.CreateNew(out _, password);
+			var keyManager2 = KeyManager.CreateNew(out _, password);
 
-		//	// 5. Create chaumian coinjoin client.
-		//	var chaumianClient = new CcjClient(synchronizer, network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			// 5. Create chaumian coinjoin client.
+			var chaumianClient = new CcjClient(synchronizer, network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
 
-		//	var chaumianClient2 = new CcjClient(synchronizer, network, keyManager2, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(synchronizer, network, keyManager2, new Uri(RegTestFixture.BackendEndPoint));
 
-		//	// 6. Create wallet service.
-		//	var workDir = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync));
-		//	var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
-		//	wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
+			// 6. Create wallet service.
+			var workDir = Path.Combine(SharedFixture.DataDir, nameof(CoinJoinMultipleRoundTestsAsync));
+			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
 
-		//	var workDir2 = Path.Combine(SharedFixture.DataDir, $"{nameof(CoinJoinMultipleRoundTestsAsync)}2");
-		//	var wallet2 = new WalletService(keyManager2, synchronizer2, chaumianClient2, memPoolService2, nodes2, workDir2, serviceConfiguration);
+			var workDir2 = Path.Combine(SharedFixture.DataDir, $"{nameof(CoinJoinMultipleRoundTestsAsync)}2");
+			var wallet2 = new WalletService(keyManager2, synchronizer2, chaumianClient2, memPoolService2, nodes2, workDir2, serviceConfiguration);
 
-		//	// Get some money, make it confirm.
-		//	var key = wallet.GetReceiveKey("fundZeroLink");
-		//	var txid = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
-		//	Assert.NotNull(txid);
-		//	var key2 = wallet2.GetReceiveKey("fundZeroLink");
-		//	var key3 = wallet2.GetReceiveKey("fundZeroLink");
-		//	var key4 = wallet2.GetReceiveKey("fundZeroLink");
-		//	var txid2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.11m));
-		//	var txid3 = await rpc.SendToAddressAsync(key3.GetP2wpkhAddress(network), Money.Coins(0.12m));
-		//	var txid4 = await rpc.SendToAddressAsync(key4.GetP2wpkhAddress(network), Money.Coins(0.13m));
+			// Get some money, make it confirm.
+			var key = wallet.GetReceiveKey("fundZeroLink");
+			var txid = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m));
+			Assert.NotNull(txid);
+			var key2 = wallet2.GetReceiveKey("fundZeroLink");
+			var key3 = wallet2.GetReceiveKey("fundZeroLink");
+			var key4 = wallet2.GetReceiveKey("fundZeroLink");
+			var txid2 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.11m));
+			var txid3 = await rpc.SendToAddressAsync(key3.GetP2wpkhAddress(network), Money.Coins(0.12m));
+			var txid4 = await rpc.SendToAddressAsync(key4.GetP2wpkhAddress(network), Money.Coins(0.13m));
 
-		//	await rpc.GenerateAsync(1);
+			await rpc.GenerateAsync(1);
 
-		//	try
-		//	{
-		//		Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
-		//		nodes.Connect(); // Start connection service.
-		//		node.VersionHandshake(); // Start mempool service.
-		//		synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
-		//		chaumianClient.Start(); // Start chaumian coinjoin client.
-		//		nodes2.Connect(); // Start connection service.
-		//		node2.VersionHandshake(); // Start mempool service.
-		//		synchronizer2.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
-		//		chaumianClient2.Start(); // Start chaumian coinjoin client.
+			try
+			{
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
+				nodes.Connect(); // Start connection service.
+				node.VersionHandshake(); // Start mempool service.
+				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
+				nodes2.Connect(); // Start connection service.
+				node2.VersionHandshake(); // Start mempool service.
+				synchronizer2.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+				chaumianClient2.Start(); // Start chaumian coinjoin client.
 
-		//		// Wait until the filter our previous transaction is present.
-		//		var blockCount = await rpc.GetBlockCountAsync();
-		//		await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
+				// Wait until the filter our previous transaction is present.
+				var blockCount = await rpc.GetBlockCountAsync();
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
-		//		using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
-		//		{
-		//			await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
-		//		}
-		//		using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
-		//		{
-		//			await wallet2.InitializeAsync(cts.Token); // Initialize wallet service.
-		//		}
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet2.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
 
-		//		var waitCount = 0;
-		//		while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
-		//		{
-		//			await Task.Delay(1000);
-		//			waitCount++;
-		//			if (waitCount >= 21)
-		//			{
-		//				throw new TimeoutException("Funding transaction to the wallet1 did not arrive.");
-		//			}
-		//		}
-		//		waitCount = 0;
-		//		while (wallet2.Coins.Sum(x => x.Amount) == Money.Zero)
-		//		{
-		//			await Task.Delay(1000);
-		//			waitCount++;
-		//			if (waitCount >= 21)
-		//			{
-		//				throw new TimeoutException("Funding transaction to the wallet2 did not arrive.");
-		//			}
-		//		}
+				var waitCount = 0;
+				while (wallet.Coins.Sum(x => x.Amount) == Money.Zero)
+				{
+					await Task.Delay(1000);
+					waitCount++;
+					if (waitCount >= 21)
+					{
+						throw new TimeoutException("Funding transaction to the wallet1 did not arrive.");
+					}
+				}
+				waitCount = 0;
+				while (wallet2.Coins.Sum(x => x.Amount) == Money.Zero)
+				{
+					await Task.Delay(1000);
+					waitCount++;
+					if (waitCount >= 21)
+					{
+						throw new TimeoutException("Funding transaction to the wallet2 did not arrive.");
+					}
+				}
 
-		//		Assert.True(1 == (await chaumianClient.QueueCoinsToMixAsync(password, wallet.Coins.ToArray())).Count());
-		//		Assert.True(3 == (await chaumianClient2.QueueCoinsToMixAsync(password, wallet2.Coins.ToArray())).Count());
+				Assert.True(1 == (await chaumianClient.QueueCoinsToMixAsync(password, wallet.Coins.ToArray())).Count());
+				Assert.True(3 == (await chaumianClient2.QueueCoinsToMixAsync(password, wallet2.Coins.ToArray())).Count());
 
-		//		Task timeout = Task.Delay(TimeSpan.FromSeconds(2 * (1 + 11 + 7 + 3 * (3 + 7))));
-		//		while (wallet.Coins.Count != 7)
-		//		{
-		//			if (timeout.IsCompletedSuccessfully)
-		//			{
-		//				throw new TimeoutException("CoinJoin wasn't propagated or didn't arrive.");
-		//			}
-		//			await Task.Delay(1000);
-		//		}
+				Task timeout = Task.Delay(TimeSpan.FromSeconds(2 * (1 + 11 + 7 + 3 * (3 + 7))));
+				while (wallet.Coins.Count != 7)
+				{
+					if (timeout.IsCompletedSuccessfully)
+					{
+						throw new TimeoutException("CoinJoin wasn't propagated or didn't arrive.");
+					}
+					await Task.Delay(1000);
+				}
 
-		//		var times = 0;
-		//		while (wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).SingleOrDefault() is null)
-		//		{
-		//			await Task.Delay(1000);
-		//			times++;
-		//			if (times >= 21) throw new TimeoutException("Wallet spends were not recognized.");
-		//		}
-		//		SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).ToArray();
-		//		await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges);
+				var times = 0;
+				while (wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).SingleOrDefault() is null)
+				{
+					await Task.Delay(1000);
+					times++;
+					if (times >= 21) throw new TimeoutException("Wallet spends were not recognized.");
+				}
+				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).ToArray();
+				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges);
 
-		//		Assert.Equal(3, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrCoinJoinInProgress));
-		//		Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrCoinJoinInProgress));
-		//		Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
-		//		Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
-		//		Assert.Equal(2, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && !x.Unspent));
-		//		Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Change"));
-		//		Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && x.Unspent));
-		//		Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.Unspent));
-		//		Assert.Equal(1, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.SpentOrCoinJoinInProgress));
-		//	}
-		//	finally
-		//	{
-		//		wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
-		//		wallet?.Dispose();
-		//		// Dispose wasabi synchronizer service.
-		//		synchronizer?.Dispose();
-		//		// Dispose connection service.
-		//		nodes?.Dispose();
-		//		// Dispose mempool serving node.
-		//		node?.Disconnect();
-		//		// Dispose chaumian coinjoin client.
-		//		if (!(chaumianClient is null))
-		//		{
-		//			await chaumianClient.StopAsync();
-		//		}
-		//		wallet2?.Dispose();
-		//		// Dispose wasabi synchronizer service.
-		//		synchronizer2?.Dispose();
-		//		// Dispose connection service.
-		//		nodes2?.Dispose();
-		//		// Dispose chaumian coinjoin client.
-		//		if (!(chaumianClient2 is null))
-		//		{
-		//			await chaumianClient2.StopAsync();
-		//		}
-		//	}
-		//}
+				Assert.Equal(3, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrCoinJoinInProgress));
+				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrCoinJoinInProgress));
+				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
+				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
+				Assert.Equal(2, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && !x.Unspent));
+				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Change"));
+				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && x.Unspent));
+				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.Unspent));
+				Assert.Equal(1, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.SpentOrCoinJoinInProgress));
+			}
+			finally
+			{
+				wallet.NewFilterProcessed -= Wallet_NewFilterProcessed;
+				wallet?.Dispose();
+				// Dispose wasabi synchronizer service.
+				synchronizer?.Dispose();
+				// Dispose connection service.
+				nodes?.Dispose();
+				// Dispose mempool serving node.
+				node?.Disconnect();
+				// Dispose chaumian coinjoin client.
+				if (!(chaumianClient is null))
+				{
+					await chaumianClient.StopAsync();
+				}
+				wallet2?.Dispose();
+				// Dispose wasabi synchronizer service.
+				synchronizer2?.Dispose();
+				// Dispose connection service.
+				nodes2?.Dispose();
+				// Dispose chaumian coinjoin client.
+				if (!(chaumianClient2 is null))
+				{
+					await chaumianClient2.StopAsync();
+				}
+			}
+		}
 
 		#endregion ClientTests
 	}
