@@ -149,7 +149,7 @@ namespace WalletWasabi.Gui.Controls
 				return;
 			}
 			//prevent copy
-			if ((e.Key == Key.C || e.Key == Key.Insert) && (e.Modifiers == InputModifiers.Control || e.Modifiers == InputModifiers.Windows))
+			if ((e.Key == Key.C || e.Key == Key.X || e.Key == Key.Insert) && (e.Modifiers == InputModifiers.Control || e.Modifiers == InputModifiers.Windows))
 			{
 				return;
 			}
