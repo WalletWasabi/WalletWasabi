@@ -67,6 +67,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Controls\WalletExplorer\CoinJoinTabView.xaml.BASE.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\CoinJoinTabView.xaml.LOCAL.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\CoinJoinTabView.xaml.REMOTE.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
     <None Update="Controls\WalletExplorer\CoinListView.xaml.BASE.xaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
