@@ -2261,17 +2261,18 @@ namespace WalletWasabi.Tests
 		//				));
 		//			}
 
+		//			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 		//			// Save alice client and the outputs, requesters, etc
 		//			var changeOutput = new Key().PubKey.GetAddress(network);
 		//			var inputProof = inputs.Select(x => new InputProofModel { Input = x.input, Proof = x.proof });
 		//			var aliceClient = await AliceClient.CreateNewAsync(
+		//				round.RoundId,
 		//				outputs.Select(x => x.outputAddress),
-
+		//				round.MixingLevels.SchnorrPubKeys,
+		//				outputs.Select(x => x.requester),
 		//				network, changeOutput, blindedOutputScriptList, inputProof, baseUri);
 
 		//			// We check the coordinator signed all the alice blinded outputs
-		//			aliceClient.Requesters = outputs.Select(x => x.requester).ToArray();
-
 		//			participants.Add((aliceClient, outputs, inputs));
 		//		}
 
