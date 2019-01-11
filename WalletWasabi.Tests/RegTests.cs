@@ -2601,24 +2601,6 @@ namespace WalletWasabi.Tests
 				confirmationRequests.Add(user.aliceClient.PostConfirmationAsync());
 			}
 
-			roundPhase = CcjRoundPhase.InputRegistration;
-			k = 0;
-			foreach (var request in confirmationRequests)
-			{
-				var resp = await request;
-				if (roundPhase == CcjRoundPhase.InputRegistration)
-				{
-					roundPhase = resp.currentPhase;
-				}
-				else
-				{
-					Assert.Equal(roundPhase, resp.currentPhase);
-				}
-
-				var user = users.ElementAt(k);
-				user.unblindedSignature = resp.Item2.First().signature;
-			}
-
 			using (var satoshiClient = new SatoshiClient(baseUri))
 			{
 				var times = 0;
@@ -2627,7 +2609,7 @@ namespace WalletWasabi.Tests
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
 					{
-						throw new TimeoutException("Not all rouns were in InputRegistration.");
+						throw new TimeoutException("Not all rounds were in InputRegistration.");
 					}
 					times++;
 				}
