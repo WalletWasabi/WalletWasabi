@@ -2303,7 +2303,7 @@ namespace WalletWasabi.Tests
 				}
 
 				// CONNECTION CONFIRMATION PHASE --
-				List<IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>> activeOutputs = new List<IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>>();
+				var activeOutputs = new List<IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>>();
 				var j = 0;
 				foreach (var (aliceClient, _, _) in participants)
 				{
@@ -2312,59 +2312,61 @@ namespace WalletWasabi.Tests
 					j++;
 				}
 
-				//	// OUTPUTS REGISTRATION PHASE --
-				//	var roundState = await satoshiClient.GetRoundStateAsync(roundId);
-				//	Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
+				// OUTPUTS REGISTRATION PHASE --
+				var roundState = await satoshiClient.GetRoundStateAsync(roundId);
+				Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
 
-				//	foreach (var (aliceClient, outputs, _) in participants)
-				//	{
-				//		using (var bobClient = new BobClient(baseUri))
-				//		{
-				//			var i = 0;
-				//			foreach (var output in outputs.Take(activeOutputs[i].Count()))
-				//			{
-				//				await bobClient.PostOutputAsync(aliceClient.RoundId, output.outputAddress, activeOutputs[i].ElementAt(i).signature, i);
-				//				i++;
-				//			}
-				//		}
-				//	}
+				var l = 0;
+				foreach (var (aliceClient, outputs, _) in participants)
+				{
+					using (var bobClient = new BobClient(baseUri))
+					{
+						var i = 0;
+						foreach (var output in outputs.Take(activeOutputs[l].Count()))
+						{
+							await bobClient.PostOutputAsync(aliceClient.RoundId, output.outputAddress, activeOutputs[l].ElementAt(i).signature, i);
+							i++;
+						}
+					}
+					l++;
+				}
 
-				//	// SIGNING PHASE --
-				//	roundState = await satoshiClient.GetRoundStateAsync(roundId);
-				//	Assert.Equal(CcjRoundPhase.Signing, roundState.Phase);
+				// SIGNING PHASE --
+				roundState = await satoshiClient.GetRoundStateAsync(roundId);
+				Assert.Equal(CcjRoundPhase.Signing, roundState.Phase);
 
-				//	uint256 transactionId = null;
-				//	foreach (var (aliceClient, outputs, inputs) in participants)
-				//	{
-				//		var unsignedTransaction = await aliceClient.GetUnsignedCoinJoinAsync();
-				//		transactionId = unsignedTransaction.GetHash();
+				uint256 transactionId = null;
+				foreach (var (aliceClient, outputs, inputs) in participants)
+				{
+					var unsignedTransaction = await aliceClient.GetUnsignedCoinJoinAsync();
+					transactionId = unsignedTransaction.GetHash();
 
-				//		// Verify the transaction contains the expected inputs and outputs
+					// Verify the transaction contains the expected inputs and outputs
 
-				//		// Verify the inputs are the expected ones.
-				//		foreach (var input in inputs)
-				//		{
-				//			Assert.Contains(input.input, unsignedTransaction.Inputs.Select(x => x.PrevOut.ToTxoRef()));
-				//		}
+					// Verify the inputs are the expected ones.
+					foreach (var input in inputs)
+					{
+						Assert.Contains(input.input, unsignedTransaction.Inputs.Select(x => x.PrevOut.ToTxoRef()));
+					}
 
-				//		// Sign the transaction
-				//		var builder = Network.RegTest.CreateTransactionBuilder();
-				//		var partSignedCj = builder
-				//			.ContinueToBuild(unsignedTransaction)
-				//			.AddKeys(inputs.Select(x => x.key).ToArray())
-				//			.AddCoins(inputs.Select(x => x.coin))
-				//			.BuildTransaction(true);
+					// Sign the transaction
+					var builder = Network.RegTest.CreateTransactionBuilder();
+					var partSignedCj = builder
+						.ContinueToBuild(unsignedTransaction)
+						.AddKeys(inputs.Select(x => x.key).ToArray())
+						.AddCoins(inputs.Select(x => x.coin))
+						.BuildTransaction(true);
 
-				//		var witnesses = partSignedCj.Inputs
-				//			.AsIndexedInputs()
-				//			.Where(x => x.WitScript != WitScript.Empty)
-				//			.ToDictionary(x => (int)x.Index, x => x.WitScript);
+					var witnesses = partSignedCj.Inputs
+						.AsIndexedInputs()
+						.Where(x => x.WitScript != WitScript.Empty)
+						.ToDictionary(x => (int)x.Index, x => x.WitScript);
 
-				//		await aliceClient.PostSignaturesAsync(witnesses);
-				//	}
+					await aliceClient.PostSignaturesAsync(witnesses);
+				}
 
-				//	uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
-				//	Assert.Contains(transactionId, mempooltxs);
+				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
+				Assert.Contains(transactionId, mempooltxs);
 			}
 		}
 
