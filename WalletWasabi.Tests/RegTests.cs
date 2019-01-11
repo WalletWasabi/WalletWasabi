@@ -1751,6 +1751,7 @@ namespace WalletWasabi.Tests
 
 				var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				var roundId = round.RoundId;
+				inputsRequest.RoundId = roundId;
 				var registeredAddresses = new BitcoinAddress[] { };
 				var schnorrPubKeys = round.MixingLevels.SchnorrPubKeys;
 				var requesters = new Requester[] { };
@@ -1828,27 +1829,39 @@ namespace WalletWasabi.Tests
 				roundConfig.Denomination = Money.Coins(0.01m); // exactly the same as our output
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				roundId = round.RoundId;
+				inputsRequest.RoundId = roundId;
+				schnorrPubKeys = round.MixingLevels.SchnorrPubKeys;
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
 				roundConfig.Denomination = Money.Coins(0.00999999m); // one satoshi less than our output
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				roundId = round.RoundId;
+				inputsRequest.RoundId = roundId;
+				schnorrPubKeys = round.MixingLevels.SchnorrPubKeys;
 				httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, inputsRequest, baseUri));
 				Assert.StartsWith($"{HttpStatusCode.BadRequest.ToReasonString()}\nNot enough inputs are provided. Fee to pay:", httpRequestException.Message);
 
 				roundConfig.Denomination = Money.Coins(0.008m); // one satoshi less than our output
 				roundConfig.ConnectionConfirmationTimeout = 2;
 				coordinator.UpdateRoundConfig(roundConfig);
+				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				roundId = round.RoundId;
+				inputsRequest.RoundId = roundId;
+				schnorrPubKeys = round.MixingLevels.SchnorrPubKeys;
 				requester = new Requester();
+				requesters = new[] { requester };
 				msg = network.Consensus.ConsensusFactory.CreateTransaction().GetHash();
 				blindedData = requester.BlindMessage(msg, round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey);
 				inputsRequest.BlindedOutputScripts = new[] { blindedData };
 				blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedData.ToBytes()));
 				proof = key.SignCompact(blindedOutputScriptsHash);
 				inputsRequest.Inputs.First().Proof = proof;
-				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				using (var aliceClient = await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, inputsRequest, baseUri))
 				{
 					// Test DelayedClientRoundRegistration logic.
@@ -1937,8 +1950,11 @@ namespace WalletWasabi.Tests
 					Assert.Equal(0, inputRegistrableRoundState.RegisteredPeerCount);
 
 					roundConfig.ConnectionConfirmationTimeout = 1; // One second.
-					coordinator.UpdateRoundConfig(roundConfig);
-					coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+					coordinator.UpdateRoundConfig(roundConfig); coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+					round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+					roundId = round.RoundId;
+					inputsRequest.RoundId = roundId;
+					schnorrPubKeys = round.MixingLevels.SchnorrPubKeys;
 
 					roundState = await satoshiClient.GetRoundStateAsync(aliceClient.RoundId);
 					Assert.Equal(CcjRoundPhase.ConnectionConfirmation, roundState.Phase);
@@ -2027,7 +2043,11 @@ namespace WalletWasabi.Tests
 
 				//	roundConfig.ConnectionConfirmationTimeout = 60;
 				//	coordinator.UpdateRoundConfig(roundConfig);
-				//	coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+				//coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+				//round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				//roundId = round.RoundId;
+				//inputsRequest.RoundId = roundId;
+				//schnorrPubKeys = round.MixingLevels.SchnorrPubKeys;
 				//	httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostConfirmationAsync());
 				//	Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nRound is not running.", httpRequestException.Message);
 				//}
