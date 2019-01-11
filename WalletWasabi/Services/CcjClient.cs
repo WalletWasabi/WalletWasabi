@@ -496,7 +496,7 @@ namespace WalletWasabi.Services
 				AliceClient aliceClient = null;
 				try
 				{
-					aliceClient = await AliceClient.CreateNewAsync(registeredAddresses, schnorrPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
+					aliceClient = await AliceClient.CreateNewAsync(inputRegistrableRound.RoundId, registeredAddresses, schnorrPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 				{
@@ -513,6 +513,7 @@ namespace WalletWasabi.Services
 					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference);
+					aliceClient?.Dispose();
 					return;
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Provided input is not unspent", StringComparison.InvariantCultureIgnoreCase))
@@ -528,6 +529,13 @@ namespace WalletWasabi.Services
 					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
 
 					await DequeueCoinsFromMixNoLockAsync(coinReference);
+					aliceClient?.Dispose();
+					return;
+				}
+				catch (HttpRequestException ex) when (ex.Message.Contains("No such running round in InputRegistration.", StringComparison.InvariantCultureIgnoreCase))
+				{
+					Logger.LogInfo<CcjClient>("Client tried to register a round that isn't in InputRegistration anymore. Trying again later.");
+					aliceClient?.Dispose();
 					return;
 				}
 

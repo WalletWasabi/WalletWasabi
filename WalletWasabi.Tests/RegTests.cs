@@ -2380,7 +2380,7 @@ namespace WalletWasabi.Tests
 				InputProofModel inputProof = new InputProofModel { Input = input.ToTxoRef(), Proof = inputKey.SignCompact(blindedOutputScriptsHash) };
 				InputProofModel[] inputsProofs = new InputProofModel[] { inputProof };
 				registerRequests.Add((changeOutputAddress, blinded, inputsProofs));
-				aliceClientBackup = await AliceClient.CreateNewAsync(new[] { activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey }, new[] { requester }, network, changeOutputAddress, new[] { blinded }, inputsProofs, baseUri);
+				aliceClientBackup = await AliceClient.CreateNewAsync(round.RoundId, new[] { activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey }, new[] { requester }, network, changeOutputAddress, new[] { blinded }, inputsProofs, baseUri);
 			}
 
 			await WaitForTimeoutAsync(baseUri);
@@ -2392,7 +2392,7 @@ namespace WalletWasabi.Tests
 
 			foreach (var registerRequest in registerRequests)
 			{
-				await AliceClient.CreateNewAsync(aliceClientBackup.RegisteredAddresses, aliceClientBackup.SchnorrPubKeys, aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, baseUri);
+				await AliceClient.CreateNewAsync(aliceClientBackup.RoundId, aliceClientBackup.RegisteredAddresses, aliceClientBackup.SchnorrPubKeys, aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, baseUri);
 			}
 
 			await WaitForTimeoutAsync(baseUri);
@@ -2495,7 +2495,7 @@ namespace WalletWasabi.Tests
 
 			foreach (var user in inputRegistrationUsers)
 			{
-				aliceClients.Add(AliceClient.CreateNewAsync(new[] { user.activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, baseUri));
+				aliceClients.Add(AliceClient.CreateNewAsync(round.RoundId, new[] { user.activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, baseUri));
 			}
 
 			long roundId = 0;
@@ -2567,7 +2567,7 @@ namespace WalletWasabi.Tests
 			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			foreach (var user in inputRegistrationUsers)
 			{
-				aliceClients.Add(AliceClient.CreateNewAsync(new[] { user.activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, baseUri));
+				aliceClients.Add(AliceClient.CreateNewAsync(round.RoundId, new[] { user.activeOutputAddress }, new[] { round.MixingLevels.GetBaseLevel().SchnorrKey.SchnorrPubKey }, new[] { user.requester }, network, user.changeOutputAddress, new[] { user.blinded }, user.inputProofModels, baseUri));
 			}
 
 			roundId = 0;

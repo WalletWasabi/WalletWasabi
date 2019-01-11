@@ -23,8 +23,9 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 {
 	public class AliceClient : TorDisposableBase
 	{
-		public long RoundId { get; private set; }
 		public Guid UniqueId { get; private set; }
+
+		public long RoundId { get; }
 		public Network Network { get; }
 
 		public BitcoinAddress[] RegisteredAddresses { get; }
@@ -33,6 +34,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 
 		/// <inheritdoc/>
 		private AliceClient(
+			long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
 			IEnumerable<SchnorrPubKey> schnorrPubKeys,
 			IEnumerable<Requester> requesters,
@@ -40,6 +42,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			Uri baseUri,
 			IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
+			RoundId = roundId;
 			RegisteredAddresses = registeredAddresses.ToArray();
 			SchnorrPubKeys = schnorrPubKeys.ToArray();
 			Requesters = requesters.ToArray();
@@ -47,6 +50,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		}
 
 		public static async Task<AliceClient> CreateNewAsync(
+			long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
 			IEnumerable<SchnorrPubKey> schnorrPubKeys,
 			IEnumerable<Requester> requesters,
@@ -55,7 +59,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			Uri baseUri,
 			IPEndPoint torSocks5EndPoint = null)
 		{
-			AliceClient client = new AliceClient(registeredAddresses, schnorrPubKeys, requesters, network, baseUri, torSocks5EndPoint);
+			AliceClient client = new AliceClient(roundId, registeredAddresses, schnorrPubKeys, requesters, network, baseUri, torSocks5EndPoint);
 			try
 			{
 				using (HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
@@ -67,7 +71,11 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 
 					var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>();
 
-					client.RoundId = inputsResponse.RoundId;
+					if (inputsResponse.RoundId != roundId) // This should never happen. If it does, that's a bug in the coordinator.
+					{
+						throw new NotSupportedException($"Coordinator assigned us to the wrong round: {inputsResponse.RoundId}. Requested round: {roundId}.");
+					}
+
 					client.UniqueId = inputsResponse.UniqueId;
 					Logger.LogInfo<AliceClient>($"Round ({client.RoundId}), Alice ({client.UniqueId}): Registered {request.Inputs.Count()} inputs.");
 
@@ -82,6 +90,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		}
 
 		public static async Task<AliceClient> CreateNewAsync(
+			long roundId,
 			IEnumerable<BitcoinAddress> registeredAddresses,
 			IEnumerable<SchnorrPubKey> schnorrPubKeys,
 			IEnumerable<Requester> requesters,
@@ -94,11 +103,12 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		{
 			var request = new InputsRequest
 			{
+				RoundId = roundId,
 				BlindedOutputScripts = blindedOutputScriptHashes,
 				ChangeOutputAddress = changeOutput,
 				Inputs = inputs
 			};
-			return await CreateNewAsync(registeredAddresses, schnorrPubKeys, requesters, network, request, baseUri, torSocks5EndPoint);
+			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, baseUri, torSocks5EndPoint);
 		}
 
 		public async Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)> activeOutputs)> PostConfirmationAsync()

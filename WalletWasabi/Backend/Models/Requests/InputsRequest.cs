@@ -10,6 +10,9 @@ namespace WalletWasabi.Backend.Models.Requests
 {
 	public class InputsRequest
 	{
+		[Required]
+		public long RoundId { get; set; }
+
 		[Required, MinLength(1)]
 		public IEnumerable<InputProofModel> Inputs { get; set; }
 

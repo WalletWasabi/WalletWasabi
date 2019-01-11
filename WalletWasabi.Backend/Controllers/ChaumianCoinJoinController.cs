@@ -98,15 +98,15 @@ namespace WalletWasabi.Backend.Controllers
 		/// </remarks>
 		/// <response code="200">BlindedOutputSignature, UniqueId, RoundId</response>
 		/// <response code="400">If request is invalid.</response>
-		/// <response code="503">If the round status changed while fulfilling the request.</response>
+		/// <response code="404">Round not found or it is not in InputRegistration anymore.</response>
 		[HttpPost("inputs")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
-		[ProducesResponseType(503)]
+		[ProducesResponseType(404)]
 		public async Task<IActionResult> PostInputsAsync([FromBody, Required]InputsRequest request)
 		{
 			// Validate request.
-			if (!ModelState.IsValid)
+			if (request.RoundId <= 0 || !ModelState.IsValid)
 			{
 				return BadRequest("Invalid request.");
 			}
@@ -118,10 +118,11 @@ namespace WalletWasabi.Backend.Controllers
 
 			using (await InputsLock.LockAsync())
 			{
-				CcjRound round = Coordinator.GetCurrentInputRegisterableRoundOrDefault();
-				if (round == default)
+				CcjRound round = Coordinator.TryGetRound(request.RoundId);
+
+				if (round is null || round.Phase != CcjRoundPhase.InputRegistration)
 				{
-					return StatusCode(StatusCodes.Status503ServiceUnavailable, "No input registrable rounds available. Try again later.");
+					return NotFound("No such running round in InputRegistration. Try another round.");
 				}
 
 				// Do more checks.
