@@ -1991,381 +1991,382 @@ namespace WalletWasabi.Tests
 
 				#endregion PostInputsGetStates
 
-				//#region PostConfirmationPostUnconfirmation
+				#region PostConfirmationPostUnconfirmation
 
-				//// <-------------------------->
-				//// POST CONFIRMATION and POST UNCONFIRMATION tests
-				//// <-------------------------->
+				// <-------------------------->
+				// POST CONFIRMATION and POST UNCONFIRMATION tests
+				// <-------------------------->
 
-				//key = new Key();
-				//witnessAddress = key.PubKey.GetSegwitAddress(network);
-				//hash = await rpc.SendToAddressAsync(witnessAddress, Money.Coins(0.01m));
-				//await rpc.GenerateAsync(1);
-				//tx = await rpc.GetRawTransactionAsync(hash);
-				//coin = tx.Outputs.GetCoins(witnessAddress.ScriptPubKey).Single();
-				//round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
-				//requester = new Requester();
-				//Script script = new Key().PubKey.GetSegwitAddress(network).ScriptPubKey;
-				//blindedData = requester.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, script);
-				//blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedData.ToBytes()));
+				key = new Key();
+				witnessAddress = key.PubKey.GetSegwitAddress(network);
+				hash = await rpc.SendToAddressAsync(witnessAddress, Money.Coins(0.01m));
+				await rpc.GenerateAsync(1);
+				tx = await rpc.GetRawTransactionAsync(hash);
+				coin = tx.Outputs.GetCoins(witnessAddress.ScriptPubKey).Single();
+				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				requester = new Requester();
+				requesters = new[] { requester };
+				BitcoinWitPubKeyAddress bitcoinWitPubKeyAddress = new Key().PubKey.GetSegwitAddress(network);
+				registeredAddresses = new[] { bitcoinWitPubKeyAddress };
+				Script script = bitcoinWitPubKeyAddress.ScriptPubKey;
+				blindedData = requester.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, script);
+				blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedData.ToBytes()));
 
-				//using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), new[] { blindedData }, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedOutputScriptsHash) } }, baseUri))
-				//{
-				//	Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
-				//	Assert.True(aliceClient.RoundId > 0);
-				//	// Double the request.
-				//	// badrequests
-				//	using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation"))
-				//	{
-				//		Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-				//		Assert.Null(await response.Content.ReadAsJsonAsync<string>());
-				//	}
-				//	using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}"))
-				//	{
-				//		Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-				//		Assert.Null(await response.Content.ReadAsJsonAsync<string>());
-				//	}
-				//	using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?roundId={aliceClient.RoundId}"))
-				//	{
-				//		Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-				//		Assert.Equal("Invalid uniqueId provided.", await response.Content.ReadAsJsonAsync<string>());
-				//	}
-				//	using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId=foo&roundId={aliceClient.RoundId}"))
-				//	{
-				//		Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-				//		Assert.Equal("Invalid uniqueId provided.", await response.Content.ReadAsJsonAsync<string>());
-				//	}
-				//	using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}&roundId=bar"))
-				//	{
-				//		Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-				//		Assert.Null(await response.Content.ReadAsJsonAsync<string>());
-				//	}
+				using (var aliceClient = await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, new Key().PubKey.GetAddress(network), new[] { blindedData }, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedOutputScriptsHash) } }, baseUri))
+				{
+					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
+					Assert.True(aliceClient.RoundId > 0);
+					// Double the request.
+					// badrequests
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation"))
+					{
+						Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+					}
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}"))
+					{
+						Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+					}
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?roundId={aliceClient.RoundId}"))
+					{
+						Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+						Assert.Equal("Invalid uniqueId provided.", await response.Content.ReadAsJsonAsync<string>());
+					}
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId=foo&roundId={aliceClient.RoundId}"))
+					{
+						Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+						Assert.Equal("Invalid uniqueId provided.", await response.Content.ReadAsJsonAsync<string>());
+					}
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}&roundId=bar"))
+					{
+						Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+						Assert.Null(await response.Content.ReadAsJsonAsync<string>());
+					}
 
-				//	roundConfig.ConnectionConfirmationTimeout = 60;
-				//	coordinator.UpdateRoundConfig(roundConfig);
-				//coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
-				//round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
-				//roundId = round.RoundId;
-				//inputsRequest.RoundId = roundId;
-				//schnorrPubKeys = round.MixingLevels.SchnorrPubKeys;
-				//	httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostConfirmationAsync());
-				//	Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nRound is not running.", httpRequestException.Message);
-				//}
+					roundConfig.ConnectionConfirmationTimeout = 60;
+					coordinator.UpdateRoundConfig(roundConfig);
+					coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+					round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+					roundId = round.RoundId;
+					inputsRequest.RoundId = roundId;
+					schnorrPubKeys = round.MixingLevels.SchnorrPubKeys;
+					httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient.PostConfirmationAsync());
+					Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nRound is not running.", httpRequestException.Message);
+				}
 
-				//using (var aliceClient = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), new[] { blindedData }, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedOutputScriptsHash) } }, baseUri))
-				//{
-				//	Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
-				//	Assert.True(aliceClient.RoundId > 0);
-				//	await aliceClient.PostUnConfirmationAsync();
-				//	using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={aliceClient.UniqueId}&roundId={aliceClient.RoundId}"))
-				//	{
-				//		Assert.True(response.IsSuccessStatusCode);
-				//		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-				//		Assert.Equal("Alice not found.", await response.Content.ReadAsJsonAsync<string>());
-				//	}
-				//}
+				using (var aliceClient = await AliceClient.CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, new Key().PubKey.GetAddress(network), new[] { blindedData }, new InputProofModel[] { new InputProofModel { Input = coin.Outpoint.ToTxoRef(), Proof = key.SignCompact(blindedOutputScriptsHash) } }, baseUri))
+				{
+					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
+					Assert.True(aliceClient.RoundId > 0);
+					await aliceClient.PostUnConfirmationAsync();
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={aliceClient.UniqueId}&roundId={aliceClient.RoundId}"))
+					{
+						Assert.True(response.IsSuccessStatusCode);
+						Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+						Assert.Equal("Alice not found.", await response.Content.ReadAsJsonAsync<string>());
+					}
+				}
 
-				//#endregion PostConfirmationPostUnconfirmation
+				#endregion PostConfirmationPostUnconfirmation
 
-				//#region PostOutput
+				#region PostOutput
 
-				//// <-------------------------->
-				//// POST OUTPUT tests
-				//// <-------------------------->
+				// <-------------------------->
+				// POST OUTPUT tests
+				// <-------------------------->
 
-				//var key1 = new Key();
-				//var key2 = new Key();
-				//var outputAddress1 = key1.PubKey.GetSegwitAddress(network);
-				//var outputAddress2 = key2.PubKey.GetSegwitAddress(network);
-				//var hash1 = await rpc.SendToAddressAsync(outputAddress1, Money.Coins(0.01m));
-				//var hash2 = await rpc.SendToAddressAsync(outputAddress2, Money.Coins(0.01m));
-				//await rpc.GenerateAsync(1);
-				//var tx1 = await rpc.GetRawTransactionAsync(hash1);
-				//var tx2 = await rpc.GetRawTransactionAsync(hash2);
-				//var index1 = 0;
-				//for (int i = 0; i < tx1.Outputs.Count; i++)
-				//{
-				//	var output = tx1.Outputs[i];
-				//	if (output.ScriptPubKey == outputAddress1.ScriptPubKey)
-				//	{
-				//		index1 = i;
-				//	}
-				//}
-				//var index2 = 0;
-				//for (int i = 0; i < tx2.Outputs.Count; i++)
-				//{
-				//	var output = tx2.Outputs[i];
-				//	if (output.ScriptPubKey == outputAddress2.ScriptPubKey)
-				//	{
-				//		index2 = i;
-				//	}
-				//}
+				var key1 = new Key();
+				var key2 = new Key();
+				var outputAddress1 = key1.PubKey.GetSegwitAddress(network);
+				var outputAddress2 = key2.PubKey.GetSegwitAddress(network);
+				var hash1 = await rpc.SendToAddressAsync(outputAddress1, Money.Coins(0.01m));
+				var hash2 = await rpc.SendToAddressAsync(outputAddress2, Money.Coins(0.01m));
+				await rpc.GenerateAsync(1);
+				var tx1 = await rpc.GetRawTransactionAsync(hash1);
+				var tx2 = await rpc.GetRawTransactionAsync(hash2);
+				var index1 = 0;
+				for (int i = 0; i < tx1.Outputs.Count; i++)
+				{
+					var output = tx1.Outputs[i];
+					if (output.ScriptPubKey == outputAddress1.ScriptPubKey)
+					{
+						index1 = i;
+					}
+				}
+				var index2 = 0;
+				for (int i = 0; i < tx2.Outputs.Count; i++)
+				{
+					var output = tx2.Outputs[i];
+					if (output.ScriptPubKey == outputAddress2.ScriptPubKey)
+					{
+						index2 = i;
+					}
+				}
 
-				//round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
-				//var requester1 = new Requester();
-				//var requester2 = new Requester();
+				round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				schnorrPubKeys = round.MixingLevels.SchnorrPubKeys;
+				roundId = round.RoundId;
 
-				//uint256 blinded1 = requester1.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, outputAddress1.ScriptPubKey);
-				//uint256 blindedOutputScriptsHash1 = new uint256(Hashes.SHA256(blinded1.ToBytes()));
-				//uint256 blinded2 = requester2.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, outputAddress2.ScriptPubKey);
-				//uint256 blindedOutputScriptsHash2 = new uint256(Hashes.SHA256(blinded2.ToBytes()));
+				var requester1 = new Requester();
+				var requester2 = new Requester();
 
-				//var input1 = new OutPoint(hash1, index1);
-				//var input2 = new OutPoint(hash2, index2);
+				uint256 blinded1 = requester1.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, outputAddress1.ScriptPubKey);
+				uint256 blindedOutputScriptsHash1 = new uint256(Hashes.SHA256(blinded1.ToBytes()));
+				uint256 blinded2 = requester2.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, outputAddress2.ScriptPubKey);
+				uint256 blindedOutputScriptsHash2 = new uint256(Hashes.SHA256(blinded2.ToBytes()));
 
-				//using (var aliceClient1 = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), new[] { blinded1 }, new InputProofModel[] { new InputProofModel { Input = input1.ToTxoRef(), Proof = key1.SignCompact(blindedOutputScriptsHash1) } }, baseUri))
-				//using (var aliceClient2 = await AliceClient.CreateNewAsync(network, new Key().PubKey.GetAddress(network), new[] { blinded2 }, new InputProofModel[] { new InputProofModel { Input = input2.ToTxoRef(), Proof = key2.SignCompact(blindedOutputScriptsHash2) } }, baseUri))
-				//{
-				//	Assert.Equal(aliceClient2.RoundId, aliceClient1.RoundId);
-				//	Assert.NotEqual(aliceClient2.UniqueId, aliceClient1.UniqueId);
+				var input1 = new OutPoint(hash1, index1);
+				var input2 = new OutPoint(hash2, index2);
 
-				//	aliceClient1.Requesters = new[] { requester1 };
-				//	aliceClient2.Requesters = new[] { requester2 };
+				using (var aliceClient1 = await AliceClient.CreateNewAsync(roundId, new[] { outputAddress1 }, schnorrPubKeys, new[] { requester1 }, network, new Key().PubKey.GetAddress(network), new[] { blinded1 }, new InputProofModel[] { new InputProofModel { Input = input1.ToTxoRef(), Proof = key1.SignCompact(blindedOutputScriptsHash1) } }, baseUri))
+				using (var aliceClient2 = await AliceClient.CreateNewAsync(roundId, new[] { outputAddress2 }, schnorrPubKeys, new[] { requester2 }, network, new Key().PubKey.GetAddress(network), new[] { blinded2 }, new InputProofModel[] { new InputProofModel { Input = input2.ToTxoRef(), Proof = key2.SignCompact(blindedOutputScriptsHash2) } }, baseUri))
+				{
+					Assert.Equal(aliceClient2.RoundId, aliceClient1.RoundId);
+					Assert.NotEqual(aliceClient2.UniqueId, aliceClient1.UniqueId);
 
-				//	var connConfResp = await aliceClient1.PostConfirmationAsync();
-				//	var connConfResp2 = await aliceClient2.PostConfirmationAsync();
-				//	Assert.Equal(connConfResp.currentPhase, (await aliceClient1.PostConfirmationAsync()).currentPhase); // Make sure it won't throw error for double confirming.
-				//	Assert.Equal(connConfResp.currentPhase, connConfResp2.currentPhase);
-				//	httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient2.PostConfirmationAsync());
-				//	Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nParticipation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: OutputRegistration.", httpRequestException.Message);
+					var connConfResp = await aliceClient1.PostConfirmationAsync();
+					Assert.Equal(connConfResp.currentPhase, (await aliceClient1.PostConfirmationAsync()).currentPhase); // Make sure it won't throw error for double confirming.
+					var connConfResp2 = await aliceClient2.PostConfirmationAsync();
 
-				//	var roundState = await satoshiClient.GetRoundStateAsync(aliceClient1.RoundId);
-				//	Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
+					Assert.Equal(connConfResp.currentPhase, connConfResp2.currentPhase);
+					httpRequestException = await Assert.ThrowsAsync<HttpRequestException>(async () => await aliceClient2.PostConfirmationAsync());
+					Assert.Equal($"{HttpStatusCode.Gone.ToReasonString()}\nParticipation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: OutputRegistration.", httpRequestException.Message);
 
-				//	if (!round.MixingLevels.GetBaseLevel().Signer.VerifyUnblindedSignature(connConfResp2.activeOutputs.First().signature, outputAddress2.ScriptPubKey.ToBytes()))
-				//	{
-				//		throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
-				//	}
+					var roundState = await satoshiClient.GetRoundStateAsync(aliceClient1.RoundId);
+					Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
 
-				//	using (var bobClient1 = new BobClient(baseUri))
-				//	using (var bobClient2 = new BobClient(baseUri))
-				//	{
-				//		await bobClient1.PostOutputAsync(aliceClient1.RoundId, outputAddress1, connConfResp.activeOutputs.First().signature, 0);
-				//		await bobClient2.PostOutputAsync(aliceClient2.RoundId, outputAddress2, connConfResp2.activeOutputs.First().signature, 0);
-				//	}
+					if (!round.MixingLevels.GetBaseLevel().Signer.VerifyUnblindedSignature(connConfResp2.activeOutputs.First().signature, outputAddress2.ScriptPubKey.ToBytes()))
+					{
+						throw new NotSupportedException("Coordinator did not sign the blinded output properly.");
+					}
 
-				//	roundState = await satoshiClient.GetRoundStateAsync(aliceClient1.RoundId);
-				//	Assert.Equal(CcjRoundPhase.Signing, roundState.Phase);
-				//	Assert.Equal(2, roundState.RegisteredPeerCount);
-				//	Assert.Equal(2, roundState.RequiredPeerCount);
+					using (var bobClient1 = new BobClient(baseUri))
+					using (var bobClient2 = new BobClient(baseUri))
+					{
+						await bobClient1.PostOutputAsync(aliceClient1.RoundId, outputAddress1, connConfResp.activeOutputs.First().signature, 0);
+						await bobClient2.PostOutputAsync(aliceClient2.RoundId, outputAddress2, connConfResp2.activeOutputs.First().signature, 0);
+					}
 
-				//	#endregion PostOutput
+					roundState = await satoshiClient.GetRoundStateAsync(aliceClient1.RoundId);
+					Assert.Equal(CcjRoundPhase.Signing, roundState.Phase);
+					Assert.Equal(2, roundState.RegisteredPeerCount);
+					Assert.Equal(2, roundState.RequiredPeerCount);
 
-				//	#region GetCoinjoin
+					#endregion PostOutput
 
-				//	// <-------------------------->
-				//	// GET COINJOIN tests
-				//	// <-------------------------->
+					#region GetCoinjoin
 
-				//	Transaction unsignedCoinJoin = await aliceClient1.GetUnsignedCoinJoinAsync();
-				//	Assert.Equal(unsignedCoinJoin.ToHex(), (await aliceClient1.GetUnsignedCoinJoinAsync()).ToHex());
-				//	Assert.Equal(unsignedCoinJoin.ToHex(), (await aliceClient2.GetUnsignedCoinJoinAsync()).ToHex());
+					// <-------------------------->
+					// GET COINJOIN tests
+					// <-------------------------->
 
-				//	Assert.Contains(outputAddress1.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
-				//	Assert.Contains(outputAddress2.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
-				//	Assert.True(2 == unsignedCoinJoin.Outputs.Count); // Because the two input is equal, so change addresses won't be used, nor coordinator fee will be taken.
-				//	Assert.Contains(input1, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
-				//	Assert.Contains(input2, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
-				//	Assert.True(2 == unsignedCoinJoin.Inputs.Count);
+					Transaction unsignedCoinJoin = await aliceClient1.GetUnsignedCoinJoinAsync();
+					Assert.Equal(unsignedCoinJoin.ToHex(), (await aliceClient1.GetUnsignedCoinJoinAsync()).ToHex());
+					Assert.Equal(unsignedCoinJoin.ToHex(), (await aliceClient2.GetUnsignedCoinJoinAsync()).ToHex());
 
-				//	#endregion GetCoinjoin
+					Assert.Contains(outputAddress1.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
+					Assert.Contains(outputAddress2.ScriptPubKey, unsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey));
+					Assert.True(2 == unsignedCoinJoin.Outputs.Count); // Because the two input is equal, so change addresses won't be used, nor coordinator fee will be taken.
+					Assert.Contains(input1, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
+					Assert.Contains(input2, unsignedCoinJoin.Inputs.Select(x => x.PrevOut));
+					Assert.True(2 == unsignedCoinJoin.Inputs.Count);
 
-				//	#region PostSignatures
+					#endregion GetCoinjoin
 
-				//	// <-------------------------->
-				//	// POST SIGNATURES tests
-				//	// <-------------------------->
+					#region PostSignatures
 
-				//	var partSignedCj1 = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
-				//	var partSignedCj2 = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
+					// <-------------------------->
+					// POST SIGNATURES tests
+					// <-------------------------->
 
-				//	var builder = Network.RegTest.CreateTransactionBuilder();
-				//	partSignedCj1 = builder
-				//		.ContinueToBuild(partSignedCj1)
-				//		.AddKeys(key1)
-				//		.AddCoins(new Coin(tx1, input1.N))
-				//		.BuildTransaction(true);
+					var partSignedCj1 = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
+					var partSignedCj2 = Transaction.Parse(unsignedCoinJoin.ToHex(), network);
 
-				//	builder = Network.RegTest.CreateTransactionBuilder();
-				//	partSignedCj2 = builder
-				//		.ContinueToBuild(partSignedCj2)
-				//		.AddKeys(key2)
-				//		.AddCoins(new Coin(tx2, input2.N))
-				//		.BuildTransaction(true);
+					var builder = Network.RegTest.CreateTransactionBuilder();
+					partSignedCj1 = builder
+						.ContinueToBuild(partSignedCj1)
+						.AddKeys(key1)
+						.AddCoins(new Coin(tx1, input1.N))
+						.BuildTransaction(true);
 
-				//	var myDic1 = new Dictionary<int, WitScript>();
-				//	var myDic2 = new Dictionary<int, WitScript>();
+					builder = Network.RegTest.CreateTransactionBuilder();
+					partSignedCj2 = builder
+						.ContinueToBuild(partSignedCj2)
+						.AddKeys(key2)
+						.AddCoins(new Coin(tx2, input2.N))
+						.BuildTransaction(true);
 
-				//	for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
-				//	{
-				//		var input = unsignedCoinJoin.Inputs[i];
-				//		if (input.PrevOut == input1)
-				//		{
-				//			myDic1.Add(i, partSignedCj1.Inputs[i].WitScript);
-				//		}
-				//		if (input.PrevOut == input2)
-				//		{
-				//			myDic2.Add(i, partSignedCj2.Inputs[i].WitScript);
-				//		}
-				//	}
+					var myDic1 = new Dictionary<int, WitScript>();
+					var myDic2 = new Dictionary<int, WitScript>();
 
-				//	await aliceClient1.PostSignaturesAsync(myDic1);
-				//	await aliceClient2.PostSignaturesAsync(myDic2);
+					for (int i = 0; i < unsignedCoinJoin.Inputs.Count; i++)
+					{
+						var input = unsignedCoinJoin.Inputs[i];
+						if (input.PrevOut == input1)
+						{
+							myDic1.Add(i, partSignedCj1.Inputs[i].WitScript);
+						}
+						if (input.PrevOut == input2)
+						{
+							myDic2.Add(i, partSignedCj2.Inputs[i].WitScript);
+						}
+					}
 
-				//	uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
-				//	Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
+					await aliceClient1.PostSignaturesAsync(myDic1);
+					await aliceClient2.PostSignaturesAsync(myDic2);
 
-				//	#endregion PostSignatures
-				//}
+					uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
+					Assert.Contains(unsignedCoinJoin.GetHash(), mempooltxs);
+
+					#endregion PostSignatures
+				}
 			}
 		}
 
-		//[Fact]
-		//public async Task CcjEqualInputTestsAsync()
-		//{
-		//	(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+		[Fact]
+		public async Task CcjEqualInputTestsAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
 
-		//	Money denomination = Money.Coins(0.1m);
-		//	decimal coordinatorFeePercent = 0.0002m;
-		//	int anonymitySet = 4;
-		//	int connectionConfirmationTimeout = 50;
-		//	var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 11);
-		//	coordinator.UpdateRoundConfig(roundConfig);
-		//	coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			Money denomination = Money.Coins(0.1m);
+			decimal coordinatorFeePercent = 0.0002m;
+			int anonymitySet = 4;
+			int connectionConfirmationTimeout = 50;
+			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 11);
+			coordinator.UpdateRoundConfig(roundConfig);
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 
-		//	Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
-		//	using (var torClient = new TorHttpClient(baseUri, SharedFixture.TorSocks5Endpoint))
-		//	using (var satoshiClient = new SatoshiClient(baseUri))
-		//	{
-		//		var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
-		//		var roundId = round.RoundId;
+			Uri baseUri = new Uri(RegTestFixture.BackendEndPoint);
+			using (var torClient = new TorHttpClient(baseUri, SharedFixture.TorSocks5Endpoint))
+			using (var satoshiClient = new SatoshiClient(baseUri))
+			{
+				var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+				var roundId = round.RoundId;
 
-		//		// We have to 4 participant so, this data structure is for keeping track of
-		//		// important data for each of the participants in the coinjoin session.
-		//		var participants = new List<(AliceClient aliceClient,
-		//									 List<(Requester requester, BitcoinWitPubKeyAddress outputAddress, uint256 blindedScript)> outouts,
-		//									 List<(TxoRef input, byte[] proof, Coin coin, Key key)> inputs)>();
+				// We have to 4 participant so, this data structure is for keeping track of
+				// important data for each of the participants in the coinjoin session.
+				var participants = new List<(AliceClient aliceClient,
+											 List<(Requester requester, BitcoinWitPubKeyAddress outputAddress, uint256 blindedScript)> outouts,
+											 List<(TxoRef input, byte[] proof, Coin coin, Key key)> inputs)>();
 
-		//		// INPUS REGISTRATION PHASE --
-		//		for (var anosetIdx = 0; anosetIdx < anonymitySet; anosetIdx++)
-		//		{
-		//			// Create as many outputs as mixin levels (even when we don't have funds enough)
-		//			var outputs = new List<(Requester requester, BitcoinWitPubKeyAddress outputAddress, uint256 blindedScript)>();
-		//			foreach (var level in round.MixingLevels.Levels)
-		//			{
-		//				var requester = new Requester();
-		//				var outputsAddress = new Key().PubKey.GetSegwitAddress(network);
-		//				var scriptPubKey = outputsAddress.ScriptPubKey;
-		//				// We blind the scriptPubKey with a new requester by mixin level
-		//				var blindedScript = requester.BlindScript(level.Signer.Key.PubKey, level.Signer.R.PubKey, scriptPubKey);
-		//				outputs.Add((requester, outputsAddress, blindedScript));
-		//			}
+				// INPUS REGISTRATION PHASE --
+				for (var anosetIdx = 0; anosetIdx < anonymitySet; anosetIdx++)
+				{
+					// Create as many outputs as mixin levels (even when we don't have funds enough)
+					var outputs = new List<(Requester requester, BitcoinWitPubKeyAddress outputAddress, uint256 blindedScript)>();
+					foreach (var level in round.MixingLevels.Levels)
+					{
+						var requester = new Requester();
+						var outputsAddress = new Key().PubKey.GetSegwitAddress(network);
+						var scriptPubKey = outputsAddress.ScriptPubKey;
+						// We blind the scriptPubKey with a new requester by mixin level
+						var blindedScript = requester.BlindScript(level.Signer.Key.PubKey, level.Signer.R.PubKey, scriptPubKey);
+						outputs.Add((requester, outputsAddress, blindedScript));
+					}
 
-		//			// Calculate the SHA256( blind1 || blind2 || .....|| blindN )
-		//			var blindedOutputScriptList = outputs.Select(x => x.blindedScript);
-		//			var blindedOutputScriptListBytes = ByteHelpers.Combine(blindedOutputScriptList.Select(x => x.ToBytes()));
-		//			var blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptListBytes));
+					// Calculate the SHA256( blind1 || blind2 || .....|| blindN )
+					var blindedOutputScriptList = outputs.Select(x => x.blindedScript);
+					var blindedOutputScriptListBytes = ByteHelpers.Combine(blindedOutputScriptList.Select(x => x.ToBytes()));
+					var blindedOutputScriptsHash = new uint256(Hashes.SHA256(blindedOutputScriptListBytes));
 
-		//			// Create 4 new coins that we want to mix
-		//			var inputs = new List<(TxoRef input, byte[] proof, Coin coin, Key key)>();
-		//			for (var inputIdx = 0; inputIdx < 4; inputIdx++)
-		//			{
-		//				var key = new Key();
-		//				var outputAddress = key.PubKey.GetSegwitAddress(network);
-		//				var hash = await rpc.SendToAddressAsync(outputAddress, Money.Coins(0.1m));
-		//				await rpc.GenerateAsync(1);
-		//				var tx = await rpc.GetRawTransactionAsync(hash);
-		//				var index = tx.Outputs.FindIndex(x => x.ScriptPubKey == outputAddress.ScriptPubKey);
-		//				var input = new OutPoint(hash, index);
+					// Create 4 new coins that we want to mix
+					var inputs = new List<(TxoRef input, byte[] proof, Coin coin, Key key)>();
+					for (var inputIdx = 0; inputIdx < 4; inputIdx++)
+					{
+						var key = new Key();
+						var outputAddress = key.PubKey.GetSegwitAddress(network);
+						var hash = await rpc.SendToAddressAsync(outputAddress, Money.Coins(0.1m));
+						await rpc.GenerateAsync(1);
+						var tx = await rpc.GetRawTransactionAsync(hash);
+						var index = tx.Outputs.FindIndex(x => x.ScriptPubKey == outputAddress.ScriptPubKey);
+						var input = new OutPoint(hash, index);
 
-		//				inputs.Add((
-		//					input.ToTxoRef(),
-		//					key.SignCompact(blindedOutputScriptsHash),
-		//					new Coin(tx, (uint)index),
-		//					key
-		//				));
-		//			}
+						inputs.Add((
+							input.ToTxoRef(),
+							key.SignCompact(blindedOutputScriptsHash),
+							new Coin(tx, (uint)index),
+							key
+						));
+					}
 
-		//			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
-		//			// Save alice client and the outputs, requesters, etc
-		//			var changeOutput = new Key().PubKey.GetAddress(network);
-		//			var inputProof = inputs.Select(x => new InputProofModel { Input = x.input, Proof = x.proof });
-		//			var aliceClient = await AliceClient.CreateNewAsync(
-		//				round.RoundId,
-		//				outputs.Select(x => x.outputAddress),
-		//				round.MixingLevels.SchnorrPubKeys,
-		//				outputs.Select(x => x.requester),
-		//				network, changeOutput, blindedOutputScriptList, inputProof, baseUri);
+					// Save alice client and the outputs, requesters, etc
+					var changeOutput = new Key().PubKey.GetAddress(network);
+					var inputProof = inputs.Select(x => new InputProofModel { Input = x.input, Proof = x.proof });
+					var aliceClient = await AliceClient.CreateNewAsync(
+						round.RoundId,
+						outputs.Select(x => x.outputAddress),
+						round.MixingLevels.SchnorrPubKeys,
+						outputs.Select(x => x.requester),
+						network, changeOutput, blindedOutputScriptList, inputProof, baseUri);
 
-		//			// We check the coordinator signed all the alice blinded outputs
-		//			participants.Add((aliceClient, outputs, inputs));
-		//		}
+					// We check the coordinator signed all the alice blinded outputs
+					participants.Add((aliceClient, outputs, inputs));
+				}
 
-		//		// CONNECTION CONFIRMATION PHASE --
-		//		List<IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>> activeOutputs = new List<IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>>();
-		//		var j = 0;
-		//		foreach (var (aliceClient, _, _) in participants)
-		//		{
-		//			var res = await aliceClient.PostConfirmationAsync();
-		//			activeOutputs.Add(res.activeOutputs);
-		//			j++;
-		//		}
+				// CONNECTION CONFIRMATION PHASE --
+				List<IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>> activeOutputs = new List<IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)>>();
+				var j = 0;
+				foreach (var (aliceClient, _, _) in participants)
+				{
+					var res = await aliceClient.PostConfirmationAsync();
+					activeOutputs.Add(res.activeOutputs);
+					j++;
+				}
 
-		//		// OUTPUTS REGISTRATION PHASE --
-		//		var roundState = await satoshiClient.GetRoundStateAsync(roundId);
-		//		Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
+				//	// OUTPUTS REGISTRATION PHASE --
+				//	var roundState = await satoshiClient.GetRoundStateAsync(roundId);
+				//	Assert.Equal(CcjRoundPhase.OutputRegistration, roundState.Phase);
 
-		//		foreach (var (aliceClient, outputs, _) in participants)
-		//		{
-		//			using (var bobClient = new BobClient(baseUri))
-		//			{
-		//				var i = 0;
-		//				foreach (var output in outputs.Take(activeOutputs[i].Count()))
-		//				{
-		//					await bobClient.PostOutputAsync(aliceClient.RoundId, output.outputAddress, activeOutputs[i].ElementAt(i).signature, i);
-		//					i++;
-		//				}
-		//			}
-		//		}
+				//	foreach (var (aliceClient, outputs, _) in participants)
+				//	{
+				//		using (var bobClient = new BobClient(baseUri))
+				//		{
+				//			var i = 0;
+				//			foreach (var output in outputs.Take(activeOutputs[i].Count()))
+				//			{
+				//				await bobClient.PostOutputAsync(aliceClient.RoundId, output.outputAddress, activeOutputs[i].ElementAt(i).signature, i);
+				//				i++;
+				//			}
+				//		}
+				//	}
 
-		//		// SIGNING PHASE --
-		//		roundState = await satoshiClient.GetRoundStateAsync(roundId);
-		//		Assert.Equal(CcjRoundPhase.Signing, roundState.Phase);
+				//	// SIGNING PHASE --
+				//	roundState = await satoshiClient.GetRoundStateAsync(roundId);
+				//	Assert.Equal(CcjRoundPhase.Signing, roundState.Phase);
 
-		//		uint256 transactionId = null;
-		//		foreach (var (aliceClient, outputs, inputs) in participants)
-		//		{
-		//			var unsignedTransaction = await aliceClient.GetUnsignedCoinJoinAsync();
-		//			transactionId = unsignedTransaction.GetHash();
+				//	uint256 transactionId = null;
+				//	foreach (var (aliceClient, outputs, inputs) in participants)
+				//	{
+				//		var unsignedTransaction = await aliceClient.GetUnsignedCoinJoinAsync();
+				//		transactionId = unsignedTransaction.GetHash();
 
-		//			// Verify the transaction contains the expected inputs and outputs
+				//		// Verify the transaction contains the expected inputs and outputs
 
-		//			// Verify the inputs are the expected ones.
-		//			foreach (var input in inputs)
-		//			{
-		//				Assert.Contains(input.input, unsignedTransaction.Inputs.Select(x => x.PrevOut.ToTxoRef()));
-		//			}
+				//		// Verify the inputs are the expected ones.
+				//		foreach (var input in inputs)
+				//		{
+				//			Assert.Contains(input.input, unsignedTransaction.Inputs.Select(x => x.PrevOut.ToTxoRef()));
+				//		}
 
-		//			// Sign the transaction
-		//			var builder = Network.RegTest.CreateTransactionBuilder();
-		//			var partSignedCj = builder
-		//				.ContinueToBuild(unsignedTransaction)
-		//				.AddKeys(inputs.Select(x => x.key).ToArray())
-		//				.AddCoins(inputs.Select(x => x.coin))
-		//				.BuildTransaction(true);
+				//		// Sign the transaction
+				//		var builder = Network.RegTest.CreateTransactionBuilder();
+				//		var partSignedCj = builder
+				//			.ContinueToBuild(unsignedTransaction)
+				//			.AddKeys(inputs.Select(x => x.key).ToArray())
+				//			.AddCoins(inputs.Select(x => x.coin))
+				//			.BuildTransaction(true);
 
-		//			var witnesses = partSignedCj.Inputs
-		//				.AsIndexedInputs()
-		//				.Where(x => x.WitScript != WitScript.Empty)
-		//				.ToDictionary(x => (int)x.Index, x => x.WitScript);
+				//		var witnesses = partSignedCj.Inputs
+				//			.AsIndexedInputs()
+				//			.Where(x => x.WitScript != WitScript.Empty)
+				//			.ToDictionary(x => (int)x.Index, x => x.WitScript);
 
-		//			await aliceClient.PostSignaturesAsync(witnesses);
-		//		}
+				//		await aliceClient.PostSignaturesAsync(witnesses);
+				//	}
 
-		//		uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
-		//		Assert.Contains(transactionId, mempooltxs);
-		//	}
-		//}
+				//	uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
+				//	Assert.Contains(transactionId, mempooltxs);
+			}
+		}
 
 		[Fact]
 		public async Task NotingTestsAsync()
