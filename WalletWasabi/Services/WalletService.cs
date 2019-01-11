@@ -307,8 +307,8 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			var foundLabelless = keys.FirstOrDefault(x => !x.HasLabel()); // return the first labelless
-			HdPubKey ret = foundLabelless ?? keys.RandomElement(); // return the first, because that's the oldest
+			var foundLabelless = keys.FirstOrDefault(x => !x.HasLabel()); // Return the first labelless.
+			HdPubKey ret = foundLabelless ?? keys.RandomElement(); // Return the first, because that's the oldest.
 
 			ret.SetLabel(label, KeyManager);
 
@@ -322,7 +322,7 @@ namespace WalletWasabi.Services
 			{
 				return current.ToList();
 			}
-			var history = current.Concat(new List<SmartCoin> { coin }).ToList(); // the coin is the firs elem in its history
+			var history = current.Concat(new List<SmartCoin> { coin }).ToList(); // Fhe coin is the first elem in its history.
 
 			// If the script is the same then we have a match, no matter of the anonimity set.
 			foreach (var c in Coins)
@@ -343,7 +343,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If it spends someone and haven't been sufficiently anonimized.
+			// If it spends someone and hasn't been sufficiently anonymized.
 			if (coin.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 			{
 				var c = Coins.FirstOrDefault(x => x.SpenderTransactionId == coin.TransactionId && !history.Contains(x));
@@ -360,7 +360,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If it's being spent by someone and that someone haven't been sufficiently anonimized.
+			// If it's being spent by someone and that someone hasn't been sufficiently anonymized.
 			if (!coin.Unspent)
 			{
 				var c = Coins.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId && !history.Contains(x));
