@@ -2837,162 +2837,162 @@ namespace WalletWasabi.Tests
 		//	}
 		//}
 
-		//[Fact]
-		//public async Task CcjClientTestsAsync()
-		//{
-		//	(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+		[Fact]
+		public async Task CcjClientTestsAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
 
-		//	var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(CcjClientTestsAsync), $"Index{network}.dat");
-		//	var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
-		//	synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(CcjClientTestsAsync), $"Index{network}.dat");
+			var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
 
-		//	Money denomination = Money.Coins(0.1m);
-		//	decimal coordinatorFeePercent = 0.1m;
-		//	int anonymitySet = 2;
-		//	int connectionConfirmationTimeout = 14;
-		//	var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
-		//	coordinator.UpdateRoundConfig(roundConfig);
-		//	coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
-		//	await rpc.GenerateAsync(3); // So to make sure we have enough money.
-		//	var keyManager = KeyManager.CreateNew(out _, password);
-		//	var key1 = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
-		//	var key2 = keyManager.GenerateNewKey("bar", KeyState.Clean, false);
-		//	var key3 = keyManager.GenerateNewKey("baz", KeyState.Clean, false);
-		//	var key4 = keyManager.GenerateNewKey("qux", KeyState.Clean, false);
-		//	var bech1 = key1.GetP2wpkhAddress(network);
-		//	var bech2 = key2.GetP2wpkhAddress(network);
-		//	var bech3 = key3.GetP2wpkhAddress(network);
-		//	var bech4 = key4.GetP2wpkhAddress(network);
-		//	var amount1 = Money.Coins(0.03m);
-		//	var amount2 = Money.Coins(0.08m);
-		//	var amount3 = Money.Coins(0.3m);
-		//	var amount4 = Money.Coins(0.4m);
-		//	var txid1 = await rpc.SendToAddressAsync(bech1, amount1, replaceable: false);
-		//	var txid2 = await rpc.SendToAddressAsync(bech2, amount2, replaceable: false);
-		//	var txid3 = await rpc.SendToAddressAsync(bech3, amount3, replaceable: false);
-		//	var txid4 = await rpc.SendToAddressAsync(bech4, amount4, replaceable: false);
-		//	key1.SetKeyState(KeyState.Used);
-		//	key2.SetKeyState(KeyState.Used);
-		//	key3.SetKeyState(KeyState.Used);
-		//	key4.SetKeyState(KeyState.Used);
-		//	var tx1 = await rpc.GetRawTransactionAsync(txid1);
-		//	var tx2 = await rpc.GetRawTransactionAsync(txid2);
-		//	var tx3 = await rpc.GetRawTransactionAsync(txid3);
-		//	var tx4 = await rpc.GetRawTransactionAsync(txid4);
-		//	await rpc.GenerateAsync(1);
-		//	var height = await rpc.GetBlockCountAsync();
-		//	var bech1Coin = tx1.Outputs.GetCoins(bech1.ScriptPubKey).Single();
-		//	var bech2Coin = tx2.Outputs.GetCoins(bech2.ScriptPubKey).Single();
-		//	var bech3Coin = tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
-		//	var bech4Coin = tx4.Outputs.GetCoins(bech4.ScriptPubKey).Single();
+			Money denomination = Money.Coins(0.1m);
+			decimal coordinatorFeePercent = 0.1m;
+			int anonymitySet = 2;
+			int connectionConfirmationTimeout = 14;
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
+			coordinator.UpdateRoundConfig(roundConfig);
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+			await rpc.GenerateAsync(3); // So to make sure we have enough money.
+			var keyManager = KeyManager.CreateNew(out _, password);
+			var key1 = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
+			var key2 = keyManager.GenerateNewKey("bar", KeyState.Clean, false);
+			var key3 = keyManager.GenerateNewKey("baz", KeyState.Clean, false);
+			var key4 = keyManager.GenerateNewKey("qux", KeyState.Clean, false);
+			var bech1 = key1.GetP2wpkhAddress(network);
+			var bech2 = key2.GetP2wpkhAddress(network);
+			var bech3 = key3.GetP2wpkhAddress(network);
+			var bech4 = key4.GetP2wpkhAddress(network);
+			var amount1 = Money.Coins(0.03m);
+			var amount2 = Money.Coins(0.08m);
+			var amount3 = Money.Coins(0.3m);
+			var amount4 = Money.Coins(0.4m);
+			var txid1 = await rpc.SendToAddressAsync(bech1, amount1, replaceable: false);
+			var txid2 = await rpc.SendToAddressAsync(bech2, amount2, replaceable: false);
+			var txid3 = await rpc.SendToAddressAsync(bech3, amount3, replaceable: false);
+			var txid4 = await rpc.SendToAddressAsync(bech4, amount4, replaceable: false);
+			key1.SetKeyState(KeyState.Used);
+			key2.SetKeyState(KeyState.Used);
+			key3.SetKeyState(KeyState.Used);
+			key4.SetKeyState(KeyState.Used);
+			var tx1 = await rpc.GetRawTransactionAsync(txid1);
+			var tx2 = await rpc.GetRawTransactionAsync(txid2);
+			var tx3 = await rpc.GetRawTransactionAsync(txid3);
+			var tx4 = await rpc.GetRawTransactionAsync(txid4);
+			await rpc.GenerateAsync(1);
+			var height = await rpc.GetBlockCountAsync();
+			var bech1Coin = tx1.Outputs.GetCoins(bech1.ScriptPubKey).Single();
+			var bech2Coin = tx2.Outputs.GetCoins(bech2.ScriptPubKey).Single();
+			var bech3Coin = tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
+			var bech4Coin = tx4.Outputs.GetCoins(bech4.ScriptPubKey).Single();
 
-		//	var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx1.GetMixin(bech1Coin.Outpoint.N));
-		//	var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx2.GetMixin(bech2Coin.Outpoint.N));
-		//	var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(bech3Coin.Outpoint.N));
-		//	var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx4.GetMixin(bech4Coin.Outpoint.N));
+			var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx1.GetMixin(bech1Coin.Outpoint.N));
+			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx2.GetMixin(bech2Coin.Outpoint.N));
+			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx3.GetMixin(bech3Coin.Outpoint.N));
+			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, mixin: tx4.GetMixin(bech4Coin.Outpoint.N));
 
-		//	var chaumianClient1 = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
-		//	var chaumianClient2 = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
-		//	try
-		//	{
-		//		chaumianClient1.Start(); // Exactly delay it for 2 seconds, this will make sure of timeout later.
-		//		chaumianClient2.Start();
+			var chaumianClient1 = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			var chaumianClient2 = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+			try
+			{
+				chaumianClient1.Start(); // Exactly delay it for 2 seconds, this will make sure of timeout later.
+				chaumianClient2.Start();
 
-		//		smartCoin1.CoinJoinInProgress = true;
-		//		Assert.True(!(await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any());
-		//		Assert.True(smartCoin1.CoinJoinInProgress);
+				smartCoin1.CoinJoinInProgress = true;
+				Assert.True(!(await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any());
+				Assert.True(smartCoin1.CoinJoinInProgress);
 
-		//		await Assert.ThrowsAsync<SecurityException>(async () => await chaumianClient1.QueueCoinsToMixAsync("asdasdasd", smartCoin1, smartCoin2));
-		//		Assert.True(smartCoin1.CoinJoinInProgress);
-		//		Assert.False(smartCoin2.CoinJoinInProgress);
-		//		smartCoin1.CoinJoinInProgress = false;
+				await Assert.ThrowsAsync<SecurityException>(async () => await chaumianClient1.QueueCoinsToMixAsync("asdasdasd", smartCoin1, smartCoin2));
+				Assert.True(smartCoin1.CoinJoinInProgress);
+				Assert.False(smartCoin2.CoinJoinInProgress);
+				smartCoin1.CoinJoinInProgress = false;
 
-		//		await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2);
-		//		Assert.True(smartCoin1.CoinJoinInProgress);
-		//		Assert.True(smartCoin2.CoinJoinInProgress);
+				await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2);
+				Assert.True(smartCoin1.CoinJoinInProgress);
+				Assert.True(smartCoin2.CoinJoinInProgress);
 
-		//		// Make sure it doesn't throw.
-		//		await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.MemPool, rbf: false, mixin: 0));
+				// Make sure it doesn't throw.
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.MemPool, rbf: false, mixin: 0));
 
-		//		Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
-		//		await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
-		//		Assert.False(smartCoin1.CoinJoinInProgress);
-		//		await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, smartCoin2);
-		//		Assert.False(smartCoin1.CoinJoinInProgress);
-		//		Assert.False(smartCoin2.CoinJoinInProgress);
-		//		Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
-		//		Assert.True(smartCoin1.CoinJoinInProgress);
-		//		Assert.True(smartCoin2.CoinJoinInProgress);
-		//		await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
-		//		await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin2);
-		//		Assert.False(smartCoin1.CoinJoinInProgress);
-		//		Assert.False(smartCoin2.CoinJoinInProgress);
+				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
+				Assert.False(smartCoin1.CoinJoinInProgress);
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, smartCoin2);
+				Assert.False(smartCoin1.CoinJoinInProgress);
+				Assert.False(smartCoin2.CoinJoinInProgress);
+				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
+				Assert.True(smartCoin1.CoinJoinInProgress);
+				Assert.True(smartCoin2.CoinJoinInProgress);
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin2);
+				Assert.False(smartCoin1.CoinJoinInProgress);
+				Assert.False(smartCoin2.CoinJoinInProgress);
 
-		//		Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
-		//		Assert.True(smartCoin1.CoinJoinInProgress);
-		//		Assert.True(smartCoin2.CoinJoinInProgress);
-		//		Assert.True(1 == (await chaumianClient2.QueueCoinsToMixAsync(password, smartCoin3)).Count());
+				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
+				Assert.True(smartCoin1.CoinJoinInProgress);
+				Assert.True(smartCoin2.CoinJoinInProgress);
+				Assert.True(1 == (await chaumianClient2.QueueCoinsToMixAsync(password, smartCoin3)).Count());
 
-		//		Task timeout = Task.Delay(TimeSpan.FromSeconds(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2));
-		//		while ((await rpc.GetRawMempoolAsync()).Length == 0)
-		//		{
-		//			if (timeout.IsCompletedSuccessfully)
-		//			{
-		//				throw new TimeoutException("CoinJoin wasn't propagated.");
-		//			}
-		//			await Task.Delay(1000);
-		//		}
+				Task timeout = Task.Delay(TimeSpan.FromSeconds(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2));
+				while ((await rpc.GetRawMempoolAsync()).Length == 0)
+				{
+					if (timeout.IsCompletedSuccessfully)
+					{
+						throw new TimeoutException("CoinJoin wasn't propagated.");
+					}
+					await Task.Delay(1000);
+				}
 
-		//		var cj = (await rpc.GetRawMempoolAsync()).Single();
-		//		smartCoin1.SpenderTransactionId = cj;
-		//		smartCoin2.SpenderTransactionId = cj;
-		//		smartCoin3.SpenderTransactionId = cj;
+				var cj = (await rpc.GetRawMempoolAsync()).Single();
+				smartCoin1.SpenderTransactionId = cj;
+				smartCoin2.SpenderTransactionId = cj;
+				smartCoin3.SpenderTransactionId = cj;
 
-		//		// Make sure if times out, it  tries again.
-		//		connectionConfirmationTimeout = 1;
-		//		roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
-		//		coordinator.UpdateRoundConfig(roundConfig);
-		//		coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
-		//		Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
-		//		await chaumianClient1.DequeueAllCoinsFromMixAsync();
-		//		Assert.Empty(chaumianClient1.State.GetAllQueuedCoins());
-		//		await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin4);
-		//		Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
-		//		Assert.NotEmpty(chaumianClient1.State.GetAllWaitingCoins());
-		//		Assert.Empty(chaumianClient1.State.GetAllRegisteredCoins());
-		//		while (chaumianClient1.State.GetAllWaitingCoins().Any())
-		//		{
-		//			await Task.Delay(1000);
-		//		}
-		//		Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
-		//		Assert.Empty(chaumianClient1.State.GetAllWaitingCoins());
-		//		Assert.NotEmpty(chaumianClient1.State.GetAllRegisteredCoins());
-		//		int times = 0;
-		//		while (!chaumianClient1.State.GetAllWaitingCoins().Any()) // // Make sure to wait until times out.
-		//		{
-		//			await Task.Delay(1000);
-		//			if (times > 21)
-		//			{
-		//				throw new TimeoutException("State.GetAllWaitingCoins() always empty.");
-		//			}
-		//			times++;
-		//		}
+				// Make sure if times out, it  tries again.
+				connectionConfirmationTimeout = 1;
+				roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
+				coordinator.UpdateRoundConfig(roundConfig);
+				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
+				await chaumianClient1.DequeueAllCoinsFromMixAsync();
+				Assert.Empty(chaumianClient1.State.GetAllQueuedCoins());
+				await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin4);
+				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
+				Assert.NotEmpty(chaumianClient1.State.GetAllWaitingCoins());
+				Assert.Empty(chaumianClient1.State.GetAllRegisteredCoins());
+				while (chaumianClient1.State.GetAllWaitingCoins().Any())
+				{
+					await Task.Delay(1000);
+				}
+				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
+				Assert.Empty(chaumianClient1.State.GetAllWaitingCoins());
+				Assert.NotEmpty(chaumianClient1.State.GetAllRegisteredCoins());
+				int times = 0;
+				while (!chaumianClient1.State.GetAllWaitingCoins().Any()) // // Make sure to wait until times out.
+				{
+					await Task.Delay(1000);
+					if (times > 21)
+					{
+						throw new TimeoutException("State.GetAllWaitingCoins() always empty.");
+					}
+					times++;
+				}
 
-		//		Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
-		//		Assert.Empty(chaumianClient1.State.GetAllRegisteredCoins());
-		//	}
-		//	finally
-		//	{
-		//		if (!(chaumianClient1 is null))
-		//		{
-		//			await chaumianClient1.StopAsync();
-		//		}
-		//		if (!(chaumianClient2 is null))
-		//		{
-		//			await chaumianClient2.StopAsync();
-		//		}
-		//	}
-		//}
+				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
+				Assert.Empty(chaumianClient1.State.GetAllRegisteredCoins());
+			}
+			finally
+			{
+				if (!(chaumianClient1 is null))
+				{
+					await chaumianClient1.StopAsync();
+				}
+				if (!(chaumianClient2 is null))
+				{
+					await chaumianClient2.StopAsync();
+				}
+			}
+		}
 
 		//[Fact]
 		//public async Task CoinJoinMultipleRoundTestsAsync()
