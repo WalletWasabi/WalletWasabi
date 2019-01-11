@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 {
@@ -19,8 +20,13 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		/// <returns>If the phase is still in OutputRegistration.</returns>
 		public async Task<bool> PostOutputAsync(long roundId, BitcoinAddress activeOutputAddress, UnblindedSignature unblindedSignature, int level)
 		{
+			Guard.MinimumAndNotNull(nameof(roundId), roundId, 1);
+			Guard.NotNull(nameof(activeOutputAddress), activeOutputAddress);
+			Guard.NotNull(nameof(unblindedSignature), unblindedSignature);
+			Guard.MinimumAndNotNull(nameof(level), level, 0);
+
 			var request = new OutputRequest { OutputAddress = activeOutputAddress, UnblindedSignature = unblindedSignature, Level = level };
-			using (var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/output?roundId={roundId}", request.ToHttpStringContent()))
+			using (var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/output?roundId={roundId}", request.ToHttpStringContent()))
 			{
 				if (response.StatusCode == HttpStatusCode.Conflict)
 				{
