@@ -2359,6 +2359,7 @@ namespace WalletWasabi.Tests
 
 			var registerRequests = new List<(BitcoinWitPubKeyAddress changeOutputAddress, uint256 blindedData, InputProofModel[] inputsProofs)>();
 			AliceClient aliceClientBackup = null;
+			CcjRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 			for (int i = 0; i < roundConfig.AnonymitySet; i++)
 			{
 				BitcoinWitPubKeyAddress activeOutputAddress = new Key().PubKey.GetSegwitAddress(network);
@@ -2366,7 +2367,6 @@ namespace WalletWasabi.Tests
 				Key inputKey = new Key();
 				BitcoinWitPubKeyAddress inputAddress = inputKey.PubKey.GetSegwitAddress(network);
 
-				CcjRound round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				var requester = new Requester();
 				uint256 blinded = requester.BlindScript(round.MixingLevels.GetBaseLevel().Signer.Key.PubKey, round.MixingLevels.GetBaseLevel().Signer.R.PubKey, activeOutputAddress.ScriptPubKey);
 				uint256 blindedOutputScriptsHash = new uint256(Hashes.SHA256(blinded.ToBytes()));
@@ -2390,9 +2390,11 @@ namespace WalletWasabi.Tests
 			int notedCount = coordinator.UtxoReferee.CountBanned(true);
 			Assert.Equal(anonymitySet, notedCount);
 
+			round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
+
 			foreach (var registerRequest in registerRequests)
 			{
-				await AliceClient.CreateNewAsync(aliceClientBackup.RoundId, aliceClientBackup.RegisteredAddresses, aliceClientBackup.SchnorrPubKeys, aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, baseUri);
+				await AliceClient.CreateNewAsync(round.RoundId, aliceClientBackup.RegisteredAddresses, round.MixingLevels.GetAllLevels().Select(x => x.SchnorrKey.SchnorrPubKey), aliceClientBackup.Requesters, network, registerRequest.changeOutputAddress, new[] { registerRequest.blindedData }, registerRequest.inputsProofs, baseUri);
 			}
 
 			await WaitForTimeoutAsync(baseUri);
