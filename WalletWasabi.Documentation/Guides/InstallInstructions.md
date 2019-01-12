@@ -20,7 +20,7 @@ Check out this short, to-the-point [video guide](https://www.youtube.com/watch?v
 
 ![](https://imgur.com/wsJ66Qt.png)
 
-Download the Linux archive and extract it, while keeping the file permissions: `tar -pxzf WasabiLinux-1.0.5.tar.gz`.
+Download the Linux archive and extract it, while keeping the file permissions: `tar -pxzf WasabiLinux-1.1.0.tar.gz`.
 You can run Wasabi by executing `./wassabee`.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Amongst others, here is where your wallet files and your logs reside.
