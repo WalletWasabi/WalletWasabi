@@ -19,25 +19,6 @@ namespace WalletWasabi.Helpers
 			return HashHelpers.GenerateSha256Hash(sb.ToString());
 		}
 
-		public static BitcoinAddress ParseBitcoinAddress(string address)
-		{
-			try
-			{
-				return BitcoinAddress.Create(address, Network.RegTest);
-			}
-			catch (FormatException)
-			{
-				try
-				{
-					return BitcoinAddress.Create(address, Network.TestNet);
-				}
-				catch (FormatException)
-				{
-					return BitcoinAddress.Create(address, Network.Main);
-				}
-			}
-		}
-
 		private static readonly Money[] ReasonableFees = new[] {
 				Money.Coins(0.002m),
 				Money.Coins(0.001m),

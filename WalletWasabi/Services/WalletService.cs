@@ -47,6 +47,8 @@ namespace WalletWasabi.Services
 		/// </summary>
 		public static event EventHandler<int> ConcurrentBlockDownloadNumberChanged;
 
+		public ServiceConfiguration ServiceConfiguration { get; }
+
 		public SortedDictionary<Height, uint256> WalletBlocks { get; }
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 		private AsyncLock WalletBlocksLock { get; }
@@ -71,13 +73,21 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		public WalletService(KeyManager keyManager, WasabiSynchronizer syncer, CcjClient chaumianClient, MemPoolService memPool, NodesGroup nodes, string workFolderDir)
+		public WalletService(
+			KeyManager keyManager,
+			WasabiSynchronizer syncer,
+			CcjClient chaumianClient,
+			MemPoolService memPool,
+			NodesGroup nodes,
+			string workFolderDir,
+			ServiceConfiguration serviceConfiguration)
 		{
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
 			Nodes = Guard.NotNull(nameof(nodes), nodes);
 			Synchronizer = Guard.NotNull(nameof(syncer), syncer);
 			ChaumianClient = Guard.NotNull(nameof(chaumianClient), chaumianClient);
 			MemPool = Guard.NotNull(nameof(memPool), memPool);
+			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 
 			WalletBlocks = new SortedDictionary<Height, uint256>();
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
@@ -297,8 +307,8 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			var foundLabelless = keys.FirstOrDefault(x => !x.HasLabel()); // return the first labelless
-			HdPubKey ret = foundLabelless ?? keys.RandomElement(); // return the first, because that's the oldest
+			var foundLabelless = keys.FirstOrDefault(x => !x.HasLabel()); // Return the first labelless.
+			HdPubKey ret = foundLabelless ?? keys.RandomElement(); // Return the first, because that's the oldest.
 
 			ret.SetLabel(label, KeyManager);
 
@@ -312,7 +322,7 @@ namespace WalletWasabi.Services
 			{
 				return current.ToList();
 			}
-			var history = current.Concat(new List<SmartCoin> { coin }).ToList(); // the coin is the firs elem in its history
+			var history = current.Concat(new List<SmartCoin> { coin }).ToList(); // Fhe coin is the first elem in its history.
 
 			// If the script is the same then we have a match, no matter of the anonimity set.
 			foreach (var c in Coins)
@@ -333,8 +343,8 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If it spends someone and haven't been sufficiently anonimized.
-			if (coin.AnonymitySet < 50)
+			// If it spends someone and hasn't been sufficiently anonymized.
+			if (coin.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 			{
 				var c = Coins.FirstOrDefault(x => x.SpenderTransactionId == coin.TransactionId && !history.Contains(x));
 				if (c != default)
@@ -350,13 +360,13 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			// If it's being spent by someone and that someone haven't been sufficiently anonimized.
+			// If it's being spent by someone and that someone hasn't been sufficiently anonymized.
 			if (!coin.Unspent)
 			{
 				var c = Coins.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId && !history.Contains(x));
 				if (c != default)
 				{
-					if (c.AnonymitySet < 50)
+					if (c.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 					{
 						if (c != default)
 						{
@@ -478,6 +488,12 @@ namespace WalletWasabi.Services
 					if (spentOwnCoins.Count != 0)
 					{
 						mixin += spentOwnCoins.Min(x => x.Mixin);
+
+						// Cleanup exposed links where the txo has been spent.
+						foreach (var input in spentOwnCoins.Select(x => x.GetTxoRef()))
+						{
+							ChaumianClient.ExposedLinks.TryRemove(input, out _);
+						}
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false); // Don't inherit locked status from key, that's different.
@@ -486,14 +502,14 @@ namespace WalletWasabi.Services
 					{
 						TransactionCache.TryAdd(tx);
 
-						// If it's a dequeued change, then queue it.
-						if (newCoin.Unspent && !(ChaumianClient.OnePiece is null) && newCoin.Label == "ZeroLink Change")
+						// If it's being mixed and anonset is not sufficient, then queue it.
+						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
 						{
 							Task.Run(async () =>
 							{
 								try
 								{
-									await ChaumianClient.QueueCoinsToMixAsync(ChaumianClient.OnePiece, newCoin);
+									await ChaumianClient.QueueCoinsToMixAsync(newCoin);
 								}
 								catch (Exception ex)
 								{
@@ -1008,7 +1024,7 @@ namespace WalletWasabi.Services
 		{
 			newLabel = Guard.Correct(newLabel);
 			coin.Label = newLabel;
-			var key = KeyManager.GetKeys().SingleOrDefault(x => x.GetP2wpkhScript() == coin.ScriptPubKey);
+			var key = KeyManager.GetKeys(x => x.GetP2wpkhScript() == coin.ScriptPubKey).SingleOrDefault();
 			if (!(key is null))
 			{
 				key.SetLabel(newLabel, KeyManager);
@@ -1046,7 +1062,7 @@ namespace WalletWasabi.Services
 
 		public IEnumerable<string> GetNonSpecialLabels()
 		{
-			return Coins.Where(x => !x.Label.StartsWith("ZeroLink"))
+			return Coins.Where(x => !x.Label.StartsWith("ZeroLink", StringComparison.Ordinal))
 				.SelectMany(x => x.Label.Split(new string[] { Constants.ChangeOfSpecialLabelStart, Constants.ChangeOfSpecialLabelEnd, "(", "," }, StringSplitOptions.RemoveEmptyEntries))
 				.Select(x => x.Trim())
 				.Distinct();

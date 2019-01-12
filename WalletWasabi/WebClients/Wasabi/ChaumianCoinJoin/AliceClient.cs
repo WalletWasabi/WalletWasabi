@@ -14,27 +14,66 @@ using WalletWasabi.Logging;
 using WalletWasabi.Bases;
 using System.Threading;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Models.ChaumianCoinJoin;
+using NBitcoin.BouncyCastle.Math;
+using NBitcoin.Crypto;
+using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 {
 	public class AliceClient : TorDisposableBase
 	{
-		public long RoundId { get; private set; }
 		public Guid UniqueId { get; private set; }
-		public byte[] BlindedOutputSignature { get; private set; }
+
+		public long RoundId { get; }
 		public Network Network { get; }
 
+		public BitcoinAddress[] RegisteredAddresses { get; }
+		public SchnorrPubKey[] SchnorrPubKeys { get; }
+		public Requester[] Requesters { get; }
+
 		/// <inheritdoc/>
-		private AliceClient(Network network, Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
+		private AliceClient(
+			long roundId,
+			IEnumerable<BitcoinAddress> registeredAddresses,
+			IEnumerable<SchnorrPubKey> schnorrPubKeys,
+			IEnumerable<Requester> requesters,
+			Network network,
+			Uri baseUri,
+			IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
+			RoundId = roundId;
+			RegisteredAddresses = registeredAddresses.ToArray();
+			SchnorrPubKeys = schnorrPubKeys.ToArray();
+			Requesters = requesters.ToArray();
 			Network = network;
 		}
 
-		public static async Task<AliceClient> CreateNewAsync(Network network, InputsRequest request, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		public static async Task<AliceClient> CreateNewAsync(
+			long roundId,
+			IEnumerable<BitcoinAddress> registeredAddresses,
+			IEnumerable<SchnorrPubKey> schnorrPubKeys,
+			IEnumerable<Requester> requesters,
+			Network network,
+			InputsRequest request,
+			Uri baseUri,
+			IPEndPoint torSocks5EndPoint = null)
 		{
-			AliceClient client = new AliceClient(network, baseUri, torSocks5EndPoint);
+			AliceClient client = new AliceClient(roundId, registeredAddresses, schnorrPubKeys, requesters, network, baseUri, torSocks5EndPoint);
 			try
 			{
+				// Correct it if forgot to set.
+				if (request.RoundId != roundId)
+				{
+					if (request.RoundId == 0)
+					{
+						request.RoundId = roundId;
+					}
+					else
+					{
+						throw new NotSupportedException($"InputRequest roundId doesn't match to the provided roundId: {request.RoundId} != {roundId}.");
+					}
+				}
 				using (HttpResponseMessage response = await client.TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/inputs/", request.ToHttpStringContent()))
 				{
 					if (response.StatusCode != HttpStatusCode.OK)
@@ -44,9 +83,12 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 
 					var inputsResponse = await response.Content.ReadAsJsonAsync<InputsResponse>();
 
-					client.RoundId = inputsResponse.RoundId;
+					if (inputsResponse.RoundId != roundId) // This should never happen. If it does, that's a bug in the coordinator.
+					{
+						throw new NotSupportedException($"Coordinator assigned us to the wrong round: {inputsResponse.RoundId}. Requested round: {roundId}.");
+					}
+
 					client.UniqueId = inputsResponse.UniqueId;
-					client.BlindedOutputSignature = inputsResponse.BlindedOutputSignature;
 					Logger.LogInfo<AliceClient>($"Round ({client.RoundId}), Alice ({client.UniqueId}): Registered {request.Inputs.Count()} inputs.");
 
 					return client;
@@ -59,40 +101,76 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			}
 		}
 
-		public static async Task<AliceClient> CreateNewAsync(Network network, BitcoinAddress changeOutput, byte[] blindedData, IEnumerable<InputProofModel> inputs, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		public static async Task<AliceClient> CreateNewAsync(
+			long roundId,
+			IEnumerable<BitcoinAddress> registeredAddresses,
+			IEnumerable<SchnorrPubKey> schnorrPubKeys,
+			IEnumerable<Requester> requesters,
+			Network network,
+			BitcoinAddress changeOutput,
+			IEnumerable<uint256> blindedOutputScriptHashes,
+			IEnumerable<InputProofModel> inputs,
+			Uri baseUri,
+			IPEndPoint torSocks5EndPoint = null)
 		{
 			var request = new InputsRequest
 			{
-				BlindedOutputScriptHex = ByteHelpers.ToHex(blindedData),
-				ChangeOutputAddress = changeOutput.ToString(),
+				RoundId = roundId,
+				BlindedOutputScripts = blindedOutputScriptHashes,
+				ChangeOutputAddress = changeOutput,
 				Inputs = inputs
 			};
-			return await CreateNewAsync(network, request, baseUri, torSocks5EndPoint);
+			return await CreateNewAsync(roundId, registeredAddresses, schnorrPubKeys, requesters, network, request, baseUri, torSocks5EndPoint);
 		}
 
-		/// <returns>null or roundHash</returns>
-		public async Task<string> PostConfirmationAsync()
+		public async Task<(CcjRoundPhase currentPhase, IEnumerable<(BitcoinAddress output, UnblindedSignature signature, int level)> activeOutputs)> PostConfirmationAsync()
 		{
 			using (HttpResponseMessage response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={UniqueId}&roundId={RoundId}"))
 			{
-				if (response.StatusCode == HttpStatusCode.NoContent)
-				{
-					Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection.");
-					return null;
-				}
-
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					await response.ThrowRequestExceptionFromContentAsync();
 				}
 
-				string roundHash = await response.Content.ReadAsJsonAsync<string>();
-				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Acquired roundHash: {roundHash}.");
-				return roundHash;
+				ConnConfResp resp = await response.Content.ReadAsJsonAsync<ConnConfResp>();
+				Logger.LogInfo<AliceClient>($"Round ({RoundId}), Alice ({UniqueId}): Confirmed connection. Phase: {resp.CurrentPhase}.");
+
+				var activeOutputs = new List<(BitcoinAddress output, UnblindedSignature signature, int level)>();
+				if (resp.BlindedOutputSignatures != null && resp.BlindedOutputSignatures.Any())
+				{
+					var unblindedSignatures = new List<UnblindedSignature>();
+					var blindedSignatures = resp.BlindedOutputSignatures.ToArray();
+					for (int i = 0; i < blindedSignatures.Length; i++)
+					{
+						uint256 blindedSignature = blindedSignatures[i];
+						Requester requester = Requesters[i];
+						UnblindedSignature unblindedSignature = requester.UnblindSignature(blindedSignature);
+
+						var address = RegisteredAddresses[i];
+
+						uint256 outputScriptHash = new uint256(Hashes.SHA256(address.ScriptPubKey.ToBytes()));
+						PubKey signerPubKey = SchnorrPubKeys[i].SignerPubKey;
+						if (!VerifySignature(outputScriptHash, unblindedSignature, signerPubKey))
+						{
+							throw new NotSupportedException($"Coordinator did not sign the blinded output properly for level: {i}.");
+						}
+
+						unblindedSignatures.Add(unblindedSignature);
+					}
+
+					for (int i = 0; i < Math.Min(unblindedSignatures.Count, RegisteredAddresses.Length); i++)
+					{
+						var sig = unblindedSignatures[i];
+						var addr = RegisteredAddresses[i];
+						var lvl = i;
+						activeOutputs.Add((addr, sig, lvl));
+					}
+				}
+
+				return (resp.CurrentPhase, activeOutputs);
 			}
 		}
 
-		/// <returns>null or roundHash</returns>
 		public async Task PostUnConfirmationAsync()
 		{
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))

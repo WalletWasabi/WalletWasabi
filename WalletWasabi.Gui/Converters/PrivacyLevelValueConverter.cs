@@ -37,15 +37,15 @@ namespace WalletWasabi.Gui.Converters
 			if (value is int integer)
 			{
 				var shield = string.Empty;
-				if (integer <= 1)
+				if (integer < Global.Config.PrivacyLevelSome)
 				{
 					shield = "Critical";
 				}
-				else if (integer < 21)
+				else if (integer < Global.Config.PrivacyLevelFine)
 				{
 					shield = "Some";
 				}
-				else if (integer < 50)
+				else if (integer < Global.Config.PrivacyLevelStrong)
 				{
 					shield = "Fine";
 				}

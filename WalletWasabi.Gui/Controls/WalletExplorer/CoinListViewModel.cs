@@ -14,6 +14,7 @@ using System.Reactive.Linq;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -188,7 +189,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CoinListViewModel(Money preSelectMinAmountIncludingCondition = null, int? preSelectMaxAnonSetExcludingCondition = null)
+		public CoinListViewModel()
 		{
 			AmountSortDirection = SortOrder.Decreasing;
 			RefreshOrdering();
@@ -296,15 +297,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectPrivateCheckBoxState)
 				{
 					case true:
-						SelectAllCoins(true, x => x.AnonymitySet >= 50);
+						SelectAllCoins(true, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
 						break;
 
 					case false:
-						SelectAllCoins(false, x => x.AnonymitySet >= 50);
+						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
 						break;
 
 					case null:
-						SelectAllCoins(false, x => x.AnonymitySet >= 50);
+						SelectAllCoins(false, x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
 						SelectPrivateCheckBoxState = false;
 						break;
 				}
@@ -315,15 +316,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (SelectNonPrivateCheckBoxState)
 				{
 					case true:
-						SelectAllCoins(true, x => x.AnonymitySet < 50);
+						SelectAllCoins(true, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
 						break;
 
 					case false:
-						SelectAllCoins(false, x => x.AnonymitySet < 50);
+						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
 						break;
 
 					case null:
-						SelectAllCoins(false, x => x.AnonymitySet < 50);
+						SelectAllCoins(false, x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
 						SelectNonPrivateCheckBoxState = false;
 						break;
 				}
@@ -360,14 +361,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						_rootlist.Clear();
 						break;
 				}
+				RefreshCoinsHistories();
 			});
+		}
+
+		private void RefreshCoinsHistories()
+		{
+			foreach (var coin in Coins)
+			{
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+				coin.RefreshHistoryAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+			}
 		}
 
 		private void SetSelections()
 		{
 			SelectAllCheckBoxState = GetCheckBoxesSelectedState(x => true);
-			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= 50);
-			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < 50);
+			SelectPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet >= Global.Config.PrivacyLevelStrong);
+			SelectNonPrivateCheckBoxState = GetCheckBoxesSelectedState(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong);
 		}
 
 		private void SetCoinJoinStatusWidth()

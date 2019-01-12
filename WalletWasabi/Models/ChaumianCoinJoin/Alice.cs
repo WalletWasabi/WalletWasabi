@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,23 +17,22 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public Money NetworkFeeToPay { get; }
 
-		public Money OutputSumWithoutCoordinatorFeeAndDenomination { get; }
-
 		public IEnumerable<Coin> Inputs { get; }
 
 		public BitcoinAddress ChangeOutputAddress { get; }
 
-		public string BlindedOutputScriptHex { get; }
-
-		public Money GetChangeAmount(Money denomination, Money coordinatorFee) => OutputSumWithoutCoordinatorFeeAndDenomination - denomination - coordinatorFee;
-
 		public AliceState State { get; set; }
 
-		public Alice(IEnumerable<Coin> inputs, Money networkFeeToPay, BitcoinAddress changeOutputAddress, string blindedOutputScriptHex)
+		public uint256[] BlindedOutputScripts { get; set; }
+
+		public uint256[] BlindedOutputSignatures { get; set; }
+
+		public Alice(IEnumerable<Coin> inputs, Money networkFeeToPay, BitcoinAddress changeOutputAddress, IEnumerable<uint256> blindedOutputScripts)
 		{
 			Inputs = Guard.NotNullOrEmpty(nameof(inputs), inputs);
 			NetworkFeeToPay = Guard.NotNull(nameof(networkFeeToPay), networkFeeToPay);
-			BlindedOutputScriptHex = Guard.NotNullOrEmptyOrWhitespace(nameof(blindedOutputScriptHex), blindedOutputScriptHex);
+
+			BlindedOutputScripts = blindedOutputScripts?.ToArray() ?? new uint256[0];
 
 			ChangeOutputAddress = Guard.NotNull(nameof(changeOutputAddress), changeOutputAddress);
 			LastSeen = DateTimeOffset.UtcNow;
@@ -41,9 +41,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 			InputSum = inputs.Sum(x => x.Amount);
 
-			OutputSumWithoutCoordinatorFeeAndDenomination = InputSum - NetworkFeeToPay;
-
 			State = AliceState.InputsRegistered;
+
+			BlindedOutputSignatures = new uint256[0];
 		}
 	}
 }

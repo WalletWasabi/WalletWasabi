@@ -87,10 +87,11 @@ namespace WalletWasabi.Tests
 			WalletService walletService = new WalletService(
 			   keyManager,
 			   syncer,
-			   new CcjClient(syncer, network, new BlindingRsaKey().PubKey, keyManager, new Uri("http://localhost:12345")),
+			   new CcjClient(syncer, network, keyManager, new Uri("http://localhost:12345")),
 			   memPoolService,
 			   nodes,
-			   SharedFixture.DataDir);
+			   SharedFixture.DataDir,
+			   new ServiceConfiguration(50, 2, 21, 50));
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try

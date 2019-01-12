@@ -10,6 +10,7 @@ using System.Linq;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using System.Globalization;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -17,6 +18,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private bool _isSelected;
 		private SmartCoinStatus _smartCoinStatus;
+		private string _history;
 
 		public CoinViewModel(SmartCoin model)
 		{
@@ -66,6 +68,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+			RefreshHistoryAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
 		private void ChaumianClient_StateUpdated(object sender, EventArgs e)
@@ -132,7 +138,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string History => string.Join(", ", Global.WalletService.GetHistory(Model, Enumerable.Empty<SmartCoin>()).Select(x => x.Label).Distinct());
+		public string History
+		{
+			get => _history;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _history, value);
+			}
+		}
+
+		public async Task RefreshHistoryAsync()
+		{
+			History = await Task.Run(() =>
+				{
+					return string.Join(", ", Global.WalletService.GetHistory(Model, Enumerable.Empty<SmartCoin>()).Select(x => x.Label).Distinct());
+				}
+			);
+		}
 
 		public SmartCoinStatus Status
 		{

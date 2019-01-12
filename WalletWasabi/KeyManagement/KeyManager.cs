@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Security;
+using System;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -133,10 +134,13 @@ namespace WalletWasabi.KeyManagement
 		public void ToFile(string filePath)
 		{
 			IoHelpers.EnsureContainingDirectoryExists(filePath);
-			lock (ToFileLock)
+			lock (HdPubKeysLock)
 			{
-				string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-				File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+				lock (ToFileLock)
+				{
+					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+					File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+				}
 			}
 		}
 
@@ -154,7 +158,7 @@ namespace WalletWasabi.KeyManagement
 			km.SetFilePath(filePath);
 			lock (km.HdPubKeyScriptBytesLock)
 			{
-				km.HdPubKeyScriptBytes.AddRange(km.GetKeys().Select(x => x.GetP2wpkhScript().ToCompressedBytes()));
+				km.HdPubKeyScriptBytes.AddRange(km.GetKeys(x => true).Select(x => x.GetP2wpkhScript().ToCompressedBytes()));
 			}
 
 			lock (km.ScriptHdPubkeyMapLock)
@@ -229,26 +233,38 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null)
+		public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool> wherePredicate)
 		{
 			// BIP44-ish derivation scheme
 			// m / purpose' / coin_type' / account' / change / address_index
 			lock (HdPubKeysLock)
 			{
-				if (keyState is null && isInternal is null)
+				if (wherePredicate is null)
 				{
-					return HdPubKeys;
+					return HdPubKeys.ToList();
 				}
-				if (isInternal is null && !(keyState is null))
+				else
 				{
-					return HdPubKeys.Where(x => x.KeyState == keyState);
+					return HdPubKeys.Where(wherePredicate).ToList();
 				}
-				else if (keyState is null)
-				{
-					return HdPubKeys.Where(x => x.IsInternal() == isInternal);
-				}
-				return HdPubKeys.Where(x => x.IsInternal() == isInternal && x.KeyState == keyState);
 			}
+		}
+
+		public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null)
+		{
+			if (keyState is null && isInternal is null)
+			{
+				return GetKeys(x => true);
+			}
+			if (isInternal is null && keyState != null)
+			{
+				return GetKeys(x => x.KeyState == keyState);
+			}
+			else if (keyState is null)
+			{
+				return GetKeys(x => x.IsInternal() == isInternal);
+			}
+			return GetKeys(x => x.IsInternal() == isInternal && x.KeyState == keyState);
 		}
 
 		public IEnumerable<byte[]> GetPubKeyScriptBytes()

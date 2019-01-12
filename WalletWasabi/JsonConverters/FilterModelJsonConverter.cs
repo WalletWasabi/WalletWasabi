@@ -1,16 +1,18 @@
-﻿using NBitcoin;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Text;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class Uint256JsonConverter : JsonConverter
+	public class FilterModelJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(uint256);
+			return objectType == typeof(FilterModel);
 		}
 
 		/// <inheritdoc />
@@ -18,13 +20,13 @@ namespace WalletWasabi.JsonConverters
 		{
 			var value = Guard.Correct((string)reader.Value);
 
-			return string.IsNullOrWhiteSpace(value) ? default : new uint256(value);
+			return string.IsNullOrWhiteSpace(value) ? default : FilterModel.FromFullLine(value);
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((uint256)value).ToString());
+			writer.WriteValue(((FilterModel)value).ToFullLine());
 		}
 	}
 }

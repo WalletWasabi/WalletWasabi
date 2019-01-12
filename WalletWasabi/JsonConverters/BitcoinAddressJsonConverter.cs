@@ -5,12 +5,12 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class Uint256JsonConverter : JsonConverter
+	public class BitcoinAddressJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(uint256);
+			return objectType == typeof(BitcoinAddress);
 		}
 
 		/// <inheritdoc />
@@ -18,13 +18,15 @@ namespace WalletWasabi.JsonConverters
 		{
 			var value = Guard.Correct((string)reader.Value);
 
-			return string.IsNullOrWhiteSpace(value) ? default : new uint256(value);
+			return string.IsNullOrWhiteSpace(value) ? default : Network.Parse<BitcoinAddress>(value);
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			writer.WriteValue(((uint256)value).ToString());
+			var address = (BitcoinAddress)value;
+
+			writer.WriteValue(address.ToString());
 		}
 	}
 }

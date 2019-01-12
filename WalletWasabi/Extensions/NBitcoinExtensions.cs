@@ -1,8 +1,11 @@
+using NBitcoin.Crypto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Models.ChaumianCoinJoin;
+using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace NBitcoin
 {
@@ -99,5 +102,39 @@ namespace NBitcoin
 		{
 			return me.ToDecimal(MoneyUnit.BTC) * btcExchangeRate;
 		}
+
+		public static bool VerifyMessage(this BitcoinWitPubKeyAddress address, uint256 messageHash, byte[] signature)
+		{
+			PubKey pubKey = PubKey.RecoverCompact(messageHash, signature);
+			return pubKey.WitHash == address.Hash;
+		}
+
+		public static bool VerifyUnblindedSignature(this Signer signer, UnblindedSignature signature, byte[] data)
+		{
+			uint256 hash = new uint256(Hashes.SHA256(data));
+			return VerifySignature(hash, signature, signer.Key.PubKey);
+		}
+
+		public static bool VerifyUnblindedSignature(this Signer signer, UnblindedSignature signature, uint256 dataHash)
+		{
+			return VerifySignature(dataHash, signature, signer.Key.PubKey);
+		}
+
+		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey RPubKey, Script script)
+		{
+			var msg = new uint256(Hashes.SHA256(script.ToBytes()));
+			return requester.BlindMessage(msg, RPubKey, signerPubKey);
+		}
+
+		public static Signer Create(this Signer signer, SchnorrKey schnorrKey)
+		{
+			var k = Guard.NotNull(nameof(schnorrKey.SignerKey), schnorrKey.SignerKey);
+			var r = Guard.NotNull(nameof(schnorrKey.Rkey), schnorrKey.Rkey);
+			return new Signer(k, r);
+		}
+
+		public static SchnorrPubKey GetSchnorrPubKey(this Signer signer) => new SchnorrPubKey(signer);
+
+		public static uint256 BlindMessage(this Requester requester, uint256 messageHash, SchnorrPubKey schnorrPubKey) => requester.BlindMessage(messageHash, schnorrPubKey.RpubKey, schnorrPubKey.SignerPubKey);
 	}
 }

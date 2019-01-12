@@ -11,6 +11,9 @@ using Swashbuckle.AspNetCore.Swagger;
 using WalletWasabi.Logging;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Backend.Middlewares;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using NBitcoin;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Backend
 {
@@ -20,8 +23,12 @@ namespace WalletWasabi.Backend
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddMemoryCache();
-			services.AddMvc()
-					.AddControllersAsServices();
+
+			services.AddMvc(options =>
+			{
+				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress)));
+			})
+				.AddControllersAsServices();
 
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>
@@ -56,7 +63,7 @@ namespace WalletWasabi.Backend
 			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
 			app.UseSwaggerUI(c =>
 			{
-				c.SwaggerEndpoint("/swagger/v2/swagger.json", "Wasabi Wallet API V2");
+				c.SwaggerEndpoint($"/swagger/v{Constants.BackendMajorVersion}/swagger.json", "Wasabi Wallet API V2");
 			});
 
 			// So to correctly handle HEAD requests.

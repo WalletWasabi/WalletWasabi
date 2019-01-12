@@ -1,5 +1,6 @@
 ﻿using NBitcoin;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Backend.Models.Responses;
@@ -38,11 +39,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetSpentCoins()
+		public IEnumerable<TxoRef> GetSpentCoins()
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => !x.Unspent).Select(x => (x.TransactionId, x.Index)).ToArray();
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Where(x => !x.Unspent).Select(x => x.GetTxoRef()).ToArray();
 			}
 		}
 
@@ -74,11 +75,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public SmartCoin GetSingleOrDefaultCoin((uint256 txid, uint index) coinReference)
+		public SmartCoin GetSingleOrDefaultCoin(TxoRef coinReference)
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).SingleOrDefault(x => x.TransactionId == coinReference.txid && x.Index == coinReference.index);
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).SingleOrDefault(x => x.GetTxoRef() == coinReference);
 			}
 		}
 
@@ -90,19 +91,19 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public SmartCoin GetSingleOrDefaultFromWaitingList((uint256 txid, uint index) coinReference)
+		public SmartCoin GetSingleOrDefaultFromWaitingList(TxoRef coinReference)
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.SingleOrDefault(x => x.TransactionId == coinReference.txid && x.Index == coinReference.index);
+				return WaitingList.Keys.SingleOrDefault(x => x.GetTxoRef() == coinReference);
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetAllQueuedCoins()
+		public IEnumerable<TxoRef> GetAllQueuedCoins()
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => (x.TransactionId, x.Index)).ToArray();
+				return WaitingList.Keys.Concat(Rounds.SelectMany(x => x.CoinsRegistered)).Select(x => x.GetTxoRef()).ToArray();
 			}
 		}
 
@@ -118,7 +119,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Count + Rounds.Sum(x => x.CoinsRegistered.Count);
+				return WaitingList.Count + Rounds.Sum(x => x.CoinsRegistered.Count());
 			}
 		}
 
@@ -130,29 +131,29 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetAllWaitingCoins()
+		public IEnumerable<TxoRef> GetAllWaitingCoins()
 		{
 			lock (StateLock)
 			{
-				return WaitingList.Keys.Select(x => (x.TransactionId, x.Index)).ToArray();
+				return WaitingList.Keys.Select(x => x.GetTxoRef()).ToArray();
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetAllRegisteredCoins()
+		public IEnumerable<TxoRef> GetAllRegisteredCoins()
 		{
 			lock (StateLock)
 			{
-				return Rounds.SelectMany(x => x.CoinsRegistered).Select(x => (x.TransactionId, x.Index)).ToArray();
+				return Rounds.SelectMany(x => x.CoinsRegistered).Select(x => x.GetTxoRef()).ToArray();
 			}
 		}
 
-		public IEnumerable<(uint256 txid, uint index)> GetRegistrableCoins(int maximumInputCountPerPeer, Money denomination, Money feePerInputs, Money feePerOutputs)
+		public IEnumerable<TxoRef> GetRegistrableCoins(int maximumInputCountPerPeer, Money denomination, Money feePerInputs, Money feePerOutputs)
 		{
 			lock (StateLock)
 			{
 				if (!WaitingList.Any()) // To avoid computations.
 				{
-					return Enumerable.Empty<(uint256 txid, uint index)>();
+					return Enumerable.Empty<TxoRef>();
 				}
 
 				Money amountNeededExceptInputFees = denomination + (feePerOutputs * 2);
@@ -168,11 +169,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		private IEnumerable<(uint256 txid, uint index)> GetRegistrableCoinsNoLock(int maximumInputCountPerPeer, Money feePerInputs, Money amountNeededExceptInputFees, bool allowUnconfirmedZeroLink)
+		private IEnumerable<TxoRef> GetRegistrableCoinsNoLock(int maximumInputCountPerPeer, Money feePerInputs, Money amountNeededExceptInputFees, bool allowUnconfirmedZeroLink)
 		{
 			if (!WaitingList.Any()) // To avoid computations.
 			{
-				return Enumerable.Empty<(uint256 txid, uint index)>();
+				return Enumerable.Empty<TxoRef>();
 			}
 
 			Func<SmartCoin, bool> confirmationPredicate;
@@ -200,18 +201,18 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					.FirstOrDefault();
 				if (best != default)
 				{
-					return best.Select(x => (x.TransactionId, x.Index)).ToArray();
+					return best.Select(x => x.GetTxoRef()).ToArray();
 				}
 			}
 
-			return Enumerable.Empty<(uint256 txid, uint index)>(); // Inputs are too small, max input to be registered is reached.
+			return Enumerable.Empty<TxoRef>(); // Inputs are too small, max input to be registered is reached.
 		}
 
 		public IEnumerable<long> GetActivelyMixingRounds()
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => !(x.AliceClient is null) && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => !(x.Registration is null) && x.State.Phase >= CcjRoundPhase.ConnectionConfirmation).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 
@@ -219,7 +220,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => !(x.AliceClient is null) && x.State.Phase == CcjRoundPhase.InputRegistration).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => !(x.Registration is null) && x.State.Phase == CcjRoundPhase.InputRegistration).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 
@@ -227,7 +228,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				return Rounds.Where(x => !(x.AliceClient is null)).Select(x => x.State.RoundId).ToArray();
+				return Rounds.Where(x => !(x.Registration is null)).Select(x => x.State.RoundId).ToArray();
 			}
 		}
 
@@ -283,7 +284,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
-		public void UpdateRoundsByStates(params CcjRunningRoundState[] allRunningRoundsStates)
+		public void UpdateRoundsByStates(ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> exposedLinks, params CcjRunningRoundState[] allRunningRoundsStates)
 		{
 			Guard.NotNullOrEmpty(nameof(allRunningRoundsStates), allRunningRoundsStates);
 			IsInErrorState = false;
@@ -299,13 +300,32 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				foreach (CcjClientRound round in Rounds.Where(x => roundsToRemove.Contains(x.State.RoundId)))
 				{
+					var newSuccessfulRoundCount = allRunningRoundsStates.FirstOrDefault()?.SuccessfulRoundCount;
+					bool roundFailed = newSuccessfulRoundCount != null && round.State.SuccessfulRoundCount == newSuccessfulRoundCount;
+					if (roundFailed)
+					{
+						IsInErrorState = true;
+					}
+
 					foreach (SmartCoin coin in round.CoinsRegistered)
 					{
-						if (round.Signed)
+						if (round.Registration.IsPhaseActionsComleted(CcjRoundPhase.Signing))
 						{
 							var delayRegistration = TimeSpan.FromSeconds(60);
 							WaitingList.Add(coin, DateTimeOffset.UtcNow + delayRegistration);
 							Logger.LogInfo<CcjClientState>($"Coin added to the waiting list: {coin.Index}:{coin.TransactionId}, but its registration is not allowed till {delayRegistration.TotalSeconds} seconds, because this coin might already be spent.");
+
+							if (roundFailed)
+							{
+								// Cleanup non-exposed links.
+								foreach (TxoRef input in round.Registration.CoinsRegistered.Select(x => x.GetTxoRef()))
+								{
+									if (exposedLinks.ContainsKey(input)) // This should always be the case.
+									{
+										exposedLinks[input] = exposedLinks[input].Where(x => !x.IsBlinded);
+									}
+								}
+							}
 						}
 						else
 						{
@@ -314,13 +334,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						}
 					}
 
-					round.AliceClient?.Dispose();
-
-					var newSuccessfulRoundCount = allRunningRoundsStates.FirstOrDefault()?.SuccessfulRoundCount;
-					if (newSuccessfulRoundCount != null && round.State.SuccessfulRoundCount == newSuccessfulRoundCount)
-					{
-						IsInErrorState = true;
-					}
+					round?.Registration?.AliceClient?.Dispose();
 
 					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's not running anymore.");
 				}
@@ -354,7 +368,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			{
 				foreach (var r in Rounds.Where(x => x.State.RoundId == round.State.RoundId))
 				{
-					r.AliceClient?.Dispose();
+					r?.Registration?.AliceClient?.Dispose();
 					Logger.LogInfo<CcjClientState>($"Round ({round.State.RoundId}) removed. Reason: It's being replaced.");
 				}
 				Rounds.RemoveAll(x => x.State.RoundId == round.State.RoundId);
@@ -384,7 +398,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			lock (StateLock)
 			{
-				foreach (var aliceClient in Rounds.Select(x => x.AliceClient))
+				foreach (var aliceClient in Rounds?.Select(x => x?.Registration?.AliceClient))
 				{
 					aliceClient?.Dispose();
 				}

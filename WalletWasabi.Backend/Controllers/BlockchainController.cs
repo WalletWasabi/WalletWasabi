@@ -4,6 +4,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -116,9 +117,9 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
 		[ResponseCache(Duration = 300, Location = ResponseCacheLocation.Client)]
-		public async Task<IActionResult> GetAllFeesAsync(string estimateSmartFeeMode)
+		public async Task<IActionResult> GetAllFeesAsync([FromQuery, Required]string estimateSmartFeeMode)
 		{
-			if (!ModelState.IsValid || string.IsNullOrWhiteSpace(estimateSmartFeeMode) || !Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
+			if (!ModelState.IsValid || !Enum.TryParse(estimateSmartFeeMode, ignoreCase: true, out EstimateSmartFeeMode mode))
 			{
 				return BadRequest("Invalid estimation mode is provided, possible values: ECONOMICAL/CONSERVATIVE.");
 			}
@@ -161,9 +162,9 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpPost("broadcast")]
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400)]
-		public async Task<IActionResult> BroadcastAsync([FromBody]string hex)
+		public async Task<IActionResult> BroadcastAsync([FromBody, Required]string hex)
 		{
-			if (string.IsNullOrWhiteSpace(hex) || !ModelState.IsValid)
+			if (!ModelState.IsValid)
 			{
 				return BadRequest("Invalid hex.");
 			}
@@ -219,16 +220,16 @@ namespace WalletWasabi.Backend.Controllers
 		[ProducesResponseType(204)]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(404)]
-		public IActionResult GetFilters([FromQuery]string bestKnownBlockHash, [FromQuery]int count)
+		public IActionResult GetFilters([FromQuery, Required]string bestKnownBlockHash, [FromQuery, Required]int count)
 		{
-			if (string.IsNullOrWhiteSpace(bestKnownBlockHash) || count <= 0 || !ModelState.IsValid)
+			if (count <= 0 || !ModelState.IsValid)
 			{
 				return BadRequest("Invalid block hash or count is provided.");
 			}
 
 			var knownHash = new uint256(bestKnownBlockHash);
 
-			(Height bestHeight, IEnumerable<string> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
+			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
 
 			if (!found)
 			{

@@ -33,8 +33,6 @@ namespace WalletWasabi.Services
 
 		public string FolderPath { get; }
 
-		public BlindingRsaKey RsaKey { get; }
-
 		public UtxoReferee UtxoReferee { get; }
 
 		public CcjCoordinator(Network network, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
@@ -53,20 +51,6 @@ namespace WalletWasabi.Services
 			Directory.CreateDirectory(FolderPath);
 
 			UtxoReferee = new UtxoReferee(Network, FolderPath, RpcClient, RoundConfig);
-
-			// Initialize RsaKey
-			string rsaKeyPath = Path.Combine(FolderPath, "RsaKey.json");
-			if (File.Exists(rsaKeyPath))
-			{
-				string rsaKeyJson = File.ReadAllText(rsaKeyPath, encoding: Encoding.UTF8);
-				RsaKey = BlindingRsaKey.CreateFromJson(rsaKeyJson);
-			}
-			else
-			{
-				RsaKey = new BlindingRsaKey();
-				File.WriteAllText(rsaKeyPath, RsaKey.ToJson(), encoding: Encoding.UTF8);
-				Logger.LogInfo<CcjCoordinator>($"Created RSA key at: {rsaKeyPath}");
-			}
 
 			if (File.Exists(CoinJoinsFilePath))
 			{
@@ -249,7 +233,35 @@ namespace WalletWasabi.Services
 			// If aborted in signing phase, then ban Alices those didn't sign.
 			if (status == CcjRoundStatus.Aborted && round.Phase == CcjRoundPhase.Signing)
 			{
-				foreach (Alice alice in round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false)) // Because the event sometimes is raised from inside the lock.
+				IEnumerable<Alice> alicesDidntSign = round.GetAlicesByNot(AliceState.SignedCoinJoin, syncLock: false);
+
+				CcjRound nextRound = GetCurrentInputRegisterableRoundOrDefault(syncLock: false);
+
+				if (nextRound != null)
+				{
+					int nextRoundAlicesCount = nextRound.CountAlices(syncLock: false);
+					var alicesSignedCount = round.AnonymitySet - alicesDidntSign.Count();
+
+					// New round's anonset should be the number of alices those signed in this round.
+					// Except if the number of alices in the next round is already larger.
+					var newAnonymitySet = Math.Max(alicesSignedCount, nextRoundAlicesCount);
+					// But it cannot be larger than the current anonset of that round.
+					newAnonymitySet = Math.Min(newAnonymitySet, nextRound.AnonymitySet);
+
+					// Only change the anonymity set of the next round if new anonset doesnt equal and newanonset larger than 1.
+					if (nextRound.AnonymitySet != newAnonymitySet && newAnonymitySet > 1)
+					{
+						nextRound.UpdateAnonymitySet(newAnonymitySet, syncLock: false);
+
+						if (nextRoundAlicesCount >= nextRound.AnonymitySet)
+						{
+							// Progress to the next phase, which will be OutputRegistration
+							await nextRound.ExecuteNextPhaseAsync(CcjRoundPhase.ConnectionConfirmation);
+						}
+					}
+				}
+
+				foreach (Alice alice in alicesDidntSign) // Because the event sometimes is raised from inside the lock.
 				{
 					// If its from any coinjoin, then don't ban.
 					IEnumerable<OutPoint> utxosToBan = alice.Inputs.Select(x => x.Outpoint);
@@ -286,12 +298,17 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public CcjRound GetCurrentInputRegisterableRound()
+		public CcjRound GetCurrentInputRegisterableRoundOrDefault(bool syncLock = true)
 		{
-			using (RoundsListLock.Lock())
+			if (syncLock)
 			{
-				return Rounds.First(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration); // not FirstOrDefault, it must always exist
+				using (RoundsListLock.Lock())
+				{
+					return Rounds.FirstOrDefault(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration);
+				}
 			}
+
+			return Rounds.FirstOrDefault(x => x.Status == CcjRoundStatus.Running && x.Phase == CcjRoundPhase.InputRegistration);
 		}
 
 		public CcjRound TryGetRound(long roundId)
@@ -299,14 +316,6 @@ namespace WalletWasabi.Services
 			using (RoundsListLock.Lock())
 			{
 				return Rounds.SingleOrDefault(x => x.RoundId == roundId);
-			}
-		}
-
-		public CcjRound TryGetRound(string roundHash)
-		{
-			using (RoundsListLock.Lock())
-			{
-				return Rounds.SingleOrDefault(x => x.RoundHash == roundHash);
 			}
 		}
 

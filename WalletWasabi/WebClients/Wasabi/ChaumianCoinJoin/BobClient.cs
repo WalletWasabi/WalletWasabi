@@ -1,10 +1,12 @@
 ﻿using NBitcoin;
+using NBitcoin.Crypto;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 {
@@ -15,15 +17,27 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 		{
 		}
 
-		public async Task PostOutputAsync(string roundHash, BitcoinAddress activeOutputAddress, byte[] unblindedSignature)
+		/// <returns>If the phase is still in OutputRegistration.</returns>
+		public async Task<bool> PostOutputAsync(long roundId, BitcoinAddress activeOutputAddress, UnblindedSignature unblindedSignature, int level)
 		{
-			var request = new OutputRequest { OutputAddress = activeOutputAddress.ToString(), SignatureHex = ByteHelpers.ToHex(unblindedSignature) };
-			using (var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/output?roundHash={roundHash}", request.ToHttpStringContent()))
+			Guard.MinimumAndNotNull(nameof(roundId), roundId, 0);
+			Guard.NotNull(nameof(activeOutputAddress), activeOutputAddress);
+			Guard.NotNull(nameof(unblindedSignature), unblindedSignature);
+			Guard.MinimumAndNotNull(nameof(level), level, 0);
+
+			var request = new OutputRequest { OutputAddress = activeOutputAddress, UnblindedSignature = unblindedSignature, Level = level };
+			using (var response = await TorClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/output?roundId={roundId}", request.ToHttpStringContent()))
 			{
-				if (response.StatusCode != HttpStatusCode.NoContent)
+				if (response.StatusCode == HttpStatusCode.Conflict)
+				{
+					return false;
+				}
+				else if (response.StatusCode != HttpStatusCode.NoContent)
 				{
 					await response.ThrowRequestExceptionFromContentAsync();
 				}
+
+				return true;
 			}
 		}
 	}
