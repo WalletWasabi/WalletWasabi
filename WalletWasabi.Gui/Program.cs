@@ -95,11 +95,7 @@ namespace WalletWasabi.Gui
 			}
 			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				result.UseGtk3(new Gtk3PlatformOptions
-				{
-					UseDeferredRendering = true,
-					UseGpuAcceleration = true
-				}).UseSkia();
+				result.UseX11().UseSkia();
 			}
 			{
 				result.UsePlatformDetect();
