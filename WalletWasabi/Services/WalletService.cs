@@ -142,6 +142,12 @@ namespace WalletWasabi.Services
 			Synchronizer.NewFilter += IndexDownloader_NewFilterAsync;
 			Synchronizer.Reorged += IndexDownloader_ReorgedAsync;
 			MemPool.TransactionReceived += MemPool_TransactionReceived;
+			Coins.CollectionChanged += Coins_CollectionChanged;
+		}
+
+		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+			RefreshCoinsHistoriesAsync();
 		}
 
 		private void MemPool_TransactionReceived(object sender, SmartTransaction tx)
@@ -1068,6 +1074,64 @@ namespace WalletWasabi.Services
 				.Distinct();
 		}
 
+		private async Task RefreshHistoryAsync(SemaphoreSlim semaphore, SmartCoin coin)
+		{
+			if (semaphore != null)
+			{
+				await semaphore.WaitAsync();
+			}
+			var result = string.Join(", ", GetHistory(coin, Enumerable.Empty<SmartCoin>()).Select(x => x.Label).Distinct());
+			coin.SetHistory(result);
+			semaphore?.Release();
+		}
+
+		private volatile int _refreshCoinCalls;
+
+		public async void RefreshCoinsHistoriesAsync()
+		{
+			try
+			{
+				if (_refreshCoinCalls == 2) //it is running and scheduled to rerun after finished
+				{
+					return;
+				}
+				if (_refreshCoinCalls == 1) //it is running but now we will rerun if finished
+				{
+					Interlocked.Increment(ref _refreshCoinCalls);
+					return;
+				}
+				if (_refreshCoinCalls == 0) //it is not running so we start the work
+				{
+					Interlocked.Increment(ref _refreshCoinCalls);
+				}
+				var unspentCoins = Coins.Where(c => c.Unspent); //refreshing unspent coins history only
+				if (unspentCoins.Any())
+				{
+					const int simultaneousThread = 2; //threads allowed to run simultaneously in threadpool
+					using (SemaphoreSlim semaphore = new SemaphoreSlim(simultaneousThread))
+					{
+						//https://blogs.msdn.microsoft.com/andrewarnottms/2017/05/11/limiting-concurrency-for-faster-and-more-responsive-apps/
+						IEnumerable<Task> tasks = unspentCoins.Select(c => Task.Run(() => RefreshHistoryAsync(semaphore, c)));
+						await Task.WhenAll(tasks); //await all tasks to finish
+					}
+				}
+				if (_refreshCoinCalls == 2) //scheduled to rerun so we start the work again
+				{
+					Interlocked.Exchange(ref _refreshCoinCalls, 0);
+					RefreshCoinsHistoriesAsync();
+				}
+				if (_refreshCoinCalls == 1) //done with the job
+				{
+					Interlocked.Exchange(ref _refreshCoinCalls, 0);
+				}
+			}
+			catch (Exception ex)
+			{
+				Interlocked.Exchange(ref _refreshCoinCalls, 0);
+				Logger.LogError<WalletService>($"Refreshing coins history failed: {ex}");
+			}
+		}
+
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
@@ -1081,6 +1145,7 @@ namespace WalletWasabi.Services
 					Synchronizer.NewFilter -= IndexDownloader_NewFilterAsync;
 					Synchronizer.Reorged -= IndexDownloader_ReorgedAsync;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
+					Coins.CollectionChanged -= Coins_CollectionChanged;
 
 					IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
 					string jsonString = JsonConvert.SerializeObject(TransactionCache, Formatting.Indented);
