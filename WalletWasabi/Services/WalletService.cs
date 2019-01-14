@@ -322,7 +322,7 @@ namespace WalletWasabi.Services
 			return ret;
 		}
 
-		public HashSet<SmartCoin> GetHistory(SmartCoin coin, HashSet<SmartCoin> current, ILookup<Script, SmartCoin> lookupScriptPubKey, ILookup<uint256, SmartCoin> lookupSpenderTransactionId, ILookup<uint256, SmartCoin> lookupTransactionId)
+		public List<SmartCoin> GetHistory(SmartCoin coin, List<SmartCoin> current, ILookup<Script, SmartCoin> lookupScriptPubKey, ILookup<uint256, SmartCoin> lookupSpenderTransactionId, ILookup<uint256, SmartCoin> lookupTransactionId)
 		{
 			Guard.NotNull(nameof(coin), coin);
 			if (current.Contains(coin))
@@ -330,11 +330,7 @@ namespace WalletWasabi.Services
 				return current;
 			}
 
-			var history = new HashSet<SmartCoin>
-			{
-				coin // Fhe coin is the first elem in its history.
-			};
-			history.UnionWith(current);
+			var history = current.Concat(new List<SmartCoin> { coin }).ToList(); // Fhe coin is the first elem in its history.
 
 			// If the script is the same then we have a match, no matter of the anonimity set.
 			foreach (var c in lookupScriptPubKey[coin.ScriptPubKey])
@@ -1083,7 +1079,7 @@ namespace WalletWasabi.Services
 			{
 				await semaphore.WaitAsync();
 			}
-			var result = string.Join(", ", GetHistory(coin, new HashSet<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
+			var result = string.Join(", ", GetHistory(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
 			coin.SetHistory(result);
 			semaphore?.Release();
 		}
