@@ -142,7 +142,6 @@ namespace WalletWasabi.Services
 			Synchronizer.NewFilter += IndexDownloader_NewFilterAsync;
 			Synchronizer.Reorged += IndexDownloader_ReorgedAsync;
 			MemPool.TransactionReceived += MemPool_TransactionReceived;
-			Coins.CollectionChanged += Coins_CollectionChanged;
 		}
 
 		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -261,6 +260,8 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
+			Coins.CollectionChanged += Coins_CollectionChanged;
+			RefreshCoinsHistoriesAsync();
 		}
 
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
@@ -321,29 +322,31 @@ namespace WalletWasabi.Services
 			return ret;
 		}
 
-		public List<SmartCoin> GetHistory(SmartCoin coin, IEnumerable<SmartCoin> current)
+		public HashSet<SmartCoin> GetHistory(SmartCoin coin, HashSet<SmartCoin> current, ILookup<Script, SmartCoin> lookupScriptPubKey, ILookup<uint256, SmartCoin> lookupSpenderTransactionId, ILookup<uint256, SmartCoin> lookupTransactionId)
 		{
 			Guard.NotNull(nameof(coin), coin);
 			if (current.Contains(coin))
 			{
-				return current.ToList();
+				return current;
 			}
-			var history = current.Concat(new List<SmartCoin> { coin }).ToList(); // Fhe coin is the first elem in its history.
+
+			var history = new HashSet<SmartCoin>
+			{
+				coin // Fhe coin is the first elem in its history.
+			};
+			history.UnionWith(current);
 
 			// If the script is the same then we have a match, no matter of the anonimity set.
-			foreach (var c in Coins)
+			foreach (var c in lookupScriptPubKey[coin.ScriptPubKey])
 			{
-				if (c.ScriptPubKey == coin.ScriptPubKey)
+				if (!history.Contains(c))
 				{
-					if (!history.Contains(c))
+					var h = GetHistory(c, history, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
+					foreach (var hr in h)
 					{
-						var h = GetHistory(c, history);
-						foreach (var hr in h)
+						if (!history.Contains(hr))
 						{
-							if (!history.Contains(hr))
-							{
-								history.Add(hr);
-							}
+							history.Add(hr);
 						}
 					}
 				}
@@ -352,10 +355,10 @@ namespace WalletWasabi.Services
 			// If it spends someone and hasn't been sufficiently anonymized.
 			if (coin.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 			{
-				var c = Coins.FirstOrDefault(x => x.SpenderTransactionId == coin.TransactionId && !history.Contains(x));
+				var c = lookupSpenderTransactionId[coin.TransactionId].Where(x => !history.Contains(x)).FirstOrDefault();
 				if (c != default)
 				{
-					var h = GetHistory(c, history);
+					var h = GetHistory(c, history, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
 					foreach (var hr in h)
 					{
 						if (!history.Contains(hr))
@@ -369,14 +372,14 @@ namespace WalletWasabi.Services
 			// If it's being spent by someone and that someone hasn't been sufficiently anonymized.
 			if (!coin.Unspent)
 			{
-				var c = Coins.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId && !history.Contains(x));
+				var c = lookupTransactionId[coin.SpenderTransactionId].Where(x => !history.Contains(x)).FirstOrDefault();
 				if (c != default)
 				{
 					if (c.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 					{
 						if (c != default)
 						{
-							var h = GetHistory(c, history);
+							var h = GetHistory(c, history, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
 							foreach (var hr in h)
 							{
 								if (!history.Contains(hr))
@@ -1074,13 +1077,13 @@ namespace WalletWasabi.Services
 				.Distinct();
 		}
 
-		private async Task RefreshHistoryAsync(SemaphoreSlim semaphore, SmartCoin coin)
+		private async Task RefreshHistoryAsync(SemaphoreSlim semaphore, SmartCoin coin, ILookup<Script, SmartCoin> lookupScriptPubKey, ILookup<uint256, SmartCoin> lookupSpenderTransactionId, ILookup<uint256, SmartCoin> lookupTransactionId)
 		{
 			if (semaphore != null)
 			{
 				await semaphore.WaitAsync();
 			}
-			var result = string.Join(", ", GetHistory(coin, Enumerable.Empty<SmartCoin>()).Select(x => x.Label).Distinct());
+			var result = string.Join(", ", GetHistory(coin, new HashSet<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
 			coin.SetHistory(result);
 			semaphore?.Release();
 		}
@@ -1107,11 +1110,15 @@ namespace WalletWasabi.Services
 				var unspentCoins = Coins.Where(c => c.Unspent); //refreshing unspent coins history only
 				if (unspentCoins.Any())
 				{
+					ILookup<Script, SmartCoin> lookupScriptPubKey = Coins.ToLookup(c => c.ScriptPubKey, c => c);
+					ILookup<uint256, SmartCoin> lookupSpenderTransactionId = Coins.ToLookup(c => c.SpenderTransactionId, c => c);
+					ILookup<uint256, SmartCoin> lookupTransactionId = Coins.ToLookup(c => c.TransactionId, c => c);
+
 					const int simultaneousThread = 2; //threads allowed to run simultaneously in threadpool
 					using (SemaphoreSlim semaphore = new SemaphoreSlim(simultaneousThread))
 					{
 						//https://blogs.msdn.microsoft.com/andrewarnottms/2017/05/11/limiting-concurrency-for-faster-and-more-responsive-apps/
-						IEnumerable<Task> tasks = unspentCoins.Select(c => Task.Run(() => RefreshHistoryAsync(semaphore, c)));
+						IEnumerable<Task> tasks = unspentCoins.Select(c => Task.Run(() => RefreshHistoryAsync(semaphore, c, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId)));
 						await Task.WhenAll(tasks); //await all tasks to finish
 					}
 				}
