@@ -1075,31 +1075,37 @@ namespace WalletWasabi.Services
 
 		private async Task RefreshHistoryAsync(SemaphoreSlim semaphore, SmartCoin coin, ILookup<Script, SmartCoin> lookupScriptPubKey, ILookup<uint256, SmartCoin> lookupSpenderTransactionId, ILookup<uint256, SmartCoin> lookupTransactionId)
 		{
-			if (semaphore != null)
+			try
 			{
-				await semaphore.WaitAsync();
+				if (semaphore != null)
+				{
+					await semaphore.WaitAsync();
+				}
+				var result = string.Join(", ", GetHistory(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
+				coin.SetHistory(result);
 			}
-			var result = string.Join(", ", GetHistory(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
-			coin.SetHistory(result);
-			semaphore?.Release();
+			finally
+			{
+				semaphore?.Release();
+			}
 		}
 
-		private volatile int _refreshCoinCalls;
+		private long _refreshCoinCalls;
 
 		public async void RefreshCoinsHistoriesAsync()
 		{
 			try
 			{
-				if (_refreshCoinCalls == 2) //it is running and scheduled to rerun after finished
+				if (Interlocked.Read(ref _refreshCoinCalls) == 2) //it is running and scheduled to rerun after finished
 				{
 					return;
 				}
-				if (_refreshCoinCalls == 1) //it is running but now we will rerun if finished
+				if (Interlocked.Read(ref _refreshCoinCalls) == 1) //it is running but now we will rerun if finished
 				{
 					Interlocked.Increment(ref _refreshCoinCalls);
 					return;
 				}
-				if (_refreshCoinCalls == 0) //it is not running so we start the work
+				if (Interlocked.Read(ref _refreshCoinCalls) == 0) //it is not running so we start the work
 				{
 					Interlocked.Increment(ref _refreshCoinCalls);
 				}
@@ -1118,12 +1124,12 @@ namespace WalletWasabi.Services
 						await Task.WhenAll(tasks); //await all tasks to finish
 					}
 				}
-				if (_refreshCoinCalls == 2) //scheduled to rerun so we start the work again
+				if (Interlocked.Read(ref _refreshCoinCalls) == 2) //scheduled to rerun so we start the work again
 				{
 					Interlocked.Exchange(ref _refreshCoinCalls, 0);
 					RefreshCoinsHistoriesAsync();
 				}
-				if (_refreshCoinCalls == 1) //done with the job
+				if (Interlocked.Read(ref _refreshCoinCalls) == 1) //done with the job
 				{
 					Interlocked.Exchange(ref _refreshCoinCalls, 0);
 				}
