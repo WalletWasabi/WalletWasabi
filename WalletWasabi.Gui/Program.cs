@@ -97,6 +97,7 @@ namespace WalletWasabi.Gui
 			{
 				result.UseX11().UseSkia();
 			}
+			else
 			{
 				result.UsePlatformDetect();
 			}
