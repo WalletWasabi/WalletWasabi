@@ -1073,23 +1073,6 @@ namespace WalletWasabi.Services
 				.Distinct();
 		}
 
-		private async Task RefreshHistoryAsync(SemaphoreSlim semaphore, SmartCoin coin, ILookup<Script, SmartCoin> lookupScriptPubKey, ILookup<uint256, SmartCoin> lookupSpenderTransactionId, ILookup<uint256, SmartCoin> lookupTransactionId)
-		{
-			try
-			{
-				if (semaphore != null)
-				{
-					await semaphore.WaitAsync();
-				}
-				var result = string.Join(", ", GetHistory(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
-				coin.SetHistory(result);
-			}
-			finally
-			{
-				semaphore?.Release();
-			}
-		}
-
 		private long _refreshCoinCalls;
 
 		public async void RefreshCoinsHistoriesAsync()
@@ -1116,13 +1099,17 @@ namespace WalletWasabi.Services
 					ILookup<uint256, SmartCoin> lookupSpenderTransactionId = Coins.ToLookup(c => c.SpenderTransactionId, c => c);
 					ILookup<uint256, SmartCoin> lookupTransactionId = Coins.ToLookup(c => c.TransactionId, c => c);
 
-					const int simultaneousThread = 2; //threads allowed to run simultaneously in threadpool
-					using (SemaphoreSlim semaphore = new SemaphoreSlim(simultaneousThread))
-					{
-						//https://blogs.msdn.microsoft.com/andrewarnottms/2017/05/11/limiting-concurrency-for-faster-and-more-responsive-apps/
-						IEnumerable<Task> tasks = unspentCoins.Select(c => Task.Run(() => RefreshHistoryAsync(semaphore, c, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId)));
-						await Task.WhenAll(tasks); //await all tasks to finish
-					}
+					const int simultaneousThread = 1; //threads allowed to run simultaneously in threadpool
+					TaskScheduler scheduler = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, simultaneousThread).ConcurrentScheduler;
+
+					//https://blogs.msdn.microsoft.com/andrewarnottms/2017/05/11/limiting-concurrency-for-faster-and-more-responsive-apps/
+					IEnumerable<Task> tasks = unspentCoins.Select(coin => Task.Factory.StartNew(() =>
+					   {
+						   var result = string.Join(", ", GetHistory(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
+						   coin.SetHistory(result);
+					   }
+						, CancellationToken.None, TaskCreationOptions.None, scheduler));
+					await Task.WhenAll(tasks); //await all tasks to finish
 				}
 				if (Interlocked.Read(ref _refreshCoinCalls) == 2) //scheduled to rerun so we start the work again
 				{
