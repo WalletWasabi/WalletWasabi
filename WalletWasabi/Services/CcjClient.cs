@@ -538,6 +538,12 @@ namespace WalletWasabi.Services
 					aliceClient?.Dispose();
 					return;
 				}
+				catch (HttpRequestException ex) when (ex.Message.Contains("too-long-mempool-chain", StringComparison.InvariantCultureIgnoreCase) )
+				{
+					Logger.LogInfo<CcjClient>("Coordinator failed because too much unconfirmed parent transactions. Trying again later.");
+					aliceClient?.Dispose();
+					return;
+				}
 
 				var coinsRegistered = new List<SmartCoin>();
 				foreach (TxoRef coinReference in registrableCoins)
