@@ -1099,7 +1099,7 @@ namespace WalletWasabi.Services
 					ILookup<uint256, SmartCoin> lookupSpenderTransactionId = Coins.ToLookup(c => c.SpenderTransactionId, c => c);
 					ILookup<uint256, SmartCoin> lookupTransactionId = Coins.ToLookup(c => c.TransactionId, c => c);
 
-					const int simultaneousThread = 1; //threads allowed to run simultaneously in threadpool
+					const int simultaneousThread = 2; //threads allowed to run simultaneously in threadpool
 					TaskScheduler scheduler = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, simultaneousThread).ConcurrentScheduler;
 
 					//https://blogs.msdn.microsoft.com/andrewarnottms/2017/05/11/limiting-concurrency-for-faster-and-more-responsive-apps/
