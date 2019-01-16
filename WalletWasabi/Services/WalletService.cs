@@ -20,6 +20,7 @@ using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using NBitcoin.DataEncoders;
 using System.Net.Http;
+using System.Diagnostics;
 
 namespace WalletWasabi.Services
 {
@@ -1100,16 +1101,12 @@ namespace WalletWasabi.Services
 					ILookup<uint256, SmartCoin> lookupTransactionId = Coins.ToLookup(c => c.TransactionId, c => c);
 
 					const int simultaneousThread = 2; //threads allowed to run simultaneously in threadpool
-					TaskScheduler scheduler = new ConcurrentExclusiveSchedulerPair(TaskScheduler.Default, simultaneousThread).ConcurrentScheduler;
 
-					//https://blogs.msdn.microsoft.com/andrewarnottms/2017/05/11/limiting-concurrency-for-faster-and-more-responsive-apps/
-					IEnumerable<Task> tasks = unspentCoins.Select(coin => Task.Factory.StartNew(() =>
-					   {
-						   var result = string.Join(", ", GetHistory(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
-						   coin.SetHistory(result);
-					   }
-						, CancellationToken.None, TaskCreationOptions.None, scheduler));
-					await Task.WhenAll(tasks); //await all tasks to finish
+					await Task.Run(() => Parallel.ForEach(unspentCoins, new ParallelOptions { MaxDegreeOfParallelism = simultaneousThread }, coin =>
+					{
+						var result = string.Join(", ", GetHistory(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
+						coin.SetHistory(result);
+					}));
 				}
 				if (Interlocked.Read(ref _refreshCoinCalls) == 2) //scheduled to rerun so we start the work again
 				{
