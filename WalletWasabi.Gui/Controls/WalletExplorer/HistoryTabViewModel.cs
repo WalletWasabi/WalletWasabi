@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
@@ -18,7 +19,7 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryTabViewModel : WalletActionViewModel
+	public class HistoryTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
@@ -28,6 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		private CompositeDisposable _disposables = new CompositeDisposable();
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
@@ -43,11 +45,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			coinsChanged
 				.Merge(newBlockProcessed)
 				.Merge(coinSpent)
+				.Throttle(TimeSpan.FromSeconds(10))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(o =>
 				{
 					RewriteTable();
-				});
+				}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
@@ -70,7 +73,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Interlocked.Exchange(ref _disableClipboard, 0);
 				}
-			});
+			}).DisposeWith(_disposables);
+
 			DateSortDirection = SortOrder.Decreasing;
 		}
 
@@ -145,7 +149,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			txRecordList = txRecordList.OrderByDescending(x => x.dateTime).ThenBy(x => x.amount).ToList();
 
 			var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
-			Transactions?.Clear();
+			if (Transactions != null)
+			{
+				foreach (var tr in Transactions)
+				{
+					tr.Dispose();
+				}
+				Transactions.Clear();
+			}
 			foreach (var txr in txRecordList)
 			{
 				var txinfo = new TransactionInfo
@@ -174,7 +185,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ObservableCollection<TransactionViewModel> Transactions
 		{
 			get { return _transactions; }
-			set { this.RaiseAndSetIfChanged(ref _transactions, value); }
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _transactions, value);
+			}
 		}
 
 		public TransactionViewModel SelectedTransaction
@@ -242,16 +256,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void RefreshOrdering()
 		{
+			ObservableCollection<TransactionViewModel> newTrs = null;
 			if (TransactionSortDirection != SortOrder.None)
 			{
 				switch (TransactionSortDirection)
 				{
 					case SortOrder.Increasing:
-						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.TransactionId));
+						newTrs = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.TransactionId));
 						break;
 
 					case SortOrder.Decreasing:
-						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.TransactionId));
+						newTrs = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.TransactionId));
 						break;
 				}
 			}
@@ -260,11 +275,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (AmountSortDirection)
 				{
 					case SortOrder.Increasing:
-						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.Amount));
+						newTrs = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.Amount));
 						break;
 
 					case SortOrder.Decreasing:
-						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.Amount));
+						newTrs = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.Amount));
 						break;
 				}
 			}
@@ -273,14 +288,58 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (DateSortDirection)
 				{
 					case SortOrder.Increasing:
-						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.DateTime));
+						newTrs = new ObservableCollection<TransactionViewModel>(_transactions.OrderBy(t => t.DateTime));
 						break;
 
 					case SortOrder.Decreasing:
-						Transactions = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.DateTime));
+						newTrs = new ObservableCollection<TransactionViewModel>(_transactions.OrderByDescending(t => t.DateTime));
 						break;
 				}
 			}
+			if (newTrs != null)
+			{
+				foreach (var tr in Transactions)
+				{
+					tr.Dispose();
+				}
+				Transactions = newTrs;
+			}
 		}
+
+		#region IDisposable Support
+
+		private bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					if (Transactions != null)
+					{
+						foreach (var tr in Transactions)
+						{
+							tr.Dispose();
+						}
+					}
+					_disposables.Dispose();
+				}
+
+				_transactions = null;
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+			// TODO: uncomment the following line if the finalizer is overridden above.
+			// GC.SuppressFinalize(this);
+		}
+
+		#endregion IDisposable Support
 	}
 }

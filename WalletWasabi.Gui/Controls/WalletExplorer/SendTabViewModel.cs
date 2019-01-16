@@ -19,10 +19,11 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Backend.Models.Responses;
 using System.ComponentModel;
 using WalletWasabi.Gui.Models;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendTabViewModel : WalletActionViewModel
+	public class SendTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private CoinListViewModel _coinList;
 		private string _buildTransactionButtonText;
@@ -55,6 +56,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
+		private CompositeDisposable _disposables = new CompositeDisposable();
 
 		private bool IgnoreAmountChanges { get; set; }
 
@@ -132,7 +134,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				SetFeesAndTexts();
-			});
+			}).DisposeWith(_disposables);
 
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
 			{
@@ -218,12 +220,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = false;
 				}
 			},
-			(this).WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
-				(isMax, amount, address, busy) => ((isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)));
+			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
+				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy))
+				.DisposeWith(_disposables);
 
-			MaxCommand = ReactiveCommand.Create(SetMax);
+			MaxCommand = ReactiveCommand.Create(SetMax).DisposeWith(_disposables);
 
-			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
+			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
 			{
@@ -235,7 +238,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					BuildTransactionButtonText = BuildTransactionButtonTextString;
 				}
-			});
+			}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -247,9 +250,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Password = x.TrimEnd('\r', '\n');
 					}
 				}
-			});
+			}).DisposeWith(_disposables);
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(_disposables);
+
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
 				if (Label == null) return;
@@ -257,12 +261,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			});
+			}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
 			{
 				SetFeesAndTexts();
-			});
+			}).DisposeWith(_disposables);
 
 			CoinList.SelectionChanged += CoinList_SelectionChanged;
 
@@ -874,5 +878,40 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand MaxCommand { get; }
 
 		public ReactiveCommand FeeRateCommand { get; }
+
+		#region IDisposable Support
+
+		private bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Global.Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
+					CoinList.SelectionChanged -= CoinList_SelectionChanged;
+					_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+
+					CoinList.Dispose();
+					_disposables.Dispose();
+				}
+
+				CoinList = null;
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+			// TODO: uncomment the following line if the finalizer is overridden above.
+			// GC.SuppressFinalize(this);
+		}
+
+		#endregion IDisposable Support
 	}
 }

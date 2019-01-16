@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -22,7 +23,7 @@ using static WalletWasabi.Models.ServiceConfiguration;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinJoinTabViewModel : WalletActionViewModel
+	public class CoinJoinTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private CoinListViewModel _coinsList;
 		private long _roundId;
@@ -43,6 +44,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _dequeueButtonText;
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
+		private CompositeDisposable _disposables = new CompositeDisposable();
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
@@ -72,8 +74,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				CoinsList = new CoinListViewModel();
 			}
 
-			//CoinsList = new CoinListViewModel(coins);
-
 			AmountQueued = Money.Zero;// Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
 			Global.ChaumianClient.CoinQueued += ChaumianClient_CoinQueued;
@@ -101,25 +101,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
 				await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
-			});
+			}).DisposeWith(_disposables);
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
 			{
 				await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected));
-			});
+			}).DisposeWith(_disposables);
 
 			PrivacySomeCommand = ReactiveCommand.Create(() =>
 			{
 				TargetPrivacy = TargetPrivacy.Some;
-			});
+			}).DisposeWith(_disposables);
 			PrivacyFineCommand = ReactiveCommand.Create(() =>
 			{
 				TargetPrivacy = TargetPrivacy.Fine;
-			});
+			}).DisposeWith(_disposables);
 			PrivacyStrongCommand = ReactiveCommand.Create(() =>
 			{
 				TargetPrivacy = TargetPrivacy.Strong;
-			});
+			}).DisposeWith(_disposables);
 			TargetButtonCommand = ReactiveCommand.Create(async () =>
 			{
 				switch (TargetPrivacy)
@@ -142,7 +142,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonimitySet;
 				await Global.Config.ToFileAsync();
-			});
+			}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
 			{
@@ -155,7 +155,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 					}
 				}
-			});
+			}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.IsEnqueueBusy).Subscribe(busy =>
 			{
@@ -167,7 +167,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					EnqueueButtonText = EnqueueButtonTextString;
 				}
-			});
+			}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.IsDequeueBusy).Subscribe(busy =>
 			{
@@ -179,12 +179,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DequeueButtonText = DequeueButtonTextString;
 				}
-			});
+			}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
 			{
 				CoinJoinUntilAnonimitySet = GetTargetLevel(target);
-			});
+			}).DisposeWith(_disposables);
 		}
 
 		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
@@ -510,5 +510,39 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand PrivacyFineCommand { get; }
 		public ReactiveCommand PrivacyStrongCommand { get; }
 		public ReactiveCommand TargetButtonCommand { get; }
+
+		#region IDisposable Support
+
+		private bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Global.ChaumianClient.CoinQueued -= ChaumianClient_CoinQueued;
+					Global.ChaumianClient.CoinDequeued -= ChaumianClient_CoinDequeued;
+					Global.ChaumianClient.StateUpdated -= ChaumianClient_StateUpdated;
+					_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+					_disposables.Dispose();
+					CoinsList.Dispose();
+				}
+
+				CoinsList = null;
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+			// TODO: uncomment the following line if the finalizer is overridden above.
+			// GC.SuppressFinalize(this);
+		}
+
+		#endregion IDisposable Support
 	}
 }

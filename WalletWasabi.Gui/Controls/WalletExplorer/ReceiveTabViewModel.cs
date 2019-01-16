@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class ReceiveTabViewModel : WalletActionViewModel
+	public class ReceiveTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
@@ -25,6 +26,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _clipboardNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
+		private CompositeDisposable _disposables = new CompositeDisposable();
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
@@ -37,7 +39,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(o =>
 			{
 				InitializeAddresses();
-			});
+			}).DisposeWith(_disposables);
 
 			InitializeAddresses();
 
@@ -76,8 +78,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Label = "";
 				});
-			});
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+			}).DisposeWith(_disposables);
+
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(_disposables);
+
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
 			{
 				if (!(address is null))
@@ -92,7 +96,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						ClipboardNotificationOpacity = 0;
 					});
 				}
-			});
+			}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
@@ -101,7 +105,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			});
+			}).DisposeWith(_disposables);
+
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
@@ -222,5 +227,36 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public ReactiveCommand GenerateCommand { get; }
+
+		#region IDisposable Support
+
+		private bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					_disposables.Dispose();
+				}
+
+				_addresses = null;
+				_suggestions = null;
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+			// TODO: uncomment the following line if the finalizer is overridden above.
+			// GC.SuppressFinalize(this);
+		}
+
+		#endregion IDisposable Support
 	}
 }
