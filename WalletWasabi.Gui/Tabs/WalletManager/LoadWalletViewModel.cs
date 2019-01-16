@@ -200,7 +200,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 						await Global.InitializeWalletServiceAsync(keyManager);
 					});
-
 					// Successffully initialized.
 					IoC.Get<IShell>().RemoveDocument(Owner);
 					// Open Wallet Explorer tabs
