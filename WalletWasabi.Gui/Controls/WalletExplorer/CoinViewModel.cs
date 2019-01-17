@@ -18,7 +18,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private bool _isSelected;
 		private SmartCoinStatus _smartCoinStatus;
-		private string _history;
 
 		public CoinViewModel(SmartCoin model)
 		{
