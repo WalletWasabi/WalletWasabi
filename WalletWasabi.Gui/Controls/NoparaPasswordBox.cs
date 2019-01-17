@@ -115,6 +115,26 @@ namespace WalletWasabi.Gui.Controls
 				PasswordChar = '*'; //use passwordchar instead
 			}
 			_supressedKeys = new HashSet<Key>(SuppressedKeys);
+			RefrestCapsLockWarning();
+		}
+
+		private void RefrestCapsLockWarning()
+		{
+			if (Console.CapsLock)
+			{
+				ToolTip.SetTip(this, "Caps lock on!");
+				ToolTip.SetPlacement(this, PlacementMode.Bottom);
+				if (IsFocused)
+				{
+					ToolTip.SetIsOpen(this, true);
+				}
+			}
+			else
+			{
+				ToolTip.SetTip(this, null);
+				ToolTip.SetPlacement(this, PlacementMode.Pointer);
+				ToolTip.SetIsOpen(this, false);
+			}
 		}
 
 		private void GenerateNewRandomSequence()
@@ -144,6 +164,10 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override async void OnKeyDown(KeyEventArgs e)
 		{
+			if (e.Key == Key.Capital || e.Key == Key.CapsLock) //on windows capslock is Key.Capital
+			{
+				RefrestCapsLockWarning();
+			}
 			if (_supressedKeys.Contains(e.Key))
 			{
 				return;
@@ -298,6 +322,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			if (string.IsNullOrEmpty(Text)) GenerateNewRandomSequence();
 			base.OnGotFocus(e);
+			RefrestCapsLockWarning();
 		}
 	}
 }
