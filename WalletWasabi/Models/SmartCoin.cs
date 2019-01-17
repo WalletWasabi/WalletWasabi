@@ -47,6 +47,7 @@ namespace WalletWasabi.Models
 		private bool _unspent;
 		private bool _isBanned;
 		private int _anonymitySet;
+		private string _history;
 
 		#endregion Fields
 
@@ -277,6 +278,19 @@ namespace WalletWasabi.Models
 			}
 		}
 
+		public string History
+		{
+			get => _history;
+			private set
+			{
+				if (value != _history)
+				{
+					_history = value;
+					OnPropertyChanged(nameof(History));
+				}
+			}
+		}
+
 		#endregion NonSerializableProperties
 
 		#region DependentProperties
@@ -448,6 +462,11 @@ namespace WalletWasabi.Models
 		}
 
 		public bool HasLabel() => !string.IsNullOrWhiteSpace(Label);
+
+		public void SetHistory(string history)
+		{
+			History = history;
+		}
 
 		#endregion Methods
 

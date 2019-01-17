@@ -20,6 +20,7 @@ using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using NBitcoin.DataEncoders;
 using System.Net.Http;
+using System.Diagnostics;
 
 namespace WalletWasabi.Services
 {
@@ -144,6 +145,11 @@ namespace WalletWasabi.Services
 			MemPool.TransactionReceived += MemPool_TransactionReceived;
 		}
 
+		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+			RefreshCoinsHistoriesAsync();
+		}
+
 		private void MemPool_TransactionReceived(object sender, SmartTransaction tx)
 		{
 			ProcessTransaction(tx);
@@ -255,6 +261,8 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
+			Coins.CollectionChanged += Coins_CollectionChanged;
+			RefreshCoinsHistoriesAsync();
 		}
 
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
@@ -315,29 +323,27 @@ namespace WalletWasabi.Services
 			return ret;
 		}
 
-		public List<SmartCoin> GetHistory(SmartCoin coin, IEnumerable<SmartCoin> current)
+		public List<SmartCoin> GetHistory(SmartCoin coin, List<SmartCoin> current, ILookup<Script, SmartCoin> lookupScriptPubKey, ILookup<uint256, SmartCoin> lookupSpenderTransactionId, ILookup<uint256, SmartCoin> lookupTransactionId)
 		{
 			Guard.NotNull(nameof(coin), coin);
 			if (current.Contains(coin))
 			{
-				return current.ToList();
+				return current;
 			}
+
 			var history = current.Concat(new List<SmartCoin> { coin }).ToList(); // Fhe coin is the first elem in its history.
 
 			// If the script is the same then we have a match, no matter of the anonimity set.
-			foreach (var c in Coins)
+			foreach (var c in lookupScriptPubKey[coin.ScriptPubKey])
 			{
-				if (c.ScriptPubKey == coin.ScriptPubKey)
+				if (!history.Contains(c))
 				{
-					if (!history.Contains(c))
+					var h = GetHistory(c, history, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
+					foreach (var hr in h)
 					{
-						var h = GetHistory(c, history);
-						foreach (var hr in h)
+						if (!history.Contains(hr))
 						{
-							if (!history.Contains(hr))
-							{
-								history.Add(hr);
-							}
+							history.Add(hr);
 						}
 					}
 				}
@@ -346,10 +352,10 @@ namespace WalletWasabi.Services
 			// If it spends someone and hasn't been sufficiently anonymized.
 			if (coin.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 			{
-				var c = Coins.FirstOrDefault(x => x.SpenderTransactionId == coin.TransactionId && !history.Contains(x));
+				var c = lookupSpenderTransactionId[coin.TransactionId].Where(x => !history.Contains(x)).FirstOrDefault();
 				if (c != default)
 				{
-					var h = GetHistory(c, history);
+					var h = GetHistory(c, history, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
 					foreach (var hr in h)
 					{
 						if (!history.Contains(hr))
@@ -363,14 +369,14 @@ namespace WalletWasabi.Services
 			// If it's being spent by someone and that someone hasn't been sufficiently anonymized.
 			if (!coin.Unspent)
 			{
-				var c = Coins.FirstOrDefault(x => x.TransactionId == coin.SpenderTransactionId && !history.Contains(x));
+				var c = lookupTransactionId[coin.SpenderTransactionId].Where(x => !history.Contains(x)).FirstOrDefault();
 				if (c != default)
 				{
 					if (c.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 					{
 						if (c != default)
 						{
-							var h = GetHistory(c, history);
+							var h = GetHistory(c, history, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
 							foreach (var hr in h)
 							{
 								if (!history.Contains(hr))
@@ -1068,6 +1074,57 @@ namespace WalletWasabi.Services
 				.Distinct();
 		}
 
+		private long _refreshCoinCalls;
+
+		public async void RefreshCoinsHistoriesAsync()
+		{
+			try
+			{
+				if (Interlocked.Read(ref _refreshCoinCalls) == 2) //it is running and scheduled to rerun after finished
+				{
+					return;
+				}
+				if (Interlocked.Read(ref _refreshCoinCalls) == 1) //it is running but now we will rerun if finished
+				{
+					Interlocked.Increment(ref _refreshCoinCalls);
+					return;
+				}
+				if (Interlocked.Read(ref _refreshCoinCalls) == 0) //it is not running so we start the work
+				{
+					Interlocked.Increment(ref _refreshCoinCalls);
+				}
+				var unspentCoins = Coins.Where(c => c.Unspent); //refreshing unspent coins history only
+				if (unspentCoins.Any())
+				{
+					ILookup<Script, SmartCoin> lookupScriptPubKey = Coins.ToLookup(c => c.ScriptPubKey, c => c);
+					ILookup<uint256, SmartCoin> lookupSpenderTransactionId = Coins.ToLookup(c => c.SpenderTransactionId, c => c);
+					ILookup<uint256, SmartCoin> lookupTransactionId = Coins.ToLookup(c => c.TransactionId, c => c);
+
+					const int simultaneousThread = 2; //threads allowed to run simultaneously in threadpool
+
+					await Task.Run(() => Parallel.ForEach(unspentCoins, new ParallelOptions { MaxDegreeOfParallelism = simultaneousThread }, coin =>
+					{
+						var result = string.Join(", ", GetHistory(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
+						coin.SetHistory(result);
+					}));
+				}
+				if (Interlocked.Read(ref _refreshCoinCalls) == 2) //scheduled to rerun so we start the work again
+				{
+					Interlocked.Exchange(ref _refreshCoinCalls, 0);
+					RefreshCoinsHistoriesAsync();
+				}
+				if (Interlocked.Read(ref _refreshCoinCalls) == 1) //done with the job
+				{
+					Interlocked.Exchange(ref _refreshCoinCalls, 0);
+				}
+			}
+			catch (Exception ex)
+			{
+				Interlocked.Exchange(ref _refreshCoinCalls, 0);
+				Logger.LogError<WalletService>($"Refreshing coins history failed: {ex}");
+			}
+		}
+
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
@@ -1081,6 +1138,7 @@ namespace WalletWasabi.Services
 					Synchronizer.NewFilter -= IndexDownloader_NewFilterAsync;
 					Synchronizer.Reorged -= IndexDownloader_ReorgedAsync;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
+					Coins.CollectionChanged -= Coins_CollectionChanged;
 
 					IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
 					string jsonString = JsonConvert.SerializeObject(TransactionCache, Formatting.Indented);

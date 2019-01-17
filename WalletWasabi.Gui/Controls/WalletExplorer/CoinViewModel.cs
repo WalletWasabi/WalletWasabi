@@ -56,6 +56,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(Unspent));
 			});
 
+			model.WhenAnyValue(x => x.History).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(History));
+			});
+
 			this.WhenAnyValue(x => x.Status).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(ToolTip));
@@ -68,10 +73,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
-
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			RefreshHistoryAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
 		private void ChaumianClient_StateUpdated(object sender, EventArgs e)
@@ -138,23 +139,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string History
-		{
-			get => _history;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _history, value);
-			}
-		}
-
-		public async Task RefreshHistoryAsync()
-		{
-			History = await Task.Run(() =>
-				{
-					return string.Join(", ", Global.WalletService.GetHistory(Model, Enumerable.Empty<SmartCoin>()).Select(x => x.Label).Distinct());
-				}
-			);
-		}
+		public string History => Model.History;
 
 		public SmartCoinStatus Status
 		{
