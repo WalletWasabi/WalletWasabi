@@ -290,8 +290,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						{
 							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
 							{
-								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-								if (bobsOnThisLevel.Count() <= 1) break;
+								int bobsOnThisLevel = Bobs.Count(x => x.Level == level);
+								if (bobsOnThisLevel <= 1) break;
 
 								coordinatorFee += level.Denomination.Percentange(CoordinatorFeePercent * bobsOnThisLevel * bobsOnThisLevel);
 							}
@@ -314,8 +314,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								for (int i = 1; i < alice.BlindedOutputScripts.Length; i++)
 								{
 									MixingLevel level = MixingLevels.GetLevel(i);
-									IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-									if (bobsOnThisLevel.Count() <= 1) break;
+									int bobsOnThisLevel = Bobs.Count(x => x.Level == level);
+									if (bobsOnThisLevel <= 1) break;
 
 									changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent * bobsOnThisLevel)));
 								}
