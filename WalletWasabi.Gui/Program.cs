@@ -93,10 +93,6 @@ namespace WalletWasabi.Gui
 					.UseWin32()
 					.UseDirect2D1();
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			{
-				result.UseX11().UseSkia();
-			}
 			else
 			{
 				result.UsePlatformDetect();
