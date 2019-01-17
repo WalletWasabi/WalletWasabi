@@ -29,6 +29,7 @@ using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Helpers;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using Xunit;
@@ -2224,14 +2225,15 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		[Fact]
-		public async Task CcjEqualInputTestsAsync()
+		[Theory]
+		[InlineData(542)]
+		public async Task CcjEqualInputTestsAsync(int seed)
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
 
 			Money denomination = Money.Coins(0.1m);
-			decimal coordinatorFeePercent = 0.0002m;
-			int anonymitySet = 4;
+			decimal coordinatorFeePercent = 0.003m;
+			int anonymitySet = 10;
 			int connectionConfirmationTimeout = 50;
 			var roundConfig = new CcjRoundConfig(denomination, 2, coordinatorFeePercent, anonymitySet, 100, connectionConfirmationTimeout, 50, 50, 2, 24, false, 11);
 			coordinator.UpdateRoundConfig(roundConfig);
@@ -2243,6 +2245,7 @@ namespace WalletWasabi.Tests
 			{
 				var round = coordinator.GetCurrentInputRegisterableRoundOrDefault();
 				var roundId = round.RoundId;
+				var rnd = new Random(seed);
 
 				// We have to 4 participant so, this data structure is for keeping track of
 				// important data for each of the participants in the coinjoin session.
@@ -2272,11 +2275,11 @@ namespace WalletWasabi.Tests
 
 					// Create 4 new coins that we want to mix
 					var inputs = new List<(TxoRef input, byte[] proof, Coin coin, Key key)>();
-					for (var inputIdx = 0; inputIdx < 4; inputIdx++)
+					for (var inputIdx = 0; inputIdx < rnd.Next(1, 7); inputIdx++)
 					{
 						var key = new Key();
 						var outputAddress = key.PubKey.GetSegwitAddress(network);
-						var hash = await rpc.SendToAddressAsync(outputAddress, Money.Coins(0.1m));
+						var hash = await rpc.SendToAddressAsync(outputAddress, Money.Coins(0.1m * (1 + ((decimal)rnd.NextDouble() * 19))));
 						await rpc.GenerateAsync(1);
 						var tx = await rpc.GetRawTransactionAsync(hash);
 						var index = tx.Outputs.FindIndex(x => x.ScriptPubKey == outputAddress.ScriptPubKey);
@@ -2338,13 +2341,13 @@ namespace WalletWasabi.Tests
 				Assert.Equal(CcjRoundPhase.Signing, roundState.Phase);
 
 				uint256 transactionId = null;
+				Transaction unsignedTransaction = null;
 				foreach (var (aliceClient, outputs, inputs) in participants)
 				{
-					var unsignedTransaction = await aliceClient.GetUnsignedCoinJoinAsync();
+					unsignedTransaction = await aliceClient.GetUnsignedCoinJoinAsync();
 					transactionId = unsignedTransaction.GetHash();
 
 					// Verify the transaction contains the expected inputs and outputs
-
 					// Verify the inputs are the expected ones.
 					foreach (var input in inputs)
 					{
@@ -2369,6 +2372,22 @@ namespace WalletWasabi.Tests
 
 				uint256[] mempooltxs = await rpc.GetRawMempoolAsync();
 				Assert.Contains(transactionId, mempooltxs);
+
+				// Make sure the transaction pays more or less accurate coorditaor fee
+				var coordinatorFeeParts = unsignedTransaction.Outputs
+					.GroupBy(x => x.Value)
+					.ToDictionary(x=>x.Key, x=>x.Count())
+					.Select(x=>new { Denomination=x.Key, AnonymitySet=x.Value, Fee=x.Key.Satoshi * ((x.Value * x.Value) * round.CoordinatorFeePercent * 0.01m)})
+					.Where(x=>x.AnonymitySet > 1);
+
+				var coordinatorFeeSatoshis = coordinatorFeeParts.Sum(x=>(long)x.Fee);
+
+				var fastEstimatiedFee = new Money(coordinatorFeeSatoshis);
+
+				var coordinatorAddress = Constants.GetCoordinatorAddress(network);
+				var paidCoordinatorFee = unsignedTransaction.Outputs.Single(x=>x.ScriptPubKey == coordinatorAddress.ScriptPubKey).Value;
+
+				Assert.InRange(paidCoordinatorFee.Satoshi, (long)(0.8m * coordinatorFeeSatoshis), (long)(1.2m * coordinatorFeeSatoshis) );
 			}
 		}
 
