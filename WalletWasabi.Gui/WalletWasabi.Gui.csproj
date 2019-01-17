@@ -54,7 +54,6 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
-	<PackageReference Include="Avalonia.X11" />
   </ItemGroup>
 
   <ItemGroup>
