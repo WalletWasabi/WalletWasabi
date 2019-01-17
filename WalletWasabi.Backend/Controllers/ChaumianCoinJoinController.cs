@@ -256,8 +256,9 @@ namespace WalletWasabi.Backend.Controllers
 					var acceptedBlindedOutputScripts = new List<uint256>();
 
 					// Check if inputs have enough coins.
+					int inputCount = inputs.Count();
 					Money inputSum = inputs.Sum(x => x.Amount);
-					Money networkFeeToPay = (inputs.Count() * round.FeePerInputs) + (2 * round.FeePerOutputs);
+					Money networkFeeToPay = (inputCount * round.FeePerInputs) + (2 * round.FeePerOutputs);
 					Money changeAmount = inputSum - (round.MixingLevels.GetBaseDenomination() + networkFeeToPay);
 					if (changeAmount < Money.Zero)
 					{
@@ -274,7 +275,8 @@ namespace WalletWasabi.Backend.Controllers
 							break;
 						}
 
-						changeAmount -= (denomination + round.FeePerOutputs + (denomination.Percentange(round.CoordinatorFeePercent) * round.AnonymitySet)); // It should be the number of bobs, but we must make sure they'd have money to pay all.
+						Money outputCoordinatorFee = denomination.Percentange(round.CoordinatorFeePercent * round.AnonymitySet); // It should be the number of bobs, but we must make sure they'd have money to pay all.
+						changeAmount -= (denomination + round.FeePerOutputs + outputCoordinatorFee);
 
 						if (changeAmount < Money.Zero)
 						{

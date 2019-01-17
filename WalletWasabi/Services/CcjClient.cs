@@ -327,7 +327,7 @@ namespace WalletWasabi.Services
 				if (myOutputs.Select(x => x.Value).Contains(denomPair.value))
 				{
 					Money denomination = denomPair.value;
-					Money expectedCoordinatorFee = denomination.Percentange(ongoingRound.State.CoordinatorFeePercent) * denomPair.count;
+					Money expectedCoordinatorFee = denomination.Percentange(ongoingRound.State.CoordinatorFeePercent * denomPair.count);
 					minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
 				}
 			}
