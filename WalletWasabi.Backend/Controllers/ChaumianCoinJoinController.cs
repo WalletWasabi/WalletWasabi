@@ -519,7 +519,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (request.OutputAddress == Constants.GetCoordinatorAddress(Network))
 			{
-				return BadRequest($"{request.OutputAddress} is a coordinator address.");
+				Logger.LogWarning<ChaumianCoinJoinController>($"Bob is registering the coordinator's address. Address: {request.OutputAddress}, Level: {request.Level}, Signature: {request.UnblindedSignature}.");
 			}
 
 			if (request.Level > round.MixingLevels.GetMaxLevel())
