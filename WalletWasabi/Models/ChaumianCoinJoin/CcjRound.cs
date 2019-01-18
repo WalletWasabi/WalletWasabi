@@ -33,8 +33,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Transaction UnsignedCoinJoin { get; private set; }
 		private string _unsignedCoinJoinHex;
 
-		private bool OutputRegistrationFailed { get; set; }
-
 		public MixingLevels MixingLevels { get; }
 
 		public string GetUnsignedCoinJoinHex()
@@ -49,7 +47,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Transaction SignedCoinJoin { get; private set; }
 
 		private List<Alice> Alices { get; }
-		private List<Bob> Bobs { get; }
+		private List<Bob> Bobs { get; } // Don't make it a hashset or don't make Bob IEquitable!!!
+
+		private List<UnblindedSignature> RegisteredUnblindedSignatures { get; }
+		private object RegisteredUnblindedSignaturesLock { get; }
 
 		private static AsyncLock RoundSynchronizerLock { get; } = new AsyncLock();
 
@@ -158,6 +159,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				StatusLock = new object();
 				Status = CcjRoundStatus.NotStarted;
 
+				RegisteredUnblindedSignatures = new List<UnblindedSignature>();
+				RegisteredUnblindedSignaturesLock = new object();
+
 				MixingLevels = new MixingLevels(config.Denomination, new Signer(new Key()));
 				for (int i = 0; i < config.MaximumMixingLevelCount - 1; i++)
 				{
@@ -168,8 +172,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				UnsignedCoinJoin = null;
 				SignedCoinJoin = null;
-
-				OutputRegistrationFailed = false;
 
 				Alices = new List<Alice>();
 				Bobs = new List<Bob>();
@@ -423,7 +425,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 					else if (expectedPhase == CcjRoundPhase.OutputRegistration)
 					{
-						OutputRegistrationFailed = true;
 						Logger.LogInfo<CcjRound>($"{timedOutLogString} Progressing to signing phase to blame...");
 					}
 					else
@@ -591,6 +592,22 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			return tinkerWithAdditionalMixingLevels;
 		}
 
+		public void AddRegisteredUnblindedSignature(UnblindedSignature unblindedSignature)
+		{
+			lock (RegisteredUnblindedSignaturesLock)
+			{
+				RegisteredUnblindedSignatures.Add(unblindedSignature);
+			}
+		}
+
+		public bool ContainsRegisteredUnblindedSignature(UnblindedSignature unblindedSignature)
+		{
+			lock (RegisteredUnblindedSignaturesLock)
+			{
+				return RegisteredUnblindedSignatures.Any(x => x.C.Equals(unblindedSignature.C) && x.S.Equals(unblindedSignature.S));
+			}
+		}
+
 		public int EstimateBestMixingLevel(Alice alice)
 		{
 			Money newDenomination = CalculateNewDenomination();
@@ -652,9 +669,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						Money toSave = fee - feeShouldBePaid;
 
 						// 8.2.2. Get the outputs to divide  the savings between.
-						int maxMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs().Max(x => x.count);
-						Money bestMixAmount = UnsignedCoinJoin.GetIndistinguishableOutputs().Where(x => x.count == maxMixCount).Max(x => x.value);
-						int bestMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs().First(x => x.value == bestMixAmount).count;
+						int maxMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).Max(x => x.count);
+						Money bestMixAmount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).Where(x => x.count == maxMixCount).Max(x => x.value);
+						int bestMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).First(x => x.value == bestMixAmount).count;
 
 						// 8.2.3. Get the savings per best mix outputs.
 						long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
@@ -941,39 +958,32 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					Logger.LogInfo<CcjRound>($"Round ({RoundId}): Trying to broadcast coinjoin.");
 
-					if (OutputRegistrationFailed)
+					try
 					{
-						Abort(nameof(CcjRound), $"Round ({RoundId}): Although all alices signed, OutputRegistration failed, so the CoinJoin won't be broadcasted.", syncLock: false);
-					}
-					else
-					{
-						try
+						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs).ToArray();
+						Money networkFee = SignedCoinJoin.GetFee(spentCoins);
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
+						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize() / 1024} KB.");
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
+						foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false))
 						{
-							Coin[] spentCoins = Alices.SelectMany(x => x.Inputs).ToArray();
-							Money networkFee = SignedCoinJoin.GetFee(spentCoins);
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
-							FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte.");
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize() / 1024} KB.");
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
-							foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs().Where(x => x.count > 1))
-							{
-								Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurences of {o.value.ToString(true, false)} BTC output.");
-							}
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurences of {o.value.ToString(true, false)} BTC output.");
+						}
 
-							await RpcClient.SendRawTransactionAsync(SignedCoinJoin);
-							CoinJoinBroadcasted?.Invoke(this, SignedCoinJoin);
-							Succeed(syncLock: false);
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
-						}
-						catch (Exception ex)
-						{
-							Abort(nameof(CcjRound), $"Could not broadcast the CoinJoin: {SignedCoinJoin.GetHash()}.", syncLock: false);
-							Logger.LogError<CcjRound>(ex);
-						}
+						await RpcClient.SendRawTransactionAsync(SignedCoinJoin);
+						CoinJoinBroadcasted?.Invoke(this, SignedCoinJoin);
+						Succeed(syncLock: false);
+						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
+					}
+					catch (Exception ex)
+					{
+						Abort(nameof(CcjRound), $"Could not broadcast the CoinJoin: {SignedCoinJoin.GetHash()}.", syncLock: false);
+						Logger.LogError<CcjRound>(ex);
 					}
 				}
 			}
@@ -1027,11 +1037,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					throw new InvalidOperationException("Adding Bob is only allowed in OutputRegistration phase.");
 				}
-				if (Bobs.Any(x => x.ActiveOutputAddress == bob.ActiveOutputAddress))
-				{
-					return; // Bob is already added.
-				}
 
+				// If Bob is already added with the same scriptpubkey and level, that's fine.
 				Bobs.Add(bob);
 			}
 

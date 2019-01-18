@@ -2860,7 +2860,7 @@ namespace WalletWasabi.Tests
 			Assert.True(feeRateReal.FeePerK - (feeRateReal.FeePerK / 2) < feeRateTx.FeePerK); // Max 50% mistake.
 			Assert.True(2 * feeRateReal.FeePerK > feeRateTx.FeePerK); // Max 200% mistake.
 
-			var activeOutput = finalCoinjoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count).First();
+			var activeOutput = finalCoinjoin.GetIndistinguishableOutputs(includeSingle: true).OrderByDescending(x => x.count).First();
 			Assert.True(activeOutput.value >= roundConfig.Denomination);
 			Assert.True(activeOutput.value >= roundConfig.AnonymitySet);
 
@@ -2932,7 +2932,7 @@ namespace WalletWasabi.Tests
 				chaumianClient2.Start();
 
 				smartCoin1.CoinJoinInProgress = true;
-				Assert.True(!(await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any());
+				Assert.False((await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1)).Any()); // Inconsistent internal state, so don't try to add.
 				Assert.True(smartCoin1.CoinJoinInProgress);
 
 				await Assert.ThrowsAsync<SecurityException>(async () => await chaumianClient1.QueueCoinsToMixAsync("asdasdasd", smartCoin1, smartCoin2));

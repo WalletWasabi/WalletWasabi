@@ -61,7 +61,7 @@ namespace WalletWasabi.Backend
 							var txHash = new uint256(line);
 							Transaction tx = Global.RpcClient.GetRawTransaction(txHash);
 
-							var volume = tx.GetIndistinguishableOutputs().Where(x => x.count > 1).Sum(x => x.count * x.value);
+							var volume = tx.GetIndistinguishableOutputs(includeSingle: false).Sum(x => x.count * x.value);
 							TotalVolume += volume;
 						}
 						catch (Exception ex)
@@ -112,7 +112,7 @@ namespace WalletWasabi.Backend
 			{
 				lock (UpdateUnversionedLock)
 				{
-					Money volume = tx.GetIndistinguishableOutputs().Where(x => x.count > 1).Sum(x => x.count * x.value);
+					Money volume = tx.GetIndistinguishableOutputs(includeSingle: false).Sum(x => x.count * x.value);
 					TotalVolume += volume;
 					UnversionedWebBuilder.UpdateMixedTextHtml(TotalVolume);
 

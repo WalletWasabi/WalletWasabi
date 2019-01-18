@@ -517,9 +517,19 @@ namespace WalletWasabi.Backend.Controllers
 				}
 			}
 
+			if (request.OutputAddress == Constants.GetCoordinatorAddress(Network))
+			{
+				Logger.LogWarning<ChaumianCoinJoinController>($"Bob is registering the coordinator's address. Address: {request.OutputAddress}, Level: {request.Level}, Signature: {request.UnblindedSignature}.");
+			}
+
 			if (request.Level > round.MixingLevels.GetMaxLevel())
 			{
 				return BadRequest($"Invalid mixing Level is provided. Provided: {request.Level}. Maximum: {round.MixingLevels.GetMaxLevel()}.");
+			}
+
+			if (round.ContainsRegisteredUnblindedSignature(request.UnblindedSignature))
+			{
+				return NoContent();
 			}
 
 			MixingLevel mixinglevel = round.MixingLevels.GetLevel(request.Level);
@@ -534,13 +544,16 @@ namespace WalletWasabi.Backend.Controllers
 					{
 						bob = new Bob(request.OutputAddress, mixinglevel);
 						round.AddBob(bob);
+						round.AddRegisteredUnblindedSignature(request.UnblindedSignature);
 					}
 					catch (Exception ex)
 					{
 						return BadRequest($"Invalid outputAddress is provided. Details: {ex.Message}");
 					}
 
-					if (round.CountBobs() == round.CountBlindSignatures()) // If there'll be more bobs, then round failed. Someone may broke the crypto.
+					int bobCount = round.CountBobs();
+					int blindSigCount = round.CountBlindSignatures();
+					if (bobCount == blindSigCount) // If there'll be more bobs, then round failed. Someone may broke the crypto.
 					{
 						await round.ExecuteNextPhaseAsync(CcjRoundPhase.Signing);
 					}
