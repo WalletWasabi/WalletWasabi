@@ -33,6 +33,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		public Transaction UnsignedCoinJoin { get; private set; }
 		private string _unsignedCoinJoinHex;
 
+		private bool OutputRegistrationFailed { get; set; }
+
 		public MixingLevels MixingLevels { get; }
 
 		public string GetUnsignedCoinJoinHex()
@@ -166,6 +168,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				UnsignedCoinJoin = null;
 				SignedCoinJoin = null;
+
+				OutputRegistrationFailed = false;
 
 				Alices = new List<Alice>();
 				Bobs = new List<Bob>();
@@ -419,6 +423,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					}
 					else if (expectedPhase == CcjRoundPhase.OutputRegistration)
 					{
+						OutputRegistrationFailed = true;
 						Logger.LogInfo<CcjRound>($"{timedOutLogString} Progressing to signing phase to blame...");
 					}
 					else
@@ -936,32 +941,39 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				{
 					Logger.LogInfo<CcjRound>($"Round ({RoundId}): Trying to broadcast coinjoin.");
 
-					try
+					if (OutputRegistrationFailed)
 					{
-						Coin[] spentCoins = Alices.SelectMany(x => x.Inputs).ToArray();
-						Money networkFee = SignedCoinJoin.GetFee(spentCoins);
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
-						FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize() / 1024} KB.");
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
-						foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs().Where(x => x.count > 1))
-						{
-							Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurences of {o.value.ToString(true, false)} BTC output.");
-						}
-
-						await RpcClient.SendRawTransactionAsync(SignedCoinJoin);
-						CoinJoinBroadcasted?.Invoke(this, SignedCoinJoin);
-						Succeed(syncLock: false);
-						Logger.LogInfo<CcjRound>($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
+						Abort(nameof(CcjRound), $"Round ({RoundId}): Although all alices signed, OutputRegistration failed, so the CoinJoin won't be broadcasted.", syncLock: false);
 					}
-					catch (Exception ex)
+					else
 					{
-						Abort(nameof(CcjRound), $"Could not broadcast the CoinJoin: {SignedCoinJoin.GetHash()}.", syncLock: false);
-						Logger.LogError<CcjRound>(ex);
+						try
+						{
+							Coin[] spentCoins = Alices.SelectMany(x => x.Inputs).ToArray();
+							Money networkFee = SignedCoinJoin.GetFee(spentCoins);
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee: {networkFee.ToString(false, false)} BTC.");
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Coordinator Fee: {SignedCoinJoin.Outputs.SingleOrDefault(x => x.ScriptPubKey == Constants.GetCoordinatorAddress(Network).ScriptPubKey)?.Value?.ToString(false, false) ?? "0"} BTC.");
+							FeeRate feeRate = SignedCoinJoin.GetFeeRate(spentCoins);
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Network Fee Rate: {feeRate.FeePerK.ToDecimal(MoneyUnit.Satoshi) / 1000} satoshi/byte.");
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of inputs: {SignedCoinJoin.Inputs.Count}.");
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize() / 1024} KB.");
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
+							foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs().Where(x => x.count > 1))
+							{
+								Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurences of {o.value.ToString(true, false)} BTC output.");
+							}
+
+							await RpcClient.SendRawTransactionAsync(SignedCoinJoin);
+							CoinJoinBroadcasted?.Invoke(this, SignedCoinJoin);
+							Succeed(syncLock: false);
+							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Successfully broadcasted the CoinJoin: {SignedCoinJoin.GetHash()}.");
+						}
+						catch (Exception ex)
+						{
+							Abort(nameof(CcjRound), $"Could not broadcast the CoinJoin: {SignedCoinJoin.GetHash()}.", syncLock: false);
+							Logger.LogError<CcjRound>(ex);
+						}
 					}
 				}
 			}
