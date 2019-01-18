@@ -207,7 +207,7 @@ namespace WalletWasabi.Services
 					await File.AppendAllLinesAsync(CoinJoinsFilePath, new[] { coinJoinHash.ToString() });
 
 					// When a round succeeded, adjust the denomination as to users still be able to register with the latest round's active output amount.
-					IEnumerable<(Money value, int count)> outputs = round.SignedCoinJoin.GetIndistinguishableOutputs();
+					IEnumerable<(Money value, int count)> outputs = round.SignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true);
 					var bestOutput = outputs.OrderByDescending(x => x.count).FirstOrDefault();
 					if (bestOutput != default)
 					{

@@ -652,9 +652,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						Money toSave = fee - feeShouldBePaid;
 
 						// 8.2.2. Get the outputs to divide  the savings between.
-						int maxMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs().Max(x => x.count);
-						Money bestMixAmount = UnsignedCoinJoin.GetIndistinguishableOutputs().Where(x => x.count == maxMixCount).Max(x => x.value);
-						int bestMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs().First(x => x.value == bestMixAmount).count;
+						int maxMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).Max(x => x.count);
+						Money bestMixAmount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).Where(x => x.count == maxMixCount).Max(x => x.value);
+						int bestMixCount = UnsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: true).First(x => x.value == bestMixAmount).count;
 
 						// 8.2.3. Get the savings per best mix outputs.
 						long toSavePerBestMixOutputs = toSave.Satoshi / bestMixCount;
@@ -959,7 +959,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Number of outputs: {SignedCoinJoin.Outputs.Count}.");
 							Logger.LogInfo<CcjRound>($"Round ({RoundId}): Serialized Size: {SignedCoinJoin.GetSerializedSize() / 1024} KB.");
 							Logger.LogInfo<CcjRound>($"Round ({RoundId}): VSize: {SignedCoinJoin.GetVirtualSize() / 1024} KB.");
-							foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs().Where(x => x.count > 1))
+							foreach (var o in SignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false))
 							{
 								Logger.LogInfo<CcjRound>($"Round ({RoundId}): There are {o.count} occurences of {o.value.ToString(true, false)} BTC output.");
 							}

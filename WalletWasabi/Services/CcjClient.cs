@@ -316,15 +316,15 @@ namespace WalletWasabi.Services
 					.ToArray();
 			Money amountBack = myOutputs.Sum(y => y.Value);
 
-			bool iHaveChange = myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.Registration.ChangeAddress.ScriptPubKey);
 			// Make sure change is counted.
 			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
-			minAmountBack -= ongoingRound.State.FeePerOutputs * (iHaveChange ? myOutputs.Length : myOutputs.Length + 1) + ongoingRound.State.FeePerInputs * ongoingRound.Registration.CoinsRegistered.Count(); // Minus miner fee.
+			minAmountBack -= ongoingRound.State.FeePerOutputs * myOutputs.Length + ongoingRound.State.FeePerInputs * ongoingRound.Registration.CoinsRegistered.Count(); // Minus miner fee.
 
-			IOrderedEnumerable<(Money value, int count)> indistinguishableOutputs = unsignedCoinJoin.GetIndistinguishableOutputs().OrderByDescending(x => x.count);
+			IOrderedEnumerable<(Money value, int count)> indistinguishableOutputs = unsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count);
 			foreach ((Money value, int count) denomPair in indistinguishableOutputs)
 			{
-				if (myOutputs.Select(x => x.Value).Contains(denomPair.value))
+				if (myOutputs.Select(x => x.Value)
+								.Contains(denomPair.value))
 				{
 					Money denomination = denomPair.value;
 					Money expectedCoordinatorFee = denomination.Percentange(ongoingRound.State.CoordinatorFeePercent) * denomPair.count;
@@ -333,7 +333,7 @@ namespace WalletWasabi.Services
 			}
 
 			// If there's no change output then coordinator protection may happened:
-			if (!iHaveChange)
+			if (!myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.Registration.ChangeAddress.ScriptPubKey))
 			{
 				Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
 				Money baseDenomination = indistinguishableOutputs.First().value;
@@ -538,7 +538,7 @@ namespace WalletWasabi.Services
 					aliceClient?.Dispose();
 					return;
 				}
-				catch (HttpRequestException ex) when (ex.Message.Contains("too-long-mempool-chain", StringComparison.InvariantCultureIgnoreCase) )
+				catch (HttpRequestException ex) when (ex.Message.Contains("too-long-mempool-chain", StringComparison.InvariantCultureIgnoreCase))
 				{
 					Logger.LogInfo<CcjClient>("Coordinator failed because too much unconfirmed parent transactions. Trying again later.");
 					aliceClient?.Dispose();

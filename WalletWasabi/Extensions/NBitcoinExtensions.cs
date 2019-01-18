@@ -62,23 +62,24 @@ namespace NBitcoin
 			return false;
 		}
 
-		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me)
+		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me, bool includeSingle)
 		{
 			return me.Outputs.GroupBy(x => x.Value)
 			   .ToDictionary(x => x.Key, y => y.Count())
-			   .Select(x => (x.Key, x.Value));
+			   .Select(x => (x.Key, x.Value))
+			   .Where(x => includeSingle || x.Value > 1);
 		}
 
 		public static int GetAnonymitySet(this Transaction me, int outputIndex)
 		{
 			var output = me.Outputs[outputIndex];
-			return me.GetIndistinguishableOutputs().Single(x => x.value == output.Value).count;
+			return me.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count;
 		}
 
 		public static int GetMixin(this Transaction me, uint outputIndex)
 		{
 			var output = me.Outputs[outputIndex];
-			return me.GetIndistinguishableOutputs().Single(x => x.value == output.Value).count - 1;
+			return me.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count - 1;
 		}
 
 		/// <summary>
