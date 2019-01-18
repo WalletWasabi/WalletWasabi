@@ -120,7 +120,8 @@ namespace WalletWasabi.Gui.Controls
 
 		private void RefreshCapsLockWarning()
 		{
-			if (Console.CapsLock)
+			return;
+			if (Console.CapsLock) //only runs properly on windows!
 			{
 				ToolTip.SetTip(this, "Caps lock on!");
 				ToolTip.SetPlacement(this, PlacementMode.Bottom);
