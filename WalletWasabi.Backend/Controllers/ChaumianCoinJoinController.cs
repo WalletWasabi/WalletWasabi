@@ -517,6 +517,11 @@ namespace WalletWasabi.Backend.Controllers
 				}
 			}
 
+			if (request.OutputAddress == Constants.GetCoordinatorAddress(Network))
+			{
+				Logger.LogWarning<ChaumianCoinJoinController>($"Bob is registering the coordinator's address. Address: {request.OutputAddress}, Level: {request.Level}, Signature: {request.UnblindedSignature}.");
+			}
+
 			if (request.Level > round.MixingLevels.GetMaxLevel())
 			{
 				return BadRequest($"Invalid mixing Level is provided. Provided: {request.Level}. Maximum: {round.MixingLevels.GetMaxLevel()}.");
