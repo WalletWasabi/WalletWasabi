@@ -21,11 +21,12 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 ### Blue Belts
 
 
-| Wasabika       | Contact                    | Achievements               | Promotions                      |
-|----------------|----------------------------|----------------------------|---------------------------------|
-| Max Hillebrand | [Twitter][5]               | [Wasabi Video Series][6]   | 2018-12: blue belt by nopara73  |
-| Mark Rex       | [Twitter][7] [GitHub][8]   | [GroupSend Research][9]    | 2018-12: blue belt by nopara73  |
+| Wasabika       | Contact                    | Achievements                           | Promotions                     |
+|----------------|----------------------------|----------------------------------------|--------------------------------|
+| Max Hillebrand | [Twitter][5]               | [Wasabi Video Series][6]               | 2018-12: blue belt by nopara73 |
+| Mark Rex       | [Twitter][7] [GitHub][8]   | [GroupSend Research][9]                | 2018-12: blue belt by nopara73 |
 | nothingmuch    | [Twitter][10] [GitHub][11] | [Unequal Amount Mixing for ZeroLink using Preferred Value Series Fixed Denominations Research][12] | 2018-12: blue belt by nopara73 |
+| KevinKelbie    | [Twitter][29]              | [Wasabi Python Library (Outdated)][30] | 2019-19: blue belt by nopara73 |
 
 ### White Belts
 
@@ -67,3 +68,5 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 [26]: https://www.youtube.com/watch?v=93XLf-mNP8Y
 [27]: https://twitter.com/402PaymentReq
 [28]: https://www.youtube.com/watch?v=zPKpC9cRcZo&list=PLmoQ11MXEmahCG1nkbKK6DiAwVx9giJCi
+[29]: https://twitter.com/KevinKelbie/
+[30]: https://github.com/KevinKelbie/zerolink-util/
