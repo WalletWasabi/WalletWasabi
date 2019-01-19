@@ -108,7 +108,7 @@ namespace WalletWasabi.Packager
 				{
 					string currentBinDistDirectory;
 					string publishedFolder = Path.Combine(binDistDirectory, target);
-					string macWasabiAppDir = Path.Combine(publishedFolder, "Wasabi Wallet.App");
+					string macWasabiAppDir = Path.Combine(publishedFolder, "Wasabi Wallet.app");
 					string macContentsDir = Path.Combine(macWasabiAppDir, "Contents");
 					if (target.StartsWith("osx"))
 					{
