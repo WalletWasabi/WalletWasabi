@@ -343,7 +343,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							}
 							else
 							{
-								coordinatorFee -= coordinatorFeePerAlice;
+								// Alice has no money enough to pay the coordinator fee then allow her to pay what she can.
+								coordinatorFee += changeAmount;
 							}
 						}
 
