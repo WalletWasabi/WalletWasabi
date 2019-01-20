@@ -121,21 +121,21 @@ namespace WalletWasabi.Gui.Controls
 		private void RefreshCapsLockWarning()
 		{
 			return;
-			if (Console.CapsLock) //only runs properly on windows!
-			{
-				ToolTip.SetTip(this, "Caps lock on!");
-				ToolTip.SetPlacement(this, PlacementMode.Bottom);
-				if (IsFocused)
-				{
-					ToolTip.SetIsOpen(this, true);
-				}
-			}
-			else
-			{
-				ToolTip.SetTip(this, null);
-				ToolTip.SetPlacement(this, PlacementMode.Pointer);
-				ToolTip.SetIsOpen(this, false);
-			}
+			//if (Console.CapsLock) //only runs properly on windows!
+			//{
+			//	ToolTip.SetTip(this, "Caps lock on!");
+			//	ToolTip.SetPlacement(this, PlacementMode.Bottom);
+			//	if (IsFocused)
+			//	{
+			//		ToolTip.SetIsOpen(this, true);
+			//	}
+			//}
+			//else
+			//{
+			//	ToolTip.SetTip(this, null);
+			//	ToolTip.SetPlacement(this, PlacementMode.Pointer);
+			//	ToolTip.SetIsOpen(this, false);
+			//}
 		}
 
 		private void GenerateNewRandomSequence()
