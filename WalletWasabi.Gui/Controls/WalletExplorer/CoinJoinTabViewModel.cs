@@ -383,9 +383,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				bool changed = _coinsList != value;
-				if (_coinsList != null) _coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				if (_coinsList != null)
+					_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+
 				this.RaiseAndSetIfChanged(ref _coinsList, value);
-				_coinsList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
+
+				if (_coinsList != null)
+					_coinsList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
 			}
 		}
 
@@ -521,10 +525,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (disposing)
 				{
-					Global.ChaumianClient.CoinQueued -= ChaumianClient_CoinQueued;
-					Global.ChaumianClient.CoinDequeued -= ChaumianClient_CoinDequeued;
-					Global.ChaumianClient.StateUpdated -= ChaumianClient_StateUpdated;
-					_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+					if (Global.ChaumianClient != null)
+					{
+						Global.ChaumianClient.CoinQueued -= ChaumianClient_CoinQueued;
+						Global.ChaumianClient.CoinDequeued -= ChaumianClient_CoinDequeued;
+						Global.ChaumianClient.StateUpdated -= ChaumianClient_StateUpdated;
+					}
+
+					if (_coinsList != null)
+						_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+
 					_disposables.Dispose();
 					CoinsList.Dispose();
 				}

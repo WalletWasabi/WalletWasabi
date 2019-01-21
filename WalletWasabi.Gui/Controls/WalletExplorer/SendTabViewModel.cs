@@ -589,9 +589,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				bool changed = _coinList != value;
-				if (_coinList != null) _coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				if (_coinList != null)
+					_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+
 				this.RaiseAndSetIfChanged(ref _coinList, value);
-				_coinList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
+
+				if (_coinList != null)
+					_coinList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
 			}
 		}
 
@@ -889,11 +893,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (disposing)
 				{
-					Global.Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
-					CoinList.SelectionChanged -= CoinList_SelectionChanged;
-					_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+					if (Global.Synchronizer != null)
+						Global.Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
 
-					CoinList.Dispose();
+					if (_coinList != null)
+					{
+						_coinList.SelectionChanged -= CoinList_SelectionChanged;
+						_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+						_coinList.Dispose();
+					}
+
 					_disposables.Dispose();
 				}
 
