@@ -35,7 +35,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Interlocked.Exchange(ref _disableClipboard, 0);
 			Transactions = new ObservableCollection<TransactionViewModel>();
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			RewriteTableAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
 			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
@@ -48,7 +50,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 					RewriteTableAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				});
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
@@ -76,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			DateSortDirection = SortOrder.Decreasing;
 		}
 
-		private async void RewriteTableAsync()
+		private async Task RewriteTableAsync()
 		{
 			var txRecordList = await Task.Run(() =>
 			{
