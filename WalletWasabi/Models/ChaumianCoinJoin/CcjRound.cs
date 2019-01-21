@@ -289,17 +289,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						}
 
 						// 4. Start building Coordinator fee.
-						Money coordinatorFeePerAlice = newDenomination.Percentange(CoordinatorFeePercent) * Alices.Count;
+						Money coordinatorFeePerAlice = newDenomination.Percentange(CoordinatorFeePercent * Alices.Count);
 						Money coordinatorFee = Alices.Count * coordinatorFeePerAlice;
 
 						if (tinkerWithAdditionalMixingLevels)
 						{
 							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
 							{
-								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-								if (bobsOnThisLevel.Count() <= 1) break;
+								int bobsOnThisLevel = Bobs.Count(x => x.Level == level);
+								if (bobsOnThisLevel <= 1) break;
 
-								coordinatorFee += level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel.Count() * bobsOnThisLevel.Count();
+								coordinatorFee += level.Denomination.Percentange(CoordinatorFeePercent * bobsOnThisLevel * bobsOnThisLevel);
 							}
 						}
 
@@ -320,10 +320,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								for (int i = 1; i < alice.BlindedOutputScripts.Length; i++)
 								{
 									MixingLevel level = MixingLevels.GetLevel(i);
-									IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-									if (bobsOnThisLevel.Count() <= 1) break;
+									int bobsOnThisLevel = Bobs.Count(x => x.Level == level);
+									if (bobsOnThisLevel <= 1) break;
 
-									changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel.Count()));
+									changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent * bobsOnThisLevel)));
 								}
 							}
 
@@ -343,7 +343,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							}
 							else
 							{
-								coordinatorFee -= coordinatorFeePerAlice;
+								// Alice has no money enough to pay the coordinator fee then allow her to pay what she can.
+								coordinatorFee += changeAmount;
 							}
 						}
 
@@ -574,7 +575,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						break;
 					}
 
-					changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent) * bobsOnThisLevel));
+					changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent * bobsOnThisLevel)));
 
 					if (changeAmount < Money.Zero)
 					{
@@ -628,7 +629,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					break;
 				}
 
-				changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent) * potentialAlicesOnThisLevel));
+				changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent * potentialAlicesOnThisLevel)));
 
 				if (changeAmount < Money.Zero)
 				{

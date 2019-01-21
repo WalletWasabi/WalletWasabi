@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -38,7 +39,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Interlocked.Exchange(ref _disableClipboard, 0);
 			Transactions = new ObservableCollection<TransactionViewModel>();
-			RewriteTable();
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+			RewriteTableAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
 			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
@@ -47,10 +50,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			coinsChanged
 				.Merge(newBlockProcessed)
 				.Merge(coinSpent)
+				.Throttle(TimeSpan.FromSeconds(5))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o =>
+				.Subscribe(_ =>
 				{
-					RewriteTable();
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+					RewriteTableAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
@@ -81,8 +87,42 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			DateSortDirection = SortOrder.Decreasing;
 		}
 
-		private void RewriteTable()
+		private async Task RewriteTableAsync()
 		{
+			var txRecordList = await Task.Run(() =>
+			{
+				return BuildTxRecordList();
+			});
+
+			var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
+			Transactions?.Clear();
+
+			var trs = txRecordList.Select(txr => new TransactionInfo()
+			{
+				DateTime = txr.dateTime.ToLocalTime(),
+				Confirmed = txr.height != WalletWasabi.Models.Height.MemPool && txr.height != WalletWasabi.Models.Height.Unknown,
+				AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
+				Label = txr.label,
+				TransactionId = txr.transactionId.ToString()
+			}).Select(ti => new TransactionViewModel(ti));
+
+			Transactions = new ObservableCollection<TransactionViewModel>(trs);
+
+			if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
+			{
+				var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
+				if (txToSelect != default)
+				{
+					Interlocked.Exchange(ref _disableClipboard, 1);
+					SelectedTransaction = txToSelect;
+				}
+			}
+			RefreshOrdering();
+		}
+
+		private static List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
+		{
+			List<Transaction> trs = new List<Transaction>();
 			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)>();
 			foreach (SmartCoin coin in Global.WalletService.Coins)
 			{
@@ -148,41 +188,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			}
-
 			txRecordList = txRecordList.OrderByDescending(x => x.dateTime).ThenBy(x => x.amount).ToList();
-
-			var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
-			if (Transactions != null)
-			{
-				foreach (var tr in Transactions)
-				{
-					tr.Dispose();
-				}
-				Transactions.Clear();
-			}
-			foreach (var txr in txRecordList)
-			{
-				var txinfo = new TransactionInfo
-				{
-					DateTime = txr.dateTime.ToLocalTime(),
-					Confirmed = txr.height != WalletWasabi.Models.Height.MemPool && txr.height != WalletWasabi.Models.Height.Unknown,
-					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
-					Label = txr.label,
-					TransactionId = txr.transactionId.ToString()
-				};
-				Transactions.Add(new TransactionViewModel(txinfo));
-			}
-
-			if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
-			{
-				var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
-				if (txToSelect != default)
-				{
-					Interlocked.Exchange(ref _disableClipboard, 1);
-					SelectedTransaction = txToSelect;
-				}
-			}
-			RefreshOrdering();
+			return txRecordList;
 		}
 
 		public ObservableCollection<TransactionViewModel> Transactions
