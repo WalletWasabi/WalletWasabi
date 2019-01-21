@@ -417,7 +417,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		#region IDisposable Support
 
-		private bool _disposedValue = false; // To detect redundant calls
+		private volatile bool _disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{

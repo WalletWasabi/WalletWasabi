@@ -132,7 +132,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public string BtcPrice
 		{
 			get => _btcPrice;
-			set 
+			set
 			{
 				this.RaiseAndSetIfChanged(ref _btcPrice, value);
 			}
