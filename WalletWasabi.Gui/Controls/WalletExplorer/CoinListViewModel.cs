@@ -52,6 +52,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand SelectAllCheckBoxCommand { get; }
 		public ReactiveCommand SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand SelectNonPrivateCheckBoxCommand { get; }
+		public ReactiveCommand SortCommand { get; }
 
 		public event Action DequeueCoinsPressed;
 
@@ -222,8 +223,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					StatusSortDirection = SortOrder.None;
 					HistorySortDirection = SortOrder.None;
 				}
-				if (x != SortOrder.None)
-					RefreshOrdering();
 			}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.HistorySortDirection).Subscribe(x =>
@@ -234,8 +233,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					StatusSortDirection = SortOrder.None;
 					PrivacySortDirection = SortOrder.None;
 				}
-				if (x != SortOrder.None)
-					RefreshOrdering();
 			}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.StatusSortDirection).Subscribe(x =>
@@ -246,8 +243,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					PrivacySortDirection = SortOrder.None;
 					HistorySortDirection = SortOrder.None;
 				}
-				if (x != SortOrder.None)
-					RefreshOrdering();
 			}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.PrivacySortDirection).Subscribe(x =>
@@ -258,8 +253,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					StatusSortDirection = SortOrder.None;
 					HistorySortDirection = SortOrder.None;
 				}
-				if (x != SortOrder.None)
-					RefreshOrdering();
 			}).DisposeWith(_disposables);
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
@@ -331,6 +324,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 				}
 			}).DisposeWith(_disposables);
+
+			SortCommand = ReactiveCommand.Create(() => RefreshOrdering()).DisposeWith(_disposables);
+
 			SetSelections();
 			SetCoinJoinStatusWidth();
 		}
