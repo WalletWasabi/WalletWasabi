@@ -65,20 +65,20 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
+				MainWindowViewModel.Instance?.Dispose();
 				statusBar?.Dispose();
 				await Global.DisposeAsync();
-
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 			}
 		}
 
-		static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
 		{
 			Logger.LogWarning(e?.Exception, "UnobservedTaskException");
 		}
 
-		static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+		private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
 			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
 		}
