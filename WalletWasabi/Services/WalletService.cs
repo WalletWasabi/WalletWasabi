@@ -244,7 +244,7 @@ namespace WalletWasabi.Services
 						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
 						var serializedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString);
 
-						foreach (SmartTransaction tx in serializedTransactions.Where(x => !x.Confirmed && !TransactionCache.Contains(x)).OrderBy(x => x.FirstSeenIfMemPoolTime))
+						foreach (SmartTransaction tx in serializedTransactions.Where(x => !x.Confirmed && !TransactionCache.Contains(x)).OrderBy(x => x.Height).ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow))
 						{
 							try
 							{
@@ -1157,7 +1157,7 @@ namespace WalletWasabi.Services
 					Coins.CollectionChanged -= Coins_CollectionChanged;
 
 					IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
-					string jsonString = JsonConvert.SerializeObject(TransactionCache, Formatting.Indented);
+					string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderBy(x => x.Height).ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow), Formatting.Indented);
 					File.WriteAllText(TransactionsFilePath,
 						jsonString,
 						Encoding.UTF8);
