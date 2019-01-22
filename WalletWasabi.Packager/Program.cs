@@ -52,8 +52,8 @@ namespace WalletWasabi.Packager
 			// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
 			var targets = new List<string>
 			{
-				"win7-x64",
-				"linux-x64",
+				//"win7-x64",
+				//"linux-x64",
 				"osx-x64"
 			};
 			Console.WriteLine();
@@ -290,19 +290,6 @@ namespace WalletWasabi.Packager
 						var dmgContentDir = Path.Combine(packagerProjectDirectory, "Content", "Osx");
 						IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentDir), new DirectoryInfo(publishedFolder));
 
-						// ToDo: doesn't seem to work.
-						//var psiSetPermission = new ProcessStartInfo
-						//{
-						//	FileName = "cmd",
-						//	RedirectStandardInput = true,
-						//	WorkingDirectory = publishedFolder
-						//};
-						//using (var setPermissionProcess = Process.Start(psiSetPermission))
-						//{
-						//	setPermissionProcess.StandardInput.WriteLine($"wsl chmod 755 \"Wasabi Wallet.app\" && exit");
-						//	setPermissionProcess.WaitForExit();
-						//}
-
 						var psiGenIsoImage = new ProcessStartInfo
 						{
 							FileName = "cmd",
@@ -320,7 +307,7 @@ namespace WalletWasabi.Packager
 							// -V: Volume Label
 							// -no-pad: Do not pad the end by 150 sectors (300kb). As it is not a cd image, not required
 							// -apple -r: Creates a .dmg image
-							genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(publishedFolder).Name}\" && exit");
+							genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -dir-mode 755 -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(publishedFolder).Name}\" && exit");
 							genIsoImageProcess.WaitForExit();
 						}
 						// cd ~
