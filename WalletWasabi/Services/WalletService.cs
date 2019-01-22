@@ -21,6 +21,7 @@ using System.Collections.Concurrent;
 using NBitcoin.DataEncoders;
 using System.Net.Http;
 using System.Diagnostics;
+using NBitcoin.BitcoinCore;
 
 namespace WalletWasabi.Services
 {
@@ -578,6 +579,12 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		// Should be protected by BlockFolderLock
+		private static List<Block> LastBlocksFromCore { get; } = new List<Block>();
+
+		private static long LastBlkSize { get; set; } = 0;
+		private static string LastBlkName { get; set; } = "";
+
 		/// <exception cref="OperationCanceledException"></exception>
 		public async Task<Block> GetOrDownloadBlockAsync(uint256 hash, CancellationToken cancel)
 		{
@@ -612,6 +619,74 @@ namespace WalletWasabi.Services
 					cancel.ThrowIfCancellationRequested();
 					try
 					{
+						// Try to get block information from Bitcoin Core first.
+						try
+						{
+							string coreFolderPath = ServiceConfiguration?.BitcoinCoreDataDir;
+
+							// NBitcoin cannot parse testnet and regtest blocks
+							if (!string.IsNullOrWhiteSpace(coreFolderPath) && Network == Network.Main)
+							{
+								string blocksFolderPath = Path.Combine(coreFolderPath, "blocks");
+
+								// NBitcoin cannot parse testnet and regtest blocks
+								//string blocksFolderPath;
+								//if (Network == Network.Main)
+								//{
+								//	blocksFolderPath = Path.Combine(coreFolderPath, "blocks");
+								//}
+								//else //if (Network == Network.TestNet)
+								//{
+								//	blocksFolderPath = Path.Combine(coreFolderPath, "testnet3", "blocks");
+								//}
+								//else // if (Network == Network.RegTest)
+								//{
+								//	blocksFolderPath = Path.Combine(coreFolderPath, "regtest", "blocks");
+								//}
+
+								if (Directory.Exists(blocksFolderPath))
+								{
+									var blocksFolder = new DirectoryInfo(blocksFolderPath);
+									var totalCount = 0;
+									foreach (var blkFile in blocksFolder
+										.EnumerateFiles("blk*.dat", new EnumerationOptions() { IgnoreInaccessible = true, RecurseSubdirectories = false })
+										.OrderByDescending(x => int.Parse(x.Name.Split(new[] { "blk", ".dat" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault())))
+									{
+										// If nothing changed, then don't bother updating.
+										if (blkFile.Length == LastBlkSize && blkFile.Name == LastBlkName)
+										{
+											break;
+										}
+										LastBlkSize = blkFile.Length;
+										LastBlkName = blkFile.Name;
+										LastBlocksFromCore.Clear();
+
+										foreach (var storedBlock in StoredBlock.EnumerateFile(blkFile.FullName))
+										{
+											totalCount++;
+											LastBlocksFromCore.Add(storedBlock.Item);
+										}
+
+										if (totalCount > 100) // at least check the last 100 blocks (2sec with SSD)
+										{
+											break;
+										}
+									}
+								}
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning<WalletService>(ex);
+						}
+
+						var foundBlockFromCore = LastBlocksFromCore.FirstOrDefault(x => x.Header.GetHash() == hash);
+						if (foundBlockFromCore != null && !foundBlockFromCore.HeaderOnly)
+						{
+							Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {block.GetHash()}");
+							return foundBlockFromCore;
+						}
+
 						// If no connection, wait then continue.
 						while (Nodes.ConnectedNodes.Count == 0)
 						{

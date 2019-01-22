@@ -47,6 +47,24 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "TorSocks5Port")]
 		public int? TorSocks5Port { get; internal set; }
 
+		[JsonProperty(PropertyName = "BitcoinCoreDataDir")]
+		public string BitcoinCoreDataDir
+		{
+			get => _bitcoinCoreDataDir;
+			internal set
+			{
+				if (_bitcoinCoreDataDir != value)
+				{
+					_bitcoinCoreDataDir = value;
+
+					if (!string.IsNullOrWhiteSpace(value) && ServiceConfiguration != default)
+					{
+						ServiceConfiguration.BitcoinCoreDataDir = value;
+					}
+				}
+			}
+		}
+
 		[JsonProperty(PropertyName = "MixUntilAnonymitySet")]
 		public int? MixUntilAnonymitySet
 		{
@@ -170,6 +188,7 @@ namespace WalletWasabi.Gui
 		private int? _privacyLevelSome;
 		private int? _privacyLevelFine;
 		private int? _privacyLevelStrong;
+		private string _bitcoinCoreDataDir;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
@@ -200,6 +219,7 @@ namespace WalletWasabi.Gui
 			string mainNetFallbackBackendUri,
 			string testNetFallbackBackendUri,
 			string regTestBackendUriV3,
+			string bitcoinCoreDataDir,
 			string torHost,
 			int? torSocks5Port,
 			int? mixUntilAnonymitySet,
@@ -219,12 +239,14 @@ namespace WalletWasabi.Gui
 			TorHost = Guard.NotNullOrEmptyOrWhitespace(nameof(torHost), torHost);
 			TorSocks5Port = Guard.NotNull(nameof(torSocks5Port), torSocks5Port);
 
+			BitcoinCoreDataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinCoreDataDir), bitcoinCoreDataDir);
+
 			MixUntilAnonymitySet = Guard.NotNull(nameof(mixUntilAnonymitySet), mixUntilAnonymitySet);
 			PrivacyLevelSome = Guard.NotNull(nameof(privacyLevelSome), privacyLevelSome);
 			PrivacyLevelFine = Guard.NotNull(nameof(privacyLevelFine), privacyLevelFine);
 			PrivacyLevelStrong = Guard.NotNull(nameof(privacyLevelStrong), privacyLevelStrong);
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value);
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, BitcoinCoreDataDir);
 		}
 
 		/// <inheritdoc />
@@ -250,6 +272,7 @@ namespace WalletWasabi.Gui
 			MainNetFallbackBackendUri = "https://wasabiwallet.io/";
 			TestNetFallbackBackendUri = "https://wasabiwallet.co/";
 			RegTestBackendUriV3 = "http://localhost:37127/";
+			BitcoinCoreDataDir = EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir() ?? "/bitcoin"; // whatever
 
 			TorHost = IPAddress.Loopback.ToString();
 			TorSocks5Port = 9050;
@@ -259,7 +282,7 @@ namespace WalletWasabi.Gui
 			PrivacyLevelFine = 21;
 			PrivacyLevelStrong = 50;
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value);
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, BitcoinCoreDataDir);
 
 			if (!File.Exists(FilePath))
 			{
@@ -288,6 +311,7 @@ namespace WalletWasabi.Gui
 			MainNetFallbackBackendUri = config.MainNetFallbackBackendUri ?? MainNetFallbackBackendUri;
 			TestNetFallbackBackendUri = config.TestNetFallbackBackendUri ?? TestNetFallbackBackendUri;
 			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
+			BitcoinCoreDataDir = config.BitcoinCoreDataDir ?? BitcoinCoreDataDir;
 
 			TorHost = config.TorHost ?? TorHost;
 			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
@@ -347,6 +371,11 @@ namespace WalletWasabi.Gui
 				return true;
 			}
 			if (TorSocks5Port != config.TorSocks5Port)
+			{
+				return true;
+			}
+
+			if (BitcoinCoreDataDir != config.BitcoinCoreDataDir) // case sensitive
 			{
 				return true;
 			}
