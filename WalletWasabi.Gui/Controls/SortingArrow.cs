@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Controls
 			}
 
 			HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
-			_iconPath = new Path()
+			_iconPath = new Path
 			{
 				Stretch = Stretch.Fill,
 				Stroke = Design.IsDesignMode ? Brushes.White : (IBrush)Application.Current.Resources["ApplicationAccentForegroundBrush"],
@@ -50,16 +50,16 @@ namespace WalletWasabi.Gui.Controls
 			};
 			_textBox = new TextBlock();
 
-			Grid stackPnl = new Grid()
+			Grid stackPnl = new Grid
 			{
 				Children =
 				{
-					new StackPanel()
+					new StackPanel
 					{
 						Orientation = Orientation.Horizontal, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
 						Children = { _textBox }
 					},
-					new StackPanel()
+					new StackPanel
 					{
 						Orientation = Orientation.Horizontal, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
 						Children =

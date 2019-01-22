@@ -114,9 +114,8 @@ namespace WalletWasabi.Gui.Controls
 			ContextMenu = new ContextMenu
 			{
 				DataContext = this,
+				Items = new Avalonia.Controls.Controls()
 			};
-
-			ContextMenu.Items = new Avalonia.Controls.Controls();
 
 			if (IsCopyEnabled)
 			{

@@ -208,15 +208,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					Logger.LogWarning<CoinJoinTabViewModel>(ex);
-					var warningMessage = ex.ToTypeMessageString();
+					var builder = new StringBuilder(ex.ToTypeMessageString());
 					if (ex is AggregateException aggex)
 					{
 						foreach (var iex in aggex.InnerExceptions)
 						{
-							warningMessage += Environment.NewLine + iex.ToTypeMessageString();
+							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
-					SetWarningMessage(warningMessage);
+					SetWarningMessage(builder.ToString());
 					return;
 				}
 			}
@@ -247,15 +247,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					Logger.LogWarning<CoinJoinTabViewModel>(ex);
-					var warningMessage = ex.ToTypeMessageString();
+					var builder = new StringBuilder(ex.ToTypeMessageString());
 					if (ex is AggregateException aggex)
 					{
 						foreach (var iex in aggex.InnerExceptions)
 						{
-							warningMessage += Environment.NewLine + iex.ToTypeMessageString();
+							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
-					SetWarningMessage(warningMessage);
+					SetWarningMessage(builder.ToString());
 					Password = string.Empty;
 					return;
 				}

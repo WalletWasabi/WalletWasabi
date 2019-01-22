@@ -156,15 +156,15 @@ namespace WalletWasabi.Gui
 				try
 				{
 					AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
-					
+
 					// The most of the times we don't need to discover new peers. Instead, we can connect to
 					// some of those that we already discovered in the past. In this case we assume that we
 					// assume that discovering new peers could be necessary if out address manager has less
 					// than 500 addresses. A 500 addresses could be okay because previously we tried with
-					// 200 and only one user reported he/she was not able to connect (there could be many others, 
+					// 200 and only one user reported he/she was not able to connect (there could be many others,
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
-					// to spend resources (CPU/bandwith) to discover new peers.  
+					// to spend resources (CPU/bandwith) to discover new peers.
 					needsToDiscoverPeers = AddressManager.Count < 500;
 					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
@@ -200,8 +200,10 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager);
-			addressManagerBehavior.Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None;
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
+			{
+				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
+			};
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 			MemPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));

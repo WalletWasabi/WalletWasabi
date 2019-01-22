@@ -230,8 +230,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private KeyManager LoadWallet(string walletFullPath)
 		{
 			KeyManager keyManager;
-			var walletFileInfo = new FileInfo(walletFullPath);
-			walletFileInfo.LastAccessTime = DateTime.Now;
+			var walletFileInfo = new FileInfo(walletFullPath)
+			{
+				LastAccessTime = DateTime.Now
+			};
 
 			keyManager = KeyManager.FromFile(walletFullPath);
 			Logger.LogInfo($"Wallet decrypted: {SelectedWallet}.");
