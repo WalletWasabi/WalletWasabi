@@ -150,9 +150,21 @@ namespace WalletWasabi.Services
 			RefreshCoinsHistoriesAsync();
 		}
 
+		private static object TransactionProcessingLock { get; } = new object();
+
 		private void MemPool_TransactionReceived(object sender, SmartTransaction tx)
 		{
-			ProcessTransaction(tx);
+			try
+			{
+				lock (TransactionProcessingLock)
+				{
+					ProcessTransaction(tx);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<WalletService>(ex);
+			}
 		}
 
 		private async void IndexDownloader_ReorgedAsync(object sender, FilterModel invalidFilter)
