@@ -156,7 +156,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						if (Global.WalletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
 						{
-							dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
+							if (Global.WalletService?.ProcessedBlocks != null) // NullReferenceException appeared here.
+							{
+								dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
+							}
+							else
+							{
+								dateTime = DateTimeOffset.UtcNow;
+							}
 						}
 						else
 						{
