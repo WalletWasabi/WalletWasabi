@@ -643,34 +643,40 @@ namespace WalletWasabi.Services
 
 							if (block is null)
 							{
-								Logger.LogInfo<WalletService>("Disconnected node, because couldn't parse received block.");
+								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because couldn't parse received block.");
 								node.DisconnectAsync("Couldn't parse block.");
 								continue;
 							}
 
 							if (!block.Check())
 							{
-								Logger.LogInfo<WalletService>("Disconnected node, because block invalid block received.");
+								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block invalid block received.");
 								node.DisconnectAsync("Invalid block received.");
 								continue;
+							}
+
+							if (Nodes.ConnectedNodes.Count > 1) // So to minimize risking missing unconfirmed transactions.
+							{
+								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}");
+								node.DisconnectAsync("Thank you!");
 							}
 						}
 						catch (TimeoutException)
 						{
-							Logger.LogInfo<WalletService>("Disconnected node, because block download took too long.");
+							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
 							node.DisconnectAsync("Block download took too long.");
 							continue;
 						}
 						catch (OperationCanceledException)
 						{
-							Logger.LogInfo<WalletService>("Disconnected node, because block download took too long.");
+							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
 							node.DisconnectAsync("Block download took too long.");
 							continue;
 						}
 						catch (Exception ex)
 						{
 							Logger.LogDebug<WalletService>(ex);
-							Logger.LogInfo<WalletService>($"Disconnected node, because block download failed: {ex.Message}");
+							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}");
 							node.DisconnectAsync("Block download failed.");
 							continue;
 						}
