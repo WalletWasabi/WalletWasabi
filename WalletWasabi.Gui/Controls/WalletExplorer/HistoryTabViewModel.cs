@@ -162,11 +162,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SmartTransaction foundSpenderTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
-						if (Global.WalletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
+						if (Global.WalletService?.ProcessedBlocks != null) // NullReferenceException appeared here.
 						{
-							if (Global.WalletService?.ProcessedBlocks != null) // NullReferenceException appeared here.
+							if (Global.WalletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
 							{
-								dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
+								if (Global.WalletService?.ProcessedBlocks != null) // NullReferenceException appeared here.
+								{
+									dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
+								}
+								else
+								{
+									dateTime = DateTimeOffset.UtcNow;
+								}
 							}
 							else
 							{
