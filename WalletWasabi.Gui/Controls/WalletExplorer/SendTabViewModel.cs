@@ -19,10 +19,11 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Backend.Models.Responses;
 using System.ComponentModel;
 using WalletWasabi.Gui.Models;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendTabViewModel : WalletActionViewModel
+	public class SendTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private CoinListViewModel _coinList;
 		private string _buildTransactionButtonText;
@@ -55,6 +56,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
+		private CompositeDisposable Disposables { get; }
 
 		private bool IgnoreAmountChanges { get; set; }
 
@@ -71,6 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
+			Disposables = new CompositeDisposable();
 			Label = "";
 			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
@@ -132,7 +135,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				SetFeesAndTexts();
-			});
+			}).DisposeWith(Disposables);
 
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
 			{
@@ -218,12 +221,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = false;
 				}
 			},
-			(this).WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
-				(isMax, amount, address, busy) => ((isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)));
+			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
+				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy))
+				.DisposeWith(Disposables);
 
-			MaxCommand = ReactiveCommand.Create(SetMax);
+			MaxCommand = ReactiveCommand.Create(SetMax).DisposeWith(Disposables);
 
-			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
+			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
 			{
@@ -235,7 +239,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					BuildTransactionButtonText = BuildTransactionButtonTextString;
 				}
-			});
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -247,9 +251,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Password = x.TrimEnd('\r', '\n');
 					}
 				}
-			});
+			}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
+
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
 				if (Label == null) return;
@@ -257,12 +262,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			});
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
 			{
 				SetFeesAndTexts();
-			});
+			}).DisposeWith(Disposables);
 
 			CoinList.SelectionChanged += CoinList_SelectionChanged;
 
@@ -585,9 +590,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set
 			{
 				bool changed = _coinList != value;
-				if (_coinList != null) _coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				if (_coinList != null)
+				{
+					_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				}
+
 				this.RaiseAndSetIfChanged(ref _coinList, value);
-				_coinList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
+
+				if (_coinList != null)
+				{
+					_coinList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
+				}
 			}
 		}
 
@@ -874,5 +887,45 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand MaxCommand { get; }
 
 		public ReactiveCommand FeeRateCommand { get; }
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					if (Global.Synchronizer != null)
+					{
+						Global.Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
+					}
+
+					if (_coinList != null)
+					{
+						_coinList.SelectionChanged -= CoinList_SelectionChanged;
+						_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+						_coinList.Dispose();
+					}
+
+					Disposables?.Dispose();
+				}
+
+				CoinList = null;
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class ReceiveTabViewModel : WalletActionViewModel
+	public class ReceiveTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
@@ -25,10 +26,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _clipboardNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
+		private CompositeDisposable Disposables { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
+			Disposables = new CompositeDisposable();
 			_addresses = new ObservableCollection<AddressViewModel>();
 			Label = "";
 
@@ -37,7 +40,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(o =>
 			{
 				InitializeAddresses();
-			});
+			}).DisposeWith(Disposables);
 
 			InitializeAddresses();
 
@@ -76,8 +79,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Label = "";
 				});
-			});
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+			}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
+
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
 			{
 				if (!(address is null))
@@ -92,7 +97,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						ClipboardNotificationOpacity = 0;
 					});
 				}
-			});
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
@@ -101,7 +106,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			});
+			}).DisposeWith(Disposables);
+
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
@@ -121,56 +127,56 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ObservableCollection<AddressViewModel> Addresses
 		{
-			get { return _addresses; }
-			set { this.RaiseAndSetIfChanged(ref _addresses, value); }
+			get => _addresses;
+			set => this.RaiseAndSetIfChanged(ref _addresses, value);
 		}
 
 		public AddressViewModel SelectedAddress
 		{
-			get { return _selectedAddress; }
-			set { this.RaiseAndSetIfChanged(ref _selectedAddress, value); }
+			get => _selectedAddress;
+			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
 		}
 
 		public string Label
 		{
-			get { return _label; }
-			set { this.RaiseAndSetIfChanged(ref _label, value); }
+			get => _label;
+			set => this.RaiseAndSetIfChanged(ref _label, value);
 		}
 
 		public double LabelRequiredNotificationOpacity
 		{
-			get { return _labelRequiredNotificationOpacity; }
-			set { this.RaiseAndSetIfChanged(ref _labelRequiredNotificationOpacity, value); }
+			get => _labelRequiredNotificationOpacity;
+			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationOpacity, value);
 		}
 
 		public bool LabelRequiredNotificationVisible
 		{
-			get { return _labelRequiredNotificationVisible; }
-			set { this.RaiseAndSetIfChanged(ref _labelRequiredNotificationVisible, value); }
+			get => _labelRequiredNotificationVisible;
+			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationVisible, value);
 		}
 
 		public double ClipboardNotificationOpacity
 		{
-			get { return _clipboardNotificationOpacity; }
-			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value); }
+			get => _clipboardNotificationOpacity;
+			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
 		public bool ClipboardNotificationVisible
 		{
-			get { return _clipboardNotificationVisible; }
-			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value); }
+			get => _clipboardNotificationVisible;
+			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
 		}
 
 		public int CaretIndex
 		{
-			get { return _caretIndex; }
-			set { this.RaiseAndSetIfChanged(ref _caretIndex, value); }
+			get => _caretIndex;
+			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
 		public ObservableCollection<SuggestionViewModel> Suggestions
 		{
-			get { return _suggestions; }
-			set { this.RaiseAndSetIfChanged(ref _suggestions, value); }
+			get => _suggestions;
+			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
 		}
 
 		private void UpdateSuggestions(string words)
@@ -222,5 +228,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public ReactiveCommand GenerateCommand { get; }
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Disposables?.Dispose();
+				}
+
+				_addresses = null;
+				_suggestions = null;
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

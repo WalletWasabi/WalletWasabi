@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
@@ -19,7 +20,7 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryTabViewModel : WalletActionViewModel
+	public class HistoryTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
@@ -29,10 +30,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		private CompositeDisposable Disposables { get; }
+
+		public ReactiveCommand SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
+			Disposables = new CompositeDisposable();
 			Interlocked.Exchange(ref _disableClipboard, 0);
 			Transactions = new ObservableCollection<TransactionViewModel>();
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -53,7 +58,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 					RewriteTableAsync();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				});
+				}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
@@ -76,7 +81,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Interlocked.Exchange(ref _disableClipboard, 0);
 				}
-			});
+			}).DisposeWith(Disposables);
+
+			SortCommand = ReactiveCommand.Create(() => RefreshOrdering()).DisposeWith(Disposables);
+
 			DateSortDirection = SortOrder.Decreasing;
 		}
 
@@ -156,7 +164,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						if (Global.WalletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
 						{
-							dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
+							if (Global.WalletService?.ProcessedBlocks != null) // NullReferenceException appeared here.
+							{
+								dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
+							}
+							else
+							{
+								dateTime = DateTimeOffset.UtcNow;
+							}
 						}
 						else
 						{
@@ -187,26 +202,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ObservableCollection<TransactionViewModel> Transactions
 		{
-			get { return _transactions; }
-			set { this.RaiseAndSetIfChanged(ref _transactions, value); }
+			get => _transactions;
+			set => this.RaiseAndSetIfChanged(ref _transactions, value);
 		}
 
 		public TransactionViewModel SelectedTransaction
 		{
-			get { return _selectedTransaction; }
-			set { this.RaiseAndSetIfChanged(ref _selectedTransaction, value); }
+			get => _selectedTransaction;
+			set => this.RaiseAndSetIfChanged(ref _selectedTransaction, value);
 		}
 
 		public double ClipboardNotificationOpacity
 		{
-			get { return _clipboardNotificationOpacity; }
-			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value); }
+			get => _clipboardNotificationOpacity;
+			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
 		public bool ClipboardNotificationVisible
 		{
-			get { return _clipboardNotificationVisible; }
-			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value); }
+			get => _clipboardNotificationVisible;
+			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
 		}
 
 		public SortOrder DateSortDirection
@@ -220,7 +235,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AmountSortDirection = SortOrder.None;
 					TransactionSortDirection = SortOrder.None;
 				}
-				RefreshOrdering();
 			}
 		}
 
@@ -235,7 +249,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					DateSortDirection = SortOrder.None;
 					TransactionSortDirection = SortOrder.None;
 				}
-				RefreshOrdering();
 			}
 		}
 
@@ -250,7 +263,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AmountSortDirection = SortOrder.None;
 					DateSortDirection = SortOrder.None;
 				}
-				RefreshOrdering();
 			}
 		}
 
@@ -296,5 +308,39 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					if (Transactions != null)
+					{
+						foreach (var tr in Transactions)
+						{
+							tr?.Dispose();
+						}
+					}
+					Disposables?.Dispose();
+				}
+
+				_transactions = null;
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

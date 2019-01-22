@@ -150,9 +150,21 @@ namespace WalletWasabi.Services
 			RefreshCoinsHistoriesAsync();
 		}
 
+		private static object TransactionProcessingLock { get; } = new object();
+
 		private void MemPool_TransactionReceived(object sender, SmartTransaction tx)
 		{
-			ProcessTransaction(tx);
+			try
+			{
+				lock (TransactionProcessingLock)
+				{
+					ProcessTransaction(tx);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<WalletService>(ex);
+			}
 		}
 
 		private async void IndexDownloader_ReorgedAsync(object sender, FilterModel invalidFilter)
@@ -226,38 +238,42 @@ namespace WalletWasabi.Services
 				// Load in dummy mempool
 				if (File.Exists(TransactionsFilePath))
 				{
+					var deleteTxFile = false;
 					try
 					{
 						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
 						var serializedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString);
 
-						foreach (SmartTransaction tx in serializedTransactions.Where(x => !x.Confirmed))
+						foreach (SmartTransaction tx in serializedTransactions.Where(x => !x.Confirmed && !TransactionCache.Contains(x)).OrderBy(x => x.Height).ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow))
 						{
 							try
 							{
 								await SendTransactionAsync(tx);
-
-								ProcessTransaction(tx);
 							}
 							catch (Exception ex)
 							{
+								deleteTxFile = true;
 								Logger.LogWarning<WalletService>(ex);
 							}
 						}
 					}
 					catch (Exception ex)
 					{
+						deleteTxFile = true;
 						Logger.LogWarning<WalletService>(ex);
 					}
 
-					try
+					if (deleteTxFile)
 					{
-						File.Delete(TransactionsFilePath);
-					}
-					catch (Exception ex)
-					{
-						// Don't fail because of this. It's not important.
-						Logger.LogWarning<WalletService>(ex);
+						try
+						{
+							File.Delete(TransactionsFilePath);
+						}
+						catch (Exception ex)
+						{
+							// Don't fail because of this. It's not important.
+							Logger.LogWarning<WalletService>(ex);
+						}
 					}
 				}
 			}
@@ -1141,7 +1157,7 @@ namespace WalletWasabi.Services
 					Coins.CollectionChanged -= Coins_CollectionChanged;
 
 					IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
-					string jsonString = JsonConvert.SerializeObject(TransactionCache, Formatting.Indented);
+					string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderBy(x => x.Height).ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow), Formatting.Indented);
 					File.WriteAllText(TransactionsFilePath,
 						jsonString,
 						Encoding.UTF8);
