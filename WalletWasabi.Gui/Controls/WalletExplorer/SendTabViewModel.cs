@@ -56,7 +56,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
-		private CompositeDisposable _disposables = new CompositeDisposable();
+		private CompositeDisposable Disposables { get; }
 
 		private bool IgnoreAmountChanges { get; set; }
 
@@ -73,6 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
+			Disposables = new CompositeDisposable();
 			Label = "";
 			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
@@ -134,7 +135,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				SetFeesAndTexts();
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
 			{
@@ -222,11 +223,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			},
 			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy))
-				.DisposeWith(_disposables);
+				.DisposeWith(Disposables);
 
-			MaxCommand = ReactiveCommand.Create(SetMax).DisposeWith(_disposables);
+			MaxCommand = ReactiveCommand.Create(SetMax).DisposeWith(Disposables);
 
-			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay).DisposeWith(_disposables);
+			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
 			{
@@ -238,7 +239,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					BuildTransactionButtonText = BuildTransactionButtonTextString;
 				}
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -250,9 +251,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Password = x.TrimEnd('\r', '\n');
 					}
 				}
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(_disposables);
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
@@ -261,12 +262,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
 			{
 				SetFeesAndTexts();
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			CoinList.SelectionChanged += CoinList_SelectionChanged;
 
@@ -590,12 +591,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				bool changed = _coinList != value;
 				if (_coinList != null)
+				{
 					_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				}
 
 				this.RaiseAndSetIfChanged(ref _coinList, value);
 
 				if (_coinList != null)
+				{
 					_coinList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
+				}
 			}
 		}
 
@@ -894,7 +899,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (disposing)
 				{
 					if (Global.Synchronizer != null)
+					{
 						Global.Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
+					}
 
 					if (_coinList != null)
 					{
@@ -903,7 +910,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						_coinList.Dispose();
 					}
 
-					_disposables.Dispose();
+					Disposables?.Dispose();
 				}
 
 				CoinList = null;
@@ -917,8 +924,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
-			// GC.SuppressFinalize(this);
 		}
 
 		#endregion IDisposable Support

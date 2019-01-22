@@ -10,13 +10,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class TransactionViewModel : ViewModelBase, IDisposable
 	{
 		private TransactionInfo _model;
-		private CompositeDisposable _disposables = new CompositeDisposable();
+		private CompositeDisposable Disposables { get; }
 
 		public TransactionViewModel(TransactionInfo model)
 		{
+			Disposables = new CompositeDisposable();
 			_model = model;
 
-			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, model.Confirmed).DisposeWith(_disposables);
+			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, model.Confirmed).DisposeWith(Disposables);
 		}
 
 		private readonly ObservableAsPropertyHelper<bool> _confirmed;
@@ -61,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (disposing)
 				{
-					_disposables.Dispose();
+					Disposables?.Dispose();
 				}
 
 				_model = null;
@@ -74,8 +75,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
-			// GC.SuppressFinalize(this);
 		}
 
 		#endregion IDisposable Support
