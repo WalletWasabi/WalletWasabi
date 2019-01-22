@@ -78,72 +78,54 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public BackendStatus Backend
 		{
-			get { return _backend; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _backend, value);
-			}
+			get => _backend;
+			set => this.RaiseAndSetIfChanged(ref _backend, value);
 		}
 
 		private TorStatus _tor;
 
 		public TorStatus Tor
 		{
-			get { return _tor; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _tor, value);
-			}
+			get => _tor;
+			set => this.RaiseAndSetIfChanged(ref _tor, value);
 		}
 
 		private int _peers;
 
 		public int Peers
 		{
-			get { return _peers; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _peers, value);
-			}
+			get => _peers;
+			set => this.RaiseAndSetIfChanged(ref _peers, value);
 		}
 
 		private int _filtersLeft;
 
 		public int FiltersLeft
 		{
-			get { return _filtersLeft; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _filtersLeft, value);
-			}
+			get => _filtersLeft;
+			set => this.RaiseAndSetIfChanged(ref _filtersLeft, value);
 		}
 
 		private int _blocksLeft;
 
 		public int BlocksLeft
 		{
-			get { return _blocksLeft; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _blocksLeft, value);
-			}
+			get => _blocksLeft;
+			set => this.RaiseAndSetIfChanged(ref _blocksLeft, value);
 		}
 
 		public string BtcPrice
 		{
 			get => _btcPrice;
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _btcPrice, value);
-			}
+			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
 		}
 
 		private string _status;
 
 		public string Status
 		{
-			get { return _status; }
-			set { this.RaiseAndSetIfChanged(ref _status, value); }
+			get => _status;
+			set => this.RaiseAndSetIfChanged(ref _status, value);
 		}
 
 		private long _clientOutOfDate;
