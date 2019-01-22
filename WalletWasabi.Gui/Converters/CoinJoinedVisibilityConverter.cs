@@ -13,14 +13,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is Money money)
 			{
-				if (money <= Money.Zero)
-				{
-					return false;
-				}
-				else
-				{
-					return true;
-				}
+				return money > Money.Zero;
 			}
 
 			throw new InvalidOperationException();

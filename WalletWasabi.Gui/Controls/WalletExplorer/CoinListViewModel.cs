@@ -419,7 +419,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (_rootlist?.Items != null)
 					{
-						foreach (var cvm in _rootlist.Items)
+						foreach (CoinViewModel cvm in _rootlist.Items)
 						{
 							if (cvm != null)
 							{
