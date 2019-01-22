@@ -94,7 +94,7 @@ namespace NBitcoin
 			return notNull && notEmpty;
 		}
 
-		public static Money Percentange(this Money me, decimal perc)
+		public static Money Percentage(this Money me, decimal perc)
 		{
 			return Money.Satoshis((me.Satoshi / 100m) * perc);
 		}
