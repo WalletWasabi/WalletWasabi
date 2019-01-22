@@ -373,23 +373,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string Password
 		{
-			get { return _password; }
-			set { this.RaiseAndSetIfChanged(ref _password, value); }
+			get => _password;
+			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
 		public CoinListViewModel CoinsList
 		{
-			get { return _coinsList; }
+			get => _coinsList;
 			set
 			{
 				bool changed = _coinsList != value;
 				if (_coinsList != null)
+				{
 					_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				}
 
 				this.RaiseAndSetIfChanged(ref _coinsList, value);
 
 				if (_coinsList != null)
+				{
 					_coinsList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
+				}
 			}
 		}
 
@@ -405,83 +409,80 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public Money AmountQueued
 		{
-			get { return _amountQueued; }
-			set { this.RaiseAndSetIfChanged(ref _amountQueued, value); }
+			get => _amountQueued;
+			set => this.RaiseAndSetIfChanged(ref _amountQueued, value);
 		}
 
 		public long RoundId
 		{
-			get { return _roundId; }
-			set { this.RaiseAndSetIfChanged(ref _roundId, value); }
+			get => _roundId;
+			set => this.RaiseAndSetIfChanged(ref _roundId, value);
 		}
 
 		public int SuccessfulRoundCount
 		{
-			get { return _successfulRoundCount; }
-			set { this.RaiseAndSetIfChanged(ref _successfulRoundCount, value); }
+			get => _successfulRoundCount;
+			set => this.RaiseAndSetIfChanged(ref _successfulRoundCount, value);
 		}
 
 		public CcjRoundPhase Phase
 		{
-			get { return _phase; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _phase, value);
-			}
+			get => _phase;
+			set => this.RaiseAndSetIfChanged(ref _phase, value);
 		}
 
 		public Money RequiredBTC
 		{
-			get { return _requiredBTC; }
-			set { this.RaiseAndSetIfChanged(ref _requiredBTC, value); }
+			get => _requiredBTC;
+			set => this.RaiseAndSetIfChanged(ref _requiredBTC, value);
 		}
 
 		public string CoordinatorFeePercent
 		{
-			get { return _coordinatorFeePercent; }
-			set { this.RaiseAndSetIfChanged(ref _coordinatorFeePercent, value); }
+			get => _coordinatorFeePercent;
+			set => this.RaiseAndSetIfChanged(ref _coordinatorFeePercent, value);
 		}
 
 		public int PeersRegistered
 		{
-			get { return _peersRegistered; }
-			set { this.RaiseAndSetIfChanged(ref _peersRegistered, value); }
+			get => _peersRegistered;
+			set => this.RaiseAndSetIfChanged(ref _peersRegistered, value);
 		}
 
 		public int PeersNeeded
 		{
-			get { return _peersNeeded; }
-			set { this.RaiseAndSetIfChanged(ref _peersNeeded, value); }
+			get => _peersNeeded;
+			set => this.RaiseAndSetIfChanged(ref _peersNeeded, value);
 		}
 
 		public string WarningMessage
 		{
-			get { return _warningMessage; }
-			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
+			get => _warningMessage;
+			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
 		public bool IsEnqueueBusy
 		{
-			get { return _isEnqueueBusy; }
-			set { this.RaiseAndSetIfChanged(ref _isEnqueueBusy, value); }
+			get => _isEnqueueBusy;
+			set => this.RaiseAndSetIfChanged(ref _isEnqueueBusy, value);
 		}
 
 		public bool IsDequeueBusy
 		{
-			get { return _isDequeueBusy; }
-			set { this.RaiseAndSetIfChanged(ref _isDequeueBusy, value); }
+			get => _isDequeueBusy;
+			set => this.RaiseAndSetIfChanged(ref _isDequeueBusy, value);
 		}
 
 		public string EnqueueButtonText
 		{
-			get { return _enqueueButtonText; }
-			set { this.RaiseAndSetIfChanged(ref _enqueueButtonText, value); }
+			get => _enqueueButtonText;
+			set => this.RaiseAndSetIfChanged(ref _enqueueButtonText, value);
 		}
 
 		public string DequeueButtonText
 		{
-			get { return _dequeueButtonText; }
-			set { this.RaiseAndSetIfChanged(ref _dequeueButtonText, value); }
+			get => _dequeueButtonText;
+			set => this.RaiseAndSetIfChanged(ref _dequeueButtonText, value);
 		}
 
 		private int _coinJoinUntilAnonimitySet;
@@ -489,21 +490,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public int CoinJoinUntilAnonimitySet
 		{
-			get { return _coinJoinUntilAnonimitySet; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value);
-			}
+			get => _coinJoinUntilAnonimitySet;
+			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value);
 		}
 
 		private TargetPrivacy TargetPrivacy
 		{
 			get => _targetPrivacy;
 
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
-			}
+			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 		}
 
 		public ReactiveCommand EnqueueCommand { get; }
@@ -533,10 +528,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 
 					if (_coinsList != null)
+					{
 						_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+					}
 
-					_disposables.Dispose();
-					CoinsList.Dispose();
+					_disposables?.Dispose();
+					CoinsList?.Dispose();
 				}
 
 				CoinsList = null;
@@ -549,7 +546,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
 			// GC.SuppressFinalize(this);
 		}
 
