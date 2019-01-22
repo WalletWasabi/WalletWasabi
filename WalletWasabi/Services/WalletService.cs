@@ -231,13 +231,11 @@ namespace WalletWasabi.Services
 						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
 						var serializedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString);
 
-						foreach (SmartTransaction tx in serializedTransactions.Where(x => !x.Confirmed))
+						foreach (SmartTransaction tx in serializedTransactions.Where(x => !x.Confirmed).OrderBy(x => x.FirstSeenIfMemPoolTime))
 						{
 							try
 							{
 								await SendTransactionAsync(tx);
-
-								ProcessTransaction(tx);
 							}
 							catch (Exception ex)
 							{
