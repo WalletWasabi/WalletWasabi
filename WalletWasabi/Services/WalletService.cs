@@ -238,6 +238,7 @@ namespace WalletWasabi.Services
 				// Load in dummy mempool
 				if (File.Exists(TransactionsFilePath))
 				{
+					var deleteTxFile = false;
 					try
 					{
 						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
@@ -251,23 +252,28 @@ namespace WalletWasabi.Services
 							}
 							catch (Exception ex)
 							{
+								deleteTxFile = true;
 								Logger.LogWarning<WalletService>(ex);
 							}
 						}
 					}
 					catch (Exception ex)
 					{
+						deleteTxFile = true;
 						Logger.LogWarning<WalletService>(ex);
 					}
 
-					try
+					if (deleteTxFile)
 					{
-						File.Delete(TransactionsFilePath);
-					}
-					catch (Exception ex)
-					{
-						// Don't fail because of this. It's not important.
-						Logger.LogWarning<WalletService>(ex);
+						try
+						{
+							File.Delete(TransactionsFilePath);
+						}
+						catch (Exception ex)
+						{
+							// Don't fail because of this. It's not important.
+							Logger.LogWarning<WalletService>(ex);
+						}
 					}
 				}
 			}
