@@ -26,11 +26,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _clipboardNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
-		private CompositeDisposable _disposables = new CompositeDisposable();
+		private CompositeDisposable Disposables { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
+			Disposables = new CompositeDisposable();
 			_addresses = new ObservableCollection<AddressViewModel>();
 			Label = "";
 
@@ -39,7 +40,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(o =>
 			{
 				InitializeAddresses();
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			InitializeAddresses();
 
@@ -78,9 +79,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Label = "";
 				});
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(_disposables);
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
 			{
@@ -96,7 +97,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						ClipboardNotificationOpacity = 0;
 					});
 				}
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
@@ -105,7 +106,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
@@ -126,56 +127,56 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ObservableCollection<AddressViewModel> Addresses
 		{
-			get { return _addresses; }
-			set { this.RaiseAndSetIfChanged(ref _addresses, value); }
+			get => _addresses;
+			set => this.RaiseAndSetIfChanged(ref _addresses, value);
 		}
 
 		public AddressViewModel SelectedAddress
 		{
-			get { return _selectedAddress; }
-			set { this.RaiseAndSetIfChanged(ref _selectedAddress, value); }
+			get => _selectedAddress;
+			set => this.RaiseAndSetIfChanged(ref _selectedAddress, value);
 		}
 
 		public string Label
 		{
-			get { return _label; }
-			set { this.RaiseAndSetIfChanged(ref _label, value); }
+			get => _label;
+			set => this.RaiseAndSetIfChanged(ref _label, value);
 		}
 
 		public double LabelRequiredNotificationOpacity
 		{
-			get { return _labelRequiredNotificationOpacity; }
-			set { this.RaiseAndSetIfChanged(ref _labelRequiredNotificationOpacity, value); }
+			get => _labelRequiredNotificationOpacity;
+			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationOpacity, value);
 		}
 
 		public bool LabelRequiredNotificationVisible
 		{
-			get { return _labelRequiredNotificationVisible; }
-			set { this.RaiseAndSetIfChanged(ref _labelRequiredNotificationVisible, value); }
+			get => _labelRequiredNotificationVisible;
+			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationVisible, value);
 		}
 
 		public double ClipboardNotificationOpacity
 		{
-			get { return _clipboardNotificationOpacity; }
-			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value); }
+			get => _clipboardNotificationOpacity;
+			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
 		public bool ClipboardNotificationVisible
 		{
-			get { return _clipboardNotificationVisible; }
-			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value); }
+			get => _clipboardNotificationVisible;
+			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
 		}
 
 		public int CaretIndex
 		{
-			get { return _caretIndex; }
-			set { this.RaiseAndSetIfChanged(ref _caretIndex, value); }
+			get => _caretIndex;
+			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
 		public ObservableCollection<SuggestionViewModel> Suggestions
 		{
-			get { return _suggestions; }
-			set { this.RaiseAndSetIfChanged(ref _suggestions, value); }
+			get => _suggestions;
+			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
 		}
 
 		private void UpdateSuggestions(string words)
@@ -238,7 +239,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (disposing)
 				{
-					_disposables.Dispose();
+					Disposables?.Dispose();
 				}
 
 				_addresses = null;
@@ -253,7 +254,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
 			// GC.SuppressFinalize(this);
 		}
 
