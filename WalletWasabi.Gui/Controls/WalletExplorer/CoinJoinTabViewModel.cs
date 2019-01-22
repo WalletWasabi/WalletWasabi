@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -22,7 +23,7 @@ using static WalletWasabi.Models.ServiceConfiguration;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinJoinTabViewModel : WalletActionViewModel
+	public class CoinJoinTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private CoinListViewModel _coinsList;
 		private long _roundId;
@@ -43,12 +44,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _dequeueButtonText;
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
+		private CompositeDisposable Disposables { get; }
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
+			Disposables = new CompositeDisposable();
 			Password = "";
-			TargetPrivacy = ShieldLevelHelper.GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
+			TargetPrivacy = GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
 
@@ -71,8 +74,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				CoinsList = new CoinListViewModel();
 			}
-
-			//CoinsList = new CoinListViewModel(coins);
 
 			AmountQueued = Money.Zero;// Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
@@ -101,25 +102,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
 				await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
-			});
+			}).DisposeWith(Disposables);
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
 			{
 				await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected));
-			});
+			}).DisposeWith(Disposables);
 
 			PrivacySomeCommand = ReactiveCommand.Create(() =>
 			{
 				TargetPrivacy = TargetPrivacy.Some;
-			});
+			}).DisposeWith(Disposables);
 			PrivacyFineCommand = ReactiveCommand.Create(() =>
 			{
 				TargetPrivacy = TargetPrivacy.Fine;
-			});
+			}).DisposeWith(Disposables);
 			PrivacyStrongCommand = ReactiveCommand.Create(() =>
 			{
 				TargetPrivacy = TargetPrivacy.Strong;
-			});
+			}).DisposeWith(Disposables);
 			TargetButtonCommand = ReactiveCommand.Create(async () =>
 			{
 				switch (TargetPrivacy)
@@ -142,7 +143,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonimitySet;
 				await Global.Config.ToFileAsync();
-			});
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
 			{
@@ -155,7 +156,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
 					}
 				}
-			});
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.IsEnqueueBusy).Subscribe(busy =>
 			{
@@ -167,7 +168,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					EnqueueButtonText = EnqueueButtonTextString;
 				}
-			});
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.IsDequeueBusy).Subscribe(busy =>
 			{
@@ -179,12 +180,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DequeueButtonText = DequeueButtonTextString;
 				}
-			});
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
 			{
 				CoinJoinUntilAnonimitySet = GetTargetLevel(target);
-			});
+			}).DisposeWith(Disposables);
 		}
 
 		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
@@ -373,19 +374,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string Password
 		{
-			get { return _password; }
-			set { this.RaiseAndSetIfChanged(ref _password, value); }
+			get => _password;
+			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
 		public CoinListViewModel CoinsList
 		{
-			get { return _coinsList; }
+			get => _coinsList;
 			set
 			{
 				bool changed = _coinsList != value;
-				if (_coinsList != null) _coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				if (_coinsList != null)
+				{
+					_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				}
+
 				this.RaiseAndSetIfChanged(ref _coinsList, value);
-				_coinsList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
+
+				if (_coinsList != null)
+				{
+					_coinsList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
+				}
 			}
 		}
 
@@ -401,83 +410,80 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public Money AmountQueued
 		{
-			get { return _amountQueued; }
-			set { this.RaiseAndSetIfChanged(ref _amountQueued, value); }
+			get => _amountQueued;
+			set => this.RaiseAndSetIfChanged(ref _amountQueued, value);
 		}
 
 		public long RoundId
 		{
-			get { return _roundId; }
-			set { this.RaiseAndSetIfChanged(ref _roundId, value); }
+			get => _roundId;
+			set => this.RaiseAndSetIfChanged(ref _roundId, value);
 		}
 
 		public int SuccessfulRoundCount
 		{
-			get { return _successfulRoundCount; }
-			set { this.RaiseAndSetIfChanged(ref _successfulRoundCount, value); }
+			get => _successfulRoundCount;
+			set => this.RaiseAndSetIfChanged(ref _successfulRoundCount, value);
 		}
 
 		public CcjRoundPhase Phase
 		{
-			get { return _phase; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _phase, value);
-			}
+			get => _phase;
+			set => this.RaiseAndSetIfChanged(ref _phase, value);
 		}
 
 		public Money RequiredBTC
 		{
-			get { return _requiredBTC; }
-			set { this.RaiseAndSetIfChanged(ref _requiredBTC, value); }
+			get => _requiredBTC;
+			set => this.RaiseAndSetIfChanged(ref _requiredBTC, value);
 		}
 
 		public string CoordinatorFeePercent
 		{
-			get { return _coordinatorFeePercent; }
-			set { this.RaiseAndSetIfChanged(ref _coordinatorFeePercent, value); }
+			get => _coordinatorFeePercent;
+			set => this.RaiseAndSetIfChanged(ref _coordinatorFeePercent, value);
 		}
 
 		public int PeersRegistered
 		{
-			get { return _peersRegistered; }
-			set { this.RaiseAndSetIfChanged(ref _peersRegistered, value); }
+			get => _peersRegistered;
+			set => this.RaiseAndSetIfChanged(ref _peersRegistered, value);
 		}
 
 		public int PeersNeeded
 		{
-			get { return _peersNeeded; }
-			set { this.RaiseAndSetIfChanged(ref _peersNeeded, value); }
+			get => _peersNeeded;
+			set => this.RaiseAndSetIfChanged(ref _peersNeeded, value);
 		}
 
 		public string WarningMessage
 		{
-			get { return _warningMessage; }
-			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
+			get => _warningMessage;
+			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
 		public bool IsEnqueueBusy
 		{
-			get { return _isEnqueueBusy; }
-			set { this.RaiseAndSetIfChanged(ref _isEnqueueBusy, value); }
+			get => _isEnqueueBusy;
+			set => this.RaiseAndSetIfChanged(ref _isEnqueueBusy, value);
 		}
 
 		public bool IsDequeueBusy
 		{
-			get { return _isDequeueBusy; }
-			set { this.RaiseAndSetIfChanged(ref _isDequeueBusy, value); }
+			get => _isDequeueBusy;
+			set => this.RaiseAndSetIfChanged(ref _isDequeueBusy, value);
 		}
 
 		public string EnqueueButtonText
 		{
-			get { return _enqueueButtonText; }
-			set { this.RaiseAndSetIfChanged(ref _enqueueButtonText, value); }
+			get => _enqueueButtonText;
+			set => this.RaiseAndSetIfChanged(ref _enqueueButtonText, value);
 		}
 
 		public string DequeueButtonText
 		{
-			get { return _dequeueButtonText; }
-			set { this.RaiseAndSetIfChanged(ref _dequeueButtonText, value); }
+			get => _dequeueButtonText;
+			set => this.RaiseAndSetIfChanged(ref _dequeueButtonText, value);
 		}
 
 		private int _coinJoinUntilAnonimitySet;
@@ -485,21 +491,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public int CoinJoinUntilAnonimitySet
 		{
-			get { return _coinJoinUntilAnonimitySet; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value);
-			}
+			get => _coinJoinUntilAnonimitySet;
+			set => this.RaiseAndSetIfChanged(ref _coinJoinUntilAnonimitySet, value);
 		}
 
 		private TargetPrivacy TargetPrivacy
 		{
 			get => _targetPrivacy;
 
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
-			}
+			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 		}
 
 		public ReactiveCommand EnqueueCommand { get; }
@@ -510,5 +510,45 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand PrivacyFineCommand { get; }
 		public ReactiveCommand PrivacyStrongCommand { get; }
 		public ReactiveCommand TargetButtonCommand { get; }
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					if (Global.ChaumianClient != null)
+					{
+						Global.ChaumianClient.CoinQueued -= ChaumianClient_CoinQueued;
+						Global.ChaumianClient.CoinDequeued -= ChaumianClient_CoinDequeued;
+						Global.ChaumianClient.StateUpdated -= ChaumianClient_StateUpdated;
+					}
+
+					if (_coinsList != null)
+					{
+						_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+					}
+
+					Disposables?.Dispose();
+					CoinsList?.Dispose();
+				}
+
+				CoinsList = null;
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

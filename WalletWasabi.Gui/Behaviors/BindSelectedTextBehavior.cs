@@ -7,51 +7,51 @@ using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Behaviors
 {
-    internal class BindSelectedTextBehavior : Behavior<TextBox>
-    {
-        private CompositeDisposable _disposables = new CompositeDisposable();
+	internal class BindSelectedTextBehavior : Behavior<TextBox>
+	{
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
-        private static readonly AvaloniaProperty<string> SelectedTextProperty =
-            AvaloniaProperty.Register<BindSelectedTextBehavior, string>(nameof(SelectedText), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+		private static readonly AvaloniaProperty<string> SelectedTextProperty =
+			AvaloniaProperty.Register<BindSelectedTextBehavior, string>(nameof(SelectedText), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
-        public string SelectedText
-        {
-            get => GetValue(SelectedTextProperty);
-            set => SetValue(SelectedTextProperty, value);
-        }
+		public string SelectedText
+		{
+			get => GetValue(SelectedTextProperty);
+			set => SetValue(SelectedTextProperty, value);
+		}
 
-        private string GetSelection()
-        {
-            var text = AssociatedObject.Text;
-            if (string.IsNullOrEmpty(text))
-                return "";
-            var selectionStart = AssociatedObject.SelectionStart;
-            var selectionEnd = AssociatedObject.SelectionEnd;
-            var start = Math.Min(selectionStart, selectionEnd);
-            var end = Math.Max(selectionStart, selectionEnd);
-            if (start == end || (AssociatedObject.Text?.Length ?? 0) < end)
-            {
-                return "";
-            }
-            return text.Substring(start, end - start);
-        }
+		private string GetSelection()
+		{
+			var text = AssociatedObject.Text;
+			if (string.IsNullOrEmpty(text))
+				return "";
+			var selectionStart = AssociatedObject.SelectionStart;
+			var selectionEnd = AssociatedObject.SelectionEnd;
+			var start = Math.Min(selectionStart, selectionEnd);
+			var end = Math.Max(selectionStart, selectionEnd);
+			if (start == end || (AssociatedObject.Text?.Length ?? 0) < end)
+			{
+				return "";
+			}
+			return text.Substring(start, end - start);
+		}
 
-        protected override void OnAttached()
-        {
-            base.OnAttached();
+		protected override void OnAttached()
+		{
+			base.OnAttached();
 
-            AssociatedObject.GetObservable(TextBox.SelectionStartProperty).Merge(
-                AssociatedObject.GetObservable(TextBox.SelectionEndProperty)).Subscribe(_ =>
-                {
-                    SelectedText = GetSelection();
-                });
-        }
+			AssociatedObject.GetObservable(TextBox.SelectionStartProperty).Merge(
+				AssociatedObject.GetObservable(TextBox.SelectionEndProperty)).Subscribe(_ =>
+				{
+					SelectedText = GetSelection();
+				});
+		}
 
-        protected override void OnDetaching()
-        {
-            base.OnDetaching();
+		protected override void OnDetaching()
+		{
+			base.OnDetaching();
 
-            _disposables.Dispose();
-        }
-    }
+			Disposables?.Dispose();
+		}
+	}
 }

@@ -289,7 +289,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						}
 
 						// 4. Start building Coordinator fee.
-						Money coordinatorFeePerAlice = newDenomination.Percentange(CoordinatorFeePercent * Alices.Count);
+						Money coordinatorFeePerAlice = newDenomination.Percentage(CoordinatorFeePercent * Alices.Count);
 						Money coordinatorFee = Alices.Count * coordinatorFeePerAlice;
 
 						if (tinkerWithAdditionalMixingLevels)
@@ -299,7 +299,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								int bobsOnThisLevel = Bobs.Count(x => x.Level == level);
 								if (bobsOnThisLevel <= 1) break;
 
-								coordinatorFee += level.Denomination.Percentange(CoordinatorFeePercent * bobsOnThisLevel * bobsOnThisLevel);
+								coordinatorFee += level.Denomination.Percentage(CoordinatorFeePercent * bobsOnThisLevel * bobsOnThisLevel);
 							}
 						}
 
@@ -323,14 +323,14 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									int bobsOnThisLevel = Bobs.Count(x => x.Level == level);
 									if (bobsOnThisLevel <= 1) break;
 
-									changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent * bobsOnThisLevel)));
+									changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentage(CoordinatorFeePercent * bobsOnThisLevel)));
 								}
 							}
 
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
 							{
 								Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
-								Money onePercentOfDenomination = newDenomination.Percentange(1m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
+								Money onePercentOfDenomination = newDenomination.Percentage(1m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
 								Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
 								if (changeAmount < minimumChangeAmount)
 								{
@@ -575,7 +575,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						break;
 					}
 
-					changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent * bobsOnThisLevel)));
+					changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentage(CoordinatorFeePercent * bobsOnThisLevel)));
 
 					if (changeAmount < Money.Zero)
 					{
@@ -629,7 +629,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					break;
 				}
 
-				changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentange(CoordinatorFeePercent * potentialAlicesOnThisLevel)));
+				changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentage(CoordinatorFeePercent * potentialAlicesOnThisLevel)));
 
 				if (changeAmount < Money.Zero)
 				{

@@ -327,7 +327,7 @@ namespace WalletWasabi.Services
 								.Contains(denomPair.value))
 				{
 					Money denomination = denomPair.value;
-					Money expectedCoordinatorFee = denomination.Percentange(ongoingRound.State.CoordinatorFeePercent * denomPair.count);
+					Money expectedCoordinatorFee = denomination.Percentage(ongoingRound.State.CoordinatorFeePercent * denomPair.count);
 					minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
 				}
 			}
@@ -337,7 +337,7 @@ namespace WalletWasabi.Services
 			{
 				Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
 				Money baseDenomination = indistinguishableOutputs.First().value;
-				Money onePercentOfDenomination = baseDenomination.Percentange(1m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
+				Money onePercentOfDenomination = baseDenomination.Percentage(1m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
 				Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
 
 				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)

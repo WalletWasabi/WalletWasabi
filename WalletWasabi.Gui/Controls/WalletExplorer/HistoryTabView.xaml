@@ -27,9 +27,9 @@
         <DockPanel LastChildFill="True" DockPanel.Dock="Bottom">
           <Grid ColumnDefinitions="40, 160, 150, *" Margin="10 0 0 0" DockPanel.Dock="Top">
             <TextBlock Text="" />
-            <controls:SortingArrow Grid.Column="1" Text="Date" SortDirection="{Binding DateSortDirection}"/>
-            <controls:SortingArrow Grid.Column="2" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}"/>
-            <controls:SortingArrow Grid.Column="3" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}"/>
+            <controls:SortingArrow Grid.Column="1" Command="{Binding SortCommand}" Text="Date" SortDirection="{Binding DateSortDirection}" />
+            <controls:SortingArrow Grid.Column="2" Command="{Binding SortCommand}" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}" />
+            <controls:SortingArrow Grid.Column="3" Command="{Binding SortCommand}" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}" />
           </Grid>
           <ListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
             <ListBox.ItemTemplate>
@@ -40,8 +40,8 @@
                       <Setter Property="VerticalAlignment" Value="Center" />
                     </Style>
                   </Grid.Styles>
-                  <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="0" ToolTip.Tip="Confirmed" >
-                    <Path HorizontalAlignment="Center" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill"/>
+                  <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="0" ToolTip.Tip="Confirmed">
+                    <Path HorizontalAlignment="Center" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill" />
                   </Border>
                   <TextBlock Text="{Binding DateTime}" Grid.Column="1" />
                   <TextBlock Text="{Binding AmountBtc}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
