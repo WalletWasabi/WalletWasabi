@@ -84,7 +84,14 @@ namespace WalletWasabi.Backend
 
 		public static async void IndexBuilderService_NewBlockAsync(object sender, Block block)
 		{
-			await Coordinator.ProcessBlockAsync(block);
+			try
+			{
+				await Coordinator.ProcessBlockAsync(block);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning(ex, nameof(Global));
+			}
 		}
 
 		private static async Task AssertRpcNodeFullyInitializedAsync()

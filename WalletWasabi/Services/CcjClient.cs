@@ -90,9 +90,16 @@ namespace WalletWasabi.Services
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
 		{
-			IEnumerable<CcjRunningRoundState> newRoundStates = e.CcjRoundStates;
+			try
+			{
+				IEnumerable<CcjRunningRoundState> newRoundStates = e.CcjRoundStates;
 
-			await ProcessStatusAsync(newRoundStates);
+				await ProcessStatusAsync(newRoundStates);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<CcjClient>(ex);
+			}
 		}
 
 		public void Start()
