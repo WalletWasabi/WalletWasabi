@@ -108,7 +108,7 @@ namespace WalletWasabi.Packager
 				{
 					string currentBinDistDirectory;
 					string publishedFolder = Path.Combine(binDistDirectory, target);
-					string macWasabiAppDir = Path.Combine(publishedFolder, "Wasabi Wallet.app");
+					string macWasabiAppDir = Path.Combine(publishedFolder, "Wasabi Wallet.App"); // This should be lowercase .app, but MAC will prevent people from upgrading if we change it.
 					string macContentsDir = Path.Combine(macWasabiAppDir, "Contents");
 					if (target.StartsWith("osx"))
 					{
@@ -289,6 +289,19 @@ namespace WalletWasabi.Packager
 						//how to generate .DS_Store file - https://github.com/zkSNACKs/WalletWasabi/pull/928/commits/e38ed672dee25f6e45a3eb16584887cc6d48c4e6
 						var dmgContentDir = Path.Combine(packagerProjectDirectory, "Content", "Osx");
 						IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentDir), new DirectoryInfo(publishedFolder));
+
+						// ToDo: doesn't seem to work.
+						//var psiSetPermission = new ProcessStartInfo
+						//{
+						//	FileName = "cmd",
+						//	RedirectStandardInput = true,
+						//	WorkingDirectory = publishedFolder
+						//};
+						//using (var setPermissionProcess = Process.Start(psiSetPermission))
+						//{
+						//	setPermissionProcess.StandardInput.WriteLine($"wsl chmod 755 \"Wasabi Wallet.app\" && exit");
+						//	setPermissionProcess.WaitForExit();
+						//}
 
 						var psiGenIsoImage = new ProcessStartInfo
 						{
