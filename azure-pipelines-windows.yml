@@ -1,7 +1,7 @@
 variables:
   testConfiguration: 'Debug'
 
-jobs:  
+jobs:
 - job: Windows
   pool:
     vmImage: 'vs2017-win2016'

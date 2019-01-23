@@ -577,7 +577,7 @@ namespace WalletWasabi.Models
 					checked
 					{
 						// Double the size of the buckets table and add one, so that we have an odd integer.
-						newLength = tables.Buckets.Length * 2 + 1;
+						newLength = (tables.Buckets.Length * 2) + 1;
 
 						// Now, we only need to check odd integers, and find the first that is not divisible
 						// by 3, 5 or 7.
