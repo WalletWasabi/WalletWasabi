@@ -398,14 +398,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-#pragma warning disable RECS0165 // Asynchronous methods should return a Task instead of void
-
 		private async void CoinsList_DequeueCoinsPressedAsync()
-#pragma warning restore RECS0165 // Asynchronous methods should return a Task instead of void
 		{
-			var selectedCoin = _coinsList?.SelectedCoin;
-			if (selectedCoin == null) return;
-			await DoDequeueAsync(new[] { selectedCoin });
+			try
+			{
+				var selectedCoin = _coinsList?.SelectedCoin;
+				if (selectedCoin == null) return;
+				await DoDequeueAsync(new[] { selectedCoin });
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<CoinJoinTabViewModel>(ex);
+			}
 		}
 
 		public Money AmountQueued

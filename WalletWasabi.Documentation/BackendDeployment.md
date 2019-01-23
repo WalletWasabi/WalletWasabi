@@ -148,7 +148,8 @@ pico ~/.bitcoin/bitcoin.conf
 testnet=[0/1]
 
 [main/test].maxuploadtarget=144
-[main/test].listen=0
+# If bandwidth is an issue, then don't listen. It may be problematic from a privacy point of view.
+#[main/test].listen=0
 
 [main/test].txindex=1
 
