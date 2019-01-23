@@ -651,7 +651,7 @@ namespace WalletWasabi.Services
 						}
 						catch (SocketException)
 						{
-							Logger.LogInfo<WalletService>("Didn't find local listening and running Bitcoin Core node instance. Trying to fetch needed block from other source.");
+							Logger.LogDebug<WalletService>("Didn't find local listening and running Bitcoin Core node instance. Trying to fetch needed block from other source.");
 						}
 						catch (Exception ex)
 						{
@@ -712,42 +712,45 @@ namespace WalletWasabi.Services
 									else
 									{
 										// If it have the second best, it's most likely running.
-										var secondBest = Synchronizer?.GetFilters()?.TakeLast(2)?.FirstOrDefault();
-										if (LastBlocksFromCore.ContainsKey(secondBest.BlockHash)) // Then give some time to Core to download, and try again.
+										var lastTwo = Synchronizer?.GetFilters()?.TakeLast(2).ToArray();
+										if (lastTwo != null && lastTwo.Length == 2 && lastTwo[1].BlockHash == hash)
 										{
-											Logger.LogInfo<WalletService>("Local Bitcoin Core doesn't yet have our block. Waiting a bit before trying to download it from other nodes...");
-
-											var sec = 0;
-											while (sec < 60)
+											if (LastBlocksFromCore.ContainsKey(lastTwo[0].BlockHash)) // Then give some time to Core to download, and try again.
 											{
-												sec++;
-												try
-												{
-													await Task.Delay(1000, cancel);
-												}
-												catch (TaskCanceledException ex)
-												{
-													Logger.LogTrace<WalletService>(ex);
-												}
+												Logger.LogInfo<WalletService>("Found synchronized local Bitcoin Core blocks folder, but it doesn't yet have our block. Waiting a few seconds for the block on the disk before trying to download it from P2P nodes...");
 
-												noChange = TryFetchBlockFromDisk(blocksFolderPath);
-
-												if (!noChange)
+												var sec = 0;
+												while (sec < 60)
 												{
-													if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore3))
+													sec++;
+													try
 													{
-														if (foundBlockFromCore3 != null && !foundBlockFromCore3.HeaderOnly && foundBlockFromCore3.Check())
+														await Task.Delay(1000, cancel);
+													}
+													catch (TaskCanceledException ex)
+													{
+														Logger.LogTrace<WalletService>(ex);
+													}
+
+													noChange = TryFetchBlockFromDisk(blocksFolderPath);
+
+													if (!noChange)
+													{
+														if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore3))
 														{
-															Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
-															block = foundBlockFromCore3;
-															break;
+															if (foundBlockFromCore3 != null && !foundBlockFromCore3.HeaderOnly && foundBlockFromCore3.Check())
+															{
+																Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
+																block = foundBlockFromCore3;
+																break;
+															}
 														}
 													}
 												}
-											}
-											if (block != null)
-											{
-												break;
+												if (block != null)
+												{
+													break;
+												}
 											}
 										}
 									}
