@@ -648,7 +648,7 @@ namespace WalletWasabi.Services
 								{
 									if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore))
 									{
-										if (foundBlockFromCore != null && !foundBlockFromCore.HeaderOnly)
+										if (foundBlockFromCore != null && !foundBlockFromCore.HeaderOnly && foundBlockFromCore.Check())
 										{
 											Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
 											block = foundBlockFromCore;
@@ -692,7 +692,7 @@ namespace WalletWasabi.Services
 									{
 										if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore2))
 										{
-											if (foundBlockFromCore2 != null && !foundBlockFromCore2.HeaderOnly)
+											if (foundBlockFromCore2 != null && !foundBlockFromCore2.HeaderOnly && foundBlockFromCore2.Check())
 											{
 												Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
 												block = foundBlockFromCore2;
