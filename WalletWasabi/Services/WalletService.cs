@@ -689,8 +689,9 @@ namespace WalletWasabi.Services
 						{
 							if (foundBlockFromCore != null && !foundBlockFromCore.HeaderOnly)
 							{
-								Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {block.GetHash()}");
-								return foundBlockFromCore;
+								Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
+								block = foundBlockFromCore;
+								break;
 							}
 						}
 
