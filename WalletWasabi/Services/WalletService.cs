@@ -656,37 +656,7 @@ namespace WalletWasabi.Services
 										}
 									}
 
-									var blocksFolder = new DirectoryInfo(blocksFolderPath);
-									var totalCount = 0;
-									var noChange = true;
-									foreach (var blkFile in blocksFolder
-										.EnumerateFiles("blk*.dat", new EnumerationOptions() { IgnoreInaccessible = true, RecurseSubdirectories = false })
-										.OrderByDescending(x => int.Parse(x.Name.Split(new[] { "blk", ".dat" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault())))
-									{
-										// If nothing changed, then don't bother updating.
-										if (noChange)
-										{
-											if (blkFile.Length == LastBlkSize && blkFile.Name == LastBlkName)
-											{
-												break;
-											}
-											LastBlkSize = blkFile.Length;
-											LastBlkName = blkFile.Name;
-											LastBlocksFromCore.Clear();
-											noChange = false;
-										}
-
-										foreach (var storedBlock in StoredBlock.EnumerateFile(blkFile.FullName))
-										{
-											totalCount++;
-											LastBlocksFromCore.Add(storedBlock.Item.GetHash(), storedBlock.Item);
-										}
-
-										if (totalCount > 100) // at least check the last 100 blocks (2sec with SSD)
-										{
-											break;
-										}
-									}
+									bool noChange = TryFetchBlockFromDisk(blocksFolderPath);
 
 									if (!noChange)
 									{
@@ -696,6 +666,47 @@ namespace WalletWasabi.Services
 											{
 												Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
 												block = foundBlockFromCore2;
+												break;
+											}
+										}
+									}
+									else
+									{
+										// If it have the second best, it's most likely running.
+										var secondBest = Synchronizer?.GetFilters()?.TakeLast(2)?.FirstOrDefault();
+										if (LastBlocksFromCore.ContainsKey(secondBest.BlockHash)) // Then give some time to Core to download, and try again.
+										{
+											Logger.LogInfo<WalletService>("Local Bitcoin Core doesn't yet have our block. Waiting a bit before trying to download it from other nodes...");
+
+											var sec = 0;
+											while (sec < 60)
+											{
+												try
+												{
+													await Task.Delay(1000, cancel);
+												}
+												catch (TaskCanceledException ex)
+												{
+													Logger.LogTrace<WalletService>(ex);
+												}
+
+												noChange = TryFetchBlockFromDisk(blocksFolderPath);
+
+												if (!noChange)
+												{
+													if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore3))
+													{
+														if (foundBlockFromCore3 != null && !foundBlockFromCore3.HeaderOnly && foundBlockFromCore3.Check())
+														{
+															Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
+															block = foundBlockFromCore3;
+															break;
+														}
+													}
+												}
+											}
+											if (block != null)
+											{
 												break;
 											}
 										}
@@ -798,6 +809,43 @@ namespace WalletWasabi.Services
 			}
 
 			return block;
+		}
+
+		private static bool TryFetchBlockFromDisk(string blocksFolderPath)
+		{
+			var blocksFolder = new DirectoryInfo(blocksFolderPath);
+			var totalCount = 0;
+			var noChange = true;
+			foreach (var blkFile in blocksFolder
+				.EnumerateFiles("blk*.dat", new EnumerationOptions() { IgnoreInaccessible = true, RecurseSubdirectories = false })
+				.OrderByDescending(x => int.Parse(x.Name.Split(new[] { "blk", ".dat" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault())))
+			{
+				// If nothing changed, then don't bother updating.
+				if (noChange)
+				{
+					if (blkFile.Length == LastBlkSize && blkFile.Name == LastBlkName)
+					{
+						break;
+					}
+					LastBlkSize = blkFile.Length;
+					LastBlkName = blkFile.Name;
+					LastBlocksFromCore.Clear();
+					noChange = false;
+				}
+
+				foreach (var storedBlock in StoredBlock.EnumerateFile(blkFile.FullName))
+				{
+					totalCount++;
+					LastBlocksFromCore.Add(storedBlock.Item.GetHash(), storedBlock.Item);
+				}
+
+				if (totalCount > 100) // at least check the last 100 blocks (2sec with SSD)
+				{
+					break;
+				}
+			}
+
+			return noChange;
 		}
 
 		/// <remarks>
@@ -1144,7 +1192,7 @@ namespace WalletWasabi.Services
 			return haveEnough;
 		}
 
-		public void Renamelabel(SmartCoin coin, string newLabel)
+		public void RenameLabel(SmartCoin coin, string newLabel)
 		{
 			newLabel = Guard.Correct(newLabel);
 			coin.Label = newLabel;
