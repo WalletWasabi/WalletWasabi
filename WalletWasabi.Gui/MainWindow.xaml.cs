@@ -18,8 +18,6 @@ namespace WalletWasabi.Gui
 {
 	public class MainWindow : MetroWindow
 	{
-
-
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -46,36 +44,51 @@ namespace WalletWasabi.Gui
 
 		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
 		{
-			Global.UiConfig.WindowState = WindowState;
-			Global.UiConfig.Width = Width;
-			Global.UiConfig.Height = Height;
-			await Global.UiConfig.ToFileAsync();
-			Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+			try
+			{
+				Global.UiConfig.WindowState = WindowState;
+				Global.UiConfig.Width = Width;
+				Global.UiConfig.Height = Height;
+				await Global.UiConfig.ToFileAsync();
+				Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<MainWindow>(ex);
+			}
 		}
 
 #pragma warning disable IDE1006 // Naming Styles
+
 		private async void OnActivated(object sender, EventArgs e)
 #pragma warning restore IDE1006 // Naming Styles
 		{
-			Activated -= OnActivated;
-
-			var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
-			var uiConfig = new UiConfig(uiConfigFilePath);
-			await uiConfig.LoadOrCreateDefaultFileAsync();
-			Global.InitializeUiConfig(uiConfig);
-			Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			try
 			{
-				MainWindowViewModel.Instance.Width = (double)uiConfig.Width;
-				MainWindowViewModel.Instance.Height = (double)uiConfig.Height;
-				MainWindowViewModel.Instance.WindowState = (WindowState)uiConfig.WindowState;
+				Activated -= OnActivated;
+
+				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
+				var uiConfig = new UiConfig(uiConfigFilePath);
+				await uiConfig.LoadOrCreateDefaultFileAsync();
+				Global.InitializeUiConfig(uiConfig);
+				Logging.Logger.LogInfo<UiConfig>("UiConfig is successfully initialized.");
+
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					MainWindowViewModel.Instance.Width = (double)uiConfig.Width;
+					MainWindowViewModel.Instance.Height = (double)uiConfig.Height;
+					MainWindowViewModel.Instance.WindowState = (WindowState)uiConfig.WindowState;
+				}
+				else
+				{
+					MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
+				}
+				DisplayWalletManager();
 			}
-			else
+			catch (Exception ex)
 			{
-				MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
+				Logging.Logger.LogWarning<MainWindow>(ex);
 			}
-			DisplayWalletManager();
 		}
 
 		private void DisplayWalletManager()

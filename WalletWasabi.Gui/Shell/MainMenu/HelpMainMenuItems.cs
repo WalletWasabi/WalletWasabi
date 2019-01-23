@@ -9,17 +9,17 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 {
 	internal class HelpMainMenuItems
 	{
-		private IMenuItemFactory _menuItemFactory;
+		private IMenuItemFactory MenuItemFactory { get; }
 
 		[ImportingConstructor]
 		public HelpMainMenuItems(IMenuItemFactory menuItemFactory)
 		{
-			_menuItemFactory = menuItemFactory;
+			MenuItemFactory = menuItemFactory;
 		}
 
 		[ExportMainMenuItem("Help")]
 		[DefaultOrder(40)]
-		public IMenuItem Tools => _menuItemFactory.CreateHeaderMenuItem("Help", null);
+		public IMenuItem Tools => MenuItemFactory.CreateHeaderMenuItem("Help", null);
 
 		[ExportMainMenuDefaultGroup("Help", "About")]
 		[DefaultOrder(0)]
@@ -28,7 +28,7 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[ExportMainMenuItem("Help", "About")]
 		[DefaultOrder(0)]
 		[DefaultGroup("About")]
-		public IMenuItem About => _menuItemFactory.CreateCommandMenuItem("Help.About");
+		public IMenuItem About => MenuItemFactory.CreateCommandMenuItem("Help.About");
 
 		[ExportMainMenuDefaultGroup("Help", "Support")]
 		[DefaultOrder(100)]
@@ -37,12 +37,12 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[ExportMainMenuItem("Help", "CustomerSupport")]
 		[DefaultOrder(0)]
 		[DefaultGroup("Support")]
-		public IMenuItem CustomerSupport => _menuItemFactory.CreateCommandMenuItem("Help.CustomerSupport");
+		public IMenuItem CustomerSupport => MenuItemFactory.CreateCommandMenuItem("Help.CustomerSupport");
 
 		[ExportMainMenuItem("Help", "ReportBug")]
 		[DefaultOrder(1)]
 		[DefaultGroup("Support")]
-		public IMenuItem ReportBug => _menuItemFactory.CreateCommandMenuItem("Help.ReportBug");
+		public IMenuItem ReportBug => MenuItemFactory.CreateCommandMenuItem("Help.ReportBug");
 
 		[ExportMainMenuDefaultGroup("Help", "Legal")]
 		[DefaultOrder(200)]
@@ -51,23 +51,25 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[ExportMainMenuItem("Help", "PrivacyPolicy")]
 		[DefaultOrder(0)]
 		[DefaultGroup("Legal")]
-		public IMenuItem PrivacyPolicy => _menuItemFactory.CreateCommandMenuItem("Help.PrivacyPolicy");
+		public IMenuItem PrivacyPolicy => MenuItemFactory.CreateCommandMenuItem("Help.PrivacyPolicy");
 
 		[ExportMainMenuItem("Help", "TermsAndConditions")]
 		[DefaultOrder(1)]
 		[DefaultGroup("Legal")]
-		public IMenuItem TermsAndConditions => _menuItemFactory.CreateCommandMenuItem("Help.TermsAndConditions");
+		public IMenuItem TermsAndConditions => MenuItemFactory.CreateCommandMenuItem("Help.TermsAndConditions");
 
 		[ExportMainMenuItem("Help", "LegalIssues")]
 		[DefaultOrder(2)]
 		[DefaultGroup("Legal")]
-		public IMenuItem LegalIssues => _menuItemFactory.CreateCommandMenuItem("Help.LegalIssues");
+		public IMenuItem LegalIssues => MenuItemFactory.CreateCommandMenuItem("Help.LegalIssues");
 
 #if DEBUG
+
 		[ExportMainMenuItem("Help", "Dev Tools")]
 		[DefaultOrder(300)]
 		[DefaultGroup("About")]
-		public IMenuItem DevTools => _menuItemFactory.CreateCommandMenuItem("Help.DevTools");
+		public IMenuItem DevTools => MenuItemFactory.CreateCommandMenuItem("Help.DevTools");
+
 #endif
 	}
 }

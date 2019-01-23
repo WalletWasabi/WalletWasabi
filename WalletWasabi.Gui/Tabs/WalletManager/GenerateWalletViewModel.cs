@@ -66,7 +66,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
 			PasswordConfirmation = Guard.Correct(PasswordConfirmation); // Don't let whitespaces to the beginning and to the end.
 
-			if (TermsAccepted == false)
+			if (!TermsAccepted)
 			{
 				ValidationMessage = "Terms are not accepted.";
 			}

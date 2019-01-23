@@ -9,17 +9,17 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 {
 	internal class FileMainMenuItems
 	{
-		private IMenuItemFactory _menuItemFactory;
+		private IMenuItemFactory MenuItemFactory { get; }
 
 		[ImportingConstructor]
 		public FileMainMenuItems(IMenuItemFactory menuItemFactory)
 		{
-			_menuItemFactory = menuItemFactory;
+			MenuItemFactory = menuItemFactory;
 		}
 
 		[ExportMainMenuItem("File")]
 		[DefaultOrder(0)]
-		public IMenuItem File => _menuItemFactory.CreateHeaderMenuItem("File", null);
+		public IMenuItem File => MenuItemFactory.CreateHeaderMenuItem("File", null);
 
 		[ExportMainMenuDefaultGroup("File", "Wallet")]
 		[DefaultOrder(0)]
@@ -28,17 +28,17 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[ExportMainMenuItem("File", "Generate Wallet")]
 		[DefaultOrder(0)]
 		[DefaultGroup("Wallet")]
-		public IMenuItem GenerateWallet => _menuItemFactory.CreateCommandMenuItem("File.GenerateWallet");
+		public IMenuItem GenerateWallet => MenuItemFactory.CreateCommandMenuItem("File.GenerateWallet");
 
 		[ExportMainMenuItem("File", "Recover Wallet")]
 		[DefaultOrder(10)]
 		[DefaultGroup("Wallet")]
-		public IMenuItem Recover => _menuItemFactory.CreateCommandMenuItem("File.RecoverWallet");
+		public IMenuItem Recover => MenuItemFactory.CreateCommandMenuItem("File.RecoverWallet");
 
 		[ExportMainMenuItem("File", "Load Wallet")]
 		[DefaultOrder(20)]
 		[DefaultGroup("Wallet")]
-		public IMenuItem LoadWallet => _menuItemFactory.CreateCommandMenuItem("File.LoadWallet");
+		public IMenuItem LoadWallet => MenuItemFactory.CreateCommandMenuItem("File.LoadWallet");
 
 		[ExportMainMenuDefaultGroup("File", "Exit")]
 		[DefaultOrder(1000)]
@@ -47,6 +47,6 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[ExportMainMenuItem("File", "Exit")]
 		[DefaultOrder(0)]
 		[DefaultGroup("Exit")]
-		public IMenuItem Exit => _menuItemFactory.CreateCommandMenuItem("File.Exit");
+		public IMenuItem Exit => MenuItemFactory.CreateCommandMenuItem("File.Exit");
 	}
 }

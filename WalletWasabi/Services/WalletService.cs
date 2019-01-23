@@ -147,7 +147,9 @@ namespace WalletWasabi.Services
 
 		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			RefreshCoinsHistoriesAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
 		private static object TransactionProcessingLock { get; } = new object();
@@ -169,21 +171,28 @@ namespace WalletWasabi.Services
 
 		private async void IndexDownloader_ReorgedAsync(object sender, FilterModel invalidFilter)
 		{
-			using (HandleFiltersLock.Lock())
-			using (WalletBlocksLock.Lock())
+			try
 			{
-				uint256 invalidBlockHash = invalidFilter.BlockHash;
-				KeyValuePair<Height, uint256> elem = WalletBlocks.FirstOrDefault(x => x.Value == invalidBlockHash);
-				await DeleteBlockAsync(invalidBlockHash);
-				WalletBlocks.Remove(elem.Key);
-				ProcessedBlocks.TryRemove(invalidBlockHash, out _);
-				if (elem.Key != default(Height))
+				using (HandleFiltersLock.Lock())
+				using (WalletBlocksLock.Lock())
 				{
-					foreach (var toRemove in Coins.Where(x => x.Height == elem.Key).Distinct().ToList())
+					uint256 invalidBlockHash = invalidFilter.BlockHash;
+					KeyValuePair<Height, uint256> elem = WalletBlocks.FirstOrDefault(x => x.Value == invalidBlockHash);
+					await DeleteBlockAsync(invalidBlockHash);
+					WalletBlocks.Remove(elem.Key);
+					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
+					if (elem.Key != default(Height))
 					{
-						RemoveCoinRecursively(toRemove);
+						foreach (var toRemove in Coins.Where(x => x.Height == elem.Key).Distinct().ToList())
+						{
+							RemoveCoinRecursively(toRemove);
+						}
 					}
 				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<WalletService>(ex);
 			}
 		}
 
@@ -202,20 +211,27 @@ namespace WalletWasabi.Services
 
 		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
 		{
-			using (HandleFiltersLock.Lock())
-			using (WalletBlocksLock.Lock())
+			try
 			{
-				if (!(filterModel.Filter is null) && !WalletBlocks.ContainsValue(filterModel.BlockHash))
+				using (HandleFiltersLock.Lock())
+				using (WalletBlocksLock.Lock())
 				{
-					await ProcessFilterModelAsync(filterModel, CancellationToken.None);
+					if (!(filterModel.Filter is null) && !WalletBlocks.ContainsValue(filterModel.BlockHash))
+					{
+						await ProcessFilterModelAsync(filterModel, CancellationToken.None);
+					}
+				}
+				NewFilterProcessed?.Invoke(this, filterModel);
+
+				// Try perform mempool cleanup based on connected nodes' mempools.
+				if (!(Synchronizer is null) && Synchronizer.GetFiltersLeft() == 0)
+				{
+					MemPool?.TryPerformMempoolCleanupAsync(Nodes, CancellationToken.None);
 				}
 			}
-			NewFilterProcessed?.Invoke(this, filterModel);
-
-			// Try perform mempool cleanup based on connected nodes' mempools.
-			if (!(Synchronizer is null) && Synchronizer.GetFiltersLeft() == 0)
+			catch (Exception ex)
 			{
-				MemPool?.TryPerformMempoolCleanupAsync(Nodes, CancellationToken.None);
+				Logger.LogWarning<WalletService>(ex);
 			}
 		}
 
@@ -278,7 +294,9 @@ namespace WalletWasabi.Services
 				}
 			}
 			Coins.CollectionChanged += Coins_CollectionChanged;
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			RefreshCoinsHistoriesAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
@@ -643,34 +661,40 @@ namespace WalletWasabi.Services
 
 							if (block is null)
 							{
-								Logger.LogInfo<WalletService>("Disconnected node, because couldn't parse received block.");
+								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because couldn't parse received block.");
 								node.DisconnectAsync("Couldn't parse block.");
 								continue;
 							}
 
 							if (!block.Check())
 							{
-								Logger.LogInfo<WalletService>("Disconnected node, because block invalid block received.");
+								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block invalid block received.");
 								node.DisconnectAsync("Invalid block received.");
 								continue;
+							}
+
+							if (Nodes.ConnectedNodes.Count > 1) // So to minimize risking missing unconfirmed transactions.
+							{
+								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}");
+								node.DisconnectAsync("Thank you!");
 							}
 						}
 						catch (TimeoutException)
 						{
-							Logger.LogInfo<WalletService>("Disconnected node, because block download took too long.");
+							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
 							node.DisconnectAsync("Block download took too long.");
 							continue;
 						}
 						catch (OperationCanceledException)
 						{
-							Logger.LogInfo<WalletService>("Disconnected node, because block download took too long.");
+							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
 							node.DisconnectAsync("Block download took too long.");
 							continue;
 						}
 						catch (Exception ex)
 						{
 							Logger.LogDebug<WalletService>(ex);
-							Logger.LogInfo<WalletService>($"Disconnected node, because block download failed: {ex.Message}");
+							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}");
 							node.DisconnectAsync("Block download failed.");
 							continue;
 						}
@@ -1092,7 +1116,7 @@ namespace WalletWasabi.Services
 
 		private long _refreshCoinCalls;
 
-		public async void RefreshCoinsHistoriesAsync()
+		public async Task RefreshCoinsHistoriesAsync()
 		{
 			try
 			{
@@ -1127,7 +1151,9 @@ namespace WalletWasabi.Services
 				if (Interlocked.Read(ref _refreshCoinCalls) == 2) //scheduled to rerun so we start the work again
 				{
 					Interlocked.Exchange(ref _refreshCoinCalls, 0);
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 					RefreshCoinsHistoriesAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				}
 				if (Interlocked.Read(ref _refreshCoinCalls) == 1) //done with the job
 				{

@@ -8,6 +8,7 @@ using ReactiveUI;
 using System;
 using System.Reactive.Linq;
 using Avalonia.Media;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -17,14 +18,14 @@ namespace WalletWasabi.Gui.Controls
 
 		public ExtendedTextBox()
 		{
-			CopyCommand = ReactiveCommand.Create(() =>
+			CopyCommand = ReactiveCommand.Create(async () =>
 			{
-				CopyAsync();
+				await CopyAsync();
 			});
 
-			PasteCommand = ReactiveCommand.Create(() =>
+			PasteCommand = ReactiveCommand.Create(async () =>
 			{
-				PasteAsync();
+				await PasteAsync();
 			});
 
 			this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
@@ -56,7 +57,7 @@ namespace WalletWasabi.Gui.Controls
 		private ReactiveCommand CopyCommand { get; }
 		private ReactiveCommand PasteCommand { get; }
 
-		private async void PasteAsync()
+		private async Task PasteAsync()
 		{
 			var text = await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard))).GetTextAsync();
 
@@ -89,7 +90,7 @@ namespace WalletWasabi.Gui.Controls
 			return text.Substring(start, end - start);
 		}
 
-		private async void CopyAsync()
+		private async Task CopyAsync()
 		{
 			var selection = GetSelection();
 
@@ -114,9 +115,8 @@ namespace WalletWasabi.Gui.Controls
 			ContextMenu = new ContextMenu
 			{
 				DataContext = this,
+				Items = new Avalonia.Controls.Controls()
 			};
-
-			ContextMenu.Items = new Avalonia.Controls.Controls();
 
 			if (IsCopyEnabled)
 			{

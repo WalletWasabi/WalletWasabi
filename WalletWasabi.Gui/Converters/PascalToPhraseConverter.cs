@@ -11,23 +11,26 @@ namespace WalletWasabi.Gui.Converters
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			var str = value.ToString();
-			var ret = "";
 			var pos = 0;
-			foreach(var c in str)
+			var builder = new StringBuilder();
+			foreach (var c in str)
 			{
-				if(char.IsUpper(c))
+				if (char.IsUpper(c))
 				{
-					if(pos > 0)
-						ret += " ";
-					ret += char.ToLower(c);
+					if (pos > 0)
+					{
+						builder.Append(" ");
+					}
+
+					builder.Append(char.ToLower(c));
 				}
 				else
 				{
-					ret += c;
+					builder.Append(c);
 				}
 				pos++;
 			}
-			return ret;
+			return builder.ToString();
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

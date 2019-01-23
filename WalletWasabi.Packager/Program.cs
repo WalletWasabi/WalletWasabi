@@ -108,7 +108,7 @@ namespace WalletWasabi.Packager
 				{
 					string currentBinDistDirectory;
 					string publishedFolder = Path.Combine(binDistDirectory, target);
-					string macWasabiAppDir = Path.Combine(publishedFolder, "Wasabi Wallet.app");
+					string macWasabiAppDir = Path.Combine(publishedFolder, "Wasabi Wallet.App"); // This should be lowercase .app, but MAC will prevent people from upgrading if we change it.
 					string macContentsDir = Path.Combine(macWasabiAppDir, "Contents");
 					if (target.StartsWith("osx"))
 					{
@@ -307,7 +307,7 @@ namespace WalletWasabi.Packager
 							// -V: Volume Label
 							// -no-pad: Do not pad the end by 150 sectors (300kb). As it is not a cd image, not required
 							// -apple -r: Creates a .dmg image
-							genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(publishedFolder).Name}\" && exit");
+							genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -dir-mode 755 -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(publishedFolder).Name}\" && exit");
 							genIsoImageProcess.WaitForExit();
 						}
 						// cd ~

@@ -165,88 +165,95 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override async void OnKeyDown(KeyEventArgs e)
 		{
-			if (e.Key == Key.Capital || e.Key == Key.CapsLock) //on windows capslock is Key.Capital
+			try
 			{
-				RefreshCapsLockWarning();
-			}
-			if (_supressedKeys.Contains(e.Key))
-			{
-				return;
-			}
-			//prevent copy
-			if ((e.Key == Key.C || e.Key == Key.X || e.Key == Key.Insert) && (e.Modifiers == InputModifiers.Control || e.Modifiers == InputModifiers.Windows))
-			{
-				return;
-			}
-
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-			{
-				if (e.Key == Key.V && e.Modifiers == InputModifiers.Control) //prevent paste
+				if (e.Key == Key.Capital || e.Key == Key.CapsLock) //on windows capslock is Key.Capital
+				{
+					RefreshCapsLockWarning();
+				}
+				if (_supressedKeys.Contains(e.Key))
 				{
 					return;
 				}
-			}
+				//prevent copy
+				if ((e.Key == Key.C || e.Key == Key.X || e.Key == Key.Insert) && (e.Modifiers == InputModifiers.Control || e.Modifiers == InputModifiers.Windows))
+				{
+					return;
+				}
 
-			bool paste = false;
-			if (e.Key == Key.V)
-			{
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
-					if (e.Modifiers == InputModifiers.Windows) paste = true;
+					if (e.Key == Key.V && e.Modifiers == InputModifiers.Control) //prevent paste
+					{
+						return;
+					}
 				}
-				else
-				{
-					if (e.Modifiers == InputModifiers.Control) paste = true;
-				}
-			}
 
-			if (paste) //paste
-			{
-				var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
-				Task<string> clipboardTask = clipboard.GetTextAsync();
-				string text = await clipboardTask;
-				if (!string.IsNullOrEmpty(text))
+				bool paste = false;
+				if (e.Key == Key.V)
 				{
-					e.Handled = OnTextInput(text);
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+					{
+						if (e.Modifiers == InputModifiers.Windows) paste = true;
+					}
+					else
+					{
+						if (e.Modifiers == InputModifiers.Control) paste = true;
+					}
 				}
-			}
-			else if (e.Key == Key.Back && _sb.Length > 0) //backspace button -> delete from the end
-			{
-				if (SelectionLength != 0)
+
+				if (paste) //paste
 				{
-					_sb.Clear();
+					var clipboard = (IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard));
+					Task<string> clipboardTask = clipboard.GetTextAsync();
+					string text = await clipboardTask;
+					if (!string.IsNullOrEmpty(text))
+					{
+						e.Handled = OnTextInput(text);
+					}
+				}
+				else if (e.Key == Key.Back && _sb.Length > 0) //backspace button -> delete from the end
+				{
+					if (SelectionLength != 0)
+					{
+						_sb.Clear();
+					}
+					else
+					{
+						if (CaretIndex == Text.Length)
+						{
+							_sb.Remove(_sb.Length - 1, 1);
+						}
+					}
+					e.Handled = true;
+				}
+				else if (e.Key == Key.Delete && _sb.Length > 0) //delete button -> delete from the beginning
+				{
+					if (SelectionLength != 0)
+					{
+						_sb.Clear();
+					}
+					else
+					{
+						if (CaretIndex == 0)
+						{
+							_sb.Remove(0, 1);
+						}
+					}
+					e.Handled = true;
 				}
 				else
 				{
-					if (CaretIndex == Text.Length)
-					{
-						_sb.Remove(_sb.Length - 1, 1);
-					}
+					if (SelectionLength != 0)
+						_sb.Clear();
+					base.OnKeyDown(e);
 				}
-				e.Handled = true;
+				PaintText();
 			}
-			else if (e.Key == Key.Delete && _sb.Length > 0) //delete button -> delete from the beginning
+			catch (Exception ex)
 			{
-				if (SelectionLength != 0)
-				{
-					_sb.Clear();
-				}
-				else
-				{
-					if (CaretIndex == 0)
-					{
-						_sb.Remove(0, 1);
-					}
-				}
-				e.Handled = true;
+				Logging.Logger.LogWarning<NoparaPasswordBox>(ex);
 			}
-			else
-			{
-				if (SelectionLength != 0)
-					_sb.Clear();
-				base.OnKeyDown(e);
-			}
-			PaintText();
 		}
 
 		protected override void OnTextInput(TextInputEventArgs e)

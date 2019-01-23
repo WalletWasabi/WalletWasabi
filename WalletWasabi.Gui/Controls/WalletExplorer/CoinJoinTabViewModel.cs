@@ -208,15 +208,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					Logger.LogWarning<CoinJoinTabViewModel>(ex);
-					var warningMessage = ex.ToTypeMessageString();
+					var builder = new StringBuilder(ex.ToTypeMessageString());
 					if (ex is AggregateException aggex)
 					{
 						foreach (var iex in aggex.InnerExceptions)
 						{
-							warningMessage += Environment.NewLine + iex.ToTypeMessageString();
+							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
-					SetWarningMessage(warningMessage);
+					SetWarningMessage(builder.ToString());
 					return;
 				}
 			}
@@ -247,15 +247,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				catch (Exception ex)
 				{
 					Logger.LogWarning<CoinJoinTabViewModel>(ex);
-					var warningMessage = ex.ToTypeMessageString();
+					var builder = new StringBuilder(ex.ToTypeMessageString());
 					if (ex is AggregateException aggex)
 					{
 						foreach (var iex in aggex.InnerExceptions)
 						{
-							warningMessage += Environment.NewLine + iex.ToTypeMessageString();
+							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
-					SetWarningMessage(warningMessage);
+					SetWarningMessage(builder.ToString());
 					Password = string.Empty;
 					return;
 				}
@@ -398,14 +398,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-#pragma warning disable RECS0165 // Asynchronous methods should return a Task instead of void
-
 		private async void CoinsList_DequeueCoinsPressedAsync()
-#pragma warning restore RECS0165 // Asynchronous methods should return a Task instead of void
 		{
-			var selectedCoin = _coinsList?.SelectedCoin;
-			if (selectedCoin == null) return;
-			await DoDequeueAsync(new[] { selectedCoin });
+			try
+			{
+				var selectedCoin = _coinsList?.SelectedCoin;
+				if (selectedCoin == null) return;
+				await DoDequeueAsync(new[] { selectedCoin });
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<CoinJoinTabViewModel>(ex);
+			}
 		}
 
 		public Money AmountQueued
