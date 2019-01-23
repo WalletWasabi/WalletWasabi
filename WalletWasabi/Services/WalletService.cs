@@ -651,7 +651,7 @@ namespace WalletWasabi.Services
 						}
 						catch (SocketException)
 						{
-							Logger.LogTrace<WalletService>("Didn't find local listening and running Bitcoin Core node instance. Trying to fetch needed block from other source.");
+							Logger.LogTrace<WalletService>("Didn't find local listening and running full node instance. Trying to fetch needed block from other source.");
 						}
 						catch (Exception ex)
 						{
