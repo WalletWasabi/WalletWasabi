@@ -720,6 +720,7 @@ namespace WalletWasabi.Services
 											var sec = 0;
 											while (sec < 60)
 											{
+												sec++;
 												try
 												{
 													await Task.Delay(1000, cancel);
