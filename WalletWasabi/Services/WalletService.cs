@@ -646,15 +646,25 @@ namespace WalletWasabi.Services
 
 								if (Directory.Exists(blocksFolderPath))
 								{
+									if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore))
+									{
+										if (foundBlockFromCore != null && !foundBlockFromCore.HeaderOnly)
+										{
+											Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
+											block = foundBlockFromCore;
+											break;
+										}
+									}
+
 									var blocksFolder = new DirectoryInfo(blocksFolderPath);
 									var totalCount = 0;
-									var first = true;
+									var noChange = true;
 									foreach (var blkFile in blocksFolder
 										.EnumerateFiles("blk*.dat", new EnumerationOptions() { IgnoreInaccessible = true, RecurseSubdirectories = false })
 										.OrderByDescending(x => int.Parse(x.Name.Split(new[] { "blk", ".dat" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault())))
 									{
 										// If nothing changed, then don't bother updating.
-										if (first)
+										if (noChange)
 										{
 											if (blkFile.Length == LastBlkSize && blkFile.Name == LastBlkName)
 											{
@@ -663,7 +673,7 @@ namespace WalletWasabi.Services
 											LastBlkSize = blkFile.Length;
 											LastBlkName = blkFile.Name;
 											LastBlocksFromCore.Clear();
-											first = false;
+											noChange = false;
 										}
 
 										foreach (var storedBlock in StoredBlock.EnumerateFile(blkFile.FullName))
@@ -677,22 +687,25 @@ namespace WalletWasabi.Services
 											break;
 										}
 									}
+
+									if (!noChange)
+									{
+										if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore2))
+										{
+											if (foundBlockFromCore2 != null && !foundBlockFromCore2.HeaderOnly)
+											{
+												Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
+												block = foundBlockFromCore2;
+												break;
+											}
+										}
+									}
 								}
 							}
 						}
 						catch (Exception ex)
 						{
 							Logger.LogWarning<WalletService>(ex);
-						}
-
-						if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore))
-						{
-							if (foundBlockFromCore != null && !foundBlockFromCore.HeaderOnly)
-							{
-								Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
-								block = foundBlockFromCore;
-								break;
-							}
 						}
 
 						// If no connection, wait then continue.
