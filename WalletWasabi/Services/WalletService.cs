@@ -580,7 +580,7 @@ namespace WalletWasabi.Services
 		}
 
 		// Should be protected by BlockFolderLock
-		private static List<Block> LastBlocksFromCore { get; } = new List<Block>();
+		private static Dictionary<uint256, Block> LastBlocksFromCore { get; } = new Dictionary<uint256, Block>();
 
 		private static long LastBlkSize { get; set; } = 0;
 		private static string LastBlkName { get; set; } = "";
@@ -648,23 +648,28 @@ namespace WalletWasabi.Services
 								{
 									var blocksFolder = new DirectoryInfo(blocksFolderPath);
 									var totalCount = 0;
+									var first = true;
 									foreach (var blkFile in blocksFolder
 										.EnumerateFiles("blk*.dat", new EnumerationOptions() { IgnoreInaccessible = true, RecurseSubdirectories = false })
 										.OrderByDescending(x => int.Parse(x.Name.Split(new[] { "blk", ".dat" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault())))
 									{
 										// If nothing changed, then don't bother updating.
-										if (blkFile.Length == LastBlkSize && blkFile.Name == LastBlkName)
+										if (first)
 										{
-											break;
+											if (blkFile.Length == LastBlkSize && blkFile.Name == LastBlkName)
+											{
+												break;
+											}
+											LastBlkSize = blkFile.Length;
+											LastBlkName = blkFile.Name;
+											LastBlocksFromCore.Clear();
+											first = false;
 										}
-										LastBlkSize = blkFile.Length;
-										LastBlkName = blkFile.Name;
-										LastBlocksFromCore.Clear();
 
 										foreach (var storedBlock in StoredBlock.EnumerateFile(blkFile.FullName))
 										{
 											totalCount++;
-											LastBlocksFromCore.Add(storedBlock.Item);
+											LastBlocksFromCore.Add(storedBlock.Item.GetHash(), storedBlock.Item);
 										}
 
 										if (totalCount > 100) // at least check the last 100 blocks (2sec with SSD)
@@ -680,11 +685,13 @@ namespace WalletWasabi.Services
 							Logger.LogWarning<WalletService>(ex);
 						}
 
-						var foundBlockFromCore = LastBlocksFromCore.FirstOrDefault(x => x.Header.GetHash() == hash);
-						if (foundBlockFromCore != null && !foundBlockFromCore.HeaderOnly)
+						if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore))
 						{
-							Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {block.GetHash()}");
-							return foundBlockFromCore;
+							if (foundBlockFromCore != null && !foundBlockFromCore.HeaderOnly)
+							{
+								Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {block.GetHash()}");
+								return foundBlockFromCore;
+							}
 						}
 
 						// If no connection, wait then continue.
