@@ -22,6 +22,7 @@ using NBitcoin.DataEncoders;
 using System.Net.Http;
 using System.Diagnostics;
 using NBitcoin.BitcoinCore;
+using System.Net.Sockets;
 
 namespace WalletWasabi.Services
 {
@@ -619,7 +620,45 @@ namespace WalletWasabi.Services
 					cancel.ThrowIfCancellationRequested();
 					try
 					{
-						// Try to get block information from Bitcoin Core first.
+						// Try to get block information from local running Core node first.
+						try
+						{
+							using (var localNode = Node.ConnectToLocal(Network))
+							{
+								// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
+								using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
+								{
+									block = localNode.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
+								}
+
+								if (block is null)
+								{
+									Logger.LogWarning<WalletService>($"Disconnected local node, because couldn't parse received block.");
+									localNode.DisconnectAsync("Couldn't parse block.");
+								}
+								else if (!block.Check())
+								{
+									Logger.LogWarning<WalletService>($"Disconnected node, because block invalid block received!");
+									localNode.DisconnectAsync("Invalid block received.");
+								}
+								else
+								{
+									Logger.LogInfo<WalletService>($"Block acquired from local P2P connection: {hash}");
+									localNode.DisconnectAsync("Thank you!");
+									break;
+								}
+							}
+						}
+						catch (SocketException)
+						{
+							Logger.LogInfo<WalletService>("Didn't find local listening and running Bitcoin Core node instance. Trying to fetch needed block from other source.");
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning<WalletService>(ex);
+						}
+
+						// Try to get block information from disk next.
 						try
 						{
 							string coreFolderPath = ServiceConfiguration?.BitcoinCoreDataDir;
