@@ -708,10 +708,7 @@ namespace WalletWasabi.Services
 										if (foundBlockFromCore != null && !foundBlockFromCore.HeaderOnly && foundBlockFromCore.Check())
 										{
 											Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
-											if (foundBlockFromCore.Check())
-											{
-												block = foundBlockFromCore;
-											}
+											block = foundBlockFromCore;
 											break;
 										}
 									}
@@ -725,10 +722,7 @@ namespace WalletWasabi.Services
 											if (foundBlockFromCore2 != null && !foundBlockFromCore2.HeaderOnly && foundBlockFromCore2.Check())
 											{
 												Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
-												if (foundBlockFromCore.Check())
-												{
-													block = foundBlockFromCore2;
-												}
+												block = foundBlockFromCore2;
 												break;
 											}
 										}
@@ -765,10 +759,7 @@ namespace WalletWasabi.Services
 															if (foundBlockFromCore3 != null && !foundBlockFromCore3.HeaderOnly && foundBlockFromCore3.Check())
 															{
 																Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
-																if (foundBlockFromCore.Check())
-																{
-																	block = foundBlockFromCore3;
-																}
+																block = foundBlockFromCore3;
 																break;
 															}
 														}
