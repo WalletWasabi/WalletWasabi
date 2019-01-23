@@ -599,10 +599,7 @@ namespace WalletWasabi.Services
 		}
 
 		// Should be protected by BlockFolderLock
-		private static Dictionary<uint256, Block> LastBlocksFromCore { get; } = new Dictionary<uint256, Block>();
-
-		private static long LastBlkSize { get; set; } = 0;
-		private static string LastBlkName { get; set; } = "";
+		public Node LocalBitcoinCoreNode { get; private set; } = null;
 
 		/// <exception cref="OperationCanceledException"></exception>
 		public async Task<Block> GetOrDownloadBlockAsync(uint256 hash, CancellationToken cancel)
@@ -641,143 +638,45 @@ namespace WalletWasabi.Services
 						// Try to get block information from local running Core node first.
 						try
 						{
-							using (var localNode = Node.ConnectToLocal(Network))
+							if (LocalBitcoinCoreNode == null || !LocalBitcoinCoreNode.IsConnected)
 							{
-								// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
-								using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
-								{
-									block = localNode.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
-								}
-
-								if (block is null)
-								{
-									Logger.LogWarning<WalletService>($"Disconnected local node, because couldn't parse received block.");
-									localNode.DisconnectAsync("Couldn't parse block.");
-								}
-								else if (!block.Check())
-								{
-									Logger.LogWarning<WalletService>($"Disconnected node, because block invalid block received!");
-									localNode.DisconnectAsync("Invalid block received.");
-								}
-								else
-								{
-									Logger.LogInfo<WalletService>($"Block acquired from local P2P connection: {hash}");
-									localNode.DisconnectAsync("Thank you!");
-									break;
-								}
+								DisconnectDisposeNullLocalBitcoinCoreNode();
+								LocalBitcoinCoreNode = Node.ConnectToLocal(Network);
 							}
-						}
-						catch (SocketException)
-						{
-							Logger.LogTrace<WalletService>("Didn't find local listening and running full node instance. Trying to fetch needed block from other source.");
+
+							Block blockFromLocalNode = null;
+							// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
+							{
+								blockFromLocalNode = LocalBitcoinCoreNode.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
+							}
+
+							if (blockFromLocalNode is null)
+							{
+								throw new InvalidOperationException($"Disconnected local node, because couldn't parse received block.");
+							}
+							else if (!blockFromLocalNode.Check())
+							{
+								throw new InvalidOperationException($"Disconnected node, because block invalid block received!");
+							}
+
+							block = blockFromLocalNode;
+							Logger.LogInfo<WalletService>($"Block acquired from local P2P connection: {hash}");
+							break;
 						}
 						catch (Exception ex)
 						{
-							Logger.LogWarning<WalletService>(ex);
-						}
+							block = null;
+							DisconnectDisposeNullLocalBitcoinCoreNode();
 
-						// Try to get block information from disk next.
-						try
-						{
-							string coreFolderPath = ServiceConfiguration?.BitcoinCoreDataDir;
-
-							// NBitcoin cannot parse testnet and regtest blocks
-							if (!string.IsNullOrWhiteSpace(coreFolderPath) && Network == Network.Main)
+							if (ex is SocketException)
 							{
-								string blocksFolderPath = Path.Combine(coreFolderPath, "blocks");
-
-								// NBitcoin cannot parse testnet and regtest blocks
-								//string blocksFolderPath;
-								//if (Network == Network.Main)
-								//{
-								//	blocksFolderPath = Path.Combine(coreFolderPath, "blocks");
-								//}
-								//else //if (Network == Network.TestNet)
-								//{
-								//	blocksFolderPath = Path.Combine(coreFolderPath, "testnet3", "blocks");
-								//}
-								//else // if (Network == Network.RegTest)
-								//{
-								//	blocksFolderPath = Path.Combine(coreFolderPath, "regtest", "blocks");
-								//}
-
-								if (Directory.Exists(blocksFolderPath))
-								{
-									if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore))
-									{
-										if (foundBlockFromCore != null && !foundBlockFromCore.HeaderOnly && foundBlockFromCore.Check())
-										{
-											Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
-											block = foundBlockFromCore;
-											break;
-										}
-									}
-
-									bool noChange = TryFetchBlockFromDisk(blocksFolderPath);
-
-									if (!noChange)
-									{
-										if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore2))
-										{
-											if (foundBlockFromCore2 != null && !foundBlockFromCore2.HeaderOnly && foundBlockFromCore2.Check())
-											{
-												Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
-												block = foundBlockFromCore2;
-												break;
-											}
-										}
-									}
-									else
-									{
-										// If it have the second best, it's most likely running.
-										var lastTwo = Synchronizer?.GetFilters()?.TakeLast(2).ToArray();
-										if (lastTwo != null && lastTwo.Length == 2 && lastTwo[1].BlockHash == hash)
-										{
-											if (LastBlocksFromCore.ContainsKey(lastTwo[0].BlockHash)) // Then give some time to Core to download, and try again.
-											{
-												Logger.LogInfo<WalletService>("Found synchronized local Bitcoin Core blocks folder, but it doesn't yet have our block. Waiting a few seconds for the block on the disk before trying to download it from P2P nodes...");
-
-												var sec = 0;
-												while (sec < 60)
-												{
-													sec++;
-													try
-													{
-														await Task.Delay(1000, cancel);
-													}
-													catch (TaskCanceledException ex)
-													{
-														Logger.LogTrace<WalletService>(ex);
-													}
-
-													noChange = TryFetchBlockFromDisk(blocksFolderPath);
-
-													if (!noChange)
-													{
-														if (LastBlocksFromCore.TryGetValue(hash, out Block foundBlockFromCore3))
-														{
-															if (foundBlockFromCore3 != null && !foundBlockFromCore3.HeaderOnly && foundBlockFromCore3.Check())
-															{
-																Logger.LogInfo<WalletService>($"Block acquired from disk (source: Bitcoin Core): {hash}");
-																block = foundBlockFromCore3;
-																break;
-															}
-														}
-													}
-												}
-												if (block != null)
-												{
-													break;
-												}
-											}
-										}
-									}
-								}
+								Logger.LogTrace<WalletService>("Didn't find local listening and running full node instance. Trying to fetch needed block from other source.");
 							}
-						}
-						catch (Exception ex)
-						{
-							Logger.LogWarning<WalletService>(ex);
+							else
+							{
+								Logger.LogWarning<WalletService>(ex);
+							}
 						}
 
 						// If no connection, wait then continue.
@@ -872,41 +771,42 @@ namespace WalletWasabi.Services
 			return block;
 		}
 
-		private static bool TryFetchBlockFromDisk(string blocksFolderPath)
+		private void DisconnectDisposeNullLocalBitcoinCoreNode()
 		{
-			var blocksFolder = new DirectoryInfo(blocksFolderPath);
-			var totalCount = 0;
-			var noChange = true;
-			foreach (var blkFile in blocksFolder
-				.EnumerateFiles("blk*.dat", new EnumerationOptions() { IgnoreInaccessible = true, RecurseSubdirectories = false })
-				.OrderByDescending(x => int.Parse(x.Name.Split(new[] { "blk", ".dat" }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault())))
+			if (LocalBitcoinCoreNode != null)
 			{
-				// If nothing changed, then don't bother updating.
-				if (noChange)
+				try
 				{
-					if (blkFile.Length == LastBlkSize && blkFile.Name == LastBlkName)
+					LocalBitcoinCoreNode?.Disconnect();
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug<WalletService>(ex);
+				}
+				finally
+				{
+					try
 					{
-						break;
+						LocalBitcoinCoreNode?.Dispose();
 					}
-					LastBlkSize = blkFile.Length;
-					LastBlkName = blkFile.Name;
-					LastBlocksFromCore.Clear();
-					noChange = false;
-				}
-
-				foreach (var storedBlock in StoredBlock.EnumerateFile(blkFile.FullName))
-				{
-					totalCount++;
-					LastBlocksFromCore.Add(storedBlock.Item.GetHash(), storedBlock.Item);
-				}
-
-				if (totalCount > 100) // at least check the last 100 blocks (2sec with SSD)
-				{
-					break;
+					catch (Exception ex)
+					{
+						Logger.LogDebug<WalletService>(ex);
+					}
+					finally
+					{
+						LocalBitcoinCoreNode = null;
+						try
+						{
+							Logger.LogInfo<WalletService>("Local Bitcoin Core disconnected.");
+						}
+						catch (Exception)
+						{
+							throw;
+						}
+					}
 				}
 			}
-
-			return noChange;
 		}
 
 		/// <remarks>
@@ -1374,6 +1274,8 @@ namespace WalletWasabi.Services
 					File.WriteAllText(TransactionsFilePath,
 						jsonString,
 						Encoding.UTF8);
+
+					DisconnectDisposeNullLocalBitcoinCoreNode();
 				}
 
 				_disposedValue = true;
