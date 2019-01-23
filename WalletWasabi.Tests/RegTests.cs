@@ -21,6 +21,7 @@ using WalletWasabi.Backend.Models.Requests;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Crypto;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -80,7 +81,7 @@ namespace WalletWasabi.Tests
 			}
 			Global.Coordinator.UtxoReferee.Clear();
 
-			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50);
+			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir());
 			return ("password", Global.RpcClient, Global.RpcClient.Network, Global.Coordinator, serviceConfiguration);
 		}
 
