@@ -81,7 +81,7 @@ namespace WalletWasabi.Tests
 			}
 			Global.Coordinator.UtxoReferee.Clear();
 
-			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir());
+			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, new IPEndPoint(IPAddress.Parse("127.0.0.1"), Global.RpcClient.Network.DefaultPort));
 			return ("password", Global.RpcClient, Global.RpcClient.Network, Global.Coordinator, serviceConfiguration);
 		}
 

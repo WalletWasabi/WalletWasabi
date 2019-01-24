@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -92,7 +93,7 @@ namespace WalletWasabi.Tests
 			   memPoolService,
 			   nodes,
 			   SharedFixture.DataDir,
-			   new ServiceConfiguration(50, 2, 21, 50, EnvironmentHelpers.TryGetDefaultBitcoinCoreDataDir()));
+			   new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Parse("127.0.0.1"), network.DefaultPort)));
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try
