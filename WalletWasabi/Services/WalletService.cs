@@ -642,6 +642,22 @@ namespace WalletWasabi.Services
 							{
 								DisconnectDisposeNullLocalBitcoinCoreNode();
 								LocalBitcoinCoreNode = Node.ConnectToLocal(Network);
+								if(LocalBitcoinCoreNode.IsConnected)
+								{
+									try
+									{
+										LocalBitcoinCoreNode.VersionHandshake(Constants.LocalNodeRequirements);
+									}
+									catch(Exception)
+									{
+										Logger.LogTrace<WalletService>("It connected to local node but it couldn't finish the version handshake. Local node could not meet the needed requirements.");
+										throw;
+									}
+									if(LocalBitcoinCoreNode.State != NodeState.HandShaked)
+									{
+										throw new InvalidOperationException($"Local node is not in handshaked state. Ignoring local node.");
+									}
+								}
 							}
 
 							Block blockFromLocalNode = null;
