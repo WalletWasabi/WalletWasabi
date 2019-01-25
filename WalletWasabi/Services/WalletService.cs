@@ -598,7 +598,6 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		// Should be protected by BlockFolderLock
 		public Node LocalBitcoinCoreNode { get; private set; } = null;
 
 		/// <exception cref="OperationCanceledException"></exception>
@@ -641,7 +640,7 @@ namespace WalletWasabi.Services
 							if (LocalBitcoinCoreNode == null || !LocalBitcoinCoreNode.IsConnected)
 							{
 								DisconnectDisposeNullLocalBitcoinCoreNode();
-								using(var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
+								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
 								{
 									handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
 									var nodeConnectionParameters = new NodeConnectionParameters()
@@ -650,33 +649,32 @@ namespace WalletWasabi.Services
 										IsRelay = false
 									};
 
-									//var localIpEndPoint = Utils.ParseIpEndpoint("localhost", Network.DefaultPort);
 									var localIpEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
 									var localNode = Node.Connect(Network, localIpEndPoint, nodeConnectionParameters);
 									try
 									{
-										Logger.LogInfo<WalletService>($"TCP Connection succeed, handshaking...");
+										Logger.LogInfo<WalletService>($"TCP Connection succeeded, handshaking...");
 										localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
-										var peerServices = localNode.PeerVersion.Services; 
-										/*
-										if(!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
-										{
-											throw new InvalidOperationException($"Wasabi cannot use the local node because it doesn't provide blocks.");
-										}
-										*/
-										Logger.LogInfo<WalletService>($"Handshake completed successfully");
+										var peerServices = localNode.PeerVersion.Services;
 
-										if(!localNode.IsConnected)
+										//if(!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
+										//{
+										//	throw new InvalidOperationException($"Wasabi cannot use the local node because it doesn't provide blocks.");
+										//}
+
+										Logger.LogInfo<WalletService>($"Handshake completed successfully.");
+
+										if (!localNode.IsConnected)
 										{
 											throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-												$"Probably this is because the node doesn't support retrieving full blocks or segwit serialization.)");
+												$"Probably this is because the node doesn't support retrieving full blocks or segwit serialization.");
 										}
 										LocalBitcoinCoreNode = localNode;
 									}
 									catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
 									{
 										Logger.LogWarning<WalletService>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
-											$"Use \"whitebind\" or \"whitelist\" in the node configuration. (typically whitelist=127.0.0.1 if Wasabi and the node are on the same machine.)");
+											$"Use \"whitebind\" or \"whitelist\" in the node configuration. (Typically whitelist=127.0.0.1 if Wasabi and the node are on the same machine.)");
 										throw;
 									}
 								}
@@ -716,6 +714,7 @@ namespace WalletWasabi.Services
 								Logger.LogWarning<WalletService>(ex);
 							}
 						}
+						cancel.ThrowIfCancellationRequested();
 
 						// If no connection, wait then continue.
 						while (Nodes.ConnectedNodes.Count == 0)
