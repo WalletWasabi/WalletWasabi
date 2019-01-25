@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Crypto;
+using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -91,7 +93,7 @@ namespace WalletWasabi.Tests
 			   memPoolService,
 			   nodes,
 			   SharedFixture.DataDir,
-			   new ServiceConfiguration(50, 2, 21, 50));
+			   new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort)));
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try
