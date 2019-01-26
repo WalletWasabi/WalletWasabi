@@ -791,7 +791,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(res2.OuterWalletOutputs);
 				Assert.Equal(scp, res2.OuterWalletOutputs.Single().ScriptPubKey);
 				Assert.Single(res2.InnerWalletOutputs);
-				Assert.True(res2.Fee > new Money(2 * 100)); // since there is a sanity check of 2sat/vb in the server
+				Assert.True(res2.Fee > Money.Satoshis(2 * 100)); // since there is a sanity check of 2sat/vb in the server
 				Assert.InRange(res2.FeePercentOfSent, 0, 1);
 				Assert.Single(res2.SpentCoins);
 				Assert.Equal(key.GetP2wpkhScript(), res2.SpentCoins.Single().ScriptPubKey);
@@ -1222,13 +1222,13 @@ namespace WalletWasabi.Tests
 
 			// toSend negative sum amount
 			var operations = new[]{
-				new WalletService.Operation(scp, -10000, "") };
+				new WalletService.Operation(scp, Money.Satoshis(-10000), "") };
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2));
 
 			// toSend negative operation amount
 			operations = new[]{
-				new WalletService.Operation(scp,  20000, ""),
-				new WalletService.Operation(scp, -10000, "") };
+				new WalletService.Operation(scp,  Money.Satoshis(20000), ""),
+				new WalletService.Operation(scp, Money.Satoshis(-10000), "") };
 			Assert.Throws<ArgumentException>(() => wallet.BuildTransaction(null, operations, 2));
 
 			// allowedInputs cannot be empty
@@ -2495,7 +2495,7 @@ namespace WalletWasabi.Tests
 						receiveSatoshi = 100000000;
 					}
 					BitcoinWitPubKeyAddress inputAddress = key.PubKey.GetSegwitAddress(network);
-					uint256 txHash = await rpc.SendToAddressAsync(inputAddress, receiveSatoshi);
+					uint256 txHash = await rpc.SendToAddressAsync(inputAddress, Money.Satoshis(receiveSatoshi));
 					fundingTxCount++;
 					Assert.NotNull(txHash);
 					Transaction transaction = await rpc.GetRawTransactionAsync(txHash);
@@ -2695,7 +2695,7 @@ namespace WalletWasabi.Tests
 						receiveSatoshi = 100000000;
 					}
 					BitcoinWitPubKeyAddress inputAddress = key.PubKey.GetSegwitAddress(network);
-					uint256 txHash = await rpc.SendToAddressAsync(inputAddress, receiveSatoshi);
+					uint256 txHash = await rpc.SendToAddressAsync(inputAddress, Money.Satoshis(receiveSatoshi));
 					fundingTxCount++;
 					Assert.NotNull(txHash);
 					Transaction transaction = await rpc.GetRawTransactionAsync(txHash);
@@ -2864,7 +2864,7 @@ namespace WalletWasabi.Tests
 
 			var activeOutput = finalCoinjoin.GetIndistinguishableOutputs(includeSingle: true).OrderByDescending(x => x.count).First();
 			Assert.True(activeOutput.value >= roundConfig.Denomination);
-			Assert.True(activeOutput.value >= roundConfig.AnonymitySet);
+			Assert.True(activeOutput.count >= roundConfig.AnonymitySet);
 
 			foreach (var aliceClient in aliceClients)
 			{

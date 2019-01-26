@@ -1043,7 +1043,7 @@ namespace WalletWasabi.Services
 
 				if (realToSend[i].amount < Money.Zero)
 				{
-					throw new InsufficientBalanceException(fee + 1, realToSend[i].amount + fee);
+					throw new InsufficientBalanceException(fee + Money.Satoshis(1), realToSend[i].amount + fee);
 				}
 			}
 
