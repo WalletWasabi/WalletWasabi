@@ -176,6 +176,29 @@ namespace WalletWasabi.Packager
 						pPublish.WaitForExit();
 					}
 
+					// Remove Tor binaries those are not relevant to the platform.
+					var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
+					var toNotremove = "";
+					if (target.StartsWith("win"))
+					{
+						toNotremove = "win";
+					}
+					else if (target.StartsWith("linux"))
+					{
+						toNotremove = "linux";
+					}
+					else if (target.StartsWith("osx"))
+					{
+						toNotremove = "osx";
+					}
+					foreach (var file in torFolder.EnumerateFiles())
+					{
+						if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotremove, StringComparison.OrdinalIgnoreCase))
+						{
+							File.Delete(file.FullName);
+						}
+					}
+
 					// Rename the final exe.
 					string oldExecutablePath;
 					string newExecutablePath;
