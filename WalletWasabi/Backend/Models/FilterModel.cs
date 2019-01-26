@@ -2,9 +2,11 @@
 using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
+using WalletWasabi.Interfaces;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 
@@ -106,6 +108,33 @@ namespace WalletWasabi.Backend.Models
 			{
 				BlockHeight = Guard.NotNull(nameof(height), height),
 				BlockHash = new uint256(parts[0]),
+				Filter = filter
+			};
+		}
+
+		public byte[] ToBytes()
+		{
+			byte[] blockHashBytes = BlockHash.ToBytes();
+			byte[] filterBytes = Filter is null ? new byte[0] : Filter.ToBytes();
+			byte[] filterLengthBytes = BitConverter.GetBytes(filterBytes.Length);
+			byte[] buffer = new byte[blockHashBytes.Length + filterLengthBytes.Length + filterBytes.Length];
+			Buffer.BlockCopy(blockHashBytes, 0, buffer, 0, blockHashBytes.Length);
+			Buffer.BlockCopy(filterLengthBytes, 0, buffer, blockHashBytes.Length, filterLengthBytes.Length);
+			Buffer.BlockCopy(filterBytes, 0, buffer, blockHashBytes.Length + filterLengthBytes.Length, filterBytes.Length);
+			return buffer;
+		}
+
+		public static FilterModel FromStream(Stream stream, Height height)
+		{
+			uint256 blockHash = new uint256(stream.ReadBytes(32));
+			int filterSize = BitConverter.ToInt32(stream.ReadBytes(4));
+			byte[] data = stream.ReadBytes(filterSize);
+			GolombRiceFilter filter = filterSize > 0 ? new GolombRiceFilter(data, 20, 1 << 20) : null;
+
+			return new FilterModel
+			{
+				BlockHeight = Guard.NotNull(nameof(height), height),
+				BlockHash = blockHash,
 				Filter = filter
 			};
 		}
