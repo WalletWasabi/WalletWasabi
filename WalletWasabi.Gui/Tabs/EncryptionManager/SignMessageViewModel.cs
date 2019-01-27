@@ -3,6 +3,7 @@ using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Gui.Tabs.EncryptionManager;
@@ -99,15 +100,33 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 
 		private static string SignMessage(string address, string message, string password)
 		{
-			//https://programmingblockchain.gitbook.io/programmingblockchain/bitcoin_transfer/proof_of_ownership_as_an_authentication_method
-			password = Guard.Correct(password);
-			ExtKey result = Global.WalletService.KeyManager.GetSecrets(password, BitcoinAddress.Create(address, Global.Network)).FirstOrDefault();
-			if (result is null)
+			if (!File.Exists(Global.WalletsDir))
 			{
-				throw new InvalidOperationException("Address not found.");
+				throw new InvalidOperationException("Wallet directory missing");
 			}
-			string signature = result.PrivateKey.SignMessage(message);
-			return signature;
+
+			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
+			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
+			List<KeyManager> kms = new List<KeyManager>();
+			foreach (var file in walletFiles)
+			{
+				kms.Add(KeyManager.FromFile(file.FullName));
+			}
+			password = Guard.Correct(password);
+
+			//var tt=kms.Select(password, BitcoinAddress.Create(address, Global.Network))
+
+			//kms.Select( km => km.GetSecrets(password, BitcoinAddress.Create(address, Global.Network)).FirstOrDefault();
+
+			////https://programmingblockchain.gitbook.io/programmingblockchain/bitcoin_transfer/proof_of_ownership_as_an_authentication_method
+
+			//ExtKey result = Global.WalletService.KeyManager.FirstOrDefault();
+			//if (result is null)
+			//{
+			//	throw new InvalidOperationException("Address not found.");
+			//}
+			//string signature = result.PrivateKey.SignMessage(message);
+			return null;
 		}
 
 		private static bool VerifyMessage(string address, string message, string signature)
