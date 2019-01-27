@@ -30,11 +30,6 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultGroup("Wallet")]
 		public IMenuItem GenerateWallet => _menuItemFactory.CreateCommandMenuItem("Tools.WalletManager");
 
-		[ExportMainMenuItem("Tools", "EncryptionManager")]
-		[DefaultOrder(0)]
-		[DefaultGroup("Wallet")]
-		public IMenuItem SignMessage => _menuItemFactory.CreateCommandMenuItem("Tools.EncryptionManager");
-
 		[ExportMainMenuDefaultGroup("Tools", "Settings")]
 		[DefaultOrder(1000)]
 		public object SettingsGroup => null;
