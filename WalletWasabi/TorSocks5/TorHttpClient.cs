@@ -77,6 +77,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				request.Content = content;
 			}
+			request.Headers.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
 
 			try
 			{
