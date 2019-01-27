@@ -598,7 +598,19 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public Node LocalBitcoinCoreNode { get; private set; } = null;
+		public Node LocalBitcoinCoreNode
+		{
+			get
+			{
+				if (Network == Network.RegTest)
+				{
+					return Nodes.ConnectedNodes.First();
+				}
+
+				return _localBitcoinCoreNode;
+			}
+			private set => _localBitcoinCoreNode = value;
+		}
 
 		/// <exception cref="OperationCanceledException"></exception>
 		public async Task<Block> GetOrDownloadBlockAsync(uint256 hash, CancellationToken cancel)
@@ -1294,6 +1306,7 @@ namespace WalletWasabi.Services
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
+		private Node _localBitcoinCoreNode = null;
 
 		protected virtual void Dispose(bool disposing)
 		{
