@@ -250,7 +250,7 @@ namespace WalletWasabi.Gui
 			{
 				requestInterval = TimeSpan.FromSeconds(5);
 			}
-			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), 1000);
+			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), 10000);
 			Logger.LogInfo("Start synchronizing filters...");
 		}
 
