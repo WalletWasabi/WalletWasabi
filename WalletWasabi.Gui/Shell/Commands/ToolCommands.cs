@@ -25,15 +25,10 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("WalletManager"),
 				ReactiveCommand.Create(OnWalletManager));
 
-			var isWalletLoaded = Global.WhenPropertyChanged
-				.Where(x => x.PropertyName == nameof(WalletService))  //looking for the wallet is loaded
-				.Select(ws => ws != null)                                       //if it is not null -> wallet is loaded
-				.ObserveOn(RxApp.MainThreadScheduler);                          //syncronize with the UI
-
 			EncryptionManagerCommand = new CommandDefinition(
 				"Encryption Manager",
 				commandIconService.GetCompletionKindImage("EncryptionManager"),
-				ReactiveCommand.Create(OnEncryptionManager, isWalletLoaded));
+				ReactiveCommand.Create(OnEncryptionManager));
 
 			SettingsCommand = new CommandDefinition(
 				"Settings",

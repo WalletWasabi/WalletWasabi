@@ -3,6 +3,7 @@ using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Gui.Tabs.EncryptionManager;
 using WalletWasabi.Gui.Tabs.WalletManager;
@@ -100,14 +101,18 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		{
 			//https://programmingblockchain.gitbook.io/programmingblockchain/bitcoin_transfer/proof_of_ownership_as_an_authentication_method
 			password = Guard.Correct(password);
-			BitcoinSecret bitcoinPrivateKey = Global.WalletService.KeyManager.EncryptedSecret.GetSecret(password);
-			string signature = bitcoinPrivateKey.PrivateKey.SignMessage(message);
+			ExtKey result = Global.WalletService.KeyManager.GetSecrets(password, BitcoinAddress.Create(address, Global.Network)).FirstOrDefault();
+			if (result is null)
+			{
+				throw new InvalidOperationException("Address not found.");
+			}
+			string signature = result.PrivateKey.SignMessage(message);
 			return signature;
 		}
 
 		private static bool VerifyMessage(string address, string message, string signature)
 		{
-			BitcoinPubKeyAddress addr = new BitcoinPubKeyAddress(address, Global.Network);
+			BitcoinPubKeyAddress addr = new BitcoinPubKeyAddress(address, Global.Network);//TODO: only works for addresses beginning with 1
 			return addr.VerifyMessage(message, signature);
 		}
 	}

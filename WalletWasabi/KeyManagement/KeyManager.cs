@@ -319,6 +319,44 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
+		public IEnumerable<ExtKey> GetSecrets(string password, params BitcoinAddress[] addresses)
+		{
+			return GetSecretsAndPubKeyPairs(password, addresses).Select(x => x.secret);
+		}
+
+		public IEnumerable<(ExtKey secret, HdPubKey pubKey)> GetSecretsAndPubKeyPairs(string password, params BitcoinAddress[] addresses)
+		{
+			Key secret;
+			try
+			{
+				secret = EncryptedSecret.GetKey(password);
+			}
+			catch (SecurityException ex)
+			{
+				throw new SecurityException("Invalid password.", ex);
+			}
+			var extKey = new ExtKey(secret, ChainCode);
+			var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
+
+			var networks = addresses.Select(a => a.Network).Distinct();
+
+			lock (HdPubKeysLock)
+			{
+				foreach (var network in networks)
+				{
+					foreach (HdPubKey key in HdPubKeys.Where(x =>
+						addresses.Contains(x.GetP2wpkhAddress(network))
+						|| addresses.Contains(x.GetP2shOverP2wpkhAddress(network))
+						|| addresses.Contains(x.GetP2pkhAddress(network))))
+					{
+						ExtKey ek = extKey.Derive(key.FullKeyPath);
+						extKeysAndPubs.Add((ek, key));
+					}
+				}
+				return extKeysAndPubs;
+			}
+		}
+
 		/// <summary>
 		/// Make sure there's always clean keys generated and indexed.
 		/// </summary>
