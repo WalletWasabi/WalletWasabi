@@ -8,10 +8,6 @@ using System.IO;
 using System.Linq;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.Tabs;
-using WalletWasabi.Gui.Tabs.EncryptionManager;
-using System.Reactive.Linq;
-using System.ComponentModel;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -24,11 +20,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 				"Wallet Manager",
 				commandIconService.GetCompletionKindImage("WalletManager"),
 				ReactiveCommand.Create(OnWalletManager));
-
-			EncryptionManagerCommand = new CommandDefinition(
-				"Encryption Manager",
-				commandIconService.GetCompletionKindImage("EncryptionManager"),
-				ReactiveCommand.Create(OnEncryptionManager));
 
 			SettingsCommand = new CommandDefinition(
 				"Settings",
@@ -54,17 +45,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 			}
 		}
 
-		private void OnEncryptionManager()
-		{
-			var encryptionManagerViewModel = IoC.Get<IShell>().GetOrCreate<EncryptionManagerViewModel>();
-			encryptionManagerViewModel.SelectSignMessage();
-		}
-
 		[ExportCommandDefinition("Tools.WalletManager")]
 		public CommandDefinition WalletManagerCommand { get; }
-
-		[ExportCommandDefinition("Tools.EncryptionManager")]
-		public CommandDefinition EncryptionManagerCommand { get; }
 
 		[ExportCommandDefinition("Tools.Settings")]
 		public CommandDefinition SettingsCommand { get; }

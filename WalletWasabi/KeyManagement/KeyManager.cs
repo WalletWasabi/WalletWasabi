@@ -304,29 +304,16 @@ namespace WalletWasabi.KeyManagement
 			var extKey = new ExtKey(secret, ChainCode);
 			var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
 
-			HashSet<Script> scriptsLeft = scripts.ToHashSet();
-
 			lock (HdPubKeysLock)
 			{
 				foreach (HdPubKey key in HdPubKeys.Where(x =>
-					scriptsLeft.Contains(x.GetP2wpkhScript())
-					|| scriptsLeft.Contains(x.GetP2shOverP2wpkhScript())
-					|| scriptsLeft.Contains(x.GetP2pkhScript())
-					|| scriptsLeft.Contains(x.GetP2pkScript())))
+					scripts.Contains(x.GetP2wpkhScript())
+					|| scripts.Contains(x.GetP2shOverP2wpkhScript())
+					|| scripts.Contains(x.GetP2pkhScript())
+					|| scripts.Contains(x.GetP2pkScript())))
 				{
 					ExtKey ek = extKey.Derive(key.FullKeyPath);
 					extKeysAndPubs.Add((ek, key));
-
-					scriptsLeft.RemoveWhere(x =>
-						key.GetP2wpkhScript() == x
-						|| key.GetP2shOverP2wpkhScript() == x
-						|| key.GetP2pkhScript() == x
-						|| key.GetP2pkScript() == x);
-
-					if (!scriptsLeft.Any())
-					{
-						break;
-					}
 				}
 				return extKeysAndPubs;
 			}
