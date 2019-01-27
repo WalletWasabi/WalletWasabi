@@ -250,7 +250,10 @@ namespace WalletWasabi.Gui
 			{
 				requestInterval = TimeSpan.FromSeconds(5);
 			}
-			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), 10000);
+
+			int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+
+			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
 			Logger.LogInfo("Start synchronizing filters...");
 		}
 
