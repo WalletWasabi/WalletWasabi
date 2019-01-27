@@ -50,7 +50,6 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
-		public ReactiveCommand SignCommand { get; }
 		public ReactiveCommand VerifyCommand { get; }
 		public EncryptionManagerViewModel Owner { get; }
 
@@ -58,28 +57,11 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		{
 			Owner = owner;
 
-			var canSign = this.WhenAnyValue(x => x.Message, x => x.Address,
-				(message, address) =>
-					!string.IsNullOrEmpty(message) &&
-					!string.IsNullOrEmpty(address));
-
 			var canVerify = this.WhenAnyValue(x => x.Message, x => x.Address, x => x.Signature,
 				(message, address, sign) =>
 					!string.IsNullOrEmpty(message) &&
 					!string.IsNullOrEmpty(address) &&
 					!string.IsNullOrEmpty(sign));
-
-			SignCommand = ReactiveCommand.Create(
-				() =>
-				{
-					Signature = SignMessage(Address, Message, Password);
-				},
-				canSign
-			);
-			SignCommand.ThrownExceptions.Subscribe(ex =>
-			{
-				WarningMessage = ex.Message;
-			});
 
 			VerifyCommand = ReactiveCommand.Create(
 				() =>
@@ -94,15 +76,6 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			{
 				WarningMessage = ex.Message;
 			});
-		}
-
-		private static string SignMessage(string address, string message, string password)
-		{
-			//https://programmingblockchain.gitbook.io/programmingblockchain/bitcoin_transfer/proof_of_ownership_as_an_authentication_method
-			password = Guard.Correct(password);
-			BitcoinSecret bitcoinPrivateKey = Global.WalletService.KeyManager.EncryptedSecret.GetSecret(password);
-			string signature = bitcoinPrivateKey.PrivateKey.SignMessage(message);
-			return signature;
 		}
 
 		private static bool VerifyMessage(string address, string message, string signature)

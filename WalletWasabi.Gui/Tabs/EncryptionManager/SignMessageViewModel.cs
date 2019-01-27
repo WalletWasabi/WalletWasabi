@@ -82,20 +82,6 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			{
 				WarningMessage = ex.Message;
 			});
-
-			VerifyCommand = ReactiveCommand.Create(
-				() =>
-				{
-					var verified = VerifyMessage(Address, Message, Signature);
-					if (!verified) throw new InvalidOperationException("Invalid signature");
-					WarningMessage = "Good";
-				}
-				, canVerify
-			);
-			VerifyCommand.ThrownExceptions.Subscribe(ex =>
-			{
-				WarningMessage = ex.Message;
-			});
 		}
 
 		private static string SignMessage(string address, string message, string password)
@@ -127,12 +113,6 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			//}
 			//string signature = result.PrivateKey.SignMessage(message);
 			return null;
-		}
-
-		private static bool VerifyMessage(string address, string message, string signature)
-		{
-			BitcoinPubKeyAddress addr = new BitcoinPubKeyAddress(address, Global.Network);//TODO: only works for addresses beginning with 1
-			return addr.VerifyMessage(message, signature);
 		}
 	}
 }
