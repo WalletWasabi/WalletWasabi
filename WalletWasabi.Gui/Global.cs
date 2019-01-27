@@ -6,11 +6,13 @@ using NBitcoin.Protocol.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -66,13 +68,43 @@ namespace WalletWasabi.Gui
 		public static NodesGroup Nodes { get; private set; }
 		public static WasabiSynchronizer Synchronizer { get; private set; }
 		public static CcjClient ChaumianClient { get; private set; }
-		public static WalletService WalletService { get; private set; }
+
+		public static WalletService WalletService
+		{
+			get => WalletServiceField;
+			private set
+			{
+				if (WalletServiceField == value) return;
+				WalletServiceField = value;
+				NotifyStaticPropertyChanged(nameof(WalletService));
+			}
+		}
+
 		public static Node RegTestMemPoolServingNode { get; private set; }
 		public static UpdateChecker UpdateChecker { get; private set; }
 		public static TorProcessManager TorManager { get; private set; }
 
 		public static Config Config { get; private set; }
 		public static UiConfig UiConfig { get; private set; }
+
+		public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
+
+		private static void NotifyStaticPropertyChanged(string propertyName)
+		{
+			StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName));
+		}
+
+		public static IObservable<PropertyChangedEventArgs> WhenPropertyChanged
+		{
+			get
+			{
+				return Observable
+					.FromEventPattern<PropertyChangedEventArgs>(
+						h => StaticPropertyChanged += h,
+						h => StaticPropertyChanged -= h)
+					.Select(x => x.EventArgs);
+			}
+		}
 
 		public static void InitializeConfig(Config config)
 		{
@@ -255,6 +287,7 @@ namespace WalletWasabi.Gui
 		}
 
 		private static CancellationTokenSource CancelWalletServiceInitialization = null;
+		private static WalletService WalletServiceField;
 
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
