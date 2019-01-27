@@ -12,7 +12,7 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Tabs.EncryptionManager
 {
-	internal class SignMessageViewModel : CategoryViewModel
+	internal class EncryptMessageViewModel : CategoryViewModel
 	{
 		private string _message;
 		private string _address;
@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		public ReactiveCommand VerifyCommand { get; }
 		public EncryptionManagerViewModel Owner { get; }
 
-		public SignMessageViewModel(EncryptionManagerViewModel owner) : base("Sign Message")
+		public EncryptMessageViewModel(EncryptionManagerViewModel owner) : base("Encrypt Message")
 		{
 			Owner = owner;
 
@@ -98,7 +98,6 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 
 		private static string SignMessage(string address, string message, string password)
 		{
-			//https://programmingblockchain.gitbook.io/programmingblockchain/bitcoin_transfer/proof_of_ownership_as_an_authentication_method
 			password = Guard.Correct(password);
 			BitcoinSecret bitcoinPrivateKey = Global.WalletService.KeyManager.EncryptedSecret.GetSecret(password);
 			string signature = bitcoinPrivateKey.PrivateKey.SignMessage(message);

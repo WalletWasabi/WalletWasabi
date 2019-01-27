@@ -12,7 +12,7 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Tabs.EncryptionManager
 {
-	internal class SignMessageViewModel : CategoryViewModel
+	internal class VerifyMessageViewModel : CategoryViewModel
 	{
 		private string _message;
 		private string _address;
@@ -54,7 +54,7 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		public ReactiveCommand VerifyCommand { get; }
 		public EncryptionManagerViewModel Owner { get; }
 
-		public SignMessageViewModel(EncryptionManagerViewModel owner) : base("Sign Message")
+		public VerifyMessageViewModel(EncryptionManagerViewModel owner) : base("Verify Message")
 		{
 			Owner = owner;
 

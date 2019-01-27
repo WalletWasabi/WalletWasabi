@@ -16,7 +16,10 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		{
 			Categories = new ObservableCollection<CategoryViewModel>
 			{
-				new SignMessageViewModel(this)
+				new SignMessageViewModel(this),
+				new VerifyMessageViewModel(this),
+				new EncryptMessageViewModel(this),
+				new DecryptMessageViewModel(this),
 			};
 
 			SelectedCategory = Categories.FirstOrDefault();
