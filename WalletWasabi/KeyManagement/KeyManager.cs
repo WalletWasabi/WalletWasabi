@@ -304,53 +304,28 @@ namespace WalletWasabi.KeyManagement
 			var extKey = new ExtKey(secret, ChainCode);
 			var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
 
+			HashSet<Script> scriptsLeft = scripts.ToHashSet();
+
 			lock (HdPubKeysLock)
 			{
 				foreach (HdPubKey key in HdPubKeys.Where(x =>
-					scripts.Contains(x.GetP2wpkhScript())
-					|| scripts.Contains(x.GetP2shOverP2wpkhScript())
-					|| scripts.Contains(x.GetP2pkhScript())
-					|| scripts.Contains(x.GetP2pkScript())))
+					scriptsLeft.Contains(x.GetP2wpkhScript())
+					|| scriptsLeft.Contains(x.GetP2shOverP2wpkhScript())
+					|| scriptsLeft.Contains(x.GetP2pkhScript())
+					|| scriptsLeft.Contains(x.GetP2pkScript())))
 				{
 					ExtKey ek = extKey.Derive(key.FullKeyPath);
 					extKeysAndPubs.Add((ek, key));
-				}
-				return extKeysAndPubs;
-			}
-		}
 
-		public IEnumerable<ExtKey> GetSecrets(string password, params BitcoinAddress[] addresses)
-		{
-			return GetSecretsAndPubKeyPairs(password, addresses).Select(x => x.secret);
-		}
+					scriptsLeft.RemoveWhere(x =>
+						key.GetP2wpkhScript() == x
+						|| key.GetP2shOverP2wpkhScript() == x
+						|| key.GetP2pkhScript() == x
+						|| key.GetP2pkScript() == x);
 
-		public IEnumerable<(ExtKey secret, HdPubKey pubKey)> GetSecretsAndPubKeyPairs(string password, params BitcoinAddress[] addresses)
-		{
-			Key secret;
-			try
-			{
-				secret = EncryptedSecret.GetKey(password);
-			}
-			catch (SecurityException ex)
-			{
-				throw new SecurityException("Invalid password.", ex);
-			}
-			var extKey = new ExtKey(secret, ChainCode);
-			var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
-
-			var networks = addresses.Select(a => a.Network).Distinct();
-
-			lock (HdPubKeysLock)
-			{
-				foreach (var network in networks)
-				{
-					foreach (HdPubKey key in HdPubKeys.Where(x =>
-						addresses.Contains(x.GetP2wpkhAddress(network))
-						|| addresses.Contains(x.GetP2shOverP2wpkhAddress(network))
-						|| addresses.Contains(x.GetP2pkhAddress(network))))
+					if (!scriptsLeft.Any())
 					{
-						ExtKey ek = extKey.Derive(key.FullKeyPath);
-						extKeysAndPubs.Add((ek, key));
+						break;
 					}
 				}
 				return extKeysAndPubs;
