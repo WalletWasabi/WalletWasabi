@@ -666,7 +666,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 					{
 						// 8.2 If the fee can be lowered, lower it.
 						// 8.2.1. How much fee can we save?
-						Money feeShouldBePaid = new Money(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
+						Money feeShouldBePaid = Money.Satoshis(estimatedFinalTxSize * (int)optimalFeeRate.SatoshiPerByte);
 						Money toSave = fee - feeShouldBePaid;
 
 						// 8.2.2. Get the outputs to divide  the savings between.
@@ -716,19 +716,19 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				Money feePerBytes = (feeRate.FeePerK / 1000);
 
 				// Make sure min relay fee (1000 sat) is hit.
-				feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
-				feePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
+				feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, Money.Satoshis(500));
+				feePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, Money.Satoshis(250));
 			}
 			catch (Exception ex)
 			{
 				// If fee hasn't been initialized once, fall back.
 				if (feePerInputs is null || feePerOutputs is null)
 				{
-					var feePerBytes = new Money(100); // 100 satoshi per byte
+					var feePerBytes = Money.Satoshis(100); // 100 satoshi per byte
 
 					// Make sure min relay fee (1000 sat) is hit.
-					feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, new Money(500));
-					feePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, new Money(250));
+					feePerInputs = Math.Max(feePerBytes * inputSizeInBytes, Money.Satoshis(500));
+					feePerOutputs = Math.Max(feePerBytes * outputSizeInBytes, Money.Satoshis(250));
 				}
 
 				Logger.LogError<CcjRound>(ex);

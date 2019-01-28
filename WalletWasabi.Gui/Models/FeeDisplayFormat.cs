@@ -10,5 +10,5 @@ namespace WalletWasabi.Gui.Models
 		BTC,
 		SatoshiPerByte,
 		Percentage
-	};
+	}
 }

@@ -38,15 +38,6 @@ namespace WalletWasabi.Gui
 
 						Global.InitializeConfig(config);
 
-						if (!File.Exists(Global.IndexFilePath)) // Load the index file from working folder if we have it.
-						{
-							var cachedIndexFilePath = Path.Combine("Assets", Path.GetFileName(Global.IndexFilePath));
-							if (File.Exists(cachedIndexFilePath))
-							{
-								File.Copy(cachedIndexFilePath, Global.IndexFilePath, overwrite: false);
-							}
-						}
-
 						Global.InitializeNoWallet();
 						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
 

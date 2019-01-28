@@ -22,6 +22,13 @@ namespace WalletWasabi.Helpers
 			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
 		};
 
+		public static readonly NodeRequirement LocalNodeRequirements = new NodeRequirement
+		{
+			RequiredServices = NodeServices.NODE_WITNESS,
+			MinVersion = ProtocolVersion_WITNESS_VERSION,
+			MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
+		};
+
 		public const int P2wpkhInputSizeInBytes = 41;
 		public const int P2pkhInputSizeInBytes = 145;
 		public const int OutputSizeInBytes = 33;

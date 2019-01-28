@@ -21,6 +21,8 @@ using System.Collections.Concurrent;
 using NBitcoin.DataEncoders;
 using System.Net.Http;
 using System.Diagnostics;
+using NBitcoin.BitcoinCore;
+using System.Net.Sockets;
 
 namespace WalletWasabi.Services
 {
@@ -464,7 +466,7 @@ namespace WalletWasabi.Services
 				return; // We don't care about non-witness transactions for other than mempool cleanup.
 			}
 
-			if (!justUpdate) // Transactions we already have and processed would be "double spends" but they shouldn't.
+			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
 				var doubleSpends = new List<SmartCoin>();
 				foreach (SmartCoin coin in Coins)
@@ -596,6 +598,20 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		public Node LocalBitcoinCoreNode
+		{
+			get
+			{
+				if (Network == Network.RegTest)
+				{
+					return Nodes.ConnectedNodes.First();
+				}
+
+				return _localBitcoinCoreNode;
+			}
+			private set => _localBitcoinCoreNode = value;
+		}
+
 		/// <exception cref="OperationCanceledException"></exception>
 		public async Task<Block> GetOrDownloadBlockAsync(uint256 hash, CancellationToken cancel)
 		{
@@ -630,6 +646,88 @@ namespace WalletWasabi.Services
 					cancel.ThrowIfCancellationRequested();
 					try
 					{
+						// Try to get block information from local running Core node first.
+						try
+						{
+							if (LocalBitcoinCoreNode == null || !LocalBitcoinCoreNode.IsConnected)
+							{
+								DisconnectDisposeNullLocalBitcoinCoreNode();
+								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
+								{
+									handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
+									var nodeConnectionParameters = new NodeConnectionParameters()
+									{
+										ConnectCancellation = handshakeTimeout.Token,
+										IsRelay = false
+									};
+
+									var localIpEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
+									var localNode = Node.Connect(Network, localIpEndPoint, nodeConnectionParameters);
+									try
+									{
+										Logger.LogInfo<WalletService>($"TCP Connection succeeded, handshaking...");
+										localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
+										var peerServices = localNode.PeerVersion.Services;
+
+										//if(!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
+										//{
+										//	throw new InvalidOperationException($"Wasabi cannot use the local node because it doesn't provide blocks.");
+										//}
+
+										Logger.LogInfo<WalletService>($"Handshake completed successfully.");
+
+										if (!localNode.IsConnected)
+										{
+											throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
+												$"Probably this is because the node doesn't support retrieving full blocks or segwit serialization.");
+										}
+										LocalBitcoinCoreNode = localNode;
+									}
+									catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
+									{
+										Logger.LogWarning<WalletService>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
+											$"Use \"whitebind\" or \"whitelist\" in the node configuration. (Typically whitelist=127.0.0.1 if Wasabi and the node are on the same machine.)");
+										throw;
+									}
+								}
+							}
+
+							Block blockFromLocalNode = null;
+							// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
+							{
+								blockFromLocalNode = LocalBitcoinCoreNode.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
+							}
+
+							if (blockFromLocalNode is null)
+							{
+								throw new InvalidOperationException($"Disconnected local node, because couldn't parse received block.");
+							}
+							else if (!blockFromLocalNode.Check())
+							{
+								throw new InvalidOperationException($"Disconnected node, because block invalid block received!");
+							}
+
+							block = blockFromLocalNode;
+							Logger.LogInfo<WalletService>($"Block acquired from local P2P connection: {hash}");
+							break;
+						}
+						catch (Exception ex)
+						{
+							block = null;
+							DisconnectDisposeNullLocalBitcoinCoreNode();
+
+							if (ex is SocketException)
+							{
+								Logger.LogTrace<WalletService>("Didn't find local listening and running full node instance. Trying to fetch needed block from other source.");
+							}
+							else
+							{
+								Logger.LogWarning<WalletService>(ex);
+							}
+						}
+						cancel.ThrowIfCancellationRequested();
+
 						// If no connection, wait then continue.
 						while (Nodes.ConnectedNodes.Count == 0)
 						{
@@ -720,6 +818,44 @@ namespace WalletWasabi.Services
 			}
 
 			return block;
+		}
+
+		private void DisconnectDisposeNullLocalBitcoinCoreNode()
+		{
+			if (LocalBitcoinCoreNode != null)
+			{
+				try
+				{
+					LocalBitcoinCoreNode?.Disconnect();
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug<WalletService>(ex);
+				}
+				finally
+				{
+					try
+					{
+						LocalBitcoinCoreNode?.Dispose();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogDebug<WalletService>(ex);
+					}
+					finally
+					{
+						LocalBitcoinCoreNode = null;
+						try
+						{
+							Logger.LogInfo<WalletService>("Local Bitcoin Core disconnected.");
+						}
+						catch (Exception)
+						{
+							throw;
+						}
+					}
+				}
+			}
 		}
 
 		/// <remarks>
@@ -919,7 +1055,7 @@ namespace WalletWasabi.Services
 
 				if (realToSend[i].amount < Money.Zero)
 				{
-					throw new InsufficientBalanceException(fee + 1, realToSend[i].amount + fee);
+					throw new InsufficientBalanceException(fee + Money.Satoshis(1), realToSend[i].amount + fee);
 				}
 			}
 
@@ -1066,7 +1202,7 @@ namespace WalletWasabi.Services
 			return haveEnough;
 		}
 
-		public void Renamelabel(SmartCoin coin, string newLabel)
+		public void RenameLabel(SmartCoin coin, string newLabel)
 		{
 			newLabel = Guard.Correct(newLabel);
 			coin.Label = newLabel;
@@ -1170,6 +1306,7 @@ namespace WalletWasabi.Services
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
+		private Node _localBitcoinCoreNode = null;
 
 		protected virtual void Dispose(bool disposing)
 		{
@@ -1187,6 +1324,8 @@ namespace WalletWasabi.Services
 					File.WriteAllText(TransactionsFilePath,
 						jsonString,
 						Encoding.UTF8);
+
+					DisconnectDisposeNullLocalBitcoinCoreNode();
 				}
 
 				_disposedValue = true;

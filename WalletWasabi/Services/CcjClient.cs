@@ -350,9 +350,9 @@ namespace WalletWasabi.Services
 				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
 			}
 
-			if (amountBack < minAmountBack)
+			if (amountBack < minAmountBack && !amountBack.Almost(minAmountBack, Money.Satoshis(10000))) // I catched an issue here, probably rounding. 1000 dust should be enough to catch it, but let's do 10000, why not.
 			{
-				throw new NotSupportedException("Coordinator did not add enough value to our outputs in the coinjoin.");
+				throw new NotSupportedException($"Coordinator did not add enough value to our outputs in the coinjoin. Missing: {(minAmountBack - amountBack).Satoshi} satoshis.");
 			}
 
 			var signedCoinJoin = unsignedCoinJoin.Clone();

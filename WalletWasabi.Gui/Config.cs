@@ -47,6 +47,24 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "TorSocks5Port")]
 		public int? TorSocks5Port { get; internal set; }
 
+		[JsonProperty(PropertyName = "MainNetBitcoinCoreHost")]
+		public string MainNetBitcoinCoreHost { get; internal set; }
+
+		[JsonProperty(PropertyName = "TestNetBitcoinCoreHost")]
+		public string TestNetBitcoinCoreHost { get; internal set; }
+
+		[JsonProperty(PropertyName = "RegTestBitcoinCoreHost")]
+		public string RegTestBitcoinCoreHost { get; internal set; }
+
+		[JsonProperty(PropertyName = "MainNetBitcoinCorePort")]
+		public int? MainNetBitcoinCorePort { get; internal set; }
+
+		[JsonProperty(PropertyName = "TestNetBitcoinCorePort")]
+		public int? TestNetBitcoinCorePort { get; internal set; }
+
+		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
+		public int? RegTestBitcoinCorePort { get; internal set; }
+
 		[JsonProperty(PropertyName = "MixUntilAnonymitySet")]
 		public int? MixUntilAnonymitySet
 		{
@@ -170,6 +188,7 @@ namespace WalletWasabi.Gui
 		private int? _privacyLevelSome;
 		private int? _privacyLevelFine;
 		private int? _privacyLevelStrong;
+		private IPEndPoint _bitcoinCoreEndPoint;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
@@ -180,6 +199,34 @@ namespace WalletWasabi.Gui
 			}
 
 			return _torSocks5EndPoint;
+		}
+
+		public IPEndPoint GetBitcoinCoreEndPoint()
+		{
+			if (_bitcoinCoreEndPoint is null)
+			{
+				IPAddress host;
+				int? port;
+				if (Network == Network.Main)
+				{
+					host = IPAddress.Parse(MainNetBitcoinCoreHost);
+					port = MainNetBitcoinCorePort;
+				}
+				else if (Network == Network.TestNet)
+				{
+					host = IPAddress.Parse(TestNetBitcoinCoreHost);
+					port = TestNetBitcoinCorePort;
+				}
+				else // if (Network == Network.RegTest)
+				{
+					host = IPAddress.Parse(RegTestBitcoinCoreHost);
+					port = RegTestBitcoinCorePort;
+				}
+
+				_bitcoinCoreEndPoint = new IPEndPoint(host, port ?? Network.DefaultPort);
+			}
+
+			return _bitcoinCoreEndPoint;
 		}
 
 		public Config()
@@ -202,6 +249,12 @@ namespace WalletWasabi.Gui
 			string regTestBackendUriV3,
 			string torHost,
 			int? torSocks5Port,
+			string mainNetBitcoinCoreHost,
+			string testNetBitcoinCoreHost,
+			string regTestBitcoinCoreHost,
+			int? mainNetBitcoinCorePort,
+			int? testNetBitcoinCorePort,
+			int? regTestBitcoinCorePort,
 			int? mixUntilAnonymitySet,
 			int? privacyLevelSome,
 			int? privacyLevelFine,
@@ -219,12 +272,19 @@ namespace WalletWasabi.Gui
 			TorHost = Guard.NotNullOrEmptyOrWhitespace(nameof(torHost), torHost);
 			TorSocks5Port = Guard.NotNull(nameof(torSocks5Port), torSocks5Port);
 
+			MainNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBitcoinCoreHost), mainNetBitcoinCoreHost);
+			TestNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBitcoinCoreHost), testNetBitcoinCoreHost);
+			RegTestBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBitcoinCoreHost), regTestBitcoinCoreHost);
+			MainNetBitcoinCorePort = Guard.NotNull(nameof(mainNetBitcoinCorePort), mainNetBitcoinCorePort);
+			TestNetBitcoinCorePort = Guard.NotNull(nameof(testNetBitcoinCorePort), testNetBitcoinCorePort);
+			RegTestBitcoinCorePort = Guard.NotNull(nameof(regTestBitcoinCorePort), regTestBitcoinCorePort);
+
 			MixUntilAnonymitySet = Guard.NotNull(nameof(mixUntilAnonymitySet), mixUntilAnonymitySet);
 			PrivacyLevelSome = Guard.NotNull(nameof(privacyLevelSome), privacyLevelSome);
 			PrivacyLevelFine = Guard.NotNull(nameof(privacyLevelFine), privacyLevelFine);
 			PrivacyLevelStrong = Guard.NotNull(nameof(privacyLevelStrong), privacyLevelStrong);
 
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value);
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint());
 		}
 
 		/// <inheritdoc />
@@ -254,12 +314,17 @@ namespace WalletWasabi.Gui
 			TorHost = IPAddress.Loopback.ToString();
 			TorSocks5Port = 9050;
 
+			MainNetBitcoinCoreHost = IPAddress.Loopback.ToString();
+			TestNetBitcoinCoreHost = IPAddress.Loopback.ToString();
+			RegTestBitcoinCoreHost = IPAddress.Loopback.ToString();
+			MainNetBitcoinCorePort = Network.Main.DefaultPort;
+			TestNetBitcoinCorePort = Network.TestNet.DefaultPort;
+			RegTestBitcoinCorePort = Network.RegTest.DefaultPort;
+
 			MixUntilAnonymitySet = 50;
 			PrivacyLevelSome = 2;
 			PrivacyLevelFine = 21;
 			PrivacyLevelStrong = 50;
-
-			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value);
 
 			if (!File.Exists(FilePath))
 			{
@@ -269,6 +334,8 @@ namespace WalletWasabi.Gui
 			{
 				await LoadFileAsync();
 			}
+
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint());
 
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
@@ -291,6 +358,13 @@ namespace WalletWasabi.Gui
 
 			TorHost = config.TorHost ?? TorHost;
 			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
+
+			MainNetBitcoinCoreHost = config.MainNetBitcoinCoreHost ?? MainNetBitcoinCoreHost;
+			TestNetBitcoinCoreHost = config.TestNetBitcoinCoreHost ?? TestNetBitcoinCoreHost;
+			RegTestBitcoinCoreHost = config.RegTestBitcoinCoreHost ?? RegTestBitcoinCoreHost;
+			MainNetBitcoinCorePort = config.MainNetBitcoinCorePort ?? MainNetBitcoinCorePort;
+			TestNetBitcoinCorePort = config.TestNetBitcoinCorePort ?? TestNetBitcoinCorePort;
+			RegTestBitcoinCorePort = config.RegTestBitcoinCorePort ?? RegTestBitcoinCorePort;
 
 			MixUntilAnonymitySet = config.MixUntilAnonymitySet ?? MixUntilAnonymitySet;
 			PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;
@@ -347,6 +421,31 @@ namespace WalletWasabi.Gui
 				return true;
 			}
 			if (TorSocks5Port != config.TorSocks5Port)
+			{
+				return true;
+			}
+
+			if (!MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+			if (!TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+			if (!RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+			if (MainNetBitcoinCorePort != config.MainNetBitcoinCorePort)
+			{
+				return true;
+			}
+			if (TestNetBitcoinCorePort != config.TestNetBitcoinCorePort)
+			{
+				return true;
+			}
+			if (RegTestBitcoinCorePort != config.RegTestBitcoinCorePort)
 			{
 				return true;
 			}
