@@ -410,7 +410,7 @@ namespace WalletWasabi.Packager
 						var debUsrAppFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "applications");
 						var debUsrAppFolderPath = Path.Combine(binDistDirectory, debUsrAppFolderRelativePath);
 						Directory.CreateDirectory(debUsrAppFolderPath);
-						var debUsrShareIconsFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "icons");
+						var debUsrShareIconsFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "icons", "hicolor");
 						var debUsrShareIconsFolderPath = Path.Combine(binDistDirectory, debUsrShareIconsFolderRelativePath);
 						var debianFolderRelativePath = Path.Combine(debFolderRelativePath, "DEBIAN");
 						var debianFolderPath = Path.Combine(binDistDirectory, debianFolderRelativePath);
@@ -457,15 +457,14 @@ namespace WalletWasabi.Packager
 						var desktopFilePath = Path.Combine(debUsrAppFolderPath, $"{executableName}.desktop");
 						var desktopFileContent = $"[Desktop Entry]\n" +
 													$"Type=Application\n" +
-													$"Encoding=UTF-8\n" +
 													$"Name=Wasabi Wallet\n" +
 													$"GenericName=Bitcoin Wallet\n" +
 													$"Comment=Privacy focused Bitcoin wallet.\n" +
 													$"Icon={executableName}\n" +
 													$"Terminal=false\n" +
-													$"Terminal=false\n" +
-													$"Exec={executableName}\nCategories=Office;Finance;\n" +
-													$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;\n";
+													$"Exec={executableName}\n" +
+													$"Categories=Office;Finance;\n" +
+													$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;asd;\n";
 
 						File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
 
