@@ -53,9 +53,9 @@ namespace WalletWasabi.Packager
 			// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
 			var targets = new List<string>
 			{
-				//"win7-x64",
+				"win7-x64",
 				"linux-x64",
-				//"osx-x64"
+				"osx-x64"
 			};
 			Console.WriteLine();
 			Console.Write($"{nameof(targets)}:\t\t\t");
@@ -377,27 +377,27 @@ namespace WalletWasabi.Packager
 					}
 					else if (target.StartsWith("linux"))
 					{
-						//Console.WriteLine("Create Linux .tar.gz");
-						//if (!Directory.Exists(publishedFolder))
-						//{
-						//	throw new Exception($"{publishedFolder} doesn't exist.");
-						//}
-						//var newFolderName = $"WasabiLinux-{versionPrefix}";
-						//var newFolderPath = Path.Combine(binDistDirectory, newFolderName);
-						//Directory.Move(publishedFolder, newFolderPath);
-						//publishedFolder = newFolderPath;
+						Console.WriteLine("Create Linux .tar.gz");
+						if (!Directory.Exists(publishedFolder))
+						{
+							throw new Exception($"{publishedFolder} doesn't exist.");
+						}
+						var newFolderName = $"WasabiLinux-{versionPrefix}";
+						var newFolderPath = Path.Combine(binDistDirectory, newFolderName);
+						Directory.Move(publishedFolder, newFolderPath);
+						publishedFolder = newFolderPath;
 
-						//var psiTar = new ProcessStartInfo
-						//{
-						//	FileName = "cmd",
-						//	RedirectStandardInput = true,
-						//	WorkingDirectory = binDistDirectory
-						//};
-						//using (var tarProcess = Process.Start(psiTar))
-						//{
-						//	tarProcess.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
-						//	tarProcess.WaitForExit();
-						//}
+						var psiTar = new ProcessStartInfo
+						{
+							FileName = "cmd",
+							RedirectStandardInput = true,
+							WorkingDirectory = binDistDirectory
+						};
+						using (var tarProcess = Process.Start(psiTar))
+						{
+							tarProcess.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
+							tarProcess.WaitForExit();
+						}
 
 						Console.WriteLine("Create Linux .deb");
 
@@ -415,10 +415,10 @@ namespace WalletWasabi.Packager
 						var debianFolderRelativePath = Path.Combine(debFolderRelativePath, "DEBIAN");
 						var debianFolderPath = Path.Combine(binDistDirectory, debianFolderRelativePath);
 						Directory.CreateDirectory(debianFolderPath);
-						var newFolderName = "wasabiwallet";
+						newFolderName = "wasabiwallet";
 						var linuxWasabiWalletFolder = LinuxPathCombine(linuxUsrBinFolder, newFolderName);
 						var newFolderRelativePath = Path.Combine(debUsrBinFolderRelativePath, newFolderName);
-						var newFolderPath = Path.Combine(binDistDirectory, newFolderRelativePath);
+						newFolderPath = Path.Combine(binDistDirectory, newFolderRelativePath);
 						Directory.Move(publishedFolder, newFolderPath);
 
 						var assetsFolder = Path.Combine(guiProjectDirectory, "Assets");
