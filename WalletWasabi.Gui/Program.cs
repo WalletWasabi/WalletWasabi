@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Avalonia.Gtk3;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
