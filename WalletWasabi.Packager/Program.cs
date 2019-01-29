@@ -403,10 +403,10 @@ namespace WalletWasabi.Packager
 
 						var debFolderRelativePath = "deb";
 						var debFolderPath = Path.Combine(binDistDirectory, debFolderRelativePath);
-						var linuxUsrBinFolder = "/usr/bin/";
-						var debUsrBinFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "bin");
-						var debUsrBinFolderPath = Path.Combine(binDistDirectory, debUsrBinFolderRelativePath);
-						Directory.CreateDirectory(debUsrBinFolderPath);
+						var linuxUsrLocalBinFolder = "/usr/local/bin/";
+						var debUsrLocalBinFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "local", "bin");
+						var debUsrLocalBinFolderPath = Path.Combine(binDistDirectory, debUsrLocalBinFolderRelativePath);
+						Directory.CreateDirectory(debUsrLocalBinFolderPath);
 						var debUsrAppFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "applications");
 						var debUsrAppFolderPath = Path.Combine(binDistDirectory, debUsrAppFolderRelativePath);
 						Directory.CreateDirectory(debUsrAppFolderPath);
@@ -416,8 +416,8 @@ namespace WalletWasabi.Packager
 						var debianFolderPath = Path.Combine(binDistDirectory, debianFolderRelativePath);
 						Directory.CreateDirectory(debianFolderPath);
 						newFolderName = "wasabiwallet";
-						var linuxWasabiWalletFolder = LinuxPathCombine(linuxUsrBinFolder, newFolderName);
-						var newFolderRelativePath = Path.Combine(debUsrBinFolderRelativePath, newFolderName);
+						var linuxWasabiWalletFolder = LinuxPathCombine(linuxUsrLocalBinFolder, newFolderName);
+						var newFolderRelativePath = Path.Combine(debUsrLocalBinFolderRelativePath, newFolderName);
 						newFolderPath = Path.Combine(binDistDirectory, newFolderRelativePath);
 						Directory.Move(publishedFolder, newFolderPath);
 
@@ -468,7 +468,7 @@ namespace WalletWasabi.Packager
 
 						File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
 
-						var wasabiStarterScriptPath = Path.Combine(debUsrBinFolderPath, $"{executableName}");
+						var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{executableName}");
 						var wasabiStarterScriptContent = $"#!/bin/sh\n" +
 															$"{ linuxWasabiWalletFolder.TrimEnd('/')}/./{executableName}\n";
 
@@ -476,7 +476,7 @@ namespace WalletWasabi.Packager
 
 						string debExeLinuxPath = LinuxPathCombine(newFolderRelativePath, executableName);
 						string debDestopFileLinuxPath = LinuxPathCombine(debUsrAppFolderRelativePath, $"{executableName}.desktop");
-						var wasabiStarterScriptLinuxPath = LinuxPathCombine(debUsrBinFolderRelativePath, $"{executableName}");
+						var wasabiStarterScriptLinuxPath = LinuxPathCombine(debUsrLocalBinFolderRelativePath, $"{executableName}");
 						var psi = new ProcessStartInfo
 						{
 							FileName = "wsl",
