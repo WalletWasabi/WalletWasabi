@@ -80,8 +80,8 @@ namespace WalletWasabi.Gui
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				result
-					.UseWin32()
-					.UseDirect2D1();
+					.UseWin32(true, true)
+					.UseSkia();
 			}
 			else
 			{
