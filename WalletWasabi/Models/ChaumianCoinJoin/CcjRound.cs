@@ -248,13 +248,16 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						{
 							return;
 						}
+
+						// Build CoinJoin:
+
 						Money newDenomination = CalculateNewDenomination();
 						var transaction = Network.Consensus.ConsensusFactory.CreateTransaction();
 
 						// 2. Add Bob outputs.
 						foreach (Bob bob in Bobs.Where(x => x.Level == MixingLevels.GetBaseLevel()))
 						{
-							transaction.Outputs.Add(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
+							transaction.Outputs.AddWithOptimize(newDenomination, bob.ActiveOutputAddress.ScriptPubKey);
 						}
 
 						// 2.1 newDenomination may differs from the Denomination at registration, so we may not be able to tinker with
@@ -270,7 +273,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 								foreach (Bob bob in bobsOnThisLevel)
 								{
-									transaction.Outputs.Add(level.Denomination, bob.ActiveOutputAddress.ScriptPubKey);
+									transaction.Outputs.AddWithOptimize(level.Denomination, bob.ActiveOutputAddress.ScriptPubKey);
 								}
 							}
 						}
@@ -284,22 +287,23 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							for (int j = 0; j < missingBobCount; j++)
 							{
 								var denomination = MixingLevels.GetLevel(i).Denomination;
-								transaction.Outputs.Add(denomination, coordinatorAddress);
+								transaction.Outputs.AddWithOptimize(denomination, coordinatorAddress);
 							}
 						}
 
 						// 4. Start building Coordinator fee.
-						Money coordinatorFeePerAlice = newDenomination.Percentage(CoordinatorFeePercent * Alices.Count);
-						Money coordinatorFee = Alices.Count * coordinatorFeePerAlice;
+						var baseDenominationOutputCount = transaction.Outputs.Count(x => x.Value == newDenomination);
+						Money coordinatorFeePerAlice = newDenomination.Percentage(CoordinatorFeePercent * baseDenominationOutputCount);
+						Money coordinatorFee = baseDenominationOutputCount * coordinatorFeePerAlice;
 
 						if (tinkerWithAdditionalMixingLevels)
 						{
 							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
 							{
-								int bobsOnThisLevel = Bobs.Count(x => x.Level == level);
-								if (bobsOnThisLevel <= 1) break;
+								var denominationOutputCount = transaction.Outputs.Count(x => x.Value == level.Denomination);
+								if (denominationOutputCount <= 1) break;
 
-								coordinatorFee += level.Denomination.Percentage(CoordinatorFeePercent * bobsOnThisLevel * bobsOnThisLevel);
+								coordinatorFee += level.Denomination.Percentage(CoordinatorFeePercent * denominationOutputCount * denominationOutputCount);
 							}
 						}
 
@@ -320,10 +324,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								for (int i = 1; i < alice.BlindedOutputScripts.Length; i++)
 								{
 									MixingLevel level = MixingLevels.GetLevel(i);
-									int bobsOnThisLevel = Bobs.Count(x => x.Level == level);
-									if (bobsOnThisLevel <= 1) break;
+									var denominationOutputCount = transaction.Outputs.Count(x => x.Value == level.Denomination);
+									if (denominationOutputCount <= 1) break;
 
-									changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentage(CoordinatorFeePercent * bobsOnThisLevel)));
+									changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentage(CoordinatorFeePercent * denominationOutputCount)));
 								}
 							}
 
@@ -338,7 +342,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								}
 								else
 								{
-									transaction.Outputs.Add(changeAmount, alice.ChangeOutputAddress.ScriptPubKey);
+									transaction.Outputs.AddWithOptimize(changeAmount, alice.ChangeOutputAddress.ScriptPubKey);
 								}
 							}
 							else
@@ -351,7 +355,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 						// 6. Add Coordinator fee only if > about $3, else just let it to be miner fee.
 						if (coordinatorFee > Money.Coins(0.0003m))
 						{
-							transaction.Outputs.Add(coordinatorFee, coordinatorAddress);
+							transaction.Outputs.AddWithOptimize(coordinatorFee, coordinatorAddress);
 						}
 
 						// 7. Create the unsigned transaction.
@@ -504,8 +508,6 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		private Money CalculateNewDenomination()
 		{
-			// Build CoinJoin
-
 			// 1. Set new denomination: minor optimization.
 			return Alices.Min(x => x.InputSum - x.NetworkFeeToPay);
 		}

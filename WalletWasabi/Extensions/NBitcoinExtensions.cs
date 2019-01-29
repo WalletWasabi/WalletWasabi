@@ -134,6 +134,49 @@ namespace NBitcoin
 			return new Signer(k, r);
 		}
 
+		/// <summary>
+		/// If scriptpubkey is already present, just add the value.
+		/// </summary>
+		public static void AddWithOptimize(this TxOutList me, Money money, Script scriptPubKey)
+		{
+			TxOut found = me.FirstOrDefault(x => x.ScriptPubKey == scriptPubKey);
+			if(found != null)
+			{
+				found.Value += money;
+			}
+			else
+			{
+				me.Add(money, scriptPubKey);
+			}
+		}
+
+		/// <summary>
+		/// If scriptpubkey is already present, just add the value.
+		/// </summary>
+		public static void AddWithOptimize(this TxOutList me, Money money, IDestination destination)
+		{
+			me.AddWithOptimize(money, destination.ScriptPubKey);
+		}
+
+		/// <summary>
+		/// If scriptpubkey is already present, just add the value.
+		/// </summary>
+		public static void AddWithOptimize(this TxOutList me, TxOut txOut)
+		{
+			me.AddWithOptimize(txOut.Value, txOut.ScriptPubKey);
+		}
+
+		/// <summary>
+		/// If scriptpubkey is already present, just add the value.
+		/// </summary>
+		public static void AddRangeWithOptimize(this TxOutList me, IEnumerable<TxOut> collection)
+		{
+			foreach(var txout in collection)
+			{
+				me.AddWithOptimize(txout);
+			}
+		}
+
 		public static SchnorrPubKey GetSchnorrPubKey(this Signer signer) => new SchnorrPubKey(signer);
 
 		public static uint256 BlindMessage(this Requester requester, uint256 messageHash, SchnorrPubKey schnorrPubKey) => requester.BlindMessage(messageHash, schnorrPubKey.RpubKey, schnorrPubKey.SignerPubKey);
