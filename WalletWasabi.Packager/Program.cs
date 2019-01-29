@@ -448,7 +448,6 @@ namespace WalletWasabi.Packager
 													$"Architecture: amd64\n" +
 													$"License: Open Source (MIT)\n" +
 													$"Installed-Size: {installedSizeKb}\n" +
-													$"Depends:\n" +
 													$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
 													$"  Built-in Tor, CoinJoin and Coin Control features.\n";
 
