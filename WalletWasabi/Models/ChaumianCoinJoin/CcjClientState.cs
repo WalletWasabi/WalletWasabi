@@ -123,6 +123,27 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
+		public bool AnyCoinsQueued()
+		{
+			lock (StateLock)
+			{
+				if (WaitingList.Any())
+				{
+					return true;
+				}
+
+				foreach (var coins in Rounds.Select(x => x.CoinsRegistered))
+				{
+					if (coins.Any())
+					{
+						return true;
+					}
+				}
+
+				return false;
+			}
+		}
+
 		public IEnumerable<Money> GetAllQueuedCoinAmounts()
 		{
 			lock (StateLock)

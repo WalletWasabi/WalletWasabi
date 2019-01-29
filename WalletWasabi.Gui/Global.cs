@@ -259,6 +259,18 @@ namespace WalletWasabi.Gui
 
 		private static CancellationTokenSource CancelWalletServiceInitialization = null;
 
+		public static string GetWalletFullPath(string walletName)
+		{
+			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
+			return Path.Combine(WalletsDir, walletName + ".json");
+		}
+
+		public static string GetWalletBackupFullPath(string walletName)
+		{
+			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
+			return Path.Combine(WalletBackupsDir, walletName + ".json");
+		}
+
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
 			ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
@@ -275,6 +287,57 @@ namespace WalletWasabi.Gui
 			}
 			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 			WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+		}
+
+		public static KeyManager InitializeKeyManager(string walletFullPath, string walletBackupFullPath)
+		{
+			KeyManager keyManager = null;
+			try
+			{
+				keyManager = LoadKeyManager(walletFullPath);
+			}
+			catch (Exception ex)
+			{
+				if (!File.Exists(walletBackupFullPath))
+				{
+					throw;
+				}
+
+				Logger.LogWarning($"Wallet got corrupted.\n" +
+					$"Wallet Filepath: {walletFullPath}\n" +
+					$"Trying to recover it from backup.\n" +
+					$"Backup path: {walletBackupFullPath}\n" +
+					$"Exception: {ex.ToString()}");
+				if (File.Exists(walletFullPath))
+				{
+					string corruptedWalletBackupPath = Path.Combine(Global.WalletBackupsDir, $"{Path.GetFileName(walletFullPath)}_CorruptedBackup");
+					if (File.Exists(corruptedWalletBackupPath))
+					{
+						File.Delete(corruptedWalletBackupPath);
+						Logger.LogInfo($"Deleted previous corrupted wallet file backup from {corruptedWalletBackupPath}.");
+					}
+					File.Move(walletFullPath, corruptedWalletBackupPath);
+					Logger.LogInfo($"Backed up corrupted wallet file to {corruptedWalletBackupPath}.");
+				}
+				File.Copy(walletBackupFullPath, walletFullPath);
+
+				keyManager = LoadKeyManager(walletFullPath);
+			}
+
+			return keyManager;
+		}
+
+		private static KeyManager LoadKeyManager(string walletFullPath)
+		{
+			KeyManager keyManager;
+			var walletFileInfo = new FileInfo(walletFullPath)
+			{
+				LastAccessTime = DateTime.Now
+			};
+
+			keyManager = KeyManager.FromFile(walletFullPath);
+			Logger.LogInfo($"Wallet decrypted: {Path.GetFileName(walletFullPath)}.");
+			return keyManager;
 		}
 
 		private static void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -366,7 +429,7 @@ namespace WalletWasabi.Gui
 				Nodes?.Dispose();
 				Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
 
-				if (!(RegTestMemPoolServingNode is null))
+				if (RegTestMemPoolServingNode != null)
 				{
 					RegTestMemPoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
