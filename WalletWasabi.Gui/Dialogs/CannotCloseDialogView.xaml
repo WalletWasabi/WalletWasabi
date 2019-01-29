@@ -1,9 +1,17 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui" Design.Width="800" Design.Height="400">
   <controls:GroupBox Title="Unable to Close Application" Background="{DynamicResource ThemeControlBackgroundBrush}" TextBlock.FontSize="30" BorderThickness="0" Margin="0 80">
     <Grid Classes="content">
-      <Panel Margin="10">
+      <Grid.RowDefinitions>
+        <RowDefinition />
+        <RowDefinition />
+      </Grid.RowDefinitions>
+      <Panel Grid.Row="0" Margin="10">
         <TextBlock FontSize="15"  Text="You have coins registered for CoinJoin. Please dequeue your coins and try again. DON'T WORRY, your coins are safe in case of lost internet or Tor connection, or a computer crash. The worst thing that can happen is that your coins get banned from participatin for a few hours or days if a round would progress from Registration phase before your registered coins would time out." TextWrapping="Wrap" />
       </Panel>
+      <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
+        <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
+        <TextBlock Text="Dequeuing coins" />
+      </StackPanel>
     </Grid>
   </controls:GroupBox>
 </UserControl>

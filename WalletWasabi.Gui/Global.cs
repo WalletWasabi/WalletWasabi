@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui
 
 		private static long _triedDesperateDequeuing = 0;
 
-		private static async Task TryDesperateDequeueAllCoinsAsync()
+		public static async Task TryDesperateDequeueAllCoinsAsync()
 		{
 			try
 			{
