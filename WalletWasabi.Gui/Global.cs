@@ -99,18 +99,27 @@ namespace WalletWasabi.Gui
 					Interlocked.Increment(ref _triedDesperateDequeuing);
 				}
 
-				if (WalletService is null || ChaumianClient is null)
-					return;
-				SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
-				if (enqueuedCoins.Any())
-				{
-					Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
-					await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
-				}
+				await DesperateDequeueAllCoinsAsync();
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex, nameof(Global));
+			}
+			finally
+			{
+				Interlocked.Exchange(ref _triedDesperateDequeuing, 0);
+			}
+		}
+
+		public static async Task DesperateDequeueAllCoinsAsync()
+		{
+			if (WalletService is null || ChaumianClient is null)
+				return;
+			SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+			if (enqueuedCoins.Any())
+			{
+				Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
+				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
 			}
 		}
 
