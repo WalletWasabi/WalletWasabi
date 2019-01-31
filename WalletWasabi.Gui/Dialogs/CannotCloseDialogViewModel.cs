@@ -54,22 +54,26 @@ namespace WalletWasabi.Gui.Dialogs
 				bool last = false;
 				while (!last)
 				{
-					last = DateTime.Now - start > TimeSpan.FromMinutes(1);
+					last = DateTime.Now - start > TimeSpan.FromMinutes(2);
 					try
 					{
 						await Global.DesperateDequeueAllCoinsAsync();
+						last = true;
 					}
 					catch (Exception ex)
 					{
 						if (last) throw ex;
-						await Task.Delay(2000, token); //wait, maybe the situation will change
+						await Task.Delay(5000, token); //wait, maybe the situation will change
 					}
 				}
 				_cancelTokenSource.Cancel();
 				Dispatcher.UIThread.Post(() =>
 				{
-					Close();
-					Application.Current.MainWindow.Close();
+					try
+					{
+						Global.QuitApplication();
+					}
+					catch (Exception) { }
 				});
 			}
 			catch (Exception ex)

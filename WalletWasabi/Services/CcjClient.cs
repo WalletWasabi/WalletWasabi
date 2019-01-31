@@ -27,6 +27,7 @@ namespace WalletWasabi.Services
 	{
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
+		public bool IsQuitPending { get; set; }
 
 		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
 
@@ -238,7 +239,7 @@ namespace WalletWasabi.Services
 					}
 
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
-
+					if (IsQuitPending) await DequeueAllCoinsFromMixNoLockAsync();
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
 					if (!(inputRegistrableRound is null))
 					{
@@ -682,6 +683,7 @@ namespace WalletWasabi.Services
 
 		public async Task QueueCoinsToMixAsync(params SmartCoin[] coins)
 		{
+			if (IsQuitPending) throw new InvalidOperationException("Quit pending - cannot enqueue coins");
 			await QueueCoinsToMixAsync(SaltSoup(), coins);
 		}
 
