@@ -1,7 +1,8 @@
 ﻿using System.Composition;
-using Avalonia;
+using System.Threading.Tasks;
 using AvalonStudio.Commands;
 using ReactiveUI;
+using System;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -13,15 +14,19 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ImportingConstructor]
 		public ExitCommands(CommandIconService commandIconService)
 		{
+			var exit = ReactiveCommand.CreateFromTask(OnExitAsync);
+
+			exit.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<ExitCommands>(ex));
+
 			ExitCommand = new CommandDefinition(
 			   "Exit",
 			   commandIconService.GetCompletionKindImage("Exit"),
-			   ReactiveCommand.Create(OnExit));
+			   exit);
 		}
 
-		private void OnExit()
+		private async Task OnExitAsync()
 		{
-			Global.QuitApplication();
+			await Global.QuitApplicationAsync();
 		}
 	}
 }

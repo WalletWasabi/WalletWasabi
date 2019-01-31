@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Dialogs
 			{
 				_cancelTokenSource.Cancel();
 				// OK pressed.
-				Close(true);
+				Close(false);
 			});
 
 			IsBusy = true;
@@ -51,6 +51,17 @@ namespace WalletWasabi.Gui.Dialogs
 			try
 			{
 				DateTime start = DateTime.Now;
+
+				while (!IsVisible) //waiting for the window to show. TODO: add OnShow ModalDialogViewModelBase.
+				{
+					//If this is not waited than ModalDialogViewModelBase.dialogCloseCompletionSource will throw NRF when Close(true) called
+					await Task.Delay(300);
+					if (DateTime.Now - start > TimeSpan.FromSeconds(10))
+						throw new InvalidOperationException("Window not opened");
+				}
+
+				start = DateTime.Now;
+
 				bool last = false;
 				while (!last)
 				{
@@ -67,14 +78,7 @@ namespace WalletWasabi.Gui.Dialogs
 					}
 				}
 				_cancelTokenSource.Cancel();
-				Dispatcher.UIThread.Post(() =>
-				{
-					try
-					{
-						Global.QuitApplication();
-					}
-					catch (Exception) { }
-				});
+				Close(true);
 			}
 			catch (Exception ex)
 			{

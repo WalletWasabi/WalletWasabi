@@ -16,6 +16,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
@@ -357,7 +359,7 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.", nameof(Global));
 		}
 
-		public static void QuitApplication()
+		public static async Task QuitApplicationAsync()
 		{
 			if (IsQuitPending) return;
 			IsQuitPending = true;
@@ -365,7 +367,11 @@ namespace WalletWasabi.Gui
 			{
 				if (ChaumianClient != null)
 					ChaumianClient.IsQuitPending = true;
-				Application.Current.MainWindow.Close();
+				bool successfulDequeue = false;
+				if (!MainWindowViewModel.Instance.CanClose)
+					successfulDequeue = await MainWindowViewModel.Instance.ShowDialogAsync(new CannotCloseDialogViewModel());
+				if (successfulDequeue || MainWindowViewModel.Instance.CanClose)
+					Application.Current.MainWindow.Close();
 			}
 			finally
 			{

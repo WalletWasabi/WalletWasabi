@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 
@@ -22,6 +23,8 @@ namespace WalletWasabi.Gui.Behaviors
 		public static readonly AvaloniaProperty<bool> CanCloseProperty =
 			AvaloniaProperty.Register<PredicateCloseBehavior, bool>(nameof(CanClose));
 
+		public Task DialogWindowTask = null;
+
 		public bool CanClose
 		{
 			get => GetValue(CanCloseProperty);
@@ -34,13 +37,11 @@ namespace WalletWasabi.Gui.Behaviors
 
 			_disposables = new CompositeDisposable
 			{
-				Observable.FromEventPattern<CancelEventArgs>(AssociatedObject, nameof(AssociatedObject.Closing)).Subscribe(ev =>
+				Observable.FromEventPattern<CancelEventArgs>(AssociatedObject, nameof(AssociatedObject.Closing)).Subscribe(async ev =>
 				{
 					if(!CanClose)
 					{
 						ev.EventArgs.Cancel = true;
-
-						MainWindowViewModel.Instance.ShowDialogAsync(new CannotCloseDialogViewModel()).GetAwaiter();
 					}
 				})
 			};
