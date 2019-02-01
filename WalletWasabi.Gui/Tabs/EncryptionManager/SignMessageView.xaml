@@ -9,10 +9,10 @@
         <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
-      <controls:ExtendedTextBox Grid.Row="0" Text="{Binding Message}" Watermark="Message" TextWrapping="Wrap" AcceptsReturn="True" Height="400" />
-      <controls:ExtendedTextBox Grid.Row="1" Text="{Binding Address}" Watermark="Address" />
-      <controls:NoparaPasswordBox Grid.Row="2" Password="{Binding Password}" Watermark="Password" />
-      <controls:ExtendedTextBox Grid.Row="3" Text="{Binding Signature}" Watermark="Signature" TextWrapping="Wrap" AcceptsReturn="True" Height="400" />
+      <controls:ExtendedTextBox Grid.Row="0" Text="{Binding Message}" Watermark="Message" UseFloatingWatermark="True" TextWrapping="Wrap" AcceptsReturn="True" />
+      <controls:ExtendedTextBox Grid.Row="1" Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
+      <controls:NoparaPasswordBox Grid.Row="2" Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
+      <controls:ExtendedTextBox Grid.Row="3" Text="{Binding Signature}" Watermark="Signature" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True" UseFloatingWatermark="True" />
       <Grid Grid.Row="4">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
           <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />

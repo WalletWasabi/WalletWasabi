@@ -67,6 +67,7 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			SignCommand = ReactiveCommand.Create(
 				() =>
 				{
+					Signature = "";
 					Signature = SignMessage(Address, Message, Password);
 				},
 				canSign
@@ -79,39 +80,13 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 
 		private static string SignMessage(string address, string message, string password)
 		{
-			if (!File.Exists(Global.WalletsDir))
-			{
-				throw new InvalidOperationException("Wallet directory missing");
-			}
-
-			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
-			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
-			List<KeyManager> kms = new List<KeyManager>();
-			foreach (var file in walletFiles)
-			{
-				kms.Add(KeyManager.FromFile(file.FullName));
-			}
 			password = Guard.Correct(password);
 
-			//var tt=kms.Select(password, BitcoinAddress.Create(address, Global.Network))
+			var addr = BitcoinAddress.Create(address, Global.Network);
 
-			//kms.Select( km => km.GetSecrets(password, BitcoinAddress.Create(address, Global.Network)).FirstOrDefault();
+			var sec = Global.WalletService.KeyManager.GetSecrets(password, addr.ScriptPubKey).FirstOrDefault();
 
-			////https://programmingblockchain.gitbook.io/programmingblockchain/bitcoin_transfer/proof_of_ownership_as_an_authentication_method
-
-			//ExtKey result = Global.WalletService.KeyManager.FirstOrDefault();
-			//if (result is null)
-			//{
-			//	throw new InvalidOperationException("Address not found.");
-			//}
-			//string signature = result.PrivateKey.SignMessage(message);
-			return null;
-		}
-
-		private static bool VerifyMessage(string address, string message, string signature)
-		{
-			BitcoinPubKeyAddress addr = new BitcoinPubKeyAddress(address, Global.Network);//TODO: only works for addresses beginning with 1
-			return addr.VerifyMessage(message, signature);
+			return sec.PrivateKey.SignMessage(message);
 		}
 	}
 }
