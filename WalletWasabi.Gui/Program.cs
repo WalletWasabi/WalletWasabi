@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Avalonia.Gtk3;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
@@ -81,17 +80,10 @@ namespace WalletWasabi.Gui
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				result
-					.UseWin32()
-					.UseDirect2D1();
+					.UseWin32(true, true)
+					.UseSkia();
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			{
-				result.UseGtk3(new Gtk3PlatformOptions
-				{
-					UseDeferredRendering = true,
-					UseGpuAcceleration = true
-				}).UseSkia();
-			}
+			else
 			{
 				result.UsePlatformDetect();
 			}
