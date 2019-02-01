@@ -19,6 +19,7 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		private string _password;
 		private string _signature;
 		private string _warningMessage;
+		private bool _isVerified;
 
 		public string Message
 		{
@@ -30,12 +31,6 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		{
 			get => _address;
 			set => this.RaiseAndSetIfChanged(ref _address, value);
-		}
-
-		public string Password
-		{
-			get => _password;
-			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
 		public string Signature
@@ -50,6 +45,12 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
+		public bool IsVerified
+		{
+			get => _isVerified;
+			set => this.RaiseAndSetIfChanged(ref _isVerified, value);
+		}
+
 		public ReactiveCommand SignCommand { get; }
 		public ReactiveCommand VerifyCommand { get; }
 		public EncryptionManagerViewModel Owner { get; }
@@ -57,6 +58,8 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		public VerifyMessageViewModel(EncryptionManagerViewModel owner) : base("Verify Message")
 		{
 			Owner = owner;
+
+			this.WhenAnyValue(x => x.Message, x => x.Address, x => x.Signature).Subscribe(_ => IsVerified = false);
 
 			var canVerify = this.WhenAnyValue(x => x.Message, x => x.Address, x => x.Signature,
 				(message, address, sign) =>
@@ -68,8 +71,10 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 				() =>
 				{
 					WarningMessage = "";
+					IsVerified = false;
 					var verified = VerifyMessage(Address, Message, Signature);
 					if (!verified) throw new InvalidOperationException("Invalid signature");
+					IsVerified = true;
 				}
 				, canVerify
 			);

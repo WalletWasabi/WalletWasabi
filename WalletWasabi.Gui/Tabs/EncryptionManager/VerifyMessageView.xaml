@@ -6,12 +6,19 @@
         <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
+        <RowDefinition Height="40" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
       <controls:ExtendedTextBox Grid.Row="0" Text="{Binding Message}" Watermark="Message" UseFloatingWatermark="True" TextWrapping="Wrap" AcceptsReturn="True" />
       <controls:ExtendedTextBox Grid.Row="1" Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
       <controls:ExtendedTextBox Grid.Row="2" Text="{Binding Signature}" Watermark="Signature" TextWrapping="Wrap" UseFloatingWatermark="True" />
-      <DockPanel Grid.Row="3" LastChildFill="True">
+      <StackPanel Grid.Row="3"  Orientation="Horizontal" HorizontalAlignment="Right" IsVisible="{Binding IsVerified}" Spacing="10" Margin="10">
+        <Border Background="Transparent" ToolTip.Tip="Signature verified successfully!">
+          <Path Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16" Stretch="Fill" />
+        </Border>
+        <TextBlock Text="Signature verified successfully!" />
+      </StackPanel>
+      <DockPanel Grid.Row="4" LastChildFill="True">
         <Button DockPanel.Dock="Right" Content="Verify" Command="{Binding VerifyCommand}" Width="100" />
         <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" TextWrapping="Wrap" />
       </DockPanel>
