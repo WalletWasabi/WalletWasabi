@@ -15,6 +15,7 @@ namespace WalletWasabi.Gui.Dialogs
 	{
 		private bool _isBusy;
 		private string _warningMessage;
+		private string _operationMessage;
 		private CancellationTokenSource _cancelTokenSource;
 
 		public bool IsBusy
@@ -29,25 +30,60 @@ namespace WalletWasabi.Gui.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
+		public string OperationMessage
+		{
+			get => _operationMessage;
+			set => this.RaiseAndSetIfChanged(ref _operationMessage, value);
+		}
+
+		public new ReactiveCommand OKCommand { get; set; }
+		public new ReactiveCommand CancelCommand { get; set; }
+
 		//http://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
 		public Task Initialization { get; private set; }
 
-		public CannotCloseDialogViewModel() : base("", true, false)
+		public CannotCloseDialogViewModel() : base("", false, false)
 		{
-			OKCommand = ReactiveCommand.Create(() =>
+			OperationMessage = "Dequeuing coins...Please wait";
+			var canCancel = this.WhenAnyValue(x => x.IsBusy);
+			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
+
+			OKCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				_cancelTokenSource.Cancel();
+				while (!Initialization.IsCompleted)
+				{
+					await Task.Delay(300);
+				}
 				// OK pressed.
 				Close(false);
-			});
+			},
+			canOk);
 
-			IsBusy = true;
+			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				OperationMessage = "Cancelling...Please wait";
+				_cancelTokenSource.Cancel();
+				while (!Initialization.IsCompleted)
+				{
+					await Task.Delay(300);
+				}
+				// OK pressed.
+				Close(false);
+			},
+			canCancel);
+
 			_cancelTokenSource = new CancellationTokenSource();
+
+			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
+			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
+
 			Initialization = StartDequeueAsync(_cancelTokenSource.Token);
 		}
 
 		private async Task StartDequeueAsync(CancellationToken token)
 		{
+			IsBusy = true;
 			try
 			{
 				DateTime start = DateTime.Now;
@@ -61,7 +97,7 @@ namespace WalletWasabi.Gui.Dialogs
 				}
 
 				start = DateTime.Now;
-
+				await Task.Delay(10000);
 				bool last = false;
 				while (!last)
 				{
@@ -77,8 +113,11 @@ namespace WalletWasabi.Gui.Dialogs
 						await Task.Delay(5000, token); //wait, maybe the situation will change
 					}
 				}
-				_cancelTokenSource.Cancel();
-				Close(true);
+				if (!_cancelTokenSource.IsCancellationRequested)
+				{
+					_cancelTokenSource.Cancel();
+					Close(true);
+				}
 			}
 			catch (Exception ex)
 			{

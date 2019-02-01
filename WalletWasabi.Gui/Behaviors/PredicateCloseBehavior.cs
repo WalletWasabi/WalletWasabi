@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			_disposables = new CompositeDisposable
 			{
-				Observable.FromEventPattern<CancelEventArgs>(AssociatedObject, nameof(AssociatedObject.Closing)).Subscribe(async ev =>
+				Observable.FromEventPattern<CancelEventArgs>(AssociatedObject, nameof(AssociatedObject.Closing)).Subscribe(ev =>
 				{
 					if(!CanClose)
 					{

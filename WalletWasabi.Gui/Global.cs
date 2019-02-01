@@ -367,10 +367,14 @@ namespace WalletWasabi.Gui
 			{
 				if (ChaumianClient != null)
 					ChaumianClient.IsQuitPending = true;
-				bool successfulDequeue = false;
+				bool closeApplication = false;
+
 				if (!MainWindowViewModel.Instance.CanClose)
-					successfulDequeue = await MainWindowViewModel.Instance.ShowDialogAsync(new CannotCloseDialogViewModel());
-				if (successfulDequeue || MainWindowViewModel.Instance.CanClose)
+					closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(new CannotCloseDialogViewModel());
+				else
+					closeApplication = true;
+
+				if (closeApplication)
 					Application.Current.MainWindow.Close();
 			}
 			finally
