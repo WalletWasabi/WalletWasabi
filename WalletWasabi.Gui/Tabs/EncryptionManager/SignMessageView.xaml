@@ -13,14 +13,10 @@
       <controls:ExtendedTextBox Grid.Row="1" Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
       <controls:NoparaPasswordBox Grid.Row="2" Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
       <controls:ExtendedTextBox Grid.Row="3" Text="{Binding Signature}" Watermark="Signature" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True" UseFloatingWatermark="True" />
-      <Grid Grid.Row="4">
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-          <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-          <Button Content="Sign" Command="{Binding SignCommand}" Width="100" />
-        </StackPanel>
-      </Grid>
+      <DockPanel Grid.Row="4" LastChildFill="True">
+        <Button DockPanel.Dock="Right" Content="Sign" Command="{Binding SignCommand}" Width="100" />
+        <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" TextWrapping="Wrap" />
+      </DockPanel>
     </Grid>
   </controls:GroupBox>
 </UserControl>
