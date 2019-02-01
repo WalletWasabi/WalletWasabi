@@ -1,21 +1,26 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui" Design.Width="600">
   <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
-    <Grid Classes="content" Margin="0 10 0 0">
-      <StackPanel Orientation="Vertical">
-        <TextBox AcceptsReturn="True" TextWrapping="Wrap" Height="125" Text="{Binding Message}" />
-        <controls:ExtendedTextBox Text="{Binding Address}" Watermark="Address" UseFloatingWatermark="True" />
-        <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" />
-        <controls:ExtendedTextBox Text="{Binding Signature}" Watermark="Signature" UseFloatingWatermark="True" TextWrapping="Wrap" AcceptsReturn="True" />
-        <Grid>
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-            <TextBlock Text="{Binding WarningMessage}" />
-          </StackPanel>
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-            <Button Content="Sign" Command="{Binding SignCommand}" />
-          </StackPanel>
-        </Grid>
-      </StackPanel>
+    <Grid Classes="content" Margin="0 40 0 0">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <controls:ExtendedTextBox Grid.Row="0" Text="{Binding Message}" Watermark="Message" TextWrapping="Wrap" AcceptsReturn="True" Height="400" />
+      <controls:ExtendedTextBox Grid.Row="1" Text="{Binding Address}" Watermark="Address" />
+      <controls:NoparaPasswordBox Grid.Row="2" Password="{Binding Password}" Watermark="Password" />
+      <controls:ExtendedTextBox Grid.Row="3" Text="{Binding Signature}" Watermark="Signature" TextWrapping="Wrap" AcceptsReturn="True" Height="400" />
+      <Grid Grid.Row="4">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+          <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+          <Button Content="Sign" Command="{Binding SignCommand}" Width="100" />
+        </StackPanel>
+      </Grid>
     </Grid>
   </controls:GroupBox>
 </UserControl>

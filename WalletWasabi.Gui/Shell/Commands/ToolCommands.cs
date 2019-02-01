@@ -12,11 +12,15 @@ using WalletWasabi.Gui.Tabs.EncryptionManager;
 using System.Reactive.Linq;
 using System.ComponentModel;
 using WalletWasabi.Services;
+using System;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-	internal class ToolCommands
+	internal class ToolCommands : IDisposable
 	{
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+
 		[ImportingConstructor]
 		public ToolCommands(CommandIconService commandIconService)
 		{
@@ -25,10 +29,17 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("WalletManager"),
 				ReactiveCommand.Create(OnWalletManager));
 
+			var isWalletLoaded = Global.WhenPropertyChanged
+			.Where(x => x.PropertyName == nameof(WalletService))            //looking for the wallet is loaded
+			.Select(ws => ws != null)                                       //if it is not null -> wallet is loaded
+			.ObserveOn(RxApp.MainThreadScheduler);                          //syncronize with the UI
+
+			var encCommand = ReactiveCommand.Create(OnEncryptionManager, isWalletLoaded).DisposeWith(Disposables);
+
 			EncryptionManagerCommand = new CommandDefinition(
-				"Encryption Manager",
-				commandIconService.GetCompletionKindImage("EncryptionManager"),
-				ReactiveCommand.Create(OnEncryptionManager));
+						"Encryption Manager",
+						commandIconService.GetCompletionKindImage("EncryptionManager"),
+						encCommand);
 
 			SettingsCommand = new CommandDefinition(
 				"Settings",
@@ -36,7 +47,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				ReactiveCommand.Create(() =>
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel());
-				}));
+				}).DisposeWith(Disposables));
 		}
 
 		private void OnWalletManager()
@@ -68,5 +79,29 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Tools.Settings")]
 		public CommandDefinition SettingsCommand { get; }
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Disposables.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

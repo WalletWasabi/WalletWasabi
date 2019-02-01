@@ -53,7 +53,6 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		}
 
 		public ReactiveCommand SignCommand { get; }
-		public ReactiveCommand VerifyCommand { get; }
 		public EncryptionManagerViewModel Owner { get; }
 
 		public SignMessageViewModel(EncryptionManagerViewModel owner) : base("Sign Message")
@@ -65,12 +64,6 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 					!string.IsNullOrEmpty(message) &&
 					!string.IsNullOrEmpty(address));
 
-			var canVerify = this.WhenAnyValue(x => x.Message, x => x.Address, x => x.Signature,
-				(message, address, sign) =>
-					!string.IsNullOrEmpty(message) &&
-					!string.IsNullOrEmpty(address) &&
-					!string.IsNullOrEmpty(sign));
-
 			SignCommand = ReactiveCommand.Create(
 				() =>
 				{
@@ -79,20 +72,6 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 				canSign
 			);
 			SignCommand.ThrownExceptions.Subscribe(ex =>
-			{
-				WarningMessage = ex.Message;
-			});
-
-			VerifyCommand = ReactiveCommand.Create(
-				() =>
-				{
-					var verified = VerifyMessage(Address, Message, Signature);
-					if (!verified) throw new InvalidOperationException("Invalid signature");
-					WarningMessage = "Good";
-				}
-				, canVerify
-			);
-			VerifyCommand.ThrownExceptions.Subscribe(ex =>
 			{
 				WarningMessage = ex.Message;
 			});
