@@ -14,22 +14,16 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 {
 	internal class EncryptMessageViewModel : CategoryViewModel
 	{
-		private string _message;
-		private string _address;
+		private string _plainMessage;
 		private string _password;
-		private string _signature;
+		private string _encryptedMessage;
 		private string _warningMessage;
+		private string _publicKey;
 
-		public string Message
+		public string PlainMessage
 		{
-			get => _message;
-			set => this.RaiseAndSetIfChanged(ref _message, value);
-		}
-
-		public string Address
-		{
-			get => _address;
-			set => this.RaiseAndSetIfChanged(ref _address, value);
+			get => _plainMessage;
+			set => this.RaiseAndSetIfChanged(ref _plainMessage, value);
 		}
 
 		public string Password
@@ -38,10 +32,16 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public string Signature
+		public string PublicKey
 		{
-			get => _signature;
-			set => this.RaiseAndSetIfChanged(ref _signature, value);
+			get => _publicKey;
+			set => this.RaiseAndSetIfChanged(ref _publicKey, value);
+		}
+
+		public string EncryptedMessage
+		{
+			get => _encryptedMessage;
+			set => this.RaiseAndSetIfChanged(ref _encryptedMessage, value);
 		}
 
 		public string WarningMessage
@@ -50,64 +50,35 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
-		public ReactiveCommand SignCommand { get; }
-		public ReactiveCommand VerifyCommand { get; }
+		public ReactiveCommand EncryptCommand { get; }
 		public EncryptionManagerViewModel Owner { get; }
 
 		public EncryptMessageViewModel(EncryptionManagerViewModel owner) : base("Encrypt Message")
 		{
 			Owner = owner;
 
-			var canSign = this.WhenAnyValue(x => x.Message, x => x.Address,
-				(message, address) =>
-					!string.IsNullOrEmpty(message) &&
-					!string.IsNullOrEmpty(address));
+			var canEncrypt = this.WhenAnyValue(x => x.PlainMessage,
+				(message) =>
+					!string.IsNullOrEmpty(message));
 
-			var canVerify = this.WhenAnyValue(x => x.Message, x => x.Address, x => x.Signature,
-				(message, address, sign) =>
-					!string.IsNullOrEmpty(message) &&
-					!string.IsNullOrEmpty(address) &&
-					!string.IsNullOrEmpty(sign));
-
-			SignCommand = ReactiveCommand.Create(
+			EncryptCommand = ReactiveCommand.Create(
 				() =>
 				{
-					Signature = SignMessage(Address, Message, Password);
+					EncryptedMessage = EncryptMessage(PlainMessage, PublicKey);
 				},
-				canSign
+				canEncrypt
 			);
-			SignCommand.ThrownExceptions.Subscribe(ex =>
-			{
-				WarningMessage = ex.Message;
-			});
 
-			VerifyCommand = ReactiveCommand.Create(
-				() =>
-				{
-					var verified = VerifyMessage(Address, Message, Signature);
-					if (!verified) throw new InvalidOperationException("Invalid signature");
-					WarningMessage = "Good";
-				}
-				, canVerify
-			);
-			VerifyCommand.ThrownExceptions.Subscribe(ex =>
+			EncryptCommand.ThrownExceptions.Subscribe(ex =>
 			{
 				WarningMessage = ex.Message;
 			});
 		}
 
-		private static string SignMessage(string address, string message, string password)
+		private static string EncryptMessage(string message, string pubkey)
 		{
-			password = Guard.Correct(password);
-			BitcoinSecret bitcoinPrivateKey = Global.WalletService.KeyManager.EncryptedSecret.GetSecret(password);
-			string signature = bitcoinPrivateKey.PrivateKey.SignMessage(message);
-			return signature;
-		}
-
-		private static bool VerifyMessage(string address, string message, string signature)
-		{
-			BitcoinPubKeyAddress addr = new BitcoinPubKeyAddress(address, Global.Network);
-			return addr.VerifyMessage(message, signature);
+			var pk = new PubKey(pubkey);
+			return pk.Encrypt(message);
 		}
 	}
 }

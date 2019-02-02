@@ -14,22 +14,17 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 {
 	internal class DecryptMessageViewModel : CategoryViewModel
 	{
-		private string _message;
-		private string _address;
+		private string _encryptedMessage;
 		private string _password;
-		private string _signature;
+		private string _decryptedMessage;
+		private string _myPublicKey;
 		private string _warningMessage;
+		private bool _isPublicKeyPresent;
 
-		public string Message
+		public string EncryptedMessage
 		{
-			get => _message;
-			set => this.RaiseAndSetIfChanged(ref _message, value);
-		}
-
-		public string Address
-		{
-			get => _address;
-			set => this.RaiseAndSetIfChanged(ref _address, value);
+			get => _encryptedMessage;
+			set => this.RaiseAndSetIfChanged(ref _encryptedMessage, value);
 		}
 
 		public string Password
@@ -38,10 +33,16 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public string Signature
+		public string MyPublicKey
 		{
-			get => _signature;
-			set => this.RaiseAndSetIfChanged(ref _signature, value);
+			get => _myPublicKey;
+			set => this.RaiseAndSetIfChanged(ref _myPublicKey, value);
+		}
+
+		public string DecryptedMessage
+		{
+			get => _decryptedMessage;
+			set => this.RaiseAndSetIfChanged(ref _decryptedMessage, value);
 		}
 
 		public string WarningMessage
@@ -50,64 +51,59 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
-		public ReactiveCommand SignCommand { get; }
-		public ReactiveCommand VerifyCommand { get; }
+		public bool IsPublicKeyPresent
+		{
+			get => _isPublicKeyPresent;
+			set => this.RaiseAndSetIfChanged(ref _isPublicKeyPresent, value);
+		}
+
+		public ReactiveCommand DecryptCommand { get; }
+		public ReactiveCommand MyPublicKeyCommand { get; }
+
 		public EncryptionManagerViewModel Owner { get; }
 
 		public DecryptMessageViewModel(EncryptionManagerViewModel owner) : base("Decrypt Message")
 		{
 			Owner = owner;
 
-			var canSign = this.WhenAnyValue(x => x.Message, x => x.Address,
-				(message, address) =>
-					!string.IsNullOrEmpty(message) &&
-					!string.IsNullOrEmpty(address));
+			var canDecrypt = this.WhenAnyValue(x => x.EncryptedMessage,
+				(message) =>
+					!string.IsNullOrEmpty(message));
 
-			var canVerify = this.WhenAnyValue(x => x.Message, x => x.Address, x => x.Signature,
-				(message, address, sign) =>
-					!string.IsNullOrEmpty(message) &&
-					!string.IsNullOrEmpty(address) &&
-					!string.IsNullOrEmpty(sign));
-
-			SignCommand = ReactiveCommand.Create(
+			DecryptCommand = ReactiveCommand.Create(
 				() =>
 				{
-					Signature = SignMessage(Address, Message, Password);
+					WarningMessage = "";
+					DecryptedMessage = DecryptMessage(EncryptedMessage, Password);
 				},
-				canSign
+				canDecrypt
 			);
-			SignCommand.ThrownExceptions.Subscribe(ex =>
+
+			DecryptCommand.ThrownExceptions.Subscribe(ex =>
 			{
 				WarningMessage = ex.Message;
 			});
 
-			VerifyCommand = ReactiveCommand.Create(
+			MyPublicKeyCommand = ReactiveCommand.Create(
 				() =>
 				{
-					var verified = VerifyMessage(Address, Message, Signature);
-					if (!verified) throw new InvalidOperationException("Invalid signature");
-					WarningMessage = "Good";
+					WarningMessage = "";
+					MyPublicKey = Global.WalletService.KeyManager.EncryptedSecret.GetSecret(Password).PubKey.ToHex();
+					IsPublicKeyPresent = true;
 				}
-				, canVerify
 			);
-			VerifyCommand.ThrownExceptions.Subscribe(ex =>
+
+			MyPublicKeyCommand.ThrownExceptions.Subscribe(ex =>
 			{
 				WarningMessage = ex.Message;
 			});
 		}
 
-		private static string SignMessage(string address, string message, string password)
+		private static string DecryptMessage(string message, string password)
 		{
 			password = Guard.Correct(password);
-			BitcoinSecret bitcoinPrivateKey = Global.WalletService.KeyManager.EncryptedSecret.GetSecret(password);
-			string signature = bitcoinPrivateKey.PrivateKey.SignMessage(message);
-			return signature;
-		}
-
-		private static bool VerifyMessage(string address, string message, string signature)
-		{
-			BitcoinPubKeyAddress addr = new BitcoinPubKeyAddress(address, Global.Network);
-			return addr.VerifyMessage(message, signature);
+			var bitcoinPrivateKey = Global.WalletService.KeyManager.EncryptedSecret.GetSecret(password);
+			return bitcoinPrivateKey.PrivateKey.Decrypt(message);
 		}
 	}
 }

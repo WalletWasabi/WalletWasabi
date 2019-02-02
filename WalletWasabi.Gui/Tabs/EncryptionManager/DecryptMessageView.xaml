@@ -3,24 +3,24 @@
   <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
     <Grid Classes="content" Margin="0 40 0 0">
       <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
-      <controls:ExtendedTextBox Grid.Row="0" Text="{Binding Message}" Watermark="Message" TextWrapping="Wrap" AcceptsReturn="True" Height="400" />
-      <controls:ExtendedTextBox Grid.Row="1" Text="{Binding Address}" Watermark="Address" />
-      <controls:NoparaPasswordBox Grid.Row="2" Password="{Binding Password}" Watermark="Password" />
-      <controls:ExtendedTextBox Grid.Row="3" Text="{Binding Signature}" Watermark="Signature" TextWrapping="Wrap" AcceptsReturn="True" Height="400" />
-      <Grid Grid.Row="4">
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-          <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-          <Button Content="Decrypt" Command="{Binding SignCommand}" Width="100" />
-        </StackPanel>
-      </Grid>
+      <StackPanel Grid.Row="0">
+        <DockPanel IsVisible="{Binding !IsPublicKeyPresent}" LastChildFill="True">
+          <Button DockPanel.Dock="Right" Content="Get my public key" Command="{Binding MyPublicKeyCommand}" Width="200" />
+          <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
+        </DockPanel>
+        <controls:ExtendedTextBox IsVisible="{Binding IsPublicKeyPresent}" Text="{Binding MyPublicKey}" Watermark="My public key" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True" UseFloatingWatermark="True" />
+      </StackPanel>
+      <controls:ExtendedTextBox Grid.Row="1" Text="{Binding EncryptedMessage}" Watermark="Encrypted message" UseFloatingWatermark="True" TextWrapping="Wrap" AcceptsReturn="True" />
+      <controls:ExtendedTextBox Grid.Row="2" Text="{Binding DecryptedMessage}" Watermark="Decrypted message" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True" UseFloatingWatermark="True" />
+      <DockPanel Grid.Row="3" LastChildFill="True">
+        <Button DockPanel.Dock="Right" Content="Decrypt" Command="{Binding DecryptCommand}" Width="100" />
+        <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" TextWrapping="Wrap" />
+      </DockPanel>
     </Grid>
   </controls:GroupBox>
 </UserControl>
