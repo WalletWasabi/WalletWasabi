@@ -60,7 +60,7 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canOk).DisposeWith(Disposables);
+			canOk);
 
 			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canCancel).DisposeWith(Disposables);
+			canCancel);
 
 			_cancelTokenSource = new CancellationTokenSource();
 			Disposables.Add(_cancelTokenSource);
@@ -105,6 +105,7 @@ namespace WalletWasabi.Gui.Dialogs
 				while (!last)
 				{
 					last = DateTime.Now - start > TimeSpan.FromMinutes(2);
+					if (_cancelTokenSource.IsCancellationRequested) break;
 					try
 					{
 						await Global.DesperateDequeueAllCoinsAsync();

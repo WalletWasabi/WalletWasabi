@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -46,46 +47,79 @@ namespace WalletWasabi.Gui
 			AvaloniaXamlLoader.Load(this);
 		}
 
-		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
+		private Task _closingTask;
+		private long _closingState;
+
+		private void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
 		{
+			e.Cancel = true;
+			switch (Interlocked.Read(ref _closingState))
+			{
+				case 0:
+					Interlocked.Increment(ref _closingState);
+					_closingTask = ClosingAsync();
+					break;
+
+				case 1:
+					// still closing cancel the progress
+					return;
+
+				case 2:
+					e.Cancel = false;
+					return; //can close the window
+			}
+		}
+
+		private async Task ClosingAsync()
+		{
+			bool closeApplication = false;
 			try
 			{
-				if (IsQuitPending) return;
-				IsQuitPending = true;
-				try
-				{
-					if (Global.ChaumianClient != null)
-						Global.ChaumianClient.IsQuitPending = true;
-					bool closeApplication = false;
+				if (Global.ChaumianClient != null)
+					Global.ChaumianClient.IsQuitPending = true; //indicate -> do not add any more alices to the coinjoin
 
-					if (!MainWindowViewModel.Instance.CanClose)
+				if (!MainWindowViewModel.Instance.CanClose)
+				{
+					using (var dialog = new CannotCloseDialogViewModel())
 					{
-						using (var dialog = new CannotCloseDialogViewModel())
-						{
-							closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog);
-						}
+						closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); //start the deque process with a dialog
 					}
-					else
-						closeApplication = true;
-
-					e.Cancel = !closeApplication;
 				}
-				finally
+				else
+					closeApplication = true;
+
+				if (closeApplication)
 				{
-					if (Global.ChaumianClient != null)
-						Global.ChaumianClient.IsQuitPending = false;
-					IsQuitPending = false;
+					try
+					{
+						Global.UiConfig.WindowState = WindowState;
+						Global.UiConfig.Width = Width;
+						Global.UiConfig.Height = Height;
+						await Global.UiConfig.ToFileAsync();
+						Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+					}
+					catch (Exception ex)
+					{
+						Logging.Logger.LogWarning<MainWindow>(ex);
+					}
+					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
+					Close(); //start the closing process. Will call MainWindow_ClosingAsync again!
 				}
-
-				Global.UiConfig.WindowState = WindowState;
-				Global.UiConfig.Width = Width;
-				Global.UiConfig.Height = Height;
-				await Global.UiConfig.ToFileAsync();
-				Logging.Logger.LogInfo<UiConfig>("UiConfig is saved.");
+				//let's go to finally
 			}
 			catch (Exception ex)
 			{
+				Interlocked.Exchange(ref _closingState, 0); //something happened back to starting point
 				Logging.Logger.LogWarning<MainWindow>(ex);
+			}
+			finally
+			{
+				if (!closeApplication) //we are not closing the application for some reason
+				{
+					Interlocked.Exchange(ref _closingState, 0);
+					if (Global.ChaumianClient != null)
+						Global.ChaumianClient.IsQuitPending = false; //re-enable enqueuing coins
+				}
 			}
 		}
 
