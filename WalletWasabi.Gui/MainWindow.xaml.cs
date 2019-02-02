@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -11,6 +12,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
+using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 
@@ -18,6 +20,8 @@ namespace WalletWasabi.Gui
 {
 	public class MainWindow : MetroWindow
 	{
+		public bool IsQuitPending { get; private set; }
+
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -46,6 +50,33 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
+				if (IsQuitPending) return;
+				IsQuitPending = true;
+				try
+				{
+					if (Global.ChaumianClient != null)
+						Global.ChaumianClient.IsQuitPending = true;
+					bool closeApplication = false;
+
+					if (!MainWindowViewModel.Instance.CanClose)
+					{
+						using (var dialog = new CannotCloseDialogViewModel())
+						{
+							closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog);
+						}
+					}
+					else
+						closeApplication = true;
+
+					e.Cancel = !closeApplication;
+				}
+				finally
+				{
+					if (Global.ChaumianClient != null)
+						Global.ChaumianClient.IsQuitPending = false;
+					IsQuitPending = false;
+				}
+
 				Global.UiConfig.WindowState = WindowState;
 				Global.UiConfig.Width = Width;
 				Global.UiConfig.Height = Height;

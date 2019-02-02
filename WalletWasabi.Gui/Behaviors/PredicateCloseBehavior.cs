@@ -23,8 +23,6 @@ namespace WalletWasabi.Gui.Behaviors
 		public static readonly AvaloniaProperty<bool> CanCloseProperty =
 			AvaloniaProperty.Register<PredicateCloseBehavior, bool>(nameof(CanClose));
 
-		public Task DialogWindowTask = null;
-
 		public bool CanClose
 		{
 			get => GetValue(CanCloseProperty);
@@ -37,13 +35,6 @@ namespace WalletWasabi.Gui.Behaviors
 
 			_disposables = new CompositeDisposable
 			{
-				Observable.FromEventPattern<CancelEventArgs>(AssociatedObject, nameof(AssociatedObject.Closing)).Subscribe(ev =>
-				{
-					if(!CanClose)
-					{
-						ev.EventArgs.Cancel = true;
-					}
-				})
 			};
 		}
 

@@ -4,6 +4,7 @@ using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,12 +12,13 @@ using WalletWasabi;
 
 namespace WalletWasabi.Gui.Dialogs
 {
-	internal class CannotCloseDialogViewModel : ModalDialogViewModelBase
+	internal class CannotCloseDialogViewModel : ModalDialogViewModelBase, IDisposable
 	{
 		private bool _isBusy;
 		private string _warningMessage;
 		private string _operationMessage;
 		private CancellationTokenSource _cancelTokenSource;
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		public bool IsBusy
 		{
@@ -58,7 +60,7 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canOk);
+			canOk).DisposeWith(Disposables);
 
 			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -71,9 +73,10 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canCancel);
+			canCancel).DisposeWith(Disposables);
 
 			_cancelTokenSource = new CancellationTokenSource();
+			Disposables.Add(_cancelTokenSource);
 
 			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
 			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
@@ -147,5 +150,29 @@ namespace WalletWasabi.Gui.Dialogs
 				}
 			});
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Disposables.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

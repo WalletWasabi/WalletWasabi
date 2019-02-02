@@ -75,7 +75,6 @@ namespace WalletWasabi.Gui
 
 		public static Config Config { get; private set; }
 		public static UiConfig UiConfig { get; private set; }
-		public static bool IsQuitPending { get; private set; }
 
 		public static void InitializeConfig(Config config)
 		{
@@ -357,32 +356,6 @@ namespace WalletWasabi.Gui
 				ChaumianClient = null;
 			}
 			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.", nameof(Global));
-		}
-
-		public static async Task QuitApplicationAsync()
-		{
-			if (IsQuitPending) return;
-			IsQuitPending = true;
-			try
-			{
-				if (ChaumianClient != null)
-					ChaumianClient.IsQuitPending = true;
-				bool closeApplication = false;
-
-				if (!MainWindowViewModel.Instance.CanClose)
-					closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(new CannotCloseDialogViewModel());
-				else
-					closeApplication = true;
-
-				if (closeApplication)
-					Application.Current.MainWindow.Close();
-			}
-			finally
-			{
-				if (ChaumianClient != null)
-					ChaumianClient.IsQuitPending = false;
-				IsQuitPending = false;
-			}
 		}
 
 		public static async Task DisposeAsync()
