@@ -4,20 +4,30 @@
     <Grid Classes="content" Margin="0 40 0 0">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
         <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
-      <StackPanel Grid.Row="0">
-        <DockPanel IsVisible="{Binding !IsPublicKeyPresent}" LastChildFill="True">
-          <Button DockPanel.Dock="Right" Content="Get my public key" Command="{Binding MyPublicKeyCommand}" Width="200" />
-          <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
-        </DockPanel>
-        <controls:ExtendedTextBox IsVisible="{Binding IsPublicKeyPresent}" Text="{Binding MyPublicKey}" Watermark="My public key" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True" UseFloatingWatermark="True" />
-      </StackPanel>
-      <controls:ExtendedTextBox Grid.Row="1" Text="{Binding EncryptedMessage}" Watermark="Encrypted message" UseFloatingWatermark="True" TextWrapping="Wrap" AcceptsReturn="True" />
-      <controls:ExtendedTextBox Grid.Row="2" Text="{Binding DecryptedMessage}" Watermark="Decrypted message" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True" UseFloatingWatermark="True" />
-      <DockPanel Grid.Row="3" LastChildFill="True">
+      <ListBox Grid.Row="0" Items="{Binding Addresses}" SelectedItem="{Binding SelectedItem}" MaxHeight="300">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <Grid ColumnDefinitions="* *">
+              <Grid.Styles>
+                <Style Selector="TextBlock">
+                  <Setter Property="VerticalAlignment" Value="Center" />
+                </Style>
+              </Grid.Styles>
+              <TextBlock Text="{Binding PubKey}" Grid.Column="0" Margin="10 0" />
+              <TextBlock Text="{Binding Label}" Grid.Column="1" Margin="10 0" />
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+      <controls:ExtendedTextBox Grid.Row="1" Text="{Binding MyPublicKey}" Watermark="My public key" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True" UseFloatingWatermark="True" />
+      <controls:ExtendedTextBox Grid.Row="2" Text="{Binding EncryptedMessage}" Watermark="Encrypted message" UseFloatingWatermark="True" TextWrapping="Wrap" AcceptsReturn="True" />
+      <controls:ExtendedTextBox Grid.Row="3" Text="{Binding DecryptedMessage}" Watermark="Decrypted message" TextWrapping="Wrap" IsReadOnly="True" AcceptsReturn="True" UseFloatingWatermark="True" />
+      <DockPanel Grid.Row="4" LastChildFill="True">
         <Button DockPanel.Dock="Right" Content="Decrypt" Command="{Binding DecryptCommand}" Width="100" />
         <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" TextWrapping="Wrap" />
       </DockPanel>

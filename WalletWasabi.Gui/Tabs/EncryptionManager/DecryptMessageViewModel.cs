@@ -3,6 +3,8 @@ using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using WalletWasabi.Gui.Tabs.EncryptionManager;
 using WalletWasabi.Gui.Tabs.WalletManager;
@@ -20,6 +22,8 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		private string _myPublicKey;
 		private string _warningMessage;
 		private bool _isPublicKeyPresent;
+		private ObservableCollection<AddressPubKeyViewModel> _addresses;
+		private AddressPubKeyViewModel _selectedItem;
 
 		public string EncryptedMessage
 		{
@@ -57,6 +61,18 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			set => this.RaiseAndSetIfChanged(ref _isPublicKeyPresent, value);
 		}
 
+		public AddressPubKeyViewModel SelectedItem
+		{
+			get => _selectedItem;
+			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
+		}
+
+		public ObservableCollection<AddressPubKeyViewModel> Addresses
+		{
+			get => _addresses;
+			set => this.RaiseAndSetIfChanged(ref _addresses, value);
+		}
+
 		public ReactiveCommand DecryptCommand { get; }
 		public ReactiveCommand MyPublicKeyCommand { get; }
 
@@ -74,7 +90,7 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 				() =>
 				{
 					WarningMessage = "";
-					DecryptedMessage = DecryptMessage(EncryptedMessage, Password);
+					DecryptedMessage = DecryptMessage(EncryptedMessage, MyPublicKey, Password);
 				},
 				canDecrypt
 			);
@@ -88,22 +104,39 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 				() =>
 				{
 					WarningMessage = "";
-					MyPublicKey = Global.WalletService.KeyManager.EncryptedSecret.GetSecret(Password).PubKey.ToHex();
-					IsPublicKeyPresent = true;
-				}
+					DecryptedMessage = DecryptMessage(EncryptedMessage, MyPublicKey, Password);
+				},
+				canDecrypt
 			);
 
 			MyPublicKeyCommand.ThrownExceptions.Subscribe(ex =>
 			{
 				WarningMessage = ex.Message;
 			});
+
+			this.WhenAnyValue(x => x.SelectedItem)
+				.Subscribe((x) => MyPublicKey = x is null ? "" : x.PubKey);
+
+			IEnumerable<HdPubKey> keys = Global.WalletService.KeyManager.GetKeys();
+
+			Addresses = new ObservableCollection<AddressPubKeyViewModel>(keys.Select(a => new AddressPubKeyViewModel(a)));
 		}
 
-		private static string DecryptMessage(string message, string password)
+		private string DecryptMessage(string message, string pubkey, string password)
 		{
 			password = Guard.Correct(password);
-			var bitcoinPrivateKey = Global.WalletService.KeyManager.EncryptedSecret.GetSecret(password);
-			return bitcoinPrivateKey.PrivateKey.Decrypt(message);
+			HdPubKey hdPubKey = Global.WalletService.KeyManager.GetKeys().FirstOrDefault(k => k.PubKey.ToHex() == pubkey);
+			if (hdPubKey == null)
+			{
+				throw new InvalidOperationException("Could not fint the corresponting address in your wallet for that public key.");
+			}
+
+			(ExtKey secret, HdPubKey pubKey) secret = Global.WalletService.KeyManager.GetSecretsAndPubKeyPairs(password, hdPubKey.PubKey.ScriptPubKey).FirstOrDefault();
+			if (secret.Equals(default))
+			{
+				throw new InvalidOperationException("Could not fint the corresponting secret in your wallet for that ScriptPubKey");
+			}
+			return secret.secret.PrivateKey.Decrypt(message);
 		}
 	}
 }
