@@ -129,8 +129,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 
-				if (Global.WalletService is null) //disposed meanwhile
+				if (Global.WalletService is null) // disposed meanwhile
+				{
 					break;
+				}
 
 				SmartTransaction foundTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.TransactionId);
 				DateTimeOffset dateTime;
