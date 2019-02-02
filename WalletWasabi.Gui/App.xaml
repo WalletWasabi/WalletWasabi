@@ -12,10 +12,10 @@
     <StyleInclude Source="resm:AvalonStudio.Shell.Controls.MetroWindowTheme.paml?assembly=AvalonStudio.Shell" />
     <StyleInclude Source="resm:AvalonStudio.Shell.Extensibility.Controls.ControlTheme.paml?assembly=AvalonStudio.Shell.Extensibility" />
     <StyleInclude Source="resm:AvalonStudio.Shell.Styles.GlobalStyles.xaml?assembly=AvalonStudio.Shell" />
-    <StyleInclude Source="resm:Dock.Avalonia.Controls.DockPanelSplitter.xaml?assembly=Dock.Avalonia" />
-    <StyleInclude Source="resm:Dock.Avalonia.Controls.DockTarget.xaml?assembly=Dock.Avalonia" />
-    <StyleInclude Source="resm:Dock.Avalonia.Controls.DockToolChrome.xaml?assembly=Dock.Avalonia" />
-    <StyleInclude Source="resm:Dock.Avalonia.Controls.MetroWindow.xaml?assembly=Dock.Avalonia" />
+    <StyleInclude Source="avares://Dock.Avalonia/Controls/DockPanelSplitter.xaml" />
+    <StyleInclude Source="avares://Dock.Avalonia/Controls/DockTarget.xaml" />
+    <StyleInclude Source="avares://Dock.Avalonia/Controls/DockToolChrome.xaml" />
+    <StyleInclude Source="avares://Dock.Avalonia/Controls/MetroWindow.xaml" />
     <StyleInclude Source="resm:WalletWasabi.Gui.Controls.GroupBox.xaml?assembly=WalletWasabi.Gui" />
     <StyleInclude Source="resm:WalletWasabi.Gui.Styles.Styles.xaml?assembly=WalletWasabi.Gui" />
     <StyleInclude Source="resm:WalletWasabi.Gui.Icons.Icons.xaml?assembly=WalletWasabi.Gui" />

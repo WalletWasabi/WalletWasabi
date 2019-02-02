@@ -54,6 +54,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
+	<PackageReference Include="Avalonia.Angle.Windows.Natives" Version="2.1.0.2019013001" />
   </ItemGroup>
 
   <ItemGroup>
