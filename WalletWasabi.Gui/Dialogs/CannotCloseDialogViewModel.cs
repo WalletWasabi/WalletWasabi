@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Dialogs
 		}
 
 		public new ReactiveCommand OKCommand { get; set; }
-		public new ReactiveCommand CancelCommand { get; set; }
+		public new ReactiveCommand AbortCommand { get; set; }
 
 		//http://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
 		public Task Initialization { get; private set; }
@@ -47,7 +47,7 @@ namespace WalletWasabi.Gui.Dialogs
 		public CannotCloseDialogViewModel() : base("", false, false)
 		{
 			OperationMessage = "Dequeuing coins...Please wait";
-			var canCancel = this.WhenAnyValue(x => x.IsBusy);
+			var canAbort = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
 
 			OKCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Dialogs
 			},
 			canOk);
 
-			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
+			AbortCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				OperationMessage = "Cancelling...Please wait";
 				_cancelTokenSource.Cancel();
@@ -73,13 +73,13 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canCancel);
+			canAbort);
 
 			_cancelTokenSource = new CancellationTokenSource();
 			Disposables.Add(_cancelTokenSource);
 
 			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
-			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
+			AbortCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
 
 			Initialization = StartDequeueAsync(_cancelTokenSource.Token);
 		}
