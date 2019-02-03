@@ -188,17 +188,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
-			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
+			var lastWordOrNull = enteredWordList.LastOrDefault();
 
-			if (lastWorld.Length < 1)
+			if (lastWordOrNull == null)
+			{
+				Suggestions?.Clear();
+				return;
+			}
+
+			var lastWord = lastWordOrNull.Replace("\t", "");
+
+			if (lastWord.Length < 1)
 			{
 				Suggestions.Clear();
 				return;
 			}
 
 			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
-			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase))
-				.Union(nonSpecialLabels.Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
+			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
+				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)
 				.Take(3);
 
