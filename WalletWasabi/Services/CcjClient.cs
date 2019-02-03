@@ -239,7 +239,6 @@ namespace WalletWasabi.Services
 					}
 
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
-					if (IsQuitPending) await DequeueAllCoinsFromMixNoLockAsync();
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
 					if (!(inputRegistrableRound is null))
 					{

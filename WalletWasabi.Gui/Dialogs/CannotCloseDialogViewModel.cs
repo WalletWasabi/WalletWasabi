@@ -4,11 +4,13 @@ using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Dialogs
 {
@@ -100,7 +102,6 @@ namespace WalletWasabi.Gui.Dialogs
 				}
 
 				start = DateTime.Now;
-				await Task.Delay(10000);
 				bool last = false;
 				while (!last)
 				{
@@ -108,8 +109,28 @@ namespace WalletWasabi.Gui.Dialogs
 					if (_cancelTokenSource.IsCancellationRequested) break;
 					try
 					{
-						await Global.DesperateDequeueAllCoinsAsync();
-						last = true;
+						if (Global.WalletService is null || Global.ChaumianClient is null)
+							return;
+						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+						Exception latestException = null;
+						foreach (var coin in enqueuedCoins)
+						{
+							try
+							{
+								if (_cancelTokenSource.IsCancellationRequested) break;
+								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }); //dequeue coins one-by-one to check abort flag more frequently
+							}
+							catch (Exception ex)
+							{
+								latestException = ex;
+
+								if (last) //if this is the last iteration and we are still failing then we throw the exception
+									throw ex;
+							}
+						}
+
+						if (latestException is null) //no exceptions were thrown during the for-each so we are done with dequeuing
+							last = true;
 					}
 					catch (Exception ex)
 					{
