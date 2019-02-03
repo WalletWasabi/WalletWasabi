@@ -38,7 +38,7 @@ Lets start creating the launcher (it goes into the `.vscode/launch.json` file). 
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build-client",
-      "program": "${workspaceFolder}      /WalletWasabi.Gui/bin/Debug/netcoreapp2.2/WalletWasabi.Gui.dll",
+      "program": "${workspaceFolder}/WalletWasabi.Gui/bin/Debug/netcoreapp2.2/WalletWasabi.Gui.dll",
       "args": [],
       "cwd": "${workspaceFolder}/WalletWasabi.Gui",
       "stopAtEntry": false,
@@ -53,7 +53,7 @@ It is important to see that this launcher requires the execution of a `build-cli
 {
     "version": "2.0.0",
     "tasks": [{
-        "label": "build-frontend",
+        "label": "build-client",
         "command": "dotnet",
         "type": "process",
         "args": [
