@@ -143,6 +143,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					Password = Guard.Correct(Password);
+					Label = Label.Trim(',', ' ').Trim();
 					if (!IsMax && string.IsNullOrWhiteSpace(Label))
 					{
 						SetWarningMessage("Label is required.");
@@ -179,7 +180,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							return;
 						}
 					}
-					var label = Label.Trim(',', ' ').Trim();
+					var label = Label;
 					var operation = new WalletService.Operation(script, amount, label);
 
 					try
@@ -775,17 +776,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
-			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
+			var lastWord = enteredWordList?.LastOrDefault()?.Replace("\t", "") ?? "";
 
-			if (lastWorld.Length < 1)
+			if (!lastWord.Any())
 			{
 				Suggestions.Clear();
 				return;
 			}
 
 			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
-			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase))
-				.Union(nonSpecialLabels.Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
+			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
+				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)
 				.Take(3);
 
