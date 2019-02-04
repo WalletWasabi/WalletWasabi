@@ -122,19 +122,20 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			Addresses = new ObservableCollection<AddressPubKeyViewModel>(keys.Select(a => new AddressPubKeyViewModel(a)));
 		}
 
-		private string DecryptMessage(string message, string pubkey, string password)
+		private string DecryptMessage(string message, string pubKeyHex, string password)
 		{
 			password = Guard.Correct(password);
-			HdPubKey hdPubKey = Global.WalletService.KeyManager.GetKeys().FirstOrDefault(k => k.PubKey.ToHex() == pubkey);
+			PubKey pk = new PubKey(pubKeyHex);
+			HdPubKey hdPubKey = Global.WalletService.KeyManager.GetKeys().FirstOrDefault(k => k.PubKey == pk);
 			if (hdPubKey == null)
 			{
-				throw new InvalidOperationException("Could not fint the corresponting address in your wallet for that public key.");
+				throw new InvalidOperationException("Could not find the corresponding address in your wallet for that public key.");
 			}
 
 			(ExtKey secret, HdPubKey pubKey) secret = Global.WalletService.KeyManager.GetSecretsAndPubKeyPairs(password, hdPubKey.PubKey.ScriptPubKey).FirstOrDefault();
 			if (secret.Equals(default))
 			{
-				throw new InvalidOperationException("Could not fint the corresponting secret in your wallet for that ScriptPubKey");
+				throw new InvalidOperationException("Could not find the corresponding secret in your wallet for that ScriptPubKey");
 			}
 			return secret.secret.PrivateKey.Decrypt(message);
 		}
