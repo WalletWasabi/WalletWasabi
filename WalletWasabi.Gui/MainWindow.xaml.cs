@@ -76,17 +76,21 @@ namespace WalletWasabi.Gui
 			try
 			{
 				if (Global.ChaumianClient != null)
-					Global.ChaumianClient.IsQuitPending = true; //indicate -> do not add any more alices to the coinjoin
+				{
+					Global.ChaumianClient.IsQuitPending = true; // indicate -> do not add any more alices to the coinjoin
+				}
 
 				if (!MainWindowViewModel.Instance.CanClose)
 				{
 					using (var dialog = new CannotCloseDialogViewModel())
 					{
-						closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); //start the deque process with a dialog
+						closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); // start the deque process with a dialog
 					}
 				}
 				else
+				{
 					closeApplication = true;
+				}
 
 				if (closeApplication)
 				{
@@ -103,7 +107,7 @@ namespace WalletWasabi.Gui
 						Logging.Logger.LogWarning<MainWindow>(ex);
 					}
 					Interlocked.Exchange(ref _closingState, 2); //now we can close the app
-					Close(); //start the closing process. Will call MainWindow_ClosingAsync again!
+					Close(); // start the closing process. Will call MainWindow_ClosingAsync again!
 				}
 				//let's go to finally
 			}
@@ -118,7 +122,9 @@ namespace WalletWasabi.Gui
 				{
 					Interlocked.Exchange(ref _closingState, 0);
 					if (Global.ChaumianClient != null)
+					{
 						Global.ChaumianClient.IsQuitPending = false; //re-enable enqueuing coins
+					}
 				}
 			}
 		}

@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.Dialogs
 		}
 
 		public new ReactiveCommand OKCommand { get; set; }
-		public new ReactiveCommand AbortCommand { get; set; }
+		public new ReactiveCommand CancelCommand { get; set; }
 
 		//http://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
 		public Task Initialization { get; private set; }
@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Dialogs
 		public CannotCloseDialogViewModel() : base("", false, false)
 		{
 			OperationMessage = "Dequeuing coins...Please wait";
-			var canAbort = this.WhenAnyValue(x => x.IsBusy);
+			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
 
 			OKCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.Dialogs
 			},
 			canOk);
 
-			AbortCommand = ReactiveCommand.CreateFromTask(async () =>
+			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				OperationMessage = "Cancelling...Please wait";
 				_cancelTokenSource.Cancel();
@@ -75,13 +75,13 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canAbort);
+			canCancel);
 
 			_cancelTokenSource = new CancellationTokenSource();
 			Disposables.Add(_cancelTokenSource);
 
 			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
-			AbortCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
+			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
 
 			Initialization = StartDequeueAsync(_cancelTokenSource.Token);
 		}
@@ -98,7 +98,9 @@ namespace WalletWasabi.Gui.Dialogs
 					//If this is not waited than ModalDialogViewModelBase.dialogCloseCompletionSource will throw NRF when Close(true) called
 					await Task.Delay(300);
 					if (DateTime.Now - start > TimeSpan.FromSeconds(10))
+					{
 						throw new InvalidOperationException("Window not opened");
+					}
 				}
 
 				start = DateTime.Now;
@@ -106,35 +108,54 @@ namespace WalletWasabi.Gui.Dialogs
 				while (!last)
 				{
 					last = DateTime.Now - start > TimeSpan.FromMinutes(2);
-					if (_cancelTokenSource.IsCancellationRequested) break;
+					if (_cancelTokenSource.IsCancellationRequested)
+					{
+						break;
+					}
+
 					try
 					{
 						if (Global.WalletService is null || Global.ChaumianClient is null)
+						{
 							return;
+						}
+
 						SmartCoin[] enqueuedCoins = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
 						Exception latestException = null;
 						foreach (var coin in enqueuedCoins)
 						{
 							try
 							{
-								if (_cancelTokenSource.IsCancellationRequested) break;
-								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }); //dequeue coins one-by-one to check abort flag more frequently
+								if (_cancelTokenSource.IsCancellationRequested)
+								{
+									break;
+								}
+
+								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }); //dequeue coins one-by-one to check cancel flag more frequently
 							}
 							catch (Exception ex)
 							{
 								latestException = ex;
 
 								if (last) //if this is the last iteration and we are still failing then we throw the exception
+								{
 									throw ex;
+								}
 							}
 						}
 
 						if (latestException is null) //no exceptions were thrown during the for-each so we are done with dequeuing
+						{
 							last = true;
+						}
 					}
 					catch (Exception ex)
 					{
-						if (last) throw ex;
+						if (last)
+						{
+							throw ex;
+						}
+
 						await Task.Delay(5000, token); //wait, maybe the situation will change
 					}
 				}

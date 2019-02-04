@@ -130,7 +130,10 @@ namespace WalletWasabi.Services
 								await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 								// If stop was requested return.
-								if (IsRunning == false) return;
+								if (IsRunning == false)
+								{
+									return;
+								}
 
 								// if mixing >= connConf
 								if (State.GetActivelyMixingRounds().Any())
@@ -272,7 +275,10 @@ namespace WalletWasabi.Services
 			try
 			{
 				var ongoingRound = State.GetSingleOrDefaultRound(ongoingRoundId);
-				if (ongoingRound is null) throw new NotSupportedException("This is impossible.");
+				if (ongoingRound is null)
+				{
+					throw new NotSupportedException("This is impossible.");
+				}
 
 				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
 				{
@@ -460,7 +466,10 @@ namespace WalletWasabi.Services
 					inputRegistrableRound.State.FeePerOutputs).ToList();
 
 				// If there are no suitable coins to register return.
-				if (!registrableCoins.Any()) return;
+				if (!registrableCoins.Any())
+				{
+					return;
+				}
 
 				(HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses = GetOutputsToRegister(inputRegistrableRound.State.Denomination, inputRegistrableRound.State.SchnorrPubKeys.Count(), registrableCoins);
 
@@ -471,7 +480,11 @@ namespace WalletWasabi.Services
 				var registeredAddresses = new List<BitcoinAddress>();
 				for (int i = 0; i < schnorrPubKeys.Length; i++)
 				{
-					if (outputAddresses.actives.Count() <= i) break;
+					if (outputAddresses.actives.Count() <= i)
+					{
+						break;
+					}
+
 					BitcoinAddress address = outputAddresses.actives.Select(x => x.GetP2wpkhAddress(Network)).ElementAt(i);
 
 					SchnorrPubKey schnorrPubKey = schnorrPubKeys[i];
@@ -490,7 +503,11 @@ namespace WalletWasabi.Services
 				foreach (TxoRef coinReference in registrableCoins)
 				{
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-					if (coin is null) throw new NotSupportedException("This is impossible.");
+					if (coin is null)
+					{
+						throw new NotSupportedException("This is impossible.");
+					}
+
 					coin.Secret = coin.Secret ?? KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
 					var inputProof = new InputProofModel
 					{
@@ -514,7 +531,11 @@ namespace WalletWasabi.Services
 					string[] bannedInputStringParts = bannedInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
 					TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-					if (coin is null) throw new NotSupportedException("This is impossible.");
+					if (coin is null)
+					{
+						throw new NotSupportedException("This is impossible.");
+					}
+
 					coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
 
 					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
@@ -530,7 +551,11 @@ namespace WalletWasabi.Services
 					string[] bannedInputStringParts = spentInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
 					TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-					if (coin is null) throw new NotSupportedException("This is impossible.");
+					if (coin is null)
+					{
+						throw new NotSupportedException("This is impossible.");
+					}
+
 					coin.SpentAccordingToBackend = true;
 
 					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
@@ -556,7 +581,11 @@ namespace WalletWasabi.Services
 				foreach (TxoRef coinReference in registrableCoins)
 				{
 					var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-					if (coin is null) throw new NotSupportedException("This is impossible.");
+					if (coin is null)
+					{
+						throw new NotSupportedException("This is impossible.");
+					}
+
 					coinsRegistered.Add(coin);
 					State.RemoveCoinFromWaitingList(coin);
 				}
@@ -682,7 +711,6 @@ namespace WalletWasabi.Services
 
 		public async Task QueueCoinsToMixAsync(params SmartCoin[] coins)
 		{
-			if (IsQuitPending) throw new InvalidOperationException("Quit pending - cannot enqueue coins");
 			await QueueCoinsToMixAsync(SaltSoup(), coins);
 		}
 
@@ -702,7 +730,10 @@ namespace WalletWasabi.Services
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 		{
-			if (coins is null || !coins.Any()) return Enumerable.Empty<SmartCoin>();
+			if (coins is null || !coins.Any() || IsQuitPending)
+			{
+				return Enumerable.Empty<SmartCoin>();
+			}
 
 			var successful = new List<SmartCoin>();
 			using (await MixLock.LockAsync())
@@ -757,7 +788,10 @@ namespace WalletWasabi.Services
 
 		public async Task DequeueCoinsFromMixAsync(params SmartCoin[] coins)
 		{
-			if (coins is null || !coins.Any()) return;
+			if (coins is null || !coins.Any())
+			{
+				return;
+			}
 
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
@@ -812,7 +846,10 @@ namespace WalletWasabi.Services
 
 		public async Task DequeueCoinsFromMixAsync(params TxoRef[] coins)
 		{
-			if (coins is null || !coins.Any()) return;
+			if (coins is null || !coins.Any())
+			{
+				return;
+			}
 
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
@@ -859,19 +896,28 @@ namespace WalletWasabi.Services
 
 		private async Task DequeueCoinsFromMixNoLockAsync(params TxoRef[] coins)
 		{
-			if (coins is null || !coins.Any()) return;
+			if (coins is null || !coins.Any())
+			{
+				return;
+			}
 
 			List<Exception> exceptions = new List<Exception>();
 
 			foreach (var coinReference in coins)
 			{
 				var coinToDequeue = State.GetSingleOrDefaultCoin(coinReference);
-				if (coinToDequeue is null) continue;
+				if (coinToDequeue is null)
+				{
+					continue;
+				}
 
 				foreach (long roundId in State.GetPassivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
-					if (round is null) throw new NotSupportedException("This is impossible.");
+					if (round is null)
+					{
+						throw new NotSupportedException("This is impossible.");
+					}
 
 					if (round.CoinsRegistered.Contains(coinToDequeue))
 					{
@@ -893,7 +939,10 @@ namespace WalletWasabi.Services
 				foreach (long roundId in State.GetActivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
-					if (round is null) continue;
+					if (round is null)
+					{
+						continue;
+					}
 
 					if (round.CoinsRegistered.Contains(coinToDequeue))
 					{
