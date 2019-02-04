@@ -17,7 +17,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 	internal class GenerateWalletViewModel : CategoryViewModel
 	{
 		private string _password;
-		private string _passwordConfirmation;
 		private string _walletName;
 		private bool _termsAccepted;
 		private string _validationMessage;
@@ -44,18 +43,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					}
 				}
 			});
-			this.WhenAnyValue(x => x.PasswordConfirmation).Subscribe(x =>
-			{
-				if (x.NotNullAndNotEmpty())
-				{
-					char lastChar = x.Last();
-					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-					{
-						PasswordConfirmation = x.TrimEnd('\r', '\n');
-						DoGenerateCommand();
-					}
-				}
-			});
 		}
 
 		private void DoGenerateCommand()
@@ -64,7 +51,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 			Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
-			PasswordConfirmation = Guard.Correct(PasswordConfirmation); // Don't let whitespaces to the beginning and to the end.
 
 			if (!TermsAccepted)
 			{
@@ -78,17 +64,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				ValidationMessage = $"The name {WalletName} is already taken.";
 			}
-			else if (Password != PasswordConfirmation)
-			{
-				ValidationMessage = $"The passwords do not match.";
-			}
 			else
 			{
 				try
 				{
-					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
+					var km = KeyManager.CreateNew(out Mnemonic mnemonic, Password);
 
-					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
+					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic, km.EncryptedSecret, Password, walletFilePath);
 				}
 				catch (Exception ex)
 				{
@@ -102,12 +84,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			get { return _password; }
 			set { this.RaiseAndSetIfChanged(ref _password, value); }
-		}
-
-		public string PasswordConfirmation
-		{
-			get { return _passwordConfirmation; }
-			set { this.RaiseAndSetIfChanged(ref _passwordConfirmation, value); }
 		}
 
 		public string WalletName
@@ -150,7 +126,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			base.OnCategorySelected();
 
 			Password = "";
-			PasswordConfirmation = "";
 			WalletName = Utils.GetNextWalletName();
 			TermsAccepted = false;
 			ValidationMessage = "";

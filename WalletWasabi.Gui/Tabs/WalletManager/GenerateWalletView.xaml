@@ -10,7 +10,6 @@
           </StackPanel>
           <controls:ExtendedTextBox Text="{Binding WalletName}" Watermark="Wallet Name" UseFloatingWatermark="True" />
           <controls:NoparaPasswordBox Password="{Binding Password}" FixedPasswordText="这个笨老外不知道自己在写什么。" Watermark="Choose a password" UseFloatingWatermark="True" />
-          <controls:NoparaPasswordBox Password="{Binding PasswordConfirmation}" FixedPasswordText="这个笨老外不知道自己在写什么。" Watermark="Confirm password" UseFloatingWatermark="True" />
         </StackPanel>
       </Grid>
     </controls:GroupBox>
