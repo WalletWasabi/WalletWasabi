@@ -336,11 +336,12 @@ namespace WalletWasabi.Services
 			IOrderedEnumerable<(Money value, int count)> indistinguishableOutputs = unsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count);
 			foreach ((Money value, int count) denomPair in indistinguishableOutputs)
 			{
-				if (myOutputs.Select(x => x.Value)
-								.Contains(denomPair.value))
+				var mineCount = myOutputs.Count(x => x.Value == denomPair.value);
+
+				Money denomination = denomPair.value;
+				Money expectedCoordinatorFee = denomination.Percentage(ongoingRound.State.CoordinatorFeePercent * denomPair.count);
+				for (int i = 0; i < mineCount; i++)
 				{
-					Money denomination = denomPair.value;
-					Money expectedCoordinatorFee = denomination.Percentage(ongoingRound.State.CoordinatorFeePercent * denomPair.count);
 					minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
 				}
 			}
