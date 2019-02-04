@@ -73,7 +73,7 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 					WarningMessage = "";
 					IsVerified = false;
 					var verified = VerifyMessage(Address, Message, Signature);
-					if (!verified) throw new InvalidOperationException("Invalid signature");
+					if (!verified) throw new InvalidOperationException("Message authentication failed!");
 					IsVerified = true;
 				}
 				, canVerify
