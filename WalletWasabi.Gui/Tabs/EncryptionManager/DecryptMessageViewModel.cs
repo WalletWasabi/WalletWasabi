@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using WalletWasabi.Gui.Tabs.EncryptionManager;
 using WalletWasabi.Gui.Tabs.WalletManager;
@@ -22,8 +23,11 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		private string _myPublicKey;
 		private string _warningMessage;
 		private bool _isPublicKeyPresent;
+		private bool _isSearchResultExpanded;
 		private ObservableCollection<AddressPubKeyViewModel> _addresses;
 		private AddressPubKeyViewModel _selectedItem;
+		private IEnumerable<AddressPubKeyViewModel> _allKeysViewModels;
+		private string _addressSearch;
 
 		public string EncryptedMessage
 		{
@@ -49,6 +53,12 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			set => this.RaiseAndSetIfChanged(ref _decryptedMessage, value);
 		}
 
+		public string AddressSearch
+		{
+			get => _addressSearch;
+			set => this.RaiseAndSetIfChanged(ref _addressSearch, value);
+		}
+
 		public string WarningMessage
 		{
 			get => _warningMessage;
@@ -59,6 +69,12 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		{
 			get => _isPublicKeyPresent;
 			set => this.RaiseAndSetIfChanged(ref _isPublicKeyPresent, value);
+		}
+
+		public bool IsSearchResultExpanded
+		{
+			get => _isSearchResultExpanded;
+			set => this.RaiseAndSetIfChanged(ref _isSearchResultExpanded, value);
 		}
 
 		public AddressPubKeyViewModel SelectedItem
@@ -117,9 +133,25 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			this.WhenAnyValue(x => x.SelectedItem)
 				.Subscribe((x) => MyPublicKey = x is null ? "" : x.PubKey);
 
-			IEnumerable<HdPubKey> keys = Global.WalletService.KeyManager.GetKeys();
+			this.WhenAnyValue(x => x.AddressSearch)
+				.Throttle(TimeSpan.FromMilliseconds(500)).Subscribe((searchText) =>
+			   {
+				   if (string.IsNullOrEmpty(searchText))
+					   Addresses = new ObservableCollection<AddressPubKeyViewModel>(_allKeysViewModels);
+				   else
+				   {
+					   Addresses = new ObservableCollection<AddressPubKeyViewModel>(_allKeysViewModels.Where(vm => vm.Address.Contains(searchText)));
+					   if (Addresses.Count == 1)
+					   {
+						   SelectedItem = Addresses.First();
+					   }
 
-			Addresses = new ObservableCollection<AddressPubKeyViewModel>(keys.Select(a => new AddressPubKeyViewModel(a)));
+					   IsSearchResultExpanded = Addresses.Any();
+				   }
+			   });
+
+			IEnumerable<HdPubKey> keys = Global.WalletService.KeyManager.GetKeys();
+			_allKeysViewModels = keys.Select(a => new AddressPubKeyViewModel(a));
 		}
 
 		private string DecryptMessage(string message, string pubKeyHex, string password)

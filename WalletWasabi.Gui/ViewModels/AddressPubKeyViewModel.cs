@@ -22,6 +22,11 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _hdPubKey.Label;
 		}
 
+		public string Address
+		{
+			get => _hdPubKey.GetP2wpkhAddress(Global.Network).ToString();
+		}
+
 		public AddressPubKeyViewModel(HdPubKey hdpubkey)
 		{
 			_hdPubKey = hdpubkey;
