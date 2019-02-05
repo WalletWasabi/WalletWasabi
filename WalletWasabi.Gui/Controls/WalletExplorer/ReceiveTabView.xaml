@@ -74,11 +74,17 @@
               <DataTemplate>
                 <Grid>
                   <Expander ExpandDirection="Down" IsExpanded="{Binding IsExpanded}">
-                    <Panel>
-                      <Panel Width="240" Background="#FFFEFEFE">
-                        <controls:QrCode Matrix="{Binding QrCode}" HorizontalAlignment="Center" Margin="20" />
+                    <StackPanel Orientation="Horizontal" Spacing="16" Margin="35 10 0 25">
+                      <Panel Height="180" Background="#FFFEFEFE">
+                        <controls:QrCode Matrix="{Binding QrCode}" HorizontalAlignment="Left" Margin="14" />
                       </Panel>
-                    </Panel>
+                      <Grid ColumnDefinitions="140, *" RowDefinitions="22,22" Margin="6">
+                        <TextBlock Text="Public key:" Grid.Row="0" Grid.Column="0" />
+                        <TextBlock Text="{Binding Pubkey}" Grid.Row="0" Grid.Column="1" />
+                        <TextBlock Text="Key path:" Grid.Row="1" Grid.Column="0" />
+                        <TextBlock Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
+                      </Grid>
+                    </StackPanel>
                   </Expander>
                   <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
                     <TextBlock Text="{Binding Address}">
