@@ -331,7 +331,8 @@ namespace WalletWasabi.Services
 
 			// Make sure change is counted.
 			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
-			minAmountBack -= ongoingRound.State.FeePerOutputs * myOutputs.Length + ongoingRound.State.FeePerInputs * ongoingRound.Registration.CoinsRegistered.Count(); // Minus miner fee.
+																				   // Do outputs.lenght + 1 in case the server estimated the network fees wrongly due to insufficient data in an edge case.
+			minAmountBack -= ongoingRound.State.FeePerOutputs * (myOutputs.Length + 1) + ongoingRound.State.FeePerInputs * ongoingRound.Registration.CoinsRegistered.Count(); // Minus miner fee.
 
 			IOrderedEnumerable<(Money value, int count)> indistinguishableOutputs = unsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count);
 			foreach ((Money value, int count) denomPair in indistinguishableOutputs)
@@ -357,7 +358,7 @@ namespace WalletWasabi.Services
 				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
 			}
 
-			if (amountBack < minAmountBack && !amountBack.Almost(minAmountBack, Money.Satoshis(10000))) // I catched an issue here, probably rounding. 1000 dust should be enough to catch it, but let's do 10000, why not.
+			if (amountBack < minAmountBack && !amountBack.Almost(minAmountBack, Money.Satoshis(10000))) // Just in case.
 			{
 				throw new NotSupportedException($"Coordinator did not add enough value to our outputs in the coinjoin. Missing: {(minAmountBack - amountBack).Satoshi} satoshis.");
 			}

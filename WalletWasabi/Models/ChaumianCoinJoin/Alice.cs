@@ -15,7 +15,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public Money InputSum { get; }
 
-		public Money NetworkFeeToPay { get; }
+		public Money NetworkFeeToPay { get; set; }
 
 		public IEnumerable<Coin> Inputs { get; }
 

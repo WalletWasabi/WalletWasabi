@@ -2950,8 +2950,6 @@ namespace WalletWasabi.Tests
 
 			await rpc.GenerateAsync(1);
 
-			// ToDo: For now it doesn't test fees.
-
 			try
 			{
 				// 2. Start mixing.
