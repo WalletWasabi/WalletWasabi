@@ -2873,6 +2873,133 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
+		public async Task CcjFeeTestsAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(CcjFeeTestsAsync), $"Index{network}.dat");
+			var synchronizer = new WasabiSynchronizer(network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint));
+			synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+
+			Money denomination = Money.Coins(0.9m);
+			decimal coordinatorFeePercent = 0.1m;
+			int anonymitySet = 7;
+			int connectionConfirmationTimeout = 14;
+			var roundConfig = new CcjRoundConfig(denomination, 140, coordinatorFeePercent, anonymitySet, 240, connectionConfirmationTimeout, 50, 50, 1, 24, true, 11);
+			coordinator.UpdateRoundConfig(roundConfig);
+			coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
+
+			var participants = new List<dynamic>();
+
+			// 1. Prepare and start services.
+			for (int i = 0; i < anonymitySet; i++)
+			{
+				double damount;
+				switch (i)
+				{
+					case 0:
+						damount = 1;
+						break;
+
+					case 1:
+						damount = 1.1;
+						break;
+
+					case 2:
+						damount = 1.2;
+						break;
+
+					case 3:
+						damount = 3.1;
+						break;
+
+					case 4:
+						damount = 4.1;
+						break;
+
+					case 5:
+						damount = 7.1;
+						break;
+
+					case 6:
+						damount = 8.1;
+						break;
+
+					default:
+						damount = 1;
+						break;
+				}
+
+				var amount = Money.Coins((decimal)damount);
+
+				var keyManager = KeyManager.CreateNew(out _, password);
+				var key = keyManager.GenerateNewKey("foo", KeyState.Clean, false);
+				var bech = key.GetP2wpkhAddress(network);
+				var txid = await rpc.SendToAddressAsync(bech, amount, replaceable: false);
+				key.SetKeyState(KeyState.Used);
+				var tx = await rpc.GetRawTransactionAsync(txid);
+				var height = await rpc.GetBlockCountAsync();
+				var bechCoin = tx.Outputs.GetCoins(bech.ScriptPubKey).Single();
+
+				var smartCoin = new SmartCoin(bechCoin, tx.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height + 1, rbf: false, mixin: tx.GetMixin(bechCoin.Outpoint.N));
+
+				var chaumianClient = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint));
+
+				participants.Add((smartCoin, chaumianClient));
+			}
+
+			await rpc.GenerateAsync(1);
+
+			// ToDo: For now it doesn't test fees.
+
+			try
+			{
+				// 2. Start mixing.
+				foreach (var participant in participants)
+				{
+					SmartCoin coin = participant.Item1;
+					CcjClient chaumianClient = participant.Item2;
+					chaumianClient.Start();
+					await chaumianClient.QueueCoinsToMixAsync(password, coin);
+				}
+
+				Task timeout = Task.Delay(TimeSpan.FromSeconds(connectionConfirmationTimeout * 2 + 7 * 2 + 7 * 2 + 7 * 2));
+				while ((await rpc.GetRawMempoolAsync()).Length == 0)
+				{
+					if (timeout.IsCompletedSuccessfully)
+					{
+						throw new TimeoutException("CoinJoin wasn't propagated.");
+					}
+					await Task.Delay(1000);
+				}
+			}
+			finally
+			{
+				foreach (var participant in participants)
+				{
+					SmartCoin coin = participant.Item1;
+					CcjClient chaumianClient = participant.Item2;
+
+					Task timeout = Task.Delay(3000);
+					while (chaumianClient.State.GetActivelyMixingRounds().Count() != 0)
+					{
+						if (timeout.IsCompletedSuccessfully)
+						{
+							throw new TimeoutException("CoinJoin was not noticed.");
+						}
+						await Task.Delay(1000);
+					}
+
+					if (chaumianClient != null)
+					{
+						await chaumianClient.DequeueAllCoinsFromMixAsync();
+						await chaumianClient.StopAsync();
+					}
+				}
+			}
+		}
+
+		[Fact]
 		public async Task CcjClientTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
