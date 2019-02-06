@@ -143,6 +143,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string History => Model.History;
 
+		public string PubKey => Model.HdPubKey.PubKey.ToString();
+
+		public string KeyPath => Model.HdPubKey.FullKeyPath.ToString();
+
 		public SmartCoinStatus Status
 		{
 			get

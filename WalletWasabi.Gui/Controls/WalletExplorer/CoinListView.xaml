@@ -99,6 +99,12 @@
 
                     <TextBlock Text="Anonymity Set:" Grid.Row="5" />
                     <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding AnonymitySet}"  Grid.Column="1" Grid.Row="5" />
+
+                    <TextBlock Text="Key Path:" Grid.Row="6" />
+                    <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding KeyPath}"  Grid.Column="1" Grid.Row="6" />
+
+                    <TextBlock Text="Public Key:" Grid.Row="7" />
+                    <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding PubKey}"  Grid.Column="1" Grid.Row="7" />
                   </Grid>
                 </StackPanel>
               </Expander>
