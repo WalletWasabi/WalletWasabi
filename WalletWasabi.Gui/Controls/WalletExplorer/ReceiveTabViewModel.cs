@@ -46,6 +46,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
+				Label = Label.Trim(',', ' ').Trim();
 				if (string.IsNullOrWhiteSpace(Label))
 				{
 					LabelRequiredNotificationVisible = true;
@@ -62,7 +63,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				Dispatcher.UIThread.Post(() =>
 				{
-					var label = Label.Trim(',', ' ').Trim();
+					var label = Label;
 					HdPubKey newKey = Global.WalletService.GetReceiveKey(label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
 
 					AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
@@ -188,17 +189,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
-			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
+			var lastWord = enteredWordList?.LastOrDefault()?.Replace("\t", "") ?? "";
 
-			if (lastWorld.Length < 1)
+			if (!lastWord.Any())
 			{
 				Suggestions.Clear();
 				return;
 			}
 
 			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
-			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase))
-				.Union(nonSpecialLabels.Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
+			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
+				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)
 				.Take(3);
 
