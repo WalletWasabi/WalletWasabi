@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		private void OnEncryptionManager()
 		{
 			var encryptionManagerViewModel = IoC.Get<IShell>().GetOrCreate<EncryptionManagerViewModel>();
-			encryptionManagerViewModel.SelectSignMessage();
+			encryptionManagerViewModel.SelectTab(EncryptionManagerViewModel.Tabs.Sign);
 		}
 
 		[ExportCommandDefinition("Tools.WalletManager")]

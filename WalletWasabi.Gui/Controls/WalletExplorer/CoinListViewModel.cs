@@ -16,6 +16,11 @@ using DynamicData;
 using DynamicData.Binding;
 using System.Threading.Tasks;
 using System.Reactive.Disposables;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
+using WalletWasabi.Gui.Tabs.EncryptionManager;
+using AvalonStudio.Commands;
+using System.Composition;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -50,6 +55,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand SelectPrivateCheckBoxCommand { get; }
 		public ReactiveCommand SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand SortCommand { get; }
+
+		public ReactiveCommand EncryptMessage { get; }
+		public ReactiveCommand DecryptMessage { get; }
+		public ReactiveCommand SignMessage { get; }
+		public ReactiveCommand VerifyMessage { get; }
 
 		public event Action DequeueCoinsPressed;
 
@@ -180,6 +190,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel()
 		{
+			CommandIconService commandIconService = IoC.Get<CommandIconService>();
 			RemovedCoinViewModels = new List<CoinViewModel>();
 			Disposables = new CompositeDisposable();
 			AmountSortDirection = SortOrder.Decreasing;
@@ -314,6 +325,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SortCommand = ReactiveCommand.Create(() => RefreshOrdering()).DisposeWith(Disposables);
 
+			SignMessage = ReactiveCommand.Create(() =>
+			{
+				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Sign, SelectedCoin.Address);
+			}).DisposeWith(Disposables);
+
+			VerifyMessage = ReactiveCommand.Create(() =>
+			{
+				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Verify, SelectedCoin.Address);
+			}).DisposeWith(Disposables);
+
+			EncryptMessage = ReactiveCommand.Create(() =>
+			{
+				var res = Global.WalletService.KeyManager.GetKeyForScriptPubKey(SelectedCoin.Model.ScriptPubKey)?.PubKey?.ToHex();
+				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Encrypt, res);
+			}).DisposeWith(Disposables);
+
+			DecryptMessage = ReactiveCommand.Create(() =>
+			{
+				var res = Global.WalletService.KeyManager.GetKeyForScriptPubKey(SelectedCoin.Model.ScriptPubKey)?.PubKey?.ToHex();
+				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Decrypt, res);
+			}).DisposeWith(Disposables);
+
 			SetSelections();
 			SetCoinJoinStatusWidth();
 		}
@@ -400,6 +433,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SetCoinJoinStatusWidth();
 				}
 			});
+		}
+
+		private void OnEncryptionManager(EncryptionManagerViewModel.Tabs selectedTab, string content)
+		{
+			var encryptionManagerViewModel = IoC.Get<IShell>().GetOrCreate<EncryptionManagerViewModel>();
+			encryptionManagerViewModel.SelectTab(selectedTab, content);
 		}
 
 		#region IDisposable Support

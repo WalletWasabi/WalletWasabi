@@ -8,6 +8,14 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 {
 	internal class EncryptionManagerViewModel : WasabiDocumentTabViewModel
 	{
+		public enum Tabs
+		{
+			Sign,
+			Verify,
+			Encrypt,
+			Decrypt
+		}
+
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
 		private ViewModelBase _currentView;
@@ -44,9 +52,42 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			set { this.RaiseAndSetIfChanged(ref _selectedCategory, value); }
 		}
 
-		public void SelectSignMessage()
+		public void SelectTab(Tabs toSelect, string content = null)
 		{
-			SelectedCategory = Categories.First(x => x is SignMessageViewModel);
+			switch (toSelect)
+			{
+				case Tabs.Sign:
+					{
+						var vmsign = Categories.First(x => x is SignMessageViewModel) as SignMessageViewModel;
+						vmsign.Address = content;
+						SelectedCategory = vmsign;
+					}
+					break;
+
+				case Tabs.Verify:
+					{
+						var vmverify = Categories.First(x => x is VerifyMessageViewModel) as VerifyMessageViewModel;
+						vmverify.Address = content;
+						SelectedCategory = vmverify;
+					}
+					break;
+
+				case Tabs.Encrypt:
+					{
+						var vmencrypt = Categories.First(x => x is EncryptMessageViewModel) as EncryptMessageViewModel;
+						vmencrypt.PublicKey = content;
+						SelectedCategory = vmencrypt;
+					}
+					break;
+
+				case Tabs.Decrypt:
+					{
+						var vmdecrypt = Categories.First(x => x is DecryptMessageViewModel) as DecryptMessageViewModel;
+						vmdecrypt.MyPublicKey = content;
+						SelectedCategory = vmdecrypt;
+					}
+					break;
+			}
 		}
 
 		public ViewModelBase CurrentView
