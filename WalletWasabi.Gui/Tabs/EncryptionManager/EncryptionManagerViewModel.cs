@@ -6,7 +6,7 @@ using System;
 
 namespace WalletWasabi.Gui.Tabs.EncryptionManager
 {
-	internal class EncryptionManagerViewModel : WasabiDocumentTabViewModel
+	internal class EncryptionManagerViewModel : WasabiDocumentTabViewModel, IDisposable
 	{
 		public enum Tabs
 		{
@@ -95,5 +95,32 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			get { return _currentView; }
 			set { this.RaiseAndSetIfChanged(ref _currentView, value); }
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					foreach (var cat in Categories.OfType<IDisposable>())
+					{
+						cat.Dispose();
+					}
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

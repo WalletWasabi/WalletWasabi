@@ -1,4 +1,5 @@
 ﻿using Avalonia.Diagnostics.ViewModels;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -7,6 +8,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.Tabs.EncryptionManager;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
@@ -15,7 +18,7 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Tabs.EncryptionManager
 {
-	internal class DecryptMessageViewModel : CategoryViewModel
+	internal class DecryptMessageViewModel : CategoryViewModel, IDisposable
 	{
 		private string _encryptedMessage;
 		private string _password;
@@ -28,6 +31,7 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		private AddressPubKeyViewModel _selectedItem;
 		private IEnumerable<AddressPubKeyViewModel> _allKeysViewModels;
 		private string _addressSearch;
+		private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
 		public string EncryptedMessage
 		{
@@ -128,6 +132,15 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			MyPublicKeyCommand.ThrownExceptions.Subscribe(ex =>
 			{
 				WarningMessage = ex.Message;
+				Dispatcher.UIThread.Post(async () =>
+				{
+					try
+					{
+						await Task.Delay(7000, _cancellationTokenSource.Token);
+						WarningMessage = "";
+					}
+					catch (Exception) { };
+				});
 			});
 
 			this.WhenAnyValue(x => x.SelectedItem)
@@ -171,5 +184,30 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			}
 			return secret.secret.PrivateKey.Decrypt(message);
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false;
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					_cancellationTokenSource.Cancel();
+					_cancellationTokenSource.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

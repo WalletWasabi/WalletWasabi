@@ -3,6 +3,7 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using Dock.Model;
 using ReactiveUI;
+using System;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -51,8 +52,11 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool OnClose()
 		{
+			if (this is IDisposable)
+			{
+				((IDisposable)this).Dispose();
+			}
 			IoC.Get<IShell>().RemoveDocument(this);
-
 			return true;
 		}
 	}
