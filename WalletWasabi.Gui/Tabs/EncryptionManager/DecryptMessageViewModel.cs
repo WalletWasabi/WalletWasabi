@@ -117,7 +117,7 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 
 			DecryptCommand.ThrownExceptions.Subscribe(ex =>
 			{
-				WarningMessage = ex.Message;
+				ShowWarnMessage(ex.Message);
 			});
 
 			MyPublicKeyCommand = ReactiveCommand.Create(
@@ -131,16 +131,7 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 
 			MyPublicKeyCommand.ThrownExceptions.Subscribe(ex =>
 			{
-				WarningMessage = ex.Message;
-				Dispatcher.UIThread.Post(async () =>
-				{
-					try
-					{
-						await Task.Delay(7000, _cancellationTokenSource.Token);
-						WarningMessage = "";
-					}
-					catch (Exception) { };
-				});
+				ShowWarnMessage(ex.Message);
 			});
 
 			this.WhenAnyValue(x => x.SelectedItem)
@@ -165,6 +156,23 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 
 			IEnumerable<HdPubKey> keys = Global.WalletService.KeyManager.GetKeys();
 			_allKeysViewModels = keys.Select(a => new AddressPubKeyViewModel(a));
+		}
+
+		private void ShowWarnMessage(string message)
+		{
+			_cancellationTokenSource.Cancel();
+			_cancellationTokenSource.Dispose();
+			_cancellationTokenSource = new CancellationTokenSource();
+			WarningMessage = message;
+			Dispatcher.UIThread.Post(async () =>
+			{
+				try
+				{
+					await Task.Delay(7000, _cancellationTokenSource.Token);
+					WarningMessage = "";
+				}
+				catch (Exception) { };
+			});
 		}
 
 		private string DecryptMessage(string message, string pubKeyHex, string password)

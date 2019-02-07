@@ -50,12 +50,8 @@ namespace WalletWasabi.Gui.ViewModels
 			IsSelected = false;
 		}
 
-		public bool OnClose()
+		public virtual bool OnClose()
 		{
-			if (this is IDisposable)
-			{
-				((IDisposable)this).Dispose();
-			}
 			IoC.Get<IShell>().RemoveDocument(this);
 			return true;
 		}

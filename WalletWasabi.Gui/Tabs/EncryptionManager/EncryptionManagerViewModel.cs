@@ -96,6 +96,12 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			set { this.RaiseAndSetIfChanged(ref _currentView, value); }
 		}
 
+		public override bool OnClose()
+		{
+			Dispose();
+			return base.OnClose();
+		}
+
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
