@@ -1,9 +1,14 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
              Name="ReceiveTabViewerUserControl">
+  <UserControl.Resources>
+    <converters:CoinItemExpanderColorConverter x:Key="CoinItemExpanderColorConverter" />
+  </UserControl.Resources>
   <i:Interaction.Behaviors>
     <behaviors:ClearPropertyOnLostFocusBehavior TargetProperty="{Binding SelectedAddress}" />
   </i:Interaction.Behaviors>
@@ -73,16 +78,16 @@
             <ListBox.ItemTemplate>
               <DataTemplate>
                 <Grid>
-                  <Expander ExpandDirection="Down" IsExpanded="{Binding IsExpanded}">
+                  <Expander Name="coinExpander" ExpandDirection="Down" IsExpanded="{Binding IsExpanded}" Classes="coloredExpander" Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
                     <StackPanel Orientation="Horizontal" Spacing="16" Margin="35 10 0 25">
                       <Panel Height="180" Background="#FFFEFEFE">
                         <controls:QrCode Matrix="{Binding QrCode}" HorizontalAlignment="Left" Margin="14" />
                       </Panel>
                       <Grid ColumnDefinitions="140, *" RowDefinitions="22,22" Margin="6">
                         <TextBlock Text="Public key:" Grid.Row="0" Grid.Column="0" />
-                        <TextBlock Text="{Binding Pubkey}" Grid.Row="0" Grid.Column="1" />
+                        <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding Pubkey}" Grid.Row="0" Grid.Column="1" />
                         <TextBlock Text="Key path:" Grid.Row="1" Grid.Column="0" />
-                        <TextBlock Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
+                        <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent"  Text="{Binding KeyPath}" Grid.Row="1" Grid.Column="1" />
                       </Grid>
                     </StackPanel>
                   </Expander>
