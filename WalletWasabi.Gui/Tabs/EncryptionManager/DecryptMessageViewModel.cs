@@ -102,9 +102,10 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 		{
 			Owner = owner;
 
-			var canDecrypt = this.WhenAnyValue(x => x.EncryptedMessage,
-				(message) =>
-					!string.IsNullOrEmpty(message));
+			var canDecrypt = this.WhenAnyValue(x => x.EncryptedMessage, x => x.MyPublicKey,
+				(message, pubkey) =>
+					!string.IsNullOrEmpty(message) &&
+					!string.IsNullOrEmpty(pubkey));
 
 			DecryptCommand = ReactiveCommand.Create(
 				() =>
@@ -117,7 +118,7 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 
 			DecryptCommand.ThrownExceptions.Subscribe(ex =>
 			{
-				ShowWarnMessage(ex.Message);
+				ShowWarnMessage($"Decryption failed. Please check the correctness of Encrypted message, Public Key and Password! Details: {ex.Message}");
 			});
 
 			MyPublicKeyCommand = ReactiveCommand.Create(
@@ -182,15 +183,15 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			HdPubKey hdPubKey = Global.WalletService.KeyManager.GetKeys().FirstOrDefault(k => k.PubKey == pk);
 			if (hdPubKey == null)
 			{
-				throw new InvalidOperationException("Could not find the corresponding address in your wallet for that public key.");
+				throw new InvalidOperationException("Public key does not belong to the wallet.");
 			}
 
-			(ExtKey secret, HdPubKey pubKey) secret = Global.WalletService.KeyManager.GetSecretsAndPubKeyPairs(password, hdPubKey.PubKey.ScriptPubKey).FirstOrDefault();
-			if (secret.Equals(default))
+			(ExtKey secret, HdPubKey pubKey) extKey = Global.WalletService.KeyManager.GetSecretsAndPubKeyPairs(password, hdPubKey.PubKey.ScriptPubKey).FirstOrDefault();
+			if (extKey.Equals(default))
 			{
-				throw new InvalidOperationException("Could not find the corresponding secret in your wallet for that ScriptPubKey");
+				throw new InvalidOperationException("Could not find the corresponding extKey in your wallet for that ScriptPubKey");
 			}
-			return secret.secret.PrivateKey.Decrypt(message);
+			return extKey.secret.PrivateKey.Decrypt(message);
 		}
 
 		#region IDisposable Support
