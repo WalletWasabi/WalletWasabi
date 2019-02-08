@@ -40,6 +40,7 @@ namespace WalletWasabi.Models
 		private bool _coinJoinInProgress;
 		private DateTimeOffset? _bannedUntilUtc;
 		private bool _spentAccordingToBackend;
+		private HdPubKey _hdPubKey;
 
 		private ISecret _secret;
 
@@ -49,8 +50,6 @@ namespace WalletWasabi.Models
 		private bool _isBanned;
 		private int _anonymitySet;
 		private string _history;
-
-		private HdPubKey _hdPubKey;
 
 		#endregion Fields
 
@@ -260,6 +259,20 @@ namespace WalletWasabi.Models
 			}
 		}
 
+		[JsonProperty]
+		public HdPubKey HdPubKey
+		{
+			get => _hdPubKey;
+			private set
+			{
+				if (value != _hdPubKey)
+				{
+					_hdPubKey = value;
+					OnPropertyChanged(nameof(HdPubKey));
+				}
+			}
+		}
+
 		#endregion SerializableProperties
 
 		#region NonSerializableProperties
@@ -290,19 +303,6 @@ namespace WalletWasabi.Models
 				{
 					_history = value;
 					OnPropertyChanged(nameof(History));
-				}
-			}
-		}
-
-		public HdPubKey HdPubKey
-		{
-			get => _hdPubKey;
-			private set
-			{
-				if (value != _hdPubKey)
-				{
-					_hdPubKey = value;
-					OnPropertyChanged(nameof(HdPubKey));
 				}
 			}
 		}
@@ -444,7 +444,7 @@ namespace WalletWasabi.Models
 			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
 			RBF = rbf;
 			Mixin = Guard.InRangeAndNotNull(nameof(mixin), mixin, 0, int.MaxValue);
-			
+
 			SpenderTransactionId = spenderTransactionId;
 
 			CoinJoinInProgress = coinJoinInProgress;
