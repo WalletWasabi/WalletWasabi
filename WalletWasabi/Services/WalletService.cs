@@ -45,6 +45,8 @@ namespace WalletWasabi.Services
 		// These are static functions, so we will make sure when blocks are downloading with multiple wallet services, they don't conflict.
 		private static int _concurrentBlockDownload = 0;
 
+		private bool _localNodePruned = false;
+
 		/// <summary>
 		/// int: number of blocks being downloaded in parallel, not the number of blocks left to download!
 		/// </summary>
@@ -646,86 +648,91 @@ namespace WalletWasabi.Services
 					cancel.ThrowIfCancellationRequested();
 					try
 					{
-						// Try to get block information from local running Core node first.
-						try
+						if(!_localNodePruned)
 						{
-							if (LocalBitcoinCoreNode == null || !LocalBitcoinCoreNode.IsConnected)
+							// Try to get block information from local running Core node first.
+							try
 							{
-								DisconnectDisposeNullLocalBitcoinCoreNode();
-								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
+								if (LocalBitcoinCoreNode == null || !LocalBitcoinCoreNode.IsConnected)
 								{
-									handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-									var nodeConnectionParameters = new NodeConnectionParameters()
+									DisconnectDisposeNullLocalBitcoinCoreNode();
+									using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
 									{
-										ConnectCancellation = handshakeTimeout.Token,
-										IsRelay = false
-									};
-
-									var localIpEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-									var localNode = Node.Connect(Network, localIpEndPoint, nodeConnectionParameters);
-									try
-									{
-										Logger.LogInfo<WalletService>($"TCP Connection succeeded, handshaking...");
-										localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
-										var peerServices = localNode.PeerVersion.Services;
-
-										//if(!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
-										//{
-										//	throw new InvalidOperationException($"Wasabi cannot use the local node because it doesn't provide blocks.");
-										//}
-
-										Logger.LogInfo<WalletService>($"Handshake completed successfully.");
-
-										if (!localNode.IsConnected)
+										handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
+										var nodeConnectionParameters = new NodeConnectionParameters()
 										{
-											throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-												$"Probably this is because the node doesn't support retrieving full blocks or segwit serialization.");
+											ConnectCancellation = handshakeTimeout.Token,
+											IsRelay = false
+										};
+
+										var localIpEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
+										var localNode = Node.Connect(Network, localIpEndPoint, nodeConnectionParameters);
+										try
+										{
+											Logger.LogInfo<WalletService>($"TCP Connection succeeded, handshaking...");
+											localNode.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
+											var peerServices = localNode.PeerVersion.Services;
+
+											if(!peerServices.HasFlag(NodeServices.Network) && peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
+											{
+												_localNodePruned = true;
+												throw new InvalidOperationException($"Wasabi cannot use the local node because it doesn't provide blocks.");
+											}
+
+											Logger.LogInfo<WalletService>($"Handshake completed successfully.");
+
+											if (!localNode.IsConnected)
+											{
+												throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
+													$"Probably this is because the node doesn't support retrieving full blocks or segwit serialization.");
+											}
+											LocalBitcoinCoreNode = localNode;
 										}
-										LocalBitcoinCoreNode = localNode;
-									}
-									catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
-									{
-										Logger.LogWarning<WalletService>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
-											$"Use \"whitebind\" or \"whitelist\" in the node configuration. (Typically whitelist=127.0.0.1 if Wasabi and the node are on the same machine.)");
-										throw;
+										catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
+										{
+											Logger.LogWarning<WalletService>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
+												$"Use \"whitebind\" or \"whitelist\" in the node configuration. (Typically whitelist=127.0.0.1 if Wasabi and the node are on the same machine.)");
+											throw;
+										}
 									}
 								}
-							}
 
-							Block blockFromLocalNode = null;
-							// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
-							{
-								blockFromLocalNode = LocalBitcoinCoreNode.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
-							}
+								Block blockFromLocalNode = null;
+								// Should timeout faster. Not sure if it should ever fail though. Maybe let's keep like this later for remote node connection.
+								using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
+								{
+									blockFromLocalNode = LocalBitcoinCoreNode.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
+								}
 
-							if (blockFromLocalNode is null)
-							{
-								throw new InvalidOperationException($"Disconnected local node, because couldn't parse received block.");
-							}
-							else if (!blockFromLocalNode.Check())
-							{
-								throw new InvalidOperationException($"Disconnected node, because block invalid block received!");
-							}
+								if (blockFromLocalNode is null)
+								{
+									throw new InvalidOperationException($"Disconnected local node, because couldn't parse received block.");
+								}
+								else if (!blockFromLocalNode.Check())
+								{
+									throw new InvalidOperationException($"Disconnected node, because block invalid block received!");
+								}
 
-							block = blockFromLocalNode;
-							Logger.LogInfo<WalletService>($"Block acquired from local P2P connection: {hash}");
-							break;
+								block = blockFromLocalNode;
+								Logger.LogInfo<WalletService>($"Block acquired from local P2P connection: {hash}");
+								break;
+							}
+							catch (Exception ex)
+							{
+								block = null;
+								DisconnectDisposeNullLocalBitcoinCoreNode();
+
+								if (ex is SocketException)
+								{
+									Logger.LogTrace<WalletService>("Didn't find local listening and running full node instance. Trying to fetch needed block from other source.");
+								}
+								else
+								{
+									Logger.LogWarning<WalletService>(ex);
+								}
+							}
 						}
-						catch (Exception ex)
-						{
-							block = null;
-							DisconnectDisposeNullLocalBitcoinCoreNode();
-
-							if (ex is SocketException)
-							{
-								Logger.LogTrace<WalletService>("Didn't find local listening and running full node instance. Trying to fetch needed block from other source.");
-							}
-							else
-							{
-								Logger.LogWarning<WalletService>(ex);
-							}
-						}
+						
 						cancel.ThrowIfCancellationRequested();
 
 						// If no connection, wait then continue.
@@ -751,10 +758,13 @@ namespace WalletWasabi.Services
 						{
 							Interlocked.Increment(ref _concurrentBlockDownload);
 							ConcurrentBlockDownloadNumberChanged?.Invoke(this, _concurrentBlockDownload);
-
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
+							block = null;
+							if(LocalBitcoinCoreNode.State == NodeState.HandShaked)
 							{
-								block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
+								using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
+								{
+									block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
+								}
 							}
 
 							if (block is null)
