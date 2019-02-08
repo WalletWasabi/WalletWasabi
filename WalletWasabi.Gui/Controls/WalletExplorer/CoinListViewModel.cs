@@ -1,6 +1,5 @@
 ﻿using Avalonia.Controls;
 using System.Collections.Generic;
-using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Linq;
@@ -14,13 +13,13 @@ using System.Reactive.Linq;
 using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
-using System.Threading.Tasks;
 using System.Reactive.Disposables;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using WalletWasabi.Gui.Tabs.EncryptionManager;
 using AvalonStudio.Commands;
-using System.Composition;
+using Avalonia.Input.Platform;
+using Avalonia;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -60,6 +59,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand DecryptMessage { get; }
 		public ReactiveCommand SignMessage { get; }
 		public ReactiveCommand VerifyMessage { get; }
+		public ReactiveCommand CopyHistory { get; }
 
 		public event Action DequeueCoinsPressed;
 
@@ -253,6 +253,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}).DisposeWith(Disposables);
 
+			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedCoin).Select(coin => coin != null);
+
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
 				if (SelectedCoin == null) return;
@@ -261,9 +263,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			DequeueCoin = ReactiveCommand.Create(() =>
 			{
-				if (SelectedCoin == null) return;
 				DequeueCoinsPressed?.Invoke();
-			}, this.WhenAnyValue(x => x.CanDeqeue)).DisposeWith(Disposables);
+			},
+			this.WhenAnyValue(x => x.CanDeqeue, x => x.SelectedCoin, (candeque, coin) => candeque && coin != null))
+			.DisposeWith(Disposables);
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
 			{
@@ -328,22 +331,38 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SignMessage = ReactiveCommand.Create(() =>
 			{
 				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Sign, SelectedCoin.Address);
-			}).DisposeWith(Disposables);
+			}, isCoinListItemSelected)
+			.DisposeWith(Disposables);
 
 			VerifyMessage = ReactiveCommand.Create(() =>
 			{
 				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Verify, SelectedCoin.Address);
-			}).DisposeWith(Disposables);
+			}, isCoinListItemSelected)
+			.DisposeWith(Disposables);
 
 			EncryptMessage = ReactiveCommand.Create(() =>
 			{
 				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Encrypt, SelectedCoin.Model.HdPubKey.PubKey.ToHex());
-			}).DisposeWith(Disposables);
+			}, isCoinListItemSelected)
+			.DisposeWith(Disposables);
 
 			DecryptMessage = ReactiveCommand.Create(() =>
 			{
 				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Decrypt, SelectedCoin.Model.HdPubKey.PubKey.ToHex());
-			}).DisposeWith(Disposables);
+			}, isCoinListItemSelected)
+			.DisposeWith(Disposables);
+
+			CopyHistory = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
+						.SetTextAsync(SelectedCoin.History ?? string.Empty);
+				}
+				catch (Exception)
+				{ }
+			}, isCoinListItemSelected)
+			.DisposeWith(Disposables);
 
 			SetSelections();
 			SetCoinJoinStatusWidth();
@@ -353,30 +372,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Dispatcher.UIThread.Post(() =>
 			{
-				switch (e.Action)
+				try
 				{
-					case NotifyCollectionChangedAction.Add:
-						foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
-						{
-							_rootlist.Add(new CoinViewModel(c));
-						}
-						break;
-
-					case NotifyCollectionChangedAction.Remove:
-						foreach (var c in e.OldItems.Cast<SmartCoin>())
-						{
-							CoinViewModel toRemove = _rootlist.Items.FirstOrDefault(cvm => cvm.Model == c);
-							if (toRemove != default)
+					switch (e.Action)
+					{
+						case NotifyCollectionChangedAction.Add:
+							foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
 							{
-								_rootlist.Remove(toRemove);
+								_rootlist.Add(new CoinViewModel(c));
 							}
-						}
-						break;
+							break;
 
-					case NotifyCollectionChangedAction.Reset:
-						_rootlist.Clear();
-						break;
+						case NotifyCollectionChangedAction.Remove:
+							foreach (var c in e.OldItems.Cast<SmartCoin>())
+							{
+								CoinViewModel toRemove = _rootlist.Items.FirstOrDefault(cvm => cvm.Model == c);
+								if (toRemove != default)
+								{
+									_rootlist.Remove(toRemove);
+								}
+							}
+							break;
+
+						case NotifyCollectionChangedAction.Reset:
+							_rootlist.Clear();
+							break;
+					}
 				}
+				catch (Exception)
+				{ }
 			});
 		}
 
@@ -409,27 +433,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Dispatcher.UIThread.Post(() =>
 			{
-				if (e.PropertyName == nameof(CoinViewModel.IsSelected))
+				try
 				{
-					SetSelections();
-					var cvm = sender as CoinViewModel;
-					SelectionChanged?.Invoke(this, cvm);
-				}
-				if (e.PropertyName == nameof(CoinViewModel.Status))
-				{
-					SetCoinJoinStatusWidth();
-				}
-				if (e.PropertyName == nameof(CoinViewModel.Unspent))
-				{
-					var cvm = (CoinViewModel)sender;
-					if (!cvm.Unspent)
+					if (e.PropertyName == nameof(CoinViewModel.IsSelected))
 					{
-						_rootlist.Remove(cvm);
+						SetSelections();
+						var cvm = sender as CoinViewModel;
+						SelectionChanged?.Invoke(this, cvm);
 					}
+					if (e.PropertyName == nameof(CoinViewModel.Status))
+					{
+						SetCoinJoinStatusWidth();
+					}
+					if (e.PropertyName == nameof(CoinViewModel.Unspent))
+					{
+						var cvm = (CoinViewModel)sender;
+						if (!cvm.Unspent)
+						{
+							_rootlist.Remove(cvm);
+						}
 
-					SetSelections();
-					SetCoinJoinStatusWidth();
+						SetSelections();
+						SetCoinJoinStatusWidth();
+					}
 				}
+				catch (Exception)
+				{ }
 			});
 		}
 
