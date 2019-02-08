@@ -337,14 +337,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			EncryptMessage = ReactiveCommand.Create(() =>
 			{
-				var res = Global.WalletService.KeyManager.GetKeyForScriptPubKey(SelectedCoin.Model.ScriptPubKey)?.PubKey?.ToHex();
-				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Encrypt, res);
+				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Encrypt, SelectedCoin.Model.HdPubKey.PubKey.ToHex());
 			}).DisposeWith(Disposables);
 
 			DecryptMessage = ReactiveCommand.Create(() =>
 			{
-				var res = Global.WalletService.KeyManager.GetKeyForScriptPubKey(SelectedCoin.Model.ScriptPubKey)?.PubKey?.ToHex();
-				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Decrypt, res);
+				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Decrypt, SelectedCoin.Model.HdPubKey.PubKey.ToHex());
 			}).DisposeWith(Disposables);
 
 			SetSelections();
