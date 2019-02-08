@@ -75,6 +75,45 @@
             <TextBlock Text="Address:" Grid.Column="1" Margin="20 0 0 0" />
           </Grid>
           <ListBox Grid.Row="2" Items="{Binding Addresses}" SelectedItem="{Binding SelectedAddress, Mode=TwoWay}" VirtualizationMode="None">
+            <ListBox.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Copy address" Command="{Binding CopyAddress}">
+                  <MenuItem.Icon>
+                    <Path HorizontalAlignment="Left"
+                          Data="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" Fill="#22B14C"
+                          Height="16" Width="16"  Stretch="Fill" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Sign message" Command="{Binding SignMessage}">
+                  <MenuItem.Icon>
+                    <Path HorizontalAlignment="Left"
+                          Data="F1M12,5C11.447,5 11,4.553 11,4 11,3.447 11.447,3 12,3 12.553,3 13,3.447 13,4 13,4.553 12.553,5 12,5 M15,4.5C15,2.566 13.433,1 11.5,1 10.106,1 8.913,1.82 8.35,3L8,3 8,2 7,2 6,3 6,2 5,2 4,3 4,2 3,2 1,4 1,5 2,6 8.35,6C8.913,7.18 10.106,8 11.5,8 13.433,8 15,6.434 15,4.5" Fill="#22B14C"
+                          Height="8" Width="16"  Stretch="Fill" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Verify message" Command="{Binding VerifyMessage}">
+                  <MenuItem.Icon>
+                    <Path HorizontalAlignment="Left"
+                          Data="F1M12,5C11.447,5 11,4.553 11,4 11,3.447 11.447,3 12,3 12.553,3 13,3.447 13,4 13,4.553 12.553,5 12,5 M15,4.5C15,2.566 13.433,1 11.5,1 10.106,1 8.913,1.82 8.35,3L8,3 8,2 7,2 6,3 6,2 5,2 4,3 4,2 3,2 1,4 1,5 2,6 8.35,6C8.913,7.18 10.106,8 11.5,8 13.433,8 15,6.434 15,4.5" Fill="#22B14C"
+                          Height="8" Width="16"  Stretch="Fill" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Encrypt message" Command="{Binding EncryptMessage}">
+                  <MenuItem.Icon>
+                    <Path HorizontalAlignment="Left"
+                          Data="F1M12,6L8,6 8,4C8,2.729 8.729,2 10,2 11.271,2 12,2.729 12,4z M13,6L13,4C13,2.178 11.822,1 10,1 8.178,1 7,2.178 7,4L7,6 6.949,6C6.973,6.165 7,6.329 7,6.5 7,6.669 6.987,6.836 6.964,7L14,7 14,13 7,13 7,14 15,14 15,6z M9,9C9,8.448 9.448,8 10,8 10.552,8 11,8.448 11,9 11,9.366 10.794,9.673 10.5,9.847L10.5,12 9.5,12 9.5,9.847C9.206,9.673,9,9.366,9,9 M5,6.5C5,7.328 4.329,8 3.5,8 2.671,8 2,7.328 2,6.5 2,5.672 2.671,5 3.5,5 4.329,5 5,5.672 5,6.5 M1,6.5C1,7.709,1.859,8.769,3,9L3,15 4,15 4,14 6,14 6,13 4,13 4,12 6,12 6,11 4,11 4,9C5.141,8.769 6,7.709 6,6.5 6,5.119 4.881,4 3.5,4 2.119,4 1,5.119 1,6.5" Fill="#22B14C"
+                          Height="16" Width="16"  Stretch="Fill" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Decrypt message" Command="{Binding DecryptMessage}">
+                  <MenuItem.Icon>
+                    <Path HorizontalAlignment="Left"
+                          Data="F1M12,6L8,6 8,4C8,2.729 8.729,2 10,2 11.271,2 12,2.729 12,4z M13,6L13,4C13,2.178 11.822,1 10,1 8.178,1 7,2.178 7,4L7,6 6.949,6C6.973,6.165 7,6.329 7,6.5 7,6.669 6.987,6.836 6.964,7L14,7 14,13 7,13 7,14 15,14 15,6z M9,9C9,8.448 9.448,8 10,8 10.552,8 11,8.448 11,9 11,9.366 10.794,9.673 10.5,9.847L10.5,12 9.5,12 9.5,9.847C9.206,9.673,9,9.366,9,9 M5,6.5C5,7.328 4.329,8 3.5,8 2.671,8 2,7.328 2,6.5 2,5.672 2.671,5 3.5,5 4.329,5 5,5.672 5,6.5 M1,6.5C1,7.709,1.859,8.769,3,9L3,15 4,15 4,14 6,14 6,13 4,13 4,12 6,12 6,11 4,11 4,9C5.141,8.769 6,7.709 6,6.5 6,5.119 4.881,4 3.5,4 2.119,4 1,5.119 1,6.5" Fill="#22B14C"
+                          Height="16" Width="16"  Stretch="Fill" />
+                  </MenuItem.Icon>
+                </MenuItem>
+              </ContextMenu>
+            </ListBox.ContextMenu>
             <ListBox.ItemTemplate>
               <DataTemplate>
                 <Grid>
@@ -92,21 +131,7 @@
                     </StackPanel>
                   </Expander>
                   <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
-                    <TextBlock Text="{Binding Address}">
-                      <TextBlock.ContextMenu>
-                        <ContextMenu>
-                          <MenuItem Header="_Copy" Command="{Binding CopyToClipboard}">
-                            <MenuItem.Icon>
-                              <DrawingPresenter Height="16" Width="16">
-                                <DrawingPresenter.Drawing>
-                                  <GeometryDrawing Brush="#FFFFFFFF" Geometry="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" />
-                                </DrawingPresenter.Drawing>
-                              </DrawingPresenter>
-                            </MenuItem.Icon>
-                          </MenuItem>
-                        </ContextMenu>
-                      </TextBlock.ContextMenu>
-                    </TextBlock>
+                    <TextBlock Text="{Binding Address}" />
                     <TextBlock Text="{Binding Label}" Grid.Column="1" />
                   </Grid>
                 </Grid>

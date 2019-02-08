@@ -1,5 +1,8 @@
 ﻿using Avalonia;
+using Avalonia.Input.Platform;
 using Avalonia.Threading;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -9,6 +12,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.Tabs.EncryptionManager;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.KeyManagement;
@@ -27,6 +31,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private CompositeDisposable Disposables { get; }
+
+		public ReactiveCommand GenerateCommand { get; }
+		public ReactiveCommand EncryptMessage { get; }
+		public ReactiveCommand DecryptMessage { get; }
+		public ReactiveCommand SignMessage { get; }
+		public ReactiveCommand VerifyMessage { get; }
+		public ReactiveCommand CopyAddress { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
@@ -54,8 +65,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Dispatcher.UIThread.Post(async () =>
 					{
-						await Task.Delay(1000);
-						LabelRequiredNotificationOpacity = 0;
+						try
+						{
+							await Task.Delay(1000);
+							LabelRequiredNotificationOpacity = 0;
+						}
+						catch (Exception) { }
 					});
 
 					return;
@@ -63,22 +78,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				Dispatcher.UIThread.Post(() =>
 				{
-					var label = Label;
-					HdPubKey newKey = Global.WalletService.GetReceiveKey(label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
-
-					AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
-					if (found != default)
+					try
 					{
-						Addresses.Remove(found);
+						var label = Label;
+						HdPubKey newKey = Global.WalletService.GetReceiveKey(label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
+
+						AddressViewModel found = Addresses.FirstOrDefault(x => x.Model == newKey);
+						if (found != default)
+						{
+							Addresses.Remove(found);
+						}
+
+						var newAddress = new AddressViewModel(newKey);
+
+						Addresses.Insert(0, newAddress);
+
+						SelectedAddress = newAddress;
+
+						Label = "";
 					}
-
-					var newAddress = new AddressViewModel(newKey);
-
-					Addresses.Insert(0, newAddress);
-
-					SelectedAddress = newAddress;
-
-					Label = "";
+					catch (Exception) { }
 				});
 			}).DisposeWith(Disposables);
 
@@ -94,8 +113,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Dispatcher.UIThread.Post(async () =>
 					{
-						await Task.Delay(1000);
-						ClipboardNotificationOpacity = 0;
+						try
+						{
+							await Task.Delay(1000);
+							ClipboardNotificationOpacity = 0;
+						}
+						catch (Exception) { }
 					});
 				}
 			}).DisposeWith(Disposables);
@@ -109,7 +132,51 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}).DisposeWith(Disposables);
 
+			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
+
+			SignMessage = ReactiveCommand.Create(() =>
+			{
+				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Sign, SelectedAddress.Address);
+			}, isCoinListItemSelected)
+			.DisposeWith(Disposables);
+
+			VerifyMessage = ReactiveCommand.Create(() =>
+			{
+				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Verify, SelectedAddress.Address);
+			}, isCoinListItemSelected)
+			.DisposeWith(Disposables);
+
+			EncryptMessage = ReactiveCommand.Create(() =>
+			{
+				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Encrypt, SelectedAddress.Model.PubKey.ToHex());
+			}, isCoinListItemSelected)
+			.DisposeWith(Disposables);
+
+			DecryptMessage = ReactiveCommand.Create(() =>
+			{
+				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Decrypt, SelectedAddress.Model.PubKey.ToHex());
+			}, isCoinListItemSelected)
+			.DisposeWith(Disposables);
+
+			CopyAddress = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
+						.SetTextAsync(SelectedAddress.Address ?? string.Empty);
+				}
+				catch (Exception)
+				{ }
+			}, isCoinListItemSelected)
+			.DisposeWith(Disposables);
+
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+		}
+
+		private void OnEncryptionManager(EncryptionManagerViewModel.Tabs selectedTab, string content)
+		{
+			var encryptionManagerViewModel = IoC.Get<IShell>().GetOrCreate<EncryptionManagerViewModel>();
+			encryptionManagerViewModel.SelectTab(selectedTab, content);
 		}
 
 		private void InitializeAddresses()
@@ -227,8 +294,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Suggestions.Clear();
 		}
-
-		public ReactiveCommand GenerateCommand { get; }
 
 		#region IDisposable Support
 
