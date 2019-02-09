@@ -12,6 +12,7 @@ using WalletWasabi.Gui.Tabs;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using Avalonia;
+using System.IO;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -26,6 +27,14 @@ namespace WalletWasabi.Gui.Shell.Commands
 				ReactiveCommand.Create(() =>
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+				}));
+
+			LogsCommand = new CommandDefinition(
+				"Logs",
+				commandIconService.GetCompletionKindImage("Logs"),
+				ReactiveCommand.Create(() =>
+				{
+					IoHelpers.OpenFolderInFileExplorer(Global.DataDir);
 				}));
 
 			CustomerSupportCommand = new CommandDefinition(
@@ -98,6 +107,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Help.About")]
 		public CommandDefinition AboutCommand { get; }
+
+		[ExportCommandDefinition("Help.Logs")]
+		public CommandDefinition LogsCommand { get; }
 
 		[ExportCommandDefinition("Help.CustomerSupport")]
 		public CommandDefinition CustomerSupportCommand { get; }
