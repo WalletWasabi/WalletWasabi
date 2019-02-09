@@ -14,7 +14,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _password;
 		private string _validationMessage;
 
-
 		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, Mnemonic mnemonic, BitcoinEncryptedSecretNoEC encryptedSecret, string password, string walletFile) 
 			: base("Wallet Generated Successfully!")
 		{
@@ -32,7 +31,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				try
 				{
-					encryptedSecret.GetSecret(Password + "trolo");
+					encryptedSecret.GetSecret(Password);
 					KeyManagement.KeyManager.Recover(mnemonic, Password, walletFile);
 					owner.SelectLoadWallet();
 				}
