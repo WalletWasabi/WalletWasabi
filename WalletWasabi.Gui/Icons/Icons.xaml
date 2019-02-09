@@ -36,6 +36,7 @@
           <GeometryDrawing Brush="#FF424242" Geometry="F1M9.4141,8L13.9571,12.543 12.5431,13.957 8.0001,9.414 3.4571,13.957 2.0431,12.543 6.5861,8 2.0431,3.457 3.4571,2.043 8.0001,6.586 12.5431,2.043 13.9571,3.457z" />
         </DrawingGroup.Children>
       </DrawingGroup>
+
       <DrawingGroup x:Key="WalletManager">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,15.007L14,15.007 14,1.008 0,1.008z" />
@@ -54,13 +55,11 @@
         </DrawingGroup.Children>
       </DrawingGroup>
 
-      <DrawingGroup x:Key="Logs">
+      <DrawingGroup x:Key="DataFolder">
         <DrawingGroup.Children>
-          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M16,2.9688L16,11.9688C16,12.5858 15.773,13.0868 15.43,13.4188 14.86,13.9628 14,13.9998 14,13.9998L11,13.9998 11,15.9998 0,15.9998 0,8.1648 0,6.9998 1,6.9998 1,4.9688C1,3.6698,2.03,2.9998,3,2.9998L5.884,2.9998 6.884,0.9998 14,0.9998C14.995,0.9998,16,1.6658,16,2.9688" />
-          <GeometryDrawing Brush="#FFDBB679" Geometry="F1M11,13L14,13 11,8z M15,3L15,12C15,13,14,13,14,13L14,3 8,3 7,5 3,5 3,7 2,7 2,5C2,4,3.236,4,3,4L6.5,4 7.5,2 14,2C14,2,15,2,15,3" />
-          <GeometryDrawing Brush="#FF424242" Geometry="F1M9,10L4,10 4,9 9,9z M9,12L4,12 4,11 9,11z M9,14L4,14 4,13 9,13z M2,13L3,13 3,14 2,14z M2,11L3,11 3,12 2,12z M2,9L3,9 3,10 2,10z M1,15L10,15 10,8 1,8z" />
-          <GeometryDrawing Brush="#FFEFEFF0" Geometry="F1M9,9L4,9 4,10 9,10z M9,11L4,11 4,12 9,12z M9,13L4,13 4,14 9,14z M3,13L2,13 2,14 3,14z M2,12L3,12 3,11 2,11z M2,10L3,10 3,9 2,9z M14,3L14,13 11,8 11,7 3,7 3,5 7,5 8,3z" />
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,2.9688L0,11.9688C0,12.5858 0.227,13.0718 0.57,13.4038 1.14,13.9478 2,13.9688 2,13.9688L13.677,13.9688 16,8.1648 16,6.9688 15,6.9688 15,4.9688C15,3.6698,13.97,2.9688,13,2.9688L10.116,2.9688 9.116,0.9688 2,0.9688C1.005,0.9688,0,1.6658,0,2.9688" />
+          <GeometryDrawing Brush="#FFDCB67A" Geometry="F1M1,3L1,12C1,12.97,1.94,12.984,1.997,12.984L2,12.984 2,3 8,3 9,5 13,5 13,8 4,8 2,13 13,13 15,8 14,8 14,5C14,4,12.764,4,13,4L9.5,4 8.5,2 2,2C2,2,1,2,1,3" />
         </DrawingGroup.Children>
       </DrawingGroup>
 

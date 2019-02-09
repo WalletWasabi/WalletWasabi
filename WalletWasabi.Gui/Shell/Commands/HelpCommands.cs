@@ -29,9 +29,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 				}));
 
-			LogsCommand = new CommandDefinition(
-				"Logs",
-				commandIconService.GetCompletionKindImage("Logs"),
+			DataFolderCommand = new CommandDefinition(
+				"Data Folder",
+				commandIconService.GetCompletionKindImage("DataFolder"),
 				ReactiveCommand.Create(() =>
 				{
 					IoHelpers.OpenFolderInFileExplorer(Global.DataDir);
@@ -108,8 +108,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ExportCommandDefinition("Help.About")]
 		public CommandDefinition AboutCommand { get; }
 
-		[ExportCommandDefinition("Help.Logs")]
-		public CommandDefinition LogsCommand { get; }
+		[ExportCommandDefinition("Help.DataFolder")]
+		public CommandDefinition DataFolderCommand { get; }
 
 		[ExportCommandDefinition("Help.CustomerSupport")]
 		public CommandDefinition CustomerSupportCommand { get; }
@@ -127,8 +127,10 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public CommandDefinition LegalIssuesCommand { get; }
 
 #if DEBUG
+
 		[ExportCommandDefinition("Help.DevTools")]
 		public CommandDefinition DevToolsCommand { get; }
+
 #endif
 	}
 }
