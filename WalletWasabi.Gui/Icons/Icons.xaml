@@ -36,6 +36,7 @@
           <GeometryDrawing Brush="#FF424242" Geometry="F1M9.4141,8L13.9571,12.543 12.5431,13.957 8.0001,9.414 3.4571,13.957 2.0431,12.543 6.5861,8 2.0431,3.457 3.4571,2.043 8.0001,6.586 12.5431,2.043 13.9571,3.457z" />
         </DrawingGroup.Children>
       </DrawingGroup>
+
       <DrawingGroup x:Key="WalletManager">
         <DrawingGroup.Children>
           <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,15.007L14,15.007 14,1.008 0,1.008z" />
@@ -51,6 +52,14 @@
           <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,0C3.589,0 0,3.589 0,8 0,12.411 3.589,16 8,16 12.411,16 16,12.411 16,8 16,3.589 12.411,0 8,0" />
           <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M14,8C14,11.309 11.309,14 8,14 4.691,14 2,11.309 2,8 2,4.691 4.691,2 8,2 11.309,2 14,4.691 14,8" />
           <GeometryDrawing Brush="#FF1BA1E2" Geometry="F1M7,7.5L9,7.5 9,12 7,12z M7,4L9,4 9,5.5 7,5.5z M8,14C4.691,14 2,11.309 2,8 2,4.691 4.691,2 8,2 11.309,2 14,4.691 14,8 14,11.309 11.309,14 8,14 M8,1C4.14,1 1,4.14 1,8 1,11.859 4.14,15 8,15 11.859,15 15,11.859 15,8 15,4.14 11.859,1 8,1" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+
+      <DrawingGroup x:Key="DataFolder">
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M0,2.9688L0,11.9688C0,12.5858 0.227,13.0718 0.57,13.4038 1.14,13.9478 2,13.9688 2,13.9688L13.677,13.9688 16,8.1648 16,6.9688 15,6.9688 15,4.9688C15,3.6698,13.97,2.9688,13,2.9688L10.116,2.9688 9.116,0.9688 2,0.9688C1.005,0.9688,0,1.6658,0,2.9688" />
+          <GeometryDrawing Brush="#FFDCB67A" Geometry="F1M1,3L1,12C1,12.97,1.94,12.984,1.997,12.984L2,12.984 2,3 8,3 9,5 13,5 13,8 4,8 2,13 13,13 15,8 14,8 14,5C14,4,12.764,4,13,4L9.5,4 8.5,2 2,2C2,2,1,2,1,3" />
         </DrawingGroup.Children>
       </DrawingGroup>
 
