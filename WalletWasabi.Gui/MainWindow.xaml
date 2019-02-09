@@ -19,19 +19,16 @@
                       WindowState ="{Binding WindowState}"
                       UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
                       id:DragBehavior.IsEnabled="False" id:DropBehavior.IsEnabled="False">
-  <i:Interaction.Behaviors>
-    <behaviors:PredicateCloseBehavior CanClose="{Binding CanClose}" />
-  </i:Interaction.Behaviors>
   <cont:MetroWindow.TitleBarContent>
     <menu:MainMenuView DataContext="{Binding Shell.MainMenu}" Margin="4 0 0 0"  Foreground="{DynamicResource ThemeForegroundBrush}" VerticalAlignment="Stretch" FontSize="13" />
   </cont:MetroWindow.TitleBarContent>
   <cont:MetroWindow.Styles>
     <Style Selector="Menu > MenuItem:selected /template/ Border#root">
-      <Setter Property="Background" Value="{DynamicResource ThemeControlMidBrush}"/>
+      <Setter Property="Background" Value="{DynamicResource ThemeControlMidBrush}" />
     </Style>
 
     <Style Selector="Menu > MenuItem">
-      <Setter Property="Padding" Value="7 0"/>
+      <Setter Property="Padding" Value="7 0" />
     </Style>
   </cont:MetroWindow.Styles>
   <Grid>
