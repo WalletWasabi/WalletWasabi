@@ -18,7 +18,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				new GenerateWalletViewModel(this),
 				new RecoverWalletViewModel(this),
-				new LoadWalletViewModel(this)
+				new LoadWalletViewModel(this),
+				new TestPasswordViewModel(this)
 			};
 
 			SelectedCategory = Categories.FirstOrDefault();
@@ -56,6 +57,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public void SelectLoadWallet()
 		{
 			SelectedCategory = Categories.First(x => x is LoadWalletViewModel);
+		}
+
+		public void SelectTestPassword()
+		{
+			SelectedCategory = Categories.First(x => x is TestPasswordViewModel);
 		}
 
 		public ViewModelBase CurrentView
