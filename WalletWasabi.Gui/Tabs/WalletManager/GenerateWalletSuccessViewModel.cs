@@ -14,7 +14,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			ConfirmCommand = ReactiveCommand.Create(() =>
 			{
-				owner.SelectLoadWallet();
+				owner.SelectTestPassword();
 			});
 		}
 
