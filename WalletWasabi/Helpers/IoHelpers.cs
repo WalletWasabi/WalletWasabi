@@ -265,6 +265,25 @@ namespace System.IO
 			}
 		}
 
+		public static void OpenFileInTextEditor(string filePath)
+		{
+			if (File.Exists(filePath))
+			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					Process.Start(new ProcessStartInfo { FileName = "notepad.exe", Arguments = $"\"{filePath}\"" });
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					Process.Start(new ProcessStartInfo { FileName = "gedit", Arguments = filePath, CreateNoWindow = true });
+				}
+				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+				{
+					Process.Start(new ProcessStartInfo { FileName = "open", Arguments = "-e " + filePath, CreateNoWindow = true });
+				}
+			}
+		}
+
 		public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target)
 		{
 			foreach (DirectoryInfo dir in source.GetDirectories())

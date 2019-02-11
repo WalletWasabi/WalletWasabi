@@ -22,6 +22,7 @@
             </StackPanel>
           </StackPanel>
         </controls:GroupBox>
+        <Button Content="Open config file" Command="{Binding OpenConfigFileCommand}" />
         <StackPanel IsVisible="{Binding IsModified}">
           <TextBlock Text="Heads Up!" FontWeight="Bold" Classes="warningMessage" />
           <TextBlock Classes="warningMessage">Changes will be applied after restarting the application.</TextBlock>
