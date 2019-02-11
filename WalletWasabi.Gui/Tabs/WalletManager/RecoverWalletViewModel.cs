@@ -23,7 +23,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _password;
 		private string _mnemonicWords;
 		private string _walletName;
-		private bool _termsAccepted;
 		private string _validationMessage;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
@@ -39,11 +38,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 
-				if (TermsAccepted == false)
-				{
-					ValidationMessage = "Terms are not accepted.";
-				}
-				else if (string.IsNullOrWhiteSpace(WalletName))
+				if (string.IsNullOrWhiteSpace(WalletName))
 				{
 					ValidationMessage = $"The name {WalletName} is not valid.";
 				}
@@ -70,8 +65,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						Logger.LogError<LoadWalletViewModel>(ex);
 					}
 				}
-			},
-			this.WhenAnyValue(x => x.TermsAccepted));
+			});
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x));
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -120,12 +114,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set { this.RaiseAndSetIfChanged(ref _walletName, value); }
 		}
 
-		public bool TermsAccepted
-		{
-			get { return _termsAccepted; }
-			set { this.RaiseAndSetIfChanged(ref _termsAccepted, value); }
-		}
-
 		public string ValidationMessage
 		{
 			get { return _validationMessage; }
@@ -162,7 +150,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Password = null;
 			MnemonicWords = "";
 			WalletName = Utils.GetNextWalletName();
-			TermsAccepted = false;
 			ValidationMessage = null;
 		}
 
