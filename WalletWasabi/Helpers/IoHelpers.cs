@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace System.IO
@@ -271,11 +272,13 @@ namespace System.IO
 			{
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
-					Process.Start(new ProcessStartInfo { FileName = "notepad.exe", Arguments = $"\"{filePath}\"" });
+					Process.Start(new ProcessStartInfo { FileName = "start", Arguments = $"\"\" \"{filePath}\"" });
 				}
 				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
-					Process.Start(new ProcessStartInfo { FileName = "gedit", Arguments = filePath, CreateNoWindow = true });
+					// If no associated application/json MimeType is found xdg-open opens retrun error
+					// but it tries to open it anyway using the console editor (nano, vim, other..)
+					EnvironmentHelpers.ShellExec($"gedit {filePath} || xdg-open {filePath}");
 				}
 				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 				{
