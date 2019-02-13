@@ -30,6 +30,11 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[DefaultGroup("About")]
 		public IMenuItem About => MenuItemFactory.CreateCommandMenuItem("Help.About");
 
+		[ExportMainMenuItem("Help", "DataFolder")]
+		[DefaultOrder(0)]
+		[DefaultGroup("DataFolder")]
+		public IMenuItem DataFolder => MenuItemFactory.CreateCommandMenuItem("Help.DataFolder");
+
 		[ExportMainMenuDefaultGroup("Help", "Support")]
 		[DefaultOrder(100)]
 		public object SupportGroup => null;
