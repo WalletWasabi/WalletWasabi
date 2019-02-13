@@ -1,8 +1,11 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Media;
 using Avalonia.Styling;
 using SkiaSharp;
 using System;
@@ -40,6 +43,7 @@ namespace WalletWasabi.Gui.Controls
 		private Random _random = new Random();
 		private StringBuilder _sb = new StringBuilder();
 		private HashSet<Key> _supressedKeys;
+		private volatile bool _capsLockEnabled = false;
 
 		public int SelectionLength => Math.Abs(SelectionEnd - SelectionStart);
 
@@ -115,27 +119,6 @@ namespace WalletWasabi.Gui.Controls
 				PasswordChar = '*'; //use passwordchar instead
 			}
 			_supressedKeys = new HashSet<Key>(SuppressedKeys);
-			RefreshCapsLockWarning();
-		}
-
-		private void RefreshCapsLockWarning()
-		{
-			return;
-			//if (Console.CapsLock) //only runs properly on windows!
-			//{
-			//	ToolTip.SetTip(this, "Caps lock on!");
-			//	ToolTip.SetPlacement(this, PlacementMode.Bottom);
-			//	if (IsFocused)
-			//	{
-			//		ToolTip.SetIsOpen(this, true);
-			//	}
-			//}
-			//else
-			//{
-			//	ToolTip.SetTip(this, null);
-			//	ToolTip.SetPlacement(this, PlacementMode.Pointer);
-			//	ToolTip.SetIsOpen(this, false);
-			//}
 		}
 
 		private void GenerateNewRandomSequence()
@@ -163,14 +146,31 @@ namespace WalletWasabi.Gui.Controls
 			_displayText = sb.ToString();
 		}
 
+		private KeyEventArgs lastKeyEventArgs;
+		private bool DetectCapsLock(string text)
+		{
+			if(text.Length < 1) 
+				return false;
+
+			var c = text[0];
+			var shift = lastKeyEventArgs.Modifiers == InputModifiers.Shift;
+
+			if(char.IsLetter(c) && ((char.IsUpper(c) && !shift) || (char.IsLower(c) && shift)))
+				return true;
+			return false;
+		}
+		
 		protected override async void OnKeyDown(KeyEventArgs e)
 		{
 			try
 			{
-				if (e.Key == Key.Capital || e.Key == Key.CapsLock) //on windows capslock is Key.Capital
+				lastKeyEventArgs = e;
+				if(e.Key == Key.Capital || e.Key == Key.CapsLock)
 				{
-					RefreshCapsLockWarning();
+					_capsLockEnabled = !_capsLockEnabled;
+					HandleCapsLock();
 				}
+
 				if (_supressedKeys.Contains(e.Key))
 				{
 					return;
@@ -258,7 +258,40 @@ namespace WalletWasabi.Gui.Controls
 
 		protected override void OnTextInput(TextInputEventArgs e)
 		{
+			_capsLockEnabled = DetectCapsLock(e.Text);
+			HandleCapsLock();
 			e.Handled = OnTextInput(e.Text);
+		}
+
+		private void HandleCapsLock()
+		{
+			if(_capsLockEnabled)
+			{
+				_presenter.Background = Brush.Parse("#70330a");
+				ToolTip.SetTip(this, "Caps lock on?");
+				ToolTip.SetPlacement(this, PlacementMode.Right);
+				if (IsFocused)
+				{
+					ToolTip.SetIsOpen(this, true);
+				}
+			}
+			else
+			{
+				_presenter.Background = _presenterBackground;
+				ToolTip.SetTip(this, null);
+				ToolTip.SetPlacement(this, PlacementMode.Pointer);
+				ToolTip.SetIsOpen(this, false);
+			}
+		}
+
+		private TextPresenter _presenter;
+		private IBrush _presenterBackground;
+		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		{
+			base.OnTemplateApplied(e);
+
+			_presenter = e.NameScope.Get<TextPresenter>("PART_TextPresenter");
+			_presenterBackground = _presenter.Background;
 		}
 
 		private bool OnTextInput(string text)
@@ -330,7 +363,6 @@ namespace WalletWasabi.Gui.Controls
 		{
 			if (string.IsNullOrEmpty(Text)) GenerateNewRandomSequence();
 			base.OnGotFocus(e);
-			RefreshCapsLockWarning();
 		}
 	}
 }
