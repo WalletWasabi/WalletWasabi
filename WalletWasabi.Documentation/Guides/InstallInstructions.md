@@ -16,6 +16,8 @@ After first run, a working directory will be created: `%appdata%\WalletWasabi\`.
 
 # Debian/Ubuntu Based Linux
 
+Check out [Max's video tutorial](https://www.youtube.com/watch?v=DUc9A76rwX4) or follow the instructions:
+
 After downloading the `.deb` package install it by running double clicking on it or running `sudo dpkg -i Wasabi-1.1.1.deb`.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Among others, here is where your wallet files and your logs reside.
