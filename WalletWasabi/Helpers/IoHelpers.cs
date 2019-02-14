@@ -272,7 +272,7 @@ namespace System.IO
 			{
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
-					Process.Start(new ProcessStartInfo { FileName = "start", Arguments = $"\"\" \"{filePath}\"" });
+					Process.Start(new ProcessStartInfo { FileName = "notepad.exe", Arguments = $"\"{filePath}\"" });
 				}
 				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
