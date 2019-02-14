@@ -251,17 +251,25 @@ namespace System.IO
 		{
 			if (Directory.Exists(dirPath))
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				Process process = null;
+				try
 				{
-					Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{dirPath}\"" });
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						process = Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{dirPath}\"" });
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					{
+						process = Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = dirPath, CreateNoWindow = true });
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+					{
+						process = Process.Start(new ProcessStartInfo { FileName = "open", Arguments = dirPath, CreateNoWindow = true });
+					}
 				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				finally
 				{
-					Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = dirPath, CreateNoWindow = true });
-				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					Process.Start(new ProcessStartInfo { FileName = "open", Arguments = dirPath, CreateNoWindow = true });
+					process?.Dispose();
 				}
 			}
 		}
@@ -270,19 +278,27 @@ namespace System.IO
 		{
 			if (File.Exists(filePath))
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				Process process = null;
+				try
 				{
-					Process.Start(new ProcessStartInfo { FileName = "notepad.exe", Arguments = $"\"{filePath}\"" });
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						process = Process.Start(new ProcessStartInfo { FileName = filePath, UseShellExecute = true });
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					{
+						// If no associated application/json MimeType is found xdg-open opens retrun error
+						// but it tries to open it anyway using the console editor (nano, vim, other..)
+						EnvironmentHelpers.ShellExec($"gedit {filePath} || xdg-open {filePath}");
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+					{
+						process = Process.Start(new ProcessStartInfo { FileName = "open", Arguments = "-e " + filePath, CreateNoWindow = true });
+					}
 				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				finally
 				{
-					// If no associated application/json MimeType is found xdg-open opens retrun error
-					// but it tries to open it anyway using the console editor (nano, vim, other..)
-					EnvironmentHelpers.ShellExec($"gedit {filePath} || xdg-open {filePath}");
-				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					Process.Start(new ProcessStartInfo { FileName = "open", Arguments = "-e " + filePath, CreateNoWindow = true });
+					process?.Dispose();
 				}
 			}
 		}
