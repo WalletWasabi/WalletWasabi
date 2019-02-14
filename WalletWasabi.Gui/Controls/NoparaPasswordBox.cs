@@ -22,6 +22,12 @@ namespace WalletWasabi.Gui.Controls
 	{
 		Type IStyleable.StyleKey => typeof(TextBox);
 
+		enum CapsLockStatus
+		{
+			Unknown,
+			On,
+			Off,
+		}
 		public static readonly string[] Titles =
 		{
 			"这个笨老外不知道自己在写什么。", // This silly foreigner does not know what he is writing.
@@ -43,7 +49,7 @@ namespace WalletWasabi.Gui.Controls
 		private Random _random = new Random();
 		private StringBuilder _sb = new StringBuilder();
 		private HashSet<Key> _supressedKeys;
-		private volatile bool _capsLockEnabled = false;
+		private volatile CapsLockStatus _capsLockEnabled = CapsLockStatus.Unknown;
 
 		public int SelectionLength => Math.Abs(SelectionEnd - SelectionStart);
 
@@ -147,17 +153,26 @@ namespace WalletWasabi.Gui.Controls
 		}
 
 		private KeyEventArgs lastKeyEventArgs;
-		private bool DetectCapsLock(string text)
+		private CapsLockStatus DetectCapsLock(string text)
 		{
 			if(text.Length < 1) 
-				return false;
+				return CapsLockStatus.Unknown;
 
 			var c = text[0];
 			var shift = lastKeyEventArgs.Modifiers == InputModifiers.Shift;
 
-			if(char.IsLetter(c) && ((char.IsUpper(c) && !shift) || (char.IsLower(c) && shift)))
-				return true;
-			return false;
+			if(char.IsLetter(c))
+			{
+				if((char.IsUpper(c) && !shift) || (char.IsLower(c) && shift))
+				{
+					return CapsLockStatus.On;
+				}
+				else
+				{
+					return CapsLockStatus.Off;
+				}
+			}
+			return CapsLockStatus.Unknown;
 		}
 		
 		protected override async void OnKeyDown(KeyEventArgs e)
@@ -167,7 +182,10 @@ namespace WalletWasabi.Gui.Controls
 				lastKeyEventArgs = e;
 				if(e.Key == Key.Capital || e.Key == Key.CapsLock)
 				{
-					_capsLockEnabled = !_capsLockEnabled;
+					if(_capsLockEnabled == CapsLockStatus.On)
+						_capsLockEnabled = CapsLockStatus.Off;
+					else if(_capsLockEnabled == CapsLockStatus.Off)
+						_capsLockEnabled = CapsLockStatus.On;
 					HandleCapsLock();
 				}
 
@@ -265,7 +283,7 @@ namespace WalletWasabi.Gui.Controls
 
 		private void HandleCapsLock()
 		{
-			if(_capsLockEnabled)
+			if(_capsLockEnabled == CapsLockStatus.On)
 			{
 				_presenter.Background = Brush.Parse("#70330a");
 				ToolTip.SetTip(this, "Caps lock on?");
@@ -275,7 +293,7 @@ namespace WalletWasabi.Gui.Controls
 					ToolTip.SetIsOpen(this, true);
 				}
 			}
-			else
+			else if(_capsLockEnabled == CapsLockStatus.Off)
 			{
 				_presenter.Background = _presenterBackground;
 				ToolTip.SetTip(this, null);
@@ -363,6 +381,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			if (string.IsNullOrEmpty(Text)) GenerateNewRandomSequence();
 			base.OnGotFocus(e);
+			_capsLockEnabled = CapsLockStatus.Unknown;
 		}
 	}
 }
