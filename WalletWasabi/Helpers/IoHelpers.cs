@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace System.IO
@@ -250,17 +251,54 @@ namespace System.IO
 		{
 			if (Directory.Exists(dirPath))
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				Process process = null;
+				try
 				{
-					Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{dirPath}\"" });
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						process = Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{dirPath}\"" });
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					{
+						process = Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = dirPath, CreateNoWindow = true });
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+					{
+						process = Process.Start(new ProcessStartInfo { FileName = "open", Arguments = dirPath, CreateNoWindow = true });
+					}
 				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				finally
 				{
-					Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = dirPath, CreateNoWindow = true });
+					process?.Dispose();
 				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			}
+		}
+
+		public static void OpenFileInTextEditor(string filePath)
+		{
+			if (File.Exists(filePath))
+			{
+				Process process = null;
+				try
 				{
-					Process.Start(new ProcessStartInfo { FileName = "open", Arguments = dirPath, CreateNoWindow = true });
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						process = Process.Start(new ProcessStartInfo { FileName = filePath, UseShellExecute = true });
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					{
+						// If no associated application/json MimeType is found xdg-open opens retrun error
+						// but it tries to open it anyway using the console editor (nano, vim, other..)
+						EnvironmentHelpers.ShellExec($"gedit {filePath} || xdg-open {filePath}");
+					}
+					else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+					{
+						process = Process.Start(new ProcessStartInfo { FileName = "open", Arguments = "-e " + filePath, CreateNoWindow = true });
+					}
+				}
+				finally
+				{
+					process?.Dispose();
 				}
 			}
 		}
