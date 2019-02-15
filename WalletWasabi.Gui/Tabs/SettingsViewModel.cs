@@ -8,6 +8,7 @@ using WalletWasabi.Gui.ViewModels.Validation;
 using System.Net;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.IO;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -34,6 +35,8 @@ namespace WalletWasabi.Gui.Tabs
 
 				IsModified = await Global.Config.CheckFileChangeAsync();
 			});
+
+			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 		}
 
 		public IEnumerable<string> Networks
@@ -142,6 +145,13 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			return "Invalid port.";
+		}
+
+		public ReactiveCommand OpenConfigFileCommand { get; }
+
+		private void OpenConfigFile()
+		{
+			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
 		}
 	}
 }

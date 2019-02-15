@@ -293,8 +293,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 						// 4. Start building Coordinator fee.
 						var baseDenominationOutputCount = transaction.Outputs.Count(x => x.Value == newDenomination);
-						Money coordinatorFeePerAlice = newDenomination.Percentage(CoordinatorFeePercent * baseDenominationOutputCount);
-						Money coordinatorFee = baseDenominationOutputCount * coordinatorFeePerAlice;
+						Money coordinatorBaseFeePerAlice = newDenomination.Percentage(CoordinatorFeePercent * baseDenominationOutputCount);
+						Money coordinatorFee = baseDenominationOutputCount * coordinatorBaseFeePerAlice;
 
 						if (tinkerWithAdditionalMixingLevels)
 						{
@@ -303,7 +303,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								var denominationOutputCount = transaction.Outputs.Count(x => x.Value == level.Denomination);
 								if (denominationOutputCount <= 1) break;
 
-								coordinatorFee += level.Denomination.Percentage(CoordinatorFeePercent * denominationOutputCount * denominationOutputCount);
+								Money coordinatorLevelFeePerAlice = level.Denomination.Percentage(CoordinatorFeePercent * denominationOutputCount);
+								coordinatorFee += coordinatorLevelFeePerAlice * denominationOutputCount;
 							}
 						}
 
@@ -317,7 +318,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								spentCoins.Add(input);
 							}
 
-							Money changeAmount = alice.InputSum - alice.NetworkFeeToPay - newDenomination - coordinatorFeePerAlice;
+							Money changeAmount = alice.InputSum - alice.NetworkFeeToPay - newDenomination - coordinatorBaseFeePerAlice;
 
 							if (tinkerWithAdditionalMixingLevels)
 							{

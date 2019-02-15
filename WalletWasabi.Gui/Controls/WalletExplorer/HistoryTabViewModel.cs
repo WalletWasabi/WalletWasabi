@@ -128,6 +128,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			foreach (SmartCoin coin in Global.WalletService.Coins)
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
+
+				if (Global.WalletService is null) // disposed meanwhile
+				{
+					break;
+				}
+
 				SmartTransaction foundTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.TransactionId);
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)

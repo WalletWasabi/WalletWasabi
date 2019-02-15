@@ -12,6 +12,7 @@ using WalletWasabi.Gui.Tabs;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using Avalonia;
+using System.IO;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -115,8 +116,10 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public CommandDefinition LegalIssuesCommand { get; }
 
 #if DEBUG
+
 		[ExportCommandDefinition("Help.DevTools")]
 		public CommandDefinition DevToolsCommand { get; }
+
 #endif
 	}
 }

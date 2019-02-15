@@ -16,6 +16,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
@@ -84,33 +86,49 @@ namespace WalletWasabi.Gui
 			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
 
-		private static long _triedDesperateDequeuing = 0;
+		private static long _isDesperateDequeuing = 0;
 
-		private static async Task TryDesperateDequeueAllCoinsAsync()
+		public static async Task TryDesperateDequeueAllCoinsAsync()
 		{
 			try
 			{
-				if (Interlocked.Read(ref _triedDesperateDequeuing) == 1)
+				if (Interlocked.Read(ref _isDesperateDequeuing) == 1)
 				{
 					return;
 				}
 				else
 				{
-					Interlocked.Increment(ref _triedDesperateDequeuing);
+					Interlocked.Increment(ref _isDesperateDequeuing);
 				}
 
-				if (WalletService is null || ChaumianClient is null)
-					return;
-				SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
-				if (enqueuedCoins.Any())
-				{
-					Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
-					await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
-				}
+				await DesperateDequeueAllCoinsAsync();
+			}
+			catch (NotSupportedException ex)
+			{
+				Logger.LogWarning(ex.Message, nameof(Global));
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex, nameof(Global));
+			}
+			finally
+			{
+				Interlocked.Exchange(ref _isDesperateDequeuing, 0);
+			}
+		}
+
+		public static async Task DesperateDequeueAllCoinsAsync()
+		{
+			if (WalletService is null || ChaumianClient is null)
+			{
+				return;
+			}
+
+			SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+			if (enqueuedCoins.Any())
+			{
+				Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
+				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
 			}
 		}
 

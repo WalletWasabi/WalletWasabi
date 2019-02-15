@@ -27,6 +27,7 @@ namespace WalletWasabi.Services
 	{
 		public Network Network { get; }
 		public KeyManager KeyManager { get; }
+		public bool IsQuitPending { get; set; }
 
 		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
 
@@ -129,7 +130,10 @@ namespace WalletWasabi.Services
 								await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 
 								// If stop was requested return.
-								if (IsRunning == false) return;
+								if (IsRunning == false)
+								{
+									return;
+								}
 
 								// if mixing >= connConf
 								if (State.GetActivelyMixingRounds().Any())
@@ -238,7 +242,6 @@ namespace WalletWasabi.Services
 					}
 
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
-
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
 					if (!(inputRegistrableRound is null))
 					{
@@ -272,7 +275,10 @@ namespace WalletWasabi.Services
 			try
 			{
 				var ongoingRound = State.GetSingleOrDefaultRound(ongoingRoundId);
-				if (ongoingRound is null) throw new NotSupportedException("This is impossible.");
+				if (ongoingRound is null)
+				{
+					throw new NotSupportedException("This is impossible.");
+				}
 
 				if (ongoingRound.State.Phase == CcjRoundPhase.ConnectionConfirmation)
 				{
@@ -325,16 +331,18 @@ namespace WalletWasabi.Services
 
 			// Make sure change is counted.
 			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
-			minAmountBack -= ongoingRound.State.FeePerOutputs * myOutputs.Length + ongoingRound.State.FeePerInputs * ongoingRound.Registration.CoinsRegistered.Count(); // Minus miner fee.
+																				   // Do outputs.lenght + 1 in case the server estimated the network fees wrongly due to insufficient data in an edge case.
+			minAmountBack -= ongoingRound.State.FeePerOutputs * (myOutputs.Length + 1) + ongoingRound.State.FeePerInputs * ongoingRound.Registration.CoinsRegistered.Count(); // Minus miner fee.
 
 			IOrderedEnumerable<(Money value, int count)> indistinguishableOutputs = unsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count);
 			foreach ((Money value, int count) denomPair in indistinguishableOutputs)
 			{
-				if (myOutputs.Select(x => x.Value)
-								.Contains(denomPair.value))
+				var mineCount = myOutputs.Count(x => x.Value == denomPair.value);
+
+				Money denomination = denomPair.value;
+				Money expectedCoordinatorFee = denomination.Percentage(ongoingRound.State.CoordinatorFeePercent * denomPair.count);
+				for (int i = 0; i < mineCount; i++)
 				{
-					Money denomination = denomPair.value;
-					Money expectedCoordinatorFee = denomination.Percentage(ongoingRound.State.CoordinatorFeePercent * denomPair.count);
 					minAmountBack -= expectedCoordinatorFee; // Minus expected coordinator fee.
 				}
 			}
@@ -350,7 +358,7 @@ namespace WalletWasabi.Services
 				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
 			}
 
-			if (amountBack < minAmountBack && !amountBack.Almost(minAmountBack, Money.Satoshis(10000))) // I catched an issue here, probably rounding. 1000 dust should be enough to catch it, but let's do 10000, why not.
+			if (amountBack < minAmountBack && !amountBack.Almost(minAmountBack, Money.Satoshis(10000))) // Just in case.
 			{
 				throw new NotSupportedException($"Coordinator did not add enough value to our outputs in the coinjoin. Missing: {(minAmountBack - amountBack).Satoshi} satoshis.");
 			}
@@ -460,7 +468,10 @@ namespace WalletWasabi.Services
 					inputRegistrableRound.State.FeePerOutputs).ToList();
 
 				// If there are no suitable coins to register return.
-				if (!registrableCoins.Any()) return;
+				if (!registrableCoins.Any())
+				{
+					return;
+				}
 
 				(HdPubKey change, IEnumerable<HdPubKey> actives) outputAddresses = GetOutputsToRegister(inputRegistrableRound.State.Denomination, inputRegistrableRound.State.SchnorrPubKeys.Count(), registrableCoins);
 
@@ -471,7 +482,11 @@ namespace WalletWasabi.Services
 				var registeredAddresses = new List<BitcoinAddress>();
 				for (int i = 0; i < schnorrPubKeys.Length; i++)
 				{
-					if (outputAddresses.actives.Count() <= i) break;
+					if (outputAddresses.actives.Count() <= i)
+					{
+						break;
+					}
+
 					BitcoinAddress address = outputAddresses.actives.Select(x => x.GetP2wpkhAddress(Network)).ElementAt(i);
 
 					SchnorrPubKey schnorrPubKey = schnorrPubKeys[i];
@@ -490,7 +505,11 @@ namespace WalletWasabi.Services
 				foreach (TxoRef coinReference in registrableCoins)
 				{
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-					if (coin is null) throw new NotSupportedException("This is impossible.");
+					if (coin is null)
+					{
+						throw new NotSupportedException("This is impossible.");
+					}
+
 					coin.Secret = coin.Secret ?? KeyManager.GetSecrets(SaltSoup(), coin.ScriptPubKey).Single();
 					var inputProof = new InputProofModel
 					{
@@ -514,7 +533,11 @@ namespace WalletWasabi.Services
 					string[] bannedInputStringParts = bannedInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
 					TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-					if (coin is null) throw new NotSupportedException("This is impossible.");
+					if (coin is null)
+					{
+						throw new NotSupportedException("This is impossible.");
+					}
+
 					coin.BannedUntilUtc = DateTimeOffset.UtcNow + TimeSpan.FromMinutes(minuteInt);
 
 					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
@@ -530,7 +553,11 @@ namespace WalletWasabi.Services
 					string[] bannedInputStringParts = spentInputString.Split(':', StringSplitOptions.RemoveEmptyEntries);
 					TxoRef coinReference = new TxoRef(new uint256(bannedInputStringParts[1]), uint.Parse(bannedInputStringParts[0]));
 					SmartCoin coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-					if (coin is null) throw new NotSupportedException("This is impossible.");
+					if (coin is null)
+					{
+						throw new NotSupportedException("This is impossible.");
+					}
+
 					coin.SpentAccordingToBackend = true;
 
 					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
@@ -556,7 +583,11 @@ namespace WalletWasabi.Services
 				foreach (TxoRef coinReference in registrableCoins)
 				{
 					var coin = State.GetSingleOrDefaultFromWaitingList(coinReference);
-					if (coin is null) throw new NotSupportedException("This is impossible.");
+					if (coin is null)
+					{
+						throw new NotSupportedException("This is impossible.");
+					}
+
 					coinsRegistered.Add(coin);
 					State.RemoveCoinFromWaitingList(coin);
 				}
@@ -701,7 +732,10 @@ namespace WalletWasabi.Services
 
 		public async Task<IEnumerable<SmartCoin>> QueueCoinsToMixAsync(string password, params SmartCoin[] coins)
 		{
-			if (coins is null || !coins.Any()) return Enumerable.Empty<SmartCoin>();
+			if (coins is null || !coins.Any() || IsQuitPending)
+			{
+				return Enumerable.Empty<SmartCoin>();
+			}
 
 			var successful = new List<SmartCoin>();
 			using (await MixLock.LockAsync())
@@ -756,7 +790,10 @@ namespace WalletWasabi.Services
 
 		public async Task DequeueCoinsFromMixAsync(params SmartCoin[] coins)
 		{
-			if (coins is null || !coins.Any()) return;
+			if (coins is null || !coins.Any())
+			{
+				return;
+			}
 
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
@@ -811,7 +848,10 @@ namespace WalletWasabi.Services
 
 		public async Task DequeueCoinsFromMixAsync(params TxoRef[] coins)
 		{
-			if (coins is null || !coins.Any()) return;
+			if (coins is null || !coins.Any())
+			{
+				return;
+			}
 
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
@@ -858,19 +898,28 @@ namespace WalletWasabi.Services
 
 		private async Task DequeueCoinsFromMixNoLockAsync(params TxoRef[] coins)
 		{
-			if (coins is null || !coins.Any()) return;
+			if (coins is null || !coins.Any())
+			{
+				return;
+			}
 
 			List<Exception> exceptions = new List<Exception>();
 
 			foreach (var coinReference in coins)
 			{
 				var coinToDequeue = State.GetSingleOrDefaultCoin(coinReference);
-				if (coinToDequeue is null) continue;
+				if (coinToDequeue is null)
+				{
+					continue;
+				}
 
 				foreach (long roundId in State.GetPassivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
-					if (round is null) throw new NotSupportedException("This is impossible.");
+					if (round is null)
+					{
+						throw new NotSupportedException("This is impossible.");
+					}
 
 					if (round.CoinsRegistered.Contains(coinToDequeue))
 					{
@@ -892,7 +941,10 @@ namespace WalletWasabi.Services
 				foreach (long roundId in State.GetActivelyMixingRounds())
 				{
 					var round = State.GetSingleOrDefaultRound(roundId);
-					if (round is null) continue;
+					if (round is null)
+					{
+						continue;
+					}
 
 					if (round.CoinsRegistered.Contains(coinToDequeue))
 					{
