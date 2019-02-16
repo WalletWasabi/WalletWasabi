@@ -30,10 +30,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _loadButtonText;
 
 		private WalletManagerViewModel Owner { get; }
+		public bool RequirePassword { get; }
 
-		public LoadWalletViewModel(WalletManagerViewModel owner) : base("Load Wallet")
+		public LoadWalletViewModel(WalletManagerViewModel owner, bool requirePassword) : base(requirePassword ? "Test Password" : "Load Wallet")
 		{
 			Owner = owner;
+			RequirePassword = requirePassword;
 			_wallets = new ObservableCollection<string>();
 
 			this.WhenAnyValue(x => x.SelectedWallet)
@@ -54,32 +56,32 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public ObservableCollection<string> Wallets
 		{
-			get { return _wallets; }
-			set { this.RaiseAndSetIfChanged(ref _wallets, value); }
+			get => _wallets;
+			set => this.RaiseAndSetIfChanged(ref _wallets, value);
 		}
 
 		public string SelectedWallet
 		{
-			get { return _selectedWallet; }
-			set { this.RaiseAndSetIfChanged(ref _selectedWallet, value); }
+			get => _selectedWallet;
+			set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);
 		}
 
 		public bool IsWalletOpened
 		{
-			get { return _isWalletOpened; }
-			set { this.RaiseAndSetIfChanged(ref _isWalletOpened, value); }
+			get => _isWalletOpened;
+			set => this.RaiseAndSetIfChanged(ref _isWalletOpened, value);
 		}
 
 		public string WarningMessage
 		{
-			get { return _warningMessage; }
-			set { this.RaiseAndSetIfChanged(ref _warningMessage, value); }
+			get => _warningMessage;
+			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
 		public string ValidationMessage
 		{
-			get { return _validationMessage; }
-			set { this.RaiseAndSetIfChanged(ref _validationMessage, value); }
+			get => _validationMessage;
+			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
 		}
 
 		public void SetLoadButtonText(bool isBusy)
@@ -89,8 +91,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public string LoadButtonText
 		{
-			get { return _loadButtonText; }
-			set { this.RaiseAndSetIfChanged(ref _loadButtonText, value); }
+			get => _loadButtonText;
+			set => this.RaiseAndSetIfChanged(ref _loadButtonText, value);
 		}
 
 		public bool CanLoadWallet
@@ -100,15 +102,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				if (IsBusy) return false;
 				return _canLoadWallet;
 			}
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _canLoadWallet, value);
-			}
+			set => this.RaiseAndSetIfChanged(ref _canLoadWallet, value);
 		}
 
 		public bool IsBusy
 		{
-			get { return _isBusy; }
+			get => _isBusy;
 			set
 			{
 				CanLoadWallet = !value;
