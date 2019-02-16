@@ -34,14 +34,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public ObservableCollection<CategoryViewModel> Categories
 		{
-			get { return _categories; }
-			set { this.RaiseAndSetIfChanged(ref _categories, value); }
+			get => _categories;
+			set => this.RaiseAndSetIfChanged(ref _categories, value);
 		}
 
 		public CategoryViewModel SelectedCategory
 		{
-			get { return _selectedCategory; }
-			set { this.RaiseAndSetIfChanged(ref _selectedCategory, value); }
+			get => _selectedCategory;
+			set => this.RaiseAndSetIfChanged(ref _selectedCategory, value);
 		}
 
 		public void SelectGenerateWallet()
@@ -66,8 +66,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public ViewModelBase CurrentView
 		{
-			get { return _currentView; }
-			set { this.RaiseAndSetIfChanged(ref _currentView, value); }
+			get => _currentView;
+			set => this.RaiseAndSetIfChanged(ref _currentView, value);
 		}
 	}
 }
