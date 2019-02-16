@@ -6,6 +6,7 @@
     <LangVersion>latest</LangVersion>
     <NoWarn>1701;1702;1705;1591;1573</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Deterministic>True</Deterministic>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
