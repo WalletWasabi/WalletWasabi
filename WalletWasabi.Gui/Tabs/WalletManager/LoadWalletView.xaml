@@ -18,7 +18,7 @@
       </controls:GroupBox>
       <StackPanel DockPanel.Dock="Bottom" Margin="20 10">
         <DockPanel LastChildFill="True">
-          <Button IsVisible="{Binding RequirePassword}" Content="Test Password" Command="{Binding GenerateCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
+          <Button IsVisible="{Binding RequirePassword}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
           <Button Command="{Binding LoadCommand}" DockPanel.Dock="Right">
             <StackPanel Orientation="Horizontal">
               <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
@@ -39,6 +39,7 @@
         </DockPanel>
         <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
         <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
+        <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
       </StackPanel>
     </StackPanel>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">

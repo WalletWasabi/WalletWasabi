@@ -86,26 +86,26 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public string Password
 		{
-			get { return _password; }
-			set { this.RaiseAndSetIfChanged(ref _password, value); }
+			get => _password;
+			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
 		public string WalletName
 		{
-			get { return _walletName; }
-			set { this.RaiseAndSetIfChanged(ref _walletName, value); }
+			get => _walletName;
+			set => this.RaiseAndSetIfChanged(ref _walletName, value);
 		}
 
 		public bool TermsAccepted
 		{
-			get { return _termsAccepted; }
-			set { this.RaiseAndSetIfChanged(ref _termsAccepted, value); }
+			get => _termsAccepted;
+			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
 		}
 
 		public string ValidationMessage
 		{
-			get { return _validationMessage; }
-			set { this.RaiseAndSetIfChanged(ref _validationMessage, value); }
+			get => _validationMessage;
+			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
 		}
 
 		public ReactiveCommand GenerateCommand { get; }
