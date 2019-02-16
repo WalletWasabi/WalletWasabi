@@ -262,7 +262,7 @@ namespace WalletWasabi.TorSocks5
 			var connectionRequest = new TorSocks5Request(cmd, dstAddr, dstPort);
 			var sendBuffer = connectionRequest.ToBytes();
 
-			var receiveBuffer = await SendAsync(sendBuffer);
+			var receiveBuffer = await SendAsync(sendBuffer, tryConnect:false);
 
 			var connectionResponse = new TorSocks5Response();
 			connectionResponse.FromBytes(receiveBuffer);
@@ -322,13 +322,14 @@ namespace WalletWasabi.TorSocks5
 		/// <param name="sendBuffer">Sent data</param>
 		/// <param name="receiveBufferSize">Maximum number of bytes expected to be received in the reply</param>
 		/// <returns>Reply</returns>
-		public async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null, bool fallback = false)
+		public async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null, bool fallback = false, bool tryConnect=true)
 		{
 			Guard.NotNullOrEmpty(nameof(sendBuffer), sendBuffer);
 
 			try
 			{
-				await AssertConnectedAsync();
+				if(tryConnect)
+					await AssertConnectedAsync();
 
 				using (await AsyncLock.LockAsync())
 				{
