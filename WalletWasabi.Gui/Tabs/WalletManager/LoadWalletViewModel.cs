@@ -27,6 +27,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _isWalletSelected;
 		private bool _isWalletOpened;
 		private bool _canLoadWallet;
+		private bool _canTestPassword;
 		private string _warningMessage;
 		private string _validationMessage;
 		private string _successMessage;
@@ -63,7 +64,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			});
 
 			LoadCommand = ReactiveCommand.Create(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
-			TestPasswordCommand = ReactiveCommand.Create(() => LoadKeyManager(requirePassword: true), this.WhenAnyValue(x => x.IsWalletSelected));
+			TestPasswordCommand = ReactiveCommand.Create(() => LoadKeyManager(requirePassword: true), this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			SetLoadButtonText(IsBusy);
 		}
@@ -154,6 +155,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _canLoadWallet, value);
 		}
 
+		public bool CanTestPassword
+		{
+			get => _canTestPassword;
+			set => this.RaiseAndSetIfChanged(ref _canTestPassword, value);
+		}
+
 		public bool IsBusy
 		{
 			get => _isBusy;
@@ -191,6 +198,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private void SetWalletStates()
 		{
 			IsWalletSelected = !string.IsNullOrEmpty(SelectedWallet);
+			CanTestPassword = IsWalletSelected;
 
 			IsWalletOpened = Global.WalletService != null;
 			// If not busy loading.
@@ -211,6 +219,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			try
 			{
+				CanTestPassword = false;
 				var password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
 				Password = ""; // Clear password field.
 
@@ -286,6 +295,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				Logger.LogError<LoadWalletViewModel>(ex);
 
 				return null;
+			}
+			finally
+			{
+				CanTestPassword = IsWalletSelected;
 			}
 		}
 
