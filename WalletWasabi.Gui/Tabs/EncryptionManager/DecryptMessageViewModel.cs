@@ -141,19 +141,27 @@ namespace WalletWasabi.Gui.Tabs.EncryptionManager
 			this.WhenAnyValue(x => x.AddressSearch)
 				.Throttle(TimeSpan.FromMilliseconds(500)).Subscribe((searchText) =>
 			   {
-				   if (string.IsNullOrEmpty(searchText))
-					   Addresses = new ObservableCollection<AddressPubKeyViewModel>(_allKeysViewModels);
-				   else
+				   if (_allKeysViewModels != null)
 				   {
-					   Addresses = new ObservableCollection<AddressPubKeyViewModel>(_allKeysViewModels.Where(vm => vm.Address.Contains(searchText)));
-					   if (Addresses.Count == 1)
+					   if (string.IsNullOrEmpty(searchText))
+						   Addresses = new ObservableCollection<AddressPubKeyViewModel>(_allKeysViewModels);
+					   else
 					   {
-						   SelectedItem = Addresses.First();
-					   }
+						   Addresses = new ObservableCollection<AddressPubKeyViewModel>(_allKeysViewModels.Where(vm => vm.Address.Contains(searchText)));
+						   if (Addresses.Count == 1)
+						   {
+							   SelectedItem = Addresses.First();
+						   }
 
-					   IsSearchResultExpanded = Addresses.Any();
+						   IsSearchResultExpanded = Addresses.Any();
+					   }
 				   }
 			   });
+		}
+
+		public override void OnCategorySelected()
+		{
+			base.OnCategorySelected();
 
 			IEnumerable<HdPubKey> keys = Global.WalletService.KeyManager.GetKeys();
 			_allKeysViewModels = keys.Select(a => new AddressPubKeyViewModel(a));

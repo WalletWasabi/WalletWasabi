@@ -71,16 +71,8 @@ namespace WalletWasabi.Gui
 		public static WasabiSynchronizer Synchronizer { get; private set; }
 		public static CcjClient ChaumianClient { get; private set; }
 
-		public static WalletService WalletService
-		{
-			get => WalletServiceField;
-			private set
-			{
-				if (WalletServiceField == value) return;
-				WalletServiceField = value;
-				NotifyStaticPropertyChanged(nameof(WalletService));
-			}
-		}
+		public static bool IsWalletLoaded { get; private set; }
+		public static WalletService WalletService { get; private set; }
 
 		public static Node RegTestMemPoolServingNode { get; private set; }
 		public static UpdateChecker UpdateChecker { get; private set; }
@@ -88,25 +80,6 @@ namespace WalletWasabi.Gui
 
 		public static Config Config { get; private set; }
 		public static UiConfig UiConfig { get; private set; }
-
-		public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
-
-		private static void NotifyStaticPropertyChanged(string propertyName)
-		{
-			StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(propertyName));
-		}
-
-		public static IObservable<PropertyChangedEventArgs> WhenPropertyChanged
-		{
-			get
-			{
-				return Observable
-					.FromEventPattern<PropertyChangedEventArgs>(
-						h => StaticPropertyChanged += h,
-						h => StaticPropertyChanged -= h)
-					.Select(x => x.EventArgs);
-			}
-		}
 
 		public static void InitializeConfig(Config config)
 		{
@@ -166,6 +139,7 @@ namespace WalletWasabi.Gui
 
 		public static void InitializeNoWallet()
 		{
+			IsWalletLoaded = false;
 			WalletService = null;
 			ChaumianClient = null;
 
@@ -308,7 +282,6 @@ namespace WalletWasabi.Gui
 		}
 
 		private static CancellationTokenSource CancelWalletServiceInitialization = null;
-		private static WalletService WalletServiceField;
 
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
@@ -326,6 +299,8 @@ namespace WalletWasabi.Gui
 			}
 			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 			WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+
+			IsWalletLoaded = true;
 		}
 
 		private static void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

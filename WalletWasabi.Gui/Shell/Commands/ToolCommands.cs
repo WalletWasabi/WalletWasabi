@@ -27,14 +27,9 @@ namespace WalletWasabi.Gui.Shell.Commands
 			WalletManagerCommand = new CommandDefinition(
 				"Wallet Manager",
 				commandIconService.GetCompletionKindImage("WalletManager"),
-				ReactiveCommand.Create(OnWalletManager));
+				ReactiveCommand.Create(OnWalletManager));                    //syncronize with the UI
 
-			var isWalletLoaded = Global.WhenPropertyChanged
-			.Where(x => x.PropertyName == nameof(WalletService))            //looking for the wallet is loaded
-			.Select(ws => ws != null)                                       //if it is not null -> wallet is loaded
-			.ObserveOn(RxApp.MainThreadScheduler);                          //syncronize with the UI
-
-			var encCommand = ReactiveCommand.Create(OnEncryptionManager, isWalletLoaded).DisposeWith(Disposables);
+			var encCommand = ReactiveCommand.Create(OnEncryptionManager).DisposeWith(Disposables);
 
 			EncryptionManagerCommand = new CommandDefinition(
 						"Encryption Manager",
@@ -68,7 +63,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 		private void OnEncryptionManager()
 		{
 			var encryptionManagerViewModel = IoC.Get<IShell>().GetOrCreate<EncryptionManagerViewModel>();
-			encryptionManagerViewModel.SelectTab(EncryptionManagerViewModel.Tabs.Sign);
+			encryptionManagerViewModel.SelectTab(EncryptionManagerViewModel.Tabs.Encrypt);
 		}
 
 		[ExportCommandDefinition("Tools.WalletManager")]
