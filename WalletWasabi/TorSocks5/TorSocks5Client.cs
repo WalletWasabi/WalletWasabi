@@ -88,37 +88,15 @@ namespace WalletWasabi.TorSocks5
 
 			using (await AsyncLock.LockAsync())
 			{
-				Exception error = null;
 				try
 				{
 					await TcpClient.ConnectAsync(TorSocks5EndPoint.Address, TorSocks5EndPoint.Port);
 				}
-				// ex.Message must be checked, because I'm having difficulty catching SocketExceptionFactory+ExtendedSocketException
-				// Only works on English Os-es.
-				catch (Exception ex) when (ex.Message.StartsWith(
-											   "No connection could be made because the target machine actively refused it") // Windows
-										   || ex.Message.StartsWith("Connection refused")) // Linux && OSX
+				catch (Exception ex) when (IsConnectionRefused(ex))
 				{
-					error = ex;
-				}
-				// "No connection could be made because the target machine actively refused it" for non-English Windows.
-				catch (SocketException ex) when (ex.ErrorCode == 10061)
-				{
-					error = ex;
-				}
-				// "Connection refused" for non-English Linux.
-				catch (SocketException ex) when (ex.ErrorCode == 111)
-				{
-					error = ex;
-				}
-				// "Connection refused" for non-English OSX.
-				catch (SocketException ex) when (ex.ErrorCode == 61)
-				{
-					error = ex;
-				}
-				if (error != null)
 					throw new ConnectionException(
-						$"Couldn't connect to Tor SOCKSPort at {TorSocks5EndPoint.Address}:{TorSocks5EndPoint.Port}. Is Tor running?", error);
+						$"Couldn't connect to Tor SOCKSPort at {TorSocks5EndPoint.Address}:{TorSocks5EndPoint.Port}. Is Tor running?", ex);
+				}
 
 				Stream = TcpClient.GetStream();
 				RemoteEndPoint = TcpClient.Client.RemoteEndPoint as IPEndPoint;
@@ -300,8 +278,7 @@ namespace WalletWasabi.TorSocks5
 				{
 					await ConnectToDestinationAsync(RemoteEndPoint);
 				}
-				// It throws SocketExceptionFactory+ExtendedSocketException, which I am unable to catch
-				catch (Exception ex) when (ex.Message.StartsWith("No connection could be made because the target machine actively refused it"))
+				catch (Exception ex) when (IsConnectionRefused(ex))
 				{
 					throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
 				}
@@ -315,6 +292,44 @@ namespace WalletWasabi.TorSocks5
 		#endregion ConstructorsAndInitializers
 
 		#region Methods
+
+		private bool IsConnectionRefused(Exception exc)
+		{
+			Exception error = null;
+			try
+			{
+				throw exc;
+			}
+			// ex.Message must be checked, because I'm having difficulty catching SocketExceptionFactory+ExtendedSocketException
+			// Only works on English Os-es.
+			catch (Exception ex) when (ex.Message.StartsWith(
+										   "No connection could be made because the target machine actively refused it") // Windows
+									   || ex.Message.StartsWith("Connection refused")) // Linux && OSX
+			{
+				error = ex;
+			}
+			// "No connection could be made because the target machine actively refused it" for non-English Windows.
+			catch (SocketException ex) when (ex.ErrorCode == 10061)
+			{
+				error = ex;
+			}
+			// "Connection refused" for non-English Linux.
+			catch (SocketException ex) when (ex.ErrorCode == 111)
+			{
+				error = ex;
+			}
+			// "Connection refused" for non-English OSX.
+			catch (SocketException ex) when (ex.ErrorCode == 61)
+			{
+				error = ex;
+			}
+			catch
+			{
+				// Ignored, since error is null.
+			}
+
+			return error != null;
+		}
 
 		/// <summary>
 		/// Sends bytes to the Tor Socks5 connection
@@ -392,8 +407,7 @@ namespace WalletWasabi.TorSocks5
 					{
 						await ConnectToDestinationAsync(RemoteEndPoint);
 					}
-					// It throws SocketExceptionFactory+ExtendedSocketException, which I am unable to catch
-					catch (Exception ex2) when (ex2.Message.StartsWith("No connection could be made because the target machine actively refused it"))
+					catch (Exception ex2) when (IsConnectionRefused(ex2))
 					{
 						throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex2);
 					}
