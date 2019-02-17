@@ -16,6 +16,8 @@ After first run, a working directory will be created: `%appdata%\WalletWasabi\`.
 
 # Debian/Ubuntu Based Linux
 
+Check out [Max's video tutorial](https://www.youtube.com/watch?v=DUc9A76rwX4) or follow the instructions:
+
 After downloading the `.deb` package install it by running double clicking on it or running `sudo dpkg -i Wasabi-1.1.1.deb`.
 
 After first run, a working directory will be created: `~/.walletwasabi/`. Among others, here is where your wallet files and your logs reside.
@@ -66,3 +68,5 @@ Example: `gpg --verify WasabiInstaller.msi.asc WasabiInstaller.msi`.
 If the message returned says Good signature and that it was signed by `Ficsór Ádám` with a Primary key fingerprint: `21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E`, then the software wasn't tampered with since the developer signed it.
  
 Remember to check again the PGP signature every time you make a new download.
+
+If you trust nopara73's key and you are faimiliar with the [Web Of Trust](https://security.stackexchange.com/questions/147447/gpg-why-is-my-trusted-key-not-certified-with-a-trusted-signature), please consider also [validating it](https://www.gnupg.org/gph/en/manual/x334.html).

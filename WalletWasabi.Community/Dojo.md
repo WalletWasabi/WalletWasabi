@@ -40,7 +40,8 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 | Rmr1981          | [Reddit][24]                | [Bitcoin Anonymity Guide 2019][21]       | 2019-01: white belt by nopara73 |
 | Anonymous        |                             | [Wallet Review – Wasabi Wallet][22]      | 2019-01: white belt by nopara73 |
 | canalfixe        | [Twitter][25]               | [Video: How to anonymize your Bitcoin with Wasabi wallet][26] | 2019-01: white belt by nopara73 |
-| 402PaymentReq        | [Twitter][27]           | [In-Depth, Funny And Addictive Wasabi Video Series][28] | 2019-15: white belt by Max Hillebrand |
+| 402PaymentReq    | [Twitter][27]               | [In-Depth, Funny And Addictive Wasabi Video Series][28] | 2019-01: white belt by Max Hillebrand |
+| Transisto        | [GitHub][31]                | [Extensive Wasabi Testing][32]           | 2019-02: white belt by nopara73 |
 
 [1]: https://twitter.com/NicolasDorier/
 [2]: https://github.com/NicolasDorier/
@@ -70,3 +71,5 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 [28]: https://www.youtube.com/watch?v=zPKpC9cRcZo&list=PLmoQ11MXEmahCG1nkbKK6DiAwVx9giJCi
 [29]: https://twitter.com/KevinKelbie/
 [30]: https://github.com/KevinKelbie/zerolink-util/
+[31]: https://github.com/Transisto/
+[32]: https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aissue+author%3ATransisto

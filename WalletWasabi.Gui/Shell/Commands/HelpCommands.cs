@@ -29,14 +29,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
 				}));
 
-			DataFolderCommand = new CommandDefinition(
-				"Data Folder",
-				commandIconService.GetCompletionKindImage("DataFolder"),
-				ReactiveCommand.Create(() =>
-				{
-					IoHelpers.OpenFolderInFileExplorer(Global.DataDir);
-				}));
-
 			CustomerSupportCommand = new CommandDefinition(
 				"Customer Support",
 				commandIconService.GetCompletionKindImage("CustomerSupport"),
@@ -107,9 +99,6 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("Help.About")]
 		public CommandDefinition AboutCommand { get; }
-
-		[ExportCommandDefinition("Help.DataFolder")]
-		public CommandDefinition DataFolderCommand { get; }
 
 		[ExportCommandDefinition("Help.CustomerSupport")]
 		public CommandDefinition CustomerSupportCommand { get; }
