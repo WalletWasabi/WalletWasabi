@@ -169,7 +169,7 @@ namespace WalletWasabi.Packager
 					var psiPublish = new ProcessStartInfo
 					{
 						FileName = "dotnet",
-						Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" --self-contained true --runtime \"{target}\" /p:VersionPrefix={versionPrefix} --disable-parallel --no-cache",
+						Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" --self-contained true --runtime \"{target}\" /p:VersionPrefix={versionPrefix} --disable-parallel --no-cache /p:DebugType=none /p:DebugSymbols=false /p:ErrorReport=none /p:DocumentationFile=\"\" /p:Deterministic=true",
 						WorkingDirectory = guiProjectDirectory
 					};
 					using (var pPublish = Process.Start(psiPublish))

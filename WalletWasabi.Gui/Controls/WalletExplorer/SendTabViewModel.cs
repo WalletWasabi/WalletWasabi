@@ -179,6 +179,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							SetWarningMessage($"Invalid amount.");
 							return;
 						}
+
+						if (amount == selectedCoinViewModels.Sum(x => x.Amount))
+						{
+							SetWarningMessage("Looks like you want to spend a whole coin. Try Max button instead.");
+							return;
+						}
 					}
 					var label = Label;
 					var operation = new WalletService.Operation(script, amount, label);
