@@ -539,7 +539,7 @@ namespace WalletWasabi.Services
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
-																																																										 // If we didn't have it.
+																																																														   // If we didn't have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
@@ -1175,15 +1175,28 @@ namespace WalletWasabi.Services
 			var coinsToSpend = new HashSet<SmartCoin>();
 			var unspentConfirmedCoins = new List<SmartCoin>();
 			var unspentUnconfirmedCoins = new List<SmartCoin>();
-			foreach (var coin in unspentCoins)
-				if (coin.Confirmed) unspentConfirmedCoins.Add(coin);
-				else unspentUnconfirmedCoins.Add(coin);
+			foreach (SmartCoin coin in unspentCoins)
+			{
+				if (coin.Confirmed)
+				{
+					unspentConfirmedCoins.Add(coin);
+				}
+				else
+				{
+					unspentUnconfirmedCoins.Add(coin);
+				}
+			}
 
 			bool haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentConfirmedCoins);
 			if (!haveEnough)
+			{
 				haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
+			}
+
 			if (!haveEnough)
+			{
 				throw new InsufficientBalanceException(totalOutAmount, unspentConfirmedCoins.Select(x => x.Amount).Sum() + unspentUnconfirmedCoins.Select(x => x.Amount).Sum());
+			}
 
 			return coinsToSpend;
 		}
