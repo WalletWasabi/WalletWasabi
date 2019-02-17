@@ -47,14 +47,14 @@ namespace WalletWasabi.Backend
 
 			var content = HtmlStartLine + "<ul class=\"text-center\" style=\"list-style: none;\">";
 			var endContent = "</ul>";
-			string smartBitPath;
+			string blockstreamPath;
 			if (Global.Config.Network == Network.TestNet)
 			{
-				smartBitPath = "https://testnet.smartbit.com.au/tx/";
+				blockstreamPath = "https://blockstream.info/testnet/tx/";
 			}
 			else
 			{
-				smartBitPath = "https://smartbit.com.au/tx/";
+				blockstreamPath = "https://blockstream.info/tx/";
 			}
 
 			var coinJoinsList = coinJoins.ToList();
@@ -64,11 +64,11 @@ namespace WalletWasabi.Backend
 
 				if (i % 2 == 0)
 				{
-					content += $"<li style=\"background:#e6e6e6; margin:5px;\"><a href=\"{smartBitPath}{cjHash}\" target=\"_blank\">{cjHash}</a></li>";
+					content += $"<li style=\"background:#e6e6e6; margin:5px;\"><a href=\"{blockstreamPath}{cjHash}\" target=\"_blank\">{cjHash}</a></li>";
 				}
 				else
 				{
-					content += $"<li><a href=\"{smartBitPath}{cjHash}\" target=\"_blank\">{cjHash}</a></li>";
+					content += $"<li><a href=\"{blockstreamPath}{cjHash}\" target=\"_blank\">{cjHash}</a></li>";
 				}
 			}
 
