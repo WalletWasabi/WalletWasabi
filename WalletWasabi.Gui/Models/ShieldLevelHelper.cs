@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Models
 
 		public static int AdjustTargetLevel(int mixUntilAnonymitySet)
 		{
-			var res = GetTargetPrivacy(mixUntilAnonymitySet); //select a valid level
+			var res = GetTargetPrivacy(mixUntilAnonymitySet); // select a valid level
 			return GetTargetLevel(res);
 		}
 	}
