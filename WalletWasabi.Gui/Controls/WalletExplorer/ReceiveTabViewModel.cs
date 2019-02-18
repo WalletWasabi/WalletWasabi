@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					LabelRequiredNotificationVisible = true;
 					LabelRequiredNotificationOpacity = 1;
 
-					Dispatcher.UIThread.Post(async () =>
+					Dispatcher.UIThread.PostLogException(async () =>
 					{
 						await Task.Delay(1000);
 						LabelRequiredNotificationOpacity = 0;
@@ -61,7 +61,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					return;
 				}
 
-				Dispatcher.UIThread.Post(() =>
+				Dispatcher.UIThread.PostLogException(() =>
 				{
 					var label = Label;
 					HdPubKey newKey = Global.WalletService.GetReceiveKey(label, Addresses.Select(x => x.Model).Take(7)); // Never touch the first 7 keys.
@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					ClipboardNotificationVisible = true;
 					ClipboardNotificationOpacity = 1;
 
-					Dispatcher.UIThread.Post(async () =>
+					Dispatcher.UIThread.PostLogException(async () =>
 					{
 						await Task.Delay(1000);
 						ClipboardNotificationOpacity = 0;

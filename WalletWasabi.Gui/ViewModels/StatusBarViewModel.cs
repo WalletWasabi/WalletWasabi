@@ -178,7 +178,7 @@ namespace WalletWasabi.Gui.ViewModels
 				() =>
 				{
 					Interlocked.Exchange(ref _backendIncompatible, 1);
-					Dispatcher.UIThread.Post(() =>
+					Dispatcher.UIThread.PostLogException(() =>
 					{
 						SetStatusAndDoUpdateActions();
 					});
@@ -187,7 +187,7 @@ namespace WalletWasabi.Gui.ViewModels
 				() =>
 				{
 					Interlocked.Exchange(ref _clientOutOfDate, 1);
-					Dispatcher.UIThread.Post(() =>
+					Dispatcher.UIThread.PostLogException(() =>
 					{
 						SetStatusAndDoUpdateActions();
 					});
