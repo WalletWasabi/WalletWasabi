@@ -29,14 +29,14 @@ namespace WalletWasabi.Backend
 
 		public static void CloneAndUpdateOnionIndexHtml()
 		{
-			var filePath = Path.Combine(RootFolder, "onion-index.html");
-			var indexFilePath = Path.Combine(RootFolder, "index.html");
+			var path = Path.Combine(RootFolder, "index.html");
+			var onionPath = Path.Combine(RootFolder, "onion-index.html");
 
-			var content = File.ReadAllText(indexFilePath);
+			var content = File.ReadAllText(path);
 
-			content.Replace("coinjoins-table.html", "onion-coinjoins-table.html", StringComparison.Ordinal);
+			content = content.Replace("coinjoins-table.html", "onion-coinjoins-table.html", StringComparison.Ordinal);
 
-			File.WriteAllText(filePath, content);
+			File.WriteAllText(onionPath, content);
 		}
 
 		public static void UpdateMixedTextHtml(Money amount)
