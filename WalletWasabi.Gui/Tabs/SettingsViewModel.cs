@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort).Subscribe(x => Save());
 
-			Dispatcher.UIThread.Post(async () =>
+			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				await config.LoadFileAsync();
 
@@ -86,7 +86,7 @@ namespace WalletWasabi.Gui.Tabs
 
 			var config = new Config(Global.Config.FilePath);
 
-			Dispatcher.UIThread.Post(async () =>
+			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				await config.LoadFileAsync();
 

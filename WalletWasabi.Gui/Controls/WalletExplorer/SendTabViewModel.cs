@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (betterAmount != amount)
 					{
-						Dispatcher.UIThread.Post(() =>
+						Dispatcher.UIThread.PostLogException(() =>
 						{
 							Amount = betterAmount;
 						});
@@ -538,7 +538,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SuccessMessage = "";
 			WarningMessage = message;
 
-			Dispatcher.UIThread.Post(async () =>
+			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				await Task.Delay(7000);
 				if (WarningMessage == message)
@@ -553,7 +553,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SuccessMessage = message;
 			WarningMessage = "";
 
-			Dispatcher.UIThread.Post(async () =>
+			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				await Task.Delay(7000);
 				if (SuccessMessage == message)

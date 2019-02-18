@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Avalonia.Threading;
+using System;
 using System.IO;
 
 namespace WalletWasabi.Gui
@@ -16,6 +17,18 @@ namespace WalletWasabi.Gui
 			}
 
 			throw new NotSupportedException("This is impossible.");
+		}
+
+		public static void PostLogException(this Dispatcher dispatcher, Action action, DispatcherPriority priority = DispatcherPriority.Normal)
+		{
+			try
+			{
+				dispatcher.Post(action, priority);
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogDebug<Dispatcher>(ex);
+			}
 		}
 	}
 }
