@@ -1,9 +1,11 @@
 ﻿using Avalonia;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
+using Mono.Options;
 using NBitcoin;
 using System;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
@@ -18,7 +20,43 @@ namespace WalletWasabi.Gui
 		private static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
+			var showHelp = false;
+			var showVersion = false;
+			var verbose = false;
+			var options = new OptionSet() {
+				{ "v|version", "Displays the Wasabi client version.", x => showVersion = x != null},
+				{ "h|help", "Displays this help page and exit.", x => showHelp = x != null},
+				{ "vvv|verbose", "Log activity using verbose level.", x => verbose = x != null},
+			};
+			try
+			{
+				var extras = options.Parse (args);
+				if(extras.Count > 0)
+					showHelp = true;
+			}
+			catch (OptionException) {
+				Console.Write ("Option not recognized ");
+				ShowHelp(options);
+				return;
+			}
+			if(showHelp)
+			{
+				ShowHelp(options);
+				return;
+			}
+			if(showVersion)
+			{
+				Console.WriteLine($"Wasabi version: {Assembly.GetEntryAssembly().GetName().Version}");
+				return;
+			}
+
 			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+
+			if(verbose)
+			{
+				Logger.SetMinimumLevel(LogLevel.Trace);
+			}
+
 			StatusBarViewModel statusBar = null;
 			try
 			{
@@ -61,6 +99,15 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 			}
+		}
+
+		private static void ShowHelp (OptionSet p)
+		{
+			Console.WriteLine ("Usage: wassabee [OPTIONS]+");
+			Console.WriteLine ("Launches the privacy-oriented bitcoin wallet Wasabi.");
+			Console.WriteLine ();
+			Console.WriteLine ("Options:");
+			p.WriteOptionDescriptions (Console.Out);
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
