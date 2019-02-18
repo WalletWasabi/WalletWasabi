@@ -7,7 +7,6 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <LangVersion>latest</LangVersion>
     <NoWarn>1701;1702;1705;1591;1573</NoWarn>
-    <Deterministic>True</Deterministic>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -40,7 +39,10 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netcoreapp2.2\WalletWasabi.Gui.xml</DocumentationFile>
+    <DocumentationFile></DocumentationFile>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <ErrorReport>none</ErrorReport>
   </PropertyGroup>
 
   <ItemGroup>

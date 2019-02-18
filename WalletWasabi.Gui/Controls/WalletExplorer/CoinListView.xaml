@@ -37,7 +37,7 @@
         <TextBlock Text="" Width="0" />
         <TextBlock Text="" Grid.Column="1" />
 
-        <controls:SortingArrow Grid.Column="2" Text="Status" Command="{Binding SortCommand}" SortDirection="{Binding StatusSortDirection} " />
+        <controls:SortingArrow Grid.Column="2" Text="Status" Command="{Binding SortCommand}" SortDirection="{Binding StatusSortDirection}" />
 
         <controls:SortingArrow Grid.Column="3" Text="Amount (BTC)" Command="{Binding SortCommand}" SortDirection="{Binding AmountSortDirection}" />
 
