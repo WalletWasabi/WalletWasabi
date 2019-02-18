@@ -362,7 +362,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			WarningMessage = message;
 
-			Dispatcher.UIThread.Post(async () =>
+			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				await Task.Delay(7000);
 				if (WarningMessage == message)

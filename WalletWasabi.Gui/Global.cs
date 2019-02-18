@@ -143,7 +143,7 @@ namespace WalletWasabi.Gui
 				e.Cancel = true;
 				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
 				await TryDesperateDequeueAllCoinsAsync();
-				Dispatcher.UIThread.Post(() =>
+				Dispatcher.UIThread.PostLogException(() =>
 				{
 					Application.Current.MainWindow.Close();
 				});
