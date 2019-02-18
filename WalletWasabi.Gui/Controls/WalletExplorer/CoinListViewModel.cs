@@ -370,7 +370,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void Coins_CollectionGlobalChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			Dispatcher.UIThread.Post(() =>
+			Dispatcher.UIThread.PostLogException(() =>
 			{
 				try
 				{
@@ -431,7 +431,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void Coin_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			Dispatcher.UIThread.Post(() =>
+			Dispatcher.UIThread.PostLogException(() =>
 			{
 				try
 				{

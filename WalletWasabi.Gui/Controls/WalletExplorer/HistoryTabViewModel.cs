@@ -70,7 +70,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						ClipboardNotificationVisible = true;
 						ClipboardNotificationOpacity = 1;
 
-						Dispatcher.UIThread.Post(async () =>
+						Dispatcher.UIThread.PostLogException(async () =>
 						{
 							await Task.Delay(1000);
 							ClipboardNotificationOpacity = 0;

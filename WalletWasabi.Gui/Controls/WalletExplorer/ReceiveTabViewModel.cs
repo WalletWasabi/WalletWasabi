@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					LabelRequiredNotificationVisible = true;
 					LabelRequiredNotificationOpacity = 1;
 
-					Dispatcher.UIThread.Post(async () =>
+					Dispatcher.UIThread.PostLogException(async () =>
 					{
 						try
 						{
@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					return;
 				}
 
-				Dispatcher.UIThread.Post(() =>
+				Dispatcher.UIThread.PostLogException(() =>
 				{
 					try
 					{
@@ -111,7 +111,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					ClipboardNotificationVisible = true;
 					ClipboardNotificationOpacity = 1;
 
-					Dispatcher.UIThread.Post(async () =>
+					Dispatcher.UIThread.PostLogException(async () =>
 					{
 						try
 						{
