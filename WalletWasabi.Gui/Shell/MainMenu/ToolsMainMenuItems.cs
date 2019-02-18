@@ -17,31 +17,43 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 			_menuItemFactory = menuItemFactory;
 		}
 
+		#region MainMenu
+
 		[ExportMainMenuItem("Tools")]
-		[DefaultOrder(20)]
+		[DefaultOrder(1)]
 		public IMenuItem Tools => _menuItemFactory.CreateHeaderMenuItem("Tools", null);
+
+		#endregion MainMenu
+
+		#region Group
 
 		[ExportMainMenuDefaultGroup("Tools", "Wallet")]
 		[DefaultOrder(0)]
 		public object WalletGroup => null;
 
+		[ExportMainMenuDefaultGroup("Tools", "Settings")]
+		[DefaultOrder(1)]
+		public object SettingsGroup => null;
+
+		#endregion Group
+
+		#region MenuItem
+
 		[ExportMainMenuItem("Tools", "Wallet")]
 		[DefaultOrder(0)]
 		[DefaultGroup("Wallet")]
-		public IMenuItem GenerateWallet => _menuItemFactory.CreateCommandMenuItem("Tools.WalletManager");
+		public IMenuItem WalletManager => _menuItemFactory.CreateCommandMenuItem("Tools.WalletManager");
 
 		[ExportMainMenuItem("Tools", "EncryptionManager")]
-		[DefaultOrder(0)]
+		[DefaultOrder(1)]
 		[DefaultGroup("Wallet")]
-		public IMenuItem SignMessage => _menuItemFactory.CreateCommandMenuItem("Tools.EncryptionManager");
-
-		[ExportMainMenuDefaultGroup("Tools", "Settings")]
-		[DefaultOrder(1000)]
-		public object SettingsGroup => null;
+		public IMenuItem EncryptionManager => _menuItemFactory.CreateCommandMenuItem("Tools.EncryptionManager");
 
 		[ExportMainMenuItem("Tools", "Settings")]
-		[DefaultOrder(50)]
+		[DefaultOrder(2)]
 		[DefaultGroup("Settings")]
 		public IMenuItem Settings => _menuItemFactory.CreateCommandMenuItem("Tools.Settings");
+
+		#endregion MenuItem
 	}
 }
