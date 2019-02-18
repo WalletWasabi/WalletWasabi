@@ -52,6 +52,7 @@ namespace WalletWasabi.Backend
 				{
 					Directory.CreateDirectory(UnversionedWebBuilder.UnversionedFolder);
 					UnversionedWebBuilder.CreateDownloadTextWithVersionHtml();
+					UnversionedWebBuilder.CloneAndUpdateOnionIndexHtml();
 
 					string[] allLines = File.ReadAllLines(Global.Coordinator.CoinJoinsFilePath);
 					foreach (string line in allLines)
