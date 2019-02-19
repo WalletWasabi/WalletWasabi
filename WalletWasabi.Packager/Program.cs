@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NSubsys;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -36,8 +37,8 @@ namespace WalletWasabi.Packager
 		public static string[] Targets = new[]
 		{
 			"win7-x64",
-			"linux-x64",
-			"osx-x64"
+			//"linux-x64",
+			//"osx-x64"
 		};
 
 		public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
@@ -345,14 +346,9 @@ namespace WalletWasabi.Packager
 
 				if (target.StartsWith("win"))
 				{
-					using (var process = Process.Start(new ProcessStartInfo
+					if (!NSubsysUtil.ProcessFile(newExecutablePath))
 					{
-						FileName = "editbin",
-						Arguments = $"\"{newExecutablePath}\" /SUBSYSTEM:WINDOWS",
-						WorkingDirectory = currentBinDistDirectory
-					}))
-					{
-						process.WaitForExit();
+						Console.WriteLine("ERROR: Couldn't remove console from exe.");
 					}
 
 					var icoPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.ico");
