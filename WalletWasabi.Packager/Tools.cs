@@ -10,30 +10,42 @@ namespace WalletWasabi.Packager
 		public static void ClearSha512Tags(string pathToSearch)
 		{
 			var files = Directory.GetFiles(pathToSearch, "*.deps.json"); //https://natemcmaster.com/blog/2017/12/21/netcore-primitives/
-			if (files == null || files.Length == 0) return;
+			if (files == null) return;
 
-			var depsFilePath = files[0];
-
-			var lines = File.ReadAllLines(depsFilePath);
-
-			List<string> outLines = new List<string>();
-			foreach (var line in lines)
+			foreach (var depsFilePath in files)
 			{
-				//      "sha512": "sha512-B0BYh5Fpeqp4GIbL5wEhde6M/dZ+s0tlXM0qMTvj4mTg9Rr4svVHGpn6dDp8pT2sB88ghxyLIpKGdx9Oj7f/pw==",
-				if (line.Contains("\"sha512\": \"sha512-"))
+				var lines = File.ReadAllLines(depsFilePath);
+
+				List<string> outLines = new List<string>();
+				foreach (var line in lines)
 				{
-					//      "sha512": "",
-					var lineToAdd = "      \"sha512\": \"\"";
-					if (line.EndsWith(',')) lineToAdd += ',';
-					outLines.Add(lineToAdd);
+					//      "sha512": "sha512-B0BYh5Fpeqp4GIbL5wEhde6M/dZ+s0tlXM0qMTvj4mTg9Rr4svVHGpn6dDp8pT2sB88ghxyLIpKGdx9Oj7f/pw==",
+					if (line.Contains("\"sha512\": \"sha512-"))
+					{
+						//      "sha512": "",
+						var lineToAdd = "      \"sha512\": \"\"";
+						if (line.EndsWith(',')) lineToAdd += ',';
+						outLines.Add(lineToAdd);
+					}
+					else
+					{
+						outLines.Add(line);
+					}
 				}
-				else
-				{
-					outLines.Add(line);
-				}
+				File.Delete(depsFilePath);
+				File.WriteAllLines(depsFilePath, outLines);
 			}
-			File.Delete(depsFilePath);
-			File.WriteAllLines(depsFilePath, outLines);
+		}
+
+		public static void RemoveSosDocsUnix(string pathToSearch)
+		{
+			string[] files = Directory.GetFiles(pathToSearch, "sosdocsunix.txt", SearchOption.AllDirectories);
+			if (files == null) return;
+
+			foreach (var sosDocsUnixFilePath in files)
+			{
+				File.Delete(sosDocsUnixFilePath);
+			}
 		}
 	}
 }
