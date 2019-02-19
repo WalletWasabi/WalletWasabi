@@ -346,6 +346,7 @@ namespace WalletWasabi.Packager
 
 				if (target.StartsWith("win"))
 				{
+					// Don't open console.
 					if (!NSubsysUtil.ProcessFile(newExecutablePath))
 					{
 						Console.WriteLine("ERROR: Couldn't remove console from exe.");
@@ -354,7 +355,7 @@ namespace WalletWasabi.Packager
 					var icoPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.ico");
 					using (var process = Process.Start(new ProcessStartInfo
 					{
-						FileName = "rcedit",
+						FileName = "rcedit", // https://github.com/electron/rcedit/
 						Arguments = $"\"{newExecutablePath}\" --set-icon \"{icoPath}\" --set-file-version \"{VersionPrefix}\" --set-product-version \"{VersionPrefix}\" --set-version-string \"LegalCopyright\" \"MIT\" --set-version-string \"CompanyName\" \"zkSNACKs\" --set-version-string \"FileDescription\" \"Privacy focused, ZeroLink compliant Bitcoin wallet.\" --set-version-string \"ProductName\" \"Wasabi Wallet\"",
 						WorkingDirectory = currentBinDistDirectory
 					}))
