@@ -179,13 +179,16 @@ namespace WalletWasabi.Gui.Dialogs
 		{
 			WarningMessage = message;
 
-			Dispatcher.UIThread.Post(async () =>
+			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				try
 				{
 					await Task.Delay(7000, token);
 				}
-				catch (Exception) { }
+				catch (TaskCanceledException ex)
+				{
+					Logging.Logger.LogTrace<CannotCloseDialogViewModel>(ex);
+				}
 
 				if (WarningMessage == message)
 				{

@@ -102,7 +102,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 					var data = await client.GetByteArrayAsync(url);
 					await File.WriteAllBytesAsync(zip, data);
 
-					Process.Start("tar", "-zxvf " + zip + " -C " + SharedFixture.DataDir).WaitForExit();
+					using (var process = Process.Start("tar", "-zxvf " + zip + " -C " + SharedFixture.DataDir))
+					{
+						process.WaitForExit();
+					}
 				}
 			}
 			File.Delete(zip);

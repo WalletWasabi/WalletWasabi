@@ -196,14 +196,14 @@ namespace WalletWasabi.TorSocks5
 			}
 		}
 
-		internal async Task ConnectToDestinationAsync(IPEndPoint destination)
+		internal async Task ConnectToDestinationAsync(IPEndPoint destination, bool isRecursiveCall = false)
 		{
 			Guard.NotNull(nameof(destination), destination);
-			await ConnectToDestinationAsync(destination.Address.ToString(), destination.Port);
+			await ConnectToDestinationAsync(destination.Address.ToString(), destination.Port, isRecursiveCall: isRecursiveCall);
 		}
 
 		/// <param name="host">IPv4 or domain</param>
-		internal async Task ConnectToDestinationAsync(string host, int port)
+		internal async Task ConnectToDestinationAsync(string host, int port, bool isRecursiveCall = false)
 		{
 			host = Guard.NotNullOrEmptyOrWhitespace(nameof(host), host, true);
 			Guard.MinimumAndNotNull(nameof(port), port, 0);
@@ -240,7 +240,7 @@ namespace WalletWasabi.TorSocks5
 			var connectionRequest = new TorSocks5Request(cmd, dstAddr, dstPort);
 			var sendBuffer = connectionRequest.ToBytes();
 
-			var receiveBuffer = await SendAsync(sendBuffer);
+			var receiveBuffer = await SendAsync(sendBuffer, isRecursiveCall: isRecursiveCall);
 
 			var connectionResponse = new TorSocks5Response();
 			connectionResponse.FromBytes(receiveBuffer);
@@ -269,14 +269,14 @@ namespace WalletWasabi.TorSocks5
 			// the authentication method in use.
 		}
 
-		public async Task AssertConnectedAsync()
+		public async Task AssertConnectedAsync(bool isRecursiveCall = false)
 		{
 			if (!IsConnected)
 			{
 				// try reconnect, maybe the server came online already
 				try
 				{
-					await ConnectToDestinationAsync(RemoteEndPoint);
+					await ConnectToDestinationAsync(RemoteEndPoint, isRecursiveCall: isRecursiveCall);
 				}
 				catch (Exception ex) when (IsConnectionRefused(ex))
 				{
@@ -337,13 +337,16 @@ namespace WalletWasabi.TorSocks5
 		/// <param name="sendBuffer">Sent data</param>
 		/// <param name="receiveBufferSize">Maximum number of bytes expected to be received in the reply</param>
 		/// <returns>Reply</returns>
-		public async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null, bool fallback = false)
+		public async Task<byte[]> SendAsync(byte[] sendBuffer, int? receiveBufferSize = null, bool isRecursiveCall = false)
 		{
 			Guard.NotNullOrEmpty(nameof(sendBuffer), sendBuffer);
 
 			try
 			{
-				await AssertConnectedAsync();
+				if (!isRecursiveCall) // Because AssertConnectedAsync would be calling it again.
+				{
+					await AssertConnectedAsync(isRecursiveCall: true);
+				}
 
 				using (await AsyncLock.LockAsync())
 				{
@@ -400,21 +403,23 @@ namespace WalletWasabi.TorSocks5
 			}
 			catch (IOException ex)
 			{
-				if (!fallback)
+				if (isRecursiveCall)
+				{
+					throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
+				}
+				else
 				{
 					// try reconnect, maybe the server came online already
 					try
 					{
-						await ConnectToDestinationAsync(RemoteEndPoint);
+						await ConnectToDestinationAsync(RemoteEndPoint, isRecursiveCall: true);
 					}
 					catch (Exception ex2) when (IsConnectionRefused(ex2))
 					{
 						throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex2);
 					}
-					return await SendAsync(sendBuffer, receiveBufferSize, fallback: true);
+					return await SendAsync(sendBuffer, receiveBufferSize, isRecursiveCall: true);
 				}
-
-				throw new ConnectionException($"{nameof(TorSocks5Client)} is not connected to {RemoteEndPoint}.", ex);
 			}
 		}
 
