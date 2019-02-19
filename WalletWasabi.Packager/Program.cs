@@ -118,16 +118,15 @@ namespace WalletWasabi.Packager
 
 		private static void RestoreProgramCs()
 		{
-			var psiRestoreThisFile = new ProcessStartInfo
+			using (var process = Process.Start(new ProcessStartInfo
 			{
 				FileName = "cmd",
 				RedirectStandardInput = true,
 				WorkingDirectory = PackagerProjectDirectory
-			};
-			using (var restoreThisFileProcess = Process.Start(psiRestoreThisFile))
+			}))
 			{
-				restoreThisFileProcess.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
-				restoreThisFileProcess.WaitForExit();
+				process.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
+				process.WaitForExit();
 			}
 		}
 
@@ -150,16 +149,15 @@ namespace WalletWasabi.Packager
 					File.Move(msiPath, newMsiPath);
 
 					// Sign code with digicert.
-					var psiSigntool = new ProcessStartInfo
+					using (var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
-					};
-					using (var signToolProcess = Process.Start(psiSigntool))
+					}))
 					{
-						signToolProcess.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {PfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
-						signToolProcess.WaitForExit();
+						process.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {PfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
+						process.WaitForExit();
 					}
 
 					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
@@ -172,28 +170,26 @@ namespace WalletWasabi.Packager
 
 			foreach (var finalFile in finalFiles)
 			{
-				var psiSignProcess = new ProcessStartInfo
+				using (var process = Process.Start(new ProcessStartInfo
 				{
 					FileName = "cmd",
 					RedirectStandardInput = true,
 					WorkingDirectory = BinDistDirectory
-				};
-				using (var signProcess = Process.Start(psiSignProcess))
+				}))
 				{
-					signProcess.StandardInput.WriteLine($"gpg --armor --detach-sign {finalFile} && exit");
-					signProcess.WaitForExit();
+					process.StandardInput.WriteLine($"gpg --armor --detach-sign {finalFile} && exit");
+					process.WaitForExit();
 				}
 
-				var psiRestoreHeat = new ProcessStartInfo
+				using (var process = Process.Start(new ProcessStartInfo
 				{
 					FileName = "cmd",
 					RedirectStandardInput = true,
 					WorkingDirectory = WixProjectDirectory
-				};
-				using (var restoreHeatProcess = Process.Start(psiRestoreHeat))
+				}))
 				{
-					restoreHeatProcess.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
-					restoreHeatProcess.WaitForExit();
+					process.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
+					process.WaitForExit();
 				}
 			}
 
@@ -208,16 +204,26 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
-			var psiBuild = new ProcessStartInfo
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "cmd",
+				RedirectStandardInput = true,
+				WorkingDirectory = SolutionDirectory
+			}))
+			{
+				process.StandardInput.WriteLine("git submodule update --init --recursive && exit");
+				process.WaitForExit();
+			}
+
+			using (var process = Process.Start(new ProcessStartInfo
 			{
 				FileName = "cmd",
 				RedirectStandardInput = true,
 				WorkingDirectory = GuiProjectDirectory
-			};
-			using (var pBuild = Process.Start(psiBuild))
+			}))
 			{
-				pBuild.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
-				pBuild.WaitForExit();
+				process.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
+				process.WaitForExit();
 			}
 
 			var guiBinReleaseDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin\\Release"));
@@ -248,15 +254,14 @@ namespace WalletWasabi.Packager
 					Console.WriteLine($"Created {currentBinDistDirectory}");
 				}
 
-				var psiClean = new ProcessStartInfo
+				using (var process = Process.Start(new ProcessStartInfo
 				{
 					FileName = "dotnet",
 					Arguments = $"clean",
 					WorkingDirectory = GuiProjectDirectory
-				};
-				using (var pClean = Process.Start(psiClean))
+				}))
 				{
-					pClean.WaitForExit();
+					process.WaitForExit();
 				}
 
 				// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish?tabs=netcore21
@@ -285,15 +290,14 @@ namespace WalletWasabi.Packager
 				// https://github.com/dotnet/docs/issues/7568
 				// /p:Version=1.2.3.4
 				//		"dotnet publish" supports msbuild command line options like /p:Version=1.2.3.4
-				var psiPublish = new ProcessStartInfo
+				using (var process = Process.Start(new ProcessStartInfo
 				{
 					FileName = "dotnet",
 					Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" --self-contained true --runtime \"{target}\" /p:VersionPrefix={VersionPrefix} --disable-parallel --no-cache /p:DebugType=none /p:DebugSymbols=false /p:ErrorReport=none /p:DocumentationFile=\"\" /p:Deterministic=true",
 					WorkingDirectory = GuiProjectDirectory
-				};
-				using (var pPublish = Process.Start(psiPublish))
+				}))
 				{
-					pPublish.WaitForExit();
+					process.WaitForExit();
 				}
 
 				Tools.ClearSha512Tags(currentBinDistDirectory);
@@ -341,27 +345,25 @@ namespace WalletWasabi.Packager
 
 				if (target.StartsWith("win"))
 				{
-					var psiEditbin = new ProcessStartInfo
+					using (var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "editbin",
 						Arguments = $"\"{newExecutablePath}\" /SUBSYSTEM:WINDOWS",
 						WorkingDirectory = currentBinDistDirectory
-					};
-					using (var pEditbin = Process.Start(psiEditbin))
+					}))
 					{
-						pEditbin.WaitForExit();
+						process.WaitForExit();
 					}
 
 					var icoPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.ico");
-					var psiRcedit = new ProcessStartInfo
+					using (var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "rcedit",
 						Arguments = $"\"{newExecutablePath}\" --set-icon \"{icoPath}\" --set-file-version \"{VersionPrefix}\" --set-product-version \"{VersionPrefix}\" --set-version-string \"LegalCopyright\" \"MIT\" --set-version-string \"CompanyName\" \"zkSNACKs\" --set-version-string \"FileDescription\" \"Privacy focused, ZeroLink compliant Bitcoin wallet.\" --set-version-string \"ProductName\" \"Wasabi Wallet\"",
 						WorkingDirectory = currentBinDistDirectory
-					};
-					using (var pRcedit = Process.Start(psiRcedit))
+					}))
 					{
-						pRcedit.WaitForExit();
+						process.WaitForExit();
 					}
 
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
@@ -439,41 +441,38 @@ namespace WalletWasabi.Packager
 ";
 					File.WriteAllText(infoFilePath, infoContent);
 
-					var psiCreateSymLink = new ProcessStartInfo
+					using (var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = publishedFolder
-					};
-					using (var createSymLinkProcess = Process.Start(psiCreateSymLink))
+					}))
 					{
-						createSymLinkProcess.StandardInput.WriteLine($"wsl ln -s /Applications && exit");
-						createSymLinkProcess.WaitForExit();
+						process.StandardInput.WriteLine($"wsl ln -s /Applications && exit");
+						process.WaitForExit();
 					}
 
 					//how to generate .DS_Store file - https://github.com/zkSNACKs/WalletWasabi/pull/928/commits/e38ed672dee25f6e45a3eb16584887cc6d48c4e6
 					var dmgContentDir = Path.Combine(PackagerProjectDirectory, "Content", "Osx");
 					IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentDir), new DirectoryInfo(publishedFolder));
 
-					var psiGenIsoImage = new ProcessStartInfo
+					string uncompressedDmgFileName = $"Wasabi-uncompressed.dmg";
+					string uncompressedDmgFilePath = Path.Combine(BinDistDirectory, uncompressedDmgFileName);
+					string dmgFileName = $"Wasabi-{VersionPrefix}.dmg";
+					using (var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
-					};
-
-					string uncompressedDmgFileName = $"Wasabi-uncompressed.dmg";
-					string uncompressedDmgFilePath = Path.Combine(BinDistDirectory, uncompressedDmgFileName);
-					string dmgFileName = $"Wasabi-{VersionPrefix}.dmg";
-					using (var genIsoImageProcess = Process.Start(psiGenIsoImage))
+					}))
 					{
 						// http://www.nathancoulson.com/proj_cross_tools.php
 						// -D: Do not use deep directory relocation, and instead just pack them in the way we see them
 						// -V: Volume Label
 						// -no-pad: Do not pad the end by 150 sectors (300kb). As it is not a cd image, not required
 						// -apple -r: Creates a .dmg image
-						genIsoImageProcess.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -dir-mode 755 -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(publishedFolder).Name}\" && exit");
-						genIsoImageProcess.WaitForExit();
+						process.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -dir-mode 755 -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(publishedFolder).Name}\" && exit");
+						process.WaitForExit();
 					}
 					// cd ~
 					// git clone https://github.com/planetbeing/libdmg-hfsplus.git && cd libdmg-hfsplus
@@ -486,27 +485,16 @@ namespace WalletWasabi.Packager
 					// cmake ..
 					// cd ~/libdmg-hfsplus/build/
 					// make
-					var psiDmg = new ProcessStartInfo
+					using (var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
-					};
-					using (var dmgProcess = Process.Start(psiDmg))
+					}))
 					{
-						dmgProcess.StandardInput.WriteLine($"wsl ~/libdmg-hfsplus/build/dmg/./dmg dmg \"{uncompressedDmgFileName}\" \"{dmgFileName}\" && exit");
-						dmgProcess.WaitForExit();
+						process.StandardInput.WriteLine($"wsl ~/libdmg-hfsplus/build/dmg/./dmg dmg \"{uncompressedDmgFileName}\" \"{dmgFileName}\" && exit");
+						process.WaitForExit();
 					}
-					// In case compression above doesn't work:
-					//var psiBzip = new ProcessStartInfo
-					//{
-					//	FileName = "cmd",
-					//	RedirectStandardInput = true,
-					//	WorkingDirectory = binDistDirectory
-					//};
-					//var bzipProcess = Process.Start(psiBzip);
-					//bzipProcess.StandardInput.WriteLine($"wsl bzip2 \"{uncompressedDmgFileName}\" && exit");
-					//bzipProcess.WaitForExit();
 
 					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
 					File.Delete(uncompressedDmgFilePath);
@@ -529,16 +517,15 @@ namespace WalletWasabi.Packager
 					Directory.Move(publishedFolder, newFolderPath);
 					publishedFolder = newFolderPath;
 
-					var psiTar = new ProcessStartInfo
+					using (var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "cmd",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
-					};
-					using (var tarProcess = Process.Start(psiTar))
+					}))
 					{
-						tarProcess.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
-						tarProcess.WaitForExit();
+						process.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
+						process.WaitForExit();
 					}
 
 					Console.WriteLine("Create Linux .deb");
@@ -618,17 +605,16 @@ namespace WalletWasabi.Packager
 					string debExeLinuxPath = Tools.LinuxPathCombine(newFolderRelativePath, ExecutableName);
 					string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
 					var wasabiStarterScriptLinuxPath = Tools.LinuxPathCombine(debUsrLocalBinFolderRelativePath, $"{ExecutableName}");
-					var psi = new ProcessStartInfo
+
+					using (var process = Process.Start(new ProcessStartInfo
 					{
 						FileName = "wsl",
 						Arguments = $"cd ~ && sudo umount /mnt/c && sudo mount -t drvfs C: /mnt/c -o metadata && cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist && sudo chmod +x {debExeLinuxPath} && sudo chmod +x {wasabiStarterScriptLinuxPath} && sudo chmod -R 0644 {debDestopFileLinuxPath} && sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)} && dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)",
 						RedirectStandardInput = true,
 						WorkingDirectory = BinDistDirectory
-					};
-
-					using (var p = Process.Start(psi))
+					}))
 					{
-						p.WaitForExit();
+						process.WaitForExit();
 					}
 
 					IoHelpers.DeleteRecursivelyWithMagicDustAsync(debFolderPath).GetAwaiter().GetResult();

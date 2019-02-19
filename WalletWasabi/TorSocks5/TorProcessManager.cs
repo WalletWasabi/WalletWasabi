@@ -107,14 +107,14 @@ namespace WalletWasabi.TorSocks5
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							var torProcessStartInfo = new ProcessStartInfo(torPath)
+							TorProcess = Process.Start(new ProcessStartInfo
 							{
+								FileName = torPath,
 								Arguments = torArguments,
 								UseShellExecute = false,
 								CreateNoWindow = true,
 								RedirectStandardOutput = true
-							};
-							TorProcess = Process.Start(torProcessStartInfo);
+							});
 							Logger.LogInfo<TorProcessManager>($"Starting Tor process with Process.Start.");
 						}
 						else // Linux and OSX
@@ -328,6 +328,7 @@ namespace WalletWasabi.TorSocks5
 						Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
 					}
 					Stop?.Dispose();
+					TorProcess?.Dispose();
 				}
 
 				_disposedValue = true;
