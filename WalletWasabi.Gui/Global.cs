@@ -143,7 +143,7 @@ namespace WalletWasabi.Gui
 				e.Cancel = true;
 				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
 				await TryDesperateDequeueAllCoinsAsync();
-				Dispatcher.UIThread.Post(() =>
+				Dispatcher.UIThread.PostLogException(() =>
 				{
 					Application.Current.MainWindow.Close();
 				});
@@ -303,28 +303,18 @@ namespace WalletWasabi.Gui
 				{
 					foreach (SmartCoin coin in e.NewItems)
 					{
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-						{
-							Process.Start(new ProcessStartInfo
-							{
-								FileName = "notify-send",
-								Arguments = $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
-								CreateNoWindow = true
-							});
-						}
-						else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-						{
-							Process.Start(new ProcessStartInfo
-							{
-								FileName = "osascript",
-								Arguments = $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"",
-								CreateNoWindow = true
-							});
-						}
-						//else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
+						//if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
 						//{
 						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
 						//}
+						// else
+
+						using (var process = Process.Start(new ProcessStartInfo
+						{
+							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
+							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
+							CreateNoWindow = true
+						})) { };
 					}
 				}
 			}

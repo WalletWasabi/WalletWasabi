@@ -31,8 +31,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool IsExpanded
 		{
-			get { return _isExpanded; }
-			set { this.RaiseAndSetIfChanged(ref _isExpanded, value); }
+			get => _isExpanded;
+			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
 		public string Label => Model.Label;

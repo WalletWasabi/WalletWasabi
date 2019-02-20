@@ -118,7 +118,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (betterAmount != amount)
 					{
-						Dispatcher.UIThread.Post(() =>
+						Dispatcher.UIThread.PostLogException(() =>
 						{
 							Amount = betterAmount;
 						});
@@ -177,6 +177,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						if (!Money.TryParse(Amount, out amount) || amount == Money.Zero)
 						{
 							SetWarningMessage($"Invalid amount.");
+							return;
+						}
+
+						if (amount == selectedCoinViewModels.Sum(x => x.Amount))
+						{
+							SetWarningMessage("Looks like you want to spend a whole coin. Try Max button instead.");
 							return;
 						}
 					}
@@ -532,7 +538,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SuccessMessage = "";
 			WarningMessage = message;
 
-			Dispatcher.UIThread.Post(async () =>
+			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				await Task.Delay(7000);
 				if (WarningMessage == message)
@@ -547,7 +553,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SuccessMessage = message;
 			WarningMessage = "";
 
-			Dispatcher.UIThread.Post(async () =>
+			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				await Task.Delay(7000);
 				if (SuccessMessage == message)
@@ -587,7 +593,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel CoinList
 		{
-			get { return _coinList; }
+			get => _coinList;
 			set
 			{
 				bool changed = _coinList != value;

@@ -20,8 +20,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override string Title
 		{
-			get { return _title; }
-			set { this.RaiseAndSetIfChanged(ref _title, value); }
+			get => _title;
+			set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
 		public WalletViewModel(string name, bool receiveDominant)
@@ -71,8 +71,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ObservableCollection<WalletActionViewModel> Actions
 		{
-			get { return _actions; }
-			set { this.RaiseAndSetIfChanged(ref _actions, value); }
+			get => _actions;
+			set => this.RaiseAndSetIfChanged(ref _actions, value);
 		}
 
 		private void SetBalance(string walletName)
