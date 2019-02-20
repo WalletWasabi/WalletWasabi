@@ -292,16 +292,7 @@ namespace WalletWasabi.KeyManagement
 
 		public IEnumerable<(ExtKey secret, HdPubKey pubKey)> GetSecretsAndPubKeyPairs(string password, params Script[] scripts)
 		{
-			Key secret;
-			try
-			{
-				secret = EncryptedSecret.GetKey(password);
-			}
-			catch (SecurityException ex)
-			{
-				throw new SecurityException("Invalid password.", ex);
-			}
-			var extKey = new ExtKey(secret, ChainCode);
+			ExtKey extKey = GetExtKey(password);
 			var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
 
 			lock (HdPubKeysLock)
@@ -316,6 +307,19 @@ namespace WalletWasabi.KeyManagement
 					extKeysAndPubs.Add((ek, key));
 				}
 				return extKeysAndPubs;
+			}
+		}
+
+		public ExtKey GetExtKey(string password)
+		{
+			try
+			{
+				Key secret = EncryptedSecret.GetKey(password);
+				return new ExtKey(secret, ChainCode);
+			}
+			catch (SecurityException ex)
+			{
+				throw new SecurityException("Invalid password.", ex);
 			}
 		}
 

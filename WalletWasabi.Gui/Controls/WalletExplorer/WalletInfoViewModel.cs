@@ -47,10 +47,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					Password = Guard.Correct(Password);
-					var secret = KeyManager.EncryptedSecret.GetSecret(Password);
+					var secret = KeyManager.GetExtKey(Password);
 					Password = "";
 
-					SetSecret(secret.ToWif());
+					SetSecret(secret.GetWif(Global.Network).ToWif());
 				}
 				catch (Exception ex)
 				{
