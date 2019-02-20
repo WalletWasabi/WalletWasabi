@@ -25,8 +25,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public bool IsHighLighted
 		{
-			get { return _isHighLighted; }
-			set { this.RaiseAndSetIfChanged(ref _isHighLighted, value); }
+			get => _isHighLighted;
+			set => this.RaiseAndSetIfChanged(ref _isHighLighted, value);
 		}
 	}
 }
