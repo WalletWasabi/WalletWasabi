@@ -42,7 +42,7 @@ namespace WalletWasabi.KeyManagement
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
-		private static readonly KeyPath AccountKeyPath = new KeyPath("m/84'/0'/0'");
+		public static readonly KeyPath AccountKeyPath = new KeyPath("m/84'/0'/0'");
 
 		public string FilePath { get; private set; }
 		private object ToFileLock { get; }
