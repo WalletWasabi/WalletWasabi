@@ -192,7 +192,7 @@ namespace NBitcoin
 			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
 		}
 
-		public static string ToZPriv(this ExtKey extKey, Network network)
+		public static string ToZPrv(this ExtKey extKey, Network network)
 		{
 			var data = extKey.ToBytes();
 			var version = (network == Network.Main)

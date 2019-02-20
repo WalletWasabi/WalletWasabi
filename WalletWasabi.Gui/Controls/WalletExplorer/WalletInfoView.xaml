@@ -16,8 +16,8 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="Extended Master zpriv: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedMasterZpriv}" Classes="selectableTextBlock" />
+              <TextBlock Text="Extended Master zprv: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedMasterZprv}" Classes="selectableTextBlock" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
@@ -41,8 +41,8 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="Extended Account zpriv: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpriv}" Classes="selectableTextBlock" />
+              <TextBlock Text="Extended Account zprv: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZprv}" Classes="selectableTextBlock" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">

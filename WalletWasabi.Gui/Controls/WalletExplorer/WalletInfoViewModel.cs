@@ -20,11 +20,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private string _password;
 		private string _extendedMasterPrivateKey;
-		private string _extendedMasterZpriv;
+		private string _extendedMasterZprv;
 		private string _extendedMasterPublicKey;
 		private string _extendedMasterZpub;
 		private string _extendedAccountPrivateKey;
-		private string _extendedAccountZpriv;
+		private string _extendedAccountZprv;
 		private string _warningMessage;
 		private CompositeDisposable Disposables { get; }
 
@@ -65,9 +65,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					string master = secret.GetWif(Global.Network).ToWif();
 					string masterPub = secret.Neuter().GetWif(Global.Network).ToWif();
 					string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
-					string masterY = secret.ToZPriv(Global.Network);
+					string masterY = secret.ToZPrv(Global.Network);
 					string masterPubY = secret.Neuter().ToZpub(Global.Network);
-					string accountY = secret.Derive(KeyManager.AccountKeyPath).ToZPriv(Global.Network);
+					string accountY = secret.Derive(KeyManager.AccountKeyPath).ToZPrv(Global.Network);
 					SetSensitiveData(master, masterPub, account, masterY, masterPubY, accountY);
 				}
 				catch (Exception ex)
@@ -80,11 +80,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void ClearSensitiveData(bool passwordToo)
 		{
 			ExtendedMasterPrivateKey = "";
-			ExtendedMasterZpriv = "";
+			ExtendedMasterZprv = "";
 			ExtendedMasterPublicKey = "";
 			ExtendedMasterZpub = "";
 			ExtendedAccountPrivateKey = "";
-			ExtendedAccountZpriv = "";
+			ExtendedAccountZprv = "";
 
 			if (passwordToo)
 			{
@@ -128,10 +128,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _extendedAccountPrivateKey, value);
 		}
 
-		public string ExtendedMasterZpriv
+		public string ExtendedMasterZprv
 		{
-			get => _extendedMasterZpriv;
-			set => this.RaiseAndSetIfChanged(ref _extendedMasterZpriv, value);
+			get => _extendedMasterZprv;
+			set => this.RaiseAndSetIfChanged(ref _extendedMasterZprv, value);
 		}
 
 		public string ExtendedMasterZpub
@@ -140,10 +140,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _extendedMasterZpub, value);
 		}
 
-		public string ExtendedAccountZpriv
+		public string ExtendedAccountZprv
 		{
-			get => _extendedAccountZpriv;
-			set => this.RaiseAndSetIfChanged(ref _extendedAccountZpriv, value);
+			get => _extendedAccountZprv;
+			set => this.RaiseAndSetIfChanged(ref _extendedAccountZprv, value);
 		}
 
 		public string WarningMessage
@@ -152,14 +152,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
-		private void SetSensitiveData(string extendedMasterPrivateKey, string extendedMasterPublicKey, string extendedAccountPrivateKey, string extendedMasterZpriv, string extendedMasterZpub, string extendedAccountZpriv)
+		private void SetSensitiveData(string extendedMasterPrivateKey, string extendedMasterPublicKey, string extendedAccountPrivateKey, string extendedMasterZprv, string extendedMasterZpub, string extendedAccountZprv)
 		{
 			ExtendedMasterPrivateKey = extendedMasterPrivateKey;
 			ExtendedMasterPublicKey = extendedMasterPublicKey;
 			ExtendedAccountPrivateKey = extendedAccountPrivateKey;
-			ExtendedMasterZpriv = extendedMasterZpriv;
+			ExtendedMasterZprv = extendedMasterZprv;
 			ExtendedMasterZpub = extendedMasterZpub;
-			ExtendedAccountZpriv = extendedAccountZpriv;
+			ExtendedAccountZprv = extendedAccountZprv;
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
