@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletExplorerViewModel()
 		{
 			Title = "Wallet Explorer";
-			
+
 			_wallets = new ObservableCollection<WalletViewModel>();
 		}
 
@@ -31,16 +31,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ObservableCollection<WalletViewModel> Wallets
 		{
-			get { return _wallets; }
-			set { this.RaiseAndSetIfChanged(ref _wallets, value); }
+			get => _wallets;
+			set => this.RaiseAndSetIfChanged(ref _wallets, value);
 		}
 
 		private WasabiDocumentTabViewModel _selectedItem;
 
 		public WasabiDocumentTabViewModel SelectedItem
 		{
-			get { return _selectedItem; }
-			set { this.RaiseAndSetIfChanged(ref _selectedItem, value); }
+			get => _selectedItem;
+			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
 		}
 
 		internal void OpenWallet(string walletName, bool receiveDominant)

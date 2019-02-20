@@ -53,28 +53,28 @@ namespace WalletWasabi.Gui.Tabs
 
 		public string Network
 		{
-			get { return _network; }
-			set { this.RaiseAndSetIfChanged(ref _network, value); }
+			get => _network;
+			set => this.RaiseAndSetIfChanged(ref _network, value);
 		}
 
 		[ValidateMethod(nameof(ValidateTorHost))]
 		public string TorHost
 		{
-			get { return _torHost; }
-			set { this.RaiseAndSetIfChanged(ref _torHost, value); }
+			get => _torHost;
+			set => this.RaiseAndSetIfChanged(ref _torHost, value);
 		}
 
 		[ValidateMethod(nameof(ValidateTorPort))]
 		public string TorPort
 		{
-			get { return _torPort; }
-			set { this.RaiseAndSetIfChanged(ref _torPort, value); }
+			get => _torPort;
+			set => this.RaiseAndSetIfChanged(ref _torPort, value);
 		}
 
 		public bool IsModified
 		{
-			get { return _isModified; }
-			set { this.RaiseAndSetIfChanged(ref _isModified, value); }
+			get => _isModified;
+			set => this.RaiseAndSetIfChanged(ref _isModified, value);
 		}
 
 		private void Save()
