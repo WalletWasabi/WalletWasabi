@@ -26,8 +26,8 @@ namespace WalletWasabi.Gui.Behaviors
 		/// </summary>
 		public ICommand Command
 		{
-			get { return _command; }
-			set { SetAndRaise(CommandProperty, ref _command, value); }
+			get => _command;
+			set => SetAndRaise(CommandProperty, ref _command, value);
 		}
 
 		/// <summary>
@@ -35,8 +35,8 @@ namespace WalletWasabi.Gui.Behaviors
 		/// </summary>
 		public object CommandParameter
 		{
-			get { return GetValue(CommandParameterProperty); }
-			set { SetValue(CommandParameterProperty, value); }
+			get => GetValue(CommandParameterProperty);
+			set => SetValue(CommandParameterProperty, value);
 		}
 
 		protected bool ExecuteCommand()

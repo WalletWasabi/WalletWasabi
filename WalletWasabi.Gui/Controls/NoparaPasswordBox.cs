@@ -49,10 +49,7 @@ namespace WalletWasabi.Gui.Controls
 		public string Password
 		{
 			get => GetValue(PasswordProperty);
-			set
-			{
-				SetValue(PasswordProperty, value);
-			}
+			set => SetValue(PasswordProperty, value);
 		}
 
 		public static readonly StyledProperty<string> FixedPasswordTextProperty =
@@ -61,10 +58,7 @@ namespace WalletWasabi.Gui.Controls
 		public string FixedPasswordText
 		{
 			get => GetValue(FixedPasswordTextProperty);
-			set
-			{
-				SetValue(FixedPasswordTextProperty, value);
-			}
+			set => SetValue(FixedPasswordTextProperty, value);
 		}
 
 		protected override bool IsCopyEnabled => false;

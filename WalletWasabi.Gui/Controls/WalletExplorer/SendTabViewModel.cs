@@ -593,7 +593,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel CoinList
 		{
-			get { return _coinList; }
+			get => _coinList;
 			set
 			{
 				bool changed = _coinList != value;
