@@ -100,8 +100,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool IsSelected
 		{
-			get { return _isSelected; }
-			set { this.RaiseAndSetIfChanged(ref _isSelected, value); }
+			get => _isSelected;
+			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
 		}
 
 		public string ToolTip
@@ -149,14 +149,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public SmartCoinStatus Status
 		{
-			get
-			{
-				return _smartCoinStatus;
-			}
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _smartCoinStatus, value);
-			}
+			get => _smartCoinStatus;
+			set => this.RaiseAndSetIfChanged(ref _smartCoinStatus, value);
 		}
 
 		private void RefreshSmartCoinStatus()
