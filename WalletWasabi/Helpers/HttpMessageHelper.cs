@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static WalletWasabi.Http.Constants;
+using System.IO.Compression;
 
 namespace System.Net.Http
 {
@@ -113,7 +114,32 @@ namespace System.Net.Http
 			return null;
 		}
 
-		public static async Task<HttpContent> GetContentAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
+		public static byte[] HandleGzipCompression(HttpContentHeaders contentHeaders, byte[] decodedBodyArray)
+		{
+			if (decodedBodyArray == null || !decodedBodyArray.Any()) return decodedBodyArray;
+
+			if (contentHeaders?.ContentEncoding != null && contentHeaders.ContentEncoding.Contains("gzip"))
+			{
+				using (var src = new MemoryStream(decodedBodyArray))
+				using (var unzipStream = new GZipStream(src, CompressionMode.Decompress))
+				{
+					using (var targetStream = new MemoryStream())
+					{
+						unzipStream.CopyTo(targetStream);
+						decodedBodyArray = targetStream.ToArray();
+					}
+				}
+				contentHeaders.ContentEncoding.Remove("gzip");
+				if (!contentHeaders.ContentEncoding.Any())
+				{
+					contentHeaders.Remove("Content-Encoding");
+				}
+			}
+
+			return decodedBodyArray;
+		}
+
+		public static async Task<byte[]> GetContentBytesAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
 		{
 			if (!(headerStruct.RequestHeaders is null) && headerStruct.RequestHeaders.Contains("Transfer-Encoding"))
 			{
@@ -121,7 +147,7 @@ namespace System.Net.Http
 				// All transfer-coding names are case-insensitive
 				if ("chunked".Equals(headerStruct.RequestHeaders.TransferEncoding.Last().Value, StringComparison.OrdinalIgnoreCase))
 				{
-					return await GetDecodedChunkedContentAsync(stream, headerStruct, ctsToken);
+					return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, ctsToken);
 				}
 				// https://tools.ietf.org/html/rfc7230#section-3.3.3
 				// If a Transfer - Encoding header field is present in a response and
@@ -132,7 +158,7 @@ namespace System.Net.Http
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
 				// status code and then close the connection.
-				return await GetContentTillEndAsync(stream, ctsToken);
+				return await GetBytesTillEndAsync(stream, ctsToken);
 			}
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 5.If a valid Content - Length header field is present without
@@ -144,7 +170,7 @@ namespace System.Net.Http
 			if (headerStruct.ContentHeaders.Contains("Content-Length"))
 			{
 				long? contentLength = headerStruct.ContentHeaders?.ContentLength;
-				return await GetContentTillLengthAsync(stream, contentLength, ctsToken);
+				return await ReadBytesTillLengthAsync(stream, contentLength, ctsToken);
 			}
 
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
@@ -154,10 +180,10 @@ namespace System.Net.Http
 			// body length, so the message body length is determined by the
 			// number of octets received prior to the server closing the
 			// connection.
-			return GetDummyOrNullContent(headerStruct.ContentHeaders);
+			return GetDummyOrNullContentBytes(headerStruct.ContentHeaders);
 		}
 
-		public static async Task<HttpContent> GetContentAsync(Stream stream, HttpResponseContentHeaders headerStruct, HttpMethod requestMethod, StatusLine statusLine, CancellationToken ctsToken = default)
+		public static async Task<byte[]> GetContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, HttpMethod requestMethod, StatusLine statusLine, CancellationToken ctsToken = default)
 		{
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// The length of a message body is determined by one of the following
@@ -172,7 +198,7 @@ namespace System.Net.Http
 				|| statusLine.StatusCode == HttpStatusCode.NoContent
 				|| statusLine.StatusCode == HttpStatusCode.NotModified)
 			{
-				return GetDummyOrNullContent(headerStruct.ContentHeaders);
+				return GetDummyOrNullContentBytes(headerStruct.ContentHeaders);
 			}
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 2.Any 2xx(Successful) response to a CONNECT request implies that
@@ -187,18 +213,19 @@ namespace System.Net.Http
 					return null;
 				}
 			}
+
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 3.If a Transfer-Encoding header field is present and the chunked
 			// transfer coding(Section 4.1) is the final encoding, the message
 			// body length is determined by reading and decoding the chunked
 			// data until the transfer coding indicates the data is complete.
-			if (!(headerStruct.ResponseHeaders is null) && headerStruct.ResponseHeaders.Contains("Transfer-Encoding"))
+			if (headerStruct?.ResponseHeaders != null && headerStruct.ResponseHeaders.Contains("Transfer-Encoding"))
 			{
 				// https://tools.ietf.org/html/rfc7230#section-4
 				// All transfer-coding names are case-insensitive
 				if ("chunked".Equals(headerStruct.ResponseHeaders.TransferEncoding.Last().Value, StringComparison.OrdinalIgnoreCase))
 				{
-					return await GetDecodedChunkedContentAsync(stream, headerStruct, ctsToken);
+					return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, ctsToken);
 				}
 				// https://tools.ietf.org/html/rfc7230#section-3.3.3
 				// If a Transfer - Encoding header field is present in a response and
@@ -209,7 +236,7 @@ namespace System.Net.Http
 				// the final encoding, the message body length cannot be determined
 				// reliably; the server MUST respond with the 400(Bad Request)
 				// status code and then close the connection.
-				return await GetContentTillEndAsync(stream, ctsToken);
+				return await GetBytesTillEndAsync(stream, ctsToken);
 			}
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
 			// 5.If a valid Content - Length header field is present without
@@ -222,7 +249,7 @@ namespace System.Net.Http
 			{
 				long? contentLength = headerStruct.ContentHeaders?.ContentLength;
 
-				return await GetContentTillLengthAsync(stream, contentLength, ctsToken);
+				return await ReadBytesTillLengthAsync(stream, contentLength, ctsToken);
 			}
 
 			// https://tools.ietf.org/html/rfc7230#section-3.3.3
@@ -232,20 +259,20 @@ namespace System.Net.Http
 			// body length, so the message body length is determined by the
 			// number of octets received prior to the server closing the
 			// connection.
-			return await GetContentTillEndAsync(stream, ctsToken);
+			return await GetBytesTillEndAsync(stream, ctsToken);
 		}
 
-		private static async Task<HttpContent> GetDecodedChunkedContentAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
+		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
 		{
-			return await GetDecodedChunkedContentAsync(stream, headerStruct, null, ctsToken);
+			return await GetDecodedChunkedContentBytesAsync(stream, headerStruct, null, ctsToken);
 		}
 
-		private static async Task<HttpContent> GetDecodedChunkedContentAsync(Stream stream, HttpResponseContentHeaders headerStruct, CancellationToken ctsToken = default)
+		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpResponseContentHeaders headerStruct, CancellationToken ctsToken = default)
 		{
-			return await GetDecodedChunkedContentAsync(stream, null, headerStruct, ctsToken);
+			return await GetDecodedChunkedContentBytesAsync(stream, null, headerStruct, ctsToken);
 		}
 
-		private static async Task<HttpContent> GetDecodedChunkedContentAsync(Stream stream, HttpRequestContentHeaders requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
+		private static async Task<byte[]> GetDecodedChunkedContentBytesAsync(Stream stream, HttpRequestContentHeaders requestHeaders, HttpResponseContentHeaders responseHeaders, CancellationToken ctsToken = default)
 		{
 			if (responseHeaders is null && requestHeaders is null)
 			{
@@ -307,6 +334,7 @@ namespace System.Net.Http
 				ParseFistChunkLine(firstChunkLine, out long cs, out IEnumerable<string> ces);
 				chunkSize = cs;
 			}
+
 			// https://tools.ietf.org/html/rfc7230#section-4.1.2
 			// A trailer allows the sender to include additional fields at the end
 			// of a chunked message in order to supply metadata that might be
@@ -343,7 +371,7 @@ namespace System.Net.Http
 				requestHeaders.RequestHeaders.Remove("Trailer");
 			}
 
-			return new ByteArrayContent(decodedBody.ToArray());
+			return decodedBody.ToArray();
 		}
 
 		public static void RemoveInvalidTrailers(HeaderSection trailerHeaderSection)
@@ -416,18 +444,22 @@ namespace System.Net.Http
 			}
 		}
 
-		private static async Task<HttpContent> GetContentTillEndAsync(Stream stream, CancellationToken ctsToken)
+		private static async Task<byte[]> GetBytesTillEndAsync(Stream stream, CancellationToken ctsToken)
 		{
 			var bab = new ByteArrayBuilder();
 			while (true)
 			{
-				var read = await stream.ReadByteAsync(ctsToken);
-				if (read == -1) return new ByteArrayContent(bab.ToArray());
+				int read = await stream.ReadByteAsync(ctsToken);
+				if (read == -1)
+				{
+					return bab.ToArray();
+				}
+				else
+				{
+					bab.Append((byte)read);
+				}
 			}
 		}
-
-		private static async Task<HttpContent> GetContentTillLengthAsync(Stream stream, long? contentLength, CancellationToken ctsToken = default)
-			=> new ByteArrayContent(await ReadBytesTillLengthAsync(stream, contentLength, ctsToken));
 
 		private static async Task<byte[]> ReadBytesTillLengthAsync(Stream stream, long? length, CancellationToken ctsToken)
 		{
@@ -477,11 +509,11 @@ namespace System.Net.Http
 			}
 		}
 
-		public static HttpContent GetDummyOrNullContent(HttpContentHeaders contentHeaders)
+		public static byte[] GetDummyOrNullContentBytes(HttpContentHeaders contentHeaders)
 		{
 			if (contentHeaders.NotNullAndNotEmpty())
 			{
-				return new ByteArrayContent(new byte[] { }); // dummy empty content
+				return new byte[] { }; // dummy empty content
 			}
 			return null;
 		}

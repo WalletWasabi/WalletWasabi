@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Avalonia.Gtk3;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using NBitcoin;
@@ -38,17 +37,8 @@ namespace WalletWasabi.Gui
 
 						Global.InitializeConfig(config);
 
-						if (!File.Exists(Global.IndexFilePath)) // Load the index file from working folder if we have it.
-						{
-							var cachedIndexFilePath = Path.Combine("Assets", Path.GetFileName(Global.IndexFilePath));
-							if (File.Exists(cachedIndexFilePath))
-							{
-								File.Copy(cachedIndexFilePath, Global.IndexFilePath, overwrite: false);
-							}
-						}
-
 						Global.InitializeNoWallet();
-						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.MemPoolService, Global.Synchronizer, Global.UpdateChecker);
+						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
@@ -65,20 +55,20 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
+				MainWindowViewModel.Instance?.Dispose();
 				statusBar?.Dispose();
 				await Global.DisposeAsync();
-
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 			}
 		}
 
-		static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
 		{
 			Logger.LogWarning(e?.Exception, "UnobservedTaskException");
 		}
 
-		static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+		private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
 			Logger.LogWarning(e?.ExceptionObject as Exception, "UnhandledException");
 		}
@@ -90,17 +80,10 @@ namespace WalletWasabi.Gui
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				result
-					.UseWin32()
-					.UseDirect2D1();
+					.UseWin32(true, true)
+					.UseSkia();
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-			{
-				result.UseGtk3(new Gtk3PlatformOptions
-				{
-					UseDeferredRendering = true,
-					UseGpuAcceleration = true
-				}).UseSkia();
-			}
+			else
 			{
 				result.UsePlatformDetect();
 			}

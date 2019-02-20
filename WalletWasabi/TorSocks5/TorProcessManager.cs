@@ -77,38 +77,20 @@ namespace WalletWasabi.TorSocks5
 						if (!File.Exists(torPath))
 						{
 							Logger.LogInfo<TorProcessManager>($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
-							string torDaemonsDir = Path.Combine(fullBaseDirectory, "TorDaemons");
+							InstallTor(fullBaseDirectory, torDir);
+						}
+						else if (new FileInfo(torPath).CreationTimeUtc < new DateTime(2019, 01, 26, 0, 0, 0, 0, DateTimeKind.Utc))
+						{
+							Logger.LogInfo<TorProcessManager>($"Updating Tor...");
 
-							string dataZip = Path.Combine(torDaemonsDir, "data-folder.zip");
-							IoHelpers.BetterExtractZipToDirectoryAsync(dataZip, torDir).GetAwaiter().GetResult();
-							Logger.LogInfo<TorProcessManager>($"Extracted {dataZip} to {torDir}.");
-
-							if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+							string backupTorDir = $"{torDir}_backup";
+							if (Directory.Exists(backupTorDir))
 							{
-								string torWinZip = Path.Combine(torDaemonsDir, "tor-win32.zip");
-								IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, torDir).GetAwaiter().GetResult();
-								Logger.LogInfo<TorProcessManager>($"Extracted {torWinZip} to {torDir}.");
+								Directory.Delete(backupTorDir, true);
 							}
-							else // Linux or OSX
-							{
-								if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-								{
-									string torLinuxZip = torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
-									IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, torDir).GetAwaiter().GetResult();
-									Logger.LogInfo<TorProcessManager>($"Extracted {torLinuxZip} to {torDir}.");
-								}
-								else // OSX
-								{
-									string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
-									IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, torDir).GetAwaiter().GetResult();
-									Logger.LogInfo<TorProcessManager>($"Extracted {torOsxZip} to {torDir}.");
-								}
+							Directory.Move(torDir, backupTorDir);
 
-								// Make sure there's sufficient permission.
-								string chmodTorDirCmd = $"chmod -R 777 {torDir}";
-								EnvironmentHelpers.ShellExec(chmodTorDirCmd);
-								Logger.LogInfo<TorProcessManager>($"Shell command executed: {chmodTorDirCmd}.");
-							}
+							InstallTor(fullBaseDirectory, torDir);
 						}
 						else
 						{
@@ -125,14 +107,14 @@ namespace WalletWasabi.TorSocks5
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 						{
-							var torProcessStartInfo = new ProcessStartInfo(torPath)
+							TorProcess = Process.Start(new ProcessStartInfo
 							{
+								FileName = torPath,
 								Arguments = torArguments,
 								UseShellExecute = false,
 								CreateNoWindow = true,
 								RedirectStandardOutput = true
-							};
-							TorProcess = Process.Start(torProcessStartInfo);
+							});
 							Logger.LogInfo<TorProcessManager>($"Starting Tor process with Process.Start.");
 						}
 						else // Linux and OSX
@@ -162,6 +144,42 @@ namespace WalletWasabi.TorSocks5
 					Logger.LogError<TorProcessManager>(ex);
 				}
 			}).Start();
+		}
+
+		private static void InstallTor(string fullBaseDirectory, string torDir)
+		{
+			string torDaemonsDir = Path.Combine(fullBaseDirectory, "TorDaemons");
+
+			string dataZip = Path.Combine(torDaemonsDir, "data-folder.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(dataZip, torDir).GetAwaiter().GetResult();
+			Logger.LogInfo<TorProcessManager>($"Extracted {dataZip} to {torDir}.");
+
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				string torWinZip = Path.Combine(torDaemonsDir, "tor-win32.zip");
+				IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, torDir).GetAwaiter().GetResult();
+				Logger.LogInfo<TorProcessManager>($"Extracted {torWinZip} to {torDir}.");
+			}
+			else // Linux or OSX
+			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					string torLinuxZip = torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
+					IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, torDir).GetAwaiter().GetResult();
+					Logger.LogInfo<TorProcessManager>($"Extracted {torLinuxZip} to {torDir}.");
+				}
+				else // OSX
+				{
+					string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
+					IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, torDir).GetAwaiter().GetResult();
+					Logger.LogInfo<TorProcessManager>($"Extracted {torOsxZip} to {torDir}.");
+				}
+
+				// Make sure there's sufficient permission.
+				string chmodTorDirCmd = $"chmod -R 777 {torDir}";
+				EnvironmentHelpers.ShellExec(chmodTorDirCmd);
+				Logger.LogInfo<TorProcessManager>($"Shell command executed: {chmodTorDirCmd}.");
+			}
 		}
 
 		/// <param name="torSocks5EndPoint">Opt out Tor with null.</param>
@@ -310,6 +328,7 @@ namespace WalletWasabi.TorSocks5
 						Task.Delay(50).GetAwaiter().GetResult(); // DO NOT MAKE IT ASYNC (.NET Core threading brainfart)
 					}
 					Stop?.Dispose();
+					TorProcess?.Dispose();
 				}
 
 				_disposedValue = true;

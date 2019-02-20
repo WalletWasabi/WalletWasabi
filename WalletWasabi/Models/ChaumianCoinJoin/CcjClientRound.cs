@@ -1,5 +1,7 @@
 ﻿using NBitcoin;
+using NBitcoin.Crypto;
 using System.Collections.Generic;
+using System.Linq;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
@@ -10,38 +12,22 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 	{
 		public CcjRunningRoundState State { get; set; }
 
-		public List<SmartCoin> CoinsRegistered { get; }
+		public ClientRoundRegistration Registration { get; set; }
 
-		public AliceClient AliceClient { get; set; }
+		public long RoundId => State.RoundId;
 
-		public BitcoinAddress ChangeOutputAddress { get; set; }
-		public BitcoinAddress ActiveOutputAddress { get; set; }
-
-		public byte[] UnblindedSignature { get; set; }
-
-		public string RoundHash { get; set; }
-
-		public bool Signed { get; set; }
-		public bool PostedOutput { get; set; }
+		public IEnumerable<SmartCoin> CoinsRegistered => Registration?.CoinsRegistered ?? Enumerable.Empty<SmartCoin>();
 
 		public CcjClientRound(CcjRunningRoundState state)
 		{
 			State = Guard.NotNull(nameof(state), state);
-			CoinsRegistered = new List<SmartCoin>();
 			ClearRegistration(); // shortcut for initializing variables
 		}
 
 		public void ClearRegistration()
 		{
-			CoinsRegistered.Clear();
-			ChangeOutputAddress = null;
-			ActiveOutputAddress = null;
-			UnblindedSignature = null;
-			RoundHash = null;
-			AliceClient?.Dispose();
-			AliceClient = null;
-			Signed = false;
-			PostedOutput = false;
+			Registration?.Dispose();
+			Registration = null;
 		}
 	}
 }

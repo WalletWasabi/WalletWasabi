@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Crypto;
+using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -87,10 +89,11 @@ namespace WalletWasabi.Tests
 			WalletService walletService = new WalletService(
 			   keyManager,
 			   syncer,
-			   new CcjClient(syncer, network, new BlindingRsaKey().PubKey, keyManager, new Uri("http://localhost:12345")),
+			   new CcjClient(syncer, network, keyManager, new Uri("http://localhost:12345")),
 			   memPoolService,
 			   nodes,
-			   SharedFixture.DataDir);
+			   SharedFixture.DataDir,
+			   new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort)));
 			Assert.True(Directory.Exists(blocksFolderPath));
 
 			try

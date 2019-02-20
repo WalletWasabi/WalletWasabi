@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace System.IO
@@ -250,17 +251,34 @@ namespace System.IO
 		{
 			if (Directory.Exists(dirPath))
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				using (Process process = Process.Start(new ProcessStartInfo
 				{
-					Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = $"\"{dirPath}\"" });
+					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "explorer.exe" : (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "xdg-open" : "open"),
+					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
+					CreateNoWindow = true
+				})) { }
+			}
+		}
+
+		public static void OpenFileInTextEditor(string filePath)
+		{
+			if (File.Exists(filePath))
+			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					// If no associated application/json MimeType is found xdg-open opens retrun error
+					// but it tries to open it anyway using the console editor (nano, vim, other..)
+					EnvironmentHelpers.ShellExec($"gedit {filePath} || xdg-open {filePath}");
 				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				else
 				{
-					Process.Start(new ProcessStartInfo { FileName = "xdg-open", Arguments = dirPath, CreateNoWindow = true });
-				}
-				else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-				{
-					Process.Start(new ProcessStartInfo { FileName = "open", Arguments = dirPath, CreateNoWindow = true });
+					using (Process process = Process.Start(new ProcessStartInfo
+					{
+						FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? filePath : "open",
+						Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {filePath}" : "",
+						CreateNoWindow = true,
+						UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+					})) { }
 				}
 			}
 		}

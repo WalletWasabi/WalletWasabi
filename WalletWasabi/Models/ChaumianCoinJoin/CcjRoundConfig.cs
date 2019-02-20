@@ -51,6 +51,9 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		[JsonProperty(PropertyName = "DosNoteBeforeBan")]
 		public bool? DosNoteBeforeBan { get; internal set; }
 
+		[JsonProperty(PropertyName = "MaximumMixingLevelCount")]
+		public int? MaximumMixingLevelCount { get; internal set; }
+
 		public CcjRoundConfig()
 		{
 		}
@@ -60,7 +63,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			SetFilePath(filePath);
 		}
 
-		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours, bool dosNoteBeforeBan)
+		public CcjRoundConfig(Money denomination, int? confirmationTarget, decimal? coordinatorFeePercent, int? anonymitySet, long? inputRegistrationTimeout, long? connectionConfirmationTimeout, long? outputRegistrationTimeout, long? signingTimeout, int? dosSeverity, long? dosDurationHours, bool? dosNoteBeforeBan, int? maximumMixingLevelCount)
 		{
 			FilePath = null;
 			Denomination = Guard.NotNull(nameof(denomination), denomination);
@@ -74,6 +77,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			DosSeverity = Guard.NotNull(nameof(dosSeverity), dosSeverity);
 			DosDurationHours = Guard.NotNull(nameof(dosDurationHours), dosDurationHours);
 			DosNoteBeforeBan = Guard.NotNull(nameof(dosNoteBeforeBan), dosNoteBeforeBan);
+			MaximumMixingLevelCount = Guard.NotNull(nameof(maximumMixingLevelCount), maximumMixingLevelCount);
 		}
 
 		/// <inheritdoc />
@@ -103,6 +107,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			DosSeverity = 1;
 			DosDurationHours = 730; // 1 month
 			DosNoteBeforeBan = true;
+			MaximumMixingLevelCount = 11;
 
 			if (!File.Exists(FilePath))
 			{
@@ -132,6 +137,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			DosSeverity = config.DosSeverity ?? DosSeverity;
 			DosDurationHours = config.DosDurationHours ?? DosDurationHours;
 			DosNoteBeforeBan = config.DosNoteBeforeBan ?? DosNoteBeforeBan;
+			MaximumMixingLevelCount = config.MaximumMixingLevelCount ?? MaximumMixingLevelCount;
 		}
 
 		/// <inheritdoc />
@@ -188,6 +194,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				return true;
 			}
 			if (DosNoteBeforeBan != config.DosNoteBeforeBan)
+			{
+				return true;
+			}
+			if (MaximumMixingLevelCount != config.MaximumMixingLevelCount)
 			{
 				return true;
 			}

@@ -20,13 +20,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void OnSelected()
 		{
-			OnSelection(Word);
+			OnSelection?.Invoke(Word);
 		}
 
 		public bool IsHighLighted
 		{
-			get { return _isHighLighted; }
-			set { this.RaiseAndSetIfChanged(ref _isHighLighted, value); }
+			get => _isHighLighted;
+			set => this.RaiseAndSetIfChanged(ref _isHighLighted, value);
 		}
 	}
 }

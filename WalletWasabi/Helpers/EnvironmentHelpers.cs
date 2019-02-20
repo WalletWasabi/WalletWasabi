@@ -70,6 +70,55 @@ namespace WalletWasabi.Helpers
 			return directory;
 		}
 
+		public static string TryGetDefaultBitcoinCoreDataDir()
+		{
+			string directory = null;
+
+			// https://en.bitcoin.it/wiki/Data_directory
+			try
+			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					var localAppData = Environment.GetEnvironmentVariable("APPDATA");
+					if (!string.IsNullOrEmpty(localAppData))
+					{
+						directory = Path.Combine(localAppData, "Bitcoin");
+					}
+					else
+					{
+						throw new DirectoryNotFoundException("Could not find suitable default Bitcoin Core datadir.");
+					}
+				}
+				else
+				{
+					var home = Environment.GetEnvironmentVariable("HOME");
+					if (!string.IsNullOrEmpty(home))
+					{
+						if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+						{
+							directory = Path.Combine(home, "Library", "Application Support", "Bitcoin");
+						}
+						else // Linux
+						{
+							directory = Path.Combine(home, ".bitcoin");
+						}
+					}
+					else
+					{
+						throw new DirectoryNotFoundException("Could not find suitable default Bitcoin Core datadir.");
+					}
+				}
+
+				return directory;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug(ex, nameof(EnvironmentHelpers));
+			}
+
+			return directory;
+		}
+
 		/// <summary>
 		/// Executes a command with bash.
 		/// https://stackoverflow.com/a/47918132/2061103
@@ -79,21 +128,18 @@ namespace WalletWasabi.Helpers
 		{
 			var escapedArgs = cmd.Replace("\"", "\\\"");
 
-			using (var process = new Process
-			{
-				StartInfo = new ProcessStartInfo
+			using (var process = Process.Start(
+				new ProcessStartInfo
 				{
+					FileName = "/bin/sh",
+					Arguments = $"-c \"{escapedArgs}\"",
 					RedirectStandardOutput = true,
 					UseShellExecute = false,
 					CreateNoWindow = true,
-					WindowStyle = ProcessWindowStyle.Hidden,
-					FileName = "/bin/sh",
-					Arguments = $"-c \"{escapedArgs}\""
+					WindowStyle = ProcessWindowStyle.Hidden
 				}
-			})
+			))
 			{
-				process.Start();
-
 				if (waitForExit)
 				{
 					process.WaitForExit();

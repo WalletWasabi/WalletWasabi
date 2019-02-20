@@ -33,6 +33,8 @@ namespace WalletWasabi.Models
 		/// only exists in memory,
 		/// doesn't affect equality
 		/// </summary>
+		[JsonProperty]
+		[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
 		public DateTimeOffset? FirstSeenIfMemPoolTime { get; private set; }
 
 		#endregion Members
@@ -44,12 +46,16 @@ namespace WalletWasabi.Models
 		}
 
 		[JsonConstructor]
-		public SmartTransaction(Transaction transaction, Height height, string label = "")
+		public SmartTransaction(Transaction transaction, Height height, string label = "", DateTimeOffset? firstSeenIfMemPoolTime = null)
 		{
 			Transaction = transaction;
 			Label = Guard.Correct(label);
 
 			SetHeight(height);
+			if (firstSeenIfMemPoolTime != null)
+			{
+				FirstSeenIfMemPoolTime = firstSeenIfMemPoolTime;
+			}
 		}
 
 		public void SetHeight(Height height)

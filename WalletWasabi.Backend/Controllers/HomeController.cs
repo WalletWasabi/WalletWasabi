@@ -9,7 +9,18 @@ namespace WalletWasabi.Backend.Controllers
 		[HttpGet("")]
 		public ActionResult Index()
 		{
-			VirtualFileResult response = File("index.html", "text/html");
+			string host = HttpContext?.Request?.Host.Host;
+
+			VirtualFileResult response;
+			if (!string.IsNullOrWhiteSpace(host) && host.TrimEnd('/').EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
+			{
+				response = File("onion-index.html", "text/html");
+			}
+			else
+			{
+				response = File("index.html", "text/html");
+			}
+
 			response.LastModified = DateTimeOffset.UtcNow;
 			return response;
 		}

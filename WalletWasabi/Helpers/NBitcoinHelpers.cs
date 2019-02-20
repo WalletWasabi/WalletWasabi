@@ -19,47 +19,37 @@ namespace WalletWasabi.Helpers
 			return HashHelpers.GenerateSha256Hash(sb.ToString());
 		}
 
-		public static BitcoinAddress ParseBitcoinAddress(string address)
+		private static readonly Money[] ReasonableFees = new[] {
+				Money.Coins(0.002m),
+				Money.Coins(0.001m),
+				Money.Coins(0.0005m),
+				Money.Coins(0.0002m),
+				Money.Coins(0.0001m),
+				Money.Coins(0.00005m),
+				Money.Coins(0.00002m),
+				Money.Coins(0.00001m)
+			};
+
+		public static Money TakeAReasonableFee(Money inputValue)
 		{
-			try
+			Money half = inputValue / 2;
+
+			foreach (Money fee in ReasonableFees)
 			{
-				return BitcoinAddress.Create(address, Network.RegTest);
-			}
-			catch (FormatException)
-			{
-				try
+				Money diff = inputValue - fee;
+				if (diff > half)
 				{
-					return BitcoinAddress.Create(address, Network.TestNet);
-				}
-				catch (FormatException)
-				{
-					return BitcoinAddress.Create(address, Network.Main);
+					return diff;
 				}
 			}
-		}
 
-		public static Money TakeAReasonableFee(Money outputValue)
-		{
-			Money fee = Money.Coins(0.002m);
-			var remaining = Money.Zero;
-
-			while (true)
-			{
-				remaining = outputValue - fee;
-				if (remaining > Money.Coins(0.00001m))
-				{
-					break;
-				}
-				fee = fee.Percentange(50);
-			}
-
-			return remaining;
+			return half;
 		}
 
 		public static int CalculateVsizeAssumeSegwit(int inNum, int outNum)
 		{
-			var origTxSize = inNum * Constants.P2pkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10;
-			var newTxSize = inNum * Constants.P2wpkhInputSizeInBytes + outNum * Constants.OutputSizeInBytes + 10; // BEWARE: This assumes segwit only inputs!
+			var origTxSize = (inNum * Constants.P2pkhInputSizeInBytes) + (outNum * Constants.OutputSizeInBytes) + 10;
+			var newTxSize = (inNum * Constants.P2wpkhInputSizeInBytes) + (outNum * Constants.OutputSizeInBytes) + 10; // BEWARE: This assumes segwit only inputs!
 			var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
 			return vSize;
 		}

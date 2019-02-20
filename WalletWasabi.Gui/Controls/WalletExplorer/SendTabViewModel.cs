@@ -19,10 +19,11 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Backend.Models.Responses;
 using System.ComponentModel;
 using WalletWasabi.Gui.Models;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendTabViewModel : WalletActionViewModel
+	public class SendTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private CoinListViewModel _coinList;
 		private string _buildTransactionButtonText;
@@ -55,6 +56,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
+		private CompositeDisposable Disposables { get; }
 
 		private bool IgnoreAmountChanges { get; set; }
 
@@ -71,6 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
+			Disposables = new CompositeDisposable();
 			Label = "";
 			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
@@ -115,7 +118,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (betterAmount != amount)
 					{
-						Dispatcher.UIThread.Post(() =>
+						Dispatcher.UIThread.PostLogException(() =>
 						{
 							Amount = betterAmount;
 						});
@@ -132,7 +135,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				SetFeesAndTexts();
-			});
+			}).DisposeWith(Disposables);
 
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
 			{
@@ -140,6 +143,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					Password = Guard.Correct(Password);
+					Label = Label.Trim(',', ' ').Trim();
 					if (!IsMax && string.IsNullOrWhiteSpace(Label))
 					{
 						SetWarningMessage("Label is required.");
@@ -175,13 +179,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							SetWarningMessage($"Invalid amount.");
 							return;
 						}
+
+						if (amount == selectedCoinViewModels.Sum(x => x.Amount))
+						{
+							SetWarningMessage("Looks like you want to spend a whole coin. Try Max button instead.");
+							return;
+						}
 					}
-					var label = Label.Trim(',', ' ').Trim();
+					var label = Label;
 					var operation = new WalletService.Operation(script, amount, label);
 
 					try
 					{
-						(uint256 TransactionId, uint Index)[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => (x.Model.TransactionId, x.Model.Index)).ToArray();
+						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
 							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue);
@@ -218,12 +228,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					IsBusy = false;
 				}
 			},
-			(this).WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
-				(isMax, amount, address, busy) => ((isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy)));
+			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
+				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy))
+				.DisposeWith(Disposables);
 
-			MaxCommand = ReactiveCommand.Create(SetMax);
+			MaxCommand = ReactiveCommand.Create(SetMax).DisposeWith(Disposables);
 
-			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
+			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
 			{
@@ -235,7 +246,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					BuildTransactionButtonText = BuildTransactionButtonTextString;
 				}
-			});
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -247,9 +258,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Password = x.TrimEnd('\r', '\n');
 					}
 				}
-			});
+			}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
+
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
 				if (Label == null) return;
@@ -257,12 +269,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			});
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
 			{
 				SetFeesAndTexts();
-			});
+			}).DisposeWith(Disposables);
 
 			CoinList.SelectionChanged += CoinList_SelectionChanged;
 
@@ -358,10 +370,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				ConfirmationExpectedText = $"two weeks™";
 			}
 
-			SetFees(allFeeEstimate, feeTarget);
-
 			if (allFeeEstimate != null)
 			{
+				SetFees(allFeeEstimate, feeTarget);
+
 				switch (FeeDisplayFormat)
 				{
 					case FeeDisplayFormat.SatoshiPerByte:
@@ -526,7 +538,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SuccessMessage = "";
 			WarningMessage = message;
 
-			Dispatcher.UIThread.Post(async () =>
+			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				await Task.Delay(7000);
 				if (WarningMessage == message)
@@ -541,7 +553,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SuccessMessage = message;
 			WarningMessage = "";
 
-			Dispatcher.UIThread.Post(async () =>
+			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				await Task.Delay(7000);
 				if (SuccessMessage == message)
@@ -582,7 +594,65 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinListViewModel CoinList
 		{
 			get => _coinList;
-			set => this.RaiseAndSetIfChanged(ref _coinList, value);
+			set
+			{
+				bool changed = _coinList != value;
+				if (_coinList != null)
+				{
+					_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+				}
+
+				this.RaiseAndSetIfChanged(ref _coinList, value);
+
+				if (_coinList != null)
+				{
+					_coinList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
+				}
+			}
+		}
+
+		private async void CoinsList_DequeueCoinsPressedAsync()
+		{
+			try
+			{
+				var selectedCoin = _coinList?.SelectedCoin;
+				if (selectedCoin == null) return;
+				await DoDequeueAsync(new[] { selectedCoin });
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<SendTabViewModel>(ex);
+			}
+		}
+
+		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
+		{
+			WarningMessage = "";
+
+			if (!selectedCoins.Any())
+			{
+				SetWarningMessage("No coins are selected to dequeue.");
+				return;
+			}
+
+			try
+			{
+				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<CoinJoinTabViewModel>(ex);
+				var builder = new StringBuilder(ex.ToTypeMessageString());
+				if (ex is AggregateException aggex)
+				{
+					foreach (var iex in aggex.InnerExceptions)
+					{
+						builder.Append(Environment.NewLine + iex.ToTypeMessageString());
+					}
+				}
+				SetWarningMessage(builder.ToString());
+				return;
+			}
 		}
 
 		public bool IsBusy
@@ -712,17 +782,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			var enteredWordList = words.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
-			var lastWorld = enteredWordList.LastOrDefault().Replace("\t", "");
+			var lastWord = enteredWordList?.LastOrDefault()?.Replace("\t", "") ?? "";
 
-			if (lastWorld.Length < 1)
+			if (!lastWord.Any())
 			{
 				Suggestions.Clear();
 				return;
 			}
 
 			string[] nonSpecialLabels = Global.WalletService.GetNonSpecialLabels().ToArray();
-			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWorld, StringComparison.InvariantCultureIgnoreCase))
-				.Union(nonSpecialLabels.Where(w => w.Contains(lastWorld, StringComparison.InvariantCultureIgnoreCase)))
+			IEnumerable<string> suggestedWords = nonSpecialLabels.Where(w => w.StartsWith(lastWord, StringComparison.InvariantCultureIgnoreCase))
+				.Union(nonSpecialLabels.Where(w => w.Contains(lastWord, StringComparison.InvariantCultureIgnoreCase)))
 				.Except(enteredWordList)
 				.Take(3);
 
@@ -828,5 +898,45 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand MaxCommand { get; }
 
 		public ReactiveCommand FeeRateCommand { get; }
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					if (Global.Synchronizer != null)
+					{
+						Global.Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
+					}
+
+					if (_coinList != null)
+					{
+						_coinList.SelectionChanged -= CoinList_SelectionChanged;
+						_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
+						_coinList.Dispose();
+					}
+
+					Disposables?.Dispose();
+				}
+
+				CoinList = null;
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

@@ -39,7 +39,10 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netcoreapp2.2\WalletWasabi.Gui.xml</DocumentationFile>
+    <DocumentationFile></DocumentationFile>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <ErrorReport>none</ErrorReport>
   </PropertyGroup>
 
   <ItemGroup>
@@ -54,6 +57,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
+	<PackageReference Include="Avalonia.Angle.Windows.Natives" Version="2.1.0.2019013001" />
   </ItemGroup>
 
   <ItemGroup>
@@ -64,18 +68,6 @@
 
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Controls\WalletExplorer\CoinListView.xaml.BASE.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
-    <None Update="Controls\WalletExplorer\CoinListView.xaml.LOCAL.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
-    <None Update="Controls\WalletExplorer\CoinListView.xaml.REMOTE.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
   </ItemGroup>
 
 </Project>

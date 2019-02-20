@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.BouncyCastle.Math;
 using NBitcoin.RPC;
 using Newtonsoft.Json;
 using System;
@@ -7,10 +8,14 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using WalletWasabi.Backend.Models.Requests;
+using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
+using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
+using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
 using Xunit;
 
 namespace WalletWasabi.Tests
@@ -194,6 +199,22 @@ namespace WalletWasabi.Tests
 			Assert.Equal(estimations[3], deserialized.Estimations[3]);
 			Assert.Equal(estimations[19], deserialized.Estimations[19]);
 			Assert.Equal(EstimateSmartFeeMode.Conservative, deserialized.Type);
+		}
+
+		[Fact]
+		public void InputsResponseSerialization()
+		{
+			uint256[] bigIntegers = new uint256[] { uint256.One, uint256.One, uint256.Zero };
+			var resp = new InputsResponse
+			{
+				UniqueId = Guid.NewGuid(),
+				RoundId = 1,
+			};
+
+			var serialized = JsonConvert.SerializeObject(resp);
+			var deserialized = JsonConvert.DeserializeObject<InputsResponse>(serialized);
+			Assert.Equal(resp.RoundId, deserialized.RoundId);
+			Assert.Equal(resp.UniqueId, deserialized.UniqueId);
 		}
 
 		[Fact]

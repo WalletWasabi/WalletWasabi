@@ -3,7 +3,6 @@ using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -17,6 +16,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
+using WalletWasabi.Gui.Dialogs;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
@@ -61,8 +62,6 @@ namespace WalletWasabi.Gui
 		public static Network Network => Config.Network;
 		public static string IndexFilePath => Path.Combine(DataDir, $"Index{Network}.dat");
 
-		public static BlindingRsaPubKey BlindingPubKey => Config.GetBlindingRsaPubKey();
-
 		public static string AddressManagerFilePath { get; private set; }
 		public static AddressManager AddressManager { get; private set; }
 		public static MemPoolService MemPoolService { get; private set; }
@@ -87,33 +86,49 @@ namespace WalletWasabi.Gui
 			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
 
-		private static long _triedDesperateDequeuing = 0;
+		private static long _isDesperateDequeuing = 0;
 
-		private static async Task TryDesperateDequeueAllCoinsAsync()
+		public static async Task TryDesperateDequeueAllCoinsAsync()
 		{
 			try
 			{
-				if (Interlocked.Read(ref _triedDesperateDequeuing) == 1)
+				if (Interlocked.Read(ref _isDesperateDequeuing) == 1)
 				{
 					return;
 				}
 				else
 				{
-					Interlocked.Increment(ref _triedDesperateDequeuing);
+					Interlocked.Increment(ref _isDesperateDequeuing);
 				}
 
-				if (WalletService is null || ChaumianClient is null)
-					return;
-				SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
-				if (enqueuedCoins.Any())
-				{
-					Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
-					await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
-				}
+				await DesperateDequeueAllCoinsAsync();
+			}
+			catch (NotSupportedException ex)
+			{
+				Logger.LogWarning(ex.Message, nameof(Global));
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex, nameof(Global));
+			}
+			finally
+			{
+				Interlocked.Exchange(ref _isDesperateDequeuing, 0);
+			}
+		}
+
+		public static async Task DesperateDequeueAllCoinsAsync()
+		{
+			if (WalletService is null || ChaumianClient is null)
+			{
+				return;
+			}
+
+			SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+			if (enqueuedCoins.Any())
+			{
+				Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
+				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
 			}
 		}
 
@@ -128,7 +143,7 @@ namespace WalletWasabi.Gui
 				e.Cancel = true;
 				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
 				await TryDesperateDequeueAllCoinsAsync();
-				Dispatcher.UIThread.Post(() =>
+				Dispatcher.UIThread.PostLogException(() =>
 				{
 					Application.Current.MainWindow.Close();
 				});
@@ -159,7 +174,16 @@ namespace WalletWasabi.Gui
 				try
 				{
 					AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
-					needsToDiscoverPeers = AddressManager.Count < 200;
+
+					// The most of the times we don't need to discover new peers. Instead, we can connect to
+					// some of those that we already discovered in the past. In this case we assume that we
+					// assume that discovering new peers could be necessary if out address manager has less
+					// than 500 addresses. A 500 addresses could be okay because previously we tried with
+					// 200 and only one user reported he/she was not able to connect (there could be many others,
+					// of course).
+					// On the other side, increasing this number forces users that do not need to discover more peers
+					// to spend resources (CPU/bandwith) to discover new peers.
+					needsToDiscoverPeers = AddressManager.Count < 500;
 					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
@@ -194,8 +218,10 @@ namespace WalletWasabi.Gui
 				}
 			}
 
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager);
-			addressManagerBehavior.Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None;
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
+			{
+				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
+			};
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 			MemPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
@@ -242,7 +268,10 @@ namespace WalletWasabi.Gui
 			{
 				requestInterval = TimeSpan.FromSeconds(5);
 			}
-			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), 1000);
+
+			int maxFiltSyncCount = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+
+			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
 			Logger.LogInfo("Start synchronizing filters...");
 		}
 
@@ -250,8 +279,8 @@ namespace WalletWasabi.Gui
 
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
-			ChaumianClient = new CcjClient(Synchronizer, Network, BlindingPubKey, keyManager, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
-			WalletService = new WalletService(keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir);
+			ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			WalletService = new WalletService(keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
 
 			ChaumianClient.Start();
 			Logger.LogInfo("Start Chaumian CoinJoin service...");
@@ -274,28 +303,18 @@ namespace WalletWasabi.Gui
 				{
 					foreach (SmartCoin coin in e.NewItems)
 					{
-						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-						{
-							Process.Start(new ProcessStartInfo
-							{
-								FileName = "notify-send",
-								Arguments = $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
-								CreateNoWindow = true
-							});
-						}
-						else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-						{
-							Process.Start(new ProcessStartInfo
-							{
-								FileName = "osascript",
-								Arguments = $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"",
-								CreateNoWindow = true
-							});
-						}
-						//else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
+						//if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
 						//{
 						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
 						//}
+						// else
+
+						using (var process = Process.Start(new ProcessStartInfo
+						{
+							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
+							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
+							CreateNoWindow = true
+						})) { };
 					}
 				}
 			}

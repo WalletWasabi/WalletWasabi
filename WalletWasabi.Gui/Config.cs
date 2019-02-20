@@ -1,7 +1,6 @@
 ﻿using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Math;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +12,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 using WalletWasabi.TorSocks5;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui
 {
@@ -41,23 +41,102 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "RegTestBackendUriV3")]
 		public string RegTestBackendUriV3 { get; private set; }
 
-		[JsonProperty(PropertyName = "TestNetBlindingRsaPubKey")]
-		public string TestNetBlindingRsaPubKey { get; private set; }
-
-		[JsonProperty(PropertyName = "MainNetBlindingRsaPubKey")]
-		public string MainNetBlindingRsaPubKey { get; private set; }
-
-		[JsonProperty(PropertyName = "RegTestBlindingRsaPubKey")]
-		public string RegTestBlindingRsaPubKey { get; private set; }
-
 		[JsonProperty(PropertyName = "TorHost")]
 		public string TorHost { get; internal set; }
 
 		[JsonProperty(PropertyName = "TorSocks5Port")]
 		public int? TorSocks5Port { get; internal set; }
 
+		[JsonProperty(PropertyName = "MainNetBitcoinCoreHost")]
+		public string MainNetBitcoinCoreHost { get; internal set; }
+
+		[JsonProperty(PropertyName = "TestNetBitcoinCoreHost")]
+		public string TestNetBitcoinCoreHost { get; internal set; }
+
+		[JsonProperty(PropertyName = "RegTestBitcoinCoreHost")]
+		public string RegTestBitcoinCoreHost { get; internal set; }
+
+		[JsonProperty(PropertyName = "MainNetBitcoinCorePort")]
+		public int? MainNetBitcoinCorePort { get; internal set; }
+
+		[JsonProperty(PropertyName = "TestNetBitcoinCorePort")]
+		public int? TestNetBitcoinCorePort { get; internal set; }
+
+		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
+		public int? RegTestBitcoinCorePort { get; internal set; }
+
+		[JsonProperty(PropertyName = "MixUntilAnonymitySet")]
+		public int? MixUntilAnonymitySet
+		{
+			get => _mixUntilAnonymitySet;
+			internal set
+			{
+				if (_mixUntilAnonymitySet != value)
+				{
+					_mixUntilAnonymitySet = value;
+					if (value.HasValue && ServiceConfiguration != default)
+					{
+						ServiceConfiguration.MixUntilAnonymitySet = value.Value;
+					}
+				}
+			}
+		}
+
+		[JsonProperty(PropertyName = "PrivacyLevelSome")]
+		public int? PrivacyLevelSome
+		{
+			get => _privacyLevelSome;
+			internal set
+			{
+				if (_privacyLevelSome != value)
+				{
+					_privacyLevelSome = value;
+					if (value.HasValue && ServiceConfiguration != default)
+					{
+						ServiceConfiguration.PrivacyLevelSome = value.Value;
+					}
+				}
+			}
+		}
+
+		[JsonProperty(PropertyName = "PrivacyLevelFine")]
+		public int? PrivacyLevelFine
+		{
+			get => _privacyLevelFine;
+			internal set
+			{
+				if (_privacyLevelFine != value)
+				{
+					_privacyLevelFine = value;
+					if (value.HasValue && ServiceConfiguration != default)
+					{
+						ServiceConfiguration.PrivacyLevelFine = value.Value;
+					}
+				}
+			}
+		}
+
+		[JsonProperty(PropertyName = "PrivacyLevelStrong")]
+		public int? PrivacyLevelStrong
+		{
+			get => _privacyLevelStrong;
+			internal set
+			{
+				if (_privacyLevelStrong != value)
+				{
+					_privacyLevelStrong = value;
+					if (value.HasValue && ServiceConfiguration != default)
+					{
+						ServiceConfiguration.PrivacyLevelStrong = value.Value;
+					}
+				}
+			}
+		}
+
 		private Uri _backendUri;
 		private Uri _fallbackBackendUri;
+
+		public ServiceConfiguration ServiceConfiguration { get; private set; }
 
 		public Uri GetCurrentBackendUri()
 		{
@@ -105,6 +184,11 @@ namespace WalletWasabi.Gui
 		}
 
 		private IPEndPoint _torSocks5EndPoint;
+		private int? _mixUntilAnonymitySet;
+		private int? _privacyLevelSome;
+		private int? _privacyLevelFine;
+		private int? _privacyLevelStrong;
+		private IPEndPoint _bitcoinCoreEndPoint;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
@@ -117,42 +201,64 @@ namespace WalletWasabi.Gui
 			return _torSocks5EndPoint;
 		}
 
-		private BlindingRsaPubKey _blindingRsaPubKey;
-
-		public BlindingRsaPubKey GetBlindingRsaPubKey()
+		public IPEndPoint GetBitcoinCoreEndPoint()
 		{
-			if (!(_blindingRsaPubKey is null)) return _blindingRsaPubKey;
+			if (_bitcoinCoreEndPoint is null)
+			{
+				IPAddress host;
+				int? port;
+				if (Network == Network.Main)
+				{
+					host = IPAddress.Parse(MainNetBitcoinCoreHost);
+					port = MainNetBitcoinCorePort;
+				}
+				else if (Network == Network.TestNet)
+				{
+					host = IPAddress.Parse(TestNetBitcoinCoreHost);
+					port = TestNetBitcoinCorePort;
+				}
+				else // if (Network == Network.RegTest)
+				{
+					host = IPAddress.Parse(RegTestBitcoinCoreHost);
+					port = RegTestBitcoinCorePort;
+				}
 
-			if (Network == Network.Main)
-			{
-				_blindingRsaPubKey = new BlindingRsaPubKey(new BigInteger(MainNetBlindingRsaPubKey), Constants.RsaPubKeyExponent);
-			}
-			else if (Network == Network.TestNet)
-			{
-				_blindingRsaPubKey = new BlindingRsaPubKey(new BigInteger(TestNetBlindingRsaPubKey), Constants.RsaPubKeyExponent);
-			}
-			else // RegTest
-			{
-				_blindingRsaPubKey = new BlindingRsaPubKey(new BigInteger(RegTestBlindingRsaPubKey), Constants.RsaPubKeyExponent);
+				_bitcoinCoreEndPoint = new IPEndPoint(host, port ?? Network.DefaultPort);
 			}
 
-			return _blindingRsaPubKey;
+			return _bitcoinCoreEndPoint;
 		}
 
 		public Config()
 		{
 			_backendUri = null;
-			_blindingRsaPubKey = null;
 		}
 
 		public Config(string filePath)
 		{
 			_backendUri = null;
-			_blindingRsaPubKey = null;
 			SetFilePath(filePath);
 		}
 
-		public Config(Network network, string mainNetBackendUriV3, string testNetBackendUriV3, string mainNetFallbackBackendUri, string testNetFallbackBackendUri, string regTestBackendUriV3, string mainNetBlindingRsaPubKey, string testNetBlindingRsaPubKey, string regTestBlindingRsaPubKey, string torHost, int? torSocks5Port)
+		public Config(
+			Network network,
+			string mainNetBackendUriV3,
+			string testNetBackendUriV3,
+			string mainNetFallbackBackendUri,
+			string testNetFallbackBackendUri,
+			string regTestBackendUriV3,
+			string torHost,
+			int? torSocks5Port,
+			string mainNetBitcoinCoreHost,
+			string testNetBitcoinCoreHost,
+			string regTestBitcoinCoreHost,
+			int? mainNetBitcoinCorePort,
+			int? testNetBitcoinCorePort,
+			int? regTestBitcoinCorePort,
+			int? mixUntilAnonymitySet,
+			int? privacyLevelSome,
+			int? privacyLevelFine,
+			int? privacyLevelStrong)
 		{
 			Network = Guard.NotNull(nameof(network), network);
 
@@ -163,12 +269,22 @@ namespace WalletWasabi.Gui
 			TestNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUriV3), testNetBackendUriV3);
 			RegTestBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBackendUriV3), regTestBackendUriV3);
 
-			MainNetBlindingRsaPubKey = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBlindingRsaPubKey), mainNetBlindingRsaPubKey);
-			TestNetBlindingRsaPubKey = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBlindingRsaPubKey), testNetBlindingRsaPubKey);
-			RegTestBlindingRsaPubKey = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBlindingRsaPubKey), regTestBlindingRsaPubKey);
-
 			TorHost = Guard.NotNullOrEmptyOrWhitespace(nameof(torHost), torHost);
 			TorSocks5Port = Guard.NotNull(nameof(torSocks5Port), torSocks5Port);
+
+			MainNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBitcoinCoreHost), mainNetBitcoinCoreHost);
+			TestNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBitcoinCoreHost), testNetBitcoinCoreHost);
+			RegTestBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBitcoinCoreHost), regTestBitcoinCoreHost);
+			MainNetBitcoinCorePort = Guard.NotNull(nameof(mainNetBitcoinCorePort), mainNetBitcoinCorePort);
+			TestNetBitcoinCorePort = Guard.NotNull(nameof(testNetBitcoinCorePort), testNetBitcoinCorePort);
+			RegTestBitcoinCorePort = Guard.NotNull(nameof(regTestBitcoinCorePort), regTestBitcoinCorePort);
+
+			MixUntilAnonymitySet = Guard.NotNull(nameof(mixUntilAnonymitySet), mixUntilAnonymitySet);
+			PrivacyLevelSome = Guard.NotNull(nameof(privacyLevelSome), privacyLevelSome);
+			PrivacyLevelFine = Guard.NotNull(nameof(privacyLevelFine), privacyLevelFine);
+			PrivacyLevelStrong = Guard.NotNull(nameof(privacyLevelStrong), privacyLevelStrong);
+
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint());
 		}
 
 		/// <inheritdoc />
@@ -195,12 +311,20 @@ namespace WalletWasabi.Gui
 			TestNetFallbackBackendUri = "https://wasabiwallet.co/";
 			RegTestBackendUriV3 = "http://localhost:37127/";
 
-			MainNetBlindingRsaPubKey = "16421152619146079007287475569112871971988560541093277613438316709041030720662622782033859387192362542996510605015506477964793447620206674394713753349543444988246276357919473682408472170521463339860947351211455351029147665615454176157348164935212551240942809518428851690991984017733153078846480521091423447691527000770982623947706172997649440619968085147635776736938871139581019988225202983052255684151711253254086264386774936200194229277914886876824852466823571396538091430866082004097086602287294474304344865162932126041736158327600847754258634325228417149098062181558798532036659383679712667027126535424484318399849";
-			TestNetBlindingRsaPubKey = "19473594448380717274202325076521698699373476167359253614775896809797414915031772455344343455269320444157176520539924715307970060890094127521516100754263825112231545354422893125394219335109864514907655429499954825469485252969706079992227103439161156022844535556626007277544637236136559868400854764962522288139619969507311597914908752685925185380735570791798593290356424409633800092336087046668579610273133131498947353719917407262847070395909920415822288443947309434039008038907229064999576278651443575362470457496666718250346530518268694562965606704838796709743032825816642704620776596590683042135764246115456630753521";
-			RegTestBlindingRsaPubKey = "19805113859916587596075691932680544502861190231482837135218424025384831779489269920459188761934430015720070888224509088334152377323792066863417578306968689084791111308220228369762317647065031287517847066636982918712457594977634751868801139928799770519498159408918552825154189662499542806401435306060574685644660620060856030258068774230785018597890946429085154652737881893280417266199217120928088976827238198687973416161592683348464391329470544325577003456519043206654114118700413398703915300437305079248875534495551617486735684899764754790953560278186552096336558799678522940277063802490218431509991711997155692507897";
-
 			TorHost = IPAddress.Loopback.ToString();
 			TorSocks5Port = 9050;
+
+			MainNetBitcoinCoreHost = IPAddress.Loopback.ToString();
+			TestNetBitcoinCoreHost = IPAddress.Loopback.ToString();
+			RegTestBitcoinCoreHost = IPAddress.Loopback.ToString();
+			MainNetBitcoinCorePort = Network.Main.DefaultPort;
+			TestNetBitcoinCorePort = Network.TestNet.DefaultPort;
+			RegTestBitcoinCorePort = Network.RegTest.DefaultPort;
+
+			MixUntilAnonymitySet = 50;
+			PrivacyLevelSome = 2;
+			PrivacyLevelFine = 21;
+			PrivacyLevelStrong = 50;
 
 			if (!File.Exists(FilePath))
 			{
@@ -211,9 +335,10 @@ namespace WalletWasabi.Gui
 				await LoadFileAsync();
 			}
 
+			ServiceConfiguration = new ServiceConfiguration(MixUntilAnonymitySet.Value, PrivacyLevelSome.Value, PrivacyLevelFine.Value, PrivacyLevelStrong.Value, GetBitcoinCoreEndPoint());
+
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
-			_blindingRsaPubKey = GetBlindingRsaPubKey();
 
 			await ToFileAsync();
 		}
@@ -231,16 +356,25 @@ namespace WalletWasabi.Gui
 			TestNetFallbackBackendUri = config.TestNetFallbackBackendUri ?? TestNetFallbackBackendUri;
 			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
 
-			MainNetBlindingRsaPubKey = config.MainNetBlindingRsaPubKey ?? MainNetBlindingRsaPubKey;
-			TestNetBlindingRsaPubKey = config.TestNetBlindingRsaPubKey ?? TestNetBlindingRsaPubKey;
-			RegTestBlindingRsaPubKey = config.RegTestBlindingRsaPubKey ?? RegTestBlindingRsaPubKey;
-
 			TorHost = config.TorHost ?? TorHost;
 			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
 
+			MainNetBitcoinCoreHost = config.MainNetBitcoinCoreHost ?? MainNetBitcoinCoreHost;
+			TestNetBitcoinCoreHost = config.TestNetBitcoinCoreHost ?? TestNetBitcoinCoreHost;
+			RegTestBitcoinCoreHost = config.RegTestBitcoinCoreHost ?? RegTestBitcoinCoreHost;
+			MainNetBitcoinCorePort = config.MainNetBitcoinCorePort ?? MainNetBitcoinCorePort;
+			TestNetBitcoinCorePort = config.TestNetBitcoinCorePort ?? TestNetBitcoinCorePort;
+			RegTestBitcoinCorePort = config.RegTestBitcoinCorePort ?? RegTestBitcoinCorePort;
+
+			MixUntilAnonymitySet = config.MixUntilAnonymitySet ?? MixUntilAnonymitySet;
+			PrivacyLevelSome = config.PrivacyLevelSome ?? PrivacyLevelSome;
+			PrivacyLevelFine = config.PrivacyLevelFine ?? PrivacyLevelFine;
+			PrivacyLevelStrong = config.PrivacyLevelStrong ?? PrivacyLevelStrong;
+
+			ServiceConfiguration = config.ServiceConfiguration ?? ServiceConfiguration;
+
 			// Just debug convenience.
 			_backendUri = GetCurrentBackendUri();
-			_blindingRsaPubKey = GetBlindingRsaPubKey();
 		}
 
 		/// <inheritdoc />
@@ -282,27 +416,53 @@ namespace WalletWasabi.Gui
 				return true;
 			}
 
-			if (!MainNetBlindingRsaPubKey.Equals(config.MainNetBlindingRsaPubKey, StringComparison.Ordinal))
-			{
-				return true;
-			}
-
-			if (!TestNetBlindingRsaPubKey.Equals(config.TestNetBlindingRsaPubKey, StringComparison.Ordinal))
-			{
-				return true;
-			}
-
-			if (!RegTestBlindingRsaPubKey.Equals(config.RegTestBlindingRsaPubKey, StringComparison.Ordinal))
-			{
-				return true;
-			}
-
 			if (!TorHost.Equals(config.TorHost, StringComparison.Ordinal))
 			{
 				return true;
 			}
-
 			if (TorSocks5Port != config.TorSocks5Port)
+			{
+				return true;
+			}
+
+			if (!MainNetBitcoinCoreHost.Equals(config.MainNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+			if (!TestNetBitcoinCoreHost.Equals(config.TestNetBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+			if (!RegTestBitcoinCoreHost.Equals(config.RegTestBitcoinCoreHost, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+			if (MainNetBitcoinCorePort != config.MainNetBitcoinCorePort)
+			{
+				return true;
+			}
+			if (TestNetBitcoinCorePort != config.TestNetBitcoinCorePort)
+			{
+				return true;
+			}
+			if (RegTestBitcoinCorePort != config.RegTestBitcoinCorePort)
+			{
+				return true;
+			}
+
+			if (MixUntilAnonymitySet != config.MixUntilAnonymitySet)
+			{
+				return true;
+			}
+			if (PrivacyLevelSome != config.PrivacyLevelSome)
+			{
+				return true;
+			}
+			if (PrivacyLevelFine != config.PrivacyLevelFine)
+			{
+				return true;
+			}
+			if (PrivacyLevelStrong != config.PrivacyLevelStrong)
 			{
 				return true;
 			}

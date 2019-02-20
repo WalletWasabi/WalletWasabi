@@ -41,10 +41,12 @@ namespace System.Net.Http
 			var headerStruct = headerSection.ToHttpResponseHeaders();
 
 			HttpMessageHelper.AssertValidHeaders(headerStruct.ResponseHeaders, headerStruct.ContentHeaders);
-			response.Content = await HttpMessageHelper.GetContentAsync(responseStream, headerStruct, requestMethod, statusLine);
+			byte[] contentBytes = await HttpMessageHelper.GetContentBytesAsync(responseStream, headerStruct, requestMethod, statusLine);
+			contentBytes = HttpMessageHelper.HandleGzipCompression(headerStruct.ContentHeaders, contentBytes);
+			response.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
 
 			HttpMessageHelper.CopyHeaders(headerStruct.ResponseHeaders, response.Headers);
-			if (!(response.Content is null))
+			if (response.Content != null)
 			{
 				HttpMessageHelper.CopyHeaders(headerStruct.ContentHeaders, response.Content.Headers);
 			}

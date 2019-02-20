@@ -1,47 +1,30 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
-             xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui" xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
   <UserControl.Resources>
     <converters:CoinJoinedVisibilityConverter x:Key="CoinJoinedVisibilityConverter" />
     <converters:MoneyStringConverter x:Key="MoneyStringConverter" />
     <converters:PhaseStringConverter x:Key="PhaseStringConverter" />
     <converters:PhaseColorConverter x:Key="PhaseColorConverter" />
+    <converters:PrivacyLevelValueConverter x:Key="PrivacyLevelValueConverter" />
   </UserControl.Resources>
-  <Grid RowDefinitions="8*,3*">
-    <controls:GroupBox Title="Coins" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5">
-      <Grid Classes="content">
-        <DockPanel LastChildFill="True">
-          <StackPanel Spacing="10" Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="0 10 0 0" HorizontalAlignment="Right">
-            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-            <TextBox Text="{Binding Password}" PasswordChar="*" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" />
-            <DockPanel LastChildFill="True" VerticalAlignment="Top" IsEnabled="{Binding !IsEnqueueBusy}">
-              <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
-                <StackPanel Orientation="Horizontal">
-                  <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsEnqueueBusy}" Margin="0 0 8 0" />
-                  <TextBlock Text="{Binding EnqueueButtonText}" />
-                </StackPanel>
-              </Button>
-              <Grid />
-            </DockPanel>
-            <DockPanel LastChildFill="True" VerticalAlignment="Top" IsEnabled="{Binding !IsDequeueBusy}">
-              <Button Command="{Binding DequeueCommand}" DockPanel.Dock="Right">
-                <StackPanel Orientation="Horizontal">
-                  <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsDequeueBusy}" Margin="0 0 8 0" />
-                  <TextBlock Text="{Binding DequeueButtonText}" />
-                </StackPanel>
-              </Button>
-              <Grid />
-            </DockPanel>
-          </StackPanel>
-          <local:CoinListView DataContext="{Binding CoinsList}" />
-        </DockPanel>
-      </Grid>
-    </controls:GroupBox>
-
-    <controls:GroupBox Title="Status" TextBlock.FontSize="16" Padding="10" Margin="10 5 10 5" Grid.Row="1">
-      <Grid Classes="content">
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="8*" />
+      <RowDefinition Height="3*" MinHeight="200" />
+    </Grid.RowDefinitions>
+    <Grid Classes="content" Grid.Row="0" Margin="0 0 0 10">
+      <local:CoinListView DataContext="{Binding CoinsList}" />
+    </Grid>
+    <Grid Grid.Row="1">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="150" />
+        <ColumnDefinition Width="*" MinWidth="460" />
+      </Grid.ColumnDefinitions>
+      <controls:GroupBox Grid.Row="0" Grid.Column="2" Title="Status" Padding="5" Margin="5 5 0 0">
         <ScrollViewer>
           <StackPanel Orientation="Vertical">
             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -56,15 +39,12 @@
               <TextBlock Foreground="YellowGreen" Text="BTC" />
               <TextBlock Text="for CoinJoin." />
             </StackPanel>
-
             <StackPanel Orientation="Horizontal" Spacing="4">
               <TextBlock Text="Coordinator Fee:" />
               <TextBlock Text="{Binding CoordinatorFeePercent}" />
               <TextBlock Text="% per anonymity set." />
             </StackPanel>
-
             <Grid ColumnDefinitions="210, *" RowDefinitions="50, 20, 20">
-
               <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="4" Margin="0 12">
                 <Canvas Height="20" Width="200">
                   <Ellipse Width="20" Height="20" StrokeThickness="4" Stroke="{Binding Phase, ConverterParameter=InputRegistration, Converter={StaticResource PhaseColorConverter}}" Canvas.Left="0" />
@@ -79,29 +59,68 @@
               <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="0 12">
                 <TextBlock VerticalAlignment="Center" Foreground="YellowGreen" Text="{Binding Phase, Converter={StaticResource PhaseStringConverter}}" />
               </StackPanel>
-
               <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="4">
                 <TextBlock Text="Number of Registered Peers:" />
               </StackPanel>
-
               <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="4">
                 <TextBlock Foreground="YellowGreen" Text="{Binding PeersRegistered}" />
                 <TextBlock Text="/" />
                 <TextBlock Text="{Binding PeersNeeded}" />
                 <ProgressBar Minimum="0" Maximum="{Binding PeersNeeded}" Value="{Binding PeersRegistered}" />
               </StackPanel>
-
               <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="4">
                 <TextBlock Text="Number of Successful Rounds:" />
               </StackPanel>
-
               <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="4">
                 <TextBlock Foreground="YellowGreen" Text="{Binding SuccessfulRoundCount}" />
               </StackPanel>
             </Grid>
           </StackPanel>
         </ScrollViewer>
-      </Grid>
-    </controls:GroupBox>
+      </controls:GroupBox>
+      <controls:GroupBox Grid.Row="0" Grid.Column="0" Title="CoinJoin" Padding="5" Margin="0 5 5 0">
+        <Grid Grid.Row="0" Grid.Column="0" Classes="content">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="150" />
+          </Grid.RowDefinitions>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Spacing="10">
+            <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" Margin="0 20 0 0" />
+            <DockPanel Grid.Row="0" Grid.Column="1" LastChildFill="True" IsEnabled="{Binding !IsEnqueueBusy}">
+              <Button Command="{Binding EnqueueCommand}" DockPanel.Dock="Right">
+                <StackPanel Orientation="Horizontal">
+                  <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsEnqueueBusy}" Margin="0 0 8 0" />
+                  <TextBlock Text="{Binding EnqueueButtonText}" />
+                </StackPanel>
+              </Button>
+            </DockPanel>
+            <DockPanel LastChildFill="True" IsEnabled="{Binding !IsDequeueBusy}">
+              <Button Command="{Binding DequeueCommand}" DockPanel.Dock="Right">
+                <StackPanel Orientation="Horizontal">
+                  <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsDequeueBusy}" Margin="0 0 8 0" />
+                  <TextBlock Text="{Binding DequeueButtonText}" />
+                </StackPanel>
+              </Button>
+            </DockPanel>
+            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+          </StackPanel>
+        </Grid>
+      </controls:GroupBox>
+      <controls:GroupBox Grid.Column="1" Title="Target" Padding="5" Margin="5 0">
+        <Button Command="{Binding TargetButtonCommand}">
+          <Grid Background="Transparent" DataContext="{Binding CoinJoinUntilAnonimitySet, Converter={StaticResource PrivacyLevelValueConverter}}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="2*"></RowDefinition>
+              <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <DrawingPresenter Grid.Row="0" Drawing="{Binding Icon}" VerticalAlignment="Top" Height="100" Width="75" />
+            <TextBlock Margin ="0 5 0 0"  Grid.Row="1" Text="{Binding ToolTip}" TextAlignment="Center" TextWrapping="Wrap" />
+          </Grid>
+        </Button>
+      </controls:GroupBox>
+    </Grid>
   </Grid>
 </UserControl>

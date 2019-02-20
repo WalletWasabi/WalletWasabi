@@ -41,7 +41,9 @@ namespace System.Net.Http
 			var headerStruct = headerSection.ToHttpRequestHeaders();
 
 			HttpMessageHelper.AssertValidHeaders(headerStruct.RequestHeaders, headerStruct.ContentHeaders);
-			request.Content = await HttpMessageHelper.GetContentAsync(requestStream, headerStruct, ctsToken);
+			byte[] contentBytes = await HttpMessageHelper.GetContentBytesAsync(requestStream, headerStruct, ctsToken);
+			contentBytes = HttpMessageHelper.HandleGzipCompression(headerStruct.ContentHeaders, contentBytes);
+			request.Content = contentBytes is null ? null : new ByteArrayContent(contentBytes);
 
 			HttpMessageHelper.CopyHeaders(headerStruct.RequestHeaders, request.Headers);
 			if (!(request.Content is null))

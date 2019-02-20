@@ -9,7 +9,10 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netcoreapp2.2\WalletWasabi.xml</DocumentationFile>
+    <DocumentationFile></DocumentationFile>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <ErrorReport>none</ErrorReport>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -17,8 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NBitcoin" Version="4.1.1.73" />
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.4" />
+    <PackageReference Include="NBitcoin" Version="4.1.1.81" />
   </ItemGroup>
 
   <ItemGroup>

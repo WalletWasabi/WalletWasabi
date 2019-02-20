@@ -18,12 +18,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 		public static readonly AsyncLock Lock = new AsyncLock();
 		public static string WorkingDirectory { get; private set; }
 
-		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.17.0")
+		public static async Task<NodeBuilder> CreateAsync([CallerMemberName]string caller = null, string version = "0.17.1")
 		{
 			using (await Lock.LockAsync())
 			{
 				WorkingDirectory = Path.Combine(SharedFixture.DataDir, caller);
-				version = version ?? "0.17.0";
+				version = version ?? "0.17.1";
 				var path = await EnsureDownloadedAsync(version);
 				await TryRemoveWorkingDirectoryAsync();
 				Directory.CreateDirectory(WorkingDirectory);
@@ -102,7 +102,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 					var data = await client.GetByteArrayAsync(url);
 					await File.WriteAllBytesAsync(zip, data);
 
-					Process.Start("tar", "-zxvf " + zip + " -C " + SharedFixture.DataDir).WaitForExit();
+					using (var process = Process.Start("tar", "-zxvf " + zip + " -C " + SharedFixture.DataDir))
+					{
+						process.WaitForExit();
+					}
 				}
 			}
 			File.Delete(zip);

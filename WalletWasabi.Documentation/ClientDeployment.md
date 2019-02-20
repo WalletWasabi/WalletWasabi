@@ -1,5 +1,6 @@
 # 1. Packaging
 
+0. Make sure local .NET Core version is up to date.
 1. Run tests.
 2. Dump client version.
 3. Run packager in publish mode.

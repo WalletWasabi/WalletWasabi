@@ -32,7 +32,6 @@ namespace WalletWasabi.Gui.ViewModels
 	public class StatusBarViewModel : ViewModelBase, IDisposable
 	{
 		public NodesCollection Nodes { get; }
-		public MemPoolService MemPoolService { get; }
 		public WasabiSynchronizer Synchronizer { get; }
 		public UpdateChecker UpdateChecker { get; }
 
@@ -79,89 +78,60 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public BackendStatus Backend
 		{
-			get { return _backend; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _backend, value);
-			}
+			get => _backend;
+			set => this.RaiseAndSetIfChanged(ref _backend, value);
 		}
 
 		private TorStatus _tor;
 
 		public TorStatus Tor
 		{
-			get { return _tor; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _tor, value);
-			}
+			get => _tor;
+			set => this.RaiseAndSetIfChanged(ref _tor, value);
 		}
 
 		private int _peers;
 
 		public int Peers
 		{
-			get { return _peers; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _peers, value);
-			}
+			get => _peers;
+			set => this.RaiseAndSetIfChanged(ref _peers, value);
 		}
 
 		private int _filtersLeft;
 
 		public int FiltersLeft
 		{
-			get { return _filtersLeft; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _filtersLeft, value);
-			}
+			get => _filtersLeft;
+			set => this.RaiseAndSetIfChanged(ref _filtersLeft, value);
 		}
 
 		private int _blocksLeft;
 
 		public int BlocksLeft
 		{
-			get { return _blocksLeft; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _blocksLeft, value);
-			}
-		}
-
-		private int _mempool;
-
-		public int Mempool
-		{
-			get { return _mempool; }
-			set
-			{
-				this.RaiseAndSetIfChanged(ref _mempool, value);
-			}
+			get => _blocksLeft;
+			set => this.RaiseAndSetIfChanged(ref _blocksLeft, value);
 		}
 
 		public string BtcPrice
 		{
 			get => _btcPrice;
-			set 
-			{
-				this.RaiseAndSetIfChanged(ref _btcPrice, value);
-			}
+			set => this.RaiseAndSetIfChanged(ref _btcPrice, value);
 		}
 
 		private string _status;
 
 		public string Status
 		{
-			get { return _status; }
-			set { this.RaiseAndSetIfChanged(ref _status, value); }
+			get => _status;
+			set => this.RaiseAndSetIfChanged(ref _status, value);
 		}
 
 		private long _clientOutOfDate;
 		private long _backendIncompatible;
 
-		public StatusBarViewModel(NodesCollection nodes, MemPoolService memPoolService, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
+		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
 			_clientOutOfDate = 0;
 			_backendIncompatible = 0;
@@ -174,10 +144,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 			BlocksLeft = 0;
 			WalletService.ConcurrentBlockDownloadNumberChanged += WalletService_ConcurrentBlockDownloadNumberChanged;
-
-			MemPoolService = memPoolService;
-			MemPoolService.TransactionReceived += MemPoolService_TransactionReceived;
-			Mempool = MemPoolService.TransactionHashes.Count;
 
 			Synchronizer = synchronizer;
 			UpdateChecker = updateChecker;
@@ -212,7 +178,7 @@ namespace WalletWasabi.Gui.ViewModels
 				() =>
 				{
 					Interlocked.Exchange(ref _backendIncompatible, 1);
-					Dispatcher.UIThread.Post(() =>
+					Dispatcher.UIThread.PostLogException(() =>
 					{
 						SetStatusAndDoUpdateActions();
 					});
@@ -221,7 +187,7 @@ namespace WalletWasabi.Gui.ViewModels
 				() =>
 				{
 					Interlocked.Exchange(ref _clientOutOfDate, 1);
-					Dispatcher.UIThread.Post(() =>
+					Dispatcher.UIThread.PostLogException(() =>
 					{
 						SetStatusAndDoUpdateActions();
 					});
@@ -332,11 +298,6 @@ namespace WalletWasabi.Gui.ViewModels
 			FiltersLeft = Synchronizer.GetFiltersLeft();
 		}
 
-		private void MemPoolService_TransactionReceived(object sender, SmartTransaction e)
-		{
-			Mempool = MemPoolService.TransactionHashes.Count;
-		}
-
 		private void Nodes_Removed(object sender, NodeEventArgs e)
 		{
 			Peers = Nodes.Count;
@@ -360,7 +321,6 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					Nodes.Added -= Nodes_Added;
 					Nodes.Removed -= Nodes_Removed;
-					MemPoolService.TransactionReceived -= MemPoolService_TransactionReceived;
 					Synchronizer.NewFilter -= IndexDownloader_NewFilter;
 					Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
 					Synchronizer.ResponseArrivedIsGenSocksServFail -= IndexDownloader_ResponseArrivedIsGenSocksServFail;
@@ -380,7 +340,6 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
-			// GC.SuppressFinalize(this);
 		}
 
 		#endregion IDisposable Support

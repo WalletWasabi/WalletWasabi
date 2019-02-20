@@ -1,8 +1,11 @@
+using NBitcoin.Crypto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Models.ChaumianCoinJoin;
+using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace NBitcoin
 {
@@ -59,23 +62,24 @@ namespace NBitcoin
 			return false;
 		}
 
-		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me)
+		public static IEnumerable<(Money value, int count)> GetIndistinguishableOutputs(this Transaction me, bool includeSingle)
 		{
 			return me.Outputs.GroupBy(x => x.Value)
 			   .ToDictionary(x => x.Key, y => y.Count())
-			   .Select(x => (x.Key, x.Value));
+			   .Select(x => (x.Key, x.Value))
+			   .Where(x => includeSingle || x.Value > 1);
 		}
 
 		public static int GetAnonymitySet(this Transaction me, int outputIndex)
 		{
 			var output = me.Outputs[outputIndex];
-			return me.GetIndistinguishableOutputs().Single(x => x.value == output.Value).count;
+			return me.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count;
 		}
 
 		public static int GetMixin(this Transaction me, uint outputIndex)
 		{
 			var output = me.Outputs[outputIndex];
-			return me.GetIndistinguishableOutputs().Single(x => x.value == output.Value).count - 1;
+			return me.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count - 1;
 		}
 
 		/// <summary>
@@ -90,7 +94,7 @@ namespace NBitcoin
 			return notNull && notEmpty;
 		}
 
-		public static Money Percentange(this Money me, decimal perc)
+		public static Money Percentage(this Money me, decimal perc)
 		{
 			return Money.Satoshis((me.Satoshi / 100m) * perc);
 		}
@@ -99,5 +103,82 @@ namespace NBitcoin
 		{
 			return me.ToDecimal(MoneyUnit.BTC) * btcExchangeRate;
 		}
+
+		public static bool VerifyMessage(this BitcoinWitPubKeyAddress address, uint256 messageHash, byte[] signature)
+		{
+			PubKey pubKey = PubKey.RecoverCompact(messageHash, signature);
+			return pubKey.WitHash == address.Hash;
+		}
+
+		public static bool VerifyUnblindedSignature(this Signer signer, UnblindedSignature signature, byte[] data)
+		{
+			uint256 hash = new uint256(Hashes.SHA256(data));
+			return VerifySignature(hash, signature, signer.Key.PubKey);
+		}
+
+		public static bool VerifyUnblindedSignature(this Signer signer, UnblindedSignature signature, uint256 dataHash)
+		{
+			return VerifySignature(dataHash, signature, signer.Key.PubKey);
+		}
+
+		public static uint256 BlindScript(this Requester requester, PubKey signerPubKey, PubKey RPubKey, Script script)
+		{
+			var msg = new uint256(Hashes.SHA256(script.ToBytes()));
+			return requester.BlindMessage(msg, RPubKey, signerPubKey);
+		}
+
+		public static Signer Create(this Signer signer, SchnorrKey schnorrKey)
+		{
+			var k = Guard.NotNull(nameof(schnorrKey.SignerKey), schnorrKey.SignerKey);
+			var r = Guard.NotNull(nameof(schnorrKey.Rkey), schnorrKey.Rkey);
+			return new Signer(k, r);
+		}
+
+		/// <summary>
+		/// If scriptpubkey is already present, just add the value.
+		/// </summary>
+		public static void AddWithOptimize(this TxOutList me, Money money, Script scriptPubKey)
+		{
+			TxOut found = me.FirstOrDefault(x => x.ScriptPubKey == scriptPubKey);
+			if(found != null)
+			{
+				found.Value += money;
+			}
+			else
+			{
+				me.Add(money, scriptPubKey);
+			}
+		}
+
+		/// <summary>
+		/// If scriptpubkey is already present, just add the value.
+		/// </summary>
+		public static void AddWithOptimize(this TxOutList me, Money money, IDestination destination)
+		{
+			me.AddWithOptimize(money, destination.ScriptPubKey);
+		}
+
+		/// <summary>
+		/// If scriptpubkey is already present, just add the value.
+		/// </summary>
+		public static void AddWithOptimize(this TxOutList me, TxOut txOut)
+		{
+			me.AddWithOptimize(txOut.Value, txOut.ScriptPubKey);
+		}
+
+		/// <summary>
+		/// If scriptpubkey is already present, just add the value.
+		/// </summary>
+		public static void AddRangeWithOptimize(this TxOutList me, IEnumerable<TxOut> collection)
+		{
+			foreach(var txout in collection)
+			{
+				me.AddWithOptimize(txout);
+			}
+		}
+
+		public static SchnorrPubKey GetSchnorrPubKey(this Signer signer) => new SchnorrPubKey(signer);
+
+		public static uint256 BlindMessage(this Requester requester, uint256 messageHash, SchnorrPubKey schnorrPubKey) => requester.BlindMessage(messageHash, schnorrPubKey.RpubKey, schnorrPubKey.SignerPubKey);
 	}
 }

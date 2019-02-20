@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.Behaviors
 {
 	internal class PasteAddressOnClickBehavior : Behavior<TextBox>
 	{
-		private CompositeDisposable _disposables = new CompositeDisposable();
+		private CompositeDisposable Disposables { get; set; }
 
 		protected internal enum TextBoxState
 		{
@@ -84,7 +84,8 @@ namespace WalletWasabi.Gui.Behaviors
 		protected override void OnAttached()
 		{
 			_originalToolTipText = (string)ToolTip.GetTip(AssociatedObject);
-			_disposables = new CompositeDisposable
+			Disposables?.Dispose();
+			Disposables = new CompositeDisposable
 			{
 				AssociatedObject.GetObservable(TextBox.IsFocusedProperty).Subscribe(focused =>
 				{
@@ -95,7 +96,7 @@ namespace WalletWasabi.Gui.Behaviors
 				})
 			};
 
-			_disposables.Add(
+			Disposables.Add(
 				AssociatedObject.GetObservable(TextBox.PointerReleasedEvent).Subscribe(async pointer =>
 				{
 					switch (MyTextBoxState)
@@ -125,7 +126,7 @@ namespace WalletWasabi.Gui.Behaviors
 				})
 			);
 
-			_disposables.Add(
+			Disposables.Add(
 				AssociatedObject.GetObservable(TextBox.PointerEnterEvent).Subscribe(async pointerEnter =>
 				{
 					if (!AssociatedObject.IsFocused && MyTextBoxState == TextBoxState.NormalTextBoxOperation)
@@ -165,7 +166,7 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			base.OnDetaching();
 
-			_disposables.Dispose();
+			Disposables?.Dispose();
 		}
 	}
 }

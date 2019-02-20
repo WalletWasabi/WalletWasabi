@@ -3,6 +3,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -32,15 +33,11 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		[HttpGet("synchronize")]
-		public async Task<IActionResult> GetSynchronizeAsync([FromQuery]string bestKnownBlockHash, [FromQuery]int maxNumberOfFilters, [FromQuery]string estimateSmartFeeMode)
+		public async Task<IActionResult> GetSynchronizeAsync([FromQuery, Required]string bestKnownBlockHash, [FromQuery, Required]int maxNumberOfFilters, [FromQuery]string estimateSmartFeeMode)
 		{
-			if (string.IsNullOrWhiteSpace(bestKnownBlockHash))
+			if (!ModelState.IsValid)
 			{
-				return BadRequest("Invalid block hash is provided.");
-			}
-			if (maxNumberOfFilters <= 0)
-			{
-				return BadRequest("Invalid maxNumberOfFilters is provided.");
+				return BadRequest("Wrong body is provided.");
 			}
 
 			bool estimateSmartFee = !string.IsNullOrWhiteSpace(estimateSmartFeeMode);
@@ -53,17 +50,12 @@ namespace WalletWasabi.Backend.Controllers
 				}
 			}
 
-			if (!ModelState.IsValid)
-			{
-				return BadRequest("Wrong body is provided.");
-			}
-
 			var knownHash = new uint256(bestKnownBlockHash);
 
-			(Height bestHeight, IEnumerable<string> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
+			(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, maxNumberOfFilters, out bool found);
 
 			var response = new SynchronizeResponse();
-			response.Filters = new string[0];
+			response.Filters = Enumerable.Empty<FilterModel>();
 			response.BestHeight = bestHeight;
 
 			if (!found)

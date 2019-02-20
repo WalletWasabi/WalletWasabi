@@ -1,6 +1,7 @@
 ﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.JsonConverters
 {
@@ -15,7 +16,9 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			return new uint256(((string)reader.Value).Trim());
+			var value = Guard.Correct((string)reader.Value);
+
+			return string.IsNullOrWhiteSpace(value) ? default : new uint256(value);
 		}
 
 		/// <inheritdoc />

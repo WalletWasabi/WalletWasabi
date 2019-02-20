@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.Behaviors
 {
 	internal class FocusBehavior : Behavior<Control>
 	{
-		private CompositeDisposable _disposables = new CompositeDisposable();
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		private static readonly AvaloniaProperty<bool> IsFocusedProperty =
 			AvaloniaProperty.Register<FocusBehavior, bool>(nameof(IsFocused), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.Behaviors
 
 			AssociatedObject.AttachedToLogicalTree += (sender, e) =>
 			{
-				_disposables.Add(this.GetObservable(IsFocusedProperty).Subscribe(focused =>
+				Disposables.Add(this.GetObservable(IsFocusedProperty).Subscribe(focused =>
 				{
 					if (focused)
 					{
@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			base.OnDetaching();
 
-			_disposables.Dispose();
+			Disposables?.Dispose();
 		}
 	}
 }

@@ -1,3 +1,24 @@
+# Update
+
+Consider updating the versions in `WalletWasabi.Helpers.Constants`. If versions are updated, make sure Client Release is already available before updating the backend.
+
+```sh
+sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~
+sudo service nginx stop
+sudo systemctl stop walletwasabi.service
+sudo killall tor
+bitcoin-cli stop
+sudo apt-get upgrade -y && sudo apt-get autoremove -y
+bitcoind
+bitcoin-cli getblockchaininfo
+tor
+sudo service nginx start
+dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
+sudo systemctl start walletwasabi.service
+pgrep -ilfa tor && pgrep -ilfa bitcoin && pgrep -ilfa wasabi && pgrep -ilfa nginx
+tail -1000 ~/.walletwasabi/backend/Logs.txt
+```
+
 # 1. Create Remote Server
 
 ## Name
@@ -127,7 +148,8 @@ pico ~/.bitcoin/bitcoin.conf
 testnet=[0/1]
 
 [main/test].maxuploadtarget=144
-[main/test].listen=0
+# If bandwidth is an issue, then don't listen. It may be problematic from a privacy point of view.
+#[main/test].listen=0
 
 [main/test].txindex=1
 
@@ -197,7 +219,7 @@ WantedBy=multi-user.target
 sudo systemctl enable walletwasabi.service
 sudo systemctl start walletwasabi.service
 systemctl status walletwasabi.service
-tail -10 .walletwasabi/backend/Logs.txt
+tail -1000 .walletwasabi/backend/Logs.txt
 ```
 
 ## Tor
@@ -263,31 +285,14 @@ server {
 }
 ```
 
+Add `add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;` and `server_tokens off;` to every HTTPS `server` block.
+
 ```sh
 sudo nginx -t
 sudo nginx -s reload
 ```
 
-# Update
-
-Consider updating the versions in `WalletWasabi.Helpers.Constants`. If versions are updated, make sure Client Release is already available before updating the backend.
-
-```sh
-sudo apt-get update && cd ~/WalletWasabi && git pull && cd ~
-sudo service nginx stop
-sudo systemctl stop walletwasabi.service
-sudo killall tor
-bitcoin-cli stop
-sudo apt-get upgrade -y && sudo apt-get autoremove -y
-bitcoind
-bitcoin-cli getblockchaininfo
-tor
-sudo service nginx start
-dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
-sudo systemctl start walletwasabi.service
-pgrep -ilfa tor && pgrep -ilfa bitcoin && pgrep -ilfa wasabi && pgrep -ilfa nginx
-tail -10 ~/.walletwasabi/backend/Logs.txt
-```
+After accessing the website finalize preload in https://hstspreload.org/
 
 # Check If Everything Works
 
@@ -301,6 +306,6 @@ http://www.wasabiwallet.io/
 
 ```sh
 tail -f ~/.bitcoin/debug.log
-tail -10 .walletwasabi/backend/Logs.txt
+tail -1000 .walletwasabi/backend/Logs.txt
 du -bsh .walletwasabi/backend/IndexBuilderService/*
 ```

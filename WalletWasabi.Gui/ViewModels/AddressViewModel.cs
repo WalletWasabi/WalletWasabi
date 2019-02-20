@@ -10,8 +10,6 @@ namespace WalletWasabi.Gui.ViewModels
 	public class AddressViewModel : ViewModelBase
 	{
 		private bool _isExpanded;
-		private bool _generating;
-		private bool _isBusy;
 		private bool[,] _qrCode;
 
 		public HdPubKey Model { get; }
@@ -20,42 +18,30 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			Model = model;
 
-			this.WhenAnyValue(x => x.IsExpanded).Subscribe(async expanded =>
+			Task.Run(() =>
 			{
-				if (expanded && !_generating && QrCode is null)
-				{
-					IsBusy = true;
+				var encoder = new QrEncoder(ErrorCorrectionLevel.M);
+				encoder.TryEncode(Address, out var qrCode);
 
-					_generating = true;
-
-					QrCode = await Task.Run(() =>
-					{
-						var encoder = new QrEncoder(ErrorCorrectionLevel.M);
-						encoder.TryEncode(Address, out var qrCode);
-
-						return qrCode.Matrix.InternalArray;
-					});
-
-					IsBusy = false;
-				}
+				return qrCode.Matrix.InternalArray;
+			}).ContinueWith(x=> {
+				QrCode = x.Result;
 			});
-		}
-
-		public bool IsBusy
-		{
-			get { return _isBusy; }
-			set { this.RaiseAndSetIfChanged(ref _isBusy, value); }
 		}
 
 		public bool IsExpanded
 		{
-			get { return _isExpanded; }
-			set { this.RaiseAndSetIfChanged(ref _isExpanded, value); }
+			get => _isExpanded;
+			set => this.RaiseAndSetIfChanged(ref _isExpanded, value);
 		}
 
 		public string Label => Model.Label;
 
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
+
+		public string Pubkey => Model.PubKey.ToString();
+
+		public string KeyPath => Model.FullKeyPath.ToString();
 
 		public bool[,] QrCode
 		{

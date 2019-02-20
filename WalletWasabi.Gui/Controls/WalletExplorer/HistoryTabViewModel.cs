@@ -7,7 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
@@ -18,7 +20,7 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryTabViewModel : WalletActionViewModel
+	public class HistoryTabViewModel : WalletActionViewModel, IDisposable
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
@@ -28,13 +30,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		private CompositeDisposable Disposables { get; }
+
+		public ReactiveCommand SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
+			Disposables = new CompositeDisposable();
 			Interlocked.Exchange(ref _disableClipboard, 0);
 			Transactions = new ObservableCollection<TransactionViewModel>();
-			RewriteTable();
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+			RewriteTableAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
 			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
 			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
@@ -43,11 +51,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			coinsChanged
 				.Merge(newBlockProcessed)
 				.Merge(coinSpent)
+				.Throttle(TimeSpan.FromSeconds(5))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o =>
+				.Subscribe(_ =>
 				{
-					RewriteTable();
-				});
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+					RewriteTableAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+				}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
@@ -59,7 +70,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						ClipboardNotificationVisible = true;
 						ClipboardNotificationOpacity = 1;
 
-						Dispatcher.UIThread.Post(async () =>
+						Dispatcher.UIThread.PostLogException(async () =>
 						{
 							await Task.Delay(1000);
 							ClipboardNotificationOpacity = 0;
@@ -70,16 +81,59 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Interlocked.Exchange(ref _disableClipboard, 0);
 				}
-			});
+			}).DisposeWith(Disposables);
+
+			SortCommand = ReactiveCommand.Create(() => RefreshOrdering()).DisposeWith(Disposables);
+
 			DateSortDirection = SortOrder.Decreasing;
 		}
 
-		private void RewriteTable()
+		private async Task RewriteTableAsync()
 		{
+			var txRecordList = await Task.Run(() =>
+			{
+				return BuildTxRecordList();
+			});
+
+			var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
+			Transactions?.Clear();
+
+			var trs = txRecordList.Select(txr => new TransactionInfo
+			{
+				DateTime = txr.dateTime.ToLocalTime(),
+				Confirmed = txr.height != WalletWasabi.Models.Height.MemPool && txr.height != WalletWasabi.Models.Height.Unknown,
+				AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
+				Label = txr.label,
+				TransactionId = txr.transactionId.ToString()
+			}).Select(ti => new TransactionViewModel(ti));
+
+			Transactions = new ObservableCollection<TransactionViewModel>(trs);
+
+			if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
+			{
+				var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
+				if (txToSelect != default)
+				{
+					Interlocked.Exchange(ref _disableClipboard, 1);
+					SelectedTransaction = txToSelect;
+				}
+			}
+			RefreshOrdering();
+		}
+
+		private static List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
+		{
+			List<Transaction> trs = new List<Transaction>();
 			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)>();
 			foreach (SmartCoin coin in Global.WalletService.Coins)
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
+
+				if (Global.WalletService is null) // disposed meanwhile
+				{
+					break;
+				}
+
 				SmartTransaction foundTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.TransactionId);
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
@@ -114,9 +168,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SmartTransaction foundSpenderTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
 					{
-						if (Global.WalletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
+						if (Global.WalletService?.ProcessedBlocks != null) // NullReferenceException appeared here.
 						{
-							dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
+							if (Global.WalletService.ProcessedBlocks.Any(x => x.Value.height == foundSpenderTransaction.Height))
+							{
+								if (Global.WalletService?.ProcessedBlocks != null) // NullReferenceException appeared here.
+								{
+									dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundSpenderTransaction.Height).Value.dateTime;
+								}
+								else
+								{
+									dateTime = DateTimeOffset.UtcNow;
+								}
+							}
+							else
+							{
+								dateTime = DateTimeOffset.UtcNow;
+							}
 						}
 						else
 						{
@@ -141,58 +209,32 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 				}
 			}
-
 			txRecordList = txRecordList.OrderByDescending(x => x.dateTime).ThenBy(x => x.amount).ToList();
-
-			var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
-			Transactions?.Clear();
-			foreach (var txr in txRecordList)
-			{
-				var txinfo = new TransactionInfo
-				{
-					DateTime = txr.dateTime.ToLocalTime(),
-					Confirmed = txr.height != WalletWasabi.Models.Height.MemPool && txr.height != WalletWasabi.Models.Height.Unknown,
-					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
-					Label = txr.label,
-					TransactionId = txr.transactionId.ToString()
-				};
-				Transactions.Add(new TransactionViewModel(txinfo));
-			}
-
-			if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
-			{
-				var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
-				if (txToSelect != default)
-				{
-					Interlocked.Exchange(ref _disableClipboard, 1);
-					SelectedTransaction = txToSelect;
-				}
-			}
-			RefreshOrdering();
+			return txRecordList;
 		}
 
 		public ObservableCollection<TransactionViewModel> Transactions
 		{
-			get { return _transactions; }
-			set { this.RaiseAndSetIfChanged(ref _transactions, value); }
+			get => _transactions;
+			set => this.RaiseAndSetIfChanged(ref _transactions, value);
 		}
 
 		public TransactionViewModel SelectedTransaction
 		{
-			get { return _selectedTransaction; }
-			set { this.RaiseAndSetIfChanged(ref _selectedTransaction, value); }
+			get => _selectedTransaction;
+			set => this.RaiseAndSetIfChanged(ref _selectedTransaction, value);
 		}
 
 		public double ClipboardNotificationOpacity
 		{
-			get { return _clipboardNotificationOpacity; }
-			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value); }
+			get => _clipboardNotificationOpacity;
+			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
 		public bool ClipboardNotificationVisible
 		{
-			get { return _clipboardNotificationVisible; }
-			set { this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value); }
+			get => _clipboardNotificationVisible;
+			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
 		}
 
 		public SortOrder DateSortDirection
@@ -206,7 +248,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AmountSortDirection = SortOrder.None;
 					TransactionSortDirection = SortOrder.None;
 				}
-				RefreshOrdering();
 			}
 		}
 
@@ -221,7 +262,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					DateSortDirection = SortOrder.None;
 					TransactionSortDirection = SortOrder.None;
 				}
-				RefreshOrdering();
 			}
 		}
 
@@ -236,7 +276,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					AmountSortDirection = SortOrder.None;
 					DateSortDirection = SortOrder.None;
 				}
-				RefreshOrdering();
 			}
 		}
 
@@ -282,5 +321,39 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					if (Transactions != null)
+					{
+						foreach (var tr in Transactions)
+						{
+							tr?.Dispose();
+						}
+					}
+					Disposables?.Dispose();
+				}
+
+				_transactions = null;
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

@@ -11,6 +11,9 @@ using Swashbuckle.AspNetCore.Swagger;
 using WalletWasabi.Logging;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Backend.Middlewares;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using NBitcoin;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Backend
 {
@@ -20,15 +23,19 @@ namespace WalletWasabi.Backend
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddMemoryCache();
-			services.AddMvc()
-					.AddControllersAsServices();
+
+			services.AddMvc(options =>
+			{
+				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress)));
+			})
+				.AddControllersAsServices();
 
 			// Register the Swagger generator, defining one or more Swagger documents
 			services.AddSwaggerGen(c =>
 			{
-				c.SwaggerDoc($"v{Helpers.Constants.BackendMajorVersion}", new Info
+				c.SwaggerDoc($"v{Constants.BackendMajorVersion}", new Info
 				{
-					Version = $"v{Helpers.Constants.BackendMajorVersion}",
+					Version = $"v{Constants.BackendMajorVersion}",
 					Title = "Wasabi Wallet API",
 					Description = "Privacy focused, ZeroLink compliant Bitcoin Web API.",
 					License = new License { Name = "Use under MIT.", Url = "https://github.com/zkSNACKs/WalletWasabi/blob/master/LICENSE.md" }
@@ -43,6 +50,8 @@ namespace WalletWasabi.Backend
 			services.AddLogging(Logging => Logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
 
 			services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
+
+			services.AddResponseCompression();
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,13 +65,15 @@ namespace WalletWasabi.Backend
 			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
 			app.UseSwaggerUI(c =>
 			{
-				c.SwaggerEndpoint("/swagger/v2/swagger.json", "Wasabi Wallet API V2");
+				c.SwaggerEndpoint($"/swagger/v{Constants.BackendMajorVersion}/swagger.json", "Wasabi Wallet API V2");
 			});
 
 			// So to correctly handle HEAD requests.
 			// https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
 			// https://github.com/tpeczek/Demo.AspNetCore.Mvc.CosmosDB/blob/master/Demo.AspNetCore.Mvc.CosmosDB/Middlewares/HeadMethodMiddleware.cs
 			app.UseMiddleware<HeadMethodMiddleware>();
+
+			app.UseResponseCompression();
 
 			app.UseMvc();
 

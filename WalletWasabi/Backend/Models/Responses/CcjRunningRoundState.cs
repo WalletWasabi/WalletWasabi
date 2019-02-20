@@ -16,6 +16,8 @@ namespace WalletWasabi.Backend.Models.Responses
 		[JsonConverter(typeof(MoneyBtcJsonConverter))]
 		public Money Denomination { get; set; }
 
+		public IEnumerable<SchnorrPubKey> SchnorrPubKeys { get; set; }
+
 		public int RegisteredPeerCount { get; set; }
 
 		public int RequiredPeerCount { get; set; }
@@ -38,24 +40,6 @@ namespace WalletWasabi.Backend.Models.Responses
 		/// This is round independent, it is only here because of backward compatibility.
 		/// </summary>
 		public int SuccessfulRoundCount { get; set; }
-
-		public static CcjRunningRoundState CloneExcept(CcjRunningRoundState state, long roundId, int registeredPeerCount)
-		{
-			return new CcjRunningRoundState
-			{
-				Phase = state.Phase,
-				Denomination = state.Denomination,
-				RegisteredPeerCount = registeredPeerCount,
-				RequiredPeerCount = state.RequiredPeerCount,
-				CoordinatorFeePercent = state.CoordinatorFeePercent,
-				FeePerInputs = state.FeePerInputs,
-				FeePerOutputs = state.FeePerOutputs,
-				MaximumInputCountPerPeer = state.MaximumInputCountPerPeer,
-				RegistrationTimeout = state.RegistrationTimeout,
-				RoundId = roundId,
-				SuccessfulRoundCount = state.SuccessfulRoundCount
-			};
-		}
 
 		public Money CalculateRequiredAmount(params Money[] queuedCoinAmounts)
 		{
