@@ -18,15 +18,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class WalletInfoViewModel : WalletActionViewModel, IDisposable
 	{
 		private string _password;
-		private string _secret;
+		private string _extendedMasterPrivateKey;
+		private string _extendedMasterPublicKey;
+		private string _extendedAccountPrivateKey;
 		private string _warningMessage;
 		private CompositeDisposable Disposables { get; }
 
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
 			Disposables = new CompositeDisposable();
-			_password = "";
-			_secret = "";
+			ClearSensitiveData(true);
 			_warningMessage = "";
 			Closing = new CancellationTokenSource().DisposeWith(Disposables);
 
@@ -42,7 +43,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}).DisposeWith(Disposables);
 
-			ShowMasterKeyCommand = ReactiveCommand.Create(() =>
+			ShowSensitiveKeysCommand = ReactiveCommand.Create(() =>
 			{
 				try
 				{
@@ -50,7 +51,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var secret = KeyManager.GetExtKey(Password);
 					Password = "";
 
-					SetSecret(secret.GetWif(Global.Network).ToWif());
+					string master = secret.GetWif(Global.Network).ToWif();
+					string masterPub = secret.Neuter().GetWif(Global.Network).ToWif();
+					string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
+					SetSensitiveData(master, masterPub, account);
 				}
 				catch (Exception ex)
 				{
@@ -59,16 +63,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}).DisposeWith(Disposables);
 		}
 
+		private void ClearSensitiveData(bool passwordToo)
+		{
+			ExtendedMasterPrivateKey = "";
+			ExtendedMasterPublicKey = "";
+			ExtendedAccountPrivateKey = "";
+
+			if (passwordToo)
+			{
+				Password = "";
+			}
+		}
+
 		public CancellationTokenSource Closing { get; }
 
 		public WalletService WalletService => Wallet.WalletService;
 		public KeyManager KeyManager => WalletService.KeyManager;
 
-		public string ExtPubKey => KeyManager.ExtPubKey.ToString(Global.Network);
-		public string EncryptedSecret => KeyManager.EncryptedSecret.ToWif();
+		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Network);
+		public string EncryptedExtendedMasterPrivateKey => KeyManager.EncryptedSecret.ToWif();
 		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath.ToString()}";
 
-		public ReactiveCommand ShowMasterKeyCommand { get; }
+		public ReactiveCommand ShowSensitiveKeysCommand { get; }
 
 		public string Password
 		{
@@ -76,10 +92,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public string Secret
+		public string ExtendedMasterPrivateKey
 		{
-			get => _secret;
-			set => this.RaiseAndSetIfChanged(ref _secret, value);
+			get => _extendedMasterPrivateKey;
+			set => this.RaiseAndSetIfChanged(ref _extendedMasterPrivateKey, value);
+		}
+
+		public string ExtendedMasterPublicKey
+		{
+			get => _extendedMasterPublicKey;
+			set => this.RaiseAndSetIfChanged(ref _extendedMasterPublicKey, value);
+		}
+
+		public string ExtendedAccountPrivateKey
+		{
+			get => _extendedAccountPrivateKey;
+			set => this.RaiseAndSetIfChanged(ref _extendedAccountPrivateKey, value);
 		}
 
 		public string WarningMessage
@@ -88,9 +116,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
 		}
 
-		private void SetSecret(string secret)
+		private void SetSensitiveData(string extendedMasterPrivateKey, string extendedMasterPublicKey, string extendedAccountPrivateKey)
 		{
-			Secret = secret;
+			ExtendedMasterPrivateKey = extendedMasterPrivateKey;
+			ExtendedMasterPublicKey = extendedMasterPublicKey;
+			ExtendedAccountPrivateKey = extendedAccountPrivateKey;
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
@@ -104,29 +134,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				finally
 				{
-					Secret = "";
+					ClearSensitiveData(false);
 				}
 			});
 		}
 
 		public override void OnDeselected()
 		{
-			Password = "";
-			Secret = "";
+			ClearSensitiveData(true);
 			base.OnDeselected();
 		}
 
 		public override void OnSelected()
 		{
-			Password = "";
-			Secret = "";
+			ClearSensitiveData(true);
 			base.OnSelected();
 		}
 
 		public override void Close()
 		{
-			Password = "";
-			Secret = "";
+			ClearSensitiveData(true);
 			base.Close();
 		}
 
@@ -165,8 +192,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (disposing)
 				{
 					Closing?.Cancel();
-					Password = "";
-					Secret = "";
+					ClearSensitiveData(true);
 					Disposables?.Dispose();
 				}
 
