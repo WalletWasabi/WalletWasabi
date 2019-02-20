@@ -242,7 +242,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
-					SetValidationMessage("The selected wallet and its backup doesn't exsist, did you delete them?");
+					SetValidationMessage("The selected wallet and its backup don't exist, did you delete them?");
 					return null;
 				}
 
