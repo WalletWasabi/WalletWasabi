@@ -326,11 +326,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					if (Global.WalletService.Coins.Any())
 					{
 						// If already have coins then open with History tab first.
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(SelectedWallet, receiveDominant: false);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: false);
 					}
 					else // Else open with Receive tab first.
 					{
-						IoC.Get<WalletExplorerViewModel>().OpenWallet(SelectedWallet, receiveDominant: true);
+						IoC.Get<WalletExplorerViewModel>().OpenWallet(Global.WalletService, receiveDominant: true);
 					}
 				}
 				catch (Exception ex)
