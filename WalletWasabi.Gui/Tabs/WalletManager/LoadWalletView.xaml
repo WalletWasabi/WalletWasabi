@@ -11,7 +11,7 @@
             <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
             <StackPanel>
               <TextBlock Text="Why the unconventional password masking?" FontWeight="Bold" />
-              <TextBlock Text="We received numerous reports on losing or mistyping passwords. This experiment aims to disrupt users' typical workflow at wallet generation, forcing them to pay more attention than otherwise would. Why use it in other places, too? Because nopara73 finds it funny." TextWrapping="Wrap" />
+              <TextBlock Text="We received numerous reports on losing or mistyping passwords. This experiment aims to disrupt users' typical workflow at wallet generation, forcing them to pay more attention than otherwise would." TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
         </Grid>
