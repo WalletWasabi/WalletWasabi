@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					Password = Guard.Correct(Password);
-					var secret = KeyManager.GetExtKey(Password);
+					var secret = KeyManager.GetMasterExtKey(Password);
 					Password = "";
 
 					string master = secret.GetWif(Global.Network).ToWif();
