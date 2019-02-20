@@ -22,5 +22,11 @@
   <ItemGroup>
     <ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="rcedit.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

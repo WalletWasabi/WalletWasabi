@@ -108,6 +108,38 @@ namespace WalletWasabi.Gui.Controls
 
 		protected virtual bool IsCopyEnabled => true;
 
+		private static readonly Geometry CopyIcon = Geometry.Parse(
+				"M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z");
+		private static readonly Geometry PasteIcon = Geometry.Parse(
+				@"M19,20H5V4H7V7H17V4H19M12,2A1,1 0 0,1 13,3A1,1 0 0,1 12,4A1,1 0 0,1 11,3A1,1 0 0,1 12,2M19,2H14.82C14.4,0.84
+				13.3,0 12,0C10.7,0 9.6,0.84 9.18,2H5A2,2 0 0,0 3,4V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V4A2,2 0 0,0 19,2Z");
+
+		private static DrawingPresenter GetCopyPresenter()
+		{
+			return new DrawingPresenter{
+				Drawing = new GeometryDrawing
+				{
+					Brush = Brushes.LightGray,
+					Geometry = CopyIcon
+				},
+				Width = 16,
+				Height = 16
+			};
+		}
+
+		private static DrawingPresenter GetPastePresenter()
+		{
+			return new DrawingPresenter{
+				Drawing = new GeometryDrawing
+				{
+					Brush = Brushes.LightGray,
+					Geometry = PasteIcon
+				},
+				Width = 16,
+				Height = 16,
+			};
+		}
+
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
 		{
 			base.OnTemplateApplied(e);
@@ -118,45 +150,23 @@ namespace WalletWasabi.Gui.Controls
 				Items = new Avalonia.Controls.Controls()
 			};
 
+			var menuItems = (ContextMenu.Items as Avalonia.Controls.Controls);
 			if (IsCopyEnabled)
 			{
-				var copyPresenter = new DrawingPresenter
-				{
-					Drawing = new GeometryDrawing
-					{
-						Brush = Brushes.LightGray,
-						Geometry = Geometry.Parse(
-							"M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z")
-					},
-					Width = 16,
-					Height = 16
-				};
-				(ContextMenu.Items as Avalonia.Controls.Controls).Add(new MenuItem { Header = "Copy", Command = CopyCommand, Icon = copyPresenter });
+				menuItems.Add(new MenuItem { Header = "Copy", Command = CopyCommand, Icon = GetCopyPresenter() });
 			}
 
 			if (!IsReadOnly)
 			{
 				CreatePasteItem();
-				(ContextMenu.Items as Avalonia.Controls.Controls).Add(_pasteItem);
+				menuItems.Add(_pasteItem);
 			}
 		}
 
 		private void CreatePasteItem()
 		{
 			if (_pasteItem != null) return;
-			var pastePresenter = new DrawingPresenter
-			{
-				Drawing = new GeometryDrawing
-				{
-					Brush = Brushes.LightGray,
-					Geometry = Geometry.Parse(
-			@"M19,20H5V4H7V7H17V4H19M12,2A1,1 0 0,1 13,3A1,1 0 0,1 12,4A1,1 0 0,1 11,3A1,1 0 0,1 12,2M19,2H14.82C14.4,0.84
-							13.3,0 12,0C10.7,0 9.6,0.84 9.18,2H5A2,2 0 0,0 3,4V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V4A2,2 0 0,0 19,2Z")
-				},
-				Width = 16,
-				Height = 16,
-			};
-			_pasteItem = new MenuItem { Header = "Paste", Command = PasteCommand, Icon = pastePresenter };
-		}
+			_pasteItem = new MenuItem { Header = "Paste", Command = PasteCommand, Icon = GetPastePresenter() };
+		}		
 	}
 }
