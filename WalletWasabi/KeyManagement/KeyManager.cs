@@ -292,7 +292,7 @@ namespace WalletWasabi.KeyManagement
 
 		public IEnumerable<(ExtKey secret, HdPubKey pubKey)> GetSecretsAndPubKeyPairs(string password, params Script[] scripts)
 		{
-			ExtKey extKey = GetExtKey(password);
+			ExtKey extKey = GetMasterExtKey(password);
 			var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
 
 			lock (HdPubKeysLock)
@@ -310,7 +310,7 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		public ExtKey GetExtKey(string password)
+		public ExtKey GetMasterExtKey(string password)
 		{
 			try
 			{
@@ -320,6 +320,19 @@ namespace WalletWasabi.KeyManagement
 			catch (SecurityException ex)
 			{
 				throw new SecurityException("Invalid password.", ex);
+			}
+		}
+
+		public bool TestPassword(string password)
+		{
+			try
+			{
+				GetMasterExtKey(password);
+				return true;
+			}
+			catch
+			{
+				return false;
 			}
 		}
 

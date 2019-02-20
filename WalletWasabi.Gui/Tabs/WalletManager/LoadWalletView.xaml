@@ -1,28 +1,46 @@
 <UserControl xmlns="https://github.com/avaloniaui"
             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <DockPanel LastChildFill="True">
-    <StackPanel DockPanel.Dock="Bottom" Margin="20 10">
-      <DockPanel LastChildFill="True">
-        <Button Command="{Binding LoadCommand}" DockPanel.Dock="Right">
-          <StackPanel Orientation="Horizontal">
-            <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
-            <TextBlock Text="{Binding LoadButtonText}" />
+    <StackPanel DockPanel.Dock="Bottom" Spacing="10">
+      <controls:GroupBox IsVisible="{Binding RequirePassword}" TextBlock.FontSize="30" Padding="30" Margin="20 0">
+        <Grid Classes="content">
+          <StackPanel Spacing="8">
+            <StackPanel>
+              <TextBlock Text="Select a wallet to test its password!" FontWeight="Bold" />
+            </StackPanel>
+            <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" />
+            <StackPanel>
+              <TextBlock Text="Why the unconventional password masking?" FontWeight="Bold" />
+              <TextBlock Text="We received numerous reports on losing or mistyping passwords. This experiment aims to disrupt users' typical workflow at wallet generation, forcing them to pay more attention than otherwise would." TextWrapping="Wrap" />
+            </StackPanel>
           </StackPanel>
-        </Button>
-        <Button Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <DrawingPresenter Width="28">
-              <DrawingPresenter.Drawing>
-                <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 53.9999,28.0001L 53.9999,32L 27,32L 19,46.4L 19,28.0001 Z " />
-              </DrawingPresenter.Drawing>
-            </DrawingPresenter>
-            <TextBlock Text="Open Wallets Folder" />
-          </StackPanel>
-        </Button>
-        <Grid></Grid>
-      </DockPanel>
-      <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
-      <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
+        </Grid>
+      </controls:GroupBox>
+      <StackPanel DockPanel.Dock="Bottom" Margin="20 10">
+        <DockPanel LastChildFill="True">
+          <Button IsVisible="{Binding RequirePassword}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
+          <Button Command="{Binding LoadCommand}" DockPanel.Dock="Right">
+            <StackPanel Orientation="Horizontal">
+              <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
+              <TextBlock Text="{Binding LoadButtonText}" />
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <DrawingPresenter Width="28">
+                <DrawingPresenter.Drawing>
+                  <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 53.9999,28.0001L 53.9999,32L 27,32L 19,46.4L 19,28.0001 Z " />
+                </DrawingPresenter.Drawing>
+              </DrawingPresenter>
+              <TextBlock Text="Open Wallets Folder" />
+            </StackPanel>
+          </Button>
+          <Grid></Grid>
+        </DockPanel>
+        <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+        <TextBlock Text="{Binding ValidationMessage}" Classes="errorMessage" />
+        <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
+      </StackPanel>
     </StackPanel>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">
       <Grid Classes="content">

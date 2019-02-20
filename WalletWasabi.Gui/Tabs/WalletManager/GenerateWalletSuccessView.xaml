@@ -1,12 +1,9 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <StackPanel Margin="10" Spacing="10">
-    <Border Padding="2" Background="ForestGreen" HorizontalAlignment="Center" BorderBrush="#FF000000" BorderThickness="1,1,1,1" CornerRadius="6,6,6,6">
-      <TextBlock HorizontalAlignment="Center" Text=" Your Wallet Was Generated Successfully! " Foreground="{DynamicResource ApplicationAccentForegroundBrush}" />
-    </Border>
     <TextBlock Text="Write down these mnemonic words:" FontWeight="Bold" />
-    <Border Padding="2" Background="Gray" HorizontalAlignment="Center" BorderBrush="#FF000000" BorderThickness="1,1,1,1" CornerRadius="6,6,6,6">
-      <controls:ExtendedTextBox Text="{Binding MnemonicWords, Mode=TwoWay}" Background="Gray" Foreground="{DynamicResource ApplicationAccentForegroundBrush}" Classes="selectableTextBlock" />
+    <Border Padding="2" Background="White" HorizontalAlignment="Stretch" Opacity="0.9">
+      <controls:ExtendedTextBox Text="{Binding MnemonicWords, Mode=TwoWay}" Background="Transparent" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Classes="selectableTextBlock" />
     </Border>
     <TextBlock Text="You can recover your wallet on any computer with:" FontWeight="Bold" />
     <TextBlock Text="- your mnemonic words AND" FontWeight="Bold" />
