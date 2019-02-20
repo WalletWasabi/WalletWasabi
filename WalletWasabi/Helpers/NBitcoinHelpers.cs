@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.DataEncoders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,6 +53,19 @@ namespace WalletWasabi.Helpers
 			var newTxSize = (inNum * Constants.P2wpkhInputSizeInBytes) + (outNum * Constants.OutputSizeInBytes) + 10; // BEWARE: This assumes segwit only inputs!
 			var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
 			return vSize;
+		}
+	}
+
+	public static class ExtPubKeyDataExtensions
+	{
+		public static string ToWif(this ExtPubKey extPubKey, Network network)
+		{
+			var data = extPubKey.ToBytes();
+			var version = (network == Network.Main)
+				? new byte[] { (0x04), (0xB2), (0x47), (0x46) }
+				: new byte[] { (0x04), (0x5F), (0x1C), (0xF6) };
+			
+			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
 		}
 	}
 }

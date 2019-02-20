@@ -80,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletService WalletService => Wallet.WalletService;
 		public KeyManager KeyManager => WalletService.KeyManager;
 
-		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Network);
+		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToWif(Global.Network);
 		public string EncryptedExtendedMasterPrivateKey => KeyManager.EncryptedSecret.ToWif();
 		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath.ToString()}";
 
