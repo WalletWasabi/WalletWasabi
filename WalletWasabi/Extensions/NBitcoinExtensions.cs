@@ -1,4 +1,5 @@
 using NBitcoin.Crypto;
+using NBitcoin.DataEncoders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -140,7 +141,7 @@ namespace NBitcoin
 		public static void AddWithOptimize(this TxOutList me, Money money, Script scriptPubKey)
 		{
 			TxOut found = me.FirstOrDefault(x => x.ScriptPubKey == scriptPubKey);
-			if(found != null)
+			if (found != null)
 			{
 				found.Value += money;
 			}
@@ -171,7 +172,7 @@ namespace NBitcoin
 		/// </summary>
 		public static void AddRangeWithOptimize(this TxOutList me, IEnumerable<TxOut> collection)
 		{
-			foreach(var txout in collection)
+			foreach (var txout in collection)
 			{
 				me.AddWithOptimize(txout);
 			}
@@ -180,5 +181,25 @@ namespace NBitcoin
 		public static SchnorrPubKey GetSchnorrPubKey(this Signer signer) => new SchnorrPubKey(signer);
 
 		public static uint256 BlindMessage(this Requester requester, uint256 messageHash, SchnorrPubKey schnorrPubKey) => requester.BlindMessage(messageHash, schnorrPubKey.RpubKey, schnorrPubKey.SignerPubKey);
+
+		public static string ToZpub(this ExtPubKey extPubKey, Network network)
+		{
+			var data = extPubKey.ToBytes();
+			var version = (network == Network.Main)
+				? new byte[] { (0x04), (0xB2), (0x47), (0x46) }
+				: new byte[] { (0x04), (0x5F), (0x1C), (0xF6) };
+
+			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
+		}
+
+		public static string ToZPriv(this ExtKey extKey, Network network)
+		{
+			var data = extKey.ToBytes();
+			var version = (network == Network.Main)
+				? new byte[] { (0x04), (0xB2), (0x43), (0x0C) }
+				: new byte[] { (0x04), (0x5F), (0x18), (0xBC) };
+
+			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
+		}
 	}
 }

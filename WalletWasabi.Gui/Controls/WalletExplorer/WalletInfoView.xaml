@@ -16,8 +16,18 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Master zpriv: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedMasterZpriv}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
               <TextBlock Text="Extended Master Public Key: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedMasterPublicKey}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Master zpub: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedMasterZpub}" Classes="selectableTextBlock" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
@@ -31,8 +41,18 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Account zpriv: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpriv}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
               <TextBlock Text="Extended Account Public Key: " />
               <controls:ExtendedTextBox Text="{Binding ExtendedAccountPublicKey}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Account zpub: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpub}" Classes="selectableTextBlock" />
             </StackPanel>
 
             <StackPanel Margin="0 10 0 0" Spacing="10" Orientation="Horizontal">
