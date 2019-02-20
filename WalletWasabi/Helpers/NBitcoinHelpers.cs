@@ -56,7 +56,7 @@ namespace WalletWasabi.Helpers
 		}
 	}
 
-	public static class ExtPubKeyDataExtensions
+	public static class ExtKeyDataExtensions
 	{
 		public static string ToWif(this ExtPubKey extPubKey, Network network)
 		{
@@ -64,6 +64,16 @@ namespace WalletWasabi.Helpers
 			var version = (network == Network.Main)
 				? new byte[] { (0x04), (0xB2), (0x47), (0x46) }
 				: new byte[] { (0x04), (0x5F), (0x1C), (0xF6) };
+			
+			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
+		}
+
+		public static string ToWif(this ExtKey extKey, Network network)
+		{
+			var data = extKey.ToBytes();
+			var version = (network == Network.Main)
+				? new byte[] { (0x04), (0xB2), (0x43), (0x0C) }
+				: new byte[] { (0x04), (0x5F), (0x18), (0xBC) };
 			
 			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
 		}

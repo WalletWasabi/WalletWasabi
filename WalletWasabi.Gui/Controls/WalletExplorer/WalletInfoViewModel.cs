@@ -51,9 +51,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var secret = KeyManager.GetExtKey(Password);
 					Password = "";
 
-					string master = secret.GetWif(Global.Network).ToWif();
-					string masterPub = secret.Neuter().GetWif(Global.Network).ToWif();
-					string account = secret.Derive(KeyManager.AccountKeyPath).GetWif(Global.Network).ToWif();
+					string master = secret.ToWif(Global.Network);
+					string masterPub = secret.Neuter().ToWif(Global.Network);
+					string account = secret.Derive(KeyManager.AccountKeyPath).ToWif(Global.Network);
 					SetSensitiveData(master, masterPub, account);
 				}
 				catch (Exception ex)
