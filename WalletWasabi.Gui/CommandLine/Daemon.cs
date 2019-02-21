@@ -1,7 +1,9 @@
 ﻿using Mono.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -10,6 +12,7 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public static class Daemon
 	{
+
 		public static void Run(string[] args, out bool continueWithGui)
 		{
 			var showHelp = false;
@@ -22,32 +25,43 @@ namespace WalletWasabi.Gui.CommandLine
 			};
 			try
 			{
-				var extras = options.Parse(args);
-				if (extras.Count > 0)
-					showHelp = true;
-			}
-			catch (OptionException)
-			{
-				Console.WriteLine("Option not recognized.");
-				Console.WriteLine();
-				ShowHelp(options);
+				if (args.Length > 0 && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					Native.AttachParentConsole();
+				}
+				try
+				{
+					var extras = options.Parse(args);
+					if (extras.Count > 0)
+						showHelp = true;
+				}
+				catch (OptionException)
+				{
+					Console.WriteLine("Option not recognized.");
+					Console.WriteLine();
+					ShowHelp(options);
 
-				continueWithGui = false;
-				return;
-			}
-			if (showHelp)
-			{
-				ShowHelp(options);
+					continueWithGui = false;
+					return;
+				}
+				if (showHelp)
+				{
+					ShowHelp(options);
 
-				continueWithGui = false;
-				return;
-			}
-			else if (showVersion)
-			{
-				ShowVersion();
+					continueWithGui = false;
+					return;
+				}
+				else if (showVersion)
+				{
+					ShowVersion();
 
-				continueWithGui = false;
-				return;
+					continueWithGui = false;
+					return;
+				}
+			}
+			finally
+			{
+				Native.DettachParentConsole();
 			}
 
 			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
