@@ -22,8 +22,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _label;
 		private double _labelRequiredNotificationOpacity;
 		private bool _labelRequiredNotificationVisible;
-		private double _clipboardNotificationOpacity;
-		private bool _clipboardNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private CompositeDisposable Disposables { get; }
@@ -84,21 +82,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
-			{
-				if (!(address is null))
-				{
-					address.CopyToClipboard();
-					ClipboardNotificationVisible = true;
-					ClipboardNotificationOpacity = 1;
-
-					Dispatcher.UIThread.PostLogException(async () =>
-					{
-						await Task.Delay(1000);
-						ClipboardNotificationOpacity = 0;
-					});
-				}
-			}).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address => address?.CopyToClipboard()).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
@@ -154,18 +138,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _labelRequiredNotificationVisible;
 			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationVisible, value);
-		}
-
-		public double ClipboardNotificationOpacity
-		{
-			get => _clipboardNotificationOpacity;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
-		}
-
-		public bool ClipboardNotificationVisible
-		{
-			get => _clipboardNotificationVisible;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
 		}
 
 		public int CaretIndex

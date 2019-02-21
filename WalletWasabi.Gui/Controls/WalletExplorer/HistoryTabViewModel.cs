@@ -24,9 +24,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
-		private double _clipboardNotificationOpacity;
-		private bool _clipboardNotificationVisible;
-		private long _disableClipboard;
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
@@ -38,7 +35,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base("History", walletViewModel)
 		{
 			Disposables = new CompositeDisposable();
-			Interlocked.Exchange(ref _disableClipboard, 0);
 			Transactions = new ObservableCollection<TransactionViewModel>();
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			RewriteTableAsync();
@@ -60,28 +56,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
-			{
-				if (Interlocked.Read(ref _disableClipboard) == 0)
-				{
-					if (!(transaction is null))
-					{
-						await Application.Current.Clipboard.SetTextAsync(transaction.TransactionId);
-						ClipboardNotificationVisible = true;
-						ClipboardNotificationOpacity = 1;
-
-						Dispatcher.UIThread.PostLogException(async () =>
-						{
-							await Task.Delay(1000);
-							ClipboardNotificationOpacity = 0;
-						});
-					}
-				}
-				else
-				{
-					Interlocked.Exchange(ref _disableClipboard, 0);
-				}
-			}).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(transaction => transaction?.CopyToClipboard()).DisposeWith(Disposables);
 
 			SortCommand = ReactiveCommand.Create(() => RefreshOrdering()).DisposeWith(Disposables);
 
@@ -114,7 +89,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
 				if (txToSelect != default)
 				{
-					Interlocked.Exchange(ref _disableClipboard, 1);
 					SelectedTransaction = txToSelect;
 				}
 			}
@@ -223,18 +197,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectedTransaction;
 			set => this.RaiseAndSetIfChanged(ref _selectedTransaction, value);
-		}
-
-		public double ClipboardNotificationOpacity
-		{
-			get => _clipboardNotificationOpacity;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
-		}
-
-		public bool ClipboardNotificationVisible
-		{
-			get => _clipboardNotificationVisible;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
 		}
 
 		public SortOrder DateSortDirection
