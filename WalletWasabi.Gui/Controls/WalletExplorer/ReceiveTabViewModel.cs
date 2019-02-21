@@ -82,7 +82,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address => address?.CopyToClipboard()).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
+			{
+				if (Global.UiConfig.Autocopy is true)
+				{
+					address?.CopyToClipboard();
+				}
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{

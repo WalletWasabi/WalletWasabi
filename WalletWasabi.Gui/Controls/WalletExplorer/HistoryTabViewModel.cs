@@ -56,7 +56,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(transaction => transaction?.CopyToClipboard()).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(transaction =>
+			{
+				if (Global.UiConfig.Autocopy is true)
+				{
+					transaction?.CopyToClipboard();
+				}
+			}).DisposeWith(Disposables);
 
 			SortCommand = ReactiveCommand.Create(() => RefreshOrdering()).DisposeWith(Disposables);
 
