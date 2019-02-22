@@ -35,6 +35,8 @@ namespace WalletWasabi.Backend
 			var content = File.ReadAllText(path);
 
 			content = content.Replace("coinjoins-table.html", "onion-coinjoins-table.html", StringComparison.Ordinal);
+			content = content.Replace("http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion", "https://wasabiwallet.io", StringComparison.Ordinal);
+			content = content.Replace("images/tor-browser.png", "images/chrome-browser.png", StringComparison.Ordinal);
 
 			File.WriteAllText(onionPath, content);
 		}
