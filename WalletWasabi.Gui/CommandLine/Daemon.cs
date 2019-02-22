@@ -12,7 +12,6 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public static class Daemon
 	{
-
 		public static void Run(string[] args, out bool continueWithGui)
 		{
 			var showHelp = false;
