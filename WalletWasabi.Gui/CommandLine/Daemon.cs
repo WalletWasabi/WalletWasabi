@@ -15,19 +15,34 @@ namespace WalletWasabi.Gui.CommandLine
 		public static void Run(string[] args, out bool continueWithGui)
 		{
 			var showHelp = false;
+			var printConsole = false;
 			var showVersion = false;
-			var verbose = false;
-			var options = new OptionSet() {
-				{ "v|version", "Displays Wasabi version and exit.", x => showVersion = x != null},
-				{ "h|help", "Displays help page and exit.", x => showHelp = x != null},
-				{ "vvv|verbose", "Log activity using verbose level.", x => verbose = x != null},
-			};
+			LogLevel? logLevel = null;
+
 			try
 			{
 				if (args.Length > 0 && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					Native.AttachParentConsole();
 				}
+
+				var options = new OptionSet() {
+					{ "v|version", "Displays Wasabi version and exit.", x => showVersion = x != null},
+					{ "h|help", "Displays help page and exit.", x => showHelp = x != null},
+					{ "p|printconsole", "Log to the standard output", x => printConsole = x != null},
+					{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARN|DEBUG|ERROR.", x => {
+						var normalized = x.ToLower().Trim();
+						if(normalized == "info") logLevel = LogLevel.Info;
+						else if(normalized == "warn")  logLevel = LogLevel.Warning;
+						else if(normalized == "error") logLevel = LogLevel.Error;
+						else if(normalized == "trace") logLevel = LogLevel.Trace;
+						else if(normalized == "debug") logLevel = LogLevel.Debug;
+						else {
+							Console.WriteLine("ERROR: Log level not recognized.");
+							showHelp = true;
+						}
+					}},
+				};
 				try
 				{
 					var extras = options.Parse(args);
@@ -60,16 +75,20 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			finally
 			{
-				Native.DettachParentConsole();
+				if(!printConsole)
+					Native.DettachParentConsole();
 			}
 
 			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
 
-			if (verbose)
+			if (logLevel.HasValue)
 			{
-				Logger.SetMinimumLevel(LogLevel.Trace);
+				Logger.SetMinimumLevel(logLevel.Value);
 			}
-
+			if(printConsole && !Logger.Modes.Contains(LogMode.Console))
+			{
+				Logger.Modes.Add(LogMode.Console);
+			}
 			continueWithGui = true;
 		}
 
