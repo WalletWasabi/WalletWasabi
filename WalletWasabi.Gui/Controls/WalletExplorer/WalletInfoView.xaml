@@ -21,16 +21,6 @@
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="Extended Master Public Key: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedMasterPublicKey}" Classes="selectableTextBlock" />
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="Extended Master zpub: " />
-              <controls:ExtendedTextBox Text="{Binding ExtendedMasterZpub}" Classes="selectableTextBlock" />
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
               <TextBlock Text="Account Key Path: " />
               <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Classes="selectableTextBlock" />
             </StackPanel>
