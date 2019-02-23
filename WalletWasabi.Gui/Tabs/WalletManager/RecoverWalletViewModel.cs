@@ -23,7 +23,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _password;
 		private string _mnemonicWords;
 		private string _walletName;
-		private bool _termsAccepted;
 		private string _validationMessage;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
@@ -39,11 +38,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 
-				if (TermsAccepted == false)
-				{
-					ValidationMessage = "Terms are not accepted.";
-				}
-				else if (string.IsNullOrWhiteSpace(WalletName))
+				if (string.IsNullOrWhiteSpace(WalletName))
 				{
 					ValidationMessage = $"The name {WalletName} is not valid.";
 				}
@@ -70,18 +65,24 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						Logger.LogError<LoadWalletViewModel>(ex);
 					}
 				}
-			},
-			this.WhenAnyValue(x => x.TermsAccepted));
+			});
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x));
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
-				if (x.NotNullAndNotEmpty())
+				try
 				{
-					char lastChar = x.Last();
-					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					if (x.NotNullAndNotEmpty())
 					{
-						Password = x.TrimEnd('\r', '\n');
+						char lastChar = x.Last();
+						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+						{
+							Password = x.TrimEnd('\r', '\n');
+						}
 					}
+				}
+				catch (Exception ex)
+				{
+					Logger.LogTrace(ex);
 				}
 			});
 
@@ -120,12 +121,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _walletName, value);
 		}
 
-		public bool TermsAccepted
-		{
-			get => _termsAccepted;
-			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
-		}
-
 		public string ValidationMessage
 		{
 			get => _validationMessage;
@@ -162,7 +157,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Password = null;
 			MnemonicWords = "";
 			WalletName = Utils.GetNextWalletName();
-			TermsAccepted = false;
 			ValidationMessage = null;
 		}
 

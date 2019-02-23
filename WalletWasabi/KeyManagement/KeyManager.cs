@@ -42,7 +42,7 @@ namespace WalletWasabi.KeyManagement
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
-		private static readonly KeyPath AccountKeyPath = new KeyPath("m/84'/0'/0'");
+		public static readonly KeyPath AccountKeyPath = new KeyPath("m/84'/0'/0'");
 
 		public string FilePath { get; private set; }
 		private object ToFileLock { get; }
@@ -292,16 +292,7 @@ namespace WalletWasabi.KeyManagement
 
 		public IEnumerable<(ExtKey secret, HdPubKey pubKey)> GetSecretsAndPubKeyPairs(string password, params Script[] scripts)
 		{
-			Key secret;
-			try
-			{
-				secret = EncryptedSecret.GetKey(password);
-			}
-			catch (SecurityException ex)
-			{
-				throw new SecurityException("Invalid password.", ex);
-			}
-			var extKey = new ExtKey(secret, ChainCode);
+			ExtKey extKey = GetMasterExtKey(password);
 			var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
 
 			lock (HdPubKeysLock)
@@ -316,6 +307,32 @@ namespace WalletWasabi.KeyManagement
 					extKeysAndPubs.Add((ek, key));
 				}
 				return extKeysAndPubs;
+			}
+		}
+
+		public ExtKey GetMasterExtKey(string password)
+		{
+			try
+			{
+				Key secret = EncryptedSecret.GetKey(password);
+				return new ExtKey(secret, ChainCode);
+			}
+			catch (SecurityException ex)
+			{
+				throw new SecurityException("Invalid password.", ex);
+			}
+		}
+
+		public bool TestPassword(string password)
+		{
+			try
+			{
+				GetMasterExtKey(password);
+				return true;
+			}
+			catch
+			{
+				return false;
 			}
 		}
 

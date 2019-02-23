@@ -253,7 +253,7 @@ namespace System.IO
 			{
 				using (Process process = Process.Start(new ProcessStartInfo
 				{
-					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "explorer.exe" : (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "xdg-open" : "open"),
+					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "explorer.exe" : (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "open" : "xdg-open"),
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
 					CreateNoWindow = true
 				})) { }

@@ -14,16 +14,6 @@
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <Grid Classes="content">
       <DockPanel LastChildFill="True">
-        <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.ColumnSpan="4" DockPanel.Dock="Top">
-          <Grid Opacity="{Binding ClipboardNotificationOpacity}">
-            <Grid.Transitions>
-              <DoubleTransition Property="Grid.Opacity"
-                        Easing="CircularEaseIn"
-                        Duration="0:0:0.5" />
-            </Grid.Transitions>
-            <TextBlock Text="TransactionId Is Copied to Clipboard!" Foreground="#22B14C" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="4" />
-          </Grid>
-        </Grid>
         <DockPanel LastChildFill="True" DockPanel.Dock="Bottom">
           <Grid ColumnDefinitions="40, 160, 150, *" Margin="10 0 0 0" DockPanel.Dock="Top">
             <TextBlock Text="" />
@@ -45,7 +35,18 @@
                   </Border>
                   <TextBlock Text="{Binding DateTime}" Grid.Column="1" />
                   <TextBlock Text="{Binding AmountBtc}" Grid.Column="2" Foreground="{Binding AmountBtc, Converter={StaticResource MoneyBrushConverter}}" />
-                  <TextBlock Text="{Binding TransactionId}" Grid.Column="3" />
+                  <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding TransactionId}" Grid.Column="3" />
+
+                  <Grid IsVisible="{Binding ClipboardNotificationVisible}" Grid.Column="3">
+                    <Grid Opacity="{Binding ClipboardNotificationOpacity}">
+                      <Grid.Transitions>
+                        <DoubleTransition Property="Opacity"
+                              Easing="CircularEaseIn"
+                              Duration="0:0:0.5" />
+                      </Grid.Transitions>
+                      <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
+                    </Grid>
+                  </Grid>
                 </Grid>
               </DataTemplate>
             </ListBox.ItemTemplate>

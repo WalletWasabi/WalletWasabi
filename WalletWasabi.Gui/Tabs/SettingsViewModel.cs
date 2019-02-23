@@ -17,13 +17,28 @@ namespace WalletWasabi.Gui.Tabs
 		private string _network;
 		private string _torHost;
 		private string _torPort;
+		private bool _autocopy;
+		private string _autocopyText;
+
 		private bool _isModified;
 
 		public SettingsViewModel() : base("Settings")
 		{
 			var config = new Config(Global.Config.FilePath);
+			Autocopy = (bool)Global.UiConfig.Autocopy;
 
 			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort).Subscribe(x => Save());
+
+			this.WhenAnyValue(x => x.Autocopy).Subscribe(x =>
+			{
+				Dispatcher.UIThread.PostLogException(async () =>
+				{
+					Global.UiConfig.Autocopy = x;
+					await Global.UiConfig.ToFileAsync();
+
+					AutocopyText = x ? "On" : "Off";
+				});
+			});
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
@@ -75,6 +90,18 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			get => _isModified;
 			set => this.RaiseAndSetIfChanged(ref _isModified, value);
+		}
+
+		public bool Autocopy
+		{
+			get => _autocopy;
+			set => this.RaiseAndSetIfChanged(ref _autocopy, value);
+		}
+
+		public string AutocopyText
+		{
+			get => _autocopyText;
+			set => this.RaiseAndSetIfChanged(ref _autocopyText, value);
 		}
 
 		private void Save()
