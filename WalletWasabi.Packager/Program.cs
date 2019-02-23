@@ -364,15 +364,15 @@ namespace WalletWasabi.Packager
 					}
 
 					// Create launcher script
-					var launcherScriptPath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}d.bat");
+					var launcherScriptPath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}.bat");
 
 					var laucherScriptContent = $@"
 @ECHO OFF
 IF ""%*"" == """" GOTO NOPARAMETER
-START /W {newExecutablePath} %*
+START /W {ExecutableName}.exe %*
 GOTO END
 :NOPARAMETER
-{newExecutablePath}
+{ExecutableName}.exe
 :end:";
 					File.WriteAllText($"{launcherScriptPath}", laucherScriptContent);
 
