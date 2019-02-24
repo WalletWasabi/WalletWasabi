@@ -28,11 +28,11 @@
         </TreeDataTemplate>
 
         <TreeDataTemplate DataType="ViewModels:SendTabViewModel">
-          <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}" HorizontalAlignment="Left">
+          <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
-                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 25.3333,52.25L 50.6667,52.25L 50.6667,45.9167L 55.4167,45.9167L 55.4167,57L 50.6667,57L 25.3333,57L 20.5833,57L 20.5833,45.9167L 25.3333,45.9167L 25.3333,52.25 Z M 34.8333,49.0834L 41.1667,49.0834L 41.1666,28.5L 49.0833,38L 49.0833,28.5L 38,15.8334L 26.9167,28.5L 26.9167,38L 34.8333,28.5L 34.8333,49.0834 Z " />
+                  <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 25.3333,52.25L 50.6667,52.25L 50.6667,45.9167L 55.4167,45.9167L 55.4167,57L 50.6667,57L 25.3333,57L 20.5833,57L 20.5833,45.9167L 25.3333,45.9167L 25.3333,52.25 Z M 34.8333,49.0834L 41.1667,49.0834L 41.1666,28.5L 49.0833,38L 49.0833,28.5L 38,15.8334L 26.9167,28.5L 26.9167,38L 34.8333,28.5L 34.8333,49.0834 Z " />
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
               <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
@@ -41,11 +41,11 @@
         </TreeDataTemplate>
 
         <TreeDataTemplate DataType="ViewModels:ReceiveTabViewModel">
-          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Left">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
-                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 25.3333,52.25L 50.6666,52.25L 50.6666,45.9167L 55.4166,45.9167L 55.4166,57L 20.5833,57L 20.5833,45.9167L 25.3333,45.9167L 25.3333,52.25 Z M 34.8333,15.8333L 41.1667,15.8333L 41.1667,36.4167L 49.0833,26.9167L 49.0833,36.4167L 38,49.0833L 26.9167,36.4167L 26.9167,26.9167L 34.8333,36.4167L 34.8333,15.8333 Z " />
+                  <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1 M 25.3333,52.25L 50.6666,52.25L 50.6666,45.9167L 55.4166,45.9167L 55.4166,57L 20.5833,57L 20.5833,45.9167L 25.3333,45.9167L 25.3333,52.25 Z M 34.8333,15.8333L 41.1667,15.8333L 41.1667,36.4167L 49.0833,26.9167L 49.0833,36.4167L 38,49.0833L 26.9167,36.4167L 26.9167,26.9167L 34.8333,36.4167L 34.8333,15.8333 Z " />
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
               <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
@@ -54,7 +54,7 @@
         </TreeDataTemplate>
 
         <TreeDataTemplate DataType="ViewModels:CoinJoinTabViewModel">
-          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Left" >
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
@@ -78,7 +78,7 @@
         </TreeDataTemplate>
 
         <TreeDataTemplate DataType="ViewModels:HistoryTabViewModel">
-          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Left">
+          <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
                 <DrawingPresenter.Drawing>
@@ -93,6 +93,26 @@
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
               <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+        </TreeDataTemplate>
+
+        <TreeDataTemplate DataType="ViewModels:WalletInfoViewModel">
+          <Button BorderThickness="0" Background="Transparent"  Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <DrawingPresenter Width="20" Height="20">
+                <DrawingPresenter.Drawing>
+                  <DrawingGroup>
+                    <DrawingGroup.Children>
+                      <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+                      <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,0C3.589,0 0,3.589 0,8 0,12.411 3.589,16 8,16 12.411,16 16,12.411 16,8 16,3.589 12.411,0 8,0" />
+                      <GeometryDrawing Brush="#FFFFFFFF" Geometry="F1M14,8C14,11.309 11.309,14 8,14 4.691,14 2,11.309 2,8 2,4.691 4.691,2 8,2 11.309,2 14,4.691 14,8" />
+                      <GeometryDrawing Brush="#FF1BA1E2" Geometry="F1M7,7.5L9,7.5 9,12 7,12z M7,4L9,4 9,5.5 7,5.5z M8,14C4.691,14 2,11.309 2,8 2,4.691 4.691,2 8,2 11.309,2 14,4.691 14,8 14,11.309 11.309,14 8,14 M8,1C4.14,1 1,4.14 1,8 1,11.859 4.14,15 8,15 11.859,15 15,11.859 15,8 15,4.14 11.859,1 8,1" />
+                    </DrawingGroup.Children>
+                  </DrawingGroup>
+                </DrawingPresenter.Drawing>
+              </DrawingPresenter>
+              <TextBlock Text="Advanced Info" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </TreeDataTemplate>

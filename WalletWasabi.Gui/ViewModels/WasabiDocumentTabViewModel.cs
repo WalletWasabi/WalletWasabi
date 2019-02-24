@@ -27,8 +27,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public bool IsSelected
 		{
-			get { return _isSelected; }
-			set { this.RaiseAndSetIfChanged(ref _isSelected, value); }
+			get => _isSelected;
+			set => this.RaiseAndSetIfChanged(ref _isSelected, value);
 		}
 
 		public bool IsDirty { get; set; }

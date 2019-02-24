@@ -15,16 +15,28 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			var hex = (string)reader.Value;
-			return new ExtPubKey(ByteHelpers.FromHex(hex));
+			var s = (string)reader.Value;
+			ExtPubKey epk;
+
+			try
+			{
+				epk = ExtPubKey.Parse(s);
+			}
+			catch
+			{
+				// Try hex, Old wallet format was like this.
+				epk = new ExtPubKey(ByteHelpers.FromHex(s));
+			}
+			return epk;
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
 			var epk = (ExtPubKey)value;
-			var hex = ByteHelpers.ToHex(epk.ToBytes());
-			writer.WriteValue(hex);
+
+			var xpub = epk.GetWif(Network.Main).ToWif();
+			writer.WriteValue(xpub);
 		}
 	}
 }

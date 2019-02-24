@@ -14,14 +14,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			ConfirmCommand = ReactiveCommand.Create(() =>
 			{
-				owner.SelectLoadWallet();
+				owner.SelectTestPassword();
 			});
 		}
 
 		public string MnemonicWords
 		{
-			get { return _mnemonicWords; }
-			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
+			get => _mnemonicWords;
+			set => this.RaiseAndSetIfChanged(ref _mnemonicWords, value);
 		}
 
 		public ReactiveCommand ConfirmCommand { get; }

@@ -9,6 +9,8 @@ using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 using System.Linq;
 using AvalonStudio.Shell;
+using WalletWasabi.Services;
+using System.IO;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -23,7 +25,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletExplorerViewModel()
 		{
 			Title = "Wallet Explorer";
-			
+
 			_wallets = new ObservableCollection<WalletViewModel>();
 		}
 
@@ -31,24 +33,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ObservableCollection<WalletViewModel> Wallets
 		{
-			get { return _wallets; }
-			set { this.RaiseAndSetIfChanged(ref _wallets, value); }
+			get => _wallets;
+			set => this.RaiseAndSetIfChanged(ref _wallets, value);
 		}
 
 		private WasabiDocumentTabViewModel _selectedItem;
 
 		public WasabiDocumentTabViewModel SelectedItem
 		{
-			get { return _selectedItem; }
-			set { this.RaiseAndSetIfChanged(ref _selectedItem, value); }
+			get => _selectedItem;
+			set => this.RaiseAndSetIfChanged(ref _selectedItem, value);
 		}
 
-		internal void OpenWallet(string walletName, bool receiveDominant)
+		internal void OpenWallet(WalletService walletService, bool receiveDominant)
 		{
+			var walletName = Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath);
 			if (_wallets.Any(x => x.Title == walletName))
 				return;
 
-			WalletViewModel walletViewModel = new WalletViewModel(walletName, receiveDominant);
+			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant);
 			_wallets.Add(walletViewModel);
 		}
 

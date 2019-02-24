@@ -23,7 +23,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _password;
 		private string _mnemonicWords;
 		private string _walletName;
-		private bool _termsAccepted;
 		private string _validationMessage;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
@@ -39,11 +38,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 
-				if (TermsAccepted == false)
-				{
-					ValidationMessage = "Terms are not accepted.";
-				}
-				else if (string.IsNullOrWhiteSpace(WalletName))
+				if (string.IsNullOrWhiteSpace(WalletName))
 				{
 					ValidationMessage = $"The name {WalletName} is not valid.";
 				}
@@ -70,18 +65,24 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						Logger.LogError<LoadWalletViewModel>(ex);
 					}
 				}
-			},
-			this.WhenAnyValue(x => x.TermsAccepted));
+			});
 			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x));
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
-				if (x.NotNullAndNotEmpty())
+				try
 				{
-					char lastChar = x.Last();
-					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					if (x.NotNullAndNotEmpty())
 					{
-						Password = x.TrimEnd('\r', '\n');
+						char lastChar = x.Last();
+						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+						{
+							Password = x.TrimEnd('\r', '\n');
+						}
 					}
+				}
+				catch (Exception ex)
+				{
+					Logger.LogTrace(ex);
 				}
 			});
 
@@ -98,44 +99,38 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public string Password
 		{
-			get { return _password; }
-			set { this.RaiseAndSetIfChanged(ref _password, value); }
+			get => _password;
+			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
 		public string MnemonicWords
 		{
-			get { return _mnemonicWords; }
-			set { this.RaiseAndSetIfChanged(ref _mnemonicWords, value); }
+			get => _mnemonicWords;
+			set => this.RaiseAndSetIfChanged(ref _mnemonicWords, value);
 		}
 
 		public ObservableCollection<SuggestionViewModel> Suggestions
 		{
-			get { return _suggestions; }
-			set { this.RaiseAndSetIfChanged(ref _suggestions, value); }
+			get => _suggestions;
+			set => this.RaiseAndSetIfChanged(ref _suggestions, value);
 		}
 
 		public string WalletName
 		{
-			get { return _walletName; }
-			set { this.RaiseAndSetIfChanged(ref _walletName, value); }
-		}
-
-		public bool TermsAccepted
-		{
-			get { return _termsAccepted; }
-			set { this.RaiseAndSetIfChanged(ref _termsAccepted, value); }
+			get => _walletName;
+			set => this.RaiseAndSetIfChanged(ref _walletName, value);
 		}
 
 		public string ValidationMessage
 		{
-			get { return _validationMessage; }
-			set { this.RaiseAndSetIfChanged(ref _validationMessage, value); }
+			get => _validationMessage;
+			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
 		}
 
 		public int CaretIndex
 		{
-			get { return _caretIndex; }
-			set { this.RaiseAndSetIfChanged(ref _caretIndex, value); }
+			get => _caretIndex;
+			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
 		public ReactiveCommand RecoverCommand { get; }
@@ -162,7 +157,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Password = null;
 			MnemonicWords = "";
 			WalletName = Utils.GetNextWalletName();
-			TermsAccepted = false;
 			ValidationMessage = null;
 		}
 

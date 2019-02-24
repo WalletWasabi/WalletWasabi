@@ -34,7 +34,10 @@ namespace WalletWasabi.Gui
 
 		[JsonProperty(PropertyName = "FeeDisplayFormat")]
 		public int? FeeDisplayFormat { get; internal set; }
-     
+
+		[JsonProperty(PropertyName = "Autocopy")]
+		public bool? Autocopy { get; internal set; }
+
 		public UiConfig()
 		{
 		}
@@ -44,13 +47,14 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public UiConfig(WindowState windowState, double height, double width, int feeTarget,int feeDisplayFormat)
+		public UiConfig(WindowState windowState, double height, double width, int feeTarget, int feeDisplayFormat, bool autocopy)
 		{
 			WindowState = Guard.NotNull(nameof(windowState), windowState);
 			Height = Guard.NotNull(nameof(height), height);
 			Width = Guard.NotNull(nameof(width), width);
 			FeeTarget = Guard.NotNull(nameof(feeTarget), feeTarget);
 			FeeDisplayFormat = Guard.NotNull(nameof(feeDisplayFormat), feeDisplayFormat);
+			Autocopy = Guard.NotNull(nameof(autocopy), autocopy);
 		}
 
 		/// <inheritdoc />
@@ -74,6 +78,7 @@ namespace WalletWasabi.Gui
 			Width = 1100;
 			FeeTarget = 2;
 			FeeDisplayFormat = 0;
+			Autocopy = true;
 
 			if (!File.Exists(FilePath))
 			{
@@ -97,6 +102,7 @@ namespace WalletWasabi.Gui
 			Width = config.Width ?? Width;
 			FeeTarget = config.FeeTarget ?? FeeTarget;
 			FeeDisplayFormat = config.FeeDisplayFormat ?? FeeDisplayFormat;
+			Autocopy = config.Autocopy ?? Autocopy;
 		}
 
 		/// <inheritdoc />
@@ -133,6 +139,11 @@ namespace WalletWasabi.Gui
 			}
 
 			if (FeeDisplayFormat != config.FeeDisplayFormat)
+			{
+				return true;
+			}
+
+			if (Autocopy != config.Autocopy)
 			{
 				return true;
 			}

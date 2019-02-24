@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using AvalonStudio.Extensibility;
@@ -9,6 +10,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -18,15 +20,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private string _title;
 
-		public override string Title
+		public WalletViewModel(WalletService walletService, bool receiveDominant)
+			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
 		{
-			get { return _title; }
-			set { this.RaiseAndSetIfChanged(ref _title, value); }
-		}
-
-		public WalletViewModel(string name, bool receiveDominant)
-			: base(name)
-		{
+			WalletService = walletService;
+			Name = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);
 			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
 			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
 
@@ -35,49 +33,54 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(o =>
 				{
-					SetBalance(name);
+					SetBalance(Name);
 				});
 
-			SetBalance(name);
+			SetBalance(Name);
 
+			Actions = new ObservableCollection<WalletActionViewModel>
+			{
+				new SendTabViewModel(this),
+				new ReceiveTabViewModel(this),
+				new CoinJoinTabViewModel(this),
+				new HistoryTabViewModel(this),
+				new WalletInfoViewModel(this)
+			};
+
+			Actions[0].DisplayActionTab();
 			if (receiveDominant)
 			{
-				_actions = new ObservableCollection<WalletActionViewModel>
-				{
-					new SendTabViewModel(this),
-					new CoinJoinTabViewModel(this),
-					new HistoryTabViewModel(this),
-					new ReceiveTabViewModel(this)
-				};
+				Actions[2].DisplayActionTab();
+				Actions[3].DisplayActionTab();
+				Actions[1].DisplayActionTab();
 			}
 			else
 			{
-				_actions = new ObservableCollection<WalletActionViewModel>
-				{
-					new SendTabViewModel(this),
-					new ReceiveTabViewModel(this),
-					new CoinJoinTabViewModel(this),
-					new HistoryTabViewModel(this)
-				};
-			}
-
-			foreach (var vm in _actions)
-			{
-				vm.DisplayActionTab();
+				Actions[1].DisplayActionTab();
+				Actions[2].DisplayActionTab();
+				Actions[3].DisplayActionTab();
 			}
 		}
 
 		public string Name { get; }
 
+		public WalletService WalletService { get; }
+
+		public override string Title
+		{
+			get => _title;
+			set => this.RaiseAndSetIfChanged(ref _title, value);
+		}
+
 		public ObservableCollection<WalletActionViewModel> Actions
 		{
-			get { return _actions; }
-			set { this.RaiseAndSetIfChanged(ref _actions, value); }
+			get => _actions;
+			set => this.RaiseAndSetIfChanged(ref _actions, value);
 		}
 
 		private void SetBalance(string walletName)
 		{
-			Money balance = Enumerable.Where(Global.WalletService.Coins, c => c.Unspent).Sum(c => (long?)c.Amount) ?? 0;
+			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent).Sum(c => (long?)c.Amount) ?? 0;
 			Title = $"{walletName} ({balance.ToString(false, true)} BTC)";
 		}
 	}

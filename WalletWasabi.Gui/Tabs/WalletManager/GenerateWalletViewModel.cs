@@ -17,7 +17,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 	internal class GenerateWalletViewModel : CategoryViewModel
 	{
 		private string _password;
-		private string _passwordConfirmation;
 		private string _walletName;
 		private bool _termsAccepted;
 		private string _validationMessage;
@@ -35,25 +34,24 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
-				if (x.NotNullAndNotEmpty())
+				try
 				{
-					char lastChar = x.Last();
-					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					if (x.NotNullAndNotEmpty())
 					{
-						Password = x.TrimEnd('\r', '\n');
+						char lastChar = x.Last();
+						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+						{
+							Password = x.TrimEnd('\r', '\n');
+							if (TermsAccepted)
+							{
+								DoGenerateCommand();
+							}
+						}
 					}
 				}
-			});
-			this.WhenAnyValue(x => x.PasswordConfirmation).Subscribe(x =>
-			{
-				if (x.NotNullAndNotEmpty())
+				catch (Exception ex)
 				{
-					char lastChar = x.Last();
-					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-					{
-						PasswordConfirmation = x.TrimEnd('\r', '\n');
-						DoGenerateCommand();
-					}
+					Logger.LogTrace(ex);
 				}
 			});
 		}
@@ -64,7 +62,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 			Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
-			PasswordConfirmation = Guard.Correct(PasswordConfirmation); // Don't let whitespaces to the beginning and to the end.
 
 			if (!TermsAccepted)
 			{
@@ -77,10 +74,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			else if (File.Exists(walletFilePath))
 			{
 				ValidationMessage = $"The name {WalletName} is already taken.";
-			}
-			else if (Password != PasswordConfirmation)
-			{
-				ValidationMessage = $"The passwords do not match.";
 			}
 			else
 			{
@@ -100,32 +93,26 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public string Password
 		{
-			get { return _password; }
-			set { this.RaiseAndSetIfChanged(ref _password, value); }
-		}
-
-		public string PasswordConfirmation
-		{
-			get { return _passwordConfirmation; }
-			set { this.RaiseAndSetIfChanged(ref _passwordConfirmation, value); }
+			get => _password;
+			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
 		public string WalletName
 		{
-			get { return _walletName; }
-			set { this.RaiseAndSetIfChanged(ref _walletName, value); }
+			get => _walletName;
+			set => this.RaiseAndSetIfChanged(ref _walletName, value);
 		}
 
 		public bool TermsAccepted
 		{
-			get { return _termsAccepted; }
-			set { this.RaiseAndSetIfChanged(ref _termsAccepted, value); }
+			get => _termsAccepted;
+			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
 		}
 
 		public string ValidationMessage
 		{
-			get { return _validationMessage; }
-			set { this.RaiseAndSetIfChanged(ref _validationMessage, value); }
+			get => _validationMessage;
+			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
 		}
 
 		public ReactiveCommand GenerateCommand { get; }
@@ -150,7 +137,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			base.OnCategorySelected();
 
 			Password = "";
-			PasswordConfirmation = "";
 			WalletName = Utils.GetNextWalletName();
 			TermsAccepted = false;
 			ValidationMessage = "";
