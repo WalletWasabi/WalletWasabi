@@ -8,63 +8,126 @@ using WalletWasabi.Backend.Models;
 
 namespace WalletWasabi.Services
 {
-	public static class ExtPubKeyExplorer
+	public class ScriptPubKeyProvider
 	{
-		public static IEnumerable<BitcoinWitPubKeyAddress> GetUnusedBech32Keys(int count, bool isInternal, BitcoinExtPubKey bitcoinExtPubKey, IEnumerable<FilterModel> filters)
+		public	const int ChunkSize = 1_000;
+		private const int ChunkCount = 3;
+		private	const int DefaultBufferSize = ChunkCount * ChunkSize;
+		private ExtPubKey _extPubKey;
+		private byte[][] _buffer; 
+		private int _availableScriptCount = 0;
+		private IEnumerator<byte[]> _generator;
+
+		public int ScriptBufferSize => _buffer.Length;
+
+		public ScriptPubKeyProvider(ExtPubKey extPubKey)
 		{
-			var change = isInternal ? 1u : 0u;
-			var filterArray = filters.ToArray();
+			_extPubKey = extPubKey;
+			_buffer = new byte[DefaultBufferSize][];
+			_generator = GenerateNext().GetEnumerator();
+		}
 
-			const int MaxScanDepth = 1_000;
-			var path = new KeyPath($"{change}/0");
-			var scripts = new byte[MaxScanDepth][];
-			for(var i=0; i<MaxScanDepth; i++)
+		public ArraySegment<byte[]> GetScripts(int offset, int count=100)
+		{
+			if(count > ChunkSize)
+				throw new ArgumentNullException(nameof(count));
+
+			offset %= DefaultBufferSize;
+			_availableScriptCount %= DefaultBufferSize;
+			if(offset + count > DefaultBufferSize) 
+				throw new ArgumentNullException(nameof(count));
+			
+			while(offset + count > _availableScriptCount)
 			{
-				var pubKey = bitcoinExtPubKey.ExtPubKey.Derive(change).PubKey;
-				var bytes = pubKey.WitHash.ScriptPubKey.ToCompressedBytes();
-				scripts[i] = bytes;
+				_generator.MoveNext();
+				_buffer[_availableScriptCount++] = _generator.Current;
 			}
+			return new ArraySegment<byte[]>(_buffer, offset, count);
+		}
 
-			var found = -1;
-			var begin=0;
-			var size = MaxScanDepth-1;
-			while(found>-1 && size > 0)
+		private IEnumerable<byte[]> GenerateNext()
+		{
+			var i = 0u;
+			while(true)
 			{
-				var mid = size / 2;
-				var lh = new ArraySegment<byte[]>(scripts, begin, mid);
-				var rh = new ArraySegment<byte[]>(scripts, begin + mid, mid);
+				var pubKey = _extPubKey.Derive(i++).PubKey;
+				var bytes = pubKey.WitHash.ScriptPubKey.ToCompressedBytes();
+				yield return bytes;
+			}
+		}
+	}
 
-				var flh = false;
-				var frh = false;
-				foreach (var filterModel in filterArray.Where(x=>x.Filter != null))
+	public class ExtPubKeyExplorer
+	{
+		private readonly ScriptPubKeyProvider _scriptProvider;
+		private readonly FilterModel[] _filters;
+
+		public ExtPubKeyExplorer(ScriptPubKeyProvider scriptProvider, IEnumerable<FilterModel> filters)
+		{
+			_scriptProvider = scriptProvider;
+			_filters = filters.Where(x=>x.Filter != null).ToArray();
+			if(_filters.Length == 0)
+				throw new ArgumentException(nameof(filters), "There is not filter to match.");
+		}
+
+		private (int, ArraySegment<byte[]>) FindLastMatchingChunk()
+		{
+			var offset = 0;
+			var lastOffset = 0;
+			var scriptChunk = _scriptProvider.GetScripts(offset, 1_000);
+			var lastMatchingChunk = scriptChunk;
+			while(true)
+			{
+				foreach (var filterModel in _filters)
+				{
+					var matching = filterModel.Filter.MatchAny(scriptChunk, filterModel.FilterKey);
+					if(!matching)
+						return (lastOffset, lastMatchingChunk);
+				}
+				lastMatchingChunk = scriptChunk;
+				lastOffset = offset;
+				offset += 1_000;
+				scriptChunk = _scriptProvider.GetScripts(offset, 1_000);
+			}
+		}
+
+		public int GetIndexFirstUnusedKey()
+		{
+			var (absoluteOffset, lastMatchingCunck) = FindLastMatchingChunk();
+
+			var begin= lastMatchingCunck.Offset;
+			var size = lastMatchingCunck.Count;
+
+			while(size > 0)
+			{
+				var mid = (size+1) / 2;
+				var lh = _scriptProvider.GetScripts(begin, mid);
+
+				var flh = true;
+				var frh = true;
+				foreach (var filterModel in _filters)
 				{
 					flh = filterModel.Filter.MatchAny(lh, filterModel.FilterKey);
 					if (flh) break;
 				}
-				if(!flh)
+				if(!flh) break;
+
+				if(size-mid > 0)
 				{
-					return scripts.Skip(begin).Take(count)
-						.Select(x=>new Script(x).WitHash.GetAddress(bitcoinExtPubKey.Network))
-						.Cast<BitcoinWitPubKeyAddress>();
+					var rh = _scriptProvider.GetScripts(begin + mid, size-mid);
+					foreach (var filterModel in _filters)
+					{
+						frh = filterModel.Filter.MatchAny(rh, filterModel.FilterKey);
+						if (frh) break;
+					}
 				}
 
-				foreach (var filterModel in filterArray.Where(x=>x.Filter != null))
-				{
-					frh = filterModel.Filter.MatchAny(rh, filterModel.FilterKey);
-					if (frh) break;
-				}
-
-				if(flh && !frh)
-				{
-					size /= 2;
-				}
-				else if( flh && frh)
-				{
-					begin = mid; 
-				}
+				if( flh && frh) begin += mid; 
+				size = mid;
 			}
 
-			return null;
+			var relativeOffset = begin + (((begin % ScriptPubKeyProvider.ChunkSize) != 0) ? 1 : 0);
+			return absoluteOffset + relativeOffset;
 		}
 	}
 }
