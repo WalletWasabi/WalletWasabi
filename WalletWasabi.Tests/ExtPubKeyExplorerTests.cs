@@ -21,7 +21,7 @@ namespace WalletWasabi.Tests
 
 			var mnemonic = new Mnemonic("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about");
 			_extKey = mnemonic.DeriveExtKey();
-			_extPubKey = _extKey.Derive(new KeyPath("m/84'/0'/0'/1")).Neuter();
+			_extPubKey = _extKey.Derive(new KeyPath("m/84'/0'/0'/1/0")).Neuter();
 		}
 
 		[Fact]
@@ -33,8 +33,8 @@ namespace WalletWasabi.Tests
 
 			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
 
-			var unusedKeyIndex = explorer.GetIndexFirstUnusedKey();
-			Assert.Equal(0, unusedKeyIndex);
+			var unusedKeyIndex = explorer.UnusedKeys().First();
+			Assert.Equal(DerivateScript(0u), unusedKeyIndex);
 		}
 
 		[Fact]
@@ -47,8 +47,8 @@ namespace WalletWasabi.Tests
 
 			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
 
-			var unusedKeyIndex = explorer.GetIndexFirstUnusedKey();
-			Assert.Equal(20, unusedKeyIndex);
+			var unusedKeyIndex = explorer.UnusedKeys().First();
+			Assert.Equal(DerivateScript(20u), unusedKeyIndex);
 		}
 
 		[Fact]
@@ -61,8 +61,8 @@ namespace WalletWasabi.Tests
 
 			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
 
-			var unusedKeyIndex = explorer.GetIndexFirstUnusedKey();
-			Assert.Equal(999, unusedKeyIndex);
+			var unusedKeyIndex = explorer.UnusedKeys().First();
+			Assert.Equal(DerivateScript(999), unusedKeyIndex);
 		}
 
 		[Fact]
@@ -77,8 +77,8 @@ namespace WalletWasabi.Tests
 
 			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
 
-			var unusedKeyIndex = explorer.GetIndexFirstUnusedKey();
-			Assert.Equal(30, unusedKeyIndex);
+			var unusedKeyIndex = explorer.UnusedKeys().First();
+			Assert.Equal(DerivateScript(30), unusedKeyIndex);
 		}
 
 		[Fact]
@@ -93,8 +93,8 @@ namespace WalletWasabi.Tests
 
 			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
 
-			var unusedKeyIndex = explorer.GetIndexFirstUnusedKey();
-			Assert.Equal(1_000, unusedKeyIndex);
+			var unusedKeyIndex = explorer.UnusedKeys().First();
+			Assert.Equal(DerivateScript(1_000), unusedKeyIndex);
 		}
 
 		[Fact]
@@ -104,8 +104,8 @@ namespace WalletWasabi.Tests
 
 			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
 
-			var unusedKeyIndex = explorer.GetIndexFirstUnusedKey();
-			Assert.Equal(25_000, unusedKeyIndex);
+			var unusedKeyIndex = explorer.UnusedKeys().First();
+			Assert.Equal(DerivateScript(25_000), unusedKeyIndex);
 		}
 
 		[Fact]
@@ -117,8 +117,8 @@ namespace WalletWasabi.Tests
 				filters.Add(FilterModel.FromStream(file, 0));
 
 			var extPubKey = ExtPubKey.Parse("tpubDESeudcLbEHBoH8iw6mL284PXoe2TVmGa3MdQ2gSAkkMj9d1P88LB8wEbVYpigwzurDmDSRsGMKkUsH6vx1anBDCMRzha4YucJfCvEy6z6B");
-			var explorer = new ExtPubKeyExplorer(extPubKey, filters, 3); 
-			var index = explorer.GetIndexFirstUnusedKey();
+			var explorer = new ExtPubKeyExplorer(extPubKey, filters); 
+			var index = explorer.UnusedKeys().First();
 			Console.WriteLine($"first index: m/84'/0'/0'/0/{index}");
 			// Review: The Wallet file indicates that the first Locked index is 48, however increasing the chunkSize makes the
 			// method to return wrong index.
@@ -153,6 +153,11 @@ namespace WalletWasabi.Tests
 				scripts[i] = bytes;
 			}
 			return scripts;
+		}
+
+		private IEnumerable<byte> DerivateScript(uint index)
+		{
+			return _extPubKey.Derive(index).PubKey.WitHash.ScriptPubKey.ToCompressedBytes();
 		}
 	}
 }
