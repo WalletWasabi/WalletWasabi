@@ -363,6 +363,19 @@ namespace WalletWasabi.Packager
 						process.WaitForExit();
 					}
 
+					// Create launcher script
+					var launcherScriptPath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}.bat");
+
+					var laucherScriptContent = $@"
+@ECHO OFF
+IF ""%*"" == """" GOTO NOPARAMETER
+START /W {ExecutableName}.exe %*
+GOTO END
+:NOPARAMETER
+{ExecutableName}.exe
+:end:";
+					File.WriteAllText($"{launcherScriptPath}", laucherScriptContent);
+
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
 					if (OnlyBinaries) continue; // In Windows build at this moment it doesn't matter though.
 				}
