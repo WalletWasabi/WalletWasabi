@@ -2446,7 +2446,7 @@ namespace WalletWasabi.Tests
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
 					{
-						throw new TimeoutException("Not all rouns were in InputRegistration.");
+						throw new TimeoutException("Not all rounds were in InputRegistration.");
 					}
 					times++;
 				}
@@ -2587,7 +2587,7 @@ namespace WalletWasabi.Tests
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
 					{
-						throw new TimeoutException("Not all rouns were in InputRegistration.");
+						throw new TimeoutException("Not all rounds were in InputRegistration.");
 					}
 					times++;
 				}
