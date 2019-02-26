@@ -24,6 +24,7 @@ namespace WalletWasabi.Gui.CommandLine
 				if (args.Length > 0 && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					Native.AttachParentConsole();
+					Console.WriteLine();
 				}
 
 				var options = new OptionSet() {
@@ -75,7 +76,7 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			finally
 			{
-				if(!printConsole)
+				if (!printConsole)
 					Native.DettachParentConsole();
 			}
 
@@ -85,7 +86,7 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				Logger.SetMinimumLevel(logLevel.Value);
 			}
-			if(printConsole && !Logger.Modes.Contains(LogMode.Console))
+			if (printConsole && !Logger.Modes.Contains(LogMode.Console))
 			{
 				Logger.Modes.Add(LogMode.Console);
 			}
