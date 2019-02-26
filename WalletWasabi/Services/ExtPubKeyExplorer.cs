@@ -8,63 +8,32 @@ using WalletWasabi.Backend.Models;
 
 namespace WalletWasabi.Services
 {
-	public class ScriptPubKeyProvider
-	{
-		public	const int ChunkSize = 1_000;
-		private const int ChunkCount = 3;
-		private	const int DefaultBufferSize = ChunkCount * ChunkSize;
-		private ExtPubKey _extPubKey;
-		private byte[][] _buffer; 
-		private int _availableScriptCount = 0;
-		private IEnumerator<byte[]> _generator;
-
-		public int ScriptBufferSize => _buffer.Length;
-
-		public ScriptPubKeyProvider(ExtPubKey extPubKey)
-		{
-			_extPubKey = extPubKey;
-			_buffer = new byte[DefaultBufferSize][];
-			_generator = GenerateNext().GetEnumerator();
-		}
-
-		public ArraySegment<byte[]> GetScripts(int offset, int count=100)
-		{
-			if(count > ChunkSize)
-				throw new ArgumentNullException(nameof(count));
-
-			offset %= DefaultBufferSize;
-			_availableScriptCount %= DefaultBufferSize;
-			if(offset + count > DefaultBufferSize) 
-				throw new ArgumentNullException(nameof(count));
-			
-			while(offset + count > _availableScriptCount)
-			{
-				_generator.MoveNext();
-				_buffer[_availableScriptCount++] = _generator.Current;
-			}
-			return new ArraySegment<byte[]>(_buffer, offset, count);
-		}
-
-		private IEnumerable<byte[]> GenerateNext()
-		{
-			var i = 0u;
-			while(true)
-			{
-				var pubKey = _extPubKey.Derive(i++).PubKey;
-				var bytes = pubKey.WitHash.ScriptPubKey.ToCompressedBytes();
-				yield return bytes;
-			}
-		}
-	}
-
 	public class ExtPubKeyExplorer
 	{
-		private readonly ScriptPubKeyProvider _scriptProvider;
 		private readonly FilterModel[] _filters;
+		
+		// Indicates how many scripts to try each time. The default value is 21
+		public	const int DefaultChunkSize = 21;
+		private const int BufferCount = 10;
+		private ExtPubKey _extPubKey;
+		private ArraySegment<byte[]>[] _buffers = new ArraySegment<byte[]>[BufferCount];
+		private int _curBufferIndex = 0;
+		private IEnumerator<byte[]> _generator;
+		private int _chunkSize;
 
-		public ExtPubKeyExplorer(ScriptPubKeyProvider scriptProvider, IEnumerable<FilterModel> filters)
+		public ExtPubKeyExplorer(ExtPubKey extPubKey, IEnumerable<FilterModel> filters)
+			: this(extPubKey, filters, DefaultChunkSize)
+		{}
+
+		public ExtPubKeyExplorer(ExtPubKey extPubKey, IEnumerable<FilterModel> filters, int chunkSize)
 		{
-			_scriptProvider = scriptProvider;
+			_extPubKey = extPubKey;
+			_chunkSize = chunkSize;
+			var mainBuffer = new byte[BufferCount * _chunkSize][];
+			for(var i=0; i < BufferCount; i++)
+				_buffers[i] = new ArraySegment<byte[]>(mainBuffer, i * _chunkSize, _chunkSize);
+
+			_generator = DerivateNext().GetEnumerator();
 			_filters = filters.Where(x=>x.Filter != null).ToArray();
 			if(_filters.Length == 0)
 				throw new ArgumentException(nameof(filters), "There is not filter to match.");
@@ -74,20 +43,17 @@ namespace WalletWasabi.Services
 		{
 			var offset = 0;
 			var lastOffset = 0;
-			var scriptChunk = _scriptProvider.GetScripts(offset, 1_000);
+			var scriptChunk = GetChunkOfScripts();
 			var lastMatchingChunk = scriptChunk;
 			while(true)
 			{
-				foreach (var filterModel in _filters)
-				{
-					var matching = filterModel.Filter.MatchAny(scriptChunk, filterModel.FilterKey);
-					if(!matching)
-						return (lastOffset, lastMatchingChunk);
-				}
+				if(!Match(scriptChunk)) 
+					return (lastOffset, lastMatchingChunk);
+
 				lastMatchingChunk = scriptChunk;
 				lastOffset = offset;
-				offset += 1_000;
-				scriptChunk = _scriptProvider.GetScripts(offset, 1_000);
+				offset += _chunkSize;
+				scriptChunk = GetChunkOfScripts();
 			}
 		}
 
@@ -95,39 +61,68 @@ namespace WalletWasabi.Services
 		{
 			var (absoluteOffset, lastMatchingCunck) = FindLastMatchingChunk();
 
+			var arr = lastMatchingCunck.Array;
 			var begin= lastMatchingCunck.Offset;
 			var size = lastMatchingCunck.Count;
 
 			while(size > 0)
 			{
 				var mid = (size+1) / 2;
-				var lh = _scriptProvider.GetScripts(begin, mid);
+				var rest = size-mid;
 
-				var flh = true;
-				var frh = true;
-				foreach (var filterModel in _filters)
+				var lh = new ArraySegment<byte[]>(arr, begin, mid);
+				var rh = new ArraySegment<byte[]>(arr, begin + mid, rest);
+
+				if(!Match(lh)) break;
+				var frh = (rest > 0) ? Match(rh) : true;
+
+				if(frh)
 				{
-					flh = filterModel.Filter.MatchAny(lh, filterModel.FilterKey);
-					if (flh) break;
+					begin += mid; 
+					size = rest;
 				}
-				if(!flh) break;
-
-				if(size-mid > 0)
+				else
 				{
-					var rh = _scriptProvider.GetScripts(begin + mid, size-mid);
-					foreach (var filterModel in _filters)
-					{
-						frh = filterModel.Filter.MatchAny(rh, filterModel.FilterKey);
-						if (frh) break;
-					}
+					size = mid;
 				}
-
-				if( flh && frh) begin += mid; 
-				size = mid;
 			}
 
-			var relativeOffset = begin + (((begin % ScriptPubKeyProvider.ChunkSize) != 0) ? 1 : 0);
-			return absoluteOffset + relativeOffset;
+			return absoluteOffset + (begin - lastMatchingCunck.Offset);
+		}
+
+		private bool Match(ArraySegment<byte[]> chunk)
+		{
+			var used = false;
+			foreach (var filterModel in _filters)
+			{
+				used = filterModel.Filter.MatchAny(chunk, filterModel.FilterKey);
+				if (used) 
+					return true;
+			}
+			return false;
+		}
+
+		private ArraySegment<byte[]> GetChunkOfScripts()
+		{
+			var buffer = _buffers[_curBufferIndex % BufferCount];
+			for(var i=0; i<_chunkSize; i++)
+			{
+				_generator.MoveNext();
+				buffer[i] = _generator.Current;
+			}
+			_curBufferIndex++;
+			return buffer;
+		}
+
+		private IEnumerable<byte[]> DerivateNext()
+		{
+			var i = 0u;
+			while(true)
+			{
+				var pubKey = _extPubKey.Derive(i++).PubKey;
+				var bytes = pubKey.WitHash.ScriptPubKey.ToCompressedBytes();
+				yield return bytes;
+			}
 		}
 	}
 }

@@ -14,6 +14,9 @@ namespace WalletWasabi.Benck
 	[RPlotExporter, RankColumn]
 	public class SearchingUnusedAddresses
 	{
+		[Params(21)]
+		public int ChunkSize;
+
 		private List<FilterModel> _filters;
 
 		[GlobalSetup]
@@ -28,9 +31,8 @@ namespace WalletWasabi.Benck
 		[Benchmark]
 		public void FindFirstUnusedKey()
 		{
-			var extPubKey = ExtPubKey.Parse("tpubD6NzVbkrYhZ4YcNe2sjvpcdPzEgZuXQyWSnVjxmYQLCXAce7UKVtbftWaUGyCKrdXMy2uWy7DcTqMTXJWmgFJZd2T1BzHRPm7cHvzBTmeed");
-			var scriptProvider = new ScriptPubKeyProvider(extPubKey);
-			var explorer = new ExtPubKeyExplorer(scriptProvider, _filters); 
+			var extPubKey = ExtPubKey.Parse("tpubDHATEWfRGN6UyE9TMGASsojBxrvWsaDc6zuVDiiAspjJrHsUUuR7eV7KyFM8RYtAqHnTjqBd7BigU4qy1CeAdkHw3Y4ocmT63DUsKVEwgWu");
+			var explorer = new ExtPubKeyExplorer(extPubKey, _filters, ChunkSize); 
 			var index = explorer.GetIndexFirstUnusedKey();
 			Console.WriteLine($"first index: m/84'/0'/0'/0/{index}");
 		}
