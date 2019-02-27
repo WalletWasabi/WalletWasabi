@@ -52,7 +52,7 @@ namespace WalletWasabi.Gui.CommandLine
 					}},
 					{ "m|mix", "Start mixing without the GUI with the specified wallet.", x => doMix = x != null},
 					{ "w|wallet=", "The specified wallet file.", x => {
-						walletName = x?.ToLower()?.Trim();
+						walletName = x?.Trim();
 					}}
 				};
 				try
