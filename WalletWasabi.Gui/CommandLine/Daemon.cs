@@ -15,8 +15,10 @@ namespace WalletWasabi.Gui.CommandLine
 	{
 		public static void Run(string[] args, out bool continueWithGui)
 		{
+			continueWithGui = true;
+			var silent = false;
+
 			var showHelp = false;
-			var printConsole = false;
 			var showVersion = false;
 			LogLevel? logLevel = null;
 			string walletName = null;
@@ -24,7 +26,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 			try
 			{
-				if (args.Length > 0 && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					Native.AttachParentConsole();
 					Console.WriteLine();
@@ -33,11 +35,11 @@ namespace WalletWasabi.Gui.CommandLine
 				var options = new OptionSet() {
 					{ "v|version", "Displays Wasabi version and exit.", x => showVersion = x != null},
 					{ "h|help", "Displays help page and exit.", x => showHelp = x != null},
-					{ "p|printconsole", "Log to the standard output", x => printConsole = x != null},
-					{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARN|DEBUG|ERROR.", x => {
+					{ "s|silent", "Do not log to the standard outputs.", x => silent = x != null},
+					{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARNING|DEBUG|ERROR.", x => {
 						var normalized = x?.ToLower()?.Trim();
 						if(normalized == "info") logLevel = LogLevel.Info;
-						else if(normalized == "warn")  logLevel = LogLevel.Warning;
+						else if(normalized == "warning")  logLevel = LogLevel.Warning;
 						else if(normalized == "error") logLevel = LogLevel.Error;
 						else if(normalized == "trace") logLevel = LogLevel.Trace;
 						else if(normalized == "debug") logLevel = LogLevel.Debug;
@@ -55,35 +57,34 @@ namespace WalletWasabi.Gui.CommandLine
 				{
 					var extras = options.Parse(args);
 					if (extras.Count > 0)
+					{
 						showHelp = true;
+					}
 				}
 				catch (OptionException)
 				{
+					continueWithGui = false;
 					Console.WriteLine("Option not recognized.");
 					Console.WriteLine();
 					ShowHelp(options);
-
-					continueWithGui = false;
 					return;
 				}
 				if (showHelp)
 				{
-					ShowHelp(options);
-
 					continueWithGui = false;
+					ShowHelp(options);
 					return;
 				}
 				else if (showVersion)
 				{
-					ShowVersion();
-
 					continueWithGui = false;
+					ShowVersion();
 					return;
 				}
 			}
 			finally
 			{
-				if (!printConsole)
+				if (silent)
 				{
 					Native.DettachParentConsole();
 				}
@@ -95,11 +96,16 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				Logger.SetMinimumLevel(logLevel.Value);
 			}
-			if (printConsole && !Logger.Modes.Contains(LogMode.Console))
+			if (silent)
+			{
+				Logger.Modes.Remove(LogMode.Console);
+				Logger.Modes.Remove(LogMode.Debug);
+			}
+			else
 			{
 				Logger.Modes.Add(LogMode.Console);
+				Logger.Modes.Add(LogMode.Debug);
 			}
-			continueWithGui = true;
 
 			KeyManager keyManager = null;
 			if (walletName != null)
@@ -111,7 +117,7 @@ namespace WalletWasabi.Gui.CommandLine
 				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 				{
 					// The selected wallet is not available any more (someone deleted it?).
-					Console.WriteLine("The selected wallet doesn't exsist, did you delete it?");
+					Logger.LogCritical("The selected wallet doesn't exsist, did you delete it?", nameof(Daemon));
 					return;
 				}
 
@@ -121,16 +127,19 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				catch (Exception ex)
 				{
-					Console.WriteLine(ex);
+					Logger.LogCritical(ex, nameof(Daemon));
 					return;
 				}
 			}
 
 			if (doMix)
 			{
+				continueWithGui = false;
+
 				if (keyManager == null)
 				{
-					Console.WriteLine("Wallet is not supplied.");
+					Logger.LogCritical("Wallet was not supplied. Add --wallet {WalletName}", nameof(Daemon));
+					return;
 				}
 			}
 		}

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	static class Native
+	internal static class Native
 	{
 		[DllImport("kernel32", SetLastError = true)]
 		private static extern bool AttachConsole(int dwProcessId);
@@ -16,9 +16,9 @@ namespace WalletWasabi.Gui.CommandLine
 		private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
 
 		[DllImport("kernel32", SetLastError = true)]
-		static extern bool FreeConsole();
+		private static extern bool FreeConsole();
 
-		static bool _isConsoleAttached = false;
+		public static bool IsConsoleAttached { get; set; }
 
 		public static void AttachParentConsole()
 		{
@@ -29,12 +29,13 @@ namespace WalletWasabi.Gui.CommandLine
 
 			if (AttachConsole(process.Id))
 			{
-				_isConsoleAttached = true;
+				IsConsoleAttached = true;
 			}
 		}
+
 		public static void DettachParentConsole()
 		{
-			if (_isConsoleAttached)
+			if (IsConsoleAttached)
 			{
 				FreeConsole();
 			}
