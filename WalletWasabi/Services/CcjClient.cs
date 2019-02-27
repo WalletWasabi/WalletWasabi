@@ -93,6 +93,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
+				Synchronizer.BlockRequests();
 				IEnumerable<CcjRunningRoundState> newRoundStates = e.CcjRoundStates;
 
 				await ProcessStatusAsync(newRoundStates);
@@ -100,6 +101,10 @@ namespace WalletWasabi.Services
 			catch (Exception ex)
 			{
 				Logger.LogWarning<CcjClient>(ex);
+			}
+			finally
+			{
+				Synchronizer.EnableRequests();
 			}
 		}
 
