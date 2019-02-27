@@ -141,6 +141,22 @@ namespace WalletWasabi.Gui.CommandLine
 					Logger.LogCritical("Wallet was not supplied. Add --wallet {WalletName}", nameof(Daemon));
 					return;
 				}
+
+				string password = null;
+				do
+				{
+					if (password != null)
+					{
+						Logger.LogError("Wrong password. Try again.");
+					}
+					Console.Write("Password: ");
+
+					password = PasswordConsole.ReadPassword();
+					password = Guard.Correct(password);
+				}
+				while (!keyManager.TestPassword(password));
+
+				Logger.LogInfo("Correct password.");
 			}
 		}
 
