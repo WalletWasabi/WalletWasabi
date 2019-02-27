@@ -143,11 +143,21 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 
 				string password = null;
+				var count = 3;
 				do
 				{
 					if (password != null)
 					{
-						Logger.LogError("Wrong password. Try again.");
+						if (count > 0)
+						{
+							Logger.LogError($"Wrong password. {count} attempts left. Try again.");
+						}
+						else
+						{
+							Logger.LogCritical($"Wrong password. {count} attempts left. Exiting...");
+							return;
+						}
+						count--;
 					}
 					Console.Write("Password: ");
 
