@@ -207,7 +207,7 @@ namespace System.IO
 		public static string GetProperDirectoryCapitalization(DirectoryInfo dirInfo)
 		{
 			DirectoryInfo parentDirInfo = dirInfo.Parent;
-			return null == parentDirInfo
+			return parentDirInfo is null
 				? dirInfo.Name
 				: Path.Combine(GetProperDirectoryCapitalization(parentDirInfo), parentDirInfo.GetDirectories(dirInfo.Name)[0].Name);
 		}
