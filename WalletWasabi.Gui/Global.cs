@@ -65,6 +65,7 @@ namespace WalletWasabi.Gui
 		public static string AddressManagerFilePath { get; private set; }
 		public static AddressManager AddressManager { get; private set; }
 		public static MemPoolService MemPoolService { get; private set; }
+
 		public static NodesGroup Nodes { get; private set; }
 		public static WasabiSynchronizer Synchronizer { get; private set; }
 		public static CcjClient ChaumianClient { get; private set; }
@@ -130,6 +131,18 @@ namespace WalletWasabi.Gui
 				Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
 				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
 			}
+		}
+
+		public static async Task InitializeNoUiAsync()
+		{
+			var configFilePath = Path.Combine(DataDir, "Config.json");
+			var config = new Config(configFilePath);
+			await config.LoadOrCreateDefaultFileAsync();
+			Logger.LogInfo<Config>("Config is successfully initialized.");
+
+			InitializeConfig(config);
+
+			InitializeNoWallet();
 		}
 
 		public static void InitializeNoWallet()
@@ -257,7 +270,7 @@ namespace WalletWasabi.Gui
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 
-			if (!(RegTestMemPoolServingNode is null))
+			if (RegTestMemPoolServingNode != null)
 			{
 				RegTestMemPoolServingNode.VersionHandshake();
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
@@ -293,6 +306,66 @@ namespace WalletWasabi.Gui
 			}
 			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 			WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+		}
+
+		public static string GetWalletFullPath(string walletName)
+		{
+			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
+			return Path.Combine(WalletsDir, walletName + ".json");
+		}
+
+		public static string GetWalletBackupFullPath(string walletName)
+		{
+			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
+			return Path.Combine(WalletBackupsDir, walletName + ".json");
+		}
+
+		public static KeyManager LoadKeyManager(string walletFullPath, string walletBackupFullPath)
+		{
+			try
+			{
+				return LoadKeyManager(walletFullPath);
+			}
+			catch (Exception ex)
+			{
+				if (!File.Exists(walletBackupFullPath))
+				{
+					throw;
+				}
+
+				Logger.LogWarning($"Wallet got corrupted.\n" +
+					$"Wallet Filepath: {walletFullPath}\n" +
+					$"Trying to recover it from backup.\n" +
+					$"Backup path: {walletBackupFullPath}\n" +
+					$"Exception: {ex.ToString()}");
+				if (File.Exists(walletFullPath))
+				{
+					string corruptedWalletBackupPath = Path.Combine(WalletBackupsDir, $"{Path.GetFileName(walletFullPath)}_CorruptedBackup");
+					if (File.Exists(corruptedWalletBackupPath))
+					{
+						File.Delete(corruptedWalletBackupPath);
+						Logger.LogInfo($"Deleted previous corrupted wallet file backup from {corruptedWalletBackupPath}.");
+					}
+					File.Move(walletFullPath, corruptedWalletBackupPath);
+					Logger.LogInfo($"Backed up corrupted wallet file to {corruptedWalletBackupPath}.");
+				}
+				File.Copy(walletBackupFullPath, walletFullPath);
+
+				return LoadKeyManager(walletFullPath);
+			}
+		}
+
+		public static KeyManager LoadKeyManager(string walletFullPath)
+		{
+			KeyManager keyManager;
+			var walletFileInfo = new FileInfo(walletFullPath)
+			{
+				LastAccessTime = DateTime.Now
+			};
+
+			keyManager = KeyManager.FromFile(walletFullPath);
+			Logger.LogInfo($"Wallet loaded: {Path.GetFileNameWithoutExtension(keyManager.FilePath)}.");
+			return keyManager;
 		}
 
 		private static void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
