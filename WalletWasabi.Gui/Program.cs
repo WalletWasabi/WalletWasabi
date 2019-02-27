@@ -22,8 +22,7 @@ namespace WalletWasabi.Gui
 		private static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
-			Daemon.Run(args, out bool continueWithGui);
-			if (!continueWithGui)
+			if (!await Daemon.RunAsyncReturnTrueIfContinueWithGuiAsync(args))
 			{
 				return;
 			}

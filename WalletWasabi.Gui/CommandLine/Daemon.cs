@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
@@ -13,9 +15,9 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public static class Daemon
 	{
-		public static void Run(string[] args, out bool continueWithGui)
+		public static async Task<bool> RunAsyncReturnTrueIfContinueWithGuiAsync(string[] args)
 		{
-			continueWithGui = true;
+			var continueWithGui = true;
 			var silent = false;
 
 			var showHelp = false;
@@ -67,19 +69,19 @@ namespace WalletWasabi.Gui.CommandLine
 					Console.WriteLine("Option not recognized.");
 					Console.WriteLine();
 					ShowHelp(options);
-					return;
+					return continueWithGui;
 				}
 				if (showHelp)
 				{
 					continueWithGui = false;
 					ShowHelp(options);
-					return;
+					return continueWithGui;
 				}
 				else if (showVersion)
 				{
 					continueWithGui = false;
 					ShowVersion();
-					return;
+					return continueWithGui;
 				}
 			}
 			finally
@@ -118,7 +120,7 @@ namespace WalletWasabi.Gui.CommandLine
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					Logger.LogCritical("The selected wallet doesn't exsist, did you delete it?", nameof(Daemon));
-					return;
+					return continueWithGui;
 				}
 
 				try
@@ -128,7 +130,7 @@ namespace WalletWasabi.Gui.CommandLine
 				catch (Exception ex)
 				{
 					Logger.LogCritical(ex, nameof(Daemon));
-					return;
+					return continueWithGui;
 				}
 			}
 
@@ -139,7 +141,7 @@ namespace WalletWasabi.Gui.CommandLine
 				if (keyManager == null)
 				{
 					Logger.LogCritical("Wallet was not supplied. Add --wallet {WalletName}", nameof(Daemon));
-					return;
+					return continueWithGui;
 				}
 
 				string password = null;
@@ -155,7 +157,7 @@ namespace WalletWasabi.Gui.CommandLine
 						else
 						{
 							Logger.LogCritical($"Wrong password. {count} attempts left. Exiting...");
-							return;
+							return continueWithGui;
 						}
 						count--;
 					}
@@ -167,7 +169,21 @@ namespace WalletWasabi.Gui.CommandLine
 				while (!keyManager.TestPassword(password));
 
 				Logger.LogInfo("Correct password.");
+
+				await Global.InitializeNoUiAsync();
+				await Global.InitializeWalletServiceAsync(keyManager);
+
+				await Global.ChaumianClient.QueueCoinsToMixAsync(password, Global.WalletService.Coins.Where(x => x.Unspent).ToArray());
+
+				while (Global.ChaumianClient.State.AnyCoinsQueued())
+				{
+					await Task.Delay(3000);
+				}
+
+				await Global.ChaumianClient.DequeueAllCoinsFromMixAsync();
 			}
+
+			return continueWithGui;
 		}
 
 		private static void ShowVersion()
