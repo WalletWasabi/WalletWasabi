@@ -66,12 +66,10 @@ namespace WalletWasabi.Gui
 		public static string AddressManagerFilePath { get; private set; }
 		public static AddressManager AddressManager { get; private set; }
 		public static MemPoolService MemPoolService { get; private set; }
-
 		public static NodesGroup Nodes { get; private set; }
 		public static WasabiSynchronizer Synchronizer { get; private set; }
 		public static CcjClient ChaumianClient { get; private set; }
 		public static WalletService WalletService { get; private set; }
-		public static Node RegTestMemPoolServingNode { get; private set; }
 		public static UpdateChecker UpdateChecker { get; private set; }
 		public static TorProcessManager TorManager { get; private set; }
 
@@ -185,21 +183,23 @@ namespace WalletWasabi.Gui
 
 			Logger.LogInfo<TorProcessManager>($"{nameof(TorProcessManager)} is initialized.");
 
-			var needsToDiscoverPeers = true;
-			if (Network == Network.RegTest)
+			MemPoolService = new MemPoolService();
+			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
+
+			if(TryConnectToLocalNode(out NodesGroup localNodes, connectionParameters))
 			{
-				AddressManager = new AddressManager();
-				Logger.LogInfo<AddressManager>($"Fake {nameof(AddressManager)} is initialized on the RegTest.");
+				Nodes = localNodes;
 			}
 			else
 			{
+				var needsToDiscoverPeers = true;
 				try
 				{
 					AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
 
 					// The most of the times we don't need to discover new peers. Instead, we can connect to
-					// some of those that we already discovered in the past. In this case we assume that we
-					// assume that discovering new peers could be necessary if out address manager has less
+					// some of those that we already discovered in the past. In this case we assume that 
+					// discovering new peers could be necessary if our address manager has less
 					// than 500 addresses. A 500 addresses could be okay because previously we tried with
 					// 200 and only one user reported he/she was not able to connect (there could be many others,
 					// of course).
@@ -238,46 +238,14 @@ namespace WalletWasabi.Gui
 					AddressManager = new AddressManager();
 					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
 				}
-			}
 
-			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
-			{
-				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
-			};
-			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
-			MemPoolService = new MemPoolService();
-			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
-
-			if (Network == Network.RegTest)
-			{
-				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
-				try
+				var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
 				{
-					Node node = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
-					Nodes.ConnectedNodes.Add(node);
+					Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
+				};
+				connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 
-					RegTestMemPoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
-
-					RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
-				}
-				catch (SocketException ex)
-				{
-					Logger.LogError(ex, nameof(Global));
-				}
-			}
-			else
-			{
-				if (Config.UseTor is true)
-				{
-					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
-					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
-					// allowOnlyTorEndpoints: true - Connect only to onions and don't connect to clearnet IPs at all.
-					// This of course makes the first setting unneccessary, but it's better if that's around, in case someone wants to tinker here.
-					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: true);
-				}
 				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
-
-				RegTestMemPoolServingNode = null;
 			}
 
 			if (Config.UseTor.Value)
@@ -294,12 +262,6 @@ namespace WalletWasabi.Gui
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 
-			if (RegTestMemPoolServingNode != null)
-			{
-				RegTestMemPoolServingNode.VersionHandshake();
-				Logger.LogInfo("Start connecting to mempool serving regtest node...");
-			}
-
 			var requestInterval = TimeSpan.FromSeconds(30);
 			if (Network == Network.RegTest)
 			{
@@ -310,6 +272,57 @@ namespace WalletWasabi.Gui
 
 			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
 			Logger.LogInfo("Start synchronizing filters...");
+		}
+
+		private static bool TryConnectToLocalNode(out NodesGroup nodes, NodeConnectionParameters connectionParameters)
+		{
+			var handshakeTimeout = new CancellationTokenSource();
+			handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
+
+			var localIpEndPoint = Config.ServiceConfiguration.BitcoinCoreEndPoint;
+			var addrman = new AddressManager();
+			var localhost = new NetworkAddress(localIpEndPoint);
+			addrman.Add(localhost, localhost.Endpoint.Address);
+			var addressManagerBehavior = new AddressManagerBehavior(addrman)
+			{
+				Mode =AddressManagerBehaviorMode.None
+			};
+			var nodeConnectionParameters = connectionParameters.Clone();
+			nodeConnectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
+			nodeConnectionParameters.ConnectCancellation = handshakeTimeout.Token;
+			nodeConnectionParameters.IsRelay = false;
+
+			try
+			{
+				var node = Node.Connect(Network, addrman, nodeConnectionParameters);
+				Logger.LogInfo($"TCP Connection succeeded, handshaking...");
+				node.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
+				var peerServices = node.PeerVersion.Services;
+
+				if(!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
+				{
+					throw new InvalidOperationException($"Wasabi cannot use the local node because it doesn't provide blocks.");
+				}
+
+				Logger.LogInfo($"Handshake completed successfully.");
+
+				if (!node.IsConnected)
+				{
+					throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
+						$"Probably this is because the node doesn't support retrieving full blocks or segwit serialization.");
+				}
+				nodes = new NodesGroup(Network, nodeConnectionParameters, Constants.NodeRequirements);
+				nodes.MaximumNodeConnection = 1;
+				nodes.ConnectedNodes.Add(node);
+				return true;
+			}
+			catch(Exception e)
+			{
+				Logger.LogInfo(e.Message);
+			}
+
+			nodes = null;
+			return false;
 		}
 
 		private static CancellationTokenSource CancelWalletServiceInitialization = null;
@@ -497,17 +510,8 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
 				}
 
-				if (RegTestMemPoolServingNode != null)
-				{
-					RegTestMemPoolServingNode.Disconnect();
-					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
-				}
-
-				if (TorManager != null)
-				{
-					TorManager?.Dispose();
-					Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
-				}
+				TorManager?.Dispose();
+				Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
 			}
 			catch (Exception ex)
 			{
