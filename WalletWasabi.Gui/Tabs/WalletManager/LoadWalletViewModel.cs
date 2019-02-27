@@ -236,8 +236,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					return null;
 				}
 
-				var walletFullPath = Path.Combine(Global.WalletsDir, SelectedWallet + ".json");
-				var walletBackupFullPath = Path.Combine(Global.WalletBackupsDir, SelectedWallet + ".json");
+				var walletFullPath = Global.GetWalletFullPath(SelectedWallet);
+				var walletBackupFullPath = Global.GetWalletBackupFullPath(SelectedWallet);
 				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 				{
 					// The selected wallet is not available any more (someone deleted it?).
@@ -246,38 +246,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					return null;
 				}
 
-				KeyManager keyManager = null;
-				try
-				{
-					keyManager = LoadKeyManager(walletFullPath);
-				}
-				catch (Exception ex)
-				{
-					if (!File.Exists(walletBackupFullPath))
-					{
-						throw;
-					}
-
-					Logger.LogWarning($"Wallet got corrupted.\n" +
-						$"Wallet Filepath: {walletFullPath}\n" +
-						$"Trying to recover it from backup.\n" +
-						$"Backup path: {walletBackupFullPath}\n" +
-						$"Exception: {ex.ToString()}");
-					if (File.Exists(walletFullPath))
-					{
-						string corruptedWalletBackupPath = Path.Combine(Global.WalletBackupsDir, $"{Path.GetFileName(walletFullPath)}_CorruptedBackup");
-						if (File.Exists(corruptedWalletBackupPath))
-						{
-							File.Delete(corruptedWalletBackupPath);
-							Logger.LogInfo($"Deleted previous corrupted wallet file backup from {corruptedWalletBackupPath}.");
-						}
-						File.Move(walletFullPath, corruptedWalletBackupPath);
-						Logger.LogInfo($"Backed up corrupted wallet file to {corruptedWalletBackupPath}.");
-					}
-					File.Copy(walletBackupFullPath, walletFullPath);
-
-					keyManager = LoadKeyManager(walletFullPath);
-				}
+				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
 
 				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
 				if (requirePassword)
@@ -353,19 +322,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				IsBusy = false;
 				SetWalletStates();
 			}
-		}
-
-		private KeyManager LoadKeyManager(string walletFullPath)
-		{
-			KeyManager keyManager;
-			var walletFileInfo = new FileInfo(walletFullPath)
-			{
-				LastAccessTime = DateTime.Now
-			};
-
-			keyManager = KeyManager.FromFile(walletFullPath);
-			Logger.LogInfo($"Wallet decrypted: {SelectedWallet}.");
-			return keyManager;
 		}
 
 		public ReactiveCommand OpenFolderCommand { get; }

@@ -153,6 +153,16 @@ namespace WalletWasabi.KeyManagement
 				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
 			}
 
+			// Try recase if doesn't succeed, then go with the supplied casing.
+			try
+			{
+				filePath = IoHelpers.GetProperFilePathCapitalization(filePath);
+			}
+			catch
+			{
+				// Ignored.
+			}
+
 			string jsonString = File.ReadAllText(safestFile, Encoding.UTF8);
 			var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
 			km.SetFilePath(filePath);
