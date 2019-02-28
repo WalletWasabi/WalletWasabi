@@ -4,6 +4,7 @@ using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -190,6 +191,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
+		public static ConcurrentDictionary<(long roundId, CcjRoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, CcjRoundPhase phase), DateTimeOffset>();
+
 		public async Task ExecuteNextPhaseAsync(CcjRoundPhase expectedPhase, Money feePerInputs = null, Money feePerOutputs = null)
 		{
 			using (await RoundSynchronizerLock.LockAsync())
@@ -373,7 +376,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 						Phase = CcjRoundPhase.Signing;
 					}
-					else
+					else // Phase == CcjRoundPhase.Signing
 					{
 						return;
 					}
@@ -423,6 +426,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 				if (executeRunAbortion)
 				{
+					PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
 					string timedOutLogString = $"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.";
 
 					if (expectedPhase == CcjRoundPhase.ConnectionConfirmation)
