@@ -372,6 +372,11 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					return;
+				}
+
 				if (e.Action == NotifyCollectionChangedAction.Add)
 				{
 					foreach (SmartCoin coin in e.NewItems)
