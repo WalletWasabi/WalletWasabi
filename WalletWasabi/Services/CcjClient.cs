@@ -248,7 +248,7 @@ namespace WalletWasabi.Services
 
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
-					if (!(inputRegistrableRound is null))
+					if (inputRegistrableRound != null)
 					{
 						if (inputRegistrableRound.Registration is null) // If didn't register already, check what can we register.
 						{
@@ -969,7 +969,7 @@ namespace WalletWasabi.Services
 				}
 
 				SmartCoin coinWaitingForMix = State.GetSingleOrDefaultFromWaitingList(coinToDequeue);
-				if (!(coinWaitingForMix is null)) // If it is not being mixed, we can just remove it.
+				if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
 				{
 					RemoveCoin(coinWaitingForMix);
 				}
@@ -995,7 +995,7 @@ namespace WalletWasabi.Services
 			{
 				coinWaitingForMix.Label = "ZeroLink Dequeued Change";
 				var key = KeyManager.GetKeys(x => x.GetP2wpkhScript() == coinWaitingForMix.ScriptPubKey).SingleOrDefault();
-				if (!(key is null))
+				if (key != null)
 				{
 					key.SetLabel(coinWaitingForMix.Label, KeyManager);
 				}

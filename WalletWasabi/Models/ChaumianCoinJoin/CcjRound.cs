@@ -661,7 +661,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
-				if (!(optimalFeeRate is null) && optimalFeeRate != FeeRate.Zero && !(currentFeeRate is null) && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
+				if (optimalFeeRate != null && optimalFeeRate != FeeRate.Zero && currentFeeRate != null && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
 				{
 					var sanityFeeRate = new FeeRate(2m); // 2 s/b
 					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;

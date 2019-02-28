@@ -125,7 +125,7 @@
 //      };
 //      p.Parse (new string[]{"-a"});   // sets v != null
 //      p.Parse (new string[]{"-a+"});  // sets v != null
-//      p.Parse (new string[]{"-a-"});  // sets v == null
+//      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
 //
@@ -291,7 +291,7 @@ namespace Mono.Options
 
 		private void AssertValid(int index)
 		{
-			if (C.Option == null)
+			if (C.Option is null)
 				throw new InvalidOperationException("OptionContext.Option is null.");
 			if (index >= C.Option.MaxValueCount)
 				throw new ArgumentOutOfRangeException("index");

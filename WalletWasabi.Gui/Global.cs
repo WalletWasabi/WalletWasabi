@@ -411,9 +411,9 @@ namespace WalletWasabi.Gui
 			CancelWalletServiceInitialization?.Cancel();
 			CancelWalletServiceInitialization = null;
 
-			if (!(WalletService is null))
+			if (WalletService != null)
 			{
-				if (!(WalletService.KeyManager is null)) // This should not ever happen.
+				if (WalletService.KeyManager != null) // This should not ever happen.
 				{
 					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(WalletService.KeyManager.FilePath));
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
@@ -425,7 +425,7 @@ namespace WalletWasabi.Gui
 
 			Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
 
-			if (!(ChaumianClient is null))
+			if (ChaumianClient != null)
 			{
 				await ChaumianClient.StopAsync();
 				ChaumianClient = null;
@@ -452,7 +452,7 @@ namespace WalletWasabi.Gui
 				Nodes?.Dispose();
 				Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
 
-				if (!(RegTestMemPoolServingNode is null))
+				if (RegTestMemPoolServingNode != null)
 				{
 					RegTestMemPoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));

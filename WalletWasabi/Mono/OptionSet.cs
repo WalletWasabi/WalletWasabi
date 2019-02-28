@@ -125,7 +125,7 @@
 //      };
 //      p.Parse (new string[]{"-a"});   // sets v != null
 //      p.Parse (new string[]{"-a+"});  // sets v != null
-//      p.Parse (new string[]{"-a-"});  // sets v == null
+//      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
 //
@@ -178,7 +178,7 @@ namespace Mono.Options
 		{
 			ArgumentSources = new ReadOnlyCollection<ArgumentSource>(Sources);
 			MessageLocalizer = localizer;
-			if (MessageLocalizer == null)
+			if (MessageLocalizer is null)
 			{
 				MessageLocalizer = delegate (string f)
 				{
@@ -194,7 +194,7 @@ namespace Mono.Options
 
 		protected override string GetKeyForItem(Option item)
 		{
-			if (item == null)
+			if (item is null)
 				throw new ArgumentNullException("option");
 			if (item.Names != null && item.Names.Length > 0)
 				return item.Names[0];
@@ -206,7 +206,7 @@ namespace Mono.Options
 		[Obsolete("Use KeyedCollection.this[string]")]
 		protected Option GetOptionForName(string option)
 		{
-			if (option == null)
+			if (option is null)
 				throw new ArgumentNullException("option");
 			try
 			{
@@ -243,7 +243,7 @@ namespace Mono.Options
 
 		private void AddImpl(Option option)
 		{
-			if (option == null)
+			if (option is null)
 				throw new ArgumentNullException("option");
 			List<string> added = new List<string>(option.Names.Length);
 			try
@@ -265,7 +265,7 @@ namespace Mono.Options
 
 		public OptionSet Add(string header)
 		{
-			if (header == null)
+			if (header is null)
 				throw new ArgumentNullException("header");
 			Add(new Category(header));
 			return this;
@@ -326,7 +326,7 @@ namespace Mono.Options
 
 		public OptionSet Add(string prototype, string description, Action<string> action, bool hidden)
 		{
-			if (action == null)
+			if (action is null)
 				throw new ArgumentNullException("action");
 			Option p = new ActionOption(prototype, description, 1,
 					delegate (OptionValueCollection v) { action(v[0]); }, hidden);
@@ -346,7 +346,7 @@ namespace Mono.Options
 
 		public OptionSet Add(string prototype, string description, OptionAction<string, string> action, bool hidden)
 		{
-			if (action == null)
+			if (action is null)
 				throw new ArgumentNullException("action");
 			Option p = new ActionOption(prototype, description, 2,
 					delegate (OptionValueCollection v) { action(v[0], v[1]); }, hidden);
@@ -410,7 +410,7 @@ namespace Mono.Options
 
 		public OptionSet Add(ArgumentSource source)
 		{
-			if (source == null)
+			if (source is null)
 				throw new ArgumentNullException("source");
 			Sources.Add(source);
 			return this;
@@ -423,7 +423,7 @@ namespace Mono.Options
 
 		public List<string> Parse(IEnumerable<string> arguments)
 		{
-			if (arguments == null)
+			if (arguments is null)
 				throw new ArgumentNullException("arguments");
 			OptionContext c = CreateOptionContext();
 			c.OptionIndex = -1;
@@ -503,7 +503,7 @@ namespace Mono.Options
 
 		private static bool Unprocessed(ICollection<string> extra, Option def, OptionContext c, string argument)
 		{
-			if (def == null)
+			if (def is null)
 			{
 				extra.Add(argument);
 				return false;
@@ -519,7 +519,7 @@ namespace Mono.Options
 
 		protected bool GetOptionParts(string argument, out string flag, out string name, out string sep, out string value)
 		{
-			if (argument == null)
+			if (argument is null)
 				throw new ArgumentNullException("argument");
 
 			flag = name = sep = value = null;
@@ -710,7 +710,7 @@ namespace Mono.Options
 			foreach (ArgumentSource s in Sources)
 			{
 				string[] names = s.GetNames();
-				if (names == null || names.Length == 0)
+				if (names is null || names.Length == 0)
 					continue;
 
 				int written = 0;
@@ -856,7 +856,7 @@ namespace Mono.Options
 
 		private static string GetDescription(string description)
 		{
-			if (description == null)
+			if (description is null)
 				return string.Empty;
 			StringBuilder sb = new StringBuilder(description.Length);
 			int start = -1;

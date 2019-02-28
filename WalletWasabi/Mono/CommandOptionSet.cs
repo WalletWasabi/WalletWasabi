@@ -125,7 +125,7 @@
 //      };
 //      p.Parse (new string[]{"-a"});   // sets v != null
 //      p.Parse (new string[]{"-a+"});  // sets v != null
-//      p.Parse (new string[]{"-a-"});  // sets v == null
+//      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
 //
@@ -184,7 +184,7 @@ namespace Mono.Options
 
 		private bool ShouldWrapOption(Option item)
 		{
-			if (item == null)
+			if (item is null)
 				return false;
 			if (item is HelpOption help)
 				return false;

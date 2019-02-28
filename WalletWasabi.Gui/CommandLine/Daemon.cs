@@ -138,7 +138,7 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				continueWithGui = false;
 
-				if (keyManager == null)
+				if (keyManager is null)
 				{
 					Logger.LogCritical("Wallet was not supplied. Add --wallet {WalletName}", nameof(Daemon));
 					return continueWithGui;

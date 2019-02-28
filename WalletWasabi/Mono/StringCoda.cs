@@ -125,7 +125,7 @@
 //      };
 //      p.Parse (new string[]{"-a"});   // sets v != null
 //      p.Parse (new string[]{"-a+"});  // sets v != null
-//      p.Parse (new string[]{"-a-"});  // sets v == null
+//      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
 //
@@ -171,7 +171,7 @@ namespace Mono.Options
 
 		public static IEnumerable<string> WrappedLines(string self, IEnumerable<int> widths)
 		{
-			if (widths == null)
+			if (widths is null)
 				throw new ArgumentNullException("widths");
 			return CreateWrappedLinesIterator(self, widths);
 		}

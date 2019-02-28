@@ -125,7 +125,7 @@
 //      };
 //      p.Parse (new string[]{"-a"});   // sets v != null
 //      p.Parse (new string[]{"-a+"});  // sets v != null
-//      p.Parse (new string[]{"-a-"});  // sets v == null
+//      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
 //
@@ -176,7 +176,7 @@ namespace Mono.Options
 
 		protected Option(string prototype, string description, int maxValueCount, bool hidden)
 		{
-			if (prototype == null)
+			if (prototype is null)
 				throw new ArgumentNullException("prototype");
 			if (prototype.Length == 0)
 				throw new ArgumentException("Cannot be the empty string.", "prototype");
@@ -228,7 +228,7 @@ namespace Mono.Options
 
 		public string[] GetValueSeparators()
 		{
-			if (ValueSeparators == null)
+			if (ValueSeparators is null)
 				return new string[0];
 			return (string[])ValueSeparators.Clone();
 		}

@@ -362,7 +362,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
-			if (!(returnFailureResponse is null))
+			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
@@ -436,7 +436,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			Guid uniqueIdGuid = GetGuidOrFailureResponse(uniqueId, out IActionResult returnFailureResponse);
-			if (!(returnFailureResponse is null))
+			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
@@ -598,7 +598,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
-			if (!(returnFailureResponse is null))
+			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
@@ -648,7 +648,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
-			if (!(returnFailureResponse is null))
+			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
@@ -756,7 +756,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			Guid uniqueIdGuid = GetGuidOrFailureResponse(uniqueId, out IActionResult guidFail);
 
-			if (!(guidFail is null))
+			if (guidFail != null)
 			{
 				returnFailureResponse = guidFail;
 				return (null, null);

@@ -125,7 +125,7 @@
 //      };
 //      p.Parse (new string[]{"-a"});   // sets v != null
 //      p.Parse (new string[]{"-a+"});  // sets v != null
-//      p.Parse (new string[]{"-a-"});  // sets v == null
+//      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
 //
@@ -197,7 +197,7 @@ namespace Mono.Options
 				CommandSet.Options.WriteCommandDescription(CommandSet.Out, CommandSet.Help, "help");
 				return 0;
 			}
-			if (command == null)
+			if (command is null)
 			{
 				WriteUnknownCommand(extra[0]);
 				return 1;
@@ -219,7 +219,7 @@ namespace Mono.Options
 				commands.Add(new KeyValuePair<string, Command>(c.Name, c));
 			}
 
-			if (CommandSet.NestedCommandSets == null)
+			if (CommandSet.NestedCommandSets is null)
 				return commands;
 
 			foreach (var nc in CommandSet.NestedCommandSets)
@@ -236,7 +236,7 @@ namespace Mono.Options
 			{
 				commands.Add(new KeyValuePair<string, Command>($"{outer}{value.Suite} {v.Name}", v));
 			}
-			if (value.NestedCommandSets == null)
+			if (value.NestedCommandSets is null)
 				return;
 			foreach (var nc in value.NestedCommandSets)
 			{

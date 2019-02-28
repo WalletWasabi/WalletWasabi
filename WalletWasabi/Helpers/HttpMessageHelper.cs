@@ -116,7 +116,7 @@ namespace System.Net.Http
 
 		public static byte[] HandleGzipCompression(HttpContentHeaders contentHeaders, byte[] decodedBodyArray)
 		{
-			if (decodedBodyArray == null || !decodedBodyArray.Any()) return decodedBodyArray;
+			if (decodedBodyArray is null || !decodedBodyArray.Any()) return decodedBodyArray;
 
 			if (contentHeaders?.ContentEncoding != null && contentHeaders.ContentEncoding.Contains("gzip"))
 			{
@@ -141,7 +141,7 @@ namespace System.Net.Http
 
 		public static async Task<byte[]> GetContentBytesAsync(Stream stream, HttpRequestContentHeaders headerStruct, CancellationToken ctsToken = default)
 		{
-			if (!(headerStruct.RequestHeaders is null) && headerStruct.RequestHeaders.Contains("Transfer-Encoding"))
+			if (headerStruct.RequestHeaders != null && headerStruct.RequestHeaders.Contains("Transfer-Encoding"))
 			{
 				// https://tools.ietf.org/html/rfc7230#section-4
 				// All transfer-coding names are case-insensitive
@@ -278,7 +278,7 @@ namespace System.Net.Http
 			{
 				throw new ArgumentException("Response and request headers cannot be both null.");
 			}
-			if (!(responseHeaders is null) && !(requestHeaders is null))
+			if (responseHeaders != null && requestHeaders != null)
 			{
 				throw new ArgumentException("Either response or request headers has to be null.");
 			}
@@ -342,7 +342,7 @@ namespace System.Net.Http
 			string trailerHeaders = await ReadHeadersAsync(stream, ctsToken);
 			var trailerHeaderSection = HeaderSection.CreateNew(trailerHeaders);
 			RemoveInvalidTrailers(trailerHeaderSection);
-			if (!(responseHeaders is null))
+			if (responseHeaders != null)
 			{
 				var trailerHeaderStruct = trailerHeaderSection.ToHttpResponseHeaders();
 				AssertValidHeaders(trailerHeaderStruct.ResponseHeaders, trailerHeaderStruct.ContentHeaders);
@@ -356,7 +356,7 @@ namespace System.Net.Http
 				responseHeaders.ContentHeaders.TryAddWithoutValidation("Content-Length", length.ToString());
 				responseHeaders.ResponseHeaders.Remove("Trailer");
 			}
-			if (!(requestHeaders is null))
+			if (requestHeaders != null)
 			{
 				var trailerHeaderStruct = trailerHeaderSection.ToHttpRequestHeaders();
 				AssertValidHeaders(trailerHeaderStruct.RequestHeaders, trailerHeaderStruct.ContentHeaders);
@@ -494,15 +494,15 @@ namespace System.Net.Http
 
 		public static void AssertValidHeaders(HttpHeaders messageHeaders, HttpContentHeaders contentHeaders)
 		{
-			if (!(messageHeaders is null) && messageHeaders.Contains("Transfer-Encoding"))
+			if (messageHeaders != null && messageHeaders.Contains("Transfer-Encoding"))
 			{
-				if (!(contentHeaders is null) && contentHeaders.Contains("Content-Length"))
+				if (contentHeaders != null && contentHeaders.Contains("Content-Length"))
 				{
 					contentHeaders.Remove("Content-Length");
 				}
 			}
 			// Any Content-Length field value greater than or equal to zero is valid.
-			if (!(contentHeaders is null) && contentHeaders.Contains("Content-Length"))
+			if (contentHeaders != null && contentHeaders.Contains("Content-Length"))
 			{
 				if (contentHeaders.ContentLength < 0)
 					throw new HttpRequestException("Content-Length MUST be larger than zero.");

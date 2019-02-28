@@ -73,7 +73,7 @@ namespace WalletWasabi.TorSocks5
 			relativeUri = Guard.NotNull(nameof(relativeUri), relativeUri);
 			var requestUri = new Uri(DestinationUri, relativeUri);
 			var request = new HttpRequestMessage(method, requestUri);
-			if (!(content is null))
+			if (content != null)
 			{
 				request.Content = content;
 			}
@@ -143,7 +143,7 @@ namespace WalletWasabi.TorSocks5
 
 		private static void SetTorNotWorkingState(Exception ex)
 		{
-			if (TorDoesntWorkSince == null)
+			if (TorDoesntWorkSince is null)
 			{
 				TorDoesntWorkSince = DateTimeOffset.UtcNow;
 			}
@@ -167,7 +167,7 @@ namespace WalletWasabi.TorSocks5
 			// in forwarded messages.
 			request.Version = HttpProtocol.HTTP11.Version;
 
-			if (!(TorSocks5Client is null) && !TorSocks5Client.IsConnected)
+			if (TorSocks5Client != null && !TorSocks5Client.IsConnected)
 			{
 				TorSocks5Client?.Dispose();
 				TorSocks5Client = null;

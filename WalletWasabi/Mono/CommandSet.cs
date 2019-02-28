@@ -125,7 +125,7 @@
 //      };
 //      p.Parse (new string[]{"-a"});   // sets v != null
 //      p.Parse (new string[]{"-a+"});  // sets v != null
-//      p.Parse (new string[]{"-a-"});  // sets v == null
+//      p.Parse (new string[]{"-a-"});  // sets v is null
 //
 
 //
@@ -197,7 +197,7 @@ namespace Mono.Options
 
 		public new CommandSet Add(Command value)
 		{
-			if (value == null)
+			if (value is null)
 				throw new ArgumentNullException(nameof(value));
 			AddCommand(value);
 			Options.Add(new CommandOption(value));
@@ -301,10 +301,10 @@ namespace Mono.Options
 
 		public CommandSet Add(CommandSet nestedCommands)
 		{
-			if (nestedCommands == null)
+			if (nestedCommands is null)
 				throw new ArgumentNullException(nameof(nestedCommands));
 
-			if (NestedCommandSets == null)
+			if (NestedCommandSets is null)
 			{
 				NestedCommandSets = new List<CommandSet>();
 			}
@@ -336,7 +336,7 @@ namespace Mono.Options
 		{
 			if (value == this)
 				return true;
-			if (NestedCommandSets == null)
+			if (NestedCommandSets is null)
 				return false;
 			foreach (var nc in NestedCommandSets)
 			{
@@ -358,7 +358,7 @@ namespace Mono.Options
 				}
 			}
 
-			if (NestedCommandSets == null)
+			if (NestedCommandSets is null)
 				yield break;
 
 			foreach (var subset in NestedCommandSets)
@@ -402,11 +402,11 @@ namespace Mono.Options
 
 		public int Run(IEnumerable<string> arguments)
 		{
-			if (arguments == null)
+			if (arguments is null)
 				throw new ArgumentNullException(nameof(arguments));
 
 			ShowHelp = false;
-			if (Help == null)
+			if (Help is null)
 			{
 				Help = new HelpCommand();
 				AddCommand(Help);
@@ -430,7 +430,7 @@ namespace Mono.Options
 				return 1;
 			}
 			var command = GetCommand(extra);
-			if (command == null)
+			if (command is null)
 			{
 				Help.WriteUnknownCommand(extra[0]);
 				return 1;
@@ -474,11 +474,11 @@ namespace Mono.Options
 
 		private Command TryGetNestedCommand(List<string> extra)
 		{
-			if (NestedCommandSets == null)
+			if (NestedCommandSets is null)
 				return null;
 
 			var nestedCommands = NestedCommandSets.Find(c => c.Suite == extra[0]);
-			if (nestedCommands == null)
+			if (nestedCommands is null)
 				return null;
 
 			var extraCopy = new List<string>(extra);
