@@ -292,7 +292,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Make sure Alice checks work.
-					var alice = new Alice(inputs, networkFeeToPay, request.ChangeOutputAddress, acceptedBlindedOutputScripts);
+					var alice = new Alice(inputs, networkFeeToPayAfterBaseDenomination, request.ChangeOutputAddress, acceptedBlindedOutputScripts);
 
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{
@@ -393,10 +393,6 @@ namespace WalletWasabi.Backend.Controllers
 						int takeBlindCount = round.EstimateBestMixingLevel(alice);
 
 						var prevBlindCount = alice.BlindedOutputScripts.Length;
-						for (int i = 0; i < prevBlindCount - takeBlindCount; i++)
-						{
-							alice.NetworkFeeToPay -= round.FeePerOutputs;
-						}
 						alice.BlindedOutputScripts = alice.BlindedOutputScripts.Take(takeBlindCount).ToArray();
 						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(takeBlindCount).ToArray();
 						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Don't give back more mixing levels than we'll use.

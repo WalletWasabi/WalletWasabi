@@ -322,7 +322,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							}
 
 							Money changeAmount = alice.InputSum;
-							changeAmount -= alice.NetworkFeeToPay;
+							changeAmount -= alice.NetworkFeeToPayAfterBaseDenomination;
 							changeAmount -= newDenomination;
 							changeAmount -= coordinatorBaseFeePerAlice;
 
@@ -519,7 +519,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		private Money CalculateNewDenomination()
 		{
 			// 1. Set new denomination: minor optimization.
-			return Alices.Min(x => x.InputSum - x.NetworkFeeToPay);
+			return Alices.Min(x => x.InputSum - x.NetworkFeeToPayAfterBaseDenomination);
 		}
 
 		public async Task ProgressToOutputRegistrationOrFailAsync(params Alice[] additionalAlicesToBan)
