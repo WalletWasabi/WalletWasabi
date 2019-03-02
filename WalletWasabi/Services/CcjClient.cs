@@ -337,7 +337,7 @@ namespace WalletWasabi.Services
 			// Make sure change is counted.
 			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
 																				   // Do outputs.lenght + 1 in case the server estimated the network fees wrongly due to insufficient data in an edge case.
-			Money networkFeesAfterOutputs = ongoingRound.State.FeePerOutputs * (myOutputs.Length + 1);
+			Money networkFeesAfterOutputs = ongoingRound.State.FeePerOutputs * (ongoingRound.Registration.AliceClient.RegisteredAddresses.Length + 1); // Use registered addresses here, because network fees are decided at inputregistration.
 			Money networkFeesAfterInputs = ongoingRound.State.FeePerInputs * ongoingRound.Registration.CoinsRegistered.Count();
 			Money networkFees = networkFeesAfterOutputs + networkFeesAfterInputs;
 			minAmountBack -= networkFees; // Minus miner fee.
@@ -356,7 +356,8 @@ namespace WalletWasabi.Services
 			}
 
 			// If there's no change output then coordinator protection may happened:
-			if (!myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.Registration.ChangeAddress.ScriptPubKey))
+			bool gotChange = myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.Registration.ChangeAddress.ScriptPubKey);
+			if (!gotChange)
 			{
 				Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
 				Money baseDenomination = indistinguishableOutputs.First().value;
@@ -368,7 +369,8 @@ namespace WalletWasabi.Services
 
 			if (amountBack < minAmountBack && !amountBack.Almost(minAmountBack, Money.Satoshis(10000))) // Just in case.
 			{
-				throw new NotSupportedException($"Coordinator did not add enough value to our outputs in the coinjoin. Missing: {(minAmountBack - amountBack).Satoshi} satoshis.");
+				Money diff = minAmountBack - amountBack;
+				throw new NotSupportedException($"Coordinator did not add enough value to our outputs in the coinjoin. Missing: {diff.Satoshi} satoshis.");
 			}
 
 			var signedCoinJoin = unsignedCoinJoin.Clone();

@@ -256,17 +256,20 @@ namespace WalletWasabi.Backend.Controllers
 
 					var acceptedBlindedOutputScripts = new List<uint256>();
 
-					// Check if inputs have enough coins.
+					// Calculate expected networkfee to pay after base denomination.
 					int inputCount = inputs.Count();
+					Money networkFeeToPayAfterBaseDenomination = (inputCount * round.FeePerInputs) + (2 * round.FeePerOutputs);
+
+					// Check if inputs have enough coins.
 					Money inputSum = inputs.Sum(x => x.Amount);
-					Money networkFeeToPay = (inputCount * round.FeePerInputs) + (2 * round.FeePerOutputs);
-					Money changeAmount = inputSum - (round.MixingLevels.GetBaseDenomination() + networkFeeToPay);
+					Money changeAmount = (inputSum - (round.MixingLevels.GetBaseDenomination() + networkFeeToPayAfterBaseDenomination));
 					if (changeAmount < Money.Zero)
 					{
-						return BadRequest($"Not enough inputs are provided. Fee to pay: {networkFeeToPay.ToString(false, true)} BTC. Round denomination: {round.MixingLevels.GetBaseDenomination().ToString(false, true)} BTC. Only provided: {inputSum.ToString(false, true)} BTC.");
+						return BadRequest($"Not enough inputs are provided. Fee to pay: {networkFeeToPayAfterBaseDenomination.ToString(false, true)} BTC. Round denomination: {round.MixingLevels.GetBaseDenomination().ToString(false, true)} BTC. Only provided: {inputSum.ToString(false, true)} BTC.");
 					}
 					acceptedBlindedOutputScripts.Add(blindedOutputs.First());
 
+					Money networkFeeToPay = networkFeeToPayAfterBaseDenomination;
 					// Make sure we sign the proper number of additional blinded outputs.
 					var moneySoFar = Money.Zero;
 					for (int i = 1; i < blindedOutputCount; i++)
