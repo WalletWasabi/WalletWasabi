@@ -10,7 +10,7 @@ namespace WalletWasabi.Packager
 		public static void ClearSha512Tags(string pathToSearch)
 		{
 			var files = Directory.GetFiles(pathToSearch, "*.deps.json"); //https://natemcmaster.com/blog/2017/12/21/netcore-primitives/
-			if (files == null) return;
+			if (files is null) return;
 
 			foreach (var depsFilePath in files)
 			{
@@ -40,7 +40,7 @@ namespace WalletWasabi.Packager
 		public static void RemoveSosDocsUnix(string pathToSearch)
 		{
 			string[] files = Directory.GetFiles(pathToSearch, "sosdocsunix.txt", SearchOption.AllDirectories);
-			if (files == null) return;
+			if (files is null) return;
 
 			foreach (var sosDocsUnixFilePath in files)
 			{

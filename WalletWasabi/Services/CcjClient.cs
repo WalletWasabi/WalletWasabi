@@ -93,6 +93,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
+				Synchronizer.BlockRequests();
 				IEnumerable<CcjRunningRoundState> newRoundStates = e.CcjRoundStates;
 
 				await ProcessStatusAsync(newRoundStates);
@@ -100,6 +101,10 @@ namespace WalletWasabi.Services
 			catch (Exception ex)
 			{
 				Logger.LogWarning<CcjClient>(ex);
+			}
+			finally
+			{
+				Synchronizer.EnableRequests();
 			}
 		}
 
@@ -243,7 +248,7 @@ namespace WalletWasabi.Services
 
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
-					if (!(inputRegistrableRound is null))
+					if (inputRegistrableRound != null)
 					{
 						if (inputRegistrableRound.Registration is null) // If didn't register already, check what can we register.
 						{
@@ -332,7 +337,7 @@ namespace WalletWasabi.Services
 			// Make sure change is counted.
 			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
 																				   // Do outputs.lenght + 1 in case the server estimated the network fees wrongly due to insufficient data in an edge case.
-			Money networkFeesAfterOutputs = ongoingRound.State.FeePerOutputs * (myOutputs.Length + 1);
+			Money networkFeesAfterOutputs = ongoingRound.State.FeePerOutputs * (ongoingRound.Registration.AliceClient.RegisteredAddresses.Length + 1); // Use registered addresses here, because network fees are decided at inputregistration.
 			Money networkFeesAfterInputs = ongoingRound.State.FeePerInputs * ongoingRound.Registration.CoinsRegistered.Count();
 			Money networkFees = networkFeesAfterOutputs + networkFeesAfterInputs;
 			minAmountBack -= networkFees; // Minus miner fee.
@@ -351,7 +356,8 @@ namespace WalletWasabi.Services
 			}
 
 			// If there's no change output then coordinator protection may happened:
-			if (!myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.Registration.ChangeAddress.ScriptPubKey))
+			bool gotChange = myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.Registration.ChangeAddress.ScriptPubKey);
+			if (!gotChange)
 			{
 				Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
 				Money baseDenomination = indistinguishableOutputs.First().value;
@@ -361,9 +367,10 @@ namespace WalletWasabi.Services
 				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
 			}
 
-			if (amountBack < minAmountBack && !amountBack.Almost(minAmountBack, Money.Satoshis(10000))) // Just in case.
+			if (amountBack < minAmountBack && !amountBack.Almost(minAmountBack, Money.Satoshis(1000))) // Just in case. Rounding error maybe?
 			{
-				throw new NotSupportedException($"Coordinator did not add enough value to our outputs in the coinjoin. Missing: {(minAmountBack - amountBack).Satoshi} satoshis.");
+				Money diff = minAmountBack - amountBack;
+				throw new NotSupportedException($"Coordinator did not add enough value to our outputs in the coinjoin. Missing: {diff.Satoshi} satoshis.");
 			}
 
 			var signedCoinJoin = unsignedCoinJoin.Clone();
@@ -964,7 +971,7 @@ namespace WalletWasabi.Services
 				}
 
 				SmartCoin coinWaitingForMix = State.GetSingleOrDefaultFromWaitingList(coinToDequeue);
-				if (!(coinWaitingForMix is null)) // If it is not being mixed, we can just remove it.
+				if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
 				{
 					RemoveCoin(coinWaitingForMix);
 				}
@@ -990,7 +997,7 @@ namespace WalletWasabi.Services
 			{
 				coinWaitingForMix.Label = "ZeroLink Dequeued Change";
 				var key = KeyManager.GetKeys(x => x.GetP2wpkhScript() == coinWaitingForMix.ScriptPubKey).SingleOrDefault();
-				if (!(key is null))
+				if (key != null)
 				{
 					key.SetLabel(coinWaitingForMix.Label, KeyManager);
 				}

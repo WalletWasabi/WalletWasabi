@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
-				if (Label == null) return;
+				if (Label is null) return;
 				if (CaretIndex != Label.Length)
 				{
 					CaretIndex = Label.Length;

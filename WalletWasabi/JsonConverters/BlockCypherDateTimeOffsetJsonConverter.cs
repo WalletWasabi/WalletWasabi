@@ -15,7 +15,7 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			if (reader.Value == null)
+			if (reader.Value is null)
 			{
 				return null;
 			}

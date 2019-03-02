@@ -192,7 +192,7 @@ namespace WalletWasabi.Logging
 						}
 					}
 
-					if (!(FileEntryEncryptionPassword is null))
+					if (FileEntryEncryptionPassword != null)
 					{
 						// take the separator down and add a comma (not base64)
 						var replacedSeparatorWithCommaMessage = finalLogMessage.Substring(0, finalLogMessage.Length - EntrySeparator.Length);

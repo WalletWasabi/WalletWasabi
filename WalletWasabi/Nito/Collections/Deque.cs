@@ -44,7 +44,7 @@ namespace Nito.Collections
 		/// <param name="collection">The collection. May not be <c>null</c>.</param>
 		public Deque(IEnumerable<T> collection)
 		{
-			if (collection == null)
+			if (collection is null)
 				throw new ArgumentNullException(nameof(collection));
 
 			var source = CollectionHelpers.ReifyCollection(collection);
@@ -200,7 +200,7 @@ namespace Nito.Collections
 		/// </exception>
 		void ICollection<T>.CopyTo(T[] array, int arrayIndex)
 		{
-			if (array == null)
+			if (array is null)
 				throw new ArgumentNullException(nameof(array));
 
 			int count = Count;
@@ -215,7 +215,7 @@ namespace Nito.Collections
 		/// <param name="arrayIndex">The optional index in the destination array at which to begin writing.</param>
 		private void CopyToArray(Array array, int arrayIndex = 0)
 		{
-			if (array == null)
+			if (array is null)
 				throw new ArgumentNullException(nameof(array));
 
 			if (IsSplit)
@@ -293,7 +293,7 @@ namespace Nito.Collections
 
 		int System.Collections.IList.Add(object value)
 		{
-			if (value == null && default(T) != null)
+			if (value is null && default(T) != null)
 				throw new ArgumentNullException(nameof(value), "Value cannot be null.");
 			if (!IsT(value))
 				throw new ArgumentException("Value is of incorrect type.", nameof(value));
@@ -313,7 +313,7 @@ namespace Nito.Collections
 
 		void System.Collections.IList.Insert(int index, object value)
 		{
-			if (value == null && default(T) != null)
+			if (value is null && default(T) != null)
 				throw new ArgumentNullException("value", "Value cannot be null.");
 			if (!IsT(value))
 				throw new ArgumentException("Value is of incorrect type.", "value");
@@ -345,7 +345,7 @@ namespace Nito.Collections
 
 			set
 			{
-				if (value == null && default(T) != null)
+				if (value is null && default(T) != null)
 					throw new ArgumentNullException(nameof(value), "Value cannot be null.");
 				if (!IsT(value))
 					throw new ArgumentException("Value is of incorrect type.", nameof(value));
@@ -355,7 +355,7 @@ namespace Nito.Collections
 
 		void System.Collections.ICollection.CopyTo(Array array, int index)
 		{
-			if (array == null)
+			if (array is null)
 				throw new ArgumentNullException(nameof(array), "Destination array cannot be null.");
 			CheckRangeArguments(array.Length, index, Count);
 

@@ -271,7 +271,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
-				if (Label == null) return;
+				if (Label is null) return;
 				if (CaretIndex != Label.Length)
 				{
 					CaretIndex = Label.Length;
@@ -623,7 +623,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				var selectedCoin = _coinList?.SelectedCoin;
-				if (selectedCoin == null) return;
+				if (selectedCoin is null) return;
 				await DoDequeueAsync(new[] { selectedCoin });
 			}
 			catch (Exception ex)

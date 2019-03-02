@@ -143,7 +143,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label, coin.TransactionId));
 				}
 
-				if (!(coin.SpenderTransactionId is null))
+				if (coin.SpenderTransactionId != null)
 				{
 					SmartTransaction foundSpenderTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)

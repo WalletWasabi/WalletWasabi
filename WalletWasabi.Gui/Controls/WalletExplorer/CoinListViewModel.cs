@@ -244,13 +244,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
-				if (SelectedCoin == null) return;
+				if (SelectedCoin is null) return;
 				//await Global.ChaumianClient.QueueCoinsToMixAsync()
 			}).DisposeWith(Disposables);
 
 			DequeueCoin = ReactiveCommand.Create(() =>
 			{
-				if (SelectedCoin == null) return;
+				if (SelectedCoin is null) return;
 				DequeueCoinsPressed?.Invoke();
 			}, this.WhenAnyValue(x => x.CanDeqeue)).DisposeWith(Disposables);
 

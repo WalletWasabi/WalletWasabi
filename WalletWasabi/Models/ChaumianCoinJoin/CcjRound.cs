@@ -4,6 +4,7 @@ using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -190,6 +191,8 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			}
 		}
 
+		public static ConcurrentDictionary<(long roundId, CcjRoundPhase phase), DateTimeOffset> PhaseTimeoutLog { get; } = new ConcurrentDictionary<(long roundId, CcjRoundPhase phase), DateTimeOffset>();
+
 		public async Task ExecuteNextPhaseAsync(CcjRoundPhase expectedPhase, Money feePerInputs = null, Money feePerOutputs = null)
 		{
 			using (await RoundSynchronizerLock.LockAsync())
@@ -318,7 +321,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								spentCoins.Add(input);
 							}
 
-							Money changeAmount = alice.InputSum - alice.NetworkFeeToPay - newDenomination - coordinatorBaseFeePerAlice;
+							Money changeAmount = alice.InputSum;
+							changeAmount -= alice.NetworkFeeToPayAfterBaseDenomination;
+							changeAmount -= newDenomination;
+							changeAmount -= coordinatorBaseFeePerAlice;
 
 							if (tinkerWithAdditionalMixingLevels)
 							{
@@ -328,15 +334,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 									var denominationOutputCount = transaction.Outputs.Count(x => x.Value == level.Denomination);
 									if (denominationOutputCount <= 1) break;
 
-									changeAmount -= (level.Denomination + FeePerOutputs + (level.Denomination.Percentage(CoordinatorFeePercent * denominationOutputCount)));
+									changeAmount -= FeePerOutputs;
+									changeAmount -= level.Denomination;
+									changeAmount -= level.Denomination.Percentage(CoordinatorFeePercent * denominationOutputCount);
 								}
 							}
 
 							if (changeAmount > Money.Zero) // If the coordinator fee would make change amount to be negative or zero then no need to pay it.
 							{
 								Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
-								Money onePercentOfDenomination = newDenomination.Percentage(1m); // If the change is less than about 1% of the newDenomination then add it to the coordinator fee.
-								Money minimumChangeAmount = Math.Max(minimumOutputAmount, onePercentOfDenomination);
+								Money somePercentOfDenomination = newDenomination.Percentage(0.7m); // If the change is less than about 0.7% of the newDenomination then add it to the coordinator fee.
+								Money minimumChangeAmount = Math.Max(minimumOutputAmount, somePercentOfDenomination);
 								if (changeAmount < minimumChangeAmount)
 								{
 									coordinatorFee += changeAmount;
@@ -373,7 +381,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 						Phase = CcjRoundPhase.Signing;
 					}
-					else
+					else // Phase == CcjRoundPhase.Signing
 					{
 						return;
 					}
@@ -423,6 +431,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				}
 				if (executeRunAbortion)
 				{
+					PhaseTimeoutLog.TryAdd((RoundId, Phase), DateTimeOffset.UtcNow);
 					string timedOutLogString = $"Round ({RoundId}): {expectedPhase.ToString()} timed out after {timeout.TotalSeconds} seconds.";
 
 					if (expectedPhase == CcjRoundPhase.ConnectionConfirmation)
@@ -510,7 +519,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		private Money CalculateNewDenomination()
 		{
 			// 1. Set new denomination: minor optimization.
-			return Alices.Min(x => x.InputSum - x.NetworkFeeToPay);
+			return Alices.Min(x => x.InputSum - x.NetworkFeeToPayAfterBaseDenomination);
 		}
 
 		public async Task ProgressToOutputRegistrationOrFailAsync(params Alice[] additionalAlicesToBan)
@@ -661,7 +670,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
-				if (!(optimalFeeRate is null) && optimalFeeRate != FeeRate.Zero && !(currentFeeRate is null) && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
+				if (optimalFeeRate != null && optimalFeeRate != FeeRate.Zero && currentFeeRate != null && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
 				{
 					var sanityFeeRate = new FeeRate(2m); // 2 s/b
 					optimalFeeRate = optimalFeeRate < sanityFeeRate ? sanityFeeRate : optimalFeeRate;

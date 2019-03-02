@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 		{
 			var property = ReflectionHelper.GetPropertyInfo(instance, propertyName);
 
-			if (!(property is null))
+			if (property != null)
 			{
 				return ValidateMethod(instance, property);
 			}
@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 		{
 			var vma = ReflectionHelper.GetAttribute<ValidateMethodAttribute>(property);
 
-			if (!(vma is null))
+			if (vma != null)
 			{
 				return ReflectionHelper.InvokeMethod<string>(instance, vma.MethodName);
 			}
