@@ -72,9 +72,8 @@ namespace WalletWasabi.Gui
 		public static WalletService WalletService { get; private set; }
 		public static UpdateChecker UpdateChecker { get; private set; }
 		public static TorProcessManager TorManager { get; private set; }
-
 		public static bool KillRequested { get; private set; } = false;
-
+		public static SyncBehavior LocalSyncBehavior { get; private set; }
 		public static Config Config { get; private set; }
 		public static UiConfig UiConfig { get; private set; }
 
@@ -186,67 +185,62 @@ namespace WalletWasabi.Gui
 			MemPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
 
-			if(TryConnectToLocalNode(out NodesGroup localNodes, connectionParameters))
+			var localIpEndPoint = Config.ServiceConfiguration.BitcoinCoreEndPoint;
+			var localNode = LocalNodeWrapper.Connect(localIpEndPoint, Network, connectionParameters);
+			var needsToDiscoverPeers = true;
+			try
 			{
-				Nodes = localNodes;
+				AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
+
+				// The most of the times we don't need to discover new peers. Instead, we can connect to
+				// some of those that we already discovered in the past. In this case we assume that 
+				// discovering new peers could be necessary if our address manager has less
+				// than 500 addresses. A 500 addresses could be okay because previously we tried with
+				// 200 and only one user reported he/she was not able to connect (there could be many others,
+				// of course).
+				// On the other side, increasing this number forces users that do not need to discover more peers
+				// to spend resources (CPU/bandwith) to discover new peers.
+				needsToDiscoverPeers = AddressManager.Count < 500;
+				Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 			}
-			else
+			catch (DirectoryNotFoundException ex)
 			{
-				var needsToDiscoverPeers = true;
-				try
-				{
-					AddressManager = AddressManager.LoadPeerFile(AddressManagerFilePath);
-
-					// The most of the times we don't need to discover new peers. Instead, we can connect to
-					// some of those that we already discovered in the past. In this case we assume that 
-					// discovering new peers could be necessary if our address manager has less
-					// than 500 addresses. A 500 addresses could be okay because previously we tried with
-					// 200 and only one user reported he/she was not able to connect (there could be many others,
-					// of course).
-					// On the other side, increasing this number forces users that do not need to discover more peers
-					// to spend resources (CPU/bandwith) to discover new peers.
-					needsToDiscoverPeers = AddressManager.Count < 500;
-					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
-				}
-				catch (DirectoryNotFoundException ex)
-				{
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<AddressManager>(ex);
-					AddressManager = new AddressManager();
-				}
-				catch (FileNotFoundException ex)
-				{
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
-					Logger.LogTrace<AddressManager>(ex);
-					AddressManager = new AddressManager();
-				}
-				catch (OverflowException ex)
-				{
-					// https://github.com/zkSNACKs/WalletWasabi/issues/712
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
-					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace<AddressManager>(ex);
-					AddressManager = new AddressManager();
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
-				}
-				catch (FormatException ex)
-				{
-					// https://github.com/zkSNACKs/WalletWasabi/issues/880
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
-					File.Delete(AddressManagerFilePath);
-					Logger.LogTrace<AddressManager>(ex);
-					AddressManager = new AddressManager();
-					Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
-				}
-
-				var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
-				{
-					Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
-				};
-				connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
-
-				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
+				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+				Logger.LogTrace<AddressManager>(ex);
+				AddressManager = new AddressManager();
 			}
+			catch (FileNotFoundException ex)
+			{
+				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} did not exist at `{AddressManagerFilePath}`. Initializing new one.");
+				Logger.LogTrace<AddressManager>(ex);
+				AddressManager = new AddressManager();
+			}
+			catch (OverflowException ex)
+			{
+				// https://github.com/zkSNACKs/WalletWasabi/issues/712
+				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(OverflowException)}`. Attempting to autocorrect.");
+				File.Delete(AddressManagerFilePath);
+				Logger.LogTrace<AddressManager>(ex);
+				AddressManager = new AddressManager();
+				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+			}
+			catch (FormatException ex)
+			{
+				// https://github.com/zkSNACKs/WalletWasabi/issues/880
+				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} has thrown `{nameof(FormatException)}`. Attempting to autocorrect.");
+				File.Delete(AddressManagerFilePath);
+				Logger.LogTrace<AddressManager>(ex);
+				AddressManager = new AddressManager();
+				Logger.LogInfo<AddressManager>($"{nameof(AddressManager)} autocorrection is successful.");
+			}
+
+			var addressManagerBehavior = new AddressManagerBehavior(AddressManager)
+			{
+				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
+			};
+			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
+
+			Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 
 			if (Config.UseTor.Value)
 			{
@@ -258,6 +252,21 @@ namespace WalletWasabi.Gui
 			}
 
 			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
+			if(localNode != null)
+			{
+				localNode.Watch(Synchronizer);
+				localNode.FullySynchronized += (s, e)=>
+				{
+					foreach(var node in Nodes.ConnectedNodes)
+					{
+						if(node != localNode.Internal)
+						{
+							node.Disconnect();
+						}
+					}
+				};
+				Nodes.ConnectedNodes.Add(localNode.Internal);
+			}
 
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
@@ -272,57 +281,6 @@ namespace WalletWasabi.Gui
 
 			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
 			Logger.LogInfo("Start synchronizing filters...");
-		}
-
-		private static bool TryConnectToLocalNode(out NodesGroup nodes, NodeConnectionParameters connectionParameters)
-		{
-			var handshakeTimeout = new CancellationTokenSource();
-			handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-
-			var localIpEndPoint = Config.ServiceConfiguration.BitcoinCoreEndPoint;
-			var addrman = new AddressManager();
-			var localhost = new NetworkAddress(localIpEndPoint);
-			addrman.Add(localhost, localhost.Endpoint.Address);
-			var addressManagerBehavior = new AddressManagerBehavior(addrman)
-			{
-				Mode =AddressManagerBehaviorMode.None
-			};
-			var nodeConnectionParameters = connectionParameters.Clone();
-			nodeConnectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
-			nodeConnectionParameters.ConnectCancellation = handshakeTimeout.Token;
-			nodeConnectionParameters.IsRelay = false;
-
-			try
-			{
-				var node = Node.Connect(Network, addrman, nodeConnectionParameters);
-				Logger.LogInfo($"TCP Connection succeeded, handshaking...");
-				node.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
-				var peerServices = node.PeerVersion.Services;
-
-				if(!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
-				{
-					throw new InvalidOperationException($"Wasabi cannot use the local node because it doesn't provide blocks.");
-				}
-
-				Logger.LogInfo($"Handshake completed successfully.");
-
-				if (!node.IsConnected)
-				{
-					throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
-						$"Probably this is because the node doesn't support retrieving full blocks or segwit serialization.");
-				}
-				nodes = new NodesGroup(Network, nodeConnectionParameters, Constants.NodeRequirements);
-				nodes.MaximumNodeConnection = 1;
-				nodes.ConnectedNodes.Add(node);
-				return true;
-			}
-			catch(Exception e)
-			{
-				Logger.LogInfo(e.Message);
-			}
-
-			nodes = null;
-			return false;
 		}
 
 		private static CancellationTokenSource CancelWalletServiceInitialization = null;
