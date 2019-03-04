@@ -13,6 +13,11 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 	public class SatoshiClient : TorDisposableBase
 	{
 		/// <inheritdoc/>
+		public SatoshiClient(Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint = null) : base(baseUriAction, torSocks5EndPoint)
+		{
+		}
+
+		/// <inheritdoc/>
 		public SatoshiClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
 		}

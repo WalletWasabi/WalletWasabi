@@ -167,6 +167,12 @@ namespace WalletWasabi.Services
 			CreateNew(network, indexFilePath, client);
 		}
 
+		public WasabiSynchronizer(Network network, string indexFilePath, Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint = null)
+		{
+			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
+			CreateNew(network, indexFilePath, client);
+		}
+
 		public WasabiSynchronizer(Network network, string indexFilePath, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
 		{
 			var client = new WasabiClient(baseUri, torSocks5EndPoint);
