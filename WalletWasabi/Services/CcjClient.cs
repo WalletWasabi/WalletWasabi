@@ -25,23 +25,23 @@ namespace WalletWasabi.Services
 {
 	public class CcjClient
 	{
-		public Network Network { get; }
-		public KeyManager KeyManager { get; }
+		public Network Network { get; private set; }
+		public KeyManager KeyManager { get; private set; }
 		public bool IsQuitPending { get; set; }
 
 		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
 
-		public Uri CcjHostUri { get; }
-		public WasabiSynchronizer Synchronizer { get; }
-		private IPEndPoint TorSocks5EndPoint { get; }
+		public Func<Uri> CcjHostUriAction { get; private set; }
+		public WasabiSynchronizer Synchronizer { get; private set; }
+		private IPEndPoint TorSocks5EndPoint { get; set; }
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
 
 		public ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> ExposedLinks { get; set; }
 
-		private AsyncLock MixLock { get; }
+		private AsyncLock MixLock { get; set; }
 
-		public CcjClientState State { get; }
+		public CcjClientState State { get; private set; }
 
 		public event EventHandler StateUpdated;
 
@@ -61,7 +61,17 @@ namespace WalletWasabi.Services
 
 		private long _statusProcessing;
 
-		private CancellationTokenSource Cancel { get; }
+		private CancellationTokenSource Cancel { get; set; }
+
+		public CcjClient(
+			WasabiSynchronizer synchronizer,
+			Network network,
+			KeyManager keyManager,
+			Func<Uri> ccjHostUriAction,
+			IPEndPoint torSocks5EndPoint = null)
+		{
+			Create(synchronizer, network, keyManager, ccjHostUriAction, torSocks5EndPoint);
+		}
 
 		public CcjClient(
 			WasabiSynchronizer synchronizer,
@@ -70,9 +80,14 @@ namespace WalletWasabi.Services
 			Uri ccjHostUri,
 			IPEndPoint torSocks5EndPoint = null)
 		{
+			Create(synchronizer, network, keyManager, () => ccjHostUri, torSocks5EndPoint);
+		}
+
+		private void Create(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Func<Uri> ccjHostUriAction, IPEndPoint torSocks5EndPoint)
+		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
+			CcjHostUriAction = Guard.NotNull(nameof(ccjHostUriAction), ccjHostUriAction);
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			TorSocks5EndPoint = torSocks5EndPoint;
 			CoordinatorFeepercentToCheck = null;
@@ -407,7 +422,7 @@ namespace WalletWasabi.Services
 			shuffledOutputs.Shuffle();
 			foreach ((BitcoinAddress address, UnblindedSignature signature, int mixingLevel) activeOutput in shuffledOutputs)
 			{
-				using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
+				using (var bobClient = new BobClient(CcjHostUriAction, TorSocks5EndPoint))
 				{
 					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput.address, activeOutput.signature, activeOutput.mixingLevel))
 					{
@@ -532,7 +547,7 @@ namespace WalletWasabi.Services
 				AliceClient aliceClient = null;
 				try
 				{
-					aliceClient = await AliceClient.CreateNewAsync(inputRegistrableRound.RoundId, registeredAddresses, schnorrPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
+					aliceClient = await AliceClient.CreateNewAsync(inputRegistrableRound.RoundId, registeredAddresses, schnorrPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUriAction, TorSocks5EndPoint);
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 				{

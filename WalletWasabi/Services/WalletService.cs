@@ -997,7 +997,7 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 
 			Money feePerBytes = null;
-			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUri, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
 				Money feeRate = Synchronizer.GetFeeRate(feeTarget);
 				Money sanityCheckedFeeRate = Math.Max(feeRate, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
@@ -1230,7 +1230,7 @@ namespace WalletWasabi.Services
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
-			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUri, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
 				try
 				{

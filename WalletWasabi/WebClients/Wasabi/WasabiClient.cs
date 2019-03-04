@@ -17,6 +17,11 @@ namespace WalletWasabi.WebClients.Wasabi
 	public class WasabiClient : TorDisposableBase
 	{
 		/// <inheritdoc/>
+		public WasabiClient(Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint = null) : base(baseUriAction, torSocks5EndPoint)
+		{
+		}
+
+		/// <inheritdoc/>
 		public WasabiClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
 		{
 		}
