@@ -257,7 +257,8 @@ namespace WalletWasabi.TorSocks5
 									{
 										if (torEx.RepField == RepField.HostUnreachable)
 										{
-											using (var client = new TorHttpClient(new Uri(fallBackTestRequestUri.DnsSafeHost), TorSocks5EndPoint))
+											Uri baseUri = new Uri($"{fallBackTestRequestUri.Scheme}://{fallBackTestRequestUri.DnsSafeHost}");
+											using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
 											{
 												var message = new HttpRequestMessage(HttpMethod.Get, fallBackTestRequestUri);
 												await client.SendAsync(message, Stop.Token);

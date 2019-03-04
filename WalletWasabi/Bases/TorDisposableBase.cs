@@ -14,6 +14,12 @@ namespace WalletWasabi.Bases
 			TorClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
 		}
 
+		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
+		protected TorDisposableBase(Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint = null)
+		{
+			TorClient = new TorHttpClient(baseUriAction, torSocks5EndPoint, isolateStream: true);
+		}
+
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls

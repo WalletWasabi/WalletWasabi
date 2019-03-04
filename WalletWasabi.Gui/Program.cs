@@ -1,12 +1,16 @@
 ﻿using Avalonia;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
+using Mono.Options;
 using NBitcoin;
 using System;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
@@ -18,7 +22,11 @@ namespace WalletWasabi.Gui
 		private static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
-			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+			if (!await Daemon.RunAsyncReturnTrueIfContinueWithGuiAsync(args))
+			{
+				return;
+			}
+
 			StatusBarViewModel statusBar = null;
 			try
 			{
@@ -30,14 +38,8 @@ namespace WalletWasabi.Gui
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel();
 
-						var configFilePath = Path.Combine(Global.DataDir, "Config.json");
-						var config = new Config(configFilePath);
-						await config.LoadOrCreateDefaultFileAsync();
-						Logger.LogInfo<Config>("Config is successfully initialized.");
+						await Global.InitializeNoUiAsync();
 
-						Global.InitializeConfig(config);
-
-						Global.InitializeNoWallet();
 						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;

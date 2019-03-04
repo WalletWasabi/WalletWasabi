@@ -128,6 +128,11 @@ namespace WalletWasabi.Services
 		}
 
 		public TimeSpan MaxRequestIntervalForMixing { get; set; }
+		private long _blockRequests; // There are priority requests in queue.
+
+		public void BlockRequests() => Interlocked.Exchange(ref _blockRequests, 1);
+
+		public void EnableRequests() => Interlocked.Exchange(ref _blockRequests, 0);
 
 		public string IndexFilePath { get; private set; }
 		private List<FilterModel> Index { get; set; }
@@ -159,6 +164,12 @@ namespace WalletWasabi.Services
 
 		public WasabiSynchronizer(Network network, string indexFilePath, WasabiClient client)
 		{
+			CreateNew(network, indexFilePath, client);
+		}
+
+		public WasabiSynchronizer(Network network, string indexFilePath, Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint = null)
+		{
+			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
 			CreateNew(network, indexFilePath, client);
 		}
 
@@ -236,6 +247,7 @@ namespace WalletWasabi.Services
 				{
 					DateTimeOffset lastFeeQueried = DateTimeOffset.UtcNow - feeQueryRequestInterval;
 					bool ignoreRequestInterval = false;
+					EnableRequests();
 					while (IsRunning)
 					{
 						try
@@ -244,6 +256,11 @@ namespace WalletWasabi.Services
 							if (!IsRunning)
 							{
 								return;
+							}
+
+							while (Interlocked.Read(ref _blockRequests) == 1)
+							{
+								await Task.Delay(3000, Cancel.Token);
 							}
 
 							EstimateSmartFeeMode? estimateMode = null;

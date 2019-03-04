@@ -43,7 +43,7 @@ namespace WalletWasabi.Gui.Controls
 		{
 			var source = Matrix;
 
-			if (!(source is null))
+			if (source != null)
 			{
 				var h = source.GetUpperBound(0);
 				var w = source.GetUpperBound(1);

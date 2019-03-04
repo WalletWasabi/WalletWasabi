@@ -225,7 +225,7 @@ namespace WalletWasabi.Gui.ViewModels
 			if (isGenSocksServFail)
 			{
 				// Is close band present?
-				if (!(MainWindowViewModel.Instance.ModalDialog is null))
+				if (MainWindowViewModel.Instance.ModalDialog != null)
 				{
 					// Do nothing.
 				}
@@ -243,7 +243,7 @@ namespace WalletWasabi.Gui.ViewModels
 			else
 			{
 				// Is close band present?
-				if (!(MainWindowViewModel.Instance.ModalDialog is null))
+				if (MainWindowViewModel.Instance.ModalDialog != null)
 				{
 					// Is it GenSocksServFail dialog?
 					if (MainWindowViewModel.Instance.ModalDialog is GenSocksServFailDialogViewModel)

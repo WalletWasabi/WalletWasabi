@@ -59,7 +59,7 @@ namespace Nito.Disposables
 		public void Dispose()
 		{
 			var context = _context.TryGetAndUnset();
-			if (context == null)
+			if (context is null)
 			{
 				_mre.Wait();
 				return;

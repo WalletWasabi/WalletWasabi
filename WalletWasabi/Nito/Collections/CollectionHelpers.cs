@@ -8,7 +8,7 @@ namespace Nito.Collections
 	{
 		public static IReadOnlyCollection<T> ReifyCollection<T>(IEnumerable<T> source)
 		{
-			if (source == null)
+			if (source is null)
 				throw new ArgumentNullException(nameof(source));
 
 			if (source is IReadOnlyCollection<T> result)

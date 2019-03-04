@@ -149,7 +149,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		{
 			lock (_l)
 			{
-				if (!(_process is null) && !_process.HasExited)
+				if (_process != null && !_process.HasExited)
 				{
 					_process.Kill();
 					_process.WaitForExit();

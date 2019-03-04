@@ -25,23 +25,23 @@ namespace WalletWasabi.Services
 {
 	public class CcjClient
 	{
-		public Network Network { get; }
-		public KeyManager KeyManager { get; }
+		public Network Network { get; private set; }
+		public KeyManager KeyManager { get; private set; }
 		public bool IsQuitPending { get; set; }
 
 		private ClientRoundRegistration DelayedRoundRegistration { get; set; }
 
-		public Uri CcjHostUri { get; }
-		public WasabiSynchronizer Synchronizer { get; }
-		private IPEndPoint TorSocks5EndPoint { get; }
+		public Func<Uri> CcjHostUriAction { get; private set; }
+		public WasabiSynchronizer Synchronizer { get; private set; }
+		private IPEndPoint TorSocks5EndPoint { get; set; }
 
 		private decimal? CoordinatorFeepercentToCheck { get; set; }
 
 		public ConcurrentDictionary<TxoRef, IEnumerable<HdPubKeyBlindedPair>> ExposedLinks { get; set; }
 
-		private AsyncLock MixLock { get; }
+		private AsyncLock MixLock { get; set; }
 
-		public CcjClientState State { get; }
+		public CcjClientState State { get; private set; }
 
 		public event EventHandler StateUpdated;
 
@@ -61,7 +61,17 @@ namespace WalletWasabi.Services
 
 		private long _statusProcessing;
 
-		private CancellationTokenSource Cancel { get; }
+		private CancellationTokenSource Cancel { get; set; }
+
+		public CcjClient(
+			WasabiSynchronizer synchronizer,
+			Network network,
+			KeyManager keyManager,
+			Func<Uri> ccjHostUriAction,
+			IPEndPoint torSocks5EndPoint = null)
+		{
+			Create(synchronizer, network, keyManager, ccjHostUriAction, torSocks5EndPoint);
+		}
 
 		public CcjClient(
 			WasabiSynchronizer synchronizer,
@@ -70,9 +80,14 @@ namespace WalletWasabi.Services
 			Uri ccjHostUri,
 			IPEndPoint torSocks5EndPoint = null)
 		{
+			Create(synchronizer, network, keyManager, () => ccjHostUri, torSocks5EndPoint);
+		}
+
+		private void Create(WasabiSynchronizer synchronizer, Network network, KeyManager keyManager, Func<Uri> ccjHostUriAction, IPEndPoint torSocks5EndPoint)
+		{
 			Network = Guard.NotNull(nameof(network), network);
 			KeyManager = Guard.NotNull(nameof(keyManager), keyManager);
-			CcjHostUri = Guard.NotNull(nameof(ccjHostUri), ccjHostUri);
+			CcjHostUriAction = Guard.NotNull(nameof(ccjHostUriAction), ccjHostUriAction);
 			Synchronizer = Guard.NotNull(nameof(synchronizer), synchronizer);
 			TorSocks5EndPoint = torSocks5EndPoint;
 			CoordinatorFeepercentToCheck = null;
@@ -93,6 +108,7 @@ namespace WalletWasabi.Services
 		{
 			try
 			{
+				Synchronizer.BlockRequests();
 				IEnumerable<CcjRunningRoundState> newRoundStates = e.CcjRoundStates;
 
 				await ProcessStatusAsync(newRoundStates);
@@ -100,6 +116,10 @@ namespace WalletWasabi.Services
 			catch (Exception ex)
 			{
 				Logger.LogWarning<CcjClient>(ex);
+			}
+			finally
+			{
+				Synchronizer.EnableRequests();
 			}
 		}
 
@@ -243,7 +263,7 @@ namespace WalletWasabi.Services
 
 					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 					CcjClientRound inputRegistrableRound = State.GetRegistrableRoundOrDefault();
-					if (!(inputRegistrableRound is null))
+					if (inputRegistrableRound != null)
 					{
 						if (inputRegistrableRound.Registration is null) // If didn't register already, check what can we register.
 						{
@@ -332,7 +352,10 @@ namespace WalletWasabi.Services
 			// Make sure change is counted.
 			Money minAmountBack = ongoingRound.CoinsRegistered.Sum(x => x.Amount); // Start with input sum.
 																				   // Do outputs.lenght + 1 in case the server estimated the network fees wrongly due to insufficient data in an edge case.
-			minAmountBack -= ongoingRound.State.FeePerOutputs * (myOutputs.Length + 1) + ongoingRound.State.FeePerInputs * ongoingRound.Registration.CoinsRegistered.Count(); // Minus miner fee.
+			Money networkFeesAfterOutputs = ongoingRound.State.FeePerOutputs * (ongoingRound.Registration.AliceClient.RegisteredAddresses.Length + 1); // Use registered addresses here, because network fees are decided at inputregistration.
+			Money networkFeesAfterInputs = ongoingRound.State.FeePerInputs * ongoingRound.Registration.CoinsRegistered.Count();
+			Money networkFees = networkFeesAfterOutputs + networkFeesAfterInputs;
+			minAmountBack -= networkFees; // Minus miner fee.
 
 			IOrderedEnumerable<(Money value, int count)> indistinguishableOutputs = unsignedCoinJoin.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count);
 			foreach ((Money value, int count) denomPair in indistinguishableOutputs)
@@ -348,7 +371,8 @@ namespace WalletWasabi.Services
 			}
 
 			// If there's no change output then coordinator protection may happened:
-			if (!myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.Registration.ChangeAddress.ScriptPubKey))
+			bool gotChange = myOutputs.Select(x => x.ScriptPubKey).Contains(ongoingRound.Registration.ChangeAddress.ScriptPubKey);
+			if (!gotChange)
 			{
 				Money minimumOutputAmount = Money.Coins(0.0001m); // If the change would be less than about $1 then add it to the coordinator.
 				Money baseDenomination = indistinguishableOutputs.First().value;
@@ -358,9 +382,10 @@ namespace WalletWasabi.Services
 				minAmountBack -= minimumChangeAmount; // Minus coordinator protections (so it won't create bad coinjoins.)
 			}
 
-			if (amountBack < minAmountBack && !amountBack.Almost(minAmountBack, Money.Satoshis(10000))) // Just in case.
+			if (amountBack < minAmountBack && !amountBack.Almost(minAmountBack, Money.Satoshis(1000))) // Just in case. Rounding error maybe?
 			{
-				throw new NotSupportedException($"Coordinator did not add enough value to our outputs in the coinjoin. Missing: {(minAmountBack - amountBack).Satoshi} satoshis.");
+				Money diff = minAmountBack - amountBack;
+				throw new NotSupportedException($"Coordinator did not add enough value to our outputs in the coinjoin. Missing: {diff.Satoshi} satoshis.");
 			}
 
 			var signedCoinJoin = unsignedCoinJoin.Clone();
@@ -397,7 +422,7 @@ namespace WalletWasabi.Services
 			shuffledOutputs.Shuffle();
 			foreach ((BitcoinAddress address, UnblindedSignature signature, int mixingLevel) activeOutput in shuffledOutputs)
 			{
-				using (var bobClient = new BobClient(CcjHostUri, TorSocks5EndPoint))
+				using (var bobClient = new BobClient(CcjHostUriAction, TorSocks5EndPoint))
 				{
 					if (!await bobClient.PostOutputAsync(ongoingRound.RoundId, activeOutput.address, activeOutput.signature, activeOutput.mixingLevel))
 					{
@@ -522,7 +547,7 @@ namespace WalletWasabi.Services
 				AliceClient aliceClient = null;
 				try
 				{
-					aliceClient = await AliceClient.CreateNewAsync(inputRegistrableRound.RoundId, registeredAddresses, schnorrPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUri, TorSocks5EndPoint);
+					aliceClient = await AliceClient.CreateNewAsync(inputRegistrableRound.RoundId, registeredAddresses, schnorrPubKeys, requesters, Network, outputAddresses.change.GetP2wpkhAddress(Network), blindedOutputScriptHashes, inputProofs, CcjHostUriAction, TorSocks5EndPoint);
 				}
 				catch (HttpRequestException ex) when (ex.Message.Contains("Input is banned", StringComparison.InvariantCultureIgnoreCase))
 				{
@@ -961,7 +986,7 @@ namespace WalletWasabi.Services
 				}
 
 				SmartCoin coinWaitingForMix = State.GetSingleOrDefaultFromWaitingList(coinToDequeue);
-				if (!(coinWaitingForMix is null)) // If it is not being mixed, we can just remove it.
+				if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
 				{
 					RemoveCoin(coinWaitingForMix);
 				}
@@ -987,7 +1012,7 @@ namespace WalletWasabi.Services
 			{
 				coinWaitingForMix.Label = "ZeroLink Dequeued Change";
 				var key = KeyManager.GetKeys(x => x.GetP2wpkhScript() == coinWaitingForMix.ScriptPubKey).SingleOrDefault();
-				if (!(key is null))
+				if (key != null)
 				{
 					key.SetLabel(coinWaitingForMix.Label, KeyManager);
 				}

@@ -200,7 +200,7 @@ namespace WalletWasabi.Services
 
 		private void RemoveCoinRecursively(SmartCoin toRemove)
 		{
-			if (!(toRemove.SpenderTransactionId is null))
+			if (toRemove.SpenderTransactionId != null)
 			{
 				foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
 				{
@@ -218,7 +218,7 @@ namespace WalletWasabi.Services
 				using (HandleFiltersLock.Lock())
 				using (WalletBlocksLock.Lock())
 				{
-					if (!(filterModel.Filter is null) && !WalletBlocks.ContainsValue(filterModel.BlockHash))
+					if (filterModel.Filter != null && !WalletBlocks.ContainsValue(filterModel.BlockHash))
 					{
 						await ProcessFilterModelAsync(filterModel, CancellationToken.None);
 					}
@@ -226,7 +226,7 @@ namespace WalletWasabi.Services
 				NewFilterProcessed?.Invoke(this, filterModel);
 
 				// Try perform mempool cleanup based on connected nodes' mempools.
-				if (!(Synchronizer is null) && Synchronizer.GetFiltersLeft() == 0)
+				if (Synchronizer != null && Synchronizer.GetFiltersLeft() == 0)
 				{
 					MemPool?.TryPerformMempoolCleanupAsync(Nodes, CancellationToken.None);
 				}
@@ -342,7 +342,7 @@ namespace WalletWasabi.Services
 			KeyManager.AssertCleanKeysIndexed(21, false);
 
 			IEnumerable<HdPubKey> keys = KeyManager.GetKeys(KeyState.Clean, isInternal: false);
-			if (!(dontTouch is null))
+			if (dontTouch != null)
 			{
 				keys = keys.Except(dontTouch);
 				if (!keys.Any())
@@ -589,7 +589,7 @@ namespace WalletWasabi.Services
 				var input = tx.Transaction.Inputs[i];
 
 				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
-				if (!(foundCoin is null))
+				if (foundCoin != null)
 				{
 					foundCoin.SpenderTransactionId = txId;
 					TransactionCache.TryAdd(tx);
@@ -649,7 +649,7 @@ namespace WalletWasabi.Services
 						// Try to get block information from local running Core node first.
 						try
 						{
-							if (LocalBitcoinCoreNode == null || !LocalBitcoinCoreNode.IsConnected)
+							if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected)
 							{
 								DisconnectDisposeNullLocalBitcoinCoreNode();
 								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
@@ -951,7 +951,7 @@ namespace WalletWasabi.Services
 			{
 				feeTarget = 2;
 			}
-			if (!(subtractFeeFromAmountIndex is null)) // If not null, make sure not out of range. If null fee is substracted from the change.
+			if (subtractFeeFromAmountIndex != null) // If not null, make sure not out of range. If null fee is substracted from the change.
 			{
 				if (subtractFeeFromAmountIndex < 0)
 				{
@@ -965,7 +965,7 @@ namespace WalletWasabi.Services
 
 			// Get allowed coins to spend.
 			List<SmartCoin> allowedSmartCoinInputs; // Inputs those can be used to build the transaction.
-			if (!(allowedInputs is null)) // If allowedInputs are specified then select the coins from them.
+			if (allowedInputs != null) // If allowedInputs are specified then select the coins from them.
 			{
 				if (!allowedInputs.Any())
 				{
@@ -997,7 +997,7 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>("Calculating dynamic transaction fee...");
 
 			Money feePerBytes = null;
-			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUri, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
 				Money feeRate = Synchronizer.GetFeeRate(feeTarget);
 				Money sanityCheckedFeeRate = Math.Max(feeRate, 2); // Use the sanity check that under 2 satoshi per bytes should not be displayed. To correct possible rounding errors.
@@ -1222,7 +1222,7 @@ namespace WalletWasabi.Services
 			newLabel = Guard.Correct(newLabel);
 			coin.Label = newLabel;
 			var key = KeyManager.GetKeys(x => x.GetP2wpkhScript() == coin.ScriptPubKey).SingleOrDefault();
-			if (!(key is null))
+			if (key != null)
 			{
 				key.SetLabel(newLabel, KeyManager);
 			}
@@ -1230,7 +1230,7 @@ namespace WalletWasabi.Services
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
-			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUri, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 			{
 				try
 				{

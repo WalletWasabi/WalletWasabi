@@ -93,7 +93,7 @@ namespace WalletWasabi.Backend
 
 			var stopTasks = new List<Task>();
 
-			if (!(Global.IndexBuilderService is null))
+			if (Global.IndexBuilderService != null)
 			{
 				Global.IndexBuilderService.NewBlock -= Global.IndexBuilderService_NewBlockAsync;
 
@@ -101,7 +101,7 @@ namespace WalletWasabi.Backend
 				stopTasks.Add(t);
 			}
 
-			if (!(Global.RoundConfigWatcher is null))
+			if (Global.RoundConfigWatcher != null)
 			{
 				var t = Global.RoundConfigWatcher.StopAsync();
 				stopTasks.Add(t);

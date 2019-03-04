@@ -216,7 +216,7 @@ namespace WalletWasabi.Tests
 			}
 			finally
 			{
-				if (!(indexBuilderService is null))
+				if (indexBuilderService != null)
 				{
 					await indexBuilderService.StopAsync();
 				}
@@ -684,7 +684,7 @@ namespace WalletWasabi.Tests
 				node?.Disconnect();
 
 				// Dispose chaumian coinjoin client.
-				if (!(chaumianClient is null))
+				if (chaumianClient != null)
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1153,7 +1153,7 @@ namespace WalletWasabi.Tests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (!(chaumianClient is null))
+				if (chaumianClient != null)
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1317,7 +1317,7 @@ namespace WalletWasabi.Tests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (!(chaumianClient is null))
+				if (chaumianClient != null)
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1482,7 +1482,7 @@ namespace WalletWasabi.Tests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (!(chaumianClient is null))
+				if (chaumianClient != null)
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -1644,7 +1644,7 @@ namespace WalletWasabi.Tests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (!(chaumianClient is null))
+				if (chaumianClient != null)
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -2446,7 +2446,7 @@ namespace WalletWasabi.Tests
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
 					{
-						throw new TimeoutException("Not all rouns were in InputRegistration.");
+						throw new TimeoutException("Not all rounds were in InputRegistration.");
 					}
 					times++;
 				}
@@ -2587,7 +2587,7 @@ namespace WalletWasabi.Tests
 					await Task.Delay(100);
 					if (times > 50) // 5 sec, 3 should be enough
 					{
-						throw new TimeoutException("Not all rouns were in InputRegistration.");
+						throw new TimeoutException("Not all rounds were in InputRegistration.");
 					}
 					times++;
 				}
@@ -3143,11 +3143,11 @@ namespace WalletWasabi.Tests
 			}
 			finally
 			{
-				if (!(chaumianClient1 is null))
+				if (chaumianClient1 != null)
 				{
 					await chaumianClient1.StopAsync();
 				}
-				if (!(chaumianClient2 is null))
+				if (chaumianClient2 != null)
 				{
 					await chaumianClient2.StopAsync();
 				}
@@ -3312,7 +3312,7 @@ namespace WalletWasabi.Tests
 				// Dispose mempool serving node.
 				node?.Disconnect();
 				// Dispose chaumian coinjoin client.
-				if (!(chaumianClient is null))
+				if (chaumianClient != null)
 				{
 					await chaumianClient.StopAsync();
 				}
@@ -3322,7 +3322,7 @@ namespace WalletWasabi.Tests
 				// Dispose connection service.
 				nodes2?.Dispose();
 				// Dispose chaumian coinjoin client.
-				if (!(chaumianClient2 is null))
+				if (chaumianClient2 != null)
 				{
 					await chaumianClient2.StopAsync();
 				}

@@ -66,7 +66,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				CoordinatorFeePercent = "0.003";
 			}
 
-			if (!(registrableRound?.State?.Denomination is null) && registrableRound.State.Denomination != Money.Zero)
+			if (registrableRound?.State?.Denomination != null && registrableRound.State.Denomination != Money.Zero)
 			{
 				CoinsList = new CoinListViewModel();
 			}
@@ -410,7 +410,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				var selectedCoin = _coinsList?.SelectedCoin;
-				if (selectedCoin == null) return;
+				if (selectedCoin is null) return;
 				await DoDequeueAsync(new[] { selectedCoin });
 			}
 			catch (Exception ex)

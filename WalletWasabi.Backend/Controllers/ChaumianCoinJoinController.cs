@@ -10,6 +10,7 @@ using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -255,17 +256,20 @@ namespace WalletWasabi.Backend.Controllers
 
 					var acceptedBlindedOutputScripts = new List<uint256>();
 
-					// Check if inputs have enough coins.
+					// Calculate expected networkfee to pay after base denomination.
 					int inputCount = inputs.Count();
+					Money networkFeeToPayAfterBaseDenomination = (inputCount * round.FeePerInputs) + (2 * round.FeePerOutputs);
+
+					// Check if inputs have enough coins.
 					Money inputSum = inputs.Sum(x => x.Amount);
-					Money networkFeeToPay = (inputCount * round.FeePerInputs) + (2 * round.FeePerOutputs);
-					Money changeAmount = inputSum - (round.MixingLevels.GetBaseDenomination() + networkFeeToPay);
+					Money changeAmount = (inputSum - (round.MixingLevels.GetBaseDenomination() + networkFeeToPayAfterBaseDenomination));
 					if (changeAmount < Money.Zero)
 					{
-						return BadRequest($"Not enough inputs are provided. Fee to pay: {networkFeeToPay.ToString(false, true)} BTC. Round denomination: {round.MixingLevels.GetBaseDenomination().ToString(false, true)} BTC. Only provided: {inputSum.ToString(false, true)} BTC.");
+						return BadRequest($"Not enough inputs are provided. Fee to pay: {networkFeeToPayAfterBaseDenomination.ToString(false, true)} BTC. Round denomination: {round.MixingLevels.GetBaseDenomination().ToString(false, true)} BTC. Only provided: {inputSum.ToString(false, true)} BTC.");
 					}
 					acceptedBlindedOutputScripts.Add(blindedOutputs.First());
 
+					Money networkFeeToPay = networkFeeToPayAfterBaseDenomination;
 					// Make sure we sign the proper number of additional blinded outputs.
 					var moneySoFar = Money.Zero;
 					for (int i = 1; i < blindedOutputCount; i++)
@@ -288,7 +292,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 
 					// Make sure Alice checks work.
-					var alice = new Alice(inputs, networkFeeToPay, request.ChangeOutputAddress, acceptedBlindedOutputScripts);
+					var alice = new Alice(inputs, networkFeeToPayAfterBaseDenomination, request.ChangeOutputAddress, acceptedBlindedOutputScripts);
 
 					foreach (Guid aliceToRemove in alicesToRemove)
 					{
@@ -361,8 +365,8 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
-			if (!(returnFailureResponse is null))
+			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, CcjRoundPhase.ConnectionConfirmation, out IActionResult returnFailureResponse);
+			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
@@ -389,10 +393,6 @@ namespace WalletWasabi.Backend.Controllers
 						int takeBlindCount = round.EstimateBestMixingLevel(alice);
 
 						var prevBlindCount = alice.BlindedOutputScripts.Length;
-						for (int i = 0; i < prevBlindCount - takeBlindCount; i++)
-						{
-							alice.NetworkFeeToPay -= round.FeePerOutputs;
-						}
 						alice.BlindedOutputScripts = alice.BlindedOutputScripts.Take(takeBlindCount).ToArray();
 						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(takeBlindCount).ToArray();
 						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Don't give back more mixing levels than we'll use.
@@ -407,6 +407,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 				default:
 					{
+						TryLogLateRequest(roundId, CcjRoundPhase.ConnectionConfirmation);
 						return Gone($"Participation can be only confirmed from InputRegistration or ConnectionConfirmation phase. Current phase: {phase}.");
 					}
 			}
@@ -436,7 +437,7 @@ namespace WalletWasabi.Backend.Controllers
 			}
 
 			Guid uniqueIdGuid = GetGuidOrFailureResponse(uniqueId, out IActionResult returnFailureResponse);
-			if (!(returnFailureResponse is null))
+			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
@@ -503,17 +504,20 @@ namespace WalletWasabi.Backend.Controllers
 			CcjRound round = Coordinator.TryGetRound(roundId);
 			if (round is null)
 			{
+				TryLogLateRequest(roundId, CcjRoundPhase.OutputRegistration);
 				return NotFound("Round not found.");
 			}
 
 			if (round.Status != CcjRoundStatus.Running)
 			{
+				TryLogLateRequest(roundId, CcjRoundPhase.OutputRegistration);
 				return Gone("Round is not running.");
 			}
 
 			CcjRoundPhase phase = round.Phase;
 			if (phase != CcjRoundPhase.OutputRegistration)
 			{
+				TryLogLateRequest(roundId, CcjRoundPhase.OutputRegistration);
 				return Conflict($"Output registration can only be done from OutputRegistration phase. Current phase: {phase}.");
 			}
 
@@ -597,8 +601,8 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
-			if (!(returnFailureResponse is null))
+			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, CcjRoundPhase.Signing, out IActionResult returnFailureResponse);
+			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
@@ -612,6 +616,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 				default:
 					{
+						TryLogLateRequest(roundId, CcjRoundPhase.Signing);
 						return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
 					}
 			}
@@ -647,8 +652,8 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, out IActionResult returnFailureResponse);
-			if (!(returnFailureResponse is null))
+			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, CcjRoundPhase.Signing, out IActionResult returnFailureResponse);
+			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;
 			}
@@ -718,6 +723,7 @@ namespace WalletWasabi.Backend.Controllers
 					}
 				default:
 					{
+						TryLogLateRequest(roundId, CcjRoundPhase.Signing);
 						return Conflict($"CoinJoin can only be requested from Signing phase. Current phase: {phase}.");
 					}
 			}
@@ -750,13 +756,13 @@ namespace WalletWasabi.Backend.Controllers
 			return aliceGuid;
 		}
 
-		private (CcjRound round, Alice alice) GetRunningRoundAndAliceOrFailureResponse(long roundId, string uniqueId, out IActionResult returnFailureResponse)
+		private (CcjRound round, Alice alice) GetRunningRoundAndAliceOrFailureResponse(long roundId, string uniqueId, CcjRoundPhase desiredPhase, out IActionResult returnFailureResponse)
 		{
 			returnFailureResponse = null;
 
 			Guid uniqueIdGuid = GetGuidOrFailureResponse(uniqueId, out IActionResult guidFail);
 
-			if (!(guidFail is null))
+			if (guidFail != null)
 			{
 				returnFailureResponse = guidFail;
 				return (null, null);
@@ -766,6 +772,7 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (round is null)
 			{
+				TryLogLateRequest(roundId, desiredPhase);
 				returnFailureResponse = NotFound("Round not found.");
 				return (null, null);
 			}
@@ -779,10 +786,27 @@ namespace WalletWasabi.Backend.Controllers
 
 			if (round.Status != CcjRoundStatus.Running)
 			{
+				TryLogLateRequest(roundId, desiredPhase);
 				returnFailureResponse = Gone("Round is not running.");
 			}
 
 			return (round, alice);
+		}
+
+		private static void TryLogLateRequest(long roundId, CcjRoundPhase desiredPhase)
+		{
+			try
+			{
+				DateTimeOffset ended = CcjRound.PhaseTimeoutLog.TryGet((roundId, desiredPhase));
+				if (ended != default)
+				{
+					Logger.LogInfo<ChaumianCoinJoinController>($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss} {desiredPhase} {(int)(DateTimeOffset.UtcNow - ended).TotalSeconds} seconds late.");
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug<ChaumianCoinJoinController>(ex);
+			}
 		}
 
 		/// <summary>

@@ -24,7 +24,7 @@ namespace Nito.Disposables.Internals
 		/// <summary>
 		/// Whether the field is empty.
 		/// </summary>
-		public bool IsEmpty => Interlocked.CompareExchange(ref _field, null, null) == null;
+		public bool IsEmpty => Interlocked.CompareExchange(ref _field, null, null) is null;
 
 		/// <summary>
 		/// Atomically retrieves the bound action from the field and sets the field to <c>null</c>. May return <c>null</c>.
@@ -43,7 +43,7 @@ namespace Nito.Disposables.Internals
 			while (true)
 			{
 				var original = Interlocked.CompareExchange(ref _field, _field, _field);
-				if (original == null)
+				if (original is null)
 					return false;
 				var updatedContext = new BoundAction(original, contextUpdater);
 				var result = Interlocked.CompareExchange(ref _field, updatedContext, original);

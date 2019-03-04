@@ -70,7 +70,7 @@ namespace System.Net.Http
 			}
 
 			var messageBody = "";
-			if (!(me.Content is null))
+			if (me.Content != null)
 			{
 				if (me.Content.Headers.NotNullAndNotEmpty())
 				{

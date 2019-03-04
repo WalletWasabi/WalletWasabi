@@ -535,7 +535,7 @@ namespace WalletWasabi.TorSocks5
 		{
 			try
 			{
-				if (!(TcpClient is null))
+				if (TcpClient != null)
 				{
 					if (TcpClient.Connected)
 					{

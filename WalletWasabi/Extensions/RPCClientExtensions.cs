@@ -80,7 +80,7 @@ namespace NBitcoin.RPC
 			if (tryOtherFeeRates)
 			{
 				EstimateSmartFeeResponse response = await rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode);
-				if (!(response is null))
+				if (response != null)
 				{
 					return response;
 				}
@@ -90,7 +90,7 @@ namespace NBitcoin.RPC
 					for (int i = 2; i <= 1008; i++)
 					{
 						response = await rpc.TryEstimateSmartFeeAsync(i, estimateMode);
-						if (!(response is null))
+						if (response != null)
 						{
 							return response;
 						}
@@ -187,8 +187,8 @@ namespace NBitcoin.RPC
 			// Check if mempool would accept a fake transaction created with the registered inputs.
 			// This will catch ascendant/descendant count and size limits for example.
 			var fakeTransaction = rpc.Network.CreateTransaction();
-			fakeTransaction.Inputs.AddRange(coins.Select(coin=> new TxIn(coin.Outpoint)));
-			Money fakeOutputValue = NBitcoinHelpers.TakeAReasonableFee(coins.Sum(coin=>coin.TxOut.Value));
+			fakeTransaction.Inputs.AddRange(coins.Select(coin => new TxIn(coin.Outpoint)));
+			Money fakeOutputValue = NBitcoinHelpers.TakeAReasonableFee(coins.Sum(coin => coin.TxOut.Value));
 			fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
 			MempoolAcceptResult testMempoolAcceptResult = await rpc.TestMempoolAcceptAsync(fakeTransaction, allowHighFees: true);
 

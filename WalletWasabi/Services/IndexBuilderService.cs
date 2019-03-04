@@ -231,7 +231,7 @@ namespace WalletWasabi.Services
 								NewBlock?.Invoke(this, block);
 							}
 
-							if (!(prevHash is null))
+							if (prevHash != null)
 							{
 								// In case of reorg:
 								if (prevHash != block.Header.HashPrevBlock && !isIIB) // There is no reorg in IIB

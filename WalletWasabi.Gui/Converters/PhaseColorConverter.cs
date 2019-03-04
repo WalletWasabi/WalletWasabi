@@ -12,12 +12,12 @@ namespace WalletWasabi.Gui.Converters
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			if(!Enum.TryParse(typeof(CcjRoundPhase), parameter.ToString(), false, out var p))
+			if (!Enum.TryParse(typeof(CcjRoundPhase), parameter.ToString(), false, out var p))
 				throw new ArgumentException($"Unknown '{parameter}' value");
 			var phaseError = Global.ChaumianClient.State.IsInErrorState;
 
-			return ((CcjRoundPhase)p <= (CcjRoundPhase)value) 
-				? (phaseError? Brushes.IndianRed : Brushes.Green)
+			return ((CcjRoundPhase)p <= (CcjRoundPhase)value)
+				? (phaseError ? Brushes.IndianRed : Brushes.Green)
 				: Brushes.Gray;
 		}
 
