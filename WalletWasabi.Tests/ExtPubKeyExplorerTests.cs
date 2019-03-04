@@ -108,23 +108,6 @@ namespace WalletWasabi.Tests
 			Assert.Equal(DerivateScript(25_000), unusedKeyIndex);
 		}
 
-		[Fact]
-		public void RealWorldCase()
-		{
-			var filters = new List<FilterModel>(100_000);
-			using(var file = File.OpenRead("../../../../WalletWasabi.Bench/IndexTestNet.bin"))
-			while(file.Position < file.Length)
-				filters.Add(FilterModel.FromStream(file, 0));
-
-			var extPubKey = ExtPubKey.Parse("tpubDESeudcLbEHBoH8iw6mL284PXoe2TVmGa3MdQ2gSAkkMj9d1P88LB8wEbVYpigwzurDmDSRsGMKkUsH6vx1anBDCMRzha4YucJfCvEy6z6B");
-			var explorer = new ExtPubKeyExplorer(extPubKey, filters); 
-			var index = explorer.UnusedKeys().First();
-			Console.WriteLine($"first index: m/84'/0'/0'/0/{index}");
-			// Review: The Wallet file indicates that the first Locked index is 48, however increasing the chunkSize makes the
-			// method to return wrong index.
-		}
-
-
 		private FilterModel CreateFiltersWith(IEnumerable<byte[]> scripts)
 		{
 			var keyBuffer = new byte[32];

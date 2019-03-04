@@ -22,7 +22,7 @@ namespace WalletWasabi.Services
 			_generator = DerivateNext().GetEnumerator();
 			_filters = filters.Where(x=>x.Filter != null).ToArray();
 			if(_filters.Length == 0)
-				throw new ArgumentException(nameof(filters), "There is not filter to match.");
+				throw new ArgumentException(nameof(filters), "There is no filter to match.");
 		}
 
 		public IEnumerable<byte[]> UnusedKeys()
