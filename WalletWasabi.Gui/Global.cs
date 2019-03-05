@@ -145,11 +145,8 @@ namespace WalletWasabi.Gui
 			InitializeNoWallet();
 		}
 
-		public static bool TriedInitializeNoWallet = false;
-
 		public static void InitializeNoWallet()
 		{
-			TriedInitializeNoWallet = true;
 			WalletService = null;
 			ChaumianClient = null;
 
@@ -161,7 +158,7 @@ namespace WalletWasabi.Gui
 				await TryDesperateDequeueAllCoinsAsync();
 				Dispatcher.UIThread.PostLogException(() =>
 				{
-					Application.Current.MainWindow.Close();
+					Application.Current?.MainWindow?.Close();
 				});
 			};
 
@@ -445,40 +442,50 @@ namespace WalletWasabi.Gui
 				}
 				WalletService.Dispose();
 				WalletService = null;
+				Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
 			}
-
-			Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
 
 			if (ChaumianClient != null)
 			{
 				await ChaumianClient.StopAsync();
 				ChaumianClient = null;
+				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.", nameof(Global));
 			}
-			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.", nameof(Global));
 		}
 
 		public static async Task DisposeAsync()
 		{
-			if (!TriedInitializeNoWallet) return;
 			try
 			{
 				await DisposeInWalletDependentServicesAsync();
 
-				UpdateChecker?.Dispose();
-				Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
+				if (UpdateChecker != null)
+				{
+					UpdateChecker?.Dispose();
+					Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
+				}
 
-				Synchronizer?.Dispose();
-				Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
+				if (Synchronizer != null)
+				{
+					Synchronizer?.Dispose();
+					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
+				}
 
 				if (AddressManagerFilePath != null)
 				{
 					IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
+					if (AddressManager != null)
+					{
+						AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
+						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
+					}
 				}
-				AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
-				Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
 
-				Nodes?.Dispose();
-				Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
+				if (Nodes != null)
+				{
+					Nodes?.Dispose();
+					Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
+				}
 
 				if (RegTestMemPoolServingNode != null)
 				{
@@ -486,8 +493,11 @@ namespace WalletWasabi.Gui
 					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
 				}
 
-				TorManager?.Dispose();
-				Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
+				if (TorManager != null)
+				{
+					TorManager?.Dispose();
+					Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
+				}
 			}
 			catch (Exception ex)
 			{
