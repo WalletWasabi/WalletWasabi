@@ -31,81 +31,73 @@ namespace WalletWasabi.Tests
 				FilterModel.FromHeightlessLine("000000000000de90e633e1b1330859842795d39018d033044e8b003e8cbf58e4:050a2f58828c9820642769ae320a40", 0)
 			};
 
-			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
+			var unusedKeyIndex = ExtPubKeyExplorer.GetUnusedBech32Keys(1, true, _extPubKey.GetWif(Network.Main), filters).First().ScriptPubKey.ToCompressedBytes();
 
-			var unusedKeyIndex = explorer.UnusedKeys().First();
-			Assert.Equal(DerivateScript(0u), unusedKeyIndex);
+			Assert.Equal(DerivateScript(true, 0), unusedKeyIndex);
 		}
 
 		[Fact]
 		public void ShouldFindUnsedKeyFirstChunk()
 		{
 			var filters = new[]{
-				CreateFiltersWith(GetScripts(0, 10)),
-				CreateFiltersWith(GetScripts(10, 10))
+				CreateFiltersWith(GetScripts(false, 0, 10)),
+				CreateFiltersWith(GetScripts(false, 10, 10))
 			};
 
-			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
+			var unusedKeyIndex = ExtPubKeyExplorer.GetUnusedBech32Keys(1, false, _extPubKey.GetWif(Network.Main), filters).First().ScriptPubKey.ToCompressedBytes();
 
-			var unusedKeyIndex = explorer.UnusedKeys().First();
-			Assert.Equal(DerivateScript(20u), unusedKeyIndex);
+			Assert.Equal(DerivateScript(false, 20), unusedKeyIndex);
 		}
 
 		[Fact]
 		public void ShouldFindUnsedKeyAtTheEndOfFirstChunk()
 		{
 			var filters = new[]{
-				CreateFiltersWith(GetScripts(0, 500)),
-				CreateFiltersWith(GetScripts(500, 499))
+				CreateFiltersWith(GetScripts(true, 0, 500)),
+				CreateFiltersWith(GetScripts(true, 500, 499))
 			};
 
-			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
-
-			var unusedKeyIndex = explorer.UnusedKeys().First();
-			Assert.Equal(DerivateScript(999), unusedKeyIndex);
+			var unusedKeyIndex = ExtPubKeyExplorer.GetUnusedBech32Keys(1, true, _extPubKey.GetWif(Network.Main), filters).First().ScriptPubKey.ToCompressedBytes();
+			Assert.Equal(DerivateScript(true, 999), unusedKeyIndex);
 		}
 
 		[Fact]
 		public void ShouldFindUnsedKeyAnywhereFirstChunk()
 		{
 			var filters = new[]{
-				CreateFiltersWith(GetScripts(0,  1)),
-				CreateFiltersWith(GetScripts(0,  2)),
-				CreateFiltersWith(GetScripts(0, 27)),
-				CreateFiltersWith(GetScripts(27, 3)),
+				CreateFiltersWith(GetScripts(true, 0,  1)),
+				CreateFiltersWith(GetScripts(true, 0,  2)),
+				CreateFiltersWith(GetScripts(true, 0, 27)),
+				CreateFiltersWith(GetScripts(true, 27, 3)),
 			};
 
-			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
+			var unusedKeyIndex = ExtPubKeyExplorer.GetUnusedBech32Keys(1, true, _extPubKey.GetWif(Network.Main), filters).First().ScriptPubKey.ToCompressedBytes();
 
-			var unusedKeyIndex = explorer.UnusedKeys().First();
-			Assert.Equal(DerivateScript(30), unusedKeyIndex);
+			Assert.Equal(DerivateScript(true, 30), unusedKeyIndex);
 		}
 
 		[Fact]
 		public void ShouldFindUnsedKeySecondChunk()
 		{
 			var filters = new[]{
-				CreateFiltersWith(GetScripts(  0, 250)),
-				CreateFiltersWith(GetScripts(250, 250)),
-				CreateFiltersWith(GetScripts(500, 250)),
-				CreateFiltersWith(GetScripts(750, 250))
+				CreateFiltersWith(GetScripts(true,   0, 250)),
+				CreateFiltersWith(GetScripts(true, 250, 250)),
+				CreateFiltersWith(GetScripts(true, 500, 250)),
+				CreateFiltersWith(GetScripts(true, 750, 250))
 			};
 
-			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
+			var unusedKeyIndex = ExtPubKeyExplorer.GetUnusedBech32Keys(1, true, _extPubKey.GetWif(Network.Main), filters).First().ScriptPubKey.ToCompressedBytes();
 
-			var unusedKeyIndex = explorer.UnusedKeys().First();
-			Assert.Equal(DerivateScript(1_000), unusedKeyIndex);
+			Assert.Equal(DerivateScript(true, 1_000), unusedKeyIndex);
 		}
 
 		[Fact]
 		public void ShouldFindUnsedKeyFarFarAway()
 		{
-			var filters = Enumerable.Range(0, 100).Select(x => CreateFiltersWith(GetScripts(x * 250, 250))).ToArray();
+			var filters = Enumerable.Range(0, 100).Select(x => CreateFiltersWith(GetScripts(true, x * 250, 250))).ToArray();
 
-			var explorer = new ExtPubKeyExplorer(_extPubKey, filters);
-
-			var unusedKeyIndex = explorer.UnusedKeys().First();
-			Assert.Equal(DerivateScript(25_000), unusedKeyIndex);
+			var unusedKeyIndex = ExtPubKeyExplorer.GetUnusedBech32Keys(1, true, _extPubKey.GetWif(Network.Main), filters).First().ScriptPubKey.ToCompressedBytes();
+			Assert.Equal(DerivateScript(true, 25_000), unusedKeyIndex);
 		}
 
 		private FilterModel CreateFiltersWith(IEnumerable<byte[]> scripts)
@@ -127,21 +119,23 @@ namespace WalletWasabi.Tests
 			};
 		}
 
-		private byte[][] GetScripts(int offset, int count)
+		private byte[][] GetScripts(bool isInternal, int offset, int count)
 		{
+			var change = isInternal ? 1 : 0;
 			var scripts = new byte[count][];
 			for (var i = 0; i < count; i++)
 			{
-				var pubKey = _extPubKey.Derive((uint)(offset + i)).PubKey;
+				var pubKey = _extPubKey.Derive(change, false).Derive(offset + i, false).PubKey;
 				var bytes = pubKey.WitHash.ScriptPubKey.ToCompressedBytes();
 				scripts[i] = bytes;
 			}
 			return scripts;
 		}
 
-		private IEnumerable<byte> DerivateScript(uint index)
+		private IEnumerable<byte> DerivateScript(bool isInternal, int index)
 		{
-			return _extPubKey.Derive(index).PubKey.WitHash.ScriptPubKey.ToCompressedBytes();
+			var change = isInternal ? 1 : 0;
+			return _extPubKey.Derive(change, false).Derive(index, false).PubKey.WitHash.ScriptPubKey.ToCompressedBytes();
 		}
 	}
 }

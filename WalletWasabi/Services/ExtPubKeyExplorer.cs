@@ -10,56 +10,70 @@ namespace WalletWasabi.Services
 {
 	public class ExtPubKeyExplorer
 	{
-		public ExtPubKey ExtPubKey { get; set; }
-
-		public FilterModel[] Filters { get; }
-		public IEnumerator<byte[]> Generator { get; set; }
-
 		/// <summary>
-		/// WARNING: ONLY CHECKS CONFIRMED AND BECH32 KEYPATHS
+		/// WARNING: ONLY CHECKS CONFIRMED KEYPATHS
 		/// </summary>
-		public ExtPubKeyExplorer(ExtPubKey extPubKey, IEnumerable<FilterModel> filters)
+		public static IEnumerable<BitcoinWitPubKeyAddress> GetUnusedBech32Keys(int count, bool isInternal, BitcoinExtPubKey bitcoinExtPubKey, IEnumerable<FilterModel> filters)
 		{
-			ExtPubKey = extPubKey;
+			var change = isInternal ? 1 : 0;
+			var filterArray = filters.ToArray();
 
-			Generator = DerivateNext().GetEnumerator();
-			Filters = filters.Where(x => x.Filter != null).ToArray();
-			if (Filters.Length == 0)
-				throw new ArgumentException(nameof(filters), "There is no filter to match.");
-		}
-
-		public IEnumerable<byte[]> UnusedKeys()
-		{
+			var startingKey = 0; // Where to start getting keys one by one.
+			int i = 0;
 			while (true)
 			{
-				Generator.MoveNext();
-				var cur = Generator.Current;
-				if (!Match(cur))
-					yield return cur;
+				if (Match(bitcoinExtPubKey, change, i, filterArray, out _))
+				{
+					startingKey = i + 1;
+					if (i == 0)
+					{
+						i = 1;
+					}
+					else
+					{
+						i *= 2;
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			i = startingKey;
+			int returnedNum = 0;
+			while (true)
+			{
+				if (!Match(bitcoinExtPubKey, change, i, filterArray, out PubKey pubKey))
+				{
+					yield return pubKey.GetSegwitAddress(bitcoinExtPubKey.Network);
+					returnedNum++;
+					if (returnedNum >= count)
+					{
+						yield break;
+					}
+				}
+
+				i++;
 			}
 		}
 
-		private bool Match(byte[] script)
+		public static bool Match(BitcoinExtPubKey bitcoinExtPubKey, int change, int i, FilterModel[] filterArray, out PubKey pubKey)
 		{
-			var used = false;
-			foreach (var filterModel in Filters)
+			KeyPath path = new KeyPath($"{change}/{i}");
+			pubKey = bitcoinExtPubKey.ExtPubKey.Derive(path).PubKey;
+			byte[] bytes = pubKey.WitHash.ScriptPubKey.ToCompressedBytes();
+
+			foreach (var filterModel in filterArray)
 			{
-				used = filterModel.Filter.Match(script, filterModel.FilterKey);
-				if (used)
+				bool? matchFoundNow = filterModel.Filter?.Match(bytes, filterModel.FilterKey);
+				if (matchFoundNow is true)
+				{
 					return true;
+				}
 			}
-			return false;
-		}
 
-		private IEnumerable<byte[]> DerivateNext()
-		{
-			var i = 0u;
-			while (true)
-			{
-				var pubKey = ExtPubKey.Derive(i++).PubKey;
-				var bytes = pubKey.WitHash.ScriptPubKey.ToCompressedBytes();
-				yield return bytes;
-			}
+			return false;
 		}
 	}
 }
