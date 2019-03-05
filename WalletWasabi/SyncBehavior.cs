@@ -11,8 +11,8 @@ namespace WalletWasabi
 	public class SyncBehavior : NodeBehavior
 	{
 		private uint256 _latestKnownHash = null;
-		private HashSet<uint256> _blockInventory = new HashSet<uint256>();
 		private bool _isSynchronized = false;
+		private HashSet<uint256> _blockInventory = new HashSet<uint256>();
 		public EventHandler<EventArgs> Synchronized;
 
 		public void UpdateKnowTip(uint256 blockHash)

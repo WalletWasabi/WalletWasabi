@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -23,37 +24,42 @@ namespace WalletWasabi
 
 		public EventHandler<EventArgs> FullySynchronized;
 
+		public bool IsFullySynchronized { get; private set; }
+
 		public LocalNodeWrapper(Node node)
 		{
 			_node = node;
-			SyncWatcher.Synchronized += (s, e)=>
-				CheckFullySynchronization();
+			SyncWatcher.Synchronized += async (s, e)=>
+				await CheckFullSynchronizationAsync();
 		}
 
 		public void Watch(WasabiSynchronizer synchronizer)
 		{
 			_synchronizer = synchronizer;
-			_synchronizer.ResponseArrived += (s, args) => {
+			_synchronizer.ResponseArrived += async (s, args) => {
 				if( args.FiltersResponseState == FiltersResponseState.NoNewFilter )
 				{
-					CheckFullySynchronization();
+					await CheckFullSynchronizationAsync();
 				}
 				SyncWatcher.UpdateKnowTip(_synchronizer.BestKnownFilter.BlockHash);
 			};
 		}
 
-		private void CheckFullySynchronization()
+		private async Task CheckFullSynchronizationAsync()
 		{
 			try
 			{
-				var BlockHashes = new[] { _synchronizer.BestKnownFilter.BlockHash };
-				var blocks = _node.GetBlocks(BlockHashes);
-				if(blocks != null && blocks.Any(x=>x.GetHash() == BlockHashes[0]))
-				{
-					var syncEvent = FullySynchronized;
-					if(syncEvent != null)
-						syncEvent(this, EventArgs.Empty);
-				}
+				await Task.Run(()=>{
+					var BlockHashes = new[] { _synchronizer.BestKnownFilter.BlockHash };
+					var blocks = _node.GetBlocks(BlockHashes);
+					if(blocks != null && blocks.Any(x=>x.GetHash() == BlockHashes[0]))
+					{
+						IsFullySynchronized = true;
+						var syncEvent = FullySynchronized;
+						if(syncEvent != null)
+							syncEvent(this, EventArgs.Empty);
+					}
+				});
 			}
 			catch(Exception)
 			{
@@ -69,7 +75,7 @@ namespace WalletWasabi
 			var localhost = new NetworkAddress(endpoint);
 			var nodeConnectionParameters = connectionParameters.Clone();
 			nodeConnectionParameters.ConnectCancellation = handshakeTimeout.Token;
-			nodeConnectionParameters.IsRelay = false;
+			nodeConnectionParameters.IsRelay = true;
 			
 			try
 			{

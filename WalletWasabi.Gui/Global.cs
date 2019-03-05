@@ -67,6 +67,7 @@ namespace WalletWasabi.Gui
 		public static AddressManager AddressManager { get; private set; }
 		public static MemPoolService MemPoolService { get; private set; }
 		public static NodesGroup Nodes { get; private set; }
+		public static LocalNodeWrapper LocalNode { get; private set; }
 		public static WasabiSynchronizer Synchronizer { get; private set; }
 		public static CcjClient ChaumianClient { get; private set; }
 		public static WalletService WalletService { get; private set; }
@@ -186,7 +187,7 @@ namespace WalletWasabi.Gui
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
 
 			var localIpEndPoint = Config.ServiceConfiguration.BitcoinCoreEndPoint;
-			var localNode = LocalNodeWrapper.Connect(localIpEndPoint, Network, connectionParameters);
+			LocalNode = LocalNodeWrapper.Connect(localIpEndPoint, Network, connectionParameters);
 			var needsToDiscoverPeers = true;
 			try
 			{
@@ -252,20 +253,25 @@ namespace WalletWasabi.Gui
 			}
 
 			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
-			if(localNode != null)
+			if(LocalNode != null)
 			{
-				localNode.Watch(Synchronizer);
-				localNode.FullySynchronized += (s, e)=>
+				LocalNode.Watch(Synchronizer);
+				Nodes.ConnectedNodes.Add(LocalNode.Internal);
+				LocalNode.FullySynchronized += (s, e)=>
 				{
-					foreach(var node in Nodes.ConnectedNodes)
+					// if we already process the wallet file
+					if(WalletService != null && CancelWalletServiceInitialization==null)
 					{
-						if(node != localNode.Internal)
+						foreach(var node in Nodes.ConnectedNodes)
 						{
-							node.Disconnect();
+							if(node != LocalNode.Internal)
+							{
+								node.DisconnectAsync();
+							}
 						}
+						Nodes.MaximumNodeConnection = 1;
 					}
 				};
-				Nodes.ConnectedNodes.Add(localNode.Internal);
 			}
 
 			Nodes.Connect();
@@ -306,6 +312,17 @@ namespace WalletWasabi.Gui
 				await WalletService.InitializeAsync(CancelWalletServiceInitialization.Token);
 				Logger.LogInfo("WalletService started.");
 			}
+			if(LocalNode !=null && LocalNode.IsFullySynchronized)
+			{
+				foreach(var node in Nodes.ConnectedNodes)
+				{
+					if(node != LocalNode.Internal)
+					{
+						node.DisconnectAsync();
+					}
+				}
+			}
+
 			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
 			WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
 		}
