@@ -41,6 +41,9 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "RegTestBackendUriV3")]
 		public string RegTestBackendUriV3 { get; private set; }
 
+		[JsonProperty(PropertyName = "UseTor")]
+		public bool? UseTor { get; internal set; }
+
 		[JsonProperty(PropertyName = "TorHost")]
 		public string TorHost { get; internal set; }
 
@@ -247,6 +250,7 @@ namespace WalletWasabi.Gui
 			string mainNetFallbackBackendUri,
 			string testNetFallbackBackendUri,
 			string regTestBackendUriV3,
+			bool? useTor,
 			string torHost,
 			int? torSocks5Port,
 			string mainNetBitcoinCoreHost,
@@ -269,6 +273,7 @@ namespace WalletWasabi.Gui
 			TestNetBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBackendUriV3), testNetBackendUriV3);
 			RegTestBackendUriV3 = Guard.NotNullOrEmptyOrWhitespace(nameof(regTestBackendUriV3), regTestBackendUriV3);
 
+			UseTor = Guard.NotNull(nameof(useTor), useTor);
 			TorHost = Guard.NotNullOrEmptyOrWhitespace(nameof(torHost), torHost);
 			TorSocks5Port = Guard.NotNull(nameof(torSocks5Port), torSocks5Port);
 
@@ -311,6 +316,7 @@ namespace WalletWasabi.Gui
 			TestNetFallbackBackendUri = "https://wasabiwallet.co/";
 			RegTestBackendUriV3 = "http://localhost:37127/";
 
+			UseTor = true;
 			TorHost = IPAddress.Loopback.ToString();
 			TorSocks5Port = 9050;
 
@@ -356,6 +362,7 @@ namespace WalletWasabi.Gui
 			TestNetFallbackBackendUri = config.TestNetFallbackBackendUri ?? TestNetFallbackBackendUri;
 			RegTestBackendUriV3 = config.RegTestBackendUriV3 ?? RegTestBackendUriV3;
 
+			UseTor = config.UseTor ?? UseTor;
 			TorHost = config.TorHost ?? TorHost;
 			TorSocks5Port = config.TorSocks5Port ?? TorSocks5Port;
 
@@ -412,6 +419,11 @@ namespace WalletWasabi.Gui
 				return true;
 			}
 			if (!RegTestBackendUriV3.Equals(config.RegTestBackendUriV3, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+
+			if (UseTor != config.UseTor)
 			{
 				return true;
 			}

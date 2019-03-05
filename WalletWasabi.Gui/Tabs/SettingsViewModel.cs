@@ -19,6 +19,8 @@ namespace WalletWasabi.Gui.Tabs
 		private string _torPort;
 		private bool _autocopy;
 		private string _autocopyText;
+		private bool _useTor;
+		private string _useTorText;
 
 		private bool _isModified;
 
@@ -27,7 +29,7 @@ namespace WalletWasabi.Gui.Tabs
 			var config = new Config(Global.Config.FilePath);
 			Autocopy = (bool)Global.UiConfig.Autocopy;
 
-			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort).Subscribe(x => Save());
+			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort, x => x.UseTor).Subscribe(x => Save());
 
 			this.WhenAnyValue(x => x.Autocopy).Subscribe(x =>
 			{
@@ -40,6 +42,11 @@ namespace WalletWasabi.Gui.Tabs
 				});
 			});
 
+			this.WhenAnyValue(x => x.UseTor).Subscribe(x =>
+			{
+				UseTorText = x ? "On" : "Off";
+			});
+
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				await config.LoadFileAsync();
@@ -47,6 +54,7 @@ namespace WalletWasabi.Gui.Tabs
 				Network = config.Network.ToString();
 				TorHost = config.TorHost;
 				TorPort = config.TorSocks5Port.ToString();
+				UseTor = config.UseTor.Value;
 
 				IsModified = await Global.Config.CheckFileChangeAsync();
 			});
@@ -104,6 +112,18 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _autocopyText, value);
 		}
 
+		public bool UseTor
+		{
+			get => _useTor;
+			set => this.RaiseAndSetIfChanged(ref _useTor, value);
+		}
+
+		public string UseTorText
+		{
+			get => _useTorText;
+			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
+		}
+
 		private void Save()
 		{
 			var isValid = string.IsNullOrEmpty(ValidateTorHost()) &&
@@ -120,12 +140,14 @@ namespace WalletWasabi.Gui.Tabs
 				var network = NBitcoin.Network.GetNetwork(Network);
 				var torHost = TorHost;
 				var torSocks5Port = int.TryParse(TorPort, out var port) ? (int?)port : null;
+				var useTor = UseTor;
 
-				if (config.Network != network || config.TorHost != torHost || config.TorSocks5Port != torSocks5Port)
+				if (config.Network != network || config.TorHost != torHost || config.TorSocks5Port != torSocks5Port || config.UseTor != useTor)
 				{
 					config.Network = network;
 					config.TorHost = torHost;
 					config.TorSocks5Port = torSocks5Port;
+					config.UseTor = useTor;
 
 					await config.ToFileAsync();
 

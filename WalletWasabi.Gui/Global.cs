@@ -169,7 +169,14 @@ namespace WalletWasabi.Gui
 			AddressManager = null;
 			TorManager = null;
 
-			TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
+			if (Config.UseTor.Value)
+			{
+				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
+			}
+			else
+			{
+				TorManager = TorProcessManager.Mock();
+			}
 			TorManager.Start(false, DataDir);
 			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
@@ -263,7 +270,14 @@ namespace WalletWasabi.Gui
 				RegTestMemPoolServingNode = null;
 			}
 
-			Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			if (Config.UseTor.Value)
+			{
+				Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			}
+			else
+			{
+				Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, Config.GetFallbackBackendUri(), null);
+			}
 
 			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
 
@@ -292,7 +306,14 @@ namespace WalletWasabi.Gui
 
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
-			ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			if (Config.UseTor.Value)
+			{
+				ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			}
+			else
+			{
+				ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
+			}
 			WalletService = new WalletService(keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
 
 			ChaumianClient.Start();

@@ -68,7 +68,7 @@ namespace WalletWasabi.Services
 			Network network,
 			KeyManager keyManager,
 			Func<Uri> ccjHostUriAction,
-			IPEndPoint torSocks5EndPoint = null)
+			IPEndPoint torSocks5EndPoint)
 		{
 			Create(synchronizer, network, keyManager, ccjHostUriAction, torSocks5EndPoint);
 		}
@@ -78,7 +78,7 @@ namespace WalletWasabi.Services
 			Network network,
 			KeyManager keyManager,
 			Uri ccjHostUri,
-			IPEndPoint torSocks5EndPoint = null)
+			IPEndPoint torSocks5EndPoint)
 		{
 			Create(synchronizer, network, keyManager, () => ccjHostUri, torSocks5EndPoint);
 		}
