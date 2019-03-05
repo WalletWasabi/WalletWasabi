@@ -10,28 +10,31 @@ namespace WalletWasabi.Services
 {
 	public class ExtPubKeyExplorer
 	{
-		private readonly FilterModel[] _filters;
-		
-		private ExtPubKey _extPubKey;
-		private IEnumerator<byte[]> _generator;
+		public ExtPubKey ExtPubKey { get; set; }
 
+		public FilterModel[] Filters { get; }
+		public IEnumerator<byte[]> Generator { get; set; }
+
+		/// <summary>
+		/// WARNING: ONLY CHECKS CONFIRMED AND BECH32 KEYPATHS
+		/// </summary>
 		public ExtPubKeyExplorer(ExtPubKey extPubKey, IEnumerable<FilterModel> filters)
 		{
-			_extPubKey = extPubKey;
+			ExtPubKey = extPubKey;
 
-			_generator = DerivateNext().GetEnumerator();
-			_filters = filters.Where(x=>x.Filter != null).ToArray();
-			if(_filters.Length == 0)
+			Generator = DerivateNext().GetEnumerator();
+			Filters = filters.Where(x => x.Filter != null).ToArray();
+			if (Filters.Length == 0)
 				throw new ArgumentException(nameof(filters), "There is no filter to match.");
 		}
 
 		public IEnumerable<byte[]> UnusedKeys()
 		{
-			while(true)
+			while (true)
 			{
-				_generator.MoveNext();
-				var cur = _generator.Current;
-				if(!Match(cur)) 
+				Generator.MoveNext();
+				var cur = Generator.Current;
+				if (!Match(cur))
 					yield return cur;
 			}
 		}
@@ -39,10 +42,10 @@ namespace WalletWasabi.Services
 		private bool Match(byte[] script)
 		{
 			var used = false;
-			foreach (var filterModel in _filters)
+			foreach (var filterModel in Filters)
 			{
 				used = filterModel.Filter.Match(script, filterModel.FilterKey);
-				if (used) 
+				if (used)
 					return true;
 			}
 			return false;
@@ -51,9 +54,9 @@ namespace WalletWasabi.Services
 		private IEnumerable<byte[]> DerivateNext()
 		{
 			var i = 0u;
-			while(true)
+			while (true)
 			{
-				var pubKey = _extPubKey.Derive(i++).PubKey;
+				var pubKey = ExtPubKey.Derive(i++).PubKey;
 				var bytes = pubKey.WitHash.ScriptPubKey.ToCompressedBytes();
 				yield return bytes;
 			}
