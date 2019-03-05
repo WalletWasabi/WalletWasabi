@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
 using Mono.Options;
@@ -48,6 +49,11 @@ namespace WalletWasabi.Gui
 						{
 							MainWindowViewModel.Instance.Title += $" - {Global.Synchronizer.Network}";
 						}
+
+						Dispatcher.UIThread.Post(() =>
+						{
+							GC.Collect();
+						});
 					}).StartShellApp<AppBuilder, MainWindow>("Wasabi Wallet", null, () => MainWindowViewModel.Instance);
 			}
 			catch (Exception ex)
