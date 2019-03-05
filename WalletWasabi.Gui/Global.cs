@@ -145,8 +145,11 @@ namespace WalletWasabi.Gui
 			InitializeNoWallet();
 		}
 
+		public static bool TriedInitializeNoWallet = false;
+
 		public static void InitializeNoWallet()
 		{
+			TriedInitializeNoWallet = true;
 			WalletService = null;
 			ChaumianClient = null;
 
@@ -456,6 +459,7 @@ namespace WalletWasabi.Gui
 
 		public static async Task DisposeAsync()
 		{
+			if (!TriedInitializeNoWallet) return;
 			try
 			{
 				await DisposeInWalletDependentServicesAsync();
@@ -466,7 +470,10 @@ namespace WalletWasabi.Gui
 				Synchronizer?.Dispose();
 				Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
 
-				IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
+				if (AddressManagerFilePath != null)
+				{
+					IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
+				}
 				AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
 				Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
 
