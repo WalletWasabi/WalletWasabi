@@ -17,13 +17,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinViewModel : ViewModelBase, IDisposable
 	{
+		private CompositeDisposable Disposables { get; }
+
 		private bool _isSelected;
 		private SmartCoinStatus _smartCoinStatus;
-		private CompositeDisposable Disposables { get; }
 
 		public CoinViewModel(SmartCoin model)
 		{
 			Disposables = new CompositeDisposable();
+
 			Model = model;
 
 			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
@@ -61,7 +63,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			model.WhenAnyValue(x => x.History).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(History));
-			});
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Status).Subscribe(_ =>
 			{
@@ -236,11 +238,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (disposing)
 				{
-					Disposables?.Dispose();
 					if (Global.ChaumianClient != null)
 					{
 						Global.ChaumianClient.StateUpdated -= ChaumianClient_StateUpdated;
 					}
+
+					Disposables?.Dispose();
 				}
 
 				_disposedValue = true;
