@@ -430,10 +430,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							if (cvm != null)
 							{
 								cvm.PropertyChanged -= Coin_PropertyChanged;
-								cvm?.Dispose();
 							}
 						}
-						RootList?.Dispose();
 					}
 
 					if (RemovedCoinViewModels != null)
@@ -443,7 +441,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							if (cvm != null)
 							{
 								cvm.PropertyChanged -= Coin_PropertyChanged;
-								cvm?.Dispose();
 							}
 						}
 					}

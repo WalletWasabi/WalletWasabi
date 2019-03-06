@@ -13,14 +13,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewModel : ViewModelBase, IDisposable
 	{
-		private TransactionInfo _model;
 		private CompositeDisposable Disposables { get; }
+
+		private TransactionInfo _model;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
 		public TransactionViewModel(TransactionInfo model)
 		{
 			Disposables = new CompositeDisposable();
+
 			_model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
@@ -99,7 +101,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Disposables?.Dispose();
 				}
 
-				_model = null;
 				_disposedValue = true;
 			}
 		}

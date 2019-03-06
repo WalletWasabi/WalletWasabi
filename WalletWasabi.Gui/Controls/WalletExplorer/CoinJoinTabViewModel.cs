@@ -23,10 +23,8 @@ using static WalletWasabi.Models.ServiceConfiguration;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinJoinTabViewModel : WalletActionViewModel, IDisposable
+	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
-		private CompositeDisposable Disposables { get; }
-
 		private CoinListViewModel _coinsList;
 		private long _roundId;
 		private int _successfulRoundCount;
@@ -50,8 +48,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
-			Disposables = new CompositeDisposable();
-
 			Password = "";
 			TargetPrivacy = GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
 
@@ -516,9 +512,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		#region IDisposable Support
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
+		protected override void Dispose(bool disposing)
 		{
 			if (!_disposedValue)
 			{
@@ -535,21 +529,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
 					}
-
-					Disposables?.Dispose();
-					CoinsList?.Dispose();
 				}
 
-				CoinsList = null;
+				base.Dispose(disposing);
+
 				_disposedValue = true;
 			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
 		}
 
 		#endregion IDisposable Support
