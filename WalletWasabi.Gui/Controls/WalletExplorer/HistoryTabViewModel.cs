@@ -22,12 +22,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class HistoryTabViewModel : WalletActionViewModel, IDisposable
 	{
+		private CompositeDisposable Disposables { get; }
+
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
-		private CompositeDisposable Disposables { get; }
 
 		public ReactiveCommand SortCommand { get; }
 
@@ -35,6 +36,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base("History", walletViewModel)
 		{
 			Disposables = new CompositeDisposable();
+
 			Transactions = new ObservableCollection<TransactionViewModel>();
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			RewriteTableAsync();
@@ -86,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
 				Label = txr.label,
 				TransactionId = txr.transactionId.ToString()
-			}).Select(ti => new TransactionViewModel(ti));
+			}).Select(ti => new TransactionViewModel(ti).DisposeWith(Disposables));
 
 			Transactions = new ObservableCollection<TransactionViewModel>(trs);
 
@@ -300,13 +302,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (disposing)
 				{
-					if (Transactions != null)
-					{
-						foreach (var tr in Transactions)
-						{
-							tr?.Dispose();
-						}
-					}
 					Disposables?.Dispose();
 				}
 
