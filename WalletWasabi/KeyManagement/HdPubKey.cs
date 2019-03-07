@@ -45,6 +45,7 @@ namespace WalletWasabi.KeyManagement
 		{
 			if (KeyState == state) return;
 			KeyState = state;
+
 			kmToFile?.ToFile();
 		}
 
