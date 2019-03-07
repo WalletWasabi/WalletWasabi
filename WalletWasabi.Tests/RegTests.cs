@@ -92,7 +92,7 @@ namespace WalletWasabi.Tests
 		public async Task GetExchangeRatesAsync()
 		{
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), null))
-			using (var response = await client.SendAsync(HttpMethod.Get, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/offchain/exchange-rates"))
+			using (var response = await client.SendAsync(HttpMethod.Get, $"/api/v{Constants.BackendMajorVersion}/btc/offchain/exchange-rates"))
 			{
 				Assert.True(response.StatusCode == HttpStatusCode.OK);
 
@@ -128,7 +128,7 @@ namespace WalletWasabi.Tests
 
 			Logger.TurnOff();
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), null))
-			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
+			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
 			{
 				Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal("Transaction is already in the blockchain.", await response.Content.ReadAsJsonAsync<string>());
@@ -145,7 +145,7 @@ namespace WalletWasabi.Tests
 
 			Logger.TurnOff();
 			using (var client = new TorHttpClient(new Uri(RegTestFixture.BackendEndPoint), null))
-			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
+			using (var response = await client.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content))
 			{
 				Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 				Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -493,7 +493,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
@@ -723,7 +723,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
@@ -1060,7 +1060,7 @@ namespace WalletWasabi.Tests
 					allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
-				Assert.Equal($"{Helpers.Constants.ChangeOfSpecialLabelStart}my label{Helpers.Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
+				Assert.Equal($"{Constants.ChangeOfSpecialLabelStart}my label{Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
 
 				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 3;
 				res = wallet.BuildTransaction(password, new[] {
@@ -1071,20 +1071,20 @@ namespace WalletWasabi.Tests
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal(2, res.OuterWalletOutputs.Count());
-				Assert.Equal($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
+				Assert.Equal($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
-				Assert.Contains($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == Height.MemPool).Select(x => x.Label));
-				Assert.Contains($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
+				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == Height.MemPool).Select(x => x.Label));
+				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
 				var bestHeight = wallet.Synchronizer.BestKnownFilter.BlockHeight;
-				Assert.Contains($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
-				Assert.Contains($"{Helpers.Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Helpers.Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
+				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", wallet.Coins.Where(x => x.Height == bestHeight).Select(x => x.Label));
+				Assert.Contains($"{Constants.ChangeOfSpecialLabelStart}outgoing, outgoing2{Constants.ChangeOfSpecialLabelEnd}", keyManager.GetKeys().Select(x => x.Label));
 
 				#endregion Labeling
 
@@ -1167,7 +1167,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
@@ -1331,7 +1331,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
@@ -1496,7 +1496,7 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
@@ -2020,25 +2020,25 @@ namespace WalletWasabi.Tests
 					Assert.True(aliceClient.RoundId > 0);
 					// Double the request.
 					// badrequests
-					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation"))
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation"))
 					{
 						Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 					}
-					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}"))
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}"))
 					{
 						Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 					}
-					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?roundId={aliceClient.RoundId}"))
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?roundId={aliceClient.RoundId}"))
 					{
 						Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 						Assert.Equal("Invalid uniqueId provided.", await response.Content.ReadAsJsonAsync<string>());
 					}
-					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId=foo&roundId={aliceClient.RoundId}"))
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId=foo&roundId={aliceClient.RoundId}"))
 					{
 						Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 						Assert.Equal("Invalid uniqueId provided.", await response.Content.ReadAsJsonAsync<string>());
 					}
-					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}&roundId=bar"))
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/confirmation?uniqueId={aliceClient.UniqueId}&roundId=bar"))
 					{
 						Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 						Assert.Null(await response.Content.ReadAsJsonAsync<string>());
@@ -2060,7 +2060,7 @@ namespace WalletWasabi.Tests
 					Assert.NotEqual(Guid.Empty, aliceClient.UniqueId);
 					Assert.True(aliceClient.RoundId > 0);
 					await aliceClient.PostUnConfirmationAsync();
-					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Helpers.Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={aliceClient.UniqueId}&roundId={aliceClient.RoundId}"))
+					using (var response = await torClient.SendAsync(HttpMethod.Post, $"/api/v{Constants.BackendMajorVersion}/btc/chaumiancoinjoin/unconfirmation?uniqueId={aliceClient.UniqueId}&roundId={aliceClient.RoundId}"))
 					{
 						Assert.True(response.IsSuccessStatusCode);
 						Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -3169,10 +3169,10 @@ namespace WalletWasabi.Tests
 
 			// Create the services.
 			// 1. Create connection service.
-			var nodes = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
-			var nodes2 = new NodesGroup(Global.Config.Network, requirements: Helpers.Constants.NodeRequirements);
+			var nodes2 = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
 			nodes2.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
 
 			// 2. Create mempool service.
