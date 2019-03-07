@@ -30,6 +30,11 @@ namespace WalletWasabi.KeyManagement
 			FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
 			Label = Guard.Correct(label);
 			KeyState = keyState;
+
+			P2pkScript = PubKey.ScriptPubKey;
+			P2pkhScript = PubKey.Hash.ScriptPubKey;
+			P2wpkhScript = PubKey.WitHash.ScriptPubKey;
+			P2shOverP2wpkhScript = P2wpkhScript.Hash.ScriptPubKey;
 		}
 
 		public void SetLabel(string label, KeyManager kmToFile = null)
@@ -49,39 +54,19 @@ namespace WalletWasabi.KeyManagement
 			kmToFile?.ToFile();
 		}
 
-		private Script _p2pkScript = null;
+		public Script P2pkScript { get; }
 
-		public Script GetP2pkScript()
-		{
-			return _p2pkScript ?? (_p2pkScript = PubKey.ScriptPubKey);
-		}
+		public Script P2pkhScript { get; }
 
-		private Script _p2pkhScript = null;
+		public Script P2wpkhScript { get; }
 
-		public Script GetP2pkhScript()
-		{
-			return _p2pkhScript ?? (_p2pkhScript = PubKey.Hash.ScriptPubKey);
-		}
-
-		private Script _p2wpkhScript = null;
-
-		public Script GetP2wpkhScript()
-		{
-			return _p2wpkhScript ?? (_p2wpkhScript = PubKey.WitHash.ScriptPubKey);
-		}
-
-		private Script _p2shOverP2wpkhScript = null;
-
-		public Script GetP2shOverP2wpkhScript()
-		{
-			return _p2shOverP2wpkhScript ?? (_p2shOverP2wpkhScript = GetP2wpkhScript().Hash.ScriptPubKey);
-		}
+		public Script P2shOverP2wpkhScript { get; }
 
 		public BitcoinPubKeyAddress GetP2pkhAddress(Network network) => PubKey.GetAddress(network);
 
 		public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network) => PubKey.GetSegwitAddress(network);
 
-		public BitcoinScriptAddress GetP2shOverP2wpkhAddress(Network network) => GetP2wpkhScript().GetScriptAddress(network);
+		public BitcoinScriptAddress GetP2shOverP2wpkhAddress(Network network) => P2wpkhScript.GetScriptAddress(network);
 
 		private int? _index = null;
 
@@ -92,7 +77,7 @@ namespace WalletWasabi.KeyManagement
 
 		private KeyPath _nonHardenedKeyPath = null;
 
-		public KeyPath GetNonHardenedKeyPath()
+		public KeyPath NonHardenedKeyPath()
 		{
 			return _nonHardenedKeyPath ?? (_nonHardenedKeyPath = new KeyPath(FullKeyPath[3], FullKeyPath[4]));
 		}

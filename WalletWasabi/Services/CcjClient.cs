@@ -794,7 +794,7 @@ namespace WalletWasabi.Services
 
 				foreach (SmartCoin coin in coinsExcept)
 				{
-					coin.Secret = secPubs.Single(x => x.pubKey.GetP2wpkhScript() == coin.ScriptPubKey).secret;
+					coin.Secret = secPubs.Single(x => x.pubKey.P2wpkhScript == coin.ScriptPubKey).secret;
 
 					coin.CoinJoinInProgress = true;
 
@@ -1009,7 +1009,7 @@ namespace WalletWasabi.Services
 			if (coinWaitingForMix.Label == "ZeroLink Change" && coinWaitingForMix.Unspent)
 			{
 				coinWaitingForMix.Label = "ZeroLink Dequeued Change";
-				var key = KeyManager.GetKeys(x => x.GetP2wpkhScript() == coinWaitingForMix.ScriptPubKey).SingleOrDefault();
+				var key = KeyManager.GetKeys(x => x.P2wpkhScript == coinWaitingForMix.ScriptPubKey).SingleOrDefault();
 				if (key != null)
 				{
 					key.SetLabel(coinWaitingForMix.Label, KeyManager);

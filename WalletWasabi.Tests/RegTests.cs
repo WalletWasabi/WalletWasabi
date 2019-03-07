@@ -547,7 +547,7 @@ namespace WalletWasabi.Tests
 				Assert.InRange(firstCoin.Index, 0U, 1U);
 				Assert.False(firstCoin.SpentOrCoinJoinInProgress);
 				Assert.Equal("foo label", firstCoin.Label);
-				Assert.Equal(key.GetP2wpkhScript(), firstCoin.ScriptPubKey);
+				Assert.Equal(key.P2wpkhScript, firstCoin.ScriptPubKey);
 				Assert.Null(firstCoin.SpenderTransactionId);
 				Assert.NotNull(firstCoin.SpentOutputs);
 				Assert.NotEmpty(firstCoin.SpentOutputs);
@@ -579,9 +579,9 @@ namespace WalletWasabi.Tests
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal("bar label", secondCoin.Label);
 				Assert.Equal("bar label", thirdCoin.Label);
-				Assert.Equal(key.GetP2wpkhScript(), firstCoin.ScriptPubKey);
-				Assert.Equal(key2.GetP2wpkhScript(), secondCoin.ScriptPubKey);
-				Assert.Equal(key2.GetP2wpkhScript(), thirdCoin.ScriptPubKey);
+				Assert.Equal(key.P2wpkhScript, firstCoin.ScriptPubKey);
+				Assert.Equal(key2.P2wpkhScript, secondCoin.ScriptPubKey);
+				Assert.Equal(key2.P2wpkhScript, thirdCoin.ScriptPubKey);
 				Assert.Null(thirdCoin.SpenderTransactionId);
 				Assert.NotNull(firstCoin.SpentOutputs);
 				Assert.NotNull(secondCoin.SpentOutputs);
@@ -634,7 +634,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight.Value - 2, rbfCoin.Height.Value);
 				Assert.False(rbfCoin.SpentOrCoinJoinInProgress);
 				Assert.Equal("bar label", rbfCoin.Label);
-				Assert.Equal(key2.GetP2wpkhScript(), rbfCoin.ScriptPubKey);
+				Assert.Equal(key2.P2wpkhScript, rbfCoin.ScriptPubKey);
 				Assert.Null(rbfCoin.SpenderTransactionId);
 				Assert.NotNull(rbfCoin.SpentOutputs);
 				Assert.NotEmpty(rbfCoin.SpentOutputs);
@@ -794,7 +794,7 @@ namespace WalletWasabi.Tests
 				Assert.True(res2.Fee > Money.Satoshis(2 * 100)); // since there is a sanity check of 2sat/vb in the server
 				Assert.InRange(res2.FeePercentOfSent, 0, 1);
 				Assert.Single(res2.SpentCoins);
-				Assert.Equal(key.GetP2wpkhScript(), res2.SpentCoins.Single().ScriptPubKey);
+				Assert.Equal(key.P2wpkhScript, res2.SpentCoins.Single().ScriptPubKey);
 				Assert.Equal(Money.Coins(1m), res2.SpentCoins.Single().Amount);
 				Assert.False(res2.SpendsUnconfirmed);
 
@@ -804,7 +804,7 @@ namespace WalletWasabi.Tests
 
 				#region Basic
 
-				Script receive = wallet.GetReceiveKey("Basic").GetP2wpkhScript();
+				Script receive = wallet.GetReceiveKey("Basic").P2wpkhScript;
 				Money amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 2;
 				var res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
 
@@ -852,7 +852,7 @@ namespace WalletWasabi.Tests
 
 				#region SubtractFeeFromAmount
 
-				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").GetP2wpkhScript();
+				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").P2wpkhScript;
 				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 3;
 				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
@@ -991,7 +991,7 @@ namespace WalletWasabi.Tests
 
 				#region MaxAmount
 
-				receive = wallet.GetReceiveKey("MaxAmount").GetP2wpkhScript();
+				receive = wallet.GetReceiveKey("MaxAmount").P2wpkhScript;
 				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008, allowUnconfirmed: true);
 
 				Assert.Single(res.InnerWalletOutputs);
@@ -1017,7 +1017,7 @@ namespace WalletWasabi.Tests
 
 				#region InputSelection
 
-				receive = wallet.GetReceiveKey("InputSelection").GetP2wpkhScript();
+				receive = wallet.GetReceiveKey("InputSelection").P2wpkhScript;
 
 				var inputCountBefore = res.SpentCoins.Count();
 				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
@@ -1092,7 +1092,7 @@ namespace WalletWasabi.Tests
 
 				inputCountBefore = res.SpentCoins.Count();
 
-				receive = wallet.GetReceiveKey("AllowedInputsDisallowUnconfirmed").GetP2wpkhScript();
+				receive = wallet.GetReceiveKey("AllowedInputsDisallowUnconfirmed").P2wpkhScript;
 
 				var allowedInputs = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1);
 				var toSend = new[] { new WalletService.Operation(receive, Money.Zero, "fizz") };
@@ -1554,12 +1554,12 @@ namespace WalletWasabi.Tests
 
 				// Test mixin
 				var operations = new[] {
-					new WalletService.Operation(key.GetP2wpkhScript(), Money.Coins(0.01m), ""),
+					new WalletService.Operation(key.P2wpkhScript, Money.Coins(0.01m), ""),
 					new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.01m), ""),
 					new WalletService.Operation(new Key().ScriptPubKey, Money.Coins(0.01m), "")
 				};
 				var tx1Res = wallet.BuildTransaction(password, operations, 2, allowUnconfirmed: true);
-				Assert.Equal(2, tx1Res.OuterWalletOutputs.Single(x => x.ScriptPubKey == key.GetP2wpkhScript()).Mixin);
+				Assert.Equal(2, tx1Res.OuterWalletOutputs.Single(x => x.ScriptPubKey == key.P2wpkhScript).Mixin);
 
 				// Spend the unconfirmed coin (send it to ourself)
 				operations = new[] { new WalletService.Operation(key.PubKey.WitHash.ScriptPubKey, Money.Coins(0.5m), "") };
@@ -1624,7 +1624,7 @@ namespace WalletWasabi.Tests
 				// Test coin basic count.
 				var coinCount = wallet.Coins.Count;
 				var to = wallet.GetReceiveKey("foo");
-				var res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(to.GetP2wpkhScript(), Money.Coins(0.2345m), "bar") }, 2, allowUnconfirmed: true);
+				var res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(to.P2wpkhScript, Money.Coins(0.2345m), "bar") }, 2, allowUnconfirmed: true);
 				await wallet.SendTransactionAsync(res.Transaction);
 				Assert.Equal(coinCount + 2, wallet.Coins.Count);
 				Assert.Equal(2, wallet.Coins.Count(x => !x.Confirmed));

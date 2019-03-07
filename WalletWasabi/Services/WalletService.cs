@@ -1080,7 +1080,7 @@ namespace WalletWasabi.Services
 				var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
 
 				changeHdPubKey.SetLabel(changeLabel, KeyManager);
-				changeScriptPubKey = changeHdPubKey.GetP2wpkhScript();
+				changeScriptPubKey = changeHdPubKey.P2wpkhScript;
 			}
 			else
 			{
@@ -1151,7 +1151,7 @@ namespace WalletWasabi.Services
 			{
 				TxOut output = tx.Outputs[i];
 				var mixin = tx.GetMixin(i) + spentCoins.Min(x => x.Mixin);
-				var foundKey = KeyManager.GetKeys(KeyState.Clean).FirstOrDefault(x => output.ScriptPubKey == x.GetP2wpkhScript());
+				var foundKey = KeyManager.GetKeys(KeyState.Clean).FirstOrDefault(x => output.ScriptPubKey == x.P2wpkhScript);
 				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, mixin, pubKey: foundKey);
 
 				if (foundKey != null)
@@ -1221,7 +1221,7 @@ namespace WalletWasabi.Services
 		{
 			newLabel = Guard.Correct(newLabel);
 			coin.Label = newLabel;
-			var key = KeyManager.GetKeys(x => x.GetP2wpkhScript() == coin.ScriptPubKey).SingleOrDefault();
+			var key = KeyManager.GetKeys(x => x.P2wpkhScript == coin.ScriptPubKey).SingleOrDefault();
 			if (key != null)
 			{
 				key.SetLabel(newLabel, KeyManager);
