@@ -106,7 +106,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			foreach (HdPubKey key in Global.WalletService.KeyManager.GetKeys(x =>
 																		x.HasLabel()
-																		&& !x.IsInternal()
+																		&& !x.IsInternal
 																		&& x.KeyState == KeyState.Clean)
 																	.Reverse())
 			{

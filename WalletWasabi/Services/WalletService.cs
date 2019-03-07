@@ -561,9 +561,9 @@ namespace WalletWasabi.Services
 						}
 
 						// Make sure there's always 21 clean keys generated and indexed.
-						KeyManager.AssertCleanKeysIndexed(21, foundKey.IsInternal());
+						KeyManager.AssertCleanKeysIndexed(21, foundKey.IsInternal);
 
-						if (foundKey.IsInternal())
+						if (foundKey.IsInternal)
 						{
 							// Make sure there's always 14 internal locked keys generated and indexed.
 							KeyManager.AssertLockedInternalKeysIndexed(14);

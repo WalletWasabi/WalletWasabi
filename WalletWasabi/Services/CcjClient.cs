@@ -666,7 +666,7 @@ namespace WalletWasabi.Services
 
 			// Get all locked internal keys we have and assert we have enough.
 			KeyManager.AssertLockedInternalKeysIndexed(howMany: maximumMixingLevelCount + 1);
-			IEnumerable<HdPubKey> allLockedInternalKeys = KeyManager.GetKeys(x => x.IsInternal() && x.KeyState == KeyState.Locked && !keysTryNotToRegister.Contains(x));
+			IEnumerable<HdPubKey> allLockedInternalKeys = KeyManager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked && !keysTryNotToRegister.Contains(x));
 
 			// If any of our inputs have exposed address relationship then prefer that.
 			allLockedInternalKeys = keysToSurelyRegister.Concat(allLockedInternalKeys).Distinct();

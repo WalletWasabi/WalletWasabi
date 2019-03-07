@@ -182,11 +182,11 @@ namespace WalletWasabi.KeyManagement
 				IEnumerable<HdPubKey> relevantHdPubKeys;
 				if (isInternal)
 				{
-					relevantHdPubKeys = HdPubKeys.Where(x => x.IsInternal());
+					relevantHdPubKeys = HdPubKeys.Where(x => x.IsInternal);
 				}
 				else
 				{
-					relevantHdPubKeys = HdPubKeys.Where(x => !x.IsInternal());
+					relevantHdPubKeys = HdPubKeys.Where(x => !x.IsInternal);
 				}
 
 				KeyPath path;
@@ -196,16 +196,16 @@ namespace WalletWasabi.KeyManagement
 				}
 				else
 				{
-					int largestIndex = relevantHdPubKeys.Max(x => x.GetIndex());
-					List<int> missingIndexes = Enumerable.Range(0, largestIndex).Except(relevantHdPubKeys.Select(x => x.GetIndex())).ToList();
+					int largestIndex = relevantHdPubKeys.Max(x => x.Index);
+					List<int> missingIndexes = Enumerable.Range(0, largestIndex).Except(relevantHdPubKeys.Select(x => x.Index)).ToList();
 					if (missingIndexes.Any())
 					{
 						int smallestMissingIndex = missingIndexes.Min();
-						path = relevantHdPubKeys.First(x => x.GetIndex() == (smallestMissingIndex - 1)).NonHardenedKeyPath().Increment();
+						path = relevantHdPubKeys.First(x => x.Index == (smallestMissingIndex - 1)).NonHardenedKeyPath.Increment();
 					}
 					else
 					{
-						path = relevantHdPubKeys.First(x => x.GetIndex() == largestIndex).NonHardenedKeyPath().Increment();
+						path = relevantHdPubKeys.First(x => x.Index == largestIndex).NonHardenedKeyPath.Increment();
 					}
 				}
 
@@ -262,9 +262,9 @@ namespace WalletWasabi.KeyManagement
 			}
 			else if (keyState is null)
 			{
-				return GetKeys(x => x.IsInternal() == isInternal);
+				return GetKeys(x => x.IsInternal == isInternal);
 			}
-			return GetKeys(x => x.IsInternal() == isInternal && x.KeyState == keyState);
+			return GetKeys(x => x.IsInternal == isInternal && x.KeyState == keyState);
 		}
 
 		public IEnumerable<byte[]> GetPubKeyScriptBytes()

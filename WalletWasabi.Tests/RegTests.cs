@@ -604,8 +604,8 @@ namespace WalletWasabi.Tests
 				Assert.Equal(42, keyManager.GetKeys(KeyState.Clean).Count());
 				Assert.Equal(58, keyManager.GetKeys().Count());
 
-				Assert.Single(keyManager.GetKeys(x => x.Label == "foo label" && x.KeyState == KeyState.Used && !x.IsInternal()));
-				Assert.Single(keyManager.GetKeys(x => x.Label == "bar label" && x.KeyState == KeyState.Used && !x.IsInternal()));
+				Assert.Single(keyManager.GetKeys(x => x.Label == "foo label" && x.KeyState == KeyState.Used && !x.IsInternal));
+				Assert.Single(keyManager.GetKeys(x => x.Label == "bar label" && x.KeyState == KeyState.Used && !x.IsInternal));
 
 				// REORG TESTS
 				var txid4 = await rpc.SendToAddressAsync(key2.GetP2wpkhAddress(network), Money.Coins(0.03m), replaceable: true);
