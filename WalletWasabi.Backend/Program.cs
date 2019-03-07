@@ -40,7 +40,10 @@ namespace WalletWasabi.Backend
 				Logger.LogInfo<CcjRoundConfig>("RoundConfig is successfully initialized.");
 
 				var rpc = new RPCClient(
-						credentials: RPCCredentialString.Parse(config.BitcoinRpcConnectionString),
+						credentials: new RPCCredentialString
+						{
+							UserPassword = new NetworkCredential(config.BitcoinRpcUser, config.BitcoinRpcPassword)
+						},
 						network: config.Network);
 
 				await Global.InitializeAsync(config, roundConfig, rpc);
