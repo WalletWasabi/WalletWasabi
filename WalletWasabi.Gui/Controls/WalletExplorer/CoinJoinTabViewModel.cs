@@ -23,7 +23,7 @@ using static WalletWasabi.Models.ServiceConfiguration;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinJoinTabViewModel : WalletActionViewModel, IDisposable
+	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
 		private CoinListViewModel _coinsList;
 		private long _roundId;
@@ -44,12 +44,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _dequeueButtonText;
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
-		private CompositeDisposable Disposables { get; }
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
-			Disposables = new CompositeDisposable();
 			Password = "";
 			TargetPrivacy = GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
 
@@ -57,30 +55,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			UpdateRequiredBtcLabel(registrableRound);
 
-			if (registrableRound != default)
-			{
-				CoordinatorFeePercent = registrableRound.State.CoordinatorFeePercent.ToString();
-			}
-			else
-			{
-				CoordinatorFeePercent = "0.003";
-			}
+			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
 
-			if (registrableRound?.State?.Denomination != null && registrableRound.State.Denomination != Money.Zero)
-			{
-				CoinsList = new CoinListViewModel();
-			}
-			else
-			{
-				CoinsList = new CoinListViewModel();
-			}
+			CoinsList = new CoinListViewModel().DisposeWith(Disposables);
 
-			AmountQueued = Money.Zero;// Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
+			AmountQueued = Money.Zero; // Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
 			Global.ChaumianClient.CoinQueued += ChaumianClient_CoinQueued;
 			Global.ChaumianClient.CoinDequeued += ChaumianClient_CoinDequeued;
 
-			var mostAdvancedRound = Global.ChaumianClient.State.GetMostAdvancedRoundOrDefault();
+			CcjClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
 			if (mostAdvancedRound != default)
 			{
 				RoundId = mostAdvancedRound.State.RoundId;
@@ -97,6 +81,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				PeersRegistered = 0;
 				PeersNeeded = 100;
 			}
+
 			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
 
 			EnqueueCommand = ReactiveCommand.Create(async () =>
@@ -113,14 +98,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				TargetPrivacy = TargetPrivacy.Some;
 			}).DisposeWith(Disposables);
+
 			PrivacyFineCommand = ReactiveCommand.Create(() =>
 			{
 				TargetPrivacy = TargetPrivacy.Fine;
 			}).DisposeWith(Disposables);
+
 			PrivacyStrongCommand = ReactiveCommand.Create(() =>
 			{
 				TargetPrivacy = TargetPrivacy.Strong;
 			}).DisposeWith(Disposables);
+
 			TargetButtonCommand = ReactiveCommand.Create(async () =>
 			{
 				switch (TargetPrivacy)
@@ -524,9 +512,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		#region IDisposable Support
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
+		protected override void Dispose(bool disposing)
 		{
 			if (!_disposedValue)
 			{
@@ -543,21 +529,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
 					}
-
-					Disposables?.Dispose();
-					CoinsList?.Dispose();
 				}
 
-				CoinsList = null;
+				base.Dispose(disposing);
+
 				_disposedValue = true;
 			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
 		}
 
 		#endregion IDisposable Support

@@ -24,6 +24,8 @@ namespace WalletWasabi.Services
 	{
 		#region MembersPropertiesEvents
 
+		public SynchronizeResponse LastResponse { get; private set; }
+
 		public WasabiClient WasabiClient { get; private set; }
 
 		public Network Network { get; private set; }
@@ -167,13 +169,13 @@ namespace WalletWasabi.Services
 			CreateNew(network, indexFilePath, client);
 		}
 
-		public WasabiSynchronizer(Network network, string indexFilePath, Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint = null)
+		public WasabiSynchronizer(Network network, string indexFilePath, Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint)
 		{
 			var client = new WasabiClient(baseUriAction, torSocks5EndPoint);
 			CreateNew(network, indexFilePath, client);
 		}
 
-		public WasabiSynchronizer(Network network, string indexFilePath, Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		public WasabiSynchronizer(Network network, string indexFilePath, Uri baseUri, IPEndPoint torSocks5EndPoint)
 		{
 			var client = new WasabiClient(baseUri, torSocks5EndPoint);
 			CreateNew(network, indexFilePath, client);
@@ -183,6 +185,7 @@ namespace WalletWasabi.Services
 		{
 			Network = Guard.NotNull(nameof(network), network);
 			WasabiClient = Guard.NotNull(nameof(client), client);
+			LastResponse = null;
 			_running = 0;
 			Cancel = new CancellationTokenSource();
 			BestBlockchainHeight = Height.Unknown;
@@ -385,6 +388,7 @@ namespace WalletWasabi.Services
 								// We are syced.
 							}
 
+							LastResponse = response;
 							ResponseArrived?.Invoke(this, response);
 						}
 						catch (Exception ex)

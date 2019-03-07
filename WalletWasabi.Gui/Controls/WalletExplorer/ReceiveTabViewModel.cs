@@ -15,7 +15,7 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class ReceiveTabViewModel : WalletActionViewModel, IDisposable
+	public class ReceiveTabViewModel : WalletActionViewModel
 	{
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
@@ -24,12 +24,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _labelRequiredNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
-		private CompositeDisposable Disposables { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
-			Disposables = new CompositeDisposable();
 			_addresses = new ObservableCollection<AddressViewModel>();
 			Label = "";
 
@@ -107,8 +105,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_addresses?.Clear();
 
 			foreach (HdPubKey key in Global.WalletService.KeyManager.GetKeys(x =>
-																		x.HasLabel()
-																		&& !x.IsInternal()
+																		x.HasLabel
+																		&& !x.IsInternal
 																		&& x.KeyState == KeyState.Clean)
 																	.Reverse())
 			{
@@ -207,34 +205,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public ReactiveCommand GenerateCommand { get; }
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_addresses = null;
-				_suggestions = null;
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

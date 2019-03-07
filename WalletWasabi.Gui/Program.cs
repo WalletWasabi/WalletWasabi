@@ -23,17 +23,17 @@ namespace WalletWasabi.Gui
 		private static async Task Main(string[] args)
 #pragma warning restore IDE1006 // Naming Styles
 		{
-			if (!await Daemon.RunAsyncReturnTrueIfContinueWithGuiAsync(args))
-			{
-				return;
-			}
-
 			StatusBarViewModel statusBar = null;
 			try
 			{
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+				if (!await Daemon.RunAsyncReturnTrueIfContinueWithGuiAsync(args))
+				{
+					return;
+				}
 				BuildAvaloniaApp()
 					.BeforeStarting(async builder =>
 					{

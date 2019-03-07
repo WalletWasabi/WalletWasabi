@@ -16,11 +16,13 @@ namespace WalletWasabi.Gui.Dialogs
 {
 	internal class CannotCloseDialogViewModel : ModalDialogViewModelBase, IDisposable
 	{
+		private CompositeDisposable Disposables { get; }
+
 		private bool _isBusy;
 		private string _warningMessage;
 		private string _operationMessage;
-		private CancellationTokenSource _cancelTokenSource;
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+
+		private CancellationTokenSource CancelTokenSource { get; }
 
 		public bool IsBusy
 		{
@@ -48,13 +50,17 @@ namespace WalletWasabi.Gui.Dialogs
 
 		public CannotCloseDialogViewModel() : base("", false, false)
 		{
+			Disposables = new CompositeDisposable();
+
 			OperationMessage = "Dequeuing coins...Please wait";
 			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
 
+			CancelTokenSource = new CancellationTokenSource().DisposeWith(Disposables);
+
 			OKCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				_cancelTokenSource.Cancel();
+				CancelTokenSource.Cancel();
 				while (!Initialization.IsCompleted)
 				{
 					await Task.Delay(300);
@@ -62,12 +68,12 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canOk);
+			canOk).DisposeWith(Disposables);
 
 			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				OperationMessage = "Cancelling...Please wait";
-				_cancelTokenSource.Cancel();
+				CancelTokenSource.Cancel();
 				while (!Initialization.IsCompleted)
 				{
 					await Task.Delay(300);
@@ -75,15 +81,12 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canCancel);
+			canCancel).DisposeWith(Disposables);
 
-			_cancelTokenSource = new CancellationTokenSource();
-			Disposables.Add(_cancelTokenSource);
+			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex)).DisposeWith(Disposables);
+			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex)).DisposeWith(Disposables);
 
-			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
-			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
-
-			Initialization = StartDequeueAsync(_cancelTokenSource.Token);
+			Initialization = StartDequeueAsync(CancelTokenSource.Token);
 		}
 
 		private async Task StartDequeueAsync(CancellationToken token)
@@ -108,7 +111,7 @@ namespace WalletWasabi.Gui.Dialogs
 				while (!last)
 				{
 					last = DateTime.Now - start > TimeSpan.FromMinutes(2);
-					if (_cancelTokenSource.IsCancellationRequested)
+					if (CancelTokenSource.IsCancellationRequested)
 					{
 						break;
 					}
@@ -126,7 +129,7 @@ namespace WalletWasabi.Gui.Dialogs
 						{
 							try
 							{
-								if (_cancelTokenSource.IsCancellationRequested)
+								if (CancelTokenSource.IsCancellationRequested)
 								{
 									break;
 								}
@@ -159,9 +162,9 @@ namespace WalletWasabi.Gui.Dialogs
 						await Task.Delay(5000, token); //wait, maybe the situation will change
 					}
 				}
-				if (!_cancelTokenSource.IsCancellationRequested)
+				if (!CancelTokenSource.IsCancellationRequested)
 				{
-					_cancelTokenSource.Cancel();
+					CancelTokenSource.Cancel();
 					Close(true);
 				}
 			}
@@ -207,7 +210,7 @@ namespace WalletWasabi.Gui.Dialogs
 			{
 				if (disposing)
 				{
-					Disposables.Dispose();
+					Disposables?.Dispose();
 				}
 
 				_disposedValue = true;

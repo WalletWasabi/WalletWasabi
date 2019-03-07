@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Composition;
 using System.IO;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
@@ -14,8 +15,10 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModel : WasabiDocumentTabViewModel
+	public class WalletViewModel : WasabiDocumentTabViewModel, IDisposable
 	{
+		private CompositeDisposable Disposables { get; }
+
 		private ObservableCollection<WalletActionViewModel> _actions;
 
 		private string _title;
@@ -23,6 +26,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletViewModel(WalletService walletService, bool receiveDominant)
 			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
 		{
+			Disposables = new CompositeDisposable();
+
 			WalletService = walletService;
 			Name = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);
 			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
@@ -34,17 +39,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(o =>
 				{
 					SetBalance(Name);
-				});
+				}).DisposeWith(Disposables);
 
 			SetBalance(Name);
 
 			Actions = new ObservableCollection<WalletActionViewModel>
 			{
-				new SendTabViewModel(this),
-				new ReceiveTabViewModel(this),
-				new CoinJoinTabViewModel(this),
-				new HistoryTabViewModel(this),
-				new WalletInfoViewModel(this)
+				new SendTabViewModel(this).DisposeWith(Disposables),
+				new ReceiveTabViewModel(this).DisposeWith(Disposables),
+				new CoinJoinTabViewModel(this).DisposeWith(Disposables),
+				new HistoryTabViewModel(this).DisposeWith(Disposables),
+				new WalletInfoViewModel(this).DisposeWith(Disposables)
 			};
 
 			Actions[0].DisplayActionTab();
@@ -83,5 +88,31 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent).Sum(c => (long?)c.Amount) ?? 0;
 			Title = $"{walletName} ({balance.ToString(false, true)} BTC)";
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Disposables?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

@@ -70,7 +70,7 @@ namespace WalletWasabi.TorSocks5
 			}
 			else
 			{
-				TorSocks5EndPoint = torSocks5EndPoint ?? new IPEndPoint(IPAddress.Loopback, 9050);
+				TorSocks5EndPoint = torSocks5EndPoint;
 			}
 			TorSocks5Client = null;
 			IsolateStream = isolateStream;

@@ -68,7 +68,7 @@ namespace WalletWasabi.Services
 			Network network,
 			KeyManager keyManager,
 			Func<Uri> ccjHostUriAction,
-			IPEndPoint torSocks5EndPoint = null)
+			IPEndPoint torSocks5EndPoint)
 		{
 			Create(synchronizer, network, keyManager, ccjHostUriAction, torSocks5EndPoint);
 		}
@@ -78,7 +78,7 @@ namespace WalletWasabi.Services
 			Network network,
 			KeyManager keyManager,
 			Uri ccjHostUri,
-			IPEndPoint torSocks5EndPoint = null)
+			IPEndPoint torSocks5EndPoint)
 		{
 			Create(synchronizer, network, keyManager, () => ccjHostUri, torSocks5EndPoint);
 		}
@@ -102,25 +102,19 @@ namespace WalletWasabi.Services
 			DelayedRoundRegistration = null;
 
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+			var lastResponse = Synchronizer.LastResponse;
+			if (lastResponse != null)
+			{
+				TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
+			}
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
 		{
-			try
-			{
-				Synchronizer.BlockRequests();
-				IEnumerable<CcjRunningRoundState> newRoundStates = e.CcjRoundStates;
-
-				await ProcessStatusAsync(newRoundStates);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning<CcjClient>(ex);
-			}
-			finally
-			{
-				Synchronizer.EnableRequests();
-			}
+			await TryProcessStatusAsync(e?.CcjRoundStates);
 		}
 
 		public void Start()
@@ -201,8 +195,9 @@ namespace WalletWasabi.Services
 			});
 		}
 
-		private async Task ProcessStatusAsync(IEnumerable<CcjRunningRoundState> states)
+		private async Task TryProcessStatusAsync(IEnumerable<CcjRunningRoundState> states)
 		{
+			states = states ?? Enumerable.Empty<CcjRunningRoundState>();
 			if (Interlocked.Read(ref _statusProcessing) == 1) // It's ok to wait for status processing next time.
 			{
 				return;
@@ -210,6 +205,8 @@ namespace WalletWasabi.Services
 
 			try
 			{
+				Synchronizer.BlockRequests();
+
 				Interlocked.Exchange(ref _statusProcessing, 1);
 				using (await MixLock.LockAsync())
 				{
@@ -287,6 +284,7 @@ namespace WalletWasabi.Services
 			finally
 			{
 				Interlocked.Exchange(ref _statusProcessing, 0);
+				Synchronizer.EnableRequests();
 			}
 		}
 
@@ -668,7 +666,7 @@ namespace WalletWasabi.Services
 
 			// Get all locked internal keys we have and assert we have enough.
 			KeyManager.AssertLockedInternalKeysIndexed(howMany: maximumMixingLevelCount + 1);
-			IEnumerable<HdPubKey> allLockedInternalKeys = KeyManager.GetKeys(x => x.IsInternal() && x.KeyState == KeyState.Locked && !keysTryNotToRegister.Contains(x));
+			IEnumerable<HdPubKey> allLockedInternalKeys = KeyManager.GetKeys(x => x.IsInternal && x.KeyState == KeyState.Locked && !keysTryNotToRegister.Contains(x));
 
 			// If any of our inputs have exposed address relationship then prefer that.
 			allLockedInternalKeys = keysToSurelyRegister.Concat(allLockedInternalKeys).Distinct();
@@ -796,7 +794,7 @@ namespace WalletWasabi.Services
 
 				foreach (SmartCoin coin in coinsExcept)
 				{
-					coin.Secret = secPubs.Single(x => x.pubKey.GetP2wpkhScript() == coin.ScriptPubKey).secret;
+					coin.Secret = secPubs.Single(x => x.pubKey.P2wpkhScript == coin.ScriptPubKey).secret;
 
 					coin.CoinJoinInProgress = true;
 
@@ -1011,7 +1009,7 @@ namespace WalletWasabi.Services
 			if (coinWaitingForMix.Label == "ZeroLink Change" && coinWaitingForMix.Unspent)
 			{
 				coinWaitingForMix.Label = "ZeroLink Dequeued Change";
-				var key = KeyManager.GetKeys(x => x.GetP2wpkhScript() == coinWaitingForMix.ScriptPubKey).SingleOrDefault();
+				var key = KeyManager.GetKeys(x => x.P2wpkhScript == coinWaitingForMix.ScriptPubKey).SingleOrDefault();
 				if (key != null)
 				{
 					key.SetLabel(coinWaitingForMix.Label, KeyManager);

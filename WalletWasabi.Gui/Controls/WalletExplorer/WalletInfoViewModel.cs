@@ -16,7 +16,7 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletInfoViewModel : WalletActionViewModel, IDisposable
+	public class WalletInfoViewModel : WalletActionViewModel
 	{
 		private string _password;
 		private string _extendedMasterPrivateKey;
@@ -24,11 +24,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
 		private string _warningMessage;
-		private CompositeDisposable Disposables { get; }
 
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
-			Disposables = new CompositeDisposable();
 			ClearSensitiveData(true);
 			_warningMessage = "";
 			Closing = new CancellationTokenSource().DisposeWith(Disposables);
@@ -202,28 +200,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		#region IDisposable Support
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
+		protected override void Dispose(bool disposing)
 		{
 			if (!_disposedValue)
 			{
 				if (disposing)
 				{
 					Closing?.Cancel();
-					ClearSensitiveData(true);
-					Disposables?.Dispose();
 				}
+
+				base.Dispose(disposing);
 
 				_disposedValue = true;
 			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
 		}
 
 		#endregion IDisposable Support

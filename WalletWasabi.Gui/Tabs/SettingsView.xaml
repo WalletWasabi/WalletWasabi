@@ -17,6 +17,10 @@
 
         <controls:GroupBox Title="Tor" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
           <StackPanel Orientation="Vertical">
+            <StackPanel Margin="0 10" Orientation="Horizontal">
+              <ToggleButton IsChecked="{Binding UseTor}" Content="{Binding UseTorText}" Margin="0 0 10 0" />
+              <TextBlock VerticalAlignment="Center">Tor can be turned off for debugging.</TextBlock>
+            </StackPanel>
             <StackPanel Margin="0 10">
               <TextBlock>Host</TextBlock>
               <TextBox Text="{Binding TorHost}" />

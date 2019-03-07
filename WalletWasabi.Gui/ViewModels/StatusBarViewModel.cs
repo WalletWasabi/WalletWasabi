@@ -31,6 +31,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 	public class StatusBarViewModel : ViewModelBase, IDisposable
 	{
+		private CompositeDisposable Disposables { get; }
+
 		public NodesCollection Nodes { get; }
 		public WasabiSynchronizer Synchronizer { get; }
 		public UpdateChecker UpdateChecker { get; }
@@ -114,6 +116,8 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _blocksLeft, value);
 		}
 
+		private string _btcPrice;
+
 		public string BtcPrice
 		{
 			get => _btcPrice;
@@ -133,6 +137,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
+			Disposables = new CompositeDisposable();
+
 			_clientOutOfDate = 0;
 			_backendIncompatible = 0;
 			UpdateStatus = UpdateStatus.Latest;
@@ -156,23 +162,23 @@ namespace WalletWasabi.Gui.ViewModels
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
 				SetStatusAndDoUpdateActions();
-			});
+			}).DisposeWith(Disposables);
 			this.WhenAnyValue(x => x.FiltersLeft).Subscribe(filters =>
 			{
 				SetStatusAndDoUpdateActions();
-			});
+			}).DisposeWith(Disposables);
 			this.WhenAnyValue(x => x.Tor).Subscribe(tor =>
 			{
 				SetStatusAndDoUpdateActions();
-			});
+			}).DisposeWith(Disposables);
 			this.WhenAnyValue(x => x.Backend).Subscribe(backend =>
 			{
 				SetStatusAndDoUpdateActions();
-			});
+			}).DisposeWith(Disposables);
 			this.WhenAnyValue(x => x.Peers).Subscribe(peers =>
 			{
 				SetStatusAndDoUpdateActions();
-			});
+			}).DisposeWith(Disposables);
 
 			UpdateChecker.Start(TimeSpan.FromMinutes(7),
 				() =>
@@ -197,7 +203,7 @@ namespace WalletWasabi.Gui.ViewModels
 			UpdateCommand = ReactiveCommand.Create(() =>
 			{
 				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
-			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
+			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest)).DisposeWith(Disposables);
 		}
 
 		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -236,7 +242,7 @@ namespace WalletWasabi.Gui.ViewModels
 					if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
 						|| osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
 					{
-						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter();
+						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel().DisposeWith(Disposables)).GetAwaiter();
 					}
 				}
 			}
@@ -311,7 +317,6 @@ namespace WalletWasabi.Gui.ViewModels
 		#region IDisposable Support
 
 		private volatile bool _disposedValue = false; // To detect redundant calls
-		private string _btcPrice;
 
 		protected virtual void Dispose(bool disposing)
 		{
@@ -324,16 +329,13 @@ namespace WalletWasabi.Gui.ViewModels
 					Synchronizer.NewFilter -= IndexDownloader_NewFilter;
 					Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
 					Synchronizer.ResponseArrivedIsGenSocksServFail -= IndexDownloader_ResponseArrivedIsGenSocksServFail;
+
+					Disposables?.Dispose();
 				}
 
 				_disposedValue = true;
 			}
 		}
-
-		// ~StatusBarViewModel() {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
 
 		// This code added to correctly implement the disposable pattern.
 		public void Dispose()

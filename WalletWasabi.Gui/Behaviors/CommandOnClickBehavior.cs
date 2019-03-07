@@ -6,15 +6,15 @@ namespace WalletWasabi.Gui.Behaviors
 {
 	public class CommandOnClickBehavior : CommandBasedBehavior<InputElement>
 	{
-		private CompositeDisposable _disposables;
+		private CompositeDisposable Disposables { get; set; }
 
 		protected override void OnAttached()
 		{
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			base.OnAttached();
 
-			_disposables.Add(AssociatedObject.AddHandler(InputElement.PointerPressedEvent, (sender, e) =>
+			Disposables.Add(AssociatedObject.AddHandler(InputElement.PointerPressedEvent, (sender, e) =>
 			{
 				e.Handled = ExecuteCommand();
 			}));
@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			base.OnDetaching();
 
-			_disposables.Dispose();
+			Disposables?.Dispose();
 		}
 	}
 }

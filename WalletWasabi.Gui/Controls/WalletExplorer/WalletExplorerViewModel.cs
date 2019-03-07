@@ -11,6 +11,7 @@ using System.Linq;
 using AvalonStudio.Shell;
 using WalletWasabi.Services;
 using System.IO;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -18,12 +19,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	[Export]
 	[ExportToolControl]
 	[Shared]
-	public class WalletExplorerViewModel : ToolViewModel, IActivatableExtension
+	public class WalletExplorerViewModel : ToolViewModel, IActivatableExtension, IDisposable
 	{
+		private CompositeDisposable Disposables { get; }
+
 		public override Location DefaultLocation => Location.Right;
 
 		public WalletExplorerViewModel()
 		{
+			Disposables = new CompositeDisposable();
+
 			Title = "Wallet Explorer";
 
 			_wallets = new ObservableCollection<WalletViewModel>();
@@ -51,7 +56,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (_wallets.Any(x => x.Title == walletName))
 				return;
 
-			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant);
+			WalletViewModel walletViewModel = new WalletViewModel(walletService, receiveDominant).DisposeWith(Disposables);
 			_wallets.Add(walletViewModel);
 		}
 
@@ -63,5 +68,31 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			IoC.Get<IShell>().MainPerspective.AddOrSelectTool(this);
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Disposables?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

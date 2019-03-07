@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui.Behaviors
 {
 	internal class SuggestionBehavior : Behavior<TextBox>
 	{
-		private CompositeDisposable _disposables;
+		private CompositeDisposable Disposables { get; set; }
 
 		private static readonly AvaloniaProperty<IEnumerable<SuggestionViewModel>> SuggestionItemsProperty =
 			AvaloniaProperty.Register<SuggestionBehavior, IEnumerable<SuggestionViewModel>>(nameof(SuggestionItems), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
@@ -25,11 +25,11 @@ namespace WalletWasabi.Gui.Behaviors
 
 		protected override void OnAttached()
 		{
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			base.OnAttached();
 
-			_disposables.Add(AssociatedObject.AddHandler(TextBox.KeyDownEvent, (sender, e) =>
+			Disposables.Add(AssociatedObject.AddHandler(TextBox.KeyDownEvent, (sender, e) =>
 			{
 				if (e.Key == Avalonia.Input.Key.Tab)
 				{
@@ -100,12 +100,12 @@ namespace WalletWasabi.Gui.Behaviors
 		{
 			base.OnDetaching();
 
-			_disposables.Dispose();
+			Disposables?.Dispose();
 		}
 
 		private void HandleAutoUpdate()
 		{
-			SuggestionItems.FirstOrDefault()?.OnSelected();
+			SuggestionItems?.FirstOrDefault()?.OnSelected();
 		}
 	}
 }

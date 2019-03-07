@@ -9,25 +9,32 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.IO;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class SettingsViewModel : WasabiDocumentTabViewModel
+	internal class SettingsViewModel : WasabiDocumentTabViewModel, IDisposable
 	{
+		private CompositeDisposable Disposables { get; }
+
 		private string _network;
 		private string _torHost;
 		private string _torPort;
 		private bool _autocopy;
 		private string _autocopyText;
+		private bool _useTor;
+		private string _useTorText;
 
 		private bool _isModified;
 
 		public SettingsViewModel() : base("Settings")
 		{
+			Disposables = new CompositeDisposable();
+
 			var config = new Config(Global.Config.FilePath);
 			Autocopy = (bool)Global.UiConfig.Autocopy;
 
-			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort).Subscribe(x => Save());
+			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort, x => x.UseTor).Subscribe(x => Save()).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Autocopy).Subscribe(x =>
 			{
@@ -38,7 +45,12 @@ namespace WalletWasabi.Gui.Tabs
 
 					AutocopyText = x ? "On" : "Off";
 				});
-			});
+			}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.UseTor).Subscribe(x =>
+			{
+				UseTorText = x ? "On" : "Off";
+			}).DisposeWith(Disposables);
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
@@ -47,11 +59,12 @@ namespace WalletWasabi.Gui.Tabs
 				Network = config.Network.ToString();
 				TorHost = config.TorHost;
 				TorPort = config.TorSocks5Port.ToString();
+				UseTor = config.UseTor.Value;
 
 				IsModified = await Global.Config.CheckFileChangeAsync();
 			});
 
-			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
+			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile).DisposeWith(Disposables);
 		}
 
 		public IEnumerable<string> Networks
@@ -104,6 +117,18 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _autocopyText, value);
 		}
 
+		public bool UseTor
+		{
+			get => _useTor;
+			set => this.RaiseAndSetIfChanged(ref _useTor, value);
+		}
+
+		public string UseTorText
+		{
+			get => _useTorText;
+			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
+		}
+
 		private void Save()
 		{
 			var isValid = string.IsNullOrEmpty(ValidateTorHost()) &&
@@ -120,12 +145,14 @@ namespace WalletWasabi.Gui.Tabs
 				var network = NBitcoin.Network.GetNetwork(Network);
 				var torHost = TorHost;
 				var torSocks5Port = int.TryParse(TorPort, out var port) ? (int?)port : null;
+				var useTor = UseTor;
 
-				if (config.Network != network || config.TorHost != torHost || config.TorSocks5Port != torSocks5Port)
+				if (config.Network != network || config.TorHost != torHost || config.TorSocks5Port != torSocks5Port || config.UseTor != useTor)
 				{
 					config.Network = network;
 					config.TorHost = torHost;
 					config.TorSocks5Port = torSocks5Port;
+					config.UseTor = useTor;
 
 					await config.ToFileAsync();
 
@@ -180,5 +207,31 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Disposables?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }
