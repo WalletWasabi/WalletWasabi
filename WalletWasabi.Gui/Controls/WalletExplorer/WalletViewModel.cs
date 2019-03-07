@@ -45,11 +45,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Actions = new ObservableCollection<WalletActionViewModel>
 			{
-				new SendTabViewModel(this).DisposeWith(Disposables),
-				new ReceiveTabViewModel(this).DisposeWith(Disposables),
-				new CoinJoinTabViewModel(this).DisposeWith(Disposables),
-				new HistoryTabViewModel(this).DisposeWith(Disposables),
-				new WalletInfoViewModel(this).DisposeWith(Disposables)
+				new SendTabViewModel(this),
+				new ReceiveTabViewModel(this),
+				new CoinJoinTabViewModel(this),
+				new HistoryTabViewModel(this),
+				new WalletInfoViewModel(this)
 			};
 
 			Actions[0].DisplayActionTab();

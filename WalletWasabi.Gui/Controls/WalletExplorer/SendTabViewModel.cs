@@ -77,7 +77,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
-			CoinList = new CoinListViewModel().DisposeWith(Disposables);
+			CoinList = new CoinListViewModel();
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
@@ -904,32 +904,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand FeeRateCommand { get; }
 
-		#region IDisposable Support
-
-		protected override void Dispose(bool disposing)
+		public override void OnOpen()
 		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					if (Global.Synchronizer != null)
-					{
-						Global.Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
-					}
+			CoinList.OnOpen();
 
-					if (_coinList != null)
-					{
-						_coinList.SelectionChanged -= CoinList_SelectionChanged;
-						_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
-					}
-				}
-
-				base.Dispose(disposing);
-
-				_disposedValue = true;
-			}
+			base.OnOpen();
 		}
 
-		#endregion IDisposable Support
+		public override bool OnClose()
+		{
+			CoinList.OnClose();
+
+			return base.OnClose();
+		}
 	}
 }

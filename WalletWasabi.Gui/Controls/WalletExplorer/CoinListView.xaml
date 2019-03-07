@@ -79,9 +79,7 @@
           <DataTemplate>
             <Grid>
               <Expander Name="coinExpander" ExpandDirection="Down" Classes="coloredExpander"  Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
-
-                <StackPanel>
-                  <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
+                <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
                     <TextBlock Text="Transaction Id:" Grid.Row="0" />
                     <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding TransactionId}" Background="Transparent" Grid.Column="1" Grid.Row="0" />
 
@@ -106,7 +104,6 @@
                     <TextBlock Text="Public Key:" Grid.Row="7" />
                     <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding PubKey}"  Grid.Column="1" Grid.Row="7" />
                   </Grid>
-                </StackPanel>
               </Expander>
 
               <Grid Margin="30 0 0 0" VerticalAlignment="Top">

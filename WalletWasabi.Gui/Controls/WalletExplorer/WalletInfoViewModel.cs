@@ -168,10 +168,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			base.OnSelected();
 		}
 
-		public override void Close()
+		public override bool OnClose()
 		{
 			ClearSensitiveData(true);
-			base.Close();
+			return base.OnClose();
 		}
 
 		private void SetWarningMessage(string message)
@@ -197,24 +197,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 		}
-
-		#region IDisposable Support
-
-		protected override void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Closing?.Cancel();
-				}
-
-				base.Dispose(disposing);
-
-				_disposedValue = true;
-			}
-		}
-
-		#endregion IDisposable Support
 	}
 }

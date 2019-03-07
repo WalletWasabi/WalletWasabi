@@ -57,7 +57,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
 
-			CoinsList = new CoinListViewModel().DisposeWith(Disposables);
+			CoinsList = new CoinListViewModel();
 
 			AmountQueued = Money.Zero; // Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
@@ -510,33 +510,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand PrivacyStrongCommand { get; }
 		public ReactiveCommand TargetButtonCommand { get; }
 
-		#region IDisposable Support
-
-		protected override void Dispose(bool disposing)
+		public override void OnOpen()
 		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					if (Global.ChaumianClient != null)
-					{
-						Global.ChaumianClient.CoinQueued -= ChaumianClient_CoinQueued;
-						Global.ChaumianClient.CoinDequeued -= ChaumianClient_CoinDequeued;
-						Global.ChaumianClient.StateUpdated -= ChaumianClient_StateUpdated;
-					}
+			CoinsList.OnOpen();
 
-					if (_coinsList != null)
-					{
-						_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
-					}
-				}
-
-				base.Dispose(disposing);
-
-				_disposedValue = true;
-			}
+			base.OnOpen();
 		}
 
-		#endregion IDisposable Support
+		public override bool OnClose()
+		{
+			CoinsList.OnClose();
+
+			return base.OnClose();
+		}
 	}
 }

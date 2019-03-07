@@ -63,7 +63,6 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				MainWindowViewModel.Instance?.Dispose();
 				statusBar?.Dispose();
 				await Global.DisposeAsync();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;

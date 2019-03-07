@@ -287,5 +287,46 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 		}
+
+		public override bool OnClose()
+		{
+			Dispose();
+
+			return base.OnClose();
+		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					if (Transactions != null)
+					{
+						foreach (var tr in Transactions)
+						{
+							tr?.Dispose();
+						}
+					}
+					Disposables?.Dispose();
+				}
+
+				_transactions = null;
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }
