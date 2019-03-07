@@ -56,7 +56,7 @@ namespace WalletWasabi.Backend
 			AssertFilePathSet();
 
 			Network = Network.Main;
-			BitcoinRpcConnectionString = "user:password";
+			BitcoinRpcConnectionString = "cookiefile=/home/user/.bitcoin/.cookie";
 
 			if (!File.Exists(FilePath))
 			{
