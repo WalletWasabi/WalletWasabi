@@ -9,11 +9,14 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.IO;
+using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class SettingsViewModel : WasabiDocumentTabViewModel
+	internal class SettingsViewModel : WasabiDocumentTabViewModel, IDisposable
 	{
+		private CompositeDisposable Disposables { get; }
+
 		private string _network;
 		private string _torHost;
 		private string _torPort;
@@ -26,10 +29,12 @@ namespace WalletWasabi.Gui.Tabs
 
 		public SettingsViewModel() : base("Settings")
 		{
+			Disposables = new CompositeDisposable();
+
 			var config = new Config(Global.Config.FilePath);
 			Autocopy = (bool)Global.UiConfig.Autocopy;
 
-			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort, x => x.UseTor).Subscribe(x => Save());
+			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort, x => x.UseTor).Subscribe(x => Save()).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Autocopy).Subscribe(x =>
 			{
@@ -40,12 +45,12 @@ namespace WalletWasabi.Gui.Tabs
 
 					AutocopyText = x ? "On" : "Off";
 				});
-			});
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.UseTor).Subscribe(x =>
 			{
 				UseTorText = x ? "On" : "Off";
-			});
+			}).DisposeWith(Disposables);
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
@@ -59,7 +64,7 @@ namespace WalletWasabi.Gui.Tabs
 				IsModified = await Global.Config.CheckFileChangeAsync();
 			});
 
-			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
+			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile).DisposeWith(Disposables);
 		}
 
 		public IEnumerable<string> Networks
@@ -202,5 +207,31 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Disposables?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }
