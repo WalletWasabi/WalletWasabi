@@ -1,26 +1,17 @@
-﻿using Avalonia;
-using Avalonia.Threading;
-using AvalonStudio.Extensibility;
-using NBitcoin;
+﻿using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryTabViewModel : WalletActionViewModel
+	public class HistoryTabViewModel : WalletActionViewModel, ISupportsActivation
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
@@ -84,7 +75,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
 				Label = txr.label,
 				TransactionId = txr.transactionId.ToString()
-			}).Select(ti => new TransactionViewModel(ti).DisposeWith(Disposables));
+			}).Select(ti => new TransactionViewModel(ti));
 
 			Transactions = new ObservableCollection<TransactionViewModel>(trs);
 
@@ -245,6 +236,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
+		public ViewModelActivator Activator => throw new NotImplementedException();
+
 		private void RefreshOrdering()
 		{
 			if (TransactionSortDirection != SortOrder.None)
@@ -290,43 +283,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override bool OnClose()
 		{
-			Dispose();
-
 			return base.OnClose();
 		}
 
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					if (Transactions != null)
-					{
-						foreach (var tr in Transactions)
-						{
-							tr?.Dispose();
-						}
-					}
-					Disposables?.Dispose();
-				}
-
-				_transactions = null;
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
+		
 	}
 }

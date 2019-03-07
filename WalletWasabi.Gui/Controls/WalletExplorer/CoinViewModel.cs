@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using WalletWasabi.Gui.ViewModels;
+﻿using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Models;
-using NBitcoin;
-using System.Reactive.Linq;
-using System.Linq;
-using WalletWasabi.Gui.Models;
-using WalletWasabi.Models.ChaumianCoinJoin;
+using System;
 using System.Globalization;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Models;
+using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

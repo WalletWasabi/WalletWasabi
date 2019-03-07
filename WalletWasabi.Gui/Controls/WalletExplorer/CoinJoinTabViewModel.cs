@@ -1,25 +1,18 @@
-﻿using System;
+﻿using Avalonia.Threading;
+using NBitcoin;
+using ReactiveUI;
+using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
-using Avalonia.Controls;
-using Avalonia.Threading;
-using AvalonStudio.Commands;
-using NBitcoin;
-using ReactiveUI;
-using ReactiveUI.Legacy;
-using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using static WalletWasabi.Gui.Models.ShieldLevelHelper;
-using static WalletWasabi.Models.ServiceConfiguration;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -87,12 +80,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			EnqueueCommand = ReactiveCommand.Create(async () =>
 			{
 				await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
-			}).DisposeWith(Disposables);
+			});
 
 			DequeueCommand = ReactiveCommand.Create(async () =>
 			{
 				await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected));
-			}).DisposeWith(Disposables);
+			});
 
 			PrivacySomeCommand = ReactiveCommand.Create(() =>
 			{

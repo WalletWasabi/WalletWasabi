@@ -11,30 +11,22 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class TransactionViewModel : ViewModelBase, IDisposable
+	public class TransactionViewModel : ViewModelBase
 	{
-		private CompositeDisposable Disposables { get; }
-
 		private TransactionInfo _model;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
 		public TransactionViewModel(TransactionInfo model)
 		{
-			Disposables = new CompositeDisposable();
-
 			_model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
-
-			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, model.Confirmed).DisposeWith(Disposables);
 		}
-
-		private readonly ObservableAsPropertyHelper<bool> _confirmed;
 
 		public string DateTime => _model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
-		public bool Confirmed => _confirmed.Value;
+		public bool Confirmed => _model.Confirmed;
 
 		public string AmountBtc => _model.AmountBtc;
 
@@ -87,31 +79,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

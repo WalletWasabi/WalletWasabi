@@ -1,25 +1,23 @@
-﻿using System;
+﻿using Avalonia.Threading;
+using NBitcoin;
+using ReactiveUI;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Avalonia.Threading;
-using NBitcoin;
-using ReactiveUI;
-using WalletWasabi.Models;
-using WalletWasabi.Services;
+using WalletWasabi.Exceptions;
+using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using ReactiveUI.Legacy;
-using WalletWasabi.Exceptions;
-using System.Collections.ObjectModel;
-using WalletWasabi.Gui.Tabs.WalletManager;
-using WalletWasabi.Backend.Models.Responses;
-using System.ComponentModel;
-using WalletWasabi.Gui.Models;
-using System.Reactive.Disposables;
+using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
