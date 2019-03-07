@@ -21,11 +21,8 @@ namespace WalletWasabi.Backend
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; private set; }
 
-		[JsonProperty(PropertyName = "BitcoinRpcUser")]
-		public string BitcoinRpcUser { get; private set; }
-
-		[JsonProperty(PropertyName = "BitcoinRpcPassword")]
-		public string BitcoinRpcPassword { get; private set; }
+		[JsonProperty(PropertyName = "BitcoinRpcConnectionString")]
+		public string BitcoinRpcConnectionString { get; private set; }
 
 		public Config()
 		{
@@ -36,11 +33,10 @@ namespace WalletWasabi.Backend
 			SetFilePath(filePath);
 		}
 
-		public Config(Network network, string bitcoinRpcUser, string bitcoinRpcPassword)
+		public Config(Network network, string BitcoinRpcConnectionString)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			BitcoinRpcUser = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinRpcUser), bitcoinRpcUser);
-			BitcoinRpcPassword = Guard.NotNull(nameof(bitcoinRpcPassword), bitcoinRpcPassword);
+			BitcoinRpcConnectionString = Guard.NotNullOrEmptyOrWhitespace(nameof(BitcoinRpcConnectionString), BitcoinRpcConnectionString);
 		}
 
 		/// <inheritdoc />
@@ -60,8 +56,7 @@ namespace WalletWasabi.Backend
 			AssertFilePathSet();
 
 			Network = Network.Main;
-			BitcoinRpcUser = "user";
-			BitcoinRpcPassword = "password";
+			BitcoinRpcConnectionString = "cookiefile=/home/user/.bitcoin/.cookie";
 
 			if (!File.Exists(FilePath))
 			{
@@ -73,8 +68,7 @@ namespace WalletWasabi.Backend
 				var config = JsonConvert.DeserializeObject<Config>(jsonString);
 
 				Network = config.Network ?? Network;
-				BitcoinRpcUser = config.BitcoinRpcUser ?? BitcoinRpcUser;
-				BitcoinRpcPassword = config.BitcoinRpcPassword ?? BitcoinRpcPassword;
+				BitcoinRpcConnectionString = config.BitcoinRpcConnectionString ?? BitcoinRpcConnectionString;
 			}
 
 			await ToFileAsync();
@@ -97,11 +91,7 @@ namespace WalletWasabi.Backend
 			{
 				return true;
 			}
-			if (BitcoinRpcPassword != config.BitcoinRpcPassword)
-			{
-				return true;
-			}
-			if (BitcoinRpcUser != config.BitcoinRpcUser)
+			if (BitcoinRpcConnectionString != config.BitcoinRpcConnectionString)
 			{
 				return true;
 			}
