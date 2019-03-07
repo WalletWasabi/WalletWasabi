@@ -36,6 +36,9 @@ namespace WalletWasabi.KeyManagement
 			P2wpkhScript = PubKey.WitHash.ScriptPubKey;
 			P2shOverP2wpkhScript = P2wpkhScript.Hash.ScriptPubKey;
 
+			PubKeyHash = PubKey.Hash;
+			HashCode = PubKeyHash.GetHashCode();
+
 			Index = (int)FullKeyPath.Indexes[4];
 			NonHardenedKeyPath = new KeyPath(FullKeyPath[3], FullKeyPath[4]);
 
@@ -73,6 +76,8 @@ namespace WalletWasabi.KeyManagement
 		public Script P2wpkhScript { get; }
 		public Script P2shOverP2wpkhScript { get; }
 
+		public KeyId PubKeyHash { get; }
+
 		public int Index { get; }
 		public KeyPath NonHardenedKeyPath { get; }
 		public bool IsInternal { get; }
@@ -87,29 +92,17 @@ namespace WalletWasabi.KeyManagement
 
 		#region Equality
 
-		// speedup
-		private KeyId _pubKeyHash = null;
-
-		public KeyId GetPubKeyHash()
-		{
-			return _pubKeyHash ?? (_pubKeyHash = PubKey.Hash);
-		}
-
 		public override bool Equals(object obj) => obj is HdPubKey && this == (HdPubKey)obj;
 
 		public bool Equals(HdPubKey other) => this == other;
 
-		// speedup
-		private int? _hashCode = null;
+		private int HashCode { get; }
 
-		public override int GetHashCode()
-		{
-			return (int)(_hashCode ?? (_hashCode = PubKey.Hash.GetHashCode()));
-		}
+		public override int GetHashCode() => HashCode;
 
 		public static bool operator ==(HdPubKey x, HdPubKey y)
 		{
-			return x?.GetPubKeyHash() == y?.GetPubKeyHash();
+			return x?.PubKeyHash == y?.PubKeyHash;
 		}
 
 		public static bool operator !=(HdPubKey x, HdPubKey y)
