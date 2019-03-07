@@ -18,8 +18,20 @@ namespace WalletWasabi.KeyManagement
 		[JsonConverter(typeof(KeyPathJsonConverter))]
 		public KeyPath FullKeyPath { get; }
 
+		private string _label;
+
 		[JsonProperty(Order = 3)]
-		public string Label { get; private set; }
+		public string Label
+		{
+			get => _label; private set
+			{
+				if (value != _label)
+				{
+					_label = value;
+					HasLabel = !string.IsNullOrEmpty(value);
+				}
+			}
+		}
 
 		[JsonProperty(Order = 4)]
 		public KeyState KeyState { get; private set; }
@@ -82,13 +94,13 @@ namespace WalletWasabi.KeyManagement
 		public KeyPath NonHardenedKeyPath { get; }
 		public bool IsInternal { get; }
 
+		public bool HasLabel { get; private set; }
+
 		public BitcoinPubKeyAddress GetP2pkhAddress(Network network) => PubKey.GetAddress(network);
 
 		public BitcoinWitPubKeyAddress GetP2wpkhAddress(Network network) => PubKey.GetSegwitAddress(network);
 
 		public BitcoinScriptAddress GetP2shOverP2wpkhAddress(Network network) => P2wpkhScript.GetScriptAddress(network);
-
-		public bool HasLabel() => !string.IsNullOrEmpty(Label);
 
 		#region Equality
 

@@ -351,7 +351,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			var foundLabelless = keys.FirstOrDefault(x => !x.HasLabel()); // Return the first labelless.
+			var foundLabelless = keys.FirstOrDefault(x => !x.HasLabel); // Return the first labelless.
 			HdPubKey ret = foundLabelless ?? keys.RandomElement(); // Return the first, because that's the oldest.
 
 			ret.SetLabel(label, KeyManager);
