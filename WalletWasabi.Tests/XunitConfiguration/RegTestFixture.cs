@@ -29,9 +29,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 			var rpc = BackendRegTestNode.CreateRpcClient();
 
-			var authString = rpc.Authentication.Split(':');
-
-			var config = new Config(rpc.Network, authString[0], authString[1]);
+			var config = new Config(rpc.Network, rpc.Authentication);
 
 			var roundConfig = new CcjRoundConfig(Money.Coins(0.1m), 144, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
 
