@@ -110,6 +110,9 @@ namespace WalletWasabi.Backend
 			await Task.WhenAll(stopTasks);
 			Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
 			Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
+
+			Global.DisconnectDisposeNullLocalNode();
+			Logger.LogInfo<Startup>("LocalNode is disposed.");
 		}
 	}
 }

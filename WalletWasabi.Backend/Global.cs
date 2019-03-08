@@ -8,6 +8,8 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using WalletWasabi.Models.ChaumianCoinJoin;
+using System.Threading;
+using NBitcoin.Protocol;
 
 namespace WalletWasabi.Backend
 {
@@ -29,6 +31,8 @@ namespace WalletWasabi.Backend
 
 		public static RPCClient RpcClient { get; private set; }
 
+		public static Node LocalNode { get; private set; }
+
 		public static IndexBuilderService IndexBuilderService { get; private set; }
 
 		public static CcjCoordinator Coordinator { get; private set; }
@@ -45,7 +49,11 @@ namespace WalletWasabi.Backend
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 
+			// Make sure RPC works.
 			await AssertRpcNodeFullyInitializedAsync();
+
+			// Make sure P2P works.
+			InitializeP2pNode(config.Network, config.GetBitcoinCoreEndPoint());
 
 			// Initialize index building
 			var indexBuilderServiceDir = Path.Combine(DataDir, nameof(IndexBuilderService));
@@ -79,6 +87,88 @@ namespace WalletWasabi.Backend
 					return Task.CompletedTask;
 				}); // Every 10 seconds check the config
 				Logger.LogInfo<ConfigWatcher>($"{nameof(RoundConfigWatcher)} is successfully started.");
+			}
+		}
+
+		public static void DisconnectDisposeNullLocalNode()
+		{
+			if (LocalNode != null)
+			{
+				try
+				{
+					LocalNode?.Disconnect();
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug<WalletService>(ex);
+				}
+				finally
+				{
+					try
+					{
+						LocalNode?.Dispose();
+					}
+					catch (Exception ex)
+					{
+						Logger.LogDebug<WalletService>(ex);
+					}
+					finally
+					{
+						LocalNode = null;
+						try
+						{
+							Logger.LogInfo<WalletService>("Local Bitcoin Node is disconnected.");
+						}
+						catch (Exception)
+						{
+							throw;
+						}
+					}
+				}
+			}
+		}
+
+		private static void InitializeP2pNode(Network network, IPEndPoint iPEndPoint)
+		{
+			Guard.NotNull(nameof(network), network);
+			Guard.NotNull(nameof(iPEndPoint), iPEndPoint);
+
+			using (var handshakeTimeout = new CancellationTokenSource())
+			{
+				handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
+				var nodeConnectionParameters = new NodeConnectionParameters()
+				{
+					ConnectCancellation = handshakeTimeout.Token,
+					IsRelay = true
+				};
+
+				var node = Node.Connect(network, iPEndPoint, nodeConnectionParameters);
+				try
+				{
+					Logger.LogInfo<Node>($"TCP Connection succeeded, handshaking...");
+					node.VersionHandshake(Constants.LocalBackendNodeRequirements, handshakeTimeout.Token);
+					var peerServices = node.PeerVersion.Services;
+
+					if (!peerServices.HasFlag(NodeServices.Network) && !peerServices.HasFlag(NodeServices.NODE_NETWORK_LIMITED))
+					{
+						throw new InvalidOperationException($"Wasabi cannot use the local node because it doesn't provide blocks.");
+					}
+
+					Logger.LogInfo<Node>($"Handshake completed successfully.");
+
+					if (!node.IsConnected)
+					{
+						throw new InvalidOperationException($"Wasabi could not complete the handshake with the local node and dropped the connection.{Environment.NewLine}" +
+							$"Probably this is because the node doesn't support retrieving full blocks or segwit serialization.");
+					}
+					LocalNode = node;
+				}
+				catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
+				{
+					Logger.LogWarning<Node>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
+						$"Use \"whitebind\" or \"whitelist\" in the node configuration. (Typically whitelist=127.0.0.1 if Wasabi and the node are on the same machine.)");
+					throw;
+				}
 			}
 		}
 
