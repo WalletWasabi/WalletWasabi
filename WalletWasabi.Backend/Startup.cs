@@ -93,8 +93,6 @@ namespace WalletWasabi.Backend
 
 			if (Global.IndexBuilderService != null)
 			{
-				Global.IndexBuilderService.NewBlock -= Global.IndexBuilderService_NewBlockAsync;
-
 				await Global.IndexBuilderService.StopAsync();
 				Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
 			}
@@ -105,8 +103,11 @@ namespace WalletWasabi.Backend
 				Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
 			}
 
-			Global.DisconnectDisposeNullLocalNode();
-			Logger.LogInfo<Startup>("LocalNode is disposed.");
+			if (Global.LocalNode != null)
+			{
+				Global.DisconnectDisposeNullLocalNode();
+				Logger.LogInfo<Startup>("LocalNode is disposed.");
+			}
 		}
 	}
 }

@@ -62,8 +62,7 @@ namespace WalletWasabi.Backend
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
 			IndexBuilderService = new IndexBuilderService(RpcClient, TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
-			Coordinator = new CcjCoordinator(RpcClient.Network, Path.Combine(DataDir, nameof(CcjCoordinator)), RpcClient, roundConfig);
-			IndexBuilderService.NewBlock += IndexBuilderService_NewBlockAsync;
+			Coordinator = new CcjCoordinator(RpcClient.Network, TrustedNodeNotifyingBehavior, Path.Combine(DataDir, nameof(CcjCoordinator)), RpcClient, roundConfig);
 			IndexBuilderService.Synchronize();
 			Logger.LogInfo<IndexBuilderService>("IndexBuilderService is successfully initialized and started synchronization.");
 
@@ -174,18 +173,6 @@ namespace WalletWasabi.Backend
 						$"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
 					throw;
 				}
-			}
-		}
-
-		public static async void IndexBuilderService_NewBlockAsync(object sender, Block block)
-		{
-			try
-			{
-				await Coordinator.ProcessBlockAsync(block);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning(ex, nameof(Global));
 			}
 		}
 

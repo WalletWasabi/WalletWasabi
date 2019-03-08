@@ -28,8 +28,6 @@ namespace WalletWasabi.Services
 		private Dictionary<OutPoint, Script> Bech32UtxoSet { get; }
 		private List<ActionHistoryHelper> Bech32UtxoSetHistory { get; }
 
-		public event EventHandler<Block> NewBlock;
-
 		private class ActionHistoryHelper
 		{
 			public enum Operation
@@ -229,11 +227,6 @@ namespace WalletWasabi.Services
 							{
 								await Task.Delay(1000);
 								continue;
-							}
-
-							if (blockCount - height <= 2)
-							{
-								NewBlock?.Invoke(this, block);
 							}
 
 							if (prevHash != null)

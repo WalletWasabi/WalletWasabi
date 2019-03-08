@@ -31,13 +31,16 @@ namespace WalletWasabi.Services
 
 		public Network Network { get; }
 
+		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; }
+
 		public string FolderPath { get; }
 
 		public UtxoReferee UtxoReferee { get; }
 
-		public CcjCoordinator(Network network, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
+		public CcjCoordinator(Network network, TrustedNodeNotifyingBehavior trustedNodeNotifyingBehavior, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
+			TrustedNodeNotifyingBehavior = Guard.NotNull(nameof(trustedNodeNotifyingBehavior), trustedNodeNotifyingBehavior);
 			FolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
@@ -110,6 +113,20 @@ namespace WalletWasabi.Services
 				CcjRound.RoundCount = 0;
 				Logger.LogInfo<CcjCoordinator>($"{nameof(CcjRound.RoundCount)} file was corrupt. Resetting to 0.");
 				Logger.LogDebug<CcjCoordinator>(ex);
+			}
+
+			TrustedNodeNotifyingBehavior.Block += TrustedNodeNotifyingBehavior_BlockAsync;
+		}
+
+		private async void TrustedNodeNotifyingBehavior_BlockAsync(object sender, Block block)
+		{
+			try
+			{
+				await ProcessBlockAsync(block);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<CcjCoordinator>(ex);
 			}
 		}
 
@@ -370,6 +387,11 @@ namespace WalletWasabi.Services
 				{
 					using (RoundsListLock.Lock())
 					{
+						if (TrustedNodeNotifyingBehavior != null)
+						{
+							TrustedNodeNotifyingBehavior.Block -= TrustedNodeNotifyingBehavior_BlockAsync;
+						}
+
 						foreach (CcjRound round in Rounds)
 						{
 							round.StatusChanged -= Round_StatusChangedAsync;

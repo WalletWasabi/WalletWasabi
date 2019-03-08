@@ -1674,7 +1674,7 @@ namespace WalletWasabi.Tests
 				mempoolTxId.ToString()
 			});
 
-			using (var coordinatorToTest = new CcjCoordinator(network, folder, rpc, coordinator.RoundConfig))
+			using (var coordinatorToTest = new CcjCoordinator(network, Global.TrustedNodeNotifyingBehavior, folder, rpc, coordinator.RoundConfig))
 			{
 				var txIds = await File.ReadAllLinesAsync(cjfile);
 
@@ -1689,7 +1689,7 @@ namespace WalletWasabi.Tests
 				"This line is invalid (the file is corrupted)",
 				offchainTxId.ToString(),
 			});
-				var coordinatorToTest2 = new CcjCoordinator(network, folder, rpc, coordinatorToTest.RoundConfig);
+				var coordinatorToTest2 = new CcjCoordinator(network, Global.TrustedNodeNotifyingBehavior, folder, rpc, coordinatorToTest.RoundConfig);
 				coordinatorToTest2.Dispose();
 				txIds = await File.ReadAllLinesAsync(cjfile);
 				Assert.Single(txIds);
