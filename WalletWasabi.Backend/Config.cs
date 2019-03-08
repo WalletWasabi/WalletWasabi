@@ -46,6 +46,36 @@ namespace WalletWasabi.Backend
 		[JsonProperty(PropertyName = "RegTestBitcoinCorePort")]
 		public int? RegTestBitcoinCorePort { get; internal set; }
 
+		private IPEndPoint _bitcoinCoreEndPoint;
+
+		public IPEndPoint GetBitcoinCoreEndPoint()
+		{
+			if (_bitcoinCoreEndPoint is null)
+			{
+				IPAddress host;
+				int? port;
+				if (Network == Network.Main)
+				{
+					host = IPAddress.Parse(MainNetBitcoinCoreHost);
+					port = MainNetBitcoinCorePort;
+				}
+				else if (Network == Network.TestNet)
+				{
+					host = IPAddress.Parse(TestNetBitcoinCoreHost);
+					port = TestNetBitcoinCorePort;
+				}
+				else // if (Network == Network.RegTest)
+				{
+					host = IPAddress.Parse(RegTestBitcoinCoreHost);
+					port = RegTestBitcoinCorePort;
+				}
+
+				_bitcoinCoreEndPoint = new IPEndPoint(host, port ?? Network.DefaultPort);
+			}
+
+			return _bitcoinCoreEndPoint;
+		}
+
 		public Config()
 		{
 		}
