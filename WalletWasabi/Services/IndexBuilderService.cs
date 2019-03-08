@@ -227,13 +227,6 @@ namespace WalletWasabi.Services
 							}
 							catch (RPCException) // if the block didn't come yet
 							{
-								if (blockCount == height - 1)
-								{
-									// Start listening to P2P from here on.
-
-									return;
-								}
-
 								await Task.Delay(1000);
 								continue;
 							}

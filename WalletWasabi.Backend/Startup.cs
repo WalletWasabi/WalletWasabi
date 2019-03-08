@@ -91,25 +91,19 @@ namespace WalletWasabi.Backend
 			Global.Coordinator?.Dispose();
 			Logger.LogInfo<Startup>("Coordinator is disposed.");
 
-			var stopTasks = new List<Task>();
-
 			if (Global.IndexBuilderService != null)
 			{
 				Global.IndexBuilderService.NewBlock -= Global.IndexBuilderService_NewBlockAsync;
 
-				var t = Global.IndexBuilderService.StopAsync();
-				stopTasks.Add(t);
+				await Global.IndexBuilderService.StopAsync();
+				Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
 			}
 
 			if (Global.RoundConfigWatcher != null)
 			{
-				var t = Global.RoundConfigWatcher.StopAsync();
-				stopTasks.Add(t);
+				await Global.RoundConfigWatcher.StopAsync();
+				Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
 			}
-
-			await Task.WhenAll(stopTasks);
-			Logger.LogInfo<Startup>("IndexBuilderService is disposed.");
-			Logger.LogInfo<Startup>("RoundConfigWatcher is disposed.");
 
 			Global.DisconnectDisposeNullLocalNode();
 			Logger.LogInfo<Startup>("LocalNode is disposed.");
