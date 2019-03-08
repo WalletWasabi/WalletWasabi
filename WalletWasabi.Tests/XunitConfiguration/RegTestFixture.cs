@@ -30,9 +30,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 			var rpc = BackendRegTestNode.CreateRpcClient();
 
-			var authString = rpc.Authentication.Split(':');
-
-			var config = new Config(rpc.Network, authString[0], authString[1], IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, Network.RegTest.DefaultPort);
+			var config = new Config(rpc.Network, rpc.Authentication, IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), IPAddress.Loopback.ToString(), Network.Main.DefaultPort, Network.TestNet.DefaultPort, Network.RegTest.DefaultPort);
 
 			var roundConfig = new CcjRoundConfig(Money.Coins(0.1m), 144, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
 

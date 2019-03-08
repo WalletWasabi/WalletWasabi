@@ -22,11 +22,8 @@ namespace WalletWasabi.Backend
 		[JsonConverter(typeof(NetworkJsonConverter))]
 		public Network Network { get; private set; }
 
-		[JsonProperty(PropertyName = "BitcoinRpcUser")]
-		public string BitcoinRpcUser { get; private set; }
-
-		[JsonProperty(PropertyName = "BitcoinRpcPassword")]
-		public string BitcoinRpcPassword { get; private set; }
+		[JsonProperty(PropertyName = "BitcoinRpcConnectionString")]
+		public string BitcoinRpcConnectionString { get; private set; }
 
 		[JsonProperty(PropertyName = "MainNetBitcoinCoreHost")]
 		public string MainNetBitcoinCoreHost { get; internal set; }
@@ -86,8 +83,7 @@ namespace WalletWasabi.Backend
 		}
 
 		public Config(Network network,
-			string bitcoinRpcUser,
-			string bitcoinRpcPassword,
+			string BitcoinRpcConnectionString,
 			string mainNetBitcoinCoreHost,
 			string testNetBitcoinCoreHost,
 			string regTestBitcoinCoreHost,
@@ -96,8 +92,7 @@ namespace WalletWasabi.Backend
 			int? regTestBitcoinCorePort)
 		{
 			Network = Guard.NotNull(nameof(network), network);
-			BitcoinRpcUser = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinRpcUser), bitcoinRpcUser);
-			BitcoinRpcPassword = Guard.NotNull(nameof(bitcoinRpcPassword), bitcoinRpcPassword);
+			BitcoinRpcConnectionString = Guard.NotNullOrEmptyOrWhitespace(nameof(BitcoinRpcConnectionString), BitcoinRpcConnectionString);
 
 			MainNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(mainNetBitcoinCoreHost), mainNetBitcoinCoreHost);
 			TestNetBitcoinCoreHost = Guard.NotNullOrEmptyOrWhitespace(nameof(testNetBitcoinCoreHost), testNetBitcoinCoreHost);
@@ -124,8 +119,7 @@ namespace WalletWasabi.Backend
 			AssertFilePathSet();
 
 			Network = Network.Main;
-			BitcoinRpcUser = "user";
-			BitcoinRpcPassword = "password";
+			BitcoinRpcConnectionString = "user:password";
 
 			MainNetBitcoinCoreHost = IPAddress.Loopback.ToString();
 			TestNetBitcoinCoreHost = IPAddress.Loopback.ToString();
@@ -144,8 +138,7 @@ namespace WalletWasabi.Backend
 				var config = JsonConvert.DeserializeObject<Config>(jsonString);
 
 				Network = config.Network ?? Network;
-				BitcoinRpcUser = config.BitcoinRpcUser ?? BitcoinRpcUser;
-				BitcoinRpcPassword = config.BitcoinRpcPassword ?? BitcoinRpcPassword;
+				BitcoinRpcConnectionString = config.BitcoinRpcConnectionString ?? BitcoinRpcConnectionString;
 
 				MainNetBitcoinCoreHost = config.MainNetBitcoinCoreHost ?? MainNetBitcoinCoreHost;
 				TestNetBitcoinCoreHost = config.TestNetBitcoinCoreHost ?? TestNetBitcoinCoreHost;
@@ -175,11 +168,7 @@ namespace WalletWasabi.Backend
 			{
 				return true;
 			}
-			if (BitcoinRpcPassword != config.BitcoinRpcPassword)
-			{
-				return true;
-			}
-			if (BitcoinRpcUser != config.BitcoinRpcUser)
+			if (BitcoinRpcConnectionString != config.BitcoinRpcConnectionString)
 			{
 				return true;
 			}

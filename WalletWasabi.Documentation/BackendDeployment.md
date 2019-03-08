@@ -148,8 +148,6 @@ pico ~/.bitcoin/bitcoin.conf
 testnet=[0/1]
 
 [main/test].maxuploadtarget=144
-# If bandwidth is an issue, then don't listen. It may be problematic from a privacy point of view.
-#[main/test].listen=0
 
 [main/test].txindex=1
 
@@ -157,6 +155,7 @@ testnet=[0/1]
 [main/test].server=1
 [main/test].rpcuser=bitcoinuser
 [main/test].rpcpassword=password
+[main/test].whitelist=127.0.0.1
 ```
 https://bitcoincore.org/en/releases/0.17.0/
 https://medium.com/@loopring/how-to-run-lighting-btc-node-and-start-mining-b55c4bab8ad  
