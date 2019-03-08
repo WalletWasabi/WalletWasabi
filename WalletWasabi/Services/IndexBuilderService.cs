@@ -11,12 +11,14 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin.Protocol;
 
 namespace WalletWasabi.Services
 {
 	public class IndexBuilderService
 	{
 		public RPCClient RpcClient { get; }
+		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; }
 		public string IndexFilePath { get; }
 		public string Bech32UtxoSetFilePath { get; }
 
@@ -126,9 +128,10 @@ namespace WalletWasabi.Services
 		public bool IsRunning => Interlocked.Read(ref _running) == 1;
 		public bool IsStopping => Interlocked.Read(ref _running) == 2;
 
-		public IndexBuilderService(RPCClient rpc, string indexFilePath, string bech32UtxoSetFilePath)
+		public IndexBuilderService(RPCClient rpc, TrustedNodeNotifyingBehavior trustedNodeNotifyingBehavior, string indexFilePath, string bech32UtxoSetFilePath)
 		{
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
+			TrustedNodeNotifyingBehavior = Guard.NotNull(nameof(trustedNodeNotifyingBehavior), trustedNodeNotifyingBehavior);
 			IndexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 			Bech32UtxoSetFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(bech32UtxoSetFilePath), bech32UtxoSetFilePath);
 
@@ -178,6 +181,8 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
+
+			TrustedNodeNotifyingBehavior.Block += TrustedNodeNotifyingBehavior_Block;
 		}
 
 		public void Synchronize()
@@ -222,6 +227,13 @@ namespace WalletWasabi.Services
 							}
 							catch (RPCException) // if the block didn't come yet
 							{
+								if (blockCount == height - 1)
+								{
+									// Start listening to P2P from here on.
+
+									return;
+								}
+
 								await Task.Delay(1000);
 								continue;
 							}
@@ -368,6 +380,16 @@ namespace WalletWasabi.Services
 			});
 		}
 
+		private void TrustedNodeNotifyingBehavior_Block(object sender, Block e)
+		{
+			try
+			{
+			}
+			catch (Exception ex)
+			{
+			}
+		}
+
 		public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
 		{
 			using (IndexLock.Lock())
@@ -406,6 +428,11 @@ namespace WalletWasabi.Services
 
 		public async Task StopAsync()
 		{
+			if (TrustedNodeNotifyingBehavior != null)
+			{
+				TrustedNodeNotifyingBehavior.Block -= TrustedNodeNotifyingBehavior_Block;
+			}
+
 			if (IsRunning)
 			{
 				Interlocked.Exchange(ref _running, 2);

@@ -33,6 +33,8 @@ namespace WalletWasabi.Backend
 
 		public static Node LocalNode { get; private set; }
 
+		public static TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; private set; }
+
 		public static IndexBuilderService IndexBuilderService { get; private set; }
 
 		public static CcjCoordinator Coordinator { get; private set; }
@@ -53,13 +55,13 @@ namespace WalletWasabi.Backend
 			await AssertRpcNodeFullyInitializedAsync();
 
 			// Make sure P2P works.
-			InitializeP2pNode(config.Network, config.GetBitcoinCoreEndPoint());
+			InitializeP2p(config.Network, config.GetBitcoinCoreEndPoint());
 
 			// Initialize index building
 			var indexBuilderServiceDir = Path.Combine(DataDir, nameof(IndexBuilderService));
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{RpcClient.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{RpcClient.Network}.dat");
-			IndexBuilderService = new IndexBuilderService(RpcClient, indexFilePath, utxoSetFilePath);
+			IndexBuilderService = new IndexBuilderService(RpcClient, TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
 			Coordinator = new CcjCoordinator(RpcClient.Network, Path.Combine(DataDir, nameof(CcjCoordinator)), RpcClient, roundConfig);
 			IndexBuilderService.NewBlock += IndexBuilderService_NewBlockAsync;
 			IndexBuilderService.Synchronize();
@@ -128,7 +130,7 @@ namespace WalletWasabi.Backend
 			}
 		}
 
-		private static void InitializeP2pNode(Network network, IPEndPoint iPEndPoint)
+		private static void InitializeP2p(Network network, IPEndPoint iPEndPoint)
 		{
 			Guard.NotNull(nameof(network), network);
 			Guard.NotNull(nameof(iPEndPoint), iPEndPoint);
@@ -141,6 +143,9 @@ namespace WalletWasabi.Backend
 					ConnectCancellation = handshakeTimeout.Token,
 					IsRelay = true
 				};
+
+				TrustedNodeNotifyingBehavior = new TrustedNodeNotifyingBehavior();
+				nodeConnectionParameters.TemplateBehaviors.Add(TrustedNodeNotifyingBehavior);
 
 				var node = Node.Connect(network, iPEndPoint, nodeConnectionParameters);
 				try

@@ -163,7 +163,7 @@ namespace WalletWasabi.Tests
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{rpc.Network}.dat");
 
-			var indexBuilderService = new IndexBuilderService(rpc, indexFilePath, utxoSetFilePath);
+			var indexBuilderService = new IndexBuilderService(rpc, Global.TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
 			try
 			{
 				indexBuilderService.Synchronize();
