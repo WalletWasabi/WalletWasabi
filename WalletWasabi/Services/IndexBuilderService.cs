@@ -219,14 +219,20 @@ namespace WalletWasabi.Services
 
 							if (blockCount - heightToRequest <= 100)
 							{
-								//// We both we are in sync and our Core node is in sync. Start doing stuff through P2P from now on.
-								//if (isCoreSynchornized && blockCount == heightToRequest - 1)
-								//{
-								//	TrustedNodeNotifyingBehavior.Block += TrustedNodeNotifyingBehavior_Block;
-								//	// Mark the initial index building process stopping. (finally block will mark it is stopped.)
-								//	Interlocked.Exchange(ref _initialIndexBuilding, 2);
-								//	return;
-								//}
+								// We both we are in sync and our Core node is in sync. Start doing stuff through P2P from now on.
+								if (isCoreSynchornized && blockCount == heightToRequest - 1)
+								{
+									bcinfo = await RpcClient.GetBlockchainInfoAsync();
+									ProcessRelevantBlockchainInfo(bcinfo, out blockCount, out blockchainInfoUpdated, out isCoreSynchornized);
+									// Double it to make sure not to accidentally miss any notification.
+									if (isCoreSynchornized && blockCount == heightToRequest - 1)
+									{
+										//TrustedNodeNotifyingBehavior.Block += TrustedNodeNotifyingBehavior_Block;
+										//// Mark the initial index building process stopping. (finally block will mark it is stopped.)
+										//Interlocked.Exchange(ref _initialIndexBuilding, 2);
+										//return;
+									}
+								}
 
 								// Mark the synchronizing process is working with immature blocks from now on.
 								isImmature = true;
