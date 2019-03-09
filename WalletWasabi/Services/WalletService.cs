@@ -445,7 +445,7 @@ namespace WalletWasabi.Services
 			uint256 txId = tx.GetHash();
 
 			bool justUpdate = false;
-			if (tx.Height.Type == HeightType.Chain)
+			if (tx.Confirmed)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
 				if (!tx.Transaction.PossiblyNativeSegWitInvolved()) return; // We don't care about non-witness transactions for other than mempool cleanup.
@@ -491,12 +491,14 @@ namespace WalletWasabi.Services
 				{
 					if (tx.Height == Height.MemPool)
 					{
-						// if all double spent coins are mempool and RBF
-						if (doubleSpends.All(x => x.RBF && x.Height == Height.MemPool))
+						// if the received transaction is spending at least one input already
+						// spent by a previous unconfirmed transaction signaling RBF then it is not a double
+						// spanding transaction but a replacement transaction. 
+						if(doubleSpends.Any(x => x.RBF && !x.Confirmed))
 						{
 							// remove double spent coins (if other coin spends it, remove that too and so on)
 							// will add later if they came to our keys
-							foreach (SmartCoin doubleSpentCoin in doubleSpends)
+							foreach (SmartCoin doubleSpentCoin in doubleSpends.Where(x=>!x.Confirmed))
 							{
 								RemoveCoinRecursively(doubleSpentCoin);
 							}
