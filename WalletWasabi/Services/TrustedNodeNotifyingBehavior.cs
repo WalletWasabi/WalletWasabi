@@ -11,12 +11,16 @@ namespace WalletWasabi.Services
 {
 	public class TrustedNodeNotifyingBehavior : NodeBehavior
 	{
+		public event EventHandler<uint256> TransactionInv;
+
+		public event EventHandler<uint256> BlockInv;
+
 		public event EventHandler<Transaction> Transaction;
+
 		public event EventHandler<Block> Block;
 
 		public TrustedNodeNotifyingBehavior()
 		{
-
 		}
 
 		protected override void AttachCore()
@@ -36,9 +40,18 @@ namespace WalletWasabi.Services
 				if (message.Message.Payload is InvPayload invPayload)
 				{
 					var payload = new GetDataPayload();
-					foreach (var inv in invPayload.Inventory.Where(inv => inv.Type.HasFlag(InventoryType.MSG_TX) || inv.Type.HasFlag(InventoryType.MSG_BLOCK)))
+					foreach (var inv in invPayload.Inventory)
 					{
-						payload.Inventory.Add(inv);
+						if (inv.Type.HasFlag(InventoryType.MSG_TX))
+						{
+							TransactionInv?.Invoke(this, inv.Hash);
+							payload.Inventory.Add(inv);
+						}
+						else if (inv.Type.HasFlag(InventoryType.MSG_BLOCK))
+						{
+							BlockInv?.Invoke(this, inv.Hash);
+							payload.Inventory.Add(inv);
+						}
 					}
 
 					if (node.IsConnected)
@@ -51,7 +64,7 @@ namespace WalletWasabi.Services
 				{
 					Transaction?.Invoke(this, txPayload.Object);
 				}
-				else if(message.Message.Payload is BlockPayload blockPayload)
+				else if (message.Message.Payload is BlockPayload blockPayload)
 				{
 					Block?.Invoke(this, blockPayload.Object);
 				}
