@@ -143,10 +143,10 @@ namespace WalletWasabi.Backend
 					IsRelay = true
 				};
 
-				TrustedNodeNotifyingBehavior = new TrustedNodeNotifyingBehavior();
-				nodeConnectionParameters.TemplateBehaviors.Add(TrustedNodeNotifyingBehavior);
-
+				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
 				var node = Node.Connect(network, iPEndPoint, nodeConnectionParameters);
+				// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
+				TrustedNodeNotifyingBehavior = node.Behaviors.Find<TrustedNodeNotifyingBehavior>();
 				try
 				{
 					Logger.LogInfo<Node>($"TCP Connection succeeded, handshaking...");

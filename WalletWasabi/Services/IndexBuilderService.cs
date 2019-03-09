@@ -179,12 +179,29 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
+
+			TrustedNodeNotifyingBehavior.BlockInv += TrustedNodeNotifyingBehavior_BlockInv;
 		}
+
+		private long _runner;
 
 		public void Synchronize()
 		{
 			Task.Run(async () =>
 			{
+				if (Interlocked.Read(ref _runner) >= 2) return;
+
+				Interlocked.Increment(ref _runner);
+				while (Interlocked.Read(ref _runner) != 1)
+				{
+					await Task.Delay(100);
+				}
+
+				if (Interlocked.Read(ref _running) >= 2)
+				{
+					return;
+				}
+
 				try
 				{
 					Interlocked.Exchange(ref _running, 1);
@@ -227,10 +244,9 @@ namespace WalletWasabi.Services
 									// Double it to make sure not to accidentally miss any notification.
 									if (isCoreSynchornized && blockCount == heightToRequest - 1)
 									{
-										//TrustedNodeNotifyingBehavior.Block += TrustedNodeNotifyingBehavior_Block;
-										//// Mark the initial index building process stopping. (finally block will mark it is stopped.)
-										//Interlocked.Exchange(ref _initialIndexBuilding, 2);
-										//return;
+										// Mark the process notstarted, so it can be started again and finally block can mark it is stopped.
+										Interlocked.Exchange(ref _running, 0);
+										return;
 									}
 								}
 
@@ -238,16 +254,7 @@ namespace WalletWasabi.Services
 								isImmature = true;
 							}
 
-							Block block = null;
-							try
-							{
-								block = await RpcClient.GetBlockAsync(heightToRequest);
-							}
-							catch (RPCException) // if the block didn't come yet
-							{
-								await Task.Delay(1000);
-								continue;
-							}
+							Block block = await RpcClient.GetBlockAsync(heightToRequest);
 
 							// Reorg check, except if we're requesting the starting height, because then the "currentHash" wouldn't exist.
 
@@ -364,8 +371,22 @@ namespace WalletWasabi.Services
 					{
 						Interlocked.Exchange(ref _running, 3);
 					}
+					Interlocked.Decrement(ref _runner);
 				}
 			});
+		}
+
+		private void TrustedNodeNotifyingBehavior_BlockInv(object sender, uint256 e)
+		{
+			try
+			{
+				// Run sync every time a block notification arrives. Synchronizer will stop when it finishes.
+				Synchronize();
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError<IndexBuilderService>(ex);
+			}
 		}
 
 		private async Task ReorgOneAsync()
@@ -448,6 +469,11 @@ namespace WalletWasabi.Services
 
 		public async Task StopAsync()
 		{
+			if (TrustedNodeNotifyingBehavior != null)
+			{
+				TrustedNodeNotifyingBehavior.BlockInv -= TrustedNodeNotifyingBehavior_BlockInv;
+			}
+
 			if (IsRunning)
 			{
 				Interlocked.Exchange(ref _running, 2);

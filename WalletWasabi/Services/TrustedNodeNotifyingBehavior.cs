@@ -54,7 +54,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					if (node.IsConnected)
+					if (payload.Inventory.Any() && node.IsConnected)
 					{
 						// ask for the whole transaction
 						await node.SendMessageAsync(payload);
@@ -82,6 +82,7 @@ namespace WalletWasabi.Services
 
 		public override object Clone()
 		{
+			// Note that, this isn't clone! So this must be used after we are connected to a node, because it'll have as many clones as nodes.
 			return new TrustedNodeNotifyingBehavior();
 		}
 	}
