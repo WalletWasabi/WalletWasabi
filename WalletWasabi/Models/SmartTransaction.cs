@@ -37,6 +37,14 @@ namespace WalletWasabi.Models
 		[JsonConverter(typeof(BlockCypherDateTimeOffsetJsonConverter))]
 		public DateTimeOffset? FirstSeenIfMemPoolTime { get; private set; }
 
+		public bool IsReplacement { get; internal set; }
+
+		/// <summary>
+		/// A transaction can signal that is replaceable by fee in two ways: 
+		/// * Explicitly by using a nSequence &lt; (0xffffffff - 1) or,
+		/// * Implicitly in case one of its unconfirmed ancestors are replaceable
+		/// </summary>
+		public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement);
 		#endregion Members
 
 		#region Constructors
@@ -56,6 +64,7 @@ namespace WalletWasabi.Models
 			{
 				FirstSeenIfMemPoolTime = firstSeenIfMemPoolTime;
 			}
+			IsReplacement = false;
 		}
 
 		public void SetHeight(Height height)

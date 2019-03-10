@@ -209,6 +209,7 @@ namespace WalletWasabi.Services
 			}
 
 			Coins.TryRemove(toRemove);
+			MemPool.TransactionHashes.TryRemove(toRemove.SpenderTransactionId);
 		}
 
 		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
@@ -502,6 +503,7 @@ namespace WalletWasabi.Services
 							{
 								RemoveCoinRecursively(doubleSpentCoin);
 							}
+							tx.IsReplacement = true;
 						}
 						else
 						{
@@ -540,7 +542,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
 																																																															 // If we didn't have it.
 					if (Coins.TryAdd(newCoin))
 					{
@@ -579,6 +581,7 @@ namespace WalletWasabi.Services
 							if (oldCoin != null) // Just to be sure, it is a concurrent collection.
 							{
 								oldCoin.Height = newCoin.Height;
+								oldCoin.RBF = false;
 							}
 						}
 					}
