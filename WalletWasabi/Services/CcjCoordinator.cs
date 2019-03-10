@@ -115,14 +115,15 @@ namespace WalletWasabi.Services
 				Logger.LogDebug<CcjCoordinator>(ex);
 			}
 
+			TrustedNodeNotifyingBehavior.Transaction += TrustedNodeNotifyingBehavior_TransactionAsync;
 			TrustedNodeNotifyingBehavior.Block += TrustedNodeNotifyingBehavior_BlockAsync;
 		}
 
-		private async void TrustedNodeNotifyingBehavior_BlockAsync(object sender, Block block)
+		private async void TrustedNodeNotifyingBehavior_TransactionAsync(object sender, Transaction tx)
 		{
 			try
 			{
-				await ProcessBlockAsync(block);
+				await ProcessTransactionAsync(tx, isInBlock: false);
 			}
 			catch (Exception ex)
 			{
@@ -130,37 +131,54 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task ProcessBlockAsync(Block block)
+		private async void TrustedNodeNotifyingBehavior_BlockAsync(object sender, Block block)
 		{
-			// https://github.com/zkSNACKs/WalletWasabi/issues/145
-			// whenever a block arrives:
-			//    go through all its transactions
-			//       if a transaction spends a banned output AND it's not CJ output
-			//          ban all the outputs of the transaction
-
-			foreach (Transaction tx in block.Transactions)
+			try
 			{
-				if (RoundConfig.DosSeverity <= 1) return;
-				var txId = tx.GetHash();
-
-				foreach (TxIn input in tx.Inputs)
+				foreach (Transaction tx in block.Transactions)
 				{
-					OutPoint prevOut = input.PrevOut;
+					await ProcessTransactionAsync(tx, isInBlock: true);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<CcjCoordinator>(ex);
+			}
+		}
 
-					// if coin is not banned
-					var foundElem = await UtxoReferee.TryGetBannedAsync(prevOut, notedToo: true);
-					if (foundElem != null)
+		public async Task ProcessTransactionAsync(Transaction tx, bool isInBlock)
+		{
+			// This should not be needed until we would only accept unconfirmed CJ outputs an no other unconf outs. But it'll be more bulletproof for future extensions.
+			// Turns out you shouldn't accept RBF at all never. (See below.)
+
+			// https://github.com/zkSNACKs/WalletWasabi/issues/145
+			//   if a it spends a banned output AND it's not CJ output
+			//     ban all the outputs of the transaction
+
+			// With RBF they could infect any utxo with just one banned utxo.
+			// We could do a whole RBF logic here in order to make sure this is the latest RBF tx (would that even be bulletproof?) but fuck that,
+			// it's hard enough to get the RBF logic right in normal situations, and then we would have to note what utxos we unbanned and stuff...
+			// With non-RBF double spend they wouldn't be able to do the infectin at scale. Maybe one UTXO with one banned, but even that's dubious. Most likely unfeasible.
+			if (RoundConfig.DosSeverity <= 1 || (!isInBlock && tx.RBF)) return;
+			var txId = tx.GetHash();
+
+			foreach (TxIn input in tx.Inputs)
+			{
+				OutPoint prevOut = input.PrevOut;
+
+				// if coin is not banned
+				var foundElem = await UtxoReferee.TryGetBannedAsync(prevOut, notedToo: true);
+				if (foundElem != null)
+				{
+					if (!AnyRunningRoundContainsInput(prevOut, out _))
 					{
-						if (!AnyRunningRoundContainsInput(prevOut, out _))
-						{
-							int newSeverity = foundElem.Value.severity + 1;
-							await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
+						int newSeverity = foundElem.Value.severity + 1;
+						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
 
-							if (RoundConfig.DosSeverity >= newSeverity)
-							{
-								var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
-								await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.Value.timeOfBan, forceNoted: foundElem.Value.isNoted, foundElem.Value.bannedForRound, txCoins.ToArray());
-							}
+						if (RoundConfig.DosSeverity >= newSeverity)
+						{
+							var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
+							await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.Value.timeOfBan, forceNoted: foundElem.Value.isNoted, foundElem.Value.bannedForRound, txCoins.ToArray());
 						}
 					}
 				}
@@ -389,6 +407,7 @@ namespace WalletWasabi.Services
 					{
 						if (TrustedNodeNotifyingBehavior != null)
 						{
+							TrustedNodeNotifyingBehavior.Transaction -= TrustedNodeNotifyingBehavior_TransactionAsync;
 							TrustedNodeNotifyingBehavior.Block -= TrustedNodeNotifyingBehavior_BlockAsync;
 						}
 

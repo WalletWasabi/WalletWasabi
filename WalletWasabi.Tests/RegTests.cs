@@ -1977,10 +1977,7 @@ namespace WalletWasabi.Tests
 				Assert.NotNull(await utxos.TryGetBannedAsync(bannedCoin.ToOutPoint(), false));
 				spendingTx.Inputs.Add(new TxIn(bannedCoin.ToOutPoint()));
 				spendingTx.Outputs.Add(new TxOut(Money.Coins(1), new Key().PubKey.GetSegwitAddress(network)));
-				var fakeBlockWithSpendingBannedCoins = network.Consensus.ConsensusFactory.CreateBlock();
-				fakeBlockWithSpendingBannedCoins.Transactions.Add(spendingTx);
-
-				await coordinator.ProcessBlockAsync(fakeBlockWithSpendingBannedCoins);
+				await coordinator.ProcessTransactionAsync(spendingTx, false);
 
 				Assert.NotNull(await utxos.TryGetBannedAsync(new OutPoint(spendingTx.GetHash(), 0), false));
 				Assert.Null(await utxos.TryGetBannedAsync(bannedCoin.ToOutPoint(), false));
