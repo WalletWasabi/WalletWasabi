@@ -8,7 +8,7 @@
     <TextBlock Text="You can recover your wallet on any computer with:" FontWeight="Bold" />
     <TextBlock Text="- your mnemonic words AND" FontWeight="Bold" />
     <TextBlock Text="- your password" FontWeight="Bold" />
-    <TextBlock Text="Unlike most other wallets if an attacker aquires your mnemonic words, it will not be able to hack your wallet without knowing your password. However, unlike other wallets, you will not be able to recover your wallet only with your mnemonic words if you lose your password." TextWrapping="Wrap" />
+    <TextBlock Text="Unlike most other wallets if an attacker acquires your mnemonic words, it will not be able to hack your wallet without knowing your password. However, unlike other wallets, you will not be able to recover your wallet only with your mnemonic words if you lose your password." TextWrapping="Wrap" />
     <Button Background="IndianRed" Content="I backed up the mnemonic words!" Command="{Binding ConfirmCommand}" />
   </StackPanel>
 </UserControl>
