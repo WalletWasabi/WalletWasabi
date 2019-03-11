@@ -1977,7 +1977,7 @@ namespace WalletWasabi.Tests
 				Assert.NotNull(await utxos.TryGetBannedAsync(bannedCoin.ToOutPoint(), false));
 				spendingTx.Inputs.Add(new TxIn(bannedCoin.ToOutPoint()));
 				spendingTx.Outputs.Add(new TxOut(Money.Coins(1), new Key().PubKey.GetSegwitAddress(network)));
-				await coordinator.ProcessTransactionAsync(spendingTx, false);
+				await coordinator.ProcessTransactionAsync(spendingTx);
 
 				Assert.NotNull(await utxos.TryGetBannedAsync(new OutPoint(spendingTx.GetHash(), 0), false));
 				Assert.Null(await utxos.TryGetBannedAsync(bannedCoin.ToOutPoint(), false));

@@ -115,20 +115,7 @@ namespace WalletWasabi.Services
 				Logger.LogDebug<CcjCoordinator>(ex);
 			}
 
-			TrustedNodeNotifyingBehavior.Transaction += TrustedNodeNotifyingBehavior_TransactionAsync;
 			TrustedNodeNotifyingBehavior.Block += TrustedNodeNotifyingBehavior_BlockAsync;
-		}
-
-		private async void TrustedNodeNotifyingBehavior_TransactionAsync(object sender, Transaction tx)
-		{
-			try
-			{
-				await ProcessTransactionAsync(tx, isInBlock: false);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogWarning<CcjCoordinator>(ex);
-			}
 		}
 
 		private async void TrustedNodeNotifyingBehavior_BlockAsync(object sender, Block block)
@@ -137,7 +124,7 @@ namespace WalletWasabi.Services
 			{
 				foreach (Transaction tx in block.Transactions)
 				{
-					await ProcessTransactionAsync(tx, isInBlock: true);
+					await ProcessTransactionAsync(tx);
 				}
 			}
 			catch (Exception ex)
@@ -146,7 +133,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task ProcessTransactionAsync(Transaction tx, bool isInBlock)
+		public async Task ProcessTransactionAsync(Transaction tx)
 		{
 			// This should not be needed until we would only accept unconfirmed CJ outputs an no other unconf outs. But it'll be more bulletproof for future extensions.
 			// Turns out you shouldn't accept RBF at all never. (See below.)
@@ -155,11 +142,7 @@ namespace WalletWasabi.Services
 			//   if a it spends a banned output AND it's not CJ output
 			//     ban all the outputs of the transaction
 
-			// With RBF they could infect any utxo with just one banned utxo.
-			// We could do a whole RBF logic here in order to make sure this is the latest RBF tx (would that even be bulletproof?) but fuck that,
-			// it's hard enough to get the RBF logic right in normal situations, and then we would have to note what utxos we unbanned and stuff...
-			// With non-RBF double spend they wouldn't be able to do the infectin at scale. Maybe one UTXO with one banned, but even that's dubious. Most likely unfeasible.
-			if (RoundConfig.DosSeverity <= 1 || (!isInBlock && tx.RBF)) return;
+			if (RoundConfig.DosSeverity <= 1) return;
 			var txId = tx.GetHash();
 
 			foreach (TxIn input in tx.Inputs)
@@ -407,7 +390,6 @@ namespace WalletWasabi.Services
 					{
 						if (TrustedNodeNotifyingBehavior != null)
 						{
-							TrustedNodeNotifyingBehavior.Transaction -= TrustedNodeNotifyingBehavior_TransactionAsync;
 							TrustedNodeNotifyingBehavior.Block -= TrustedNodeNotifyingBehavior_BlockAsync;
 						}
 
