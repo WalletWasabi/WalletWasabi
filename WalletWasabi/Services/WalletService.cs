@@ -495,7 +495,7 @@ namespace WalletWasabi.Services
 						// if the received transaction is spending at least one input already
 						// spent by a previous unconfirmed transaction signaling RBF then it is not a double
 						// spanding transaction but a replacement transaction. 
-						if(doubleSpends.Any(x => x.RBF && !x.Confirmed))
+						if(doubleSpends.Any(x => x.IsReplaceable))
 						{
 							// remove double spent coins (if other coin spends it, remove that too and so on)
 							// will add later if they came to our keys
@@ -581,7 +581,6 @@ namespace WalletWasabi.Services
 							if (oldCoin != null) // Just to be sure, it is a concurrent collection.
 							{
 								oldCoin.Height = newCoin.Height;
-								oldCoin.RBF = false;
 							}
 						}
 					}
