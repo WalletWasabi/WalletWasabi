@@ -48,7 +48,7 @@ namespace WalletWasabi.Models
 		private bool _spentOrCoinJoinInProgress;
 		private bool _unspent;
 		private bool _isBanned;
-		private string _history;
+		private string _clusters;
 
 		#endregion Fields
 
@@ -289,15 +289,15 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		public string History
+		public string Clusters
 		{
-			get => _history;
+			get => _clusters;
 			private set
 			{
-				if (value != _history)
+				if (value != _clusters)
 				{
-					_history = value;
-					OnPropertyChanged(nameof(History));
+					_clusters = value;
+					OnPropertyChanged(nameof(Clusters));
 				}
 			}
 		}
@@ -454,9 +454,9 @@ namespace WalletWasabi.Models
 
 		public bool HasLabel() => !string.IsNullOrWhiteSpace(Label);
 
-		public void SetHistory(string history)
+		public void SetClusters(string clusters)
 		{
-			History = history;
+			Clusters = clusters;
 		}
 
 		#endregion Methods

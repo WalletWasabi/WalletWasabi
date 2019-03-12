@@ -60,9 +60,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(Unspent));
 			}).DisposeWith(Disposables);
 
-			model.WhenAnyValue(x => x.History).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			model.WhenAnyValue(x => x.Clusters).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(History));
+				this.RaisePropertyChanged(nameof(Clusters));
 			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Status).Subscribe(_ =>
@@ -143,7 +143,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string History => Model.History;
+		public string Clusters => Model.Clusters;
 
 		public string PubKey => Model.HdPubKey.PubKey.ToString();
 
