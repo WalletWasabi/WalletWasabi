@@ -120,8 +120,12 @@
                 </Grid.ColumnDefinitions>
 
                 <CheckBox HorizontalContentAlignment="Left" IsChecked="{Binding IsSelected}" Background="{DynamicResource ThemeBackgroundBrush}" />
-                <Border Background="Transparent" IsVisible="{Binding Confirmed}" Grid.Column="1" ToolTip.Tip="Confirmed">
-                  <Path HorizontalAlignment="Left" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16"  Stretch="Fill" />
+
+                <Border Background="Transparent" Grid.Column="1">
+                  <StackPanel>
+                  <Path IsVisible="{Binding Confirmed}" HorizontalAlignment="Left" Data="F1 M 23.7501,33.25L 34.8334,44.3333L 52.2499,22.1668L 56.9999,26.9168L 34.8334,53.8333L 19.0001,38L 23.7501,33.25 Z" Fill="#22B14C" Height="16" Width="16"  Stretch="Fill" />
+                  <Path IsVisible="{Binding IsReplaceable}" HorizontalAlignment="Left" Data="F1 M 35,13L 35,30.5L 27,21L 27,30.75L 38,43.25L 49,30.75L 49,21L 41,30.5L 41,13L 35,13 Z M 17,38L 30,38L 33.75,42L 21,42L 21,53L 55,53L 55,42L 42.25,42L 46,38L 59,38L 59,57L 17,57L 17,38 Z M 33,46L 43,46L 43,49L 33,49L 33,46 Z" Fill="#22BFFF" Height="16" Width="16"  Stretch="Fill" />
+                  </StackPanel>
                 </Border>
 
                 <Border ToolTip.Tip="{Binding ToolTip}" Padding="1" Grid.Column="2" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" BorderBrush="{Binding Status, Converter={StaticResource CoinStatusBorderBrushConverter}}" HorizontalAlignment="Left"  BorderThickness="1" CornerRadius="0,6,6,0">

@@ -169,7 +169,7 @@ namespace WalletWasabi.Models
 		[JsonConverter(typeof(FunnyBoolJsonConverter))]
 		public bool IsReplaceable
 		{
-			get => _replaceable && !Confirmed;
+			get => _replaceable;
 			set
 			{
 				if (value != _replaceable)
@@ -340,6 +340,8 @@ namespace WalletWasabi.Models
 				{
 					_confirmed = value;
 					OnPropertyChanged(nameof(Confirmed));
+					if(_confirmed) 
+						IsReplaceable = false;
 				}
 			}
 		}

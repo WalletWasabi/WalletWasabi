@@ -34,6 +34,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(Confirmed));
 			}).DisposeWith(Disposables);
 
+			model.WhenAnyValue(x => x.IsReplaceable).ObserveOn(RxApp.MainThreadScheduler).Subscribe(replaceable =>
+			{
+				RefreshSmartCoinStatus();
+				this.RaisePropertyChanged(nameof(IsReplaceable));
+			}).DisposeWith(Disposables);
+
 			model.WhenAnyValue(x => x.Unavailable).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Unavailable));
@@ -87,6 +93,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SmartCoin Model { get; }
 
 		public bool Confirmed => Model.Confirmed;
+		public bool IsReplaceable => Model.IsReplaceable;
 
 		public bool CoinJoinInProgress => Model.CoinJoinInProgress;
 
