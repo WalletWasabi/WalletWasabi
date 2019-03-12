@@ -23,8 +23,10 @@ namespace WalletWasabi.KeyManagement
 		[JsonProperty(Order = 3)]
 		public string Label
 		{
-			get => _label; private set
+			get => _label;
+			private set
 			{
+				value = Guard.Correct(value);
 				if (value != _label)
 				{
 					_label = value;
@@ -40,7 +42,7 @@ namespace WalletWasabi.KeyManagement
 		{
 			PubKey = Guard.NotNull(nameof(pubKey), pubKey);
 			FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
-			Label = Guard.Correct(label);
+			SetLabel(label, null);
 			KeyState = keyState;
 
 			P2pkScript = PubKey.ScriptPubKey;

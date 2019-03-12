@@ -131,16 +131,22 @@ namespace WalletWasabi.Models
 			}
 		}
 
+		/// <summary>
+		/// Always set it before the Amount!
+		/// </summary>
 		[JsonProperty]
 		public string Label
 		{
 			get => _label;
 			set
 			{
+				value = Guard.Correct(value);
+				value = Amount <= Constants.Dust ? "Dust" : value;
 				if (value != _label)
 				{
 					_label = value;
 					OnPropertyChanged(nameof(Label));
+					HasLabel = !string.IsNullOrEmpty(value);
 				}
 			}
 		}
@@ -452,7 +458,7 @@ namespace WalletWasabi.Models
 			return new TxoRef(TransactionId, Index);
 		}
 
-		public bool HasLabel() => !string.IsNullOrWhiteSpace(Label);
+		public bool HasLabel { get; private set; }
 
 		public void SetClusters(string clusters)
 		{
