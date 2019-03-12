@@ -34,7 +34,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectPrivateCheckBoxState;
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
-		private SortOrder _historySortDirection;
+		private SortOrder _clustersSortDirection;
 
 		public ReactiveCommand EnqueueCoin { get; }
 		public ReactiveCommand DequeueCoin { get; }
@@ -99,10 +99,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _privacySortDirection, value);
 		}
 
-		public SortOrder HistorySortDirection
+		public SortOrder ClustersSortDirection
 		{
-			get => _historySortDirection;
-			set => this.RaiseAndSetIfChanged(ref _historySortDirection, value);
+			get => _clustersSortDirection;
+			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
 		}
 
 		private void RefreshOrdering()
@@ -121,12 +121,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				else
 					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.AnonymitySet);
 			}
-			else if (HistorySortDirection != SortOrder.None)
+			else if (ClustersSortDirection != SortOrder.None)
 			{
-				if (HistorySortDirection == SortOrder.Increasing)
-					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.History);
+				if (ClustersSortDirection == SortOrder.Increasing)
+					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Clusters);
 				else
-					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.History);
+					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Clusters);
 			}
 			else if (StatusSortDirection != SortOrder.None)
 			{
@@ -214,11 +214,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					PrivacySortDirection = SortOrder.None;
 					StatusSortDirection = SortOrder.None;
-					HistorySortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
 				}
 			}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.HistorySortDirection).Subscribe(x =>
+			this.WhenAnyValue(x => x.ClustersSortDirection).Subscribe(x =>
 			{
 				if (x != SortOrder.None)
 				{
@@ -234,7 +234,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					AmountSortDirection = SortOrder.None;
 					PrivacySortDirection = SortOrder.None;
-					HistorySortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
 				}
 			}).DisposeWith(Disposables);
 
@@ -244,7 +244,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					AmountSortDirection = SortOrder.None;
 					StatusSortDirection = SortOrder.None;
-					HistorySortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
 				}
 			}).DisposeWith(Disposables);
 

@@ -359,7 +359,7 @@ namespace WalletWasabi.Services
 			return ret;
 		}
 
-		public List<SmartCoin> GetHistory(SmartCoin coin, List<SmartCoin> current, ILookup<Script, SmartCoin> lookupScriptPubKey, ILookup<uint256, SmartCoin> lookupSpenderTransactionId, ILookup<uint256, SmartCoin> lookupTransactionId)
+		public List<SmartCoin> GetClusters(SmartCoin coin, List<SmartCoin> current, ILookup<Script, SmartCoin> lookupScriptPubKey, ILookup<uint256, SmartCoin> lookupSpenderTransactionId, ILookup<uint256, SmartCoin> lookupTransactionId)
 		{
 			Guard.NotNull(nameof(coin), coin);
 			if (current.Contains(coin))
@@ -367,19 +367,19 @@ namespace WalletWasabi.Services
 				return current;
 			}
 
-			var history = current.Concat(new List<SmartCoin> { coin }).ToList(); // Fhe coin is the first elem in its history.
+			var clusters = current.Concat(new List<SmartCoin> { coin }).ToList(); // The coin is the first elem in its cluster.
 
 			// If the script is the same then we have a match, no matter of the anonimity set.
 			foreach (var c in lookupScriptPubKey[coin.ScriptPubKey])
 			{
-				if (!history.Contains(c))
+				if (!clusters.Contains(c))
 				{
-					var h = GetHistory(c, history, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
+					var h = GetClusters(c, clusters, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
 					foreach (var hr in h)
 					{
-						if (!history.Contains(hr))
+						if (!clusters.Contains(hr))
 						{
-							history.Add(hr);
+							clusters.Add(hr);
 						}
 					}
 				}
@@ -388,15 +388,15 @@ namespace WalletWasabi.Services
 			// If it spends someone and hasn't been sufficiently anonymized.
 			if (coin.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 			{
-				var c = lookupSpenderTransactionId[coin.TransactionId].Where(x => !history.Contains(x)).FirstOrDefault();
+				var c = lookupSpenderTransactionId[coin.TransactionId].Where(x => !clusters.Contains(x)).FirstOrDefault();
 				if (c != default)
 				{
-					var h = GetHistory(c, history, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
+					var h = GetClusters(c, clusters, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
 					foreach (var hr in h)
 					{
-						if (!history.Contains(hr))
+						if (!clusters.Contains(hr))
 						{
-							history.Add(hr);
+							clusters.Add(hr);
 						}
 					}
 				}
@@ -405,19 +405,19 @@ namespace WalletWasabi.Services
 			// If it's being spent by someone and that someone hasn't been sufficiently anonymized.
 			if (!coin.Unspent)
 			{
-				var c = lookupTransactionId[coin.SpenderTransactionId].Where(x => !history.Contains(x)).FirstOrDefault();
+				var c = lookupTransactionId[coin.SpenderTransactionId].Where(x => !clusters.Contains(x)).FirstOrDefault();
 				if (c != default)
 				{
 					if (c.AnonymitySet < ServiceConfiguration.PrivacyLevelStrong)
 					{
 						if (c != default)
 						{
-							var h = GetHistory(c, history, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
+							var h = GetClusters(c, clusters, lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId);
 							foreach (var hr in h)
 							{
-								if (!history.Contains(hr))
+								if (!clusters.Contains(hr))
 								{
-									history.Add(hr);
+									clusters.Add(hr);
 								}
 							}
 						}
@@ -425,7 +425,7 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			return history;
+			return clusters;
 		}
 
 		private void ProcessBlock(Height height, Block block)
@@ -526,10 +526,10 @@ namespace WalletWasabi.Services
 				{
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
 					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-					var mixin = tx.Transaction.GetMixin(i);
+					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{
-						mixin += spentOwnCoins.Min(x => x.Mixin);
+						anonset += spentOwnCoins.Min(x => x.AnonymitySet);
 
 						// Cleanup exposed links where the txo has been spent.
 						foreach (var input in spentOwnCoins.Select(x => x.GetTxoRef()))
@@ -538,8 +538,8 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
-																																																														   // If we didn't have it.
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
+																																																															 // If we didn't have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
@@ -1150,9 +1150,9 @@ namespace WalletWasabi.Services
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var mixin = tx.GetMixin(i) + spentCoins.Min(x => x.Mixin);
+				var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet);
 				var foundKey = KeyManager.GetKeys(KeyState.Clean).FirstOrDefault(x => output.ScriptPubKey == x.P2wpkhScript);
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, mixin, pubKey: foundKey);
+				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
 
 				if (foundKey != null)
 				{
@@ -1284,7 +1284,7 @@ namespace WalletWasabi.Services
 				{
 					Interlocked.Increment(ref _refreshCoinCalls);
 				}
-				var unspentCoins = Coins.Where(c => c.Unspent); //refreshing unspent coins history only
+				var unspentCoins = Coins.Where(c => c.Unspent); //refreshing unspent coins clusters only
 				if (unspentCoins.Any())
 				{
 					ILookup<Script, SmartCoin> lookupScriptPubKey = Coins.ToLookup(c => c.ScriptPubKey, c => c);
@@ -1295,8 +1295,8 @@ namespace WalletWasabi.Services
 
 					await Task.Run(() => Parallel.ForEach(unspentCoins, new ParallelOptions { MaxDegreeOfParallelism = simultaneousThread }, coin =>
 					{
-						var result = string.Join(", ", GetHistory(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
-						coin.SetHistory(result);
+						var result = string.Join(", ", GetClusters(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
+						coin.SetClusters(result);
 					}));
 				}
 				if (Interlocked.Read(ref _refreshCoinCalls) == 2) //scheduled to rerun so we start the work again
@@ -1314,7 +1314,7 @@ namespace WalletWasabi.Services
 			catch (Exception ex)
 			{
 				Interlocked.Exchange(ref _refreshCoinCalls, 0);
-				Logger.LogError<WalletService>($"Refreshing coins history failed: {ex}");
+				Logger.LogError<WalletService>($"Refreshing coin clusters failed: {ex}");
 			}
 		}
 
