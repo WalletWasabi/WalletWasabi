@@ -526,10 +526,10 @@ namespace WalletWasabi.Services
 				{
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
 					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-					var mixin = tx.Transaction.GetMixin(i);
+					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{
-						mixin += spentOwnCoins.Min(x => x.Mixin);
+						anonset += spentOwnCoins.Min(x => x.AnonymitySet);
 
 						// Cleanup exposed links where the txo has been spent.
 						foreach (var input in spentOwnCoins.Select(x => x.GetTxoRef()))
@@ -538,8 +538,8 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, mixin, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
-																																																														   // If we didn't have it.
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
+																																																															 // If we didn't have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
@@ -1150,9 +1150,9 @@ namespace WalletWasabi.Services
 			for (var i = 0U; i < tx.Outputs.Count; i++)
 			{
 				TxOut output = tx.Outputs[i];
-				var mixin = tx.GetMixin(i) + spentCoins.Min(x => x.Mixin);
+				var anonset = tx.GetAnonymitySet(i) + spentCoins.Min(x => x.AnonymitySet);
 				var foundKey = KeyManager.GetKeys(KeyState.Clean).FirstOrDefault(x => output.ScriptPubKey == x.P2wpkhScript);
-				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, mixin, pubKey: foundKey);
+				var coin = new SmartCoin(tx.GetHash(), i, output.ScriptPubKey, output.Value, tx.Inputs.ToTxoRefs().ToArray(), Height.Unknown, tx.RBF, anonset, pubKey: foundKey);
 
 				if (foundKey != null)
 				{

@@ -77,11 +77,7 @@ namespace NBitcoin
 			return me.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count;
 		}
 
-		public static int GetMixin(this Transaction me, uint outputIndex)
-		{
-			var output = me.Outputs[outputIndex];
-			return me.GetIndistinguishableOutputs(includeSingle: true).Single(x => x.value == output.Value).count - 1;
-		}
+		public static int GetAnonymitySet(this Transaction me, uint outputIndex) => GetAnonymitySet(me, (int)outputIndex);
 
 		/// <summary>
 		/// Careful, if it's in a legacy block then this won't work.
