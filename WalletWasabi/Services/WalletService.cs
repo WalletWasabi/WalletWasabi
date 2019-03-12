@@ -209,7 +209,6 @@ namespace WalletWasabi.Services
 			}
 
 			Coins.TryRemove(toRemove);
-			MemPool.TransactionHashes.TryRemove(toRemove.SpenderTransactionId);
 		}
 
 		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
@@ -467,6 +466,8 @@ namespace WalletWasabi.Services
 				return; // We don't care about non-witness transactions for other than mempool cleanup.
 			}
 
+			var rbf = RBFTransactionState.UNKNOWN; 
+
 			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
 				var doubleSpends = new List<SmartCoin>();
@@ -492,10 +493,11 @@ namespace WalletWasabi.Services
 				{
 					if (tx.Height == Height.MemPool)
 					{
+						rbf = IsRBFOptIn(tx);
 						// if the received transaction is spending at least one input already
 						// spent by a previous unconfirmed transaction signaling RBF then it is not a double
 						// spanding transaction but a replacement transaction. 
-						if(doubleSpends.Any(x => x.IsReplaceable))
+						if(rbf == RBFTransactionState.REPLACEABLE_BIP125)
 						{
 							// remove double spent coins (if other coin spends it, remove that too and so on)
 							// will add later if they came to our keys
@@ -542,7 +544,7 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, rbf == RBFTransactionState.REPLACEABLE_BIP125, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
 																																																															 // If we didn't have it.
 					if (Coins.TryAdd(newCoin))
 					{
@@ -598,6 +600,44 @@ namespace WalletWasabi.Services
 					foundCoin.SpenderTransactionId = txId;
 					TransactionCache.TryAdd(tx);
 					CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
+				}
+			}
+		}
+
+		enum RBFTransactionState {
+			UNKNOWN,
+			REPLACEABLE_BIP125,
+			FINAL
+		};
+
+		private RBFTransactionState IsRBFOptIn(SmartTransaction stx)
+		{
+			if(stx.Transaction.RBF)
+				return RBFTransactionState.REPLACEABLE_BIP125;
+
+			if(!MemPool.TransactionHashes.Contains(stx.GetHash()))
+				return RBFTransactionState.UNKNOWN;
+
+			var ancestors = new List<Transaction>();
+			GetMempoolAncestors(stx.GetHash(), ancestors);
+			foreach(var tx in ancestors)
+			{
+				if(tx.RBF)
+					return RBFTransactionState.REPLACEABLE_BIP125;
+			}
+			return RBFTransactionState.FINAL;
+		}
+
+		private void GetMempoolAncestors(uint256 txid, List<Transaction> ancestors)
+		{
+			var isInMempool = MemPool.TransactionHashes.Contains(txid);
+			if(isInMempool)
+			{
+				var tx = TransactionCache.First(x=>x.GetHash() == txid);
+				ancestors.Add(tx.Transaction);
+				foreach(var input in tx.Transaction.Inputs)
+				{
+					GetMempoolAncestors(input.PrevOut.Hash, ancestors);
 				}
 			}
 		}
