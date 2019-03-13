@@ -545,7 +545,7 @@ namespace WalletWasabi.Services
 						TransactionCache.TryAdd(tx);
 
 						// If it's being mixed and anonset is not sufficient, then queue it.
-						if (newCoin.Unspent && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
+						if (newCoin.Unspent && !newCoin.IsDust && ChaumianClient.HasIngredients && newCoin.Label.StartsWith("ZeroLink", StringComparison.Ordinal) && newCoin.AnonymitySet < ServiceConfiguration.MixUntilAnonymitySet)
 						{
 							Task.Run(async () =>
 							{
@@ -974,22 +974,22 @@ namespace WalletWasabi.Services
 
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 			}
 			else
 			{
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.SpentOrCoinJoinInProgress && x.Confirmed).ToList();
+					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && x.Confirmed).ToList();
 				}
 			}
 
@@ -1284,7 +1284,7 @@ namespace WalletWasabi.Services
 				{
 					Interlocked.Increment(ref _refreshCoinCalls);
 				}
-				var unspentCoins = Coins.Where(c => c.Unspent); //refreshing unspent coins clusters only
+				var unspentCoins = Coins.Where(c => c.Unspent && !c.IsDust); //refreshing unspent coins clusters only
 				if (unspentCoins.Any())
 				{
 					ILookup<Script, SmartCoin> lookupScriptPubKey = Coins.ToLookup(c => c.ScriptPubKey, c => c);

@@ -62,6 +62,6 @@ namespace WalletWasabi.Helpers
 		public const string ChangeOfSpecialLabelStart = "change of (";
 		public const string ChangeOfSpecialLabelEnd = ")";
 
-		public static Money Dust = Money.Coins(0.0001m);
+		public static Money DustThreshold = Money.Coins(0.0001m);
 	}
 }

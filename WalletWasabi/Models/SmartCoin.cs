@@ -43,12 +43,13 @@ namespace WalletWasabi.Models
 		private HdPubKey _hdPubKey;
 
 		private ISecret _secret;
+		private bool _isDust;
+		private string _clusters;
 
 		private bool _confirmed;
-		private bool _spentOrCoinJoinInProgress;
+		private bool _unavailable;
 		private bool _unspent;
 		private bool _isBanned;
-		private string _clusters;
 
 		#endregion Fields
 
@@ -141,7 +142,6 @@ namespace WalletWasabi.Models
 			set
 			{
 				value = Guard.Correct(value);
-				value = Amount <= Constants.Dust ? "Dust" : value;
 				if (value != _label)
 				{
 					_label = value;
@@ -222,7 +222,8 @@ namespace WalletWasabi.Models
 				{
 					_coinJoinInProgress = value;
 					OnPropertyChanged(nameof(CoinJoinInProgress));
-					SetSpentOrCoinJoinInProgress();
+
+					SetUnavailable();
 				}
 			}
 		}
@@ -249,13 +250,15 @@ namespace WalletWasabi.Models
 		[JsonProperty]
 		public bool SpentAccordingToBackend
 		{
-			get { return _spentAccordingToBackend; }
+			get => _spentAccordingToBackend;
 			set
 			{
 				if (value != _spentAccordingToBackend)
 				{
 					_spentAccordingToBackend = value;
 					OnPropertyChanged(nameof(SpentAccordingToBackend));
+
+					SetUnavailable();
 				}
 			}
 		}
@@ -295,6 +298,22 @@ namespace WalletWasabi.Models
 			}
 		}
 
+		[JsonProperty]
+		public bool IsDust
+		{
+			get => _isDust;
+			private set
+			{
+				if (value != _isDust)
+				{
+					_isDust = value;
+					OnPropertyChanged(nameof(IsDust));
+
+					SetUnavailable();
+				}
+			}
+		}
+
 		public string Clusters
 		{
 			get => _clusters;
@@ -325,15 +344,18 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		public bool SpentOrCoinJoinInProgress
+		/// <summary>
+		/// Spent || SpentAccordingToBackend || CoinJoinInProgress || IsDust;
+		/// </summary>
+		public bool Unavailable
 		{
-			get => _spentOrCoinJoinInProgress;
+			get => _unavailable;
 			private set
 			{
-				if (value != _spentOrCoinJoinInProgress)
+				if (value != _unavailable)
 				{
-					_spentOrCoinJoinInProgress = value;
-					OnPropertyChanged(nameof(SpentOrCoinJoinInProgress));
+					_unavailable = value;
+					OnPropertyChanged(nameof(Unavailable));
 				}
 			}
 		}
@@ -348,7 +370,7 @@ namespace WalletWasabi.Models
 					_unspent = value;
 					OnPropertyChanged(nameof(Unspent));
 
-					SetSpentOrCoinJoinInProgress();
+					SetUnavailable();
 				}
 			}
 		}
@@ -385,9 +407,14 @@ namespace WalletWasabi.Models
 			IsBanned = BannedUntilUtc != null && BannedUntilUtc > DateTimeOffset.UtcNow;
 		}
 
-		private void SetSpentOrCoinJoinInProgress()
+		private void SetUnavailable()
 		{
-			SpentOrCoinJoinInProgress = !Unspent || CoinJoinInProgress;
+			Unavailable = !Unspent || SpentAccordingToBackend || CoinJoinInProgress || IsDust;
+		}
+
+		private void SetIsDust(Money dustThreshold)
+		{
+			IsDust = Amount <= dustThreshold;
 		}
 
 		#endregion PropertySetters
@@ -436,7 +463,8 @@ namespace WalletWasabi.Models
 			SetConfirmed();
 			SetUnspent();
 			SetIsBanned();
-			SetSpentOrCoinJoinInProgress();
+			SetUnavailable();
+			SetIsDust(Constants.DustThreshold);
 		}
 
 		#endregion Constructors

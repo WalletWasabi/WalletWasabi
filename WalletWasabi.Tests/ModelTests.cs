@@ -170,7 +170,7 @@ namespace WalletWasabi.Tests
 			Assert.Equal(coin.Height, deserialized.Height);
 			Assert.Equal(coin.Amount, deserialized.Amount);
 			Assert.Equal(coin.Index, deserialized.Index);
-			Assert.Equal(coin.SpentOrCoinJoinInProgress, deserialized.SpentOrCoinJoinInProgress);
+			Assert.Equal(coin.Unavailable, deserialized.Unavailable);
 			Assert.Equal(coin.Label, deserialized.Label);
 			Assert.Equal(coin.ScriptPubKey, deserialized.ScriptPubKey);
 			Assert.Equal(coin.SpenderTransactionId, deserialized.SpenderTransactionId);

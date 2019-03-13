@@ -780,7 +780,7 @@ namespace WalletWasabi.Services
 						continue;
 					}
 
-					if (coin.SpentOrCoinJoinInProgress)
+					if (coin.Unavailable)
 					{
 						except.Add(coin);
 						continue;

@@ -545,7 +545,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
 				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight, firstCoin.Height);
 				Assert.InRange(firstCoin.Index, 0U, 1U);
-				Assert.False(firstCoin.SpentOrCoinJoinInProgress);
+				Assert.False(firstCoin.Unavailable);
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal(key.P2wpkhScript, firstCoin.ScriptPubKey);
 				Assert.Null(firstCoin.SpenderTransactionId);
@@ -575,7 +575,7 @@ namespace WalletWasabi.Tests
 				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight.Value - 2, firstCoin.Height.Value);
 				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight.Value - 1, secondCoin.Height.Value);
 				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight, thirdCoin.Height);
-				Assert.False(thirdCoin.SpentOrCoinJoinInProgress);
+				Assert.False(thirdCoin.Unavailable);
 				Assert.Equal("foo label", firstCoin.Label);
 				Assert.Equal("bar label", secondCoin.Label);
 				Assert.Equal("bar label", thirdCoin.Label);
@@ -632,7 +632,7 @@ namespace WalletWasabi.Tests
 
 				Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
 				Assert.Equal(synchronizer.BestKnownFilter.BlockHeight.Value - 2, rbfCoin.Height.Value);
-				Assert.False(rbfCoin.SpentOrCoinJoinInProgress);
+				Assert.False(rbfCoin.Unavailable);
 				Assert.Equal("bar label", rbfCoin.Label);
 				Assert.Equal(key2.P2wpkhScript, rbfCoin.ScriptPubKey);
 				Assert.Null(rbfCoin.SpenderTransactionId);
@@ -805,7 +805,7 @@ namespace WalletWasabi.Tests
 				#region Basic
 
 				Script receive = wallet.GetReceiveKey("Basic").P2wpkhScript;
-				Money amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 2;
+				Money amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 2;
 				var res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true);
 
 				foreach (SmartCoin coin in res.SpentCoins)
@@ -853,7 +853,7 @@ namespace WalletWasabi.Tests
 				#region SubtractFeeFromAmount
 
 				receive = wallet.GetReceiveKey("SubtractFeeFromAmount").P2wpkhScript;
-				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 3;
+				amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 3;
 				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, amountToSend, "foo") }, 1008, allowUnconfirmed: true, subtractFeeFromAmountIndex: 0);
 
 				Assert.Equal(2, res.InnerWalletOutputs.Count());
@@ -1009,7 +1009,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(res.Transaction.Transaction.Outputs);
 				var maxBuiltTxOutput = res.Transaction.Transaction.Outputs.Single();
 				Assert.Equal(receive, maxBuiltTxOutput.ScriptPubKey);
-				Assert.Equal(wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
+				Assert.Equal(wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) - res.Fee, maxBuiltTxOutput.Value);
 
 				await wallet.SendTransactionAsync(res.Transaction);
 
@@ -1022,7 +1022,7 @@ namespace WalletWasabi.Tests
 				var inputCountBefore = res.SpentCoins.Count();
 				res = wallet.BuildTransaction(password, new[] { new WalletService.Operation(receive, Money.Zero, "foo") }, 1008,
 					allowUnconfirmed: true,
-					allowedInputs: wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1));
+					allowedInputs: wallet.Coins.Where(x => !x.Unavailable).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1));
 
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Empty(res.OuterWalletOutputs);
@@ -1062,7 +1062,7 @@ namespace WalletWasabi.Tests
 				Assert.Single(res.InnerWalletOutputs);
 				Assert.Equal($"{Constants.ChangeOfSpecialLabelStart}my label{Constants.ChangeOfSpecialLabelEnd}", res.InnerWalletOutputs.Single().Label);
 
-				amountToSend = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Sum(x => x.Amount) / 3;
+				amountToSend = wallet.Coins.Where(x => !x.Unavailable).Sum(x => x.Amount) / 3;
 				res = wallet.BuildTransaction(password, new[] {
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing"),
 					new WalletService.Operation(new Key().ScriptPubKey, amountToSend, "outgoing2")
@@ -1094,7 +1094,7 @@ namespace WalletWasabi.Tests
 
 				receive = wallet.GetReceiveKey("AllowedInputsDisallowUnconfirmed").P2wpkhScript;
 
-				var allowedInputs = wallet.Coins.Where(x => !x.SpentOrCoinJoinInProgress).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1);
+				var allowedInputs = wallet.Coins.Where(x => !x.Unavailable).Select(x => new TxoRef(x.TransactionId, x.Index)).Take(1);
 				var toSend = new[] { new WalletService.Operation(receive, Money.Zero, "fizz") };
 
 				// covers:
@@ -1573,12 +1573,12 @@ namespace WalletWasabi.Tests
 				Assert.Contains(wallet.Coins, x => x.TransactionId == tx1Res.Transaction.GetHash());
 
 				// There is a coin destroyed
-				Assert.Equal(1, wallet.Coins.Count(x => x.SpentOrCoinJoinInProgress && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
+				Assert.Equal(1, wallet.Coins.Count(x => x.Unavailable && x.SpenderTransactionId == tx1Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.TransactionId == tx0Id));
 
-				var totalWallet = wallet.Coins.Where(c => !c.SpentOrCoinJoinInProgress).Sum(c => c.Amount);
+				var totalWallet = wallet.Coins.Where(c => !c.Unavailable).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi, totalWallet);
 
 				// Spend the unconfirmed and unspent coin (send it to ourself)
@@ -1593,12 +1593,12 @@ namespace WalletWasabi.Tests
 				Assert.Contains(wallet.Coins, x => x.TransactionId == tx2Res.Transaction.GetHash());
 
 				// There is a coin destroyed
-				Assert.Equal(1, wallet.Coins.Count(x => x.SpentOrCoinJoinInProgress && x.SpenderTransactionId == tx2Res.Transaction.GetHash()));
+				Assert.Equal(1, wallet.Coins.Count(x => x.Unavailable && x.SpenderTransactionId == tx2Res.Transaction.GetHash()));
 
 				// There is at least one coin created from the destruction of the first coin
 				Assert.Contains(wallet.Coins, x => x.SpentOutputs.Any(o => o.TransactionId == tx1Res.Transaction.GetHash()));
 
-				totalWallet = wallet.Coins.Where(c => !c.SpentOrCoinJoinInProgress).Sum(c => c.Amount);
+				totalWallet = wallet.Coins.Where(c => !c.Unavailable).Sum(c => c.Amount);
 				Assert.Equal((1 * Money.COIN) - tx1Res.Fee.Satoshi - tx2Res.Fee.Satoshi, totalWallet);
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
@@ -3291,15 +3291,15 @@ namespace WalletWasabi.Tests
 				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).ToArray();
 				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges);
 
-				Assert.Equal(3, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrCoinJoinInProgress));
-				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.SpentOrCoinJoinInProgress));
+				Assert.Equal(3, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unavailable));
+				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unavailable));
 				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
 				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unspent));
 				Assert.Equal(2, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && !x.Unspent));
 				Assert.Equal(0, wallet2.Coins.Count(x => x.Label == "ZeroLink Change"));
 				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Change" && x.Unspent));
 				Assert.Equal(0, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.Unspent));
-				Assert.Equal(1, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.SpentOrCoinJoinInProgress));
+				Assert.Equal(1, wallet.Coins.Count(x => x.Label == "ZeroLink Dequeued Change" && !x.Unavailable));
 			}
 			finally
 			{
