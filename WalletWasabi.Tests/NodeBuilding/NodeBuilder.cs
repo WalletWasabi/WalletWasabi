@@ -1,10 +1,13 @@
-﻿using Nito.AsyncEx;
+﻿using NBitcoin;
+using NBitcoin.RPC;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -25,8 +28,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 				WorkingDirectory = Path.Combine(SharedFixture.DataDir, caller);
 				version = version ?? "0.17.1";
 				var path = await EnsureDownloadedAsync(version);
-				await TryRemoveWorkingDirectoryAsync();
-				Directory.CreateDirectory(WorkingDirectory);
 				return new NodeBuilder(WorkingDirectory, path);
 			}
 		}
@@ -131,7 +132,59 @@ namespace WalletWasabi.Tests.NodeBuilding
 			_last++;
 			try
 			{
+				var cfgPath = Path.Combine(child, "data", "bitcoin.conf");
+				if(File.Exists(cfgPath))
+				{
+					string rpcPort = "";
+					string rpcUser = "";
+					string rpcPassword = "";
+					foreach(var line in File.ReadAllLines(cfgPath))
+					{
+						var parts = line.Split('=');
+						if(parts[0].StartsWith("regtest.rpcport"))
+						{
+							rpcPort = parts[1].Trim();
+						}
+						else if(parts[0].StartsWith("regtest.rpcuser"))
+						{
+							rpcUser = parts[1].Trim();
+						}
+						else if(parts[0].StartsWith("regtest.rpcpassword"))
+						{
+							rpcPassword = parts[1].Trim();
+						}
+					}
+					try
+					{
+						var credentials = new NetworkCredential(rpcUser, rpcPassword);
+						var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPort + "/"), Network.RegTest);
+						rpc.SendCommand("stop");
+						
+						var pidFile = Path.Combine(child, "data", "regtest", "bitcoind.pid");
+						var pid = File.ReadAllText(pidFile);
+						var count = 20;
+						while(File.Exists(pidFile) && count-- > 0)
+						{
+							await Task.Delay(50);
+						}
+						await Task.Delay(3000);
+						if(File.Exists(pidFile))
+						{
+							using(var process = Process.GetProcessById(int.Parse(pid)))
+							{
+								process.Kill();
+								process.WaitForExit();
+							}
+						}
+					}
+					catch(Exception)
+					{
+
+					}
+				}
 				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(child);
+				await TryRemoveWorkingDirectoryAsync();
+				Directory.CreateDirectory(WorkingDirectory);
 			}
 			catch (DirectoryNotFoundException)
 			{

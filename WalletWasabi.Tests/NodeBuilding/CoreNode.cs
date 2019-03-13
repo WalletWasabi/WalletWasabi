@@ -92,7 +92,8 @@ namespace WalletWasabi.Tests.NodeBuilding
 				{"regtest.whitebind", "127.0.0.1:" + _ports[0].ToString()},
 				{"regtest.rpcport", _ports[1].ToString()},
 				{"regtest.printtoconsole", "0"}, // Set it to one if don't mind loud debug logs
-				{"regtest.keypool", "10"}
+				{"regtest.keypool", "10"},
+				{"regtest.pid", "bitcoind.pid"}
 			};
 			config.Import(ConfigParameters);
 			File.WriteAllText(Config, config.ToString());
