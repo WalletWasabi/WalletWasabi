@@ -146,10 +146,31 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private readonly object _l = new object();
 
-		public void Kill(bool cleanFolder = true)
+		public async Task KillAsync(bool cleanFolder = true)
 		{
 			lock (_l)
 			{
+				try
+				{
+					CreateRpcClient().SendCommand("stop");
+				}
+				catch(Exception)
+				{}
+
+				if(File.Exists(Config))
+				{
+					var config = NodeConfigParameters.Load(Config);
+					var pidFileName = config["regtest.pid"];
+
+					var pidFile = Path.Combine(DataDir, "regtest", pidFileName);
+					var pid = File.ReadAllText(pidFile);
+					var count = 20;
+					while(File.Exists(pidFile) && count-- > 0)
+					{
+						Task.Delay(50);
+					}
+					Task.Delay(3000);
+				}
 				if (_process != null && !_process.HasExited)
 				{
 					_process.Kill();

@@ -135,32 +135,19 @@ namespace WalletWasabi.Tests.NodeBuilding
 				var cfgPath = Path.Combine(child, "data", "bitcoin.conf");
 				if(File.Exists(cfgPath))
 				{
-					string rpcPort = "";
-					string rpcUser = "";
-					string rpcPassword = "";
-					foreach(var line in File.ReadAllLines(cfgPath))
-					{
-						var parts = line.Split('=');
-						if(parts[0].StartsWith("regtest.rpcport"))
-						{
-							rpcPort = parts[1].Trim();
-						}
-						else if(parts[0].StartsWith("regtest.rpcuser"))
-						{
-							rpcUser = parts[1].Trim();
-						}
-						else if(parts[0].StartsWith("regtest.rpcpassword"))
-						{
-							rpcPassword = parts[1].Trim();
-						}
-					}
+					var config = NodeConfigParameters.Load(cfgPath);
+					var rpcPort = config["regtest.rpcport"];
+					var rpcUser = config["regtest.rpcuser"];
+					var rpcPassword = config["regtest.rpcpassword"];
+					var pidFileName = config["regtest.pid"];
+					var credentials = new NetworkCredential(rpcUser, rpcPassword);
+
 					try
 					{
-						var credentials = new NetworkCredential(rpcUser, rpcPassword);
 						var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPort + "/"), Network.RegTest);
 						rpc.SendCommand("stop");
 						
-						var pidFile = Path.Combine(child, "data", "regtest", "bitcoind.pid");
+						var pidFile = Path.Combine(child, "data", "regtest", pidFileName);
 						var pid = File.ReadAllText(pidFile);
 						var count = 20;
 						while(File.Exists(pidFile) && count-- > 0)
@@ -179,7 +166,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 					}
 					catch(Exception)
 					{
-
 					}
 				}
 				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(child);
@@ -210,7 +196,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		{
 			foreach (CoreNode node in Nodes)
 			{
-				node.Kill();
+				node.KillAsync().GetAwaiter().GetResult();
 			}
 
 			foreach (IDisposable disposable in _disposables)

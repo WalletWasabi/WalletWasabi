@@ -278,6 +278,8 @@ namespace WalletWasabi.Services
 							SynchronizeResponse response;
 							try
 							{
+								if (!IsRunning) return;
+								
 								response = await WasabiClient.GetSynchronizeAsync(BestKnownFilter.BlockHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
