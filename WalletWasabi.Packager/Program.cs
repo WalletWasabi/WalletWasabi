@@ -595,7 +595,7 @@ namespace WalletWasabi.Packager
 
 					var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
 					var wasabiStarterScriptContent = $"#!/bin/sh\n" +
-														$"{ linuxWasabiWalletFolder.TrimEnd('/')}/./{ExecutableName}\n";
+														$"{ linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
 
 					File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
 
