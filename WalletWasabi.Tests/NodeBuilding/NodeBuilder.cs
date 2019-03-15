@@ -145,7 +145,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 					try
 					{
 						var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPort + "/"), Network.RegTest);
-						rpc.SendCommand("stop");
+						rpc.Stop();
 
 						var pidFile = Path.Combine(child, "data", "regtest", pidFileName);
 						if(File.Exists(pidFile))
@@ -199,7 +199,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 		{
 			foreach (CoreNode node in Nodes)
 			{
-				node.KillAsync().GetAwaiter().GetResult();
+				node.Kill();
 			}
 
 			foreach (IDisposable disposable in _disposables)

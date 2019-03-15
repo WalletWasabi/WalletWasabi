@@ -1,5 +1,6 @@
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
+using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -202,6 +203,11 @@ namespace NBitcoin
 				: new byte[] { (0x04), (0x5F), (0x18), (0xBC) };
 
 			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
+		}
+
+		public static void Stop(this RPCClient rpc)
+		{
+			rpc.SendCommand("stop");
 		}
 	}
 }

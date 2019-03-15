@@ -146,13 +146,13 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private readonly object _l = new object();
 
-		public async Task KillAsync(bool cleanFolder = true)
+		public void Kill(bool cleanFolder = true)
 		{
 			lock (_l)
 			{
 				try
 				{
-					CreateRpcClient().SendCommand("stop");
+					CreateRpcClient().Stop();
 				}
 				catch(Exception)
 				{}

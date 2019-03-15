@@ -54,7 +54,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 			BackendHost?.StopAsync();
 			BackendHost?.Dispose();
-			BackendRegTestNode?.KillAsync(cleanFolder: true).GetAwaiter().GetResult();
+			BackendRegTestNode?.Kill(cleanFolder: true);
 			BackendNodeBuilder?.Dispose();
 		}
 	}
