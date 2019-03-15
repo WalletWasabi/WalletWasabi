@@ -146,21 +146,24 @@ namespace WalletWasabi.Tests.NodeBuilding
 					{
 						var rpc = new RPCClient(credentials, new Uri("http://127.0.0.1:" + rpcPort + "/"), Network.RegTest);
 						rpc.SendCommand("stop");
-						
+
 						var pidFile = Path.Combine(child, "data", "regtest", pidFileName);
-						var pid = File.ReadAllText(pidFile);
-						var count = 20;
-						while(File.Exists(pidFile) && count-- > 0)
-						{
-							await Task.Delay(50);
-						}
-						await Task.Delay(3000);
 						if(File.Exists(pidFile))
-						{
+						{ 
+							var pid = File.ReadAllText(pidFile);
 							using(var process = Process.GetProcessById(int.Parse(pid)))
 							{
-								process.Kill();
 								process.WaitForExit();
+							}
+						}
+						else
+						{
+							var allProcesses = Process.GetProcesses();
+							var bitcoindProcesses = allProcesses.Where(x => x.ProcessName.Contains("bitcoind"));
+							if (bitcoindProcesses.Count() == 1)
+							{
+								var bitcoind = bitcoindProcesses.First();
+								bitcoind.WaitForExit();
 							}
 						}
 					}

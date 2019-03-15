@@ -157,25 +157,6 @@ namespace WalletWasabi.Tests.NodeBuilding
 				catch(Exception)
 				{}
 
-				if(File.Exists(Config))
-				{
-					var config = NodeConfigParameters.Load(Config);
-					var pidFileName = config["regtest.pid"];
-
-					var pidFile = Path.Combine(DataDir, "regtest", pidFileName);
-					var pid = File.ReadAllText(pidFile);
-					var count = 20;
-					while(File.Exists(pidFile) && count-- > 0)
-					{
-						Task.Delay(50);
-					}
-					Task.Delay(3000);
-				}
-				if (_process != null && !_process.HasExited)
-				{
-					_process.Kill();
-					_process.WaitForExit();
-				}
 				State = CoreNodeState.Killed;
 				if (cleanFolder)
 				{
