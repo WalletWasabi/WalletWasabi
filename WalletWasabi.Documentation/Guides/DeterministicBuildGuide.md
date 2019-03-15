@@ -2,7 +2,7 @@
 
 This guide describes how to reproduce Wasabi's builds. If you got stuck with these instructions, take a look at how to build Wasabi from source code: https://github.com/zkSNACKs/WalletWasabi#build-from-source-code
 
-# 1: Assuert Correct Environment
+# 1: Assert Correct Environment
 
 In order to reproduce Wasabi's builds you need a Git, a Windows 10 and the version of .NET Core SDK that was the most recent in the time of building the release.
 
