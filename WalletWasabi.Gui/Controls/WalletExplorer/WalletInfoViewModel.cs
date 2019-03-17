@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			ClearSensitiveData(true);
 			_warningMessage = "";
-			Closing = new CancellationTokenSource().DisposeWith(Disposables);
+			Closing = new CancellationTokenSource();
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -48,7 +48,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Logging.Logger.LogTrace(ex);
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			ShowSensitiveKeysCommand = ReactiveCommand.Create(() =>
 			{
@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					SetWarningMessage(ex.ToTypeMessageString());
 				}
-			}).DisposeWith(Disposables);
+			});
 		}
 
 		private void ClearSensitiveData(bool passwordToo)

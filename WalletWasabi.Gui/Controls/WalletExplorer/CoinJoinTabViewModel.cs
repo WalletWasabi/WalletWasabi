@@ -90,17 +90,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			PrivacySomeCommand = ReactiveCommand.Create(() =>
 			{
 				TargetPrivacy = TargetPrivacy.Some;
-			}).DisposeWith(Disposables);
+			});
 
 			PrivacyFineCommand = ReactiveCommand.Create(() =>
 			{
 				TargetPrivacy = TargetPrivacy.Fine;
-			}).DisposeWith(Disposables);
+			});
 
 			PrivacyStrongCommand = ReactiveCommand.Create(() =>
 			{
 				TargetPrivacy = TargetPrivacy.Strong;
-			}).DisposeWith(Disposables);
+			});
 
 			TargetButtonCommand = ReactiveCommand.Create(async () =>
 			{
@@ -124,7 +124,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				Global.Config.MixUntilAnonymitySet = CoinJoinUntilAnonimitySet;
 				await Global.Config.ToFileAsync();
-			}).DisposeWith(Disposables);
+			});
 
 			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
 			{
@@ -144,7 +144,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Logger.LogTrace(ex);
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			this.WhenAnyValue(x => x.IsEnqueueBusy).Subscribe(busy =>
 			{
@@ -156,7 +156,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					EnqueueButtonText = EnqueueButtonTextString;
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			this.WhenAnyValue(x => x.IsDequeueBusy).Subscribe(busy =>
 			{
@@ -168,12 +168,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					DequeueButtonText = DequeueButtonTextString;
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
 			{
 				CoinJoinUntilAnonimitySet = GetTargetLevel(target);
-			}).DisposeWith(Disposables);
+			});
 		}
 
 		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)

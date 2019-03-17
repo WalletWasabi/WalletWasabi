@@ -11,7 +11,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryTabViewModel : WalletActionViewModel, ISupportsActivation
+	public class HistoryTabViewModel : WalletActionViewModel
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
@@ -24,6 +24,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
+			throw new Exception("TODO");
+
+			// memory leak fixes.
+
 			Transactions = new ObservableCollection<TransactionViewModel>();
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			RewriteTableAsync();
@@ -43,7 +47,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 					RewriteTableAsync();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				}).DisposeWith(Disposables);
+				});
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(transaction =>
 			{
@@ -51,9 +55,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					transaction?.CopyToClipboard();
 				}
-			}).DisposeWith(Disposables);
+			});
 
-			SortCommand = ReactiveCommand.Create(() => RefreshOrdering()).DisposeWith(Disposables);
+			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
 
 			DateSortDirection = SortOrder.Decreasing;
 		}
@@ -235,8 +239,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 		}
-
-		public ViewModelActivator Activator => throw new NotImplementedException();
 
 		private void RefreshOrdering()
 		{

@@ -70,6 +70,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
+			throw new Exception("TODO");
+
+			// TODO memory leak fixes.
 			Label = "";
 			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
@@ -131,7 +134,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				SetFeesAndTexts();
-			}).DisposeWith(Disposables);
+			});
 
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
 			{
@@ -225,12 +228,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			},
 			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
-				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy))
-				.DisposeWith(Disposables);
+				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy));
 
-			MaxCommand = ReactiveCommand.Create(SetMax).DisposeWith(Disposables);
+			MaxCommand = ReactiveCommand.Create(SetMax);
 
-			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay).DisposeWith(Disposables);
+			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
 
 			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
 			{
@@ -242,7 +244,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					BuildTransactionButtonText = BuildTransactionButtonTextString;
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -261,9 +263,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Logging.Logger.LogTrace(ex);
 				}
-			}).DisposeWith(Disposables);
+			});
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
@@ -272,13 +274,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
 			{
 				SetFeesAndTexts();
-			}).DisposeWith(Disposables);
+			});
 
+			// TODO this can be observable... and do we own coinlist, if so it will be collected?
 			CoinList.SelectionChanged += CoinList_SelectionChanged;
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();

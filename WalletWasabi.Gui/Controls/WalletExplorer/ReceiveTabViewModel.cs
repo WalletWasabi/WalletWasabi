@@ -28,6 +28,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
+			throw new Exception("TODO");
+			// memory leak fixes.
 			_addresses = new ObservableCollection<AddressViewModel>();
 			Label = "";
 
@@ -36,7 +38,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(o =>
 			{
 				InitializeAddresses();
-			}).DisposeWith(Disposables);
+			});
 
 			InitializeAddresses();
 
@@ -76,9 +78,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Label = "";
 				});
-			}).DisposeWith(Disposables);
+			});
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
 			{
@@ -86,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					address?.CopyToClipboard();
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
@@ -95,7 +97,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
