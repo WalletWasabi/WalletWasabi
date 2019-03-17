@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool? _selectPrivateCheckBoxState;
 		private bool? _selectNonPrivateCheckBoxState;
 		private GridLength _coinJoinStatusWidth;
-		private SortOrder _historySortDirection;
+		private SortOrder _clustersSortDirection;
 
 		public ReactiveCommand EnqueueCoin { get; }
 		public ReactiveCommand DequeueCoin { get; }
@@ -101,10 +101,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _privacySortDirection, value);
 		}
 
-		public SortOrder HistorySortDirection
+		public SortOrder ClustersSortDirection
 		{
-			get => _historySortDirection;
-			set => this.RaiseAndSetIfChanged(ref _historySortDirection, value);
+			get => _clustersSortDirection;
+			set => this.RaiseAndSetIfChanged(ref _clustersSortDirection, value);
 		}
 
 		private void RefreshOrdering()
@@ -123,12 +123,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				else
 					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.AnonymitySet);
 			}
-			else if (HistorySortDirection != SortOrder.None)
+			else if (ClustersSortDirection != SortOrder.None)
 			{
-				if (HistorySortDirection == SortOrder.Increasing)
-					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.History);
+				if (ClustersSortDirection == SortOrder.Increasing)
+					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Clusters);
 				else
-					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.History);
+					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Clusters);
 			}
 			else if (StatusSortDirection != SortOrder.None)
 			{
@@ -184,6 +184,70 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CoinListViewModel()
 		{
+			Disposables = new CompositeDisposable();
+
+			RemovedCoinViewModels = new List<CoinViewModel>();
+			AmountSortDirection = SortOrder.Decreasing;
+			RefreshOrdering();
+
+			var sortChanged = this.WhenValueChanged(@this => MyComparer).Select(_ => MyComparer);
+
+			RootList = new SourceList<CoinViewModel>().DisposeWith(Disposables);
+			RootList.Connect()
+				.OnItemAdded(cvm => cvm.PropertyChanged += Coin_PropertyChanged)
+				.OnItemRemoved(cvm => RemovedCoinViewModels.Add(cvm)) //TODO: fix and test. If I directly unsubscribe from Coin_PropertyChanged then Unspent propchange not triggered in some cases => spent money stays in list
+				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
+				.Bind(out _coinViewModels)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe().DisposeWith(Disposables);
+
+			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent && !sc.IsDust))
+			{
+				RootList.Add(new CoinViewModel(sc).DisposeWith(Disposables));
+			}
+
+			Global.WalletService.Coins.CollectionChanged += Coins_CollectionGlobalChanged;
+
+			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
+			{
+				if (x != SortOrder.None)
+				{
+					PrivacySortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
+				}
+			}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.ClustersSortDirection).Subscribe(x =>
+			{
+				if (x != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+					PrivacySortDirection = SortOrder.None;
+				}
+			}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.StatusSortDirection).Subscribe(x =>
+			{
+				if (x != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					PrivacySortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
+				}
+			}).DisposeWith(Disposables);
+
+			this.WhenAnyValue(x => x.PrivacySortDirection).Subscribe(x =>
+			{
+				if (x != SortOrder.None)
+				{
+					AmountSortDirection = SortOrder.None;
+					StatusSortDirection = SortOrder.None;
+					ClustersSortDirection = SortOrder.None;
+				}
+			}).DisposeWith(Disposables);
+
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
 				if (SelectedCoin is null) return;
@@ -371,7 +435,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (e.Action)
 				{
 					case NotifyCollectionChangedAction.Add:
-						foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
+						foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent && !sc.IsDust))
 						{
 							RootList.Add(new CoinViewModel(c).DisposeWith(_disposables));
 						}

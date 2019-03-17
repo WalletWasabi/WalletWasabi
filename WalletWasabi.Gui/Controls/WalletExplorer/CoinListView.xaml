@@ -43,7 +43,7 @@
 
         <controls:SortingArrow Grid.Column="4" Text="Privacy" Command="{Binding SortCommand}" SortDirection="{Binding PrivacySortDirection}" />
 
-        <controls:SortingArrow Grid.Column="5" Text="History" Command="{Binding SortCommand}" SortDirection="{Binding HistorySortDirection}" />
+        <controls:SortingArrow Grid.Column="5" Text="Clusters" Command="{Binding SortCommand}" SortDirection="{Binding ClustersSortDirection}" />
       </Grid>
       <StackPanel Margin="0 10 0 0" Spacing="10" DockPanel.Dock="Bottom" Orientation="Horizontal">
         <CheckBox Content = "Select All" IsThreeState="True" IsChecked = "{Binding SelectAllCheckBoxState}" Command="{Binding SelectAllCheckBoxCommand}" />
@@ -130,7 +130,7 @@
                     ToolTip.Tip="{Binding ToolTip}">
                   <DrawingPresenter Drawing="{Binding Icon}" Margin="0 0 25 0" />
                 </Panel>
-                <controls:ExtendedTextBox Classes="selectableTextBlock" Background="Transparent" Grid.Column="5" Text="{Binding History}" />
+                <controls:ExtendedTextBox Classes="selectableTextBlock" Background="Transparent" Grid.Column="5" Text="{Binding Clusters}" />
                 <TextBlock Text="" Grid.Column="6" />
               </Grid>
             </Grid>

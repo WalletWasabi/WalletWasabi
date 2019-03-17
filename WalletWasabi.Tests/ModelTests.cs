@@ -66,16 +66,16 @@ namespace WalletWasabi.Tests
 			var height = Height.MemPool;
 			var label = "foo";
 
-			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetMixin(index), label, txId);
+			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
 			// If the txid or the index differs, equality should think it's a different coin.
-			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetMixin(index + 1), label, txId);
+			var differentCoin = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index + 1), label, txId);
 			var differentOutput = tx.Outputs[1];
 			var differentSpentOutputs = new[]
 			{
 				new TxoRef(txId, 0)
 			};
 			// If the txid and the index is the same, equality should think it's the same coin.
-			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, tx.RBF, tx.GetMixin(index), "boo", null);
+			var sameCoin = new SmartCoin(txId, index, differentOutput.ScriptPubKey, differentOutput.Value, differentSpentOutputs, Height.Unknown, tx.RBF, tx.GetAnonymitySet(index), "boo", null);
 
 			Assert.Equal(coin, sameCoin);
 			Assert.NotEqual(coin, differentCoin);
@@ -160,7 +160,7 @@ namespace WalletWasabi.Tests
 			var label = "foo";
 			var bannedUntil = DateTimeOffset.UtcNow;
 
-			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetMixin(index), label, txId);
+			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
 			coin.BannedUntilUtc = bannedUntil;
 
 			var serialized = JsonConvert.SerializeObject(coin);
@@ -170,7 +170,7 @@ namespace WalletWasabi.Tests
 			Assert.Equal(coin.Height, deserialized.Height);
 			Assert.Equal(coin.Amount, deserialized.Amount);
 			Assert.Equal(coin.Index, deserialized.Index);
-			Assert.Equal(coin.SpentOrCoinJoinInProgress, deserialized.SpentOrCoinJoinInProgress);
+			Assert.Equal(coin.Unavailable, deserialized.Unavailable);
 			Assert.Equal(coin.Label, deserialized.Label);
 			Assert.Equal(coin.ScriptPubKey, deserialized.ScriptPubKey);
 			Assert.Equal(coin.SpenderTransactionId, deserialized.SpenderTransactionId);

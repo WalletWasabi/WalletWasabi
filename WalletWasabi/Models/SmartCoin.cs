@@ -35,7 +35,7 @@ namespace WalletWasabi.Models
 		private string _label;
 		private TxoRef[] _spentOutputs;
 		private bool _rbf;
-		private int _mixin;
+		private int _anonymitySet;
 		private uint256 _spenderTransactionId;
 		private bool _coinJoinInProgress;
 		private DateTimeOffset? _bannedUntilUtc;
@@ -43,13 +43,13 @@ namespace WalletWasabi.Models
 		private HdPubKey _hdPubKey;
 
 		private ISecret _secret;
+		private bool _isDust;
+		private string _clusters;
 
 		private bool _confirmed;
-		private bool _spentOrCoinJoinInProgress;
+		private bool _unavailable;
 		private bool _unspent;
 		private bool _isBanned;
-		private int _anonymitySet;
-		private string _history;
 
 		#endregion Fields
 
@@ -132,16 +132,21 @@ namespace WalletWasabi.Models
 			}
 		}
 
+		/// <summary>
+		/// Always set it before the Amount!
+		/// </summary>
 		[JsonProperty]
 		public string Label
 		{
 			get => _label;
 			set
 			{
+				value = Guard.Correct(value);
 				if (value != _label)
 				{
 					_label = value;
 					OnPropertyChanged(nameof(Label));
+					HasLabel = !string.IsNullOrEmpty(value);
 				}
 			}
 		}
@@ -175,20 +180,16 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		/// <summary>
-		/// AnonymitySet - 1
-		/// </summary>
 		[JsonProperty]
-		public int Mixin
+		public int AnonymitySet
 		{
-			get => _mixin;
-			set
+			get => _anonymitySet;
+			private set
 			{
-				if (value != _mixin)
+				if (value != _anonymitySet)
 				{
-					_mixin = value;
-					OnPropertyChanged(nameof(Mixin));
-					SetAnonymitySet();
+					_anonymitySet = value;
+					OnPropertyChanged(nameof(AnonymitySet));
 				}
 			}
 		}
@@ -221,7 +222,8 @@ namespace WalletWasabi.Models
 				{
 					_coinJoinInProgress = value;
 					OnPropertyChanged(nameof(CoinJoinInProgress));
-					SetSpentOrCoinJoinInProgress();
+
+					SetUnavailable();
 				}
 			}
 		}
@@ -248,13 +250,15 @@ namespace WalletWasabi.Models
 		[JsonProperty]
 		public bool SpentAccordingToBackend
 		{
-			get { return _spentAccordingToBackend; }
+			get => _spentAccordingToBackend;
 			set
 			{
 				if (value != _spentAccordingToBackend)
 				{
 					_spentAccordingToBackend = value;
 					OnPropertyChanged(nameof(SpentAccordingToBackend));
+
+					SetUnavailable();
 				}
 			}
 		}
@@ -294,15 +298,31 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		public string History
+		[JsonProperty]
+		public bool IsDust
 		{
-			get => _history;
+			get => _isDust;
 			private set
 			{
-				if (value != _history)
+				if (value != _isDust)
 				{
-					_history = value;
-					OnPropertyChanged(nameof(History));
+					_isDust = value;
+					OnPropertyChanged(nameof(IsDust));
+
+					SetUnavailable();
+				}
+			}
+		}
+
+		public string Clusters
+		{
+			get => _clusters;
+			private set
+			{
+				if (value != _clusters)
+				{
+					_clusters = value;
+					OnPropertyChanged(nameof(Clusters));
 				}
 			}
 		}
@@ -324,15 +344,18 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		public bool SpentOrCoinJoinInProgress
+		/// <summary>
+		/// Spent || SpentAccordingToBackend || CoinJoinInProgress || IsDust;
+		/// </summary>
+		public bool Unavailable
 		{
-			get => _spentOrCoinJoinInProgress;
+			get => _unavailable;
 			private set
 			{
-				if (value != _spentOrCoinJoinInProgress)
+				if (value != _unavailable)
 				{
-					_spentOrCoinJoinInProgress = value;
-					OnPropertyChanged(nameof(SpentOrCoinJoinInProgress));
+					_unavailable = value;
+					OnPropertyChanged(nameof(Unavailable));
 				}
 			}
 		}
@@ -347,7 +370,7 @@ namespace WalletWasabi.Models
 					_unspent = value;
 					OnPropertyChanged(nameof(Unspent));
 
-					SetSpentOrCoinJoinInProgress();
+					SetUnavailable();
 				}
 			}
 		}
@@ -365,22 +388,6 @@ namespace WalletWasabi.Models
 			}
 		}
 
-		/// <summary>
-		/// Mixin + 1
-		/// </summary>
-		public int AnonymitySet
-		{
-			get => _anonymitySet;
-			private set
-			{
-				if (value != _anonymitySet)
-				{
-					_anonymitySet = value;
-					OnPropertyChanged(nameof(AnonymitySet));
-				}
-			}
-		}
-
 		#endregion DependentProperties
 
 		#region PropertySetters
@@ -388,11 +395,6 @@ namespace WalletWasabi.Models
 		private void SetConfirmed()
 		{
 			Confirmed = Height != Height.MemPool && Height != Height.Unknown;
-		}
-
-		private void SetAnonymitySet()
-		{
-			AnonymitySet = Mixin + 1;
 		}
 
 		private void SetUnspent()
@@ -405,9 +407,14 @@ namespace WalletWasabi.Models
 			IsBanned = BannedUntilUtc != null && BannedUntilUtc > DateTimeOffset.UtcNow;
 		}
 
-		private void SetSpentOrCoinJoinInProgress()
+		private void SetUnavailable()
 		{
-			SpentOrCoinJoinInProgress = !Unspent || CoinJoinInProgress;
+			Unavailable = !Unspent || SpentAccordingToBackend || CoinJoinInProgress || IsDust;
+		}
+
+		private void SetIsDust(Money dustThreshold)
+		{
+			IsDust = Amount <= dustThreshold;
 		}
 
 		#endregion PropertySetters
@@ -417,12 +424,12 @@ namespace WalletWasabi.Models
 		#region Constructors
 
 		[JsonConstructor]
-		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int anonymitySet, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
 		{
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, rbf, mixin, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, rbf, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
 		}
 
-		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool rbf, int anonymitySet, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
 		{
 			OutPoint outpoint = Guard.NotNull($"{coin}.{coin?.Outpoint}", coin?.Outpoint);
 			uint256 transactionId = outpoint.Hash;
@@ -430,10 +437,10 @@ namespace WalletWasabi.Models
 			Script scriptPubKey = Guard.NotNull($"{coin}.{coin?.ScriptPubKey}", coin?.ScriptPubKey);
 			Money amount = Guard.NotNull($"{coin}.{coin?.Amount}", coin?.Amount);
 
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, rbf, mixin, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, rbf, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
 		}
 
-		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int mixin, string label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
+		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int anonymitySet, string label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
@@ -443,7 +450,7 @@ namespace WalletWasabi.Models
 			Label = Guard.Correct(label);
 			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
 			RBF = rbf;
-			Mixin = Guard.InRangeAndNotNull(nameof(mixin), mixin, 0, int.MaxValue);
+			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
 
 			SpenderTransactionId = spenderTransactionId;
 
@@ -454,10 +461,10 @@ namespace WalletWasabi.Models
 			HdPubKey = pubKey;
 
 			SetConfirmed();
-			SetAnonymitySet();
 			SetUnspent();
 			SetIsBanned();
-			SetSpentOrCoinJoinInProgress();
+			SetUnavailable();
+			SetIsDust(Constants.DustThreshold);
 		}
 
 		#endregion Constructors
@@ -479,11 +486,11 @@ namespace WalletWasabi.Models
 			return new TxoRef(TransactionId, Index);
 		}
 
-		public bool HasLabel() => !string.IsNullOrWhiteSpace(Label);
+		public bool HasLabel { get; private set; }
 
-		public void SetHistory(string history)
+		public void SetClusters(string clusters)
 		{
-			History = history;
+			Clusters = clusters;
 		}
 
 		#endregion Methods

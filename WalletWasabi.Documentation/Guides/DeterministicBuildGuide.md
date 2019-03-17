@@ -2,7 +2,7 @@
 
 This guide describes how to reproduce Wasabi's builds. If you got stuck with these instructions, take a look at how to build Wasabi from source code: https://github.com/zkSNACKs/WalletWasabi#build-from-source-code
 
-# 1: Assuert Correct Environment
+# 1: Assert Correct Environment
 
 In order to reproduce Wasabi's builds you need a Git, a Windows 10 and the version of .NET Core SDK that was the most recent in the time of building the release.
 
@@ -10,7 +10,7 @@ In order to reproduce Wasabi's builds you need a Git, a Windows 10 and the versi
 
 ```sh
 git clone https://github.com/zkSNACKs/WalletWasabi.git --recursive
-git checkout {hash of the release} // This works from 1.1.2 release, https://github.com/zkSNACKs/WalletWasabi/releases
+git checkout {hash of the release} // This works from 1.1.3 release, https://github.com/zkSNACKs/WalletWasabi/releases
 cd WalletWasabi/WalletWasabi.Packager/
 dotnet restore
 dotnet build
@@ -48,15 +48,15 @@ After installing WSL, just type `wsl` in explorer where your downloaded and buil
 ### .deb
 
 ```sh
-sudo dpkg -i Wasabi-1.1.1.deb
+sudo dpkg -i Wasabi-1.1.3.deb
 git diff --no-index linux-x64/ /usr/local/bin/wasabiwallet/
 ```
 
 ### .tar.gz
 
 ```sh
-tar -pxzf WasabiLinux-1.1.1.tar.gz
-git diff --no-index linux-x64/ WasabiLinux-1.1.1
+tar -pxzf WasabiLinux-1.1.3.tar.gz
+git diff --no-index linux-x64/ WasabiLinux-1.1.3
 ```
 
 ### .dmg
@@ -64,6 +64,6 @@ git diff --no-index linux-x64/ WasabiLinux-1.1.1
 You'll need to install `7z` (or something else) to extract the `.dmg`: `sudo apt install p7zip-full`
 
 ```sh
-7z x Wasabi-1.1.1.dmg -oWasabiOsx
+7z x Wasabi-1.1.3.dmg -oWasabiOsx
 git diff --no-index osx-x64/ WasabiOsx/Wasabi\ Wallet.App/Contents/MacOS/
 ```
