@@ -43,10 +43,10 @@ namespace WalletWasabi.Gui.ViewModels
 			IsSelected = false;
 		}
 
-		public virtual void OnOpen  ()
+		public virtual void OnOpen()
 		{
-
 		}
+
 
 		public virtual bool OnClose()
 		{

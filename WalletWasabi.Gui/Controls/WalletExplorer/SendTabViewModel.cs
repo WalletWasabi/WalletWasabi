@@ -276,7 +276,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			});
 
-
 			// TODO this can be observable... and do we own coinlist, if so it will be collected?
 			CoinList.SelectionChanged += CoinList_SelectionChanged;
 
