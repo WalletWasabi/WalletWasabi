@@ -54,6 +54,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
+		private CompositeDisposable _disposables;
 
 		private bool IgnoreAmountChanges { get; set; }
 
@@ -70,9 +71,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
-			throw new Exception("TODO");
-
-			// TODO memory leak fixes.
 			Label = "";
 			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
@@ -87,8 +85,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
-
-			Global.Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 
 			this.WhenAnyValue(x => x.Amount).Subscribe(amount =>
 			{
@@ -280,6 +276,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				SetFeesAndTexts();
 			});
+
 
 			// TODO this can be observable... and do we own coinlist, if so it will be collected?
 			CoinList.SelectionChanged += CoinList_SelectionChanged;
@@ -495,32 +492,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			AllSelectedAmount = Math.Max(Money.Zero, all - BtcFee);
-		}
-
-		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
-		{
-			if (e.PropertyName == nameof(Global.Synchronizer.AllFeeEstimate))
-			{
-				SetFeeTargetLimits();
-				if (FeeTarget < MinimumFeeTarget) // Should never happen.
-				{
-					FeeTarget = MinimumFeeTarget;
-				}
-				else if (FeeTarget > MaximumFeeTarget)
-				{
-					FeeTarget = MaximumFeeTarget;
-				}
-				SetFeesAndTexts();
-			}
-			else if (e.PropertyName == nameof(Global.Synchronizer.UsdExchangeRate))
-			{
-				var exchangeRate = Global.Synchronizer.UsdExchangeRate;
-				if (exchangeRate != 0)
-				{
-					UsdExchangeRate = exchangeRate;
-				}
-				SetFeesAndTexts();
-			}
 		}
 
 		private void SetFeeTargetLimits()
@@ -907,6 +878,38 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
+			_disposables?.Dispose();
+
+			_disposables = new CompositeDisposable();
+
+			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
+			{
+				SetFeeTargetLimits();
+
+				if (FeeTarget < MinimumFeeTarget) // Should never happen.
+				{
+					FeeTarget = MinimumFeeTarget;
+				}
+				else if (FeeTarget > MaximumFeeTarget)
+				{
+					FeeTarget = MaximumFeeTarget;
+				}
+
+				SetFeesAndTexts();
+			}).DisposeWith(_disposables);
+
+			Global.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
+			{
+				var exchangeRate = Global.Synchronizer.UsdExchangeRate;
+
+				if (exchangeRate != 0)
+				{
+					UsdExchangeRate = exchangeRate;
+				}
+
+				SetFeesAndTexts();
+			}).DisposeWith(_disposables);
+
 			CoinList.OnOpen();
 
 			base.OnOpen();
@@ -914,6 +917,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override bool OnClose()
 		{
+			_disposables.Dispose();
+
+			_disposables = null;
+
 			CoinList.OnClose();
 
 			return base.OnClose();
