@@ -18,22 +18,18 @@ using System;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-	internal class HelpCommands : IDisposable
+	internal class HelpCommands
 	{
-		private CompositeDisposable Disposables { get; }
-
 		[ImportingConstructor]
 		public HelpCommands(CommandIconService commandIconService)
 		{
-			Disposables = new CompositeDisposable();
-
 			AboutCommand = new CommandDefinition(
 				"About",
 				commandIconService.GetCompletionKindImage("About"),
 				ReactiveCommand.Create(() =>
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
-				}).DisposeWith(Disposables));
+				}));
 
 			CustomerSupportCommand = new CommandDefinition(
 				"Customer Support",
@@ -41,15 +37,15 @@ namespace WalletWasabi.Gui.Shell.Commands
 				ReactiveCommand.Create(() =>
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new CustomerSupportViewModel());
-				}).DisposeWith(Disposables));
+				}));
 
 			ReportBugCommand = new CommandDefinition(
 				"Report Bug",
 				commandIconService.GetCompletionKindImage("ReportBug"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new ReportBugViewModel().DisposeWith(Disposables));
-				}).DisposeWith(Disposables));
+					IoC.Get<IShell>().AddOrSelectDocument(() => new ReportBugViewModel());
+				}));
 
 			PrivacyPolicyCommand = new CommandDefinition(
 				"Privacy Policy",
@@ -57,7 +53,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				ReactiveCommand.Create(() =>
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new PrivacyPolicyViewModel());
-				}).DisposeWith(Disposables));
+				}));
 
 			TermsAndConditionsCommand = new CommandDefinition(
 				"Terms and Conditions",
@@ -65,7 +61,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				ReactiveCommand.Create(() =>
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new TermsAndConditionsViewModel());
-				}).DisposeWith(Disposables));
+				}));
 
 			LegalIssuesCommand = new CommandDefinition(
 				"Legal Issues",
@@ -73,7 +69,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				ReactiveCommand.Create(() =>
 				{
 					IoC.Get<IShell>().AddOrSelectDocument(() => new LegalIssuesViewModel());
-				}).DisposeWith(Disposables));
+				}));
 
 #if DEBUG
 			DevToolsCommand = new CommandDefinition(
@@ -95,7 +91,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 					};
 
 					devToolsWindow.Show();
-				}).DisposeWith(Disposables));
+				}));
 #endif
 		}
 
@@ -123,29 +119,5 @@ namespace WalletWasabi.Gui.Shell.Commands
 		public CommandDefinition DevToolsCommand { get; }
 
 #endif
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

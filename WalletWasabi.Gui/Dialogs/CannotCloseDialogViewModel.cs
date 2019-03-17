@@ -14,10 +14,8 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Dialogs
 {
-	internal class CannotCloseDialogViewModel : ModalDialogViewModelBase, IDisposable
+	internal class CannotCloseDialogViewModel : ModalDialogViewModelBase
 	{
-		private CompositeDisposable Disposables { get; }
-
 		private bool _isBusy;
 		private string _warningMessage;
 		private string _operationMessage;
@@ -50,13 +48,11 @@ namespace WalletWasabi.Gui.Dialogs
 
 		public CannotCloseDialogViewModel() : base("", false, false)
 		{
-			Disposables = new CompositeDisposable();
-
 			OperationMessage = "Dequeuing coins...Please wait";
 			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
 
-			CancelTokenSource = new CancellationTokenSource().DisposeWith(Disposables);
+			CancelTokenSource = new CancellationTokenSource();
 
 			OKCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -68,7 +64,7 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canOk).DisposeWith(Disposables);
+			canOk);
 
 			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -81,10 +77,10 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canCancel).DisposeWith(Disposables);
+			canCancel);
 
-			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex)).DisposeWith(Disposables);
-			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex)).DisposeWith(Disposables);
+			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
+			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
 
 			Initialization = StartDequeueAsync(CancelTokenSource.Token);
 		}
@@ -199,29 +195,5 @@ namespace WalletWasabi.Gui.Dialogs
 				}
 			});
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

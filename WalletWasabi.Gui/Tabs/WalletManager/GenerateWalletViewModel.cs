@@ -15,10 +15,8 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class GenerateWalletViewModel : CategoryViewModel, IDisposable
+	internal class GenerateWalletViewModel : CategoryViewModel
 	{
-		private CompositeDisposable Disposables { get; }
-
 		private string _password;
 		private string _walletName;
 		private bool _termsAccepted;
@@ -27,15 +25,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
-			Disposables = new CompositeDisposable();
-
 			Owner = owner;
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
 				DoGenerateCommand();
 			},
-			this.WhenAnyValue(x => x.TermsAccepted)).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.TermsAccepted));
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -58,7 +54,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					Logger.LogTrace(ex);
 				}
-			}).DisposeWith(Disposables);
+			});
 		}
 
 		private void DoGenerateCommand()
@@ -86,7 +82,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
 
-					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic).DisposeWith(Disposables);
+					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
 				}
 				catch (Exception ex)
 				{
@@ -146,31 +142,5 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			TermsAccepted = false;
 			ValidationMessage = "";
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

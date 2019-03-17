@@ -15,10 +15,8 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModel : WasabiDocumentTabViewModel, IDisposable
+	public class WalletViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; }
-
 		private ObservableCollection<WalletActionViewModel> _actions;
 
 		private string _title;
@@ -26,7 +24,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public WalletViewModel(WalletService walletService, bool receiveDominant)
 			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
 		{
-			Disposables = new CompositeDisposable();
+			throw new Exception("TODO");
+
+			// TODO implement unsubscribing from Global.WalletService.Coins.
 
 			WalletService = walletService;
 			Name = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);
@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(o =>
 				{
 					SetBalance(Name);
-				}).DisposeWith(Disposables);
+				});
 
 			SetBalance(Name);
 
@@ -88,31 +88,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.IsDust && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
 			Title = $"{walletName} ({balance.ToString(false, true)} BTC)";
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

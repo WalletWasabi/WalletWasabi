@@ -12,17 +12,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletActionViewModel : WasabiDocumentTabViewModel
 	{
-		protected CompositeDisposable Disposables { get; }
-
 		public WalletViewModel Wallet { get; }
 
 		public WalletActionViewModel(string title, WalletViewModel walletViewModel)
 			: base(title)
 		{
-			Disposables = new CompositeDisposable();
-
 			Wallet = walletViewModel;
-			DoItCommand = ReactiveCommand.Create(DisplayActionTab).DisposeWith(Disposables);
+			DoItCommand = ReactiveCommand.Create(DisplayActionTab);
 		}
 
 		public ReactiveCommand DoItCommand { get; }

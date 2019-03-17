@@ -29,10 +29,8 @@ namespace WalletWasabi.Gui.ViewModels
 		Critical
 	}
 
-	public class StatusBarViewModel : ViewModelBase, IDisposable
+	public class StatusBarViewModel : ViewModelBase
 	{
-		private CompositeDisposable Disposables { get; }
-
 		public NodesCollection Nodes { get; }
 		public WasabiSynchronizer Synchronizer { get; }
 		public UpdateChecker UpdateChecker { get; }
@@ -137,8 +135,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
-			Disposables = new CompositeDisposable();
-
 			_clientOutOfDate = 0;
 			_backendIncompatible = 0;
 			UpdateStatus = UpdateStatus.Latest;
@@ -162,23 +158,27 @@ namespace WalletWasabi.Gui.ViewModels
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
 				SetStatusAndDoUpdateActions();
-			}).DisposeWith(Disposables);
+			});
+
 			this.WhenAnyValue(x => x.FiltersLeft).Subscribe(filters =>
 			{
 				SetStatusAndDoUpdateActions();
-			}).DisposeWith(Disposables);
+			});
+
 			this.WhenAnyValue(x => x.Tor).Subscribe(tor =>
 			{
 				SetStatusAndDoUpdateActions();
-			}).DisposeWith(Disposables);
+			});
+
 			this.WhenAnyValue(x => x.Backend).Subscribe(backend =>
 			{
 				SetStatusAndDoUpdateActions();
-			}).DisposeWith(Disposables);
+			});
+
 			this.WhenAnyValue(x => x.Peers).Subscribe(peers =>
 			{
 				SetStatusAndDoUpdateActions();
-			}).DisposeWith(Disposables);
+			});
 
 			UpdateChecker.Start(TimeSpan.FromMinutes(7),
 				() =>
@@ -203,7 +203,7 @@ namespace WalletWasabi.Gui.ViewModels
 			UpdateCommand = ReactiveCommand.Create(() =>
 			{
 				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
-			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest)).DisposeWith(Disposables);
+			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
 		}
 
 		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -242,7 +242,7 @@ namespace WalletWasabi.Gui.ViewModels
 					if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
 						|| osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
 					{
-						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel().DisposeWith(Disposables)).GetAwaiter();
+						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter();
 					}
 				}
 			}
@@ -329,8 +329,6 @@ namespace WalletWasabi.Gui.ViewModels
 					Synchronizer.NewFilter -= IndexDownloader_NewFilter;
 					Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
 					Synchronizer.ResponseArrivedIsGenSocksServFail -= IndexDownloader_ResponseArrivedIsGenSocksServFail;
-
-					Disposables?.Dispose();
 				}
 
 				_disposedValue = true;

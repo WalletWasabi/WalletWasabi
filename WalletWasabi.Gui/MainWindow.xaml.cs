@@ -20,16 +20,12 @@ using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui
 {
-	public class MainWindow : MetroWindow, IDisposable
+	public class MainWindow : MetroWindow
 	{
-		private CompositeDisposable Disposables { get; }
-
 		public bool IsQuitPending { get; private set; }
 
 		public MainWindow()
 		{
-			Disposables = new CompositeDisposable();
-
 			InitializeComponent();
 #if DEBUG
 			this.AttachDevTools();
@@ -61,7 +57,8 @@ namespace WalletWasabi.Gui
 			{
 				case 0:
 					Interlocked.Increment(ref _closingState);
-					ClosingAsync().DisposeWith(Disposables);
+					ClosingAsync();
+					// TODO ??? await here?
 					break;
 
 				case 1:
@@ -86,10 +83,9 @@ namespace WalletWasabi.Gui
 
 				if (!MainWindowViewModel.Instance.CanClose)
 				{
-					using (var dialog = new CannotCloseDialogViewModel().DisposeWith(Disposables))
-					{
-						closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); // start the deque process with a dialog
-					}
+					var dialog = new CannotCloseDialogViewModel();
+
+					closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); // start the deque process with a dialog
 				}
 				else
 				{
@@ -170,7 +166,7 @@ namespace WalletWasabi.Gui
 		{
 			var isAnyWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
 
-			var walletManagerViewModel = new WalletManagerViewModel().DisposeWith(Disposables);
+			var walletManagerViewModel = new WalletManagerViewModel();
 			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
 
 			if (isAnyWalletAvailable)
@@ -182,31 +178,5 @@ namespace WalletWasabi.Gui
 				walletManagerViewModel.SelectGenerateWallet();
 			}
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

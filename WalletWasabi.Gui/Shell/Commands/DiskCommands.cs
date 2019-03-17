@@ -12,39 +12,35 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-	internal class DiskCommands : IDisposable
+	internal class DiskCommands
 	{
-		private CompositeDisposable Disposables { get; }
-
 		[ImportingConstructor]
 		public DiskCommands(CommandIconService commandIconService)
 		{
-			Disposables = new CompositeDisposable();
-
 			OpenDataFolderCommand = new CommandDefinition(
 				"Data Folder",
 				commandIconService.GetCompletionKindImage("FolderOpen"),
-				ReactiveCommand.Create(OnOpenDataFolder).DisposeWith(Disposables));
+				ReactiveCommand.Create(OnOpenDataFolder));
 
 			OpenWalletsFolderCommand = new CommandDefinition(
 				"Wallets Folder",
 				commandIconService.GetCompletionKindImage("FolderOpen"),
-				ReactiveCommand.Create(OnOpenWalletsFolder).DisposeWith(Disposables));
+				ReactiveCommand.Create(OnOpenWalletsFolder));
 
 			OpenLogFileCommand = new CommandDefinition(
 				"Log File",
 				commandIconService.GetCompletionKindImage("Log"),
-				ReactiveCommand.Create(OnOpenLogFile).DisposeWith(Disposables));
+				ReactiveCommand.Create(OnOpenLogFile));
 
 			OpenTorLogFileCommand = new CommandDefinition(
 				"Tor Log File",
 				commandIconService.GetCompletionKindImage("Log"),
-				ReactiveCommand.Create(OnOpenTorLogFile).DisposeWith(Disposables));
+				ReactiveCommand.Create(OnOpenTorLogFile));
 
 			OpenConfigFileCommand = new CommandDefinition(
 				"Config File",
 				commandIconService.GetCompletionKindImage("Settings"),
-				ReactiveCommand.Create(OnOpenConfigFile).DisposeWith(Disposables));
+				ReactiveCommand.Create(OnOpenConfigFile));
 		}
 
 		private void OnOpenDataFolder()
@@ -86,29 +82,5 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		[ExportCommandDefinition("File.Open.ConfigFile")]
 		public CommandDefinition OpenConfigFileCommand { get; }
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }
