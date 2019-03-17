@@ -47,7 +47,6 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 		}
 
-
 		public virtual bool OnClose()
 		{
 			IsSelected = false;
