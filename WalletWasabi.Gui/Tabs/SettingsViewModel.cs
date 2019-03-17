@@ -1,15 +1,12 @@
-﻿using WalletWasabi.Gui.ViewModels;
+﻿using Avalonia.Threading;
 using ReactiveUI;
-using Avalonia;
 using System;
 using System.Collections.Generic;
-using Avalonia.Threading;
-using WalletWasabi.Gui.ViewModels.Validation;
-using System.Net;
-using System.Threading.Tasks;
-using System.Net.Sockets;
 using System.IO;
-using System.Reactive.Disposables;
+using System.Net;
+using System.Net.Sockets;
+using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Gui.ViewModels.Validation;
 
 namespace WalletWasabi.Gui.Tabs
 {
@@ -22,7 +19,6 @@ namespace WalletWasabi.Gui.Tabs
 		private string _autocopyText;
 		private bool _useTor;
 		private string _useTorText;
-
 		private bool _isModified;
 
 		public SettingsViewModel() : base("Settings")

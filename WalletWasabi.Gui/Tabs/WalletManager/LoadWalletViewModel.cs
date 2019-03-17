@@ -1,22 +1,16 @@
-﻿using System;
-using System.IO;
-using System.Collections.ObjectModel;
-using System.Linq;
-using NBitcoin;
-using AvalonStudio.Extensibility;
+﻿using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
-using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
-using Avalonia.Controls;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
-using System.Reactive.Disposables;
+using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {

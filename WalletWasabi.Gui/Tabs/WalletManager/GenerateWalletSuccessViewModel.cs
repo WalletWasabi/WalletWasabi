@@ -1,7 +1,5 @@
 ﻿using NBitcoin;
 using ReactiveUI;
-using System;
-using System.Reactive.Disposables;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager

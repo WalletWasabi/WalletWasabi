@@ -1,17 +1,13 @@
 ﻿using AvalonStudio.Extensibility;
 using AvalonStudio.MVVM;
-using System;
-using System.Collections.Generic;
+using AvalonStudio.Shell;
+using ReactiveUI;
 using System.Collections.ObjectModel;
 using System.Composition;
-using System.Text;
-using ReactiveUI;
-using WalletWasabi.Gui.ViewModels;
-using System.Linq;
-using AvalonStudio.Shell;
-using WalletWasabi.Services;
 using System.IO;
-using System.Reactive.Disposables;
+using System.Linq;
+using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {

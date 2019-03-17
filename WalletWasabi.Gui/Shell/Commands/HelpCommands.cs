@@ -1,20 +1,14 @@
-﻿using System.Composition;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Diagnostics;
 using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
-using NBitcoin;
 using ReactiveUI;
+using System.Composition;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Gui.Tabs.WalletManager;
-using Avalonia;
-using System.IO;
-using System.Reactive.Disposables;
-using System;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {

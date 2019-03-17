@@ -1,15 +1,10 @@
-﻿using Avalonia;
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Disposables;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Dialogs

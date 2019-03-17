@@ -1,10 +1,8 @@
-﻿using System.Composition;
-using System.Threading.Tasks;
+﻿using Avalonia;
 using AvalonStudio.Commands;
 using ReactiveUI;
 using System;
-using Avalonia;
-using System.Reactive.Disposables;
+using System.Composition;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {

@@ -1,9 +1,8 @@
 ﻿using ReactiveUI;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using WalletWasabi.Gui.ViewModels;
-using System;
-using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
