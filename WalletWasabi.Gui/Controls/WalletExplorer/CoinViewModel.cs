@@ -12,19 +12,16 @@ using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class CoinViewModel : ViewModelBase
+	public class CoinViewModel : ViewModelBase, IDisposable
 	{
-		private CompositeDisposable Disposables { get; }
+		private CompositeDisposable _disposables;
 
 		private bool _isSelected;
 		private SmartCoinStatus _smartCoinStatus;
 
 		public CoinViewModel(SmartCoin model)
 		{
-			throw new Exception("TODO");
-			// copy values from model to viewmodel so we dont hold a reference?
-			
-			Disposables = new CompositeDisposable();
+			_disposables = new CompositeDisposable();
 
 			Model = model;
 
@@ -32,58 +29,60 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				RefreshSmartCoinStatus();
 				this.RaisePropertyChanged(nameof(Confirmed));
-			});
+			}).DisposeWith(_disposables);
 
 			model.WhenAnyValue(x => x.Unavailable).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Unavailable));
-			});
+			}).DisposeWith(_disposables);
 
 			model.WhenAnyValue(x => x.CoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				RefreshSmartCoinStatus();
 				this.RaisePropertyChanged(nameof(CoinJoinInProgress));
-			});
+			}).DisposeWith(_disposables);
 
 			model.WhenAnyValue(x => x.IsBanned).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				RefreshSmartCoinStatus();
-			});
+			}).DisposeWith(_disposables);
 
 			model.WhenAnyValue(x => x.SpentAccordingToBackend).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				RefreshSmartCoinStatus();
-			});
+			}).DisposeWith(_disposables);
 
 			model.WhenAnyValue(x => x.Unspent).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Unspent));
-			});
+			}).DisposeWith(_disposables);
 
 			model.WhenAnyValue(x => x.Clusters).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Clusters));
-			});
+			}).DisposeWith(_disposables);
 
 			this.WhenAnyValue(x => x.Status).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(ToolTip));
-			});
+			}).DisposeWith(_disposables);
 
-			// TODO This will need disposing.
-			Global.Synchronizer.WhenAnyValue(x => x.BestBlockchainHeight).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			Global.Synchronizer.WhenAnyValue(x => x.BestBlockchainHeight)
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
 			{
 				RefreshSmartCoinStatus();
 				this.RaisePropertyChanged(nameof(Confirmations));
-			}).DisposeWith(Disposables);
+			}).DisposeWith(_disposables);
 
-			// TODO this can be observable too.
-			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
-		}
-
-		private void ChaumianClient_StateUpdated(object sender, EventArgs e)
-		{
-			RefreshSmartCoinStatus();
+			Observable.FromEventPattern(
+				Global.ChaumianClient,
+				nameof(Global.ChaumianClient.StateUpdated),
+				RxApp.MainThreadScheduler)
+				.Subscribe(_ =>
+				{
+					RefreshSmartCoinStatus();
+				}).DisposeWith(_disposables);
 		}
 
 		public SmartCoin Model { get; }
@@ -155,6 +154,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _smartCoinStatus;
 			set => this.RaiseAndSetIfChanged(ref _smartCoinStatus, value);
+		}
+
+		public void Dispose()
+		{
+			_disposables?.Dispose();
+			_disposables = null;
 		}
 
 		private void RefreshSmartCoinStatus()

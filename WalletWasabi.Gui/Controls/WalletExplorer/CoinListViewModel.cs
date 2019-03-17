@@ -199,13 +199,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe();
 
-			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent && !sc.IsDust))
-			{
-				RootList.Add(new CoinViewModel(sc));
-			}
-
-			Global.WalletService.Coins.CollectionChanged += Coins_CollectionGlobalChanged;
-
 			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
 			{
 				if (x != SortOrder.None)
@@ -354,7 +347,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			RootList = new SourceList<CoinViewModel>();
 			RootList.Connect()
 				.OnItemAdded(cvm => cvm.PropertyChanged += Coin_PropertyChanged)
-				.OnItemRemoved(cvm => RemovedCoinViewModels.Add(cvm)) //TODO: fix and test. If I directly unsubscribe from Coin_PropertyChanged then Unspent propchange not triggered in some cases => spent money stays in list
+				.OnItemRemoved(cvm => cvm.PropertyChanged -= Coin_PropertyChanged) //TODO: fix and test. If I directly unsubscribe from Coin_PropertyChanged then Unspent propchange not triggered in some cases => spent money stays in list
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.Bind(out _coinViewModels)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -365,10 +358,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			_disposables = new CompositeDisposable();
 
-
 			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
 			{
-				RootList.Add(new CoinViewModel(sc));
+				RootList.Add(new CoinViewModel(sc).DisposeWith(_disposables));
 			}
 
 			Global.WalletService.Coins.CollectionChanged += Coins_CollectionGlobalChanged;
