@@ -201,7 +201,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe().DisposeWith(Disposables);
 
-			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
+			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent && !sc.IsDust))
 			{
 				RootList.Add(new CoinViewModel(sc).DisposeWith(Disposables));
 			}
@@ -331,7 +331,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				switch (e.Action)
 				{
 					case NotifyCollectionChangedAction.Add:
-						foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent))
+						foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent && !sc.IsDust))
 						{
 							RootList.Add(new CoinViewModel(c).DisposeWith(Disposables));
 						}

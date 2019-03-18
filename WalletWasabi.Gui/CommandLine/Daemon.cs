@@ -173,7 +173,7 @@ namespace WalletWasabi.Gui.CommandLine
 				await Global.InitializeNoUiAsync();
 				await Global.InitializeWalletServiceAsync(keyManager);
 
-				await Global.ChaumianClient.QueueCoinsToMixAsync(password, Global.WalletService.Coins.Where(x => x.Unspent).ToArray());
+				await Global.ChaumianClient.QueueCoinsToMixAsync(password, Global.WalletService.Coins.Where(x => !x.Unavailable).ToArray());
 
 				while (Global.ChaumianClient.State.AnyCoinsQueued())
 				{

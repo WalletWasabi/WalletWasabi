@@ -34,9 +34,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(Confirmed));
 			}).DisposeWith(Disposables);
 
-			model.WhenAnyValue(x => x.SpentOrCoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			model.WhenAnyValue(x => x.Unavailable).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(SpentOrCoinJoinInProgress));
+				this.RaisePropertyChanged(nameof(Unavailable));
 			}).DisposeWith(Disposables);
 
 			model.WhenAnyValue(x => x.CoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
@@ -90,7 +90,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool CoinJoinInProgress => Model.CoinJoinInProgress;
 
-		public bool SpentOrCoinJoinInProgress => Model.SpentOrCoinJoinInProgress;
+		public bool Unavailable => Model.Unavailable;
 
 		public bool Unspent => Model.Unspent;
 
