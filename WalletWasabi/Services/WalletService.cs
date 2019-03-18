@@ -494,16 +494,16 @@ namespace WalletWasabi.Services
 					{
 						// if the received transaction is spending at least one input already
 						// spent by a previous unconfirmed transaction signaling RBF then it is not a double
-						// spanding transaction but a replacement transaction. 
-						if(doubleSpends.Any(x => x.IsReplaceable))
+						// spanding transaction but a replacement transaction.
+						if (doubleSpends.Any(x => x.IsReplaceable))
 						{
 							// remove double spent coins (if other coin spends it, remove that too and so on)
 							// will add later if they came to our keys
-							foreach (SmartCoin doubleSpentCoin in doubleSpends.Where(x=>!x.Confirmed))
+							foreach (SmartCoin doubleSpentCoin in doubleSpends.Where(x => !x.Confirmed))
 							{
 								RemoveCoinRecursively(doubleSpentCoin);
 							}
-							tx.IsReplacement = true;
+							tx.SetReplacement();
 						}
 						else
 						{
@@ -543,7 +543,7 @@ namespace WalletWasabi.Services
 					}
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
-																																																															 // If we didn't have it.
+																																																												   // If we didn't have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
