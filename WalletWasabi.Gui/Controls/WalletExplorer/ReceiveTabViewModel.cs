@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
 		public ReactiveCommand CopyAddress { get; }
-		public ReactiveCommand CopyHistory { get; }
+		public ReactiveCommand CopyLabel { get; }
 		public ReactiveCommand ShowQrCode { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
@@ -114,7 +114,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{ }
 			}, isCoinListItemSelected);
 
-			CopyHistory = ReactiveCommand.CreateFromTask(async () =>
+			CopyLabel = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
 				{
