@@ -84,7 +84,9 @@ namespace WalletWasabi.Gui.Behaviors
 		protected override void OnAttached()
 		{
 			_originalToolTipText = (string)ToolTip.GetTip(AssociatedObject);
+
 			Disposables?.Dispose();
+
 			Disposables = new CompositeDisposable
 			{
 				AssociatedObject.GetObservable(TextBox.IsFocusedProperty).Subscribe(focused =>

@@ -253,7 +253,7 @@ namespace System.IO
 			{
 				using (Process process = Process.Start(new ProcessStartInfo
 				{
-					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "explorer.exe" : (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "xdg-open" : "open"),
+					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "explorer.exe" : (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "open" : "xdg-open"),
 					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"\"{dirPath}\"" : dirPath,
 					CreateNoWindow = true
 				})) { }
@@ -268,7 +268,7 @@ namespace System.IO
 				{
 					// If no associated application/json MimeType is found xdg-open opens retrun error
 					// but it tries to open it anyway using the console editor (nano, vim, other..)
-					EnvironmentHelpers.ShellExec($"gedit {filePath} || xdg-open {filePath}");
+					EnvironmentHelpers.ShellExec($"gedit {filePath} || xdg-open {filePath}", waitForExit: false);
 				}
 				else
 				{

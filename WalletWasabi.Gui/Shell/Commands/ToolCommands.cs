@@ -19,11 +19,13 @@ namespace WalletWasabi.Gui.Shell.Commands
 {
 	internal class ToolCommands : IDisposable
 	{
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+		private CompositeDisposable Disposables { get; }
 
 		[ImportingConstructor]
 		public ToolCommands(CommandIconService commandIconService)
 		{
+			Disposables = new CompositeDisposable();
+
 			WalletManagerCommand = new CommandDefinition(
 				"Wallet Manager",
 				commandIconService.GetCompletionKindImage("WalletManager"),
@@ -41,7 +43,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("Settings"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel());
+					IoC.Get<IShell>().AddOrSelectDocument(() => new SettingsViewModel().DisposeWith(Disposables));
 				}).DisposeWith(Disposables));
 		}
 
@@ -85,7 +87,8 @@ namespace WalletWasabi.Gui.Shell.Commands
 			{
 				if (disposing)
 				{
-					Disposables.Dispose();
+
+					Disposables?.Dispose();
 				}
 
 				_disposedValue = true;

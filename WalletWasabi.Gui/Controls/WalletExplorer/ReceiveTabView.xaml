@@ -59,16 +59,6 @@
                 <TextBlock Classes="warningMessage" Text="Label Is Required!" VerticalAlignment="Center" HorizontalAlignment="Center" />
               </Grid>
             </Grid>
-            <Grid IsVisible="{Binding ClipboardNotificationVisible}">
-              <Grid Opacity="{Binding ClipboardNotificationOpacity}">
-                <Grid.Transitions>
-                  <DoubleTransition Property="Opacity"
-                        Easing="CircularEaseIn"
-                        Duration="0:0:0.5" />
-                </Grid.Transitions>
-                <TextBlock Text="Address Is Copied To Clipboard!" Foreground="#22B14C" VerticalAlignment="Center" HorizontalAlignment="Center" />
-              </Grid>
-            </Grid>
           </DockPanel>
           <Grid ColumnDefinitions="300, *, 50" Margin="5 10 5 0" Grid.Row="1">
             <TextBlock Text="Label:" />
@@ -131,7 +121,32 @@
                     </StackPanel>
                   </Expander>
                   <Grid ColumnDefinitions="400, *, 100" Margin="30 0 0 0">
-                    <TextBlock Text="{Binding Address}" />
+                    <TextBlock IsVisible="{Binding !ClipboardNotificationVisible}" Text="{Binding Address}">
+                      <TextBlock.ContextMenu>
+                        <ContextMenu>
+                          <MenuItem Header="_Copy" Command="{Binding CopyToClipboard}">
+                            <MenuItem.Icon>
+                              <DrawingPresenter Height="16" Width="16">
+                                <DrawingPresenter.Drawing>
+                                  <GeometryDrawing Brush="#FFFFFFFF" Geometry="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" />
+                                </DrawingPresenter.Drawing>
+                              </DrawingPresenter>
+                            </MenuItem.Icon>
+                          </MenuItem>
+                        </ContextMenu>
+                      </TextBlock.ContextMenu>
+                    </TextBlock>
+
+                    <Grid IsVisible="{Binding ClipboardNotificationVisible}">
+                      <Grid Opacity="{Binding ClipboardNotificationOpacity}">
+                        <Grid.Transitions>
+                          <DoubleTransition Property="Opacity"
+                                Easing="CircularEaseIn"
+                                Duration="0:0:0.5" />
+                        </Grid.Transitions>
+                        <TextBlock Text="Copied" Foreground="White" FontWeight="Bold" />
+                      </Grid>
+                    </Grid>
                     <TextBlock Text="{Binding Label}" Grid.Column="1" />
                   </Grid>
                 </Grid>

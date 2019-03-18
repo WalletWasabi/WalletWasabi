@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 		{
 			MethodInfo info = instance.GetType().GetRuntimeMethod(methodName, new Type[0]);
 
-			if (!(info is null) &&
+			if (info != null &&
 				info.ReturnType == typeof(T) &&
 				info.GetParameters().Length == 0)
 			{

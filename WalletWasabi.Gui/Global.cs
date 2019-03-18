@@ -67,6 +67,7 @@ namespace WalletWasabi.Gui
 		public static string AddressManagerFilePath { get; private set; }
 		public static AddressManager AddressManager { get; private set; }
 		public static MemPoolService MemPoolService { get; private set; }
+
 		public static NodesGroup Nodes { get; private set; }
 		public static WasabiSynchronizer Synchronizer { get; private set; }
 		public static CcjClient ChaumianClient { get; private set; }
@@ -137,6 +138,18 @@ namespace WalletWasabi.Gui
 			}
 		}
 
+		public static async Task InitializeNoUiAsync()
+		{
+			var configFilePath = Path.Combine(DataDir, "Config.json");
+			var config = new Config(configFilePath);
+			await config.LoadOrCreateDefaultFileAsync();
+			Logger.LogInfo<Config>("Config is successfully initialized.");
+
+			InitializeConfig(config);
+
+			InitializeNoWallet();
+		}
+
 		public static void InitializeNoWallet()
 		{
 			IsWalletLoaded = false;
@@ -151,7 +164,7 @@ namespace WalletWasabi.Gui
 				await TryDesperateDequeueAllCoinsAsync();
 				Dispatcher.UIThread.PostLogException(() =>
 				{
-					Application.Current.MainWindow.Close();
+					Application.Current?.MainWindow?.Close();
 				});
 			};
 
@@ -162,7 +175,14 @@ namespace WalletWasabi.Gui
 			AddressManager = null;
 			TorManager = null;
 
-			TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
+			if (Config.UseTor.Value)
+			{
+				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
+			}
+			else
+			{
+				TorManager = TorProcessManager.Mock();
+			}
 			TorManager.Start(false, DataDir);
 			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
@@ -256,14 +276,21 @@ namespace WalletWasabi.Gui
 				RegTestMemPoolServingNode = null;
 			}
 
-			Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			if (Config.UseTor.Value)
+			{
+				Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			}
+			else
+			{
+				Synchronizer = new WasabiSynchronizer(Network, IndexFilePath, Config.GetFallbackBackendUri(), null);
+			}
 
 			UpdateChecker = new UpdateChecker(Synchronizer.WasabiClient);
 
 			Nodes.Connect();
 			Logger.LogInfo("Start connecting to nodes...");
 
-			if (!(RegTestMemPoolServingNode is null))
+			if (RegTestMemPoolServingNode != null)
 			{
 				RegTestMemPoolServingNode.VersionHandshake();
 				Logger.LogInfo("Start connecting to mempool serving regtest node...");
@@ -285,7 +312,14 @@ namespace WalletWasabi.Gui
 
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
 		{
-			ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			if (Config.UseTor.Value)
+			{
+				ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, () => Config.GetCurrentBackendUri(), Config.GetTorSocks5EndPoint());
+			}
+			else
+			{
+				ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
+			}
 			WalletService = new WalletService(keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
 
 			ChaumianClient.Start();
@@ -303,10 +337,75 @@ namespace WalletWasabi.Gui
 			IsWalletLoaded = true;
 		}
 
+		public static string GetWalletFullPath(string walletName)
+		{
+			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
+			return Path.Combine(WalletsDir, walletName + ".json");
+		}
+
+		public static string GetWalletBackupFullPath(string walletName)
+		{
+			walletName = walletName.TrimEnd(".json", StringComparison.OrdinalIgnoreCase);
+			return Path.Combine(WalletBackupsDir, walletName + ".json");
+		}
+
+		public static KeyManager LoadKeyManager(string walletFullPath, string walletBackupFullPath)
+		{
+			try
+			{
+				return LoadKeyManager(walletFullPath);
+			}
+			catch (Exception ex)
+			{
+				if (!File.Exists(walletBackupFullPath))
+				{
+					throw;
+				}
+
+				Logger.LogWarning($"Wallet got corrupted.\n" +
+					$"Wallet Filepath: {walletFullPath}\n" +
+					$"Trying to recover it from backup.\n" +
+					$"Backup path: {walletBackupFullPath}\n" +
+					$"Exception: {ex.ToString()}");
+				if (File.Exists(walletFullPath))
+				{
+					string corruptedWalletBackupPath = Path.Combine(WalletBackupsDir, $"{Path.GetFileName(walletFullPath)}_CorruptedBackup");
+					if (File.Exists(corruptedWalletBackupPath))
+					{
+						File.Delete(corruptedWalletBackupPath);
+						Logger.LogInfo($"Deleted previous corrupted wallet file backup from {corruptedWalletBackupPath}.");
+					}
+					File.Move(walletFullPath, corruptedWalletBackupPath);
+					Logger.LogInfo($"Backed up corrupted wallet file to {corruptedWalletBackupPath}.");
+				}
+				File.Copy(walletBackupFullPath, walletFullPath);
+
+				return LoadKeyManager(walletFullPath);
+			}
+		}
+
+		public static KeyManager LoadKeyManager(string walletFullPath)
+		{
+			KeyManager keyManager;
+			var walletFileInfo = new FileInfo(walletFullPath)
+			{
+				LastAccessTime = DateTime.Now
+			};
+
+			keyManager = KeyManager.FromFile(walletFullPath);
+			Logger.LogInfo($"Wallet loaded: {Path.GetFileNameWithoutExtension(keyManager.FilePath)}.");
+			return keyManager;
+		}
+
 		private static void Coins_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			try
 			{
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				{
+					return;
+				}
+
 				if (e.Action == NotifyCollectionChangedAction.Add)
 				{
 					foreach (SmartCoin coin in e.NewItems)
@@ -341,9 +440,9 @@ namespace WalletWasabi.Gui
 			CancelWalletServiceInitialization?.Cancel();
 			CancelWalletServiceInitialization = null;
 
-			if (!(WalletService is null))
+			if (WalletService != null)
 			{
-				if (!(WalletService.KeyManager is null)) // This should not ever happen.
+				if (WalletService.KeyManager != null) // This should not ever happen.
 				{
 					string backupWalletFilePath = Path.Combine(WalletBackupsDir, Path.GetFileName(WalletService.KeyManager.FilePath));
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
@@ -351,16 +450,15 @@ namespace WalletWasabi.Gui
 				}
 				WalletService.Dispose();
 				WalletService = null;
+				Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
 			}
 
-			Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
-
-			if (!(ChaumianClient is null))
+			if (ChaumianClient != null)
 			{
 				await ChaumianClient.StopAsync();
 				ChaumianClient = null;
+				Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.", nameof(Global));
 			}
-			Logger.LogInfo($"{nameof(ChaumianClient)} is stopped.", nameof(Global));
 		}
 
 		public static async Task DisposeAsync()
@@ -369,27 +467,45 @@ namespace WalletWasabi.Gui
 			{
 				await DisposeInWalletDependentServicesAsync();
 
-				UpdateChecker?.Dispose();
-				Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
+				if (UpdateChecker != null)
+				{
+					UpdateChecker?.Dispose();
+					Logger.LogInfo($"{nameof(UpdateChecker)} is stopped.", nameof(Global));
+				}
 
-				Synchronizer?.Dispose();
-				Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
+				if (Synchronizer != null)
+				{
+					Synchronizer?.Dispose();
+					Logger.LogInfo($"{nameof(Synchronizer)} is stopped.", nameof(Global));
+				}
 
-				IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
-				AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
-				Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
+				if (AddressManagerFilePath != null)
+				{
+					IoHelpers.EnsureContainingDirectoryExists(AddressManagerFilePath);
+					if (AddressManager != null)
+					{
+						AddressManager?.SavePeerFile(AddressManagerFilePath, Config.Network);
+						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{AddressManagerFilePath}`.", nameof(Global));
+					}
+				}
 
-				Nodes?.Dispose();
-				Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
+				if (Nodes != null)
+				{
+					Nodes?.Dispose();
+					Logger.LogInfo($"{nameof(Nodes)} are disposed.", nameof(Global));
+				}
 
-				if (!(RegTestMemPoolServingNode is null))
+				if (RegTestMemPoolServingNode != null)
 				{
 					RegTestMemPoolServingNode.Disconnect();
 					Logger.LogInfo($"{nameof(RegTestMemPoolServingNode)} is disposed.", nameof(Global));
 				}
 
-				TorManager?.Dispose();
-				Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
+				if (TorManager != null)
+				{
+					TorManager?.Dispose();
+					Logger.LogInfo($"{nameof(TorManager)} is stopped.", nameof(Global));
+				}
 			}
 			catch (Exception ex)
 			{

@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
@@ -17,18 +18,21 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class RecoverWalletViewModel : CategoryViewModel
+	internal class RecoverWalletViewModel : CategoryViewModel, IDisposable
 	{
+		private CompositeDisposable Disposables { get; }
+
 		private int _caretIndex;
 		private string _password;
 		private string _mnemonicWords;
 		private string _walletName;
-		private bool _termsAccepted;
 		private string _validationMessage;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
+			Disposables = new CompositeDisposable();
+
 			MnemonicWords = "";
 
 			RecoverCommand = ReactiveCommand.Create(() =>
@@ -39,11 +43,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 
-				if (TermsAccepted == false)
-				{
-					ValidationMessage = "Terms are not accepted.";
-				}
-				else if (string.IsNullOrWhiteSpace(WalletName))
+				if (string.IsNullOrWhiteSpace(WalletName))
 				{
 					ValidationMessage = $"The name {WalletName} is not valid.";
 				}
@@ -70,20 +70,26 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						Logger.LogError<LoadWalletViewModel>(ex);
 					}
 				}
-			},
-			this.WhenAnyValue(x => x.TermsAccepted));
-			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x));
+			}).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
-				if (x.NotNullAndNotEmpty())
+				try
 				{
-					char lastChar = x.Last();
-					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					if (x.NotNullAndNotEmpty())
 					{
-						Password = x.TrimEnd('\r', '\n');
+						char lastChar = x.Last();
+						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+						{
+							Password = x.TrimEnd('\r', '\n');
+						}
 					}
 				}
-			});
+				catch (Exception ex)
+				{
+					Logger.LogTrace(ex);
+				}
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
@@ -91,7 +97,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					CaretIndex = MnemonicWords.Length;
 				}
-			});
+			}).DisposeWith(Disposables);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
@@ -118,12 +124,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			get => _walletName;
 			set => this.RaiseAndSetIfChanged(ref _walletName, value);
-		}
-
-		public bool TermsAccepted
-		{
-			get => _termsAccepted;
-			set => this.RaiseAndSetIfChanged(ref _termsAccepted, value);
 		}
 
 		public string ValidationMessage
@@ -162,7 +162,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Password = null;
 			MnemonicWords = "";
 			WalletName = Utils.GetNextWalletName();
-			TermsAccepted = false;
 			ValidationMessage = null;
 		}
 
@@ -211,5 +210,31 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		}
 
 		private static IEnumerable<string> EnglishWords = Wordlist.English.GetWords();
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Disposables?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

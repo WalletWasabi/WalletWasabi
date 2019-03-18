@@ -20,25 +20,19 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class HistoryTabViewModel : WalletActionViewModel, IDisposable
+	public class HistoryTabViewModel : WalletActionViewModel
 	{
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
-		private double _clipboardNotificationOpacity;
-		private bool _clipboardNotificationVisible;
-		private long _disableClipboard;
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
-		private CompositeDisposable Disposables { get; }
 
 		public ReactiveCommand SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
-			Disposables = new CompositeDisposable();
-			Interlocked.Exchange(ref _disableClipboard, 0);
 			Transactions = new ObservableCollection<TransactionViewModel>();
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			RewriteTableAsync();
@@ -60,26 +54,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				}).DisposeWith(Disposables);
 
-			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
+			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(transaction =>
 			{
-				if (Interlocked.Read(ref _disableClipboard) == 0)
+				if (Global.UiConfig.Autocopy is true)
 				{
-					if (!(transaction is null))
-					{
-						await Application.Current.Clipboard.SetTextAsync(transaction.TransactionId);
-						ClipboardNotificationVisible = true;
-						ClipboardNotificationOpacity = 1;
-
-						Dispatcher.UIThread.PostLogException(async () =>
-						{
-							await Task.Delay(1000);
-							ClipboardNotificationOpacity = 0;
-						});
-					}
-				}
-				else
-				{
-					Interlocked.Exchange(ref _disableClipboard, 0);
+					transaction?.CopyToClipboard();
 				}
 			}).DisposeWith(Disposables);
 
@@ -105,7 +84,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
 				Label = txr.label,
 				TransactionId = txr.transactionId.ToString()
-			}).Select(ti => new TransactionViewModel(ti));
+			}).Select(ti => new TransactionViewModel(ti).DisposeWith(Disposables));
 
 			Transactions = new ObservableCollection<TransactionViewModel>(trs);
 
@@ -114,7 +93,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
 				if (txToSelect != default)
 				{
-					Interlocked.Exchange(ref _disableClipboard, 1);
 					SelectedTransaction = txToSelect;
 				}
 			}
@@ -163,7 +141,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					txRecordList.Add((dateTime, coin.Height, coin.Amount, coin.Label, coin.TransactionId));
 				}
 
-				if (!(coin.SpenderTransactionId is null))
+				if (coin.SpenderTransactionId != null)
 				{
 					SmartTransaction foundSpenderTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.SpenderTransactionId);
 					if (foundSpenderTransaction.Height.Type == HeightType.Chain)
@@ -223,18 +201,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _selectedTransaction;
 			set => this.RaiseAndSetIfChanged(ref _selectedTransaction, value);
-		}
-
-		public double ClipboardNotificationOpacity
-		{
-			get => _clipboardNotificationOpacity;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
-		}
-
-		public bool ClipboardNotificationVisible
-		{
-			get => _clipboardNotificationVisible;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
 		}
 
 		public SortOrder DateSortDirection
@@ -321,39 +287,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					if (Transactions != null)
-					{
-						foreach (var tr in Transactions)
-						{
-							tr?.Dispose();
-						}
-					}
-					Disposables?.Dispose();
-				}
-
-				_transactions = null;
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

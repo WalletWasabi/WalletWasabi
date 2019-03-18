@@ -13,7 +13,12 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 	public class BobClient : TorDisposableBase
 	{
 		/// <inheritdoc/>
-		public BobClient(Uri baseUri, IPEndPoint torSocks5EndPoint = null) : base(baseUri, torSocks5EndPoint)
+		public BobClient(Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint) : base(baseUriAction, torSocks5EndPoint)
+		{
+		}
+
+		/// <inheritdoc/>
+		public BobClient(Uri baseUri, IPEndPoint torSocks5EndPoint) : base(baseUri, torSocks5EndPoint)
 		{
 		}
 

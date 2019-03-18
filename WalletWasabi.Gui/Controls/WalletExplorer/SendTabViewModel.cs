@@ -23,7 +23,7 @@ using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class SendTabViewModel : WalletActionViewModel, IDisposable
+	public class SendTabViewModel : WalletActionViewModel
 	{
 		private CoinListViewModel _coinList;
 		private string _buildTransactionButtonText;
@@ -56,7 +56,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
-		private CompositeDisposable Disposables { get; }
 
 		private bool IgnoreAmountChanges { get; set; }
 
@@ -73,13 +72,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
-			Disposables = new CompositeDisposable();
 			Label = "";
 			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
-			CoinList = new CoinListViewModel();
+			CoinList = new CoinListViewModel().DisposeWith(Disposables);
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
@@ -250,13 +248,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
-				if (x.NotNullAndNotEmpty())
+				try
 				{
-					char lastChar = x.Last();
-					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					if (x.NotNullAndNotEmpty())
 					{
-						Password = x.TrimEnd('\r', '\n');
+						char lastChar = x.Last();
+						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+						{
+							Password = x.TrimEnd('\r', '\n');
+						}
 					}
+				}
+				catch (Exception ex)
+				{
+					Logging.Logger.LogTrace(ex);
 				}
 			}).DisposeWith(Disposables);
 
@@ -264,7 +269,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
-				if (Label == null) return;
+				if (Label is null) return;
 				if (CaretIndex != Label.Length)
 				{
 					CaretIndex = Label.Length;
@@ -616,7 +621,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				var selectedCoin = _coinList?.SelectedCoin;
-				if (selectedCoin == null) return;
+				if (selectedCoin is null) return;
 				await DoDequeueAsync(new[] { selectedCoin });
 			}
 			catch (Exception ex)
@@ -901,9 +906,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		#region IDisposable Support
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
+		protected override void Dispose(bool disposing)
 		{
 			if (!_disposedValue)
 			{
@@ -918,23 +921,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						_coinList.SelectionChanged -= CoinList_SelectionChanged;
 						_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
-						_coinList.Dispose();
 					}
-
-					Disposables?.Dispose();
 				}
 
-				CoinList = null;
+				base.Dispose(disposing);
 
 				_disposedValue = true;
 			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
 		}
 
 		#endregion IDisposable Support

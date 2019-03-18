@@ -172,7 +172,7 @@ namespace WalletWasabi.Models
 		public ConcurrentHashSet(IEnumerable<T> collection, IEqualityComparer<T> comparer)
 			: this(comparer)
 		{
-			if (collection == null) throw new ArgumentNullException(nameof(collection));
+			if (collection is null) throw new ArgumentNullException(nameof(collection));
 
 			InitializeFromCollection(collection);
 		}
@@ -198,7 +198,7 @@ namespace WalletWasabi.Models
 		public ConcurrentHashSet(int concurrencyLevel, IEnumerable<T> collection, IEqualityComparer<T> comparer)
 			: this(concurrencyLevel, DefaultCapacity, false, comparer)
 		{
-			if (collection == null) throw new ArgumentNullException(nameof(collection));
+			if (collection is null) throw new ArgumentNullException(nameof(collection));
 
 			InitializeFromCollection(collection);
 		}
@@ -339,11 +339,11 @@ namespace WalletWasabi.Models
 					Node previous = null;
 					for (var current = tables.Buckets[bucketNo]; current != null; current = current.Next)
 					{
-						Debug.Assert((previous == null && current == tables.Buckets[bucketNo]) || previous.Next == current);
+						Debug.Assert((previous is null && current == tables.Buckets[bucketNo]) || previous.Next == current);
 
 						if (hashcode == current.Hashcode && _comparer.Equals(current.Item, item))
 						{
-							if (previous == null)
+							if (previous is null)
 							{
 								Volatile.Write(ref tables.Buckets[bucketNo], current.Next);
 							}
@@ -397,7 +397,7 @@ namespace WalletWasabi.Models
 
 		void ICollection<T>.CopyTo(T[] array, int arrayIndex)
 		{
-			if (array == null) throw new ArgumentNullException(nameof(array));
+			if (array is null) throw new ArgumentNullException(nameof(array));
 			if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex));
 
 			var locksAcquired = 0;
@@ -466,7 +466,7 @@ namespace WalletWasabi.Models
 					Node previous = null;
 					for (var current = tables.Buckets[bucketNo]; current != null; current = current.Next)
 					{
-						Debug.Assert(previous == null && current == tables.Buckets[bucketNo] || previous.Next == current);
+						Debug.Assert(previous is null && current == tables.Buckets[bucketNo] || previous.Next == current);
 						if (hashcode == current.Hashcode && _comparer.Equals(current.Item, item))
 						{
 							return false;

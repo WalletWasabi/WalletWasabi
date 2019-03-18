@@ -42,7 +42,7 @@ namespace WalletWasabi.KeyManagement
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
 		// https://github.com/bitcoin/bips/blob/master/bip-0084.mediawiki
-		private static readonly KeyPath AccountKeyPath = new KeyPath("m/84'/0'/0'");
+		public static readonly KeyPath AccountKeyPath = new KeyPath("m/84'/0'/0'");
 
 		public string FilePath { get; private set; }
 		private object ToFileLock { get; }
@@ -158,14 +158,14 @@ namespace WalletWasabi.KeyManagement
 			km.SetFilePath(filePath);
 			lock (km.HdPubKeyScriptBytesLock)
 			{
-				km.HdPubKeyScriptBytes.AddRange(km.GetKeys(x => true).Select(x => x.GetP2wpkhScript().ToCompressedBytes()));
+				km.HdPubKeyScriptBytes.AddRange(km.GetKeys(x => true).Select(x => x.P2wpkhScript.ToCompressedBytes()));
 			}
 
 			lock (km.ScriptHdPubkeyMapLock)
 			{
 				foreach (var key in km.GetKeys())
 				{
-					km.ScriptHdPubkeyMap.Add(key.GetP2wpkhScript(), key);
+					km.ScriptHdPubkeyMap.Add(key.P2wpkhScript, key);
 				}
 			}
 			return km;
@@ -182,11 +182,11 @@ namespace WalletWasabi.KeyManagement
 				IEnumerable<HdPubKey> relevantHdPubKeys;
 				if (isInternal)
 				{
-					relevantHdPubKeys = HdPubKeys.Where(x => x.IsInternal());
+					relevantHdPubKeys = HdPubKeys.Where(x => x.IsInternal);
 				}
 				else
 				{
-					relevantHdPubKeys = HdPubKeys.Where(x => !x.IsInternal());
+					relevantHdPubKeys = HdPubKeys.Where(x => !x.IsInternal);
 				}
 
 				KeyPath path;
@@ -196,16 +196,16 @@ namespace WalletWasabi.KeyManagement
 				}
 				else
 				{
-					int largestIndex = relevantHdPubKeys.Max(x => x.GetIndex());
-					List<int> missingIndexes = Enumerable.Range(0, largestIndex).Except(relevantHdPubKeys.Select(x => x.GetIndex())).ToList();
+					int largestIndex = relevantHdPubKeys.Max(x => x.Index);
+					List<int> missingIndexes = Enumerable.Range(0, largestIndex).Except(relevantHdPubKeys.Select(x => x.Index)).ToList();
 					if (missingIndexes.Any())
 					{
 						int smallestMissingIndex = missingIndexes.Min();
-						path = relevantHdPubKeys.First(x => x.GetIndex() == (smallestMissingIndex - 1)).GetNonHardenedKeyPath().Increment();
+						path = relevantHdPubKeys.First(x => x.Index == (smallestMissingIndex - 1)).NonHardenedKeyPath.Increment();
 					}
 					else
 					{
-						path = relevantHdPubKeys.First(x => x.GetIndex() == largestIndex).GetNonHardenedKeyPath().Increment();
+						path = relevantHdPubKeys.First(x => x.Index == largestIndex).NonHardenedKeyPath.Increment();
 					}
 				}
 
@@ -216,12 +216,12 @@ namespace WalletWasabi.KeyManagement
 				HdPubKeys.Add(hdPubKey);
 				lock (HdPubKeyScriptBytesLock)
 				{
-					HdPubKeyScriptBytes.Add(hdPubKey.GetP2wpkhScript().ToCompressedBytes());
+					HdPubKeyScriptBytes.Add(hdPubKey.P2wpkhScript.ToCompressedBytes());
 				}
 
 				lock (ScriptHdPubkeyMapLock)
 				{
-					ScriptHdPubkeyMap.Add(hdPubKey.GetP2wpkhScript(), hdPubKey);
+					ScriptHdPubkeyMap.Add(hdPubKey.P2wpkhScript, hdPubKey);
 				}
 
 				if (toFile)
@@ -262,9 +262,9 @@ namespace WalletWasabi.KeyManagement
 			}
 			else if (keyState is null)
 			{
-				return GetKeys(x => x.IsInternal() == isInternal);
+				return GetKeys(x => x.IsInternal == isInternal);
 			}
-			return GetKeys(x => x.IsInternal() == isInternal && x.KeyState == keyState);
+			return GetKeys(x => x.IsInternal == isInternal && x.KeyState == keyState);
 		}
 
 		public IEnumerable<byte[]> GetPubKeyScriptBytes()
@@ -292,30 +292,47 @@ namespace WalletWasabi.KeyManagement
 
 		public IEnumerable<(ExtKey secret, HdPubKey pubKey)> GetSecretsAndPubKeyPairs(string password, params Script[] scripts)
 		{
-			Key secret;
-			try
-			{
-				secret = EncryptedSecret.GetKey(password);
-			}
-			catch (SecurityException ex)
-			{
-				throw new SecurityException("Invalid password.", ex);
-			}
-			var extKey = new ExtKey(secret, ChainCode);
+			ExtKey extKey = GetMasterExtKey(password);
 			var extKeysAndPubs = new List<(ExtKey secret, HdPubKey pubKey)>();
 
 			lock (HdPubKeysLock)
 			{
 				foreach (HdPubKey key in HdPubKeys.Where(x =>
-					scripts.Contains(x.GetP2wpkhScript())
-					|| scripts.Contains(x.GetP2shOverP2wpkhScript())
-					|| scripts.Contains(x.GetP2pkhScript())
-					|| scripts.Contains(x.GetP2pkScript())))
+					scripts.Contains(x.P2wpkhScript)
+					|| scripts.Contains(x.P2shOverP2wpkhScript)
+					|| scripts.Contains(x.P2pkhScript)
+					|| scripts.Contains(x.P2pkScript)))
 				{
 					ExtKey ek = extKey.Derive(key.FullKeyPath);
 					extKeysAndPubs.Add((ek, key));
 				}
 				return extKeysAndPubs;
+			}
+		}
+
+		public ExtKey GetMasterExtKey(string password)
+		{
+			try
+			{
+				Key secret = EncryptedSecret.GetKey(password);
+				return new ExtKey(secret, ChainCode);
+			}
+			catch (SecurityException ex)
+			{
+				throw new SecurityException("Invalid password.", ex);
+			}
+		}
+
+		public bool TestPassword(string password)
+		{
+			try
+			{
+				GetMasterExtKey(password);
+				return true;
+			}
+			catch
+			{
+				return false;
 			}
 		}
 

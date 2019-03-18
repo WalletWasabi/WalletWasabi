@@ -16,7 +16,11 @@ namespace WalletWasabi.TorSocks5
 {
 	public class TorProcessManager : IDisposable
 	{
+		/// <summary>
+		/// If null then it's just a mock, clearnet is used.
+		/// </summary>
 		public IPEndPoint TorSocks5EndPoint { get; }
+
 		public string LogFile { get; }
 
 		public static bool RequestFallbackAddressUsage { get; private set; } = false;
@@ -27,15 +31,22 @@ namespace WalletWasabi.TorSocks5
 		/// <param name="logFile">Opt out of logging with null.</param>
 		public TorProcessManager(IPEndPoint torSocks5EndPoint, string logFile)
 		{
-			TorSocks5EndPoint = torSocks5EndPoint ?? new IPEndPoint(IPAddress.Loopback, 9050);
+			TorSocks5EndPoint = torSocks5EndPoint;
 			LogFile = logFile;
 			_running = 0;
 			Stop = new CancellationTokenSource();
 			TorProcess = null;
 		}
 
+		public static TorProcessManager Mock() // Mock, don't use Tor at all for debug.
+		{
+			return new TorProcessManager(null, null);
+		}
+
 		public void Start(bool ensureRunning, string dataDir)
 		{
+			if (TorSocks5EndPoint == null) return;
+
 			new Thread(delegate () // Don't ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
 			{
 				try
@@ -202,6 +213,8 @@ namespace WalletWasabi.TorSocks5
 
 		public async Task<bool> IsTorRunningAsync()
 		{
+			if (TorSocks5EndPoint == null) return true;
+
 			using (var client = new TorSocks5Client(TorSocks5EndPoint))
 			{
 				try
@@ -231,6 +244,8 @@ namespace WalletWasabi.TorSocks5
 
 		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, string dataDirToStartWith, Uri fallBackTestRequestUri)
 		{
+			if (TorSocks5EndPoint == null) return;
+
 			Logger.LogInfo<TorProcessManager>("Starting Tor monitor...");
 			Interlocked.Exchange(ref _running, 1);
 
@@ -257,7 +272,8 @@ namespace WalletWasabi.TorSocks5
 									{
 										if (torEx.RepField == RepField.HostUnreachable)
 										{
-											using (var client = new TorHttpClient(new Uri(fallBackTestRequestUri.DnsSafeHost), TorSocks5EndPoint))
+											Uri baseUri = new Uri($"{fallBackTestRequestUri.Scheme}://{fallBackTestRequestUri.DnsSafeHost}");
+											using (var client = new TorHttpClient(baseUri, TorSocks5EndPoint))
 											{
 												var message = new HttpRequestMessage(HttpMethod.Get, fallBackTestRequestUri);
 												await client.SendAsync(message, Stop.Token);
@@ -322,6 +338,9 @@ namespace WalletWasabi.TorSocks5
 					{
 						Interlocked.Exchange(ref _running, 2);
 					}
+
+					if (TorSocks5EndPoint == null) Interlocked.Exchange(ref _running, 3);
+
 					Stop?.Cancel();
 					while (IsStopping)
 					{

@@ -1,55 +1,91 @@
-﻿using NBitcoin;
+﻿using Avalonia;
+using Avalonia.Threading;
+using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Globalization;
 using System.Reactive.Disposables;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class TransactionViewModel : ViewModelBase, IDisposable
 	{
-		private TransactionInfo _model;
 		private CompositeDisposable Disposables { get; }
+
+		private TransactionInfo _model;
+		private bool _clipboardNotificationVisible;
+		private double _clipboardNotificationOpacity;
 
 		public TransactionViewModel(TransactionInfo model)
 		{
 			Disposables = new CompositeDisposable();
+
 			_model = model;
+			ClipboardNotificationVisible = false;
+			ClipboardNotificationOpacity = 0;
 
 			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, model.Confirmed).DisposeWith(Disposables);
 		}
 
 		private readonly ObservableAsPropertyHelper<bool> _confirmed;
 
-		public string DateTime
+		public string DateTime => _model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+		public bool Confirmed => _confirmed.Value;
+
+		public string AmountBtc => _model.AmountBtc;
+
+		public Money Amount => Money.TryParse(_model.AmountBtc, out Money money) ? money : Money.Zero;
+
+		public string Label => _model.Label;
+
+		public string TransactionId => _model.TransactionId;
+
+		public bool ClipboardNotificationVisible
 		{
-			get { return _model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture); }
+			get => _clipboardNotificationVisible;
+			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
 		}
 
-		public bool Confirmed
+		public double ClipboardNotificationOpacity
 		{
-			get { return _confirmed.Value; }
+			get => _clipboardNotificationOpacity;
+			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
-		public string AmountBtc
-		{
-			get => _model.AmountBtc;
-		}
+		private long _copyNotificationsInprocess = 0;
 
-		public Money Amount
+		public void CopyToClipboard()
 		{
-			get => Money.TryParse(_model.AmountBtc, out Money money) ? money : Money.Zero;
-		}
+			Application.Current.Clipboard.SetTextAsync(TransactionId).GetAwaiter().GetResult();
 
-		public string Label
-		{
-			get => _model.Label;
-		}
+			Interlocked.Increment(ref _copyNotificationsInprocess);
+			ClipboardNotificationVisible = true;
+			ClipboardNotificationOpacity = 1;
 
-		public string TransactionId
-		{
-			get => _model.TransactionId;
+			Dispatcher.UIThread.PostLogException(async () =>
+			{
+				try
+				{
+					await Task.Delay(1000);
+					if (Interlocked.Read(ref _copyNotificationsInprocess) <= 1)
+					{
+						ClipboardNotificationOpacity = 0;
+						await Task.Delay(1000);
+						if (Interlocked.Read(ref _copyNotificationsInprocess) <= 1)
+						{
+							ClipboardNotificationVisible = false;
+						}
+					}
+				}
+				finally
+				{
+					Interlocked.Decrement(ref _copyNotificationsInprocess);
+				}
+			});
 		}
 
 		#region IDisposable Support
@@ -65,7 +101,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Disposables?.Dispose();
 				}
 
-				_model = null;
 				_disposedValue = true;
 			}
 		}

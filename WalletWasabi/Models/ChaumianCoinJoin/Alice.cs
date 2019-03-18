@@ -15,7 +15,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public Money InputSum { get; }
 
-		public Money NetworkFeeToPay { get; set; }
+		public Money NetworkFeeToPayAfterBaseDenomination { get; }
 
 		public IEnumerable<Coin> Inputs { get; }
 
@@ -27,10 +27,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public uint256[] BlindedOutputSignatures { get; set; }
 
-		public Alice(IEnumerable<Coin> inputs, Money networkFeeToPay, BitcoinAddress changeOutputAddress, IEnumerable<uint256> blindedOutputScripts)
+		public Alice(IEnumerable<Coin> inputs, Money networkFeeToPayAfterBaseDenomination, BitcoinAddress changeOutputAddress, IEnumerable<uint256> blindedOutputScripts)
 		{
 			Inputs = Guard.NotNullOrEmpty(nameof(inputs), inputs);
-			NetworkFeeToPay = Guard.NotNull(nameof(networkFeeToPay), networkFeeToPay);
+			NetworkFeeToPayAfterBaseDenomination = Guard.NotNull(nameof(networkFeeToPayAfterBaseDenomination), networkFeeToPayAfterBaseDenomination);
 
 			BlindedOutputScripts = blindedOutputScripts?.ToArray() ?? new uint256[0];
 

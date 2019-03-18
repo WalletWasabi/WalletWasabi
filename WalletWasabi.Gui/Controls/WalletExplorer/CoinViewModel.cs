@@ -17,13 +17,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinViewModel : ViewModelBase, IDisposable
 	{
+		private CompositeDisposable Disposables { get; }
+
 		private bool _isSelected;
 		private SmartCoinStatus _smartCoinStatus;
-		private CompositeDisposable Disposables { get; }
 
 		public CoinViewModel(SmartCoin model)
 		{
 			Disposables = new CompositeDisposable();
+
 			Model = model;
 
 			model.WhenAnyValue(x => x.Confirmed).ObserveOn(RxApp.MainThreadScheduler).Subscribe(confirmed =>
@@ -32,9 +34,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(Confirmed));
 			}).DisposeWith(Disposables);
 
-			model.WhenAnyValue(x => x.SpentOrCoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			model.WhenAnyValue(x => x.Unavailable).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(SpentOrCoinJoinInProgress));
+				this.RaisePropertyChanged(nameof(Unavailable));
 			}).DisposeWith(Disposables);
 
 			model.WhenAnyValue(x => x.CoinJoinInProgress).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
@@ -58,10 +60,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(Unspent));
 			}).DisposeWith(Disposables);
 
-			model.WhenAnyValue(x => x.History).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+			model.WhenAnyValue(x => x.Clusters).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(History));
-			});
+				this.RaisePropertyChanged(nameof(Clusters));
+			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Status).Subscribe(_ =>
 			{
@@ -88,7 +90,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public bool CoinJoinInProgress => Model.CoinJoinInProgress;
 
-		public bool SpentOrCoinJoinInProgress => Model.SpentOrCoinJoinInProgress;
+		public bool Unavailable => Model.Unavailable;
 
 		public bool Unspent => Model.Unspent;
 
@@ -141,7 +143,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string History => Model.History;
+		public string Clusters => Model.Clusters;
 
 		public string PubKey => Model.HdPubKey.PubKey.ToString();
 
@@ -236,11 +238,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (disposing)
 				{
-					Disposables?.Dispose();
 					if (Global.ChaumianClient != null)
 					{
 						Global.ChaumianClient.StateUpdated -= ChaumianClient_StateUpdated;
 					}
+
+					Disposables?.Dispose();
 				}
 
 				_disposedValue = true;

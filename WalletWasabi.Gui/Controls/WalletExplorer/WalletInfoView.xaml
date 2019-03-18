@@ -1,0 +1,63 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+  <controls:GroupBox Title="{Binding Title}" BorderThickness="0" Classes="docTabContainer">
+    <StackPanel>
+      <controls:GroupBox Title="Keys" TextBlock.FontSize="16" Padding="30" Margin="0 10 0 0">
+        <Grid Classes="content">
+          <StackPanel Orientation="Vertical" Spacing="2">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Encrypted Extended Master Private Key: " />
+              <controls:ExtendedTextBox Text="{Binding EncryptedExtendedMasterPrivateKey}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Master Private Key: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedMasterPrivateKey}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Master zprv: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedMasterZprv}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Account Key Path: " />
+              <controls:ExtendedTextBox Text="{Binding AccountKeyPath}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Account Private Key: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPrivateKey}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Account zprv: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZprv}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Account Public Key: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountPublicKey}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="Extended Account zpub: " />
+              <controls:ExtendedTextBox Text="{Binding ExtendedAccountZpub}" Classes="selectableTextBlock" />
+            </StackPanel>
+
+            <StackPanel Margin="0 10 0 0" Spacing="10" Orientation="Horizontal">
+              <controls:NoparaPasswordBox Password="{Binding Password}" Watermark="Password" UseFloatingWatermark="True" MinWidth="173" MaxWidth="173" />
+              <DockPanel VerticalAlignment="Top" LastChildFill="True">
+                <Button Command="{Binding ShowSensitiveKeysCommand}" DockPanel.Dock="Right">
+                  Show Sensitive Keys
+                </Button>
+                <Grid></Grid>
+              </DockPanel>
+              <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
+            </StackPanel>
+          </StackPanel>
+        </Grid>
+      </controls:GroupBox>
+    </StackPanel>
+  </controls:GroupBox>
+</UserControl>

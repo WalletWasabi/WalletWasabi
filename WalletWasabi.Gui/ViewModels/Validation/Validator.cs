@@ -8,7 +8,7 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 	{
 		public static List<string> ValidateAllProperties(object instance)
 		{
-			List<string> result = new List<string>();
+			var result = new List<string>();
 			foreach (PropertyInfo property in ReflectionHelper.GetPropertyInfos(instance))
 			{
 				var errorString = ValidateMethod(instance, property);
@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 		{
 			var property = ReflectionHelper.GetPropertyInfo(instance, propertyName);
 
-			if (!(property is null))
+			if (property != null)
 			{
 				return ValidateMethod(instance, property);
 			}
@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.ViewModels.Validation
 		{
 			var vma = ReflectionHelper.GetAttribute<ValidateMethodAttribute>(property);
 
-			if (!(vma is null))
+			if (vma != null)
 			{
 				return ReflectionHelper.InvokeMethod<string>(instance, vma.MethodName);
 			}

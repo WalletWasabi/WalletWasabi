@@ -9,9 +9,15 @@ namespace WalletWasabi.Bases
 		public TorHttpClient TorClient { get; }
 
 		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
-		protected TorDisposableBase(Uri baseUri, IPEndPoint torSocks5EndPoint = null)
+		protected TorDisposableBase(Uri baseUri, IPEndPoint torSocks5EndPoint)
 		{
 			TorClient = new TorHttpClient(baseUri, torSocks5EndPoint, isolateStream: true);
+		}
+
+		/// <param name="torSocks5EndPoint">if null, then localhost:9050</param>
+		protected TorDisposableBase(Func<Uri> baseUriAction, IPEndPoint torSocks5EndPoint)
+		{
+			TorClient = new TorHttpClient(baseUriAction, torSocks5EndPoint, isolateStream: true);
 		}
 
 		#region IDisposable Support

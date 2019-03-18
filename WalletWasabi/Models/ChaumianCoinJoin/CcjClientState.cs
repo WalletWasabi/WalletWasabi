@@ -208,6 +208,27 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			return Enumerable.Empty<TxoRef>(); // Inputs are too small, max input to be registered is reached.
 		}
 
+		public bool AnyCoinsQueued()
+		{
+			lock (StateLock)
+			{
+				if (WaitingList.Any())
+				{
+					return true;
+				}
+
+				foreach (var coins in Rounds.Select(x => x.CoinsRegistered))
+				{
+					if (coins.Any())
+					{
+						return true;
+					}
+				}
+
+				return false;
+			}
+		}
+
 		public IEnumerable<long> GetActivelyMixingRounds()
 		{
 			lock (StateLock)

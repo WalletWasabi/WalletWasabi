@@ -305,6 +305,9 @@ namespace WalletWasabi.Gui.Controls
 
 		private void PaintText()
 		{
+			if(string.IsNullOrEmpty(_displayText))
+				GenerateNewRandomSequence();
+				
 			Password = _sb.ToString();
 			Text = _displayText.Substring(0, _sb.Length);
 

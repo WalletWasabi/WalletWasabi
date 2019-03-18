@@ -40,10 +40,7 @@ namespace WalletWasabi.Backend
 				Logger.LogInfo<CcjRoundConfig>("RoundConfig is successfully initialized.");
 
 				var rpc = new RPCClient(
-						credentials: new RPCCredentialString
-						{
-							UserPassword = new NetworkCredential(config.BitcoinRpcUser, config.BitcoinRpcPassword)
-						},
+						credentials: RPCCredentialString.Parse(config.BitcoinRpcConnectionString),
 						network: config.Network);
 
 				await Global.InitializeAsync(config, roundConfig, rpc);
@@ -54,14 +51,23 @@ namespace WalletWasabi.Backend
 					UnversionedWebBuilder.CreateDownloadTextWithVersionHtml();
 					UnversionedWebBuilder.CloneAndUpdateOnionIndexHtml();
 
+					var getTxTasks = new List<Task<Transaction>>();
+					var batch = Global.RpcClient.PrepareBatch();
+
 					string[] allLines = File.ReadAllLines(Global.Coordinator.CoinJoinsFilePath);
-					foreach (string line in allLines)
+					foreach (string txId in allLines)
+					{
+						getTxTasks.Add(batch.GetRawTransactionAsync(uint256.Parse(txId)));
+					}
+					var waiting = Task.WhenAll(getTxTasks);
+					await batch.SendBatchAsync();
+					await waiting;
+
+					foreach(var task in getTxTasks)
 					{
 						try
 						{
-							var txHash = new uint256(line);
-							Transaction tx = Global.RpcClient.GetRawTransaction(txHash);
-
+							var tx = await task; 
 							var volume = tx.GetIndistinguishableOutputs(includeSingle: false).Sum(x => x.count * x.value);
 							TotalVolume += volume;
 						}

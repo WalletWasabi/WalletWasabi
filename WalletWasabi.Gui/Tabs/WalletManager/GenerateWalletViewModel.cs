@@ -6,6 +6,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reactive.Disposables;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
@@ -14,10 +15,11 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class GenerateWalletViewModel : CategoryViewModel
+	internal class GenerateWalletViewModel : CategoryViewModel, IDisposable
 	{
+		private CompositeDisposable Disposables { get; }
+
 		private string _password;
-		private string _passwordConfirmation;
 		private string _walletName;
 		private bool _termsAccepted;
 		private string _validationMessage;
@@ -25,37 +27,38 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public GenerateWalletViewModel(WalletManagerViewModel owner) : base("Generate Wallet")
 		{
+			Disposables = new CompositeDisposable();
+
 			Owner = owner;
 
 			GenerateCommand = ReactiveCommand.Create(() =>
 			{
 				DoGenerateCommand();
 			},
-			this.WhenAnyValue(x => x.TermsAccepted));
+			this.WhenAnyValue(x => x.TermsAccepted)).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
-				if (x.NotNullAndNotEmpty())
+				try
 				{
-					char lastChar = x.Last();
-					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+					if (x.NotNullAndNotEmpty())
 					{
-						Password = x.TrimEnd('\r', '\n');
+						char lastChar = x.Last();
+						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+						{
+							Password = x.TrimEnd('\r', '\n');
+							if (TermsAccepted)
+							{
+								DoGenerateCommand();
+							}
+						}
 					}
 				}
-			});
-			this.WhenAnyValue(x => x.PasswordConfirmation).Subscribe(x =>
-			{
-				if (x.NotNullAndNotEmpty())
+				catch (Exception ex)
 				{
-					char lastChar = x.Last();
-					if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-					{
-						PasswordConfirmation = x.TrimEnd('\r', '\n');
-						DoGenerateCommand();
-					}
+					Logger.LogTrace(ex);
 				}
-			});
+			}).DisposeWith(Disposables);
 		}
 
 		private void DoGenerateCommand()
@@ -64,7 +67,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 			Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
-			PasswordConfirmation = Guard.Correct(PasswordConfirmation); // Don't let whitespaces to the beginning and to the end.
 
 			if (!TermsAccepted)
 			{
@@ -78,17 +80,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				ValidationMessage = $"The name {WalletName} is already taken.";
 			}
-			else if (Password != PasswordConfirmation)
-			{
-				ValidationMessage = $"The passwords do not match.";
-			}
 			else
 			{
 				try
 				{
 					KeyManager.CreateNew(out Mnemonic mnemonic, Password, walletFilePath);
 
-					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic);
+					Owner.CurrentView = new GenerateWalletSuccessViewModel(Owner, mnemonic).DisposeWith(Disposables);
 				}
 				catch (Exception ex)
 				{
@@ -102,12 +100,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			get => _password;
 			set => this.RaiseAndSetIfChanged(ref _password, value);
-		}
-
-		public string PasswordConfirmation
-		{
-			get => _passwordConfirmation;
-			set => this.RaiseAndSetIfChanged(ref _passwordConfirmation, value);
 		}
 
 		public string WalletName
@@ -150,10 +142,35 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			base.OnCategorySelected();
 
 			Password = "";
-			PasswordConfirmation = "";
 			WalletName = Utils.GetNextWalletName();
 			TermsAccepted = false;
 			ValidationMessage = "";
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Disposables?.Dispose();
+				}
+
+				_disposedValue = true;
+			}
+		}
+
+		// This code added to correctly implement the disposable pattern.
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }

@@ -19,18 +19,15 @@ using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class ReceiveTabViewModel : WalletActionViewModel, IDisposable
+	public class ReceiveTabViewModel : WalletActionViewModel
 	{
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 		private string _label;
 		private double _labelRequiredNotificationOpacity;
 		private bool _labelRequiredNotificationVisible;
-		private double _clipboardNotificationOpacity;
-		private bool _clipboardNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
-		private CompositeDisposable Disposables { get; }
 
 		public ReactiveCommand GenerateCommand { get; }
 		public ReactiveCommand EncryptMessage { get; }
@@ -42,7 +39,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
-			Disposables = new CompositeDisposable();
 			_addresses = new ObservableCollection<AddressViewModel>();
 			Label = "";
 
@@ -105,27 +101,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
 			{
-				if (!(address is null))
+				if (Global.UiConfig.Autocopy is true)
 				{
-					address.CopyToClipboard();
-					ClipboardNotificationVisible = true;
-					ClipboardNotificationOpacity = 1;
-
-					Dispatcher.UIThread.PostLogException(async () =>
-					{
-						try
-						{
-							await Task.Delay(1000);
-							ClipboardNotificationOpacity = 0;
-						}
-						catch (Exception) { }
-					});
+					address?.CopyToClipboard();
 				}
 			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
-				if (Label == null) return;
+				if (Label is null) return;
 				if (CaretIndex != Label.Length)
 				{
 					CaretIndex = Label.Length;
@@ -184,8 +168,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_addresses?.Clear();
 
 			foreach (HdPubKey key in Global.WalletService.KeyManager.GetKeys(x =>
-																		x.HasLabel()
-																		&& !x.IsInternal()
+																		x.HasLabel
+																		&& !x.IsInternal
 																		&& x.KeyState == KeyState.Clean)
 																	.Reverse())
 			{
@@ -221,18 +205,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _labelRequiredNotificationVisible;
 			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationVisible, value);
-		}
-
-		public double ClipboardNotificationOpacity
-		{
-			get => _clipboardNotificationOpacity;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
-		}
-
-		public bool ClipboardNotificationVisible
-		{
-			get => _clipboardNotificationVisible;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
 		}
 
 		public int CaretIndex
@@ -295,33 +267,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Suggestions.Clear();
 		}
 
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_addresses = null;
-				_suggestions = null;
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }
