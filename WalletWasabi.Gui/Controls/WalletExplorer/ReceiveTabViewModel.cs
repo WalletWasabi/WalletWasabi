@@ -24,6 +24,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private CompositeDisposable _disposables;
 
+		public ReactiveCommand CopyAddress { get; }
+		public ReactiveCommand CopyLabel { get; }
+		public ReactiveCommand ShowQrCode { get; }
+
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
@@ -88,6 +92,39 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					CaretIndex = Label.Length;
 				}
 			});
+
+			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
+
+			CopyAddress = ReactiveCommand.Create(() =>
+			{
+				try
+				{
+					SelectedAddress?.CopyToClipboard();
+				}
+				catch (Exception)
+				{ }
+			}, isCoinListItemSelected);
+
+			CopyLabel = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
+						.SetTextAsync(SelectedAddress.Label ?? string.Empty);
+				}
+				catch (Exception)
+				{ }
+			}, isCoinListItemSelected);
+
+			ShowQrCode = ReactiveCommand.Create(() =>
+			{
+				try
+				{
+					SelectedAddress.IsExpanded = true;
+				}
+				catch (Exception)
+				{ }
+			}, isCoinListItemSelected);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
