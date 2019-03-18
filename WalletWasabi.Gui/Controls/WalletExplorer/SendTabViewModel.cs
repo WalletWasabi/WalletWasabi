@@ -70,12 +70,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
+			_suggestions = new ObservableCollection<SuggestionViewModel>();
 			Label = "";
 			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
 			CoinList = new CoinListViewModel();
+			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged)).Subscribe(_ => SetFeesAndTexts());
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
@@ -130,6 +132,54 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				SetFeesAndTexts();
 			});
+
+			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
+			{
+				if (busy)
+				{
+					BuildTransactionButtonText = BuildingTransactionButtonTextString;
+				}
+				else
+				{
+					BuildTransactionButtonText = BuildTransactionButtonTextString;
+				}
+			});
+
+			this.WhenAnyValue(x => x.Password).Subscribe(x =>
+			{
+				try
+				{
+					if (x.NotNullAndNotEmpty())
+					{
+						char lastChar = x.Last();
+						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+						{
+							Password = x.TrimEnd('\r', '\n');
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					Logging.Logger.LogTrace(ex);
+				}
+			});
+
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+
+			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ => SetFeesAndTexts());
+
+			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
+			{
+				if (Label is null) return;
+				if (CaretIndex != Label.Length)
+				{
+					CaretIndex = Label.Length;
+				}
+			});
+
+			MaxCommand = ReactiveCommand.Create(SetMax);
+
+			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
 
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
 			{
@@ -224,62 +274,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			},
 			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy));
-
-			MaxCommand = ReactiveCommand.Create(SetMax);
-
-			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
-
-			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
-			{
-				if (busy)
-				{
-					BuildTransactionButtonText = BuildingTransactionButtonTextString;
-				}
-				else
-				{
-					BuildTransactionButtonText = BuildTransactionButtonTextString;
-				}
-			});
-
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogTrace(ex);
-				}
-			});
-
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
-
-			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
-			{
-				if (Label is null) return;
-				if (CaretIndex != Label.Length)
-				{
-					CaretIndex = Label.Length;
-				}
-			});
-
-			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
-			{
-				SetFeesAndTexts();
-			});
-
-			// TODO this can be observable... and do we own coinlist, if so it will be collected?
-			CoinList.SelectionChanged += CoinList_SelectionChanged;
-
-			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
 		private void SetAmountWatermarkAndToolTip(Money amount)
@@ -310,11 +304,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			AmountToolTip = $"Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
-		}
-
-		private void CoinList_SelectionChanged(object sender, CoinViewModel e)
-		{
-			SetFeesAndTexts();
 		}
 
 		private void ChangeFeeRateDisplay()
@@ -429,6 +418,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Amount = $"~ {AllSelectedAmount.ToString(false, true)}";
 				}
 			}
+
 			IgnoreAmountChanges = false;
 		}
 
@@ -574,6 +564,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				bool changed = _coinList != value;
 				if (_coinList != null)
 				{
+					// TODO keep this with SendTabViewModel.... DW research
 					_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
 				}
 
