@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Tabs.WalletManager;
@@ -21,21 +22,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _labelRequiredNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
+		private CompositeDisposable _disposables;
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
-			throw new Exception("TODO");
-			// memory leak fixes.
 			_addresses = new ObservableCollection<AddressViewModel>();
 			Label = "";
-
-			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o =>
-			{
-				InitializeAddresses();
-			});
 
 			InitializeAddresses();
 
@@ -97,6 +90,35 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+		}
+
+		public override void OnOpen()
+		{
+			base.OnOpen();
+
+			if(_disposables != null)
+			{
+				throw new Exception("Receive tab opened before last one was closed.");
+			}
+
+			_disposables = new CompositeDisposable();
+
+			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(o =>
+				{
+					InitializeAddresses();
+				})
+				.DisposeWith(_disposables);
+		}
+
+		public override bool OnClose()
+		{
+			_disposables.Dispose();
+
+			_disposables = null;
+
+			return base.OnClose();
 		}
 
 		private void InitializeAddresses()
