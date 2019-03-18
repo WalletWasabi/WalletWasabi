@@ -4,6 +4,8 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
@@ -17,7 +19,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
-		private CoinListViewModel _coinsList;
 		private long _roundId;
 		private int _successfulRoundCount;
 		private CcjRoundPhase _phase;
@@ -36,70 +37,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _dequeueButtonText;
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
+		private CompositeDisposable _disposables;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
 		{
 			Password = "";
-			TargetPrivacy = GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
-
-			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
-
-			UpdateRequiredBtcLabel(registrableRound);
-
-			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
 
 			CoinsList = new CoinListViewModel();
 
+			Observable.FromEventPattern(CoinsList, nameof(CoinsList.DequeueCoinsPressed)).Subscribe(_ => CoinsList_DequeueCoinsPressedAsync());
+
 			AmountQueued = Money.Zero; // Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
-			Global.ChaumianClient.CoinQueued += ChaumianClient_CoinQueued;
-			Global.ChaumianClient.CoinDequeued += ChaumianClient_CoinDequeued;
+			EnqueueCommand = ReactiveCommand.Create(async () => await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
 
-			CcjClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
-			if (mostAdvancedRound != default)
-			{
-				RoundId = mostAdvancedRound.State.RoundId;
-				SuccessfulRoundCount = mostAdvancedRound.State.SuccessfulRoundCount;
-				Phase = mostAdvancedRound.State.Phase;
-				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
-				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
-			}
-			else
-			{
-				RoundId = -1;
-				SuccessfulRoundCount = -1;
-				Phase = CcjRoundPhase.InputRegistration;
-				PeersRegistered = 0;
-				PeersNeeded = 100;
-			}
+			DequeueCommand = ReactiveCommand.Create(async () => await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
 
-			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
+			PrivacySomeCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Some);
 
-			EnqueueCommand = ReactiveCommand.Create(async () =>
-			{
-				await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected));
-			});
+			PrivacyFineCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Fine);
 
-			DequeueCommand = ReactiveCommand.Create(async () =>
-			{
-				await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected));
-			});
-
-			PrivacySomeCommand = ReactiveCommand.Create(() =>
-			{
-				TargetPrivacy = TargetPrivacy.Some;
-			});
-
-			PrivacyFineCommand = ReactiveCommand.Create(() =>
-			{
-				TargetPrivacy = TargetPrivacy.Fine;
-			});
-
-			PrivacyStrongCommand = ReactiveCommand.Create(() =>
-			{
-				TargetPrivacy = TargetPrivacy.Strong;
-			});
+			PrivacyStrongCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Strong);
 
 			TargetButtonCommand = ReactiveCommand.Create(async () =>
 			{
@@ -145,34 +104,72 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-			this.WhenAnyValue(x => x.IsEnqueueBusy).Subscribe(busy =>
-			{
-				if (busy)
-				{
-					EnqueueButtonText = EnqueuingButtonTextString;
-				}
-				else
-				{
-					EnqueueButtonText = EnqueueButtonTextString;
-				}
-			});
+			this.WhenAnyValue(x => x.IsEnqueueBusy)
+				.Select(x => x ? EnqueuingButtonTextString : EnqueueButtonTextString)
+				.Subscribe(text => EnqueueButtonText = text);
 
-			this.WhenAnyValue(x => x.IsDequeueBusy).Subscribe(busy =>
-			{
-				if (busy)
-				{
-					DequeueButtonText = DequeuingButtonTextString;
-				}
-				else
-				{
-					DequeueButtonText = DequeueButtonTextString;
-				}
-			});
+			this.WhenAnyValue(x => x.IsDequeueBusy)
+				.Select(x => x ? DequeuingButtonTextString : DequeueButtonTextString)
+				.Subscribe(text => DequeueButtonText = text);
 
 			this.WhenAnyValue(x => x.TargetPrivacy).Subscribe(target =>
 			{
 				CoinJoinUntilAnonimitySet = GetTargetLevel(target);
 			});
+		}
+
+
+
+		public override void OnOpen()
+		{
+			CoinsList.OnOpen();
+
+			if(_disposables != null)
+			{
+				throw new Exception("CoinJoin tab opened before previous closed.");
+			}
+
+			TargetPrivacy = GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
+
+			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();
+
+			UpdateRequiredBtcLabel(registrableRound);
+
+			CoordinatorFeePercent = registrableRound?.State?.CoordinatorFeePercent.ToString() ?? "0.003";
+
+			Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinQueued))
+				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinDequeued)))
+				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
+				.Subscribe(_ => UpdateStates())
+				.DisposeWith(_disposables);
+
+			CcjClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
+
+			if (mostAdvancedRound != default)
+			{
+				RoundId = mostAdvancedRound.State.RoundId;
+				SuccessfulRoundCount = mostAdvancedRound.State.SuccessfulRoundCount;
+				Phase = mostAdvancedRound.State.Phase;
+				PeersRegistered = mostAdvancedRound.State.RegisteredPeerCount;
+				PeersNeeded = mostAdvancedRound.State.RequiredPeerCount;
+			}
+			else
+			{
+				RoundId = -1;
+				SuccessfulRoundCount = -1;
+				Phase = CcjRoundPhase.InputRegistration;
+				PeersRegistered = 0;
+				PeersNeeded = 100;
+			}
+
+			base.OnOpen();
+		}
+
+		public override bool OnClose()
+		{
+			CoinsList.OnClose();
+
+			return base.OnClose();
 		}
 
 		private async Task DoDequeueAsync(IEnumerable<CoinViewModel> selectedCoins)
@@ -253,21 +250,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				IsEnqueueBusy = false;
 			}
-		}
-
-		private void ChaumianClient_CoinDequeued(object sender, SmartCoin e)
-		{
-			UpdateStates();
-		}
-
-		private void ChaumianClient_CoinQueued(object sender, SmartCoin e)
-		{
-			UpdateStates();
-		}
-
-		private void ChaumianClient_StateUpdated(object sender, EventArgs e)
-		{
-			UpdateStates();
 		}
 
 		private void UpdateStates()
@@ -365,31 +347,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public CoinListViewModel CoinsList
-		{
-			get => _coinsList;
-			set
-			{
-				bool changed = _coinsList != value;
-				if (_coinsList != null)
-				{
-					_coinsList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
-				}
-
-				this.RaiseAndSetIfChanged(ref _coinsList, value);
-
-				if (_coinsList != null)
-				{
-					_coinsList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
-				}
-			}
-		}
+		public CoinListViewModel CoinsList { get; }
 
 		private async void CoinsList_DequeueCoinsPressedAsync()
 		{
 			try
 			{
-				var selectedCoin = _coinsList?.SelectedCoin;
+				var selectedCoin = CoinsList.SelectedCoin;
 				if (selectedCoin is null) return;
 				await DoDequeueAsync(new[] { selectedCoin });
 			}
@@ -501,19 +465,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand PrivacyFineCommand { get; }
 		public ReactiveCommand PrivacyStrongCommand { get; }
 		public ReactiveCommand TargetButtonCommand { get; }
-
-		public override void OnOpen()
-		{
-			CoinsList.OnOpen();
-
-			base.OnOpen();
-		}
-
-		public override bool OnClose()
-		{
-			CoinsList.OnClose();
-
-			return base.OnClose();
-		}
 	}
 }
