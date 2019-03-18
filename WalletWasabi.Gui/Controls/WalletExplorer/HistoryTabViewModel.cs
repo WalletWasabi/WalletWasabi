@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
@@ -17,36 +18,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		private CompositeDisposable _disposables;
 
 		public ReactiveCommand SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
-			throw new Exception("TODO");
-
-			// memory leak fixes.
-
 			Transactions = new ObservableCollection<TransactionViewModel>();
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			RewriteTableAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
-			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
-			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
-			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
-
-			coinsChanged
-				.Merge(newBlockProcessed)
-				.Merge(coinSpent)
-				.Throttle(TimeSpan.FromSeconds(5))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-					RewriteTableAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				});
+			RewriteTableAsync().GetAwaiter();
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(transaction =>
 			{
@@ -59,6 +40,37 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
 
 			DateSortDirection = SortOrder.Decreasing;
+		}
+
+		public override void OnOpen()
+		{
+			base.OnOpen();
+
+			if (_disposables != null)
+			{
+				throw new Exception("Histroy Tab was opened before it was closed.");
+			}
+
+			_disposables = new CompositeDisposable();
+
+			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
+			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
+			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
+
+			coinsChanged
+				.Merge(newBlockProcessed)
+				.Merge(coinSpent)
+				.Throttle(TimeSpan.FromSeconds(5))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(async _ => await RewriteTableAsync())
+				.DisposeWith(_disposables);
+		}
+
+		public override bool OnClose()
+		{
+			_disposables.Dispose();
+
+			return base.OnClose();
 		}
 
 		private async Task RewriteTableAsync()
@@ -281,12 +293,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 		}
-
-		public override bool OnClose()
-		{
-			return base.OnClose();
-		}
-
-		
 	}
 }
