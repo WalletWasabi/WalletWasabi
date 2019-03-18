@@ -183,19 +183,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public CoinListViewModel()
 		{
 			RemovedCoinViewModels = new List<CoinViewModel>();
-			AmountSortDirection = SortOrder.Decreasing;
-			RefreshOrdering();
 
 			var sortChanged = this.WhenValueChanged(@this => MyComparer).Select(_ => MyComparer);
 
 			RootList = new SourceList<CoinViewModel>();
 			RootList.Connect()
-				.OnItemAdded(cvm => cvm.PropertyChanged += Coin_PropertyChanged)
-				.OnItemRemoved(cvm => RemovedCoinViewModels.Add(cvm)) //TODO: fix and test. If I directly unsubscribe from Coin_PropertyChanged then Unspent propchange not triggered in some cases => spent money stays in list
+				.OnItemRemoved(x=>x.UnsubscribeEvents())
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.Bind(out _coinViewModels)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe();
+
+			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
+
+			AmountSortDirection = SortOrder.Decreasing;
+			RefreshOrdering();
+
+			RootList = new SourceList<CoinViewModel>();
 
 			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
 			{
@@ -306,50 +310,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						break;
 				}
 			});
-
-			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
-
-			RemovedCoinViewModels = new List<CoinViewModel>();
-
-			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
-			{
-				if (x != SortOrder.None)
-				{
-					PrivacySortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-				}
-			});
-
-			this.WhenAnyValue(x => x.StatusSortDirection).Subscribe(x =>
-			{
-				if (x != SortOrder.None)
-				{
-					AmountSortDirection = SortOrder.None;
-					PrivacySortDirection = SortOrder.None;
-				}
-			});
-
-			this.WhenAnyValue(x => x.PrivacySortDirection).Subscribe(x =>
-			{
-				if (x != SortOrder.None)
-				{
-					AmountSortDirection = SortOrder.None;
-					StatusSortDirection = SortOrder.None;
-				}
-			});
-
-
-			AmountSortDirection = SortOrder.Decreasing;
-			RefreshOrdering();
-
-			RootList = new SourceList<CoinViewModel>();
-			RootList.Connect()
-				.OnItemAdded(cvm => cvm.PropertyChanged += Coin_PropertyChanged)
-				.OnItemRemoved(cvm => cvm.PropertyChanged -= Coin_PropertyChanged) //TODO: fix and test. If I directly unsubscribe from Coin_PropertyChanged then Unspent propchange not triggered in some cases => spent money stays in list
-				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
-				.Bind(out _coinViewModels)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe();
 		}
 
 		public void OnOpen()
@@ -358,78 +318,67 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
 			{
-				RootList.Add(new CoinViewModel(sc).DisposeWith(_disposables));
+				RootList.Add(new CoinViewModel(this, sc));
 			}
 
-			Global.WalletService.Coins.CollectionChanged += Coins_CollectionGlobalChanged;
+			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(x =>
+				{
+					var e = x.EventArgs;
+					try
+					{
+						switch (e.Action)
+						{
+							case NotifyCollectionChangedAction.Add:
+								foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent && !sc.IsDust))
+								{
+									RootList.Add(new CoinViewModel(this, c));
+								}
+								break;
+
+							case NotifyCollectionChangedAction.Remove:
+								foreach (var c in e.OldItems.Cast<SmartCoin>())
+								{
+									CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
+									if (toRemove != default)
+									{
+										RootList.Remove(toRemove);
+									}
+								}
+								break;
+
+							case NotifyCollectionChangedAction.Reset:
+								ClearRootList();
+								break;
+						}
+					}
+					catch (Exception ex)
+					{
+						Logging.Logger.LogDebug<Dispatcher>(ex);
+					}
+				}).DisposeWith(_disposables);
 
 
 			SetSelections();
 			SetCoinJoinStatusWidth();
 		}
 
-		public void OnClose()
+		private void ClearRootList()
 		{
-			if (Global.WalletService?.Coins != null)
+			foreach (var item in RootList.Items)
 			{
-				Global.WalletService.Coins.CollectionChanged -= Coins_CollectionGlobalChanged;
-			}
-
-			if (RootList?.Items != null)
-			{
-				foreach (CoinViewModel cvm in RootList.Items)
-				{
-					if (cvm != null)
-					{
-						cvm.PropertyChanged -= Coin_PropertyChanged;
-					}
-				}
-			}
-
-			if (RemovedCoinViewModels != null)
-			{
-				foreach (var cvm in RemovedCoinViewModels)
-				{
-					if (cvm != null)
-					{
-						cvm.PropertyChanged -= Coin_PropertyChanged;
-					}
-				}
+				item.UnsubscribeEvents();
 			}
 
 			RootList.Clear();
-			_disposables?.Dispose();
 		}
 
-		private void Coins_CollectionGlobalChanged(object sender, NotifyCollectionChangedEventArgs e)
+		public void OnClose()
 		{
-			Dispatcher.UIThread.PostLogException(() =>
-			{
-				switch (e.Action)
-				{
-					case NotifyCollectionChangedAction.Add:
-						foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent && !sc.IsDust))
-						{
-							RootList.Add(new CoinViewModel(c));
-						}
-						break;
+			ClearRootList();
 
-					case NotifyCollectionChangedAction.Remove:
-						foreach (var c in e.OldItems.Cast<SmartCoin>())
-						{
-							CoinViewModel toRemove = RootList.Items.FirstOrDefault(cvm => cvm.Model == c);
-							if (toRemove != default)
-							{
-								RootList.Remove(toRemove);
-							}
-						}
-						break;
-
-					case NotifyCollectionChangedAction.Reset:
-						RootList.Clear();
-						break;
-				}
-			});
+			_disposables?.Dispose();
 		}
 
 		private void SetSelections()
@@ -457,32 +406,26 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void Coin_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		public void OnCoinIsSelectedChanged(CoinViewModel cvm)
 		{
-			Dispatcher.UIThread.PostLogException(() =>
-			{
-				if (e.PropertyName == nameof(CoinViewModel.IsSelected))
-				{
-					SetSelections();
-					var cvm = sender as CoinViewModel;
-					SelectionChanged?.Invoke(this, cvm);
-				}
-				if (e.PropertyName == nameof(CoinViewModel.Status))
-				{
-					SetCoinJoinStatusWidth();
-				}
-				if (e.PropertyName == nameof(CoinViewModel.Unspent))
-				{
-					var cvm = (CoinViewModel)sender;
-					if (!cvm.Unspent)
-					{
-						RootList.Remove(cvm);
-					}
+			SetSelections();
+			SelectionChanged?.Invoke(this, cvm);
+		}
 
-					SetSelections();
-					SetCoinJoinStatusWidth();
-				}
-			});
+		public void OnCoinStatusChanged()
+		{
+			SetCoinJoinStatusWidth();
+		}
+
+		public void OnCoinUnspentChanged(CoinViewModel cvm)
+		{
+			if (!cvm.Unspent)
+			{
+				RootList.Remove(cvm);
+			}
+
+			SetSelections();
+			SetCoinJoinStatusWidth();
 		}
 	}
 }
