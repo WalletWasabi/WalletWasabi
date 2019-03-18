@@ -41,6 +41,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void SubscribeEvents()
 		{
+			if(_disposables != null)
+			{
+				throw new Exception("Please report to Dan");
+			}
+
 			_disposables = new CompositeDisposable();
 
 			//TODO defer subscription to when accessed (will be faster in ui.)

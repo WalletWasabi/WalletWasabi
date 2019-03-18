@@ -317,7 +317,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
 			{
-				RootList.Add(new CoinViewModel(this, sc));
+				var newCoinVm = new CoinViewModel(this, sc);
+				newCoinVm.SubscribeEvents();
+				RootList.Add(newCoinVm);
 			}
 
 			Observable.FromEventPattern<NotifyCollectionChangedEventArgs>(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
@@ -332,7 +334,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							case NotifyCollectionChangedAction.Add:
 								foreach (SmartCoin c in e.NewItems.Cast<SmartCoin>().Where(sc => sc.Unspent && !sc.IsDust))
 								{
-									RootList.Add(new CoinViewModel(this, c));
+									var newCoinVm = new CoinViewModel(this, c);
+									newCoinVm.SubscribeEvents();
+									RootList.Add(newCoinVm);
+
 								}
 								break;
 
