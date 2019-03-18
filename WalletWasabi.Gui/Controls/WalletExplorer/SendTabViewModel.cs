@@ -867,7 +867,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			_disposables?.Dispose();
+			if(_disposables != null)
+			{
+				throw new Exception("Send tab opened before last one closed.");
+			}
 
 			_disposables = new CompositeDisposable();
 
