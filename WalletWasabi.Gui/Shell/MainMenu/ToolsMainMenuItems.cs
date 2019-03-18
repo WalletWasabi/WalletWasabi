@@ -27,9 +27,9 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 
 		#region Group
 
-		[ExportMainMenuDefaultGroup("Tools", "Wallet")]
+		[ExportMainMenuDefaultGroup("Tools", "Managers")]
 		[DefaultOrder(0)]
-		public object WalletGroup => null;
+		public object ManagersGroup => null;
 
 		[ExportMainMenuDefaultGroup("Tools", "Settings")]
 		[DefaultOrder(1)]
@@ -39,9 +39,9 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 
 		#region MenuItem
 
-		[ExportMainMenuItem("Tools", "Wallet")]
+		[ExportMainMenuItem("Tools", "Wallet Manager")]
 		[DefaultOrder(0)]
-		[DefaultGroup("Wallet")]
+		[DefaultGroup("Managers")]
 		public IMenuItem GenerateWallet => _menuItemFactory.CreateCommandMenuItem("Tools.WalletManager");
 
 		[ExportMainMenuItem("Tools", "Settings")]
