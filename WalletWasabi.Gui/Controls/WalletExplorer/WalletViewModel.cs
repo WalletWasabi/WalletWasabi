@@ -4,6 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Services;
@@ -16,25 +17,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private string _title;
 
+		private CompositeDisposable _disposables;
+
 		public WalletViewModel(WalletService walletService, bool receiveDominant)
 			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
 		{
-			throw new Exception("TODO");
-
-			// TODO implement unsubscribing from Global.WalletService.Coins.
-
 			WalletService = walletService;
 			Name = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);
-			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
-			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
-
-			coinsChanged
-				.Merge(coinSpent)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o =>
-				{
-					SetBalance(Name);
-				});
 
 			SetBalance(Name);
 
@@ -60,6 +49,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Actions[2].DisplayActionTab();
 				Actions[3].DisplayActionTab();
 			}
+		}
+
+		public void OnWalletOpened()
+		{
+			if (_disposables != null)
+			{
+				throw new Exception("Wallet opened before it was closed.");
+			}
+
+			_disposables = new CompositeDisposable();
+
+			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(o => SetBalance(Name))
+				.DisposeWith(_disposables);
+		}
+
+		public void OnWalletClosed()
+		{
+			_disposables.Dispose();
+			_disposables?.Dispose();
 		}
 
 		public string Name { get; }
