@@ -57,27 +57,27 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 
 #endif
 
-		[ExportMainMenuItem("Help", "CustomerSupport")]
+		[ExportMainMenuItem("Help", "Customer Support")]
 		[DefaultOrder(2)]
 		[DefaultGroup("Support")]
 		public IMenuItem CustomerSupport => MenuItemFactory.CreateCommandMenuItem("Help.CustomerSupport");
 
-		[ExportMainMenuItem("Help", "ReportBug")]
+		[ExportMainMenuItem("Help", "Report Bug")]
 		[DefaultOrder(3)]
 		[DefaultGroup("Support")]
 		public IMenuItem ReportBug => MenuItemFactory.CreateCommandMenuItem("Help.ReportBug");
 
-		[ExportMainMenuItem("Help", "PrivacyPolicy")]
+		[ExportMainMenuItem("Help", "Privacy Policy")]
 		[DefaultOrder(4)]
 		[DefaultGroup("Legal")]
 		public IMenuItem PrivacyPolicy => MenuItemFactory.CreateCommandMenuItem("Help.PrivacyPolicy");
 
-		[ExportMainMenuItem("Help", "TermsAndConditions")]
+		[ExportMainMenuItem("Help", "Terms And Conditions")]
 		[DefaultOrder(5)]
 		[DefaultGroup("Legal")]
 		public IMenuItem TermsAndConditions => MenuItemFactory.CreateCommandMenuItem("Help.TermsAndConditions");
 
-		[ExportMainMenuItem("Help", "LegalIssues")]
+		[ExportMainMenuItem("Help", "Legal Issues")]
 		[DefaultOrder(6)]
 		[DefaultGroup("Legal")]
 		public IMenuItem LegalIssues => MenuItemFactory.CreateCommandMenuItem("Help.LegalIssues");
