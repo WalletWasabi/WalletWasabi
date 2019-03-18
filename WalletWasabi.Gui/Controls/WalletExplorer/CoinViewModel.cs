@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable _disposables;
 
 		private bool _isSelected;
-		private SmartCoinStatus _smartCoinStatus;
+		private SmartCoinStatus _status;
 		private ObservableAsPropertyHelper<bool> _coinJoinInProgress;
 		private ObservableAsPropertyHelper<bool> _unspent;
 		private ObservableAsPropertyHelper<string> _clusters;
@@ -28,12 +28,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Model = model;
 
-			this.WhenAnyValue(x => x.Status).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(ToolTip));
-			});
+			this.WhenAnyValue(x => x.Status).Subscribe(_ => this.RaisePropertyChanged(nameof(ToolTip)));
 
 			this.WhenAnyValue(x => x.Confirmed, x => x.CoinJoinInProgress, x => x.Confirmations).Subscribe(_ => RefreshSmartCoinStatus());
+
+			this.WhenAnyValue(x => x.IsSelected).Subscribe(_ => owner.OnCoinIsSelectedChanged(this));
+
+			this.WhenAnyValue(x => x.Status).Subscribe(_ => owner.OnCoinStatusChanged());
+
+			this.WhenAnyValue(x => x.Unspent).Subscribe(_ => owner.OnCoinUnspentChanged(this));
 		}
 
 		public void SubscribeEvents()
@@ -85,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 		public SmartCoin Model { get; }
-		
+
 		public bool Confirmed => _confirmed.Value;
 
 		public bool CoinJoinInProgress => _coinJoinInProgress.Value;
@@ -142,7 +145,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public int AnonymitySet => Model.AnonymitySet;
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
-		
+
 		public string Clusters => _clusters.Value;
 
 		public string PubKey => Model.HdPubKey.PubKey.ToString();
@@ -151,8 +154,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public SmartCoinStatus Status
 		{
-			get => _smartCoinStatus;
-			set => this.RaiseAndSetIfChanged(ref _smartCoinStatus, value);
+			get => _status;
+			set => this.RaiseAndSetIfChanged(ref _status, value);
 		}
 
 		private void RefreshSmartCoinStatus()
