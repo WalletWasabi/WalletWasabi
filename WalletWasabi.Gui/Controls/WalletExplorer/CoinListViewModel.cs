@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public ReactiveCommand SelectNonPrivateCheckBoxCommand { get; }
 		public ReactiveCommand SortCommand { get; }
 
-		public event Action DequeueCoinsPressed;
+		public event EventHandler DequeueCoinsPressed;
 
 		public event EventHandler<CoinViewModel> SelectionChanged;
 
@@ -183,6 +183,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			RemovedCoinViewModels = new List<CoinViewModel>();
 
+			AmountSortDirection = SortOrder.Decreasing;
+			RefreshOrdering();
+
 			var sortChanged = this.WhenValueChanged(@this => MyComparer).Select(_ => MyComparer);
 
 			RootList = new SourceList<CoinViewModel>();
@@ -194,9 +197,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe();
 
 			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
-
-			AmountSortDirection = SortOrder.Decreasing;
-			RefreshOrdering();
 
 			RootList = new SourceList<CoinViewModel>();
 
@@ -249,7 +249,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			DequeueCoin = ReactiveCommand.Create(() =>
 			{
 				if (SelectedCoin is null) return;
-				DequeueCoinsPressed?.Invoke();
+				DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
 			}, this.WhenAnyValue(x => x.CanDeqeue));
 
 			SelectAllCheckBoxCommand = ReactiveCommand.Create(() =>
