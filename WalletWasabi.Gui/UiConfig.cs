@@ -1,8 +1,11 @@
 ﻿using Avalonia.Controls;
 using Newtonsoft.Json;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Converters;
@@ -14,8 +17,10 @@ using WalletWasabi.JsonConverters;
 namespace WalletWasabi.Gui
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class UiConfig : IConfig
+	public class UiConfig : IConfig, INotifyPropertyChanged
 	{
+		private bool? _privateMode;
+
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
 
@@ -38,6 +43,20 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "Autocopy")]
 		public bool? Autocopy { get; internal set; }
 
+		[JsonProperty(PropertyName = "PrivateMode")]
+		public bool? PrivateMode 
+		{ 
+			get => _privateMode; 
+			set
+			{
+				if (_privateMode != value)
+				{
+					_privateMode = value;
+					NotifyPropertyChanged();
+				}
+			}
+		}
+
 		public UiConfig()
 		{
 		}
@@ -47,7 +66,7 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public UiConfig(WindowState windowState, double height, double width, int feeTarget, int feeDisplayFormat, bool autocopy)
+		public UiConfig(WindowState windowState, double height, double width, int feeTarget, int feeDisplayFormat, bool autocopy, bool privateMode)
 		{
 			WindowState = Guard.NotNull(nameof(windowState), windowState);
 			Height = Guard.NotNull(nameof(height), height);
@@ -55,6 +74,7 @@ namespace WalletWasabi.Gui
 			FeeTarget = Guard.NotNull(nameof(feeTarget), feeTarget);
 			FeeDisplayFormat = Guard.NotNull(nameof(feeDisplayFormat), feeDisplayFormat);
 			Autocopy = Guard.NotNull(nameof(autocopy), autocopy);
+			PrivateMode = Guard.NotNull(nameof(privateMode), privateMode);
 		}
 
 		/// <inheritdoc />
@@ -79,6 +99,7 @@ namespace WalletWasabi.Gui
 			FeeTarget = 2;
 			FeeDisplayFormat = 0;
 			Autocopy = true;
+			PrivateMode = false;
 
 			if (!File.Exists(FilePath))
 			{
@@ -103,6 +124,7 @@ namespace WalletWasabi.Gui
 			FeeTarget = config.FeeTarget ?? FeeTarget;
 			FeeDisplayFormat = config.FeeDisplayFormat ?? FeeDisplayFormat;
 			Autocopy = config.Autocopy ?? Autocopy;
+			PrivateMode = false;
 		}
 
 		/// <inheritdoc />
@@ -148,6 +170,11 @@ namespace WalletWasabi.Gui
 				return true;
 			}
 
+			if (PrivateMode != config.PrivateMode)
+			{
+				return true;
+			}
+
 			return false;
 		}
 
@@ -162,5 +189,13 @@ namespace WalletWasabi.Gui
 		{
 			if (FilePath is null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
 		}
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
+		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+		{
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
 	}
 }
