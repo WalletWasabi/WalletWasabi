@@ -171,6 +171,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			CoinsList.OnClose();
 
+			_disposables.Dispose();
+
+			_disposables = null;
+
 			return base.OnClose();
 		}
 
