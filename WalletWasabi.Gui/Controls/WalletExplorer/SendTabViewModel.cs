@@ -22,7 +22,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class SendTabViewModel : WalletActionViewModel
 	{
-		private CoinListViewModel _coinList;
 		private string _buildTransactionButtonText;
 		private bool _isMax;
 		private string _maxClear;
@@ -78,6 +77,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CoinList = new CoinListViewModel();
 			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged)).Subscribe(_ => SetFeesAndTexts());
+			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed)).Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
@@ -556,32 +556,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
 		}
 
-		public CoinListViewModel CoinList
-		{
-			get => _coinList;
-			set
-			{
-				bool changed = _coinList != value;
-				if (_coinList != null)
-				{
-					// TODO keep this with SendTabViewModel.... DW research
-					_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
-				}
+		public CoinListViewModel CoinList { get; }
 
-				this.RaiseAndSetIfChanged(ref _coinList, value);
-
-				if (_coinList != null)
-				{
-					_coinList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
-				}
-			}
-		}
-
-		private async void CoinsList_DequeueCoinsPressedAsync()
+		private async void OnCoinsListDequeueCoinsPressedAsync()
 		{
 			try
 			{
-				var selectedCoin = _coinList?.SelectedCoin;
+				var selectedCoin = CoinList?.SelectedCoin;
 				if (selectedCoin is null) return;
 				await DoDequeueAsync(new[] { selectedCoin });
 			}
