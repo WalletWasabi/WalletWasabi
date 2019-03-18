@@ -128,6 +128,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				throw new Exception("CoinJoin tab opened before previous closed.");
 			}
 
+			_disposables = new CompositeDisposable();
+
 			TargetPrivacy = GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
 
 			var registrableRound = Global.ChaumianClient.State.GetRegistrableRoundOrDefault();

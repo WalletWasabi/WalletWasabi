@@ -94,13 +94,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public SmartCoin Model { get; }
 
-		public bool Confirmed => _confirmed.Value;
+		public bool Confirmed => _confirmed?.Value ?? false;
 
-		public bool CoinJoinInProgress => _coinJoinInProgress.Value;
+		public bool CoinJoinInProgress => _coinJoinInProgress?.Value ?? false;
 
-		public bool Unavailable => _unavailable.Value;
+		public bool Unavailable => _unavailable?.Value ?? false;
 
-		public bool Unspent => _unspent.Value;
+		public bool Unspent => _unspent?.Value ?? false;
 
 		public string Address => Model.ScriptPubKey.GetDestinationAddress(Global.Network).ToString();
 
