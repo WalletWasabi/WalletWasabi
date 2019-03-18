@@ -2,9 +2,7 @@
 using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
-using System;
 using System.Globalization;
-using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
@@ -16,6 +14,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private TransactionInfo _model;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
+		private long _copyNotificationsInprocess = 0;
 
 		public TransactionViewModel(TransactionInfo model)
 		{
@@ -47,8 +46,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _clipboardNotificationOpacity;
 			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
-
-		private long _copyNotificationsInprocess = 0;
 
 		public void CopyToClipboard()
 		{
