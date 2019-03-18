@@ -1,4 +1,6 @@
-﻿using Avalonia.Threading;
+﻿using Avalonia;
+using Avalonia.Input.Platform;
+using Avalonia.Threading;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
