@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
 using static WalletWasabi.Gui.Models.ShieldLevelHelper;
 
@@ -124,7 +123,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			CoinsList.OnOpen();
 
-			if(_disposables != null)
+			if (_disposables != null)
 			{
 				throw new Exception("CoinJoin tab opened before previous closed.");
 			}
@@ -140,6 +139,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinQueued))
 				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.CoinDequeued)))
 				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateStates())
 				.DisposeWith(_disposables);
 
