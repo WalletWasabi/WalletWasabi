@@ -96,19 +96,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			if(_disposables != null)
+			if (_disposables != null)
 			{
 				throw new Exception("Receive tab opened before last one was closed.");
 			}
 
 			_disposables = new CompositeDisposable();
 
-			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o =>
-				{
-					InitializeAddresses();
-				})
+			Observable.FromEventPattern(Global.WalletService.Coins,
+				nameof(Global.WalletService.Coins.CollectionChanged),
+				RxApp.MainThreadScheduler)
+				.Subscribe(o => InitializeAddresses())
 				.DisposeWith(_disposables);
 		}
 

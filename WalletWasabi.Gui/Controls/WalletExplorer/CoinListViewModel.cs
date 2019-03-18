@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -188,7 +187,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			RootList = new SourceList<CoinViewModel>();
 			RootList.Connect()
-				.OnItemRemoved(x=>x.UnsubscribeEvents())
+				.OnItemRemoved(x => x.UnsubscribeEvents())
 				.Sort(MyComparer, comparerChanged: sortChanged, resetThreshold: 5)
 				.Bind(out _coinViewModels)
 				.ObserveOn(RxApp.MainThreadScheduler)
