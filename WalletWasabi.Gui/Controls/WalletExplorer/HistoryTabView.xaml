@@ -17,9 +17,9 @@
         <DockPanel LastChildFill="True" DockPanel.Dock="Bottom">
           <Grid ColumnDefinitions="40, 160, 150, *" Margin="10 0 0 0" DockPanel.Dock="Top">
             <TextBlock Text="" />
-            <controls:SortingArrow Grid.Column="1" Command="{Binding SortCommand}" Text="Date" SortDirection="{Binding DateSortDirection}" />
+            <!--<controls:SortingArrow Grid.Column="1" Command="{Binding SortCommand}" Text="Date" SortDirection="{Binding DateSortDirection}" />
             <controls:SortingArrow Grid.Column="2" Command="{Binding SortCommand}" Text="Amount (BTC)" SortDirection="{Binding AmountSortDirection}" />
-            <controls:SortingArrow Grid.Column="3" Command="{Binding SortCommand}" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}" />
+            <controls:SortingArrow Grid.Column="3" Command="{Binding SortCommand}" Text="Transaction ID" SortDirection="{Binding TransactionSortDirection}" />-->
           </Grid>
           <ListBox Items="{Binding Transactions}" SelectedItem="{Binding SelectedTransaction, Mode=TwoWay}">
             <ListBox.ItemTemplate>
