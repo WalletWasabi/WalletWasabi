@@ -42,6 +42,10 @@ namespace WalletWasabi.Gui
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
+						var notificationBar = new NotificationBarViewModel();
+
+						MainWindowViewModel.Instance.NotificationBar = notificationBar;
+
 						if (Global.Network != Network.Main)
 						{
 							MainWindowViewModel.Instance.Title += $" - {Global.Network}";

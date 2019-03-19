@@ -34,6 +34,7 @@
   <Grid>
     <DockPanel LastChildFill="True">
       <wasabi:StatusBar DockPanel.Dock="Bottom" DataContext="{Binding StatusBar}" />
+      <wasabi:NotificationBar DockPanel.Dock="Bottom" DataContext="{Binding NotificationBar}" />
       <shell:ShellView DataContext="{Binding Shell}" />
     </DockPanel>
     <wasabi:ModalDialog DataContext="{Binding ModalDialog}" />

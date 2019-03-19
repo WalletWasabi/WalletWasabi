@@ -52,6 +52,14 @@ namespace WalletWasabi.Gui.ViewModels
 			internal set => this.RaiseAndSetIfChanged(ref _statusBar, value);
 		}
 
+		private NotificationBarViewModel _notificationBar;
+
+		public NotificationBarViewModel NotificationBar
+		{
+			get => _notificationBar;
+			internal set => this.RaiseAndSetIfChanged(ref _notificationBar, value);
+		}
+
 		public MainWindowViewModel()
 		{
 			Shell = IoC.Get<IShell>();
