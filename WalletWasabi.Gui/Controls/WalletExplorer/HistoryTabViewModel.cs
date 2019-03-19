@@ -73,6 +73,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override bool OnClose()
 		{
 			_disposables.Dispose();
+			_disposables = null;
 
 			return base.OnClose();
 		}
