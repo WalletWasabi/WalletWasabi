@@ -198,8 +198,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
 
-			RootList = new SourceList<CoinViewModel>();
-
 			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
 			{
 				if (x != SortOrder.None)
@@ -368,15 +366,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SetCoinJoinStatusWidth();
 		}
 
-		private void ClearRootList()
-		{
-			foreach (var item in RootList.Items)
-			{
-				item.UnsubscribeEvents();
-			}
-
-			RootList.Clear();
-		}
+		private void ClearRootList() => RootList.Clear();
 
 		public void OnClose()
 		{
