@@ -18,4 +18,4 @@ A clear and concise description of any alternative solutions or features you've 
 
 ### Wasabi version
 
-Which wasabi release are you using? Where did you download it from? 
+Which wasabi release are you using? 
