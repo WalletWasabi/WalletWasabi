@@ -25,3 +25,7 @@ Example: Ubuntu 16.04
 ### Logs
 Please consider your privacy, before completing this section.  
 You can find the log file in %appdata%\WalletWasabi folder on Windows and in ~/.walletwasabi folder on Linux/OSX.
+
+### Wasabi version
+
+Which wasabi release are you using? Where did you download it from? 
