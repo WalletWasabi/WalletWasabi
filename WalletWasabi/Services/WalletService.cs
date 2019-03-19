@@ -209,6 +209,7 @@ namespace WalletWasabi.Services
 			}
 
 			Coins.TryRemove(toRemove);
+			MemPool.TransactionHashes.TryRemove(toRemove.SpenderTransactionId);
 		}
 
 		private async void IndexDownloader_NewFilterAsync(object sender, FilterModel filterModel)
@@ -445,7 +446,7 @@ namespace WalletWasabi.Services
 			uint256 txId = tx.GetHash();
 
 			bool justUpdate = false;
-			if (tx.Height.Type == HeightType.Chain)
+			if (tx.Confirmed)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
 				if (!tx.Transaction.PossiblyNativeSegWitInvolved()) return; // We don't care about non-witness transactions for other than mempool cleanup.
@@ -491,15 +492,18 @@ namespace WalletWasabi.Services
 				{
 					if (tx.Height == Height.MemPool)
 					{
-						// if all double spent coins are mempool and RBF
-						if (doubleSpends.All(x => x.RBF && x.Height == Height.MemPool))
+						// if the received transaction is spending at least one input already
+						// spent by a previous unconfirmed transaction signaling RBF then it is not a double
+						// spanding transaction but a replacement transaction.
+						if (doubleSpends.Any(x => x.IsReplaceable))
 						{
 							// remove double spent coins (if other coin spends it, remove that too and so on)
 							// will add later if they came to our keys
-							foreach (SmartCoin doubleSpentCoin in doubleSpends)
+							foreach (SmartCoin doubleSpentCoin in doubleSpends.Where(x => !x.Confirmed))
 							{
 								RemoveCoinRecursively(doubleSpentCoin);
 							}
+							tx.SetReplacement();
 						}
 						else
 						{
@@ -538,8 +542,8 @@ namespace WalletWasabi.Services
 						}
 					}
 
-					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.Transaction.RBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
-																																																															 // If we didn't have it.
+					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
+																																																												   // If we didn't have it.
 					if (Coins.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);

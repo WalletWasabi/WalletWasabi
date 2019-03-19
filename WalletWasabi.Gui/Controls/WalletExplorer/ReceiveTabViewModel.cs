@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using ReactiveUI;
 using System;
@@ -24,6 +25,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _labelRequiredNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
+
+		public ReactiveCommand CopyAddress { get; }
+		public ReactiveCommand CopyLabel { get; }
+		public ReactiveCommand ShowQrCode { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
@@ -96,6 +101,39 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					CaretIndex = Label.Length;
 				}
 			}).DisposeWith(Disposables);
+
+			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
+
+			CopyAddress = ReactiveCommand.Create(() =>
+			{
+				try
+				{
+					SelectedAddress?.CopyToClipboard();
+				}
+				catch (Exception)
+				{ }
+			}, isCoinListItemSelected);
+
+			CopyLabel = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
+						.SetTextAsync(SelectedAddress.Label ?? string.Empty);
+				}
+				catch (Exception)
+				{ }
+			}, isCoinListItemSelected);
+
+			ShowQrCode = ReactiveCommand.Create(() =>
+			{
+				try
+				{
+					SelectedAddress.IsExpanded = true;
+				}
+				catch (Exception)
+				{ }
+			}, isCoinListItemSelected);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
