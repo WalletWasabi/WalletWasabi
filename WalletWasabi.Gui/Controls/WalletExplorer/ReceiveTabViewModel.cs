@@ -143,8 +143,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_disposables = new CompositeDisposable();
 
 			Observable.FromEventPattern(Global.WalletService.Coins,
-				nameof(Global.WalletService.Coins.CollectionChanged),
-				RxApp.MainThreadScheduler)
+				nameof(Global.WalletService.Coins.CollectionChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(o => InitializeAddresses())
 				.DisposeWith(_disposables);
 		}
