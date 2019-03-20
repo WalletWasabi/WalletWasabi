@@ -2,7 +2,7 @@
             xmlns:ViewModels="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui">
 
   <Grid>
-    <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}">
+    <TreeView BorderThickness="0" Items="{Binding Wallets}" SelectedItem="{Binding SelectedItem}" >
       <TreeView.Styles>
         <Style Selector="TreeViewItem">
           <Setter Property="IsExpanded" Value="True" />
@@ -23,7 +23,7 @@
                 </DrawingGroup>
               </DrawingPresenter.Drawing>
             </DrawingPresenter>
-            <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
+            <Button Content="{Binding Title}" Height="19" VerticalAlignment="Center" BorderThickness="0" Background="Transparent" Command="{Binding PrivateModeCommand}"/>
           </StackPanel>
         </TreeDataTemplate>
 

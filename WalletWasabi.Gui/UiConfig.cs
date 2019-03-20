@@ -17,9 +17,9 @@ using WalletWasabi.JsonConverters;
 namespace WalletWasabi.Gui
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	public class UiConfig : IConfig, INotifyPropertyChanged
+	public class UiConfig : ReactiveObject, IConfig
 	{
-		private bool? _privateMode;
+		private bool _privateMode;
 
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
@@ -44,17 +44,10 @@ namespace WalletWasabi.Gui
 		public bool? Autocopy { get; internal set; }
 
 		[JsonProperty(PropertyName = "PrivateMode")]
-		public bool? PrivateMode 
+		public bool PrivateMode 
 		{ 
-			get => _privateMode; 
-			set
-			{
-				if (_privateMode != value)
-				{
-					_privateMode = value;
-					NotifyPropertyChanged();
-				}
-			}
+			get => _privateMode;
+			set => this.RaiseAndSetIfChanged(ref _privateMode, value);
 		}
 
 		public UiConfig()
@@ -188,13 +181,6 @@ namespace WalletWasabi.Gui
 		public void AssertFilePathSet()
 		{
 			if (FilePath is null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
-		}
-
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
 	}
