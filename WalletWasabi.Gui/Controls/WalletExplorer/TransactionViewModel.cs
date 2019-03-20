@@ -28,6 +28,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ClipboardNotificationOpacity = 0;
 
 			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, model.Confirmed).DisposeWith(Disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(x =>
+			{
+				this.RaisePropertyChanged(nameof(AmountBtcPrivate));
+				this.RaisePropertyChanged(nameof(TransactionIdPrivate));
+			}).DisposeWith(Disposables);
 		}
 
 		private readonly ObservableAsPropertyHelper<bool> _confirmed;
@@ -38,11 +44,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string AmountBtc => _model.AmountBtc;
 
+		public string AmountBtcPrivate
+		{
+			get
+			{
+				if (Global.UiConfig.PrivateMode == true) return "#######";
+				return AmountBtc;
+			}
+		}
+
 		public Money Amount => Money.TryParse(_model.AmountBtc, out Money money) ? money : Money.Zero;
 
 		public string Label => _model.Label;
 
 		public string TransactionId => _model.TransactionId;
+
+		public string TransactionIdPrivate
+		{
+			get
+			{
+				if (Global.UiConfig.PrivateMode == true) return "#############################################";
+				return TransactionId;
+			}
+		}
 
 		public bool ClipboardNotificationVisible
 		{
