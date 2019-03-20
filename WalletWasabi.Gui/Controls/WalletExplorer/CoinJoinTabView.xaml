@@ -109,7 +109,6 @@
                 </StackPanel>
               </Button>
             </DockPanel>
-            <TextBlock Text="{Binding WarningMessage}" Classes="warningMessage" />
           </StackPanel>
         </Grid>
       </controls:GroupBox>

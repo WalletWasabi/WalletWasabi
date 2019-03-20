@@ -507,32 +507,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private void SetWarningMessage(string message)
 		{
-			SuccessMessage = "";
-			WarningMessage = message;
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (WarningMessage == message)
-				{
-					WarningMessage = "";
-				}
-			});
+			Global.NotificationManager.Notify(NotificationTypeEnum.Warning, message);
 		}
 
 		private void SetSuccessMessage(string message)
 		{
-			SuccessMessage = message;
-			WarningMessage = "";
-
-			Dispatcher.UIThread.PostLogException(async () =>
-			{
-				await Task.Delay(7000);
-				if (SuccessMessage == message)
-				{
-					SuccessMessage = "";
-				}
-			});
+			Global.NotificationManager.Notify(NotificationTypeEnum.Success, message);
 		}
 
 		private void SetMax()

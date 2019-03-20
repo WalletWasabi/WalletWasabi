@@ -77,6 +77,7 @@ namespace WalletWasabi.Gui
 
 		public static Config Config { get; private set; }
 		public static UiConfig UiConfig { get; private set; }
+		public static NotificationManager NotificationManager { get; private set; }
 
 		public static void InitializeConfig(Config config)
 		{
@@ -159,6 +160,7 @@ namespace WalletWasabi.Gui
 					Application.Current?.MainWindow?.Close();
 				});
 			};
+			NotificationManager = new NotificationManager();
 
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
@@ -408,6 +410,8 @@ namespace WalletWasabi.Gui
 				{
 					foreach (SmartCoin coin in e.NewItems)
 					{
+						Global.NotificationManager.Notify(NotificationTypeEnum.Info, $"Received {coin.Amount.ToString(false, true)} BTC");
+		
 						//if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
 						//{
 						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?

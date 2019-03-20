@@ -16,16 +16,11 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private bool _isExpanded;
 		private bool[,] _qrCode;
-		private bool _clipboardNotificationVisible;
-		private double _clipboardNotificationOpacity;
-
 		public HdPubKey Model { get; }
 
 		public AddressViewModel(HdPubKey model)
 		{
 			Model = model;
-			ClipboardNotificationVisible = false;
-			ClipboardNotificationOpacity = 0;
 
 			// TODO fix this performance issue this should only be generated when accessed.
 			Task.Run(() =>
@@ -44,18 +39,6 @@ namespace WalletWasabi.Gui.ViewModels
 				this.RaisePropertyChanged(nameof(AddressPrivate));
 				this.RaisePropertyChanged(nameof(LabelPrivate));
 			}).DisposeWith(Disposables);
-		}
-
-		public bool ClipboardNotificationVisible
-		{
-			get => _clipboardNotificationVisible;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
-		}
-
-		public double ClipboardNotificationOpacity
-		{
-			get => _clipboardNotificationOpacity;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
 		public bool IsExpanded
@@ -82,47 +65,10 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 
-		public CancellationTokenSource CancelClipboardNotification { get; set; }
-
-		public async Task TryCopyToClipboardAsync()
+		public void CopyToClipboard()
 		{
-			try
-			{
-				CancelClipboardNotification?.Cancel();
-				while (CancelClipboardNotification != null)
-				{
-					await Task.Delay(50);
-				}
-				CancelClipboardNotification = new CancellationTokenSource();
-
-				var cancelToken = CancelClipboardNotification.Token;
-
-				await Application.Current.Clipboard.SetTextAsync(Address);
-				cancelToken.ThrowIfCancellationRequested();
-
-				ClipboardNotificationVisible = true;
-				ClipboardNotificationOpacity = 1;
-
-				await Task.Delay(1000, cancelToken);
-				ClipboardNotificationOpacity = 0;
-				await Task.Delay(1000, cancelToken);
-				ClipboardNotificationVisible = false;
-			}
-			catch (Exception ex) when (ex is OperationCanceledException
-									|| ex is TaskCanceledException
-									|| ex is TimeoutException)
-			{
-				Logging.Logger.LogTrace<AddressViewModel>(ex);
-			}
-			catch (Exception ex)
-			{
-				Logging.Logger.LogWarning<AddressViewModel>(ex);
-			}
-			finally
-			{
-				CancelClipboardNotification?.Dispose();
-				CancelClipboardNotification = null;
-			}
+			Application.Current.Clipboard.SetTextAsync(Address).GetAwaiter().GetResult();
+			Global.NotificationManager.Notify(NotificationTypeEnum.Info, "Address copied to the clipboard");
 		}
 
 		#region IDisposable Support

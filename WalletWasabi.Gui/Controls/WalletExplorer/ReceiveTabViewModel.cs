@@ -22,8 +22,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 		private string _label;
-		private double _labelRequiredNotificationOpacity;
-		private bool _labelRequiredNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
@@ -44,15 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Label = Label.Trim(',', ' ').Trim();
 				if (string.IsNullOrWhiteSpace(Label))
 				{
-					LabelRequiredNotificationVisible = true;
-					LabelRequiredNotificationOpacity = 1;
-
-					Dispatcher.UIThread.PostLogException(async () =>
-					{
-						await Task.Delay(1000);
-						LabelRequiredNotificationOpacity = 0;
-					});
-
+					Global.NotificationManager.Notify(NotificationTypeEnum.Warning, "Label Is Required!");
 					return;
 				}
 
@@ -183,18 +173,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _label;
 			set => this.RaiseAndSetIfChanged(ref _label, value);
-		}
-
-		public double LabelRequiredNotificationOpacity
-		{
-			get => _labelRequiredNotificationOpacity;
-			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationOpacity, value);
-		}
-
-		public bool LabelRequiredNotificationVisible
-		{
-			get => _labelRequiredNotificationVisible;
-			set => this.RaiseAndSetIfChanged(ref _labelRequiredNotificationVisible, value);
 		}
 
 		public int CaretIndex

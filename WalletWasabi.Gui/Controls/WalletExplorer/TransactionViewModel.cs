@@ -4,6 +4,7 @@ using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Globalization;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
@@ -13,14 +14,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	public class TransactionViewModel : ViewModelBase
 	{
 		private TransactionInfo _model;
-		private bool _clipboardNotificationVisible;
-		private double _clipboardNotificationOpacity;
 
 		public TransactionViewModel(TransactionInfo model)
 		{
 			_model = model;
-			ClipboardNotificationVisible = false;
-			ClipboardNotificationOpacity = 0;
+			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, model.Confirmed).DisposeWith(Disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
+			{
+				this.RaisePropertyChanged(nameof(AmountBtc));
+				this.RaisePropertyChanged(nameof(TransactionId));
+				this.RaisePropertyChanged(nameof(DateTime));
+			}).DisposeWith(Disposables);
 		}
 
 		public void Refresh()
@@ -42,59 +47,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string TransactionId => _model.TransactionId;
 
-		public bool ClipboardNotificationVisible
+		public void CopyToClipboard()
 		{
-			get => _clipboardNotificationVisible;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationVisible, value);
-		}
+			Application.Current.Clipboard.SetTextAsync(TransactionId).GetAwaiter().GetResult();
 
-		public double ClipboardNotificationOpacity
-		{
-			get => _clipboardNotificationOpacity;
-			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
-		}
-
-		public CancellationTokenSource CancelClipboardNotification { get; set; }
-
-		public async Task TryCopyTxIdToClipboardAsync()
-		{
-			try
-			{
-				CancelClipboardNotification?.Cancel();
-				while (CancelClipboardNotification != null)
-				{
-					await Task.Delay(50);
-				}
-				CancelClipboardNotification = new CancellationTokenSource();
-
-				var cancelToken = CancelClipboardNotification.Token;
-
-				await Application.Current.Clipboard.SetTextAsync(TransactionId);
-				cancelToken.ThrowIfCancellationRequested();
-
-				ClipboardNotificationVisible = true;
-				ClipboardNotificationOpacity = 1;
-
-				await Task.Delay(1000, cancelToken);
-				ClipboardNotificationOpacity = 0;
-				await Task.Delay(1000, cancelToken);
-				ClipboardNotificationVisible = false;
-			}
-			catch (Exception ex) when (ex is OperationCanceledException
-									|| ex is TaskCanceledException
-									|| ex is TimeoutException)
-			{
-				Logging.Logger.LogTrace<AddressViewModel>(ex);
-			}
-			catch (Exception ex)
-			{
-				Logging.Logger.LogWarning<AddressViewModel>(ex);
-			}
-			finally
-			{
-				CancelClipboardNotification?.Dispose();
-				CancelClipboardNotification = null;
-			}
+			Global.NotificationManager.Notify(NotificationTypeEnum.Success, "Transaction copied to the clipboard");
 		}
 	}
 }

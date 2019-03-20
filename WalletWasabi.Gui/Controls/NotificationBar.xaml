@@ -6,8 +6,15 @@
              Height="22">
   <UserControl.Resources>
     <converters:NotificationTypeColorConverter x:Key="NotificationTypeColorConverter"/>
+    <converters:NotificationTypeBoolConverter x:Key="NotificationTypeBoolConverter"/>
   </UserControl.Resources>
-  <Grid Background="{Binding NotificationType, Converter={StaticResource NotificationTypeColorConverter}}">
+  <Grid Opacity="{Binding NotificationType, Converter={StaticResource NotificationTypeBoolConverter}}" 
+        Background="{Binding NotificationType, Converter={StaticResource NotificationTypeColorConverter}}">
+    <Grid.Transitions>
+      <DoubleTransition Property="Opacity"
+            Easing="CircularEaseIn"
+            Duration="0:0:0.2" />
+    </Grid.Transitions>
     <DockPanel LastChildFill="True" Margin="4 0" HorizontalAlignment="Center">
       <Panel>
         <StackPanel Orientation="Horizontal" Spacing="4">

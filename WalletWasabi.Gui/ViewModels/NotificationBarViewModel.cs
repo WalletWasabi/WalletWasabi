@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using NBitcoin.Protocol;
 using ReactiveUI;
 using WalletWasabi.Services;
 using Avalonia.Data.Converters;
 using System.Globalization;
 using WalletWasabi.Models;
-using NBitcoin;
 using System.Threading.Tasks;
 using System.Threading;
 using Avalonia.Threading;
@@ -19,23 +17,14 @@ using WalletWasabi.Gui.Dialogs;
 using System.Runtime.InteropServices;
 using System.Reactive.Disposables;
 using System.ComponentModel;
+using System.Linq;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public enum NotificationTypeEnum
+	public class NotificationBarViewModel : ViewModelBase
 	{
-		None,
-		Info,
-		Warning,
-		Error
-	}
-
-	public class NotificationBarViewModel : ViewModelBase, IDisposable
-	{
-		private CompositeDisposable Disposables { get; }
-
-		public ReactiveCommand CloseCommand { get; }
-
+		private Queue<Notification> _notificationQueue = new Queue<Notification>();
+		private DispatcherTimer _timer;
 		private string _notificationText;
 
 		public string NotificationText
@@ -54,35 +43,39 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public NotificationBarViewModel()
 		{
-			NotificationText= "Address copied to the clipboard";
-			NotificationType= NotificationTypeEnum.Info;
-		}
-
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
+			Global.NotificationManager.NotificationAvailable += (s, n) => _notificationQueue.Enqueue(n);
+			_timer = new DispatcherTimer
 			{
-				if (disposing)
+				Interval = TimeSpan.FromSeconds(3)
+			};
+
+			_timer.Tick += (sender, e) =>
+			{
+				_timer.Stop();
+				NotificationText = string.Empty;
+				NotificationType = NotificationTypeEnum.None;
+			};
+
+			Task.Run(async () =>
+			{
+				while (true)
 				{
-					Disposables?.Dispose();
+					if (_notificationQueue.Any() && !_timer.IsEnabled)
+					{
+						var notification = _notificationQueue.Dequeue();
+						
+						await Dispatcher.UIThread.InvokeAsync(()=>DisplayNotification(notification));
+					}
+					await Task.Delay(TimeSpan.FromSeconds(0.1));
 				}
-
-				_disposedValue = true;
-			}
+			});
 		}
 
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
+		private void DisplayNotification(Notification notification)
 		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
+			NotificationText = notification.NotificationText;
+			NotificationType = notification.NotificationType;
+			_timer.Start();
 		}
-
-		#endregion IDisposable Support
 	}
 }

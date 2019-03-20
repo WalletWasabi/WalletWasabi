@@ -23,10 +23,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _isWalletOpened;
 		private bool _canLoadWallet;
 		private bool _canTestPassword;
-		private string _warningMessage;
-		private string _validationMessage;
-		private string _successMessage;
 		private bool _isBusy;
+
 		private string _loadButtonText;
 
 		private WalletManagerViewModel Owner { get; }
@@ -101,43 +99,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _isWalletOpened, value);
 		}
 
-		public string WarningMessage
-		{
-			get => _warningMessage;
-			set => this.RaiseAndSetIfChanged(ref _warningMessage, value);
-		}
-
-		public string ValidationMessage
-		{
-			get => _validationMessage;
-			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
-		}
-
-		public string SuccessMessage
-		{
-			get => _successMessage;
-			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
-		}
-
 		private void SetWarningMessage(string message)
 		{
-			WarningMessage = message;
-			ValidationMessage = "";
-			SuccessMessage = "";
+			Global.NotificationManager.Notify(NotificationTypeEnum.Warning, message);
 		}
 
 		private void SetValidationMessage(string message)
 		{
-			WarningMessage = "";
-			ValidationMessage = message;
-			SuccessMessage = "";
+			Global.NotificationManager.Notify(NotificationTypeEnum.Error, message);
 		}
 
 		private void SetSuccessMessage(string message)
 		{
-			WarningMessage = "";
-			ValidationMessage = "";
-			SuccessMessage = message;
+			Global.NotificationManager.Notify(NotificationTypeEnum.Success, message);
 		}
 
 		public void SetLoadButtonText(bool isBusy)
@@ -188,7 +162,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			Wallets.Clear();
 			Password = "";
-			SetValidationMessage("");
 
 			if (!File.Exists(Global.WalletsDir))
 			{
@@ -204,6 +177,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			SelectedWallet = Wallets.FirstOrDefault();
 			SetWalletStates();
+			if (IsWalletOpened)
+			{
+				SetWarningMessage("There is already an open wallet. Restart the application to open another one.");
+			}
 		}
 
 		private void SetWalletStates()
@@ -216,11 +193,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			// And wallet is selected.
 			// And no wallet is opened.
 			CanLoadWallet = !IsBusy && IsWalletSelected && !IsWalletOpened;
-
-			if (IsWalletOpened)
-			{
-				SetWarningMessage("There is already an open wallet. Restart the application to open another one.");
-			}
 		}
 
 		public ReactiveCommand LoadCommand { get; }
