@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui
 	[JsonObject(MemberSerialization.OptIn)]
 	public class UiConfig : ReactiveObject, IConfig
 	{
-		private bool _privateMode;
+		private bool? _privateMode;
 
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
@@ -44,8 +44,8 @@ namespace WalletWasabi.Gui
 		public bool? Autocopy { get; internal set; }
 
 		[JsonProperty(PropertyName = "PrivateMode")]
-		public bool PrivateMode 
-		{ 
+		public bool? PrivateMode
+		{
 			get => _privateMode;
 			set => this.RaiseAndSetIfChanged(ref _privateMode, value);
 		}
@@ -117,7 +117,7 @@ namespace WalletWasabi.Gui
 			FeeTarget = config.FeeTarget ?? FeeTarget;
 			FeeDisplayFormat = config.FeeDisplayFormat ?? FeeDisplayFormat;
 			Autocopy = config.Autocopy ?? Autocopy;
-			PrivateMode = false;
+			PrivateMode = config.PrivateMode ?? PrivateMode;
 		}
 
 		/// <inheritdoc />
@@ -182,6 +182,5 @@ namespace WalletWasabi.Gui
 		{
 			if (FilePath is null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
 		}
-
 	}
 }
