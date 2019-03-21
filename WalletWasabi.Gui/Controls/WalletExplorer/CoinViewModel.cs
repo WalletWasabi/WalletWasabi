@@ -23,20 +23,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private ObservableAsPropertyHelper<string> _clusters;
 		private ObservableAsPropertyHelper<bool> _confirmed;
 		private ObservableAsPropertyHelper<bool> _unavailable;
+		private CoinListViewModel owner;
 
 		public CoinViewModel(CoinListViewModel owner, SmartCoin model)
 		{
 			Model = model;
-
-			this.WhenAnyValue(x => x.Status).Subscribe(_ => this.RaisePropertyChanged(nameof(ToolTip)));
-
-			this.WhenAnyValue(x => x.Confirmed, x => x.CoinJoinInProgress, x => x.Confirmations).Subscribe(_ => RefreshSmartCoinStatus());
-
-			this.WhenAnyValue(x => x.IsSelected).Subscribe(_ => owner.OnCoinIsSelectedChanged(this));
-
-			this.WhenAnyValue(x => x.Status).Subscribe(_ => owner.OnCoinStatusChanged());
-
-			this.WhenAnyValue(x => x.Unspent).Subscribe(_ => owner.OnCoinUnspentChanged(this));
+			this.owner = owner;
 		}
 
 		public void SubscribeEvents()
@@ -53,17 +45,27 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ToProperty(this, x => x.CoinJoinInProgress)
 				.DisposeWith(_disposables);
 
-			_unspent = Model.WhenAnyValue(x => x.Unspent).ToProperty(this, x => x.Unspent)
+			_unspent = Model.WhenAnyValue(x => x.Unspent).ToProperty(this, x => x.Unspent, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(_disposables);
 
-			_clusters = Model.WhenAnyValue(x => x.Clusters).ToProperty(this, x => x.Clusters)
+			_clusters = Model.WhenAnyValue(x => x.Clusters).ToProperty(this, x => x.Clusters, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(_disposables);
 
-			_confirmed = Model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed)
+			_confirmed = Model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(_disposables);
 
-			_unavailable = Model.WhenAnyValue(x => x.Unavailable).ToProperty(this, x => x.Confirmed)
+			_unavailable = Model.WhenAnyValue(x => x.Unavailable).ToProperty(this, x => x.Unavailable, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(_disposables);
+
+			this.WhenAnyValue(x => x.Status).Subscribe(_ => this.RaisePropertyChanged(nameof(ToolTip)));
+
+			this.WhenAnyValue(x => x.Confirmed, x => x.CoinJoinInProgress, x => x.Confirmations).Subscribe(_ => RefreshSmartCoinStatus());
+
+			this.WhenAnyValue(x => x.IsSelected).Subscribe(_ => owner.OnCoinIsSelectedChanged(this));
+
+			this.WhenAnyValue(x => x.Status).Subscribe(_ => owner.OnCoinStatusChanged());
+
+			this.WhenAnyValue(x => x.Unspent).Subscribe(_ => owner.OnCoinUnspentChanged(this));
 
 			Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend).ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => RefreshSmartCoinStatus())

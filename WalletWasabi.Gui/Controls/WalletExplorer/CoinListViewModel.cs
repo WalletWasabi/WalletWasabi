@@ -415,7 +415,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (!cvm.Unspent)
 			{
-				RootList.Remove(cvm);
+				Dispatcher.UIThread.Post(() =>
+				{
+					RootList.Remove(cvm);
+				});
 			}
 
 			SetSelections();
