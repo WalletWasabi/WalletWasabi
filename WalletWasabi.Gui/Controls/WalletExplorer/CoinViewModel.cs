@@ -63,6 +63,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			model.WhenAnyValue(x => x.Clusters).ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Clusters));
+				this.RaisePropertyChanged(nameof(ClustersPrivate));
 			}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Status).Subscribe(_ =>
@@ -74,6 +75,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				RefreshSmartCoinStatus();
 				this.RaisePropertyChanged(nameof(Confirmations));
+			}).DisposeWith(Disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(AmountBtcPrivate));
+				this.RaisePropertyChanged(nameof(ClustersPrivate));
 			}).DisposeWith(Disposables);
 
 			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
@@ -131,6 +138,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string AmountBtc => Model.Amount.ToString(false, true);
 
+		public string AmountBtcPrivate => Global.UiConfig.PrivateMode == true ? "#######" : AmountBtc;
+
 		public string Label => Model.Label;
 
 		public int Height => Model.Height;
@@ -143,7 +152,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string Clusters => Model.Clusters;
+		public string Clusters => string.IsNullOrEmpty(Model.Clusters) ? "" : Model.Clusters; //If the value is null the bind do not update the view. It shows the previous state for example: ##### even if PrivMode false.
+
+		public string ClustersPrivate => Global.UiConfig.PrivateMode == true ? "################################################################################" : Clusters;
 
 		public string PubKey => Model.HdPubKey.PubKey.ToString();
 
