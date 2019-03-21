@@ -161,6 +161,7 @@ namespace WalletWasabi.Gui
 				});
 			};
 			NotificationManager = new NotificationManager();
+			NotificationManager.NotificationAvailable += ToastNotifycation;
 
 			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
@@ -310,6 +311,35 @@ namespace WalletWasabi.Gui
 			Logger.LogInfo("Start synchronizing filters...");
 		}
 
+		private static void ToastNotifycation(object sender, Notification e)
+		{		
+			//if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
+			//{
+			//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
+			//}
+			if(!e.Unattended) return;
+
+			var filename = string.Empty;
+			var arguments= string.Empty;
+			if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			{
+				filename = "osascript";
+				arguments= $"-e \"display notification \\\"{e.NotificationText}\\\" with title \\\"Wasabi\\\"\"";
+			}
+			else
+			{
+				filename = "notify-send";
+				arguments= $"--expire-time=3000 \"Wasabi\" \"{e.NotificationText}\"";
+			}
+
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = filename,
+				Arguments = arguments,
+				CreateNoWindow = true
+			})) { };
+		}
+
 		private static CancellationTokenSource CancelWalletServiceInitialization = null;
 
 		public static async Task InitializeWalletServiceAsync(KeyManager keyManager)
@@ -410,20 +440,7 @@ namespace WalletWasabi.Gui
 				{
 					foreach (SmartCoin coin in e.NewItems)
 					{
-						Global.NotificationManager.Notify(NotificationTypeEnum.Info, $"Received {coin.Amount.ToString(false, true)} BTC");
-		
-						//if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
-						//{
-						//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
-						//}
-						// else
-
-						using (var process = Process.Start(new ProcessStartInfo
-						{
-							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
-							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
-							CreateNoWindow = true
-						})) { };
+						Global.NotificationManager.InfoUnattended($"Received {coin.Amount.ToString(false, true)} BTC");
 					}
 				}
 			}

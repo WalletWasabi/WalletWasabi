@@ -194,7 +194,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = Label.Trim(',', ' ').Trim();
 					if (!IsMax && string.IsNullOrWhiteSpace(Label))
 					{
-						SetWarningMessage("Label is required.");
+						Global.NotificationManager.Warning("Label is required.");
 						return;
 					}
 
@@ -203,7 +203,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (!selectedCoinReferences.Any())
 					{
-						SetWarningMessage("No coins are selected to spend.");
+						Global.NotificationManager.Warning("No coins are selected to spend.");
 						return;
 					}
 
@@ -214,7 +214,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch (FormatException)
 					{
-						SetWarningMessage("Invalid address.");
+						Global.NotificationManager.Warning("Invalid address.");
 						return;
 					}
 
@@ -224,13 +224,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						if (!Money.TryParse(Amount, out amount) || amount == Money.Zero)
 						{
-							SetWarningMessage($"Invalid amount.");
+							Global.NotificationManager.Warning($"Invalid amount.");
 							return;
 						}
 
 						if (amount == selectedCoinViewModels.Sum(x => x.Amount))
 						{
-							SetWarningMessage("Looks like you want to spend a whole coin. Try Max button instead.");
+							Global.NotificationManager.Warning("Looks like you want to spend a whole coin. Try Max button instead.");
 							return;
 						}
 					}
@@ -247,7 +247,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					}
 					catch
 					{
-						SetWarningMessage("Spending coins those are being actively mixed is not allowed.");
+						Global.NotificationManager.Warning("Spending coins those are being actively mixed is not allowed.");
 						return;
 					}
 
@@ -262,16 +262,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Label = "";
 					Password = "";
 
-					SetSuccessMessage("Transaction is successfully sent!");
+					Global.NotificationManager.SuccessUnattended("Transaction is successfully sent!");
 				}
 				catch (InsufficientBalanceException ex)
 				{
 					Money needed = ex.Minimum - ex.Actual;
-					SetWarningMessage($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
+					Global.NotificationManager.Warning($"Not enough coins selected. You need an estimated {needed.ToString(false, true)} BTC more to make this transaction.");
 				}
 				catch (Exception ex)
 				{
-					SetWarningMessage(ex.ToTypeMessageString());
+					Global.NotificationManager.Warning(ex.ToTypeMessageString());
 				}
 				finally
 				{
@@ -505,16 +505,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		private void SetWarningMessage(string message)
-		{
-			Global.NotificationManager.Notify(NotificationTypeEnum.Warning, message);
-		}
-
-		private void SetSuccessMessage(string message)
-		{
-			Global.NotificationManager.Notify(NotificationTypeEnum.Success, message);
-		}
-
 		private void SetMax()
 		{
 			if (IsMax)
@@ -565,7 +555,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (!selectedCoins.Any())
 			{
-				SetWarningMessage("No coins are selected to dequeue.");
+				Global.NotificationManager.Warning("No coins are selected to dequeue.");
 				return;
 			}
 
@@ -584,7 +574,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 					}
 				}
-				SetWarningMessage(builder.ToString());
+				Global.NotificationManager.Warning(builder.ToString());
 				return;
 			}
 		}

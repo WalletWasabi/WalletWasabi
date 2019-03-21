@@ -184,7 +184,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (!selectedCoins.Any())
 				{
-					SetWarningMessage("No coins are selected to dequeue.");
+					Global.NotificationManager.Warning("No coins are selected to dequeue.");
 					return;
 				}
 
@@ -203,7 +203,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
-					SetWarningMessage(builder.ToString());
+					Global.NotificationManager.Warning(builder.ToString());
 					return;
 				}
 			}
@@ -222,7 +222,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 				if (!selectedCoins.Any())
 				{
-					SetWarningMessage("No coins are selected to enqueue.");
+					Global.NotificationManager.Warning("No coins are selected to enqueue.");
 					return;
 				}
 
@@ -241,7 +241,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							builder.Append(Environment.NewLine + iex.ToTypeMessageString());
 						}
 					}
-					SetWarningMessage(builder.ToString());
+					Global.NotificationManager.Warning(builder.ToString());
 					Password = string.Empty;
 					return;
 				}
@@ -327,11 +327,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override void OnDeselected()
 		{
 			Global.ChaumianClient.DeactivateFrequentStatusProcessingIfNotMixing();
-		}
-
-		private void SetWarningMessage(string message)
-		{
-			Global.NotificationManager.Notify(NotificationTypeEnum.Warning, message);
 		}
 
 		public string Password

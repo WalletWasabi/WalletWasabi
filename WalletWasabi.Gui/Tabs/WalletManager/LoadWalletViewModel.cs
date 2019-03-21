@@ -99,21 +99,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _isWalletOpened, value);
 		}
 
-		private void SetWarningMessage(string message)
-		{
-			Global.NotificationManager.Notify(NotificationTypeEnum.Warning, message);
-		}
-
-		private void SetValidationMessage(string message)
-		{
-			Global.NotificationManager.Notify(NotificationTypeEnum.Error, message);
-		}
-
-		private void SetSuccessMessage(string message)
-		{
-			Global.NotificationManager.Notify(NotificationTypeEnum.Success, message);
-		}
-
 		public void SetLoadButtonText(bool isBusy)
 		{
 			LoadButtonText = isBusy ? "Loading..." : "Load Wallet";
@@ -179,7 +164,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SetWalletStates();
 			if (IsWalletOpened)
 			{
-				SetWarningMessage("There is already an open wallet. Restart the application to open another one.");
+				Global.NotificationManager.Warning("There is already an open wallet. Restart the application to open another one.");
 			}
 		}
 
@@ -208,7 +193,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				if (string.IsNullOrEmpty(SelectedWallet))
 				{
-					SetValidationMessage("No wallet selected.");
+					Global.NotificationManager.Error("No wallet selected.");
 					return null;
 				}
 
@@ -218,7 +203,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					// The selected wallet is not available any more (someone deleted it?).
 					OnCategorySelected();
-					SetValidationMessage("The selected wallet and its backup don't exist, did you delete them?");
+					Global.NotificationManager.Error("The selected wallet and its backup don't exist, did you delete them?");
 					return null;
 				}
 
@@ -229,12 +214,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					if (!keyManager.TestPassword(password))
 					{
-						SetValidationMessage("Wrong password.");
+						Global.NotificationManager.Error("Wrong password.");
 						return null;
 					}
 					else
 					{
-						SetSuccessMessage("Correct password.");
+						Global.NotificationManager.Success("Correct password.");
 					}
 				}
 
@@ -243,7 +228,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			catch (Exception ex)
 			{
 				// Initialization failed.
-				SetValidationMessage(ex.ToTypeMessageString());
+				Global.NotificationManager.Error(ex.ToTypeMessageString());
 				Logger.LogError<LoadWalletViewModel>(ex);
 
 				return null;
@@ -288,7 +273,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				catch (Exception ex)
 				{
 					// Initialization failed.
-					SetValidationMessage(ex.ToTypeMessageString());
+					Global.NotificationManager.Error(ex.ToTypeMessageString());
 					Logger.LogError<LoadWalletViewModel>(ex);
 					await Global.DisposeInWalletDependentServicesAsync();
 				}

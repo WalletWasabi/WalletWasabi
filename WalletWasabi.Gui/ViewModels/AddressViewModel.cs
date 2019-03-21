@@ -68,7 +68,7 @@ namespace WalletWasabi.Gui.ViewModels
 		public void CopyToClipboard()
 		{
 			Application.Current.Clipboard.SetTextAsync(Address).GetAwaiter().GetResult();
-			Global.NotificationManager.Notify(NotificationTypeEnum.Info, "Address copied to the clipboard");
+			Global.NotificationManager.Success("Address copied to the clipboard");
 		}
 
 		#region IDisposable Support

@@ -51,7 +51,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Application.Current.Clipboard.SetTextAsync(TransactionId).GetAwaiter().GetResult();
 
-			Global.NotificationManager.Notify(NotificationTypeEnum.Success, "Transaction copied to the clipboard");
+			Global.NotificationManager.Success("Transaction copied to the clipboard");
 		}
 	}
 }

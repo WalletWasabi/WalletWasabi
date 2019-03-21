@@ -42,7 +42,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Label = Label.Trim(',', ' ').Trim();
 				if (string.IsNullOrWhiteSpace(Label))
 				{
-					Global.NotificationManager.Notify(NotificationTypeEnum.Warning, "Label Is Required!");
+					Global.NotificationManager.Warning("Label Is Required!");
 					return;
 				}
 
