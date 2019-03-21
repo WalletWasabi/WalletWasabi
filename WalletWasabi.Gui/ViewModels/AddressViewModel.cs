@@ -3,13 +3,14 @@ using Avalonia.Threading;
 using Gma.QrCodeNet.Encoding;
 using ReactiveUI;
 using System;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public class AddressViewModel : ViewModelBase
+	public class AddressViewModel : ViewModelBase, IDisposable
 	{
 		private bool _isExpanded;
 		private bool[,] _qrCode;
@@ -17,6 +18,8 @@ namespace WalletWasabi.Gui.ViewModels
 		private double _clipboardNotificationOpacity;
 
 		public HdPubKey Model { get; }
+
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		public AddressViewModel(HdPubKey model)
 		{
@@ -34,6 +37,12 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				QrCode = x.Result;
 			});
+
+			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(AddressPrivate));
+				this.RaisePropertyChanged(nameof(LabelPrivate));
+			}).DisposeWith(Disposables);
 		}
 
 		public bool ClipboardNotificationVisible
@@ -56,7 +65,11 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public string Label => Model.Label;
 
+		public string LabelPrivate => Global.UiConfig.PrivateMode == true ? "###########" : Label;
+
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
+
+		public string AddressPrivate => Global.UiConfig.PrivateMode == true ? "###########################" : Address;
 
 		public string Pubkey => Model.PubKey.ToString();
 
@@ -99,5 +112,32 @@ namespace WalletWasabi.Gui.ViewModels
 				}
 			});
 		}
+
+		#region IDisposable Support
+
+		private volatile bool _disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposedValue)
+			{
+				if (disposing)
+				{
+					Disposables?.Dispose();
+				}
+
+				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+				// TODO: set large fields to null.
+
+				_disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		#endregion IDisposable Support
 	}
 }
