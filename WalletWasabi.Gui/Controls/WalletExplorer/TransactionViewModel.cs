@@ -44,14 +44,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string AmountBtc => _model.AmountBtc;
 
-		public string AmountBtcPrivate
-		{
-			get
-			{
-				if (Global.UiConfig.PrivateMode == true) return "#######";
-				return AmountBtc;
-			}
-		}
+		public string AmountBtcPrivate => Global.UiConfig.PrivateMode == true ? "#######" : AmountBtc;
 
 		public Money Amount => Money.TryParse(_model.AmountBtc, out Money money) ? money : Money.Zero;
 
@@ -59,14 +52,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string TransactionId => _model.TransactionId;
 
-		public string TransactionIdPrivate
-		{
-			get
-			{
-				if (Global.UiConfig.PrivateMode == true) return "#############################################";
-				return TransactionId;
-			}
-		}
+		public string TransactionIdPrivate => Global.UiConfig.PrivateMode == true ? "#############################################" : TransactionId;
 
 		public bool ClipboardNotificationVisible
 		{
