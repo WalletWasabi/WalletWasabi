@@ -33,9 +33,15 @@
         </controls:GroupBox>
 
         <controls:GroupBox Title="UI" TextBlock.FontSize="16" Padding="10" Margin="0 5 10 5">
-          <StackPanel Margin="0 10" Orientation="Horizontal">
-            <ToggleButton IsChecked="{Binding Autocopy}" Content="{Binding AutocopyText}" Margin="0 0 10 0" />
-            <TextBlock VerticalAlignment="Center">Autocopy on Receive and History wallet tabs.</TextBlock>
+          <StackPanel Spacing="10" Orientation="Vertical">
+            <StackPanel Margin="0 10" Orientation="Horizontal">
+              <ToggleButton IsChecked="{Binding Autocopy}" Content="{Binding AutocopyText}" Margin="0 0 10 0" />
+              <TextBlock VerticalAlignment="Center">Autocopy on Receive and History wallet tabs.</TextBlock>
+            </StackPanel>
+            <StackPanel Margin="0 10" Orientation="Horizontal">
+              <ToggleButton IsChecked="{Binding PrivateMode}" Content="{Binding PrivateModeText}" Margin="0 0 10 0" Command="{Binding PrivateModeCommand}" />
+              <TextBlock VerticalAlignment="Center">Private mode to hide sensitive content.</TextBlock>
+            </StackPanel>
           </StackPanel>
         </controls:GroupBox>
 
