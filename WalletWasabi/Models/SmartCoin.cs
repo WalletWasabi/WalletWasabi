@@ -1,10 +1,13 @@
 ﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.KeyManagement;
+using WalletWasabi.Models.Graphs;
 
 namespace WalletWasabi.Models
 {
@@ -34,6 +37,7 @@ namespace WalletWasabi.Models
 		private Height _height;
 		private string _label;
 		private TxoRef[] _spentOutputs;
+		private HashSet<CoinEdge> _edges;
 		private bool _replaceable;
 		private int _anonymitySet;
 		private uint256 _spenderTransactionId;
@@ -161,6 +165,20 @@ namespace WalletWasabi.Models
 				{
 					_spentOutputs = value;
 					OnPropertyChanged(nameof(SpentOutputs));
+				}
+			}
+		}
+
+		[JsonProperty]
+		public HashSet<CoinEdge> Edges
+		{
+			get => _edges;
+			set
+			{
+				if (value != _edges)
+				{
+					_edges = value;
+					OnPropertyChanged(nameof(Edges));
 				}
 			}
 		}
@@ -424,12 +442,54 @@ namespace WalletWasabi.Models
 		#region Constructors
 
 		[JsonConstructor]
-		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(uint256 transactionId,
+			uint index,
+			Script scriptPubKey,
+			Money amount,
+			TxoRef[] spentOutputs,
+			IEnumerable<CoinEdge> edges,
+			Height height,
+			bool replaceable,
+			int anonymitySet,
+			string label = "",
+			uint256 spenderTransactionId = null,
+			bool coinJoinInProgress = false,
+			DateTimeOffset? bannedUntilUtc = null,
+			bool spentAccordingToBackend = false,
+			HdPubKey pubKey = null)
 		{
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+			Create(transactionId, index, scriptPubKey, amount, spentOutputs, edges, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
 		}
 
-		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(uint256 transactionId,
+			uint index,
+			Script scriptPubKey,
+			Money amount,
+			TxoRef[] spentOutputs,
+			Height height,
+			bool replaceable,
+			int anonymitySet,
+			string label = "",
+			uint256 spenderTransactionId = null,
+			bool coinJoinInProgress = false,
+			DateTimeOffset? bannedUntilUtc = null,
+			bool spentAccordingToBackend = false,
+			HdPubKey pubKey = null)
+		{
+			Create(transactionId, index, scriptPubKey, amount, spentOutputs, null, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+		}
+
+		public SmartCoin(Coin coin,
+			TxoRef[] spentOutputs,
+			Height height,
+			bool replaceable,
+			int anonymitySet,
+			string label = "",
+			uint256 spenderTransactionId = null,
+			bool coinJoinInProgress = false,
+			DateTimeOffset? bannedUntilUtc = null,
+			bool spentAccordingToBackend = false,
+			HdPubKey pubKey = null)
 		{
 			OutPoint outpoint = Guard.NotNull($"{coin}.{coin?.Outpoint}", coin?.Outpoint);
 			uint256 transactionId = outpoint.Hash;
@@ -437,10 +497,10 @@ namespace WalletWasabi.Models
 			Script scriptPubKey = Guard.NotNull($"{coin}.{coin?.ScriptPubKey}", coin?.ScriptPubKey);
 			Money amount = Guard.NotNull($"{coin}.{coin?.Amount}", coin?.Amount);
 
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+			Create(transactionId, index, scriptPubKey, amount, spentOutputs, null, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
 		}
 
-		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, string label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
+		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, IEnumerable<CoinEdge> edges, Height height, bool replaceable, int anonymitySet, string label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
@@ -449,6 +509,7 @@ namespace WalletWasabi.Models
 			Height = height;
 			Label = Guard.Correct(label);
 			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
+			Edges = edges?.ToHashSet() ?? new HashSet<CoinEdge>();
 			IsReplaceable = replaceable;
 			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
 

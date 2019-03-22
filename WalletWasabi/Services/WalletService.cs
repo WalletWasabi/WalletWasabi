@@ -23,6 +23,7 @@ using System.Net.Http;
 using System.Diagnostics;
 using NBitcoin.BitcoinCore;
 using System.Net.Sockets;
+using WalletWasabi.Models.Graphs;
 
 namespace WalletWasabi.Services
 {
@@ -56,7 +57,7 @@ namespace WalletWasabi.Services
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 		private AsyncLock WalletBlocksLock { get; }
 
-		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
+		public ObservableConcurrentCoinGraph Coins { get; }
 
 		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
 
@@ -97,7 +98,7 @@ namespace WalletWasabi.Services
 			WalletBlocksLock = new AsyncLock();
 			HandleFiltersLock = new AsyncLock();
 
-			Coins = new ObservableConcurrentHashSet<SmartCoin>();
+			Coins = new ObservableConcurrentCoinGraph();
 			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
