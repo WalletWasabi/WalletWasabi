@@ -31,8 +31,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(x =>
 			{
-				this.RaisePropertyChanged(nameof(AmountBtcPrivate));
-				this.RaisePropertyChanged(nameof(TransactionIdPrivate));
+				this.RaisePropertyChanged(nameof(AmountBtc));
+				this.RaisePropertyChanged(nameof(TransactionId));
 			}).DisposeWith(Disposables);
 		}
 
@@ -44,15 +44,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string AmountBtc => _model.AmountBtc;
 
-		public string AmountBtcPrivate => Global.UiConfig.PrivateMode == true ? "#######" : AmountBtc;
-
 		public Money Amount => Money.TryParse(_model.AmountBtc, out Money money) ? money : Money.Zero;
 
 		public string Label => _model.Label;
 
 		public string TransactionId => _model.TransactionId;
-
-		public string TransactionIdPrivate => Global.UiConfig.PrivateMode == true ? "#############################################" : TransactionId;
 
 		public bool ClipboardNotificationVisible
 		{
