@@ -22,7 +22,6 @@
   <ItemGroup>
     <PackageReference Include="NBitcoin" Version="4.1.1.96" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Gma\QrCodeNet\Encoding\ReedSolomon\" />
   </ItemGroup>

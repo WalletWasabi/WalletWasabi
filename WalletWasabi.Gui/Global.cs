@@ -242,6 +242,8 @@ namespace WalletWasabi.Gui
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 			MemPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
+			connectionParameters.EndpointConnector = new TorOnlyEndpointConnector();
+			connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint()));
 
 			if (Network == Network.RegTest)
 			{
