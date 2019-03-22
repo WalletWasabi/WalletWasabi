@@ -163,7 +163,7 @@ namespace WalletWasabi.Tests
 
 			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
 			var coin2 = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
-			CoinEdge.CreateOrUpdate(coin, coin2, 1);
+			CoinEdge.CreateOrUpdateIfScriptPubKeyConnection(coin, coin2);
 			coin.BannedUntilUtc = bannedUntil;
 
 			var serialized = JsonConvert.SerializeObject(coin);

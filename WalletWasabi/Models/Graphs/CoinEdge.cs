@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using NBitcoin;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -27,6 +28,9 @@ namespace WalletWasabi.Models.Graphs
 		#region Fields
 
 		private SmartCoin[] _verticles;
+
+		private Script _scriptPubKeyConnection;
+
 		private double _weight;
 
 		#endregion Fields
@@ -39,12 +43,29 @@ namespace WalletWasabi.Models.Graphs
 		public SmartCoin[] Verticles
 		{
 			get => _verticles;
-			set
+			private set
 			{
 				if (value != _verticles)
 				{
-					_verticles = value;
+					_verticles = Guard.NotNullAndAssert(nameof(value), value, expectedCount: 2, expectUniqueness: true)
+						.OrderBy(x => x.TransactionId.ToString()) // Assert Lexicographical order as defined in BIP126 (edges are undirectoed.)
+						.ThenBy(x => x.Index)
+						.ToArray();
 					OnPropertyChanged(nameof(Verticles));
+				}
+			}
+		}
+
+		public Script ScriptPubKeyConnection
+		{
+			get => _scriptPubKeyConnection;
+			set
+			{
+				if (value != _scriptPubKeyConnection)
+				{
+					_scriptPubKeyConnection = value;
+					OnPropertyChanged(nameof(Verticles));
+					RecalculateWeight();
 				}
 			}
 		}
@@ -55,11 +76,11 @@ namespace WalletWasabi.Models.Graphs
 		public double Weight
 		{
 			get => _weight;
-			set
+			private set
 			{
 				if (value != _weight)
 				{
-					_weight = value;
+					_weight = Guard.InRangeAndNotNull(nameof(value), value, 0, 1);
 					OnPropertyChanged(nameof(Weight));
 				}
 			}
@@ -69,46 +90,60 @@ namespace WalletWasabi.Models.Graphs
 
 		#region Constructors
 
-		private CoinEdge(SmartCoin[] verticles, double weight)
+		private CoinEdge(SmartCoin vertex1, SmartCoin vertex2)
 		{
-			Verticles = Guard.NotNullAndAssert(nameof(verticles), verticles, expectedCount: 2, expectUniqueness: true)
-				.OrderBy(x => x.TransactionId.ToString()) // Assert Lexicographical order as defined in BIP126 (edges are undirectoed.)
-				.ThenBy(x => x.Index)
-				.ToArray();
-			Weight = Guard.InRangeAndNotNull(nameof(weight), weight, 0, 1);
-
-			// Add my reference to my verticles.
-			foreach (SmartCoin verticle in Verticles)
-			{
-				if (!verticle.Edges.Add(this)) // If couldn't add, then it's duplication, so update existing instead of add.
-				{
-					var sameEdge = verticle.Edges.FirstOrDefault(x => x == this);
-					if (sameEdge != default)
-					{
-						sameEdge.Weight = Weight;
-					}
-				}
-			}
+			Verticles = new[] { vertex1, vertex2 };
+			ScriptPubKeyConnection = null;
+			Weight = 0;
 		}
 
 		#endregion Constructors
+
+		#region Methods
+
+		private void RecalculateWeight()
+		{
+			if (_scriptPubKeyConnection != null) // If the scriptPubKey is the same then that's common ownership (ToDo: except when OP_return, etc...)
+			{
+				Weight = 1;
+			}
+		}
+
+		#endregion Methods
 
 		#region Statics
 
 		private static object Lock { get; } = new object();
 
-		public static CoinEdge CreateOrUpdate(SmartCoin[] verticles, double weight)
+		public static void CreateOrUpdateIfScriptPubKeyConnection(SmartCoin vertex1, SmartCoin vertex2)
 		{
 			lock (Lock)
 			{
-				return new CoinEdge(verticles, weight);
-			}
-		}
+				// Same address. ToDo: Should we rather check pubkey hashes here somehow?
+				if (vertex1.ScriptPubKey != vertex2.ScriptPubKey)
+				{
+					return;
+				}
 
-		public static CoinEdge CreateOrUpdate(SmartCoin vertex1, SmartCoin vertex2, double weight)
-		{
-			var verticles = new[] { vertex1, vertex2 };
-			return CreateOrUpdate(verticles, weight);
+				// Create a new edge and test if verticles have the edge.
+				var newEdge = new CoinEdge(vertex1, vertex2);
+				foreach (SmartCoin verticle in newEdge.Verticles)
+				{
+					// Add my reference to my verticles.
+					if (!verticle.Edges.Add(newEdge)) // If couldn't add, then it's duplication, so just update existing instead of adding the new.
+					{
+						var sameEdge = verticle.Edges.FirstOrDefault(x => x == newEdge);
+						if (sameEdge != default)
+						{
+							sameEdge.ScriptPubKeyConnection = verticle.ScriptPubKey;
+						}
+					}
+					else
+					{
+						newEdge.ScriptPubKeyConnection = verticle.ScriptPubKey;
+					}
+				}
+			}
 		}
 
 		// Remove references from its verticles.

@@ -37,12 +37,9 @@ namespace WalletWasabi.Models.Graphs
 				{
 					invoke = true;
 
-					foreach (var verticle in Verticles)
+					foreach (var verticle in Verticles.Except(new[] { item }))
 					{
-						if (verticle != item && verticle.ScriptPubKey == item.ScriptPubKey) // Same address. ToDo: Should we rather check pubkey hashes here somehow?
-						{
-							CoinEdge.CreateOrUpdate(verticle, item, 1);
-						}
+						CoinEdge.CreateOrUpdateIfScriptPubKeyConnection(verticle, item);
 					}
 				}
 			}
