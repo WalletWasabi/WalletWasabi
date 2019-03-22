@@ -13,6 +13,7 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
+using WalletWasabi.Models.Graphs;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
@@ -161,6 +162,8 @@ namespace WalletWasabi.Tests
 			var bannedUntil = DateTimeOffset.UtcNow;
 
 			var coin = new SmartCoin(txId, index, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
+			var coin2 = new SmartCoin(txId, index + 1, scriptPubKey, amount, spentOutputs, height, tx.RBF, tx.GetAnonymitySet(index), label, txId);
+			CoinEdge.CreateOrUpdate(coin, coin2, 1);
 			coin.BannedUntilUtc = bannedUntil;
 
 			var serialized = JsonConvert.SerializeObject(coin);

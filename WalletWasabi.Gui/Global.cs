@@ -125,7 +125,7 @@ namespace WalletWasabi.Gui
 				return;
 			}
 
-			SmartCoin[] enqueuedCoins = WalletService.Coins.Where(x => x.CoinJoinInProgress).ToArray();
+			SmartCoin[] enqueuedCoins = WalletService.CoinsGraph.Where(x => x.CoinJoinInProgress).ToArray();
 			if (enqueuedCoins.Any())
 			{
 				Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
@@ -326,7 +326,7 @@ namespace WalletWasabi.Gui
 				Logger.LogInfo("WalletService started.");
 			}
 			CancelWalletServiceInitialization = null; // Must make it null explicitly, because dispose won't make it null.
-			WalletService.Coins.CollectionChanged += Coins_CollectionChanged;
+			WalletService.CoinsGraph.CollectionChanged += Coins_CollectionChanged;
 		}
 
 		public static string GetWalletFullPath(string walletName)
@@ -427,7 +427,7 @@ namespace WalletWasabi.Gui
 		{
 			if (WalletService != null)
 			{
-				WalletService.Coins.CollectionChanged -= Coins_CollectionChanged;
+				WalletService.CoinsGraph.CollectionChanged -= Coins_CollectionChanged;
 			}
 			CancelWalletServiceInitialization?.Cancel();
 			CancelWalletServiceInitialization = null;

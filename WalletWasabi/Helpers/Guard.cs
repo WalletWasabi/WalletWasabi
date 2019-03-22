@@ -253,7 +253,7 @@ namespace WalletWasabi.Helpers
 		private static void AssertUniqueness<T>(string parameterName, IEnumerable<T> value)
 		{
 			bool isUnique = value.Distinct().Count() == value.Count();
-			if (isUnique)
+			if (!isUnique)
 			{
 				throw new ArgumentException("Collection must be unique.", parameterName);
 			}

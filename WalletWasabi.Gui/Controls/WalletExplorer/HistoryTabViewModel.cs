@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			RewriteTableAsync();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
-			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
+			var coinsChanged = Observable.FromEventPattern(Global.WalletService.CoinsGraph, nameof(Global.WalletService.CoinsGraph.CollectionChanged));
 			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
 			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
 
@@ -103,7 +103,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			List<Transaction> trs = new List<Transaction>();
 			var txRecordList = new List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)>();
-			foreach (SmartCoin coin in Global.WalletService.Coins)
+			foreach (SmartCoin coin in Global.WalletService.CoinsGraph)
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 

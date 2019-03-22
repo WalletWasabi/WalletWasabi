@@ -11,7 +11,6 @@ namespace WalletWasabi.Models.Graphs
 	/// <summary>
 	/// A connection between two UTXOs.
 	/// </summary>
-	[JsonObject(MemberSerialization.OptIn)]
 	public class CoinEdge : IEquatable<CoinEdge>, INotifyPropertyChanged
 	{
 		#region Events
@@ -34,12 +33,9 @@ namespace WalletWasabi.Models.Graphs
 
 		#region Properties
 
-		#region SerializableProperties
-
 		/// <summary>
 		/// There can be always only two verticles.
 		/// </summary>
-		[JsonProperty]
 		public SmartCoin[] Verticles
 		{
 			get => _verticles;
@@ -56,7 +52,6 @@ namespace WalletWasabi.Models.Graphs
 		/// <summary>
 		/// It's always between 0 and 1.
 		/// </summary>
-		[JsonProperty]
 		public double Weight
 		{
 			get => _weight;
@@ -70,25 +65,11 @@ namespace WalletWasabi.Models.Graphs
 			}
 		}
 
-		#endregion SerializableProperties
-
 		#endregion Properties
 
 		#region Constructors
 
-		[JsonConstructor]
-		public CoinEdge(SmartCoin[] verticles, double weight)
-		{
-			Create(verticles, weight);
-		}
-
-		public CoinEdge(SmartCoin vertex1, SmartCoin vertex2, double weight)
-		{
-			var verticles = new[] { vertex1, vertex2 };
-			Create(verticles, weight);
-		}
-
-		private void Create(SmartCoin[] verticles, double weight)
+		private CoinEdge(SmartCoin[] verticles, double weight)
 		{
 			Verticles = Guard.NotNullAndAssert(nameof(verticles), verticles, expectedCount: 2, expectUniqueness: true)
 				.OrderBy(x => x.TransactionId.ToString()) // Assert Lexicographical order as defined in BIP126 (edges are undirectoed.)
@@ -99,24 +80,50 @@ namespace WalletWasabi.Models.Graphs
 			// Add my reference to my verticles.
 			foreach (SmartCoin verticle in Verticles)
 			{
-				verticle.Edges.Add(this);
+				if (!verticle.Edges.Add(this)) // If couldn't add, then it's duplication, so update existing instead of add.
+				{
+					var sameEdge = verticle.Edges.FirstOrDefault(x => x == this);
+					if (sameEdge != default)
+					{
+						sameEdge.Weight = Weight;
+					}
+				}
 			}
 		}
 
 		#endregion Constructors
 
-		#region Methods
+		#region Statics
 
-		// Remove my reference from my verticles.
-		public void RemoveMe()
+		private static object Lock { get; } = new object();
+
+		public static CoinEdge CreateOrUpdate(SmartCoin[] verticles, double weight)
 		{
-			foreach (var verticle in Verticles)
+			lock (Lock)
 			{
-				verticle.Edges.Remove(this);
+				return new CoinEdge(verticles, weight);
 			}
 		}
 
-		#endregion Methods
+		public static CoinEdge CreateOrUpdate(SmartCoin vertex1, SmartCoin vertex2, double weight)
+		{
+			var verticles = new[] { vertex1, vertex2 };
+			return CreateOrUpdate(verticles, weight);
+		}
+
+		// Remove references from its verticles.
+		public static void Remove(CoinEdge edge)
+		{
+			lock (Lock)
+			{
+				foreach (var verticle in edge.Verticles)
+				{
+					verticle.Edges.Remove(edge);
+				}
+			}
+		}
+
+		#endregion Statics
 
 		#region EqualityAndComparison
 

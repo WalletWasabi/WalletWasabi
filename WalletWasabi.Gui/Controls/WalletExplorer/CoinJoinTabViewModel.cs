@@ -323,14 +323,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 			else
 			{
-				var queued = Global.WalletService.Coins.Where(x => x.CoinJoinInProgress);
+				var queued = Global.WalletService.CoinsGraph.Where(x => x.CoinJoinInProgress);
 				if (queued.Any())
 				{
 					RequiredBTC = registrableRound.State.CalculateRequiredAmount(Global.ChaumianClient.State.GetAllQueuedCoinAmounts().ToArray());
 				}
 				else
 				{
-					var available = Global.WalletService.Coins.Where(x => x.Confirmed && !x.Unavailable);
+					var available = Global.WalletService.CoinsGraph.Where(x => x.Confirmed && !x.Unavailable);
 					if (available.Any())
 					{
 						RequiredBTC = registrableRound.State.CalculateRequiredAmount(available.Where(x => x.AnonymitySet < Global.Config.PrivacyLevelStrong).Select(x => x.Amount).ToArray());

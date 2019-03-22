@@ -57,7 +57,7 @@ namespace WalletWasabi.Services
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
 		private AsyncLock WalletBlocksLock { get; }
 
-		public ObservableConcurrentCoinGraph Coins { get; }
+		public ObservableConcurrentCoinGraph CoinsGraph { get; }
 
 		public ConcurrentHashSet<SmartTransaction> TransactionCache { get; }
 
@@ -98,7 +98,7 @@ namespace WalletWasabi.Services
 			WalletBlocksLock = new AsyncLock();
 			HandleFiltersLock = new AsyncLock();
 
-			Coins = new ObservableConcurrentCoinGraph();
+			CoinsGraph = new ObservableConcurrentCoinGraph();
 			TransactionCache = new ConcurrentHashSet<SmartTransaction>();
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
@@ -186,7 +186,7 @@ namespace WalletWasabi.Services
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
 					if (elem.Key != default(Height))
 					{
-						foreach (var toRemove in Coins.Where(x => x.Height == elem.Key).Distinct().ToList())
+						foreach (var toRemove in CoinsGraph.Where(x => x.Height == elem.Key).Distinct().ToList())
 						{
 							RemoveCoinRecursively(toRemove);
 						}
@@ -203,13 +203,13 @@ namespace WalletWasabi.Services
 		{
 			if (toRemove.SpenderTransactionId != null)
 			{
-				foreach (var toAlsoRemove in Coins.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
+				foreach (var toAlsoRemove in CoinsGraph.Where(x => x.TransactionId == toRemove.SpenderTransactionId).Distinct().ToList())
 				{
 					RemoveCoinRecursively(toAlsoRemove);
 				}
 			}
 
-			Coins.TryRemove(toRemove);
+			CoinsGraph.TryRemove(toRemove);
 			MemPool.TransactionHashes.TryRemove(toRemove.SpenderTransactionId);
 		}
 
@@ -297,7 +297,7 @@ namespace WalletWasabi.Services
 					}
 				}
 			}
-			Coins.CollectionChanged += Coins_CollectionChanged;
+			CoinsGraph.CollectionChanged += Coins_CollectionChanged;
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			RefreshCoinsHistoriesAsync();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -330,7 +330,7 @@ namespace WalletWasabi.Services
 				{
 					var block = await GetOrDownloadBlockAsync(blockRef.Value, CancellationToken.None);
 					ProcessedBlocks.Clear();
-					Coins.Clear();
+					CoinsGraph.Clear();
 					ProcessBlock(blockRef.Key, block);
 				}
 			}
@@ -471,7 +471,7 @@ namespace WalletWasabi.Services
 			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
 			{
 				var doubleSpends = new List<SmartCoin>();
-				foreach (SmartCoin coin in Coins)
+				foreach (SmartCoin coin in CoinsGraph)
 				{
 					var spent = false;
 					foreach (TxoRef spentOutput in coin.SpentOutputs)
@@ -530,7 +530,7 @@ namespace WalletWasabi.Services
 				if (foundKey != default)
 				{
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
-					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+					List<SmartCoin> spentOwnCoins = CoinsGraph.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 					var anonset = tx.Transaction.GetAnonymitySet(i);
 					if (spentOwnCoins.Count != 0)
 					{
@@ -545,7 +545,7 @@ namespace WalletWasabi.Services
 
 					SmartCoin newCoin = new SmartCoin(txId, i, output.ScriptPubKey, output.Value, tx.Transaction.Inputs.ToTxoRefs().ToArray(), tx.Height, tx.IsRBF, anonset, foundKey.Label, spenderTransactionId: null, false, pubKey: foundKey); // Don't inherit locked status from key, that's different.
 																																																												   // If we didn't have it.
-					if (Coins.TryAdd(newCoin))
+					if (CoinsGraph.TryAdd(newCoin))
 					{
 						TransactionCache.TryAdd(tx);
 
@@ -578,7 +578,7 @@ namespace WalletWasabi.Services
 					{
 						if (newCoin.Height != Height.MemPool) // Update the height of this old coin we already had.
 						{
-							SmartCoin oldCoin = Coins.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
+							SmartCoin oldCoin = CoinsGraph.FirstOrDefault(x => x.TransactionId == txId && x.Index == i);
 							if (oldCoin != null) // Just to be sure, it is a concurrent collection.
 							{
 								oldCoin.Height = newCoin.Height;
@@ -593,7 +593,7 @@ namespace WalletWasabi.Services
 			{
 				var input = tx.Transaction.Inputs[i];
 
-				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
+				var foundCoin = CoinsGraph.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
 				if (foundCoin != null)
 				{
 					foundCoin.SpenderTransactionId = txId;
@@ -979,22 +979,22 @@ namespace WalletWasabi.Services
 
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+					allowedSmartCoinInputs = CoinsGraph.Where(x => !x.Unavailable && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
+					allowedSmartCoinInputs = CoinsGraph.Where(x => !x.Unavailable && x.Confirmed && allowedInputs.Any(y => y.TransactionId == x.TransactionId && y.Index == x.Index)).ToList();
 				}
 			}
 			else
 			{
 				if (allowUnconfirmed)
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable).ToList();
+					allowedSmartCoinInputs = CoinsGraph.Where(x => !x.Unavailable).ToList();
 				}
 				else
 				{
-					allowedSmartCoinInputs = Coins.Where(x => !x.Unavailable && x.Confirmed).ToList();
+					allowedSmartCoinInputs = CoinsGraph.Where(x => !x.Unavailable && x.Confirmed).ToList();
 				}
 			}
 
@@ -1146,7 +1146,7 @@ namespace WalletWasabi.Services
 				throw new InvalidTxException(tx, checkResults);
 			}
 
-			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
+			List<SmartCoin> spentCoins = CoinsGraph.Where(x => tx.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 
 			TxoRef[] spentOutputs = spentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).ToArray();
 
@@ -1246,7 +1246,7 @@ namespace WalletWasabi.Services
 					if (transaction.Transaction.Inputs.Count == 1)
 					{
 						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
-						SmartCoin coin = Coins.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
+						SmartCoin coin = CoinsGraph.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
 						if (coin != default)
 						{
 							coin.SpentAccordingToBackend = true;
@@ -1264,7 +1264,7 @@ namespace WalletWasabi.Services
 
 		public IEnumerable<string> GetNonSpecialLabels()
 		{
-			return Coins.Where(x => !x.Label.StartsWith("ZeroLink", StringComparison.Ordinal))
+			return CoinsGraph.Where(x => !x.Label.StartsWith("ZeroLink", StringComparison.Ordinal))
 				.SelectMany(x => x.Label.Split(new string[] { Constants.ChangeOfSpecialLabelStart, Constants.ChangeOfSpecialLabelEnd, "(", "," }, StringSplitOptions.RemoveEmptyEntries))
 				.Select(x => x.Trim())
 				.Distinct();
@@ -1289,12 +1289,12 @@ namespace WalletWasabi.Services
 				{
 					Interlocked.Increment(ref _refreshCoinCalls);
 				}
-				var unspentCoins = Coins.Where(c => c.Unspent && !c.IsDust); //refreshing unspent coins clusters only
+				var unspentCoins = CoinsGraph.Where(c => c.Unspent && !c.IsDust); //refreshing unspent coins clusters only
 				if (unspentCoins.Any())
 				{
-					ILookup<Script, SmartCoin> lookupScriptPubKey = Coins.ToLookup(c => c.ScriptPubKey, c => c);
-					ILookup<uint256, SmartCoin> lookupSpenderTransactionId = Coins.ToLookup(c => c.SpenderTransactionId, c => c);
-					ILookup<uint256, SmartCoin> lookupTransactionId = Coins.ToLookup(c => c.TransactionId, c => c);
+					ILookup<Script, SmartCoin> lookupScriptPubKey = CoinsGraph.ToLookup(c => c.ScriptPubKey, c => c);
+					ILookup<uint256, SmartCoin> lookupSpenderTransactionId = CoinsGraph.ToLookup(c => c.SpenderTransactionId, c => c);
+					ILookup<uint256, SmartCoin> lookupTransactionId = CoinsGraph.ToLookup(c => c.TransactionId, c => c);
 
 					const int simultaneousThread = 2; //threads allowed to run simultaneously in threadpool
 
@@ -1337,7 +1337,7 @@ namespace WalletWasabi.Services
 					Synchronizer.NewFilter -= IndexDownloader_NewFilterAsync;
 					Synchronizer.Reorged -= IndexDownloader_ReorgedAsync;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
-					Coins.CollectionChanged -= Coins_CollectionChanged;
+					CoinsGraph.CollectionChanged -= Coins_CollectionChanged;
 
 					IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
 					string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderBy(x => x.Height).ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow), Formatting.Indented);

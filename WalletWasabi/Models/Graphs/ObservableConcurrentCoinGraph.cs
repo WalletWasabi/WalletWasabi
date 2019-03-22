@@ -53,12 +53,12 @@ namespace WalletWasabi.Models.Graphs
 				if (Verticles.TryRemove(item))
 				{
 					invoke = true;
-				}
 
-				// Remove all the edges related to this verticle.
-				foreach (var edge in item.Edges)
-				{
-					edge.RemoveMe();
+					// Remove all the edges related to this verticle.
+					foreach (var edge in item.Edges)
+					{
+						CoinEdge.Remove(edge);
+					}
 				}
 			}
 			if (invoke)

@@ -201,12 +201,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe().DisposeWith(Disposables);
 
-			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent && !sc.IsDust))
+			foreach (var sc in Global.WalletService.CoinsGraph.Where(sc => sc.Unspent && !sc.IsDust))
 			{
 				RootList.Add(new CoinViewModel(sc).DisposeWith(Disposables));
 			}
 
-			Global.WalletService.Coins.CollectionChanged += Coins_CollectionGlobalChanged;
+			Global.WalletService.CoinsGraph.CollectionChanged += Coins_CollectionGlobalChanged;
 
 			this.WhenAnyValue(x => x.AmountSortDirection).Subscribe(x =>
 			{
@@ -418,9 +418,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				if (disposing)
 				{
-					if (Global.WalletService?.Coins != null)
+					if (Global.WalletService?.CoinsGraph != null)
 					{
-						Global.WalletService.Coins.CollectionChanged -= Coins_CollectionGlobalChanged;
+						Global.WalletService.CoinsGraph.CollectionChanged -= Coins_CollectionGlobalChanged;
 					}
 
 					if (RootList?.Items != null)
