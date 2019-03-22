@@ -36,6 +36,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _dequeueButtonText;
 		private const string DequeueButtonTextString = "Dequeue Selected Coins";
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
+		private int _coinJoinUntilAnonimitySet;
+		private TargetPrivacy _targetPrivacy;
 		private CompositeDisposable _disposables;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
@@ -116,8 +118,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				CoinJoinUntilAnonimitySet = GetTargetLevel(target);
 			});
 		}
-
-
 
 		public override void OnOpen()
 		{
@@ -285,7 +285,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 #pragma warning disable CS0618 // Type or member is obsolete
-
 		private void UpdateRequiredBtcLabel(CcjClientRound registrableRound)
 #pragma warning restore CS0618 // Type or member is obsolete
 		{
@@ -447,9 +446,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _dequeueButtonText, value);
 		}
 
-		private int _coinJoinUntilAnonimitySet;
-		private TargetPrivacy _targetPrivacy;
-
 		public int CoinJoinUntilAnonimitySet
 		{
 			get => _coinJoinUntilAnonimitySet;
@@ -459,7 +455,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private TargetPrivacy TargetPrivacy
 		{
 			get => _targetPrivacy;
-
 			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 		}
 
