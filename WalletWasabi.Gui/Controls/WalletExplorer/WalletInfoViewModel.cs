@@ -69,6 +69,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SetWarningMessage(ex.ToTypeMessageString());
 				}
 			}).DisposeWith(Disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(EncryptedExtendedMasterPrivateKey));
+				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
+				this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
+			}).DisposeWith(Disposables);
 		}
 
 		private void ClearSensitiveData(bool passwordToo)

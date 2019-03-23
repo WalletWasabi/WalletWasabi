@@ -24,8 +24,10 @@ namespace WalletWasabi.Gui.Tabs
 		private string _autocopyText;
 		private bool _useTor;
 		private string _useTorText;
-
 		private bool _isModified;
+
+		public ReactiveCommand OpenConfigFileCommand { get; }
+		public ReactiveCommand PrivateModeCommand { get; }
 
 		public SettingsViewModel() : base("Settings")
 		{
@@ -52,6 +54,12 @@ namespace WalletWasabi.Gui.Tabs
 				UseTorText = x ? "On" : "Off";
 			}).DisposeWith(Disposables);
 
+			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(PrivateMode));
+				this.RaisePropertyChanged(nameof(PrivateModeText));
+			}).DisposeWith(Disposables);
+
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
 				await config.LoadFileAsync();
@@ -65,6 +73,12 @@ namespace WalletWasabi.Gui.Tabs
 			});
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile).DisposeWith(Disposables);
+
+			PrivateModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				Global.UiConfig.PrivateMode = !PrivateMode;
+				await Global.UiConfig.ToFileAsync();
+			});
 		}
 
 		public IEnumerable<string> Networks
@@ -128,6 +142,10 @@ namespace WalletWasabi.Gui.Tabs
 			get => _useTorText;
 			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
 		}
+
+		public bool PrivateMode => Global.UiConfig.PrivateMode == true;
+
+		public string PrivateModeText => Global.UiConfig.PrivateMode == true ? "On" : "Off";
 
 		private void Save()
 		{
@@ -200,8 +218,6 @@ namespace WalletWasabi.Gui.Tabs
 
 			return "Invalid port.";
 		}
-
-		public ReactiveCommand OpenConfigFileCommand { get; }
 
 		private void OpenConfigFile()
 		{

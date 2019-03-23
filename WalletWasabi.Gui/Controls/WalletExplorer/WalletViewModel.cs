@@ -33,6 +33,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
 			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
 
+			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(x =>
+			{
+				SetBalance(Name);
+			}).DisposeWith(Disposables);
+
 			coinsChanged
 				.Merge(coinSpent)
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -65,6 +70,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Actions[2].DisplayActionTab();
 				Actions[3].DisplayActionTab();
 			}
+
+			PrivateModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				Global.UiConfig.PrivateMode = !Global.UiConfig.PrivateMode;
+				await Global.UiConfig.ToFileAsync();
+			}).DisposeWith(Disposables);
 		}
 
 		public string Name { get; }
@@ -77,6 +88,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
+		public ReactiveCommand PrivateModeCommand { get; }
+
 		public ObservableCollection<WalletActionViewModel> Actions
 		{
 			get => _actions;
@@ -86,7 +99,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void SetBalance(string walletName)
 		{
 			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.IsDust && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
-			Title = $"{walletName} ({balance.ToString(false, true)} BTC)";
+
+			Title = $"{walletName} ({(Global.UiConfig.PrivateMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
 		}
 
 		#region IDisposable Support

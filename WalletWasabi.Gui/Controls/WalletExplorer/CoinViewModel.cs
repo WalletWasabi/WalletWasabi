@@ -76,6 +76,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(Confirmations));
 			}).DisposeWith(Disposables);
 
+			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(AmountBtc));
+				this.RaisePropertyChanged(nameof(Clusters));
+			}).DisposeWith(Disposables);
+
 			Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
 		}
 
@@ -143,7 +149,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string InCoinJoin => Model.CoinJoinInProgress ? "Yes" : "No";
 
-		public string Clusters => Model.Clusters;
+		public string Clusters => string.IsNullOrEmpty(Model.Clusters) ? "" : Model.Clusters; //If the value is null the bind do not update the view. It shows the previous state for example: ##### even if PrivMode false.
 
 		public string PubKey => Model.HdPubKey.PubKey.ToString();
 

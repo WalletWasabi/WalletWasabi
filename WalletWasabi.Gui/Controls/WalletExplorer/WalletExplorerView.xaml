@@ -23,7 +23,7 @@
                 </DrawingGroup>
               </DrawingPresenter.Drawing>
             </DrawingPresenter>
-            <TextBlock Text="{Binding Title}" Height="19" VerticalAlignment="Center" />
+            <Button Content="{Binding Title}" Command="{Binding PrivateModeCommand}" ToolTip.Tip="Toggle private mode." Height="19" VerticalAlignment="Center" BorderThickness="0" Margin="0" Padding="0" Background="Transparent" />
           </StackPanel>
         </TreeDataTemplate>
 
