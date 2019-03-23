@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
+using NBitcoin.Protocol.Connectors;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -242,8 +243,6 @@ namespace WalletWasabi.Gui
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 			MemPoolService = new MemPoolService();
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
-			connectionParameters.EndpointConnector = new TorOnlyEndpointConnector();
-			connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint()));
 
 			if (Network == Network.RegTest)
 			{
@@ -264,6 +263,11 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
+				if(Config.UseTor == true)
+				{
+					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint()));
+					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: true);
+				}
 				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 
 				RegTestMemPoolServingNode = null;
