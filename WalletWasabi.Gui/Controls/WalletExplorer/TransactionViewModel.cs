@@ -28,6 +28,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ClipboardNotificationOpacity = 0;
 
 			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, model.Confirmed).DisposeWith(Disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(x =>
+			{
+				this.RaisePropertyChanged(nameof(AmountBtc));
+				this.RaisePropertyChanged(nameof(TransactionId));
+				this.RaisePropertyChanged(nameof(DateTime));
+			}).DisposeWith(Disposables);
 		}
 
 		private readonly ObservableAsPropertyHelper<bool> _confirmed;
