@@ -141,7 +141,8 @@ namespace WalletWasabi.Models.Graphs
 			lock (Lock)
 			{
 				// Same address. ToDo: Should we rather check pubkey hashes here somehow?
-				if (vertex1.ScriptPubKey != vertex2.ScriptPubKey)
+				// The heuristic doesn't apply if opreturn
+				if (vertex1.ScriptPubKey != vertex2.ScriptPubKey || vertex1.ScriptPubKey.IsUnspendable)
 				{
 					return;
 				}
