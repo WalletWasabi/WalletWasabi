@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
@@ -9,7 +10,7 @@
     <converters:NotificationTypeBoolConverter x:Key="NotificationTypeBoolConverter"/>
   </UserControl.Resources>
   <Grid Opacity="{Binding NotificationType, Converter={StaticResource NotificationTypeBoolConverter}}" 
-        Background="{Binding NotificationType, Converter={StaticResource NotificationTypeColorConverter}}">
+        Background="{Binding NotificationType, ConverterParameter=Background, Converter={StaticResource NotificationTypeColorConverter}}">
     <Grid.Transitions>
       <DoubleTransition Property="Opacity"
             Easing="CircularEaseIn"
@@ -18,7 +19,12 @@
     <DockPanel LastChildFill="True" Margin="4 0" HorizontalAlignment="Center">
       <Panel>
         <StackPanel Orientation="Horizontal" Spacing="4">
-          <TextBlock Text="{Binding NotificationText}" VerticalAlignment="Center"/>
+          <controls:ExtendedTextBox Text="{Binding NotificationText, Mode=OneWay}" 
+                     VerticalAlignment="Center" 
+                     Foreground="{Binding NotificationType, ConverterParameter=Foreground, Converter={StaticResource NotificationTypeColorConverter}}"
+                     FontSize="16" 
+                     Classes="selectableTextBlock Transaparent" 
+                     Background="Transparent" />
         </StackPanel>
       </Panel>
     </DockPanel>
