@@ -1,5 +1,6 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
+  <ScrollViewer>
   <StackPanel Margin="30" Spacing="10">
     <Grid Classes="content">
       <StackPanel Orientation="Vertical" Spacing="30">
@@ -49,4 +50,5 @@
       </StackPanel>
     </Grid>
   </StackPanel>
+  </ScrollViewer>
 </UserControl>
