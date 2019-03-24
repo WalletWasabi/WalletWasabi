@@ -70,7 +70,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}).DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(EncryptedExtendedMasterPrivateKey));
 				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));

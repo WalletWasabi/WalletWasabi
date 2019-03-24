@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _isModified;
 
 		public ReactiveCommand OpenConfigFileCommand { get; }
-		public ReactiveCommand PrivateModeCommand { get; }
+		public ReactiveCommand LurkingWifeModeCommand { get; }
 
 		public SettingsViewModel() : base("Settings")
 		{
@@ -54,10 +54,10 @@ namespace WalletWasabi.Gui.Tabs
 				UseTorText = x ? "On" : "Off";
 			}).DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(PrivateMode));
-				this.RaisePropertyChanged(nameof(PrivateModeText));
+				this.RaisePropertyChanged(nameof(LurkingWifeMode));
+				this.RaisePropertyChanged(nameof(LurkingWifeModeText));
 			}).DisposeWith(Disposables);
 
 			Dispatcher.UIThread.PostLogException(async () =>
@@ -74,9 +74,9 @@ namespace WalletWasabi.Gui.Tabs
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile).DisposeWith(Disposables);
 
-			PrivateModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				Global.UiConfig.PrivateMode = !PrivateMode;
+				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
 				await Global.UiConfig.ToFileAsync();
 			});
 		}
@@ -143,9 +143,9 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
 		}
 
-		public bool PrivateMode => Global.UiConfig.PrivateMode == true;
+		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode == true;
 
-		public string PrivateModeText => Global.UiConfig.PrivateMode == true ? "On" : "Off";
+		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode == true ? "On" : "Off";
 
 		private void Save()
 		{

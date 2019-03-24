@@ -29,7 +29,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, model.Confirmed).DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(x =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
 			{
 				this.RaisePropertyChanged(nameof(AmountBtc));
 				this.RaisePropertyChanged(nameof(TransactionId));

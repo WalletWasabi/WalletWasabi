@@ -76,7 +76,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(Confirmations));
 			}).DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(AmountBtc));
 				this.RaisePropertyChanged(nameof(Clusters));

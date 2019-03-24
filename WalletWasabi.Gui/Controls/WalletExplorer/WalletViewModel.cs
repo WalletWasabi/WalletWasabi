@@ -33,7 +33,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var coinsChanged = Observable.FromEventPattern(Global.WalletService.CoinsGraph, nameof(Global.WalletService.CoinsGraph.CollectionChanged));
 			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(x =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
 			{
 				SetBalance(Name);
 			}).DisposeWith(Disposables);
@@ -71,9 +71,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Actions[3].DisplayActionTab();
 			}
 
-			PrivateModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				Global.UiConfig.PrivateMode = !Global.UiConfig.PrivateMode;
+				Global.UiConfig.LurkingWifeMode = !Global.UiConfig.LurkingWifeMode;
 				await Global.UiConfig.ToFileAsync();
 			}).DisposeWith(Disposables);
 		}
@@ -88,7 +88,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
-		public ReactiveCommand PrivateModeCommand { get; }
+		public ReactiveCommand LurkingWifeModeCommand { get; }
 
 		public ObservableCollection<WalletActionViewModel> Actions
 		{
@@ -100,7 +100,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Money balance = Enumerable.Where(WalletService.CoinsGraph, c => c.Unspent && !c.IsDust && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
 
-			Title = $"{walletName} ({(Global.UiConfig.PrivateMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
+			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
 		}
 
 		#region IDisposable Support
