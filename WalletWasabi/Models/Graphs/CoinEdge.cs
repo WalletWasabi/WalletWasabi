@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using WalletWasabi.Helpers;
+using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Models.Graphs
 {
@@ -30,6 +31,7 @@ namespace WalletWasabi.Models.Graphs
 		private SmartCoin[] _verticles;
 
 		private Script _scriptPubKeyConnection;
+		private HdPubKey _hdPubKeyConnection;
 
 		private double _weight;
 
@@ -64,7 +66,21 @@ namespace WalletWasabi.Models.Graphs
 				if (value != _scriptPubKeyConnection)
 				{
 					_scriptPubKeyConnection = value;
-					OnPropertyChanged(nameof(Verticles));
+					OnPropertyChanged(nameof(ScriptPubKeyConnection));
+					RecalculateWeight();
+				}
+			}
+		}
+
+		public HdPubKey HdPubKeyConnection
+		{
+			get => _hdPubKeyConnection;
+			set
+			{
+				if (value != _hdPubKeyConnection)
+				{
+					_hdPubKeyConnection = value;
+					OnPropertyChanged(nameof(HdPubKeyConnection));
 					RecalculateWeight();
 				}
 			}
@@ -94,6 +110,7 @@ namespace WalletWasabi.Models.Graphs
 		{
 			Verticles = new[] { vertex1, vertex2 };
 			ScriptPubKeyConnection = null;
+			HdPubKeyConnection = null;
 			Weight = 0;
 		}
 
@@ -103,7 +120,11 @@ namespace WalletWasabi.Models.Graphs
 
 		private void RecalculateWeight()
 		{
-			if (_scriptPubKeyConnection != null) // If the scriptPubKey is the same then that's common ownership (ToDo: except when OP_return, etc...)
+			if (ScriptPubKeyConnection != null) // If the scriptPubKey is the same then that's common ownership (ToDo: except when OP_return, etc...)
+			{
+				Weight = 1;
+			}
+			else if (HdPubKeyConnection != null) // If the scriptPubKey is the same then that's common ownership (ToDo: except when OP_return, etc...)
 			{
 				Weight = 1;
 			}
@@ -141,6 +162,37 @@ namespace WalletWasabi.Models.Graphs
 					else
 					{
 						newEdge.ScriptPubKeyConnection = verticle.ScriptPubKey;
+					}
+				}
+			}
+		}
+
+		public static void CreateOrUpdateIfHdPubKeyConnection(SmartCoin vertex1, SmartCoin vertex2)
+		{
+			lock (Lock)
+			{
+				// HdPubKey can be null! If any of it is null, then there's no connection.
+				if (vertex1.HdPubKey is null || vertex2.HdPubKey is null || vertex1.HdPubKey != vertex2.HdPubKey)
+				{
+					return;
+				}
+
+				// Create a new edge and test if verticles have the edge.
+				var newEdge = new CoinEdge(vertex1, vertex2);
+				foreach (SmartCoin verticle in newEdge.Verticles)
+				{
+					// Add my reference to my verticles.
+					if (!verticle.Edges.Add(newEdge)) // If couldn't add, then it'd be duplication, so just update existing instead of adding the new.
+					{
+						var sameEdge = verticle.Edges.FirstOrDefault(x => x == newEdge);
+						if (sameEdge != default)
+						{
+							sameEdge.HdPubKeyConnection = verticle.HdPubKey;
+						}
+					}
+					else
+					{
+						newEdge.HdPubKeyConnection = verticle.HdPubKey;
 					}
 				}
 			}

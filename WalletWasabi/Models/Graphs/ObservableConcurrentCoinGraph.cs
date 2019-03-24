@@ -40,6 +40,7 @@ namespace WalletWasabi.Models.Graphs
 					foreach (var verticle in Verticles.Except(new[] { item }))
 					{
 						CoinEdge.CreateOrUpdateIfScriptPubKeyConnection(verticle, item);
+						CoinEdge.CreateOrUpdateIfHdPubKeyConnection(verticle, item);
 					}
 				}
 			}
