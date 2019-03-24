@@ -7,13 +7,13 @@ using System.Text;
 
 namespace WalletWasabi.Gui.Converters
 {
-	public class PrivateModeStringConverter : IValueConverter
+	public class LurkingWifeModeStringConverter : IValueConverter
 	{
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 		{
 			if ((value is string text))
 			{
-				if (Global.UiConfig.PrivateMode == true)
+				if (Global.UiConfig.LurkingWifeMode == true)
 				{
 					int len = 10;
 					if (int.TryParse(parameter.ToString(), out int newLength))
