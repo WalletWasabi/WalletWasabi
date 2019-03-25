@@ -182,6 +182,17 @@ _confirmed = Model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confir
 this.WhenAnyValue(x => x.Confirmed, x => x.CoinJoinInProgress, x => x.Confirmations).Subscribe(_ => RefreshSmartCoinStatus());
 ```	
 
+## ReactiveCommand
+
+The reason is:
+
+Reactive command doesnt have any unmanaged resources.
+Dispose in Reactive command doesnt mean release unmanaged resources, it simply means unsubscribe.
+Reactive command is on the same object that is subscribing, so GC will handle everything.
+So no memory leak here.
+
+See this comment from the author of RxUI...
+https://github.com/reactiveui/ReactiveUI/issues/20#issuecomment-1324201
 
 
 
