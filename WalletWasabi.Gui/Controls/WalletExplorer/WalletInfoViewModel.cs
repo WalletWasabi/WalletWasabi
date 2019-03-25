@@ -26,7 +26,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			ClearSensitiveData(true);
 			_warningMessage = "";
-			Closing = new CancellationTokenSource();
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -81,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CancellationTokenSource Closing { get; }
+		public CancellationTokenSource Closing { private set; get; }
 
 		public WalletService WalletService => Wallet.WalletService;
 		public KeyManager KeyManager => WalletService.KeyManager;
@@ -162,12 +161,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			_disposables = new CompositeDisposable();
 
+			Closing = new CancellationTokenSource();
+
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(EncryptedExtendedMasterPrivateKey));
 				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
 				this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
 			}).DisposeWith(_disposables);
+
+			Closing.DisposeWith(_disposables);
 
 			base.OnOpen();
 		}
@@ -186,6 +189,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override bool OnClose()
 		{
+			Closing.Cancel();
+			_disposables?.Dispose();
+			_disposables = null;
+
 			ClearSensitiveData(true);
 			return base.OnClose();
 		}
