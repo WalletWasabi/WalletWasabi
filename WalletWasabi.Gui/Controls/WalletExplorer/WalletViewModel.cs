@@ -80,7 +80,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnWalletClosed()
 		{
-			_disposables.Dispose();
 			_disposables?.Dispose();
 		}
 
