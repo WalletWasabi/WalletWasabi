@@ -49,24 +49,30 @@ namespace WalletWasabi.Gui
 
 		private long _closingState;
 
-		private void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
+		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
 		{
-			e.Cancel = true;
-			switch (Interlocked.Read(ref _closingState))
+			try
 			{
-				case 0:
-					Interlocked.Increment(ref _closingState);
-					ClosingAsync();
-					// TODO ??? await here?
-					break;
+				e.Cancel = true;
+				switch (Interlocked.Read(ref _closingState))
+				{
+					case 0:
+						Interlocked.Increment(ref _closingState);
+						await ClosingAsync();
+						break;
 
-				case 1:
-					// still closing cancel the progress
-					return;
+					case 1:
+						// still closing cancel the progress
+						return;
 
-				case 2:
-					e.Cancel = false;
-					return; //can close the window
+					case 2:
+						e.Cancel = false;
+						return; //can close the window
+				}
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogError<MainWindow>(ex);
 			}
 		}
 
