@@ -27,7 +27,7 @@
 
 		public MyViewModel()
 		{
-			//need to detect propertyChance at class member
+			//need to detect propertyChance at class member https://reactiveui.net/docs/guidelines/framework/dispose-your-subscriptions
 			this.WhenAnyValue(x => x.MyProperty)
 				.Subscribe(myProperty =>
 				{
