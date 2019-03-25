@@ -68,12 +68,10 @@ namespace WalletWasabi.Gui.Tabs
 				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
 				await Global.UiConfig.ToFileAsync();
 			});
-
 		}
 
 		public override void OnOpen()
 		{
-
 			if (_disposables != null)
 			{
 				throw new Exception("Settings was opened before it was closed.");

@@ -66,7 +66,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SetWarningMessage(ex.ToTypeMessageString());
 				}
 			});
-
 		}
 
 		private void ClearSensitiveData(bool passwordToo)
