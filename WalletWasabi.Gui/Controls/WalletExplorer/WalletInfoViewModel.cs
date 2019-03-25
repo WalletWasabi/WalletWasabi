@@ -3,6 +3,7 @@ using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
@@ -19,6 +20,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
 		private string _warningMessage;
+		private CompositeDisposable _disposables;
 
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
@@ -64,6 +66,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					SetWarningMessage(ex.ToTypeMessageString());
 				}
 			});
+
 		}
 
 		private void ClearSensitiveData(bool passwordToo)
@@ -149,6 +152,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					ClearSensitiveData(false);
 				}
 			});
+		}
+
+		public override void OnOpen()
+		{
+			if (_disposables != null)
+			{
+				throw new Exception("WalletInfo was opened before it was closed.");
+			}
+
+			_disposables = new CompositeDisposable();
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(EncryptedExtendedMasterPrivateKey));
+				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
+				this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
+			}).DisposeWith(_disposables);
+
+			base.OnOpen();
 		}
 
 		public override void OnDeselected()

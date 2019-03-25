@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Disposables;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 
@@ -20,6 +21,10 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _useTor;
 		private string _useTorText;
 		private bool _isModified;
+		private CompositeDisposable _disposables;
+
+		public ReactiveCommand OpenConfigFileCommand { get; }
+		public ReactiveCommand LurkingWifeModeCommand { get; }
 
 		public SettingsViewModel() : base("Settings")
 		{
@@ -57,6 +62,40 @@ namespace WalletWasabi.Gui.Tabs
 			});
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
+
+			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
+				await Global.UiConfig.ToFileAsync();
+			});
+
+		}
+
+		public override void OnOpen()
+		{
+
+			if (_disposables != null)
+			{
+				throw new Exception("Settings was opened before it was closed.");
+			}
+
+			_disposables = new CompositeDisposable();
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(LurkingWifeMode));
+				this.RaisePropertyChanged(nameof(LurkingWifeModeText));
+			}).DisposeWith(_disposables);
+
+			base.OnOpen();
+		}
+
+		public override bool OnClose()
+		{
+			_disposables.Dispose();
+			_disposables = null;
+
+			return base.OnClose();
 		}
 
 		public IEnumerable<string> Networks
@@ -120,6 +159,10 @@ namespace WalletWasabi.Gui.Tabs
 			get => _useTorText;
 			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
 		}
+
+		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode == true;
+
+		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode == true ? "On" : "Off";
 
 		private void Save()
 		{
@@ -192,8 +235,6 @@ namespace WalletWasabi.Gui.Tabs
 
 			return "Invalid port.";
 		}
-
-		public ReactiveCommand OpenConfigFileCommand { get; }
 
 		private void OpenConfigFile()
 		{
