@@ -25,7 +25,8 @@ namespace WalletWasabi.Gui.ViewModels
 
 	public class StatusBarViewModel : ViewModelBase
 	{
-		private CompositeDisposable _disposables;
+		private CompositeDisposable Disposables { get; }
+
 		private UpdateStatus _updateStatus;
 		private bool _updateAvailable;
 		private bool _criticalUpdateAvailable;
@@ -41,7 +42,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			_clientOutOfDate = 0;
 			_backendIncompatible = 0;
@@ -55,50 +56,50 @@ namespace WalletWasabi.Gui.ViewModels
 				.Subscribe(x =>
 				{
 					Peers = nodes.Count;
-				}).DisposeWith(_disposables);
+				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed))
 				.Subscribe(x =>
 				{
 					Peers = nodes.Count;
-				}).DisposeWith(_disposables);
+				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
 				.Subscribe(x =>
 				{
 					BlocksLeft = x.EventArgs;
-				}).DisposeWith(_disposables);
+				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern(synchronizer, nameof(synchronizer.NewFilter)).Subscribe(x =>
 			{
 				FiltersLeft = synchronizer.GetFiltersLeft();
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			synchronizer.WhenAnyValue(x => x.TorStatus).Subscribe(_ =>
 			{
 				Tor = synchronizer.TorStatus;
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			synchronizer.WhenAnyValue(x => x.BackendStatus).Subscribe(_ =>
 			{
 				Backend = synchronizer.BackendStatus;
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			synchronizer.WhenAnyValue(x => x.BestBlockchainHeight).Subscribe(_ =>
 			{
 				FiltersLeft = synchronizer.GetFiltersLeft();
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
 			{
 				BtcPrice = $"${(long)synchronizer.UsdExchangeRate}";
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<bool>(synchronizer, nameof(synchronizer.ResponseArrivedIsGenSocksServFail))
 				.Subscribe(e =>
 				{
 					OnResponseArrivedIsGenSocksServFail(e.EventArgs);
-				}).DisposeWith(_disposables);
+				}).DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
@@ -304,7 +305,7 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				if (disposing)
 				{
-					_disposables.Dispose();
+					Disposables?.Dispose();
 				}
 
 				_disposedValue = true;
