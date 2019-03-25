@@ -3,6 +3,7 @@ using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
 using System;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
@@ -15,7 +16,9 @@ namespace WalletWasabi.Gui.Dialogs
 		private string _warningMessage;
 		private string _operationMessage;
 
-		private CancellationTokenSource CancelTokenSource { get; }
+		private CompositeDisposable Disposables { get; set; }
+
+		private CancellationTokenSource CancelTokenSource { get; set; }
 
 		public bool IsBusy
 		{
@@ -47,8 +50,6 @@ namespace WalletWasabi.Gui.Dialogs
 			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
 
-			CancelTokenSource = new CancellationTokenSource();
-
 			OKCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				CancelTokenSource.Cancel();
@@ -76,8 +77,29 @@ namespace WalletWasabi.Gui.Dialogs
 
 			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
 			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
+		}
+
+		public override void OnOpen()
+		{
+			if(Disposables != null)
+			{
+				throw new Exception("Dialog opened before it was closed (cannotclose)");
+			}
+
+			Disposables = new CompositeDisposable();
+
+			CancelTokenSource = new CancellationTokenSource().DisposeWith(Disposables);
 
 			Initialization = StartDequeueAsync(CancelTokenSource.Token);
+
+			base.OnOpen();
+		}
+
+		public override void OnClose()
+		{
+			Disposables.Dispose();
+			Disposables = null;
+			base.OnClose();
 		}
 
 		private async Task StartDequeueAsync(CancellationToken token)
