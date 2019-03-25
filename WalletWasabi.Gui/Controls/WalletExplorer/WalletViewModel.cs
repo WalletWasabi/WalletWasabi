@@ -49,6 +49,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Actions[2].DisplayActionTab();
 				Actions[3].DisplayActionTab();
 			}
+
+			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				Global.UiConfig.LurkingWifeMode = !Global.UiConfig.LurkingWifeMode;
+				await Global.UiConfig.ToFileAsync();
+			});
 		}
 
 		public void OnWalletOpened()
@@ -65,6 +71,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(o => SetBalance(Name))
 				.DisposeWith(_disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
+			{
+				SetBalance(Name);
+			}).DisposeWith(_disposables);
 		}
 
 		public void OnWalletClosed()
@@ -83,6 +94,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
+		public ReactiveCommand LurkingWifeModeCommand { get; }
+
 		public ObservableCollection<WalletActionViewModel> Actions
 		{
 			get => _actions;
@@ -92,7 +105,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private void SetBalance(string walletName)
 		{
 			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.IsDust && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
-			Title = $"{walletName} ({balance.ToString(false, true)} BTC)";
+
+			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
 		}
 	}
 }

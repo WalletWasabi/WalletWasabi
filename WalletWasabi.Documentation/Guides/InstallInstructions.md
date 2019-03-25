@@ -5,7 +5,9 @@
 
 # Windows
 
-Check out this [video guide](https://www.youtube.com/watch?v=tkaaC8yET1o) or take a look at the instructions below:
+## Video Guides
+
+Check out [this](https://www.youtube.com/watch?v=tkaaC8yET1o) or [this](https://www.youtube.com/watch?v=D8U53PFEsVk) video guide or take a look at the instructions below:
 
 ![](https://imgur.com/K2J1WWG.png)
 
