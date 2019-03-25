@@ -61,6 +61,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(async _ => await RewriteTableAsync())
 				.DisposeWith(_disposables);
 
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
+			{
+				foreach(var transaction in Transactions)
+				{
+					transaction.Refresh();
+				}
+
+			}).DisposeWith(_disposables);
+
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(transaction =>
 			{
 				if (Global.UiConfig.Autocopy is true)

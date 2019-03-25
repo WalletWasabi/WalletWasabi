@@ -22,15 +22,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			_model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
+		}
 
-			//TODO: this should be disposed! Memory leak!
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
-			{
-				this.RaisePropertyChanged(nameof(AmountBtc));
-				this.RaisePropertyChanged(nameof(TransactionId));
-				this.RaisePropertyChanged(nameof(DateTime));
-			});
-
+		public void Refresh ()
+		{
+			this.RaisePropertyChanged(nameof(AmountBtc));
+			this.RaisePropertyChanged(nameof(TransactionId));
+			this.RaisePropertyChanged(nameof(DateTime));
 		}
 
 		public string DateTime => _model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
