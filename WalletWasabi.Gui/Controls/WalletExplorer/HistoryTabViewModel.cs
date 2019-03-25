@@ -69,14 +69,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 			}).DisposeWith(_disposables);
-
-			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(transaction =>
-			{
-				if (Global.UiConfig.Autocopy is true)
-				{
-					transaction?.CopyToClipboard();
-				}
-			});
 		}
 
 		public override bool OnClose()
