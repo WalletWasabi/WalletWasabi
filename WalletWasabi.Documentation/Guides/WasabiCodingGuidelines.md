@@ -51,7 +51,7 @@
 				//do something on the UI thread. App-crash exception handler built-in.
 			});
 
-			//event subscription
+			//event subscription http://blog.functionalfun.net/2012/03/weak-events-in-net-easy-way.html
 			Observable.FromEventPattern(
 				Global.ChaumianClient,
 				nameof(Global.ChaumianClient.StateUpdated))
