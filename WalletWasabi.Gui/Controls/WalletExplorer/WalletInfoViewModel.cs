@@ -2,14 +2,10 @@
 using NBitcoin;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Services;
@@ -24,12 +20,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
 		private string _warningMessage;
+		private CompositeDisposable _disposables;
 
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
 			ClearSensitiveData(true);
 			_warningMessage = "";
-			Closing = new CancellationTokenSource().DisposeWith(Disposables);
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -48,7 +44,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Logging.Logger.LogTrace(ex);
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			ShowSensitiveKeysCommand = ReactiveCommand.Create(() =>
 			{
@@ -68,14 +64,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					SetWarningMessage(ex.ToTypeMessageString());
 				}
-			}).DisposeWith(Disposables);
-
-			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(_ =>
-			{
-				this.RaisePropertyChanged(nameof(EncryptedExtendedMasterPrivateKey));
-				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
-				this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
-			}).DisposeWith(Disposables);
+			});
 		}
 
 		private void ClearSensitiveData(bool passwordToo)
@@ -91,7 +80,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 		}
 
-		public CancellationTokenSource Closing { get; }
+		public CancellationTokenSource Closing { private set; get; }
 
 		public WalletService WalletService => Wallet.WalletService;
 		public KeyManager KeyManager => WalletService.KeyManager;
@@ -163,6 +152,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			});
 		}
 
+		public override void OnOpen()
+		{
+			if (_disposables != null)
+			{
+				throw new Exception("WalletInfo was opened before it was closed.");
+			}
+
+			_disposables = new CompositeDisposable();
+
+			Closing = new CancellationTokenSource();
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(EncryptedExtendedMasterPrivateKey));
+				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
+				this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
+			}).DisposeWith(_disposables);
+
+			Closing.DisposeWith(_disposables);
+
+			base.OnOpen();
+		}
+
 		public override void OnDeselected()
 		{
 			ClearSensitiveData(true);
@@ -175,10 +187,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			base.OnSelected();
 		}
 
-		public override void Close()
+		public override bool OnClose()
 		{
+			Closing.Cancel();
+			_disposables?.Dispose();
+			_disposables = null;
+
 			ClearSensitiveData(true);
-			base.Close();
+			return base.OnClose();
 		}
 
 		private void SetWarningMessage(string message)
@@ -204,24 +220,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 		}
-
-		#region IDisposable Support
-
-		protected override void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Closing?.Cancel();
-				}
-
-				base.Dispose(disposing);
-
-				_disposedValue = true;
-			}
-		}
-
-		#endregion IDisposable Support
 	}
 }

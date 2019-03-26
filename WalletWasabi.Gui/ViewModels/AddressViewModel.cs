@@ -16,6 +16,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool[,] _qrCode;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
+		private long _copyNotificationsInprocess = 0;
 
 		public HdPubKey Model { get; }
 
@@ -27,6 +28,7 @@ namespace WalletWasabi.Gui.ViewModels
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
 
+			// TODO fix this performance issue this should only be generated when accessed.
 			Task.Run(() =>
 			{
 				var encoder = new QrEncoder(ErrorCorrectionLevel.M);
@@ -38,7 +40,7 @@ namespace WalletWasabi.Gui.ViewModels
 				QrCode = x.Result;
 			});
 
-			Global.UiConfig.WhenAnyValue(x => x.PrivateMode).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(AddressPrivate));
 				this.RaisePropertyChanged(nameof(LabelPrivate));
@@ -65,11 +67,11 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public string Label => Model.Label;
 
-		public string LabelPrivate => Global.UiConfig.PrivateMode == true ? "###########" : Label;
+		public string LabelPrivate => Global.UiConfig.LurkingWifeMode == true ? "###########" : Label;
 
 		public string Address => Model.GetP2wpkhAddress(Global.Network).ToString();
 
-		public string AddressPrivate => Global.UiConfig.PrivateMode == true ? "###########################" : Address;
+		public string AddressPrivate => Global.UiConfig.LurkingWifeMode == true ? "###########################" : Address;
 
 		public string Pubkey => Model.PubKey.ToString();
 
@@ -80,8 +82,6 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _qrCode;
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
-
-		private long _copyNotificationsInprocess = 0;
 
 		public void CopyToClipboard()
 		{

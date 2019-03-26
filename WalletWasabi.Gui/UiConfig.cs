@@ -19,7 +19,7 @@ namespace WalletWasabi.Gui
 	[JsonObject(MemberSerialization.OptIn)]
 	public class UiConfig : ReactiveObject, IConfig
 	{
-		private bool? _privateMode;
+		private bool? _lurkingWifeMode;
 
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
@@ -43,11 +43,11 @@ namespace WalletWasabi.Gui
 		[JsonProperty(PropertyName = "Autocopy")]
 		public bool? Autocopy { get; internal set; }
 
-		[JsonProperty(PropertyName = "PrivateMode")]
-		public bool? PrivateMode
+		[JsonProperty(PropertyName = "LurkingWifeMode")]
+		public bool? LurkingWifeMode
 		{
-			get => _privateMode;
-			set => this.RaiseAndSetIfChanged(ref _privateMode, value);
+			get => _lurkingWifeMode;
+			set => this.RaiseAndSetIfChanged(ref _lurkingWifeMode, value);
 		}
 
 		public UiConfig()
@@ -59,7 +59,7 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public UiConfig(WindowState windowState, double height, double width, int feeTarget, int feeDisplayFormat, bool autocopy, bool privateMode)
+		public UiConfig(WindowState windowState, double height, double width, int feeTarget, int feeDisplayFormat, bool autocopy, bool lurkingWifeMode)
 		{
 			WindowState = Guard.NotNull(nameof(windowState), windowState);
 			Height = Guard.NotNull(nameof(height), height);
@@ -67,7 +67,7 @@ namespace WalletWasabi.Gui
 			FeeTarget = Guard.NotNull(nameof(feeTarget), feeTarget);
 			FeeDisplayFormat = Guard.NotNull(nameof(feeDisplayFormat), feeDisplayFormat);
 			Autocopy = Guard.NotNull(nameof(autocopy), autocopy);
-			PrivateMode = Guard.NotNull(nameof(privateMode), privateMode);
+			LurkingWifeMode = Guard.NotNull(nameof(lurkingWifeMode), lurkingWifeMode);
 		}
 
 		/// <inheritdoc />
@@ -92,7 +92,7 @@ namespace WalletWasabi.Gui
 			FeeTarget = 2;
 			FeeDisplayFormat = 0;
 			Autocopy = true;
-			PrivateMode = false;
+			LurkingWifeMode = false;
 
 			if (!File.Exists(FilePath))
 			{
@@ -117,7 +117,7 @@ namespace WalletWasabi.Gui
 			FeeTarget = config.FeeTarget ?? FeeTarget;
 			FeeDisplayFormat = config.FeeDisplayFormat ?? FeeDisplayFormat;
 			Autocopy = config.Autocopy ?? Autocopy;
-			PrivateMode = config.PrivateMode ?? PrivateMode;
+			LurkingWifeMode = config.LurkingWifeMode ?? LurkingWifeMode;
 		}
 
 		/// <inheritdoc />
@@ -163,7 +163,7 @@ namespace WalletWasabi.Gui
 				return true;
 			}
 
-			if (PrivateMode != config.PrivateMode)
+			if (LurkingWifeMode != config.LurkingWifeMode)
 			{
 				return true;
 			}

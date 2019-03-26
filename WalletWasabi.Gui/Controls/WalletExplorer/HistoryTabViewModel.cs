@@ -1,22 +1,13 @@
-﻿using Avalonia;
-using Avalonia.Threading;
-using AvalonStudio.Extensibility;
-using NBitcoin;
+﻿using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -27,6 +18,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
+		private CompositeDisposable _disposables;
 
 		public ReactiveCommand SortCommand { get; }
 
@@ -34,25 +26,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base("History", walletViewModel)
 		{
 			Transactions = new ObservableCollection<TransactionViewModel>();
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			RewriteTableAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
-			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
-			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
-			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
-
-			coinsChanged
-				.Merge(newBlockProcessed)
-				.Merge(coinSpent)
-				.Throttle(TimeSpan.FromSeconds(5))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-					RewriteTableAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				}).DisposeWith(Disposables);
+			RewriteTableAsync().GetAwaiter();
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(transaction =>
 			{
@@ -60,11 +35,48 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					transaction?.CopyToClipboard();
 				}
-			}).DisposeWith(Disposables);
+			});
 
-			SortCommand = ReactiveCommand.Create(() => RefreshOrdering()).DisposeWith(Disposables);
+			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
 
 			DateSortDirection = SortOrder.Decreasing;
+		}
+
+		public override void OnOpen()
+		{
+			base.OnOpen();
+
+			if (_disposables != null)
+			{
+				throw new Exception("Histroy Tab was opened before it was closed.");
+			}
+
+			_disposables = new CompositeDisposable();
+
+			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))
+				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
+				.Throttle(TimeSpan.FromSeconds(5))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(async _ => await RewriteTableAsync())
+				.DisposeWith(_disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
+			{
+				foreach(var transaction in Transactions)
+				{
+					transaction.Refresh();
+				}
+
+			}).DisposeWith(_disposables);
+		}
+
+		public override bool OnClose()
+		{
+			_disposables.Dispose();
+			_disposables = null;
+
+			return base.OnClose();
 		}
 
 		private async Task RewriteTableAsync()
@@ -84,7 +96,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
 				Label = txr.label,
 				TransactionId = txr.transactionId.ToString()
-			}).Select(ti => new TransactionViewModel(ti).DisposeWith(Disposables));
+			}).Select(ti => new TransactionViewModel(ti));
 
 			Transactions = new ObservableCollection<TransactionViewModel>(trs);
 

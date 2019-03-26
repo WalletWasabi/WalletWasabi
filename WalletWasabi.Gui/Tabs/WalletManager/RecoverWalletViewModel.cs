@@ -1,16 +1,12 @@
-﻿using Avalonia.Threading;
-using AvalonStudio.Extensibility;
+﻿using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
-using System.Reactive.Disposables;
-using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
@@ -18,10 +14,8 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class RecoverWalletViewModel : CategoryViewModel, IDisposable
+	internal class RecoverWalletViewModel : CategoryViewModel
 	{
-		private CompositeDisposable Disposables { get; }
-
 		private int _caretIndex;
 		private string _password;
 		private string _mnemonicWords;
@@ -31,8 +25,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
 		{
-			Disposables = new CompositeDisposable();
-
 			MnemonicWords = "";
 
 			RecoverCommand = ReactiveCommand.Create(() =>
@@ -70,8 +62,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						Logger.LogError<LoadWalletViewModel>(ex);
 					}
 				}
-			}).DisposeWith(Disposables);
-			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
+			});
+
+			this.WhenAnyValue(x => x.MnemonicWords).Subscribe(x => UpdateSuggestions(x));
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
 				try
@@ -89,7 +82,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					Logger.LogTrace(ex);
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
@@ -97,7 +90,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					CaretIndex = MnemonicWords.Length;
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
@@ -210,31 +203,5 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		}
 
 		private static IEnumerable<string> EnglishWords = Wordlist.English.GetWords();
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

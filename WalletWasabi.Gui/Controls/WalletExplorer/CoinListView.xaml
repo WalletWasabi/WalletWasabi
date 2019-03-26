@@ -11,7 +11,7 @@
     <converters:CoinStatusBorderBrushConverter x:Key="CoinStatusBorderBrushConverter" />
     <converters:CoinStatusForegroundConverter x:Key="CoinStatusForegroundConverter" />
     <converters:CoinItemExpanderColorConverter x:Key="CoinItemExpanderColorConverter" />
-    <converters:PrivateModeStringConverter x:Key="PrivateModeStringConverter" />
+    <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
   </UserControl.Resources>
   <UserControl.Styles>
     <Style Selector="TextBlock">
@@ -80,9 +80,7 @@
           <DataTemplate>
             <Grid>
               <Expander Name="coinExpander" ExpandDirection="Down" Classes="coloredExpander"  Background="{Binding ElementName=coinExpander, Path=IsExpanded, Converter={StaticResource CoinItemExpanderColorConverter}}">
-
-                <StackPanel>
-                  <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
+                <Grid HorizontalAlignment="Left" ColumnDefinitions="150, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" MaxWidth="800" Margin="35 10 0 25">
                     <TextBlock Text="Transaction Id:" Grid.Row="0" />
                     <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding TransactionId}" Background="Transparent" Grid.Column="1" Grid.Row="0" />
 
@@ -107,7 +105,6 @@
                     <TextBlock Text="Public Key:" Grid.Row="7" />
                     <controls:ExtendedTextBox Classes="selectableTextBlock Transaparent" Text="{Binding PubKey}"  Grid.Column="1" Grid.Row="7" />
                   </Grid>
-                </StackPanel>
               </Expander>
 
               <Grid Margin="30 0 0 0" VerticalAlignment="Top">
@@ -128,13 +125,13 @@
                 <Border ToolTip.Tip="{Binding ToolTip}" Padding="1" Grid.Column="2" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" BorderBrush="{Binding Status, Converter={StaticResource CoinStatusBorderBrushConverter}}" HorizontalAlignment="Left"  BorderThickness="1" CornerRadius="0,6,6,0">
                   <TextBlock Text="{Binding Status, Converter={StaticResource CoinStatusStringConverter}, Mode=OneWay}" Foreground="{Binding Status, Converter={StaticResource CoinStatusForegroundConverter}}" />
                 </Border>
-                <TextBlock Grid.Column="3" Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource PrivateModeStringConverter}, Mode=OneWay}" />
+                <TextBlock Grid.Column="3" Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
                 <Panel Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent"
                     DataContext="{Binding AnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}"
                     ToolTip.Tip="{Binding ToolTip}">
                   <DrawingPresenter Drawing="{Binding Icon}" Margin="0 0 25 0" />
                 </Panel>
-                <controls:ExtendedTextBox Classes="selectableTextBlock" Background="Transparent" Grid.Column="5" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource PrivateModeStringConverter}, Mode=OneWay}" />
+                <controls:ExtendedTextBox Classes="selectableTextBlock" Background="Transparent" Grid.Column="5" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
                 <TextBlock Text="" Grid.Column="6" />
               </Grid>
             </Grid>

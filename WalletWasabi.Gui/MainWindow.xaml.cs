@@ -1,11 +1,3 @@
-using System;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Reactive.Disposables;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -14,22 +6,25 @@ using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Theme;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Controls;
+using System;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui
 {
-	public class MainWindow : MetroWindow, IDisposable
+	public class MainWindow : MetroWindow
 	{
-		private CompositeDisposable Disposables { get; }
-
 		public bool IsQuitPending { get; private set; }
 
 		public MainWindow()
 		{
-			Disposables = new CompositeDisposable();
-
 			InitializeComponent();
 #if DEBUG
 			this.AttachDevTools();
@@ -54,23 +49,30 @@ namespace WalletWasabi.Gui
 
 		private long _closingState;
 
-		private void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
+		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
 		{
-			e.Cancel = true;
-			switch (Interlocked.Read(ref _closingState))
+			try
 			{
-				case 0:
-					Interlocked.Increment(ref _closingState);
-					ClosingAsync().DisposeWith(Disposables);
-					break;
+				e.Cancel = true;
+				switch (Interlocked.Read(ref _closingState))
+				{
+					case 0:
+						Interlocked.Increment(ref _closingState);
+						await ClosingAsync();
+						break;
 
-				case 1:
-					// still closing cancel the progress
-					return;
+					case 1:
+						// still closing cancel the progress
+						return;
 
-				case 2:
-					e.Cancel = false;
-					return; //can close the window
+					case 2:
+						e.Cancel = false;
+						return; //can close the window
+				}
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogError<MainWindow>(ex);
 			}
 		}
 
@@ -86,10 +88,9 @@ namespace WalletWasabi.Gui
 
 				if (!MainWindowViewModel.Instance.CanClose)
 				{
-					using (var dialog = new CannotCloseDialogViewModel().DisposeWith(Disposables))
-					{
-						closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); // start the deque process with a dialog
-					}
+					var dialog = new CannotCloseDialogViewModel();
+
+					closeApplication = await MainWindowViewModel.Instance.ShowDialogAsync(dialog); // start the deque process with a dialog
 				}
 				else
 				{
@@ -170,7 +171,7 @@ namespace WalletWasabi.Gui
 		{
 			var isAnyWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
 
-			var walletManagerViewModel = new WalletManagerViewModel().DisposeWith(Disposables);
+			var walletManagerViewModel = new WalletManagerViewModel();
 			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
 
 			if (isAnyWalletAvailable)
@@ -182,31 +183,5 @@ namespace WalletWasabi.Gui
 				walletManagerViewModel.SelectGenerateWallet();
 			}
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }
