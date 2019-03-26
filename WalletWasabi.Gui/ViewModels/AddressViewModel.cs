@@ -16,6 +16,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool[,] _qrCode;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
+		private long _copyNotificationsInprocess = 0;
 
 		public HdPubKey Model { get; }
 
@@ -27,6 +28,7 @@ namespace WalletWasabi.Gui.ViewModels
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
 
+			// TODO fix this performance issue this should only be generated when accessed.
 			Task.Run(() =>
 			{
 				var encoder = new QrEncoder(ErrorCorrectionLevel.M);
@@ -80,8 +82,6 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _qrCode;
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
-
-		private long _copyNotificationsInprocess = 0;
 
 		public void CopyToClipboard()
 		{

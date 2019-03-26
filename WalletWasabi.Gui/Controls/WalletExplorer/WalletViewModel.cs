@@ -1,60 +1,39 @@
+using NBitcoin;
+using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
-using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using AvalonStudio.Extensibility;
-using AvalonStudio.Shell;
-using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Models;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class WalletViewModel : WasabiDocumentTabViewModel, IDisposable
+	public class WalletViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; }
-
 		private ObservableCollection<WalletActionViewModel> _actions;
 
 		private string _title;
 
+		private CompositeDisposable _disposables;
+
 		public WalletViewModel(WalletService walletService, bool receiveDominant)
 			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
 		{
-			Disposables = new CompositeDisposable();
-
 			WalletService = walletService;
 			Name = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);
-			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
-			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
-
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
-			{
-				SetBalance(Name);
-			}).DisposeWith(Disposables);
-
-			coinsChanged
-				.Merge(coinSpent)
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o =>
-				{
-					SetBalance(Name);
-				}).DisposeWith(Disposables);
 
 			SetBalance(Name);
 
 			Actions = new ObservableCollection<WalletActionViewModel>
 			{
-				new SendTabViewModel(this).DisposeWith(Disposables),
-				new ReceiveTabViewModel(this).DisposeWith(Disposables),
-				new CoinJoinTabViewModel(this).DisposeWith(Disposables),
-				new HistoryTabViewModel(this).DisposeWith(Disposables),
-				new WalletInfoViewModel(this).DisposeWith(Disposables)
+				new SendTabViewModel(this),
+				new ReceiveTabViewModel(this),
+				new CoinJoinTabViewModel(this),
+				new HistoryTabViewModel(this),
+				new WalletInfoViewModel(this)
 			};
 
 			Actions[0].DisplayActionTab();
@@ -75,7 +54,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				Global.UiConfig.LurkingWifeMode = !Global.UiConfig.LurkingWifeMode;
 				await Global.UiConfig.ToFileAsync();
-			}).DisposeWith(Disposables);
+			});
+		}
+
+		public void OnWalletOpened()
+		{
+			if (_disposables != null)
+			{
+				throw new Exception("Wallet opened before it was closed.");
+			}
+
+			_disposables = new CompositeDisposable();
+
+			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(o => SetBalance(Name))
+				.DisposeWith(_disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
+			{
+				SetBalance(Name);
+			}).DisposeWith(_disposables);
+		}
+
+		public void OnWalletClosed()
+		{
+			_disposables?.Dispose();
 		}
 
 		public string Name { get; }
@@ -102,31 +107,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

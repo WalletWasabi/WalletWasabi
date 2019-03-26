@@ -8,7 +8,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
@@ -25,6 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _labelRequiredNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
+		private CompositeDisposable _disposables;
 
 		public ReactiveCommand CopyAddress { get; }
 		public ReactiveCommand CopyLabel { get; }
@@ -35,13 +35,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			_addresses = new ObservableCollection<AddressViewModel>();
 			Label = "";
-
-			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o =>
-			{
-				InitializeAddresses();
-			}).DisposeWith(Disposables);
 
 			InitializeAddresses();
 
@@ -81,9 +74,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Label = "";
 				});
-			}).DisposeWith(Disposables);
+			});
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
 			{
@@ -91,7 +84,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					address?.CopyToClipboard();
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
@@ -100,7 +93,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
 
@@ -136,6 +129,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}, isCoinListItemSelected);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+		}
+
+		public override void OnOpen()
+		{
+			base.OnOpen();
+
+			if (_disposables != null)
+			{
+				throw new Exception("Receive tab opened before last one was closed.");
+			}
+
+			_disposables = new CompositeDisposable();
+
+			Observable.FromEventPattern(Global.WalletService.Coins,
+				nameof(Global.WalletService.Coins.CollectionChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(o => InitializeAddresses())
+				.DisposeWith(_disposables);
+		}
+
+		public override bool OnClose()
+		{
+			_disposables.Dispose();
+
+			_disposables = null;
+
+			return base.OnClose();
 		}
 
 		private void InitializeAddresses()
