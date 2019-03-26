@@ -548,7 +548,9 @@ namespace WalletWasabi.Backend.Controllers
 			MixingLevel mixinglevel = round.MixingLevels.GetLevel(request.Level);
 			Signer signer = mixinglevel.Signer;
 
-			if (signer.VerifyUnblindedSignature(request.UnblindedSignature, request.OutputAddress.ScriptPubKey.ToBytes()))
+			// If UnblindedCredential is provided, then this is what's going to be signed, and OutputAddress can be arbitrary.
+			BitcoinAddress credentialToCheckSignatureAgainst = request.UnblindedCredential ?? request.OutputAddress;
+			if (signer.VerifyUnblindedSignature(request.UnblindedSignature, credentialToCheckSignatureAgainst.ScriptPubKey.ToBytes()))
 			{
 				using (await OutputLock.LockAsync())
 				{

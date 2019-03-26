@@ -21,6 +21,13 @@ namespace WalletWasabi.Backend.Models.Requests
 		[JsonConverter(typeof(UnblindedSignatureJsonConverter))]
 		public UnblindedSignature UnblindedSignature { get; set; }
 
+		/// <summary>
+		/// If UnblindedCredential is provided, then this is what's going to be signed, and OutputAddress can be arbitrary.
+		/// This is in practice just a throwaway BitcoinAddress.
+		/// </summary>
+		[JsonConverter(typeof(BitcoinAddressJsonConverter))]
+		public BitcoinAddress UnblindedCredential { get; set; }
+
 		public StringContent ToHttpStringContent()
 		{
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.None);
