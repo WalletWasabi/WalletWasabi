@@ -26,6 +26,32 @@ namespace WalletWasabi.Services
 
 		private long _cleanupInProcess;
 
+		public void TryPerformMempoolCleanup(IEnumerable<uint256> allMempoolHashes)
+		{
+			if (Interlocked.Read(ref _cleanupInProcess) == 1) return; // If already cleaning, then no need to run it that often.
+			Interlocked.Exchange(ref _cleanupInProcess, 1);
+			// This function is designed to prevent forever growing mempool.
+			try
+			{
+				Logger.LogInfo<MemPoolService>("Start cleaning out mempool...");
+
+				uint256[] toRemove = TransactionHashes.Except(allMempoolHashes).ToArray();
+				foreach (uint256 tx in toRemove)
+				{
+					TransactionHashes.TryRemove(tx);
+				}
+				Logger.LogInfo<MemPoolService>($"{toRemove.Count()} transactions were cleaned from mempool.");
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<MemPoolService>(ex);
+			}
+			finally
+			{
+				Interlocked.Exchange(ref _cleanupInProcess, 0);
+			}
+		}
+
 		public void TryPerformMempoolCleanupAsync(NodesGroup nodes, CancellationToken cancel)
 		{
 			if (Interlocked.Read(ref _cleanupInProcess) == 1) return; // If already cleaning, then no need to run it that often.
@@ -80,7 +106,7 @@ namespace WalletWasabi.Services
 					{
 						TransactionHashes.TryRemove(tx);
 					}
-					Logger.LogInfo<MemPoolService>($"{toRemove.Count()} transactions were cleaned from mempool...");
+					Logger.LogInfo<MemPoolService>($"{toRemove.Count()} transactions were cleaned from mempool.");
 				}
 				catch (Exception ex)
 				{
