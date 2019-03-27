@@ -1,5 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Threading;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -11,6 +13,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Tabs.EncryptionManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Models;
 
@@ -242,6 +245,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
+			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedCoin).Select(coin => coin != null);
+
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
 				if (SelectedCoin is null) return;
@@ -310,6 +315,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						SelectNonPrivateCheckBoxState = false;
 						break;
 				}
+			});
 
 			SignMessage = ReactiveCommand.Create(() =>
 			{
@@ -330,7 +336,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Decrypt, SelectedCoin.Model.HdPubKey.PubKey.ToHex());
 			}, isCoinListItemSelected);
-			});
 		}
 
 		public void OnOpen()
@@ -359,7 +364,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 									var newCoinVm = new CoinViewModel(this, c);
 									newCoinVm.SubscribeEvents();
 									RootList.Add(newCoinVm);
-
 								}
 								break;
 
@@ -384,7 +388,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						Logging.Logger.LogDebug<Dispatcher>(ex);
 					}
 				}).DisposeWith(_disposables);
-
 
 			SetSelections();
 			SetCoinJoinStatusWidth();

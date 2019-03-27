@@ -6,6 +6,7 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using WalletWasabi.Gui.Tabs;
+using WalletWasabi.Gui.Tabs.EncryptionManager;
 using WalletWasabi.Gui.Tabs.WalletManager;
 
 namespace WalletWasabi.Gui.Shell.Commands
@@ -19,11 +20,11 @@ namespace WalletWasabi.Gui.Shell.Commands
 				"Wallet Manager",
 				commandIconService.GetCompletionKindImage("WalletManager"),
 				ReactiveCommand.Create(OnWalletManager));
-			var encCommand = ReactiveCommand.Create(OnEncryptionManager).DisposeWith(Disposables);
 
 			EncryptionManagerCommand = new CommandDefinition(
-						commandIconService.GetCompletionKindImage("EncryptionManager"),
-						encCommand);
+				"EncryptionManager",
+				commandIconService.GetCompletionKindImage("EncryptionManager"),
+				ReactiveCommand.Create(OnEncryptionManager));
 
 			SettingsCommand = new CommandDefinition(
 				"Settings",

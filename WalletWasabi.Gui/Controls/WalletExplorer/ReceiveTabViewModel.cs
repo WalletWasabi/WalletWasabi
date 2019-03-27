@@ -31,12 +31,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand CopyAddress { get; }
 		public ReactiveCommand CopyLabel { get; }
-		public ReactiveCommand ShowQrCode { get; }		public ReactiveCommand EncryptMessage { get; }
+		public ReactiveCommand ShowQrCode { get; }
+		public ReactiveCommand EncryptMessage { get; }
 		public ReactiveCommand DecryptMessage { get; }
 		public ReactiveCommand SignMessage { get; }
 		public ReactiveCommand VerifyMessage { get; }
-		public ReactiveCommand GenerateCommand { get; }		public ReceiveTabViewModel(WalletViewModel walletViewModel)
-			: base("Receive", walletViewModel)
+		public ReactiveCommand GenerateCommand { get; }
+
+		public ReceiveTabViewModel(WalletViewModel walletViewModel)
+: base("Receive", walletViewModel)
 		{
 			_addresses = new ObservableCollection<AddressViewModel>();
 			Label = "";
@@ -108,7 +111,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			});
 
-
 			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
 
 			CopyAddress = ReactiveCommand.Create(() =>
@@ -144,26 +146,24 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SignMessage = ReactiveCommand.Create(() =>
 			{
 				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Sign, SelectedAddress.Address);
-			}, isCoinListItemSelected)
-			.DisposeWith(Disposables);
+			}, isCoinListItemSelected);
 
 			VerifyMessage = ReactiveCommand.Create(() =>
 			{
 				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Verify, SelectedAddress.Address);
-			}, isCoinListItemSelected)
-			.DisposeWith(Disposables);
+			}, isCoinListItemSelected);
 
 			EncryptMessage = ReactiveCommand.Create(() =>
 			{
 				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Encrypt, SelectedAddress.Model.PubKey.ToHex());
-			}, isCoinListItemSelected)
-			.DisposeWith(Disposables);
+			}, isCoinListItemSelected);
 
 			DecryptMessage = ReactiveCommand.Create(() =>
 			{
 				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Decrypt, SelectedAddress.Model.PubKey.ToHex());
-			}, isCoinListItemSelected)
-			.DisposeWith(Disposables);			_suggestions = new ObservableCollection<SuggestionViewModel>();
+			}, isCoinListItemSelected);
+
+			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
 		private void OnEncryptionManager(EncryptionManagerViewModel.Tabs selectedTab, string content)
@@ -302,6 +302,5 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Suggestions.Clear();
 		}
-
 	}
 }
