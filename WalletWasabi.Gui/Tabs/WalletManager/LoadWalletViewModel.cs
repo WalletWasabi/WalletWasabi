@@ -1,29 +1,21 @@
-﻿using System;
-using System.IO;
-using System.Collections.ObjectModel;
-using System.Linq;
-using NBitcoin;
-using AvalonStudio.Extensibility;
+﻿using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
-using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.KeyManagement;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
-using Avalonia.Controls;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
-using System.Reactive.Disposables;
+using WalletWasabi.KeyManagement;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class LoadWalletViewModel : CategoryViewModel, IDisposable
+	internal class LoadWalletViewModel : CategoryViewModel
 	{
-		private CompositeDisposable Disposables { get; }
-
 		private ObservableCollection<string> _wallets;
 		private string _password;
 		private string _selectedWallet;
@@ -42,18 +34,16 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public LoadWalletViewModel(WalletManagerViewModel owner, bool requirePassword) : base(requirePassword ? "Test Password" : "Load Wallet")
 		{
-			Disposables = new CompositeDisposable();
-
 			Owner = owner;
 			Password = "";
 			RequirePassword = requirePassword;
 			Wallets = new ObservableCollection<string>();
 
 			this.WhenAnyValue(x => x.SelectedWallet)
-				.Subscribe(selectedWallet => SetWalletStates()).DisposeWith(Disposables);
+				.Subscribe(selectedWallet => SetWalletStates());
 
 			this.WhenAnyValue(x => x.IsWalletOpened)
-				.Subscribe(isWalletOpened => SetWalletStates()).DisposeWith(Disposables);
+				.Subscribe(isWalletOpened => SetWalletStates());
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
 			{
@@ -73,11 +63,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					Logger.LogTrace(ex);
 				}
-			}).DisposeWith(Disposables);
+			});
 
-			LoadCommand = ReactiveCommand.Create(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet)).DisposeWith(Disposables);
-			TestPasswordCommand = ReactiveCommand.Create(() => LoadKeyManager(requirePassword: true), this.WhenAnyValue(x => x.CanTestPassword)).DisposeWith(Disposables);
-			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder).DisposeWith(Disposables);
+			LoadCommand = ReactiveCommand.Create(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
+			TestPasswordCommand = ReactiveCommand.Create(() => LoadKeyManager(requirePassword: true), this.WhenAnyValue(x => x.CanTestPassword));
+			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			SetLoadButtonText(IsBusy);
 		}
 
@@ -336,31 +326,5 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			var path = Global.WalletsDir;
 			IoHelpers.OpenFolderInFileExplorer(path);
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

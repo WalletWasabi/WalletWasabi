@@ -1,31 +1,27 @@
-﻿using System;
+﻿using Avalonia.Threading;
+using NBitcoin;
+using ReactiveUI;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Avalonia.Threading;
-using NBitcoin;
-using ReactiveUI;
-using WalletWasabi.Models;
-using WalletWasabi.Services;
+using WalletWasabi.Exceptions;
+using WalletWasabi.Gui.Models;
+using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
-using ReactiveUI.Legacy;
-using WalletWasabi.Exceptions;
-using System.Collections.ObjectModel;
-using WalletWasabi.Gui.Tabs.WalletManager;
-using WalletWasabi.Backend.Models.Responses;
-using System.ComponentModel;
-using WalletWasabi.Gui.Models;
-using System.Reactive.Disposables;
+using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class SendTabViewModel : WalletActionViewModel
 	{
-		private CoinListViewModel _coinList;
 		private string _buildTransactionButtonText;
 		private bool _isMax;
 		private string _maxClear;
@@ -56,6 +52,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
+		private CompositeDisposable _disposables;
 
 		private bool IgnoreAmountChanges { get; set; }
 
@@ -72,12 +69,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public SendTabViewModel(WalletViewModel walletViewModel)
 			: base("Send", walletViewModel)
 		{
+			_suggestions = new ObservableCollection<SuggestionViewModel>();
 			Label = "";
 			AllSelectedAmount = Money.Zero;
 			UsdExchangeRate = Global.Synchronizer.UsdExchangeRate;
 			SetAmountWatermarkAndToolTip(Money.Zero);
 
-			CoinList = new CoinListViewModel().DisposeWith(Disposables);
+			CoinList = new CoinListViewModel();
+			Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged)).Subscribe(_ => SetFeesAndTexts());
+			Observable.FromEventPattern(CoinList, nameof(CoinList.DequeueCoinsPressed)).Subscribe(_ => OnCoinsListDequeueCoinsPressedAsync());
 
 			BuildTransactionButtonText = BuildTransactionButtonTextString;
 
@@ -86,8 +86,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			FeeTarget = Global.UiConfig.FeeTarget ?? MinimumFeeTarget;
 			FeeDisplayFormat = (FeeDisplayFormat)(Enum.ToObject(typeof(FeeDisplayFormat), Global.UiConfig.FeeDisplayFormat) ?? FeeDisplayFormat.SatoshiPerByte);
 			SetFeesAndTexts();
-
-			Global.Synchronizer.PropertyChanged += Synchronizer_PropertyChanged;
 
 			this.WhenAnyValue(x => x.Amount).Subscribe(amount =>
 			{
@@ -133,7 +131,55 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				SetFeesAndTexts();
-			}).DisposeWith(Disposables);
+			});
+
+			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
+			{
+				if (busy)
+				{
+					BuildTransactionButtonText = BuildingTransactionButtonTextString;
+				}
+				else
+				{
+					BuildTransactionButtonText = BuildTransactionButtonTextString;
+				}
+			});
+
+			this.WhenAnyValue(x => x.Password).Subscribe(x =>
+			{
+				try
+				{
+					if (x.NotNullAndNotEmpty())
+					{
+						char lastChar = x.Last();
+						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
+						{
+							Password = x.TrimEnd('\r', '\n');
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					Logging.Logger.LogTrace(ex);
+				}
+			});
+
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
+
+			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ => SetFeesAndTexts());
+
+			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
+			{
+				if (Label is null) return;
+				if (CaretIndex != Label.Length)
+				{
+					CaretIndex = Label.Length;
+				}
+			});
+
+			MaxCommand = ReactiveCommand.Create(SetMax);
+
+			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
 
 			BuildTransactionCommand = ReactiveCommand.Create(async () =>
 			{
@@ -227,63 +273,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			},
 			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
-				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy))
-				.DisposeWith(Disposables);
-
-			MaxCommand = ReactiveCommand.Create(SetMax).DisposeWith(Disposables);
-
-			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay).DisposeWith(Disposables);
-
-			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
-			{
-				if (busy)
-				{
-					BuildTransactionButtonText = BuildingTransactionButtonTextString;
-				}
-				else
-				{
-					BuildTransactionButtonText = BuildTransactionButtonTextString;
-				}
-			}).DisposeWith(Disposables);
-
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
-			{
-				try
-				{
-					if (x.NotNullAndNotEmpty())
-					{
-						char lastChar = x.Last();
-						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
-						{
-							Password = x.TrimEnd('\r', '\n');
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					Logging.Logger.LogTrace(ex);
-				}
-			}).DisposeWith(Disposables);
-
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
-
-			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
-			{
-				if (Label is null) return;
-				if (CaretIndex != Label.Length)
-				{
-					CaretIndex = Label.Length;
-				}
-			}).DisposeWith(Disposables);
-
-			this.WhenAnyValue(x => x.FeeTarget).Subscribe(_ =>
-			{
-				SetFeesAndTexts();
-			}).DisposeWith(Disposables);
-
-			CoinList.SelectionChanged += CoinList_SelectionChanged;
-
-			_suggestions = new ObservableCollection<SuggestionViewModel>();
+				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy));
 		}
 
 		private void SetAmountWatermarkAndToolTip(Money amount)
@@ -314,11 +304,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			AmountToolTip = $"Exchange Rate: {(long)UsdExchangeRate} BTC/USD.";
-		}
-
-		private void CoinList_SelectionChanged(object sender, CoinViewModel e)
-		{
-			SetFeesAndTexts();
 		}
 
 		private void ChangeFeeRateDisplay()
@@ -433,6 +418,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					Amount = $"~ {AllSelectedAmount.ToString(false, true)}";
 				}
 			}
+
 			IgnoreAmountChanges = false;
 		}
 
@@ -494,32 +480,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			AllSelectedAmount = Math.Max(Money.Zero, all - BtcFee);
-		}
-
-		private void Synchronizer_PropertyChanged(object sender, PropertyChangedEventArgs e)
-		{
-			if (e.PropertyName == nameof(Global.Synchronizer.AllFeeEstimate))
-			{
-				SetFeeTargetLimits();
-				if (FeeTarget < MinimumFeeTarget) // Should never happen.
-				{
-					FeeTarget = MinimumFeeTarget;
-				}
-				else if (FeeTarget > MaximumFeeTarget)
-				{
-					FeeTarget = MaximumFeeTarget;
-				}
-				SetFeesAndTexts();
-			}
-			else if (e.PropertyName == nameof(Global.Synchronizer.UsdExchangeRate))
-			{
-				var exchangeRate = Global.Synchronizer.UsdExchangeRate;
-				if (exchangeRate != 0)
-				{
-					UsdExchangeRate = exchangeRate;
-				}
-				SetFeesAndTexts();
-			}
 		}
 
 		private void SetFeeTargetLimits()
@@ -596,31 +556,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			LabelToolTip = "Start labelling today and your privacy will thank you tomorrow!";
 		}
 
-		public CoinListViewModel CoinList
-		{
-			get => _coinList;
-			set
-			{
-				bool changed = _coinList != value;
-				if (_coinList != null)
-				{
-					_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
-				}
+		public CoinListViewModel CoinList { get; }
 
-				this.RaiseAndSetIfChanged(ref _coinList, value);
-
-				if (_coinList != null)
-				{
-					_coinList.DequeueCoinsPressed += CoinsList_DequeueCoinsPressedAsync;
-				}
-			}
-		}
-
-		private async void CoinsList_DequeueCoinsPressedAsync()
+		private async void OnCoinsListDequeueCoinsPressedAsync()
 		{
 			try
 			{
-				var selectedCoin = _coinList?.SelectedCoin;
+				var selectedCoin = CoinList?.SelectedCoin;
 				if (selectedCoin is null) return;
 				await DoDequeueAsync(new[] { selectedCoin });
 			}
@@ -904,32 +846,57 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public ReactiveCommand FeeRateCommand { get; }
 
-		#region IDisposable Support
-
-		protected override void Dispose(bool disposing)
+		public override void OnOpen()
 		{
-			if (!_disposedValue)
+			if (_disposables != null)
 			{
-				if (disposing)
-				{
-					if (Global.Synchronizer != null)
-					{
-						Global.Synchronizer.PropertyChanged -= Synchronizer_PropertyChanged;
-					}
+				throw new Exception("Send tab opened before last one closed.");
+			}
 
-					if (_coinList != null)
-					{
-						_coinList.SelectionChanged -= CoinList_SelectionChanged;
-						_coinList.DequeueCoinsPressed -= CoinsList_DequeueCoinsPressedAsync;
-					}
+			_disposables = new CompositeDisposable();
+
+			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
+			{
+				SetFeeTargetLimits();
+
+				if (FeeTarget < MinimumFeeTarget) // Should never happen.
+				{
+					FeeTarget = MinimumFeeTarget;
+				}
+				else if (FeeTarget > MaximumFeeTarget)
+				{
+					FeeTarget = MaximumFeeTarget;
 				}
 
-				base.Dispose(disposing);
+				SetFeesAndTexts();
+			}).DisposeWith(_disposables);
 
-				_disposedValue = true;
-			}
+			Global.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
+			{
+				var exchangeRate = Global.Synchronizer.UsdExchangeRate;
+
+				if (exchangeRate != 0)
+				{
+					UsdExchangeRate = exchangeRate;
+				}
+
+				SetFeesAndTexts();
+			}).DisposeWith(_disposables);
+
+			CoinList.OnOpen();
+
+			base.OnOpen();
 		}
 
-		#endregion IDisposable Support
+		public override bool OnClose()
+		{
+			_disposables.Dispose();
+
+			_disposables = null;
+
+			CoinList.OnClose();
+
+			return base.OnClose();
+		}
 	}
 }
