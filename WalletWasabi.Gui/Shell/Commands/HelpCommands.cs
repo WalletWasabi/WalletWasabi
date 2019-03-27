@@ -5,7 +5,9 @@ using AvalonStudio.Commands;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using System;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Tabs;
@@ -30,7 +32,15 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("CustomerSupport"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new CustomerSupportViewModel());
+					try
+					{
+						IoHelpers.OpenBrowser("https://www.reddit.com/r/WasabiWallet/");
+					}
+					catch (Exception ex)
+					{
+						Logging.Logger.LogWarning<HelpCommands>(ex);
+						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+					}
 				}));
 
 			ReportBugCommand = new CommandDefinition(
@@ -38,7 +48,15 @@ namespace WalletWasabi.Gui.Shell.Commands
 				commandIconService.GetCompletionKindImage("ReportBug"),
 				ReactiveCommand.Create(() =>
 				{
-					IoC.Get<IShell>().AddOrSelectDocument(() => new ReportBugViewModel());
+					try
+					{
+						IoHelpers.OpenBrowser("https://github.com/zkSNACKs/WalletWasabi/issues");
+					}
+					catch (Exception ex)
+					{
+						Logging.Logger.LogWarning<HelpCommands>(ex);
+						IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+					}
 				}));
 
 			PrivacyPolicyCommand = new CommandDefinition(
