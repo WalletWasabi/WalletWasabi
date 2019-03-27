@@ -101,6 +101,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 			{
 				_process = Process.Start(new FileInfo(_Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
 				State = CoreNodeState.Starting;
+				string pidFile = Path.Combine(DataDir, "regtest", "bitcoind.pid");
+				if (!File.Exists(pidFile))
+				{
+					Directory.CreateDirectory(Path.Combine(DataDir, "regtest"));
+					File.WriteAllText(pidFile, _process.Id.ToString());
+				}
 			}
 			while (true)
 			{
