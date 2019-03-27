@@ -29,14 +29,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
-		public ReactiveCommand GenerateCommand { get; }
-		public ReactiveCommand EncryptMessage { get; }
+		public ReactiveCommand CopyAddress { get; }
+		public ReactiveCommand CopyLabel { get; }
+		public ReactiveCommand ShowQrCode { get; }		public ReactiveCommand EncryptMessage { get; }
 		public ReactiveCommand DecryptMessage { get; }
 		public ReactiveCommand SignMessage { get; }
 		public ReactiveCommand VerifyMessage { get; }
-		public ReactiveCommand CopyAddress { get; }
-
-		public ReceiveTabViewModel(WalletViewModel walletViewModel)
+		public ReactiveCommand GenerateCommand { get; }		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
 			_addresses = new ObservableCollection<AddressViewModel>();
@@ -116,8 +115,39 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}).DisposeWith(Disposables);
 
+
 			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
 
+			CopyAddress = ReactiveCommand.Create(() =>
+			{
+				try
+				{
+					SelectedAddress?.CopyToClipboard();
+				}
+				catch (Exception)
+				{ }
+			}, isCoinListItemSelected);
+
+			CopyLabel = ReactiveCommand.CreateFromTask(async () =>
+			{
+				try
+				{
+					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
+						.SetTextAsync(SelectedAddress.Label ?? string.Empty);
+				}
+				catch (Exception)
+				{ }
+			}, isCoinListItemSelected);
+
+			ShowQrCode = ReactiveCommand.Create(() =>
+			{
+				try
+				{
+					SelectedAddress.IsExpanded = true;
+				}
+				catch (Exception)
+				{ }
+			}, isCoinListItemSelected);
 			SignMessage = ReactiveCommand.Create(() =>
 			{
 				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Sign, SelectedAddress.Address);
@@ -140,21 +170,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				OnEncryptionManager(EncryptionManagerViewModel.Tabs.Decrypt, SelectedAddress.Model.PubKey.ToHex());
 			}, isCoinListItemSelected)
-			.DisposeWith(Disposables);
-
-			CopyAddress = ReactiveCommand.CreateFromTask(async () =>
-			{
-				try
-				{
-					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
-						.SetTextAsync(SelectedAddress.Address ?? string.Empty);
-				}
-				catch (Exception)
-				{ }
-			}, isCoinListItemSelected)
-			.DisposeWith(Disposables);
-
-			_suggestions = new ObservableCollection<SuggestionViewModel>();
+			.DisposeWith(Disposables);			_suggestions = new ObservableCollection<SuggestionViewModel>();
 		}
 
 		private void OnEncryptionManager(EncryptionManagerViewModel.Tabs selectedTab, string content)

@@ -49,21 +49,21 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		public IMenuItem GenerateWallet => MenuItemFactory.CreateCommandMenuItem("File.GenerateWallet");
 
 		[ExportMainMenuItem("File", "Recover Wallet")]
-		[DefaultOrder(2)]
+		[DefaultOrder(1)]
 		[DefaultGroup("Wallet")]
 		public IMenuItem Recover => MenuItemFactory.CreateCommandMenuItem("File.RecoverWallet");
 
 		[ExportMainMenuItem("File", "Load Wallet")]
-		[DefaultOrder(3)]
+		[DefaultOrder(2)]
 		[DefaultGroup("Wallet")]
 		public IMenuItem LoadWallet => MenuItemFactory.CreateCommandMenuItem("File.LoadWallet");
 
 		[ExportMainMenuItem("File", "Open")]
-		[DefaultOrder(4)]
+		[DefaultOrder(3)]
 		public IMenuItem Open => MenuItemFactory.CreateHeaderMenuItem("Open", null);
 
 		[ExportMainMenuItem("File", "Exit")]
-		[DefaultOrder(5)]
+		[DefaultOrder(4)]
 		[DefaultGroup("Exit")]
 		public IMenuItem Exit => MenuItemFactory.CreateCommandMenuItem("File.Exit");
 

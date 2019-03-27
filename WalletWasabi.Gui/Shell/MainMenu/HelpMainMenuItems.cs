@@ -44,41 +44,41 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		#region MenuItem
 
 		[ExportMainMenuItem("Help", "About")]
-		[DefaultOrder(1)]
+		[DefaultOrder(0)]
 		[DefaultGroup("About")]
 		public IMenuItem About => MenuItemFactory.CreateCommandMenuItem("Help.About");
 
 #if DEBUG
 
 		[ExportMainMenuItem("Help", "Dev Tools")]
-		[DefaultOrder(2)]
+		[DefaultOrder(1)]
 		[DefaultGroup("About")]
 		public IMenuItem DevTools => MenuItemFactory.CreateCommandMenuItem("Help.DevTools");
 
 #endif
 
-		[ExportMainMenuItem("Help", "CustomerSupport")]
-		[DefaultOrder(3)]
+		[ExportMainMenuItem("Help", "Customer Support")]
+		[DefaultOrder(2)]
 		[DefaultGroup("Support")]
 		public IMenuItem CustomerSupport => MenuItemFactory.CreateCommandMenuItem("Help.CustomerSupport");
 
-		[ExportMainMenuItem("Help", "ReportBug")]
-		[DefaultOrder(4)]
+		[ExportMainMenuItem("Help", "Report Bug")]
+		[DefaultOrder(3)]
 		[DefaultGroup("Support")]
 		public IMenuItem ReportBug => MenuItemFactory.CreateCommandMenuItem("Help.ReportBug");
 
-		[ExportMainMenuItem("Help", "PrivacyPolicy")]
-		[DefaultOrder(5)]
+		[ExportMainMenuItem("Help", "Privacy Policy")]
+		[DefaultOrder(4)]
 		[DefaultGroup("Legal")]
 		public IMenuItem PrivacyPolicy => MenuItemFactory.CreateCommandMenuItem("Help.PrivacyPolicy");
 
-		[ExportMainMenuItem("Help", "TermsAndConditions")]
-		[DefaultOrder(6)]
+		[ExportMainMenuItem("Help", "Terms And Conditions")]
+		[DefaultOrder(5)]
 		[DefaultGroup("Legal")]
 		public IMenuItem TermsAndConditions => MenuItemFactory.CreateCommandMenuItem("Help.TermsAndConditions");
 
-		[ExportMainMenuItem("Help", "LegalIssues")]
-		[DefaultOrder(7)]
+		[ExportMainMenuItem("Help", "Legal Issues")]
+		[DefaultOrder(6)]
 		[DefaultGroup("Legal")]
 		public IMenuItem LegalIssues => MenuItemFactory.CreateCommandMenuItem("Help.LegalIssues");
 

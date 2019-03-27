@@ -70,5 +70,32 @@
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Controls\WalletExplorer\ReceiveTabView.xaml.BASE.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\ReceiveTabView.xaml.LOCAL.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Controls\WalletExplorer\ReceiveTabView.xaml.REMOTE.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\EncryptionManager\DecryptMessageView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\EncryptionManager\EncryptionManagerView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\EncryptionManager\EncryptMessageView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\EncryptionManager\SignMessageView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\EncryptionManager\VerifyMessageView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+  </ItemGroup>
+
 </Project>
 
