@@ -153,15 +153,19 @@ namespace WalletWasabi.Tests.NodeBuilding
 				try
 				{
 					CreateRpcClient().Stop();
+					if (!_process.WaitForExit(20000))
+					{
+						//log this
+					}
 				}
-				catch(Exception)
-				{}
+				catch (Exception)
+				{ }
 
 				State = CoreNodeState.Killed;
-				if (cleanFolder)
-				{
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder).GetAwaiter().GetResult();
-				}
+			}
+			if (cleanFolder)
+			{
+				IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder).GetAwaiter().GetResult();
 			}
 		}
 
