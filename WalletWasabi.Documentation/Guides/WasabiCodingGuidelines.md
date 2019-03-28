@@ -1,10 +1,10 @@
 
-## Example ViewModel
+## Example ViewModel Class
 
 ```c#
   public class MyViewModel : ReactiveObject, IDisposable
 	{
-		private CompositeDisposable _disposables = new CompositeDisposable();
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 		private string _myProperty;
 		private bool _myConfirmed;
 		private ObservableAsPropertyHelper<bool> _confirmed;
@@ -36,7 +36,7 @@
 			//need to bind Model property in View
 			_confirmed = Model.WhenAnyValue(x => x.Confirmed)
 				.ToProperty(this, x => x.MyConfirmed, scheduler: RxApp.MainThreadScheduler)
-				.DisposeWith(_disposables);
+				.DisposeWith(Disposables);
 
 			//need to detect property change in Model
 			Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend)
@@ -44,7 +44,7 @@
 				.Subscribe(_ =>
 				{
 				})
-				.DisposeWith(_disposables);
+				.DisposeWith(Disposables);
 
 			Dispatcher.UIThread.PostLogException(() =>
 			{
@@ -58,7 +58,7 @@
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
 				{
-				}).DisposeWith(_disposables);
+				}).DisposeWith(Disposables);
 
 			//Create Observable<bool> on MyProperty for canExecute
 			IObservable<bool> isCoinListItemSelected = this.WhenAnyValue(x => x.MyProperty).Select(myProperty => myProperty != null);
@@ -89,7 +89,7 @@
 				{
 
 				})
-				.DisposeWith(_disposables);
+				.DisposeWith(Disposables);
 
 
 		}
@@ -104,9 +104,9 @@
 			{
 				if (disposing)
 				{
-					_disposables?.Dispose();
+					Disposables?.Dispose();
 				}
-				_disposables = null;
+				Disposables = null;
 				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
 				// TODO: set large fields to null.
 
@@ -128,20 +128,34 @@
 		#endregion IDisposable Support
 	}
 ```
+      
+      
+## Detecting the change of a Property
+
+You can put the following into the contructor of the ViewModel. MyProperty should use __this.RaiseAndSetIfChanged__ to notify the change. If you're a VM and you e.g. WhenAnyValue against your own property, there's [no need to clean that up because](https://reactiveui.net/docs/guidelines/framework/dispose-your-subscriptions) that is manifested as the VM having a reference to itself.
+
+```c#
+	this.WhenAnyValue(x => x.MyProperty)
+		.Subscribe(myProperty =>
+		{
+		});
+```
+
+If you are referencing other object you should dispose your subscription. Use __.DisposeWith__ method.
+
+```c#
+	Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend)
+		.ObserveOn(RxApp.MainThreadScheduler)
+		.Subscribe(_ =>
+		{
+		})
+		.DisposeWith(Disposables);
+```
     
 ## Event subsciptions
 
-__traditional pattern DO NOT USE__
+Reactive generates an observable from the event and from then you can use all the toolset of Rx. Regarding the disposal it is pretty similar. If a component exposes an event and also subscribes to it itself, it doesn't need to unsubscribe. That's because the subscription is manifested as the component having a reference to itself.
 
-```c#
-Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
-
-if (Global.ChaumianClient != null)
-{
-	Global.ChaumianClient.StateUpdated -= ChaumianClient_StateUpdated;
-}
-```
-__the RX style__
 ```c#
 Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged)).Subscribe(_ => SetFeesAndTexts());
 
@@ -152,48 +166,114 @@ Observable.FromEventPattern(
 	.Subscribe(_ =>
 	{
 		RefreshSmartCoinStatus();
-	}).DisposeWith(_disposables);
+	}).DisposeWith(Disposables);
 ```
-    
-## Property definition and notifychange
 
-#### WRONG!
+## Expose Model Property to View
+
+When a property's value depends on another property, a set of properties, or an observable stream, rather than set the value explicitly, [use __ObservableAsPropertyHelper__ with __WhenAny__ wherever possible](https://reactiveui.net/docs/guidelines/framework/prefer-oaph-over-properties).
+
+
 ```c#
-private void Coin_PropertyChanged(object sender, PropertyChangedEventArgs e)
-{			
-	if (e.PropertyName == nameof(CoinViewModel.Unspent))	
-	{	
-	}
-}
-```
+	//Define class members.
+	private ObservableAsPropertyHelper<bool> _confirmed;
+	public bool Confirmed => _confirmed?.Value ?? false;
+
+	//Initialize PropertyHelper.
+	_confirmed = Model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed).DisposeWith(Disposables);
 	
-#### USE PropertyHelper!
-```c#
-//define class member
-private ObservableAsPropertyHelper<bool> _confirmed;
+	//Initialize PropertyHelper if invoked from not UI thread
+	_confirmed = Model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, scheduler:RxApp.MainThreadScheduler).DisposeWith(Disposables);
+```
 
-//initilize PropertyHelper
-_confirmed = Model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed).DisposeWith(_disposables);
-
-//if invoked from other thread 
-_confirmed = Model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, scheduler:RxApp.MainThreadScheduler).DisposeWith(_disposables);
-
-//if we need to do something on change
-this.WhenAnyValue(x => x.Confirmed, x => x.CoinJoinInProgress, x => x.Confirmations).Subscribe(_ => RefreshSmartCoinStatus());
-```	
 
 ## ReactiveCommand
 
-The reason is:
+Prefer binding user interactions to [commands](https://reactiveui.net/docs/guidelines/framework/commands) rather than methods.
+
+```c#
+	//Create Observable<bool> on MyProperty for CanExecute. Null detection always tricky but following code will handle that.
+	IObservable<bool> isCoinListItemSelected = this.WhenAnyValue(x => x.MyProperty).Select(myProperty => myProperty != null);
+
+	//Define command with CanExecute. 
+	MyCommand = ReactiveCommand.Create(() =>
+	{
+
+	}, isCoinListItemSelected);
+
+	//Define command from Task
+	MySecondCommand = ReactiveCommand.CreateFromTask(async () =>
+	{
+		await Task.Delay(100);
+	}, isCoinListItemSelected);
+```
+
 
 Reactive command doesnt have any unmanaged resources.
 Dispose in Reactive command doesnt mean release unmanaged resources, it simply means unsubscribe.
 Reactive command is on the same object that is subscribing, so GC will handle everything.
 So no memory leak here.
-
-See this comment from the author of RxUI...
-https://github.com/reactiveui/ReactiveUI/issues/20#issuecomment-1324201
+[See this comment from the author of RxUI...](https://github.com/reactiveui/ReactiveUI/issues/20#issuecomment-1324201)
 
 
+## !!!WANTED!!! 10000 Dollar Reward Dead or Alive! 
 
-  
+DO NOT use PropertyChanged.
+
+```c#
+	private void Coin_PropertyChanged(object sender, PropertyChangedEventArgs e)
+	{			
+		if (e.PropertyName == nameof(CoinViewModel.Unspent))	
+		{	
+		}
+	}
+```
+
+DO NOT use event subscriptions.
+
+```c#
+	Global.ChaumianClient.StateUpdated += ChaumianClient_StateUpdated;
+
+	if (Global.ChaumianClient != null)
+	{
+		Global.ChaumianClient.StateUpdated -= ChaumianClient_StateUpdated;
+	}
+```
+
+DO NOT do anything in set except RaiseAndSetIfChanged().
+
+```c#
+	public int FeeTarget
+	{
+		get => _feeTarget;
+		set
+		{
+			this.RaiseAndSetIfChanged(ref _feeTarget, value);
+			Global.UiConfig.FeeTarget = value;
+		}
+	}
+```
+
+DO NOT do anything in set except RaiseAndSetIfChanged().
+
+```c#
+	public int FeeTarget
+	{
+		get => _feeTarget;
+		set
+		{
+			this.RaiseAndSetIfChanged(ref _feeTarget, value);
+			Global.UiConfig.FeeTarget = value;
+		}
+	}
+```
+
+DO NOT use [async void Method()](https://msdn.microsoft.com/en-us/magazine/jj991977.aspx).
+
+```c#
+	async void DoSomething()
+	{
+	
+	}
+```
+
