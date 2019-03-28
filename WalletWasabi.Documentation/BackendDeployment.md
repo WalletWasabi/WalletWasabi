@@ -155,6 +155,7 @@ testnet=[0/1]
 [main/test].server=1
 [main/test].rpcuser=bitcoinuser
 [main/test].rpcpassword=password
+[main/test].whitebind=127.0.0.1:[8333/18333]
 ```
 https://bitcoincore.org/en/releases/0.17.0/
 https://medium.com/@loopring/how-to-run-lighting-btc-node-and-start-mining-b55c4bab8ad  

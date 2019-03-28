@@ -229,7 +229,11 @@ namespace WalletWasabi.Services
 				// Try perform mempool cleanup based on connected nodes' mempools.
 				if (Synchronizer != null && Synchronizer.GetFiltersLeft() == 0)
 				{
-					MemPool?.TryPerformMempoolCleanupAsync(Nodes, CancellationToken.None);
+					using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+					{
+						var mempoolHashes = await client.GetMempoolHashesAsync();
+						MemPool?.TryPerformMempoolCleanup(mempoolHashes);
+					}
 				}
 			}
 			catch (Exception ex)
@@ -257,42 +261,47 @@ namespace WalletWasabi.Services
 				// Load in dummy mempool
 				if (File.Exists(TransactionsFilePath))
 				{
-					var deleteTxFile = false;
 					try
 					{
-						string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
-						var serializedTransactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString);
-
-						foreach (SmartTransaction tx in serializedTransactions.Where(x => !x.Confirmed && !TransactionCache.Contains(x)).OrderBy(x => x.Height).ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow))
+						IEnumerable<SmartTransaction> transactions = null;
+						try
 						{
-							try
+							string jsonString = File.ReadAllText(TransactionsFilePath, Encoding.UTF8);
+							transactions = JsonConvert.DeserializeObject<IEnumerable<SmartTransaction>>(jsonString)?
+								.Where(x => !x.Confirmed)? // Only unconfirmed ones.
+								.OrderBy(x => x.Height)? // Order by height first (it's mempool or unknown)
+								.ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow); // Order by the time of first seen.
+						}
+						catch (Exception ex)
+						{
+							Logger.LogWarning<WalletService>(ex);
+							Logger.LogWarning<WalletService>($"Transaction cache got corrupted. Deleting {TransactionsFilePath}.");
+							File.Delete(TransactionsFilePath);
+						}
+
+						if (transactions is null || !transactions.Any()) return;
+
+						using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+						{
+							var mempoolHashes = await client.GetMempoolHashesAsync();
+							var mempoolSet = mempoolHashes.ToHashSet();
+
+							foreach (var tx in transactions)
 							{
-								await SendTransactionAsync(tx);
-							}
-							catch (Exception ex)
-							{
-								deleteTxFile = true;
-								Logger.LogWarning<WalletService>(ex);
+								if (mempoolSet.Contains(tx.GetHash()))
+								{
+									tx.SetHeight(Height.MemPool);
+									ProcessTransaction(tx);
+									MemPool.TransactionHashes.TryAdd(tx.GetHash());
+
+									Logger.LogInfo<WalletService>($"Transaction is tested against the backend's transaction hahses set: {tx.GetHash()}.");
+								}
 							}
 						}
 					}
 					catch (Exception ex)
 					{
-						deleteTxFile = true;
 						Logger.LogWarning<WalletService>(ex);
-					}
-
-					if (deleteTxFile)
-					{
-						try
-						{
-							File.Delete(TransactionsFilePath);
-						}
-						catch (Exception ex)
-						{
-							// Don't fail because of this. It's not important.
-							Logger.LogWarning<WalletService>(ex);
-						}
 					}
 				}
 			}
@@ -689,8 +698,8 @@ namespace WalletWasabi.Services
 									}
 									catch (OperationCanceledException) when (handshakeTimeout.IsCancellationRequested)
 									{
-										Logger.LogWarning<WalletService>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
-											$"Use \"whitebind\" or \"whitelist\" in the node configuration. (Typically whitelist=127.0.0.1 if Wasabi and the node are on the same machine.)");
+										Logger.LogWarning<Node>($"Wasabi could not complete the handshake with the local node. Probably Wasabi is not whitelisted by the node.{Environment.NewLine}" +
+											$"Use \"whitebind\" in the node configuration. (Typically whitebind=127.0.0.1:8333 if Wasabi and the node are on the same machine and whitelist=1.2.3.4 if they are not.)");
 										throw;
 									}
 								}

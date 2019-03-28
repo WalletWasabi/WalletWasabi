@@ -186,6 +186,26 @@ namespace WalletWasabi.WebClients.Wasabi
 			return (backendCompatible, clientUpToDate);
 		}
 
+		public async Task<IEnumerable<uint256>> GetMempoolHashesAsync(CancellationToken cancel = default)
+		{
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
+																	HttpStatusCode.OK,
+																	$"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes",
+																	cancel: cancel))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync();
+				}
+
+				using (HttpContent content = response.Content)
+				{
+					var ret = await content.ReadAsJsonAsync<IEnumerable<uint256>>();
+					return ret;
+				}
+			}
+		}
+
 		#endregion software
 	}
 }

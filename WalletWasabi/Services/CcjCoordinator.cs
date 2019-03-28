@@ -31,13 +31,16 @@ namespace WalletWasabi.Services
 
 		public Network Network { get; }
 
+		public TrustedNodeNotifyingBehavior TrustedNodeNotifyingBehavior { get; }
+
 		public string FolderPath { get; }
 
 		public UtxoReferee UtxoReferee { get; }
 
-		public CcjCoordinator(Network network, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
+		public CcjCoordinator(Network network, TrustedNodeNotifyingBehavior trustedNodeNotifyingBehavior, string folderPath, RPCClient rpc, CcjRoundConfig roundConfig)
 		{
 			Network = Guard.NotNull(nameof(network), network);
+			TrustedNodeNotifyingBehavior = Guard.NotNull(nameof(trustedNodeNotifyingBehavior), trustedNodeNotifyingBehavior);
 			FolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(folderPath), folderPath, trim: true);
 			RpcClient = Guard.NotNull(nameof(rpc), rpc);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
@@ -111,39 +114,54 @@ namespace WalletWasabi.Services
 				Logger.LogInfo<CcjCoordinator>($"{nameof(CcjRound.RoundCount)} file was corrupt. Resetting to 0.");
 				Logger.LogDebug<CcjCoordinator>(ex);
 			}
+
+			TrustedNodeNotifyingBehavior.Block += TrustedNodeNotifyingBehavior_BlockAsync;
 		}
 
-		public async Task ProcessBlockAsync(Block block)
+		private async void TrustedNodeNotifyingBehavior_BlockAsync(object sender, Block block)
 		{
-			// https://github.com/zkSNACKs/WalletWasabi/issues/145
-			// whenever a block arrives:
-			//    go through all its transactions
-			//       if a transaction spends a banned output AND it's not CJ output
-			//          ban all the outputs of the transaction
-
-			foreach (Transaction tx in block.Transactions)
+			try
 			{
-				if (RoundConfig.DosSeverity <= 1) return;
-				var txId = tx.GetHash();
-
-				foreach (TxIn input in tx.Inputs)
+				foreach (Transaction tx in block.Transactions)
 				{
-					OutPoint prevOut = input.PrevOut;
+					await ProcessTransactionAsync(tx);
+				}
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<CcjCoordinator>(ex);
+			}
+		}
 
-					// if coin is not banned
-					var foundElem = await UtxoReferee.TryGetBannedAsync(prevOut, notedToo: true);
-					if (foundElem != null)
+		public async Task ProcessTransactionAsync(Transaction tx)
+		{
+			// This should not be needed until we would only accept unconfirmed CJ outputs an no other unconf outs. But it'll be more bulletproof for future extensions.
+			// Turns out you shouldn't accept RBF at all never. (See below.)
+
+			// https://github.com/zkSNACKs/WalletWasabi/issues/145
+			//   if a it spends a banned output AND it's not CJ output
+			//     ban all the outputs of the transaction
+
+			if (RoundConfig.DosSeverity <= 1) return;
+			var txId = tx.GetHash();
+
+			foreach (TxIn input in tx.Inputs)
+			{
+				OutPoint prevOut = input.PrevOut;
+
+				// if coin is not banned
+				var foundElem = await UtxoReferee.TryGetBannedAsync(prevOut, notedToo: true);
+				if (foundElem != null)
+				{
+					if (!AnyRunningRoundContainsInput(prevOut, out _))
 					{
-						if (!AnyRunningRoundContainsInput(prevOut, out _))
-						{
-							int newSeverity = foundElem.Value.severity + 1;
-							await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
+						int newSeverity = foundElem.Value.severity + 1;
+						await UtxoReferee.UnbanAsync(prevOut); // since it's not an UTXO anymore
 
-							if (RoundConfig.DosSeverity >= newSeverity)
-							{
-								var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
-								await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.Value.timeOfBan, forceNoted: foundElem.Value.isNoted, foundElem.Value.bannedForRound, txCoins.ToArray());
-							}
+						if (RoundConfig.DosSeverity >= newSeverity)
+						{
+							var txCoins = tx.Outputs.AsIndexedOutputs().Select(x => x.ToCoin().Outpoint);
+							await UtxoReferee.BanUtxosAsync(newSeverity, foundElem.Value.timeOfBan, forceNoted: foundElem.Value.isNoted, foundElem.Value.bannedForRound, txCoins.ToArray());
 						}
 					}
 				}
@@ -370,6 +388,11 @@ namespace WalletWasabi.Services
 				{
 					using (RoundsListLock.Lock())
 					{
+						if (TrustedNodeNotifyingBehavior != null)
+						{
+							TrustedNodeNotifyingBehavior.Block -= TrustedNodeNotifyingBehavior_BlockAsync;
+						}
+
 						foreach (CcjRound round in Rounds)
 						{
 							round.StatusChanged -= Round_StatusChangedAsync;
