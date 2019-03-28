@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using WalletWasabi.Backend.Models.Responses;
 using NBitcoin.RPC;
+using System.Linq;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
@@ -200,7 +201,8 @@ namespace WalletWasabi.WebClients.Wasabi
 
 				using (HttpContent content = response.Content)
 				{
-					var ret = await content.ReadAsJsonAsync<IEnumerable<uint256>>();
+					var strings = await content.ReadAsJsonAsync<IEnumerable<string>>();
+					var ret = strings.Select(x => new uint256(x));
 					return ret;
 				}
 			}
