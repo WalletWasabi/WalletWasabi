@@ -104,7 +104,7 @@ If you prefer Graphical user interface this guide is yours. There is also a nice
 
 ![](https://i.imgur.com/PfdbegY.png)
 
-9. Press next, next, next. If there is an error you can import key manually scroll down to section: __Import key manually__
+9. Press next, next, next. If there is an error you can try to import key manually, navigate to section: [Import key manually](https://github.com/molnard/WalletWasabi/blob/patch-3/WalletWasabi.Documentation/Guides/InstallInstructions.md#import-key-manually)
 
 9. Successful validation. The file was signed by the developer.
 
