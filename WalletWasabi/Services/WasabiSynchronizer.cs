@@ -132,6 +132,8 @@ namespace WalletWasabi.Services
 		public TimeSpan MaxRequestIntervalForMixing { get; set; }
 		private long _blockRequests; // There are priority requests in queue.
 
+		public bool AreRequestsBlocked() => Interlocked.Read(ref _blockRequests) == 1;
+
 		public void BlockRequests() => Interlocked.Exchange(ref _blockRequests, 1);
 
 		public void EnableRequests() => Interlocked.Exchange(ref _blockRequests, 0);
@@ -261,7 +263,7 @@ namespace WalletWasabi.Services
 								return;
 							}
 
-							while (Interlocked.Read(ref _blockRequests) == 1)
+							while (AreRequestsBlocked())
 							{
 								await Task.Delay(3000, Cancel.Token);
 							}
@@ -549,6 +551,8 @@ namespace WalletWasabi.Services
 
 					Cancel?.Dispose();
 					WasabiClient?.Dispose();
+
+					EnableRequests(); // Enable requests (it's possible something is being blocked outside the class by AreRequestsBlocked.
 				}
 
 				_disposedValue = true;
