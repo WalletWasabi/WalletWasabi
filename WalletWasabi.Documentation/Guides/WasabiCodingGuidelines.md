@@ -73,9 +73,9 @@
 			}, isCoinListItemSelected);
 
 			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
-				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))			//http://rxwiki.wikidot.com/101samples#toc47
+				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))
 				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
-				.Throttle(TimeSpan.FromSeconds(5))																					//http://rxwiki.wikidot.com/101samples#toc30
+				.Throttle(TimeSpan.FromSeconds(5))									
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => 
 				{
