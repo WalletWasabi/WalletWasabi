@@ -72,3 +72,48 @@ If the message returned says Good signature and that it was signed by `Ficsór �
 Remember to check again the PGP signature every time you make a new download.
 
 If you trust nopara73's key and you are faimiliar with the [Web Of Trust](https://security.stackexchange.com/questions/147447/gpg-why-is-my-trusted-key-not-certified-with-a-trusted-signature), please consider also [validating it](https://www.gnupg.org/gph/en/manual/x334.html).
+
+## GPG Verification with GUI on windows
+
+If you prefer Graphical user interface this guide is yours. There is also a nice video guide [here](https://youtu.be/D8U53PFEsVk?t=45). 
+
+1. Download Gpg4win from https://www.gpg4win.org/get-gpg4win.html
+2. Install Gpg4win 
+
+![Install Gpg4win](https://i.imgur.com/YKDdw1k.png)
+
+3. Open this site, you will find the developer(nopara73) public key there [nopara73's PGP](https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt). Press Copy
+
+![Imgur](https://i.imgur.com/zLVqhOu.png)
+
+4. Create a TXT file pgp.txt 
+
+![Create txt file](https://i.imgur.com/F8LMu6W.png), 
+
+5. Open it and right click and paste. It looks like this:
+
+![Imgur](https://i.imgur.com/82XiHce.png)
+
+6. Save the file and close.
+
+7. Right click on pgp.txt. In the context menu navigate to More GpgEx options/Import keys (if the context menu is missing restart computer)
+
+![Imgur](https://i.imgur.com/qmuF3Hx.png)
+
+8. Kleopatra pops up and Ficsór Ádám's key imported. Press OK and Close Kleopatra
+
+![Imgur](https://i.imgur.com/EICwNWq.png)
+
+9. Download Wasabi latest release and the corresponding .asc file.
+
+10. Right click on .asc file. More GpgEX options / Verify
+
+![Imgur](https://i.imgur.com/fJME8Yh.png)
+
+Maybe you will be asked by the software if you trust and add key with this fingerprint: `21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E`.  
+
+11. Successful validation. The file was signed by the developer.
+
+![Imgur](https://i.imgur.com/7e0O9dQ.png)
+
+12. You can install Wasabi with the msi.
