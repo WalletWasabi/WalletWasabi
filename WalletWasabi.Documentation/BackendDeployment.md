@@ -9,7 +9,8 @@ sudo systemctl stop walletwasabi.service
 sudo killall tor
 bitcoin-cli stop
 sudo apt-get upgrade -y && sudo apt-get autoremove -y
-// sudo reboot
+sudo reboot
+set DOTNET_CLI_TELEMETRY_OPTOUT=1
 bitcoind
 bitcoin-cli getblockchaininfo
 tor
