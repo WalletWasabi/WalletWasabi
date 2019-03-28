@@ -27,18 +27,16 @@
 
 		public MyViewModel()
 		{
-			//need to detect propertyChance at class member https://reactiveui.net/docs/guidelines/framework/dispose-your-subscriptions
+
 			this.WhenAnyValue(x => x.MyProperty)
 				.Subscribe(myProperty =>
 				{
 				});
 
-			//need to bind Model property in View
 			_confirmed = Model.WhenAnyValue(x => x.Confirmed)
 				.ToProperty(this, x => x.MyConfirmed, scheduler: RxApp.MainThreadScheduler)
 				.DisposeWith(Disposables);
 
-			//need to detect property change in Model
 			Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend)
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ =>
@@ -51,7 +49,6 @@
 				//do something on the UI thread. App-crash exception handler built-in.
 			});
 
-			//event subscription http://blog.functionalfun.net/2012/03/weak-events-in-net-easy-way.html
 			Observable.FromEventPattern(
 				Global.ChaumianClient,
 				nameof(Global.ChaumianClient.StateUpdated))
@@ -60,26 +57,21 @@
 				{
 				}).DisposeWith(Disposables);
 
-			//Create Observable<bool> on MyProperty for canExecute
 			IObservable<bool> isCoinListItemSelected = this.WhenAnyValue(x => x.MyProperty).Select(myProperty => myProperty != null);
 
-			//create command
 			MyCommand = ReactiveCommand.Create(() =>
 			{
 
 			}, isCoinListItemSelected);
 
-			//catch command exceptions
 			MyCommand.ThrownExceptions
 				.Subscribe(ex => Logging.Logger.LogWarning<MyViewModel>(ex));
 
-			//create command from Task
 			MySecondCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await Task.Delay(100);
 			}, isCoinListItemSelected);
 
-			//Merge multiply events and Throttle stops the flow of events until no more events are produced for a specified period of time.
 			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))			//http://rxwiki.wikidot.com/101samples#toc47
 				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
@@ -96,7 +88,7 @@
 
 		#region IDisposable Support
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
+		private volatile bool _disposedValue = false;
 
 		protected virtual void Dispose(bool disposing)
 		{
@@ -107,8 +99,6 @@
 					Disposables?.Dispose();
 				}
 				Disposables = null;
-				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-				// TODO: set large fields to null.
 
 				_disposedValue = true;
 			}
@@ -157,17 +147,19 @@ If you are referencing other object you should dispose your subscription. Use __
 Reactive generates an observable from the event and from then you can use all the toolset of Rx. Regarding the disposal it is pretty similar. If a component exposes an event and also subscribes to it itself, it doesn't need to unsubscribe. That's because the subscription is manifested as the component having a reference to itself.
 
 ```c#
-Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged)).Subscribe(_ => SetFeesAndTexts());
+	Observable.FromEventPattern(CoinList, nameof(CoinList.SelectionChanged)).Subscribe(_ => SetFeesAndTexts());
 
-Observable.FromEventPattern(
-	Global.ChaumianClient,
-	nameof(Global.ChaumianClient.StateUpdated))
-	.ObserveOn(RxApp.MainThreadScheduler)
-	.Subscribe(_ =>
-	{
-		RefreshSmartCoinStatus();
-	}).DisposeWith(Disposables);
+	Observable.FromEventPattern(
+		Global.ChaumianClient,
+		nameof(Global.ChaumianClient.StateUpdated))
+		.ObserveOn(RxApp.MainThreadScheduler)
+		.Subscribe(_ =>
+		{
+			RefreshSmartCoinStatus();
+		}).DisposeWith(Disposables);
 ```
+
+[More examples](http://blog.functionalfun.net/2012/03/weak-events-in-net-easy-way.html)
 
 ## Expose Model Property to View
 
