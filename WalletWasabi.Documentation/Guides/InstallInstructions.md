@@ -73,11 +73,11 @@ Remember to check again the PGP signature every time you make a new download.
 
 If you trust nopara73's key and you are faimiliar with the [Web Of Trust](https://security.stackexchange.com/questions/147447/gpg-why-is-my-trusted-key-not-certified-with-a-trusted-signature), please consider also [validating it](https://www.gnupg.org/gph/en/manual/x334.html).
 
-## GPG Verification with GUI on windows
+## GPG Verification with GUI
 
 If you prefer Graphical user interface this guide is yours. There is also a nice video guide [here](https://youtu.be/D8U53PFEsVk?t=45). 
 
-1. Download Gpg4win from https://www.gpg4win.org/get-gpg4win.html
+1. Download Gpg4win from https://www.gnupg.org/download/index.html
 2. Install Gpg4win 
 
 ![Install Gpg4win](https://i.imgur.com/YKDdw1k.png)
