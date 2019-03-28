@@ -82,38 +82,57 @@ If you prefer Graphical user interface this guide is yours. There is also a nice
 
 ![Install Gpg4win](https://i.imgur.com/YKDdw1k.png)
 
-3. Open this site, you will find the developer(nopara73) public key there [nopara73's PGP](https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt). Press Copy
+3. Download Wasabi latest __release__ and the corresponding __.asc__ file.
 
-![Imgur](https://i.imgur.com/zLVqhOu.png)
+4. Double click on .asc file or right click More GpgEX options / Verify (if the context menu is missing restart computer)
 
-4. Create a TXT file pgp.txt 
+![](https://i.imgur.com/fJME8Yh.png)
 
-![Create txt file](https://i.imgur.com/F8LMu6W.png), 
+5. Press Search.
 
-5. Open it and right click and paste. It looks like this:
+![](https://i.imgur.com/cj00rev.png)
 
-![Imgur](https://i.imgur.com/82XiHce.png)
+6. Wait until Ficsór Ádám's, adam.ficsor73@gmail.com appears. Who is this guy? The owner of WasabiWallet AKA [nopara73]( https://github.com/nopara73)
 
-6. Save the file and close.
+![](https://i.imgur.com/B3WZn1n.png)
 
-7. Right click on pgp.txt. In the context menu navigate to More GpgEx options/Import keys (if the context menu is missing restart computer)
+7. Add Ádám's certificate. (on the next release you can skip previous steps because the cert will be there)
 
-![Imgur](https://i.imgur.com/qmuF3Hx.png)
+![](https://i.imgur.com/9zGpuI6.png)
 
-8. Kleopatra pops up and Ficsór Ádám's key imported. Press OK and Close Kleopatra
+8. Select all and Verify the fingerprint: `21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E`
 
-![Imgur](https://i.imgur.com/EICwNWq.png)
+![](https://i.imgur.com/PfdbegY.png)
 
-9. Download Wasabi latest release and the corresponding .asc file.
+9. Press next, next, next. If there is an error you can import key manually scroll down to section: __Import key manually__
 
-10. Right click on .asc file. More GpgEX options / Verify
-
-![Imgur](https://i.imgur.com/fJME8Yh.png)
-
-Maybe you will be asked by the software if you trust and add key with this fingerprint: `21D7 CA45 565D BCCE BE45  115D B4B7 2266 C47E 075E`.  
-
-11. Successful validation. The file was signed by the developer.
+9. Successful validation. The file was signed by the developer.
 
 ![Imgur](https://i.imgur.com/7e0O9dQ.png)
 
-12. You can install Wasabi with the msi.
+10. You can install Wasabi with the msi.
+
+### Import key manually
+
+1. Open this site, you will find the developer(nopara73) public key there [nopara73's PGP](https://github.com/zkSNACKs/WalletWasabi/blob/master/PGP.txt). Press Copy
+
+![Imgur](https://i.imgur.com/zLVqhOu.png)
+
+2. Create a TXT file pgp.txt 
+
+![Create txt file](https://i.imgur.com/F8LMu6W.png), 
+
+3. Open it and right click and paste. It looks like this:
+
+![Imgur](https://i.imgur.com/82XiHce.png)
+
+4. Save the file and close.
+
+5. Right click on pgp.txt. In the context menu navigate to More GpgEx options/Import keys (if the context menu is missing restart computer)
+
+![Imgur](https://i.imgur.com/qmuF3Hx.png)
+
+6. Kleopatra pops up and Ficsór Ádám's key imported. Press OK and Close Kleopatra
+
+![Imgur](https://i.imgur.com/EICwNWq.png)
+
