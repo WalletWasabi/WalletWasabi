@@ -20,6 +20,7 @@ namespace WalletWasabi.Gui
 	public class UiConfig : ReactiveObject, IConfig
 	{
 		private bool? _lurkingWifeMode;
+		private bool? _coinJoinTransactionVisible;
 
 		/// <inheritdoc />
 		public string FilePath { get; private set; }
@@ -50,6 +51,13 @@ namespace WalletWasabi.Gui
 			set => this.RaiseAndSetIfChanged(ref _lurkingWifeMode, value);
 		}
 
+		[JsonProperty(PropertyName = "CoinJoinTransactionVisible")]
+		public bool? CoinJoinTransactionVisible
+		{
+			get => _coinJoinTransactionVisible;
+			set => this.RaiseAndSetIfChanged(ref _coinJoinTransactionVisible, value);
+		}
+
 		public UiConfig()
 		{
 		}
@@ -59,7 +67,7 @@ namespace WalletWasabi.Gui
 			SetFilePath(filePath);
 		}
 
-		public UiConfig(WindowState windowState, double height, double width, int feeTarget, int feeDisplayFormat, bool autocopy, bool lurkingWifeMode)
+		public UiConfig(WindowState windowState, double height, double width, int feeTarget, int feeDisplayFormat, bool autocopy, bool lurkingWifeMode, bool coinJoinTransactionVisible)
 		{
 			WindowState = Guard.NotNull(nameof(windowState), windowState);
 			Height = Guard.NotNull(nameof(height), height);
@@ -68,6 +76,7 @@ namespace WalletWasabi.Gui
 			FeeDisplayFormat = Guard.NotNull(nameof(feeDisplayFormat), feeDisplayFormat);
 			Autocopy = Guard.NotNull(nameof(autocopy), autocopy);
 			LurkingWifeMode = Guard.NotNull(nameof(lurkingWifeMode), lurkingWifeMode);
+			CoinJoinTransactionVisible = Guard.NotNull(nameof(coinJoinTransactionVisible), coinJoinTransactionVisible);
 		}
 
 		/// <inheritdoc />
@@ -93,6 +102,7 @@ namespace WalletWasabi.Gui
 			FeeDisplayFormat = 0;
 			Autocopy = true;
 			LurkingWifeMode = false;
+			CoinJoinTransactionVisible = false;
 
 			if (!File.Exists(FilePath))
 			{
@@ -118,6 +128,7 @@ namespace WalletWasabi.Gui
 			FeeDisplayFormat = config.FeeDisplayFormat ?? FeeDisplayFormat;
 			Autocopy = config.Autocopy ?? Autocopy;
 			LurkingWifeMode = config.LurkingWifeMode ?? LurkingWifeMode;
+			CoinJoinTransactionVisible = config.CoinJoinTransactionVisible ?? CoinJoinTransactionVisible;
 		}
 
 		/// <inheritdoc />
@@ -164,6 +175,11 @@ namespace WalletWasabi.Gui
 			}
 
 			if (LurkingWifeMode != config.LurkingWifeMode)
+			{
+				return true;
+			}
+
+			if (CoinJoinTransactionVisible != config.CoinJoinTransactionVisible)
 			{
 				return true;
 			}

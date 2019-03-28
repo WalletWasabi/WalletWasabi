@@ -42,5 +42,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _transactionId;
 			set => this.RaiseAndSetIfChanged(ref _transactionId, value);
 		}
+
+		public bool IsCoinJoinTransaction
+		{
+			get => Label?.Contains("ZeroLink Mixed Coin") == true;
+		}
 	}
 }

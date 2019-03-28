@@ -21,6 +21,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private CompositeDisposable _disposables;
 
 		public ReactiveCommand SortCommand { get; }
+		public ReactiveCommand CoinJoinTransactionVisibleCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
@@ -39,6 +40,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
 
+			CoinJoinTransactionVisibleCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				Global.UiConfig.CoinJoinTransactionVisible = !Global.UiConfig.CoinJoinTransactionVisible;
+				await Global.UiConfig.ToFileAsync();
+			});
+
 			DateSortDirection = SortOrder.Decreasing;
 		}
 
@@ -48,7 +55,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			if (_disposables != null)
 			{
-				throw new Exception("Histroy Tab was opened before it was closed.");
+				throw new Exception("History Tab was opened before it was closed.");
 			}
 
 			_disposables = new CompositeDisposable();
@@ -63,11 +70,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
 			{
-				foreach(var transaction in Transactions)
+				foreach (var transaction in Transactions)
 				{
 					transaction.Refresh();
 				}
+			}).DisposeWith(_disposables);
 
+			Global.UiConfig.WhenAnyValue(x => x.CoinJoinTransactionVisible).ObserveOn(RxApp.MainThreadScheduler).Subscribe(async x =>
+			{
+				await RewriteTableAsync();
 			}).DisposeWith(_disposables);
 		}
 
@@ -98,7 +109,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				TransactionId = txr.transactionId.ToString()
 			}).Select(ti => new TransactionViewModel(ti));
 
-			Transactions = new ObservableCollection<TransactionViewModel>(trs);
+			Transactions = new ObservableCollection<TransactionViewModel>(trs.Where(tr => Global.UiConfig.CoinJoinTransactionVisible == true || !tr.IsCoinJoinTransaction));
 
 			if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
 			{
@@ -256,6 +267,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 			}
 		}
+
+		public bool IsCoinJoinTransactionVisible => Global.UiConfig.CoinJoinTransactionVisible == true;
 
 		private void RefreshOrdering()
 		{

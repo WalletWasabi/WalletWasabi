@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ClipboardNotificationOpacity = 0;
 		}
 
-		public void Refresh ()
+		public void Refresh()
 		{
 			this.RaisePropertyChanged(nameof(AmountBtc));
 			this.RaisePropertyChanged(nameof(TransactionId));
@@ -54,6 +54,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			get => _clipboardNotificationOpacity;
 			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
+
+		public bool IsCoinJoinTransaction => _model.IsCoinJoinTransaction;
 
 		public void CopyToClipboard()
 		{
