@@ -9,6 +9,7 @@ sudo systemctl stop walletwasabi.service
 sudo killall tor
 bitcoin-cli stop
 sudo apt-get upgrade -y && sudo apt-get autoremove -y
+// sudo reboot
 bitcoind
 bitcoin-cli getblockchaininfo
 tor
@@ -16,7 +17,7 @@ sudo service nginx start
 dotnet publish ~/WalletWasabi/WalletWasabi.Backend --configuration Release --self-contained false
 sudo systemctl start walletwasabi.service
 pgrep -ilfa tor && pgrep -ilfa bitcoin && pgrep -ilfa wasabi && pgrep -ilfa nginx
-tail -1000 ~/.walletwasabi/backend/Logs.txt
+tail -10000 ~/.walletwasabi/backend/Logs.txt
 ```
 
 # 1. Create Remote Server
@@ -218,7 +219,7 @@ WantedBy=multi-user.target
 sudo systemctl enable walletwasabi.service
 sudo systemctl start walletwasabi.service
 systemctl status walletwasabi.service
-tail -1000 .walletwasabi/backend/Logs.txt
+tail -10000 .walletwasabi/backend/Logs.txt
 ```
 
 ## Tor
@@ -305,6 +306,6 @@ http://www.wasabiwallet.io/
 
 ```sh
 tail -f ~/.bitcoin/debug.log
-tail -1000 .walletwasabi/backend/Logs.txt
+tail -10000 .walletwasabi/backend/Logs.txt
 du -bsh .walletwasabi/backend/IndexBuilderService/*
 ```
