@@ -78,8 +78,7 @@ namespace WalletWasabi.Services
 				payload.Inventory.Add(inv);
 			}
 
-			if (payload.Inventory.Any() && node.IsConnected)
-			{
+			if (payload.Inventory.Any() && node.IsConnected)			{
 				// ask for the whole transaction
 				await node.SendMessageAsync(payload);
 			}

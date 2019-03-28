@@ -4,6 +4,7 @@ using AvalonStudio.Shell;
 using NBitcoin.Protocol;
 using ReactiveUI;
 using System;
+using System.IO;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
@@ -128,7 +129,15 @@ namespace WalletWasabi.Gui.ViewModels
 
 			UpdateCommand = ReactiveCommand.Create(() =>
 			{
-				IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+				try
+				{
+					IoHelpers.OpenBrowser("https://wasabiwallet.io/#download");
+				}
+				catch (Exception ex)
+				{
+					Logging.Logger.LogWarning<StatusBarViewModel>(ex);
+					IoC.Get<IShell>().AddOrSelectDocument(() => new AboutViewModel());
+				}
 			}, this.WhenAnyValue(x => x.UpdateStatus).Select(x => x != UpdateStatus.Latest));
 
 			updateChecker.Start(TimeSpan.FromMinutes(7),
