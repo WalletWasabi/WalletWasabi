@@ -133,7 +133,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			try
 			{
 				var cfgPath = Path.Combine(child, "data", "bitcoin.conf");
-				if(File.Exists(cfgPath))
+				if (File.Exists(cfgPath))
 				{
 					var config = NodeConfigParameters.Load(cfgPath);
 					var rpcPort = config["regtest.rpcport"];
@@ -148,10 +148,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 						rpc.Stop();
 
 						var pidFile = Path.Combine(child, "data", "regtest", pidFileName);
-						if(File.Exists(pidFile))
-						{ 
+						if (File.Exists(pidFile))
+						{
 							var pid = File.ReadAllText(pidFile);
-							using(var process = Process.GetProcessById(int.Parse(pid)))
+							using (var process = Process.GetProcessById(int.Parse(pid)))
 							{
 								process.WaitForExit();
 							}
@@ -167,7 +167,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 							}
 						}
 					}
-					catch(Exception)
+					catch (Exception)
 					{
 					}
 				}

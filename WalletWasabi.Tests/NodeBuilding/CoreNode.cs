@@ -101,6 +101,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 			{
 				_process = Process.Start(new FileInfo(_Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
 				State = CoreNodeState.Starting;
+				string pidFile = Path.Combine(DataDir, "regtest", "bitcoind.pid");
+				if (!File.Exists(pidFile))
+				{
+					Directory.CreateDirectory(Path.Combine(DataDir, "regtest"));
+					File.WriteAllText(pidFile, _process.Id.ToString());
+				}
 			}
 			while (true)
 			{
@@ -153,15 +159,19 @@ namespace WalletWasabi.Tests.NodeBuilding
 				try
 				{
 					CreateRpcClient().Stop();
+					if (!_process.WaitForExit(20000))
+					{
+						//log this
+					}
 				}
-				catch(Exception)
-				{}
+				catch (Exception)
+				{ }
 
 				State = CoreNodeState.Killed;
-				if (cleanFolder)
-				{
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder).GetAwaiter().GetResult();
-				}
+			}
+			if (cleanFolder)
+			{
+				IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder).GetAwaiter().GetResult();
 			}
 		}
 
