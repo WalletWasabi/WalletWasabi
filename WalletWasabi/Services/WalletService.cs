@@ -149,9 +149,7 @@ namespace WalletWasabi.Services
 
 		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			RefreshCoinsHistoriesAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+			RefreshCoinsHistories();
 		}
 
 		private static object TransactionProcessingLock { get; } = new object();
@@ -315,9 +313,7 @@ namespace WalletWasabi.Services
 				}
 			}
 			Coins.CollectionChanged += Coins_CollectionChanged;
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			RefreshCoinsHistoriesAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+			RefreshCoinsHistories();
 		}
 
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
@@ -1288,20 +1284,20 @@ namespace WalletWasabi.Services
 
 		private long _refreshCoinCalls;
 
-		public async Task RefreshCoinsHistoriesAsync()
+		public void RefreshCoinsHistories()
 		{
 			try
 			{
-				if (Interlocked.Read(ref _refreshCoinCalls) == 2) //it is running and scheduled to rerun after finished
-				{
-					return;
-				}
-				if (Interlocked.CompareExchange(ref _refreshCoinCalls, 2, 1) == 1) //it is running but now we will rerun if finished
+				// 0: It is not running so we start the work.
+				// 1: It is running but now we will rerun if finished.
+				// 2: It is running and scheduled to rerun after finished.
+				var prevVal = Interlocked.CompareExchange(ref _refreshCoinCalls, 2, 1);
+				if (prevVal > 0)
 				{
 					return;
 				}
 
-				Interlocked.CompareExchange(ref _refreshCoinCalls, 1, 0); //it is not running so we start the work
+				Interlocked.CompareExchange(ref _refreshCoinCalls, 1, 0);
 
 				var unspentCoins = Coins.Where(c => c.Unspent && !c.IsDust); //refreshing unspent coins clusters only
 				if (unspentCoins.Any())
@@ -1312,18 +1308,16 @@ namespace WalletWasabi.Services
 
 					const int simultaneousThread = 2; //threads allowed to run simultaneously in threadpool
 
-					await Task.Run(() => Parallel.ForEach(unspentCoins, new ParallelOptions { MaxDegreeOfParallelism = simultaneousThread }, coin =>
+					Parallel.ForEach(unspentCoins, new ParallelOptions { MaxDegreeOfParallelism = simultaneousThread }, coin =>
 					{
 						var result = string.Join(", ", GetClusters(coin, new List<SmartCoin>(), lookupScriptPubKey, lookupSpenderTransactionId, lookupTransactionId).Select(x => x.Label).Distinct());
 						coin.SetClusters(result);
-					}));
+					});
 				}
 
 				if (Interlocked.CompareExchange(ref _refreshCoinCalls, 0, 2) == 2) //scheduled to rerun so we start the work again
 				{
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-					RefreshCoinsHistoriesAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+					RefreshCoinsHistories();
 				}
 
 				Interlocked.CompareExchange(ref _refreshCoinCalls, 0, 1); //done with the job
