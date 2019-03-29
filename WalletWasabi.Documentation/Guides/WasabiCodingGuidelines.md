@@ -47,7 +47,7 @@
 
 			Dispatcher.UIThread.PostLogException(() =>
 			{
-				//do something on the UI thread. App-crash exception handler built-in.
+				// Do something on the UI thread. App-crash exception handler built-in.
 			});
 
 			Observable.FromEventPattern(
@@ -123,7 +123,7 @@
       
 ## Detecting the change of a Property
 
-You can put the following into the contructor of the ViewModel. MyProperty should use __this.RaiseAndSetIfChanged__ to notify the change. If you're a VM and you e.g. WhenAnyValue against your own property, there's [no need to clean that up because](https://reactiveui.net/docs/guidelines/framework/dispose-your-subscriptions) that is manifested as the VM having a reference to itself.
+You can put the following into the constructor of the ViewModel. `MyProperty` should use `this.RaiseAndSetIfChanged()` to notify the change. If you're a VM and you e.g. `WhenAnyValue` against your own property, there's [no need to clean that up because](https://reactiveui.net/docs/guidelines/framework/dispose-your-subscriptions) that is manifested as the VM having a reference to itself.
 
 ```c#
 	this.WhenAnyValue(x => x.MyProperty)
@@ -132,7 +132,7 @@ You can put the following into the contructor of the ViewModel. MyProperty shoul
 		});
 ```
 
-If you are referencing other object you should dispose your subscription. Use __.DisposeWith__ method.
+If you are referencing other object you should dispose your subscription. Use `.DisposeWith()` method.
 
 ```c#
 	Model.WhenAnyValue(x => x.IsBanned, x => x.SpentAccordingToBackend)
@@ -143,7 +143,7 @@ If you are referencing other object you should dispose your subscription. Use __
 		.DisposeWith(Disposables);
 ```
     
-## Event subsciptions
+## Event subscriptions
 
 Reactive generates an observable from the event and from then you can use all the toolset of Rx. Regarding the disposal it is pretty similar. If a component exposes an event and also subscribes to it itself, it doesn't need to unsubscribe. That's because the subscription is manifested as the component having a reference to itself.
 
@@ -164,7 +164,7 @@ Reactive generates an observable from the event and from then you can use all th
 
 ## Expose Model Property to View
 
-When a property's value depends on another property, a set of properties, or an observable stream, rather than set the value explicitly, [use __ObservableAsPropertyHelper__ with __WhenAny__ wherever possible](https://reactiveui.net/docs/guidelines/framework/prefer-oaph-over-properties).
+When a property's value depends on another property, a set of properties, or an observable stream, rather than set the value explicitly, [use `ObservableAsPropertyHelper` with `WhenAny` wherever possible](https://reactiveui.net/docs/guidelines/framework/prefer-oaph-over-properties).
 
 
 ```c#
@@ -233,21 +233,7 @@ DO NOT use event subscriptions.
 	}
 ```
 
-DO NOT do anything in set except RaiseAndSetIfChanged().
-
-```c#
-	public int FeeTarget
-	{
-		get => _feeTarget;
-		set
-		{
-			this.RaiseAndSetIfChanged(ref _feeTarget, value);
-			Global.UiConfig.FeeTarget = value;
-		}
-	}
-```
-
-DO NOT do anything in set except RaiseAndSetIfChanged().
+DO NOT do anything in set except `RaiseAndSetIfChanged()`.
 
 ```c#
 	public int FeeTarget
