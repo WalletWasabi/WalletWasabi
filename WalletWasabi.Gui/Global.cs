@@ -266,7 +266,7 @@ namespace WalletWasabi.Gui
 				if(Config.UseTor == true)
 				{
 					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint()));
-					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: true);
+					connectionParameters.EndpointConnector = new DefaultEndpointConnector();
 				}
 				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 
