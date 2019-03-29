@@ -144,10 +144,7 @@ namespace WalletWasabi.Services
 								await DequeueSpentCoinsFromMixNoLockAsync();
 
 								// If stop was requested return.
-								if (IsRunning == false)
-								{
-									return;
-								}
+								if (!IsRunning) return;
 
 								// if mixing >= connConf
 								if (State.GetActivelyMixingRounds().Any())
@@ -187,10 +184,7 @@ namespace WalletWasabi.Services
 				}
 				finally
 				{
-					if (IsStopping)
-					{
-						Interlocked.Exchange(ref _running, 3);
-					}
+					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
 				}
 			});
 		}
@@ -1028,10 +1022,7 @@ namespace WalletWasabi.Services
 		{
 			Synchronizer.ResponseArrived -= Synchronizer_ResponseArrivedAsync;
 
-			if (IsRunning)
-			{
-				Interlocked.Exchange(ref _running, 2);
-			}
+			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 			Cancel?.Cancel();
 			while (IsStopping)
 			{

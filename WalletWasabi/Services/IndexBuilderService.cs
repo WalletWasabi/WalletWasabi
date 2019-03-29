@@ -367,10 +367,7 @@ namespace WalletWasabi.Services
 				}
 				finally
 				{
-					if (IsStopping)
-					{
-						Interlocked.Exchange(ref _running, 3);
-					}
+					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
 					Interlocked.Decrement(ref _runner);
 				}
 			});
@@ -474,10 +471,7 @@ namespace WalletWasabi.Services
 				TrustedNodeNotifyingBehavior.BlockInv -= TrustedNodeNotifyingBehavior_BlockInv;
 			}
 
-			if (IsRunning)
-			{
-				Interlocked.Exchange(ref _running, 2);
-			}
+			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 			while (IsStopping)
 			{
 				await Task.Delay(50);

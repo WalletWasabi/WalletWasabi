@@ -84,10 +84,7 @@ namespace WalletWasabi.Services
 				}
 				finally
 				{
-					if (IsStopping)
-					{
-						Interlocked.Exchange(ref _running, 3);
-					}
+					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
 				}
 			});
 		}
@@ -102,10 +99,7 @@ namespace WalletWasabi.Services
 			{
 				if (disposing)
 				{
-					if (IsRunning)
-					{
-						Interlocked.Exchange(ref _running, 2);
-					}
+					Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 					Stop?.Cancel();
 					while (IsStopping)
 					{
