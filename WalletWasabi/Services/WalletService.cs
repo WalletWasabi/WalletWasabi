@@ -246,11 +246,7 @@ namespace WalletWasabi.Services
 			// Try perform mempool cleanup based on connected nodes' mempools.
 			if (Synchronizer != null && Synchronizer.GetFiltersLeft() == 0)
 			{
-				using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
-				{
-					var mempoolHashes = await client.GetMempoolHashesAsync();
-					MemPool?.TryPerformMempoolCleanup(mempoolHashes);
-				}
+				await MemPool?.TryPerformMempoolCleanupAsync(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
 			}
 		}
 
