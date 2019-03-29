@@ -13,6 +13,8 @@ namespace WalletWasabi.Gui.Tabs
 {
 	internal class SettingsViewModel : WasabiDocumentTabViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private string _network;
 		private string _torHost;
 		private string _torPort;
@@ -21,7 +23,6 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _useTor;
 		private string _useTorText;
 		private bool _isModified;
-		private CompositeDisposable _disposables;
 
 		public ReactiveCommand OpenConfigFileCommand { get; }
 		public ReactiveCommand LurkingWifeModeCommand { get; }
@@ -72,26 +73,26 @@ namespace WalletWasabi.Gui.Tabs
 
 		public override void OnOpen()
 		{
-			if (_disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("Settings was opened before it was closed.");
 			}
 
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(LurkingWifeMode));
 				this.RaisePropertyChanged(nameof(LurkingWifeModeText));
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			base.OnOpen();
 		}
 
 		public override bool OnClose()
 		{
-			_disposables.Dispose();
-			_disposables = null;
+			Disposables?.Dispose();
+			Disposables = null;
 
 			return base.OnClose();
 		}

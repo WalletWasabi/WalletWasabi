@@ -1796,7 +1796,7 @@ namespace WalletWasabi.Tests
 				offchainTxId.ToString(),
 			});
 				var coordinatorToTest2 = new CcjCoordinator(network, Global.TrustedNodeNotifyingBehavior, folder, rpc, coordinatorToTest.RoundConfig);
-				coordinatorToTest2.Dispose();
+				coordinatorToTest2?.Dispose();
 				txIds = await File.ReadAllLinesAsync(cjfile);
 				Assert.Single(txIds);
 				Assert.Contains(coinbaseTxId.ToString(), txIds);
@@ -2754,7 +2754,7 @@ namespace WalletWasabi.Tests
 
 			foreach (var aliceClient in aliceClients)
 			{
-				aliceClient.Dispose();
+				aliceClient?.Dispose();
 			}
 		}
 
@@ -2898,7 +2898,7 @@ namespace WalletWasabi.Tests
 			foreach (var request in outputRequests)
 			{
 				await request.Item2;
-				request.Item1.Dispose();
+				request.Item1?.Dispose();
 			}
 
 			var coinjoinRequests = new List<Task<Transaction>>();
@@ -2971,7 +2971,7 @@ namespace WalletWasabi.Tests
 
 			foreach (var aliceClient in aliceClients)
 			{
-				aliceClient.Dispose();
+				aliceClient?.Dispose();
 			}
 		}
 

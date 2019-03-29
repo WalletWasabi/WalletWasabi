@@ -17,6 +17,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class ReceiveTabViewModel : WalletActionViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 		private string _label;
@@ -24,7 +26,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private bool _labelRequiredNotificationVisible;
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
-		private CompositeDisposable _disposables;
 
 		public ReactiveCommand CopyAddress { get; }
 		public ReactiveCommand CopyLabel { get; }
@@ -135,25 +136,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			if (_disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("Receive tab opened before last one was closed.");
 			}
 
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			Observable.FromEventPattern(Global.WalletService.Coins,
 				nameof(Global.WalletService.Coins.CollectionChanged))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(o => InitializeAddresses())
-				.DisposeWith(_disposables);
+				.DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()
 		{
-			_disposables.Dispose();
+			Disposables.Dispose();
 
-			_disposables = null;
+			Disposables = null;
 
 			return base.OnClose();
 		}

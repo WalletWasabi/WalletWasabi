@@ -437,7 +437,7 @@ namespace WalletWasabi.Gui
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
 					Logger.LogInfo($"{nameof(KeyManager)} backup saved to {backupWalletFilePath}.", nameof(Global));
 				}
-				WalletService.Dispose();
+				WalletService?.Dispose();
 				WalletService = null;
 				Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
 			}

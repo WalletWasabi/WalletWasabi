@@ -18,6 +18,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinJoinTabViewModel : WalletActionViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private long _roundId;
 		private int _successfulRoundCount;
 		private CcjRoundPhase _phase;
@@ -38,7 +40,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private const string DequeuingButtonTextString = "Dequeuing coins...";
 		private int _coinJoinUntilAnonimitySet;
 		private TargetPrivacy _targetPrivacy;
-		private CompositeDisposable _disposables;
 
 		public CoinJoinTabViewModel(WalletViewModel walletViewModel)
 			: base("CoinJoin", walletViewModel)
@@ -123,12 +124,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			CoinsList.OnOpen();
 
-			if (_disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("CoinJoin tab opened before previous closed.");
 			}
 
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			TargetPrivacy = GetTargetPrivacy(Global.Config.MixUntilAnonymitySet);
 
@@ -143,7 +144,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(Observable.FromEventPattern(Global.ChaumianClient, nameof(Global.ChaumianClient.StateUpdated)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(_ => UpdateStates())
-				.DisposeWith(_disposables);
+				.DisposeWith(Disposables);
 
 			CcjClientRound mostAdvancedRound = Global.ChaumianClient?.State?.GetMostAdvancedRoundOrDefault();
 
@@ -171,9 +172,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			CoinsList.OnClose();
 
-			_disposables.Dispose();
-
-			_disposables = null;
+			Disposables?.Dispose();
+			Disposables = null;
 
 			return base.OnClose();
 		}
@@ -285,6 +285,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		}
 
 #pragma warning disable CS0618 // Type or member is obsolete
+
 		private void UpdateRequiredBtcLabel(CcjClientRound registrableRound)
 #pragma warning restore CS0618 // Type or member is obsolete
 		{

@@ -81,7 +81,7 @@ namespace WalletWasabi.Gui.Dialogs
 
 		public override void OnOpen()
 		{
-			if(Disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("Dialog opened before it was closed (cannotclose)");
 			}
@@ -97,7 +97,7 @@ namespace WalletWasabi.Gui.Dialogs
 
 		public override void OnClose()
 		{
-			Disposables.Dispose();
+			Disposables?.Dispose();
 			Disposables = null;
 			base.OnClose();
 		}

@@ -14,13 +14,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletInfoViewModel : WalletActionViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private string _password;
 		private string _extendedMasterPrivateKey;
 		private string _extendedMasterZprv;
 		private string _extendedAccountPrivateKey;
 		private string _extendedAccountZprv;
 		private string _warningMessage;
-		private CompositeDisposable _disposables;
 
 		public WalletInfoViewModel(WalletViewModel walletViewModel) : base(walletViewModel.Name, walletViewModel)
 		{
@@ -154,12 +155,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			if (_disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("WalletInfo was opened before it was closed.");
 			}
 
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			Closing = new CancellationTokenSource();
 
@@ -168,9 +169,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				this.RaisePropertyChanged(nameof(EncryptedExtendedMasterPrivateKey));
 				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
 				this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
-			Closing.DisposeWith(_disposables);
+			Closing.DisposeWith(Disposables);
 
 			base.OnOpen();
 		}
@@ -190,8 +191,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public override bool OnClose()
 		{
 			Closing.Cancel();
-			_disposables?.Dispose();
-			_disposables = null;
+			Disposables?.Dispose();
+			Disposables = null;
 
 			ClearSensitiveData(true);
 			return base.OnClose();

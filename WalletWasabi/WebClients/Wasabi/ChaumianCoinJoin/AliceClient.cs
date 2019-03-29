@@ -108,7 +108,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			}
 			catch
 			{
-				client.Dispose();
+				client?.Dispose();
 				throw;
 			}
 		}

@@ -13,11 +13,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class WalletViewModel : WasabiDocumentTabViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private ObservableCollection<WalletActionViewModel> _actions;
 
 		private string _title;
-
-		private CompositeDisposable _disposables;
 
 		public WalletViewModel(WalletService walletService, bool receiveDominant)
 			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
@@ -59,28 +59,28 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnWalletOpened()
 		{
-			if (_disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("Wallet opened before it was closed.");
 			}
 
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(o => SetBalance(Name))
-				.DisposeWith(_disposables);
+				.DisposeWith(Disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
 			{
 				SetBalance(Name);
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 		}
 
 		public void OnWalletClosed()
 		{
-			_disposables?.Dispose();
+			Disposables?.Dispose();
 		}
 
 		public string Name { get; }

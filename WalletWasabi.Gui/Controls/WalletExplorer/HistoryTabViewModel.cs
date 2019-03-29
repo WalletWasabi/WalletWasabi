@@ -13,12 +13,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class HistoryTabViewModel : WalletActionViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
-		private CompositeDisposable _disposables;
 
 		public ReactiveCommand SortCommand { get; }
 
@@ -46,12 +47,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			base.OnOpen();
 
-			if (_disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("Histroy Tab was opened before it was closed.");
 			}
 
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
 				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))
@@ -59,22 +60,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Throttle(TimeSpan.FromSeconds(5))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.Subscribe(async _ => await RewriteTableAsync())
-				.DisposeWith(_disposables);
+				.DisposeWith(Disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
 			{
-				foreach(var transaction in Transactions)
+				foreach (var transaction in Transactions)
 				{
 					transaction.Refresh();
 				}
-
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 		}
 
 		public override bool OnClose()
 		{
-			_disposables.Dispose();
-			_disposables = null;
+			Disposables.Dispose();
+			Disposables = null;
 
 			return base.OnClose();
 		}

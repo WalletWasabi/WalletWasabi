@@ -18,7 +18,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class CoinListViewModel : ViewModelBase
 	{
-		private CompositeDisposable _disposables;
+		private CompositeDisposable Disposables { get; set; }
 
 		public SourceList<CoinViewModel> RootList { get; private set; }
 
@@ -311,7 +311,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void OnOpen()
 		{
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			foreach (var sc in Global.WalletService.Coins.Where(sc => sc.Unspent))
 			{
@@ -335,7 +335,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 									var newCoinVm = new CoinViewModel(this, c);
 									newCoinVm.SubscribeEvents();
 									RootList.Add(newCoinVm);
-
 								}
 								break;
 
@@ -359,8 +358,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						Logging.Logger.LogDebug<Dispatcher>(ex);
 					}
-				}).DisposeWith(_disposables);
-
+				}).DisposeWith(Disposables);
 
 			SetSelections();
 			SetCoinJoinStatusWidth();
@@ -372,7 +370,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			ClearRootList();
 
-			_disposables?.Dispose();
+			Disposables?.Dispose();
 		}
 
 		private void SetSelections()

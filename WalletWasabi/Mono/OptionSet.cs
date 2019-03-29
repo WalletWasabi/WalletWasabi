@@ -477,7 +477,7 @@ namespace Mono.Options
 						yield return c.Current;
 					else
 					{
-						c.Dispose();
+						c?.Dispose();
 						Sources.RemoveAt(Sources.Count - 1);
 					}
 				} while (Sources.Count > 0);

@@ -12,6 +12,8 @@ namespace WalletWasabi.Gui.ViewModels
 {
 	public class AddressViewModel : ViewModelBase, IDisposable
 	{
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+
 		private bool _isExpanded;
 		private bool[,] _qrCode;
 		private bool _clipboardNotificationVisible;
@@ -19,8 +21,6 @@ namespace WalletWasabi.Gui.ViewModels
 		private long _copyNotificationsInprocess = 0;
 
 		public HdPubKey Model { get; }
-
-		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		public AddressViewModel(HdPubKey model)
 		{

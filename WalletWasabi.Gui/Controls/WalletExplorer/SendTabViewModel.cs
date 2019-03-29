@@ -22,6 +22,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class SendTabViewModel : WalletActionViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private string _buildTransactionButtonText;
 		private bool _isMax;
 		private string _maxClear;
@@ -52,7 +54,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 		private FeeDisplayFormat _feeDisplayFormat;
-		private CompositeDisposable _disposables;
 
 		private bool IgnoreAmountChanges { get; set; }
 
@@ -848,12 +849,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override void OnOpen()
 		{
-			if (_disposables != null)
+			if (Disposables != null)
 			{
 				throw new Exception("Send tab opened before last one closed.");
 			}
 
-			_disposables = new CompositeDisposable();
+			Disposables = new CompositeDisposable();
 
 			Global.Synchronizer.WhenAnyValue(x => x.AllFeeEstimate).Subscribe(_ =>
 			{
@@ -869,7 +870,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				SetFeesAndTexts();
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			Global.Synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
 			{
@@ -881,7 +882,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 
 				SetFeesAndTexts();
-			}).DisposeWith(_disposables);
+			}).DisposeWith(Disposables);
 
 			CoinList.OnOpen();
 
@@ -890,9 +891,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public override bool OnClose()
 		{
-			_disposables.Dispose();
+			Disposables.Dispose();
 
-			_disposables = null;
+			Disposables = null;
 
 			CoinList.OnClose();
 

@@ -26,7 +26,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 	public class StatusBarViewModel : ViewModelBase
 	{
-		private CompositeDisposable Disposables { get; }
+		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 
 		private UpdateStatus _updateStatus;
 		private bool _updateAvailable;
@@ -43,8 +43,6 @@ namespace WalletWasabi.Gui.ViewModels
 
 		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
-			Disposables = new CompositeDisposable();
-
 			_clientOutOfDate = 0;
 			_backendIncompatible = 0;
 
