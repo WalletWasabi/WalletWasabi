@@ -68,15 +68,9 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return new RPCClient(Creds, new Uri("http://127.0.0.1:" + _ports[1] + "/"), Network.RegTest);
 		}
 
-		public Node CreateNodeClient()
-		{
-			return Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, _ports[0]));
-		}
+		public async Task<Node> CreateNodeClientAsync() => await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, _ports[0]));
 
-		public Node CreateNodeClient(NodeConnectionParameters parameters)
-		{
-			return Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, _ports[0]), parameters);
-		}
+		public async Task<Node> CreateNodeClientAsync(NodeConnectionParameters parameters) => await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, _ports[0]), parameters);
 
 		public async Task StartAsync()
 		{
@@ -162,9 +156,9 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 		}
 
-		public void BroadcastBlocks(IEnumerable<Block> blocks)
+		public async Task BroadcastBlocksAsync(IEnumerable<Block> blocks)
 		{
-			using (var node = CreateNodeClient())
+			using (var node = await CreateNodeClientAsync())
 			{
 				node.VersionHandshake();
 				BroadcastBlocks(blocks, node);

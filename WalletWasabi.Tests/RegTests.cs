@@ -255,7 +255,7 @@ namespace WalletWasabi.Tests
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
 
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 			node.VersionHandshake();
 
@@ -296,7 +296,6 @@ namespace WalletWasabi.Tests
 			Interlocked.Increment(ref _mempoolTransactionCount);
 			Logger.LogDebug<RegTests>($"Mempool transaction received: {e.GetHash()}.");
 		}
-
 
 		[Fact]
 		public async Task FilterDownloaderTestAsync()
@@ -495,12 +494,12 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
 			memPoolService.TransactionReceived += WalletTestsAsync_MemPoolService_TransactionReceived;
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create wasabi synchronizer service.
@@ -725,11 +724,11 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create wasabi synchronizer service.
@@ -1169,11 +1168,11 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create wasabi synchronizer service.
@@ -1333,11 +1332,11 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create wasabi synchronizer service.
@@ -1498,11 +1497,11 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create wasabi synchronizer service.
@@ -1660,11 +1659,11 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create wasabi synchronizer service.
@@ -3274,18 +3273,18 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			var nodes2 = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes2.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes2.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			var memPoolService2 = new MemPoolService();
-			Node node2 = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node2 = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node2.Behaviors.Add(new MemPoolBehavior(memPoolService2));
 
 			// 3. Create wasabi synchronizer service.

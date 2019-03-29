@@ -142,10 +142,10 @@ namespace WalletWasabi.Gui
 
 			InitializeConfig(config);
 
-			InitializeNoWallet();
+			await InitializeNoWalletAsync();
 		}
 
-		public static void InitializeNoWallet()
+		public static async Task InitializeNoWalletAsync()
 		{
 			WalletService = null;
 			ChaumianClient = null;
@@ -251,10 +251,10 @@ namespace WalletWasabi.Gui
 				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 				try
 				{
-					Node node = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					Node node = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
 					Nodes.ConnectedNodes.Add(node);
 
-					RegTestMemPoolServingNode = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					RegTestMemPoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
 
 					RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
 				}

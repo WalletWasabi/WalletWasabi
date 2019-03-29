@@ -687,7 +687,7 @@ namespace WalletWasabi.Services
 									};
 
 									var localIpEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
-									var localNode = Node.Connect(Network, localIpEndPoint, nodeConnectionParameters);
+									var localNode = await Node.ConnectAsync(Network, localIpEndPoint, nodeConnectionParameters);
 									try
 									{
 										Logger.LogInfo<WalletService>($"TCP Connection succeeded, handshaking...");

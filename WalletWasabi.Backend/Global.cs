@@ -55,7 +55,7 @@ namespace WalletWasabi.Backend
 			await AssertRpcNodeFullyInitializedAsync();
 
 			// Make sure P2P works.
-			InitializeP2p(config.Network, config.GetBitcoinCoreEndPoint());
+			await InitializeP2pAsync(config.Network, config.GetBitcoinCoreEndPoint());
 
 			// Initialize index building
 			var indexBuilderServiceDir = Path.Combine(DataDir, nameof(IndexBuilderService));
@@ -129,7 +129,7 @@ namespace WalletWasabi.Backend
 			}
 		}
 
-		private static void InitializeP2p(Network network, IPEndPoint iPEndPoint)
+		private static async Task InitializeP2pAsync(Network network, IPEndPoint iPEndPoint)
 		{
 			Guard.NotNull(nameof(network), network);
 			Guard.NotNull(nameof(iPEndPoint), iPEndPoint);
@@ -144,7 +144,7 @@ namespace WalletWasabi.Backend
 				};
 
 				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
-				var node = Node.Connect(network, iPEndPoint, nodeConnectionParameters);
+				var node = await Node.ConnectAsync(network, iPEndPoint, nodeConnectionParameters);
 				// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 				TrustedNodeNotifyingBehavior = node.Behaviors.Find<TrustedNodeNotifyingBehavior>();
 				try
