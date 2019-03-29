@@ -38,14 +38,9 @@ namespace WalletWasabi.Gui.ViewModels
 		private int _blocksLeft;
 		private string _btcPrice;
 		private string _status;
-		private long _clientOutOfDate;
-		private long _backendIncompatible;
 
 		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
-			_clientOutOfDate = 0;
-			_backendIncompatible = 0;
-
 			UpdateStatus = UpdateStatus.Latest;
 			Peers = nodes.Count;
 			BlocksLeft = 0;
@@ -125,6 +120,11 @@ namespace WalletWasabi.Gui.ViewModels
 				SetStatusAndDoUpdateActions();
 			});
 
+			this.WhenAnyValue(x => x.UpdateStatus).Subscribe(_ =>
+			{
+				SetStatusAndDoUpdateActions();
+			});
+
 			UpdateCommand = ReactiveCommand.Create(() =>
 			{
 				try
@@ -141,20 +141,15 @@ namespace WalletWasabi.Gui.ViewModels
 			updateChecker.Start(TimeSpan.FromMinutes(7),
 				() =>
 				{
-					Interlocked.Exchange(ref _backendIncompatible, 1);
-					Dispatcher.UIThread.PostLogException(() =>
-					{
-						SetStatusAndDoUpdateActions();
-					});
+					UpdateStatus = UpdateStatus.Critical;
 					return Task.CompletedTask;
 				},
 				() =>
 				{
-					Interlocked.Exchange(ref _clientOutOfDate, 1);
-					Dispatcher.UIThread.PostLogException(() =>
+					if (UpdateStatus != UpdateStatus.Critical)
 					{
-						SetStatusAndDoUpdateActions();
-					});
+						UpdateStatus = UpdateStatus.Optional;
+					}
 					return Task.CompletedTask;
 				});
 		}
@@ -278,15 +273,13 @@ namespace WalletWasabi.Gui.ViewModels
 
 		private void SetStatusAndDoUpdateActions()
 		{
-			if (Interlocked.Read(ref _backendIncompatible) != 0)
+			if (UpdateStatus == UpdateStatus.Critical)
 			{
 				Status = "THE BACKEND WAS UPGRADED WITH BREAKING CHANGES - PLEASE UPDATE YOUR SOFTWARE";
-				UpdateStatus = UpdateStatus.Critical;
 			}
-			else if (Interlocked.Read(ref _clientOutOfDate) != 0)
+			else if (UpdateStatus == UpdateStatus.Optional)
 			{
 				Status = "New Version Is Available";
-				UpdateStatus = UpdateStatus.Optional;
 			}
 			else if (Tor != TorStatus.Running || Backend != BackendStatus.Connected || Peers < 1)
 			{
