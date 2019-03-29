@@ -1295,15 +1295,13 @@ namespace WalletWasabi.Services
 				{
 					return;
 				}
-				if (Interlocked.Read(ref _refreshCoinCalls) == 1) //it is running but now we will rerun if finished
+				if (Interlocked.CompareExchange(ref _refreshCoinCalls, 2, 1) == 1) //it is running but now we will rerun if finished
 				{
-					Interlocked.Increment(ref _refreshCoinCalls);
 					return;
 				}
-				if (Interlocked.Read(ref _refreshCoinCalls) == 0) //it is not running so we start the work
-				{
-					Interlocked.Increment(ref _refreshCoinCalls);
-				}
+
+				Interlocked.CompareExchange(ref _refreshCoinCalls, 1, 0); //it is not running so we start the work
+
 				var unspentCoins = Coins.Where(c => c.Unspent && !c.IsDust); //refreshing unspent coins clusters only
 				if (unspentCoins.Any())
 				{
@@ -1319,17 +1317,15 @@ namespace WalletWasabi.Services
 						coin.SetClusters(result);
 					}));
 				}
-				if (Interlocked.Read(ref _refreshCoinCalls) == 2) //scheduled to rerun so we start the work again
+
+				if (Interlocked.CompareExchange(ref _refreshCoinCalls, 0, 2) == 2) //scheduled to rerun so we start the work again
 				{
-					Interlocked.Exchange(ref _refreshCoinCalls, 0);
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 					RefreshCoinsHistoriesAsync();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 				}
-				if (Interlocked.Read(ref _refreshCoinCalls) == 1) //done with the job
-				{
-					Interlocked.Exchange(ref _refreshCoinCalls, 0);
-				}
+
+				Interlocked.CompareExchange(ref _refreshCoinCalls, 0, 1); //done with the job
 			}
 			catch (Exception ex)
 			{
