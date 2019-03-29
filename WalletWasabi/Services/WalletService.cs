@@ -287,22 +287,23 @@ namespace WalletWasabi.Services
 							File.Delete(TransactionsFilePath);
 						}
 
-						if (transactions is null || !transactions.Any()) return;
-
-						using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+						if (transactions != null && transactions.Any())
 						{
-							var mempoolHashes = await client.GetMempoolHashesAsync();
-							var mempoolSet = mempoolHashes.ToHashSet();
-
-							foreach (var tx in transactions)
+							using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 							{
-								if (mempoolSet.Contains(tx.GetHash()))
-								{
-									tx.SetHeight(Height.MemPool);
-									ProcessTransaction(tx);
-									MemPool.TransactionHashes.TryAdd(tx.GetHash());
+								var mempoolHashes = await client.GetMempoolHashesAsync();
+								var mempoolSet = mempoolHashes.ToHashSet();
 
-									Logger.LogInfo<WalletService>($"Transaction is tested against the backend's transaction hahses set: {tx.GetHash()}.");
+								foreach (var tx in transactions)
+								{
+									if (mempoolSet.Contains(tx.GetHash()))
+									{
+										tx.SetHeight(Height.MemPool);
+										ProcessTransaction(tx);
+										MemPool.TransactionHashes.TryAdd(tx.GetHash());
+
+										Logger.LogInfo<WalletService>($"Transaction is tested against the backend's transaction hahses set: {tx.GetHash()}.");
+									}
 								}
 							}
 						}
