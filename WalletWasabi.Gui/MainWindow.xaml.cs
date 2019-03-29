@@ -47,17 +47,16 @@ namespace WalletWasabi.Gui
 			AvaloniaXamlLoader.Load(this);
 		}
 
-		private long _closingState;
+		private int _closingState;
 
 		private async void MainWindow_ClosingAsync(object sender, CancelEventArgs e)
 		{
 			try
 			{
 				e.Cancel = true;
-				switch (Interlocked.Read(ref _closingState))
+				switch (Interlocked.CompareExchange(ref _closingState, 1, 0))
 				{
 					case 0:
-						Interlocked.Increment(ref _closingState);
 						await ClosingAsync();
 						break;
 
