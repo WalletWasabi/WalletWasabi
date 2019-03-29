@@ -313,12 +313,9 @@ namespace WalletWasabi.Gui
 
 		private static void ToastNotifycation(object sender, Notification e)
 		{		
-			//if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.OSDescription.StartsWith("Microsoft Windows 10"))
-			//{
-			//	// It's harder than you'd think. Maybe the best would be to wait for .NET Core 3 for WPF things on Windows?
-			//}
-			if(!e.Unattended) return;
-
+			if (!e.Unattended || RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				return;
+				
 			var filename = string.Empty;
 			var arguments= string.Empty;
 			if(RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
