@@ -149,7 +149,7 @@ namespace WalletWasabi.Services
 
 		private void Coins_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			RefreshCoinsHistories();
+			RefreshCoinHistories();
 		}
 
 		private static object TransactionProcessingLock { get; } = new object();
@@ -313,7 +313,7 @@ namespace WalletWasabi.Services
 				}
 			}
 			Coins.CollectionChanged += Coins_CollectionChanged;
-			RefreshCoinsHistories();
+			RefreshCoinHistories();
 		}
 
 		private async Task ProcessFilterModelAsync(FilterModel filterModel, CancellationToken cancel)
@@ -1282,23 +1282,20 @@ namespace WalletWasabi.Services
 				.Distinct();
 		}
 
-		private long _refreshCoinCalls;
+		private int _refreshCoinHistoriesRerunRequested = 0;
+		private int _refreshCoinHistoriesRunning = 0;
 
-		public void RefreshCoinsHistories()
+		public void RefreshCoinHistories()
 		{
+			// If already running, then make sure another run is requested, else do the work.
+			if (Interlocked.CompareExchange(ref _refreshCoinHistoriesRunning, 1, 0) == 1)
+			{
+				Interlocked.Exchange(ref _refreshCoinHistoriesRerunRequested, 1);
+				return;
+			}
+
 			try
 			{
-				// 0: It is not running so we start the work.
-				// 1: It is running but now we will rerun if finished.
-				// 2: It is running and scheduled to rerun after finished.
-				var prevVal = Interlocked.CompareExchange(ref _refreshCoinCalls, 2, 1);
-				if (prevVal > 0)
-				{
-					return;
-				}
-
-				Interlocked.CompareExchange(ref _refreshCoinCalls, 1, 0);
-
 				var unspentCoins = Coins.Where(c => c.Unspent && !c.IsDust); //refreshing unspent coins clusters only
 				if (unspentCoins.Any())
 				{
@@ -1314,18 +1311,21 @@ namespace WalletWasabi.Services
 						coin.SetClusters(result);
 					});
 				}
-
-				if (Interlocked.CompareExchange(ref _refreshCoinCalls, 0, 2) == 2) //scheduled to rerun so we start the work again
-				{
-					RefreshCoinsHistories();
-				}
-
-				Interlocked.CompareExchange(ref _refreshCoinCalls, 0, 1); //done with the job
 			}
 			catch (Exception ex)
 			{
-				Interlocked.Exchange(ref _refreshCoinCalls, 0);
 				Logger.LogError<WalletService>($"Refreshing coin clusters failed: {ex}");
+			}
+			finally
+			{
+				// It's not running anymore, but someone may requested another run.
+				Interlocked.Exchange(ref _refreshCoinHistoriesRunning, 0);
+
+				// Clear the rerun request, too and if it was requested, then rerun.
+				if (Interlocked.Exchange(ref _refreshCoinHistoriesRerunRequested, 0) == 1)
+				{
+					RefreshCoinHistories();
+				}
 			}
 		}
 
