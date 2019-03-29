@@ -140,8 +140,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		{
 			try
 			{
-				Interlocked.Increment(ref RoundCount);
-				RoundId = Interlocked.Read(ref RoundCount);
+				RoundId = Interlocked.Increment(ref RoundCount);
 
 				RpcClient = Guard.NotNull(nameof(rpc), rpc);
 				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);

@@ -24,7 +24,7 @@ namespace WalletWasabi.Logging
 
 		public static string FileEntryEncryptionPassword { get; private set; } = null;
 
-		private static long _loggerFailed = 0;
+		private static int _loggingFailedCount = 0;
 
 		private static readonly object Lock = new object();
 
@@ -208,13 +208,13 @@ namespace WalletWasabi.Logging
 			}
 			catch (Exception ex)
 			{
-				Interlocked.Increment(ref _loggerFailed);
-				if (Interlocked.Read(ref _loggerFailed) > 1)
+				if (Interlocked.Increment(ref _loggingFailedCount) == 1) // If it only failed the first time, try log the failure.
 				{
-					Interlocked.Exchange(ref _loggerFailed, 0);
-					return;
+					LogDebug($"Logging failed: {ex}", $"{nameof(Logger)}.{nameof(Logging)}.{nameof(Logger)}");
 				}
-				LogDebug($"Logging failed: {ex}", $"{nameof(Logger)}.{nameof(Logging)}.{nameof(Logger)}");
+				// If logging the failure is successful then clear the failure counter.
+				// If it's not the first time the logging failed, then we don't try to log logging failure, so clear the failure counter.
+				Interlocked.Exchange(ref _loggingFailedCount, 0);
 			}
 		}
 

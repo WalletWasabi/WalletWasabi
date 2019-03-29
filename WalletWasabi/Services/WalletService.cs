@@ -774,8 +774,7 @@ namespace WalletWasabi.Services
 
 						try
 						{
-							Interlocked.Increment(ref _concurrentBlockDownload);
-							ConcurrentBlockDownloadNumberChanged?.Invoke(this, _concurrentBlockDownload);
+							ConcurrentBlockDownloadNumberChanged?.Invoke(this, Interlocked.Increment(ref _concurrentBlockDownload));
 
 							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
 							{
@@ -823,8 +822,8 @@ namespace WalletWasabi.Services
 						}
 						finally
 						{
-							Interlocked.Decrement(ref _concurrentBlockDownload);
-							ConcurrentBlockDownloadNumberChanged?.Invoke(this, _concurrentBlockDownload);
+							var concurrentBlockDownload = Interlocked.Decrement(ref _concurrentBlockDownload);
+							ConcurrentBlockDownloadNumberChanged?.Invoke(this, concurrentBlockDownload);
 						}
 
 						break; // If got this far break, then we have the block, it's valid. Break.

@@ -167,8 +167,7 @@ namespace WalletWasabi.Tests
 		private void ConnectedNodes_Added(object sender, NodeEventArgs e)
 		{
 			var nodes = sender as NodesCollection;
-			Interlocked.Increment(ref _nodeCount);
-			if (Interlocked.Read(ref _nodeCount) == 8)
+			if (Interlocked.Increment(ref _nodeCount) == 8)
 			{
 				Logger.LogTrace<P2pTests>($"Max node count reached: {Interlocked.Read(ref _nodeCount)}.");
 			}
@@ -179,9 +178,9 @@ namespace WalletWasabi.Tests
 		private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
 		{
 			var nodes = sender as NodesCollection;
-			Interlocked.Decrement(ref _nodeCount);
+			var nodeCount = Interlocked.Decrement(ref _nodeCount);
 			// Trace is fine here, building the connections is more exciting than removing them.
-			Logger.LogTrace<P2pTests>($"Node count: {Interlocked.Read(ref _nodeCount)}.");
+			Logger.LogTrace<P2pTests>($"Node count: {nodeCount}.");
 		}
 
 		private long _mempoolTransactionCount = 0;
