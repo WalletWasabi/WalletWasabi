@@ -8,6 +8,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -79,34 +80,41 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		private async Task RewriteTableAsync()
 		{
-			var txRecordList = await Task.Run(() =>
+			try
 			{
-				return BuildTxRecordList();
-			});
-
-			var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
-			Transactions?.Clear();
-
-			var trs = txRecordList.Select(txr => new TransactionInfo
-			{
-				DateTime = txr.dateTime.ToLocalTime(),
-				Confirmed = txr.height != WalletWasabi.Models.Height.MemPool && txr.height != WalletWasabi.Models.Height.Unknown,
-				AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
-				Label = txr.label,
-				TransactionId = txr.transactionId.ToString()
-			}).Select(ti => new TransactionViewModel(ti));
-
-			Transactions = new ObservableCollection<TransactionViewModel>(trs);
-
-			if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
-			{
-				var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
-				if (txToSelect != default)
+				var txRecordList = await Task.Run(() =>
 				{
-					SelectedTransaction = txToSelect;
+					return BuildTxRecordList();
+				});
+
+				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
+				Transactions?.Clear();
+
+				var trs = txRecordList.Select(txr => new TransactionInfo
+				{
+					DateTime = txr.dateTime.ToLocalTime(),
+					Confirmed = txr.height != WalletWasabi.Models.Height.MemPool && txr.height != WalletWasabi.Models.Height.Unknown,
+					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
+					Label = txr.label,
+					TransactionId = txr.transactionId.ToString()
+				}).Select(ti => new TransactionViewModel(ti));
+
+				Transactions = new ObservableCollection<TransactionViewModel>(trs);
+
+				if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
+				{
+					var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
+					if (txToSelect != default)
+					{
+						SelectedTransaction = txToSelect;
+					}
 				}
+				RefreshOrdering();
 			}
-			RefreshOrdering();
+			catch (Exception ex)
+			{
+				Logger.LogError<HistoryTabViewModel>($"Error while RewriteTable on HistoryTab:  {ex}.");
+			}
 		}
 
 		private static List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
@@ -122,7 +130,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					break;
 				}
 
-				SmartTransaction foundTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.TransactionId);
+				SmartTransaction foundTransaction = Global.WalletService.TransactionCache.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
+				if (foundTransaction is null)
+				{
+					continue;
+				}
+
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
 				{
