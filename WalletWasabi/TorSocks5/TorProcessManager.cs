@@ -293,15 +293,9 @@ namespace WalletWasabi.TorSocks5
 								}
 							}
 						}
-						catch (TaskCanceledException ex)
-						{
-							Logger.LogTrace<TorProcessManager>(ex);
-						}
-						catch (OperationCanceledException ex)
-						{
-							Logger.LogTrace<TorProcessManager>(ex);
-						}
-						catch (TimeoutException ex)
+						catch (Exception ex) when (ex is OperationCanceledException
+												|| ex is TaskCanceledException
+												|| ex is TimeoutException)
 						{
 							Logger.LogTrace<TorProcessManager>(ex);
 						}

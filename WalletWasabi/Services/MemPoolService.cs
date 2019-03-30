@@ -102,19 +102,16 @@ namespace WalletWasabi.Services
 						allTxs.UnionWith(txs);
 						if (cancel.IsCancellationRequested) return false;
 					}
+					catch (Exception ex) when ((ex is InvalidOperationException && ex.Message.StartsWith("The node is not in a connected state", StringComparison.InvariantCultureIgnoreCase))
+											|| ex is OperationCanceledException
+											|| ex is TaskCanceledException
+											|| ex is TimeoutException)
+					{
+						Logger.LogTrace<MemPoolService>(ex);
+					}
 					catch (Exception ex)
 					{
-						if ((ex is InvalidOperationException && ex.Message.StartsWith("The node is not in a connected state", StringComparison.InvariantCultureIgnoreCase))
-							|| ex is OperationCanceledException
-							|| ex is TaskCanceledException
-							|| ex is TimeoutException)
-						{
-							Logger.LogTrace<MemPoolService>(ex);
-						}
-						else
-						{
-							Logger.LogDebug<MemPoolService>(ex);
-						}
+						Logger.LogDebug<MemPoolService>(ex);
 					}
 				}
 
@@ -127,18 +124,15 @@ namespace WalletWasabi.Services
 
 				return true;
 			}
+			catch (Exception ex) when (ex is OperationCanceledException
+									|| ex is TaskCanceledException
+									|| ex is TimeoutException)
+			{
+				Logger.LogTrace<MemPoolService>(ex);
+			}
 			catch (Exception ex)
 			{
-				if (ex is OperationCanceledException
-					|| ex is TaskCanceledException
-					|| ex is TimeoutException)
-				{
-					Logger.LogTrace<MemPoolService>(ex);
-				}
-				else
-				{
-					Logger.LogDebug<MemPoolService>(ex);
-				}
+				Logger.LogDebug<MemPoolService>(ex);
 			}
 			finally
 			{
