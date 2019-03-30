@@ -42,9 +42,6 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							// If stop was requested return.
-							if (!IsRunning) return;
-
 							await Task.Delay(period, Stop.Token);
 
 							if (await Config.CheckFileChangeAsync())

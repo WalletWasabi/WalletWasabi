@@ -257,9 +257,6 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							// If stop was requested return.
-							if (!IsRunning) return;
-
 							while (AreRequestsBlocked())
 							{
 								await Task.Delay(3000, Cancel.Token);
@@ -277,6 +274,8 @@ namespace WalletWasabi.Services
 							SynchronizeResponse response;
 							try
 							{
+								if (!IsRunning) return;
+								
 								response = await WasabiClient.GetSynchronizeAsync(BestKnownFilter.BlockHash, maxFiltersToSyncAtInitialization, estimateMode, Cancel.Token).WithAwaitCancellationAsync(Cancel.Token, 300);
 								// NOT GenSocksServErr
 								BackendStatus = BackendStatus.Connected;
@@ -390,28 +389,27 @@ namespace WalletWasabi.Services
 							LastResponse = response;
 							ResponseArrived?.Invoke(this, response);
 						}
+						catch (ConnectionException ex)
+						{
+							Logger.LogError<CcjClient>(ex);
+							try
+							{
+								await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
+							}
+							catch (TaskCanceledException ex2)
+							{
+								Logger.LogTrace<CcjClient>(ex2);
+							}
+						}
+						catch (Exception ex) when (ex is OperationCanceledException
+												|| ex is TaskCanceledException
+												|| ex is TimeoutException)
+						{
+							Logger.LogTrace<WasabiSynchronizer>(ex);
+						}
 						catch (Exception ex)
 						{
-							if (ex is ConnectionException)
-							{
-								Logger.LogError<CcjClient>(ex);
-								try
-								{
-									await Task.Delay(3000, Cancel.Token); // Give other threads time to do stuff.
-								}
-								catch (TaskCanceledException ex2)
-								{
-									Logger.LogTrace<CcjClient>(ex2);
-								}
-							}
-							else if (ex is TaskCanceledException || ex is OperationCanceledException || ex is TimeoutException)
-							{
-								Logger.LogTrace<WasabiSynchronizer>(ex);
-							}
-							else
-							{
-								Logger.LogError<WasabiSynchronizer>(ex);
-							}
+							Logger.LogError<WasabiSynchronizer>(ex);
 						}
 						finally
 						{

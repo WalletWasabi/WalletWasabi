@@ -2,6 +2,7 @@
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -86,14 +87,21 @@ namespace WalletWasabi.Tests.NodeBuilding
 				{"regtest.whitebind", "127.0.0.1:" + _ports[0].ToString()},
 				{"regtest.rpcport", _ports[1].ToString()},
 				{"regtest.printtoconsole", "0"}, // Set it to one if don't mind loud debug logs
-				{"regtest.keypool", "10"}
+				{"regtest.keypool", "10"},
+				{"regtest.pid", "bitcoind.pid"}
 			};
 			config.Import(ConfigParameters);
 			File.WriteAllText(Config, config.ToString());
-			lock (_l)
+			using (await _l.LockAsync())
 			{
 				_process = Process.Start(new FileInfo(_Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
 				State = CoreNodeState.Starting;
+				string pidFile = Path.Combine(DataDir, "regtest", "bitcoind.pid");
+				if (!File.Exists(pidFile))
+				{
+					Directory.CreateDirectory(Path.Combine(DataDir, "regtest"));
+					File.WriteAllText(pidFile, _process.Id.ToString());
+				}
 			}
 			while (true)
 			{
@@ -137,22 +145,28 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 		}
 
-		private readonly object _l = new object();
+		private readonly AsyncLock _l = new AsyncLock();
 
-		public void Kill(bool cleanFolder = true)
+		public async Task KillAsync(bool cleanFolder = true)
 		{
-			lock (_l)
+			using (await _l.LockAsync())
 			{
-				if (_process != null && !_process.HasExited)
+				try
 				{
-					_process.Kill();
-					_process.WaitForExit();
+					await CreateRpcClient().StopAsync();
+					if (!_process.WaitForExit(20000))
+					{
+						//log this
+					}
 				}
+				catch (Exception)
+				{ }
+
 				State = CoreNodeState.Killed;
-				if (cleanFolder)
-				{
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder).GetAwaiter().GetResult();
-				}
+			}
+			if (cleanFolder)
+			{
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder);
 			}
 		}
 

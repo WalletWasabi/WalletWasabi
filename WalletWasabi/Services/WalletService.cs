@@ -794,13 +794,9 @@ namespace WalletWasabi.Services
 								node.DisconnectAsync("Thank you!");
 							}
 						}
-						catch (TimeoutException)
-						{
-							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
-							node.DisconnectAsync("Block download took too long.");
-							continue;
-						}
-						catch (OperationCanceledException)
+						catch (Exception ex) when (ex is OperationCanceledException
+												|| ex is TaskCanceledException
+												|| ex is TimeoutException)
 						{
 							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
 							node.DisconnectAsync("Block download took too long.");

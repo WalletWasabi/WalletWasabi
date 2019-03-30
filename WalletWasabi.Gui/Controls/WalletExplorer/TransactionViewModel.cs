@@ -15,7 +15,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private TransactionInfo _model;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
-		private long _copyNotificationsInprocess = 0;
 
 		public TransactionViewModel(TransactionInfo model)
 		{
@@ -24,7 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ClipboardNotificationOpacity = 0;
 		}
 
-		public void Refresh ()
+		public void Refresh()
 		{
 			this.RaisePropertyChanged(nameof(AmountBtc));
 			this.RaisePropertyChanged(nameof(TransactionId));
@@ -55,34 +54,47 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
-		public void CopyToClipboard()
+		public CancellationTokenSource CancelClipboardNotification { get; set; }
+
+		public async Task TryCopyTxIdToClipboardAsync()
 		{
-			Application.Current.Clipboard.SetTextAsync(TransactionId).GetAwaiter().GetResult();
-
-			Interlocked.Increment(ref _copyNotificationsInprocess);
-			ClipboardNotificationVisible = true;
-			ClipboardNotificationOpacity = 1;
-
-			Dispatcher.UIThread.PostLogException(async () =>
+			try
 			{
-				try
+				CancelClipboardNotification?.Cancel();
+				while (CancelClipboardNotification != null)
 				{
-					await Task.Delay(1000);
-					if (Interlocked.Read(ref _copyNotificationsInprocess) <= 1)
-					{
-						ClipboardNotificationOpacity = 0;
-						await Task.Delay(1000);
-						if (Interlocked.Read(ref _copyNotificationsInprocess) <= 1)
-						{
-							ClipboardNotificationVisible = false;
-						}
-					}
+					await Task.Delay(50);
 				}
-				finally
-				{
-					Interlocked.Decrement(ref _copyNotificationsInprocess);
-				}
-			});
+				CancelClipboardNotification = new CancellationTokenSource();
+
+				var cancelToken = CancelClipboardNotification.Token;
+
+				await Application.Current.Clipboard.SetTextAsync(TransactionId);
+				cancelToken.ThrowIfCancellationRequested();
+
+				ClipboardNotificationVisible = true;
+				ClipboardNotificationOpacity = 1;
+
+				await Task.Delay(1000, cancelToken);
+				ClipboardNotificationOpacity = 0;
+				await Task.Delay(1000, cancelToken);
+				ClipboardNotificationVisible = false;
+			}
+			catch (Exception ex) when (ex is OperationCanceledException
+									|| ex is TaskCanceledException
+									|| ex is TimeoutException)
+			{
+				Logging.Logger.LogTrace<AddressViewModel>(ex);
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<AddressViewModel>(ex);
+			}
+			finally
+			{
+				CancelClipboardNotification?.Dispose();
+				CancelClipboardNotification = null;
+			}
 		}
 	}
 }
