@@ -4,6 +4,7 @@ using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Models.ChaumianCoinJoin;
@@ -205,9 +206,9 @@ namespace NBitcoin
 			return Encoders.Base58Check.EncodeData(version.Concat(data).ToArray());
 		}
 
-		public static void Stop(this RPCClient rpc)
+		public static async Task StopAsync(this RPCClient rpc)
 		{
-			rpc.SendCommand("stop");
+			await rpc.SendCommandAsync("stop");
 		}
 	}
 }

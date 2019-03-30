@@ -2,6 +2,7 @@
 using NBitcoin.DataEncoders;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -91,7 +92,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			};
 			config.Import(ConfigParameters);
 			File.WriteAllText(Config, config.ToString());
-			lock (_l)
+			using (await _l.LockAsync())
 			{
 				_process = Process.Start(new FileInfo(_Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
 				State = CoreNodeState.Starting;
@@ -144,15 +145,15 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 		}
 
-		private readonly object _l = new object();
+		private readonly AsyncLock _l = new AsyncLock();
 
-		public void Kill(bool cleanFolder = true)
+		public async Task KillAsync(bool cleanFolder = true)
 		{
-			lock (_l)
+			using (await _l.LockAsync())
 			{
 				try
 				{
-					CreateRpcClient().Stop();
+					await CreateRpcClient().StopAsync();
 					if (!_process.WaitForExit(20000))
 					{
 						//log this
@@ -165,7 +166,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 			if (cleanFolder)
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder).GetAwaiter().GetResult();
+				await IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder);
 			}
 		}
 
