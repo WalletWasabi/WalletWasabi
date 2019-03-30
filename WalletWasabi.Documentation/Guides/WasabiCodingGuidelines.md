@@ -208,6 +208,18 @@ Reactive command is on the same object that is subscribing, so GC will handle ev
 So no memory leak here.
 [See this comment from the author of RxUI...](https://github.com/reactiveui/ReactiveUI/issues/20#issuecomment-1324201)
 
+## AsyncLock
+
+Use awaitable locks if possible. The library `Nito.AsyncEx` contains tools to do this.
+
+```c#
+	private readonly AsyncLock _myLock = new AsyncLock();
+
+	using (await _myLock.LockAsync())
+	{
+
+	}
+```
 
 ## !!!WANTED!!! 10000 Dollar Reward Dead or Alive! 
 
@@ -256,3 +268,8 @@ DO NOT use [async void Method()](https://msdn.microsoft.com/en-us/magazine/jj991
 	}
 ```
 
+DO NOT block with `.Result, .Wait(), .GetAwaiter().GetResult()` unless they are absolutely necessary.
+
+```c#
+	IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder).GetAwaiter().GetResult();
+```
