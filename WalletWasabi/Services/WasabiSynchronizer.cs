@@ -257,9 +257,6 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							// If stop was requested return.
-							if (!IsRunning) return;
-
 							while (AreRequestsBlocked())
 							{
 								await Task.Delay(3000, Cancel.Token);

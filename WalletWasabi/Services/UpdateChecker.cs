@@ -40,9 +40,6 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							// If stop was requested return.
-							if (!IsRunning) return;
-
 							(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
 
 							if (!updates.backendCompatible)

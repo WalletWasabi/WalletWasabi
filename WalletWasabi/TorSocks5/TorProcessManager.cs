@@ -257,9 +257,6 @@ namespace WalletWasabi.TorSocks5
 					{
 						try
 						{
-							// If stop was requested return.
-							if (!IsRunning) return;
-
 							await Task.Delay(torMisbehaviorCheckPeriod, Stop.Token).ConfigureAwait(false);
 
 							if (TorHttpClient.TorDoesntWorkSince != null) // If Tor misbehaves.
