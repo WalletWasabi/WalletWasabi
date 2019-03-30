@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using NBitcoin;
 using System;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
 using WalletWasabi.Logging;
@@ -53,9 +54,9 @@ namespace WalletWasabi.Tests.XunitConfiguration
 		{
 			// Cleanup tests...
 
-			BackendHost?.StopAsync();
+			BackendHost?.StopAsync().GetAwaiter().GetResult();
 			BackendHost?.Dispose();
-			BackendRegTestNode?.Kill(cleanFolder: true);
+			BackendRegTestNode?.KillAsync(cleanFolder: true).GetAwaiter().GetResult();
 			BackendNodeBuilder?.Dispose();
 		}
 	}

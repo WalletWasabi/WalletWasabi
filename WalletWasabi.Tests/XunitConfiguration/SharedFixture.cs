@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using WalletWasabi.Backend;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
