@@ -18,7 +18,6 @@ namespace WalletWasabi.Gui.ViewModels
 		private bool[,] _qrCode;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
-		private long _copyNotificationsInprocess = 0;
 
 		public HdPubKey Model { get; }
 
@@ -83,37 +82,45 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 
+		public CancellationTokenSource CancelClipboardNotification { get; set; }
+
 		public async Task TryCopyToClipboardAsync()
 		{
 			try
 			{
-				await Application.Current.Clipboard.SetTextAsync(Address);
+				CancelClipboardNotification?.Cancel();
+				while (CancelClipboardNotification != null)
+				{
+					await Task.Delay(50);
+				}
+				CancelClipboardNotification = new CancellationTokenSource();
 
-				Interlocked.Increment(ref _copyNotificationsInprocess);
+				var cancelToken = CancelClipboardNotification.Token;
+
+				await Application.Current.Clipboard.SetTextAsync(Address);
+				cancelToken.ThrowIfCancellationRequested();
+
 				ClipboardNotificationVisible = true;
 				ClipboardNotificationOpacity = 1;
 
-				try
-				{
-					await Task.Delay(1000);
-					if (Interlocked.Read(ref _copyNotificationsInprocess) <= 1)
-					{
-						ClipboardNotificationOpacity = 0;
-						await Task.Delay(1000);
-						if (Interlocked.Read(ref _copyNotificationsInprocess) <= 1)
-						{
-							ClipboardNotificationVisible = false;
-						}
-					}
-				}
-				finally
-				{
-					Interlocked.Decrement(ref _copyNotificationsInprocess);
-				}
+				await Task.Delay(1000, cancelToken);
+				ClipboardNotificationOpacity = 0;
+				await Task.Delay(1000, cancelToken);
+				ClipboardNotificationVisible = false;
 			}
 			catch (Exception ex)
 			{
+				if (ex is OperationCanceledException || ex is TaskCanceledException)
+				{
+					return;
+				}
+
 				Logging.Logger.LogWarning<AddressViewModel>(ex);
+			}
+			finally
+			{
+				CancelClipboardNotification?.Dispose();
+				CancelClipboardNotification = null;
 			}
 		}
 
