@@ -129,6 +129,27 @@ namespace WalletWasabi.Backend.Controllers
 			return Ok(estimation.Estimations);
 		}
 
+		/// <summary>
+		/// Gets mempool hashes.
+		/// </summary>
+		/// <returns>A collection of transaction hashes.</returns>
+		/// <response code="200">A collection of transaction hashes.</response>
+		/// <response code="404">Invalid model state.</response>
+		[HttpGet("mempool-hashes")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(404)]
+		public async Task<IActionResult> GetMempoolHashesAsync()
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest("Invalid model state.");
+			}
+
+			var transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+
+			return Ok(transactionHashes.Select(x => x.ToString()));
+		}
+
 		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
 		{
 			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";

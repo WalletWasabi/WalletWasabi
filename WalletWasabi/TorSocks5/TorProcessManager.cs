@@ -257,9 +257,6 @@ namespace WalletWasabi.TorSocks5
 					{
 						try
 						{
-							// If stop was requested return.
-							if (IsRunning == false) return;
-
 							await Task.Delay(torMisbehaviorCheckPeriod, Stop.Token).ConfigureAwait(false);
 
 							if (TorHttpClient.TorDoesntWorkSince != null) // If Tor misbehaves.
@@ -296,15 +293,9 @@ namespace WalletWasabi.TorSocks5
 								}
 							}
 						}
-						catch (TaskCanceledException ex)
-						{
-							Logger.LogTrace<TorProcessManager>(ex);
-						}
-						catch (OperationCanceledException ex)
-						{
-							Logger.LogTrace<TorProcessManager>(ex);
-						}
-						catch (TimeoutException ex)
+						catch (Exception ex) when (ex is OperationCanceledException
+												|| ex is TaskCanceledException
+												|| ex is TimeoutException)
 						{
 							Logger.LogTrace<TorProcessManager>(ex);
 						}
@@ -316,10 +307,7 @@ namespace WalletWasabi.TorSocks5
 				}
 				finally
 				{
-					if (IsStopping)
-					{
-						Interlocked.Exchange(ref _running, 3);
-					}
+					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
 				}
 			});
 		}
@@ -334,10 +322,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				if (disposing)
 				{
-					if (IsRunning)
-					{
-						Interlocked.Exchange(ref _running, 2);
-					}
+					Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 
 					if (TorSocks5EndPoint == null) Interlocked.Exchange(ref _running, 3);
 

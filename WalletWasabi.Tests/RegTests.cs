@@ -82,7 +82,7 @@ namespace WalletWasabi.Tests
 			Global.Coordinator.UtxoReferee.Clear();
 
 			var network = Global.RpcClient.Network;
-			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort));
+			var serviceConfiguration = new ServiceConfiguration(2, 2, 21, 50, RegTestFixture.BackendRegTestNode.Endpoint);
 			return ("password", Global.RpcClient, network, Global.Coordinator, serviceConfiguration);
 		}
 
@@ -163,7 +163,7 @@ namespace WalletWasabi.Tests
 			var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
 			var utxoSetFilePath = Path.Combine(indexBuilderServiceDir, $"UtxoSet{rpc.Network}.dat");
 
-			var indexBuilderService = new IndexBuilderService(rpc, indexFilePath, utxoSetFilePath);
+			var indexBuilderService = new IndexBuilderService(rpc, Global.TrustedNodeNotifyingBehavior, indexFilePath, utxoSetFilePath);
 			try
 			{
 				indexBuilderService.Synchronize();
@@ -255,7 +255,7 @@ namespace WalletWasabi.Tests
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
 
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 			node.VersionHandshake();
 
@@ -494,12 +494,12 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
 			memPoolService.TransactionReceived += WalletTestsAsync_MemPoolService_TransactionReceived;
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create wasabi synchronizer service.
@@ -724,11 +724,11 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create wasabi synchronizer service.
@@ -1168,11 +1168,11 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create wasabi synchronizer service.
@@ -1332,11 +1332,11 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create wasabi synchronizer service.
@@ -1497,11 +1497,11 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			// 3. Create wasabi synchronizer service.
@@ -1652,6 +1652,112 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
+		public async Task ReplaceByFeeTxTestAsync()
+		{
+			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
+
+			// Create the services.
+			// 1. Create connection service.
+			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
+
+			// 2. Create mempool service.
+			var memPoolService = new MemPoolService();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
+			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
+
+			// 3. Create wasabi synchronizer service.
+			var indexFilePath = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync),
+				$"Index{rpc.Network}.dat");
+			var synchronizer =
+				new WasabiSynchronizer(rpc.Network, indexFilePath, new Uri(RegTestFixture.BackendEndPoint), null);
+
+			// 4. Create key manager service.
+			var keyManager = KeyManager.CreateNew(out _, password);
+
+			// 5. Create chaumian coinjoin client.
+			var chaumianClient = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
+
+			// 6. Create wallet service.
+			var workDir = Path.Combine(SharedFixture.DataDir, nameof(SendTestsFromHiddenWalletAsync));
+			var wallet = new WalletService(keyManager, synchronizer, chaumianClient, memPoolService, nodes, workDir, serviceConfiguration);
+			wallet.NewFilterProcessed += Wallet_NewFilterProcessed;
+
+			Assert.Empty(wallet.Coins);
+
+			// Get some money, make it confirm.
+			var key = wallet.GetReceiveKey("foo label");
+
+			try
+			{
+				nodes.Connect(); // Start connection service.
+				node.VersionHandshake(); // Start mempool service.
+				synchronizer.Start(requestInterval: TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(5), 10000); // Start wasabi synchronizer service.
+				chaumianClient.Start(); // Start chaumian coinjoin client.
+
+				// Wait until the filter our previous transaction is present.
+				var blockCount = await rpc.GetBlockCountAsync();
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
+
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
+
+				Assert.Empty(wallet.Coins);
+
+				var tx0Id = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
+				while (wallet.Coins.Count == 0)
+					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
+				Assert.Single(wallet.Coins);
+				Assert.True(wallet.Coins.First().IsReplaceable);
+
+				var bfr = await rpc.BumpFeeAsync(tx0Id);
+				var tx1Id = bfr.TransactionId;
+				await Task.Delay(2000); // Waits for the replacement transaction get to the mempool.
+				Assert.Single(wallet.Coins);
+				Assert.True(wallet.Coins.First().IsReplaceable);
+				Assert.Equal(tx1Id, wallet.Coins.First().TransactionId);
+
+				bfr = await rpc.BumpFeeAsync(tx1Id);
+				var tx2Id = bfr.TransactionId;
+				await Task.Delay(2000); // Waits for the replacement transaction get to the mempool.
+				Assert.Single(wallet.Coins);
+				Assert.True(wallet.Coins.First().IsReplaceable);
+				Assert.Equal(tx2Id, wallet.Coins.First().TransactionId);
+
+				await rpc.GenerateAsync(1);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
+				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
+				{
+					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
+				}
+				await Task.Delay(2000);
+
+				var coin = wallet.Coins.First();
+				Assert.Single(wallet.Coins);
+				Assert.True(coin.Confirmed);
+				Assert.False(coin.IsReplaceable);
+				Assert.Equal(tx2Id, coin.TransactionId);
+			}
+			finally
+			{
+				wallet?.Dispose();
+				// Dispose wasabi synchronizer service.
+				synchronizer?.Dispose();
+				// Dispose connection service.
+				nodes?.Dispose();
+				// Dispose mempool serving node.
+				node?.Disconnect();
+				// Dispose chaumian coinjoin client.
+				if (chaumianClient != null)
+				{
+					await chaumianClient.StopAsync();
+				}
+			}
+		}
+
+		[Fact]
 		public async Task CcjCoordinatorCtorTestsAsync()
 		{
 			(string password, RPCClient rpc, Network network, CcjCoordinator coordinator, ServiceConfiguration serviceConfiguration) = await InitializeTestEnvironmentAsync(1);
@@ -1674,7 +1780,7 @@ namespace WalletWasabi.Tests
 				mempoolTxId.ToString()
 			});
 
-			using (var coordinatorToTest = new CcjCoordinator(network, folder, rpc, coordinator.RoundConfig))
+			using (var coordinatorToTest = new CcjCoordinator(network, Global.TrustedNodeNotifyingBehavior, folder, rpc, coordinator.RoundConfig))
 			{
 				var txIds = await File.ReadAllLinesAsync(cjfile);
 
@@ -1689,8 +1795,8 @@ namespace WalletWasabi.Tests
 				"This line is invalid (the file is corrupted)",
 				offchainTxId.ToString(),
 			});
-				var coordinatorToTest2 = new CcjCoordinator(network, folder, rpc, coordinatorToTest.RoundConfig);
-				coordinatorToTest2.Dispose();
+				var coordinatorToTest2 = new CcjCoordinator(network, Global.TrustedNodeNotifyingBehavior, folder, rpc, coordinatorToTest.RoundConfig);
+				coordinatorToTest2?.Dispose();
 				txIds = await File.ReadAllLinesAsync(cjfile);
 				Assert.Single(txIds);
 				Assert.Contains(coinbaseTxId.ToString(), txIds);
@@ -1977,10 +2083,7 @@ namespace WalletWasabi.Tests
 				Assert.NotNull(await utxos.TryGetBannedAsync(bannedCoin.ToOutPoint(), false));
 				spendingTx.Inputs.Add(new TxIn(bannedCoin.ToOutPoint()));
 				spendingTx.Outputs.Add(new TxOut(Money.Coins(1), new Key().PubKey.GetSegwitAddress(network)));
-				var fakeBlockWithSpendingBannedCoins = network.Consensus.ConsensusFactory.CreateBlock();
-				fakeBlockWithSpendingBannedCoins.Transactions.Add(spendingTx);
-
-				await coordinator.ProcessBlockAsync(fakeBlockWithSpendingBannedCoins);
+				await coordinator.ProcessTransactionAsync(spendingTx);
 
 				Assert.NotNull(await utxos.TryGetBannedAsync(new OutPoint(spendingTx.GetHash(), 0), false));
 				Assert.Null(await utxos.TryGetBannedAsync(bannedCoin.ToOutPoint(), false));
@@ -2651,7 +2754,7 @@ namespace WalletWasabi.Tests
 
 			foreach (var aliceClient in aliceClients)
 			{
-				aliceClient.Dispose();
+				aliceClient?.Dispose();
 			}
 		}
 
@@ -2795,7 +2898,7 @@ namespace WalletWasabi.Tests
 			foreach (var request in outputRequests)
 			{
 				await request.Item2;
-				request.Item1.Dispose();
+				request.Item1?.Dispose();
 			}
 
 			var coinjoinRequests = new List<Task<Transaction>>();
@@ -2868,7 +2971,7 @@ namespace WalletWasabi.Tests
 
 			foreach (var aliceClient in aliceClients)
 			{
-				aliceClient.Dispose();
+				aliceClient?.Dispose();
 			}
 		}
 
@@ -2941,7 +3044,7 @@ namespace WalletWasabi.Tests
 				var height = await rpc.GetBlockCountAsync();
 				var bechCoin = tx.Outputs.GetCoins(bech.ScriptPubKey).Single();
 
-				var smartCoin = new SmartCoin(bechCoin, tx.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height + 1, rbf: false, anonymitySet: tx.GetAnonymitySet(bechCoin.Outpoint.N));
+				var smartCoin = new SmartCoin(bechCoin, tx.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height + 1, replaceable: false, anonymitySet: tx.GetAnonymitySet(bechCoin.Outpoint.N));
 
 				var chaumianClient = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
 
@@ -3046,10 +3149,10 @@ namespace WalletWasabi.Tests
 			var bech3Coin = tx3.Outputs.GetCoins(bech3.ScriptPubKey).Single();
 			var bech4Coin = tx4.Outputs.GetCoins(bech4.ScriptPubKey).Single();
 
-			var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, anonymitySet: tx1.GetAnonymitySet(bech1Coin.Outpoint.N));
-			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, anonymitySet: tx2.GetAnonymitySet(bech2Coin.Outpoint.N));
-			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, anonymitySet: tx3.GetAnonymitySet(bech3Coin.Outpoint.N));
-			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, rbf: false, anonymitySet: tx4.GetAnonymitySet(bech4Coin.Outpoint.N));
+			var smartCoin1 = new SmartCoin(bech1Coin, tx1.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx1.GetAnonymitySet(bech1Coin.Outpoint.N));
+			var smartCoin2 = new SmartCoin(bech2Coin, tx2.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx2.GetAnonymitySet(bech2Coin.Outpoint.N));
+			var smartCoin3 = new SmartCoin(bech3Coin, tx3.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx3.GetAnonymitySet(bech3Coin.Outpoint.N));
+			var smartCoin4 = new SmartCoin(bech4Coin, tx4.Inputs.Select(x => new TxoRef(x.PrevOut)).ToArray(), height, replaceable: false, anonymitySet: tx4.GetAnonymitySet(bech4Coin.Outpoint.N));
 
 			var chaumianClient1 = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
 			var chaumianClient2 = new CcjClient(synchronizer, rpc.Network, keyManager, new Uri(RegTestFixture.BackendEndPoint), null);
@@ -3072,7 +3175,7 @@ namespace WalletWasabi.Tests
 				Assert.True(smartCoin2.CoinJoinInProgress);
 
 				// Make sure it doesn't throw.
-				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.MemPool, rbf: false, anonymitySet: 1));
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.MemPool, replaceable: false, anonymitySet: 1));
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
@@ -3170,18 +3273,18 @@ namespace WalletWasabi.Tests
 			// Create the services.
 			// 1. Create connection service.
 			var nodes = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			var nodes2 = new NodesGroup(Global.Config.Network, requirements: Constants.NodeRequirements);
-			nodes2.ConnectedNodes.Add(RegTestFixture.BackendRegTestNode.CreateNodeClient());
+			nodes2.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync());
 
 			// 2. Create mempool service.
 			var memPoolService = new MemPoolService();
-			Node node = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node.Behaviors.Add(new MemPoolBehavior(memPoolService));
 
 			var memPoolService2 = new MemPoolService();
-			Node node2 = RegTestFixture.BackendRegTestNode.CreateNodeClient();
+			Node node2 = await RegTestFixture.BackendRegTestNode.CreateNodeClientAsync();
 			node2.Behaviors.Add(new MemPoolBehavior(memPoolService2));
 
 			// 3. Create wasabi synchronizer service.

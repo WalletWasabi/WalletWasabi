@@ -2,16 +2,13 @@
 using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
-using Mono.Options;
 using NBitcoin;
 using System;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
@@ -63,7 +60,6 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				MainWindowViewModel.Instance?.Dispose();
 				statusBar?.Dispose();
 				await Global.DisposeAsync();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;

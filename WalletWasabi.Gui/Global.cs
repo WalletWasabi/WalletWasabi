@@ -87,21 +87,18 @@ namespace WalletWasabi.Gui
 			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
 
-		private static long _isDesperateDequeuing = 0;
+		private static int _isDesperateDequeuing = 0;
 
 		public static async Task TryDesperateDequeueAllCoinsAsync()
 		{
+			// If already desperate dequeueing then return.
+			// If not desperate dequeueing then make sure we're doing that.
+			if (Interlocked.CompareExchange(ref _isDesperateDequeuing, 1, 0) == 1)
+			{
+				return;
+			}
 			try
 			{
-				if (Interlocked.Read(ref _isDesperateDequeuing) == 1)
-				{
-					return;
-				}
-				else
-				{
-					Interlocked.Increment(ref _isDesperateDequeuing);
-				}
-
 				await DesperateDequeueAllCoinsAsync();
 			}
 			catch (NotSupportedException ex)
@@ -142,10 +139,10 @@ namespace WalletWasabi.Gui
 
 			InitializeConfig(config);
 
-			InitializeNoWallet();
+			await InitializeNoWalletAsync();
 		}
 
-		public static void InitializeNoWallet()
+		public static async Task InitializeNoWalletAsync()
 		{
 			WalletService = null;
 			ChaumianClient = null;
@@ -251,10 +248,10 @@ namespace WalletWasabi.Gui
 				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 				try
 				{
-					Node node = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					Node node = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
 					Nodes.ConnectedNodes.Add(node);
 
-					RegTestMemPoolServingNode = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					RegTestMemPoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
 
 					RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
 				}
@@ -440,7 +437,7 @@ namespace WalletWasabi.Gui
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
 					Logger.LogInfo($"{nameof(KeyManager)} backup saved to {backupWalletFilePath}.", nameof(Global));
 				}
-				WalletService.Dispose();
+				WalletService?.Dispose();
 				WalletService = null;
 				Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
 			}

@@ -202,19 +202,19 @@ namespace WalletWasabi.Tests.NodeBuilding
 				node.Kill();
 			}
 
-			foreach (IDisposable disposable in _disposables)
+			foreach (IDisposable disposable in Disposables)
 			{
-				disposable.Dispose();
+				disposable?.Dispose();
 			}
 
 			TryRemoveWorkingDirectoryAsync().GetAwaiter().GetResult();
 		}
 
-		private List<IDisposable> _disposables = new List<IDisposable>();
+		private List<IDisposable> Disposables { get; } = new List<IDisposable>();
 
 		internal void AddDisposable(IDisposable group)
 		{
-			_disposables.Add(group);
+			Disposables.Add(group);
 		}
 	}
 }

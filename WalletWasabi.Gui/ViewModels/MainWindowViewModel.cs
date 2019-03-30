@@ -1,19 +1,13 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Dialogs;
 using AvalonStudio.Shell;
-using NBitcoin;
 using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.ViewModels
 {
-	public class MainWindowViewModel : ViewModelBase, IDisposable
+	public class MainWindowViewModel : ViewModelBase
 	{
 		private ModalDialogViewModelBase _modalDialog;
 		private bool _canClose = true;
@@ -89,37 +83,5 @@ namespace WalletWasabi.Gui.ViewModels
 			get => _canClose;
 			set => this.RaiseAndSetIfChanged(ref _canClose, value);
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					if (Shell?.Documents != null)
-					{
-						foreach (var tab in Shell.Documents.OfType<IDisposable>())
-						{
-							tab?.Dispose();
-						}
-					}
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

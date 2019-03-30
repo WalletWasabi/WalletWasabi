@@ -1,30 +1,25 @@
 ﻿using ReactiveUI;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using WalletWasabi.Gui.ViewModels;
-using System;
-using System.Reactive.Disposables;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
-	internal class WalletManagerViewModel : WasabiDocumentTabViewModel, IDisposable
+	internal class WalletManagerViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; }
-
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
 		private ViewModelBase _currentView;
 
 		public WalletManagerViewModel() : base("Wallet Manager")
 		{
-			Disposables = new CompositeDisposable();
-
 			Categories = new ObservableCollection<CategoryViewModel>
 			{
-				new GenerateWalletViewModel(this).DisposeWith(Disposables),
-				new RecoverWalletViewModel(this).DisposeWith(Disposables),
-				new LoadWalletViewModel(this, false).DisposeWith(Disposables),
-				new LoadWalletViewModel(this, true).DisposeWith(Disposables)
+				new GenerateWalletViewModel(this),
+				new RecoverWalletViewModel(this),
+				new LoadWalletViewModel(this, false),
+				new LoadWalletViewModel(this, true)
 			};
 
 			SelectedCategory = Categories.FirstOrDefault();
@@ -34,7 +29,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				category?.OnCategorySelected();
 
 				CurrentView = category;
-			}).DisposeWith(Disposables);
+			});
 		}
 
 		public ObservableCollection<CategoryViewModel> Categories
@@ -74,31 +69,5 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			get => _currentView;
 			set => this.RaiseAndSetIfChanged(ref _currentView, value);
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

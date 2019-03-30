@@ -42,9 +42,6 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							// If stop was requested return.
-							if (!IsRunning) return;
-
 							await Task.Delay(period, Stop.Token);
 
 							if (await Config.CheckFileChangeAsync())
@@ -66,20 +63,14 @@ namespace WalletWasabi.Services
 				}
 				finally
 				{
-					if (IsStopping)
-					{
-						Interlocked.Exchange(ref _running, 3);
-					}
+					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
 				}
 			});
 		}
 
 		public async Task StopAsync()
 		{
-			if (IsRunning)
-			{
-				Interlocked.Exchange(ref _running, 2);
-			}
+			Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 			Stop?.Cancel();
 			while (IsStopping)
 			{

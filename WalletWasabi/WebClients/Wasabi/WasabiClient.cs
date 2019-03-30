@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using WalletWasabi.Backend.Models.Responses;
 using NBitcoin.RPC;
+using System.Linq;
 
 namespace WalletWasabi.WebClients.Wasabi
 {
@@ -184,6 +185,27 @@ namespace WalletWasabi.WebClients.Wasabi
 			var backendCompatible = int.Parse(Helpers.Constants.BackendMajorVersion) == versions.BackendMajorVersion; // If the backend major and the client major equals, then our softwares are compatible.
 
 			return (backendCompatible, clientUpToDate);
+		}
+
+		public async Task<IEnumerable<uint256>> GetMempoolHashesAsync(CancellationToken cancel = default)
+		{
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
+																	HttpStatusCode.OK,
+																	$"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes",
+																	cancel: cancel))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync();
+				}
+
+				using (HttpContent content = response.Content)
+				{
+					var strings = await content.ReadAsJsonAsync<IEnumerable<string>>();
+					var ret = strings.Select(x => new uint256(x));
+					return ret;
+				}
+			}
 		}
 
 		#endregion software

@@ -17,69 +17,85 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 			MenuItemFactory = menuItemFactory;
 		}
 
+		#region MainMenu
+
 		[ExportMainMenuItem("File")]
 		[DefaultOrder(0)]
 		public IMenuItem File => MenuItemFactory.CreateHeaderMenuItem("File", null);
+
+		#endregion MainMenu
+
+		#region Group
 
 		[ExportMainMenuDefaultGroup("File", "Wallet")]
 		[DefaultOrder(0)]
 		public object WalletGroup => null;
 
-		[ExportMainMenuItem("File", "Generate Wallet")]
+		[ExportMainMenuDefaultGroup("File", "Disk")]
 		[DefaultOrder(1)]
+		public object DiskGroup => null;
+
+		[ExportMainMenuDefaultGroup("File", "Exit")]
+		[DefaultOrder(2)]
+		public object ExitGroup => null;
+
+		#endregion Group
+
+		#region MenuItem
+
+		[ExportMainMenuItem("File", "Generate Wallet")]
+		[DefaultOrder(0)]
 		[DefaultGroup("Wallet")]
 		public IMenuItem GenerateWallet => MenuItemFactory.CreateCommandMenuItem("File.GenerateWallet");
 
 		[ExportMainMenuItem("File", "Recover Wallet")]
-		[DefaultOrder(2)]
+		[DefaultOrder(1)]
 		[DefaultGroup("Wallet")]
 		public IMenuItem Recover => MenuItemFactory.CreateCommandMenuItem("File.RecoverWallet");
 
 		[ExportMainMenuItem("File", "Load Wallet")]
-		[DefaultOrder(3)]
+		[DefaultOrder(2)]
 		[DefaultGroup("Wallet")]
 		public IMenuItem LoadWallet => MenuItemFactory.CreateCommandMenuItem("File.LoadWallet");
 
-		[ExportMainMenuDefaultGroup("File", "Disk")]
-		[DefaultOrder(10)]
-		public object DiskGroup => null;
-
 		[ExportMainMenuItem("File", "Open")]
-		[DefaultOrder(11)]
+		[DefaultOrder(3)]
 		public IMenuItem Open => MenuItemFactory.CreateHeaderMenuItem("Open", null);
 
+		[ExportMainMenuItem("File", "Exit")]
+		[DefaultOrder(4)]
+		[DefaultGroup("Exit")]
+		public IMenuItem Exit => MenuItemFactory.CreateCommandMenuItem("File.Exit");
+
+		#endregion MenuItem
+
+		#region SubMenuItem
+
 		[ExportMainMenuItem("File", "Open", "Data Folder")]
-		[DefaultOrder(111)]
+		[DefaultOrder(0)]
 		[DefaultGroup("Disk")]
 		public IMenuItem OpenDataFolder => MenuItemFactory.CreateCommandMenuItem("File.Open.DataFolder");
 
 		[ExportMainMenuItem("File", "Open", "Wallets Folder")]
-		[DefaultOrder(112)]
+		[DefaultOrder(1)]
 		[DefaultGroup("Disk")]
 		public IMenuItem OpenWalletsFolder => MenuItemFactory.CreateCommandMenuItem("File.Open.WalletsFolder");
 
 		[ExportMainMenuItem("File", "Open", "Log File")]
-		[DefaultOrder(113)]
+		[DefaultOrder(2)]
 		[DefaultGroup("Disk")]
 		public IMenuItem OpenLogFile => MenuItemFactory.CreateCommandMenuItem("File.Open.LogFile");
 
 		[ExportMainMenuItem("File", "Open", "Tor Log File")]
-		[DefaultOrder(114)]
+		[DefaultOrder(3)]
 		[DefaultGroup("Disk")]
 		public IMenuItem OpenTorLogFile => MenuItemFactory.CreateCommandMenuItem("File.Open.TorLogFile");
 
 		[ExportMainMenuItem("File", "Open", "Config File")]
-		[DefaultOrder(115)]
+		[DefaultOrder(4)]
 		[DefaultGroup("Disk")]
 		public IMenuItem OpenConfigFile => MenuItemFactory.CreateCommandMenuItem("File.Open.ConfigFile");
 
-		[ExportMainMenuDefaultGroup("File", "Exit")]
-		[DefaultOrder(1000)]
-		public object ExitGroup => null;
-
-		[ExportMainMenuItem("File", "Exit")]
-		[DefaultOrder(1001)]
-		[DefaultGroup("Exit")]
-		public IMenuItem Exit => MenuItemFactory.CreateCommandMenuItem("File.Exit");
+		#endregion SubMenuItem
 	}
 }

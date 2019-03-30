@@ -506,7 +506,7 @@ namespace NSubsys
 
 		public void Dispose()
 		{
-			Stream.Dispose();
+			Stream?.Dispose();
 		}
 
 		#endregion Public Methods

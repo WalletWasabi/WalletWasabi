@@ -70,5 +70,14 @@
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Tabs\CustomerSupportView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Tabs\ReportBugView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+  </ItemGroup>
+
 </Project>
 

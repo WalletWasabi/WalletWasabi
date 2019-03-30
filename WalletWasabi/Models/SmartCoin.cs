@@ -34,7 +34,7 @@ namespace WalletWasabi.Models
 		private Height _height;
 		private string _label;
 		private TxoRef[] _spentOutputs;
-		private bool _rbf;
+		private bool _replaceable;
 		private int _anonymitySet;
 		private uint256 _spenderTransactionId;
 		private bool _coinJoinInProgress;
@@ -167,15 +167,15 @@ namespace WalletWasabi.Models
 
 		[JsonProperty]
 		[JsonConverter(typeof(FunnyBoolJsonConverter))]
-		public bool RBF
+		public bool IsReplaceable
 		{
-			get => _rbf;
+			get => _replaceable && !Confirmed;
 			set
 			{
-				if (value != _rbf)
+				if (value != _replaceable)
 				{
-					_rbf = value;
-					OnPropertyChanged(nameof(RBF));
+					_replaceable = value;
+					OnPropertyChanged(nameof(IsReplaceable));
 				}
 			}
 		}
@@ -424,12 +424,12 @@ namespace WalletWasabi.Models
 		#region Constructors
 
 		[JsonConstructor]
-		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int anonymitySet, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
 		{
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, rbf, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
 		}
 
-		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool rbf, int anonymitySet, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
+		public SmartCoin(Coin coin, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, string label = "", uint256 spenderTransactionId = null, bool coinJoinInProgress = false, DateTimeOffset? bannedUntilUtc = null, bool spentAccordingToBackend = false, HdPubKey pubKey = null)
 		{
 			OutPoint outpoint = Guard.NotNull($"{coin}.{coin?.Outpoint}", coin?.Outpoint);
 			uint256 transactionId = outpoint.Hash;
@@ -437,10 +437,10 @@ namespace WalletWasabi.Models
 			Script scriptPubKey = Guard.NotNull($"{coin}.{coin?.ScriptPubKey}", coin?.ScriptPubKey);
 			Money amount = Guard.NotNull($"{coin}.{coin?.Amount}", coin?.Amount);
 
-			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, rbf, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
+			Create(transactionId, index, scriptPubKey, amount, spentOutputs, height, replaceable, anonymitySet, label, spenderTransactionId, coinJoinInProgress, bannedUntilUtc, spentAccordingToBackend, pubKey);
 		}
 
-		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool rbf, int anonymitySet, string label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
+		private void Create(uint256 transactionId, uint index, Script scriptPubKey, Money amount, TxoRef[] spentOutputs, Height height, bool replaceable, int anonymitySet, string label, uint256 spenderTransactionId, bool coinJoinInProgress, DateTimeOffset? bannedUntilUtc, bool spentAccordingToBackend, HdPubKey pubKey)
 		{
 			TransactionId = Guard.NotNull(nameof(transactionId), transactionId);
 			Index = Guard.NotNull(nameof(index), index);
@@ -449,7 +449,7 @@ namespace WalletWasabi.Models
 			Height = height;
 			Label = Guard.Correct(label);
 			SpentOutputs = Guard.NotNullOrEmpty(nameof(spentOutputs), spentOutputs);
-			RBF = rbf;
+			IsReplaceable = replaceable;
 			AnonymitySet = Guard.InRangeAndNotNull(nameof(anonymitySet), anonymitySet, 1, int.MaxValue);
 
 			SpenderTransactionId = spenderTransactionId;

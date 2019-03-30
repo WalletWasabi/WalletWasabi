@@ -4,37 +4,35 @@ using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Globalization;
-using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class TransactionViewModel : ViewModelBase, IDisposable
+	public class TransactionViewModel : ViewModelBase
 	{
-		private CompositeDisposable Disposables { get; }
-
 		private TransactionInfo _model;
 		private bool _clipboardNotificationVisible;
 		private double _clipboardNotificationOpacity;
 
 		public TransactionViewModel(TransactionInfo model)
 		{
-			Disposables = new CompositeDisposable();
-
 			_model = model;
 			ClipboardNotificationVisible = false;
 			ClipboardNotificationOpacity = 0;
-
-			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, model.Confirmed).DisposeWith(Disposables);
 		}
 
-		private readonly ObservableAsPropertyHelper<bool> _confirmed;
+		public void Refresh()
+		{
+			this.RaisePropertyChanged(nameof(AmountBtc));
+			this.RaisePropertyChanged(nameof(TransactionId));
+			this.RaisePropertyChanged(nameof(DateTime));
+		}
 
 		public string DateTime => _model.DateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
-		public bool Confirmed => _confirmed.Value;
+		public bool Confirmed => _model.Confirmed;
 
 		public string AmountBtc => _model.AmountBtc;
 
@@ -56,62 +54,47 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
-		private long _copyNotificationsInprocess = 0;
+		public CancellationTokenSource CancelClipboardNotification { get; set; }
 
-		public void CopyToClipboard()
+		public async Task TryCopyTxIdToClipboardAsync()
 		{
-			Application.Current.Clipboard.SetTextAsync(TransactionId).GetAwaiter().GetResult();
-
-			Interlocked.Increment(ref _copyNotificationsInprocess);
-			ClipboardNotificationVisible = true;
-			ClipboardNotificationOpacity = 1;
-
-			Dispatcher.UIThread.PostLogException(async () =>
+			try
 			{
-				try
+				CancelClipboardNotification?.Cancel();
+				while (CancelClipboardNotification != null)
 				{
-					await Task.Delay(1000);
-					if (Interlocked.Read(ref _copyNotificationsInprocess) <= 1)
-					{
-						ClipboardNotificationOpacity = 0;
-						await Task.Delay(1000);
-						if (Interlocked.Read(ref _copyNotificationsInprocess) <= 1)
-						{
-							ClipboardNotificationVisible = false;
-						}
-					}
+					await Task.Delay(50);
 				}
-				finally
-				{
-					Interlocked.Decrement(ref _copyNotificationsInprocess);
-				}
-			});
-		}
+				CancelClipboardNotification = new CancellationTokenSource();
 
-		#region IDisposable Support
+				var cancelToken = CancelClipboardNotification.Token;
 
-		private volatile bool _disposedValue = false; // To detect redundant calls
+				await Application.Current.Clipboard.SetTextAsync(TransactionId);
+				cancelToken.ThrowIfCancellationRequested();
 
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
+				ClipboardNotificationVisible = true;
+				ClipboardNotificationOpacity = 1;
+
+				await Task.Delay(1000, cancelToken);
+				ClipboardNotificationOpacity = 0;
+				await Task.Delay(1000, cancelToken);
+				ClipboardNotificationVisible = false;
+			}
+			catch (Exception ex) when (ex is OperationCanceledException
+									|| ex is TaskCanceledException
+									|| ex is TimeoutException)
 			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
+				Logging.Logger.LogTrace<AddressViewModel>(ex);
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<AddressViewModel>(ex);
+			}
+			finally
+			{
+				CancelClipboardNotification?.Dispose();
+				CancelClipboardNotification = null;
 			}
 		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }
