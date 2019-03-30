@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			ClipboardNotificationOpacity = 0;
 		}
 
-		public void Refresh ()
+		public void Refresh()
 		{
 			this.RaisePropertyChanged(nameof(AmountBtc));
 			this.RaisePropertyChanged(nameof(TransactionId));
@@ -55,16 +55,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _clipboardNotificationOpacity, value);
 		}
 
-		public void CopyToClipboard()
+		public async Task TryCopyTxIdToClipboardAsync()
 		{
-			Application.Current.Clipboard.SetTextAsync(TransactionId).GetAwaiter().GetResult();
-
-			Interlocked.Increment(ref _copyNotificationsInprocess);
-			ClipboardNotificationVisible = true;
-			ClipboardNotificationOpacity = 1;
-
-			Dispatcher.UIThread.PostLogException(async () =>
+			try
 			{
+				await Application.Current.Clipboard.SetTextAsync(TransactionId);
+
+				Interlocked.Increment(ref _copyNotificationsInprocess);
+				ClipboardNotificationVisible = true;
+				ClipboardNotificationOpacity = 1;
+
 				try
 				{
 					await Task.Delay(1000);
@@ -82,7 +82,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					Interlocked.Decrement(ref _copyNotificationsInprocess);
 				}
-			});
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<AddressViewModel>(ex);
+			}
 		}
 	}
 }

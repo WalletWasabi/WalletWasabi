@@ -83,16 +83,16 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _qrCode, value);
 		}
 
-		public void CopyToClipboard()
+		public async Task TryCopyToClipboardAsync()
 		{
-			Application.Current.Clipboard.SetTextAsync(Address).GetAwaiter().GetResult();
-
-			Interlocked.Increment(ref _copyNotificationsInprocess);
-			ClipboardNotificationVisible = true;
-			ClipboardNotificationOpacity = 1;
-
-			Dispatcher.UIThread.PostLogException(async () =>
+			try
 			{
+				await Application.Current.Clipboard.SetTextAsync(Address);
+
+				Interlocked.Increment(ref _copyNotificationsInprocess);
+				ClipboardNotificationVisible = true;
+				ClipboardNotificationOpacity = 1;
+
 				try
 				{
 					await Task.Delay(1000);
@@ -110,7 +110,11 @@ namespace WalletWasabi.Gui.ViewModels
 				{
 					Interlocked.Decrement(ref _copyNotificationsInprocess);
 				}
-			});
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<AddressViewModel>(ex);
+			}
 		}
 
 		#region IDisposable Support
