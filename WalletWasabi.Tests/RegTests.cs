@@ -1728,7 +1728,7 @@ namespace WalletWasabi.Tests
 
 				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
-				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
+				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
