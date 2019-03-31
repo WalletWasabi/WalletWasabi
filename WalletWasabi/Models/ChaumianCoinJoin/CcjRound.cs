@@ -653,7 +653,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			return acceptedBlindedOutputScriptsCount;
 		}
 
-		private async Task OptimizeFeesAsync(List<Coin> spentCoins)
+		private async Task OptimizeFeesAsync(IEnumerable<Coin> spentCoins)
 		{
 			try
 			{
