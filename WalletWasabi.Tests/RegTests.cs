@@ -1726,13 +1726,13 @@ namespace WalletWasabi.Tests
 				Assert.True(wallet.Coins.First().IsReplaceable);
 				Assert.Equal(tx2Id, wallet.Coins.First().TransactionId);
 
+				Interlocked.Exchange(ref _filtersProcessedByWalletCount, 0);
 				await rpc.GenerateAsync(1);
 				await WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
 				using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 				{
 					await wallet.InitializeAsync(cts.Token); // Initialize wallet service.
 				}
-				await Task.Delay(2000);
 
 				var coin = wallet.Coins.First();
 				Assert.Single(wallet.Coins);
