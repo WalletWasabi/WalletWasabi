@@ -21,7 +21,7 @@ namespace WalletWasabi.Helpers
 			get
 			{
 				if (_instance is null)
-					_instance = LoadAsync().GetAwaiter().GetResult();
+					throw new InvalidOperationException("Not loaded! Use LoadAsync() first!");
 				return _instance;
 			}
 		}
@@ -61,7 +61,7 @@ namespace WalletWasabi.Helpers
 			}
 		}
 
-		public static async Task<RuntimeParams> LoadAsync()
+		public static async Task LoadAsync()
 		{
 			try
 			{
@@ -72,13 +72,14 @@ namespace WalletWasabi.Helpers
 				}
 
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				return JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
+				_instance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
+				return;
 			}
 			catch (Exception ex)
 			{
 				Logger.LogInfo<RuntimeParams>($"Could not load RuntimeParams: {ex}.");
 			}
-			return new RuntimeParams();
+			_instance = new RuntimeParams();
 		}
 
 		#endregion
