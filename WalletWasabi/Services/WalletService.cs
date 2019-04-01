@@ -281,12 +281,14 @@ namespace WalletWasabi.Services
 						{
 							using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 							{
-								var mempoolHashes = await client.GetMempoolHashesAsync();
+								var compactness = 10;
+								var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
+
 								var mempoolSet = mempoolHashes.ToHashSet();
 
 								foreach (var tx in transactions)
 								{
-									if (mempoolSet.Contains(tx.GetHash()))
+									if (mempoolSet.Any(x => x == tx.GetHash().ToString().Substring(0, compactness)))
 									{
 										tx.SetHeight(Height.MemPool);
 										ProcessTransaction(tx);

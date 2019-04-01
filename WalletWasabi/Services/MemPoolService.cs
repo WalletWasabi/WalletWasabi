@@ -44,9 +44,10 @@ namespace WalletWasabi.Services
 				Logger.LogInfo<MemPoolService>("Start cleaning out mempool...");
 				using (var client = new WasabiClient(destAction, torSocks))
 				{
-					var allMempoolHashes = await client.GetMempoolHashesAsync();
+					var compactness = 10;
+					var allMempoolHashes = await client.GetMempoolHashesAsync(compactness);
 
-					uint256[] toRemove = TransactionHashes.Except(allMempoolHashes).ToArray();
+					var toRemove = TransactionHashes.Where(x => !allMempoolHashes.Any(y => y != x.ToString().Substring(0, compactness)));
 					foreach (uint256 tx in toRemove)
 					{
 						TransactionHashes.TryRemove(tx);
