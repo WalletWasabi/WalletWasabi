@@ -39,6 +39,8 @@ namespace WalletWasabi.Services
 			// This function is designed to prevent forever growing mempool.
 			try
 			{
+				if (!TransactionHashes.Any()) return true; // There's nothing to cleanup.
+
 				Logger.LogInfo<MemPoolService>("Start cleaning out mempool...");
 				using (var client = new WasabiClient(destAction, torSocks))
 				{
@@ -78,6 +80,8 @@ namespace WalletWasabi.Services
 			// This function is designed to prevent forever growing mempool.
 			try
 			{
+				if (!TransactionHashes.Any()) return true; // There's nothing to cleanup.
+
 				var delay = TimeSpan.FromMinutes(1);
 				if (nodes?.ConnectedNodes is null) return false;
 				while (nodes.ConnectedNodes.Count != nodes.MaximumNodeConnection && nodes.ConnectedNodes.All(x => x.IsConnected))

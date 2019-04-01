@@ -224,27 +224,19 @@ namespace WalletWasabi.Services
 				}
 				NewFilterProcessed?.Invoke(this, filterModel);
 
-				// If Synchronizer is null then go try cleanup mempool (it won't succeed.)
-				// If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
-				while (Synchronizer != null && Synchronizer.AreRequestsBlocked())
+				do
 				{
 					await Task.Delay(100);
-				}
+					if (Synchronizer is null) return;
+					// Make sure fully synced and this filter is the lastest filter.
+					if (Synchronizer.GetFiltersLeft() != 0 || Synchronizer.BestKnownFilter.BlockHash != filterModel.BlockHash) return;
+				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
-				await TryCleanupMempoolAsync();
+				await MemPool?.TryPerformMempoolCleanupAsync(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
 			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning<WalletService>(ex);
-			}
-		}
-
-		private async Task TryCleanupMempoolAsync()
-		{
-			// Try perform mempool cleanup based on connected nodes' mempools.
-			if (Synchronizer != null && Synchronizer.GetFiltersLeft() == 0)
-			{
-				await MemPool?.TryPerformMempoolCleanupAsync(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
 			}
 		}
 
