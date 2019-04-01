@@ -42,7 +42,7 @@ namespace WalletWasabi.Services
 		private AsyncLock BlockDownloadLock { get; }
 		private AsyncLock BlockFolderLock { get; }
 
-		private int _nodeTimeouts;
+		private int NodeTimeouts { get; set; }
 
 		// These are static functions, so we will make sure when blocks are downloading with multiple wallet services, they don't conflict.
 		private static int _concurrentBlockDownload = 0;
@@ -1334,29 +1334,29 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		// Current timeout used when downloading a block from the remote node. It is defined in seconds. 
+		// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 		private async Task NodeTimeoutsAsync(bool increaseDecrease)
 		{
 			if (increaseDecrease)
-			{ 
-				_nodeTimeouts++;
+			{
+				NodeTimeouts++;
 			}
-			else 
-			{ 
-				_nodeTimeouts--;
+			else
+			{
+				NodeTimeouts--;
 			}
 
 			var timeout = RuntimeParams.Instance.NetworkNodeTimeout;
 
 			// If it times out 2 times in a row then increase the timeout.
-			if (_nodeTimeouts >= 2)
+			if (NodeTimeouts >= 2)
 			{
-				_nodeTimeouts = 0;
+				NodeTimeouts = 0;
 				timeout *= 2;
 			}
-			else if (_nodeTimeouts <= -3) // If it doesn't time out 3 times in a row, lower the timeout.
+			else if (NodeTimeouts <= -3) // If it doesn't time out 3 times in a row, lower the timeout.
 			{
-				_nodeTimeouts = 0;
+				NodeTimeouts = 0;
 				timeout = (int)Math.Round(timeout * 0.7);
 			}
 

@@ -16,6 +16,8 @@ namespace WalletWasabi.Helpers
 
 		#region Business logic
 
+		private static RuntimeParams _instance = null;
+
 		public static RuntimeParams Instance
 		{
 			get
@@ -26,8 +28,7 @@ namespace WalletWasabi.Helpers
 			}
 		}
 
-		private static RuntimeParams _instance = null;
-		private readonly AsyncLock _asyncLock = new AsyncLock();
+		private AsyncLock AsyncLock { get; } = new AsyncLock();
 		private static readonly string FileDir = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Data");
 		private static readonly string FilePath = Path.Combine(FileDir, "RuntimeParams.json");
 
@@ -44,7 +45,7 @@ namespace WalletWasabi.Helpers
 		{
 			try
 			{
-				using (await _asyncLock.LockAsync())
+				using (await AsyncLock.LockAsync())
 				{
 					if (!Directory.Exists(FileDir))
 						Directory.CreateDirectory(FileDir);
@@ -81,6 +82,6 @@ namespace WalletWasabi.Helpers
 			_instance = new RuntimeParams();
 		}
 
-		#endregion
+		#endregion Business logic
 	}
 }
