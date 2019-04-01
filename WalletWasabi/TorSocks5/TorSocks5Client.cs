@@ -184,7 +184,7 @@ namespace WalletWasabi.TorSocks5
 					throw new NotSupportedException($"Authentication version {userNamePasswordResponse.Ver.Value} is not supported. Only version {usernamePasswordRequest.Ver} is supported.");
 				}
 
-				if (!userNamePasswordResponse.Status.IsSuccess()) // In Tor authentication is different, this will never happen;
+				if (!userNamePasswordResponse.Status.IsSuccess()) // Tor authentication is different, this will never happen;
 				{
 					// https://tools.ietf.org/html/rfc1929#section-2
 					// A STATUS field of X'00' indicates success. If the server returns a
