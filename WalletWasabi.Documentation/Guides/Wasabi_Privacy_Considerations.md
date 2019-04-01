@@ -55,3 +55,4 @@ When looking up the current value of a wallet or address as denominated in anoth
 When sending and receiving addresses over the internet, an encrypted messaging protocol should be used to prevent a third-party from connecting the addresses to the individuals involved in the exchange.
 
 Test - 
+Test 
