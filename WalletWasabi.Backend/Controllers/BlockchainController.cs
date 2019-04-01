@@ -129,6 +129,22 @@ namespace WalletWasabi.Backend.Controllers
 			return Ok(estimation.Estimations);
 		}
 
+		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
+		{
+			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
+
+			if (!Cache.TryGetValue(cacheKey, out AllFeeEstimate allFee))
+			{
+				allFee = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
+
+				var cacheEntryOptions = new MemoryCacheEntryOptions()
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
+
+				Cache.Set(cacheKey, allFee, cacheEntryOptions);
+			}
+			return allFee;
+		}
+
 		/// <summary>
 		/// Gets mempool hashes.
 		/// </summary>
@@ -148,22 +164,6 @@ namespace WalletWasabi.Backend.Controllers
 			var transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
 
 			return Ok(transactionHashes.Select(x => x.ToString()));
-		}
-
-		internal async Task<AllFeeEstimate> GetAllFeeEstimateAsync(EstimateSmartFeeMode mode)
-		{
-			var cacheKey = $"{nameof(GetAllFeeEstimateAsync)}_{mode}";
-
-			if (!Cache.TryGetValue(cacheKey, out AllFeeEstimate allFee))
-			{
-				allFee = await RpcClient.EstimateAllFeeAsync(mode, simulateIfRegTest: true, tolerateBitcoinCoreBrainfuck: true);
-
-				var cacheEntryOptions = new MemoryCacheEntryOptions()
-					.SetAbsoluteExpiration(TimeSpan.FromSeconds(500));
-
-				Cache.Set(cacheKey, allFee, cacheEntryOptions);
-			}
-			return allFee;
 		}
 
 		/// <summary>
