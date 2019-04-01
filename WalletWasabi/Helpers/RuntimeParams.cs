@@ -38,7 +38,6 @@ namespace WalletWasabi.Helpers
 
 		private RuntimeParams()
 		{
-
 		}
 
 		public async Task SaveAsync()
