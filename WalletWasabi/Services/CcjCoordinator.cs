@@ -178,15 +178,18 @@ namespace WalletWasabi.Services
 			using (await RoundsListLock.LockAsync())
 			{
 				int runningRoundCount = Rounds.Count(x => x.Status == CcjRoundStatus.Running);
+
+				int confirmationTarget = await AdjustConfirmationTargetAsync(lockCoinJoins: true);
+
 				if (runningRoundCount == 0)
 				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					round.StatusChanged += Round_StatusChangedAsync;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round);
 
-					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
+					var round2 = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
 					round2.StatusChanged += Round_StatusChangedAsync;
 					round2.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round2.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
@@ -194,12 +197,52 @@ namespace WalletWasabi.Services
 				}
 				else if (runningRoundCount == 1)
 				{
-					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig);
+					var round = new CcjRound(RpcClient, UtxoReferee, RoundConfig, confirmationTarget);
 					round.StatusChanged += Round_StatusChangedAsync;
 					round.CoinJoinBroadcasted += Round_CoinJoinBroadcasted;
 					await round.ExecuteNextPhaseAsync(CcjRoundPhase.InputRegistration, feePerInputs, feePerOutputs);
 					Rounds.Add(round);
 				}
+			}
+		}
+
+		/// <summary>
+		/// Depending on the number of unconfirmed coinjoins lower the confirmation target.
+		/// https://github.com/zkSNACKs/WalletWasabi/issues/1155
+		/// </summary>
+		private async Task<int> AdjustConfirmationTargetAsync(bool lockCoinJoins)
+		{
+			try
+			{
+				uint256[] mempoolHashes = await RpcClient.GetRawMempoolAsync();
+				int unconfirmedCoinJoinsCount = 0;
+				if (lockCoinJoins)
+				{
+					using (await CoinJoinsLock.LockAsync())
+					{
+						unconfirmedCoinJoinsCount = CoinJoins.Intersect(mempoolHashes).Count();
+					}
+				}
+				else
+				{
+					unconfirmedCoinJoinsCount = CoinJoins.Intersect(mempoolHashes).Count();
+				}
+
+				int confirmationTarget = RoundConfig.ConfirmationTarget.Value;
+				for (int i = 0; i < unconfirmedCoinJoinsCount; i++)
+				{
+					confirmationTarget /= 2;
+				}
+
+				confirmationTarget = Math.Max(confirmationTarget, 2); // Conf target should never be less than 2.
+				return confirmationTarget;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogWarning<CcjCoordinator>("Adjusting confirmation target failed. Falling back to default, specified in config.");
+				Logger.LogWarning<CcjCoordinator>(ex);
+
+				return RoundConfig.ConfirmationTarget.Value;
 			}
 		}
 
@@ -233,7 +276,8 @@ namespace WalletWasabi.Services
 						{
 							Money activeOutputAmount = bestOutput.value;
 
-							var fees = await CcjRound.CalculateFeesAsync(RpcClient, RoundConfig.ConfirmationTarget.Value);
+							int currentConfirmationTarget = await AdjustConfirmationTargetAsync(lockCoinJoins: false);
+							var fees = await CcjRound.CalculateFeesAsync(RpcClient, currentConfirmationTarget);
 							feePerInputs = fees.feePerInputs;
 							feePerOutputs = fees.feePerOutputs;
 

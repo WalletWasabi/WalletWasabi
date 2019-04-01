@@ -136,7 +136,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public UtxoReferee UtxoReferee { get; }
 
-		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config)
+		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config, int confirmationTarget)
 		{
 			try
 			{
@@ -146,7 +146,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
 				Guard.NotNull(nameof(config), config);
 
-				ConfirmationTarget = (int)config.ConfirmationTarget;
+				ConfirmationTarget = confirmationTarget;
 				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 				AnonymitySet = (int)config.AnonymitySet;
 				InputRegistrationTimeout = TimeSpan.FromSeconds((long)config.InputRegistrationTimeout);
