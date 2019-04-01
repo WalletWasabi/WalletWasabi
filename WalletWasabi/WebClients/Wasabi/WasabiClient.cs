@@ -151,6 +151,30 @@ namespace WalletWasabi.WebClients.Wasabi
 			}
 		}
 
+		/// <summary>
+		/// Gets mempool hashes, but strips the last x characters of each hash.
+		/// </summary>
+		/// <param name="compactness">1 to 64</param>
+		public async Task<IEnumerable<string>> GetMempoolHashesAsync(int compactness, CancellationToken cancel = default)
+		{
+			using (var response = await TorClient.SendAndRetryAsync(HttpMethod.Get,
+																	HttpStatusCode.OK,
+																	$"/api/v{Helpers.Constants.BackendMajorVersion}/btc/blockchain/mempool-hashes?compactness={compactness}",
+																	cancel: cancel))
+			{
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					await response.ThrowRequestExceptionFromContentAsync();
+				}
+
+				using (HttpContent content = response.Content)
+				{
+					var strings = await content.ReadAsJsonAsync<IEnumerable<string>>();
+					return strings;
+				}
+			}
+		}
+
 		#endregion blockchain
 
 		#region offchain

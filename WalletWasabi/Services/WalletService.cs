@@ -292,7 +292,7 @@ namespace WalletWasabi.Services
 										ProcessTransaction(tx);
 										MemPool.TransactionHashes.TryAdd(tx.GetHash());
 
-										Logger.LogInfo<WalletService>($"Transaction is tested against the backend's transaction hahses set: {tx.GetHash()}.");
+										Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hahses: {tx.GetHash()}.");
 									}
 								}
 							}
