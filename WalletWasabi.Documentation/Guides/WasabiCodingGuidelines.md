@@ -221,6 +221,15 @@ Use awaitable locks if possible. The library `Nito.AsyncEx` contains tools to do
 	}
 ```
 
+## Null check
+
+```c#
+	if (FeeService is null) return;
+```
+
+Use `is null` instead of `==null`. It was a performace consideration in the past but from C# 7.0 two operators behave the same. The Roslyn compiler has been updated to make the behavior of the two operator the same __when there is no overloaded equality operator__. [Please see the code in the current compiler results (M1 and M2 in the code)](http://tryroslyn.azurewebsites.net/#b:master/f:%3Eilr/K4Zwlgdg5gBAygTxAFwKYFsDcAoADsAIwBswBjGUogQxBBgGEYBvbGNmAge06JgFkAjAApOBAFapSyGAA8AlDAC8APlkwwdCMCJEcASC49+AJhHjJ0+UtUylimFp04AvkA==) that shows what happens when there is no overloaded equality comparer. They both now have the better performing == behavior. If there is an overloaded equality comparer, [the code still differs](https://stackoverflow.com/questions/40676426/what-is-the-difference-between-x-is-null-and-x-null).
+
+
 ## !!!WANTED!!! 10000 Dollar Reward Dead or Alive! 
 
 DO NOT use PropertyChanged.
@@ -273,3 +282,10 @@ DO NOT block with `.Result, .Wait(), .GetAwaiter().GetResult()` unless they are 
 ```c#
 	IoHelpers.DeleteRecursivelyWithMagicDustAsync(Folder).GetAwaiter().GetResult();
 ```
+
+DO NOT use `==null`
+
+```c#
+	if (FeeService == null) return;
+```
+
