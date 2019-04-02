@@ -104,6 +104,8 @@ namespace WalletWasabi.Services
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
 			TransactionsFolderPath = Path.Combine(workFolderDir, "Transactions", Network.ToString());
+			RuntimeParams.SetDataDir(workFolderDir);
+
 			BlockFolderLock = new AsyncLock();
 			BlockDownloadLock = new AsyncLock();
 

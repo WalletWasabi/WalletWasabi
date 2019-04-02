@@ -24,13 +24,15 @@ namespace WalletWasabi.Helpers
 			{
 				if (_instance is null)
 					throw new InvalidOperationException("Not loaded! Use LoadAsync() first!");
+				if (string.IsNullOrEmpty(FileDir))
+					throw new InvalidOperationException("Directory not set!");
 				return _instance;
 			}
 		}
 
 		private AsyncLock AsyncLock { get; } = new AsyncLock();
-		private static readonly string FileDir = Path.Combine(EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")), "Data");
-		private static readonly string FilePath = Path.Combine(FileDir, "RuntimeParams.json");
+		private static string FileDir;
+		private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
 
 		// Explicit static constructor to tell C# compiler, not to mark type as beforefieldinit.
 		static RuntimeParams()
@@ -39,6 +41,11 @@ namespace WalletWasabi.Helpers
 
 		private RuntimeParams()
 		{
+		}
+
+		public static void SetDataDir(string dataDir)
+		{
+			FileDir = Path.Combine(dataDir, "Data");
 		}
 
 		public async Task SaveAsync()
