@@ -42,6 +42,8 @@ namespace WalletWasabi.Services
 		private AsyncLock BlockDownloadLock { get; }
 		private AsyncLock BlockFolderLock { get; }
 
+		private int NodeTimeouts { get; set; }
+
 		// These are static functions, so we will make sure when blocks are downloading with multiple wallet services, they don't conflict.
 		private static int _concurrentBlockDownload = 0;
 
@@ -102,6 +104,8 @@ namespace WalletWasabi.Services
 
 			BlocksFolderPath = Path.Combine(workFolderDir, "Blocks", Network.ToString());
 			TransactionsFolderPath = Path.Combine(workFolderDir, "Transactions", Network.ToString());
+			RuntimeParams.SetDataDir(workFolderDir);
+
 			BlockFolderLock = new AsyncLock();
 			BlockDownloadLock = new AsyncLock();
 
@@ -246,6 +250,8 @@ namespace WalletWasabi.Services
 			{
 				throw new NotSupportedException($"{nameof(Synchronizer)} is not running.");
 			}
+
+			await RuntimeParams.LoadAsync();
 
 			using (HandleFiltersLock.Lock())
 			using (WalletBlocksLock.Lock())
@@ -763,7 +769,7 @@ namespace WalletWasabi.Services
 						{
 							ConcurrentBlockDownloadNumberChanged?.Invoke(this, Interlocked.Increment(ref _concurrentBlockDownload));
 
-							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(64))) // 1/2 ADSL	512 kbit/s	00:00:32
+							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout))) // 1/2 ADSL	512 kbit/s	00:00:32
 							{
 								block = node.GetBlocks(new uint256[] { hash }, cts.Token)?.Single();
 							}
@@ -787,12 +793,17 @@ namespace WalletWasabi.Services
 								Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}. Block downloaded: {block.GetHash()}");
 								node.DisconnectAsync("Thank you!");
 							}
+
+							await NodeTimeoutsAsync(false);
 						}
 						catch (Exception ex) when (ex is OperationCanceledException
 												|| ex is TaskCanceledException
 												|| ex is TimeoutException)
 						{
 							Logger.LogInfo<WalletService>($"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
+
+							await NodeTimeoutsAsync(true);
+
 							node.DisconnectAsync("Block download took too long.");
 							continue;
 						}
@@ -1317,6 +1328,50 @@ namespace WalletWasabi.Services
 					RefreshCoinHistories();
 				}
 			}
+		}
+
+		// Current timeout used when downloading a block from the remote node. It is defined in seconds.
+		private async Task NodeTimeoutsAsync(bool increaseDecrease)
+		{
+			if (increaseDecrease)
+			{
+				NodeTimeouts++;
+			}
+			else
+			{
+				NodeTimeouts--;
+			}
+
+			var timeout = RuntimeParams.Instance.NetworkNodeTimeout;
+
+			// If it times out 2 times in a row then increase the timeout.
+			if (NodeTimeouts >= 2)
+			{
+				NodeTimeouts = 0;
+				timeout *= 2;
+			}
+			else if (NodeTimeouts <= -3) // If it doesn't time out 3 times in a row, lower the timeout.
+			{
+				NodeTimeouts = 0;
+				timeout = (int)Math.Round(timeout * 0.7);
+			}
+
+			// Sanity check
+			if (timeout < 32)
+			{
+				timeout = 32;
+			}
+			else if (timeout > 600)
+			{
+				timeout = 600;
+			}
+
+			if (timeout == RuntimeParams.Instance.NetworkNodeTimeout) return;
+
+			RuntimeParams.Instance.NetworkNodeTimeout = timeout;
+			await RuntimeParams.Instance.SaveAsync();
+
+			Logger.LogInfo<WalletService>($"Current timeout value used on block download is: {timeout} seconds.");
 		}
 
 		#region IDisposable Support
