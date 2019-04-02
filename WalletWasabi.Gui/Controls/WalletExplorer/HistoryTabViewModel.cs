@@ -125,20 +125,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 
-				if (Global.WalletService is null) // disposed meanwhile
-				{
-					break;
-				}
+				if (Global.WalletService is null) break; // Disposed meanwhile.
 
-				SmartTransaction foundTransaction = Global.WalletService.TransactionCache.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
+				SmartTransaction foundTransaction = Global.WalletService?.TransactionCache?.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
 				if (foundTransaction is null)
 				{
+					if (Global.WalletService is null) break; // Disposed meanwhile.
 					continue;
 				}
 
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
 				{
+					if (Global.WalletService is null) break; //  Disposed meanwhile. Actually caught an NRE here.
 					if (Global.WalletService.ProcessedBlocks.Any(x => x.Value.height == foundTransaction.Height))
 					{
 						dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundTransaction.Height).Value.dateTime;

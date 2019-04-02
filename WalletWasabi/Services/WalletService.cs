@@ -1248,31 +1248,112 @@ namespace WalletWasabi.Services
 
 		public async Task SendTransactionAsync(SmartTransaction transaction)
 		{
-			using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+			try
 			{
-				try
+				// Broadcast to a random node.
+				// Wait until it arrives to at least two other nodes.
+				// If something's wrong, fall back broadcasting with backend.
+
+				if (Network == Network.RegTest) throw new InvalidOperationException("Transaction broadcasting to nodes doesn't work in RegTest.");
+
+				while (true)
 				{
-					await client.BroadcastAsync(transaction);
-				}
-				catch (HttpRequestException ex) when (ex.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
-				{
-					if (transaction.Transaction.Inputs.Count == 1)
+					// As long as we are connected to at least 4 nodes, we can always try again.
+					// 3 should be enough, but make it 5 so 2 nodes could disconnect the meantime.
+					if (Nodes.ConnectedNodes.Count < 5) throw new InvalidOperationException("We are not connected to enough nodes.");
+
+					Node node = Nodes.ConnectedNodes.RandomElement();
+					if (node == default(Node))
 					{
-						OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
-						SmartCoin coin = Coins.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
-						if (coin != default)
-						{
-							coin.SpentAccordingToBackend = true;
-						}
+						await Task.Delay(100);
+						continue;
 					}
-					throw;
+
+					if (!node.IsConnected)
+					{
+						await Task.Delay(100);
+						continue;
+					}
+
+					Logger.LogInfo<WalletService>($"Trying to broadcast transaction with random node ({node.RemoteSocketAddress}):{transaction.GetHash()}");
+					MemPool.TryAddToBroadcastStore(transaction.Transaction, node.RemoteSocketEndpoint.ToString()); // So we'll reply to INV with this transaction.
+					var invPayload = new InvPayload(transaction.Transaction);
+					// Give 7 seconds to send the inv payload.
+					using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(7)))
+					{
+						await node.SendMessageAsync(invPayload).WithCancellation(cts.Token); // ToDo: It's dangerous way to cancel. Implement proper cancellation to NBitcoin!
+					}
+
+					// Give 7 seconds for serving.
+					var timeout = 0;
+					MemPool.TryGetFromBroadcastStore(transaction.GetHash(), out TransactionBroadcastEntry entry);
+					while (!entry.IsBroadcasted())
+					{
+						if (timeout > 7)
+						{
+							throw new TimeoutException("Didn't serve the transaction.");
+						}
+						await Task.Delay(1000);
+						timeout++;
+					}
+					node.DisconnectAsync("Thank you!");
+					Logger.LogInfo<MemPoolBehavior>($"Disconnected node: {node.RemoteSocketAddress}. Successfully broadcasted transaction: {transaction.GetHash()}.");
+
+					// Give 21 seconds for propagation.
+					timeout = 0;
+					while (entry.GetPropagationConfirmations() < 2)
+					{
+						if (timeout > 21)
+						{
+							throw new TimeoutException("Didn't serve the transaction.");
+						}
+						await Task.Delay(1000);
+						timeout++;
+					}
+					Logger.LogInfo<MemPoolBehavior>($"Transaction is successfully propagated: {transaction.GetHash()}.");
+
+					break;
 				}
 			}
+			catch (Exception ex)
+			{
+				Logger.LogInfo<WalletService>($"Random node couldn't broadcast transaction. Broadcasting with backend... Reason: {ex.Message}");
+				Logger.LogDebug<WalletService>(ex);
 
-			ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));
-			MemPool.TransactionHashes.TryAdd(transaction.GetHash());
+				using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+				{
+					try
+					{
+						await client.BroadcastAsync(transaction);
+					}
+					catch (HttpRequestException ex2) when (ex2.Message.Contains("txn-mempool-conflict", StringComparison.InvariantCultureIgnoreCase))
+					{
+						if (transaction.Transaction.Inputs.Count == 1)
+						{
+							OutPoint input = transaction.Transaction.Inputs.First().PrevOut;
+							SmartCoin coin = Coins.FirstOrDefault(x => x.TransactionId == input.Hash && x.Index == input.N);
+							if (coin != default)
+							{
+								coin.SpentAccordingToBackend = true;
+							}
+						}
+						throw new HttpRequestException("Coin has been already spent.");
+					}
+					catch (HttpRequestException ex2) when (ex2.Message.Contains("too-long-mempool-chain", StringComparison.InvariantCultureIgnoreCase))
+					{
+						throw new HttpRequestException("There are too many unconfirmed transactions. Please wait for confirmation.");
+					}
+				}
 
-			Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted: {transaction.GetHash()}.");
+				ProcessTransaction(new SmartTransaction(transaction.Transaction, Height.MemPool));
+				MemPool.TransactionHashes.TryAdd(transaction.GetHash());
+
+				Logger.LogInfo<WalletService>($"Transaction is successfully broadcasted to backend: {transaction.GetHash()}.");
+			}
+			finally
+			{
+				MemPool.TryRemoveFromBroadcastStore(transaction.GetHash(), out _); // Remove it just to be sure. Probably has been removed previously.
+			}
 		}
 
 		public IEnumerable<string> GetNonSpecialLabels()

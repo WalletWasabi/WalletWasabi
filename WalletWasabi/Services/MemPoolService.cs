@@ -16,6 +16,11 @@ namespace WalletWasabi.Services
 	{
 		public ConcurrentHashSet<uint256> TransactionHashes { get; }
 
+		// Transactions those we would reply to INV messages.
+		private List<TransactionBroadcastEntry> BroadcastStore { get; }
+
+		private object BroadcastStoreLock { get; }
+
 		public event EventHandler<SmartTransaction> TransactionReceived;
 
 		internal void OnTransactionReceived(SmartTransaction transaction) => TransactionReceived?.Invoke(this, transaction);
@@ -23,7 +28,70 @@ namespace WalletWasabi.Services
 		public MemPoolService()
 		{
 			TransactionHashes = new ConcurrentHashSet<uint256>();
+			BroadcastStore = new List<TransactionBroadcastEntry>();
+			BroadcastStoreLock = new object();
 			_cleanupInProcess = 0;
+		}
+
+		public bool TryAddToBroadcastStore(Transaction transaction, string nodeRemoteSocketEndpoint)
+		{
+			lock (BroadcastStoreLock)
+			{
+				if (BroadcastStore.Any(x => x.TransactionId == transaction.GetHash()))
+				{
+					return false;
+				}
+				else
+				{
+					var entry = new TransactionBroadcastEntry(transaction, nodeRemoteSocketEndpoint);
+					BroadcastStore.Add(entry);
+					return true;
+				}
+			}
+		}
+
+		public bool TryRemoveFromBroadcastStore(uint256 transactionHash, out TransactionBroadcastEntry entry)
+		{
+			lock (BroadcastStoreLock)
+			{
+				var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
+				entry = found;
+				if (found is null)
+				{
+					return false;
+				}
+				else
+				{
+					BroadcastStore.RemoveAll(x => x.TransactionId == transactionHash);
+					return true;
+				}
+			}
+		}
+
+		public bool TryGetFromBroadcastStore(uint256 transactionHash, out TransactionBroadcastEntry entry)
+		{
+			lock (BroadcastStoreLock)
+			{
+				var found = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
+				entry = found;
+
+				if (found is null)
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+		}
+
+		public IEnumerable<TransactionBroadcastEntry> GetBroadcastStore()
+		{
+			lock (BroadcastStoreLock)
+			{
+				return BroadcastStore.ToList();
+			}
 		}
 
 		private int _cleanupInProcess;
