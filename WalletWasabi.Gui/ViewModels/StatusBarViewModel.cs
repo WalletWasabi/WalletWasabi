@@ -42,20 +42,20 @@ namespace WalletWasabi.Gui.ViewModels
 		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
 			UpdateStatus = UpdateStatus.Latest;
-			Peers = nodes.Count;
+			SetPeers(nodes.Count);
 			BlocksLeft = 0;
 			FiltersLeft = synchronizer.GetFiltersLeft();
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
 				.Subscribe(x =>
 				{
-					Peers = nodes.Count;
+					SetPeers(nodes.Count);
 				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed))
 				.Subscribe(x =>
 				{
-					Peers = nodes.Count;
+					SetPeers(nodes.Count);
 				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
@@ -71,7 +71,7 @@ namespace WalletWasabi.Gui.ViewModels
 
 			synchronizer.WhenAnyValue(x => x.TorStatus).Subscribe(_ =>
 			{
-				Tor = synchronizer.TorStatus;
+				SetTor(synchronizer.TorStatus);
 			}).DisposeWith(Disposables);
 
 			synchronizer.WhenAnyValue(x => x.BackendStatus).Subscribe(_ =>
@@ -293,6 +293,19 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				Status = "Ready";
 			}
+		}
+
+		private void SetPeers(int peers)
+		{
+			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
+			Peers = Tor == TorStatus.Running ? peers : 0;
+		}
+
+		private void SetTor(TorStatus tor)
+		{
+			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
+			Tor = tor;
+			SetPeers(Peers);
 		}
 
 		#region IDisposable Support
