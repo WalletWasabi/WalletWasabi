@@ -34,11 +34,6 @@ namespace WalletWasabi.Helpers
 		private static string FileDir;
 		private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
 
-		// Explicit static constructor to tell C# compiler, not to mark type as beforefieldinit.
-		static RuntimeParams()
-		{
-		}
-
 		private RuntimeParams()
 		{
 		}
