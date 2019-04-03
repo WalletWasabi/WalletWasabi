@@ -164,7 +164,13 @@ namespace WalletWasabi.Services
 			{
 				lock (TransactionProcessingLock)
 				{
+					var prevCount = TransactionCache.Count;
 					ProcessTransaction(tx);
+
+					if (prevCount != TransactionCache.Count)
+					{
+						SerializeTransactionCache();
+					}
 				}
 			}
 			catch (Exception ex)
@@ -1411,6 +1417,15 @@ namespace WalletWasabi.Services
 			}
 		}
 
+		private void SerializeTransactionCache()
+		{
+			IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
+			string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderBy(x => x.Height).ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow), Formatting.Indented);
+			File.WriteAllText(TransactionsFilePath,
+				jsonString,
+				Encoding.UTF8);
+		}
+
 		// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 		private async Task NodeTimeoutsAsync(bool increaseDecrease)
 		{
@@ -1470,12 +1485,10 @@ namespace WalletWasabi.Services
 					Synchronizer.Reorged -= IndexDownloader_ReorgedAsync;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
 					Coins.CollectionChanged -= Coins_CollectionChanged;
-
-					IoHelpers.EnsureContainingDirectoryExists(TransactionsFilePath);
-					string jsonString = JsonConvert.SerializeObject(TransactionCache.OrderBy(x => x.Height).ThenBy(x => x.FirstSeenIfMemPoolTime ?? DateTime.UtcNow), Formatting.Indented);
-					File.WriteAllText(TransactionsFilePath,
-						jsonString,
-						Encoding.UTF8);
+					lock (TransactionProcessingLock)
+					{
+						SerializeTransactionCache();
+					}
 
 					DisconnectDisposeNullLocalBitcoinCoreNode();
 				}
