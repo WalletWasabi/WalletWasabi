@@ -4,6 +4,7 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
@@ -52,9 +53,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			AmountQueued = Money.Zero; // Global.ChaumianClient.State.SumAllQueuedCoinAmounts();
 
-			EnqueueCommand = ReactiveCommand.Create(async () => await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
+			EnqueueCommand = ReactiveCommand.CreateFromTask(async () => await DoEnqueueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
 
-			DequeueCommand = ReactiveCommand.Create(async () => await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
+			DequeueCommand = ReactiveCommand.CreateFromTask(async () => await DoDequeueAsync(CoinsList.Coins.Where(c => c.IsSelected)));
 
 			PrivacySomeCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Some);
 
@@ -62,7 +63,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			PrivacyStrongCommand = ReactiveCommand.Create(() => TargetPrivacy = TargetPrivacy.Strong);
 
-			TargetButtonCommand = ReactiveCommand.Create(async () =>
+			TargetButtonCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				switch (TargetPrivacy)
 				{
@@ -459,13 +460,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _targetPrivacy, value);
 		}
 
-		public ReactiveCommand EnqueueCommand { get; }
+		public ReactiveCommand<Unit, Unit> EnqueueCommand { get; }
 
-		public ReactiveCommand DequeueCommand { get; }
+		public ReactiveCommand<Unit, Unit> DequeueCommand { get; }
 
-		public ReactiveCommand PrivacySomeCommand { get; }
-		public ReactiveCommand PrivacyFineCommand { get; }
-		public ReactiveCommand PrivacyStrongCommand { get; }
-		public ReactiveCommand TargetButtonCommand { get; }
+		public ReactiveCommand<Unit, TargetPrivacy> PrivacySomeCommand { get; }
+		public ReactiveCommand<Unit, TargetPrivacy> PrivacyFineCommand { get; }
+		public ReactiveCommand<Unit, TargetPrivacy> PrivacyStrongCommand { get; }
+		public ReactiveCommand<Unit, Unit> TargetButtonCommand { get; }
 	}
 }

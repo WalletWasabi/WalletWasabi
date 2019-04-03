@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.Models;
@@ -35,12 +36,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private GridLength _coinJoinStatusWidth;
 		private SortOrder _clustersSortDirection;
 
-		public ReactiveCommand EnqueueCoin { get; }
-		public ReactiveCommand DequeueCoin { get; }
-		public ReactiveCommand SelectAllCheckBoxCommand { get; }
-		public ReactiveCommand SelectPrivateCheckBoxCommand { get; }
-		public ReactiveCommand SelectNonPrivateCheckBoxCommand { get; }
-		public ReactiveCommand SortCommand { get; }
+		public ReactiveCommand<Unit, Unit> EnqueueCoin { get; }
+		public ReactiveCommand<Unit, Unit> DequeueCoin { get; }
+		public ReactiveCommand<Unit, Unit> SelectAllCheckBoxCommand { get; }
+		public ReactiveCommand<Unit, Unit> SelectPrivateCheckBoxCommand { get; }
+		public ReactiveCommand<Unit, Unit> SelectNonPrivateCheckBoxCommand { get; }
+		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
 		public event EventHandler DequeueCoinsPressed;
 

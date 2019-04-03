@@ -5,6 +5,7 @@ using ReactiveUI;
 using System;
 using System.IO;
 using System.Linq;
+using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
@@ -113,7 +114,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _validationMessage, value);
 		}
 
-		public ReactiveCommand GenerateCommand { get; }
+		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 
 		public void OnTermsClicked()
 		{

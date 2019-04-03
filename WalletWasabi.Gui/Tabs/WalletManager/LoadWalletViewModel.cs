@@ -5,6 +5,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.ViewModels;
@@ -65,7 +66,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 			});
 
-			LoadCommand = ReactiveCommand.Create(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
+			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
 			TestPasswordCommand = ReactiveCommand.Create(() => LoadKeyManager(requirePassword: true), this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			SetLoadButtonText(IsBusy);
@@ -214,8 +215,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
-		public ReactiveCommand LoadCommand { get; }
-		public ReactiveCommand TestPasswordCommand { get; }
+		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
+		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 
 		public KeyManager LoadKeyManager(bool requirePassword)
 		{
@@ -319,7 +320,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
-		public ReactiveCommand OpenFolderCommand { get; }
+		public ReactiveCommand<Unit, Unit> OpenFolderCommand { get; }
 
 		public void OpenWalletsFolder()
 		{

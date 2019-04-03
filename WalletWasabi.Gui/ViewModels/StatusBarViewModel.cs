@@ -5,6 +5,7 @@ using NBitcoin.Protocol;
 using ReactiveUI;
 using System;
 using System.IO;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
@@ -154,7 +155,7 @@ namespace WalletWasabi.Gui.ViewModels
 				});
 		}
 
-		public ReactiveCommand UpdateCommand { get; }
+		public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
 
 		public UpdateStatus UpdateStatus
 		{

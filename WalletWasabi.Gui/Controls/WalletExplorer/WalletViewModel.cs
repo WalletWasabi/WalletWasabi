@@ -4,6 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Gui.ViewModels;
@@ -93,7 +94,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
-		public ReactiveCommand LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
 		public ObservableCollection<WalletActionViewModel> Actions
 		{

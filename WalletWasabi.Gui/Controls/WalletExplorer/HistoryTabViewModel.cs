@@ -9,6 +9,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Models;
 using WalletWasabi.Logging;
+using System.Reactive;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -22,7 +23,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
 
-		public ReactiveCommand SortCommand { get; }
+		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
