@@ -172,6 +172,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				SetLoadButtonText(value);
 				SetWalletStates();
+
+				if (value)
+				{
+					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Loading...");
+				}
+				else
+				{
+					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions();
+				}
 			}
 		}
 

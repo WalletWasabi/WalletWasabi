@@ -296,7 +296,10 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		private void SetStatusAndDoUpdateActions()
+		/// <summary>
+		/// Custom status have low priority. It is not guaranteed the status will be that one.
+		/// </summary>
+		public void SetStatusAndDoUpdateActions(string customStatus = null)
 		{
 			if (UpdateStatus == UpdateStatus.Critical)
 			{
@@ -316,7 +319,14 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 			else
 			{
-				Status = "Ready";
+				if (customStatus is null)
+				{
+					Status = "Ready";
+				}
+				else
+				{
+					Status = customStatus;
+				}
 			}
 		}
 
