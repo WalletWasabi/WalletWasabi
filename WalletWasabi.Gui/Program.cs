@@ -42,9 +42,9 @@ namespace WalletWasabi.Gui
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
-						if (Global.Synchronizer.Network != Network.Main)
+						if (Global.Network != Network.Main)
 						{
-							MainWindowViewModel.Instance.Title += $" - {Global.Synchronizer.Network}";
+							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
 						}
 
 						Dispatcher.UIThread.Post(() =>
