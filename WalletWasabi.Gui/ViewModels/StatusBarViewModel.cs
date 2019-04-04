@@ -125,6 +125,31 @@ namespace WalletWasabi.Gui.ViewModels
 				SetStatusAndDoUpdateActions();
 			});
 
+			this.WhenAnyValue(x => x.Status).Subscribe(async status =>
+			{
+				if (status.EndsWith(".")) // Then do animation.
+				{
+					string nextAnimation = null;
+					if (status.EndsWith("..."))
+					{
+						nextAnimation = status.TrimEnd("..", StringComparison.Ordinal);
+					}
+					else if (status.EndsWith("..") || status.EndsWith("."))
+					{
+						nextAnimation = $"{status}.";
+					}
+
+					if (nextAnimation != null)
+					{
+						await Task.Delay(1000);
+						if (Status == status) // If still the same.
+						{
+							Status = nextAnimation;
+						}
+					}
+				}
+			});
+
 			UpdateCommand = ReactiveCommand.Create(() =>
 			{
 				try
