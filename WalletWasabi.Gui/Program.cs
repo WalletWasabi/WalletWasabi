@@ -64,6 +64,8 @@ namespace WalletWasabi.Gui
 				await Global.DisposeAsync();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+
+				Logger.LogInfo($"Wasabi stopped gracefully.", Logger.InstanceGuid.ToString());
 			}
 		}
 

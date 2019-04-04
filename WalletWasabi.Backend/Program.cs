@@ -27,6 +27,8 @@ namespace WalletWasabi.Backend
 			try
 			{
 				Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+				Logger.LogStarting("Wasabi Backend");
+
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 				var configFilePath = Path.Combine(Global.DataDir, "Config.json");
@@ -105,6 +107,7 @@ namespace WalletWasabi.Backend
 			{
 				Logger.LogCritical<Program>(ex);
 			}
+			// Note: Don't do finally here. Dispose in Startup.cs.
 		}
 
 		private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)

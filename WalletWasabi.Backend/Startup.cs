@@ -108,6 +108,8 @@ namespace WalletWasabi.Backend
 				Global.DisconnectDisposeNullLocalNode();
 				Logger.LogInfo<Startup>("LocalNode is disposed.");
 			}
+
+			Logger.LogInfo($"Wasabi Backend stopped gracefully.", Logger.InstanceGuid.ToString());
 		}
 	}
 }
