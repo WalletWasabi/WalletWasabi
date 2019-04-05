@@ -1,14 +1,14 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <StackPanel Margin="10" Spacing="10">
-    <TextBlock Text="Write down these mnemonic words:" FontWeight="Bold" />
+    <TextBlock Text="Write down these Recovery Phrases:" FontWeight="Bold" />
     <Border Padding="2" Background="White" HorizontalAlignment="Stretch" Opacity="0.9">
       <controls:ExtendedTextBox Text="{Binding MnemonicWords, Mode=TwoWay}" Background="Transparent" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Classes="selectableTextBlock" />
     </Border>
     <TextBlock Text="You can recover your wallet on any computer with:" FontWeight="Bold" />
-    <TextBlock Text="- your mnemonic words AND" FontWeight="Bold" />
+    <TextBlock Text="- your Recovery Phrases AND" FontWeight="Bold" />
     <TextBlock Text="- your password" FontWeight="Bold" />
-    <TextBlock Text="Unlike most other wallets if an attacker acquires your mnemonic words, it will not be able to hack your wallet without knowing your password. However, unlike other wallets, you will not be able to recover your wallet only with your mnemonic words if you lose your password." TextWrapping="Wrap" />
-    <Button Background="IndianRed" Content="I backed up the mnemonic words!" Command="{Binding ConfirmCommand}" />
+    <TextBlock Text="Unlike most other wallets if an attacker acquires your Recovery Phrases, it will not be able to hack your wallet without knowing your password. However, unlike other wallets, you will not be able to recover your wallet only with your Recovery Phrases if you lose your password." TextWrapping="Wrap" />
+    <Button Background="IndianRed" Content="I backed up the Recovery Phrases!" Command="{Binding ConfirmCommand}" />
   </StackPanel>
 </UserControl>
