@@ -9,6 +9,7 @@ using System;
 using System.Reactive.Linq;
 using Avalonia.Media;
 using System.Threading.Tasks;
+using AvalonStudio.Extensibility.Theme;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -156,7 +157,7 @@ namespace WalletWasabi.Gui.Controls
 			var menuItems = (ContextMenu.Items as Avalonia.Controls.Controls);
 			if (IsCopyEnabled)
 			{
-				menuItems.Add(new MenuItem { Header = "Copy", Command = CopyCommand, Icon = GetCopyPresenter() });
+				menuItems.Add(new MenuItem { Header = "Copy", Foreground = ColorTheme.CurrentTheme.Foreground, Command = CopyCommand, Icon = GetCopyPresenter() });
 			}
 
 			if (!IsReadOnly)
@@ -169,7 +170,7 @@ namespace WalletWasabi.Gui.Controls
 		private void CreatePasteItem()
 		{
 			if (_pasteItem != null) return;
-			_pasteItem = new MenuItem { Header = "Paste", Command = PasteCommand, Icon = GetPastePresenter() };
+			_pasteItem = new MenuItem { Header = "Paste", Foreground = ColorTheme.CurrentTheme.Foreground, Command = PasteCommand, Icon = GetPastePresenter() };
 		}
 	}
 }
