@@ -19,15 +19,18 @@ namespace WalletWasabi.Gui.Controls
 
 		public ExtendedTextBox()
 		{
-			CopyCommand = ReactiveCommand.Create(async () =>
+			CopyCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await CopyAsync();
 			});
 
-			PasteCommand = ReactiveCommand.Create(async () =>
+			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await PasteAsync();
 			});
+
+			CopyCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<ExtendedTextBox>(ex));
+			PasteCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<ExtendedTextBox>(ex));
 
 			this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
 			{
@@ -93,18 +96,18 @@ namespace WalletWasabi.Gui.Controls
 
 		private async Task CopyAsync()
 		{
-			var selection = GetSelection();
+				var selection = GetSelection();
 
-			if (string.IsNullOrWhiteSpace(selection))
-			{
-				selection = Text;
-			}
+				if (string.IsNullOrWhiteSpace(selection))
+				{
+					selection = Text;
+				}
 
-			if (!string.IsNullOrWhiteSpace(selection))
-			{
-				await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
-					.SetTextAsync(selection);
-			}
+				if (!string.IsNullOrWhiteSpace(selection))
+				{
+					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
+						.SetTextAsync(selection);
+				}
 		}
 
 		protected virtual bool IsCopyEnabled => true;
