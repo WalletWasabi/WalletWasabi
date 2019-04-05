@@ -16,7 +16,7 @@ namespace WalletWasabi.Gui.Converters
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
 		{
-			throw new NotSupportedException();
+			return ((double)value <= 0.0001) ? NotificationTypeEnum.None : NotificationTypeEnum.Info;
 		}
 	}
 }

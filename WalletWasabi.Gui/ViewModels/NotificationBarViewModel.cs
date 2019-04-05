@@ -24,9 +24,10 @@ namespace WalletWasabi.Gui.ViewModels
 	public class NotificationBarViewModel : ViewModelBase
 	{
 		private Queue<Notification> _notificationQueue = new Queue<Notification>();
-		private DispatcherTimer _timer;
-		private string _notificationText;
 
+		public ReactiveCommand CloseCommand { get; } 
+
+		private string _notificationText;
 		public string NotificationText
 		{
 			get => _notificationText;
@@ -41,26 +42,26 @@ namespace WalletWasabi.Gui.ViewModels
 			set => this.RaiseAndSetIfChanged(ref _notificationType, value);
 		}
 
+		private bool _displaying;
+
+		public bool Displaying
+		{
+			get => _displaying;
+			set => this.RaiseAndSetIfChanged(ref _displaying, value);
+		}
+
+	
 		public NotificationBarViewModel()
 		{
 			Global.NotificationManager.NotificationAvailable += (s, n) => _notificationQueue.Enqueue(n);
-			_timer = new DispatcherTimer
-			{
-				Interval = TimeSpan.FromSeconds(3)
-			};
 
-			_timer.Tick += (sender, e) =>
-			{
-				_timer.Stop();
-				NotificationText = string.Empty;
-				NotificationType = NotificationTypeEnum.None;
-			};
+			CloseCommand = ReactiveCommand.Create(()=>Displaying = false);
 
 			Task.Run(async () =>
 			{
 				while (true)
 				{
-					if (_notificationQueue.Any() && !_timer.IsEnabled)
+					if (_notificationQueue.Any() && !Displaying)
 					{
 						var notification = _notificationQueue.Dequeue();
 						
@@ -69,13 +70,15 @@ namespace WalletWasabi.Gui.ViewModels
 					await Task.Delay(TimeSpan.FromSeconds(0.1));
 				}
 			});
+
+			Displaying = false;
 		}
 
 		private void DisplayNotification(Notification notification)
 		{
 			NotificationText = notification.NotificationText;
 			NotificationType = notification.NotificationType;
-			_timer.Start();
+			Displaying = true;
 		}
 	}
 }

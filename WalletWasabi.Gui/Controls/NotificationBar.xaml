@@ -9,24 +9,30 @@
     <converters:NotificationTypeColorConverter x:Key="NotificationTypeColorConverter"/>
     <converters:NotificationTypeBoolConverter x:Key="NotificationTypeBoolConverter"/>
   </UserControl.Resources>
-  <Grid Opacity="{Binding NotificationType, Converter={StaticResource NotificationTypeBoolConverter}}" 
+  <Grid Opacity="{Binding NotificationType, Converter={StaticResource NotificationTypeBoolConverter}}"
+        IsVisible="{Binding Displaying, Mode=TwoWay}" 
+        IsEnabled="{Binding Displaying}"
         Background="{Binding NotificationType, ConverterParameter=Background, Converter={StaticResource NotificationTypeColorConverter}}">
-    <Grid.Transitions>
-      <DoubleTransition Property="Opacity"
-            Easing="CircularEaseIn"
-            Duration="0:0:0.2" />
-    </Grid.Transitions>
-    <DockPanel LastChildFill="True" Margin="4 0" HorizontalAlignment="Center">
-      <Panel>
-        <StackPanel Orientation="Horizontal" Spacing="4">
-          <controls:ExtendedTextBox Text="{Binding NotificationText, Mode=OneWay}" 
-                     VerticalAlignment="Center" 
-                     Foreground="{Binding NotificationType, ConverterParameter=Foreground, Converter={StaticResource NotificationTypeColorConverter}}"
-                     FontSize="16" 
-                     Classes="selectableTextBlock Transaparent" 
-                     Background="Transparent" />
-        </StackPanel>
-      </Panel>
-    </DockPanel>
+    <i:Interaction.Behaviors>
+      <behaviors:FadeOutBehavior />
+    </i:Interaction.Behaviors>
+    <Border Name="Frame">
+      <DockPanel LastChildFill="True">
+        <Button Background="Transparent" BorderThickness="0" Command="{Binding CloseCommand}" DockPanel.Dock="Right" Padding="0, 0, 10, 0">
+          <Panel Margin="4">
+            <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False" Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z" Fill="{DynamicResource ThemeForegroundBrush}" />
+          </Panel>
+        </Button>
+
+        <controls:ExtendedTextBox Text="{Binding NotificationText, Mode=OneWay}" 
+          DockPanel.Dock="Left" 
+          VerticalAlignment="Center" 
+          HorizontalAlignment="Center"
+          Foreground="{Binding NotificationType, ConverterParameter=Foreground, Converter={StaticResource NotificationTypeColorConverter}}"
+          FontSize="16" 
+          Classes="selectableTextBlock Transaparent" 
+          Background="Transparent" />
+      </DockPanel>
+    </Border>
   </Grid>
 </UserControl>
