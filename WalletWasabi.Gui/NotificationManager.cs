@@ -25,10 +25,9 @@ namespace WalletWasabi.Gui
 		private void Notify(NotificationTypeEnum notificationType, string notificationText, bool unattended)
 		{
 			var notificationId = Hashes.Hash256(Encoding.UTF8.GetBytes(notificationText));
-			if(notificationId == _lastNotificationId && (DateTime.UtcNow-_lastNotificationTime) < TimeSpan.FromSeconds(1) ) 
-				return;
+			var duplicated = notificationId == _lastNotificationId && (DateTime.UtcNow-_lastNotificationTime) < TimeSpan.FromSeconds(2); 
 			
-			NotificationAvailable?.Invoke(this, new Notification(notificationType, notificationText, unattended));
+			NotificationAvailable?.Invoke(this, new Notification(notificationType, notificationText, unattended, duplicated));
 			_lastNotificationId = notificationId;
 			_lastNotificationTime = DateTime.UtcNow;
 		}

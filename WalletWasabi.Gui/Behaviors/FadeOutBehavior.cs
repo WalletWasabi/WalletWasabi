@@ -20,32 +20,18 @@ namespace WalletWasabi.Gui.Behaviors
 		private Animation _fadeOutAnimation;
 		private Border _border;
 
-/*
-        public static readonly AvaloniaProperty IsVisibleProperty =
-            AvaloniaProperty.RegisterAttached<Control, bool>("IsVisible", typeof(FadeOutBehavior), true, true, BindingMode.TwoWay);
-
-        public static bool GetIsVisible(Control control)
-        {
-            return (bool)control.GetValue(IsVisibleProperty);
-        }
-        public static void SetIsVisible(Control control, bool value)
-        {
-            control.SetValue(IsVisibleProperty, value);
-        }
-*/
-
-
 		/// <inheritdoc/>
 		protected override void OnAttached()
 		{
 			base.OnAttached();
-			AssociatedObject.AttachedToLogicalTree += (s, e)=>{
-				_border = AssociatedObject.FindControl<Border>("Frame");
+			//.AttachedToLogicalTree
+			AssociatedObject.AttachedToVisualTree += (s, e)=>{
+				_border = (Border)((Grid)AssociatedObject).Children[0];
 			};
 
 			_timer = new DispatcherTimer
 			{
-				Interval = TimeSpan.FromSeconds(5)
+				Interval = TimeSpan.FromSeconds(6)
 			};
 
 			_timer.Tick += async (sender, e) =>

@@ -4,35 +4,44 @@
              xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
-             Height="22">
+             MinHeight="22">
   <UserControl.Resources>
     <converters:NotificationTypeColorConverter x:Key="NotificationTypeColorConverter"/>
     <converters:NotificationTypeBoolConverter x:Key="NotificationTypeBoolConverter"/>
   </UserControl.Resources>
-  <Grid Opacity="{Binding NotificationType, Converter={StaticResource NotificationTypeBoolConverter}}"
-        IsVisible="{Binding Displaying, Mode=TwoWay}" 
-        IsEnabled="{Binding Displaying}"
-        Background="{Binding NotificationType, ConverterParameter=Background, Converter={StaticResource NotificationTypeColorConverter}}">
-    <i:Interaction.Behaviors>
-      <behaviors:FadeOutBehavior />
-    </i:Interaction.Behaviors>
-    <Border Name="Frame">
-      <DockPanel LastChildFill="True">
-        <Button Background="Transparent" BorderThickness="0" Command="{Binding CloseCommand}" DockPanel.Dock="Right" Padding="0, 0, 10, 0">
-          <Panel Margin="4">
-            <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False" Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z" Fill="{DynamicResource ThemeForegroundBrush}" />
-          </Panel>
-        </Button>
+  <DockPanel LastChildFill="True" Thickness="0">
+    <ListBox Items="{Binding Notifications}" VirtualizationMode="None" BorderThickness="0" Padding="0 0 0 0">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <Grid Opacity="{Binding NotificationType, Converter={StaticResource NotificationTypeBoolConverter}}"
+                IsVisible="{Binding Displaying, Mode=TwoWay}" 
+                IsEnabled="{Binding Displaying}"
+                Margin="0 0 0 1">
+            <i:Interaction.Behaviors>
+              <behaviors:FadeOutBehavior />
+            </i:Interaction.Behaviors>
+            <Border CornerRadius="4,4,4,4" Background="{Binding NotificationType, ConverterParameter=Background, Converter={StaticResource NotificationTypeColorConverter}}">
+              <DockPanel LastChildFill="True">
+                <Button Background="Transparent" BorderThickness="0" Command="{Binding CloseCommand}" DockPanel.Dock="Right" Padding="0, 0, 10, 0">
+                  <Panel Margin="4">
+                    <Path Height="8" Width="8" Stretch="Uniform" UseLayoutRounding="False" Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z" Fill="{DynamicResource ThemeForegroundBrush}" />
+                  </Panel>
+                </Button>
 
-        <controls:ExtendedTextBox Text="{Binding NotificationText, Mode=OneWay}" 
-          DockPanel.Dock="Left" 
-          VerticalAlignment="Center" 
-          HorizontalAlignment="Center"
-          Foreground="{Binding NotificationType, ConverterParameter=Foreground, Converter={StaticResource NotificationTypeColorConverter}}"
-          FontSize="16" 
-          Classes="selectableTextBlock Transaparent" 
-          Background="Transparent" />
-      </DockPanel>
-    </Border>
-  </Grid>
+                <controls:ExtendedTextBox Text="{Binding NotificationText, Mode=OneWay}" 
+                  DockPanel.Dock="Left" 
+                  VerticalAlignment="Center" 
+                  HorizontalAlignment="Center"
+                  Foreground="{Binding NotificationType, ConverterParameter=Foreground, Converter={StaticResource NotificationTypeColorConverter}}"
+                  FontSize="16" 
+                  Classes="selectableTextBlock Transaparent" 
+                  Background="Transparent" />
+              </DockPanel>
+            </Border>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </DockPanel>
+
 </UserControl>

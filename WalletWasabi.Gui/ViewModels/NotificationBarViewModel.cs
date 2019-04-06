@@ -18,67 +18,55 @@ using System.Runtime.InteropServices;
 using System.Reactive.Disposables;
 using System.ComponentModel;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace WalletWasabi.Gui.ViewModels
 {
 	public class NotificationBarViewModel : ViewModelBase
 	{
 		private Queue<Notification> _notificationQueue = new Queue<Notification>();
-
-		public ReactiveCommand CloseCommand { get; } 
-
-		private string _notificationText;
-		public string NotificationText
+		private ObservableCollection<NotificationViewModel> _notifications;
+		public ObservableCollection<NotificationViewModel> Notifications
 		{
-			get => _notificationText;
-			set => this.RaiseAndSetIfChanged(ref _notificationText, value);
+			get => _notifications;
+			set => this.RaiseAndSetIfChanged(ref _notifications, value);
 		}
-
-		private NotificationTypeEnum _notificationType;
-
-		public NotificationTypeEnum NotificationType
-		{
-			get => _notificationType;
-			set => this.RaiseAndSetIfChanged(ref _notificationType, value);
-		}
-
-		private bool _displaying;
-
-		public bool Displaying
-		{
-			get => _displaying;
-			set => this.RaiseAndSetIfChanged(ref _displaying, value);
-		}
-
 	
 		public NotificationBarViewModel()
 		{
+			Notifications = new ObservableCollection<NotificationViewModel>();
 			Global.NotificationManager.NotificationAvailable += (s, n) => _notificationQueue.Enqueue(n);
-
-			CloseCommand = ReactiveCommand.Create(()=>Displaying = false);
 
 			Task.Run(async () =>
 			{
 				while (true)
 				{
-					if (_notificationQueue.Any() && !Displaying)
+					if (_notificationQueue.Any())
 					{
 						var notification = _notificationQueue.Dequeue();
-						
-						await Dispatcher.UIThread.InvokeAsync(()=>DisplayNotification(notification));
+						if(!notification.Duplicated)
+						{
+							await DisplayNotificationAsync(notification);
+						}
+						else
+						{
+							Notifications.Last().IncreaseCounter();
+						}
 					}
 					await Task.Delay(TimeSpan.FromSeconds(0.1));
 				}
 			});
-
-			Displaying = false;
 		}
 
-		private void DisplayNotification(Notification notification)
+		private async Task DisplayNotificationAsync(Notification notification)
 		{
-			NotificationText = notification.NotificationText;
-			NotificationType = notification.NotificationType;
-			Displaying = true;
+			await Dispatcher.UIThread.InvokeAsync(()=>{
+				Notifications.Add(new NotificationViewModel(this){
+					NotificationText = notification.NotificationText,
+					NotificationType = notification.NotificationType,
+					Displaying = true 
+				});
+			});
 		}
 	}
 }
