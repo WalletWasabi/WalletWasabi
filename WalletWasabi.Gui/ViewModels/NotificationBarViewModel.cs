@@ -61,7 +61,7 @@ namespace WalletWasabi.Gui.ViewModels
 		private async Task DisplayNotificationAsync(Notification notification)
 		{
 			await Dispatcher.UIThread.InvokeAsync(()=>{
-				Notifications.Add(new NotificationViewModel(this){
+				Notifications.Insert(0, new NotificationViewModel(this){
 					NotificationText = notification.NotificationText,
 					NotificationType = notification.NotificationType,
 					Displaying = true 
