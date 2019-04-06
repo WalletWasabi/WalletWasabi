@@ -61,7 +61,9 @@ namespace WalletWasabi.Gui.ViewModels
 					SetPeers(Nodes.Count);
 				}).DisposeWith(Disposables);
 
-			Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
+            SetPeers(Nodes.Count);
+
+            Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
 				.Subscribe(x =>
 				{
 					BlocksLeft = x.EventArgs;
