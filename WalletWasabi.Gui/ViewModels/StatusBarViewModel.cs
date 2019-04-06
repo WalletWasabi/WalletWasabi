@@ -27,8 +27,10 @@ namespace WalletWasabi.Gui.ViewModels
 	public class StatusBarViewModel : ViewModelBase
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
+        private NodesCollection Nodes { get; }
+        private WasabiSynchronizer Synchronizer { get; }
 
-		private UpdateStatus _updateStatus;
+        private UpdateStatus _updateStatus;
 		private bool _updateAvailable;
 		private bool _criticalUpdateAvailable;
 		private BackendStatus _backend;
@@ -38,24 +40,25 @@ namespace WalletWasabi.Gui.ViewModels
 		private int _blocksLeft;
 		private string _btcPrice;
 		private string _status;
-
-		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
+        
+        public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
 			UpdateStatus = UpdateStatus.Latest;
-			SetPeers(nodes.Count);
-			BlocksLeft = 0;
+            Nodes = nodes;
+            Synchronizer = synchronizer;
+            BlocksLeft = 0;
 			FiltersLeft = synchronizer.GetFiltersLeft();
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
 				.Subscribe(x =>
 				{
-					SetPeers(nodes.Count);
+					SetPeers(Nodes.Count);
 				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed))
 				.Subscribe(x =>
 				{
-					SetPeers(nodes.Count);
+					SetPeers(Nodes.Count);
 				}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
@@ -66,27 +69,28 @@ namespace WalletWasabi.Gui.ViewModels
 
 			Observable.FromEventPattern(synchronizer, nameof(synchronizer.NewFilter)).Subscribe(x =>
 			{
-				FiltersLeft = synchronizer.GetFiltersLeft();
+				FiltersLeft = Synchronizer.GetFiltersLeft();
 			}).DisposeWith(Disposables);
 
-			synchronizer.WhenAnyValue(x => x.TorStatus).Subscribe(_ =>
+			synchronizer.WhenAnyValue(x => x.TorStatus).Subscribe(status =>
 			{
-				SetTor(synchronizer.TorStatus);
-			}).DisposeWith(Disposables);
+				SetTor(status);
+                SetPeers(Nodes.Count);
+            }).DisposeWith(Disposables);
 
 			synchronizer.WhenAnyValue(x => x.BackendStatus).Subscribe(_ =>
 			{
-				Backend = synchronizer.BackendStatus;
+				Backend = Synchronizer.BackendStatus;
 			}).DisposeWith(Disposables);
 
 			synchronizer.WhenAnyValue(x => x.BestBlockchainHeight).Subscribe(_ =>
 			{
-				FiltersLeft = synchronizer.GetFiltersLeft();
+				FiltersLeft = Synchronizer.GetFiltersLeft();
 			}).DisposeWith(Disposables);
 
-			synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(_ =>
+			synchronizer.WhenAnyValue(x => x.UsdExchangeRate).Subscribe(usd =>
 			{
-				BtcPrice = $"${(long)synchronizer.UsdExchangeRate}";
+				BtcPrice = $"${(long)usd}";
 			}).DisposeWith(Disposables);
 
 			Observable.FromEventPattern<bool>(synchronizer, nameof(synchronizer.ResponseArrivedIsGenSocksServFail))
@@ -340,7 +344,6 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
 			Tor = tor;
-			SetPeers(Peers);
 		}
 
 		#region IDisposable Support
