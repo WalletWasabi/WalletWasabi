@@ -102,8 +102,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		};
 		private bool ValidateWalletName(string walletName)
 		{
-			var invalidChars = new string(Path.GetInvalidFileNameChars());
-			var isValid = ! WalletName.Any(c=>invalidChars.Contains(c));
+			var invalidChars = Path.GetInvalidFileNameChars();
+			var isValid = !walletName.Any(c=>invalidChars.Contains(c)) && !walletName.EndsWith(".");
 			var isReserved = ReservedFileNames.Any(w=> walletName.ToUpper()==w || walletName.ToUpper().StartsWith(w + "."));
 			return isValid && !isReserved;
 		}
