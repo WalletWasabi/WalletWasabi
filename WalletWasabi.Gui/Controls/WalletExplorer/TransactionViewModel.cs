@@ -18,14 +18,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public TransactionViewModel(TransactionInfo model)
 		{
 			_model = model;
-			_confirmed = model.WhenAnyValue(x => x.Confirmed).ToProperty(this, x => x.Confirmed, model.Confirmed).DisposeWith(Disposables);
-
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
-			{
-				this.RaisePropertyChanged(nameof(AmountBtc));
-				this.RaisePropertyChanged(nameof(TransactionId));
-				this.RaisePropertyChanged(nameof(DateTime));
-			}).DisposeWith(Disposables);
 		}
 
 		public void Refresh()

@@ -334,7 +334,7 @@ namespace WalletWasabi.Gui
 				FileName = filename,
 				Arguments = arguments,
 				CreateNoWindow = true
-			})) { };
+			})){};
 		}
 
 		private static CancellationTokenSource CancelWalletServiceInitialization = null;

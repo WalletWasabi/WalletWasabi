@@ -17,7 +17,6 @@ namespace WalletWasabi.Gui.Behaviors
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
 		private DispatcherTimer _timer;
-		private Animation _fadeOutAnimation;
 		private Border _border;
 
 		/// <inheritdoc/>
@@ -61,7 +60,6 @@ namespace WalletWasabi.Gui.Behaviors
 				await fadeOutAnimation.RunAsync(AssociatedObject);
 				AssociatedObject.IsVisible = false;
 			};
-
 
 			var visibilitySubscription = AssociatedObject.GetObservable(Control.IsVisibleProperty).Subscribe(visible =>
 			{

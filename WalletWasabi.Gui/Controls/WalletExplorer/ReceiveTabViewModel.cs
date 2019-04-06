@@ -69,10 +69,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
 
-			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
+			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
 			{
 				if (Global.UiConfig.Autocopy is false || address is null) return;
-				await address.TryCopyToClipboardAsync();
+				address.CopyToClipboard();
 			});
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
@@ -86,10 +86,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
 
-			CopyAddress = ReactiveCommand.Create(async () =>
+			CopyAddress = ReactiveCommand.Create(() =>
 			{
 				if (SelectedAddress is null) return;
-				await SelectedAddress.TryCopyToClipboardAsync();
+				SelectedAddress.CopyToClipboard();
 			}, isCoinListItemSelected);
 
 			CopyLabel = ReactiveCommand.CreateFromTask(async () =>

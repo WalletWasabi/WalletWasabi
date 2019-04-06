@@ -31,10 +31,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			RewriteTableAsync().GetAwaiter();
 
-			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
+			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(transaction =>
 			{
 				if (Global.UiConfig.Autocopy is false || transaction is null) return;
-				await transaction.TryCopyTxIdToClipboardAsync();
+				transaction.CopyToClipboard();
 			});
 
 			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
