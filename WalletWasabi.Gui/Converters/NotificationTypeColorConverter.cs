@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui.Converters
 					brush = Brush.Parse(background ? "#E34937" : "#D1E337");
 					break;
 				case NotificationTypeEnum.Warning: 
-					brush = Brush.Parse(background ? "#D78A04" : "#E0331F");
+					brush = Brush.Parse(background ? "#D78A04" : "#C02210");
 					break;
 				case NotificationTypeEnum.Success: 
 					brush = Brush.Parse(background ? "#008800" : "#E4E64C");
