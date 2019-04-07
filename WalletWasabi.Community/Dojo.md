@@ -18,12 +18,18 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 |----------------|--------------------------|---------------|------------|
 | Nicolas Dorier | [Twitter][1] [GitHub][2] | [NBitcoin][3] |            |
 
+### Yellow Belts
+
+
+| Wasabika       | Contact                    | Achievements                           | Promotions                     |
+|----------------|----------------------------|----------------------------------------|--------------------------------|
+| Max Hillebrand | [Twitter][5]               | [Wasabi Video Series][6]               | [2019-04][33]: yellow belt by nopara73 |
+
 ### Blue Belts
 
 
 | Wasabika       | Contact                    | Achievements                           | Promotions                     |
 |----------------|----------------------------|----------------------------------------|--------------------------------|
-| Max Hillebrand | [Twitter][5]               | [Wasabi Video Series][6]               | 2018-12: blue belt by nopara73 |
 | Mark Rex       | [Twitter][7] [GitHub][8]   | [GroupSend Research][9]                | 2018-12: blue belt by nopara73 |
 | nothingmuch    | [Twitter][10] [GitHub][11] | [Unequal Amount Mixing for ZeroLink using Preferred Value Series Fixed Denominations Research][12] | 2018-12: blue belt by nopara73 |
 | KevinKelbie    | [Twitter][29]              | [Wasabi Python Library (Outdated)][30] | 2019-19: blue belt by nopara73 |
@@ -73,3 +79,4 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 [30]: https://github.com/KevinKelbie/zerolink-util/
 [31]: https://github.com/Transisto/
 [32]: https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aissue+author%3ATransisto
+[33]: https://twitter.com/nopara73/status/1114540283914522626

@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.Tabs.WalletManager;
+using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -185,9 +186,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				IsBusy = true;
 				try
 				{
+					IsBusy = true;
+					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Building transaction...");
+
 					Password = Guard.Correct(Password);
 					Label = Label.Trim(',', ' ').Trim();
 					if (!IsMax && string.IsNullOrWhiteSpace(Label))
@@ -251,6 +254,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
+					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Broadcasting transaction...");
+
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(result.Transaction));
 
 					ResetMax();
@@ -272,6 +277,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				finally
 				{
 					IsBusy = false;
+					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions();
 				}
 			},
 			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,

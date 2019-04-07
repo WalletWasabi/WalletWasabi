@@ -42,9 +42,9 @@ namespace WalletWasabi.Gui
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
-						if (Global.Synchronizer.Network != Network.Main)
+						if (Global.Network != Network.Main)
 						{
-							MainWindowViewModel.Instance.Title += $" - {Global.Synchronizer.Network}";
+							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
 						}
 
 						Dispatcher.UIThread.Post(() =>
@@ -64,6 +64,8 @@ namespace WalletWasabi.Gui
 				await Global.DisposeAsync();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+
+				Logger.LogInfo($"Wasabi stopped gracefully.", Logger.InstanceGuid.ToString());
 			}
 		}
 

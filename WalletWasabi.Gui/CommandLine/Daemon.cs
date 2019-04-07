@@ -108,6 +108,7 @@ namespace WalletWasabi.Gui.CommandLine
 				Logger.Modes.Add(LogMode.Console);
 				Logger.Modes.Add(LogMode.Debug);
 			}
+			Logger.LogStarting("Wasabi");
 
 			KeyManager keyManager = null;
 			if (walletName != null)

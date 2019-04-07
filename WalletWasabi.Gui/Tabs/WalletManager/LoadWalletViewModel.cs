@@ -173,6 +173,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				SetLoadButtonText(value);
 				SetWalletStates();
+
+				if (value)
+				{
+					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Loading...");
+				}
+				else
+				{
+					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions();
+				}
 			}
 		}
 
@@ -211,7 +220,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			if (IsWalletOpened)
 			{
-				SetWarningMessage("There is already an open wallet. Restart the application to open another one.");
+				SetWarningMessage("There is already an open wallet. Restart the application in order to open a different one.");
 			}
 		}
 
