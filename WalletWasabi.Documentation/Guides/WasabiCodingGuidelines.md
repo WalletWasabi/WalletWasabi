@@ -289,3 +289,19 @@ DO NOT use `==null`
 	if (FeeService == null) return;
 ```
 
+DO NOT use local variables in `.Subscribe()`.
+
+```c#
+
+	public MyConstructor(NodesCollection nodes)
+	{
+	
+		Observable.FromEventPattern<NodeEventArgs>(myList, nameof(nodes.Removed))
+			.Subscribe(x =>
+			{
+				Refresh(nodes.Count); //Bad code. Nodes should be a class member!
+			}).DisposeWith(Disposables);
+			
+	}
+
+```

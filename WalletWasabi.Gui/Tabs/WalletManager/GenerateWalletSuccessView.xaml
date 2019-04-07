@@ -1,18 +1,19 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <StackPanel Margin="10" Spacing="10">
-    <TextBlock Text="Write down these recovery words:" FontWeight="Bold" />
+
+    <TextBlock Text="Write down these Recovery Words:" FontWeight="Bold" />
     <Border Padding="2" Background="White" HorizontalAlignment="Stretch" Opacity="0.9">
       <controls:ExtendedTextBox Text="{Binding MnemonicWords, Mode=TwoWay}" Background="Transparent" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Classes="selectableTextBlock" />
     </Border>
     <TextBlock Text="You can recover your wallet on any computer, but only if you know both:" FontWeight="Bold" />
-    <TextBlock Text="- your recovery words" FontWeight="Bold" />
+    <TextBlock Text="- your Recovery Words" FontWeight="Bold" />
     <TextBlock Text="AND" FontWeight="Bold" />
     <TextBlock Text="- your password" FontWeight="Bold" />
-    <TextBlock Text="Unlike most other wallets, Wasabi wallet uses password on top of your 12 recovery words. Password functions as a 13th word in addition to your recovery words. It is being used to encrypt your wallet file locally as well." TextWrapping="Wrap" />
-    <TextBlock Text="If an attacker acquires your recovery words, it will not be able to hack your wallet without knowing your password as well." TextWrapping="Wrap" />
-    <TextBlock Text="However, unlike other wallets, you WILL NOT be able to recover your wallet only with your recovery words if you lose your password." TextWrapping="Wrap" />
-    <TextBlock Text="Remembering the password is equally important as writing down recovery words." TextWrapping="Wrap" />
-    <Button Background="IndianRed" Content="I backed up my recovery words and I know my password!" Command="{Binding ConfirmCommand}" />
+    <TextBlock Text="Unlike most other wallets, Wasabi wallet uses password on top of your 12 Recovery Words. Password functions as a 13th word in addition to your Recovery Words. It is being used to encrypt your wallet file locally as well." TextWrapping="Wrap" />
+    <TextBlock Text="If an attacker acquires your Recovery Words, it will not be able to hack your wallet without knowing your password as well." TextWrapping="Wrap" />
+    <TextBlock Text="However, unlike other wallets, you WILL NOT be able to recover your wallet only with your Recovery Words if you lose your password." TextWrapping="Wrap" />
+    <TextBlock Text="Remembering the password is equally important as writing down Recovery Words." TextWrapping="Wrap" />
+    <Button Background="IndianRed" Content="I backed up my Recovery Words and I know my password!" Command="{Binding ConfirmCommand}" />
   </StackPanel>
 </UserControl>
