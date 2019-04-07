@@ -219,7 +219,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			if (IsWalletOpened)
 			{
-				SetWarningMessage("There is already an open wallet. Restart the application to open another one.");
+				SetWarningMessage("There is already an open wallet. Restart the application in order to open a different one.");
 			}
 		}
 
