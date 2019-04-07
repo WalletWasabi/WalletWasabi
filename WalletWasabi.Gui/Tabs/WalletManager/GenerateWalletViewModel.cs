@@ -58,6 +58,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			WalletName = Guard.Correct(WalletName);
 
+			if(!ValidateWalletName(WalletName))
+			{
+				ValidationMessage = $"The name {WalletName} is not valid.";
+				return;
+			}
+
 			string walletFilePath = Path.Combine(Global.WalletsDir, $"{WalletName}.json");
 			Password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
 
@@ -87,6 +93,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					Logger.LogError<GenerateWalletViewModel>(ex);
 				}
 			}
+		}
+
+		private static string[] ReservedFileNames = new string[]{
+			"CON", "PRN", "AUX", "NUL", 
+			"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+			"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+		};
+		private bool ValidateWalletName(string walletName)
+		{
+			var invalidChars = Path.GetInvalidFileNameChars();
+			var isValid = !walletName.Any(c=>invalidChars.Contains(c)) && !walletName.EndsWith(".");
+			var isReserved = ReservedFileNames.Any(w=> walletName.ToUpper()==w || walletName.ToUpper().StartsWith(w + "."));
+			return isValid && !isReserved;
 		}
 
 		public string Password
