@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
@@ -183,7 +184,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			FeeRateCommand = ReactiveCommand.Create(ChangeFeeRateDisplay);
 
-			BuildTransactionCommand = ReactiveCommand.Create(async () =>
+			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				try
 				{
@@ -847,11 +848,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _amountToolTip, value);
 		}
 
-		public ReactiveCommand BuildTransactionCommand { get; }
+		public ReactiveCommand<Unit, Unit> BuildTransactionCommand { get; }
 
-		public ReactiveCommand MaxCommand { get; }
+		public ReactiveCommand<Unit, Unit> MaxCommand { get; }
 
-		public ReactiveCommand FeeRateCommand { get; }
+		public ReactiveCommand<Unit, Unit> FeeRateCommand { get; }
 
 		public override void OnOpen()
 		{

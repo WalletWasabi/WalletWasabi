@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive;
 using System.Reactive.Disposables;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
@@ -24,8 +25,8 @@ namespace WalletWasabi.Gui.Tabs
 		private string _useTorText;
 		private bool _isModified;
 
-		public ReactiveCommand OpenConfigFileCommand { get; }
-		public ReactiveCommand LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
 		public SettingsViewModel() : base("Settings")
 		{
