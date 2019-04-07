@@ -45,7 +45,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 				else if (string.IsNullOrWhiteSpace(MnemonicWords))
 				{
-					ValidationMessage = $"Recovery Phrases words were not supplied.";
+					ValidationMessage = $"Recovery Words were not supplied.";
 				}
 				else
 				{
