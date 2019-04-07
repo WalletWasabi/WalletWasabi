@@ -253,7 +253,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
 
-				if(!requirePassword && keyManager.PasswordVerified == false)
+				if (!requirePassword && keyManager.PasswordVerified == false)
 				{
 					Owner.SelectTestPassword();
 					return null;
