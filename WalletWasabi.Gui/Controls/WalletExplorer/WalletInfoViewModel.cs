@@ -3,6 +3,7 @@ using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,7 +92,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		public string EncryptedExtendedMasterPrivateKey => KeyManager.EncryptedSecret.ToWif();
 		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath.ToString()}";
 
-		public ReactiveCommand ShowSensitiveKeysCommand { get; }
+		public ReactiveCommand<Unit, Unit> ShowSensitiveKeysCommand { get; }
 
 		public string Password
 		{

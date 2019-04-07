@@ -3,6 +3,7 @@ using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
 using System;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,8 +39,8 @@ namespace WalletWasabi.Gui.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _operationMessage, value);
 		}
 
-		public new ReactiveCommand OKCommand { get; set; }
-		public new ReactiveCommand CancelCommand { get; set; }
+		public new ReactiveCommand<Unit, Unit> OKCommand { get; set; }
+		public new ReactiveCommand<Unit, Unit> CancelCommand { get; set; }
 
 		//http://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
 		public Task Initialization { get; private set; }

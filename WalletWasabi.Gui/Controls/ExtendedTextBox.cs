@@ -9,6 +9,7 @@ using System;
 using System.Reactive.Linq;
 using Avalonia.Media;
 using System.Threading.Tasks;
+using System.Reactive;
 using AvalonStudio.Extensibility.Theme;
 
 namespace WalletWasabi.Gui.Controls
@@ -58,8 +59,8 @@ namespace WalletWasabi.Gui.Controls
 
 		Type IStyleable.StyleKey => typeof(TextBox);
 
-		private ReactiveCommand CopyCommand { get; }
-		private ReactiveCommand PasteCommand { get; }
+		private ReactiveCommand<Unit, Unit> CopyCommand { get; }
+		private ReactiveCommand<Unit, Unit> PasteCommand { get; }
 
 		private async Task PasteAsync()
 		{

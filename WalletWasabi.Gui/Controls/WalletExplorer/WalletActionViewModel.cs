@@ -1,6 +1,7 @@
 ﻿using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using ReactiveUI;
+using System.Reactive;
 using WalletWasabi.Gui.ViewModels;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
@@ -16,7 +17,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			DoItCommand = ReactiveCommand.Create(DisplayActionTab);
 		}
 
-		public ReactiveCommand DoItCommand { get; }
+		public ReactiveCommand<Unit, Unit> DoItCommand { get; }
 
 		public void DisplayActionTab()
 		{
