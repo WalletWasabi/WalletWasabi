@@ -9,11 +9,11 @@
     <TextBlock Text="You can recover your wallet on any computer, but only if you know both:" FontWeight="Bold" />
     <TextBlock Text="- your Recovery Words" FontWeight="Bold" />
     <TextBlock Text="AND" FontWeight="Bold" />
-    <TextBlock Text="- your password" FontWeight="Bold" />
-    <TextBlock Text="Unlike most other wallets, Wasabi wallet uses password on top of your 12 Recovery Words. Password functions as a 13th word in addition to your Recovery Words. It is being used to encrypt your wallet file locally as well." TextWrapping="Wrap" />
-    <TextBlock Text="If an attacker acquires your Recovery Words, it will not be able to hack your wallet without knowing your password as well." TextWrapping="Wrap" />
-    <TextBlock Text="However, unlike other wallets, you WILL NOT be able to recover your wallet only with your Recovery Words if you lose your password." TextWrapping="Wrap" />
-    <TextBlock Text="Remembering the password is equally important as writing down Recovery Words." TextWrapping="Wrap" />
-    <Button Background="IndianRed" Content="I backed up my Recovery Words and I know my password!" Command="{Binding ConfirmCommand}" />
+    <TextBlock Text="- your Password" FontWeight="Bold" />
+    <TextBlock Text="Unlike most other wallets, Wasabi uses Password on top of your 12 Recovery Words. Password functions as a 13th word in addition to your Recovery Words. It is being used to encrypt your wallet file locally as well." TextWrapping="Wrap" />
+    <TextBlock Text="If an attacker acquires your Recovery Words, it will not be able to hack your wallet without knowing your Password as well." TextWrapping="Wrap" />
+    <TextBlock Text="However, unlike other wallets, you WILL NOT be able to recover your wallet only with your Recovery Words. For that you need your password as well." TextWrapping="Wrap" />
+    <TextBlock Text="Remembering the Password is equally important as writing down Recovery Words." TextWrapping="Wrap" />
+    <Button Background="IndianRed" Content="I backed up my Recovery Words and I know my Password!" Command="{Binding ConfirmCommand}" />
   </StackPanel>
 </UserControl>
