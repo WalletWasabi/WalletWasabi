@@ -75,6 +75,8 @@ namespace WalletWasabi.Gui
 		public static UpdateChecker UpdateChecker { get; private set; }
 		public static TorProcessManager TorManager { get; private set; }
 
+		public static bool KillRequested { get; private set; } = false;
+
 		public static Config Config { get; private set; }
 		public static UiConfig UiConfig { get; private set; }
 
@@ -153,6 +155,8 @@ namespace WalletWasabi.Gui
 			{
 				e.Cancel = true;
 				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
+
+				KillRequested = true;
 				await TryDesperateDequeueAllCoinsAsync();
 				Dispatcher.UIThread.PostLogException(() =>
 				{
