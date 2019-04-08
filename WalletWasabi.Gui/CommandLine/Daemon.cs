@@ -25,6 +25,7 @@ namespace WalletWasabi.Gui.CommandLine
 			LogLevel? logLevel = null;
 			string walletName = null;
 			var doMix = false;
+			var mixAll = false;
 
 			try
 			{
@@ -53,7 +54,8 @@ namespace WalletWasabi.Gui.CommandLine
 					{ "m|mix", "Start mixing without the GUI with the specified wallet.", x => doMix = x != null},
 					{ "w|wallet=", "The specified wallet file.", x => {
 						walletName = x?.Trim();
-					}}
+					}},
+					{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.", x => mixAll = x != null},
 				};
 				try
 				{
@@ -174,7 +176,14 @@ namespace WalletWasabi.Gui.CommandLine
 				await Global.InitializeNoUiAsync();
 				await Global.InitializeWalletServiceAsync(keyManager);
 
-				await Global.ChaumianClient.QueueCoinsToMixAsync(password, Global.WalletService.Coins.Where(x => !x.Unavailable).ToArray());
+				if (mixAll)
+				{
+					await Global.ChaumianClient.QueueCoinsToMixAsync(password, Global.WalletService.Coins.Where(x => !x.Unavailable).ToArray());
+				}
+				else
+				{
+					await Global.ChaumianClient.QueueCoinsToMixAsync(password, Global.WalletService.Coins.Where(x => !x.Unavailable && x.AnonymitySet < Global.WalletService.ServiceConfiguration.MixUntilAnonymitySet).ToArray());
+				}
 
 				while (Global.ChaumianClient.State.AnyCoinsQueued())
 				{
