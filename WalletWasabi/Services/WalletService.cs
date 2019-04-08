@@ -291,24 +291,40 @@ namespace WalletWasabi.Services
 
 						if (transactions != null && transactions.Any())
 						{
-							using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
+							try
 							{
-								var compactness = 10;
-								var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
-
-								var mempoolSet = mempoolHashes.ToHashSet();
-
-								foreach (var tx in transactions)
+								using (var client = new WasabiClient(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint))
 								{
-									if (mempoolSet.Any(x => x == tx.GetHash().ToString().Substring(0, compactness)))
-									{
-										tx.SetHeight(Height.MemPool);
-										ProcessTransaction(tx);
-										MemPool.TransactionHashes.TryAdd(tx.GetHash());
+									var compactness = 10;
 
-										Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hahses: {tx.GetHash()}.");
+									var mempoolHashes = await client.GetMempoolHashesAsync(compactness);
+
+									var mempoolSet = mempoolHashes.ToHashSet();
+
+									foreach (var tx in transactions)
+									{
+										if (mempoolSet.Any(x => x == tx.GetHash().ToString().Substring(0, compactness)))
+										{
+											tx.SetHeight(Height.MemPool);
+											ProcessTransaction(tx);
+											MemPool.TransactionHashes.TryAdd(tx.GetHash());
+
+											Logger.LogInfo<WalletService>($"Transaction was successfully tested against the backend's mempool hahses: {tx.GetHash()}.");
+										}
 									}
 								}
+							}
+							catch
+							{
+								// When there's a connection failure don't clean the transactions, add it to processing.
+								foreach (var tx in transactions)
+								{
+									tx.SetHeight(Height.MemPool);
+									ProcessTransaction(tx);
+									MemPool.TransactionHashes.TryAdd(tx.GetHash());
+								}
+
+								throw;
 							}
 						}
 					}
