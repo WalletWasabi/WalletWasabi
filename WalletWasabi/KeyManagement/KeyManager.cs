@@ -27,6 +27,9 @@ namespace WalletWasabi.KeyManagement
 		public ExtPubKey ExtPubKey { get; }
 
 		[JsonProperty(Order = 4)]
+		public bool? PasswordVerified { get; private set; }
+
+		[JsonProperty(Order = 5)]
 		private List<HdPubKey> HdPubKeys { get; }
 
 		private readonly object HdPubKeysLock;
@@ -46,9 +49,6 @@ namespace WalletWasabi.KeyManagement
 
 		public string FilePath { get; private set; }
 		private object ToFileLock { get; }
-
-		[JsonProperty(Order = 5)]
-		public bool? PasswordVerified { get; private set; }
 
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, bool? passwordVerified, string filePath = null)
