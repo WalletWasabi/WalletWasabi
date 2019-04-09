@@ -17,7 +17,7 @@ namespace WalletWasabi.Gui.Controls
 {
 	public class NoparaPasswordBox : ExtendedTextBox, IStyleable
 	{
-		Type IStyleable.StyleKey => typeof(TextBox);
+		Type IStyleable.StyleKey => typeof(NoparaPasswordBox);
 
 		public static readonly string[] Titles =
 		{
