@@ -27,6 +27,9 @@ namespace WalletWasabi.KeyManagement
 		public ExtPubKey ExtPubKey { get; }
 
 		[JsonProperty(Order = 4)]
+		public bool? PasswordVerified { get; private set; }
+
+		[JsonProperty(Order = 5)]
 		private List<HdPubKey> HdPubKeys { get; }
 
 		private readonly object HdPubKeysLock;
@@ -48,7 +51,7 @@ namespace WalletWasabi.KeyManagement
 		private object ToFileLock { get; }
 
 		[JsonConstructor]
-		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, string filePath = null)
+		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, bool? passwordVerified, string filePath = null)
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
@@ -60,6 +63,9 @@ namespace WalletWasabi.KeyManagement
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
+
+			PasswordVerified = passwordVerified;
+
 			SetFilePath(filePath);
 			ToFileLock = new object();
 			ToFile();
@@ -101,7 +107,7 @@ namespace WalletWasabi.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), filePath);
+			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), false, filePath);
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string filePath = null)
@@ -115,7 +121,7 @@ namespace WalletWasabi.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), filePath);
+			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), true, filePath);
 		}
 
 		public void SetFilePath(string filePath)
@@ -248,6 +254,12 @@ namespace WalletWasabi.KeyManagement
 					return HdPubKeys.Where(wherePredicate).ToList();
 				}
 			}
+		}
+
+		public void SetPasswordVerified()
+		{
+			PasswordVerified = true;
+			ToFile();
 		}
 
 		public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null)
