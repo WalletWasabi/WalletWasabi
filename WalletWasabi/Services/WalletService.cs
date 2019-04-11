@@ -262,8 +262,17 @@ namespace WalletWasabi.Services
 			using (HandleFiltersLock.Lock())
 			using (WalletBlocksLock.Lock())
 			{
+				// Go through the keymanager's index.
+				var bestKeyManagerHeight = KeyManager.GetBestHeight();
+				foreach (var blockstate in KeyManager.GetTransactionIndex())
+				{
+					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel);
+					WalletBlocks.AddOrReplace(blockstate.BlockHeight, blockstate.BlockHash);
+
+					ProcessBlock(blockstate.BlockHeight, block, blockstate.TransactionIndices);
+				}
 				// Go through the filters and que to download the matches.
-				foreach (FilterModel filterModel in Synchronizer.GetFilters().Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
+				foreach (FilterModel filterModel in Synchronizer.GetFilters().Where(x => !(x.Filter is null) && x.BlockHeight >= bestKeyManagerHeight && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
 				{
 					await ProcessFilterModelAsync(filterModel, cancel);
 				}
@@ -465,11 +474,22 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private void ProcessBlock(Height height, Block block)
+		private void ProcessBlock(Height height, Block block, IEnumerable<int> filterByTxIds = null)
 		{
-			foreach (var tx in block.Transactions)
+			if (filterByTxIds is null)
 			{
-				ProcessTransaction(new SmartTransaction(tx, height));
+				foreach (var tx in block.Transactions)
+				{
+					ProcessTransaction(new SmartTransaction(tx, height));
+				}
+			}
+			else
+			{
+				foreach (var i in filterByTxIds.OrderBy(x => x))
+				{
+					Transaction tx = block.Transactions[i];
+					ProcessTransaction(new SmartTransaction(tx, height));
+				}
 			}
 
 			ProcessedBlocks.TryAdd(block.GetHash(), (height, block.Header.BlockTime));
