@@ -1227,10 +1227,10 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			bool haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentConfirmedCoins);
+			bool haveEnough = TrySelectCoins(ref coinsToSpend, totalOutAmount, unspentConfirmedCoins);
 			if (!haveEnough)
 			{
-				haveEnough = SelectCoins(ref coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
+				haveEnough = TrySelectCoins(ref coinsToSpend, totalOutAmount, unspentUnconfirmedCoins);
 			}
 
 			if (!haveEnough)
@@ -1241,20 +1241,36 @@ namespace WalletWasabi.Services
 			return coinsToSpend;
 		}
 
-		private bool SelectCoins(ref HashSet<SmartCoin> coinsToSpend, Money totalOutAmount, IEnumerable<SmartCoin> unspentCoins)
+		/// <returns>If the selection was successful. If there's enough coins to spend from.</returns>
+		private bool TrySelectCoins(ref HashSet<SmartCoin> coinsToSpend, Money totalOutAmount, IEnumerable<SmartCoin> unspentCoins)
 		{
-			var haveEnough = false;
-			foreach (var coin in unspentCoins.OrderByDescending(x => x.Amount))
+			// If there's no need for input merging, then use the largest selected.
+			// Don't prefer anonymity set. You can assume the user prefers anonymity set manually through the GUI.
+			SmartCoin largestCoin = unspentCoins.OrderByDescending(x => x.Amount).FirstOrDefault();
+			if (largestCoin == default) return false; // If there's no coin then unsuccessful selection.
+			else // Check if we can do without input merging.
 			{
-				coinsToSpend.Add(coin);
-				// if doesn't reach amount, continue adding next coin
-				if (coinsToSpend.Select(x => x.Amount).Sum() < totalOutAmount) continue;
-
-				haveEnough = true;
-				break;
+				if (largestCoin.Amount >= totalOutAmount)
+				{
+					coinsToSpend.Add(largestCoin);
+					return true;
+				}
 			}
 
-			return haveEnough;
+			// If there's a need for input merging.
+			foreach (var coin in unspentCoins
+				.OrderByDescending(x => x.AnonymitySet) // Always try to spend/merge the largest anonset coins first.
+				.ThenByDescending(x => x.Amount)) // Then always try to spend by amount.
+			{
+				coinsToSpend.Add(coin);
+				// If reaches the amount, then return true, else just go with the largest coin.
+				if (coinsToSpend.Select(x => x.Amount).Sum() >= totalOutAmount)
+				{
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		public void RenameLabel(SmartCoin coin, string newLabel)
