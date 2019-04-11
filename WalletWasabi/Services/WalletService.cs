@@ -45,7 +45,7 @@ namespace WalletWasabi.Services
 		private int NodeTimeouts { get; set; }
 
 		// These are static functions, so we will make sure when blocks are downloading with multiple wallet services, they don't conflict.
-		private static int _concurrentBlockDownload = 0;
+		private static int ConcurrentBlockDownload = 0;
 
 		/// <summary>
 		/// int: number of blocks being downloaded in parallel, not the number of blocks left to download!
@@ -789,7 +789,7 @@ namespace WalletWasabi.Services
 
 						try
 						{
-							ConcurrentBlockDownloadNumberChanged?.Invoke(this, Interlocked.Increment(ref _concurrentBlockDownload));
+							ConcurrentBlockDownloadNumberChanged?.Invoke(this, Interlocked.Increment(ref ConcurrentBlockDownload));
 
 							using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RuntimeParams.Instance.NetworkNodeTimeout))) // 1/2 ADSL	512 kbit/s	00:00:32
 							{
@@ -838,7 +838,7 @@ namespace WalletWasabi.Services
 						}
 						finally
 						{
-							var concurrentBlockDownload = Interlocked.Decrement(ref _concurrentBlockDownload);
+							var concurrentBlockDownload = Interlocked.Decrement(ref ConcurrentBlockDownload);
 							ConcurrentBlockDownloadNumberChanged?.Invoke(this, concurrentBlockDownload);
 						}
 
