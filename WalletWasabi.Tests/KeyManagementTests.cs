@@ -42,7 +42,7 @@ namespace WalletWasabi.Tests
 			Assert.NotNull(manager3.EncryptedSecret);
 			Assert.NotNull(manager3.ExtPubKey);
 
-			var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.ExtPubKey, true);
+			var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.ExtPubKey, true, new BlockchainState());
 			var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password);
 			Logger.TurnOff();
 			Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword"));

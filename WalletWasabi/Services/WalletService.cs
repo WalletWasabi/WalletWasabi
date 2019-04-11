@@ -271,6 +271,7 @@ namespace WalletWasabi.Services
 
 					ProcessBlock(blockstate.BlockHeight, block, blockstate.TransactionIndices);
 				}
+
 				// Go through the filters and que to download the matches.
 				foreach (FilterModel filterModel in Synchronizer.GetFilters().Where(x => !(x.Filter is null) && x.BlockHeight >= bestKeyManagerHeight && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
 				{
