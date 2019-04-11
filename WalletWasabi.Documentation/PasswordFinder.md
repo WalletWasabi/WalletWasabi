@@ -14,11 +14,13 @@ git clone https://github.com/lontivero/WasabiPasswordFinder.git
 ## Usage
 
 ```
-$ dotnet run -s {encryptedSecret} [OPTIONS]+ 
-Usage: dotnet run [OPTIONS]+
-Example: dotnet run -s 6PYSeErf23ArQL7xXUWPKa3VBin6cuDaieSdABvVyTA51dS4Mxrtg1CpGN
+$ dotnet run findpassword -s {encryptedSecret} [OPTIONS]+ 
+usage: findpassword --secret:encrypted-secret --language:lang --numbers:[TRUE|
+FALSE] --symbold:[TRUE|FALSE]
 
-Options:
+Tries to find typing mistakes in the user password by brute forcing it char by char.
+eg: findpassword --secret:6PYSeErf23ArQL7xXUWPKa3VBin6cuDaieSdABvVyTA51dS4Mxrtg1CpGN --numbers:false --symbold:true
+
   -s, --secret=VALUE         The secret from your .json file (EncryptedSecret).
   -l, --language=VALUE       The charset to use: en, es, it, fr, pt. Default=en.
   -n, --numbers=VALUE        Try passwords with numbers. Default=true.
@@ -30,7 +32,7 @@ You can find your encryptedSecret in your `Wallet.json` file, that you have prev
 
 
 ```
-dotnet run -- -s 6PYSJ71rbacdSS2htBcpSccutEEEJqGHq3152FuT357ha6iat6BkENGwUB -l es -numbers -symbols
+dotnet run findpassword -secret:6PYSJ71rbacdSS2htBcpSccutEEEJqGHq3152FuT357ha6iat6BkENGwUB -language:es -numbers -symbols
 WARNING: This tool will display you password if it finds it. Also, the process status display your wong password chars.
          You can cancel this by CTRL+C combination anytime.
 

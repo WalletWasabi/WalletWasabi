@@ -36,45 +36,42 @@ namespace WalletWasabi.Gui.CommandLine
 					Console.WriteLine();
 				}
 
-				var options = new OptionSet() {
+				OptionSet options = null;
+				var suite = new CommandSet("wassabee") {
+					"Usage: wassabee [OPTIONS]+",
+					"Available commands are:",
+					"",
 					{ "v|version", "Displays Wasabi version and exit.", x => showVersion = x != null},
-					{ "h|help", "Displays help page and exit.", x => showHelp = x != null},
-					{ "s|silent", "Do not log to the standard outputs.", x => silent = x != null},
-					{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARNING|DEBUG|ERROR.", x => {
-						var normalized = x?.ToLower()?.Trim();
-						if(normalized == "info") logLevel = LogLevel.Info;
-						else if(normalized == "warning")  logLevel = LogLevel.Warning;
-						else if(normalized == "error") logLevel = LogLevel.Error;
-						else if(normalized == "trace") logLevel = LogLevel.Trace;
-						else if(normalized == "debug") logLevel = LogLevel.Debug;
-						else {
-							Console.WriteLine("ERROR: Log level not recognized.");
-							showHelp = true;
-						}
-					}},
-					{ "m|mix", "Start mixing without the GUI with the specified wallet.", x => doMix = x != null},
-					{ "w|wallet=", "The specified wallet file.", x => {
-						walletName = x?.Trim();
-					}},
-					{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.", x => mixAll = x != null},
-					{ "keepalive", "Don't exit the software after mixing has been finished, rather keep mixing when new money arrives.", x => keepMixAlive = x != null},
-				};
-				try
-				{
-					var extras = options.Parse(args);
-					if (extras.Count > 0)
+					new Command("mix", "Start mixing without the GUI with the specified wallet.")
 					{
-						showHelp = true;
-					}
-				}
-				catch (OptionException)
-				{
-					continueWithGui = false;
-					Console.WriteLine("Option not recognized.");
-					Console.WriteLine();
-					ShowHelp(options);
-					return continueWithGui;
-				}
+						Options = new OptionSet() {
+							{ "v|version", "Displays Wasabi version and exit.", x => showVersion = x != null},
+							{ "h|help", "Displays help page and exit.", x => showHelp = x != null},
+							{ "s|silent", "Do not log to the standard outputs.", x => silent = x != null},
+							{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARNING|DEBUG|ERROR.", x => {
+								var normalized = x?.ToLower()?.Trim();
+								if(normalized == "info") logLevel = LogLevel.Info;
+								else if(normalized == "warning")  logLevel = LogLevel.Warning;
+								else if(normalized == "error") logLevel = LogLevel.Error;
+								else if(normalized == "trace") logLevel = LogLevel.Trace;
+								else if(normalized == "debug") logLevel = LogLevel.Debug;
+								else {
+									Console.WriteLine("ERROR: Log level not recognized.");
+									showHelp = true;
+								}
+							}},
+							{ "w|wallet=", "The specified wallet file.", x => {
+								walletName = x?.Trim();
+							}},
+							{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.", x => mixAll = x != null},
+							{ "keepalive", "Don't exit the software after mixing has been finished, rather keep mixing when new money arrives.", x => keepMixAlive = x != null},
+						},
+						Run = _=> doMix = true
+					},
+					new PasswordFinderCommand()
+				};
+
+				suite.Run(args);
 				if (showHelp)
 				{
 					continueWithGui = false;
