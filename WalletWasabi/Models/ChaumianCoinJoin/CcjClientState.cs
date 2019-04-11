@@ -196,20 +196,20 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 				var linq = coins.GetPermutations(i);
 				linq = linq.Where(x => x.Sum(y => y.Amount) >= amountNeededExceptInputFees + (feePerInputs * i)); // If the sum reaches the minimum amount.
 
-				if (i == 1)
+				if (i == 1) // If only one coin is to be registered.
 				{
-					// If only one input is to be registered, prefer the largest one, so more mixing volume is more likely.
+					// Prefer the largest one, so more mixing volume is more likely.
 					linq = linq.OrderByDescending(x => x.Sum(y => y.Amount));
 
-					// If only one input is to be registered, try to register with the smallest anonymity set, so new unmixed coins come to the mix.
+					// Try to register with the smallest anonymity set, so new unmixed coins come to the mix.
 					linq = linq.OrderBy(x => x.Sum(y => y.AnonymitySet));
 				}
-				else
+				else // Else coin merging will happen.
 				{
-					// Else prefer the lowest amount sum, so perfect mix should be more likely.
+					// Prefer the lowest amount sum, so perfect mix should be more likely.
 					linq = linq.OrderBy(x => x.Sum(y => y.Amount));
 
-					// Else try to register the largest anonymity set, so red and green coins input merging should be less likely.
+					// Try to register the largest anonymity set, so red and green coins input merging should be less likely.
 					linq = linq.OrderByDescending(x => x.Sum(y => y.AnonymitySet));
 				}
 
