@@ -146,7 +146,7 @@ namespace WalletWasabi.Tests
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
 				{
-					await walletService?.DeleteBlockAsync(hash);
+					walletService?.DeleteBlock(hash);
 				}
 				walletService?.Dispose();
 

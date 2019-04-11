@@ -144,28 +144,59 @@ namespace WalletWasabi.KeyManagement
 
 		public void ToFile()
 		{
-			if (FilePath is null) return;
-			ToFile(FilePath);
-		}
-
-		public void ToFile(string filePath)
-		{
-			IoHelpers.EnsureContainingDirectoryExists(filePath);
 			lock (HdPubKeysLock)
 				lock (BlockchainStateLock)
 					lock (ToFileLock)
 					{
-						// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
-						var matureHeight = BlockchainState.LastBlockHeight - 101;
-						var toRemove = BlockchainState.BlockStates.Where(x => x.BlockHeight >= matureHeight).ToHashSet();
-						BlockchainState.BlockStates.RemoveAll(x => toRemove.Contains(x));
-
-						string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-						File.WriteAllText(filePath, jsonString, Encoding.UTF8);
-
-						// Re-add removed items for further operations.
-						BlockchainState.BlockStates.AddRange(toRemove.OrderBy(x => x));
+						if (FilePath is null) return;
+						ToFileNoLock(FilePath);
 					}
+		}
+
+		public void ToFileNoBlockchainStateLock()
+		{
+			lock (HdPubKeysLock)
+				lock (ToFileLock)
+				{
+					if (FilePath is null) return;
+					ToFileNoLock(FilePath);
+				}
+		}
+
+		public void ToFile(string filePath)
+		{
+			lock (HdPubKeysLock)
+				lock (BlockchainStateLock)
+					lock (ToFileLock)
+					{
+						ToFileNoLock(filePath);
+					}
+		}
+
+		private void ToFileNoLock()
+		{
+			if (FilePath is null) return;
+			ToFileNoLock(FilePath);
+		}
+
+		private void ToFileNoLock(string filePath)
+		{
+			IoHelpers.EnsureContainingDirectoryExists(filePath);
+			// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
+			var maturity = 101;
+			var prevHeight = BlockchainState.BestHeight.Value;
+			var matureHeight = Math.Max(0, prevHeight - maturity);
+
+			BlockchainState.BestHeight = new Height(matureHeight);
+			var toRemove = BlockchainState.BlockStates.Where(x => x.BlockHeight >= BlockchainState.BestHeight).ToHashSet();
+			BlockchainState.BlockStates.RemoveAll(x => toRemove.Contains(x));
+
+			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+			File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+
+			// Re-add removed items for further operations.
+			BlockchainState.BlockStates.AddRange(toRemove.OrderBy(x => x));
+			BlockchainState.BestHeight = new Height(prevHeight);
 		}
 
 		public static KeyManager FromFile(string filePath)
@@ -271,22 +302,6 @@ namespace WalletWasabi.KeyManagement
 				{
 					return HdPubKeys.Where(wherePredicate).ToList();
 				}
-			}
-		}
-
-		public Height GetBestHeight()
-		{
-			lock (BlockchainStateLock)
-			{
-				return BlockchainState.LastBlockHeight;
-			}
-		}
-
-		internal IEnumerable<BlockState> GetTransactionIndex()
-		{
-			lock (BlockchainStateLock)
-			{
-				return BlockchainState.BlockStates.OrderBy(x => x).ToList();
 			}
 		}
 
@@ -439,5 +454,72 @@ namespace WalletWasabi.KeyManagement
 
 			return generated;
 		}
+
+		#region BlockchainState
+
+		public Height GetBestHeight()
+		{
+			lock (BlockchainStateLock)
+			{
+				return BlockchainState.BestHeight;
+			}
+		}
+
+		public IEnumerable<BlockState> GetTransactionIndex()
+		{
+			lock (BlockchainStateLock)
+			{
+				return BlockchainState.BlockStates.OrderBy(x => x).ToList();
+			}
+		}
+
+		/// <returns>Removed element.</returns>
+		public BlockState TryRemoveBlockState(uint256 blockHash)
+		{
+			lock (BlockchainStateLock)
+			{
+				var found = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == blockHash);
+				if (found != null)
+				{
+					if (BlockchainState.BlockStates.Remove(found))
+					{
+						ToFileNoBlockchainStateLock();
+					}
+				}
+
+				return found;
+			}
+		}
+
+		/// <returns>Removed element.</returns>
+		public bool CointainsBlockState(uint256 blockHash)
+		{
+			lock (BlockchainStateLock)
+			{
+				return BlockchainState.BlockStates.Any(x => x.BlockHash == blockHash);
+			}
+		}
+
+		/// <returns>Removed element.</returns>
+		public void AddBlockState(BlockState state)
+		{
+			lock (BlockchainStateLock)
+			{
+				BlockchainState.BlockStates.Add(state);
+				ToFileNoBlockchainStateLock();
+			}
+		}
+
+		/// <returns>Removed element.</returns>
+		public void SetBestHeight(Height height)
+		{
+			lock (BlockchainStateLock)
+			{
+				BlockchainState.BestHeight = height;
+				ToFileNoBlockchainStateLock();
+			}
+		}
+
+		#endregion BlockchainState
 	}
 }

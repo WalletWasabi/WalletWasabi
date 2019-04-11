@@ -13,21 +13,21 @@ namespace WalletWasabi.KeyManagement
 	{
 		[JsonProperty(Order = 0)]
 		[JsonConverter(typeof(HeightJsonConverter))]
-		public Height LastBlockHeight { get; }
+		public Height BestHeight { get; set; }
 
 		[JsonProperty(Order = 1)]
 		public List<BlockState> BlockStates { get; }
 
 		[JsonConstructor]
-		public BlockchainState(Height lastBlockHeight, IEnumerable<BlockState> blockStates)
+		public BlockchainState(Height bestHeight, IEnumerable<BlockState> blockStates)
 		{
-			LastBlockHeight = lastBlockHeight;
+			BestHeight = bestHeight;
 			BlockStates = blockStates?.OrderBy(x => x).ToList() ?? new List<BlockState>();
 		}
 
 		public BlockchainState()
 		{
-			LastBlockHeight = 0;
+			BestHeight = 0;
 			BlockStates = new List<BlockState>();
 		}
 	}
