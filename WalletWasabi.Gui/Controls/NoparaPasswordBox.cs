@@ -1,12 +1,16 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Styling;
+using ReactiveUI;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,6 +44,7 @@ namespace WalletWasabi.Gui.Controls
 		private Random _random = new Random();
 		private StringBuilder _sb = new StringBuilder();
 		private HashSet<Key> _supressedKeys;
+		private Button _presenter;
 
 		public int SelectionLength => Math.Abs(SelectionEnd - SelectionStart);
 
@@ -61,6 +66,15 @@ namespace WalletWasabi.Gui.Controls
 			set => SetValue(FixedPasswordTextProperty, value);
 		}
 
+		public static readonly StyledProperty<bool> IsPasswordVisibleProperty =
+			AvaloniaProperty.Register<NoparaPasswordBox, bool>(nameof(IsPasswordVisible), defaultBindingMode: BindingMode.TwoWay);
+
+		public bool IsPasswordVisible
+		{
+			get => GetValue(IsPasswordVisibleProperty);
+			set => SetValue(IsPasswordVisibleProperty, value);
+		}
+
 		protected override bool IsCopyEnabled => false;
 
 		public NoparaPasswordBox()
@@ -79,6 +93,17 @@ namespace WalletWasabi.Gui.Controls
 			{
 				FixedPasswordText = x;
 			});
+
+			this.GetObservable(IsPasswordVisibleProperty).Subscribe(x =>
+			{
+				IsPasswordVisible = x;
+			});
+
+			this.WhenAnyValue(x => x.IsPasswordVisible).Subscribe(IsVisible =>
+			{
+				PaintText();
+			}
+			);
 
 			string fontName = "SimSun"; //https://docs.microsoft.com/en-us/typography/font-list/simsun
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -305,11 +330,12 @@ namespace WalletWasabi.Gui.Controls
 
 		private void PaintText()
 		{
-			if(string.IsNullOrEmpty(_displayText))
+			if (string.IsNullOrEmpty(_displayText))
 				GenerateNewRandomSequence();
-				
+
 			Password = _sb.ToString();
 			Text = _displayText.Substring(0, _sb.Length);
+			if (IsPasswordVisible) Text = Password;
 
 			_supressChanges = true;
 			try
@@ -328,6 +354,18 @@ namespace WalletWasabi.Gui.Controls
 			if (string.IsNullOrEmpty(Text)) GenerateNewRandomSequence();
 			base.OnGotFocus(e);
 			RefreshCapsLockWarning();
+		}
+
+		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
+		{
+			base.OnTemplateApplied(e);
+			_presenter = e.NameScope.Get<Button>("PART_MaskedButton");
+
+			_presenter.WhenAnyValue(x => x.IsPressed)
+				.Subscribe(isPressed =>
+				{
+					IsPasswordVisible = isPressed;
+				});
 		}
 	}
 }
