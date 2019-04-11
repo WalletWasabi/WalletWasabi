@@ -9,7 +9,6 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-
 	internal class PasswordFinderCommand : Command
 	{
 		public string Secret { get; set; }
