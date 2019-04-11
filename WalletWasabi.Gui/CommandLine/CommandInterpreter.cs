@@ -7,10 +7,15 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public static class CommandInterpreter
 	{
-		public static void ExecuteCommands(string[] args)
+		public static bool ExecuteCommands(string[] args)
 		{
 			var showHelp = false;
 			var showVersion = false;
+
+			if(args.Length == 0)
+			{
+				return true;
+			}
 
 			try
 			{
@@ -34,22 +39,26 @@ namespace WalletWasabi.Gui.CommandLine
 					new PasswordFinderCommand()
 				};
 
-				suite.Run(args);
+				if(suite.Run(args) == 0)
+				{
+					return false;
+				}
 				if (showHelp)
 				{
 					ShowHelp(options);
-					return;
+					return false;
 				}
 				else if (showVersion)
 				{
 					ShowVersion();
-					return;
+					return false;
 				}
 			}
 			finally
 			{
 				Native.DettachParentConsole();
 			}
+			return true;
 		}
 
 		private static void ShowVersion()

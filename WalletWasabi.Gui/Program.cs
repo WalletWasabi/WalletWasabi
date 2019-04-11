@@ -27,9 +27,9 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				if(args.Length > 0)
+				if(!CommandInterpreter.ExecuteCommands(args))
 				{
-					CommandInterpreter.ExecuteCommands(args);
+					return;
 				}
 
 				BuildAvaloniaApp()
