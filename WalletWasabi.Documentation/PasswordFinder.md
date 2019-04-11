@@ -1,16 +1,3 @@
-# Install:
-
-## Get The Requirements
-
-1. Get Git: https://git-scm.com/downloads
-2. Get .NET Core 2.2 SDK: https://www.microsoft.com/net/download
-  
-## Get and build this software from source code
-
-```sh
-git clone https://github.com/lontivero/WasabiPasswordFinder.git
-```
-
 ## Usage
 
 ```
