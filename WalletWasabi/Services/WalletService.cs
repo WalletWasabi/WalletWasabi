@@ -54,9 +54,7 @@ namespace WalletWasabi.Services
 
 		public ServiceConfiguration ServiceConfiguration { get; }
 
-		public SortedDictionary<Height, uint256> WalletBlocks { get; }
 		public ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)> ProcessedBlocks { get; }
-		private AsyncLock WalletBlocksLock { get; }
 
 		public ObservableConcurrentHashSet<SmartCoin> Coins { get; }
 
@@ -94,9 +92,7 @@ namespace WalletWasabi.Services
 			MemPool = Guard.NotNull(nameof(memPool), memPool);
 			ServiceConfiguration = Guard.NotNull(nameof(serviceConfiguration), serviceConfiguration);
 
-			WalletBlocks = new SortedDictionary<Height, uint256>();
 			ProcessedBlocks = new ConcurrentDictionary<uint256, (Height height, DateTimeOffset dateTime)>();
-			WalletBlocksLock = new AsyncLock();
 			HandleFiltersLock = new AsyncLock();
 
 			Coins = new ObservableConcurrentHashSet<SmartCoin>();
@@ -147,7 +143,7 @@ namespace WalletWasabi.Services
 			TransactionsFilePath = Path.Combine(TransactionsFolderPath, $"{walletName}Transactions.json");
 
 			Synchronizer.NewFilter += IndexDownloader_NewFilterAsync;
-			Synchronizer.Reorged += IndexDownloader_ReorgedAsync;
+			Synchronizer.Reorged += IndexDownloader_Reorged;
 			MemPool.TransactionReceived += MemPool_TransactionReceived;
 		}
 
@@ -179,21 +175,19 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private async void IndexDownloader_ReorgedAsync(object sender, FilterModel invalidFilter)
+		private void IndexDownloader_Reorged(object sender, FilterModel invalidFilter)
 		{
 			try
 			{
 				using (HandleFiltersLock.Lock())
-				using (WalletBlocksLock.Lock())
 				{
 					uint256 invalidBlockHash = invalidFilter.BlockHash;
-					KeyValuePair<Height, uint256> elem = WalletBlocks.FirstOrDefault(x => x.Value == invalidBlockHash);
-					await DeleteBlockAsync(invalidBlockHash);
-					WalletBlocks.Remove(elem.Key);
+					DeleteBlock(invalidBlockHash);
+					var blockState = KeyManager.TryRemoveBlockState(invalidBlockHash);
 					ProcessedBlocks.TryRemove(invalidBlockHash, out _);
-					if (elem.Key != default(Height))
+					if (blockState.BlockHeight != default(Height))
 					{
-						foreach (var toRemove in Coins.Where(x => x.Height == elem.Key).Distinct().ToList())
+						foreach (var toRemove in Coins.Where(x => x.Height == blockState.BlockHeight).Distinct().ToList())
 						{
 							RemoveCoinRecursively(toRemove);
 						}
@@ -225,9 +219,8 @@ namespace WalletWasabi.Services
 			try
 			{
 				using (HandleFiltersLock.Lock())
-				using (WalletBlocksLock.Lock())
 				{
-					if (filterModel.Filter != null && !WalletBlocks.ContainsValue(filterModel.BlockHash))
+					if (filterModel.Filter != null && !KeyManager.CointainsBlockState(filterModel.BlockHash))
 					{
 						await ProcessFilterModelAsync(filterModel, CancellationToken.None);
 					}
@@ -260,10 +253,18 @@ namespace WalletWasabi.Services
 			await RuntimeParams.LoadAsync();
 
 			using (HandleFiltersLock.Lock())
-			using (WalletBlocksLock.Lock())
 			{
+				// Go through the keymanager's index.
+				var bestKeyManagerHeight = KeyManager.GetBestHeight();
+				foreach (var blockstate in KeyManager.GetTransactionIndex())
+				{
+					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel);
+
+					ProcessBlock(blockstate.BlockHeight, block, blockstate.TransactionIndices);
+				}
+
 				// Go through the filters and que to download the matches.
-				foreach (FilterModel filterModel in Synchronizer.GetFilters().Where(x => !(x.Filter is null) && !WalletBlocks.ContainsValue(x.BlockHash))) // Filter can be null if there is no bech32 tx.
+				foreach (FilterModel filterModel in Synchronizer.GetFilters().Where(x => !(x.Filter is null) && x.BlockHeight > bestKeyManagerHeight)) // Filter can be null if there is no bech32 tx.
 				{
 					await ProcessFilterModelAsync(filterModel, cancel);
 				}
@@ -353,22 +354,7 @@ namespace WalletWasabi.Services
 
 			Block currentBlock = await GetOrDownloadBlockAsync(filterModel.BlockHash, cancel); // Wait until not downloaded.
 
-			WalletBlocks.AddOrReplace(filterModel.BlockHeight, filterModel.BlockHash);
-
-			if (currentBlock.GetHash() == WalletBlocks.Last().Value) // If this is the latest block then no need for deep gothrough.
-			{
-				ProcessBlock(filterModel.BlockHeight, currentBlock);
-			}
-			else // must go through all the blocks in order
-			{
-				foreach (var blockRef in WalletBlocks)
-				{
-					var block = await GetOrDownloadBlockAsync(blockRef.Value, CancellationToken.None);
-					ProcessedBlocks.Clear();
-					Coins.Clear();
-					ProcessBlock(blockRef.Key, block);
-				}
-			}
+			ProcessBlock(filterModel.BlockHeight, currentBlock);
 		}
 
 		public HdPubKey GetReceiveKey(string label, IEnumerable<HdPubKey> dontTouch = null)
@@ -465,11 +451,37 @@ namespace WalletWasabi.Services
 			return clusters;
 		}
 
-		private void ProcessBlock(Height height, Block block)
+		private void ProcessBlock(Height height, Block block, IEnumerable<int> filterByTxIds = null)
 		{
-			foreach (var tx in block.Transactions)
+			if (filterByTxIds is null)
 			{
-				ProcessTransaction(new SmartTransaction(tx, height));
+				var relevantIndicies = new List<int>();
+				for (int i = 0; i < block.Transactions.Count; i++)
+				{
+					Transaction tx = block.Transactions[i];
+					if (ProcessTransaction(new SmartTransaction(tx, height)))
+					{
+						relevantIndicies.Add(i);
+					}
+				}
+
+				if (relevantIndicies.Any())
+				{
+					var blockState = new BlockState(block.GetHash(), height, relevantIndicies);
+					KeyManager.AddBlockState(blockState, setItsHeightToBest: true); // Set the heigh here (so less toFile and lock.)
+				}
+				else
+				{
+					KeyManager.SetBestHeight(height);
+				}
+			}
+			else
+			{
+				foreach (var i in filterByTxIds.OrderBy(x => x))
+				{
+					Transaction tx = block.Transactions[i];
+					ProcessTransaction(new SmartTransaction(tx, height));
+				}
 			}
 
 			ProcessedBlocks.TryAdd(block.GetHash(), (height, block.Header.BlockTime));
@@ -477,15 +489,16 @@ namespace WalletWasabi.Services
 			NewBlockProcessed?.Invoke(this, block);
 		}
 
-		private void ProcessTransaction(SmartTransaction tx)
+		private bool ProcessTransaction(SmartTransaction tx)
 		{
 			uint256 txId = tx.GetHash();
+			var walletRelevant = false;
 
 			bool justUpdate = false;
 			if (tx.Confirmed)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				if (!tx.Transaction.PossiblyNativeSegWitInvolved()) return; // We don't care about non-witness transactions for other than mempool cleanup.
+				if (!tx.Transaction.PossiblyNativeSegWitInvolved()) return false; // We don't care about non-witness transactions for other than mempool cleanup.
 
 				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
 				if (isFoundTx)
@@ -494,13 +507,14 @@ namespace WalletWasabi.Services
 					if (foundTx != default(SmartTransaction)) // Must check again, because it's a concurrent collection!
 					{
 						foundTx.SetHeight(tx.Height);
+						walletRelevant = true;
 						justUpdate = true; // No need to check for double spend, we already processed this transaction, just update it.
 					}
 				}
 			}
 			else if (!tx.Transaction.PossiblyNativeSegWitInvolved())
 			{
-				return; // We don't care about non-witness transactions for other than mempool cleanup.
+				return false; // We don't care about non-witness transactions for other than mempool cleanup.
 			}
 
 			if (!justUpdate && !tx.Transaction.IsCoinBase) // Transactions we already have and processed would be "double spends" but they shouldn't.
@@ -517,6 +531,7 @@ namespace WalletWasabi.Services
 							{
 								doubleSpends.Add(coin);
 								spent = true;
+								walletRelevant = true;
 								break;
 							}
 						}
@@ -540,10 +555,11 @@ namespace WalletWasabi.Services
 								RemoveCoinRecursively(doubleSpentCoin);
 							}
 							tx.SetReplacement();
+							walletRelevant = true;
 						}
 						else
 						{
-							return;
+							return false;
 						}
 					}
 					else // new confirmation always enjoys priority
@@ -553,6 +569,7 @@ namespace WalletWasabi.Services
 						{
 							RemoveCoinRecursively(doubleSpentCoin);
 						}
+						walletRelevant = true;
 					}
 				}
 			}
@@ -564,6 +581,8 @@ namespace WalletWasabi.Services
 				HdPubKey foundKey = KeyManager.GetKeyForScriptPubKey(output.ScriptPubKey);
 				if (foundKey != default)
 				{
+					walletRelevant = true;
+
 					foundKey.SetKeyState(KeyState.Used, KeyManager);
 					List<SmartCoin> spentOwnCoins = Coins.Where(x => tx.Transaction.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
 					var anonset = tx.Transaction.GetAnonymitySet(i);
@@ -631,11 +650,15 @@ namespace WalletWasabi.Services
 				var foundCoin = Coins.FirstOrDefault(x => x.TransactionId == input.PrevOut.Hash && x.Index == input.PrevOut.N);
 				if (foundCoin != null)
 				{
+					walletRelevant = true;
+
 					foundCoin.SpenderTransactionId = txId;
 					TransactionCache.TryAdd(tx);
 					CoinSpentOrSpenderConfirmed?.Invoke(this, foundCoin);
 				}
 			}
+
+			return walletRelevant;
 		}
 
 		public Node LocalBitcoinCoreNode
@@ -901,11 +924,11 @@ namespace WalletWasabi.Services
 		/// <remarks>
 		/// Use it at reorgs.
 		/// </remarks>
-		public async Task DeleteBlockAsync(uint256 hash)
+		public void DeleteBlock(uint256 hash)
 		{
 			try
 			{
-				using (await BlockFolderLock.LockAsync())
+				using (BlockFolderLock.Lock())
 				{
 					var filePaths = Directory.EnumerateFiles(BlocksFolderPath);
 					var fileNames = filePaths.Select(x => Path.GetFileName(x));
@@ -1514,7 +1537,7 @@ namespace WalletWasabi.Services
 				if (disposing)
 				{
 					Synchronizer.NewFilter -= IndexDownloader_NewFilterAsync;
-					Synchronizer.Reorged -= IndexDownloader_ReorgedAsync;
+					Synchronizer.Reorged -= IndexDownloader_Reorged;
 					MemPool.TransactionReceived -= MemPool_TransactionReceived;
 					Coins.CollectionChanged -= Coins_CollectionChanged;
 					lock (TransactionProcessingLock)
