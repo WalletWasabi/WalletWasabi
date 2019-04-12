@@ -458,7 +458,7 @@ namespace WalletWasabi.Services
 				var relevantIndicies = new List<int>();
 				for (int i = 0; i < block.Transactions.Count; i++)
 				{
-					Transaction tx = (Transaction)block.Transactions[i];
+					Transaction tx = block.Transactions[i];
 					if (ProcessTransaction(new SmartTransaction(tx, height)))
 					{
 						relevantIndicies.Add(i);
