@@ -181,12 +181,12 @@ namespace WalletWasabi.KeyManagement
 		{
 			IoHelpers.EnsureContainingDirectoryExists(filePath);
 			// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
-			var maturity = 101;
-			var prevHeight = BlockchainState.BestHeight.Value;
-			var matureHeight = Math.Max(0, prevHeight - maturity);
+			int maturity = 101;
+			Height prevHeight = BlockchainState.BestHeight;
+			int matureHeight = Math.Max(0, prevHeight.Value - maturity);
 
 			BlockchainState.BestHeight = new Height(matureHeight);
-			var toRemove = BlockchainState.BlockStates.Where(x => x.BlockHeight >= BlockchainState.BestHeight).ToHashSet();
+			HashSet<BlockState> toRemove = BlockchainState.BlockStates.Where(x => x.BlockHeight >= BlockchainState.BestHeight).ToHashSet();
 			BlockchainState.BlockStates.RemoveAll(x => toRemove.Contains(x));
 
 			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
@@ -194,7 +194,7 @@ namespace WalletWasabi.KeyManagement
 
 			// Re-add removed items for further operations.
 			BlockchainState.BlockStates.AddRange(toRemove.OrderBy(x => x));
-			BlockchainState.BestHeight = new Height(prevHeight);
+			BlockchainState.BestHeight = prevHeight;
 		}
 
 		public static KeyManager FromFile(string filePath)
