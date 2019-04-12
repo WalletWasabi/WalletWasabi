@@ -187,7 +187,7 @@ namespace WalletWasabi.Gui
 			connectionParameters.TemplateBehaviors.Add(new MemPoolBehavior(MemPoolService));
 
 			var localIpEndPoint = Config.ServiceConfiguration.BitcoinCoreEndPoint;
-			LocalNode = LocalNodeWrapper.Connect(localIpEndPoint, Network, connectionParameters);
+			LocalNode = await LocalNodeWrapper.ConnectAsync(localIpEndPoint, Network, connectionParameters);
 			var needsToDiscoverPeers = true;
 			try
 			{

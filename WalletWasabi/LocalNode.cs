@@ -67,7 +67,7 @@ namespace WalletWasabi
 			}
 		}
 
-		public static LocalNodeWrapper Connect(IPEndPoint endpoint, Network network, NodeConnectionParameters connectionParameters)
+		public static async Task<LocalNodeWrapper> ConnectAsync(IPEndPoint endpoint, Network network, NodeConnectionParameters connectionParameters)
 		{
 			var handshakeTimeout = new CancellationTokenSource();
 			handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(5));
@@ -79,7 +79,7 @@ namespace WalletWasabi
 			
 			try
 			{
-				var node = Node.Connect(network, endpoint, nodeConnectionParameters);
+				var node = await Node.ConnectAsync(network, endpoint, nodeConnectionParameters);
 				Logger.LogInfo($"TCP Connection succeeded, handshaking...");
 				node.VersionHandshake(Constants.LocalNodeRequirements, handshakeTimeout.Token);
 				var peerServices = node.PeerVersion.Services;
