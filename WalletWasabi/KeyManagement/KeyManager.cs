@@ -148,7 +148,7 @@ namespace WalletWasabi.KeyManagement
 				lock (BlockchainStateLock)
 					lock (ToFileLock)
 					{
-						ToFileNoLock(FilePath);
+						ToFileNoLock();
 					}
 		}
 
