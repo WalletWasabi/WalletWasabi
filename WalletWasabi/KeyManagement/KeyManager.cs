@@ -148,7 +148,6 @@ namespace WalletWasabi.KeyManagement
 				lock (BlockchainStateLock)
 					lock (ToFileLock)
 					{
-						if (FilePath is null) return;
 						ToFileNoLock(FilePath);
 					}
 		}
@@ -158,8 +157,7 @@ namespace WalletWasabi.KeyManagement
 			lock (HdPubKeysLock)
 				lock (ToFileLock)
 				{
-					if (FilePath is null) return;
-					ToFileNoLock(FilePath);
+					ToFileNoLock();
 				}
 		}
 
