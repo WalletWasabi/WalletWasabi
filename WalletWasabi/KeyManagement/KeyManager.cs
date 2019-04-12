@@ -467,7 +467,7 @@ namespace WalletWasabi.KeyManagement
 		{
 			lock (BlockchainStateLock)
 			{
-				return BlockchainState.BlockStates.OrderBy(x => x).ToList();
+				return BlockchainState.BlockStates.ToList();
 			}
 		}
 
@@ -476,7 +476,7 @@ namespace WalletWasabi.KeyManagement
 		{
 			lock (BlockchainStateLock)
 			{
-				var found = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == blockHash);
+				BlockState found = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == blockHash);
 				if (found != null)
 				{
 					if (BlockchainState.BlockStates.Remove(found))
@@ -489,7 +489,6 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		/// <returns>Removed element.</returns>
 		public bool CointainsBlockState(uint256 blockHash)
 		{
 			lock (BlockchainStateLock)
@@ -498,17 +497,48 @@ namespace WalletWasabi.KeyManagement
 			}
 		}
 
-		/// <returns>Removed element.</returns>
-		public void AddBlockState(BlockState state)
+		public void AddBlockState(BlockState state, bool setItsHeightToBest)
 		{
 			lock (BlockchainStateLock)
 			{
-				BlockchainState.BlockStates.Add(state);
+				// Make sure of proper ordering here.
+
+				// If found same hash then update.
+				// Else If found same height then replace.
+				// Else add.
+				// Note same hash diff height makes no sense.
+
+				BlockState foundWithHash = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == state.BlockHash);
+				if (foundWithHash != null)
+				{
+					IEnumerable<int> newIndices = state.TransactionIndices.Where(x => !foundWithHash.TransactionIndices.Contains(x));
+					if (newIndices.Any())
+					{
+						foundWithHash.TransactionIndices.AddRange(newIndices);
+						foundWithHash.TransactionIndices.Sort();
+					}
+				}
+				else
+				{
+					BlockState foundWithHeight = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHeight == state.BlockHeight);
+					if (foundWithHeight != null)
+					{
+						BlockchainState.BlockStates.Remove(foundWithHeight);
+					}
+
+					BlockchainState.BlockStates.Add(state);
+					BlockchainState.BlockStates.Sort();
+				}
+
+				if (setItsHeightToBest)
+				{
+					BlockchainState.BestHeight = state.BlockHeight;
+				}
+
 				ToFileNoBlockchainStateLock();
 			}
 		}
 
-		/// <returns>Removed element.</returns>
 		public void SetBestHeight(Height height)
 		{
 			lock (BlockchainStateLock)

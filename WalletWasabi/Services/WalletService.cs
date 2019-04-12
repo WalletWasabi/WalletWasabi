@@ -468,9 +468,12 @@ namespace WalletWasabi.Services
 				if (relevantIndicies.Any())
 				{
 					var blockState = new BlockState(block.GetHash(), height, relevantIndicies);
-					KeyManager.AddBlockState(blockState);
+					KeyManager.AddBlockState(blockState, setItsHeightToBest: true); // Set the heigh here (so less toFile and lock.)
 				}
-				KeyManager.SetBestHeight(height);
+				else
+				{
+					KeyManager.SetBestHeight(height);
+				}
 			}
 			else
 			{
