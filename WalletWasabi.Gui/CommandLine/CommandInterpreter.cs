@@ -1,5 +1,6 @@
 using Mono.Options;
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using WalletWasabi.Helpers;
 
@@ -39,6 +40,7 @@ namespace WalletWasabi.Gui.CommandLine
 					new PasswordFinderCommand()
 				};
 
+				EnsureBackwardCompatibilityWithOldParameters(ref args);
 				if(suite.Run(args) == 0)
 				{
 					return false;
@@ -59,6 +61,16 @@ namespace WalletWasabi.Gui.CommandLine
 				Native.DettachParentConsole();
 			}
 			return true;
+		}
+
+		private static void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)
+		{
+			var listArgs = args.ToList();
+			if(listArgs.Remove("--mix") || listArgs.Remove("-m"))
+			{
+				listArgs.Insert(0, "mix");
+			}
+			args = listArgs.ToArray();
 		}
 
 		private static void ShowVersion()
