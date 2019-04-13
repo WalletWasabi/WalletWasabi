@@ -20,6 +20,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -283,6 +284,15 @@ namespace WalletWasabi.Gui
 
 			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
 			Logger.LogInfo("Start synchronizing filters...");
+
+			try
+			{
+				await HwiProcessManager.EnsureHwiInstalledAsync(DataDir);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, nameof(Global));
+			}
 		}
 
 		private static CancellationTokenSource CancelWalletServiceInitialization = null;

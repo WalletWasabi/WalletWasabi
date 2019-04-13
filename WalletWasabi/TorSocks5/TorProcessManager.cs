@@ -175,7 +175,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
-					string torLinuxZip = torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
+					string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
 					IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, torDir).GetAwaiter().GetResult();
 					Logger.LogInfo<TorProcessManager>($"Extracted {torLinuxZip} to {torDir}.");
 				}
