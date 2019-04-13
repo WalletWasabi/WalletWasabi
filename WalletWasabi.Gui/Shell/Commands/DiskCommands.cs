@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenDataFolder()
 		{
-			IoHelpers.OpenFolderInFileExplorer(Global.GetDataDir());
+			IoHelpers.OpenFolderInFileExplorer(Global.DataDir);
 		}
 
 		private void OnOpenWalletsFolder()
@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenTorLogFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.GetTorLogsFile());
+			IoHelpers.OpenFileInTextEditor(Global.TorLogsFile);
 		}
 
 		private void OnOpenConfigFile()

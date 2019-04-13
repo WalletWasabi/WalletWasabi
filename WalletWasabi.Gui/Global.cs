@@ -30,38 +30,13 @@ namespace WalletWasabi.Gui
 {
 	public static class Global
 	{
-		private static string DataDir = null;
+		public static string DataDir { get; }
+		public static string TorLogsFile { get; }
+		public static string WalletsDir { get; }
+		public static string WalletBackupsDir { get; }
 
-		public static string GetDataDir()
-		{
-			if (!string.IsNullOrWhiteSpace(DataDir))
-			{
-				return DataDir;
-			}
-
-			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-
-			return DataDir;
-		}
-
-		private static string TorLogsFile = null;
-
-		public static string GetTorLogsFile()
-		{
-			if (!string.IsNullOrWhiteSpace(TorLogsFile))
-			{
-				return TorLogsFile;
-			}
-
-			TorLogsFile = Path.Combine(GetDataDir(), "TorLogs.txt");
-
-			return TorLogsFile;
-		}
-
-		public static string WalletsDir => Path.Combine(GetDataDir(), "Wallets");
-		public static string WalletBackupsDir => Path.Combine(GetDataDir(), "WalletBackups");
-		public static Network Network => Config.Network;
-		public static string IndexFilePath => Path.Combine(GetDataDir(), $"Index{Network}.dat");
+		public static string IndexFilePath { get; private set; }
+		public static Config Config { get; private set; }
 
 		public static string AddressManagerFilePath { get; private set; }
 		public static AddressManager AddressManager { get; private set; }
@@ -77,12 +52,16 @@ namespace WalletWasabi.Gui
 
 		public static bool KillRequested { get; private set; } = false;
 
-		public static Config Config { get; private set; }
 		public static UiConfig UiConfig { get; private set; }
 
-		public static void InitializeConfig(Config config)
+		public static Network Network => Config.Network;
+
+		static Global()
 		{
-			Config = Guard.NotNull(nameof(config), config);
+			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+			WalletsDir = Path.Combine(DataDir, "Wallets");
+			WalletBackupsDir = Path.Combine(DataDir, "WalletBackups");
 		}
 
 		public static void InitializeUiConfig(UiConfig uiConfig)
@@ -133,22 +112,18 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public static async Task InitializeNoUiAsync()
-		{
-			var configFilePath = Path.Combine(GetDataDir(), "Config.json");
-			var config = new Config(configFilePath);
-			await config.LoadOrCreateDefaultFileAsync();
-			Logger.LogInfo<Config>("Config is successfully initialized.");
-
-			InitializeConfig(config);
-
-			await InitializeNoWalletAsync();
-		}
-
 		public static async Task InitializeNoWalletAsync()
 		{
 			WalletService = null;
 			ChaumianClient = null;
+			AddressManager = null;
+			TorManager = null;
+
+			Config = new Config(Path.Combine(DataDir, "Config.json"));
+			await Config.LoadOrCreateDefaultFileAsync();
+			Logger.LogInfo<Config>("Config is successfully initialized.");
+
+			IndexFilePath = Path.Combine(DataDir, $"Index{Network}.dat");
 
 			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
 			Console.CancelKeyPress += async (s, e) =>
@@ -164,24 +139,22 @@ namespace WalletWasabi.Gui
 				});
 			};
 
-			var addressManagerFolderPath = Path.Combine(GetDataDir(), "AddressManager");
+			var addressManagerFolderPath = Path.Combine(DataDir, "AddressManager");
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
-			var blocksFolderPath = Path.Combine(GetDataDir(), $"Blocks{Network}");
+			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters();
-			AddressManager = null;
-			TorManager = null;
 
 			if (Config.UseTor.Value)
 			{
-				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), GetTorLogsFile());
+				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
 			}
 			else
 			{
 				TorManager = TorProcessManager.Mock();
 			}
-			TorManager.Start(false, GetDataDir());
+			TorManager.Start(false, DataDir);
 			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
-			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), GetDataDir(), fallbackRequestTestUri);
+			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
 
 			Logger.LogInfo<TorProcessManager>($"{nameof(TorProcessManager)} is initialized.");
 
@@ -324,7 +297,7 @@ namespace WalletWasabi.Gui
 			{
 				ChaumianClient = new CcjClient(Synchronizer, Network, keyManager, Config.GetFallbackBackendUri(), null);
 			}
-			WalletService = new WalletService(keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, GetDataDir(), Config.ServiceConfiguration);
+			WalletService = new WalletService(keyManager, Synchronizer, ChaumianClient, MemPoolService, Nodes, DataDir, Config.ServiceConfiguration);
 
 			ChaumianClient.Start();
 			Logger.LogInfo("Start Chaumian CoinJoin service...");

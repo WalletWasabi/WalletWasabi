@@ -15,19 +15,7 @@ namespace WalletWasabi.Backend
 {
 	public static class Global
 	{
-		private static string _dataDir = null;
-
-		public static string DataDir
-		{
-			get
-			{
-				if (!string.IsNullOrWhiteSpace(_dataDir)) return _dataDir;
-
-				_dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
-
-				return _dataDir;
-			}
-		}
+		public static string DataDir { get; }
 
 		public static RPCClient RpcClient { get; private set; }
 
@@ -44,6 +32,11 @@ namespace WalletWasabi.Backend
 		public static Config Config { get; private set; }
 
 		public static CcjRoundConfig RoundConfig { get; private set; }
+
+		static Global()
+		{
+			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
+		}
 
 		public async static Task InitializeAsync(Config config, CcjRoundConfig roundConfig, RPCClient rpc)
 		{

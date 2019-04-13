@@ -142,7 +142,7 @@ namespace WalletWasabi.Gui
 			{
 				Activated -= OnActivated;
 
-				var uiConfigFilePath = Path.Combine(Global.GetDataDir(), "UiConfig.json");
+				var uiConfigFilePath = Path.Combine(Global.DataDir, "UiConfig.json");
 				var uiConfig = new UiConfig(uiConfigFilePath);
 				await uiConfig.LoadOrCreateDefaultFileAsync();
 				Global.InitializeUiConfig(uiConfig);

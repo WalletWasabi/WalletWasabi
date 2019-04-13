@@ -96,7 +96,7 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 			}
 
-			Logger.InitializeDefaults(Path.Combine(Global.GetDataDir(), "Logs.txt"));
+			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
 
 			if (logLevel.HasValue)
 			{
@@ -175,7 +175,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				Logger.LogInfo("Correct password.");
 
-				await Global.InitializeNoUiAsync();
+				await Global.InitializeNoWalletAsync();
 				await Global.InitializeWalletServiceAsync(keyManager);
 
 				await TryQueueCoinsToMixAsync(mixAll, password);

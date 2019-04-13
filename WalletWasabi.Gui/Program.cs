@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui
 			StatusBarViewModel statusBar = null;
 			try
 			{
-				Platform.BaseDirectory = Path.Combine(Global.GetDataDir(), "Gui");
+				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel();
 
-						await Global.InitializeNoUiAsync();
+						await Global.InitializeNoWalletAsync();
 
 						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
 
