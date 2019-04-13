@@ -40,7 +40,7 @@ namespace WalletWasabi.Helpers
 
 		public static void SetDataDir(string dataDir)
 		{
-			FileDir = Path.Combine(dataDir, "Data");
+			FileDir = Path.Combine(dataDir);
 		}
 
 		public async Task SaveAsync()
