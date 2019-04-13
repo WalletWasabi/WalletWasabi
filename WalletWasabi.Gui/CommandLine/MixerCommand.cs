@@ -23,12 +23,18 @@ namespace WalletWasabi.Gui.CommandLine
 				"Start mixing without the GUI with the specified wallet.",
 				"eg: mix --wallet:/home/user/.walletwasabi/client/Wallets/MyWallet.json --mixall --keepalive loglevel:info",
 
-				{ "h|help", "Displays help page and exit.", x => ShowHelp = x != null},
-				{ "s|silent", "Do not log to the standard outputs.", x => Silent = x != null},
-				{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARNING|DEBUG|ERROR.", x => LoggingLevel = x },
-				{ "w|wallet=", "The specified wallet file.", x =>  WalletName = x?.ToLower() },
-				{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.", x => MixAll = x != null},
-				{ "keepalive", "Don't exit the software after mixing has been finished, rather keep mixing when new money arrives.", x => KeepMixAlive = x != null},
+				{ "h|help", "Displays help page and exit.",
+					x => ShowHelp = x != null},
+				{ "s|silent", "Do not log to the standard outputs.",
+					x => Silent = x != null},
+				{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARNING|DEBUG|ERROR.",
+					x => LoggingLevel = x },
+				{ "w|wallet=", "The specified wallet file.",
+					x =>  WalletName = x?.ToLower() },
+				{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.",
+					x => MixAll = x != null},
+				{ "keepalive", "Don't exit the software after mixing has been finished, rather keep mixing when new money arrives.",
+					x => KeepMixAlive = x != null},
 			};
 		}
 
