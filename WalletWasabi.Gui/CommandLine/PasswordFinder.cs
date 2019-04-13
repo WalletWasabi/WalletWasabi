@@ -1,16 +1,17 @@
-﻿using System;
+﻿using NBitcoin;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Security;
-using NBitcoin;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.CommandLine
 {
 	internal class PasswordFinder
 	{
-		internal static Dictionary<string, string> Charsets = new Dictionary<string, string>{
+		internal static Dictionary<string, string> Charsets = new Dictionary<string, string>
+		{
 			["en"] = "abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
 			["es"] = "aábcdeéfghiíjkmnñoópqrstuúüvwxyzAÁBCDEÉFGHIÍJKLMNNOÓPQRSTUÚÜVWXYZ",
 			["pt"] = "aáàâābcçdeéêfghiíjkmnoóôōpqrstuúvwxyzAÁÀÂĀBCÇDEÉÊFGHIÍJKMNOÓÔŌPQRSTUÚVWXYZ",
@@ -25,12 +26,12 @@ namespace WalletWasabi.Gui.CommandLine
 			{
 				encryptedSecret = new BitcoinEncryptedSecretNoEC(secret);
 			}
-			catch(FormatException)
+			catch (FormatException)
 			{
 				Console.WriteLine("ERROR: The encrypted secret is invalid. Make sure you copied correctly from your wallet file.");
 				return;
 			}
-			
+
 			Console.WriteLine($"WARNING: This tool will display you password if it finds it. Also, the process status display your wong password chars.");
 			Console.WriteLine($"         You can cancel this by CTRL+C combination anytime." + Environment.NewLine);
 
@@ -46,17 +47,17 @@ namespace WalletWasabi.Gui.CommandLine
 			var stepSize = (maxNumberAttempts + 101) / 100;
 
 			Console.WriteLine();
-			Console.Write($"[{string.Empty, 100}] 0%");
+			Console.Write($"[{string.Empty,100}] 0%");
 
 			var sw = new Stopwatch();
 			sw.Start();
-			foreach(var pwd in GeneratePasswords(password, charset.ToArray()))
+			foreach (var pwd in GeneratePasswords(password, charset.ToArray()))
 			{
 				lastpwd = pwd;
 				try
 				{
 					encryptedSecret.GetKey(pwd);
-					found = true; 
+					found = true;
 					break;
 				}
 				catch (SecurityException)
@@ -74,29 +75,29 @@ namespace WalletWasabi.Gui.CommandLine
 
 		private static void Progress(int iter, int stepSize, int max, TimeSpan elapsed)
 		{
-			if(iter % stepSize == 0)
+			if (iter % stepSize == 0)
 			{
 				var percentage = (int)((float)iter / max * 100);
 				var estimatedTime = elapsed / percentage * (100 - percentage);
 				var bar = new string('#', percentage);
 
 				Console.CursorLeft = 0;
-				Console.Write($"[{bar, -100}] {percentage}% - ET: {estimatedTime}");
+				Console.Write($"[{bar,-100}] {percentage}% - ET: {estimatedTime}");
 			}
 		}
 
 		private static IEnumerable<string> GeneratePasswords(string password, char[] charset)
 		{
 			var pwChar = password.ToCharArray();
-			for(var i=0; i < pwChar.Length; i++)
+			for (var i = 0; i < pwChar.Length; i++)
 			{
-				var original = pwChar[i]; 
-				foreach(var c in charset)
+				var original = pwChar[i];
+				foreach (var c in charset)
 				{
 					pwChar[i] = c;
-					yield return new string(pwChar); 
+					yield return new string(pwChar);
 				}
-				pwChar[i] = original; 
+				pwChar[i] = original;
 			}
 		}
 	}

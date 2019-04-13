@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				{ "h|help", "Displays help page and exit.", x => ShowHelp = x != null},
 				{ "s|silent", "Do not log to the standard outputs.", x => Silent = x != null},
-				{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARNING|DEBUG|ERROR.",	x => LoggingLevel = x },
+				{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARNING|DEBUG|ERROR.", x => LoggingLevel = x },
 				{ "w|wallet=", "The specified wallet file.", x =>  WalletName = x?.ToLower() },
 				{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.", x => MixAll = x != null},
 				{ "keepalive", "Don't exit the software after mixing has been finished, rather keep mixing when new money arrives.", x => KeepMixAlive = x != null},
@@ -45,25 +45,41 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 				else if (!string.IsNullOrEmpty(LoggingLevel))
 				{
- 					var normalized = LoggingLevel.Trim();
-					if(normalized == "info") logLevel = LogLevel.Info;
-					else if(normalized == "warning")  logLevel = LogLevel.Warning;
-					else if(normalized == "error") logLevel = LogLevel.Error;
-					else if(normalized == "trace") logLevel = LogLevel.Trace;
-					else if(normalized == "debug") logLevel = LogLevel.Debug;
-					else {
+					var normalized = LoggingLevel.Trim();
+					if (normalized == "info")
+					{
+						logLevel = LogLevel.Info;
+					}
+					else if (normalized == "warning")
+					{
+						logLevel = LogLevel.Warning;
+					}
+					else if (normalized == "error")
+					{
+						logLevel = LogLevel.Error;
+					}
+					else if (normalized == "trace")
+					{
+						logLevel = LogLevel.Trace;
+					}
+					else if (normalized == "debug")
+					{
+						logLevel = LogLevel.Debug;
+					}
+					else
+					{
 						Console.WriteLine("ERROR: Log level not recognized.");
 						Options.WriteOptionDescriptions(CommandSet.Out);
 						error = true;
 					}
 				}
 
-				if(!error && !ShowHelp)
+				if (!error && !ShowHelp)
 				{
 					Daemon.RunAsync(WalletName, logLevel, MixAll, KeepMixAlive, Silent).GetAwaiter().GetResult();
 				}
 			}
-			catch(Exception)
+			catch (Exception)
 			{
 				Console.WriteLine($"commands: There was a problem interpreting the command, please review it.");
 				error = true;

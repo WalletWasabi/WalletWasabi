@@ -27,7 +27,7 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				if(!CommandInterpreter.ExecuteCommands(args))
+				if (!CommandInterpreter.ExecuteCommands(args))
 				{
 					return;
 				}
