@@ -694,7 +694,16 @@ namespace WalletWasabi.Services
 					if (hash == new uint256(fileName))
 					{
 						var blockBytes = await File.ReadAllBytesAsync(filePath);
-						return Block.Load(blockBytes, Synchronizer.Network);
+						try
+						{
+							return Block.Load(blockBytes, Synchronizer.Network);
+						}
+						catch(Exception)
+						{
+							// In case the block file is corrupted we get an EndOfStreamException exception
+							// Ignore any error and continue by re-downloading the block. 
+							break;
+						}
 					}
 				}
 			}
