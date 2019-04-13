@@ -383,7 +383,9 @@ namespace WalletWasabi.Gui
 		public static KeyManager LoadKeyManager(string walletFullPath)
 		{
 			KeyManager keyManager;
-			var walletFileInfo = new FileInfo(walletFullPath)
+
+			// Set the LastAccessTime.
+			new FileInfo(walletFullPath)
 			{
 				LastAccessTime = DateTime.Now
 			};
