@@ -122,10 +122,10 @@ namespace WalletWasabi.Backend
 			}
 		}
 
-		private static async Task InitializeP2pAsync(Network network, IPEndPoint iPEndPoint)
+		private static async Task InitializeP2pAsync(Network network, EndPoint endPoint)
 		{
 			Guard.NotNull(nameof(network), network);
-			Guard.NotNull(nameof(iPEndPoint), iPEndPoint);
+			Guard.NotNull(nameof(endPoint), endPoint);
 
 			using (var handshakeTimeout = new CancellationTokenSource())
 			{
@@ -137,7 +137,7 @@ namespace WalletWasabi.Backend
 				};
 
 				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
-				var node = await Node.ConnectAsync(network, iPEndPoint, nodeConnectionParameters);
+				var node = await Node.ConnectAsync(network, endPoint, nodeConnectionParameters);
 				// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 				TrustedNodeNotifyingBehavior = node.Behaviors.Find<TrustedNodeNotifyingBehavior>();
 				try

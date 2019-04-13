@@ -197,7 +197,7 @@ namespace WalletWasabi.Gui
 		private int? _privacyLevelSome;
 		private int? _privacyLevelFine;
 		private int? _privacyLevelStrong;
-		private IPEndPoint _bitcoinCoreEndPoint;
+		private EndPoint _bitcoinCoreEndPoint;
 
 		public IPEndPoint GetTorSocks5EndPoint()
 		{
@@ -210,29 +210,40 @@ namespace WalletWasabi.Gui
 			return _torSocks5EndPoint;
 		}
 
-		public IPEndPoint GetBitcoinCoreEndPoint()
+		public EndPoint GetBitcoinCoreEndPoint()
 		{
 			if (_bitcoinCoreEndPoint is null)
 			{
-				IPAddress host;
-				int? port;
-				if (Network == Network.Main)
+				IPAddress ipHost;
+				string dnsHost = null;
+				int? port = null;
+				try
 				{
-					host = IPAddress.Parse(MainNetBitcoinCoreHost);
-					port = MainNetBitcoinCorePort;
-				}
-				else if (Network == Network.TestNet)
-				{
-					host = IPAddress.Parse(TestNetBitcoinCoreHost);
-					port = TestNetBitcoinCorePort;
-				}
-				else // if (Network == Network.RegTest)
-				{
-					host = IPAddress.Parse(RegTestBitcoinCoreHost);
-					port = RegTestBitcoinCorePort;
-				}
+					if (Network == Network.Main)
+					{
+						port = MainNetBitcoinCorePort;
+						dnsHost = MainNetBitcoinCoreHost;
+						ipHost = IPAddress.Parse(MainNetBitcoinCoreHost);
+					}
+					else if (Network == Network.TestNet)
+					{
+						port = TestNetBitcoinCorePort;
+						dnsHost = TestNetBitcoinCoreHost;
+						ipHost = IPAddress.Parse(TestNetBitcoinCoreHost);
+					}
+					else // if (Network == Network.RegTest)
+					{
+						port = RegTestBitcoinCorePort;
+						dnsHost = RegTestBitcoinCoreHost;
+						ipHost = IPAddress.Parse(RegTestBitcoinCoreHost);
+					}
 
-				_bitcoinCoreEndPoint = new IPEndPoint(host, port ?? Network.DefaultPort);
+					_bitcoinCoreEndPoint = new IPEndPoint(ipHost, port ?? Network.DefaultPort);
+				}
+				catch
+				{
+					_bitcoinCoreEndPoint = new DnsEndPoint(dnsHost, port ?? Network.DefaultPort);
+				}
 			}
 
 			return _bitcoinCoreEndPoint;

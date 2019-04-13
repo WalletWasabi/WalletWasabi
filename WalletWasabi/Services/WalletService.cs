@@ -23,6 +23,7 @@ using System.Net.Http;
 using System.Diagnostics;
 using NBitcoin.BitcoinCore;
 using System.Net.Sockets;
+using NBitcoin.Protocol.Behaviors;
 
 namespace WalletWasabi.Services
 {
@@ -698,10 +699,10 @@ namespace WalletWasabi.Services
 						{
 							return Block.Load(blockBytes, Synchronizer.Network);
 						}
-						catch(Exception)
+						catch (Exception)
 						{
 							// In case the block file is corrupted we get an EndOfStreamException exception
-							// Ignore any error and continue by re-downloading the block. 
+							// Ignore any error and continue by re-downloading the block.
 							break;
 						}
 					}
@@ -732,6 +733,13 @@ namespace WalletWasabi.Services
 										ConnectCancellation = handshakeTimeout.Token,
 										IsRelay = false
 									};
+
+									// If an onion was added must try to use Tor.
+									// onlyForOnionHosts should connect to it if it's an onion endpoint automatically and non-Tor endpoints through clearnet/localhost
+									if (Synchronizer.WasabiClient.TorClient.IsTorUsed)
+									{
+										nodeConnectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint, onlyForOnionHosts: true, networkCredential: null, streamIsolation: false));
+									}
 
 									var localIpEndPoint = ServiceConfiguration.BitcoinCoreEndPoint;
 									var localNode = await Node.ConnectAsync(Network, localIpEndPoint, nodeConnectionParameters);
