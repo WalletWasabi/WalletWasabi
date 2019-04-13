@@ -24,9 +24,13 @@ namespace NSubsys
 				var headerType = peFile.Is32BitHeader ? typeof(IMAGE_OPTIONAL_HEADER32) : typeof(IMAGE_OPTIONAL_HEADER64);
 
 				if (peFile.Is32BitHeader)
+				{
 					subsysVal = (SubSystemType)peFile.OptionalHeader32.Subsystem;
+				}
 				else
+				{
 					subsysVal = (SubSystemType)peFile.OptionalHeader64.Subsystem;
+				}
 
 				subsysOffset += Marshal.OffsetOf(headerType, "Subsystem").ToInt32();
 
@@ -43,7 +47,9 @@ namespace NSubsys
 						var subsysSetting = BitConverter.GetBytes((ushort)SubSystemType.IMAGE_SUBSYSTEM_WINDOWS_GUI);
 
 						if (!BitConverter.IsLittleEndian)
+						{
 							Array.Reverse(subsysSetting);
+						}
 
 						if (peFile.Stream.CanWrite)
 						{

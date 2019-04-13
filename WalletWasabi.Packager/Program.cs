@@ -302,7 +302,7 @@ namespace WalletWasabi.Packager
 				}
 
 				Tools.ClearSha512Tags(currentBinDistDirectory);
-				Tools.RemoveSosDocsUnix(currentBinDistDirectory);
+				//Tools.RemoveSosDocsUnix(currentBinDistDirectory);
 
 				// Remove Tor binaries those are not relevant to the platform.
 				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
@@ -364,12 +364,18 @@ namespace WalletWasabi.Packager
 					}
 
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
-					if (OnlyBinaries) continue; // In Windows build at this moment it doesn't matter though.
+					if (OnlyBinaries)
+					{
+						continue; // In Windows build at this moment it doesn't matter though.
+					}
 				}
 				else if (target.StartsWith("osx"))
 				{
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
-					if (OnlyBinaries) continue;
+					if (OnlyBinaries)
+					{
+						continue;
+					}
 
 					var tempName = Path.Combine(BinDistDirectory, $"temp-{target}");
 					Directory.Move(currentBinDistDirectory, tempName);
@@ -502,7 +508,10 @@ namespace WalletWasabi.Packager
 				else if (target.StartsWith("linux"))
 				{
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
-					if (OnlyBinaries) continue;
+					if (OnlyBinaries)
+					{
+						continue;
+					}
 
 					Console.WriteLine("Create Linux .tar.gz");
 					if (!Directory.Exists(publishedFolder))
