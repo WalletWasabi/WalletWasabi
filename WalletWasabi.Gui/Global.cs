@@ -34,7 +34,10 @@ namespace WalletWasabi.Gui
 
 		public static string GetDataDir()
 		{
-			if (!string.IsNullOrWhiteSpace(DataDir)) return DataDir;
+			if (!string.IsNullOrWhiteSpace(DataDir))
+			{
+				return DataDir;
+			}
 
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
 
@@ -45,7 +48,10 @@ namespace WalletWasabi.Gui
 
 		public static string GetTorLogsFile()
 		{
-			if (!string.IsNullOrWhiteSpace(TorLogsFile)) return TorLogsFile;
+			if (!string.IsNullOrWhiteSpace(TorLogsFile))
+			{
+				return TorLogsFile;
+			}
 
 			TorLogsFile = Path.Combine(GetDataDir(), "TorLogs.txt");
 
