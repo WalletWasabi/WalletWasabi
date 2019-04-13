@@ -67,7 +67,7 @@ namespace WalletWasabi.Tests
 		}
 
 		[Fact]
-		private async Task TorIpIsNotTheRealOneAsync()
+		public async Task TorIpIsNotTheRealOneAsync()
 		{
 			var requestUri = "https://api.ipify.org/";
 			IPAddress realIp;

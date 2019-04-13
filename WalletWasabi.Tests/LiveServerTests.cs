@@ -1,8 +1,8 @@
+using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.XunitConfiguration;

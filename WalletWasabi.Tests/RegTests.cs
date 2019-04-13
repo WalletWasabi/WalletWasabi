@@ -39,6 +39,7 @@ namespace WalletWasabi.Tests
 	[Collection("RegTest collection")]
 	public class RegTests
 	{
+#pragma warning disable IDE0059 // Value assigned to symbol is never used
 		private RegTestFixture RegTestFixture { get; }
 
 		public RegTests(RegTestFixture regTestFixture)
@@ -1546,7 +1547,10 @@ namespace WalletWasabi.Tests
 				var tx0Id = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m),
 					replaceable: true);
 				while (wallet.Coins.Count == 0)
+				{
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
+				}
+
 				Assert.Single(wallet.Coins);
 
 				// Test mixin
@@ -1564,7 +1568,9 @@ namespace WalletWasabi.Tests
 				await wallet.SendTransactionAsync(tx1Res.Transaction);
 
 				while (wallet.Coins.Count != 3)
+				{
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
+				}
 
 				// There is a coin created by the latest spending transaction
 				Assert.Contains(wallet.Coins, x => x.TransactionId == tx1Res.Transaction.GetHash());
@@ -1584,7 +1590,9 @@ namespace WalletWasabi.Tests
 				await wallet.SendTransactionAsync(tx2Res.Transaction);
 
 				while (wallet.Coins.Count != 4)
+				{
 					await Task.Delay(500); // Waits for the transaction get to the mempool.
+				}
 
 				// There is a coin created by the latest spending transaction
 				Assert.Contains(wallet.Coins, x => x.TransactionId == tx2Res.Transaction.GetHash());
@@ -1705,7 +1713,10 @@ namespace WalletWasabi.Tests
 
 				var tx0Id = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(1m), replaceable: true);
 				while (wallet.Coins.Count == 0)
+				{
 					await Task.Delay(500); // Waits for the funding transaction get to the mempool.
+				}
+
 				Assert.Single(wallet.Coins);
 				Assert.True(wallet.Coins.First().IsReplaceable);
 
@@ -3386,7 +3397,10 @@ namespace WalletWasabi.Tests
 				{
 					await Task.Delay(1000);
 					times++;
-					if (times >= 21) throw new TimeoutException("Wallet spends were not recognized.");
+					if (times >= 21)
+					{
+						throw new TimeoutException("Wallet spends were not recognized.");
+					}
 				}
 				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).ToArray();
 				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges);
@@ -3430,5 +3444,7 @@ namespace WalletWasabi.Tests
 		}
 
 		#endregion ClientTests
+
+#pragma warning restore IDE0059 // Value assigned to symbol is never used
 	}
 }

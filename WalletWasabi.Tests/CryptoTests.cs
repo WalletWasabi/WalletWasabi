@@ -70,7 +70,7 @@ namespace WalletWasabi.Tests
 				}
 				count++;
 			}
-			var rate = (double)errorCount / (double)count;
+			var rate = errorCount / (double)count;
 			Assert.True(rate < 0.000001 && rate > -0.000001);
 		}
 

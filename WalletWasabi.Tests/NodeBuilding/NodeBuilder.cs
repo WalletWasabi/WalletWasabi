@@ -113,12 +113,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 			return bitcoind;
 		}
 
-		private int _last = 0;
-		private readonly string _root;
+		private int Last { get; set; }
+		private string Root { get; }
 
 		public NodeBuilder(string root, string bitcoindPath)
 		{
-			_root = root;
+			Root = root;
 			BitcoinD = bitcoindPath;
 		}
 
@@ -128,8 +128,8 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		public async Task<CoreNode> CreateNodeAsync(bool start = false)
 		{
-			var child = Path.Combine(_root, _last.ToString());
-			_last++;
+			var child = Path.Combine(Root, Last.ToString());
+			Last++;
 			try
 			{
 				var cfgPath = Path.Combine(child, "data", "bitcoin.conf");

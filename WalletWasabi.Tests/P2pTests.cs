@@ -159,7 +159,6 @@ namespace WalletWasabi.Tests
 
 		private void ConnectedNodes_Added(object sender, NodeEventArgs e)
 		{
-			var nodes = sender as NodesCollection;
 			long nodeCount = Interlocked.Increment(ref _nodeCount);
 			if (nodeCount == 8)
 			{
@@ -171,7 +170,6 @@ namespace WalletWasabi.Tests
 
 		private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
 		{
-			var nodes = sender as NodesCollection;
 			var nodeCount = Interlocked.Decrement(ref _nodeCount);
 			// Trace is fine here, building the connections is more exciting than removing them.
 			Logger.LogTrace<P2pTests>($"Node count: {nodeCount}.");
