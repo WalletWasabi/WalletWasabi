@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.CommandLine
 			var showHelp = false;
 			var showVersion = false;
 
-			if(args.Length == 0)
+			if (args.Length == 0)
 			{
 				return true;
 			}
@@ -31,8 +31,10 @@ namespace WalletWasabi.Gui.CommandLine
 					"Usage: wassabee [OPTIONS]+",
 					"Launches Wasabi Wallet.",
 					"",
-					{ "h|help", "Displays help page and exit.", x => showHelp = x != null},
-					{ "v|version", "Displays Wasabi version and exit.", x => showVersion = x != null},
+					{ "h|help", "Displays help page and exit.",
+						x => showHelp = x != null},
+					{ "v|version", "Displays Wasabi version and exit.",
+						x => showVersion = x != null},
 					"",
 					"Available commands are:",
 					"",
@@ -41,7 +43,7 @@ namespace WalletWasabi.Gui.CommandLine
 				};
 
 				EnsureBackwardCompatibilityWithOldParameters(ref args);
-				if(suite.Run(args) == 0)
+				if (suite.Run(args) == 0)
 				{
 					return false;
 				}
@@ -66,7 +68,7 @@ namespace WalletWasabi.Gui.CommandLine
 		private static void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)
 		{
 			var listArgs = args.ToList();
-			if(listArgs.Remove("--mix") || listArgs.Remove("-m"))
+			if (listArgs.Remove("--mix") || listArgs.Remove("-m"))
 			{
 				listArgs.Insert(0, "mix");
 			}

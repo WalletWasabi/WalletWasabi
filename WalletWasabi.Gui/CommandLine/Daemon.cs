@@ -10,7 +10,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
-	class Daemon
+	public class Daemon
 	{
 		internal static async Task RunAsync(string walletName, LogLevel? logLevel, bool mixAll, bool keepMixAlive, bool silent)
 		{
@@ -87,17 +87,24 @@ namespace WalletWasabi.Gui.CommandLine
 
 			Logger.LogInfo("Correct password.");
 
-			await Global.InitializeNoUiAsync();
+			await Global.InitializeNoWalletAsync();
 			await Global.InitializeWalletServiceAsync(keyManager);
 
 			await TryQueueCoinsToMixAsync(mixAll, password);
 
-			var mixing = true;
+			bool mixing;
 			do
 			{
-				if (Global.KillRequested) break;
+				if (Global.KillRequested)
+				{
+					break;
+				}
+
 				await Task.Delay(3000);
-				if (Global.KillRequested) break;
+				if (Global.KillRequested)
+				{
+					break;
+				}
 
 				bool anyCoinsQueued = Global.ChaumianClient.State.AnyCoinsQueued();
 
@@ -106,7 +113,10 @@ namespace WalletWasabi.Gui.CommandLine
 					await TryQueueCoinsToMixAsync(mixAll, password);
 				}
 
-				if (Global.KillRequested) break;
+				if (Global.KillRequested)
+				{
+					break;
+				}
 
 				mixing = anyCoinsQueued || keepMixAlive;
 			} while (mixing);

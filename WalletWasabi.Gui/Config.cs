@@ -4,15 +4,15 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Net;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
-using WalletWasabi.TorSocks5;
 using WalletWasabi.Models;
+using WalletWasabi.TorSocks5;
 
 namespace WalletWasabi.Gui
 {
@@ -148,7 +148,10 @@ namespace WalletWasabi.Gui
 				return GetFallbackBackendUri();
 			}
 
-			if (_backendUri != null) return _backendUri;
+			if (_backendUri != null)
+			{
+				return _backendUri;
+			}
 
 			if (Network == Network.Main)
 			{
@@ -168,7 +171,10 @@ namespace WalletWasabi.Gui
 
 		public Uri GetFallbackBackendUri()
 		{
-			if (_fallbackBackendUri != null) return _fallbackBackendUri;
+			if (_fallbackBackendUri != null)
+			{
+				return _fallbackBackendUri;
+			}
 
 			if (Network == Network.Main)
 			{
@@ -491,7 +497,10 @@ namespace WalletWasabi.Gui
 		/// <inheritdoc />
 		public void AssertFilePathSet()
 		{
-			if (FilePath is null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+			if (FilePath is null)
+			{
+				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+			}
 		}
 	}
 }

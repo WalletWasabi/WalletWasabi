@@ -35,7 +35,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 
 			var roundConfig = new CcjRoundConfig(Money.Coins(0.1m), 144, 0.1m, 100, 120, 60, 60, 60, 1, 24, true, 11);
 
-			Global.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
+			Backend.Global.InitializeAsync(config, roundConfig, rpc).GetAwaiter().GetResult();
 
 			BackendEndPoint = $"http://localhost:{new Random().Next(37130, 38000)}/";
 			BackendHost = WebHost.CreateDefaultBuilder()
@@ -44,7 +44,7 @@ namespace WalletWasabi.Tests.XunitConfiguration
 					.Build();
 
 			var hostInitializationTask = BackendHost.RunAsync();
-			Logger.LogInfo<SharedFixture>($"Started Backend webhost: {BackendEndPoint}");
+			Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}", nameof(Global));
 
 			var delayTask = Task.Delay(3000);
 			Task.WaitAny(delayTask, hostInitializationTask); // Wait for server to initialize (Without this OSX CI will fail)

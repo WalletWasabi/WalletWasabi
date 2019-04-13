@@ -1,6 +1,6 @@
+using Mono.Options;
 using System;
 using System.Collections.Generic;
-using Mono.Options;
 using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.CommandLine
@@ -18,8 +18,8 @@ namespace WalletWasabi.Gui.CommandLine
 		{
 			Language = "en";
 
-			Options = new OptionSet () {
-				"usage: findpassword --wallet:walet-file-path --language:lang --numbers:[TRUE|FALSE] --symbold:[TRUE|FALSE]",
+			Options = new OptionSet() {
+				"usage: findpassword --secret:encrypted-secret --language:lang --numbers:[TRUE|FALSE] --symbold:[TRUE|FALSE]",
 				"",
 				"Tries to find typing mistakes in the user password by brute forcing it char by char.",
 				"eg: .wassabee findpassword --wallet:/home/user/.wasabiwallet/client/Wallets/my-wallet.json --numbers:false --symbold:true",
@@ -64,7 +64,7 @@ namespace WalletWasabi.Gui.CommandLine
 					PasswordFinder.Find(km.EncryptedSecret.ToWif(), Language, UseNumbers, UseSymbols);
 				}
 			}
-			catch(Exception)
+			catch (Exception)
 			{
 				Console.WriteLine($"There was a problem interpreting the command, please review it.");
 				error = true;
