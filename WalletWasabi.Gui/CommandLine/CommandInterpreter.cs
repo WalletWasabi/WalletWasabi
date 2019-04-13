@@ -13,7 +13,7 @@ namespace WalletWasabi.Gui.CommandLine
 			var showHelp = false;
 			var showVersion = false;
 
-			if(args.Length == 0)
+			if (args.Length == 0)
 			{
 				return true;
 			}
@@ -41,7 +41,7 @@ namespace WalletWasabi.Gui.CommandLine
 				};
 
 				EnsureBackwardCompatibilityWithOldParameters(ref args);
-				if(suite.Run(args) == 0)
+				if (suite.Run(args) == 0)
 				{
 					return false;
 				}
@@ -66,7 +66,7 @@ namespace WalletWasabi.Gui.CommandLine
 		private static void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)
 		{
 			var listArgs = args.ToList();
-			if(listArgs.Remove("--mix") || listArgs.Remove("-m"))
+			if (listArgs.Remove("--mix") || listArgs.Remove("-m"))
 			{
 				listArgs.Insert(0, "mix");
 			}
