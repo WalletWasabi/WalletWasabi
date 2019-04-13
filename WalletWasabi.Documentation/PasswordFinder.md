@@ -1,36 +1,52 @@
+# Wasabi Password Finder
+
+Wasabi Password Finder is a tool for helping those who made a mistake typing the password during the wallet creation process. This tool tries to find the password that decrypts the encrypted secret key stored in a given wallet file. 
+
+## Limitations
+
+Wasabi wallet protects the encrypted secret key with the same technology used to protect paper wallets (bip 38) and for that reason it is computational infeasible to brute force the password using all the possible combinations. It is important to know that Wasabi Password Finder is not for breaking wallet passwords but for finding errors (typos) in an already known password. 
+
 ## Usage
 
+Let start giving a glance to the command help:
+
 ```
-$ dotnet run findpassword -s {encryptedSecret} [OPTIONS]+ 
-usage: findpassword --secret:encrypted-secret --language:lang --numbers:[TRUE|
+$ wassabee run help findpassword
+usage: findpassword --wallet:walet-file-path --language:lang --numbers:[TRUE|
 FALSE] --symbold:[TRUE|FALSE]
 
 Tries to find typing mistakes in the user password by brute forcing it char by char.
-eg: findpassword --secret:6PYSeErf23ArQL7xXUWPKa3VBin6cuDaieSdABvVyTA51dS4Mxrtg1CpGN --numbers:false --symbold:true
+eg: .wassabee findpassword --wallet:/home/user/.wasabiwallet/client/Wallets/my-wallet.json --numbers:false --symbold:true
 
-  -s, --secret=VALUE         The secret from your .json file (EncryptedSecret).
+  -w, --wallet=VALUE         The path to the wallet file.
   -l, --language=VALUE       The charset to use: en, es, it, fr, pt. Default=en.
   -n, --numbers=VALUE        Try passwords with numbers. Default=true.
   -x, --symbols=VALUE        Try passwords with symbolds. Default=true.
   -h, --help                 Show Help
-``` 
+```
 
-You can find your encryptedSecret in your `Wallet.json` file, that you have previously created with Wasabi.
-
+Let now to find a typo in a wallet called pass.jsom. For the sake of the example let say I've created this wallet and I think the password is `pasd` but it was created with the password `pass` by accident.
 
 ```
-dotnet run findpassword -secret:6PYSJ71rbacdSS2htBcpSccutEEEJqGHq3152FuT357ha6iat6BkENGwUB -language:es -numbers -symbols
+$ wassabee findpassword --wallet:/home/lontivero/.walletwasabi/client/Wallets/pass.json 
 WARNING: This tool will display you password if it finds it. Also, the process status display your wong password chars.
          You can cancel this by CTRL+C combination anytime.
 
-Enter password: ****
-[##############################################################################                      ] 78% - ET: 00:00:47.7226706
+Enter password: ****    <---- Here I typed the password that I think was used to create the wallet (`pasd`)
 
-Completed in 00:02:51.4221061
-SUCCESS: Password found: >>> pato <<<
+[##################################################################################                  ] 82% - ET: 00:00:15.4120338
+
+Completed in 00:01:11.5134519
+SUCCESS: Password found: >>> pass <<<
+
 ```
 
-## NOTE
+Note that for a 4 characters length password it took more than a minute to find. Moreover, the process is heavy in CPU and for that reason it can be a good idea to use the best combination of parameters to reduce the search space.
 
-This process is rather slow and CPU heavy. Even for a 10 chars length password it can take significant time to run and
-finding the error is not warranted in any case. Please review the code before running it.
+* __language__ (default: en) specify the alphabet to use and that's important because the number of possible combinations for each character in the password grows rapidily depending on the alphabet used. Just as an example, while the *Italian* charset is "abcdefghimnopqrstuvxyzABCDEFGHILMNOPQRSTUVXYZ", the *French* charset is "aâàbcçdæeéèëœfghiîïjkmnoôpqrstuùüvwxyÿzAÂÀBCÇDÆEÉÈËŒFGHIÎÏJKMNOÔPQRSTUÙÜVWXYŸZ". 
+
+* __numbers__ (default: true) is for indicating that our password contains, or could contain, at least one digit. This increases the charset in 10 (from 0 to 9).
+
+* __symbols__ (default: true) is for indicating that our password contains, or could contain, at least one symbol. This increases the charset in 34 (|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>). Note that not all symbols are available but only the most common ones instead.
+
+
