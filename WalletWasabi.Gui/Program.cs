@@ -23,7 +23,7 @@ namespace WalletWasabi.Gui
 			StatusBarViewModel statusBar = null;
 			try
 			{
-				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
+				Platform.BaseDirectory = Path.Combine(Global.GetDataDir(), "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 

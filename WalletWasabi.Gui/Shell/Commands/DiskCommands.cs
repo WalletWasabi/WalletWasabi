@@ -38,7 +38,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenDataFolder()
 		{
-			IoHelpers.OpenFolderInFileExplorer(Global.DataDir);
+			IoHelpers.OpenFolderInFileExplorer(Global.GetDataDir());
 		}
 
 		private void OnOpenWalletsFolder()

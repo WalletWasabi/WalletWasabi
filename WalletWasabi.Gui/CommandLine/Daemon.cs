@@ -96,7 +96,7 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 			}
 
-			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+			Logger.InitializeDefaults(Path.Combine(Global.GetDataDir(), "Logs.txt"));
 
 			if (logLevel.HasValue)
 			{
