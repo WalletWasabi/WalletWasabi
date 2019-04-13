@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Security;
 using System;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -30,17 +31,22 @@ namespace WalletWasabi.KeyManagement
 		public bool? PasswordVerified { get; private set; }
 
 		[JsonProperty(Order = 5)]
+		private BlockchainState BlockchainState { get; }
+
+		private object BlockchainStateLock { get; }
+
+		[JsonProperty(Order = 6)]
 		private List<HdPubKey> HdPubKeys { get; }
 
-		private readonly object HdPubKeysLock;
+		private object HdPubKeysLock { get; }
 
 		private List<byte[]> HdPubKeyScriptBytes { get; }
 
-		private readonly object HdPubKeyScriptBytesLock;
+		private object HdPubKeyScriptBytesLock { get; }
 
-		private readonly Dictionary<Script, HdPubKey> ScriptHdPubkeyMap;
+		private Dictionary<Script, HdPubKey> ScriptHdPubkeyMap { get; }
 
-		private readonly object ScriptHdPubkeyMapLock;
+		private object ScriptHdPubkeyMapLock { get; }
 
 		// BIP84-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
@@ -51,7 +57,7 @@ namespace WalletWasabi.KeyManagement
 		private object ToFileLock { get; }
 
 		[JsonConstructor]
-		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, bool? passwordVerified, string filePath = null)
+		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, bool? passwordVerified, BlockchainState blockchainState, string filePath = null)
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
@@ -59,12 +65,15 @@ namespace WalletWasabi.KeyManagement
 			HdPubKeysLock = new object();
 			HdPubKeyScriptBytesLock = new object();
 			ScriptHdPubkeyMapLock = new object();
+			BlockchainStateLock = new object();
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
 
 			PasswordVerified = passwordVerified;
+
+			BlockchainState = blockchainState ?? new BlockchainState();
 
 			SetFilePath(filePath);
 			ToFileLock = new object();
@@ -79,6 +88,8 @@ namespace WalletWasabi.KeyManagement
 			HdPubKeysLock = new object();
 			HdPubKeyScriptBytesLock = new object();
 			ScriptHdPubkeyMapLock = new object();
+			BlockchainState = new BlockchainState();
+			BlockchainStateLock = new object();
 
 			if (password is null)
 			{
@@ -107,7 +118,7 @@ namespace WalletWasabi.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), false, filePath);
+			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), false, new BlockchainState(), filePath);
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string filePath = null)
@@ -121,7 +132,7 @@ namespace WalletWasabi.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), true, filePath);
+			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), true, new BlockchainState(), filePath);
 		}
 
 		public void SetFilePath(string filePath)
@@ -133,21 +144,57 @@ namespace WalletWasabi.KeyManagement
 
 		public void ToFile()
 		{
-			if (FilePath is null) return;
-			ToFile(FilePath);
+			lock (HdPubKeysLock)
+				lock (BlockchainStateLock)
+					lock (ToFileLock)
+					{
+						ToFileNoLock();
+					}
+		}
+
+		public void ToFileNoBlockchainStateLock()
+		{
+			lock (HdPubKeysLock)
+				lock (ToFileLock)
+				{
+					ToFileNoLock();
+				}
 		}
 
 		public void ToFile(string filePath)
 		{
-			IoHelpers.EnsureContainingDirectoryExists(filePath);
 			lock (HdPubKeysLock)
-			{
-				lock (ToFileLock)
-				{
-					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
-					File.WriteAllText(filePath, jsonString, Encoding.UTF8);
-				}
-			}
+				lock (BlockchainStateLock)
+					lock (ToFileLock)
+					{
+						ToFileNoLock(filePath);
+					}
+		}
+
+		private void ToFileNoLock()
+		{
+			if (FilePath is null) return;
+			ToFileNoLock(FilePath);
+		}
+
+		private void ToFileNoLock(string filePath)
+		{
+			IoHelpers.EnsureContainingDirectoryExists(filePath);
+			// Remove the last 100 blocks to ensure verification on the next run. This is needed of reorg.
+			int maturity = 101;
+			Height prevHeight = BlockchainState.BestHeight;
+			int matureHeight = Math.Max(0, prevHeight.Value - maturity);
+
+			BlockchainState.BestHeight = new Height(matureHeight);
+			HashSet<BlockState> toRemove = BlockchainState.BlockStates.Where(x => x.BlockHeight >= BlockchainState.BestHeight).ToHashSet();
+			BlockchainState.BlockStates.RemoveAll(x => toRemove.Contains(x));
+
+			string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
+			File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+
+			// Re-add removed items for further operations.
+			BlockchainState.BlockStates.AddRange(toRemove.OrderBy(x => x));
+			BlockchainState.BestHeight = prevHeight;
 		}
 
 		public static KeyManager FromFile(string filePath)
@@ -405,5 +452,102 @@ namespace WalletWasabi.KeyManagement
 
 			return generated;
 		}
+
+		#region BlockchainState
+
+		public Height GetBestHeight()
+		{
+			lock (BlockchainStateLock)
+			{
+				return BlockchainState.BestHeight;
+			}
+		}
+
+		public IEnumerable<BlockState> GetTransactionIndex()
+		{
+			lock (BlockchainStateLock)
+			{
+				return BlockchainState.BlockStates.ToList();
+			}
+		}
+
+		/// <returns>Removed element.</returns>
+		public BlockState TryRemoveBlockState(uint256 blockHash)
+		{
+			lock (BlockchainStateLock)
+			{
+				BlockState found = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == blockHash);
+				if (found != null)
+				{
+					if (BlockchainState.BlockStates.Remove(found))
+					{
+						ToFileNoBlockchainStateLock();
+					}
+				}
+
+				return found;
+			}
+		}
+
+		public bool CointainsBlockState(uint256 blockHash)
+		{
+			lock (BlockchainStateLock)
+			{
+				return BlockchainState.BlockStates.Any(x => x.BlockHash == blockHash);
+			}
+		}
+
+		public void AddBlockState(BlockState state, bool setItsHeightToBest)
+		{
+			lock (BlockchainStateLock)
+			{
+				// Make sure of proper ordering here.
+
+				// If found same hash then update.
+				// Else If found same height then replace.
+				// Else add.
+				// Note same hash diff height makes no sense.
+
+				BlockState foundWithHash = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == state.BlockHash);
+				if (foundWithHash != null)
+				{
+					IEnumerable<int> newIndices = state.TransactionIndices.Where(x => !foundWithHash.TransactionIndices.Contains(x));
+					if (newIndices.Any())
+					{
+						foundWithHash.TransactionIndices.AddRange(newIndices);
+						foundWithHash.TransactionIndices.Sort();
+					}
+				}
+				else
+				{
+					BlockState foundWithHeight = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHeight == state.BlockHeight);
+					if (foundWithHeight != null)
+					{
+						BlockchainState.BlockStates.Remove(foundWithHeight);
+					}
+
+					BlockchainState.BlockStates.Add(state);
+					BlockchainState.BlockStates.Sort();
+				}
+
+				if (setItsHeightToBest)
+				{
+					BlockchainState.BestHeight = state.BlockHeight;
+				}
+
+				ToFileNoBlockchainStateLock();
+			}
+		}
+
+		public void SetBestHeight(Height height)
+		{
+			lock (BlockchainStateLock)
+			{
+				BlockchainState.BestHeight = height;
+				ToFileNoBlockchainStateLock();
+			}
+		}
+
+		#endregion BlockchainState
 	}
 }

@@ -175,7 +175,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				Logger.LogInfo("Correct password.");
 
-				await Global.InitializeNoUiAsync();
+				await Global.InitializeNoWalletAsync();
 				await Global.InitializeWalletServiceAsync(keyManager);
 
 				await TryQueueCoinsToMixAsync(mixAll, password);

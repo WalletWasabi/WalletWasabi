@@ -30,38 +30,13 @@ namespace WalletWasabi.Gui
 {
 	public static class Global
 	{
-		private static string _dataDir = null;
+		public static string DataDir { get; }
+		public static string TorLogsFile { get; }
+		public static string WalletsDir { get; }
+		public static string WalletBackupsDir { get; }
 
-		public static string DataDir
-		{
-			get
-			{
-				if (!string.IsNullOrWhiteSpace(_dataDir)) return _dataDir;
-
-				_dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-
-				return _dataDir;
-			}
-		}
-
-		private static string _torLogsFile = null;
-
-		public static string TorLogsFile
-		{
-			get
-			{
-				if (!string.IsNullOrWhiteSpace(_torLogsFile)) return _torLogsFile;
-
-				_torLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-
-				return _torLogsFile;
-			}
-		}
-
-		public static string WalletsDir => Path.Combine(DataDir, "Wallets");
-		public static string WalletBackupsDir => Path.Combine(DataDir, "WalletBackups");
-		public static Network Network => Config.Network;
-		public static string IndexFilePath => Path.Combine(DataDir, $"Index{Network}.dat");
+		public static string IndexFilePath { get; private set; }
+		public static Config Config { get; private set; }
 
 		public static string AddressManagerFilePath { get; private set; }
 		public static AddressManager AddressManager { get; private set; }
@@ -75,12 +50,17 @@ namespace WalletWasabi.Gui
 		public static TorProcessManager TorManager { get; private set; }
 		public static bool KillRequested { get; private set; } = false;
 		public static SyncBehavior LocalSyncBehavior { get; private set; }
-		public static Config Config { get; private set; }
+    
 		public static UiConfig UiConfig { get; private set; }
 
-		public static void InitializeConfig(Config config)
+		public static Network Network => Config.Network;
+
+		static Global()
 		{
-			Config = Guard.NotNull(nameof(config), config);
+			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+			WalletsDir = Path.Combine(DataDir, "Wallets");
+			WalletBackupsDir = Path.Combine(DataDir, "WalletBackups");
 		}
 
 		public static void InitializeUiConfig(UiConfig uiConfig)
@@ -88,13 +68,13 @@ namespace WalletWasabi.Gui
 			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
 
-		private static int _isDesperateDequeuing = 0;
+		private static int IsDesperateDequeuing = 0;
 
 		public static async Task TryDesperateDequeueAllCoinsAsync()
 		{
 			// If already desperate dequeueing then return.
 			// If not desperate dequeueing then make sure we're doing that.
-			if (Interlocked.CompareExchange(ref _isDesperateDequeuing, 1, 0) == 1)
+			if (Interlocked.CompareExchange(ref IsDesperateDequeuing, 1, 0) == 1)
 			{
 				return;
 			}
@@ -112,7 +92,7 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				Interlocked.Exchange(ref _isDesperateDequeuing, 0);
+				Interlocked.Exchange(ref IsDesperateDequeuing, 0);
 			}
 		}
 
@@ -131,22 +111,18 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public static async Task InitializeNoUiAsync()
-		{
-			var configFilePath = Path.Combine(DataDir, "Config.json");
-			var config = new Config(configFilePath);
-			await config.LoadOrCreateDefaultFileAsync();
-			Logger.LogInfo<Config>("Config is successfully initialized.");
-
-			InitializeConfig(config);
-
-			await InitializeNoWalletAsync();
-		}
-
 		public static async Task InitializeNoWalletAsync()
 		{
 			WalletService = null;
 			ChaumianClient = null;
+			AddressManager = null;
+			TorManager = null;
+
+			Config = new Config(Path.Combine(DataDir, "Config.json"));
+			await Config.LoadOrCreateDefaultFileAsync();
+			Logger.LogInfo<Config>("Config is successfully initialized.");
+
+			IndexFilePath = Path.Combine(DataDir, $"Index{Network}.dat");
 
 			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
 			Console.CancelKeyPress += async (s, e) =>
@@ -166,8 +142,6 @@ namespace WalletWasabi.Gui
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters();
-			AddressManager = null;
-			TorManager = null;
 
 			if (Config.UseTor.Value)
 			{
@@ -377,7 +351,9 @@ namespace WalletWasabi.Gui
 		public static KeyManager LoadKeyManager(string walletFullPath)
 		{
 			KeyManager keyManager;
-			var walletFileInfo = new FileInfo(walletFullPath)
+
+			// Set the LastAccessTime.
+			new FileInfo(walletFullPath)
 			{
 				LastAccessTime = DateTime.Now
 			};

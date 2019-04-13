@@ -16,10 +16,10 @@ namespace WalletWasabi.Tests.NodeBuilding
 {
 	public class CoreNode
 	{
-		private readonly NodeBuilder _Builder;
+		private NodeBuilder Builder { get; }
 		public string Folder { get; }
 
-		public IPEndPoint Endpoint => new IPEndPoint(IPAddress.Parse("127.0.0.1"), _ports[0]);
+		public IPEndPoint Endpoint => new IPEndPoint(IPAddress.Parse("127.0.0.1"), Ports[0]);
 
 		public string Config { get; }
 
@@ -27,7 +27,7 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		private CoreNode(string folder, NodeBuilder builder)
 		{
-			_Builder = builder;
+			Builder = builder;
 			Folder = folder;
 			State = CoreNodeState.Stopped;
 			DataDir = Path.Combine(folder, "data");
@@ -36,8 +36,8 @@ namespace WalletWasabi.Tests.NodeBuilding
 			Creds = new NetworkCredential(pass, pass);
 			Config = Path.Combine(DataDir, "bitcoin.conf");
 			ConfigParameters.Import(builder.ConfigParameters);
-			_ports = new int[2];
-			FindPorts(_ports);
+			Ports = new int[2];
+			FindPorts(Ports);
 		}
 
 		public Block[] Generate(int blockCount)
@@ -60,18 +60,24 @@ namespace WalletWasabi.Tests.NodeBuilding
 
 		public CoreNodeState State { get; private set; }
 
-		private readonly int[] _ports;
+		private int[] Ports { get; }
 
 		private readonly NetworkCredential Creds;
 
 		public RPCClient CreateRpcClient()
 		{
-			return new RPCClient(Creds, new Uri("http://127.0.0.1:" + _ports[1] + "/"), Network.RegTest);
+			return new RPCClient(Creds, new Uri("http://127.0.0.1:" + Ports[1] + "/"), Network.RegTest);
 		}
 
-		public async Task<Node> CreateNodeClientAsync() => await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, _ports[0]));
+		public async Task<Node> CreateNodeClientAsync()
+		{
+			return await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, Ports[0]));
+		}
 
-		public async Task<Node> CreateNodeClientAsync(NodeConnectionParameters parameters) => await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, _ports[0]), parameters);
+		public async Task<Node> CreateNodeClientAsync(NodeConnectionParameters parameters)
+		{
+			return await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, Ports[0]), parameters);
+		}
 
 		public async Task StartAsync()
 		{
@@ -84,23 +90,23 @@ namespace WalletWasabi.Tests.NodeBuilding
 				{"regtest.txindex", "1"},
 				{"regtest.rpcuser", Creds.UserName},
 				{"regtest.rpcpassword", Creds.Password},
-				{"regtest.whitebind", "127.0.0.1:" + _ports[0].ToString()},
-				{"regtest.rpcport", _ports[1].ToString()},
+				{"regtest.whitebind", "127.0.0.1:" + Ports[0].ToString()},
+				{"regtest.rpcport", Ports[1].ToString()},
 				{"regtest.printtoconsole", "0"}, // Set it to one if don't mind loud debug logs
 				{"regtest.keypool", "10"},
 				{"regtest.pid", "bitcoind.pid"}
 			};
 			config.Import(ConfigParameters);
 			File.WriteAllText(Config, config.ToString());
-			using (await _l.LockAsync())
+			using (await KillerLock.LockAsync())
 			{
-				_process = Process.Start(new FileInfo(_Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
+				Process = Process.Start(new FileInfo(Builder.BitcoinD).FullName, "-conf=bitcoin.conf" + " -datadir=" + DataDir + " -debug=1");
 				State = CoreNodeState.Starting;
 				string pidFile = Path.Combine(DataDir, "regtest", "bitcoind.pid");
 				if (!File.Exists(pidFile))
 				{
 					Directory.CreateDirectory(Path.Combine(DataDir, "regtest"));
-					File.WriteAllText(pidFile, _process.Id.ToString());
+					File.WriteAllText(pidFile, Process.Id.ToString());
 				}
 			}
 			while (true)
@@ -114,13 +120,15 @@ namespace WalletWasabi.Tests.NodeBuilding
 				catch
 				{
 				}
-				if (_process is null || _process.HasExited)
+				if (Process is null || Process.HasExited)
+				{
 					break;
+				}
 			}
 		}
 
-		private Process _process;
-		private readonly string DataDir;
+		private Process Process { get; set; }
+		private string DataDir { get; }
 
 		private static void FindPorts(int[] portArray)
 		{
@@ -128,9 +136,12 @@ namespace WalletWasabi.Tests.NodeBuilding
 			while (i < portArray.Length)
 			{
 				var port = RandomUtils.GetUInt32() % 4000;
-				port = port + 10000;
+				port += 10000;
 				if (portArray.Any(p => p == port))
+				{
 					continue;
+				}
+
 				try
 				{
 					var listener = new TcpListener(IPAddress.Loopback, (int)port);
@@ -145,16 +156,16 @@ namespace WalletWasabi.Tests.NodeBuilding
 			}
 		}
 
-		private readonly AsyncLock _l = new AsyncLock();
+		private readonly AsyncLock KillerLock = new AsyncLock();
 
 		public async Task KillAsync(bool cleanFolder = true)
 		{
-			using (await _l.LockAsync())
+			using (await KillerLock.LockAsync())
 			{
 				try
 				{
 					await CreateRpcClient().StopAsync();
-					if (!_process.WaitForExit(20000))
+					if (!Process.WaitForExit(20000))
 					{
 						//log this
 					}
