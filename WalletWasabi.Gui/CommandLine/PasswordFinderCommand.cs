@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using Mono.Options;
+using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.CommandLine
 {
 	internal class PasswordFinderCommand : Command
 	{
-		public string Secret { get; set; }
+		public string Wallet { get; set; }
 		public string Language { get; set; }
 		public bool UseNumbers { get; set; }
 		public bool UseSymbols { get; set; }
@@ -23,8 +24,8 @@ namespace WalletWasabi.Gui.CommandLine
 				"Tries to find typing mistakes in the user password by brute forcing it char by char.",
 				"eg: findpassword --secret:6PYSeErf23ArQL7xXUWPKa3VBin6cuDaieSdABvVyTA51dS4Mxrtg1CpGN --numbers:false --symbold:true",
 				"",
-				{ "s|secret=", "The secret from your .json file (EncryptedSecret).",
-					v => Secret = v },
+				{ "w|wallet=", "The specified wallet file.", 
+					x =>  Wallet = x },
 				{ "l|language=", "The charset to use: en, es, it, fr, pt. Default=en.",
 					v => Language = v },
 				{ "n|numbers=", "Try passwords with numbers. Default=true.",
@@ -45,26 +46,27 @@ namespace WalletWasabi.Gui.CommandLine
 				{
 					Options.WriteOptionDescriptions(CommandSet.Out);
 				}
-				else if (string.IsNullOrEmpty(Secret))
+				else if (string.IsNullOrEmpty(Wallet))
 				{
-					Console.WriteLine("commands: Missing required argument `--secret=ENCRYPTED-SECRET`.");
-					Console.WriteLine("commands: Use `findpassword --help` for details.");
+					Console.WriteLine("Missing required argument `--wallet=wallet-file-path`.");
+					Console.WriteLine("Use `findpassword --help` for details.");
 					error = true;
 				}
 				else if (!PasswordFinder.Charsets.ContainsKey(Language))
 				{
-					Console.WriteLine($"commands: `{Language}` is not available language try with `en, es, pt, it or fr`.");
-					Console.WriteLine("commands: Use `findpassword --help` for details.");
+					Console.WriteLine($"`{Language}` is not available language try with `en, es, pt, it or fr`.");
+					Console.WriteLine("Use `findpassword --help` for details.");
 					error = true;
 				}
 				else
 				{
-					PasswordFinder.Find(Secret, Language, UseNumbers, UseSymbols);
+					var km = KeyManager.FromFile(Wallet);
+					PasswordFinder.Find(km.EncryptedSecret.ToWif(), Language, UseNumbers, UseSymbols);
 				}
 			}
 			catch(Exception)
 			{
-				Console.WriteLine($"commands: There was a problem interpreting the command, please review it.");
+				Console.WriteLine($"There was a problem interpreting the command, please review it.");
 				error = true;
 			}
 			Environment.Exit(error ? 1 : 0);
