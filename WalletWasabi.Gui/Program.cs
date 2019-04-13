@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel();
 
-						await Global.InitializeNoUiAsync();
+						await Global.InitializeNoWalletAsync();
 
 						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
 

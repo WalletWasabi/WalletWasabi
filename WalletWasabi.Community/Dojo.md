@@ -23,7 +23,7 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 
 | Wasabika       | Contact                    | Achievements                           | Promotions                     |
 |----------------|----------------------------|----------------------------------------|--------------------------------|
-| Max Hillebrand | [Twitter][5]               | [Wasabi Video Series][6]               | [2019-04][33]: yellow belt by nopara73 |
+| Max Hillebrand | [Twitter][5]               | [Wasabi Video Series][6], Wasabi Interviews [1.][34] [2.][35] [3.][36]            | [2019-04][33]: yellow belt by nopara73 |
 
 ### Blue Belts
 
@@ -80,3 +80,6 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 [31]: https://github.com/Transisto/
 [32]: https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aissue+author%3ATransisto
 [33]: https://twitter.com/nopara73/status/1114540283914522626
+[34]: https://www.youtube.com/watch?v=WIXG8WEwJnk
+[35]: https://www.youtube.com/watch?v=4m-Wh0wSY5M
+[36]: https://www.youtube.com/watch?v=-_WJOK7ORAQ

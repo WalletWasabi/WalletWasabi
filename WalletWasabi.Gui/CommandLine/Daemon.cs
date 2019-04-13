@@ -84,10 +84,10 @@ namespace WalletWasabi.Gui.CommandLine
 				password = Guard.Correct(password);
 			}
 			while (!keyManager.TestPassword(password));
-
+      
 			Logger.LogInfo("Correct password.");
 
-			await Global.InitializeNoUiAsync();
+			await Global.InitializeNoWalletAsync();
 			await Global.InitializeWalletServiceAsync(keyManager);
 
 			await TryQueueCoinsToMixAsync(mixAll, password);
