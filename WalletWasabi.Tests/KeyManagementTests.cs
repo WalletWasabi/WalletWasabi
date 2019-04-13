@@ -9,15 +9,8 @@ using Xunit;
 
 namespace WalletWasabi.Tests
 {
-	public class KeyManagementTests : IClassFixture<SharedFixture>
+	public class KeyManagementTests
 	{
-		private SharedFixture SharedFixture { get; }
-
-		public KeyManagementTests(SharedFixture sharedFixture)
-		{
-			SharedFixture = sharedFixture;
-		}
-
 		[Fact]
 		public void CanCreateNew()
 		{
@@ -90,7 +83,7 @@ namespace WalletWasabi.Tests
 		{
 			string password = "password";
 
-			var filePath = Path.Combine(SharedFixture.DataDir, nameof(CanSerialize), "Wallet.json");
+			var filePath = Path.Combine(Global.DataDir, nameof(CanSerialize), "Wallet.json");
 			DeleteFileAndDirectoryIfExists(filePath);
 
 			Logger.TurnOff();

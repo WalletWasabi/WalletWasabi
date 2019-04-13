@@ -20,15 +20,8 @@ using Xunit;
 
 namespace WalletWasabi.Tests
 {
-	public class ModelTests : IClassFixture<SharedFixture>
+	public class ModelTests
 	{
-		private SharedFixture SharedFixture { get; }
-
-		public ModelTests(SharedFixture sharedFixture)
-		{
-			SharedFixture = sharedFixture;
-		}
-
 		[Fact]
 		public void SmartTransactionEquality()
 		{

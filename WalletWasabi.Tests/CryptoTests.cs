@@ -12,15 +12,8 @@ using static NBitcoin.Crypto.SchnorrBlinding;
 
 namespace WalletWasabi.Tests
 {
-	public class CryptoTests : IClassFixture<SharedFixture>
+	public class CryptoTests
 	{
-		private SharedFixture SharedFixture { get; }
-
-		public CryptoTests(SharedFixture fixture)
-		{
-			SharedFixture = fixture;
-		}
-
 		[Fact]
 		public void CipherTests()
 		{
