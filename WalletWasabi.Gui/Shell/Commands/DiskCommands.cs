@@ -53,7 +53,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 		private void OnOpenTorLogFile()
 		{
-			IoHelpers.OpenFileInTextEditor(Global.TorLogsFile);
+			IoHelpers.OpenFileInTextEditor(Global.GetTorLogsFile());
 		}
 
 		private void OnOpenConfigFile()

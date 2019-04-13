@@ -41,18 +41,15 @@ namespace WalletWasabi.Gui
 			return DataDir;
 		}
 
-		private static string _torLogsFile = null;
+		private static string TorLogsFile = null;
 
-		public static string TorLogsFile
+		public static string GetTorLogsFile()
 		{
-			get
-			{
-				if (!string.IsNullOrWhiteSpace(_torLogsFile)) return _torLogsFile;
+			if (!string.IsNullOrWhiteSpace(TorLogsFile)) return TorLogsFile;
 
-				_torLogsFile = Path.Combine(GetDataDir(), "TorLogs.txt");
+			TorLogsFile = Path.Combine(GetDataDir(), "TorLogs.txt");
 
-				return _torLogsFile;
-			}
+			return TorLogsFile;
 		}
 
 		public static string WalletsDir => Path.Combine(GetDataDir(), "Wallets");
@@ -170,7 +167,7 @@ namespace WalletWasabi.Gui
 
 			if (Config.UseTor.Value)
 			{
-				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), TorLogsFile);
+				TorManager = new TorProcessManager(Config.GetTorSocks5EndPoint(), GetTorLogsFile());
 			}
 			else
 			{
