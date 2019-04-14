@@ -3101,7 +3101,7 @@ namespace WalletWasabi.Tests
 
 					if (chaumianClient != null)
 					{
-						await chaumianClient.DequeueAllCoinsFromMixAsync();
+						await chaumianClient.DequeueAllCoinsFromMixAsync("No reason given");
 						await chaumianClient.StopAsync();
 					}
 				}
@@ -3183,19 +3183,19 @@ namespace WalletWasabi.Tests
 				Assert.True(smartCoin2.CoinJoinInProgress);
 
 				// Make sure it doesn't throw.
-				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.MemPool, replaceable: false, anonymitySet: 1));
+				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.MemPool, replaceable: false, anonymitySet: 1), string.Empty);
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
-				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, string.Empty);
 				Assert.False(smartCoin1.CoinJoinInProgress);
-				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, smartCoin2);
+				await chaumianClient1.DequeueCoinsFromMixAsync(new []{smartCoin1, smartCoin2}, string.Empty);
 				Assert.False(smartCoin1.CoinJoinInProgress);
 				Assert.False(smartCoin2.CoinJoinInProgress);
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
 				Assert.True(smartCoin1.CoinJoinInProgress);
 				Assert.True(smartCoin2.CoinJoinInProgress);
-				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1);
-				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin2);
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, string.Empty);
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin2, string.Empty);
 				Assert.False(smartCoin1.CoinJoinInProgress);
 				Assert.False(smartCoin2.CoinJoinInProgress);
 
@@ -3225,7 +3225,7 @@ namespace WalletWasabi.Tests
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
-				await chaumianClient1.DequeueAllCoinsFromMixAsync();
+				await chaumianClient1.DequeueAllCoinsFromMixAsync(string.Empty);
 				Assert.Empty(chaumianClient1.State.GetAllQueuedCoins());
 				await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin4);
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
@@ -3403,7 +3403,7 @@ namespace WalletWasabi.Tests
 					}
 				}
 				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).ToArray();
-				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges);
+				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges, string.Empty);
 
 				Assert.Equal(3, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unavailable));
 				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unavailable));
