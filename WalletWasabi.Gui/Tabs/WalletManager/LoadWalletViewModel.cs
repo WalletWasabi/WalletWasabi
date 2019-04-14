@@ -227,7 +227,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								}
 								else
 								{
-									Wallets.Add($"{hwi.Type}, fingerprint: {hwi.Fingerprint}");
+									Wallets.Add($"{hwi.Type}-{hwi.Fingerprint}");
 								}
 							}
 
@@ -295,6 +295,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					return null;
 				}
 
+				var walletName = SelectedWallet;
 				if (isHardwareWallet)
 				{
 					var lastEnumerationClone = LastHardwareWalletEnumeration.ToList();
@@ -309,12 +310,34 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						}
 						else
 						{
-							var fingerprint = trimmedSelectedWallet.Substring(SelectedWallet.LastIndexOf("fingerprint:") + "fingerprint:".Length).Trim();
+							var fingerprint = trimmedSelectedWallet.Substring(SelectedWallet.LastIndexOf("-") + 1).Trim();
 							selectedHwi = lastEnumerationClone.First(x => x.Fingerprint == fingerprint);
 						}
 						ExtPubKey extPubKey = await HwiProcessManager.GetXpubAsync(selectedHwi);
 
-						return null;
+						var walletFiles = new DirectoryInfo(Global.WalletsDir);
+						var walletBackupFiles = new DirectoryInfo(Global.WalletsDir);
+						walletName = null;
+						foreach (FileInfo walletFile in walletFiles.EnumerateFiles()
+																.Concat(walletBackupFiles.EnumerateFiles())
+																.OrderByDescending(x => x.LastAccessTimeUtc))
+						{
+							var km = KeyManager.FromFile(walletFile.FullName);
+							if (km.ExtPubKey == extPubKey) // We already had it.
+							{
+								walletName = walletFile.Name;
+								break;
+							}
+						}
+
+						if (walletName == null)
+						{
+							Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
+
+							walletName = $"{selectedHwi.Type}-{selectedHwi.Fingerprint}";
+							var path = Global.GetWalletFullPath(walletName);
+							KeyManager.CreateNew(extPubKey, path);
+						}
 					}
 					else
 					{
@@ -322,42 +345,40 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						return null;
 					}
 				}
-				else
+
+				var walletFullPath = Global.GetWalletFullPath(walletName);
+				var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
+				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
 				{
-					var walletFullPath = Global.GetWalletFullPath(SelectedWallet);
-					var walletBackupFullPath = Global.GetWalletBackupFullPath(SelectedWallet);
-					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
-					{
-						// The selected wallet is not available any more (someone deleted it?).
-						OnCategorySelected();
-						SetValidationMessage("The selected wallet and its backup don't exist, did you delete them?");
-						return null;
-					}
-
-					KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
-
-					if (!requirePassword && keyManager.PasswordVerified == false)
-					{
-						Owner.SelectTestPassword();
-						return null;
-					}
-					// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
-					if (requirePassword)
-					{
-						if (!keyManager.TestPassword(password))
-						{
-							SetValidationMessage("Wrong password.");
-							return null;
-						}
-						else
-						{
-							SetSuccessMessage("Correct password.");
-							keyManager.SetPasswordVerified();
-						}
-					}
-
-					return keyManager;
+					// The selected wallet is not available any more (someone deleted it?).
+					OnCategorySelected();
+					SetValidationMessage("The selected wallet and its backup don't exist, did you delete them?");
+					return null;
 				}
+
+				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
+
+				if (!requirePassword && keyManager.PasswordVerified == false)
+				{
+					Owner.SelectTestPassword();
+					return null;
+				}
+				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
+				if (requirePassword)
+				{
+					if (!keyManager.TestPassword(password))
+					{
+						SetValidationMessage("Wrong password.");
+						return null;
+					}
+					else
+					{
+						SetSuccessMessage("Correct password.");
+						keyManager.SetPasswordVerified();
+					}
+				}
+
+				return keyManager;
 			}
 			catch (Exception ex)
 			{

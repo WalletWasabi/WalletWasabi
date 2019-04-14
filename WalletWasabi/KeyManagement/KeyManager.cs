@@ -56,6 +56,8 @@ namespace WalletWasabi.KeyManagement
 		public string FilePath { get; private set; }
 		private object ToFileLock { get; }
 
+		public bool IsWatchOnly { get; }
+
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, bool? passwordVerified, BlockchainState blockchainState, string filePath = null)
 		{
@@ -67,8 +69,9 @@ namespace WalletWasabi.KeyManagement
 			ScriptHdPubkeyMapLock = new object();
 			BlockchainStateLock = new object();
 
-			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
-			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
+			EncryptedSecret = encryptedSecret;
+			IsWatchOnly = EncryptedSecret is null;
+			ChainCode = chainCode;
 			ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
 
 			PasswordVerified = passwordVerified;
@@ -97,6 +100,7 @@ namespace WalletWasabi.KeyManagement
 			}
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
+			IsWatchOnly = false;
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
@@ -119,6 +123,11 @@ namespace WalletWasabi.KeyManagement
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
 			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), false, new BlockchainState(), filePath);
+		}
+
+		public static KeyManager CreateNew(ExtPubKey extPubKey, string filePath = null)
+		{
+			return new KeyManager(null, null, extPubKey, null, new BlockchainState(), filePath);
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string filePath = null)

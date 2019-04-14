@@ -112,6 +112,12 @@ namespace WalletWasabi.Hwi
 					var jToken = JToken.Parse(response);
 					return jToken;
 				}
+				if (command.Contains("getxpub", StringComparison.OrdinalIgnoreCase))
+				{
+					string response = "{\"xpub\": \"xpub6DP9afdc7qsz7s7mwAvciAR2dV6vPC3gyiQbqKDzDcPAq3UQChKPimHc3uCYfTTkpoXdwRTFnVTBdFpM9ysbf6KV34uMqkD3zXr6FzkJtcB\"}";
+					var jToken = JToken.Parse(response);
+					return jToken;
+				}
 				else
 				{
 					string response = await process.StandardOutput.ReadToEndAsync();
