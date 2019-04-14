@@ -125,7 +125,7 @@ namespace WalletWasabi.KeyManagement
 			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), false, new BlockchainState(), filePath);
 		}
 
-		public static KeyManager CreateNew(ExtPubKey extPubKey, string filePath = null)
+		public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string filePath = null)
 		{
 			return new KeyManager(null, null, extPubKey, null, new BlockchainState(), filePath);
 		}
@@ -380,6 +380,11 @@ namespace WalletWasabi.KeyManagement
 
 		public ExtKey GetMasterExtKey(string password)
 		{
+			if (IsWatchOnly)
+			{
+				throw new SecurityException("This is a watchonly wallet.");
+			}
+
 			try
 			{
 				Key secret = EncryptedSecret.GetKey(password);

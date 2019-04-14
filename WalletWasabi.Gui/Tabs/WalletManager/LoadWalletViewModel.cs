@@ -336,7 +336,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 							walletName = $"{selectedHwi.Type}-{selectedHwi.Fingerprint}";
 							var path = Global.GetWalletFullPath(walletName);
-							KeyManager.CreateNew(extPubKey, path);
+							KeyManager.CreateNewWatchOnly(extPubKey, path);
 						}
 					}
 					else
