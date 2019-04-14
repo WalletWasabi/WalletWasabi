@@ -7,8 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Hwi
@@ -26,10 +28,24 @@ namespace WalletWasabi.Hwi
 			AsyncLock = new AsyncLock();
 		}
 
-		public static async Task<IEnumerable<JObject>> EnumerateAsync()
+		public static async Task<IEnumerable<HardwareWalletInfo>> EnumerateAsync()
 		{
 			JArray jarr = await SendCommandAsync("enumerate");
-			return jarr.Select(x => x as JObject);
+			var hwis = new List<HardwareWalletInfo>();
+			foreach (JObject json in jarr)
+			{
+				var fingerprint = json.Value<string>("fingerprint");
+				var serialNumber = json.Value<string>("serialNumber");
+				var path = json.Value<string>("path");
+				var typeString = json.Value<string>("type");
+
+				var type = (HardwareWalletType)Enum.Parse(typeof(HardwareWalletType), typeString, ignoreCase: true);
+
+				var hwi = new HardwareWalletInfo(fingerprint, serialNumber, type, path);
+				hwis.Add(hwi);
+			}
+
+			return hwis;
 		}
 
 		public static async Task<JArray> SendCommandAsync(string command)
@@ -47,26 +63,16 @@ namespace WalletWasabi.Hwi
 				}
 			))
 			{
-				var bytes = new ByteArrayBuilder();
-				while (true)
-				{
-					int read = process.StandardOutput.Read();
-					if (read == -1)
-					{
-						break;
-					}
-					bytes.Append((byte)read);
-				}
-
 				process.WaitForExit();
 				if (process.ExitCode != 0)
 				{
 					throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
 				}
 
-				//string resp = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8038ecd2\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"}]";
-				string resp = Encoding.ASCII.GetString(bytes.ToArray());
-				var jarr = JArray.Parse(resp);
+				//string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8038ecd2\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"}]";
+				//string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"}]";
+				string response = await process.StandardOutput.ReadToEndAsync();
+				var jarr = JArray.Parse(response);
 				return jarr;
 			}
 		}

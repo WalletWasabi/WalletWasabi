@@ -11,11 +11,13 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Models;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 
@@ -205,29 +207,21 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				Dispatcher.UIThread.PostLogException(async () =>
 				{
-					IEnumerable<JObject> res = await HwiProcessManager.EnumerateAsync();
-					if (res.Any())
+					var hwis = await HwiProcessManager.EnumerateAsync();
+					if (hwis.Any())
 					{
-						var uniqueTypes = new HashSet<string>();
-						foreach (JObject hw in res)
-						{
-							var type = hw.Value<string>("type");
-							uniqueTypes.Add(type);
-						}
+						var alltypesunique = hwis.Count() == hwis.Select(x => x.Type).ToHashSet().Count();
 
-						var alltypesunique = res.Count() == uniqueTypes.Count();
-
-						foreach (JObject hw in res)
+						foreach (HardwareWalletInfo hwi in hwis)
 						{
-							var type = hw.Value<string>("type");
-							var fingerprint = hw.Value<string>("fingerprint");
-							var display = new StringBuilder(type);
-							if (!alltypesunique)
+							if (alltypesunique)
 							{
-								display.Append($", fingerprint: {fingerprint}");
+								Wallets.Add(hwi.Type.ToString());
 							}
-
-							Wallets.Add(display.ToString());
+							else
+							{
+								Wallets.Add($"{hwi.Type}, fingerprint: {hwi.Fingerprint}");
+							}
 						}
 
 						SelectedWallet = Wallets.FirstOrDefault();
