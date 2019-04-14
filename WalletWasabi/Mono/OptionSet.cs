@@ -666,8 +666,8 @@ namespace Mono.Options
 		}
 
 		private const int OptionWidth = 29;
-		private const int DescriptionFirstWidth = 80 - OptionWidth;
-		private const int DescriptionRemWidth = 80 - OptionWidth - 2;
+		private const int DescriptionFirstWidth = 140 - OptionWidth;
+		private const int DescriptionRemWidth = 140 - OptionWidth - 2;
 
 		private static readonly string CommandHelpIndentStart = new string(' ', OptionWidth);
 		private static readonly string CommandHelpIndentRemaining = new string(' ', OptionWidth + 2);
@@ -683,7 +683,7 @@ namespace Mono.Options
 
 				if (p is Category c)
 				{
-					WriteDescription(o, p.Description, "", 80, 80);
+					WriteDescription(o, p.Description, "", 140, 140);
 					continue;
 				}
 				if (p is CommandOption co)
@@ -741,12 +741,12 @@ namespace Mono.Options
 			var name = new string(' ', 8) + (commandName ?? c.Name);
 			if (name.Length < OptionWidth - 1)
 			{
-				WriteDescription(o, name + new string(' ', OptionWidth - name.Length) + c.Help, CommandHelpIndentRemaining, 80, DescriptionRemWidth);
+				WriteDescription(o, name + new string(' ', OptionWidth - name.Length) + c.Help, CommandHelpIndentRemaining, 140, DescriptionRemWidth);
 			}
 			else
 			{
-				WriteDescription(o, name, "", 80, 80);
-				WriteDescription(o, CommandHelpIndentStart + c.Help, CommandHelpIndentRemaining, 80, DescriptionRemWidth);
+				WriteDescription(o, name, "", 140, 140);
+				WriteDescription(o, CommandHelpIndentStart + c.Help, CommandHelpIndentRemaining, 140, DescriptionRemWidth);
 			}
 		}
 
