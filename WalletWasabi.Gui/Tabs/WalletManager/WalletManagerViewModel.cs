@@ -18,8 +18,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				new GenerateWalletViewModel(this),
 				new RecoverWalletViewModel(this),
-				new LoadWalletViewModel(this, false),
-				new LoadWalletViewModel(this, true)
+				new LoadWalletViewModel(this, LoadWalletType.Desktop),
+				new LoadWalletViewModel(this, LoadWalletType.Password),
+				new LoadWalletViewModel(this, LoadWalletType.Hardware)
 			};
 
 			SelectedCategory = Categories.FirstOrDefault();
@@ -56,12 +57,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void SelectLoadWallet()
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && !((LoadWalletViewModel)x).RequirePassword);
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Desktop));
 		}
 
 		public void SelectTestPassword()
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && ((LoadWalletViewModel)x).RequirePassword);
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Password));
+		}
+
+		public void SelectHardwareWallet()
+		{
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Hardware));
 		}
 
 		public ViewModelBase CurrentView

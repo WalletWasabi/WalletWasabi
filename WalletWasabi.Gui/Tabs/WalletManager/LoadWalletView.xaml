@@ -2,9 +2,9 @@
             xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui">
   <DockPanel LastChildFill="True">
     <StackPanel DockPanel.Dock="Bottom" Spacing="10">
-      <controls:GroupBox IsVisible="{Binding RequirePassword}" TextBlock.FontSize="30" Padding="30" Margin="20 0">
+      <controls:GroupBox IsVisible="{Binding !IsDesktopWallet}" TextBlock.FontSize="30" Padding="30" Margin="20 0">
         <Grid Classes="content">
-          <StackPanel Spacing="8">
+          <StackPanel IsVisible="{Binding IsPasswordRequired}" Spacing="8">
             <StackPanel>
               <TextBlock Text="Select a wallet to test its password!" FontWeight="Bold" />
             </StackPanel>
@@ -14,18 +14,28 @@
               <TextBlock Text="We received numerous reports on losing or mistyping passwords. This experiment aims to disrupt users' typical workflow at wallet generation, forcing them to pay more attention than otherwise would." TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
+          <StackPanel IsVisible="{Binding IsHardwareWallet}" Spacing="8">
+            <StackPanel>
+              <TextBlock Text="Hardware Wallets + CoinJoins?" FontWeight="Bold" />
+              <TextBlock Text="Currently all hardware wallets on the market are incompatible with coinjoins." />
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Text="Which hardware wallets are supported by Wasabi?" FontWeight="Bold" />
+              <TextBlock Text="- ColdCard" TextWrapping="Wrap" />
+            </StackPanel>
+          </StackPanel>
         </Grid>
       </controls:GroupBox>
       <StackPanel DockPanel.Dock="Bottom" Margin="20 10">
         <DockPanel LastChildFill="True">
-          <Button IsVisible="{Binding RequirePassword}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
+          <Button IsVisible="{Binding IsPasswordRequired}" Content="Test Password" Command="{Binding TestPasswordCommand}" DockPanel.Dock="Right" Margin="10 0 0 0" />
           <Button Command="{Binding LoadCommand}" DockPanel.Dock="Right">
             <StackPanel Orientation="Horizontal">
               <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
               <TextBlock Text="{Binding LoadButtonText}" />
             </StackPanel>
           </Button>
-          <Button IsVisible="{Binding !RequirePassword}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
+          <Button IsVisible="{Binding IsDesktopWallet}" Command="{Binding OpenFolderCommand}" DockPanel.Dock="Right" Margin="0 0 10 0">
             <StackPanel Orientation="Horizontal" Spacing="8">
               <DrawingPresenter Width="28">
                 <DrawingPresenter.Drawing>

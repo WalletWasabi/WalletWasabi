@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Hwi;
 
 namespace WalletWasabi.Gui
 {
@@ -158,7 +159,7 @@ namespace WalletWasabi.Gui
 				{
 					MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
 				}
-				DisplayWalletManager();
+				await DisplayWalletManagerAsync();
 			}
 			catch (Exception ex)
 			{
@@ -166,20 +167,29 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private void DisplayWalletManager()
+		private async Task DisplayWalletManagerAsync()
 		{
-			var isAnyWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
-
 			var walletManagerViewModel = new WalletManagerViewModel();
 			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
 
-			if (isAnyWalletAvailable)
+			var res = await HwiProcessManager.EnumerateAsync();
+			var isAnyHardwareWalletAvailable = res.Any();
+			if (isAnyHardwareWalletAvailable)
 			{
-				walletManagerViewModel.SelectLoadWallet();
+				walletManagerViewModel.SelectHardwareWallet();
 			}
 			else
 			{
-				walletManagerViewModel.SelectGenerateWallet();
+				var isAnyDesktopWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
+
+				if (isAnyDesktopWalletAvailable)
+				{
+					walletManagerViewModel.SelectLoadWallet();
+				}
+				else
+				{
+					walletManagerViewModel.SelectGenerateWallet();
+				}
 			}
 		}
 	}

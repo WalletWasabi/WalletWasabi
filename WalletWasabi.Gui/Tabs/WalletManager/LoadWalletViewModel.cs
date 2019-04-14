@@ -1,15 +1,21 @@
-﻿using AvalonStudio.Extensibility;
+﻿using Avalonia.Threading;
+using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 
@@ -31,13 +37,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _loadButtonText;
 
 		private WalletManagerViewModel Owner { get; }
-		public bool RequirePassword { get; }
+		public LoadWalletType LoadWalletType { get; }
 
-		public LoadWalletViewModel(WalletManagerViewModel owner, bool requirePassword) : base(requirePassword ? "Test Password" : "Load Wallet")
+		public bool IsPasswordRequired => LoadWalletType == LoadWalletType.Password;
+		public bool IsHardwareWallet => LoadWalletType == LoadWalletType.Hardware;
+		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
+
+		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType) : base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
 		{
 			Owner = owner;
 			Password = "";
-			RequirePassword = requirePassword;
+			LoadWalletType = loadWalletType;
 			Wallets = new ObservableCollection<string>();
 
 			this.WhenAnyValue(x => x.SelectedWallet)
@@ -191,16 +201,53 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Password = "";
 			SetValidationMessage("");
 
-			if (!File.Exists(Global.WalletsDir))
+			if (IsHardwareWallet)
 			{
-				Directory.CreateDirectory(Global.WalletsDir);
-			}
+				Dispatcher.UIThread.PostLogException(async () =>
+				{
+					IEnumerable<JObject> res = await HwiProcessManager.EnumerateAsync();
+					if (res.Any())
+					{
+						var uniqueTypes = new HashSet<string>();
+						foreach (JObject hw in res)
+						{
+							var type = hw.Value<string>("type");
+							uniqueTypes.Add(type);
+						}
 
-			var directoryInfo = new DirectoryInfo(Global.WalletsDir);
-			var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
-			foreach (var file in walletFiles)
+						var alltypesunique = res.Count() == uniqueTypes.Count();
+
+						foreach (JObject hw in res)
+						{
+							var type = hw.Value<string>("type");
+							var fingerprint = hw.Value<string>("fingerprint");
+							var display = new StringBuilder(type);
+							if (!alltypesunique)
+							{
+								display.Append($", fingerprint: {fingerprint}");
+							}
+
+							Wallets.Add(display.ToString());
+						}
+
+						SelectedWallet = Wallets.FirstOrDefault();
+						SetWalletStates();
+					}
+				});
+			}
+			else
 			{
-				Wallets.Add(Path.GetFileNameWithoutExtension(file.FullName));
+				if (!File.Exists(Global.WalletsDir))
+				{
+					Directory.CreateDirectory(Global.WalletsDir);
+				}
+
+				var directoryInfo = new DirectoryInfo(Global.WalletsDir);
+				var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
+				foreach (var file in walletFiles)
+				{
+					Wallets.Add(Path.GetFileNameWithoutExtension(file.FullName));
+				}
 			}
 
 			SelectedWallet = Wallets.FirstOrDefault();
@@ -295,7 +342,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				IsBusy = true;
 
-				var keyManager = LoadKeyManager(RequirePassword);
+				var keyManager = LoadKeyManager(IsPasswordRequired);
 				if (keyManager is null)
 				{
 					return;

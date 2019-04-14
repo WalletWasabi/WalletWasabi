@@ -1,6 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using Nito.AsyncEx;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,8 +13,64 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Hwi
 {
+	/// <summary>
+	/// https://github.com/bitcoin-core/HWI
+	/// </summary>
 	public static class HwiProcessManager
 	{
+		public static string HwiPath { get; private set; }
+		public static AsyncLock AsyncLock { get; }
+
+		static HwiProcessManager()
+		{
+			AsyncLock = new AsyncLock();
+		}
+
+		public static async Task<IEnumerable<JObject>> EnumerateAsync()
+		{
+			JArray jarr = await SendCommandAsync("enumerate");
+			return jarr.Select(x => x as JObject);
+		}
+
+		public static async Task<JArray> SendCommandAsync(string command)
+		{
+			using (await AsyncLock.LockAsync())
+			using (var process = Process.Start(
+				new ProcessStartInfo
+				{
+					FileName = HwiPath,
+					Arguments = command,
+					RedirectStandardOutput = true,
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					WindowStyle = ProcessWindowStyle.Hidden
+				}
+			))
+			{
+				var bytes = new ByteArrayBuilder();
+				while (true)
+				{
+					int read = process.StandardOutput.Read();
+					if (read == -1)
+					{
+						break;
+					}
+					bytes.Append((byte)read);
+				}
+
+				process.WaitForExit();
+				if (process.ExitCode != 0)
+				{
+					throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
+				}
+
+				//string resp = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8038ecd2\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"}]";
+				string resp = Encoding.ASCII.GetString(bytes.ToArray());
+				var jarr = JArray.Parse(resp);
+				return jarr;
+			}
+		}
+
 		public static async Task EnsureHwiInstalledAsync(string dataDir)
 		{
 			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
@@ -56,6 +116,8 @@ namespace WalletWasabi.Hwi
 			{
 				Logger.LogInfo($"HWI instance found at {hwiPath}.", nameof(HwiProcessManager));
 			}
+
+			HwiPath = hwiPath;
 		}
 
 		private static async Task InstallHwiAsync(string fullBaseDirectory, string hwiDir)
