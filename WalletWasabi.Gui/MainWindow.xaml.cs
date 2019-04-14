@@ -172,8 +172,17 @@ namespace WalletWasabi.Gui
 			var walletManagerViewModel = new WalletManagerViewModel();
 			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
 
-			var res = await HwiProcessManager.EnumerateAsync();
-			var isAnyHardwareWalletAvailable = res.Any();
+			var isAnyHardwareWalletAvailable = false;
+			try
+			{
+				var res = await HwiProcessManager.EnumerateAsync();
+				isAnyHardwareWalletAvailable = res.Any();
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<MainWindow>(ex);
+			}
+
 			if (isAnyHardwareWalletAvailable)
 			{
 				walletManagerViewModel.SelectHardwareWallet();

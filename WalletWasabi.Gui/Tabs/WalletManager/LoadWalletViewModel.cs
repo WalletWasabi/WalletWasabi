@@ -207,25 +207,33 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				Dispatcher.UIThread.PostLogException(async () =>
 				{
-					var hwis = await HwiProcessManager.EnumerateAsync();
-					if (hwis.Any())
+					try
 					{
-						var alltypesunique = hwis.Count() == hwis.Select(x => x.Type).ToHashSet().Count();
-
-						foreach (HardwareWalletInfo hwi in hwis)
+						var hwis = await HwiProcessManager.EnumerateAsync();
+						if (hwis.Any())
 						{
-							if (alltypesunique)
-							{
-								Wallets.Add(hwi.Type.ToString());
-							}
-							else
-							{
-								Wallets.Add($"{hwi.Type}, fingerprint: {hwi.Fingerprint}");
-							}
-						}
+							var alltypesunique = hwis.Count() == hwis.Select(x => x.Type).ToHashSet().Count();
 
-						SelectedWallet = Wallets.FirstOrDefault();
-						SetWalletStates();
+							foreach (HardwareWalletInfo hwi in hwis)
+							{
+								if (alltypesunique)
+								{
+									Wallets.Add(hwi.Type.ToString());
+								}
+								else
+								{
+									Wallets.Add($"{hwi.Type}, fingerprint: {hwi.Fingerprint}");
+								}
+							}
+
+							SelectedWallet = Wallets.FirstOrDefault();
+							SetWalletStates();
+						}
+					}
+					catch (Exception ex)
+					{
+						SetWarningMessage(ex.ToString());
+						Logger.LogError<LoadWalletViewModel>(ex);
 					}
 				});
 			}

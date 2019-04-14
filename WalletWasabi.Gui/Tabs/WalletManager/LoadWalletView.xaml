@@ -16,11 +16,12 @@
           </StackPanel>
           <StackPanel IsVisible="{Binding IsHardwareWallet}" Spacing="8">
             <StackPanel>
-              <TextBlock Text="Hardware Wallets + CoinJoins?" FontWeight="Bold" />
-              <TextBlock Text="Currently all hardware wallets on the market are incompatible with coinjoins." />
+              <TextBlock Text="Limitations?" FontWeight="Bold" />
+              <TextBlock Text="- Currently all hardware wallets on the market are incompatible with coinjoins." />
+              <TextBlock Text="- Wasabi only supports bech32 hardware wallet keypaths." />
             </StackPanel>
             <StackPanel>
-              <TextBlock Text="Which hardware wallets are supported by Wasabi?" FontWeight="Bold" />
+              <TextBlock Text="Which hardware wallets are currently supported?" FontWeight="Bold" />
               <TextBlock Text="- ColdCard" TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
