@@ -43,6 +43,7 @@ namespace WalletWasabi.TorSocks5
 		public Uri DestinationUri => DestinationUriAction();
 		public Func<Uri> DestinationUriAction { get; private set; }
 		public IPEndPoint TorSocks5EndPoint { get; private set; }
+		public bool IsTorUsed => TorSocks5EndPoint != null;
 
 		public bool IsolateStream { get; private set; }
 

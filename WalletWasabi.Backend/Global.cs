@@ -15,19 +15,7 @@ namespace WalletWasabi.Backend
 {
 	public static class Global
 	{
-		private static string _dataDir = null;
-
-		public static string DataDir
-		{
-			get
-			{
-				if (!string.IsNullOrWhiteSpace(_dataDir)) return _dataDir;
-
-				_dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
-
-				return _dataDir;
-			}
-		}
+		public static string DataDir { get; }
 
 		public static RPCClient RpcClient { get; private set; }
 
@@ -44,6 +32,11 @@ namespace WalletWasabi.Backend
 		public static Config Config { get; private set; }
 
 		public static CcjRoundConfig RoundConfig { get; private set; }
+
+		static Global()
+		{
+			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
+		}
 
 		public async static Task InitializeAsync(Config config, CcjRoundConfig roundConfig, RPCClient rpc)
 		{
@@ -129,10 +122,10 @@ namespace WalletWasabi.Backend
 			}
 		}
 
-		private static async Task InitializeP2pAsync(Network network, IPEndPoint iPEndPoint)
+		private static async Task InitializeP2pAsync(Network network, EndPoint endPoint)
 		{
 			Guard.NotNull(nameof(network), network);
-			Guard.NotNull(nameof(iPEndPoint), iPEndPoint);
+			Guard.NotNull(nameof(endPoint), endPoint);
 
 			using (var handshakeTimeout = new CancellationTokenSource())
 			{
@@ -144,7 +137,7 @@ namespace WalletWasabi.Backend
 				};
 
 				nodeConnectionParameters.TemplateBehaviors.Add(new TrustedNodeNotifyingBehavior());
-				var node = await Node.ConnectAsync(network, iPEndPoint, nodeConnectionParameters);
+				var node = await Node.ConnectAsync(network, endPoint, nodeConnectionParameters);
 				// We have to find it, because it's cloned by the node and not perfectly cloned (event handlers cannot be cloned.)
 				TrustedNodeNotifyingBehavior = node.Behaviors.Find<TrustedNodeNotifyingBehavior>();
 				try

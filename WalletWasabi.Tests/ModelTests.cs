@@ -20,15 +20,8 @@ using Xunit;
 
 namespace WalletWasabi.Tests
 {
-	public class ModelTests : IClassFixture<SharedFixture>
+	public class ModelTests
 	{
-		private SharedFixture SharedFixture { get; }
-
-		public ModelTests(SharedFixture sharedFixture)
-		{
-			SharedFixture = sharedFixture;
-		}
-
 		[Fact]
 		public void SmartTransactionEquality()
 		{
@@ -112,7 +105,6 @@ namespace WalletWasabi.Tests
 			Assert.True(smartTx.Equals(deserialized2.Transaction));
 			object sto = deserialized;
 			Assert.True(smartTx.Equals(sto));
-			object to = deserialized.Transaction;
 			Assert.True(smartTx.Equals(deserialized.Transaction));
 			// ToDo: Assert.True(smartTx.Equals(to));
 
@@ -204,7 +196,6 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void InputsResponseSerialization()
 		{
-			uint256[] bigIntegers = new uint256[] { uint256.One, uint256.One, uint256.Zero };
 			var resp = new InputsResponse
 			{
 				UniqueId = Guid.NewGuid(),
