@@ -22,15 +22,8 @@ using Xunit;
 
 namespace WalletWasabi.Tests
 {
-	public class P2pTests : IClassFixture<SharedFixture>
+	public class P2pTests
 	{
-		private SharedFixture SharedFixture { get; }
-
-		public P2pTests(SharedFixture sharedFixture)
-		{
-			SharedFixture = sharedFixture;
-		}
-
 		[Theory]
 		[InlineData("test")]
 		[InlineData("main")]
@@ -55,9 +48,9 @@ namespace WalletWasabi.Tests
 				throw new NotSupportedException(network.ToString());
 			}
 
-			var addressManagerFolderPath = Path.Combine(SharedFixture.DataDir, "AddressManager");
+			var addressManagerFolderPath = Path.Combine(Global.DataDir, "AddressManager");
 			var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
-			var blocksFolderPath = Path.Combine(SharedFixture.DataDir, "Blocks", network.ToString());
+			var blocksFolderPath = Path.Combine(Global.DataDir, "Blocks", network.ToString());
 			var connectionParameters = new NodeConnectionParameters();
 			AddressManager addressManager = null;
 			try
@@ -85,14 +78,14 @@ namespace WalletWasabi.Tests
 			var nodes = new NodesGroup(network, connectionParameters, requirements: Helpers.Constants.NodeRequirements);
 
 			KeyManager keyManager = KeyManager.CreateNew(out _, "password");
-			WasabiSynchronizer syncer = new WasabiSynchronizer(network, Path.Combine(SharedFixture.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345"), SharedFixture.TorSocks5Endpoint);
+			WasabiSynchronizer syncer = new WasabiSynchronizer(network, Path.Combine(Global.DataDir, nameof(TestServicesAsync), "IndexDownloader.txt"), new Uri("http://localhost:12345"), Global.TorSocks5Endpoint);
 			WalletService walletService = new WalletService(
 			   keyManager,
 			   syncer,
-			   new CcjClient(syncer, network, keyManager, new Uri("http://localhost:12345"), SharedFixture.TorSocks5Endpoint),
+			   new CcjClient(syncer, network, keyManager, new Uri("http://localhost:12345"), Global.TorSocks5Endpoint),
 			   memPoolService,
 			   nodes,
-			   SharedFixture.DataDir,
+			   Global.DataDir,
 			   new ServiceConfiguration(50, 2, 21, 50, new IPEndPoint(IPAddress.Loopback, network.DefaultPort)));
 			Assert.True(Directory.Exists(blocksFolderPath));
 
@@ -146,7 +139,7 @@ namespace WalletWasabi.Tests
 				// So next test will download the block.
 				foreach (var hash in blocksToDownload)
 				{
-					await walletService?.DeleteBlockAsync(hash);
+					walletService?.DeleteBlock(hash);
 				}
 				walletService?.Dispose();
 
@@ -166,22 +159,20 @@ namespace WalletWasabi.Tests
 
 		private void ConnectedNodes_Added(object sender, NodeEventArgs e)
 		{
-			var nodes = sender as NodesCollection;
-			Interlocked.Increment(ref _nodeCount);
-			if (Interlocked.Read(ref _nodeCount) == 8)
+			long nodeCount = Interlocked.Increment(ref _nodeCount);
+			if (nodeCount == 8)
 			{
-				Logger.LogTrace<P2pTests>($"Max node count reached: {Interlocked.Read(ref _nodeCount)}.");
+				Logger.LogTrace<P2pTests>($"Max node count reached: {nodeCount}.");
 			}
 
-			Logger.LogTrace<P2pTests>($"Node count: {Interlocked.Read(ref _nodeCount)}.");
+			Logger.LogTrace<P2pTests>($"Node count: {nodeCount}.");
 		}
 
 		private void ConnectedNodes_Removed(object sender, NodeEventArgs e)
 		{
-			var nodes = sender as NodesCollection;
-			Interlocked.Decrement(ref _nodeCount);
+			var nodeCount = Interlocked.Decrement(ref _nodeCount);
 			// Trace is fine here, building the connections is more exciting than removing them.
-			Logger.LogTrace<P2pTests>($"Node count: {Interlocked.Read(ref _nodeCount)}.");
+			Logger.LogTrace<P2pTests>($"Node count: {nodeCount}.");
 		}
 
 		private long _mempoolTransactionCount = 0;

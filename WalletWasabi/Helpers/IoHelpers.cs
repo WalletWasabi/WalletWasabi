@@ -283,6 +283,26 @@ namespace System.IO
 			}
 		}
 
+		public static void OpenBrowser(string url)
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				// If no associated application/json MimeType is found xdg-open opens retrun error
+				// but it tries to open it anyway using the console editor (nano, vim, other..)
+				EnvironmentHelpers.ShellExec($"xdg-open {url}", waitForExit: false);
+			}
+			else
+			{
+				using (Process process = Process.Start(new ProcessStartInfo
+				{
+					FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? url : "open",
+					Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e {url}" : "",
+					CreateNoWindow = true,
+					UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+				})) { }
+			}
+		}
+
 		public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target)
 		{
 			foreach (DirectoryInfo dir in source.GetDirectories())

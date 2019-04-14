@@ -136,18 +136,17 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 		public UtxoReferee UtxoReferee { get; }
 
-		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config)
+		public CcjRound(RPCClient rpc, UtxoReferee utxoReferee, CcjRoundConfig config, int confirmationTarget)
 		{
 			try
 			{
-				Interlocked.Increment(ref RoundCount);
-				RoundId = Interlocked.Read(ref RoundCount);
+				RoundId = Interlocked.Increment(ref RoundCount);
 
 				RpcClient = Guard.NotNull(nameof(rpc), rpc);
 				UtxoReferee = Guard.NotNull(nameof(utxoReferee), utxoReferee);
 				Guard.NotNull(nameof(config), config);
 
-				ConfirmationTarget = (int)config.ConfirmationTarget;
+				ConfirmationTarget = confirmationTarget;
 				CoordinatorFeePercent = (decimal)config.CoordinatorFeePercent;
 				AnonymitySet = (int)config.AnonymitySet;
 				InputRegistrationTimeout = TimeSpan.FromSeconds((long)config.InputRegistrationTimeout);
@@ -654,7 +653,7 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			return acceptedBlindedOutputScriptsCount;
 		}
 
-		private async Task OptimizeFeesAsync(List<Coin> spentCoins)
+		private async Task OptimizeFeesAsync(IEnumerable<Coin> spentCoins)
 		{
 			try
 			{

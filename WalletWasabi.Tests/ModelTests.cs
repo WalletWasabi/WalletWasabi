@@ -20,15 +20,8 @@ using Xunit;
 
 namespace WalletWasabi.Tests
 {
-	public class ModelTests : IClassFixture<SharedFixture>
+	public class ModelTests
 	{
-		private SharedFixture SharedFixture { get; }
-
-		public ModelTests(SharedFixture sharedFixture)
-		{
-			SharedFixture = sharedFixture;
-		}
-
 		[Fact]
 		public void SmartTransactionEquality()
 		{
@@ -112,7 +105,6 @@ namespace WalletWasabi.Tests
 			Assert.True(smartTx.Equals(deserialized2.Transaction));
 			object sto = deserialized;
 			Assert.True(smartTx.Equals(sto));
-			object to = deserialized.Transaction;
 			Assert.True(smartTx.Equals(deserialized.Transaction));
 			// ToDo: Assert.True(smartTx.Equals(to));
 
@@ -204,7 +196,6 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void InputsResponseSerialization()
 		{
-			uint256[] bigIntegers = new uint256[] { uint256.One, uint256.One, uint256.Zero };
 			var resp = new InputsResponse
 			{
 				UniqueId = Guid.NewGuid(),
@@ -220,6 +211,8 @@ namespace WalletWasabi.Tests
 		[Fact]
 		public void ObservableConcurrentHashSetTest()
 		{
+			Set_CollectionChangedLock = new object();
+			Set_CollectionChangedInvokeCount = 0;
 			var set = new ObservableConcurrentHashSet<int>();
 
 			set.CollectionChanged += Set_CollectionChanged;
@@ -267,54 +260,58 @@ namespace WalletWasabi.Tests
 			}
 		}
 
-		private long _set_CollectionChanged_InvokeCount = 0;
+		private int Set_CollectionChangedInvokeCount { get; set; }
+		private object Set_CollectionChangedLock { get; set; }
 
 		private void Set_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
-			Interlocked.Increment(ref _set_CollectionChanged_InvokeCount);
-
-			switch (Interlocked.Read(ref _set_CollectionChanged_InvokeCount))
+			lock (Set_CollectionChangedLock)
 			{
-				case 1:
-					{
-						Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
-						Assert.Single(e.NewItems);
-						Assert.Null(e.OldItems);
-						Assert.Equal(1, e.NewItems[0]);
-						break;
-					}
-				case 2:
-					{
-						Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
-						Assert.Single(e.NewItems);
-						Assert.Null(e.OldItems);
-						Assert.Equal(2, e.NewItems[0]);
-						break;
-					}
-				case 3:
-					{
-						Assert.Equal(NotifyCollectionChangedAction.Remove, e.Action);
-						Assert.Null(e.NewItems);
-						Assert.Single(e.OldItems);
-						Assert.Equal(2, e.OldItems[0]);
-						break;
-					}
-				case 4:
-					{
-						Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
-						Assert.Single(e.NewItems);
-						Assert.Null(e.OldItems);
-						Assert.Equal(3, e.NewItems[0]);
-						break;
-					}
-				case 5:
-					{
-						Assert.Equal(NotifyCollectionChangedAction.Reset, e.Action);
-						Assert.Null(e.NewItems);
-						Assert.Null(e.OldItems); // "Reset action must be initialized with no changed items."
-						break;
-					}
-				default: throw new NotSupportedException();
+				Set_CollectionChangedInvokeCount++;
+
+				switch (Set_CollectionChangedInvokeCount)
+				{
+					case 1:
+						{
+							Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+							Assert.Single(e.NewItems);
+							Assert.Null(e.OldItems);
+							Assert.Equal(1, e.NewItems[0]);
+							break;
+						}
+					case 2:
+						{
+							Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+							Assert.Single(e.NewItems);
+							Assert.Null(e.OldItems);
+							Assert.Equal(2, e.NewItems[0]);
+							break;
+						}
+					case 3:
+						{
+							Assert.Equal(NotifyCollectionChangedAction.Remove, e.Action);
+							Assert.Null(e.NewItems);
+							Assert.Single(e.OldItems);
+							Assert.Equal(2, e.OldItems[0]);
+							break;
+						}
+					case 4:
+						{
+							Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+							Assert.Single(e.NewItems);
+							Assert.Null(e.OldItems);
+							Assert.Equal(3, e.NewItems[0]);
+							break;
+						}
+					case 5:
+						{
+							Assert.Equal(NotifyCollectionChangedAction.Reset, e.Action);
+							Assert.Null(e.NewItems);
+							Assert.Null(e.OldItems); // "Reset action must be initialized with no changed items."
+							break;
+						}
+					default: throw new NotSupportedException();
+				}
 			}
 		}
 	}

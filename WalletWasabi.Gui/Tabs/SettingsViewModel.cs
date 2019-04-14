@@ -1,21 +1,20 @@
-﻿using WalletWasabi.Gui.ViewModels;
+﻿using Avalonia.Threading;
 using ReactiveUI;
-using Avalonia;
 using System;
 using System.Collections.Generic;
-using Avalonia.Threading;
-using WalletWasabi.Gui.ViewModels.Validation;
-using System.Net;
-using System.Threading.Tasks;
-using System.Net.Sockets;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
+using System.Reactive;
 using System.Reactive.Disposables;
+using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Gui.ViewModels.Validation;
 
 namespace WalletWasabi.Gui.Tabs
 {
-	internal class SettingsViewModel : WasabiDocumentTabViewModel, IDisposable
+	internal class SettingsViewModel : WasabiDocumentTabViewModel
 	{
-		private CompositeDisposable Disposables { get; }
+		private CompositeDisposable Disposables { get; set; }
 
 		private string _network;
 		private string _torHost;
@@ -24,17 +23,17 @@ namespace WalletWasabi.Gui.Tabs
 		private string _autocopyText;
 		private bool _useTor;
 		private string _useTorText;
-
 		private bool _isModified;
+
+		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
+		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
 
 		public SettingsViewModel() : base("Settings")
 		{
-			Disposables = new CompositeDisposable();
-
 			var config = new Config(Global.Config.FilePath);
 			Autocopy = (bool)Global.UiConfig.Autocopy;
 
-			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort, x => x.UseTor).Subscribe(x => Save()).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.Network, x => x.TorHost, x => x.TorPort, x => x.UseTor).Subscribe(x => Save());
 
 			this.WhenAnyValue(x => x.Autocopy).Subscribe(x =>
 			{
@@ -45,12 +44,12 @@ namespace WalletWasabi.Gui.Tabs
 
 					AutocopyText = x ? "On" : "Off";
 				});
-			}).DisposeWith(Disposables);
+			});
 
 			this.WhenAnyValue(x => x.UseTor).Subscribe(x =>
 			{
 				UseTorText = x ? "On" : "Off";
-			}).DisposeWith(Disposables);
+			});
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
@@ -64,7 +63,39 @@ namespace WalletWasabi.Gui.Tabs
 				IsModified = await Global.Config.CheckFileChangeAsync();
 			});
 
-			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile).DisposeWith(Disposables);
+			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
+
+			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
+				await Global.UiConfig.ToFileAsync();
+			});
+		}
+
+		public override void OnOpen()
+		{
+			if (Disposables != null)
+			{
+				throw new Exception("Settings was opened before it was closed.");
+			}
+
+			Disposables = new CompositeDisposable();
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			{
+				this.RaisePropertyChanged(nameof(LurkingWifeMode));
+				this.RaisePropertyChanged(nameof(LurkingWifeModeText));
+			}).DisposeWith(Disposables);
+
+			base.OnOpen();
+		}
+
+		public override bool OnClose()
+		{
+			Disposables?.Dispose();
+			Disposables = null;
+
+			return base.OnClose();
 		}
 
 		public IEnumerable<string> Networks
@@ -128,6 +159,10 @@ namespace WalletWasabi.Gui.Tabs
 			get => _useTorText;
 			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
 		}
+
+		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode == true;
+
+		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode == true ? "On" : "Off";
 
 		private void Save()
 		{
@@ -201,37 +236,9 @@ namespace WalletWasabi.Gui.Tabs
 			return "Invalid port.";
 		}
 
-		public ReactiveCommand OpenConfigFileCommand { get; }
-
 		private void OpenConfigFile()
 		{
 			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

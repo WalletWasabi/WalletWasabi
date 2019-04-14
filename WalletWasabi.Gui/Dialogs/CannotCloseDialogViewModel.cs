@@ -1,28 +1,25 @@
-﻿using Avalonia;
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using AvalonStudio.Extensibility.Dialogs;
 using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Dialogs
 {
-	internal class CannotCloseDialogViewModel : ModalDialogViewModelBase, IDisposable
+	internal class CannotCloseDialogViewModel : ModalDialogViewModelBase
 	{
-		private CompositeDisposable Disposables { get; }
-
 		private bool _isBusy;
 		private string _warningMessage;
 		private string _operationMessage;
 
-		private CancellationTokenSource CancelTokenSource { get; }
+		private CompositeDisposable Disposables { get; set; }
+
+		private CancellationTokenSource CancelTokenSource { get; set; }
 
 		public bool IsBusy
 		{
@@ -42,21 +39,17 @@ namespace WalletWasabi.Gui.Dialogs
 			set => this.RaiseAndSetIfChanged(ref _operationMessage, value);
 		}
 
-		public new ReactiveCommand OKCommand { get; set; }
-		public new ReactiveCommand CancelCommand { get; set; }
+		public new ReactiveCommand<Unit, Unit> OKCommand { get; set; }
+		public new ReactiveCommand<Unit, Unit> CancelCommand { get; set; }
 
 		//http://blog.stephencleary.com/2013/01/async-oop-2-constructors.html
 		public Task Initialization { get; private set; }
 
 		public CannotCloseDialogViewModel() : base("", false, false)
 		{
-			Disposables = new CompositeDisposable();
-
 			OperationMessage = "Dequeuing coins...Please wait";
 			var canCancel = this.WhenAnyValue(x => x.IsBusy);
 			var canOk = this.WhenAnyValue(x => x.IsBusy, (isbusy) => !isbusy);
-
-			CancelTokenSource = new CancellationTokenSource().DisposeWith(Disposables);
 
 			OKCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -68,7 +61,7 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canOk).DisposeWith(Disposables);
+			canOk);
 
 			CancelCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
@@ -81,12 +74,33 @@ namespace WalletWasabi.Gui.Dialogs
 				// OK pressed.
 				Close(false);
 			},
-			canCancel).DisposeWith(Disposables);
+			canCancel);
 
-			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex)).DisposeWith(Disposables);
-			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex)).DisposeWith(Disposables);
+			OKCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
+			CancelCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<CannotCloseDialogViewModel>(ex));
+		}
+
+		public override void OnOpen()
+		{
+			if (Disposables != null)
+			{
+				throw new Exception("Dialog opened before it was closed (cannotclose)");
+			}
+
+			Disposables = new CompositeDisposable();
+
+			CancelTokenSource = new CancellationTokenSource().DisposeWith(Disposables);
 
 			Initialization = StartDequeueAsync(CancelTokenSource.Token);
+
+			base.OnOpen();
+		}
+
+		public override void OnClose()
+		{
+			Disposables?.Dispose();
+			Disposables = null;
+			base.OnClose();
 		}
 
 		private async Task StartDequeueAsync(CancellationToken token)
@@ -199,29 +213,5 @@ namespace WalletWasabi.Gui.Dialogs
 				}
 			});
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

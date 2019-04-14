@@ -2,16 +2,13 @@
 using Avalonia.Threading;
 using AvalonStudio.Shell;
 using AvalonStudio.Shell.Extensibility.Platforms;
-using Mono.Options;
 using NBitcoin;
 using System;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.CommandLine;
 using WalletWasabi.Gui.ViewModels;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui
@@ -39,15 +36,15 @@ namespace WalletWasabi.Gui
 					{
 						MainWindowViewModel.Instance = new MainWindowViewModel();
 
-						await Global.InitializeNoUiAsync();
+						await Global.InitializeNoWalletAsync();
 
 						statusBar = new StatusBarViewModel(Global.Nodes.ConnectedNodes, Global.Synchronizer, Global.UpdateChecker);
 
 						MainWindowViewModel.Instance.StatusBar = statusBar;
 
-						if (Global.Synchronizer.Network != Network.Main)
+						if (Global.Network != Network.Main)
 						{
-							MainWindowViewModel.Instance.Title += $" - {Global.Synchronizer.Network}";
+							MainWindowViewModel.Instance.Title += $" - {Global.Network}";
 						}
 
 						Dispatcher.UIThread.Post(() =>
@@ -63,11 +60,12 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				MainWindowViewModel.Instance?.Dispose();
 				statusBar?.Dispose();
 				await Global.DisposeAsync();
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+
+				Logger.LogInfo($"Wasabi stopped gracefully.", Logger.InstanceGuid.ToString());
 			}
 		}
 
@@ -88,7 +86,7 @@ namespace WalletWasabi.Gui
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
 				result
-					.UseWin32(true, true)
+					.UseWin32()
 					.UseSkia();
 			}
 			else
@@ -96,7 +94,11 @@ namespace WalletWasabi.Gui
 				result.UsePlatformDetect();
 			}
 
-			return result;
+			return result
+				.With(new Win32PlatformOptions { AllowEglInitialization = true, UseDeferredRendering = true })
+				.With(new X11PlatformOptions { UseGpu = true, UseEGL = true })
+				.With(new AvaloniaNativePlatformOptions { UseDeferredRendering = true, UseGpu = true })
+				.With(new MacOSPlatformOptions { ShowInDock = true });
 		}
 	}
 }

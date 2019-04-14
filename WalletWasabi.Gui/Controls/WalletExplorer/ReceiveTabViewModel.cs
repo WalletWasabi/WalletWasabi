@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
@@ -18,6 +18,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class ReceiveTabViewModel : WalletActionViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private ObservableCollection<AddressViewModel> _addresses;
 		private AddressViewModel _selectedAddress;
 		private string _label;
@@ -26,22 +28,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
-		public ReactiveCommand CopyAddress { get; }
-		public ReactiveCommand CopyLabel { get; }
-		public ReactiveCommand ShowQrCode { get; }
+		public ReactiveCommand<Unit, Unit> CopyAddress { get; }
+		public ReactiveCommand<Unit, Unit> CopyLabel { get; }
+		public ReactiveCommand<Unit, Unit> ShowQrCode { get; }
 
 		public ReceiveTabViewModel(WalletViewModel walletViewModel)
 			: base("Receive", walletViewModel)
 		{
 			_addresses = new ObservableCollection<AddressViewModel>();
 			Label = "";
-
-			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(o =>
-			{
-				InitializeAddresses();
-			}).DisposeWith(Disposables);
 
 			InitializeAddresses();
 
@@ -81,17 +76,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					Label = "";
 				});
-			}).DisposeWith(Disposables);
+			});
 
-			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x)).DisposeWith(Disposables);
+			this.WhenAnyValue(x => x.Label).Subscribe(x => UpdateSuggestions(x));
 
-			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(address =>
+			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 			{
-				if (Global.UiConfig.Autocopy is true)
-				{
-					address?.CopyToClipboard();
-				}
-			}).DisposeWith(Disposables);
+				if (Global.UiConfig.Autocopy is false || address is null) return;
+				await address.TryCopyToClipboardAsync();
+			});
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
@@ -100,18 +93,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				{
 					CaretIndex = Label.Length;
 				}
-			}).DisposeWith(Disposables);
+			});
 
 			var isCoinListItemSelected = this.WhenAnyValue(x => x.SelectedAddress).Select(coin => coin != null);
 
-			CopyAddress = ReactiveCommand.Create(() =>
+			CopyAddress = ReactiveCommand.CreateFromTask(async () =>
 			{
-				try
-				{
-					SelectedAddress?.CopyToClipboard();
-				}
-				catch (Exception)
-				{ }
+				if (SelectedAddress is null) return;
+				await SelectedAddress.TryCopyToClipboardAsync();
 			}, isCoinListItemSelected);
 
 			CopyLabel = ReactiveCommand.CreateFromTask(async () =>
@@ -136,6 +125,33 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}, isCoinListItemSelected);
 
 			_suggestions = new ObservableCollection<SuggestionViewModel>();
+		}
+
+		public override void OnOpen()
+		{
+			base.OnOpen();
+
+			if (Disposables != null)
+			{
+				throw new Exception("Receive tab opened before last one was closed.");
+			}
+
+			Disposables = new CompositeDisposable();
+
+			Observable.FromEventPattern(Global.WalletService.Coins,
+				nameof(Global.WalletService.Coins.CollectionChanged))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(o => InitializeAddresses())
+				.DisposeWith(Disposables);
+		}
+
+		public override bool OnClose()
+		{
+			Disposables.Dispose();
+
+			Disposables = null;
+
+			return base.OnClose();
 		}
 
 		private void InitializeAddresses()
@@ -242,6 +258,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Suggestions.Clear();
 		}
 
-		public ReactiveCommand GenerateCommand { get; }
+		public ReactiveCommand<Unit, Unit> GenerateCommand { get; }
 	}
 }

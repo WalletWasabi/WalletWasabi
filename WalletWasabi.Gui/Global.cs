@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
+using NBitcoin.Protocol.Connectors;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -29,38 +30,13 @@ namespace WalletWasabi.Gui
 {
 	public static class Global
 	{
-		private static string _dataDir = null;
+		public static string DataDir { get; }
+		public static string TorLogsFile { get; }
+		public static string WalletsDir { get; }
+		public static string WalletBackupsDir { get; }
 
-		public static string DataDir
-		{
-			get
-			{
-				if (!string.IsNullOrWhiteSpace(_dataDir)) return _dataDir;
-
-				_dataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
-
-				return _dataDir;
-			}
-		}
-
-		private static string _torLogsFile = null;
-
-		public static string TorLogsFile
-		{
-			get
-			{
-				if (!string.IsNullOrWhiteSpace(_torLogsFile)) return _torLogsFile;
-
-				_torLogsFile = Path.Combine(DataDir, "TorLogs.txt");
-
-				return _torLogsFile;
-			}
-		}
-
-		public static string WalletsDir => Path.Combine(DataDir, "Wallets");
-		public static string WalletBackupsDir => Path.Combine(DataDir, "WalletBackups");
-		public static Network Network => Config.Network;
-		public static string IndexFilePath => Path.Combine(DataDir, $"Index{Network}.dat");
+		public static string IndexFilePath { get; private set; }
+		public static Config Config { get; private set; }
 
 		public static string AddressManagerFilePath { get; private set; }
 		public static AddressManager AddressManager { get; private set; }
@@ -74,12 +50,18 @@ namespace WalletWasabi.Gui
 		public static UpdateChecker UpdateChecker { get; private set; }
 		public static TorProcessManager TorManager { get; private set; }
 
-		public static Config Config { get; private set; }
+		public static bool KillRequested { get; private set; } = false;
+
 		public static UiConfig UiConfig { get; private set; }
 
-		public static void InitializeConfig(Config config)
+		public static Network Network => Config.Network;
+
+		static Global()
 		{
-			Config = Guard.NotNull(nameof(config), config);
+			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client"));
+			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
+			WalletsDir = Path.Combine(DataDir, "Wallets");
+			WalletBackupsDir = Path.Combine(DataDir, "WalletBackups");
 		}
 
 		public static void InitializeUiConfig(UiConfig uiConfig)
@@ -87,21 +69,18 @@ namespace WalletWasabi.Gui
 			UiConfig = Guard.NotNull(nameof(uiConfig), uiConfig);
 		}
 
-		private static long _isDesperateDequeuing = 0;
+		private static int IsDesperateDequeuing = 0;
 
 		public static async Task TryDesperateDequeueAllCoinsAsync()
 		{
+			// If already desperate dequeueing then return.
+			// If not desperate dequeueing then make sure we're doing that.
+			if (Interlocked.CompareExchange(ref IsDesperateDequeuing, 1, 0) == 1)
+			{
+				return;
+			}
 			try
 			{
-				if (Interlocked.Read(ref _isDesperateDequeuing) == 1)
-				{
-					return;
-				}
-				else
-				{
-					Interlocked.Increment(ref _isDesperateDequeuing);
-				}
-
 				await DesperateDequeueAllCoinsAsync();
 			}
 			catch (NotSupportedException ex)
@@ -114,7 +93,7 @@ namespace WalletWasabi.Gui
 			}
 			finally
 			{
-				Interlocked.Exchange(ref _isDesperateDequeuing, 0);
+				Interlocked.Exchange(ref IsDesperateDequeuing, 0);
 			}
 		}
 
@@ -133,28 +112,26 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		public static async Task InitializeNoUiAsync()
-		{
-			var configFilePath = Path.Combine(DataDir, "Config.json");
-			var config = new Config(configFilePath);
-			await config.LoadOrCreateDefaultFileAsync();
-			Logger.LogInfo<Config>("Config is successfully initialized.");
-
-			InitializeConfig(config);
-
-			InitializeNoWallet();
-		}
-
-		public static void InitializeNoWallet()
+		public static async Task InitializeNoWalletAsync()
 		{
 			WalletService = null;
 			ChaumianClient = null;
+			AddressManager = null;
+			TorManager = null;
+
+			Config = new Config(Path.Combine(DataDir, "Config.json"));
+			await Config.LoadOrCreateDefaultFileAsync();
+			Logger.LogInfo<Config>("Config is successfully initialized.");
+
+			IndexFilePath = Path.Combine(DataDir, $"Index{Network}.dat");
 
 			AppDomain.CurrentDomain.ProcessExit += async (s, e) => await TryDesperateDequeueAllCoinsAsync();
 			Console.CancelKeyPress += async (s, e) =>
 			{
 				e.Cancel = true;
 				Logger.LogWarning("Process was signaled for killing.", nameof(Global));
+
+				KillRequested = true;
 				await TryDesperateDequeueAllCoinsAsync();
 				Dispatcher.UIThread.PostLogException(() =>
 				{
@@ -166,8 +143,6 @@ namespace WalletWasabi.Gui
 			AddressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{Network}.dat");
 			var blocksFolderPath = Path.Combine(DataDir, $"Blocks{Network}");
 			var connectionParameters = new NodeConnectionParameters();
-			AddressManager = null;
-			TorManager = null;
 
 			if (Config.UseTor.Value)
 			{
@@ -251,10 +226,10 @@ namespace WalletWasabi.Gui
 				Nodes = new NodesGroup(Network, requirements: Constants.NodeRequirements);
 				try
 				{
-					Node node = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					Node node = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
 					Nodes.ConnectedNodes.Add(node);
 
-					RegTestMemPoolServingNode = Node.Connect(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
+					RegTestMemPoolServingNode = await Node.ConnectAsync(Network.RegTest, new IPEndPoint(IPAddress.Loopback, 18444));
 
 					RegTestMemPoolServingNode.Behaviors.Add(new MemPoolBehavior(MemPoolService));
 				}
@@ -265,6 +240,14 @@ namespace WalletWasabi.Gui
 			}
 			else
 			{
+				if (Config.UseTor is true)
+				{
+					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
+					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+					// allowOnlyTorEndpoints: true - Connect only to onions and don't connect to clearnet IPs at all.
+					// This of course makes the first setting unneccessary, but it's better if that's around, in case someone wants to tinker here.
+					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: true);
+				}
 				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 
 				RegTestMemPoolServingNode = null;
@@ -379,7 +362,9 @@ namespace WalletWasabi.Gui
 		public static KeyManager LoadKeyManager(string walletFullPath)
 		{
 			KeyManager keyManager;
-			var walletFileInfo = new FileInfo(walletFullPath)
+
+			// Set the LastAccessTime.
+			new FileInfo(walletFullPath)
 			{
 				LastAccessTime = DateTime.Now
 			};
@@ -440,7 +425,7 @@ namespace WalletWasabi.Gui
 					WalletService.KeyManager?.ToFile(backupWalletFilePath);
 					Logger.LogInfo($"{nameof(KeyManager)} backup saved to {backupWalletFilePath}.", nameof(Global));
 				}
-				WalletService.Dispose();
+				WalletService?.Dispose();
 				WalletService = null;
 				Logger.LogInfo($"{nameof(WalletService)} is stopped.", nameof(Global));
 			}

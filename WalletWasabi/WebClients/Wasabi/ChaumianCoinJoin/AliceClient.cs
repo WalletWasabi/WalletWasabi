@@ -108,7 +108,7 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 			}
 			catch
 			{
-				client.Dispose();
+				client?.Dispose();
 				throw;
 			}
 		}
@@ -211,15 +211,9 @@ namespace WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin
 						}
 					}
 				}
-				catch (TaskCanceledException) // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
-				{
-					return;
-				}
-				catch (OperationCanceledException) // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
-				{
-					return;
-				}
-				catch (TimeoutException) // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
+				catch (Exception ex) when (ex is OperationCanceledException // If couldn't do it within 3 seconds then it'll likely time out and take it as unconfirmed.
+										|| ex is TaskCanceledException
+										|| ex is TimeoutException)
 				{
 					return;
 				}

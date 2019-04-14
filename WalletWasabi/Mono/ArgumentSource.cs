@@ -234,7 +234,7 @@ namespace Mono.Options
 			finally
 			{
 				if (close)
-					reader.Dispose();
+					reader?.Dispose();
 			}
 		}
 	}

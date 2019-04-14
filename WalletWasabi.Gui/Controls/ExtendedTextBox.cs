@@ -9,6 +9,8 @@ using System;
 using System.Reactive.Linq;
 using Avalonia.Media;
 using System.Threading.Tasks;
+using System.Reactive;
+using AvalonStudio.Extensibility.Theme;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -18,15 +20,18 @@ namespace WalletWasabi.Gui.Controls
 
 		public ExtendedTextBox()
 		{
-			CopyCommand = ReactiveCommand.Create(async () =>
+			CopyCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await CopyAsync();
 			});
 
-			PasteCommand = ReactiveCommand.Create(async () =>
+			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
 				await PasteAsync();
 			});
+
+			CopyCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<ExtendedTextBox>(ex));
+			PasteCommand.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<ExtendedTextBox>(ex));
 
 			this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
 			{
@@ -54,8 +59,8 @@ namespace WalletWasabi.Gui.Controls
 
 		Type IStyleable.StyleKey => typeof(TextBox);
 
-		private ReactiveCommand CopyCommand { get; }
-		private ReactiveCommand PasteCommand { get; }
+		private ReactiveCommand<Unit, Unit> CopyCommand { get; }
+		private ReactiveCommand<Unit, Unit> PasteCommand { get; }
 
 		private async Task PasteAsync()
 		{
@@ -92,18 +97,18 @@ namespace WalletWasabi.Gui.Controls
 
 		private async Task CopyAsync()
 		{
-			var selection = GetSelection();
+				var selection = GetSelection();
 
-			if (string.IsNullOrWhiteSpace(selection))
-			{
-				selection = Text;
-			}
+				if (string.IsNullOrWhiteSpace(selection))
+				{
+					selection = Text;
+				}
 
-			if (!string.IsNullOrWhiteSpace(selection))
-			{
-				await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
-					.SetTextAsync(selection);
-			}
+				if (!string.IsNullOrWhiteSpace(selection))
+				{
+					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
+						.SetTextAsync(selection);
+				}
 		}
 
 		protected virtual bool IsCopyEnabled => true;
@@ -156,7 +161,7 @@ namespace WalletWasabi.Gui.Controls
 			var menuItems = (ContextMenu.Items as Avalonia.Controls.Controls);
 			if (IsCopyEnabled)
 			{
-				menuItems.Add(new MenuItem { Header = "Copy", Command = CopyCommand, Icon = GetCopyPresenter() });
+				menuItems.Add(new MenuItem { Header = "Copy", Foreground = ColorTheme.CurrentTheme.Foreground, Command = CopyCommand, Icon = GetCopyPresenter() });
 			}
 
 			if (!IsReadOnly)
@@ -169,7 +174,7 @@ namespace WalletWasabi.Gui.Controls
 		private void CreatePasteItem()
 		{
 			if (_pasteItem != null) return;
-			_pasteItem = new MenuItem { Header = "Paste", Command = PasteCommand, Icon = GetPastePresenter() };
+			_pasteItem = new MenuItem { Header = "Paste", Foreground = ColorTheme.CurrentTheme.Foreground, Command = PasteCommand, Icon = GetPastePresenter() };
 		}
 	}
 }

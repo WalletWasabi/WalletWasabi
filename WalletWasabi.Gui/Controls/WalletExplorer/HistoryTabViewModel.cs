@@ -1,102 +1,121 @@
-﻿using Avalonia;
-using Avalonia.Threading;
-using AvalonStudio.Extensibility;
-using NBitcoin;
+﻿using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Services;
+using WalletWasabi.Logging;
+using System.Reactive;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
 	public class HistoryTabViewModel : WalletActionViewModel
 	{
+		private CompositeDisposable Disposables { get; set; }
+
 		private ObservableCollection<TransactionViewModel> _transactions;
 		private TransactionViewModel _selectedTransaction;
 		private SortOrder _dateSortDirection;
 		private SortOrder _amountSortDirection;
 		private SortOrder _transactionSortDirection;
 
-		public ReactiveCommand SortCommand { get; }
+		public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
 		public HistoryTabViewModel(WalletViewModel walletViewModel)
 			: base("History", walletViewModel)
 		{
 			Transactions = new ObservableCollection<TransactionViewModel>();
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-			RewriteTableAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
-			var coinsChanged = Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged));
-			var newBlockProcessed = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed));
-			var coinSpent = Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed));
+			RewriteTableAsync().GetAwaiter();
 
-			coinsChanged
-				.Merge(newBlockProcessed)
-				.Merge(coinSpent)
-				.Throttle(TimeSpan.FromSeconds(5))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ =>
-				{
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-					RewriteTableAsync();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-				}).DisposeWith(Disposables);
-
-			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(transaction =>
+			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
-				if (Global.UiConfig.Autocopy is true)
-				{
-					transaction?.CopyToClipboard();
-				}
-			}).DisposeWith(Disposables);
+				if (Global.UiConfig.Autocopy is false || transaction is null) return;
+				await transaction.TryCopyTxIdToClipboardAsync();
+			});
 
-			SortCommand = ReactiveCommand.Create(() => RefreshOrdering()).DisposeWith(Disposables);
+			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
 
 			DateSortDirection = SortOrder.Decreasing;
 		}
 
+		public override void OnOpen()
+		{
+			base.OnOpen();
+
+			if (Disposables != null)
+			{
+				throw new Exception("Histroy Tab was opened before it was closed.");
+			}
+
+			Disposables = new CompositeDisposable();
+
+			Observable.FromEventPattern(Global.WalletService.Coins, nameof(Global.WalletService.Coins.CollectionChanged))
+				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.NewBlockProcessed)))
+				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
+				.Throttle(TimeSpan.FromSeconds(5))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(async _ => await RewriteTableAsync())
+				.DisposeWith(Disposables);
+
+			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
+			{
+				foreach (var transaction in Transactions)
+				{
+					transaction.Refresh();
+				}
+			}).DisposeWith(Disposables);
+		}
+
+		public override bool OnClose()
+		{
+			Disposables.Dispose();
+			Disposables = null;
+
+			return base.OnClose();
+		}
+
 		private async Task RewriteTableAsync()
 		{
-			var txRecordList = await Task.Run(() =>
+			try
 			{
-				return BuildTxRecordList();
-			});
-
-			var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
-			Transactions?.Clear();
-
-			var trs = txRecordList.Select(txr => new TransactionInfo
-			{
-				DateTime = txr.dateTime.ToLocalTime(),
-				Confirmed = txr.height != WalletWasabi.Models.Height.MemPool && txr.height != WalletWasabi.Models.Height.Unknown,
-				AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
-				Label = txr.label,
-				TransactionId = txr.transactionId.ToString()
-			}).Select(ti => new TransactionViewModel(ti).DisposeWith(Disposables));
-
-			Transactions = new ObservableCollection<TransactionViewModel>(trs);
-
-			if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
-			{
-				var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
-				if (txToSelect != default)
+				var txRecordList = await Task.Run(() =>
 				{
-					SelectedTransaction = txToSelect;
+					return BuildTxRecordList();
+				});
+
+				var rememberSelectedTransactionId = SelectedTransaction?.TransactionId;
+				Transactions?.Clear();
+
+				var trs = txRecordList.Select(txr => new TransactionInfo
+				{
+					DateTime = txr.dateTime.ToLocalTime(),
+					Confirmed = txr.height != WalletWasabi.Models.Height.MemPool && txr.height != WalletWasabi.Models.Height.Unknown,
+					AmountBtc = $"{txr.amount.ToString(fplus: true, trimExcessZero: true)}",
+					Label = txr.label,
+					TransactionId = txr.transactionId.ToString()
+				}).Select(ti => new TransactionViewModel(ti));
+
+				Transactions = new ObservableCollection<TransactionViewModel>(trs);
+
+				if (Transactions.Count > 0 && !(rememberSelectedTransactionId is null))
+				{
+					var txToSelect = Transactions.FirstOrDefault(x => x.TransactionId == rememberSelectedTransactionId);
+					if (txToSelect != default)
+					{
+						SelectedTransaction = txToSelect;
+					}
 				}
+				RefreshOrdering();
 			}
-			RefreshOrdering();
+			catch (Exception ex)
+			{
+				Logger.LogError<HistoryTabViewModel>($"Error while RewriteTable on HistoryTab:  {ex}.");
+			}
 		}
 
 		private static List<(DateTimeOffset dateTime, Height height, Money amount, string label, uint256 transactionId)> BuildTxRecordList()
@@ -107,15 +126,19 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 
-				if (Global.WalletService is null) // disposed meanwhile
+				if (Global.WalletService is null) break; // Disposed meanwhile.
+
+				SmartTransaction foundTransaction = Global.WalletService?.TransactionCache?.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
+				if (foundTransaction is null)
 				{
-					break;
+					if (Global.WalletService is null) break; // Disposed meanwhile.
+					continue;
 				}
 
-				SmartTransaction foundTransaction = Global.WalletService.TransactionCache.First(x => x.GetHash() == coin.TransactionId);
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
 				{
+					if (Global.WalletService is null) break; //  Disposed meanwhile. Actually caught an NRE here.
 					if (Global.WalletService.ProcessedBlocks.Any(x => x.Value.height == foundTransaction.Height))
 					{
 						dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundTransaction.Height).Value.dateTime;

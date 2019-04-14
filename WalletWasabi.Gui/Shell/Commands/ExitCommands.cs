@@ -1,26 +1,20 @@
-﻿using System.Composition;
-using System.Threading.Tasks;
+﻿using Avalonia;
 using AvalonStudio.Commands;
 using ReactiveUI;
 using System;
-using Avalonia;
-using System.Reactive.Disposables;
+using System.Composition;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
-	internal class ExitCommands : IDisposable
+	internal class ExitCommands
 	{
-		private CompositeDisposable Disposables { get; }
-
 		[ExportCommandDefinition("File.Exit")]
 		public CommandDefinition ExitCommand { get; }
 
 		[ImportingConstructor]
 		public ExitCommands(CommandIconService commandIconService)
 		{
-			Disposables = new CompositeDisposable();
-
-			var exit = ReactiveCommand.Create(OnExit).DisposeWith(Disposables);
+			var exit = ReactiveCommand.Create(OnExit);
 
 			exit.ThrownExceptions.Subscribe(ex => Logging.Logger.LogWarning<ExitCommands>(ex));
 
@@ -34,29 +28,5 @@ namespace WalletWasabi.Gui.Shell.Commands
 		{
 			Application.Current.MainWindow.Close();
 		}
-
-		#region IDisposable Support
-
-		private volatile bool _disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposedValue)
-			{
-				if (disposing)
-				{
-					Disposables?.Dispose();
-				}
-
-				_disposedValue = true;
-			}
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-		}
-
-		#endregion IDisposable Support
 	}
 }

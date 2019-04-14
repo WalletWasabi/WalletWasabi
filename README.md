@@ -50,7 +50,3 @@ Run Wasabi with `dotnet run` from the `WalletWasabi.Gui` folder.
 git pull
 git submodule update --init --recursive 
 ```
-
-### Notes:
-
-- Configuration, wallet and similar files can be found in `%appdata%\WalletWasabi` folder on Windows and in `~/.walletwasabi` folder on Linux/OSX.

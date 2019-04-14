@@ -146,6 +146,55 @@ namespace WalletWasabi.Backend.Controllers
 		}
 
 		/// <summary>
+		/// Gets mempool hashes.
+		/// </summary>
+		/// <param name="compactness">Can strip the last x characters from the hashes.</param>
+		/// <returns>A collection of transaction hashes.</returns>
+		/// <response code="200">A collection of transaction hashes.</response>
+		/// <response code="404">Invalid model state.</response>
+		[HttpGet("mempool-hashes")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(404)]
+		[ResponseCache(Duration = 3, Location = ResponseCacheLocation.Client)]
+		public async Task<IActionResult> GetMempoolHashesAsync([FromQuery]int compactness = 64)
+		{
+			if (compactness < 1 || compactness > 64 || !ModelState.IsValid)
+			{
+				return BadRequest("Invalid compactness parameter is provided.");
+			}
+
+			IEnumerable<string> fulls = await GetRawMempoolStringsAsync();
+
+			if (compactness == 64)
+			{
+				return Ok(fulls);
+			}
+			else
+			{
+				IEnumerable<string> compacts = fulls.Select(x => x.Substring(0, compactness));
+				return Ok(compacts);
+			}
+		}
+
+		internal async Task<IEnumerable<string>> GetRawMempoolStringsAsync()
+		{
+			var cacheKey = $"{nameof(GetRawMempoolStringsAsync)}";
+
+			if (!Cache.TryGetValue(cacheKey, out IEnumerable<string> hashes))
+			{
+				uint256[] transactionHashes = await Global.RpcClient.GetRawMempoolAsync();
+
+				hashes = transactionHashes.Select(x => x.ToString());
+
+				var cacheEntryOptions = new MemoryCacheEntryOptions()
+					.SetAbsoluteExpiration(TimeSpan.FromSeconds(3));
+
+				Cache.Set(cacheKey, hashes, cacheEntryOptions);
+			}
+			return hashes;
+		}
+
+		/// <summary>
 		/// Attempts to broadcast a transaction.
 		/// </summary>
 		/// <remarks>

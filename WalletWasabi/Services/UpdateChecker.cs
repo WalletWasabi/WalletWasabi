@@ -40,9 +40,6 @@ namespace WalletWasabi.Services
 					{
 						try
 						{
-							// If stop was requested return.
-							if (!IsRunning) return;
-
 							(bool backendCompatible, bool clientUpToDate) updates = await WasabiClient.CheckUpdatesAsync(Stop.Token);
 
 							if (!updates.backendCompatible)
@@ -69,25 +66,21 @@ namespace WalletWasabi.Services
 								Logger.LogTrace<UpdateChecker>(ex2);
 							}
 						}
+						catch (Exception ex) when (ex is OperationCanceledException
+												|| ex is TaskCanceledException
+												|| ex is TimeoutException)
+						{
+							Logger.LogTrace<UpdateChecker>(ex);
+						}
 						catch (Exception ex)
 						{
-							if (ex is TaskCanceledException || ex is OperationCanceledException || ex is TimeoutException)
-							{
-								Logger.LogTrace<UpdateChecker>(ex);
-							}
-							else
-							{
-								Logger.LogDebug<UpdateChecker>(ex);
-							}
+							Logger.LogDebug<UpdateChecker>(ex);
 						}
 					}
 				}
 				finally
 				{
-					if (IsStopping)
-					{
-						Interlocked.Exchange(ref _running, 3);
-					}
+					Interlocked.CompareExchange(ref _running, 3, 2); // If IsStopping, make it stopped.
 				}
 			});
 		}
@@ -102,10 +95,7 @@ namespace WalletWasabi.Services
 			{
 				if (disposing)
 				{
-					if (IsRunning)
-					{
-						Interlocked.Exchange(ref _running, 2);
-					}
+					Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 					Stop?.Cancel();
 					while (IsStopping)
 					{
