@@ -272,6 +272,22 @@ namespace System.IO
 				}
 				else
 				{
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						if (!EnvironmentHelpers.IsFileTypeAssociated("json"))
+						{
+							// Open file using Notepad.
+							using (Process process = Process.Start(new ProcessStartInfo
+							{
+								FileName = "notepad.exe",
+								Arguments = filePath,
+								CreateNoWindow = true,
+								UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+							})) { }
+						}
+					}
+
+					// Open file wtih the default editor.
 					using (Process process = Process.Start(new ProcessStartInfo
 					{
 						FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? filePath : "open",
