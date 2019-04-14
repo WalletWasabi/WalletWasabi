@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using NBitcoin;
+using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -28,14 +29,30 @@ namespace WalletWasabi.Hwi
 			AsyncLock = new AsyncLock();
 		}
 
+		/// <summary>
+		/// Acquire bech32 xpub on path: m/84h/0h/0h
+		/// https://github.com/bitcoin-core/HWI/blob/master/docs/examples.md
+		/// </summary>
+		public static async Task<ExtPubKey> GetXpubAsync(HardwareWalletInfo hardwareWalletInfo)
+		{
+			JToken jtok = await SendCommandAsync($"-t \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" -d \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h");
+			JObject json = jtok as JObject;
+			string xpub = json.Value<string>("xpub");
+
+			ExtPubKey extpub = ExtPubKey.Parse(xpub);
+
+			return extpub;
+		}
+
 		public static async Task<IEnumerable<HardwareWalletInfo>> EnumerateAsync()
 		{
-			JArray jarr = await SendCommandAsync("enumerate");
+			JToken jtok = await SendCommandAsync("enumerate");
+			JArray jarr = jtok as JArray;
 			var hwis = new List<HardwareWalletInfo>();
 			foreach (JObject json in jarr)
 			{
 				var fingerprint = json.Value<string>("fingerprint");
-				var serialNumber = json.Value<string>("serialNumber");
+				var serialNumber = json.Value<string>("serial_number");
 				var path = json.Value<string>("path");
 				var typeString = json.Value<string>("type");
 
@@ -48,7 +65,7 @@ namespace WalletWasabi.Hwi
 			return hwis;
 		}
 
-		public static async Task<JArray> SendCommandAsync(string command)
+		public static async Task<JToken> SendCommandAsync(string command)
 		{
 			using (await AsyncLock.LockAsync())
 			using (var process = Process.Start(
@@ -69,11 +86,53 @@ namespace WalletWasabi.Hwi
 					throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
 				}
 
-				//string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8038ecd2\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"}]";
-				//string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"}]";
-				string response = await process.StandardOutput.ReadToEndAsync();
-				var jarr = JArray.Parse(response);
-				return jarr;
+				//string response = await process.StandardOutput.ReadToEndAsync();
+				//var jToken = JToken.Parse(response);
+				//string err = null;
+				//try
+				//{
+				//	JObject json = jToken as JObject;
+				//	err = json.Value<string>("error");
+				//}
+				//catch (Exception ex)
+				//{
+				//	Logger.LogTrace(ex, nameof(HwiProcessManager));
+				//}
+				//if (err != null)
+				//{
+				//	throw new IOException(err);
+				//}
+
+				//return jToken;
+
+				if (command == "enumerate")
+				{
+					//string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8038ecd2\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"}]";
+					string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"}]";
+					var jToken = JToken.Parse(response);
+					return jToken;
+				}
+				else
+				{
+					string response = await process.StandardOutput.ReadToEndAsync();
+					var jToken = JToken.Parse(response);
+					string err = null;
+					try
+					{
+						JObject json = jToken as JObject;
+						err = json.Value<string>("error");
+					}
+					catch (Exception ex)
+					{
+						Logger.LogTrace(ex, nameof(HwiProcessManager));
+					}
+					if (err != null)
+					{
+						throw new IOException(err);
+					}
+
+					return jToken;
+				}
 			}
 		}
 

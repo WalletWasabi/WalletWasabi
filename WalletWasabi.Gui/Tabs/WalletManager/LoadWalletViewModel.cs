@@ -1,6 +1,7 @@
 ﻿using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
+using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ReactiveUI;
@@ -45,12 +46,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public bool IsHardwareWallet => LoadWalletType == LoadWalletType.Hardware;
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
 
+		private List<HardwareWalletInfo> LastHardwareWalletEnumeration { get; set; }
+
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType) : base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
 		{
 			Owner = owner;
 			Password = "";
 			LoadWalletType = loadWalletType;
 			Wallets = new ObservableCollection<string>();
+			LastHardwareWalletEnumeration = new List<HardwareWalletInfo>();
 
 			this.WhenAnyValue(x => x.SelectedWallet)
 				.Subscribe(selectedWallet => SetWalletStates());
@@ -58,7 +62,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			this.WhenAnyValue(x => x.IsWalletOpened)
 				.Subscribe(isWalletOpened => SetWalletStates());
 
-			this.WhenAnyValue(x => x.Password).Subscribe(x =>
+			this.WhenAnyValue(x => x.Password).Subscribe(async x =>
 			{
 				try
 				{
@@ -68,7 +72,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						if (lastChar == '\r' || lastChar == '\n') // If the last character is cr or lf then act like it'd be a sign to do the job.
 						{
 							Password = x.TrimEnd('\r', '\n');
-							LoadKeyManager(requirePassword: true);
+							await LoadKeyManagerAsync(requirePassword: true, isHardwareWallet: false);
 						}
 					}
 				}
@@ -79,7 +83,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			});
 
 			LoadCommand = ReactiveCommand.CreateFromTask(LoadWalletAsync, this.WhenAnyValue(x => x.CanLoadWallet));
-			TestPasswordCommand = ReactiveCommand.Create(() => LoadKeyManager(requirePassword: true), this.WhenAnyValue(x => x.CanTestPassword));
+			TestPasswordCommand = ReactiveCommand.CreateFromTask(() => LoadKeyManagerAsync(requirePassword: true, isHardwareWallet: false), this.WhenAnyValue(x => x.CanTestPassword));
 			OpenFolderCommand = ReactiveCommand.Create(OpenWalletsFolder);
 			SetLoadButtonText(IsBusy);
 		}
@@ -210,6 +214,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					try
 					{
 						var hwis = await HwiProcessManager.EnumerateAsync();
+						LastHardwareWalletEnumeration = hwis.ToList();
 						if (hwis.Any())
 						{
 							var alltypesunique = hwis.Count() == hwis.Select(x => x.Type).ToHashSet().Count();
@@ -276,7 +281,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 
-		public KeyManager LoadKeyManager(bool requirePassword)
+		public async Task<KeyManager> LoadKeyManagerAsync(bool requirePassword, bool isHardwareWallet)
 		{
 			try
 			{
@@ -290,39 +295,69 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					return null;
 				}
 
-				var walletFullPath = Global.GetWalletFullPath(SelectedWallet);
-				var walletBackupFullPath = Global.GetWalletBackupFullPath(SelectedWallet);
-				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
+				if (isHardwareWallet)
 				{
-					// The selected wallet is not available any more (someone deleted it?).
-					OnCategorySelected();
-					SetValidationMessage("The selected wallet and its backup don't exist, did you delete them?");
-					return null;
-				}
-
-				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
-
-				if (!requirePassword && keyManager.PasswordVerified == false)
-				{
-					Owner.SelectTestPassword();
-					return null;
-				}
-				// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
-				if (requirePassword)
-				{
-					if (!keyManager.TestPassword(password))
+					var lastEnumerationClone = LastHardwareWalletEnumeration.ToList();
+					if (lastEnumerationClone.Any())
 					{
-						SetValidationMessage("Wrong password.");
+						var trimmedSelectedWallet = SelectedWallet.Trim();
+						HardwareWalletInfo selectedHwi;
+						if (Enum.TryParse(typeof(HardwareWalletType), trimmedSelectedWallet, ignoreCase: true, out object t))
+						{
+							var type = (HardwareWalletType)t;
+							selectedHwi = lastEnumerationClone.First(x => x.Type == type);
+						}
+						else
+						{
+							var fingerprint = trimmedSelectedWallet.Substring(SelectedWallet.LastIndexOf("fingerprint:") + "fingerprint:".Length).Trim();
+							selectedHwi = lastEnumerationClone.First(x => x.Fingerprint == fingerprint);
+						}
+						ExtPubKey extPubKey = await HwiProcessManager.GetXpubAsync(selectedHwi);
+
 						return null;
 					}
 					else
 					{
-						SetSuccessMessage("Correct password.");
-						keyManager.SetPasswordVerified();
+						SetValidationMessage("No hardware wallets detected.");
+						return null;
 					}
 				}
+				else
+				{
+					var walletFullPath = Global.GetWalletFullPath(SelectedWallet);
+					var walletBackupFullPath = Global.GetWalletBackupFullPath(SelectedWallet);
+					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
+					{
+						// The selected wallet is not available any more (someone deleted it?).
+						OnCategorySelected();
+						SetValidationMessage("The selected wallet and its backup don't exist, did you delete them?");
+						return null;
+					}
 
-				return keyManager;
+					KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
+
+					if (!requirePassword && keyManager.PasswordVerified == false)
+					{
+						Owner.SelectTestPassword();
+						return null;
+					}
+					// Only check requirepassword here, because the above checks are applicable to loadwallet, too and we are using this function from load wallet.
+					if (requirePassword)
+					{
+						if (!keyManager.TestPassword(password))
+						{
+							SetValidationMessage("Wrong password.");
+							return null;
+						}
+						else
+						{
+							SetSuccessMessage("Correct password.");
+							keyManager.SetPasswordVerified();
+						}
+					}
+
+					return keyManager;
+				}
 			}
 			catch (Exception ex)
 			{
@@ -344,7 +379,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				IsBusy = true;
 
-				var keyManager = LoadKeyManager(IsPasswordRequired);
+				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
 				if (keyManager is null)
 				{
 					return;
