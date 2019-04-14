@@ -1,6 +1,7 @@
 using Mono.Options;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using WalletWasabi.KeyManagement;
 
 namespace WalletWasabi.Gui.CommandLine
@@ -36,7 +37,7 @@ namespace WalletWasabi.Gui.CommandLine
 					v => ShowHelp = true}};
 		}
 
-		public override int Invoke(IEnumerable<string> args)
+		public override Task<int> InvokeAsync(IEnumerable<string> args)
 		{
 			var error = false;
 			try
@@ -70,7 +71,7 @@ namespace WalletWasabi.Gui.CommandLine
 				error = true;
 			}
 			Environment.Exit(error ? 1 : 0);
-			return 0;
+			return Task.FromResult(0);
 		}
 	}
 }

@@ -160,6 +160,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using MessageLocalizerConverter = System.Converter<string, string>;
 
 namespace Mono.Options
@@ -400,7 +401,7 @@ namespace Mono.Options
 			}
 		}
 
-		public int Run(IEnumerable<string> arguments)
+		public async Task<int> RunAsync(IEnumerable<string> arguments)
 		{
 			if (arguments is null)
 				throw new ArgumentNullException(nameof(arguments));
@@ -424,7 +425,7 @@ namespace Mono.Options
 			{
 				if (ShowHelp)
 				{
-					return Help.Invoke(extra);
+					return await Help.InvokeAsync(extra);
 				}
 				Out.WriteLine(Options.MessageLocalizer($"Use `{Suite} help` for usage."));
 				return 1;
@@ -440,12 +441,12 @@ namespace Mono.Options
 				if (command.Options?.Contains("help") ?? true)
 				{
 					extra.Add("--help");
-					return command.Invoke(extra);
+					return await command.InvokeAsync(extra);
 				}
 				command.Options.WriteOptionDescriptions(Out);
 				return 0;
 			}
-			return command.Invoke(extra);
+			return await command.InvokeAsync(extra);
 		}
 
 		public Command GetCommand(List<string> extra)

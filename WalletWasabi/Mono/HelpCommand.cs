@@ -158,6 +158,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Mono.Options
 {
@@ -168,7 +169,7 @@ namespace Mono.Options
 		{
 		}
 
-		public override int Invoke(IEnumerable<string> arguments)
+		public override async Task<int> InvokeAsync(IEnumerable<string> arguments)
 		{
 			var extra = new List<string>(arguments ?? new string[0]);
 			if (extra.Count == 0)
@@ -207,7 +208,7 @@ namespace Mono.Options
 				command.Options.WriteOptionDescriptions(CommandSet.Out);
 				return 0;
 			}
-			return command.Invoke(new[] { "--help" });
+			return await command.InvokeAsync(new[] { "--help" });
 		}
 
 		private List<KeyValuePair<string, Command>> GetCommands()

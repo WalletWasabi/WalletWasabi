@@ -1,6 +1,7 @@
 using Mono.Options;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
@@ -38,7 +39,7 @@ namespace WalletWasabi.Gui.CommandLine
 			};
 		}
 
-		public override int Invoke(IEnumerable<string> args)
+		public override async Task<int> InvokeAsync(IEnumerable<string> args)
 		{
 			var error = false;
 			LogLevel? logLevel = null;
@@ -82,7 +83,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 				if (!error && !ShowHelp)
 				{
-					Daemon.RunAsync(WalletName, logLevel, MixAll, KeepMixAlive, Silent).GetAwaiter().GetResult();
+					await Daemon.RunAsync(WalletName, logLevel, MixAll, KeepMixAlive, Silent);
 				}
 			}
 			catch (Exception)

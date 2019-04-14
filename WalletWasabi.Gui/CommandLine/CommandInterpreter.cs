@@ -2,13 +2,14 @@ using Mono.Options;
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Gui.CommandLine
 {
 	public static class CommandInterpreter
 	{
-		public static bool ExecuteCommands(string[] args)
+		public static async Task<bool> ExecuteCommandsAsync(string[] args)
 		{
 			var showHelp = false;
 			var showVersion = false;
@@ -43,7 +44,7 @@ namespace WalletWasabi.Gui.CommandLine
 				};
 
 				EnsureBackwardCompatibilityWithOldParameters(ref args);
-				if (suite.Run(args) == 0)
+				if (await suite.RunAsync(args) == 0)
 				{
 					return false;
 				}
