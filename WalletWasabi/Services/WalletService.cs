@@ -1258,7 +1258,8 @@ namespace WalletWasabi.Services
 			}
 
 			PSBT psbt = PSBT.FromTransaction(tx);
-			uint masterFP = BitConverter.ToUInt32(KeyManager.ExtPubKey.Fingerprint);
+			//uint masterFP = BitConverter.ToUInt32(KeyManager.ExtPubKey.Fingerprint); - DON'T DO THIS, THERE ARE SOME FINGERPRINT CONSISTENCY ISSUES
+			uint masterFP = BitConverter.ToUInt32(ByteHelpers.FromHex(KeyManager.HardwareWalletInfo.Fingerprint));
 			HashSet<SmartCoin> allTxCoins = spentCoins.Concat(innerWalletOutputs).Concat(outerWalletOutputs).ToHashSet();
 			foreach (var coin in allTxCoins)
 			{
