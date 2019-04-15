@@ -265,7 +265,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							IsHardwareBusy = true;
 							var signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
-							signedTransaction = new SmartTransaction(signedPsbt.ExtractTX(), result.Transaction.Height);
+							var extractedTx = signedPsbt.ExtractTX();
+							signedTransaction = new SmartTransaction(extractedTx, result.Transaction.Height);
 						}
 						finally
 						{
