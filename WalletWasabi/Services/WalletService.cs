@@ -1285,7 +1285,8 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			psbt.AddCoins(spentCoins.Select(x => x.GetCoin()).ToArray());
+			psbt.AddCoins(allTxCoins.Select(x => x.GetCoin()).ToArray());
+			psbt.AddScript(allTxCoins.Select(x => x.ScriptPubKey).ToArray());
 
 			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
 

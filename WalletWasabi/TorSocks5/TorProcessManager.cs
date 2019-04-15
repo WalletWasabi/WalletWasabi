@@ -187,7 +187,7 @@ namespace WalletWasabi.TorSocks5
 				}
 
 				// Make sure there's sufficient permission.
-				string chmodTorDirCmd = $"chmod -R 777 {torDir}";
+				string chmodTorDirCmd = $"chmod -R 750 {torDir}";
 				EnvironmentHelpers.ShellExec(chmodTorDirCmd);
 				Logger.LogInfo<TorProcessManager>($"Shell command executed: {chmodTorDirCmd}.");
 			}
