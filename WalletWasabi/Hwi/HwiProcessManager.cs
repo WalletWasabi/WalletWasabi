@@ -15,8 +15,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 
-using WalletWasabi.Helpers;
-
 namespace WalletWasabi.Hwi
 {
 	/// <summary>
