@@ -265,6 +265,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						{
 							IsHardwareBusy = true;
 							var signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
+
 							var extractedTx = signedPsbt.ExtractTX();
 							signedTransaction = new SmartTransaction(extractedTx, result.Transaction.Height);
 						}
@@ -276,7 +277,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Broadcasting transaction...");
 
-					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(result.Transaction));
+					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
 					ResetMax();
 					Address = "";
