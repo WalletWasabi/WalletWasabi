@@ -282,7 +282,7 @@ namespace System.IO
 								FileName = "notepad.exe",
 								Arguments = filePath,
 								CreateNoWindow = true,
-								UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+								UseShellExecute = false
 							})) { }
 
 							return;
