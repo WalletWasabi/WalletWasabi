@@ -1285,8 +1285,8 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			psbt.AddCoins(allTxCoins.Select(x => x.GetCoin()).ToArray());
-			psbt.AddScript(allTxCoins.Select(x => x.ScriptPubKey).ToArray());
+			psbt.AddCoins(allTxCoins.Select(x => x.GetCoin()).ToArray()); // ToDo: Do we need all the coins, don't we just need the input coins?
+			psbt.AddScript(allTxCoins.Select(x => x.ScriptPubKey).ToArray()); // ToDo: Do we need this?
 
 			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
 
