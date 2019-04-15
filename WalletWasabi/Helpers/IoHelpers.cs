@@ -284,6 +284,8 @@ namespace System.IO
 								CreateNoWindow = true,
 								UseShellExecute = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 							})) { }
+
+							return;
 						}
 					}
 
