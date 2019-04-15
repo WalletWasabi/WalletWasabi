@@ -15,6 +15,8 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Logging;
 
+using WalletWasabi.Helpers;
+
 namespace WalletWasabi.Hwi
 {
 	/// <summary>
@@ -97,7 +99,7 @@ namespace WalletWasabi.Hwi
 				}
 			))
 			{
-				process.WaitForExit();
+				await process.WaitForExitAsync();
 				if (process.ExitCode != 0)
 				{
 					throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
