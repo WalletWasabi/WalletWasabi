@@ -9,6 +9,7 @@ using System.Text;
 using System.Security;
 using System;
 using WalletWasabi.Models;
+using WalletWasabi.Hwi.Models;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -57,6 +58,8 @@ namespace WalletWasabi.KeyManagement
 		private object ToFileLock { get; }
 
 		public bool IsWatchOnly { get; }
+		public bool IsHardwareWallet => HardwareWalletInfo != null;
+		public HardwareWalletInfo HardwareWalletInfo { get; set; }
 
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, bool? passwordVerified, BlockchainState blockchainState, string filePath = null)
@@ -77,6 +80,7 @@ namespace WalletWasabi.KeyManagement
 			PasswordVerified = passwordVerified;
 
 			BlockchainState = blockchainState ?? new BlockchainState();
+			HardwareWalletInfo = null;
 
 			SetFilePath(filePath);
 			ToFileLock = new object();
@@ -93,6 +97,7 @@ namespace WalletWasabi.KeyManagement
 			ScriptHdPubkeyMapLock = new object();
 			BlockchainState = new BlockchainState();
 			BlockchainStateLock = new object();
+			HardwareWalletInfo = null;
 
 			if (password is null)
 			{

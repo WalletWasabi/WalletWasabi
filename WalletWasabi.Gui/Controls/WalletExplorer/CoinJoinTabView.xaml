@@ -93,8 +93,8 @@
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
           <StackPanel IsVisible="{Binding IsWatchOnly}" Grid.Column="0" Spacing="8">
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="Hardware and watch-only wallets cannot coinjoin :(" />
+            <StackPanel IsVisible="{Binding IsHardwareWallet}" VerticalAlignment="Center">
+              <TextBlock Text="Hardware wallets cannot coinjoin :(" />
             </StackPanel>
           </StackPanel>
           <StackPanel IsVisible="{Binding !IsWatchOnly}" Grid.Column="0" Spacing="10">

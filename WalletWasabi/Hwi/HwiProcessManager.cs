@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.BIP174;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
@@ -23,10 +24,25 @@ namespace WalletWasabi.Hwi
 	{
 		public static string HwiPath { get; private set; }
 		public static AsyncLock AsyncLock { get; }
+		public static Network Network { get; private set; }
 
 		static HwiProcessManager()
 		{
 			AsyncLock = new AsyncLock();
+			Network = Network.Main;
+		}
+
+		public static async Task<string> SignTxAsync(HardwareWalletInfo hardwareWalletInfo, PSBT psbt)
+		{
+			var psbtString = psbt.ToString();
+			var networkString = Network == Network.Main ? "" : "--testnet ";
+			JToken jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" signtx {psbtString}");
+			JObject json = jtok as JObject;
+			string xpub = json.Value<string>("xpub");
+
+			ExtPubKey extpub = ExtPubKey.Parse(xpub);
+
+			return "";
 		}
 
 		/// <summary>
@@ -35,7 +51,8 @@ namespace WalletWasabi.Hwi
 		/// </summary>
 		public static async Task<ExtPubKey> GetXpubAsync(HardwareWalletInfo hardwareWalletInfo)
 		{
-			JToken jtok = await SendCommandAsync($"-t \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" -d \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h");
+			var networkString = Network == Network.Main ? "" : "--testnet ";
+			JToken jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h");
 			JObject json = jtok as JObject;
 			string xpub = json.Value<string>("xpub");
 
@@ -86,64 +103,66 @@ namespace WalletWasabi.Hwi
 					throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
 				}
 
-				//string response = await process.StandardOutput.ReadToEndAsync();
-				//var jToken = JToken.Parse(response);
-				//string err = null;
-				//try
-				//{
-				//	JObject json = jToken as JObject;
-				//	err = json.Value<string>("error");
-				//}
-				//catch (Exception ex)
-				//{
-				//	Logger.LogTrace(ex, nameof(HwiProcessManager));
-				//}
-				//if (err != null)
-				//{
-				//	throw new IOException(err);
-				//}
-
-				//return jToken;
-
-				if (command == "enumerate")
+				string response = await process.StandardOutput.ReadToEndAsync();
+				var jToken = JToken.Parse(response);
+				string err = null;
+				try
 				{
-					//string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8038ecd2\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"}]";
-					string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"}]";
-					var jToken = JToken.Parse(response);
-					return jToken;
+					JObject json = jToken as JObject;
+					err = json.Value<string>("error");
 				}
-				if (command.Contains("getxpub", StringComparison.OrdinalIgnoreCase))
+				catch (Exception ex)
 				{
-					string response = "{\"xpub\": \"xpub6DP9afdc7qsz7s7mwAvciAR2dV6vPC3gyiQbqKDzDcPAq3UQChKPimHc3uCYfTTkpoXdwRTFnVTBdFpM9ysbf6KV34uMqkD3zXr6FzkJtcB\"}";
-					var jToken = JToken.Parse(response);
-					return jToken;
+					Logger.LogTrace(ex, nameof(HwiProcessManager));
 				}
-				else
+				if (err != null)
 				{
-					string response = await process.StandardOutput.ReadToEndAsync();
-					var jToken = JToken.Parse(response);
-					string err = null;
-					try
-					{
-						JObject json = jToken as JObject;
-						err = json.Value<string>("error");
-					}
-					catch (Exception ex)
-					{
-						Logger.LogTrace(ex, nameof(HwiProcessManager));
-					}
-					if (err != null)
-					{
-						throw new IOException(err);
-					}
+					throw new IOException(err);
+				}
 
-					return jToken;
-				}
+				return jToken;
+
+				//if (command == "enumerate")
+				//{
+				//	//string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8038ecd2\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"}]";
+				//	string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"}]";
+				//	var jToken = JToken.Parse(response);
+				//	return jToken;
+				//}
+				//if (command.Contains("getxpub", StringComparison.OrdinalIgnoreCase))
+				//{
+				//	string response = "{\"xpub\": \"xpub6DP9afdc7qsz7s7mwAvciAR2dV6vPC3gyiQbqKDzDcPAq3UQChKPimHc3uCYfTTkpoXdwRTFnVTBdFpM9ysbf6KV34uMqkD3zXr6FzkJtcB\"}";
+				//	var jToken = JToken.Parse(response);
+				//	return jToken;
+				//}
+				//else
+				//{
+				//	string response = await process.StandardOutput.ReadToEndAsync();
+				//	var jToken = JToken.Parse(response);
+				//	string err = null;
+				//	try
+				//	{
+				//		JObject json = jToken as JObject;
+				//		err = json.Value<string>("error");
+				//	}
+				//	catch (Exception ex)
+				//	{
+				//		Logger.LogTrace(ex, nameof(HwiProcessManager));
+				//	}
+				//	if (err != null)
+				//	{
+				//		throw new IOException(err);
+				//	}
+
+				//	return jToken;
+				//}
 			}
 		}
 
-		public static async Task EnsureHwiInstalledAsync(string dataDir)
+		public static async Task EnsureHwiInstalledAsync(string dataDir, Network network)
 		{
+			Network = network;
+
 			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{

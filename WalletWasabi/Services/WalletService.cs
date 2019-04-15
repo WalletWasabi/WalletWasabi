@@ -24,6 +24,7 @@ using System.Diagnostics;
 using NBitcoin.BitcoinCore;
 using System.Net.Sockets;
 using NBitcoin.Protocol.Behaviors;
+using NBitcoin.BIP174;
 
 namespace WalletWasabi.Services
 {
@@ -1195,35 +1196,46 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>("Selecting coins...");
 			IEnumerable<SmartCoin> coinsToSpend = SelectCoinsToSpend(allowedSmartCoinInputs, totalOutgoingAmount);
 
-			// 8. Get signing keys
-			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(password, coinsToSpend.Select(x => x.ScriptPubKey).ToArray());
-
 			// 9. Build the transaction
 			Logger.LogInfo<WalletService>("Signing transaction...");
-			var builder = Network.CreateTransactionBuilder();
-			builder = builder
-				.AddCoins(coinsToSpend.Select(x => x.GetCoin()))
-				.AddKeys(signingKeys.ToArray());
+			TransactionBuilder builder = Network.CreateTransactionBuilder();
+			// It must be watch only, too, because if we have the key and also hardware wallet, we don't care we can sign.
+			bool sign = !(KeyManager.IsWatchOnly && KeyManager.IsHardwareWallet);
+			if (sign)
+			{
+				// 8. Get signing keys
+				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(password, coinsToSpend.Select(x => x.ScriptPubKey).ToArray());
+
+				builder = builder
+					.AddCoins(coinsToSpend.Select(x => x.GetCoin()))
+					.AddKeys(signingKeys.ToArray());
+			}
+			else
+			{
+				builder = builder
+					.AddCoins(coinsToSpend.Select(x => x.GetCoin()));
+			}
 
 			foreach ((Script scriptPubKey, Money amount, string label) output in realToSend)
 			{
 				builder = builder.Send(output.scriptPubKey, output.amount);
 			}
 
-			var tx = builder
+			Transaction tx = builder
 				.SetChange(changeScriptPubKey)
 				.SendFees(fee)
-				.BuildTransaction(true);
+				.BuildTransaction(sign);
 
-			TransactionPolicyError[] checkResults = builder.Check(tx, fee);
-			if (checkResults.Length > 0)
+			if (sign)
 			{
-				throw new InvalidTxException(tx, checkResults);
+				TransactionPolicyError[] checkResults = builder.Check(tx, fee);
+				if (checkResults.Length > 0)
+				{
+					throw new InvalidTxException(tx, checkResults);
+				}
 			}
 
 			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-
-			TxoRef[] spentOutputs = spentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).ToArray();
 
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
@@ -1245,9 +1257,19 @@ namespace WalletWasabi.Services
 				}
 			}
 
+			PSBT psbt = PSBT.FromTransaction(tx);
+			uint masterFP = BitConverter.ToUInt32(KeyManager.ExtPubKey.Fingerprint);
+			foreach (var coin in spentCoins.Concat(innerWalletOutputs).Concat(outerWalletOutputs).ToHashSet())
+			{
+				if (coin.HdPubKey != null)
+				{
+					psbt.AddKeyPath(coin.HdPubKey.PubKey, Tuple.Create(masterFP, coin.HdPubKey.NonHardenedKeyPath));
+				}
+			}
+
 			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
 
-			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), spendsUnconfirmed, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
+			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 
 		private IEnumerable<SmartCoin> SelectCoinsToSpend(IEnumerable<SmartCoin> unspentCoins, Money totalOutAmount)

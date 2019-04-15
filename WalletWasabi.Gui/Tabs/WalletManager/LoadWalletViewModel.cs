@@ -296,13 +296,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 
 				var walletName = SelectedWallet;
+				HardwareWalletInfo selectedHwi = null;
 				if (isHardwareWallet)
 				{
 					var lastEnumerationClone = LastHardwareWalletEnumeration.ToList();
 					if (lastEnumerationClone.Any())
 					{
 						var trimmedSelectedWallet = SelectedWallet.Trim();
-						HardwareWalletInfo selectedHwi;
 						if (Enum.TryParse(typeof(HardwareWalletType), trimmedSelectedWallet, ignoreCase: true, out object t))
 						{
 							var type = (HardwareWalletType)t;
@@ -316,11 +316,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						ExtPubKey extPubKey = await HwiProcessManager.GetXpubAsync(selectedHwi);
 
 						var walletFiles = new DirectoryInfo(Global.WalletsDir);
-						var walletBackupFiles = new DirectoryInfo(Global.WalletsDir);
+						var walletBackupFiles = new DirectoryInfo(Global.WalletBackupsDir);
 						walletName = null;
-						foreach (FileInfo walletFile in walletFiles.EnumerateFiles()
+						var walletFileNames = walletFiles.EnumerateFiles()
 																.Concat(walletBackupFiles.EnumerateFiles())
-																.OrderByDescending(x => x.LastAccessTimeUtc))
+																.OrderByDescending(x => x.LastAccessTimeUtc)
+																.ToList();
+						foreach (FileInfo walletFile in walletFileNames)
 						{
 							var km = KeyManager.FromFile(walletFile.FullName);
 							if (km.ExtPubKey == extPubKey) // We already had it.
@@ -334,7 +336,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						{
 							Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
 
-							walletName = $"{selectedHwi.Type}-{selectedHwi.Fingerprint}";
+							walletName = Utils.GetNextHardwareWalletName(selectedHwi);
 							var path = Global.GetWalletFullPath(walletName);
 							KeyManager.CreateNewWatchOnly(extPubKey, path);
 						}
@@ -357,6 +359,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 
 				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
+				keyManager.HardwareWalletInfo = selectedHwi;
 
 				if (!requirePassword && keyManager.PasswordVerified == false)
 				{

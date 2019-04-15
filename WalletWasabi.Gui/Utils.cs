@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using WalletWasabi.Hwi.Models;
 
 namespace WalletWasabi.Gui
 {
@@ -14,6 +15,19 @@ namespace WalletWasabi.Gui
 				if (!File.Exists(Path.Combine(Global.WalletsDir, $"Wallet{i}.json")))
 				{
 					return $"Wallet{i}";
+				}
+			}
+
+			throw new NotSupportedException("This is impossible.");
+		}
+
+		public static string GetNextHardwareWalletName(HardwareWalletInfo hwi)
+		{
+			for (int i = 0; i < int.MaxValue; i++)
+			{
+				if (!File.Exists(Path.Combine(Global.WalletsDir, $"{hwi.Type}-{hwi.Fingerprint}-{i}.json")))
+				{
+					return $"{hwi.Type}-{hwi.Fingerprint}-{i}";
 				}
 			}
 
