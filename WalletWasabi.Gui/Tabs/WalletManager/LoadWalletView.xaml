@@ -22,7 +22,7 @@
             </StackPanel>
             <StackPanel>
               <TextBlock Text="Which hardware wallets are currently supported?" FontWeight="Bold" />
-              <TextBlock Text="- ColdCard" TextWrapping="Wrap" />
+              <TextBlock Text="- Coldcard, Digital BitBox, KeepKey, Ledger Nano S, Trezor One" TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
         </Grid>
