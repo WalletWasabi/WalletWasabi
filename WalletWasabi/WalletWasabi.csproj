@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NBitcoin" Version="4.1.1.98" />
+    <PackageReference Include="NBitcoin" Version="4.1.1.99" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Gma\QrCodeNet\Encoding\ReedSolomon\" />

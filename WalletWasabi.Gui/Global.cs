@@ -244,9 +244,7 @@ namespace WalletWasabi.Gui
 				{
 					// onlyForOnionHosts: false - Connect to clearnet IPs through Tor, too.
 					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
-					// allowOnlyTorEndpoints: true - Connect only to onions and don't connect to clearnet IPs at all.
-					// This of course makes the first setting unneccessary, but it's better if that's around, in case someone wants to tinker here.
-					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: true);
+					connectionParameters.EndpointConnector = new DefaultEndpointConnector();
 				}
 				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 
