@@ -1259,11 +1259,29 @@ namespace WalletWasabi.Services
 
 			PSBT psbt = PSBT.FromTransaction(tx);
 			uint masterFP = BitConverter.ToUInt32(KeyManager.ExtPubKey.Fingerprint);
-			foreach (var coin in spentCoins.Concat(innerWalletOutputs).Concat(outerWalletOutputs).ToHashSet())
+			HashSet<SmartCoin> allTxCoins = spentCoins.Concat(innerWalletOutputs).Concat(outerWalletOutputs).ToHashSet();
+			foreach (var coin in allTxCoins)
 			{
 				if (coin.HdPubKey != null)
 				{
-					psbt.AddKeyPath(coin.HdPubKey.PubKey, Tuple.Create(masterFP, coin.HdPubKey.NonHardenedKeyPath));
+					var index = -1;
+					var isInput = false;
+					for (int i = 0; i < tx.Inputs.Count; i++)
+					{
+						var input = tx.Inputs[i];
+						if (input.PrevOut == coin.GetOutPoint())
+						{
+							index = i;
+							isInput = true;
+							break;
+						}
+					}
+					if (!isInput)
+					{
+						index = (int)coin.Index;
+					}
+
+					psbt.AddPathTo(index, coin.HdPubKey.PubKey, masterFP, coin.HdPubKey.FullKeyPath, isInput);
 				}
 			}
 
