@@ -1258,7 +1258,8 @@ namespace WalletWasabi.Services
 			}
 
 			PSBT psbt = PSBT.FromTransaction(tx);
-			uint masterFP = BitConverter.ToUInt32(KeyManager.ExtPubKey.Fingerprint);
+			//uint masterFP = BitConverter.ToUInt32(KeyManager.ExtPubKey.Fingerprint); - DON'T DO THIS, THERE ARE SOME FINGERPRINT CONSISTENCY ISSUES
+			uint masterFP = BitConverter.ToUInt32(ByteHelpers.FromHex(KeyManager.HardwareWalletInfo.Fingerprint));
 			HashSet<SmartCoin> allTxCoins = spentCoins.Concat(innerWalletOutputs).Concat(outerWalletOutputs).ToHashSet();
 			foreach (var coin in allTxCoins)
 			{
@@ -1285,8 +1286,8 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			psbt.AddCoins(allTxCoins.Select(x => x.GetCoin()).ToArray());
-			psbt.AddScript(allTxCoins.Select(x => x.ScriptPubKey).ToArray());
+			psbt.AddCoins(allTxCoins.Select(x => x.GetCoin()).ToArray()); // ToDo: Do we need all the coins, don't we just need the input coins?
+			psbt.AddScript(allTxCoins.Select(x => x.ScriptPubKey).ToArray()); // ToDo: Do we need this?
 
 			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
 

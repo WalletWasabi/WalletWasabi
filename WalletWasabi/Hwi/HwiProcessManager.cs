@@ -42,6 +42,7 @@ namespace WalletWasabi.Hwi
 			JObject json = jtok as JObject;
 			var signedPsbtString = json.Value<string>("psbt");
 			var signedPsbt = PSBT.Parse(signedPsbtString);
+			signedPsbt.Finalize();
 
 			return signedPsbt;
 		}
