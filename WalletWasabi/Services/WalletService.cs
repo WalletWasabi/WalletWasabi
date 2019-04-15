@@ -1285,6 +1285,8 @@ namespace WalletWasabi.Services
 				}
 			}
 
+			psbt.AddCoins(spentCoins.Select(x => x.GetCoin()).ToArray());
+
 			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
 
 			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);

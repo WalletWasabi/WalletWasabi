@@ -32,17 +32,16 @@ namespace WalletWasabi.Hwi
 			Network = Network.Main;
 		}
 
-		public static async Task<string> SignTxAsync(HardwareWalletInfo hardwareWalletInfo, PSBT psbt)
+		public static async Task<PSBT> SignTxAsync(HardwareWalletInfo hardwareWalletInfo, PSBT psbt)
 		{
 			var psbtString = psbt.ToString();
 			var networkString = Network == Network.Main ? "" : "--testnet ";
 			JToken jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" signtx {psbtString}");
 			JObject json = jtok as JObject;
-			string xpub = json.Value<string>("xpub");
+			var signedPsbtString = json.Value<string>("psbt");
+			var signedPsbt = PSBT.Parse(signedPsbtString);
 
-			ExtPubKey extpub = ExtPubKey.Parse(xpub);
-
-			return "";
+			return signedPsbt;
 		}
 
 		/// <summary>

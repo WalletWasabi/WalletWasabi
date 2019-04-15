@@ -257,12 +257,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Signing transaction...");
 
+					SmartTransaction signedTransaction = result.Transaction;
+
 					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
 					{
 						try
 						{
 							IsHardwareBusy = true;
-							await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
+							var signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
+							signedTransaction = new SmartTransaction(signedPsbt.ExtractTX(), result.Transaction.Height);
 						}
 						finally
 						{
