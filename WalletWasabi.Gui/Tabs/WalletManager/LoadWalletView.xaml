@@ -22,7 +22,7 @@
             </StackPanel>
             <StackPanel>
               <TextBlock Text="Which hardware wallets are currently supported?" FontWeight="Bold" />
-              <TextBlock Text="- Coldcard, Digital BitBox, KeepKey, Ledger Nano S, Trezor One" TextWrapping="Wrap" />
+              <TextBlock Text="- Only Coldcard, but Wasabi may work with Digital BitBox, KeepKey, Ledger Nano S and Trezor One, but they were not yet tested." TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
         </Grid>
