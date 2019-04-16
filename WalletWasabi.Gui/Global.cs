@@ -154,6 +154,16 @@ namespace WalletWasabi.Gui
 				TorManager = TorProcessManager.Mock();
 			}
 			TorManager.Start(false, DataDir);
+
+			try
+			{
+				await HwiProcessManager.EnsureHwiInstalledAsync(DataDir, Network);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, nameof(Global));
+			}
+
 			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
 
@@ -284,15 +294,6 @@ namespace WalletWasabi.Gui
 
 			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
 			Logger.LogInfo("Start synchronizing filters...");
-
-			try
-			{
-				await HwiProcessManager.EnsureHwiInstalledAsync(DataDir, Network);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex, nameof(Global));
-			}
 		}
 
 		private static CancellationTokenSource CancelWalletServiceInitialization = null;

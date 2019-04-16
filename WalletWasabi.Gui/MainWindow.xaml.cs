@@ -172,33 +172,31 @@ namespace WalletWasabi.Gui
 			var walletManagerViewModel = new WalletManagerViewModel();
 			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
 
-			var isAnyHardwareWalletAvailable = false;
+			var isAnyDesktopWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
+
+			if (isAnyDesktopWalletAvailable)
+			{
+				walletManagerViewModel.SelectLoadWallet();
+			}
+			else
+			{
+				walletManagerViewModel.SelectGenerateWallet();
+			}
+
 			try
 			{
+				// Likely HwiProcessManager is not initialized at this point so make sure it is.
+				await HwiProcessManager.EnsureHwiInstalledAsync(Global.DataDir, Global.Network, logFound: false);
 				var res = await HwiProcessManager.EnumerateAsync();
-				isAnyHardwareWalletAvailable = res.Any();
+				var isAnyHardwareWalletAvailable = res.Any();
+				if (isAnyHardwareWalletAvailable)
+				{
+					walletManagerViewModel.SelectHardwareWallet();
+				}
 			}
 			catch (Exception ex)
 			{
 				Logging.Logger.LogWarning<MainWindow>(ex);
-			}
-
-			if (isAnyHardwareWalletAvailable)
-			{
-				walletManagerViewModel.SelectHardwareWallet();
-			}
-			else
-			{
-				var isAnyDesktopWalletAvailable = Directory.Exists(Global.WalletsDir) && Directory.EnumerateFiles(Global.WalletsDir).Any();
-
-				if (isAnyDesktopWalletAvailable)
-				{
-					walletManagerViewModel.SelectLoadWallet();
-				}
-				else
-				{
-					walletManagerViewModel.SelectGenerateWallet();
-				}
 			}
 		}
 	}

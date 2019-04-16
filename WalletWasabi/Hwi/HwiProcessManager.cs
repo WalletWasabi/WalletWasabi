@@ -35,7 +35,7 @@ namespace WalletWasabi.Hwi
 		public static async Task<PSBT> SignTxAsync(HardwareWalletInfo hardwareWalletInfo, PSBT psbt)
 		{
 			var psbtString = psbt.ToString();
-			var networkString = Network == Network.Main ? "" : "--testnet ";
+			var networkString = Network == Network.Main ? "" : " --testnet";
 			JToken jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" signtx {psbtString}");
 			JObject json = jtok as JObject;
 			var signedPsbtString = json.Value<string>("psbt");
@@ -51,8 +51,8 @@ namespace WalletWasabi.Hwi
 		/// </summary>
 		public static async Task<ExtPubKey> GetXpubAsync(HardwareWalletInfo hardwareWalletInfo)
 		{
-			var networkString = Network == Network.Main ? "" : "--testnet ";
-			JToken jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h");
+			var networkString = Network == Network.Main ? "" : "--testnet";
+			JToken jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h");
 			JObject json = jtok as JObject;
 			string xpub = json.Value<string>("xpub");
 
@@ -88,7 +88,8 @@ namespace WalletWasabi.Hwi
 			{
 				if (!File.Exists(HwiPath))
 				{
-					throw new FileNotFoundException($"Hwi.exe not found here: {HwiPath}. Maybe it is removed by antivirus software!");
+					var exeName = Path.GetFileName(HwiPath);
+					throw new FileNotFoundException($"{exeName} not found at {HwiPath}. Maybe it was removed by antivirus software!");
 				}
 
 				using (var process = Process.Start(
@@ -111,19 +112,13 @@ namespace WalletWasabi.Hwi
 
 					string response = await process.StandardOutput.ReadToEndAsync();
 					var jToken = JToken.Parse(response);
-					string err = null;
-					try
+					if (jToken is JObject json)
 					{
-						JObject json = jToken as JObject;
-						err = json.Value<string>("error");
-					}
-					catch (Exception ex)
-					{
-						Logger.LogTrace(ex, nameof(HwiProcessManager));
-					}
-					if (err != null)
-					{
-						throw new IOException(err);
+						if (json.TryGetValue("error", out JToken err))
+						{
+							var errString = err.ToString();
+							throw new IOException(errString);
+						}
 					}
 
 					return jToken;
@@ -166,7 +161,7 @@ namespace WalletWasabi.Hwi
 			}
 		}
 
-		public static async Task EnsureHwiInstalledAsync(string dataDir, Network network)
+		public static async Task EnsureHwiInstalledAsync(string dataDir, Network network, bool logFound = true)
 		{
 			Network = network;
 
@@ -211,7 +206,10 @@ namespace WalletWasabi.Hwi
 			}
 			else
 			{
-				Logger.LogInfo($"HWI instance found at {hwiPath}.", nameof(HwiProcessManager));
+				if (logFound)
+				{
+					Logger.LogInfo($"HWI instance found at {hwiPath}.", nameof(HwiProcessManager));
+				}
 			}
 
 			HwiPath = hwiPath;
