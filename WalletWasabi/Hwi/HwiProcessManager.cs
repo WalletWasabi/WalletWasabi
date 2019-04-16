@@ -68,44 +68,15 @@ namespace WalletWasabi.Hwi
 			var hwis = new List<HardwareWalletInfo>();
 			foreach (JObject json in jarr)
 			{
-				var typeString = json.Value<string>("type");
-				var type = (HardwareWalletType)Enum.Parse(typeof(HardwareWalletType), typeString, ignoreCase: true);
-				var error = json.Value<string>("error");
-
-				if (error != null && !recursive && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				{
-					// Try apply udev rules.
-					var missingUdevs = UdevRules.FindMissingUdevs().ToArray();
-					if (missingUdevs.Any())
-					{
-						string cmd = "sudo cp udev/*.rules /etc/udev/rules.d/ && sudo udevadm trigger && sudo udevadm control --reload-rules && exit";
-						var escapedArgs = cmd.Replace("\"", "\\\"");
-						// Update Udevs.
-						using (var process = Process.Start(
-							new ProcessStartInfo
-							{
-								FileName = "/bin/sh",
-								Arguments = $"-c \"{escapedArgs}\"",
-								RedirectStandardOutput = false,
-								UseShellExecute = false,
-								CreateNoWindow = false,
-								WindowStyle = ProcessWindowStyle.Normal,
-								WorkingDirectory = "Hwi/Software"
-							}
-						))
-						{
-							await process.WaitForExitAsync();
-						}
-
-						return await EnumerateAsync(recursive: true);
-					}
-				}
-
 				var fingerprint = json.Value<string>("fingerprint");
 				var serialNumber = json.Value<string>("serial_number");
+				var typeString = json.Value<string>("type");
 				var path = json.Value<string>("path");
+				var error = json.Value<string>("error");
 
-				var hwi = new HardwareWalletInfo(fingerprint, serialNumber, type, path);
+				var type = (HardwareWalletType)Enum.Parse(typeof(HardwareWalletType), typeString, ignoreCase: true);
+
+				var hwi = new HardwareWalletInfo(fingerprint, serialNumber, type, path, error);
 				hwis.Add(hwi);
 			}
 
