@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Controls.WalletExplorer;
+using WalletWasabi.Gui.Models;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
@@ -27,9 +28,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 {
 	internal class LoadWalletViewModel : CategoryViewModel
 	{
-		private ObservableCollection<string> _wallets;
+		private ObservableCollection<LoadWalletEntry> _wallets;
 		private string _password;
-		private string _selectedWallet;
+		private LoadWalletEntry _selectedWallet;
 		private bool _isWalletSelected;
 		private bool _isWalletOpened;
 		private bool _canLoadWallet;
@@ -55,7 +56,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Owner = owner;
 			Password = "";
 			LoadWalletType = loadWalletType;
-			Wallets = new ObservableCollection<string>();
+			Wallets = new ObservableCollection<LoadWalletEntry>();
 			WalletLock = new object();
 
 			this.WhenAnyValue(x => x.SelectedWallet)
@@ -103,7 +104,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _isHwWalletSearchTextVisible, value);
 		}
 
-		public ObservableCollection<string> Wallets
+		public ObservableCollection<LoadWalletEntry> Wallets
 		{
 			get => _wallets;
 			set => this.RaiseAndSetIfChanged(ref _wallets, value);
@@ -115,7 +116,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _password, value);
 		}
 
-		public string SelectedWallet
+		public LoadWalletEntry SelectedWallet
 		{
 			get => _selectedWallet;
 			set => this.RaiseAndSetIfChanged(ref _selectedWallet, value);
@@ -234,7 +235,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
 				foreach (var file in walletFiles)
 				{
-					Wallets.Add(Path.GetFileNameWithoutExtension(file.FullName));
+					var wallet = new LoadWalletEntry(Path.GetFileNameWithoutExtension(file.FullName));
+					Wallets.Add(wallet);
 				}
 
 				SelectedWallet = Wallets.FirstOrDefault();
@@ -244,7 +246,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		private void SetWalletStates()
 		{
-			IsWalletSelected = !string.IsNullOrEmpty(SelectedWallet);
+			IsWalletSelected = SelectedWallet != null;
 			CanTestPassword = IsWalletSelected;
 
 			IsWalletOpened = Global.WalletService != null;
@@ -262,55 +264,37 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 
-		private static List<HardwareWalletInfo> LastHardwareWalletEnumeration { get; } = new List<HardwareWalletInfo>();
-		private static object LastHardwareWalletEnumerationLock { get; set; } = new object();
-
-		public static IEnumerable<HardwareWalletInfo> CloneLastHardwareWalletEnumeration()
+		public void TryRefreshHardwareWallets(IEnumerable<HardwareWalletInfo> hwis)
 		{
-			IEnumerable<HardwareWalletInfo> res = null;
-			lock (LastHardwareWalletEnumerationLock)
-			{
-				res = LastHardwareWalletEnumeration.ToList();
-			}
-			return res;
-		}
-
-		public static void ReplaceLastHardwareWalletEnumeration(IEnumerable<HardwareWalletInfo> hardwareWalletInfos)
-		{
-			lock (LastHardwareWalletEnumerationLock)
-			{
-				LastHardwareWalletEnumeration.Clear();
-				LastHardwareWalletEnumeration.AddRange(hardwareWalletInfos);
-			}
-		}
-
-		public void TryRefreshHardwareWallets()
-		{
-			var hwis = CloneLastHardwareWalletEnumeration();
-			var alltypesunique = hwis.Count() == hwis.Select(x => x.Type).ToHashSet().Count();
 			lock (WalletLock)
 			{
-				var newWalletStrings = new List<string>();
-				foreach (HardwareWalletInfo hwi in hwis)
+				var changed = false;
+				foreach (var hwi in hwis)
 				{
-					if (alltypesunique)
+					if (Wallets.All(x => x.HardwareWalletInfo.Path != hwi.Path)) // If it's not already in the list, then add.
 					{
-						newWalletStrings.Add(hwi.Type.ToString());
-					}
-					else
-					{
-						newWalletStrings.Add($"{hwi.Type}-{hwi.Fingerprint}");
+						Wallets.Add(new LoadWalletEntry(hwi));
+						changed = true;
 					}
 				}
 
-				if (!newWalletStrings.SequenceEqual(Wallets)) // If changed.
+				var toRemove = new List<LoadWalletEntry>();
+				foreach (var wallet in Wallets)
 				{
-					Wallets.Clear();
-					foreach (var newWallet in newWalletStrings)
+					if (hwis.All(x => x.Path != wallet.HardwareWalletInfo.Path)) // If it's not in the list anymore, then remove.
 					{
-						Wallets.Add(newWallet);
+						toRemove.Add(wallet);
+						changed = true;
 					}
+				}
 
+				foreach (var wallet in toRemove)
+				{
+					Wallets.Remove(wallet);
+				}
+
+				if (changed)
+				{
 					SetWalletStates();
 				}
 
@@ -318,7 +302,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					IsHwWalletSearchTextVisible = false;
 					SelectedWallet = Wallets.FirstOrDefault();
-					SetWalletStates();
 				}
 				else
 				{
@@ -335,40 +318,36 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				var password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
 				Password = ""; // Clear password field.
 
-				if (string.IsNullOrEmpty(SelectedWallet))
+				if (SelectedWallet is null)
 				{
 					SetValidationMessage("No wallet selected.");
 					return null;
 				}
 
-				var walletName = SelectedWallet;
-				HardwareWalletInfo selectedHwi = null;
+				var selectedWallet = SelectedWallet;
+				var walletName = selectedWallet.WalletName;
 				if (isHardwareWallet)
 				{
-					var hwis = CloneLastHardwareWalletEnumeration();
-					if (hwis.Any())
+					if (selectedWallet is null)
 					{
-						var trimmedSelectedWallet = SelectedWallet.Trim();
-						if (Enum.TryParse(typeof(HardwareWalletType), trimmedSelectedWallet, ignoreCase: true, out object t))
-						{
-							var type = (HardwareWalletType)t;
-							selectedHwi = hwis.First(x => x.Type == type);
-						}
-						else
-						{
-							var fingerprint = trimmedSelectedWallet.Substring(SelectedWallet.LastIndexOf("-") + 1).Trim();
-							selectedHwi = hwis.First(x => x.Fingerprint == fingerprint);
-						}
-						ExtPubKey extPubKey = await HwiProcessManager.GetXpubAsync(selectedHwi);
+						SetValidationMessage("No hardware wallets detected.");
+						return null;
+					}
 
-						var walletFiles = new DirectoryInfo(Global.WalletsDir);
-						var walletBackupFiles = new DirectoryInfo(Global.WalletBackupsDir);
-						walletName = null;
-						var walletFileNames = walletFiles.EnumerateFiles()
-																.Concat(walletBackupFiles.EnumerateFiles())
-																.OrderByDescending(x => x.LastAccessTimeUtc)
-																.ToList();
-						foreach (FileInfo walletFile in walletFileNames)
+					ExtPubKey extPubKey = await HwiProcessManager.GetXpubAsync(selectedWallet.HardwareWalletInfo);
+
+					var walletFiles = new DirectoryInfo(Global.WalletsDir);
+					var walletBackupFiles = new DirectoryInfo(Global.WalletBackupsDir);
+
+					// Start searching for the real wallet name.
+					walletName = null;
+					var walletFileNames = walletFiles.EnumerateFiles()
+															.Concat(walletBackupFiles.EnumerateFiles())
+															.OrderByDescending(x => x.LastAccessTimeUtc)
+															.ToList();
+					foreach (FileInfo walletFile in walletFileNames)
+					{
+						if (walletFile?.Extension?.Equals(".json", StringComparison.OrdinalIgnoreCase) is true)
 						{
 							var km = KeyManager.FromFile(walletFile.FullName);
 							if (km.ExtPubKey == extPubKey) // We already had it.
@@ -377,20 +356,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								break;
 							}
 						}
-
-						if (walletName == null)
-						{
-							Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
-
-							walletName = Utils.GetNextHardwareWalletName(selectedHwi);
-							var path = Global.GetWalletFullPath(walletName);
-							KeyManager.CreateNewWatchOnly(extPubKey, path);
-						}
 					}
-					else
+
+					if (walletName == null)
 					{
-						SetValidationMessage("No hardware wallets detected.");
-						return null;
+						Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
+
+						walletName = Utils.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
+						var path = Global.GetWalletFullPath(walletName);
+						KeyManager.CreateNewWatchOnly(extPubKey, path);
 					}
 				}
 
@@ -405,7 +379,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 
 				KeyManager keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
-				keyManager.HardwareWalletInfo = selectedHwi;
+				keyManager.HardwareWalletInfo = selectedWallet.HardwareWalletInfo;
 
 				if (!requirePassword && keyManager.PasswordVerified == false)
 				{

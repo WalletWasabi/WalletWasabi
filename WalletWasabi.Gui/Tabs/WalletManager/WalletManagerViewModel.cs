@@ -112,8 +112,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					try
 					{
 						var hwis = await HwiProcessManager.EnumerateAsync();
-						LoadWalletViewModel.ReplaceLastHardwareWalletEnumeration(hwis);
-						LoadWalletViewModelHardware.TryRefreshHardwareWallets();
+						LoadWalletViewModelHardware.TryRefreshHardwareWallets(hwis);
 
 						if (hwis.Any() && !HwTabSelectedOnce)
 						{

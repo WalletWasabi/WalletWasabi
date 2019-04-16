@@ -25,9 +25,10 @@ namespace WalletWasabi.Gui
 		{
 			for (int i = 0; i < int.MaxValue; i++)
 			{
-				if (!File.Exists(Path.Combine(Global.WalletsDir, $"{hwi.Type}-{hwi.Fingerprint}-{i}.json")))
+				var name = $"{hwi.Type}{i}";
+				if (!File.Exists(Path.Combine(Global.WalletsDir, $"{name}.json")))
 				{
-					return $"{hwi.Type}-{hwi.Fingerprint}-{i}";
+					return name;
 				}
 			}
 
