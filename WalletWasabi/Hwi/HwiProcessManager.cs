@@ -90,7 +90,7 @@ namespace WalletWasabi.Hwi
 								UseShellExecute = false,
 								CreateNoWindow = false,
 								WindowStyle = ProcessWindowStyle.Normal,
-								WorkingDirectory = "/Hwi/Software"
+								WorkingDirectory = "Hwi/Software"
 							}
 						))
 						{
