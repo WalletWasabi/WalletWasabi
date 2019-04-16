@@ -100,7 +100,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			});
 		}
 
-		private List<HardwareWalletInfo> LastHardwareWalletEnumeration { get; set; }
 		private CancellationTokenSource HardwareWalletRefreshCancel { get; }
 
 		private async Task RefreshHardwareWalletListAsync()
@@ -112,6 +111,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					try
 					{
 						var hwis = await HwiProcessManager.EnumerateAsync();
+						LoadWalletViewModel.ReplaceLastHardwareWalletEnumeration(hwis);
 						var hwlist = hwis.ToList();
 
 						if (hwis.Any())
@@ -124,7 +124,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							}
 							catch (Exception ex)
 							{
-								Logging.Logger.LogWarning<MainWindow>(ex);
+								Logger.LogWarning<MainWindow>(ex);
 							}
 
 							break;
@@ -138,8 +138,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					await Task.Delay(3000, HardwareWalletRefreshCancel.Token);
 				}
 			}
-			catch (TaskCanceledException)
+			catch (TaskCanceledException ex)
 			{
+				Logger.LogTrace<WalletManagerViewModel>(ex);
 			}
 		}
 

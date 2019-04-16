@@ -262,6 +262,28 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
 		public ReactiveCommand<Unit, KeyManager> TestPasswordCommand { get; }
 
+		private static List<HardwareWalletInfo> LastHardwareWalletEnumeration { get; } = new List<HardwareWalletInfo>();
+		private static object LastHardwareWalletEnumerationLock { get; set; } = new object();
+
+		public static IEnumerable<HardwareWalletInfo> CloneLastHardwareWalletEnumeration()
+		{
+			IEnumerable<HardwareWalletInfo> res = null;
+			lock (LastHardwareWalletEnumerationLock)
+			{
+				res = LastHardwareWalletEnumeration.ToList();
+			}
+			return res;
+		}
+
+		public static void ReplaceLastHardwareWalletEnumeration(IEnumerable<HardwareWalletInfo> hardwareWalletInfos)
+		{
+			lock (LastHardwareWalletEnumerationLock)
+			{
+				LastHardwareWalletEnumeration.Clear();
+				LastHardwareWalletEnumeration.AddRange(hardwareWalletInfos);
+			}
+		}
+
 		public async Task<KeyManager> LoadKeyManagerAsync(bool requirePassword, bool isHardwareWallet)
 		{
 			try
@@ -280,7 +302,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				HardwareWalletInfo selectedHwi = null;
 				if (isHardwareWallet)
 				{
-					var lastEnumerationClone = Enumerable.Empty<HardwareWalletInfo>();//LastHardwareWalletEnumeration.ToList();
+					var lastEnumerationClone = CloneLastHardwareWalletEnumeration();
 					if (lastEnumerationClone.Any())
 					{
 						var trimmedSelectedWallet = SelectedWallet.Trim();
