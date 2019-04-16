@@ -47,18 +47,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public bool IsHardwareWallet => LoadWalletType == LoadWalletType.Hardware;
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
 
-		private List<HardwareWalletInfo> LastHardwareWalletEnumeration { get; set; }
-
-		private Task RefreshHwWalletTask { get; set; }
-
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType) : base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
 		{
 			Owner = owner;
 			Password = "";
 			LoadWalletType = loadWalletType;
 			Wallets = new ObservableCollection<string>();
-			LastHardwareWalletEnumeration = new List<HardwareWalletInfo>();
-			RefreshHwWalletTask = null;
 
 			this.WhenAnyValue(x => x.SelectedWallet)
 				.Subscribe(selectedWallet => SetWalletStates());
@@ -224,14 +218,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			if (IsHardwareWallet)
 			{
-				if (RefreshHwWalletTask is null || RefreshHwWalletTask.IsCompleted)
-				{
-					Dispatcher.UIThread.PostLogException(async () =>
-					{
-						RefreshHwWalletTask = RefreshHardwareWalletListAsync();
-						await RefreshHwWalletTask;
-					});
-				}
 			}
 			else
 			{
@@ -250,51 +236,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			SelectedWallet = Wallets.FirstOrDefault();
 			SetWalletStates();
-		}
-
-		private async Task RefreshHardwareWalletListAsync()
-		{
-			IsHwWalletSearchTextVisible = true;
-			while (true)
-			{
-				try
-				{
-					var hwis = await HwiProcessManager.EnumerateAsync();
-					LastHardwareWalletEnumeration = hwis.ToList();
-					if (hwis.Any())
-					{
-						var alltypesunique = hwis.Count() == hwis.Select(x => x.Type).ToHashSet().Count();
-
-						foreach (HardwareWalletInfo hwi in hwis)
-						{
-							if (alltypesunique)
-							{
-								Wallets.Add(hwi.Type.ToString());
-							}
-							else
-							{
-								Wallets.Add($"{hwi.Type}-{hwi.Fingerprint}");
-							}
-						}
-
-						SelectedWallet = Wallets.FirstOrDefault();
-						SetWalletStates();
-
-						break;
-					}
-				}
-				catch (Exception ex)
-				{
-					SetWarningMessage(ex.ToTypeMessageString());
-					Logger.LogError<LoadWalletViewModel>(ex);
-				}
-				finally
-				{
-					IsHwWalletSearchTextVisible = false;
-				}
-
-				await Task.Delay(1000);
-			}
 		}
 
 		private void SetWalletStates()
@@ -335,7 +276,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				HardwareWalletInfo selectedHwi = null;
 				if (isHardwareWallet)
 				{
-					var lastEnumerationClone = LastHardwareWalletEnumeration.ToList();
+					var lastEnumerationClone = Enumerable.Empty<HardwareWalletInfo>();//LastHardwareWalletEnumeration.ToList();
 					if (lastEnumerationClone.Any())
 					{
 						var trimmedSelectedWallet = SelectedWallet.Trim();
