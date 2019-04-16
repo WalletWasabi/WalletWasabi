@@ -61,7 +61,7 @@ namespace WalletWasabi.Hwi
 			return extpub;
 		}
 
-		public static async Task<IEnumerable<HardwareWalletInfo>> EnumerateAsync(bool recursive = false)
+		public static async Task<IEnumerable<HardwareWalletInfo>> EnumerateAsync()
 		{
 			JToken jtok = await SendCommandAsync("enumerate");
 			JArray jarr = jtok as JArray;
