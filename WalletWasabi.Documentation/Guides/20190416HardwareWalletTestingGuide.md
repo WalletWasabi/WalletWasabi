@@ -13,7 +13,7 @@
 - [2] OSX - unknown version
 - [3] Ubuntu 18.04 VirtualBox
 
-# How to?
+# How to test?
 
 ## (Linux Only) Step 0: Add `udev` rules
 
