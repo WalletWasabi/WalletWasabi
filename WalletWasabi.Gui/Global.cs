@@ -20,6 +20,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -153,6 +154,16 @@ namespace WalletWasabi.Gui
 				TorManager = TorProcessManager.Mock();
 			}
 			TorManager.Start(false, DataDir);
+
+			try
+			{
+				await HwiProcessManager.EnsureHwiInstalledAsync(DataDir, Network);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, nameof(Global));
+			}
+
 			var fallbackRequestTestUri = new Uri(Config.GetFallbackBackendUri(), "/api/software/versions");
 			TorManager.StartMonitor(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(7), DataDir, fallbackRequestTestUri);
 

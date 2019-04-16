@@ -1,8 +1,15 @@
-﻿using ReactiveUI;
+﻿using Avalonia.Threading;
+using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
+using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -11,18 +18,25 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
 		private ViewModelBase _currentView;
+		private LoadWalletViewModel LoadWalletViewModelDesktop { get; }
+		private LoadWalletViewModel LoadWalletViewModelHardware { get; }
 
 		public WalletManagerViewModel() : base("Wallet Manager")
 		{
+			LoadWalletViewModelDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
+			LoadWalletViewModelHardware = new LoadWalletViewModel(this, LoadWalletType.Hardware);
+
 			Categories = new ObservableCollection<CategoryViewModel>
 			{
 				new GenerateWalletViewModel(this),
 				new RecoverWalletViewModel(this),
-				new LoadWalletViewModel(this, false),
-				new LoadWalletViewModel(this, true)
+				LoadWalletViewModelDesktop,
+				new LoadWalletViewModel(this, LoadWalletType.Password),
+				LoadWalletViewModelHardware
 			};
 
 			SelectedCategory = Categories.FirstOrDefault();
+			HardwareWalletRefreshCancel = new CancellationTokenSource();
 
 			this.WhenAnyValue(x => x.SelectedCategory).Subscribe(category =>
 			{
@@ -56,18 +70,81 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public void SelectLoadWallet()
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && !((LoadWalletViewModel)x).RequirePassword);
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Desktop));
 		}
 
 		public void SelectTestPassword()
 		{
-			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && ((LoadWalletViewModel)x).RequirePassword);
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Password));
+		}
+
+		public void SelectHardwareWallet()
+		{
+			SelectedCategory = Categories.First(x => x is LoadWalletViewModel && (((LoadWalletViewModel)x).LoadWalletType == LoadWalletType.Hardware));
 		}
 
 		public ViewModelBase CurrentView
 		{
 			get => _currentView;
 			set => this.RaiseAndSetIfChanged(ref _currentView, value);
+		}
+
+		public override void OnOpen()
+		{
+			base.OnOpen();
+
+			Dispatcher.UIThread.PostLogException(async () =>
+			{
+				await RefreshHardwareWalletListAsync();
+				HardwareWalletRefreshCancel?.Dispose();
+			});
+		}
+
+		private CancellationTokenSource HardwareWalletRefreshCancel { get; }
+		private bool HwTabSelectedOnce { get; set; } = false;
+
+		private async Task RefreshHardwareWalletListAsync()
+		{
+			try
+			{
+				while (!HardwareWalletRefreshCancel.IsCancellationRequested)
+				{
+					try
+					{
+						var hwis = await HwiProcessManager.EnumerateAsync();
+						LoadWalletViewModelHardware.TryRefreshHardwareWallets(hwis);
+
+						if (hwis.Any() && !HwTabSelectedOnce)
+						{
+							try
+							{
+								HwTabSelectedOnce = true;
+								SelectHardwareWallet();
+							}
+							catch (Exception ex)
+							{
+								Logger.LogWarning<MainWindow>(ex);
+							}
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError<WalletManagerViewModel>(ex);
+					}
+
+					await Task.Delay(3000, HardwareWalletRefreshCancel.Token);
+				}
+			}
+			catch (TaskCanceledException ex)
+			{
+				Logger.LogTrace<WalletManagerViewModel>(ex);
+			}
+		}
+
+		public override bool OnClose()
+		{
+			HardwareWalletRefreshCancel?.Cancel();
+			return base.OnClose();
 		}
 	}
 }
