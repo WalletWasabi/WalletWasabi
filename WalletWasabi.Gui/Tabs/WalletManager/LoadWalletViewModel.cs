@@ -284,6 +284,47 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			}
 		}
 
+		public void TryRefreshHardwareWallets()
+		{
+			var hwis = CloneLastHardwareWalletEnumeration();
+			var alltypesunique = hwis.Count() == hwis.Select(x => x.Type).ToHashSet().Count();
+			lock (WalletLock)
+			{
+				var newWalletStrings = new List<string>();
+				foreach (HardwareWalletInfo hwi in hwis)
+				{
+					if (alltypesunique)
+					{
+						newWalletStrings.Add(hwi.Type.ToString());
+					}
+					else
+					{
+						newWalletStrings.Add($"{hwi.Type}-{hwi.Fingerprint}");
+					}
+				}
+
+				if (!newWalletStrings.SequenceEqual(Wallets)) // If changed.
+				{
+					Wallets.Clear();
+					foreach (var newWallet in newWalletStrings)
+					{
+						Wallets.Add(newWallet);
+					}
+
+					SetWalletStates();
+				}
+
+				if (hwis.Any())
+				{
+					IsHwWalletSearchTextVisible = false;
+				}
+				else
+				{
+					IsHwWalletSearchTextVisible = true;
+				}
+			}
+		}
+
 		public async Task<KeyManager> LoadKeyManagerAsync(bool requirePassword, bool isHardwareWallet)
 		{
 			try
@@ -302,19 +343,26 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				HardwareWalletInfo selectedHwi = null;
 				if (isHardwareWallet)
 				{
-					var lastEnumerationClone = CloneLastHardwareWalletEnumeration();
-					if (lastEnumerationClone.Any())
+					var hwis = CloneLastHardwareWalletEnumeration();
+					if (hwis.Any())
 					{
+						lock (WalletLock)
+						{
+							SelectedWallet = Wallets.FirstOrDefault();
+							SetWalletStates();
+							IsHwWalletSearchTextVisible = false;
+						}
+
 						var trimmedSelectedWallet = SelectedWallet.Trim();
 						if (Enum.TryParse(typeof(HardwareWalletType), trimmedSelectedWallet, ignoreCase: true, out object t))
 						{
 							var type = (HardwareWalletType)t;
-							selectedHwi = lastEnumerationClone.First(x => x.Type == type);
+							selectedHwi = hwis.First(x => x.Type == type);
 						}
 						else
 						{
 							var fingerprint = trimmedSelectedWallet.Substring(SelectedWallet.LastIndexOf("-") + 1).Trim();
-							selectedHwi = lastEnumerationClone.First(x => x.Fingerprint == fingerprint);
+							selectedHwi = hwis.First(x => x.Fingerprint == fingerprint);
 						}
 						ExtPubKey extPubKey = await HwiProcessManager.GetXpubAsync(selectedHwi);
 
@@ -452,32 +500,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			var path = Global.WalletsDir;
 			IoHelpers.OpenFolderInFileExplorer(path);
-		}
-
-		public void RefreshHardwareWallets(IEnumerable<HardwareWalletInfo> hwis)
-		{
-			if (hwis.Any())
-			{
-				var alltypesunique = hwis.Count() == hwis.Select(x => x.Type).ToHashSet().Count();
-				lock (WalletLock)
-				{
-					foreach (HardwareWalletInfo hwi in hwis)
-					{
-						if (alltypesunique)
-						{
-							Wallets.Add(hwi.Type.ToString());
-						}
-						else
-						{
-							Wallets.Add($"{hwi.Type}-{hwi.Fingerprint}");
-						}
-					}
-
-					SelectedWallet = Wallets.FirstOrDefault();
-					SetWalletStates();
-					IsHwWalletSearchTextVisible = false;
-				}
-			}
 		}
 	}
 }
