@@ -111,19 +111,13 @@ namespace WalletWasabi.Hwi
 
 					string response = await process.StandardOutput.ReadToEndAsync();
 					var jToken = JToken.Parse(response);
-					string err = null;
-					try
+					if (jToken is JObject json)
 					{
-						JObject json = jToken as JObject;
-						err = json.Value<string>("error");
-					}
-					catch (Exception ex)
-					{
-						Logger.LogTrace(ex, nameof(HwiProcessManager));
-					}
-					if (err != null)
-					{
-						throw new IOException(err);
+						if (json.TryGetValue("error", out JToken err))
+						{
+							var errString = err.ToString();
+							throw new IOException(errString);
+						}
 					}
 
 					return jToken;
