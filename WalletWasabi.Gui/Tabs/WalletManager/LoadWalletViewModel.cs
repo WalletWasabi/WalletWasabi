@@ -317,6 +317,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				if (hwis.Any())
 				{
 					IsHwWalletSearchTextVisible = false;
+					SelectedWallet = Wallets.FirstOrDefault();
+					SetWalletStates();
 				}
 				else
 				{
@@ -346,13 +348,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					var hwis = CloneLastHardwareWalletEnumeration();
 					if (hwis.Any())
 					{
-						lock (WalletLock)
-						{
-							SelectedWallet = Wallets.FirstOrDefault();
-							SetWalletStates();
-							IsHwWalletSearchTextVisible = false;
-						}
-
 						var trimmedSelectedWallet = SelectedWallet.Trim();
 						if (Enum.TryParse(typeof(HardwareWalletType), trimmedSelectedWallet, ignoreCase: true, out object t))
 						{
