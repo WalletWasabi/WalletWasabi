@@ -2,16 +2,18 @@
 
 |                | Windows | OSX     | Linux   |
 |----------------|---------|---------|---------|
-| Coldcard       | pass[0] | pass[1][2] | pass[3] |
+| Coldcard       | pass[0][4] | pass[1][2] | pass[3][5] |
 | Digital BitBox |         |         |         |
 | KeepKey        |         |         |         |
 | Ledger Nano S  |         |         |         |
 | Trezor One     |         |         |         |
 
-- [0] Windows 10
-- [1] OSX High Sierra VirtualBox
-- [2] OSX - unknown version
-- [3] Ubuntu 18.04 VirtualBox
+- [0] Windows 10 - https://github.com/nopara73
+- [1] OSX High Sierra VirtualBox - https://github.com/nopara73
+- [2] OSX - unknown version - https://github.com/nopara73
+- [3] Ubuntu 18.04 VirtualBox - https://github.com/nopara73
+- [4] Windows 10 - https://github.com/molnard
+- [5] Ubuntu 16.04 - https://github.com/nopara73
 
 # How to test?
 
