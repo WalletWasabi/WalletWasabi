@@ -38,6 +38,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _successMessage;
 		private bool _isBusy;
 		private string _loadButtonText;
+		private bool _isHwWalletSearchTextVisible;
 
 		private WalletManagerViewModel Owner { get; }
 		public LoadWalletType LoadWalletType { get; }
@@ -141,6 +142,12 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
 		}
 
+		public bool IsHwWalletSearchTextVisible
+		{
+			get => _isHwWalletSearchTextVisible;
+			set => this.RaiseAndSetIfChanged(ref _isHwWalletSearchTextVisible, value);
+		}
+
 		private void SetWarningMessage(string message)
 		{
 			WarningMessage = message;
@@ -216,6 +223,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				Dispatcher.UIThread.PostLogException(async () =>
 				{
+					IsHwWalletSearchTextVisible = true;
 					try
 					{
 						var hwis = await HwiProcessManager.EnumerateAsync();
@@ -244,6 +252,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						SetWarningMessage(ex.ToString());
 						Logger.LogError<LoadWalletViewModel>(ex);
+					}
+					finally
+					{
+						IsHwWalletSearchTextVisible = false;
 					}
 				});
 			}
