@@ -182,22 +182,6 @@ namespace WalletWasabi.Gui
 			{
 				walletManagerViewModel.SelectGenerateWallet();
 			}
-
-			try
-			{
-				// Likely HwiProcessManager is not initialized at this point so make sure it is.
-				await HwiProcessManager.EnsureHwiInstalledAsync(Global.DataDir, Global.Network, logFound: false);
-				var res = await HwiProcessManager.EnumerateAsync();
-				var isAnyHardwareWalletAvailable = res.Any();
-				if (isAnyHardwareWalletAvailable)
-				{
-					walletManagerViewModel.SelectHardwareWallet();
-				}
-			}
-			catch (Exception ex)
-			{
-				Logging.Logger.LogWarning<MainWindow>(ex);
-			}
 		}
 	}
 }
