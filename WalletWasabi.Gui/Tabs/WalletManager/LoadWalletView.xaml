@@ -54,9 +54,20 @@
       </StackPanel>
     </StackPanel>
     <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" BorderThickness="0">
-      <Grid Classes="content">
-        <ListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}" />
-      </Grid>
+      <DockPanel LastChildFill="True">
+        <Grid Classes="content" DockPanel.Dock="Top" IsVisible="{Binding IsHwWalletSearchTextVisible}" Margin="10">
+          <StackPanel>
+            <StackPanel Orientation="Horizontal">
+              <controls:Spinner Height="15" Width="15" Margin="0 0 8 0" />
+              <TextBlock Text="Heads Up!" FontWeight="Bold" />
+            </StackPanel>
+            <TextBlock Text="Looking for hardware wallets. Make sure you set up and logged into the device, usually with a PIN. Some hardware wallets are picky about their USB cables, so you may want to try out multiple ones." TextWrapping="Wrap" />
+          </StackPanel>
+        </Grid>
+        <Grid Classes="content">
+          <ListBox Items="{Binding Wallets}" SelectedItem="{Binding SelectedWallet, Mode=TwoWay}" />
+        </Grid>
+      </DockPanel>
     </controls:GroupBox>
   </DockPanel>
 </UserControl>
