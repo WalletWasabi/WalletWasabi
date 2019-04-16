@@ -159,7 +159,7 @@ namespace WalletWasabi.Gui
 				{
 					MainWindowViewModel.Instance.WindowState = WindowState.Maximized;
 				}
-				await DisplayWalletManagerAsync();
+				DisplayWalletManager();
 			}
 			catch (Exception ex)
 			{
@@ -167,7 +167,7 @@ namespace WalletWasabi.Gui
 			}
 		}
 
-		private async Task DisplayWalletManagerAsync()
+		private void DisplayWalletManager()
 		{
 			var walletManagerViewModel = new WalletManagerViewModel();
 			IoC.Get<IShell>().AddDocument(walletManagerViewModel);
