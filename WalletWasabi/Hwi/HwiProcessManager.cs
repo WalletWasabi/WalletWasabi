@@ -61,19 +61,49 @@ namespace WalletWasabi.Hwi
 			return extpub;
 		}
 
-		public static async Task<IEnumerable<HardwareWalletInfo>> EnumerateAsync()
+		public static async Task<IEnumerable<HardwareWalletInfo>> EnumerateAsync(bool recursive = false)
 		{
 			JToken jtok = await SendCommandAsync("enumerate");
 			JArray jarr = jtok as JArray;
 			var hwis = new List<HardwareWalletInfo>();
 			foreach (JObject json in jarr)
 			{
+				var typeString = json.Value<string>("type");
+				var type = (HardwareWalletType)Enum.Parse(typeof(HardwareWalletType), typeString, ignoreCase: true);
+				var error = json.Value<string>("error");
+
+				if (error != null && !recursive && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+				{
+					// Try apply udev rules.
+					var missingUdevs = UdevRules.FindMissingUdevs().ToArray();
+					if (missingUdevs.Any())
+					{
+						string cmd = "sudo cp udev/*.rules /etc/udev/rules.d/ && sudo udevadm trigger && sudo udevadm control --reload-rules && exit";
+						var escapedArgs = cmd.Replace("\"", "\\\"");
+						// Update Udevs.
+						using (var process = Process.Start(
+							new ProcessStartInfo
+							{
+								FileName = "/bin/sh",
+								Arguments = $"-c \"{escapedArgs}\"",
+								RedirectStandardOutput = false,
+								UseShellExecute = false,
+								CreateNoWindow = false,
+								WindowStyle = ProcessWindowStyle.Normal,
+								WorkingDirectory = "/Hwi/Software"
+							}
+						))
+						{
+							await process.WaitForExitAsync();
+						}
+
+						return await EnumerateAsync(recursive: true);
+					}
+				}
+
 				var fingerprint = json.Value<string>("fingerprint");
 				var serialNumber = json.Value<string>("serial_number");
 				var path = json.Value<string>("path");
-				var typeString = json.Value<string>("type");
-
-				var type = (HardwareWalletType)Enum.Parse(typeof(HardwareWalletType), typeString, ignoreCase: true);
 
 				var hwi = new HardwareWalletInfo(fingerprint, serialNumber, type, path);
 				hwis.Add(hwi);
