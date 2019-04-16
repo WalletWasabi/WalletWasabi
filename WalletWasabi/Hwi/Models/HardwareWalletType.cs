@@ -10,6 +10,6 @@ namespace WalletWasabi.Hwi.Models
 		Ledger,
 		KeepKey,
 		DigitalBitBox,
-		ColdCard
+		Coldcard
 	}
 }
