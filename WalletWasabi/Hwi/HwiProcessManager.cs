@@ -35,7 +35,7 @@ namespace WalletWasabi.Hwi
 		public static async Task<PSBT> SignTxAsync(HardwareWalletInfo hardwareWalletInfo, PSBT psbt)
 		{
 			var psbtString = psbt.ToString();
-			var networkString = Network == Network.Main ? "" : "--testnet ";
+			var networkString = Network == Network.Main ? "" : " --testnet";
 			JToken jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" signtx {psbtString}");
 			JObject json = jtok as JObject;
 			var signedPsbtString = json.Value<string>("psbt");
@@ -51,8 +51,8 @@ namespace WalletWasabi.Hwi
 		/// </summary>
 		public static async Task<ExtPubKey> GetXpubAsync(HardwareWalletInfo hardwareWalletInfo)
 		{
-			var networkString = Network == Network.Main ? "" : "--testnet ";
-			JToken jtok = await SendCommandAsync($"{networkString}--device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h");
+			var networkString = Network == Network.Main ? "" : "--testnet";
+			JToken jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" getxpub m/84h/0h/0h");
 			JObject json = jtok as JObject;
 			string xpub = json.Value<string>("xpub");
 
