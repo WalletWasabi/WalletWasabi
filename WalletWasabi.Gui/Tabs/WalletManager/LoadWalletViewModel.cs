@@ -4,6 +4,7 @@ using AvalonStudio.Shell;
 using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Nito.AsyncEx;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -47,12 +48,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		public bool IsHardwareWallet => LoadWalletType == LoadWalletType.Hardware;
 		public bool IsDesktopWallet => LoadWalletType == LoadWalletType.Desktop;
 
+		private object WalletLock { get; }
+
 		public LoadWalletViewModel(WalletManagerViewModel owner, LoadWalletType loadWalletType) : base(loadWalletType == LoadWalletType.Password ? "Test Password" : (loadWalletType == LoadWalletType.Desktop ? "Load Wallet" : "Hardware Wallet"))
 		{
 			Owner = owner;
 			Password = "";
 			LoadWalletType = loadWalletType;
 			Wallets = new ObservableCollection<string>();
+			WalletLock = new object();
 
 			this.WhenAnyValue(x => x.SelectedWallet)
 				.Subscribe(selectedWallet => SetWalletStates());
@@ -89,6 +93,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			OpenFolderCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
 
 			SetLoadButtonText(IsBusy);
+
+			IsHwWalletSearchTextVisible = LoadWalletType == LoadWalletType.Hardware;
 		}
 
 		public bool IsHwWalletSearchTextVisible
@@ -212,15 +218,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public override void OnCategorySelected()
 		{
-			Wallets.Clear();
-			Password = "";
-			SetValidationMessage("");
+			if (IsHardwareWallet) return;
+			lock (WalletLock)
+			{
+				Wallets.Clear();
+				Password = "";
+				SetValidationMessage("");
 
-			if (IsHardwareWallet)
-			{
-			}
-			else
-			{
 				if (!File.Exists(Global.WalletsDir))
 				{
 					Directory.CreateDirectory(Global.WalletsDir);
@@ -232,10 +236,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					Wallets.Add(Path.GetFileNameWithoutExtension(file.FullName));
 				}
-			}
 
-			SelectedWallet = Wallets.FirstOrDefault();
-			SetWalletStates();
+				SelectedWallet = Wallets.FirstOrDefault();
+				SetWalletStates();
+			}
 		}
 
 		private void SetWalletStates()
@@ -426,6 +430,32 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		{
 			var path = Global.WalletsDir;
 			IoHelpers.OpenFolderInFileExplorer(path);
+		}
+
+		public void RefreshHardwareWallets(IEnumerable<HardwareWalletInfo> hwis)
+		{
+			if (hwis.Any())
+			{
+				var alltypesunique = hwis.Count() == hwis.Select(x => x.Type).ToHashSet().Count();
+				lock (WalletLock)
+				{
+					foreach (HardwareWalletInfo hwi in hwis)
+					{
+						if (alltypesunique)
+						{
+							Wallets.Add(hwi.Type.ToString());
+						}
+						else
+						{
+							Wallets.Add($"{hwi.Type}-{hwi.Fingerprint}");
+						}
+					}
+
+					SelectedWallet = Wallets.FirstOrDefault();
+					SetWalletStates();
+					IsHwWalletSearchTextVisible = false;
+				}
+			}
 		}
 	}
 }

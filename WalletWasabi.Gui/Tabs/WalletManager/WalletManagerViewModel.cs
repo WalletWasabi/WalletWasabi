@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
@@ -17,17 +18,21 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private ObservableCollection<CategoryViewModel> _categories;
 		private CategoryViewModel _selectedCategory;
 		private ViewModelBase _currentView;
-		private Task DetectHardwareWalletTask { get; set; }
+		private LoadWalletViewModel LoadWalletViewModelDesktop { get; }
+		private LoadWalletViewModel LoadWalletViewModelHardware { get; }
 
 		public WalletManagerViewModel() : base("Wallet Manager")
 		{
+			LoadWalletViewModelDesktop = new LoadWalletViewModel(this, LoadWalletType.Desktop);
+			LoadWalletViewModelHardware = new LoadWalletViewModel(this, LoadWalletType.Hardware);
+
 			Categories = new ObservableCollection<CategoryViewModel>
 			{
 				new GenerateWalletViewModel(this),
 				new RecoverWalletViewModel(this),
-				new LoadWalletViewModel(this, LoadWalletType.Desktop),
+				LoadWalletViewModelDesktop,
 				new LoadWalletViewModel(this, LoadWalletType.Password),
-				new LoadWalletViewModel(this, LoadWalletType.Hardware)
+				LoadWalletViewModelHardware
 			};
 
 			SelectedCategory = Categories.FirstOrDefault();
@@ -90,7 +95,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			Dispatcher.UIThread.PostLogException(async () =>
 			{
-				DetectHardwareWalletTask = RefreshHardwareWalletListAsync();
 				await RefreshHardwareWalletListAsync();
 				HardwareWalletRefreshCancel?.Dispose();
 			});
@@ -101,48 +105,41 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		private async Task RefreshHardwareWalletListAsync()
 		{
-			while (!HardwareWalletRefreshCancel.IsCancellationRequested)
+			try
 			{
-				try
+				while (!HardwareWalletRefreshCancel.IsCancellationRequested)
 				{
-					var hwis = await HwiProcessManager.EnumerateAsync();
-					var hwlist = hwis.ToList();
-
-					if (hwis.Any())
+					try
 					{
-						var alltypesunique = hwis.Count() == hwis.Select(x => x.Type).ToHashSet().Count();
+						var hwis = await HwiProcessManager.EnumerateAsync();
+						var hwlist = hwis.ToList();
 
-						//foreach (HardwareWalletInfo hwi in hwis)
-						//{
-						//	if (alltypesunique)
-						//	{
-						//		Wallets.Add(hwi.Type.ToString());
-						//	}
-						//	else
-						//	{
-						//		Wallets.Add($"{hwi.Type}-{hwi.Fingerprint}");
-						//	}
-						//}
+						if (hwis.Any())
+						{
+							LoadWalletViewModelHardware.RefreshHardwareWallets(hwlist);
 
-						//SelectedWallet = Wallets.FirstOrDefault();
-						//SetWalletStates();
-						//break;
+							try
+							{
+								SelectHardwareWallet();
+							}
+							catch (Exception ex)
+							{
+								Logging.Logger.LogWarning<MainWindow>(ex);
+							}
+
+							break;
+						}
+					}
+					catch (Exception ex)
+					{
+						Logger.LogError<WalletManagerViewModel>(ex);
 					}
 
 					await Task.Delay(3000, HardwareWalletRefreshCancel.Token);
 				}
-				catch (TaskCanceledException)
-				{
-				}
-				catch (Exception ex)
-				{
-					//SetWarningMessage(ex.ToTypeMessageString());
-					//Logger.LogError<LoadWalletViewModel>(ex);
-				}
-				finally
-				{
-					//IsHwWalletSearchTextVisible = false;
-				}
+			}
+			catch (TaskCanceledException)
+			{
 			}
 		}
 
