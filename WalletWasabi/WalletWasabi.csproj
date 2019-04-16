@@ -36,9 +36,6 @@
     <None Update="Hwi\Software\hwi-win64.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Hwi\Software\wasabihardwarewallet.rules">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="TorDaemons\data-folder.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
