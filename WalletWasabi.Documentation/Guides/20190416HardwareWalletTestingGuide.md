@@ -10,7 +10,7 @@
 
 - [0] Windows 10 - https://github.com/nopara73
 - [1] OSX High Sierra VirtualBox - https://github.com/nopara73
-- [2] OSX - unknown version - https://github.com/nopara73
+- [2] OSX - unknown version - https://github.com/Zolgarr
 - [3] Ubuntu 18.04 VirtualBox - https://github.com/nopara73
 - [4] Windows 10 - https://github.com/molnard
 - [5] Ubuntu 16.04 - https://github.com/nopara73
