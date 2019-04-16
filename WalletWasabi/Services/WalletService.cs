@@ -24,6 +24,7 @@ using System.Diagnostics;
 using NBitcoin.BitcoinCore;
 using System.Net.Sockets;
 using NBitcoin.Protocol.Behaviors;
+using NBitcoin.BIP174;
 
 namespace WalletWasabi.Services
 {
@@ -256,7 +257,9 @@ namespace WalletWasabi.Services
 			using (HandleFiltersLock.Lock())
 			{
 				// Go through the keymanager's index.
-				var bestKeyManagerHeight = KeyManager.GetBestHeight();
+				KeyManager.AssertNetworkOrClearBlockstate(Network);
+				Height bestKeyManagerHeight = KeyManager.GetBestHeight();
+
 				foreach (var blockstate in KeyManager.GetTransactionIndex())
 				{
 					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel);
@@ -1195,35 +1198,46 @@ namespace WalletWasabi.Services
 			Logger.LogInfo<WalletService>("Selecting coins...");
 			IEnumerable<SmartCoin> coinsToSpend = SelectCoinsToSpend(allowedSmartCoinInputs, totalOutgoingAmount);
 
-			// 8. Get signing keys
-			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(password, coinsToSpend.Select(x => x.ScriptPubKey).ToArray());
-
 			// 9. Build the transaction
 			Logger.LogInfo<WalletService>("Signing transaction...");
-			var builder = Network.CreateTransactionBuilder();
-			builder = builder
-				.AddCoins(coinsToSpend.Select(x => x.GetCoin()))
-				.AddKeys(signingKeys.ToArray());
+			TransactionBuilder builder = Network.CreateTransactionBuilder();
+			// It must be watch only, too, because if we have the key and also hardware wallet, we don't care we can sign.
+			bool sign = !(KeyManager.IsWatchOnly && KeyManager.IsHardwareWallet);
+			if (sign)
+			{
+				// 8. Get signing keys
+				IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(password, coinsToSpend.Select(x => x.ScriptPubKey).ToArray());
+
+				builder = builder
+					.AddCoins(coinsToSpend.Select(x => x.GetCoin()))
+					.AddKeys(signingKeys.ToArray());
+			}
+			else
+			{
+				builder = builder
+					.AddCoins(coinsToSpend.Select(x => x.GetCoin()));
+			}
 
 			foreach ((Script scriptPubKey, Money amount, string label) output in realToSend)
 			{
 				builder = builder.Send(output.scriptPubKey, output.amount);
 			}
 
-			var tx = builder
+			Transaction tx = builder
 				.SetChange(changeScriptPubKey)
 				.SendFees(fee)
-				.BuildTransaction(true);
+				.BuildTransaction(sign);
 
-			TransactionPolicyError[] checkResults = builder.Check(tx, fee);
-			if (checkResults.Length > 0)
+			if (sign)
 			{
-				throw new InvalidTxException(tx, checkResults);
+				TransactionPolicyError[] checkResults = builder.Check(tx, fee);
+				if (checkResults.Length > 0)
+				{
+					throw new InvalidTxException(tx, checkResults);
+				}
 			}
 
 			List<SmartCoin> spentCoins = Coins.Where(x => tx.Inputs.Any(y => y.PrevOut.Hash == x.TransactionId && y.PrevOut.N == x.Index)).ToList();
-
-			TxoRef[] spentOutputs = spentCoins.Select(x => new TxoRef(x.TransactionId, x.Index)).ToArray();
 
 			var outerWalletOutputs = new List<SmartCoin>();
 			var innerWalletOutputs = new List<SmartCoin>();
@@ -1245,9 +1259,41 @@ namespace WalletWasabi.Services
 				}
 			}
 
+			PSBT psbt = PSBT.FromTransaction(tx);
+			//uint masterFP = BitConverter.ToUInt32(KeyManager.ExtPubKey.Fingerprint); - DON'T DO THIS, THERE ARE SOME FINGERPRINT CONSISTENCY ISSUES
+			uint masterFP = BitConverter.ToUInt32(ByteHelpers.FromHex(KeyManager.HardwareWalletInfo.Fingerprint));
+			HashSet<SmartCoin> allTxCoins = spentCoins.Concat(innerWalletOutputs).Concat(outerWalletOutputs).ToHashSet();
+			foreach (var coin in allTxCoins)
+			{
+				if (coin.HdPubKey != null)
+				{
+					var index = -1;
+					var isInput = false;
+					for (int i = 0; i < tx.Inputs.Count; i++)
+					{
+						var input = tx.Inputs[i];
+						if (input.PrevOut == coin.GetOutPoint())
+						{
+							index = i;
+							isInput = true;
+							break;
+						}
+					}
+					if (!isInput)
+					{
+						index = (int)coin.Index;
+					}
+
+					psbt.AddPathTo(index, coin.HdPubKey.PubKey, masterFP, coin.HdPubKey.FullKeyPath, isInput);
+				}
+			}
+
+			psbt.AddCoins(allTxCoins.Select(x => x.GetCoin()).ToArray()); // ToDo: Do we need all the coins, don't we just need the input coins?
+			psbt.AddScript(allTxCoins.Select(x => x.ScriptPubKey).ToArray()); // ToDo: Do we need this?
+
 			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
 
-			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), spendsUnconfirmed, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
+			return new BuildTransactionResult(new SmartTransaction(tx, Height.Unknown), psbt, spendsUnconfirmed, sign, fee, feePc, outerWalletOutputs, innerWalletOutputs, spentCoins);
 		}
 
 		private IEnumerable<SmartCoin> SelectCoinsToSpend(IEnumerable<SmartCoin> unspentCoins, Money totalOutAmount)

@@ -24,7 +24,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			: base(Path.GetFileNameWithoutExtension(walletService.KeyManager.FilePath))
 		{
 			WalletService = walletService;
-			Name = Path.GetFileNameWithoutExtension(WalletService.KeyManager.FilePath);
+			var keyManager = WalletService.KeyManager;
+			Name = Path.GetFileNameWithoutExtension(keyManager.FilePath);
 
 			SetBalance(Name);
 

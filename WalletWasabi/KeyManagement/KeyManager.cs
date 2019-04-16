@@ -9,6 +9,8 @@ using System.Text;
 using System.Security;
 using System;
 using WalletWasabi.Models;
+using WalletWasabi.Hwi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -56,6 +58,10 @@ namespace WalletWasabi.KeyManagement
 		public string FilePath { get; private set; }
 		private object ToFileLock { get; }
 
+		public bool IsWatchOnly { get; }
+		public bool IsHardwareWallet => HardwareWalletInfo != null;
+		public HardwareWalletInfo HardwareWalletInfo { get; set; }
+
 		[JsonConstructor]
 		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, bool? passwordVerified, BlockchainState blockchainState, string filePath = null)
 		{
@@ -67,13 +73,15 @@ namespace WalletWasabi.KeyManagement
 			ScriptHdPubkeyMapLock = new object();
 			BlockchainStateLock = new object();
 
-			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
-			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
+			EncryptedSecret = encryptedSecret;
+			IsWatchOnly = EncryptedSecret is null;
+			ChainCode = chainCode;
 			ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
 
 			PasswordVerified = passwordVerified;
 
 			BlockchainState = blockchainState ?? new BlockchainState();
+			HardwareWalletInfo = null;
 
 			SetFilePath(filePath);
 			ToFileLock = new object();
@@ -90,6 +98,7 @@ namespace WalletWasabi.KeyManagement
 			ScriptHdPubkeyMapLock = new object();
 			BlockchainState = new BlockchainState();
 			BlockchainStateLock = new object();
+			HardwareWalletInfo = null;
 
 			if (password is null)
 			{
@@ -97,6 +106,7 @@ namespace WalletWasabi.KeyManagement
 			}
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
+			IsWatchOnly = false;
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
@@ -119,6 +129,11 @@ namespace WalletWasabi.KeyManagement
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
 			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), false, new BlockchainState(), filePath);
+		}
+
+		public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string filePath = null)
+		{
+			return new KeyManager(null, null, extPubKey, null, new BlockchainState(), filePath);
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string filePath = null)
@@ -365,12 +380,17 @@ namespace WalletWasabi.KeyManagement
 					ExtKey ek = extKey.Derive(key.FullKeyPath);
 					extKeysAndPubs.Add((ek, key));
 				}
-				return extKeysAndPubs;
 			}
+			return extKeysAndPubs;
 		}
 
 		public ExtKey GetMasterExtKey(string password)
 		{
+			if (IsWatchOnly)
+			{
+				throw new SecurityException("This is a watchonly wallet.");
+			}
+
 			try
 			{
 				Key secret = EncryptedSecret.GetKey(password);
@@ -457,26 +477,31 @@ namespace WalletWasabi.KeyManagement
 
 		public Height GetBestHeight()
 		{
+			Height res;
 			lock (BlockchainStateLock)
 			{
-				return BlockchainState.BestHeight;
+				res = BlockchainState.BestHeight;
 			}
+			return res;
 		}
 
 		public IEnumerable<BlockState> GetTransactionIndex()
 		{
+			IEnumerable<BlockState> res = null;
 			lock (BlockchainStateLock)
 			{
-				return BlockchainState.BlockStates.ToList();
+				res = BlockchainState.BlockStates.ToList();
 			}
+			return res;
 		}
 
 		/// <returns>Removed element.</returns>
 		public BlockState TryRemoveBlockState(uint256 blockHash)
 		{
+			BlockState found = null;
 			lock (BlockchainStateLock)
 			{
-				BlockState found = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == blockHash);
+				found = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == blockHash);
 				if (found != null)
 				{
 					if (BlockchainState.BlockStates.Remove(found))
@@ -484,17 +509,18 @@ namespace WalletWasabi.KeyManagement
 						ToFileNoBlockchainStateLock();
 					}
 				}
-
-				return found;
 			}
+			return found;
 		}
 
 		public bool CointainsBlockState(uint256 blockHash)
 		{
+			bool res = false;
 			lock (BlockchainStateLock)
 			{
-				return BlockchainState.BlockStates.Any(x => x.BlockHash == blockHash);
+				res = BlockchainState.BlockStates.Any(x => x.BlockHash == blockHash);
 			}
+			return res;
 		}
 
 		public void AddBlockState(BlockState state, bool setItsHeightToBest)
@@ -545,6 +571,28 @@ namespace WalletWasabi.KeyManagement
 			{
 				BlockchainState.BestHeight = height;
 				ToFileNoBlockchainStateLock();
+			}
+		}
+
+		/// <returns>The network the keymanager was used the last time on.</returns>
+		public void AssertNetworkOrClearBlockstate(Network expectednetwork)
+		{
+			lock (BlockchainStateLock)
+			{
+				var lastNetwork = BlockchainState.Network;
+				if (lastNetwork is null || lastNetwork != expectednetwork)
+				{
+					BlockchainState.Network = expectednetwork;
+					BlockchainState.BestHeight = 0;
+					BlockchainState.BlockStates.Clear();
+					ToFileNoBlockchainStateLock();
+
+					if (lastNetwork != null)
+					{
+						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectednetwork.ToString()}. Last time it was opened on {lastNetwork.ToString()}.");
+					}
+					Logger.LogInfo<KeyManager>("Blockchain cache is cleared.");
+				}
 			}
 		}
 
