@@ -10,6 +10,7 @@ using System.Security;
 using System;
 using WalletWasabi.Models;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -379,8 +380,8 @@ namespace WalletWasabi.KeyManagement
 					ExtKey ek = extKey.Derive(key.FullKeyPath);
 					extKeysAndPubs.Add((ek, key));
 				}
-				return extKeysAndPubs;
 			}
+			return extKeysAndPubs;
 		}
 
 		public ExtKey GetMasterExtKey(string password)
@@ -476,26 +477,31 @@ namespace WalletWasabi.KeyManagement
 
 		public Height GetBestHeight()
 		{
+			Height res;
 			lock (BlockchainStateLock)
 			{
-				return BlockchainState.BestHeight;
+				res = BlockchainState.BestHeight;
 			}
+			return res;
 		}
 
 		public IEnumerable<BlockState> GetTransactionIndex()
 		{
+			IEnumerable<BlockState> res = null;
 			lock (BlockchainStateLock)
 			{
-				return BlockchainState.BlockStates.ToList();
+				res = BlockchainState.BlockStates.ToList();
 			}
+			return res;
 		}
 
 		/// <returns>Removed element.</returns>
 		public BlockState TryRemoveBlockState(uint256 blockHash)
 		{
+			BlockState found = null;
 			lock (BlockchainStateLock)
 			{
-				BlockState found = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == blockHash);
+				found = BlockchainState.BlockStates.FirstOrDefault(x => x.BlockHash == blockHash);
 				if (found != null)
 				{
 					if (BlockchainState.BlockStates.Remove(found))
@@ -503,17 +509,18 @@ namespace WalletWasabi.KeyManagement
 						ToFileNoBlockchainStateLock();
 					}
 				}
-
-				return found;
 			}
+			return found;
 		}
 
 		public bool CointainsBlockState(uint256 blockHash)
 		{
+			bool res = false;
 			lock (BlockchainStateLock)
 			{
-				return BlockchainState.BlockStates.Any(x => x.BlockHash == blockHash);
+				res = BlockchainState.BlockStates.Any(x => x.BlockHash == blockHash);
 			}
+			return res;
 		}
 
 		public void AddBlockState(BlockState state, bool setItsHeightToBest)
@@ -564,6 +571,28 @@ namespace WalletWasabi.KeyManagement
 			{
 				BlockchainState.BestHeight = height;
 				ToFileNoBlockchainStateLock();
+			}
+		}
+
+		/// <returns>The network the keymanager was used the last time on.</returns>
+		public void AssertNetworkOrClearBlockstate(Network expectednetwork)
+		{
+			lock (BlockchainStateLock)
+			{
+				var lastNetwork = BlockchainState.Network;
+				if (lastNetwork is null || lastNetwork != expectednetwork)
+				{
+					BlockchainState.Network = expectednetwork;
+					BlockchainState.BestHeight = 0;
+					BlockchainState.BlockStates.Clear();
+					ToFileNoBlockchainStateLock();
+
+					if (lastNetwork != null)
+					{
+						Logger.LogWarning<KeyManager>($"Wallet is opened on {expectednetwork.ToString()}. Last time it was opened on {lastNetwork.ToString()}.");
+					}
+					Logger.LogInfo<KeyManager>("Blockchain cache is cleared.");
+				}
 			}
 		}
 

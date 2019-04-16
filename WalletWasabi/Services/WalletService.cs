@@ -257,7 +257,9 @@ namespace WalletWasabi.Services
 			using (HandleFiltersLock.Lock())
 			{
 				// Go through the keymanager's index.
-				var bestKeyManagerHeight = KeyManager.GetBestHeight();
+				KeyManager.AssertNetworkOrClearBlockstate(Network);
+				Height bestKeyManagerHeight = KeyManager.GetBestHeight();
+
 				foreach (var blockstate in KeyManager.GetTransactionIndex())
 				{
 					var block = await GetOrDownloadBlockAsync(blockstate.BlockHash, cancel);
