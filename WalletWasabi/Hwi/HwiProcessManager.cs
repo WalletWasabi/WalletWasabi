@@ -88,7 +88,8 @@ namespace WalletWasabi.Hwi
 			{
 				if (!File.Exists(HwiPath))
 				{
-					throw new FileNotFoundException($"Hwi.exe not found here: {HwiPath}. Maybe it is removed by antivirus software!");
+					var exeName = Path.GetFileName(HwiPath);
+					throw new FileNotFoundException($"{exeName} not found at {HwiPath}. Maybe it was removed by antivirus software!");
 				}
 
 				using (var process = Process.Start(
@@ -160,7 +161,7 @@ namespace WalletWasabi.Hwi
 			}
 		}
 
-		public static async Task EnsureHwiInstalledAsync(string dataDir, Network network)
+		public static async Task EnsureHwiInstalledAsync(string dataDir, Network network, bool logFound = true)
 		{
 			Network = network;
 
@@ -205,7 +206,10 @@ namespace WalletWasabi.Hwi
 			}
 			else
 			{
-				Logger.LogInfo($"HWI instance found at {hwiPath}.", nameof(HwiProcessManager));
+				if (logFound)
+				{
+					Logger.LogInfo($"HWI instance found at {hwiPath}.", nameof(HwiProcessManager));
+				}
 			}
 
 			HwiPath = hwiPath;
