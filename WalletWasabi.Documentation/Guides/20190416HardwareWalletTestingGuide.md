@@ -63,7 +63,7 @@ More info here: https://github.com/zkSNACKs/WalletWasabi/blob/master/README.md
 ## Step 4: Report Results
 
 Report results on GitHub or Reddit.  
-On GitHub by commenting under this pull request: https://github.com/zkSNACKs/WalletWasabi/pull/1341
-On Reddit by commenting...
+On GitHub by commenting under this pull request: https://github.com/zkSNACKs/WalletWasabi/pull/1341  
+On Reddit by commenting under this thread: https://old.reddit.com/r/WasabiWallet/comments/bdyz84/wasabi_wallet_hardware_wallet_integration_testing/
 
 Please include your OS version and your hardware wallet type.
