@@ -272,6 +272,35 @@ namespace System.IO
 				}
 				else
 				{
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+					{
+						bool openWithNotepad = true; // If there is an exception with the registry read we use notepad.
+
+						try
+						{
+							openWithNotepad = !EnvironmentHelpers.IsFileTypeAssociated("json");
+						}
+						catch (Exception ex)
+						{
+							Logger.LogError(ex, nameof(IoHelpers));
+						}
+
+						if (openWithNotepad)
+						{
+							// Open file using Notepad.
+							using (Process process = Process.Start(new ProcessStartInfo
+							{
+								FileName = "notepad.exe",
+								Arguments = filePath,
+								CreateNoWindow = true,
+								UseShellExecute = false
+							})) { }
+
+							return; // Opened with notepad, return.
+						}
+					}
+
+					// Open file wtih the default editor.
 					using (Process process = Process.Start(new ProcessStartInfo
 					{
 						FileName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? filePath : "open",
