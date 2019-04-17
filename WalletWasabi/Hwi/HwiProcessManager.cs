@@ -232,6 +232,10 @@ namespace WalletWasabi.Hwi
 				{
 					string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
 					await IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, hwiDir);
+					var hwiPath = Path.Combine(hwiDir, "hwi");
+					var bytes = File.ReadAllBytes(hwiPath);
+					File.Delete(hwiPath);
+					File.WriteAllBytes(hwiPath, bytes);
 					Logger.LogInfo($"Extracted {hwiLinuxZip} to {hwiDir}.", nameof(HwiProcessManager));
 				}
 				else // OSX
