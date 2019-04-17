@@ -4,11 +4,11 @@ Wasabi Password Finder is a tool for helping those who made a mistake typing the
 
 ## Limitations
 
-Wasabi wallet protects the encrypted secret key with the same technology used to protect paper wallets (bip 38) and for that reason it is computational infeasible to brute force the password using all the possible combinations. It is important to know that Wasabi Password Finder is not for breaking wallet passwords but for finding errors (typos) in an already known password. 
+Wasabi wallet protects the encrypted secret key with the same technology used to protect paper wallets (bip 38) and for that reason it is computationally infeasible to brute force the password using all the possible combinations. It is important to know that Wasabi Password Finder is not for breaking wallet passwords but for finding errors (typos) in an already known password. 
 
 ## Usage
 
-Let start giving a glance to the command help:
+Let's start giving a glance to the command `help`:
 
 ```
 $ wassabee run help findpassword
@@ -25,14 +25,14 @@ eg: .wassabee findpassword --wallet:/home/user/.wasabiwallet/client/Wallets/my-w
   -h, --help                 Show Help
 ```
 
-Let now to find a typo in a wallet called pass.jsom. For the sake of the example let say I've created this wallet and I think the password is `pasd` but it was created with the password `pass` by accident.
+Now, let's find a typo in a wallet called `pass.json`. For the sake of the example let say I've created this wallet and I think the password is `pasd` but it was created with the password `pass` by accident.
 
 ```
 $ wassabee findpassword --wallet:/home/lontivero/.walletwasabi/client/Wallets/pass.json 
 WARNING: This tool will display you password if it finds it. Also, the process status display your wong password chars.
          You can cancel this by CTRL+C combination anytime.
 
-Enter password: ****    <---- Here I typed the password that I think was used to create the wallet (`pasd`)
+Enter password: ****    <---- Here I typed the password that I think used to create the wallet (`pasd`)
 
 [##################################################################################                  ] 82% - ET: 00:00:15.4120338
 
