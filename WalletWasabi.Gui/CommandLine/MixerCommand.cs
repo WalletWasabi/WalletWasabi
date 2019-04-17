@@ -19,10 +19,10 @@ namespace WalletWasabi.Gui.CommandLine
 			: base("mix", "Start mixing without the GUI with the specified wallet.")
 		{
 			Options = new OptionSet() {
-				"usage: mix --wallet:wallet-file-path --mixall --keepalive loglevel:log-level",
+				"usage: mix --wallet:WalletName --mixall --keepalive --loglevel:log-level",
 				"",
 				"Start mixing without the GUI with the specified wallet.",
-				"eg: mix --wallet:/home/user/.walletwasabi/client/Wallets/MyWallet.json --mixall --keepalive loglevel:info",
+				"eg: ./wassabee mix --wallet:MyWalletName --mixall --keepalive --loglevel:info",
 
 				{ "h|help", "Displays help page and exit.",
 					x => ShowHelp = x != null},
@@ -30,7 +30,7 @@ namespace WalletWasabi.Gui.CommandLine
 					x => Silent = x != null},
 				{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARNING|DEBUG|ERROR.",
 					x => LoggingLevel = x },
-				{ "w|wallet=", "The specified wallet file.",
+				{ "w|wallet=", "The name of the wallet file.",
 					x =>  WalletName = x?.ToLower() },
 				{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.",
 					x => MixAll = x != null},

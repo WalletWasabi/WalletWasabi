@@ -35,7 +35,7 @@ namespace WalletWasabi.Gui.CommandLine
 			Console.WriteLine($"WARNING: This tool will display you password if it finds it. Also, the process status display your wong password chars.");
 			Console.WriteLine($"         You can cancel this by CTRL+C combination anytime." + Environment.NewLine);
 
-			Console.Write("Enter password: ");
+			Console.Write("Enter a likely password: ");
 
 			var password = PasswordConsole.ReadPassword();
 			var charset = Charsets[language] + (useNumbers ? "0123456789" : "") + (useSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");

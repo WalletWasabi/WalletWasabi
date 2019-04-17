@@ -32,32 +32,9 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			Logger.LogStarting("Wasabi");
 
-			KeyManager keyManager = null;
-			if (walletName != null)
-			{
-				var walletFullPath = Global.GetWalletFullPath(walletName);
-				var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
-				if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
-				{
-					// The selected wallet is not available any more (someone deleted it?).
-					Logger.LogCritical("The selected wallet doesn't exsist, did you delete it?", nameof(Daemon));
-					return;
-				}
-
-				try
-				{
-					keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogCritical(ex, nameof(Daemon));
-					return;
-				}
-			}
-
+			KeyManager keyManager = TryGetKeymanagerFromWalletName(walletName);
 			if (keyManager is null)
 			{
-				Logger.LogCritical("Wallet was not supplied. Add --wallet {WalletName}", nameof(Daemon));
 				return;
 			}
 
@@ -122,6 +99,48 @@ namespace WalletWasabi.Gui.CommandLine
 			} while (mixing);
 
 			await Global.ChaumianClient.DequeueAllCoinsFromMixAsync();
+		}
+
+		public static KeyManager TryGetKeymanagerFromWalletName(string walletName)
+		{
+			try
+			{
+				KeyManager keyManager = null;
+				if (walletName != null)
+				{
+					var walletFullPath = Global.GetWalletFullPath(walletName);
+					var walletBackupFullPath = Global.GetWalletBackupFullPath(walletName);
+					if (!File.Exists(walletFullPath) && !File.Exists(walletBackupFullPath))
+					{
+						// The selected wallet is not available any more (someone deleted it?).
+						Logger.LogCritical("The selected wallet doesn't exsist, did you delete it?", nameof(Daemon));
+						return null;
+					}
+
+					try
+					{
+						keyManager = Global.LoadKeyManager(walletFullPath, walletBackupFullPath);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogCritical(ex, nameof(Daemon));
+						return null;
+					}
+				}
+
+				if (keyManager is null)
+				{
+					Logger.LogCritical("Wallet was not supplied. Add --wallet:WalletName", nameof(Daemon));
+					return null;
+				}
+
+				return keyManager;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogCritical(ex, nameof(Daemon));
+				return null;
+			}
 		}
 
 		private static async Task TryQueueCoinsToMixAsync(bool mixAll, string password)
