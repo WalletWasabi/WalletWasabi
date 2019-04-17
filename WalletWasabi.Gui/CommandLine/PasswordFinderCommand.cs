@@ -25,7 +25,7 @@ namespace WalletWasabi.Gui.CommandLine
 				"Tries to find typing mistakes in the user password by brute forcing it char by char.",
 				"eg: .wassabee findpassword --wallet:/home/user/.wasabiwallet/client/Wallets/my-wallet.json --numbers:false --symbold:true",
 				"",
-				{ "w|wallet=", "The path to the wallet file.", 
+				{ "w|wallet=", "The path to the wallet file.",
 					x =>  Wallet = x },
 				{ "l|language=", "The charset to use: en, es, it, fr, pt. Default=en.",
 					v => Language = v },

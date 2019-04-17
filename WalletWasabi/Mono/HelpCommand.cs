@@ -221,7 +221,9 @@ namespace Mono.Options
 			}
 
 			if (CommandSet.NestedCommandSets is null)
+			{
 				return commands;
+			}
 
 			foreach (var nc in CommandSet.NestedCommandSets)
 			{
@@ -238,7 +240,10 @@ namespace Mono.Options
 				commands.Add(new KeyValuePair<string, Command>($"{outer}{value.Suite} {v.Name}", v));
 			}
 			if (value.NestedCommandSets is null)
+			{
 				return;
+			}
+
 			foreach (var nc in value.NestedCommandSets)
 			{
 				AddNestedCommands(commands, $"{outer}{value.Suite} ", nc);

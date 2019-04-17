@@ -175,7 +175,9 @@ namespace Mono.Options
 		public Command(string name, string help = null)
 		{
 			if (string.IsNullOrEmpty(name))
+			{
 				throw new ArgumentNullException(nameof(name));
+			}
 
 			Name = NormalizeCommandName(name);
 			Help = help;

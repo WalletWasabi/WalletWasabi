@@ -199,7 +199,10 @@ namespace Mono.Options
 		public new CommandSet Add(Command value)
 		{
 			if (value is null)
+			{
 				throw new ArgumentNullException(nameof(value));
+			}
+
 			AddCommand(value);
 			Options.Add(new CommandOption(value));
 			return this;
@@ -303,7 +306,9 @@ namespace Mono.Options
 		public CommandSet Add(CommandSet nestedCommands)
 		{
 			if (nestedCommands is null)
+			{
 				throw new ArgumentNullException(nameof(nestedCommands));
+			}
 
 			if (NestedCommandSets is null)
 			{
@@ -336,13 +341,21 @@ namespace Mono.Options
 		private bool AlreadyAdded(CommandSet value)
 		{
 			if (value == this)
+			{
 				return true;
+			}
+
 			if (NestedCommandSets is null)
+			{
 				return false;
+			}
+
 			foreach (var nc in NestedCommandSets)
 			{
 				if (nc.AlreadyAdded(value))
+				{
 					return true;
+				}
 			}
 			return false;
 		}
@@ -360,7 +373,9 @@ namespace Mono.Options
 			}
 
 			if (NestedCommandSets is null)
+			{
 				yield break;
+			}
 
 			foreach (var subset in NestedCommandSets)
 			{
@@ -383,7 +398,9 @@ namespace Mono.Options
 			for (int i = 0; i < top; i++)
 			{
 				if (char.IsWhiteSpace(input[i]))
+				{
 					continue;
+				}
 
 				for (int j = i; j < top; j++)
 				{
@@ -396,7 +413,10 @@ namespace Mono.Options
 				}
 				rest = "";
 				if (i != 0)
+				{
 					input = input.Substring(i).Trim();
+				}
+
 				return;
 			}
 		}
@@ -404,7 +424,9 @@ namespace Mono.Options
 		public async Task<int> RunAsync(IEnumerable<string> arguments)
 		{
 			if (arguments is null)
+			{
 				throw new ArgumentNullException(nameof(arguments));
+			}
 
 			ShowHelp = false;
 			if (Help is null)
@@ -414,11 +436,11 @@ namespace Mono.Options
 			}
 			if (!Options.Contains("help"))
 			{
-				Options.Add("help", "", (Action<string>)(v => ShowHelp = v != null), hidden: true);
+				Options.Add("help", "", v => ShowHelp = v != null, hidden: true);
 			}
 			if (!Options.Contains("?"))
 			{
-				Options.Add("?", "", (Action<string>)(v => ShowHelp = v != null), hidden: true);
+				Options.Add("?", "", v => ShowHelp = v != null, hidden: true);
 			}
 			var extra = Options.Parse(arguments);
 			if (extra.Count == 0)
@@ -466,7 +488,10 @@ namespace Mono.Options
 			{
 				name = name + " " + extra[i];
 				if (!Contains(name))
+				{
 					continue;
+				}
+
 				extra.RemoveRange(0, i + 1);
 				return this[name];
 			}
@@ -476,16 +501,22 @@ namespace Mono.Options
 		private Command TryGetNestedCommand(List<string> extra)
 		{
 			if (NestedCommandSets is null)
+			{
 				return null;
+			}
 
 			var nestedCommands = NestedCommandSets.Find(c => c.Suite == extra[0]);
 			if (nestedCommands is null)
+			{
 				return null;
+			}
 
 			var extraCopy = new List<string>(extra);
 			extraCopy.RemoveAt(0);
 			if (extraCopy.Count == 0)
+			{
 				return null;
+			}
 
 			var command = nestedCommands.GetCommand(extraCopy);
 			if (command != null)
