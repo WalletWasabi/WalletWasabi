@@ -26,7 +26,6 @@ namespace WalletWasabi.Gui.CommandLine
 				}
 
 				Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
-				Logger.LogStarting("Wasabi");
 
 				if (args.Length == 0)
 				{

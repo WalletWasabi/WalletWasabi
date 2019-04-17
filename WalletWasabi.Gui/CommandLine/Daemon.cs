@@ -14,73 +14,82 @@ namespace WalletWasabi.Gui.CommandLine
 	{
 		internal static async Task RunAsync(string walletName, bool mixAll, bool keepMixAlive)
 		{
-			KeyManager keyManager = TryGetKeymanagerFromWalletName(walletName);
-			if (keyManager is null)
+			try
 			{
-				return;
-			}
+				Logger.LogStarting("Wasabi Daemon");
 
-			string password = null;
-			var count = 3;
-			do
-			{
-				if (password != null)
+				KeyManager keyManager = TryGetKeymanagerFromWalletName(walletName);
+				if (keyManager is null)
 				{
-					if (count > 0)
+					return;
+				}
+
+				string password = null;
+				var count = 3;
+				do
+				{
+					if (password != null)
 					{
-						Logger.LogError($"Wrong password. {count} attempts left. Try again.");
+						if (count > 0)
+						{
+							Logger.LogError($"Wrong password. {count} attempts left. Try again.");
+						}
+						else
+						{
+							Logger.LogCritical($"Wrong password. {count} attempts left. Exiting...");
+							return;
+						}
+						count--;
 					}
-					else
+					Console.Write("Password: ");
+
+					password = PasswordConsole.ReadPassword();
+					password = Guard.Correct(password);
+				}
+				while (!keyManager.TestPassword(password));
+
+				Logger.LogInfo("Correct password.");
+
+				await Global.InitializeNoWalletAsync();
+				await Global.InitializeWalletServiceAsync(keyManager);
+
+				await TryQueueCoinsToMixAsync(mixAll, password);
+
+				bool mixing;
+				do
+				{
+					if (Global.KillRequested)
 					{
-						Logger.LogCritical($"Wrong password. {count} attempts left. Exiting...");
-						return;
+						break;
 					}
-					count--;
-				}
-				Console.Write("Password: ");
 
-				password = PasswordConsole.ReadPassword();
-				password = Guard.Correct(password);
+					await Task.Delay(3000);
+					if (Global.KillRequested)
+					{
+						break;
+					}
+
+					bool anyCoinsQueued = Global.ChaumianClient.State.AnyCoinsQueued();
+
+					if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
+					{
+						await TryQueueCoinsToMixAsync(mixAll, password);
+					}
+
+					if (Global.KillRequested)
+					{
+						break;
+					}
+
+					mixing = anyCoinsQueued || keepMixAlive;
+				} while (mixing);
+
+				await Global.ChaumianClient.DequeueAllCoinsFromMixAsync();
 			}
-			while (!keyManager.TestPassword(password));
-
-			Logger.LogInfo("Correct password.");
-
-			await Global.InitializeNoWalletAsync();
-			await Global.InitializeWalletServiceAsync(keyManager);
-
-			await TryQueueCoinsToMixAsync(mixAll, password);
-
-			bool mixing;
-			do
+			finally
 			{
-				if (Global.KillRequested)
-				{
-					break;
-				}
-
-				await Task.Delay(3000);
-				if (Global.KillRequested)
-				{
-					break;
-				}
-
-				bool anyCoinsQueued = Global.ChaumianClient.State.AnyCoinsQueued();
-
-				if (!anyCoinsQueued && keepMixAlive) // If no coins queued and mixing is asked to be kept alive then try to queue coins.
-				{
-					await TryQueueCoinsToMixAsync(mixAll, password);
-				}
-
-				if (Global.KillRequested)
-				{
-					break;
-				}
-
-				mixing = anyCoinsQueued || keepMixAlive;
-			} while (mixing);
-
-			await Global.ChaumianClient.DequeueAllCoinsFromMixAsync();
+				Logger.LogInfo($"Wasabi Daemon stopped gracefully.", Logger.InstanceGuid.ToString());
+			}
 		}
 
 		public static KeyManager TryGetKeymanagerFromWalletName(string walletName)

@@ -159,6 +159,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MessageLocalizerConverter = System.Converter<string, string>;
@@ -449,7 +450,10 @@ namespace Mono.Options
 				{
 					return await Help.InvokeAsync(extra);
 				}
-				Out.WriteLine(Options.MessageLocalizer($"Use `{Suite} help` for usage."));
+				if (arguments.All(x => !x.Contains("version")))
+				{
+					Out.WriteLine(Options.MessageLocalizer($"Use `{Suite} help` for usage."));
+				}
 				return 1;
 			}
 			var command = GetCommand(extra);
