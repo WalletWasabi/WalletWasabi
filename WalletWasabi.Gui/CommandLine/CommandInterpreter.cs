@@ -9,6 +9,7 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public static class CommandInterpreter
 	{
+		/// <returns>If the GUI should run or not.</returns>
 		public static async Task<bool> ExecuteCommandsAsync(string[] args)
 		{
 			var showHelp = false;
