@@ -17,23 +17,15 @@ namespace WalletWasabi.Gui.CommandLine
 			var showHelp = false;
 			var showVersion = false;
 
-			try
+			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+
+			if (args.Length == 0)
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-				{
-					Native.AttachParentConsole();
-					Console.WriteLine();
-				}
+				return true;
+			}
 
-				Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
-
-				if (args.Length == 0)
-				{
-					return true;
-				}
-
-				OptionSet options = null;
-				var suite = new CommandSet("wassabee") {
+			OptionSet options = null;
+			var suite = new CommandSet("wassabee") {
 					"Usage: wassabee [OPTIONS]+",
 					"Launches Wasabi Wallet.",
 					"",
@@ -48,27 +40,23 @@ namespace WalletWasabi.Gui.CommandLine
 					new PasswordFinderCommand()
 				};
 
-				EnsureBackwardCompatibilityWithOldParameters(ref args);
-				if (await suite.RunAsync(args) == 0)
-				{
-					return false;
-				}
-				if (showHelp)
-				{
-					ShowHelp(options);
-					return false;
-				}
-				else if (showVersion)
-				{
-					ShowVersion();
-					return false;
-				}
-			}
-			finally
+			EnsureBackwardCompatibilityWithOldParameters(ref args);
+			if (await suite.RunAsync(args) == 0)
 			{
-				Native.DettachParentConsole();
+				return false;
 			}
-			return true;
+			if (showHelp)
+			{
+				ShowHelp(options);
+				return false;
+			}
+			else if (showVersion)
+			{
+				ShowVersion();
+				return false;
+			}
+
+			return false;
 		}
 
 		private static void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)

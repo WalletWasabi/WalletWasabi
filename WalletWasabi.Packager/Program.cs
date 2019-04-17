@@ -346,12 +346,6 @@ namespace WalletWasabi.Packager
 
 				if (target.StartsWith("win"))
 				{
-					// Don't open console.
-					if (!NSubsysUtil.ProcessFile(newExecutablePath))
-					{
-						Console.WriteLine("ERROR: Couldn't remove console from exe.");
-					}
-
 					var icoPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.ico");
 					using (var process = Process.Start(new ProcessStartInfo
 					{
@@ -361,6 +355,15 @@ namespace WalletWasabi.Packager
 					}))
 					{
 						process.WaitForExit();
+					}
+
+					var daemonExePath = newExecutablePath.Substring(0, newExecutablePath.Length - 4) + "d.exe";
+					File.Copy(newExecutablePath, daemonExePath);
+
+					// Don't open console.
+					if (!NSubsysUtil.ProcessFile(newExecutablePath))
+					{
+						Console.WriteLine("ERROR: Couldn't remove console from exe.");
 					}
 
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
