@@ -14,24 +14,6 @@ namespace WalletWasabi.Gui.CommandLine
 	{
 		internal static async Task RunAsync(string walletName, LogLevel? logLevel, bool mixAll, bool keepMixAlive, bool silent)
 		{
-			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
-
-			if (logLevel.HasValue)
-			{
-				Logger.SetMinimumLevel(logLevel.Value);
-			}
-			if (silent)
-			{
-				Logger.Modes.Remove(LogMode.Console);
-				Logger.Modes.Remove(LogMode.Debug);
-			}
-			else
-			{
-				Logger.Modes.Add(LogMode.Console);
-				Logger.Modes.Add(LogMode.Debug);
-			}
-			Logger.LogStarting("Wasabi");
-
 			KeyManager keyManager = TryGetKeymanagerFromWalletName(walletName);
 			if (keyManager is null)
 			{

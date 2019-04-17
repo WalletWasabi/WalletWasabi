@@ -1,9 +1,11 @@
 using Mono.Options;
 using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Gui.CommandLine
 {
@@ -15,17 +17,20 @@ namespace WalletWasabi.Gui.CommandLine
 			var showHelp = false;
 			var showVersion = false;
 
-			if (args.Length == 0)
-			{
-				return true;
-			}
-
 			try
 			{
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					Native.AttachParentConsole();
 					Console.WriteLine();
+				}
+
+				Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+				Logger.LogStarting("Wasabi");
+
+				if (args.Length == 0)
+				{
+					return true;
 				}
 
 				OptionSet options = null;
