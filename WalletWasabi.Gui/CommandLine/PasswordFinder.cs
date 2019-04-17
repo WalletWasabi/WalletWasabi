@@ -37,7 +37,7 @@ namespace WalletWasabi.Gui.CommandLine
 
 			Console.Write("Enter a likely password: ");
 
-			var password = PasswordConsole.ReadPassword();
+			var password = Console.ReadLine();
 			var charset = Charsets[language] + (useNumbers ? "0123456789" : "") + (useSymbols ? "|!¡@$¿?_-\"#$/%&()´+*=[]{},;:.^`<>" : "");
 
 			var found = false;
