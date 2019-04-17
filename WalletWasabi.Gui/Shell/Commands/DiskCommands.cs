@@ -1,7 +1,9 @@
 ﻿using AvalonStudio.Commands;
 using ReactiveUI;
+using System;
 using System.Composition;
 using System.IO;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Shell.Commands
 {
@@ -10,30 +12,44 @@ namespace WalletWasabi.Gui.Shell.Commands
 		[ImportingConstructor]
 		public DiskCommands(CommandIconService commandIconService)
 		{
+			var onOpenDataFolder = ReactiveCommand.Create(OnOpenDataFolder);
+			var onOpenWalletsFolder = ReactiveCommand.Create(OnOpenWalletsFolder);
+			var onOpenLogFile = ReactiveCommand.Create(OnOpenLogFile);
+			var onOpenTorLogFile = ReactiveCommand.Create(OnOpenTorLogFile);
+			var onOpenConfigFile = ReactiveCommand.Create(OnOpenConfigFile);
+
+			Observable
+				.Merge(onOpenConfigFile.ThrownExceptions)
+				.Merge(onOpenWalletsFolder.ThrownExceptions)
+				.Merge(onOpenLogFile.ThrownExceptions)
+				.Merge(onOpenTorLogFile.ThrownExceptions)
+				.Merge(onOpenConfigFile.ThrownExceptions)
+				.Subscribe(OnFileOpenException);
+
 			OpenDataFolderCommand = new CommandDefinition(
 				"Data Folder",
 				commandIconService.GetCompletionKindImage("FolderOpen"),
-				ReactiveCommand.Create(OnOpenDataFolder));
+				onOpenDataFolder);
 
 			OpenWalletsFolderCommand = new CommandDefinition(
 				"Wallets Folder",
 				commandIconService.GetCompletionKindImage("FolderOpen"),
-				ReactiveCommand.Create(OnOpenWalletsFolder));
+				onOpenWalletsFolder);
 
 			OpenLogFileCommand = new CommandDefinition(
 				"Log File",
 				commandIconService.GetCompletionKindImage("Log"),
-				ReactiveCommand.Create(OnOpenLogFile));
+				onOpenLogFile);
 
 			OpenTorLogFileCommand = new CommandDefinition(
 				"Tor Log File",
 				commandIconService.GetCompletionKindImage("Log"),
-				ReactiveCommand.Create(OnOpenTorLogFile));
+				onOpenTorLogFile);
 
 			OpenConfigFileCommand = new CommandDefinition(
 				"Config File",
 				commandIconService.GetCompletionKindImage("Settings"),
-				ReactiveCommand.Create(OnOpenConfigFile));
+				onOpenConfigFile);
 		}
 
 		private void OnOpenDataFolder()
@@ -59,6 +75,11 @@ namespace WalletWasabi.Gui.Shell.Commands
 		private void OnOpenConfigFile()
 		{
 			IoHelpers.OpenFileInTextEditor(Global.Config.FilePath);
+		}
+
+		private void OnFileOpenException(Exception ex)
+		{
+			Logging.Logger.LogError<DiskCommands>(ex);
 		}
 
 		[ExportCommandDefinition("File.Open.DataFolder")]

@@ -21,16 +21,20 @@ namespace WalletWasabi.Gui
 #pragma warning restore IDE1006 // Naming Styles
 		{
 			StatusBarViewModel statusBar = null;
+			bool runGui = false;
 			try
 			{
 				Platform.BaseDirectory = Path.Combine(Global.DataDir, "Gui");
 				AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-				if (!await Daemon.RunAsyncReturnTrueIfContinueWithGuiAsync(args))
+				runGui = await CommandInterpreter.ExecuteCommandsAsync(args);
+				if (!runGui)
 				{
 					return;
 				}
+				Logger.LogStarting("Wasabi GUI");
+
 				BuildAvaloniaApp()
 					.BeforeStarting(async builder =>
 					{
@@ -65,7 +69,10 @@ namespace WalletWasabi.Gui
 				AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
 				TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
-				Logger.LogInfo($"Wasabi stopped gracefully.", Logger.InstanceGuid.ToString());
+				if (runGui)
+				{
+					Logger.LogInfo($"Wasabi GUI stopped gracefully.", Logger.InstanceGuid.ToString());
+				}
 			}
 		}
 
