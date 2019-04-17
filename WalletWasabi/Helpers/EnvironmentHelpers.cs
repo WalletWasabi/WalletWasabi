@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using WalletWasabi.Logging;
+using Microsoft.Win32;
 
 namespace WalletWasabi.Helpers
 {
@@ -149,6 +150,31 @@ namespace WalletWasabi.Helpers
 					}
 				}
 			}
+		}
+
+		public static bool IsFileTypeAssociated(string fileExtension)
+		{
+			// Source article: https://edi.wang/post/2019/3/4/read-and-write-windows-registry-in-net-core
+
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				throw new InvalidOperationException("Operation only supported on windows.");
+			}
+
+			fileExtension = fileExtension.TrimStart('.'); // Remove . if added by the caller.
+
+			using (RegistryKey key = Registry.ClassesRoot.OpenSubKey($".{fileExtension}"))
+			{
+				if (key != null)
+				{
+					object val = key.GetValue(null); // Read the (Default) value.
+					if (val != null)
+					{
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 	}
 }

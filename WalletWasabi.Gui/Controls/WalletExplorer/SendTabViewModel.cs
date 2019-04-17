@@ -17,6 +17,7 @@ using WalletWasabi.Gui.Tabs.WalletManager;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 
@@ -49,9 +50,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _amountWaterMarkText;
 		private string _amountToolTip;
 		private bool _isBusy;
+		private bool _isHardwareBusy;
 		private string _warningMessage;
 		private string _successMessage;
 		private const string BuildTransactionButtonTextString = "Send Transaction";
+		private const string WaitingForHardwareWalletButtonTextString = "Waiting for Hardware Wallet...";
 		private const string BuildingTransactionButtonTextString = "Sending Transaction...";
 		private int _caretIndex;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
@@ -136,16 +139,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				SetFeesAndTexts();
 			});
 
-			this.WhenAnyValue(x => x.IsBusy).Subscribe(busy =>
+			(this).WhenAnyValue(x => x.IsBusy).Subscribe(_ =>
 			{
-				if (busy)
-				{
-					BuildTransactionButtonText = BuildingTransactionButtonTextString;
-				}
-				else
-				{
-					BuildTransactionButtonText = BuildTransactionButtonTextString;
-				}
+				SetSendText();
+			});
+
+			(this).WhenAnyValue(x => x.IsHardwareBusy).Subscribe(_ =>
+			{
+				SetSendText();
 			});
 
 			this.WhenAnyValue(x => x.Password).Subscribe(x =>
@@ -252,11 +253,31 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						return;
 					}
 
-					var result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
+
+					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Signing transaction...");
+
+					SmartTransaction signedTransaction = result.Transaction;
+
+					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
+					{
+						try
+						{
+							IsHardwareBusy = true;
+							var signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
+
+							var extractedTx = signedPsbt.ExtractTX();
+							signedTransaction = new SmartTransaction(extractedTx, result.Transaction.Height);
+						}
+						finally
+						{
+							IsHardwareBusy = false;
+						}
+					}
 
 					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Broadcasting transaction...");
 
-					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(result.Transaction));
+					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
 					ResetMax();
 					Address = "";
@@ -282,6 +303,22 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			},
 			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy));
+		}
+
+		private void SetSendText()
+		{
+			if (IsHardwareBusy)
+			{
+				BuildTransactionButtonText = WaitingForHardwareWalletButtonTextString;
+			}
+			else if (IsBusy)
+			{
+				BuildTransactionButtonText = BuildingTransactionButtonTextString;
+			}
+			else
+			{
+				BuildTransactionButtonText = BuildTransactionButtonTextString;
+			}
 		}
 
 		private void SetAmountWatermarkAndToolTip(Money amount)
@@ -614,6 +651,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _isBusy;
 			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+		}
+
+		public bool IsHardwareBusy
+		{
+			get => _isHardwareBusy;
+			set => this.RaiseAndSetIfChanged(ref _isHardwareBusy, value);
 		}
 
 		public string BuildTransactionButtonText

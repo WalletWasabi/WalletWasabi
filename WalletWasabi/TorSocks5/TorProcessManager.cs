@@ -175,7 +175,7 @@ namespace WalletWasabi.TorSocks5
 			{
 				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 				{
-					string torLinuxZip = torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
+					string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
 					IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, torDir).GetAwaiter().GetResult();
 					Logger.LogInfo<TorProcessManager>($"Extracted {torLinuxZip} to {torDir}.");
 				}
@@ -187,7 +187,7 @@ namespace WalletWasabi.TorSocks5
 				}
 
 				// Make sure there's sufficient permission.
-				string chmodTorDirCmd = $"chmod -R 777 {torDir}";
+				string chmodTorDirCmd = $"chmod -R 750 {torDir}";
 				EnvironmentHelpers.ShellExec(chmodTorDirCmd);
 				Logger.LogInfo<TorProcessManager>($"Shell command executed: {chmodTorDirCmd}.");
 			}

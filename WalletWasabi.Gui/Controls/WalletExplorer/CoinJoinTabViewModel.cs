@@ -11,8 +11,10 @@ using System.Text;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Helpers;
+using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models.ChaumianCoinJoin;
+using WalletWasabi.Services;
 using static WalletWasabi.Gui.Models.ShieldLevelHelper;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer

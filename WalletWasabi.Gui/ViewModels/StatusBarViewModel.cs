@@ -28,10 +28,12 @@ namespace WalletWasabi.Gui.ViewModels
 	public class StatusBarViewModel : ViewModelBase
 	{
 		private CompositeDisposable Disposables { get; } = new CompositeDisposable();
-        private NodesCollection Nodes { get; }
-        private WasabiSynchronizer Synchronizer { get; }
+		private NodesCollection Nodes { get; }
+		private WasabiSynchronizer Synchronizer { get; }
 
-        private UpdateStatus _updateStatus;
+		private bool UseTor { get; }
+
+		private UpdateStatus _updateStatus;
 		private bool _updateAvailable;
 		private bool _criticalUpdateAvailable;
 		private BackendStatus _backend;
@@ -41,14 +43,15 @@ namespace WalletWasabi.Gui.ViewModels
 		private int _blocksLeft;
 		private string _btcPrice;
 		private string _status;
-        
-        public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
+
+		public StatusBarViewModel(NodesCollection nodes, WasabiSynchronizer synchronizer, UpdateChecker updateChecker)
 		{
 			UpdateStatus = UpdateStatus.Latest;
-            Nodes = nodes;
-            Synchronizer = synchronizer;
-            BlocksLeft = 0;
+			Nodes = nodes;
+			Synchronizer = synchronizer;
+			BlocksLeft = 0;
 			FiltersLeft = synchronizer.GetFiltersLeft();
+			UseTor = Global.Config.UseTor.Value; // Don't make it dynamic, because if you change this config settings only next time will it activate.
 
 			Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Added))
 				.Subscribe(x =>
@@ -62,9 +65,9 @@ namespace WalletWasabi.Gui.ViewModels
 					SetPeers(Nodes.Count);
 				}).DisposeWith(Disposables);
 
-            SetPeers(Nodes.Count);
+			SetPeers(Nodes.Count);
 
-            Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
+			Observable.FromEventPattern<int>(typeof(WalletService), nameof(WalletService.ConcurrentBlockDownloadNumberChanged))
 				.Subscribe(x =>
 				{
 					BlocksLeft = x.EventArgs;
@@ -78,8 +81,8 @@ namespace WalletWasabi.Gui.ViewModels
 			synchronizer.WhenAnyValue(x => x.TorStatus).Subscribe(status =>
 			{
 				SetTor(status);
-                SetPeers(Nodes.Count);
-            }).DisposeWith(Disposables);
+				SetPeers(Nodes.Count);
+			}).DisposeWith(Disposables);
 
 			synchronizer.WhenAnyValue(x => x.BackendStatus).Subscribe(_ =>
 			{
@@ -316,7 +319,7 @@ namespace WalletWasabi.Gui.ViewModels
 			{
 				Status = "New Version Is Available";
 			}
-			else if (Tor != TorStatus.Running || Backend != BackendStatus.Connected || Peers < 1)
+			else if (Tor == TorStatus.NotRunning || Backend != BackendStatus.Connected || Peers < 1)
 			{
 				Status = "Connecting...";
 			}
@@ -340,13 +343,13 @@ namespace WalletWasabi.Gui.ViewModels
 		private void SetPeers(int peers)
 		{
 			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
-			Peers = Tor == TorStatus.Running ? peers : 0;
+			Peers = Tor == TorStatus.NotRunning ? 0 : peers;
 		}
 
 		private void SetTor(TorStatus tor)
 		{
 			// Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it's seem to the user that peers are connected over clearnet, while they don't.
-			Tor = tor;
+			Tor = UseTor ? tor : TorStatus.TurnedOff;
 		}
 
 		#region IDisposable Support

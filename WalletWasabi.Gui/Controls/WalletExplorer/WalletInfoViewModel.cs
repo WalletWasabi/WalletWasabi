@@ -84,12 +84,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public CancellationTokenSource Closing { private set; get; }
 
-		public WalletService WalletService => Wallet.WalletService;
-		public KeyManager KeyManager => WalletService.KeyManager;
-
 		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Network);
 		public string ExtendedAccountZpub => KeyManager.ExtPubKey.ToZpub(Global.Network);
-		public string EncryptedExtendedMasterPrivateKey => KeyManager.EncryptedSecret.ToWif();
+		public string EncryptedExtendedMasterPrivateKey => KeyManager?.EncryptedSecret?.ToWif() ?? "";
 		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath.ToString()}";
 
 		public ReactiveCommand<Unit, Unit> ShowSensitiveKeysCommand { get; }
