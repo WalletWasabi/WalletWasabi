@@ -12,23 +12,24 @@ Let's start giving a glance to the command `help`:
 
 ```
 $ wassabee run help findpassword
-usage: findpassword --wallet:walet-file-path --language:lang --numbers:[TRUE|
-FALSE] --symbold:[TRUE|FALSE]
+usage: findpassword --wallet:WalletName --language:lang --numbers:[TRUE|FALSE] --symbold:[TRUE|FALSE]
 
 Tries to find typing mistakes in the user password by brute forcing it char by char.
-eg: .wassabee findpassword --wallet:/home/user/.wasabiwallet/client/Wallets/my-wallet.json --numbers:false --symbold:true
+eg: ./wassabee findpassword --wallet:MyWalletName --numbers:false --symbold:true
 
-  -w, --wallet=VALUE         The path to the wallet file.
+  -w, --wallet=VALUE         The name of the wallet file.
+  -s, --secret=VALUE         You can specify an encrypted secret key instead of wallet. Example of encrypted secret:
+                               6PYTMDmkxQrSv8TK4761tuKrV8yFwPyZDqjJafcGEiLBHiqBV6WviFxJV4
   -l, --language=VALUE       The charset to use: en, es, it, fr, pt. Default=en.
   -n, --numbers=VALUE        Try passwords with numbers. Default=true.
   -x, --symbols=VALUE        Try passwords with symbolds. Default=true.
   -h, --help                 Show Help
 ```
 
-Now, let's find a typo in a wallet called `pass.json`. For the sake of the example let say I've created this wallet and I think the password is `pasd` but it was created with the password `pass` by accident.
+Now, let's find a typo in a wallet called `MagicalCryptoWallet.json`. For the sake of the example let say I've created this wallet and I think the password is `pasd` but it was created with the password `pass` by accident.
 
 ```
-$ wassabee findpassword --wallet:/home/lontivero/.walletwasabi/client/Wallets/pass.json 
+$ wassabee findpassword --wallet:MagicalCryptoWallet
 WARNING: This tool will display you password if it finds it. Also, the process status display your wong password chars.
          You can cancel this by CTRL+C combination anytime.
 
@@ -40,6 +41,8 @@ Completed in 00:01:11.5134519
 SUCCESS: Password found: >>> pass <<<
 
 ```
+
+Note that you can also specify an encrypted secret instead of the wallet file. This is useful if you lost your password for a Bitcoin wallet, other than Wasabi.
 
 Note that for a 4 characters length password it took more than a minute to find. Moreover, the process is heavy in CPU and for that reason it can be a good idea to use the best combination of parameters to reduce the search space.
 
