@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	public class Daemon
 	{
-		internal static async Task RunAsync(string walletName, LogLevel? logLevel, bool mixAll, bool keepMixAlive, bool silent)
+		internal static async Task RunAsync(string walletName, bool mixAll, bool keepMixAlive)
 		{
 			KeyManager keyManager = TryGetKeymanagerFromWalletName(walletName);
 			if (keyManager is null)

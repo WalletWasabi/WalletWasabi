@@ -8,9 +8,7 @@ namespace WalletWasabi.Gui.CommandLine
 {
 	internal class MixerCommand : Command
 	{
-		public string LoggingLevel { get; set; }
 		public string WalletName { get; set; }
-		public bool Silent { get; set; }
 		public bool MixAll { get; set; }
 		public bool KeepMixAlive { get; set; }
 		public bool ShowHelp { get; set; }
@@ -19,17 +17,13 @@ namespace WalletWasabi.Gui.CommandLine
 			: base("mix", "Start mixing without the GUI with the specified wallet.")
 		{
 			Options = new OptionSet() {
-				"usage: mix --wallet:WalletName --mixall --keepalive --loglevel:log-level",
+				"usage: mix --wallet:WalletName --mixall --keepalive",
 				"",
 				"Start mixing without the GUI with the specified wallet.",
 				"eg: ./wassabee mix --wallet:MyWalletName --mixall --keepalive --loglevel:info",
 
 				{ "h|help", "Displays help page and exit.",
 					x => ShowHelp = x != null},
-				{ "s|silent", "Do not log to the standard outputs.",
-					x => Silent = x != null},
-				{ "l|loglevel=", "Sets the level of verbosity for the log TRACE|INFO|WARNING|DEBUG|ERROR.",
-					x => LoggingLevel = x },
 				{ "w|wallet=", "The name of the wallet file.",
 					x =>  WalletName = x?.ToLower() },
 				{ "mixall", "Mix once even if the coin reached the target anonymity set specified in the config file.",
@@ -42,7 +36,6 @@ namespace WalletWasabi.Gui.CommandLine
 		public override async Task<int> InvokeAsync(IEnumerable<string> args)
 		{
 			var error = false;
-			LogLevel? logLevel = null;
 			try
 			{
 				var extra = Options.Parse(args);
@@ -50,40 +43,10 @@ namespace WalletWasabi.Gui.CommandLine
 				{
 					Options.WriteOptionDescriptions(CommandSet.Out);
 				}
-				else if (!string.IsNullOrEmpty(LoggingLevel))
-				{
-					var normalized = LoggingLevel.Trim();
-					if (normalized == "info")
-					{
-						logLevel = LogLevel.Info;
-					}
-					else if (normalized == "warning")
-					{
-						logLevel = LogLevel.Warning;
-					}
-					else if (normalized == "error")
-					{
-						logLevel = LogLevel.Error;
-					}
-					else if (normalized == "trace")
-					{
-						logLevel = LogLevel.Trace;
-					}
-					else if (normalized == "debug")
-					{
-						logLevel = LogLevel.Debug;
-					}
-					else
-					{
-						Console.WriteLine("ERROR: Log level not recognized.");
-						Options.WriteOptionDescriptions(CommandSet.Out);
-						error = true;
-					}
-				}
 
 				if (!error && !ShowHelp)
 				{
-					await Daemon.RunAsync(WalletName, logLevel, MixAll, KeepMixAlive, Silent);
+					await Daemon.RunAsync(WalletName, MixAll, KeepMixAlive);
 				}
 			}
 			catch (Exception)

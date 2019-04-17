@@ -28,12 +28,12 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			catch (FormatException)
 			{
-				Console.WriteLine("ERROR: The encrypted secret is invalid. Make sure you copied correctly from your wallet file.");
+				Logging.Logger.LogCritical("ERROR: The encrypted secret is invalid. Make sure you copied correctly from your wallet file.");
 				return;
 			}
 
-			Console.WriteLine($"WARNING: This tool will display you password if it finds it. Also, the process status display your wong password chars.");
-			Console.WriteLine($"         You can cancel this by CTRL+C combination anytime." + Environment.NewLine);
+			Logging.Logger.LogWarning<PasswordFinder>($"WARNING: This tool will display you password if it finds it.");
+			Logging.Logger.LogWarning<PasswordFinder>($"         You can cancel this by CTRL+C combination anytime." + Environment.NewLine);
 
 			Console.Write("Enter a likely password: ");
 
@@ -67,8 +67,9 @@ namespace WalletWasabi.Gui.CommandLine
 			}
 			sw.Stop();
 
-			Console.WriteLine(Environment.NewLine);
-			Console.WriteLine($"Completed in {sw.Elapsed}");
+			Console.WriteLine();
+			Console.WriteLine();
+			Logging.Logger.LogInfo<PasswordFinder>($"Completed in {sw.Elapsed}");
 			Console.WriteLine(found ? $"SUCCESS: Password found: >>> {lastpwd} <<<" : "FAILED: Password not found");
 			Console.WriteLine();
 		}

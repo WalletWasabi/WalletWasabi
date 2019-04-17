@@ -56,7 +56,8 @@ namespace WalletWasabi.Logging
 
 #if RELEASE
 			SetMinimumLevel(LogLevel.Info);
-			SetModes(LogMode.File);
+			SetModes(LogMode.Console, LogMode.File);
+
 #else
 			SetMinimumLevel(LogLevel.Debug);
 			SetModes(LogMode.Debug, LogMode.Console, LogMode.File);
