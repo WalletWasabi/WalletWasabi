@@ -100,7 +100,7 @@ namespace WalletWasabi.Hwi
 					// acquire the mutex (or timeout after 60 seconds)
 					// will return false if it timed out
 					var start = DateTime.Now;
-					while (DateTime.Now - start > TimeSpan.FromSeconds(90))
+					while (DateTime.Now - start < TimeSpan.FromSeconds(90))
 					{
 						mutexAcquired = mutex.WaitOne(1);
 						if (!mutexAcquired)
