@@ -559,7 +559,7 @@ namespace WalletWasabi.Services
 
 					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
 
-					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator");
+					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator.");
 					aliceClient?.Dispose();
 					return;
 				}
