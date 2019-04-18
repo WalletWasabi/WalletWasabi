@@ -111,6 +111,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					try
 					{
+						if (LoadWalletViewModelDesktop.IsWalletOpened || LoadWalletViewModelHardware.IsWalletOpened) continue; // Will wait 3sec, because of the finally.
+
 						var hwis = await HwiProcessManager.EnumerateAsync();
 						LoadWalletViewModelHardware.TryRefreshHardwareWallets(hwis);
 
@@ -131,8 +133,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						Logger.LogError<WalletManagerViewModel>(ex);
 					}
-
-					await Task.Delay(3000, HardwareWalletRefreshCancel.Token);
+					finally
+					{
+						await Task.Delay(3000, HardwareWalletRefreshCancel.Token);
+					}
 				}
 			}
 			catch (TaskCanceledException ex)

@@ -435,7 +435,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						await Global.InitializeWalletServiceAsync(keyManager);
 					});
 					// Successffully initialized.
-					IoC.Get<IShell>().RemoveDocument(Owner);
+					Owner.OnClose();
 					// Open Wallet Explorer tabs
 					if (Global.WalletService.Coins.Any())
 					{
