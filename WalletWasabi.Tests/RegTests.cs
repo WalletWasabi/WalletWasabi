@@ -3403,7 +3403,7 @@ namespace WalletWasabi.Tests
 					}
 				}
 				SmartCoin[] unspentChanges = wallet.Coins.Where(x => x.Label == "ZeroLink Change" && x.Unspent).ToArray();
-				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges, string.Empty);
+				await wallet.ChaumianClient.DequeueCoinsFromMixAsync(unspentChanges, "");
 
 				Assert.Equal(3, wallet.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unavailable));
 				Assert.Equal(3, wallet2.Coins.Count(x => x.Label == "ZeroLink Mixed Coin" && !x.Unavailable));
