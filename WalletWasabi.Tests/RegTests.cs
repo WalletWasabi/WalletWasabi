@@ -3186,7 +3186,7 @@ namespace WalletWasabi.Tests
 				await chaumianClient1.DequeueCoinsFromMixAsync(new SmartCoin((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 1, new Script(), Money.Parse("3"), new TxoRef[] { new TxoRef((network.Consensus.ConsensusFactory.CreateTransaction()).GetHash(), 0) }, Height.MemPool, replaceable: false, anonymitySet: 1), string.Empty);
 
 				Assert.True(2 == (await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin1, smartCoin2)).Count());
-				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, string.Empty);
+				await chaumianClient1.DequeueCoinsFromMixAsync(smartCoin1, "");
 				Assert.False(smartCoin1.CoinJoinInProgress);
 				await chaumianClient1.DequeueCoinsFromMixAsync(new []{smartCoin1, smartCoin2}, "");
 				Assert.False(smartCoin1.CoinJoinInProgress);
