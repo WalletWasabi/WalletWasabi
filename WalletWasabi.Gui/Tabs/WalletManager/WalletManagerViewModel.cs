@@ -101,12 +101,13 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		}
 
 		private CancellationTokenSource HardwareWalletRefreshCancel { get; }
-		private bool HwTabSelectedOnce { get; set; } = false;
+		private bool HwTabAutomaticallySelectedOnce { get; set; } = false;
 
 		private async Task RefreshHardwareWalletListAsync()
 		{
 			try
 			{
+				int waitTime = 3000;
 				while (!HardwareWalletRefreshCancel.IsCancellationRequested)
 				{
 					try
@@ -116,26 +117,34 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						var hwis = await HwiProcessManager.EnumerateAsync();
 						LoadWalletViewModelHardware.TryRefreshHardwareWallets(hwis);
 
-						if (hwis.Any() && !HwTabSelectedOnce)
+						if (hwis.Any())
 						{
-							try
+							waitTime = 7000;
+							if (!HwTabAutomaticallySelectedOnce)
 							{
-								HwTabSelectedOnce = true;
-								SelectHardwareWallet();
+								try
+								{
+									HwTabAutomaticallySelectedOnce = true;
+									SelectHardwareWallet();
+								}
+								catch (Exception ex)
+								{
+									Logger.LogWarning<MainWindow>(ex);
+								}
 							}
-							catch (Exception ex)
-							{
-								Logger.LogWarning<MainWindow>(ex);
-							}
+						}
+						else
+						{
+							waitTime = 3000;
 						}
 					}
 					catch (Exception ex)
 					{
-						Logger.LogError<WalletManagerViewModel>(ex);
+						Logger.LogWarning<WalletManagerViewModel>(ex);
 					}
 					finally
 					{
-						await Task.Delay(3000, HardwareWalletRefreshCancel.Token);
+						await Task.Delay(waitTime, HardwareWalletRefreshCancel.Token);
 					}
 				}
 			}

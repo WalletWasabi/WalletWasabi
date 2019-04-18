@@ -21,6 +21,7 @@ namespace WalletWasabi.Hwi
 	/// </summary>
 	public static class HwiProcessManager
 	{
+		public const string MutexName = "Global\\FE5C8D9C-E000-495F-8175-A8713E449B2E";
 		public static string HwiPath { get; private set; }
 		public static AsyncLock AsyncLock { get; }
 		public static Network Network { get; private set; }
@@ -35,7 +36,7 @@ namespace WalletWasabi.Hwi
 		{
 			var psbtString = psbt.ToBase64();
 			var networkString = Network == Network.Main ? "" : "--testnet";
-			JToken jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" signtx {psbtString}");
+			JToken jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" signtx {psbtString}", isMutexPriority: true);
 			JObject json = jtok as JObject;
 			var signedPsbtString = json.Value<string>("psbt");
 			var signedPsbt = PSBT.Parse(signedPsbtString, Network);
@@ -86,81 +87,123 @@ namespace WalletWasabi.Hwi
 			return hwis;
 		}
 
-		public static async Task<JToken> SendCommandAsync(string command)
+		private static Random Random { get; } = new Random();
+
+		public static async Task<JToken> SendCommandAsync(string command, bool isMutexPriority = false)
 		{
 			using (await AsyncLock.LockAsync())
+			using (var mutex = new Mutex(false, MutexName)) // It could be even improved more if this Mutex would also look at which hardware wallet the operation is going towards (enumerate sends to all.)
 			{
-				if (!File.Exists(HwiPath))
+				var mutexAcquired = false;
+				try
 				{
-					var exeName = Path.GetFileName(HwiPath);
-					throw new FileNotFoundException($"{exeName} not found at {HwiPath}. Maybe it was removed by antivirus software!");
-				}
-
-				using (var process = Process.Start(
-					new ProcessStartInfo
+					// acquire the mutex (or timeout after 60 seconds)
+					// will return false if it timed out
+					var start = DateTime.Now;
+					while (DateTime.Now - start > TimeSpan.FromSeconds(90))
 					{
-						FileName = HwiPath,
-						Arguments = command,
-						RedirectStandardOutput = true,
-						UseShellExecute = false,
-						CreateNoWindow = true,
-						WindowStyle = ProcessWindowStyle.Hidden
-					}
-				))
-				{
-					await process.WaitForExitAsync();
-					if (process.ExitCode != 0)
-					{
-						throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
-					}
-
-					string response = await process.StandardOutput.ReadToEndAsync();
-					var jToken = JToken.Parse(response);
-					if (jToken is JObject json)
-					{
-						if (json.TryGetValue("error", out JToken err))
+						mutexAcquired = mutex.WaitOne(1);
+						if (!mutexAcquired)
 						{
-							var errString = err.ToString();
-							throw new IOException(errString);
+							var rand = Random.Next(1, 100);
+							await Task.Delay(isMutexPriority ? (100 + rand) : (1000 + rand));
+						}
+						else
+						{
+							break;
 						}
 					}
+				}
+				catch (AbandonedMutexException)
+				{
+					// abandoned mutexes are still acquired, we just need
+					// to handle the exception and treat it as acquisition
+					mutexAcquired = true;
+				}
 
-					return jToken;
+				if (mutexAcquired == false)
+				{
+					throw new IOException("Couldn't acquire Mutex on the file.");
+				}
 
-					//if (command == "enumerate")
-					//{
-					//	//string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8038ecd2\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"}]";
-					//	string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"}]";
-					//	var jToken = JToken.Parse(response);
-					//	return jToken;
-					//}
-					//if (command.Contains("getxpub", StringComparison.OrdinalIgnoreCase))
-					//{
-					//	string response = "{\"xpub\": \"xpub6DP9afdc7qsz7s7mwAvciAR2dV6vPC3gyiQbqKDzDcPAq3UQChKPimHc3uCYfTTkpoXdwRTFnVTBdFpM9ysbf6KV34uMqkD3zXr6FzkJtcB\"}";
-					//	var jToken = JToken.Parse(response);
-					//	return jToken;
-					//}
-					//else
-					//{
-					//	string response = await process.StandardOutput.ReadToEndAsync();
-					//	var jToken = JToken.Parse(response);
-					//	string err = null;
-					//	try
-					//	{
-					//		JObject json = jToken as JObject;
-					//		err = json.Value<string>("error");
-					//	}
-					//	catch (Exception ex)
-					//	{
-					//		Logger.LogTrace(ex, nameof(HwiProcessManager));
-					//	}
-					//	if (err != null)
-					//	{
-					//		throw new IOException(err);
-					//	}
+				try
+				{
+					if (!File.Exists(HwiPath))
+					{
+						var exeName = Path.GetFileName(HwiPath);
+						throw new FileNotFoundException($"{exeName} not found at {HwiPath}. Maybe it was removed by antivirus software!");
+					}
 
-					//	return jToken;
-					//}
+					using (var process = Process.Start(
+						new ProcessStartInfo
+						{
+							FileName = HwiPath,
+							Arguments = command,
+							RedirectStandardOutput = true,
+							UseShellExecute = false,
+							CreateNoWindow = true,
+							WindowStyle = ProcessWindowStyle.Hidden
+						}
+					))
+					{
+						await process.WaitForExitAsync();
+						if (process.ExitCode != 0)
+						{
+							throw new IOException($"Command: {command} exited with exit code: {process.ExitCode}, instead of 0.");
+						}
+
+						string response = await process.StandardOutput.ReadToEndAsync();
+						var jToken = JToken.Parse(response);
+						if (jToken is JObject json)
+						{
+							if (json.TryGetValue("error", out JToken err))
+							{
+								var errString = err.ToString();
+								throw new IOException(errString);
+							}
+						}
+
+						return jToken;
+
+						//if (command == "enumerate")
+						//{
+						//	//string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8038ecd2\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"}]";
+						//	string response = "[{\"fingerprint\": \"8038ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"coldcard\", \"path\": \"0001:0005:00\"},{\"fingerprint\": \"8338ecd9\", \"serial_number\": \"205A32753042\", \"type\": \"keepkey\", \"path\": \"0001:0005:00\"}]";
+						//	var jToken = JToken.Parse(response);
+						//	return jToken;
+						//}
+						//if (command.Contains("getxpub", StringComparison.OrdinalIgnoreCase))
+						//{
+						//	string response = "{\"xpub\": \"xpub6DP9afdc7qsz7s7mwAvciAR2dV6vPC3gyiQbqKDzDcPAq3UQChKPimHc3uCYfTTkpoXdwRTFnVTBdFpM9ysbf6KV34uMqkD3zXr6FzkJtcB\"}";
+						//	var jToken = JToken.Parse(response);
+						//	return jToken;
+						//}
+						//else
+						//{
+						//	string response = await process.StandardOutput.ReadToEndAsync();
+						//	var jToken = JToken.Parse(response);
+						//	string err = null;
+						//	try
+						//	{
+						//		JObject json = jToken as JObject;
+						//		err = json.Value<string>("error");
+						//	}
+						//	catch (Exception ex)
+						//	{
+						//		Logger.LogTrace(ex, nameof(HwiProcessManager));
+						//	}
+						//	if (err != null)
+						//	{
+						//		throw new IOException(err);
+						//	}
+
+						//	return jToken;
+						//}
+					}
+				}
+				finally
+				{
+					mutex.ReleaseMutex();
 				}
 			}
 		}
