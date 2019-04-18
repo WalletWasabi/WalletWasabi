@@ -34,7 +34,7 @@ namespace WalletWasabi.Helpers
 
 		public static string GetDataDir(string appName)
 		{
-			string directory = null;
+			string directory;
 
 			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{

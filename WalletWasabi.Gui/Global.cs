@@ -63,6 +63,10 @@ namespace WalletWasabi.Gui
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
 			WalletsDir = Path.Combine(DataDir, "Wallets");
 			WalletBackupsDir = Path.Combine(DataDir, "WalletBackups");
+
+			Directory.CreateDirectory(DataDir);
+			Directory.CreateDirectory(WalletsDir);
+			Directory.CreateDirectory(WalletBackupsDir);
 		}
 
 		public static void InitializeUiConfig(UiConfig uiConfig)
