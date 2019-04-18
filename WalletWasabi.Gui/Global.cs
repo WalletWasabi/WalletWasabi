@@ -108,7 +108,7 @@ namespace WalletWasabi.Gui
 			if (enqueuedCoins.Any())
 			{
 				Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
-				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, "Dequeued in desperate mode to respond to process exit");
+				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, "Process was signaled to kill.");
 			}
 		}
 

@@ -3101,7 +3101,7 @@ namespace WalletWasabi.Tests
 
 					if (chaumianClient != null)
 					{
-						await chaumianClient.DequeueAllCoinsFromMixAsync("No reason given");
+						await chaumianClient.DequeueAllCoinsFromMixAsync("");
 						await chaumianClient.StopAsync();
 					}
 				}
