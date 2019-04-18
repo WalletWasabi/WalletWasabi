@@ -1016,7 +1016,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private void RemoveCoin(SmartCoin coinWaitingForMix, string reason=null)
+		private void RemoveCoin(SmartCoin coinWaitingForMix, string reason = null)
 		{
 			State.RemoveCoinFromWaitingList(coinWaitingForMix);
 			coinWaitingForMix.CoinJoinInProgress = false;
