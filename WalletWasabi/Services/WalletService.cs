@@ -1260,13 +1260,20 @@ namespace WalletWasabi.Services
 
 			PSBT psbt = builder.BuildPSBT(sign);
 			HDFingerprint masterFP;
-			if (KeyManager.IsHardwareWallet)
+			if (KeyManager.IsHardwareWallet && !string.IsNullOrWhiteSpace(KeyManager.HardwareWalletInfo.Fingerprint)) // Prefer HWI's fingerprint at first, then fall back to NBitcoin's.
 			{
-				masterFP = new HDFingerprint(ByteHelpers.FromHex(KeyManager.HardwareWalletInfo.Fingerprint));
+				try
+				{
+					masterFP = new HDFingerprint(ByteHelpers.FromHex(KeyManager.HardwareWalletInfo.Fingerprint));
+				}
+				catch
+				{
+					masterFP = KeyManager.ExtPubKey.PubKey.GetHDFingerPrint();
+				}
 			}
 			else
 			{
-				masterFP = KeyManager.ExtPubKey.Fingerprint; // DON'T DO THIS FOR HARDWARE WALLETS, THERE ARE SOME FINGERPRINT CONSISTENCY ISSUES.
+				masterFP = KeyManager.ExtPubKey.PubKey.GetHDFingerPrint();
 			}
 			HashSet<SmartCoin> allTxCoins = spentCoins.Concat(innerWalletOutputs).Concat(outerWalletOutputs).ToHashSet();
 			foreach (var coin in allTxCoins)
