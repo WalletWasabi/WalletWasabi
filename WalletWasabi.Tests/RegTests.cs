@@ -3225,7 +3225,7 @@ namespace WalletWasabi.Tests
 				coordinator.UpdateRoundConfig(roundConfig);
 				coordinator.AbortAllRoundsInInputRegistration(nameof(RegTests), "");
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
-				await chaumianClient1.DequeueAllCoinsFromMixAsync(string.Empty);
+				await chaumianClient1.DequeueAllCoinsFromMixAsync("");
 				Assert.Empty(chaumianClient1.State.GetAllQueuedCoins());
 				await chaumianClient1.QueueCoinsToMixAsync(password, smartCoin4);
 				Assert.NotEmpty(chaumianClient1.State.GetAllQueuedCoins());
