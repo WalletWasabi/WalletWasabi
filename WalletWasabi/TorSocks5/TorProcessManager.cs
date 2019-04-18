@@ -57,7 +57,7 @@ namespace WalletWasabi.TorSocks5
 					// 4. Throw exception.
 
 					try
-					{
+					{ 
 						if (IsTorRunningAsync(TorSocks5EndPoint).GetAwaiter().GetResult())
 						{
 							Logger.LogInfo<TorProcessManager>("Tor is already running.");
@@ -90,7 +90,7 @@ namespace WalletWasabi.TorSocks5
 							Logger.LogInfo<TorProcessManager>($"Tor instance NOT found at {torPath}. Attempting to acquire it...");
 							InstallTor(fullBaseDirectory, torDir);
 						}
-						else if (new FileInfo(torPath).CreationTimeUtc < new DateTime(2019, 01, 26, 0, 0, 0, 0, DateTimeKind.Utc))
+						else if (!IoHelpers.CheckExpectedHash(torPath, Path.Combine(fullBaseDirectory, "TorDaemons")))
 						{
 							Logger.LogInfo<TorProcessManager>($"Updating Tor...");
 

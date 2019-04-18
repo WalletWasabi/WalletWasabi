@@ -238,7 +238,7 @@ namespace WalletWasabi.Hwi
 				Logger.LogInfo($"HWI instance NOT found at {hwiPath}. Attempting to acquire it...", nameof(HwiProcessManager));
 				await InstallHwiAsync(fullBaseDirectory, hwiDir);
 			}
-			else if (new FileInfo(hwiPath).CreationTimeUtc < new DateTime(2019, 04, 13, 0, 0, 0, 0, DateTimeKind.Utc))
+			else if (!IoHelpers.CheckExpectedHash(hwiPath, Path.Combine(fullBaseDirectory, "Hwi", "Software")))
 			{
 				Logger.LogInfo($"Updating HWI...", nameof(HwiProcessManager));
 
