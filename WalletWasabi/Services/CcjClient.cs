@@ -230,7 +230,7 @@ namespace WalletWasabi.Services
 						if (!registrableRound.State.HaveEnoughQueued(State.GetAllQueuedCoinAmounts().ToArray())
 							|| dequeueBecauseCoordinatorFeeChanged)
 						{
-							await DequeueAllCoinsFromMixNoLockAsync("Registered coins total value is not enough or coordinator's fee changed");
+							await DequeueAllCoinsFromMixNoLockAsync("The total value of the registered coins is not enough or the coordinator's fee changed.");
 						}
 					}
 				}
