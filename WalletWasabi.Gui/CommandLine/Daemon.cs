@@ -199,7 +199,7 @@ namespace WalletWasabi.Gui.CommandLine
 					mixing = anyCoinsQueued || keepMixAlive;
 				} while (mixing);
 
-				await Global.ChaumianClient.DequeueAllCoinsFromMixAsync("Stopping Wasabi");
+				await Global.ChaumianClient.DequeueAllCoinsFromMixAsync("Stopping Wasabi.");
 			}
 
 			return continueWithGui;
