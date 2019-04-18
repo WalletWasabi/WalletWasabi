@@ -1031,7 +1031,8 @@ namespace WalletWasabi.Services
 				}
 			}
 			CoinDequeued?.Invoke(this, coinWaitingForMix);
-			var reasonText = reason != null ? $"Reason: {reason}." : string.Empty; 
+			var correctReason = Guard.Correct(reason);
+			var reasonText = correctReason != "" ? $" Reason: {correctReason}" : ""; 
 			Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}. {reasonText}");
 		}
 
