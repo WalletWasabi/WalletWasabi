@@ -148,7 +148,7 @@ namespace WalletWasabi.Gui.Dialogs
 									break;
 								}
 
-								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }); //dequeue coins one-by-one to check cancel flag more frequently
+								await Global.ChaumianClient.DequeueCoinsFromMixAsync(new SmartCoin[] { coin }, "Closing Wasabi."); // Dequeue coins one-by-one to check cancel flag more frequently.
 							}
 							catch (Exception ex)
 							{
