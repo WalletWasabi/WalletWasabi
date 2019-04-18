@@ -1033,7 +1033,7 @@ namespace WalletWasabi.Services
 			CoinDequeued?.Invoke(this, coinWaitingForMix);
 			var correctReason = Guard.Correct(reason);
 			var reasonText = correctReason != "" ? $" Reason: {correctReason}" : ""; 
-			Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}. {reasonText}");
+			Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.{reasonText}");
 		}
 
 		public async Task StopAsync()
