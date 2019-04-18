@@ -132,6 +132,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 									Logger.LogWarning<MainWindow>(ex);
 								}
 							}
+
+							foreach (var hwi in hwis)
+							{
+								// https://github.com/zkSNACKs/WalletWasabi/issues/1344#issuecomment-484607454
+								if (hwi.Type == HardwareWalletType.Trezor) // If Trezor Model T has passphrase set then user must keep confirming the enumerate command -> https://github.com/zkSNACKs/WalletWasabi/pull/1341#issuecomment-483916529
+								{
+									return;
+								}
+							}
 						}
 						else
 						{
