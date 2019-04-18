@@ -934,7 +934,7 @@ namespace WalletWasabi.Services
 			await DequeueCoinsFromMixNoLockAsync(new []{ coin }, reason);
 		}
 
-		private async Task DequeueCoinsFromMixNoLockAsync(TxoRef[] coins, string reason=null)
+		private async Task DequeueCoinsFromMixNoLockAsync(TxoRef[] coins, string reason = null)
 		{
 			if (coins is null || !coins.Any())
 			{
