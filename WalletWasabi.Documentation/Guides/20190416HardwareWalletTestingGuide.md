@@ -2,21 +2,12 @@
 
 |                | Windows | OSX     | Linux   |
 |----------------|---------|---------|---------|
-| Coldcard       | pass[0][4] | pass[1][2] | pass[3][5] |
+| Coldcard       | pass    | pass    | pass    |
 | Digital BitBox |         |         |         |
 | KeepKey        |         |         |         |
-| Ledger Nano S  |         | fail[6] |         |
-| Trezor One     | fail[7] |         | fail[8] |
-
-- [0] Windows 10 - https://github.com/nopara73
-- [1] OSX High Sierra VirtualBox - https://github.com/nopara73
-- [2] OSX - unknown version - https://github.com/Zolgarr
-- [3] Ubuntu 18.04 VirtualBox - https://github.com/nopara73
-- [4] Windows 10 - https://github.com/molnard
-- [5] Ubuntu 16.04 - https://github.com/nopara73
-- [6] OSX Mojova - https://github.com/zkSNACKs/WalletWasabi/pull/1341#issuecomment-483852180
-- [7] Windows 10 v1803 17134.706 - https://github.com/zkSNACKs/WalletWasabi/pull/1341#issuecomment-483854456
-- [8] Ubuntu, Trezor Simulator - https://github.com/zkSNACKs/WalletWasabi/pull/1341#issuecomment-483916529
+| Ledger Nano S  |         |         |         |
+| Trezor One     |         |         |         |
+| Trezor Model T | pass    | pass    | pass    |
 
 # How to test?
 
