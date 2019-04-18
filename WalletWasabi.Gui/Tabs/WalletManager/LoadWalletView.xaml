@@ -17,6 +17,7 @@
           <StackPanel IsVisible="{Binding IsHardwareWallet}" Spacing="8">
             <StackPanel>
               <TextBlock Text="Limitations?" FontWeight="Bold" />
+              <TextBlock Text="- This is an EXPERIMENTAL feature." />
               <TextBlock Text="- Currently all hardware wallets on the market are incompatible with coinjoins." />
               <TextBlock Text="- Wasabi only supports bech32 hardware wallet keypaths." />
             </StackPanel>
