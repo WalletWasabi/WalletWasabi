@@ -63,6 +63,10 @@ namespace WalletWasabi.Gui
 			TorLogsFile = Path.Combine(DataDir, "TorLogs.txt");
 			WalletsDir = Path.Combine(DataDir, "Wallets");
 			WalletBackupsDir = Path.Combine(DataDir, "WalletBackups");
+
+			Directory.CreateDirectory(DataDir);
+			Directory.CreateDirectory(WalletsDir);
+			Directory.CreateDirectory(WalletBackupsDir);
 		}
 
 		public static void InitializeUiConfig(UiConfig uiConfig)
@@ -109,7 +113,7 @@ namespace WalletWasabi.Gui
 			if (enqueuedCoins.Any())
 			{
 				Logger.LogWarning("Unregistering coins in CoinJoin process.", nameof(Global));
-				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins);
+				await ChaumianClient.DequeueCoinsFromMixAsync(enqueuedCoins, "Process was signaled to kill.");
 			}
 		}
 

@@ -226,11 +226,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				Password = "";
 				SetValidationMessage("");
 
-				if (!File.Exists(Global.WalletsDir))
-				{
-					Directory.CreateDirectory(Global.WalletsDir);
-				}
-
 				var directoryInfo = new DirectoryInfo(Global.WalletsDir);
 				var walletFiles = directoryInfo.GetFiles("*.json", SearchOption.TopDirectoryOnly).OrderByDescending(t => t.LastAccessTimeUtc);
 				foreach (var file in walletFiles)
@@ -341,10 +336,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 					// Start searching for the real wallet name.
 					walletName = null;
-					var walletFileNames = walletFiles.EnumerateFiles()
-															.Concat(walletBackupFiles.EnumerateFiles())
-															.OrderByDescending(x => x.LastAccessTimeUtc)
-															.ToList();
+
+					List<FileInfo> walletFileNames = new List<FileInfo>();
+
+					if (walletFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
+					if (walletBackupFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
+
+					walletFileNames = walletFileNames.OrderByDescending(x => x.LastAccessTimeUtc).ToList();
+
 					foreach (FileInfo walletFile in walletFileNames)
 					{
 						if (walletFile?.Extension?.Equals(".json", StringComparison.OrdinalIgnoreCase) is true)
@@ -436,7 +435,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						await Global.InitializeWalletServiceAsync(keyManager);
 					});
 					// Successffully initialized.
-					IoC.Get<IShell>().RemoveDocument(Owner);
+					Owner.OnClose();
 					// Open Wallet Explorer tabs
 					if (Global.WalletService.Coins.Any())
 					{

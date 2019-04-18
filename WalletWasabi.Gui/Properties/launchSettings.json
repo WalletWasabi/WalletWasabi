@@ -1,8 +1,7 @@
 {
   "profiles": {
     "WalletWasabi.Gui": {
-      "commandName": "Project",
-      "commandLineArgs": "--version"
+      "commandName": "Project"
     }
   }
 }

@@ -230,7 +230,7 @@ namespace WalletWasabi.Services
 						if (!registrableRound.State.HaveEnoughQueued(State.GetAllQueuedCoinAmounts().ToArray())
 							|| dequeueBecauseCoordinatorFeeChanged)
 						{
-							await DequeueAllCoinsFromMixNoLockAsync();
+							await DequeueAllCoinsFromMixNoLockAsync("The total value of the registered coins is not enough or the coordinator's fee changed.");
 						}
 					}
 				}
@@ -559,7 +559,7 @@ namespace WalletWasabi.Services
 
 					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
 
-					await DequeueCoinsFromMixNoLockAsync(coinReference);
+					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator.");
 					aliceClient?.Dispose();
 					return;
 				}
@@ -579,7 +579,7 @@ namespace WalletWasabi.Services
 
 					Logger.LogWarning<CcjClient>(ex.Message.Split('\n')[1]);
 
-					await DequeueCoinsFromMixNoLockAsync(coinReference);
+					await DequeueCoinsFromMixNoLockAsync(coinReference, "Failed to register the coin with the coordinator. The coin is already spent.");
 					aliceClient?.Dispose();
 					return;
 				}
@@ -805,7 +805,13 @@ namespace WalletWasabi.Services
 			return successful;
 		}
 
-		public async Task DequeueCoinsFromMixAsync(params SmartCoin[] coins)
+		public async Task DequeueCoinsFromMixAsync(SmartCoin coin, string reason)
+		{
+			await DequeueCoinsFromMixAsync(new []{ coin }, reason);
+
+		}
+
+		public async Task DequeueCoinsFromMixAsync(IEnumerable<SmartCoin> coins, string reason)
 		{
 			if (coins is null || !coins.Any())
 			{
@@ -820,14 +826,14 @@ namespace WalletWasabi.Services
 					{
 						await DequeueSpentCoinsFromMixNoLockAsync();
 
-						await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray());
+						await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason);
 					}
 				}
 				catch (TaskCanceledException)
 				{
-					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
+					await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray(), reason);
 
-					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray());
+					await DequeueCoinsFromMixNoLockAsync(coins.Select(x => x.GetTxoRef()).ToArray(), reason);
 				}
 			}
 		}
@@ -863,7 +869,12 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		public async Task DequeueCoinsFromMixAsync(params TxoRef[] coins)
+		public async Task DequeueCoinsFromMixAsync(TxoRef coin, string reason)
+		{
+			await DequeueCoinsFromMixAsync(new[] { coin }, reason);
+		}
+
+		public async Task DequeueCoinsFromMixAsync(TxoRef[] coins, string reason)
 		{
 			if (coins is null || !coins.Any())
 			{
@@ -878,19 +889,19 @@ namespace WalletWasabi.Services
 					{
 						await DequeueSpentCoinsFromMixNoLockAsync();
 
-						await DequeueCoinsFromMixNoLockAsync(coins);
+						await DequeueCoinsFromMixNoLockAsync(coins, reason);
 					}
 				}
 				catch (TaskCanceledException)
 				{
 					await DequeueSpentCoinsFromMixNoLockAsync();
 
-					await DequeueCoinsFromMixNoLockAsync(coins);
+					await DequeueCoinsFromMixNoLockAsync(coins, reason);
 				}
 			}
 		}
 
-		public async Task DequeueAllCoinsFromMixAsync()
+		public async Task DequeueAllCoinsFromMixAsync(string reason)
 		{
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3)))
 			{
@@ -898,19 +909,19 @@ namespace WalletWasabi.Services
 				{
 					using (await MixLock.LockAsync(cts.Token))
 					{
-						await DequeueAllCoinsFromMixNoLockAsync();
+						await DequeueAllCoinsFromMixNoLockAsync(reason);
 					}
 				}
 				catch (TaskCanceledException)
 				{
-					await DequeueAllCoinsFromMixNoLockAsync();
+					await DequeueAllCoinsFromMixNoLockAsync(reason);
 				}
 			}
 		}
 
-		private async Task DequeueAllCoinsFromMixNoLockAsync()
+		private async Task DequeueAllCoinsFromMixNoLockAsync(string reason)
 		{
-			await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray());
+			await DequeueCoinsFromMixNoLockAsync(State.GetAllQueuedCoins().ToArray(), reason);
 		}
 
 		private async Task DequeueSpentCoinsFromMixNoLockAsync()
@@ -918,7 +929,12 @@ namespace WalletWasabi.Services
 			await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 		}
 
-		private async Task DequeueCoinsFromMixNoLockAsync(params TxoRef[] coins)
+		private async Task DequeueCoinsFromMixNoLockAsync(TxoRef coin, string reason = null)
+		{
+			await DequeueCoinsFromMixNoLockAsync(new []{ coin }, reason);
+		}
+
+		private async Task DequeueCoinsFromMixNoLockAsync(TxoRef[] coins, string reason = null)
 		{
 			if (coins is null || !coins.Any())
 			{
@@ -985,7 +1001,7 @@ namespace WalletWasabi.Services
 				SmartCoin coinWaitingForMix = State.GetSingleOrDefaultFromWaitingList(coinToDequeue);
 				if (coinWaitingForMix != null) // If it is not being mixed, we can just remove it.
 				{
-					RemoveCoin(coinWaitingForMix);
+					RemoveCoin(coinWaitingForMix, reason);
 				}
 			}
 
@@ -1000,7 +1016,7 @@ namespace WalletWasabi.Services
 			}
 		}
 
-		private void RemoveCoin(SmartCoin coinWaitingForMix)
+		private void RemoveCoin(SmartCoin coinWaitingForMix, string reason = null)
 		{
 			State.RemoveCoinFromWaitingList(coinWaitingForMix);
 			coinWaitingForMix.CoinJoinInProgress = false;
@@ -1015,7 +1031,9 @@ namespace WalletWasabi.Services
 				}
 			}
 			CoinDequeued?.Invoke(this, coinWaitingForMix);
-			Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.");
+			var correctReason = Guard.Correct(reason);
+			var reasonText = correctReason != "" ? $" Reason: {correctReason}" : ""; 
+			Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.{reasonText}");
 		}
 
 		public async Task StopAsync()
@@ -1047,7 +1065,7 @@ namespace WalletWasabi.Services
 						{
 							continue; // The coin isn't present anymore. Good. This should never happen though.
 						}
-						await DequeueCoinsFromMixNoLockAsync(coin.GetTxoRef());
+						await DequeueCoinsFromMixNoLockAsync(coin.GetTxoRef(), "Stopping Wasabi.");
 					}
 					catch (Exception ex)
 					{

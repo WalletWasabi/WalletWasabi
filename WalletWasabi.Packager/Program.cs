@@ -51,9 +51,19 @@ namespace WalletWasabi.Packager
 		public static string VersionPrefix = Helpers.Constants.ClientVersion.ToString();
 
 		public static bool OnlyBinaries;
+		public static bool OnlyCreateDigests;
 
 		private static void Main(string[] args)
 		{
+			// Start with digest creation and return if only digest creation.
+			CreateDigests();
+
+			OnlyCreateDigests = IsOnlyCreateDigestsMode(args);
+			if (OnlyCreateDigests)
+			{
+				return;
+			}
+
 			// Only binaries mode is for deterministic builds.
 			OnlyBinaries = IsOnlyBinariesMode(args);
 			ReportStatus();
@@ -76,6 +86,51 @@ namespace WalletWasabi.Packager
 			{
 				RestoreProgramCs();
 			}
+		}
+
+		private static void CreateDigests()
+		{
+			var tempDir = "DigestTempDir";
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter();
+			Directory.CreateDirectory(tempDir);
+
+			var torDaemonsDir = Path.Combine(LibraryProjectDirectory, "TorDaemons");
+			string torWinZip = Path.Combine(torDaemonsDir, "tor-win32.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "Tor", "tor.exe"), Path.Combine(tempDir, "TorWin"));
+
+			string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorLin"));
+
+			string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorOsx"));
+
+			string hwiSoftwareDir = Path.Combine(LibraryProjectDirectory, "Hwi", "Software");
+			string hwiWinZip = Path.Combine(hwiSoftwareDir, "hwi-win64.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(hwiWinZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "hwi.exe"), Path.Combine(tempDir, "HwiWin"));
+
+			string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiLin"));
+
+			string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiOsx"));
+
+			var tempDirInfo = new DirectoryInfo(tempDir);
+			var binaries = tempDirInfo.GetFiles();
+			Console.WriteLine("Digests:");
+			foreach (var file in binaries)
+			{
+				var filePath = file.FullName;
+				var hash = ByteHelpers.ToHex(IoHelpers.GetHashFile(filePath)).ToLowerInvariant();
+				Console.WriteLine($"{file.Name} : {hash}");
+			}
+
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter();
 		}
 
 		private static void ReportStatus()
@@ -106,15 +161,40 @@ namespace WalletWasabi.Packager
 		private static bool IsOnlyBinariesMode(string[] args)
 		{
 			bool onlyBinaries = false;
-			if (args.Any())
+			if (args != null)
 			{
-				if (args[0].Trim().TrimStart('-').Equals("onlybinaries", StringComparison.OrdinalIgnoreCase))
+				foreach (var arg in args)
 				{
-					onlyBinaries = true;
+					if (arg.Trim().TrimStart('-').Equals("onlybinaries", StringComparison.OrdinalIgnoreCase))
+					{
+						onlyBinaries = true;
+						break;
+					}
 				}
 			}
 
 			return onlyBinaries;
+		}
+
+		private static bool IsOnlyCreateDigestsMode(string[] args)
+		{
+			bool onlyCreateDigests = false;
+			if (args != null)
+			{
+				foreach (var arg in args)
+				{
+					if (arg.Trim().TrimStart('-').Equals("onlycreatedigests", StringComparison.OrdinalIgnoreCase)
+						|| arg.Trim().TrimStart('-').Equals("onlycreatedigest", StringComparison.OrdinalIgnoreCase)
+						|| arg.Trim().TrimStart('-').Equals("onlydigests", StringComparison.OrdinalIgnoreCase)
+						|| arg.Trim().TrimStart('-').Equals("onlydigest", StringComparison.OrdinalIgnoreCase))
+					{
+						onlyCreateDigests = true;
+						break;
+					}
+				}
+			}
+
+			return onlyCreateDigests;
 		}
 
 		private static void RestoreProgramCs()
@@ -346,12 +426,6 @@ namespace WalletWasabi.Packager
 
 				if (target.StartsWith("win"))
 				{
-					// Don't open console.
-					if (!NSubsysUtil.ProcessFile(newExecutablePath))
-					{
-						Console.WriteLine("ERROR: Couldn't remove console from exe.");
-					}
-
 					var icoPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.ico");
 					using (var process = Process.Start(new ProcessStartInfo
 					{
@@ -361,6 +435,15 @@ namespace WalletWasabi.Packager
 					}))
 					{
 						process.WaitForExit();
+					}
+
+					var daemonExePath = newExecutablePath.Substring(0, newExecutablePath.Length - 4) + "d.exe";
+					File.Copy(newExecutablePath, daemonExePath);
+
+					// Don't open console.
+					if (!NSubsysUtil.ProcessFile(newExecutablePath))
+					{
+						Console.WriteLine("ERROR: Couldn't remove console from exe.");
 					}
 
 					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!

@@ -24,7 +24,6 @@ using System.Diagnostics;
 using NBitcoin.BitcoinCore;
 using System.Net.Sockets;
 using NBitcoin.Protocol.Behaviors;
-using NBitcoin.BIP174;
 
 namespace WalletWasabi.Services
 {
@@ -1259,9 +1258,23 @@ namespace WalletWasabi.Services
 				}
 			}
 
-			PSBT psbt = PSBT.FromTransaction(tx);
-			//uint masterFP = BitConverter.ToUInt32(KeyManager.ExtPubKey.Fingerprint); - DON'T DO THIS, THERE ARE SOME FINGERPRINT CONSISTENCY ISSUES
-			uint masterFP = BitConverter.ToUInt32(ByteHelpers.FromHex(KeyManager.HardwareWalletInfo.Fingerprint));
+			PSBT psbt = builder.BuildPSBT(sign);
+			HDFingerprint masterFP;
+			if (KeyManager.IsHardwareWallet && !string.IsNullOrWhiteSpace(KeyManager.HardwareWalletInfo.Fingerprint)) // Prefer HWI's fingerprint at first, then fall back to NBitcoin's.
+			{
+				try
+				{
+					masterFP = new HDFingerprint(ByteHelpers.FromHex(KeyManager.HardwareWalletInfo.Fingerprint));
+				}
+				catch
+				{
+					masterFP = KeyManager.ExtPubKey.PubKey.GetHDFingerPrint();
+				}
+			}
+			else
+			{
+				masterFP = KeyManager.ExtPubKey.PubKey.GetHDFingerPrint();
+			}
 			HashSet<SmartCoin> allTxCoins = spentCoins.Concat(innerWalletOutputs).Concat(outerWalletOutputs).ToHashSet();
 			foreach (var coin in allTxCoins)
 			{
@@ -1283,13 +1296,9 @@ namespace WalletWasabi.Services
 					{
 						index = (int)coin.Index;
 					}
-
-					psbt.AddPathTo(index, coin.HdPubKey.PubKey, masterFP, coin.HdPubKey.FullKeyPath, isInput);
+					psbt.AddKeyPath(masterFP, coin.HdPubKey.PubKey, coin.HdPubKey.FullKeyPath, coin.ScriptPubKey);
 				}
 			}
-
-			psbt.AddCoins(allTxCoins.Select(x => x.GetCoin()).ToArray()); // ToDo: Do we need all the coins, don't we just need the input coins?
-			psbt.AddScript(allTxCoins.Select(x => x.ScriptPubKey).ToArray()); // ToDo: Do we need this?
 
 			Logger.LogInfo<WalletService>($"Transaction is successfully built: {tx.GetHash()}.");
 

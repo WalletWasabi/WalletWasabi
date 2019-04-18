@@ -244,7 +244,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
-							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue);
+							await Global.ChaumianClient.DequeueCoinsFromMixAsync(toDequeue, "Coin is used in a spending transaction built by the user.");
 						}
 					}
 					catch
@@ -266,7 +266,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							IsHardwareBusy = true;
 							var signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 
-							var extractedTx = signedPsbt.ExtractTX();
+							var extractedTx = signedPsbt.ExtractTransaction();
 							signedTransaction = new SmartTransaction(extractedTx, result.Transaction.Height);
 						}
 						finally
@@ -629,7 +629,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			try
 			{
-				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray());
+				await Global.ChaumianClient.DequeueCoinsFromMixAsync(selectedCoins.Select(c => c.Model).ToArray(), "Dequeued by the user.");
 			}
 			catch (Exception ex)
 			{

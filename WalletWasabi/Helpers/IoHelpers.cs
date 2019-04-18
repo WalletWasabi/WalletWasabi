@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -244,6 +245,37 @@ namespace System.IO
 			if (!string.IsNullOrEmpty(dir)) // root
 			{
 				Directory.CreateDirectory(dir); // It does not fail if it exists.
+			}
+		}
+
+		public static byte[] GetHashFile(string filePath)
+		{
+			var bytes = File.ReadAllBytes(filePath);
+			using(var sha = new SHA256Managed())
+			{
+				return sha.ComputeHash(bytes, 0, bytes.Length);
+			}
+		}
+
+		public static bool CheckExpectedHash(string filePath, string sourceFolderPath)
+		{
+			var fileHash = GetHashFile(filePath); 
+			try
+			{
+				var digests = File.ReadAllLines(Path.Combine(sourceFolderPath,"digests.txt"));
+				foreach(var digest in digests)
+				{
+					var expectedHash = ByteHelpers.FromHex(digest);
+					if(ByteHelpers.CompareFastUnsafe(fileHash, expectedHash))
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+			catch(Exception)
+			{
+				return false;
 			}
 		}
 

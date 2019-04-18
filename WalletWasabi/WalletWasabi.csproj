@@ -20,13 +20,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="NBitcoin" Version="4.1.1.98" />
+	<PackageReference Include="NBitcoin" Version="4.1.2.6" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0" />  </ItemGroup>
   <ItemGroup>
     <Folder Include="Gma\QrCodeNet\Encoding\ReedSolomon\" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Hwi\Software\digests.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Hwi\Software\hwi-linux64.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -34,6 +37,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Hwi\Software\hwi-win64.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TorDaemons\digests.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TorDaemons\data-folder.zip">
