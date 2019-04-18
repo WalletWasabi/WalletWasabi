@@ -929,7 +929,7 @@ namespace WalletWasabi.Services
 			await DequeueCoinsFromMixNoLockAsync(State.GetSpentCoins().ToArray());
 		}
 
-		private async Task DequeueCoinsFromMixNoLockAsync(TxoRef coin, string reason=null)
+		private async Task DequeueCoinsFromMixNoLockAsync(TxoRef coin, string reason = null)
 		{
 			await DequeueCoinsFromMixNoLockAsync(new []{ coin }, reason);
 		}
