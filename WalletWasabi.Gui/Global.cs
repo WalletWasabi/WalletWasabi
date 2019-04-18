@@ -307,7 +307,8 @@ namespace WalletWasabi.Gui
 			#region Onion seed list 
 			//  curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
 			// Then filtered to include only /Satoshi:0.17.x
-			var onions = new []{
+			var mainnetSeeds = new []
+			{
 				"godfxzfs63mwxdfn.onion:8333",
 				"p3aj5tjey6dzsjr7.onion:8333",
 				"etofym3tnrn3k42u.onion:8333",
@@ -533,12 +534,35 @@ namespace WalletWasabi.Gui
 				"3ihjnsvwc3x6dp2o.onion:8333",
 				"b6mutxpzskpeuew5.onion:8333"
 			};
+
+			var testnetSeeds = new[]
+			{
+				"thfsmmn2jbitcoin.onion:18333",
+				"it2pj4f7657g3rhi.onion:18333",
+				"nkf5e6b7pl4jfd4a.onion:18333",
+				"4zhkir2ofl7orfom.onion:18333",
+				"t6xj6wilh4ytvcs7.onion:18333",
+				"i6y6ivorwakd7nw3.onion:18333",
+				"ubqj4rsu3nqtxmtp.onion:18333",
+				"ocasutxnvl4lwegq.onion:18333",
+				"cu6octp6yo754wda.onion:18333",
+				"lkiggf5esgs7d5z6.onion:18333",
+				"rhcv7q2quqn74zlr.onion:18333",
+				"nq7cak6pufzs2ou2.onion:18333",
+				"nec4kn4ghql7p7an.onion:18333",
+				"qlllezfaif5cscnx.onion:18333",
+				"zmtr2di735ngxpcl.onion:18333",
+				"4syvownyxejvqbzn.onion:18333",
+			};
+
+			var onions = Network == Network.Main ? mainnetSeeds : testnetSeeds;
+
 			#endregion
 
 			onions.Shuffle();
 			foreach(var onion in onions.Take(60))
 			{
-				if(NBitcoin.Utils.TryParseEndpoint(onion, 8333, out var endpoint))
+				if(NBitcoin.Utils.TryParseEndpoint(onion, Network.DefaultPort, out var endpoint))
 				{
 					await addressManager.AddAsync(endpoint);
 				}
