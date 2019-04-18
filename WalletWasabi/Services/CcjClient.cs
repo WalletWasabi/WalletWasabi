@@ -1064,7 +1064,7 @@ namespace WalletWasabi.Services
 						{
 							continue; // The coin isn't present anymore. Good. This should never happen though.
 						}
-						await DequeueCoinsFromMixNoLockAsync(coin.GetTxoRef(), "Stopping Wasabi");
+						await DequeueCoinsFromMixNoLockAsync(coin.GetTxoRef(), "Stopping Wasabi.");
 					}
 					catch (Exception ex)
 					{
