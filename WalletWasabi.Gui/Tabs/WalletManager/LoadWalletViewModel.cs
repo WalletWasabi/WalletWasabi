@@ -341,10 +341,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 					// Start searching for the real wallet name.
 					walletName = null;
-					var walletFileNames = walletFiles.EnumerateFiles()
-															.Concat(walletBackupFiles.EnumerateFiles())
-															.OrderByDescending(x => x.LastAccessTimeUtc)
-															.ToList();
+
+					List<FileInfo> walletFileNames = new List<FileInfo>();
+
+					if (walletFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
+					if (walletBackupFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
+
+					walletFileNames = walletFileNames.OrderByDescending(x => x.LastAccessTimeUtc).ToList();
+
 					foreach (FileInfo walletFile in walletFileNames)
 					{
 						if (walletFile?.Extension?.Equals(".json", StringComparison.OrdinalIgnoreCase) is true)
