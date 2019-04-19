@@ -239,6 +239,44 @@ namespace WalletWasabi.KeyManagement
 			return km;
 		}
 
+		public static ExtPubKey ExtPubKeyFromFile(string filePath)
+		{
+			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
+
+			if (!IoHelpers.TryGetSafestFileVersion(filePath, out var safestFile))
+			{
+				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
+			}
+
+			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
+
+			var extpubkeyline = File.ReadLines(filePath) // Enumerated read.
+				.Take(10) // Limit reads to x lines.
+				.FirstOrDefault(line => line.Contains("\"ExtPubKey\": \"", StringComparison.InvariantCulture));
+
+			if (string.IsNullOrEmpty(extpubkeyline))
+				throw new InvalidOperationException($"Could not find line ExtPubKey in file: {filePath}");
+
+			var parts = extpubkeyline.Split("\"ExtPubKey\": \"");
+			if (parts.Length != 2)
+				throw new FormatException($"Could not split line: {extpubkeyline}");
+
+			var xpub = parts[1].TrimEnd(',', '"');
+
+			ExtPubKey epk;
+
+			try
+			{
+				epk = ExtPubKey.Parse(xpub);  // Starts with "ExtPubKey": "xpub...
+			}
+			catch
+			{
+				// Try hex, Old wallet format was like this.
+				epk = new ExtPubKey(ByteHelpers.FromHex(xpub)); // Starts with "ExtPubKey": "hexbytes...
+			}
+			return epk;
+		}
+
 		public HdPubKey GenerateNewKey(string label, KeyState keyState, bool isInternal, bool toFile = true)
 		{
 			// BIP44-ish derivation scheme
