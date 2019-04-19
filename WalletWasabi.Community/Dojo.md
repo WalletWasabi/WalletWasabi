@@ -23,7 +23,7 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 
 | Wasabika       | Contact                    | Achievements                           | Promotions                     |
 |----------------|----------------------------|----------------------------------------|--------------------------------|
-| Max Hillebrand | [Twitter][5]               | [Wasabi Video Series][6], Wasabi Interviews [1.][34] [2.][35] [3.][36]            | [2019-04][33]: yellow belt by nopara73 |
+| Max Hillebrand | [Twitter][5] [GitHub][37]              | [All Wasabi Videos][6], [Wasabi Tutorials][34], [Wasabi Interviews][35], [Zero Link Framework Reading][36]           | [2019-04][33]: yellow belt by nopara73 |
 
 ### Blue Belts
 
@@ -53,7 +53,7 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 [2]: https://github.com/NicolasDorier/
 [3]: https://github.com/MetacoSA/NBitcoin/
 [5]: https://twitter.com/HillebrandMax/
-[6]: https://www.youtube.com/watch?v=y8wQK-Ndl3Q&list=PLPj3KCksGbSaEmjU0sywoTYDVYYSu8LsS
+[6]: https://www.youtube.com/playlist?list=PLPj3KCksGbSaEmjU0sywoTYDVYYSu8LsS
 [7]: https://twitter.com/mark_rex_h/
 [8]: https://github.com/rexmint/
 [9]: https://github.com/zkSNACKs/Meta/issues/29
@@ -80,6 +80,7 @@ You can only be promoted by someone two belts above you. Consequently you can pr
 [31]: https://github.com/Transisto/
 [32]: https://github.com/zkSNACKs/WalletWasabi/issues?utf8=%E2%9C%93&q=is%3Aissue+author%3ATransisto
 [33]: https://twitter.com/nopara73/status/1114540283914522626
-[34]: https://www.youtube.com/watch?v=WIXG8WEwJnk
-[35]: https://www.youtube.com/watch?v=4m-Wh0wSY5M
-[36]: https://www.youtube.com/watch?v=-_WJOK7ORAQ
+[34]: https://www.youtube.com/playlist?list=PLPj3KCksGbSYCFAf3SZbzaJ3ud_nfjlSq
+[35]: https://www.youtube.com/playlist?list=PLPj3KCksGbSZcK35ftoBUcPvYuOHdWQss
+[36]: https://www.youtube.com/playlist?list=PLPj3KCksGbSZG8f4_ubui5I1VB7VGX2Cy
+[37]: http://github.com/maxhillebrand/
