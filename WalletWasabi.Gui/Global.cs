@@ -304,16 +304,25 @@ namespace WalletWasabi.Gui
 
 		private static async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
 		{
+			if (Network == Network.RegTest) return;
+
 			//  curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
 			// Then filtered to include only /Satoshi:0.17.x
-			var baseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
-			var onionSeedsFileName = (Network == Network.Main ? "main" : "test") + "_onion_seeds.txt";
-			var onions = await File.ReadAllLinesAsync(Path.Combine(baseDirectory, onionSeedsFileName));
+			var fullBaseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			{
+				if (!fullBaseDirectory.StartsWith('/'))
+				{
+					fullBaseDirectory.Insert(0, "/");
+				}
+			}
+
+			var onions = await File.ReadAllLinesAsync(Path.Combine(fullBaseDirectory, "OnionSeeds", $"{Network}OnionSeeds.txt"));
 
 			onions.Shuffle();
-			foreach(var onion in onions.Take(60))
+			foreach (var onion in onions.Take(60))
 			{
-				if(NBitcoin.Utils.TryParseEndpoint(onion, Network.DefaultPort, out var endpoint))
+				if (NBitcoin.Utils.TryParseEndpoint(onion, Network.DefaultPort, out var endpoint))
 				{
 					await addressManager.AddAsync(endpoint);
 				}

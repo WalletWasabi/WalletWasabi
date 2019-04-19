@@ -1,10 +1,14 @@
-﻿using NSubsys;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NSubsys;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -12,475 +16,529 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Packager
 {
-    public class Program
-    {
-        // 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
-        // 1. Publish with Packager.
-        // 2. Build WIX project with Release and x64 configuration.
-        // 3. Sign with Packager, set restore true so the password won't be kept.
+	public class Program
+	{
+		// 0. Dump Client version (or else wrong .msi will be created) - Helpers.Constants.ClientVersion
+		// 1. Publish with Packager.
+		// 2. Build WIX project with Release and x64 configuration.
+		// 3. Sign with Packager, set restore true so the password won't be kept.
 
-        public const bool DoPublish = true;
-        public const bool DoSign = false;
-        public const bool DoRestoreProgramCs = false;
-        public const string PfxPassword = "dontcommit";
+		public const bool DoPublish = true;
+		public const bool DoSign = false;
+		public const bool DoRestoreProgramCs = false;
+		public const string PfxPassword = "dontcommit";
 
-        public const string PfxPath = "C:\\digicert.pfx";
-        public const string ExecutableName = "wassabee";
+		public const string PfxPath = "C:\\digicert.pfx";
+		public const string ExecutableName = "wassabee";
 
-        // https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
-        // BOTTLENECKS:
-        // Tor - win-32, linux-32, osx-64
-        // .NET Core - win-32, linux-64, osx-64
-        // Avalonia - win7-32, linux-64, osx-64
-        // We'll only support x64, if someone complains, we can come back to it.
-        // For 32 bit Windows there needs to be a lot of WIX configuration to be done.
-        public static string[] Targets = new[]
-        {
-            "win7-x64",
-            "linux-x64",
-            "osx-x64"
-        };
+		// https://docs.microsoft.com/en-us/dotnet/articles/core/rid-catalog
+		// BOTTLENECKS:
+		// Tor - win-32, linux-32, osx-64
+		// .NET Core - win-32, linux-64, osx-64
+		// Avalonia - win7-32, linux-64, osx-64
+		// We'll only support x64, if someone complains, we can come back to it.
+		// For 32 bit Windows there needs to be a lot of WIX configuration to be done.
+		public static string[] Targets = new[]
+		{
+			"win7-x64",
+			"linux-x64",
+			"osx-x64"
+		};
 
-        public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
-        public static string SolutionDirectory = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, "..\\"));
-        public static string GuiProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Gui\\"));
-        public static string LibraryProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi\\"));
-        public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller\\"));
-        public static string BinDistDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin\\dist"));
+		public static string PackagerProjectDirectory = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\"));
+		public static string SolutionDirectory = Path.GetFullPath(Path.Combine(PackagerProjectDirectory, "..\\"));
+		public static string GuiProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.Gui\\"));
+		public static string LibraryProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi\\"));
+		public static string WixProjectDirectory = Path.GetFullPath(Path.Combine(SolutionDirectory, "WalletWasabi.WindowsInstaller\\"));
+		public static string BinDistDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin\\dist"));
 
-        public static string VersionPrefix = Helpers.Constants.ClientVersion.ToString();
+		public static string VersionPrefix = Helpers.Constants.ClientVersion.ToString();
 
-        public static bool OnlyBinaries;
-        public static bool OnlyCreateDigests;
+		public static bool OnlyBinaries;
+		public static bool OnlyCreateDigests;
 
-        private static void Main(string[] args)
-        {
-            // Start with digest creation and return if only digest creation.
-            CreateDigests();
+		private static void Main(string[] args)
+		{
+			// If I want a list of up to date onions run it with '--getonions'.
+			if (IsGetOnionsMode(args))
+			{
+				GetOnions();
+				return;
+			}
 
-            OnlyCreateDigests = IsOnlyCreateDigestsMode(args);
-            if (OnlyCreateDigests)
-            {
-                return;
-            }
+			// Start with digest creation and return if only digest creation.
+			CreateDigests();
 
-            // Only binaries mode is for deterministic builds.
-            OnlyBinaries = IsOnlyBinariesMode(args);
-            ReportStatus();
+			OnlyCreateDigests = IsOnlyCreateDigestsMode(args);
+			if (OnlyCreateDigests)
+			{
+				return;
+			}
 
-            if (DoPublish || OnlyBinaries)
-            {
-                Publish();
-                if (OnlyBinaries)
-                {
-                    IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
-                }
-            }
+			// Only binaries mode is for deterministic builds.
+			OnlyBinaries = IsOnlyBinariesMode(args);
+			ReportStatus();
 
-            if (DoSign && !OnlyBinaries)
-            {
-                Sign();
-            }
+			if (DoPublish || OnlyBinaries)
+			{
+				Publish();
+				if (OnlyBinaries)
+				{
+					IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
+				}
+			}
 
-            if (DoRestoreProgramCs && !OnlyBinaries)
-            {
-                RestoreProgramCs();
-            }
-        }
+			if (DoSign && !OnlyBinaries)
+			{
+				Sign();
+			}
 
-        private static void CreateDigests()
-        {
-            var tempDir = "DigestTempDir";
-            IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter();
-            Directory.CreateDirectory(tempDir);
+			if (DoRestoreProgramCs && !OnlyBinaries)
+			{
+				RestoreProgramCs();
+			}
+		}
 
-            var torDaemonsDir = Path.Combine(LibraryProjectDirectory, "TorDaemons");
-            string torWinZip = Path.Combine(torDaemonsDir, "tor-win32.zip");
-            IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, tempDir).GetAwaiter();
-            File.Move(Path.Combine(tempDir, "Tor", "tor.exe"), Path.Combine(tempDir, "TorWin"));
+		private static void GetOnions()
+		{
+			using (var httpClient = new HttpClient())
+			{
+				httpClient.BaseAddress = new Uri("https://bitnodes.21.co/api/v1/");
 
-            string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
-            IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, tempDir).GetAwaiter();
-            File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorLin"));
+				using (var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult())
+				{
+					if (response.StatusCode != HttpStatusCode.OK)
+						throw new HttpRequestException(response.StatusCode.ToString());
+					var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+					var json = (JObject)JsonConvert.DeserializeObject(responseString);
+					foreach (JProperty node in json["nodes"])
+					{
+						if (!node.Name.ToString().Contains(".onion"))
+							continue;
+						var userAgent = ((JArray)node.Value)[1].ToString();
+						if (userAgent.Contains("Satoshi:0.16") || userAgent.Contains("Satoshi:0.17"))
+						{
+							Console.WriteLine(node.Name);
+						}
+					}
+				}
+			}
+		}
 
-            string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
-            IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter();
-            File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorOsx"));
+		private static void CreateDigests()
+		{
+			var tempDir = "DigestTempDir";
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter();
+			Directory.CreateDirectory(tempDir);
 
-            string hwiSoftwareDir = Path.Combine(LibraryProjectDirectory, "Hwi", "Software");
-            string hwiWinZip = Path.Combine(hwiSoftwareDir, "hwi-win64.zip");
-            IoHelpers.BetterExtractZipToDirectoryAsync(hwiWinZip, tempDir).GetAwaiter();
-            File.Move(Path.Combine(tempDir, "hwi.exe"), Path.Combine(tempDir, "HwiWin"));
+			var torDaemonsDir = Path.Combine(LibraryProjectDirectory, "TorDaemons");
+			string torWinZip = Path.Combine(torDaemonsDir, "tor-win32.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "Tor", "tor.exe"), Path.Combine(tempDir, "TorWin"));
 
-            string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
-            IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, tempDir).GetAwaiter();
-            File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiLin"));
+			string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorLin"));
 
-            string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
-            IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, tempDir).GetAwaiter();
-            File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiOsx"));
+			string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorOsx"));
 
-            var tempDirInfo = new DirectoryInfo(tempDir);
-            var binaries = tempDirInfo.GetFiles();
-            Console.WriteLine("Digests:");
-            foreach (var file in binaries)
-            {
-                var filePath = file.FullName;
-                var hash = ByteHelpers.ToHex(IoHelpers.GetHashFile(filePath)).ToLowerInvariant();
-                Console.WriteLine($"{file.Name} : {hash}");
-            }
+			string hwiSoftwareDir = Path.Combine(LibraryProjectDirectory, "Hwi", "Software");
+			string hwiWinZip = Path.Combine(hwiSoftwareDir, "hwi-win64.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(hwiWinZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "hwi.exe"), Path.Combine(tempDir, "HwiWin"));
 
-            IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter();
-        }
+			string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiLin"));
 
-        private static void ReportStatus()
-        {
-            if (OnlyBinaries)
-            {
-                Console.WriteLine($"I'll only generate binaries and disregard all other options.");
-            }
-            Console.WriteLine($"{nameof(VersionPrefix)}:\t\t\t{VersionPrefix}");
-            Console.WriteLine($"{nameof(ExecutableName)}:\t\t\t{ExecutableName}");
+			string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
+			IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, tempDir).GetAwaiter();
+			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiOsx"));
 
-            Console.WriteLine();
-            Console.Write($"{nameof(Targets)}:\t\t\t");
-            foreach (var target in Targets)
-            {
-                if (Targets.Last() != target)
-                {
-                    Console.Write($"{target}, ");
-                }
-                else
-                {
-                    Console.Write(target);
-                }
-            }
-            Console.WriteLine();
-        }
+			var tempDirInfo = new DirectoryInfo(tempDir);
+			var binaries = tempDirInfo.GetFiles();
+			Console.WriteLine("Digests:");
+			foreach (var file in binaries)
+			{
+				var filePath = file.FullName;
+				var hash = ByteHelpers.ToHex(IoHelpers.GetHashFile(filePath)).ToLowerInvariant();
+				Console.WriteLine($"{file.Name} : {hash}");
+			}
 
-        private static bool IsOnlyBinariesMode(string[] args)
-        {
-            bool onlyBinaries = false;
-            if (args != null)
-            {
-                foreach (var arg in args)
-                {
-                    if (arg.Trim().TrimStart('-').Equals("onlybinaries", StringComparison.OrdinalIgnoreCase))
-                    {
-                        onlyBinaries = true;
-                        break;
-                    }
-                }
-            }
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter();
+		}
 
-            return onlyBinaries;
-        }
+		private static void ReportStatus()
+		{
+			if (OnlyBinaries)
+			{
+				Console.WriteLine($"I'll only generate binaries and disregard all other options.");
+			}
+			Console.WriteLine($"{nameof(VersionPrefix)}:\t\t\t{VersionPrefix}");
+			Console.WriteLine($"{nameof(ExecutableName)}:\t\t\t{ExecutableName}");
 
-        private static bool IsOnlyCreateDigestsMode(string[] args)
-        {
-            bool onlyCreateDigests = false;
-            if (args != null)
-            {
-                foreach (var arg in args)
-                {
-                    if (arg.Trim().TrimStart('-').Equals("onlycreatedigests", StringComparison.OrdinalIgnoreCase)
-                        || arg.Trim().TrimStart('-').Equals("onlycreatedigest", StringComparison.OrdinalIgnoreCase)
-                        || arg.Trim().TrimStart('-').Equals("onlydigests", StringComparison.OrdinalIgnoreCase)
-                        || arg.Trim().TrimStart('-').Equals("onlydigest", StringComparison.OrdinalIgnoreCase))
-                    {
-                        onlyCreateDigests = true;
-                        break;
-                    }
-                }
-            }
+			Console.WriteLine();
+			Console.Write($"{nameof(Targets)}:\t\t\t");
+			foreach (var target in Targets)
+			{
+				if (Targets.Last() != target)
+				{
+					Console.Write($"{target}, ");
+				}
+				else
+				{
+					Console.Write(target);
+				}
+			}
+			Console.WriteLine();
+		}
 
-            return onlyCreateDigests;
-        }
+		private static bool IsOnlyBinariesMode(string[] args)
+		{
+			bool onlyBinaries = false;
+			if (args != null)
+			{
+				foreach (var arg in args)
+				{
+					if (arg.Trim().TrimStart('-').Equals("onlybinaries", StringComparison.OrdinalIgnoreCase))
+					{
+						onlyBinaries = true;
+						break;
+					}
+				}
+			}
 
-        private static void RestoreProgramCs()
-        {
-            using (var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = "cmd",
-                RedirectStandardInput = true,
-                WorkingDirectory = PackagerProjectDirectory
-            }))
-            {
-                process.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
-                process.WaitForExit();
-            }
-        }
+			return onlyBinaries;
+		}
 
-        private static void Sign()
-        {
-            foreach (string target in Targets)
-            {
-                if (target.StartsWith("win", StringComparison.OrdinalIgnoreCase))
-                {
-                    string publishedFolder = Path.Combine(BinDistDirectory, target);
+		private static bool IsOnlyCreateDigestsMode(string[] args)
+		{
+			bool onlyCreateDigests = false;
+			if (args != null)
+			{
+				foreach (var arg in args)
+				{
+					if (arg.Trim().TrimStart('-').Equals("onlycreatedigests", StringComparison.OrdinalIgnoreCase)
+						|| arg.Trim().TrimStart('-').Equals("onlycreatedigest", StringComparison.OrdinalIgnoreCase)
+						|| arg.Trim().TrimStart('-').Equals("onlydigests", StringComparison.OrdinalIgnoreCase)
+						|| arg.Trim().TrimStart('-').Equals("onlydigest", StringComparison.OrdinalIgnoreCase))
+					{
+						onlyCreateDigests = true;
+						break;
+					}
+				}
+			}
 
-                    Console.WriteLine("Move created .msi");
-                    var msiPath = Path.Combine(WixProjectDirectory, @"bin\Release\Wasabi.msi");
-                    if (!File.Exists(msiPath))
-                    {
-                        throw new Exception(".msi doesn't exist. Expected path: Wasabi.msi.");
-                    }
-                    var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
-                    var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
-                    File.Move(msiPath, newMsiPath);
+			return onlyCreateDigests;
+		}
 
-                    // Sign code with digicert.
-                    using (var process = Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "cmd",
-                        RedirectStandardInput = true,
-                        WorkingDirectory = BinDistDirectory
-                    }))
-                    {
-                        process.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {PfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
-                        process.WaitForExit();
-                    }
+		private static bool IsGetOnionsMode(string[] args)
+		{
+			bool getOnions = false;
+			if (args != null)
+			{
+				foreach (var arg in args)
+				{
+					if (arg.Trim().TrimStart('-').Equals("getonions", StringComparison.OrdinalIgnoreCase)
+						|| arg.Trim().TrimStart('-').Equals("onions", StringComparison.OrdinalIgnoreCase)
+						|| arg.Trim().TrimStart('-').Equals("getonion", StringComparison.OrdinalIgnoreCase)
+						|| arg.Trim().TrimStart('-').Equals("onion", StringComparison.OrdinalIgnoreCase))
+					{
+						getOnions = true;
+						break;
+					}
+				}
+			}
 
-                    IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
-                    Console.WriteLine($"Deleted {publishedFolder}");
-                }
-            }
+			return getOnions;
+		}
 
-            Console.WriteLine("Signing final files...");
-            var finalFiles = Directory.GetFiles(BinDistDirectory);
+		private static void RestoreProgramCs()
+		{
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "cmd",
+				RedirectStandardInput = true,
+				WorkingDirectory = PackagerProjectDirectory
+			}))
+			{
+				process.StandardInput.WriteLine($"git checkout -- Program.cs && exit");
+				process.WaitForExit();
+			}
+		}
 
-            foreach (var finalFile in finalFiles)
-            {
-                using (var process = Process.Start(new ProcessStartInfo
-                {
-                    FileName = "cmd",
-                    RedirectStandardInput = true,
-                    WorkingDirectory = BinDistDirectory
-                }))
-                {
-                    process.StandardInput.WriteLine($"gpg --armor --detach-sign {finalFile} && exit");
-                    process.WaitForExit();
-                }
+		private static void Sign()
+		{
+			foreach (string target in Targets)
+			{
+				if (target.StartsWith("win", StringComparison.OrdinalIgnoreCase))
+				{
+					string publishedFolder = Path.Combine(BinDistDirectory, target);
 
-                using (var process = Process.Start(new ProcessStartInfo
-                {
-                    FileName = "cmd",
-                    RedirectStandardInput = true,
-                    WorkingDirectory = WixProjectDirectory
-                }))
-                {
-                    process.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
-                    process.WaitForExit();
-                }
-            }
+					Console.WriteLine("Move created .msi");
+					var msiPath = Path.Combine(WixProjectDirectory, @"bin\Release\Wasabi.msi");
+					if (!File.Exists(msiPath))
+					{
+						throw new Exception(".msi doesn't exist. Expected path: Wasabi.msi.");
+					}
+					var msiFileName = Path.GetFileNameWithoutExtension(msiPath);
+					var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
+					File.Move(msiPath, newMsiPath);
 
-            IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
-        }
+					// Sign code with digicert.
+					using (var process = Process.Start(new ProcessStartInfo
+					{
+						FileName = "cmd",
+						RedirectStandardInput = true,
+						WorkingDirectory = BinDistDirectory
+					}))
+					{
+						process.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {PfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
+						process.WaitForExit();
+					}
 
-        private static void Publish()
-        {
-            if (Directory.Exists(BinDistDirectory))
-            {
-                IoHelpers.DeleteRecursivelyWithMagicDustAsync(BinDistDirectory).GetAwaiter().GetResult();
-                Console.WriteLine($"Deleted {BinDistDirectory}");
-            }
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					Console.WriteLine($"Deleted {publishedFolder}");
+				}
+			}
 
-            using (var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = "cmd",
-                RedirectStandardInput = true,
-                WorkingDirectory = SolutionDirectory
-            }))
-            {
-                process.StandardInput.WriteLine("git submodule update --init --recursive && exit");
-                process.WaitForExit();
-            }
+			Console.WriteLine("Signing final files...");
+			var finalFiles = Directory.GetFiles(BinDistDirectory);
 
-            using (var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = "cmd",
-                RedirectStandardInput = true,
-                WorkingDirectory = GuiProjectDirectory
-            }))
-            {
-                process.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
-                process.WaitForExit();
-            }
+			foreach (var finalFile in finalFiles)
+			{
+				using (var process = Process.Start(new ProcessStartInfo
+				{
+					FileName = "cmd",
+					RedirectStandardInput = true,
+					WorkingDirectory = BinDistDirectory
+				}))
+				{
+					process.StandardInput.WriteLine($"gpg --armor --detach-sign {finalFile} && exit");
+					process.WaitForExit();
+				}
 
-            var guiBinReleaseDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin\\Release"));
-            var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin\\Release"));
-            if (Directory.Exists(guiBinReleaseDirectory))
-            {
-                IoHelpers.DeleteRecursivelyWithMagicDustAsync(guiBinReleaseDirectory).GetAwaiter().GetResult();
-                Console.WriteLine($"Deleted {guiBinReleaseDirectory}");
-            }
-            if (Directory.Exists(libraryBinReleaseDirectory))
-            {
-                IoHelpers.DeleteRecursivelyWithMagicDustAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
-                Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
-            }
+				using (var process = Process.Start(new ProcessStartInfo
+				{
+					FileName = "cmd",
+					RedirectStandardInput = true,
+					WorkingDirectory = WixProjectDirectory
+				}))
+				{
+					process.StandardInput.WriteLine($"git checkout -- ComponentsGenerated.wxs && exit");
+					process.WaitForExit();
+				}
+			}
 
-            foreach (string target in Targets)
-            {
-                string publishedFolder = Path.Combine(BinDistDirectory, target);
-                string currentBinDistDirectory = publishedFolder;
+			IoHelpers.OpenFolderInFileExplorer(BinDistDirectory);
+		}
 
-                Console.WriteLine();
-                Console.WriteLine($"{nameof(currentBinDistDirectory)}:\t{currentBinDistDirectory}");
+		private static void Publish()
+		{
+			if (Directory.Exists(BinDistDirectory))
+			{
+				IoHelpers.DeleteRecursivelyWithMagicDustAsync(BinDistDirectory).GetAwaiter().GetResult();
+				Console.WriteLine($"Deleted {BinDistDirectory}");
+			}
 
-                Console.WriteLine();
-                if (!Directory.Exists(currentBinDistDirectory))
-                {
-                    Directory.CreateDirectory(currentBinDistDirectory);
-                    Console.WriteLine($"Created {currentBinDistDirectory}");
-                }
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "cmd",
+				RedirectStandardInput = true,
+				WorkingDirectory = SolutionDirectory
+			}))
+			{
+				process.StandardInput.WriteLine("git submodule update --init --recursive && exit");
+				process.WaitForExit();
+			}
 
-                using (var process = Process.Start(new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = $"clean",
-                    WorkingDirectory = GuiProjectDirectory
-                }))
-                {
-                    process.WaitForExit();
-                }
+			using (var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "cmd",
+				RedirectStandardInput = true,
+				WorkingDirectory = GuiProjectDirectory
+			}))
+			{
+				process.StandardInput.WriteLine("dotnet clean --configuration Release && exit");
+				process.WaitForExit();
+			}
 
-                // https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish?tabs=netcore21
-                // -c|--configuration {Debug|Release}
-                //		Defines the build configuration. The default value is Debug.
-                // --force
-                //		Forces all dependencies to be resolved even if the last restore was successful. Specifying this flag is the same as deleting the project.assets.json file.
-                // -o|--output <OUTPUT_DIRECTORY>
-                //		Specifies the path for the output directory.
-                //		If not specified, it defaults to ./bin/[configuration]/[framework]/publish/ for a framework-dependent deployment or
-                //		./bin/[configuration]/[framework]/[runtime]/publish/ for a self-contained deployment.
-                //		If the path is relative, the output directory generated is relative to the project file location, not to the current working directory.
-                // --self-contained
-                //		Publishes the .NET Core runtime with your application so the runtime doesn't need to be installed on the target machine.
-                //		If a runtime identifier is specified, its default value is true. For more information about the different deployment types, see .NET Core application deployment.
-                // -r|--runtime <RUNTIME_IDENTIFIER>
-                //		Publishes the application for a given runtime. This is used when creating a self-contained deployment (SCD).
-                //		For a list of Runtime Identifiers (RIDs), see the RID catalog. Default is to publish a framework-dependent deployment (FDD).
-                // --version-suffix <VERSION_SUFFIX>
-                //		Defines the version suffix to replace the asterisk (*) in the version field of the project file.
-                // https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore?tabs=netcore2x
-                // --disable-parallel
-                //		Disables restoring multiple projects in parallel.
-                // --no-cache
-                //		Specifies to not cache packages and HTTP requests.
-                // https://github.com/dotnet/docs/issues/7568
-                // /p:Version=1.2.3.4
-                //		"dotnet publish" supports msbuild command line options like /p:Version=1.2.3.4
-                using (var process = Process.Start(new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" --self-contained true --runtime \"{target}\" /p:VersionPrefix={VersionPrefix} --disable-parallel --no-cache /p:DebugType=none /p:DebugSymbols=false /p:ErrorReport=none /p:DocumentationFile=\"\" /p:Deterministic=true",
-                    WorkingDirectory = GuiProjectDirectory
-                }))
-                {
-                    process.WaitForExit();
-                }
+			var guiBinReleaseDirectory = Path.GetFullPath(Path.Combine(GuiProjectDirectory, "bin\\Release"));
+			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin\\Release"));
+			if (Directory.Exists(guiBinReleaseDirectory))
+			{
+				IoHelpers.DeleteRecursivelyWithMagicDustAsync(guiBinReleaseDirectory).GetAwaiter().GetResult();
+				Console.WriteLine($"Deleted {guiBinReleaseDirectory}");
+			}
+			if (Directory.Exists(libraryBinReleaseDirectory))
+			{
+				IoHelpers.DeleteRecursivelyWithMagicDustAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
+				Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
+			}
 
-                Tools.ClearSha512Tags(currentBinDistDirectory);
-                //Tools.RemoveSosDocsUnix(currentBinDistDirectory);
+			foreach (string target in Targets)
+			{
+				string publishedFolder = Path.Combine(BinDistDirectory, target);
+				string currentBinDistDirectory = publishedFolder;
 
-                // Remove Hwi binaries those are not relevant to the platform.
-                var hwiFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Software"));
-                // Remove Tor binaries those are not relevant to the platform.
-                var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
-                var toNotremove = "";
-                if (target.StartsWith("win"))
-                {
-                    toNotremove = "win";
-                }
-                else if (target.StartsWith("linux"))
-                {
-                    toNotremove = "linux";
-                }
-                else if (target.StartsWith("osx"))
-                {
-                    toNotremove = "osx";
-                }
-                foreach (var file in torFolder.EnumerateFiles().Concat(hwiFolder.EnumerateFiles()))
-                {
-                    if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotremove, StringComparison.OrdinalIgnoreCase))
-                    {
-                        File.Delete(file.FullName);
-                    }
-                }
+				Console.WriteLine();
+				Console.WriteLine($"{nameof(currentBinDistDirectory)}:\t{currentBinDistDirectory}");
 
-                // Rename the final exe.
-                string oldExecutablePath;
-                string newExecutablePath;
-                if (target.StartsWith("win"))
-                {
-                    oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui.exe");
-                    newExecutablePath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}.exe");
-                }
-                else // Linux & OSX
-                {
-                    oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui");
-                    newExecutablePath = Path.Combine(currentBinDistDirectory, ExecutableName);
-                }
-                File.Move(oldExecutablePath, newExecutablePath);
+				Console.WriteLine();
+				if (!Directory.Exists(currentBinDistDirectory))
+				{
+					Directory.CreateDirectory(currentBinDistDirectory);
+					Console.WriteLine($"Created {currentBinDistDirectory}");
+				}
 
-                long installedSizeKb = Tools.DirSize(new DirectoryInfo(publishedFolder)) / 1000;
+				using (var process = Process.Start(new ProcessStartInfo
+				{
+					FileName = "dotnet",
+					Arguments = $"clean",
+					WorkingDirectory = GuiProjectDirectory
+				}))
+				{
+					process.WaitForExit();
+				}
 
-                if (target.StartsWith("win"))
-                {
-                    var icoPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.ico");
-                    using (var process = Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "rcedit", // https://github.com/electron/rcedit/
-                        Arguments = $"\"{newExecutablePath}\" --set-icon \"{icoPath}\" --set-file-version \"{VersionPrefix}\" --set-product-version \"{VersionPrefix}\" --set-version-string \"LegalCopyright\" \"MIT\" --set-version-string \"CompanyName\" \"zkSNACKs\" --set-version-string \"FileDescription\" \"Privacy focused, ZeroLink compliant Bitcoin wallet.\" --set-version-string \"ProductName\" \"Wasabi Wallet\"",
-                        WorkingDirectory = currentBinDistDirectory
-                    }))
-                    {
-                        process.WaitForExit();
-                    }
+				// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish?tabs=netcore21
+				// -c|--configuration {Debug|Release}
+				//		Defines the build configuration. The default value is Debug.
+				// --force
+				//		Forces all dependencies to be resolved even if the last restore was successful. Specifying this flag is the same as deleting the project.assets.json file.
+				// -o|--output <OUTPUT_DIRECTORY>
+				//		Specifies the path for the output directory.
+				//		If not specified, it defaults to ./bin/[configuration]/[framework]/publish/ for a framework-dependent deployment or
+				//		./bin/[configuration]/[framework]/[runtime]/publish/ for a self-contained deployment.
+				//		If the path is relative, the output directory generated is relative to the project file location, not to the current working directory.
+				// --self-contained
+				//		Publishes the .NET Core runtime with your application so the runtime doesn't need to be installed on the target machine.
+				//		If a runtime identifier is specified, its default value is true. For more information about the different deployment types, see .NET Core application deployment.
+				// -r|--runtime <RUNTIME_IDENTIFIER>
+				//		Publishes the application for a given runtime. This is used when creating a self-contained deployment (SCD).
+				//		For a list of Runtime Identifiers (RIDs), see the RID catalog. Default is to publish a framework-dependent deployment (FDD).
+				// --version-suffix <VERSION_SUFFIX>
+				//		Defines the version suffix to replace the asterisk (*) in the version field of the project file.
+				// https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore?tabs=netcore2x
+				// --disable-parallel
+				//		Disables restoring multiple projects in parallel.
+				// --no-cache
+				//		Specifies to not cache packages and HTTP requests.
+				// https://github.com/dotnet/docs/issues/7568
+				// /p:Version=1.2.3.4
+				//		"dotnet publish" supports msbuild command line options like /p:Version=1.2.3.4
+				using (var process = Process.Start(new ProcessStartInfo
+				{
+					FileName = "dotnet",
+					Arguments = $"publish --configuration Release --force --output \"{currentBinDistDirectory}\" --self-contained true --runtime \"{target}\" /p:VersionPrefix={VersionPrefix} --disable-parallel --no-cache /p:DebugType=none /p:DebugSymbols=false /p:ErrorReport=none /p:DocumentationFile=\"\" /p:Deterministic=true",
+					WorkingDirectory = GuiProjectDirectory
+				}))
+				{
+					process.WaitForExit();
+				}
 
-                    var daemonExePath = newExecutablePath.Substring(0, newExecutablePath.Length - 4) + "d.exe";
-                    File.Copy(newExecutablePath, daemonExePath);
+				Tools.ClearSha512Tags(currentBinDistDirectory);
+				//Tools.RemoveSosDocsUnix(currentBinDistDirectory);
 
-                    // Don't open console.
-                    if (!NSubsysUtil.ProcessFile(newExecutablePath))
-                    {
-                        Console.WriteLine("ERROR: Couldn't remove console from exe.");
-                    }
+				// Remove Hwi binaries those are not relevant to the platform.
+				var hwiFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Software"));
+				// Remove Tor binaries those are not relevant to the platform.
+				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
+				var toNotremove = "";
+				if (target.StartsWith("win"))
+				{
+					toNotremove = "win";
+				}
+				else if (target.StartsWith("linux"))
+				{
+					toNotremove = "linux";
+				}
+				else if (target.StartsWith("osx"))
+				{
+					toNotremove = "osx";
+				}
+				foreach (var file in torFolder.EnumerateFiles().Concat(hwiFolder.EnumerateFiles()))
+				{
+					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotremove, StringComparison.OrdinalIgnoreCase))
+					{
+						File.Delete(file.FullName);
+					}
+				}
 
-                    // IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
-                    if (OnlyBinaries)
-                    {
-                        continue; // In Windows build at this moment it doesn't matter though.
-                    }
-                }
-                else if (target.StartsWith("osx"))
-                {
-                    // IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
-                    if (OnlyBinaries)
-                    {
-                        continue;
-                    }
+				// Rename the final exe.
+				string oldExecutablePath;
+				string newExecutablePath;
+				if (target.StartsWith("win"))
+				{
+					oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui.exe");
+					newExecutablePath = Path.Combine(currentBinDistDirectory, $"{ExecutableName}.exe");
+				}
+				else // Linux & OSX
+				{
+					oldExecutablePath = Path.Combine(currentBinDistDirectory, "WalletWasabi.Gui");
+					newExecutablePath = Path.Combine(currentBinDistDirectory, ExecutableName);
+				}
+				File.Move(oldExecutablePath, newExecutablePath);
 
-                    var tempName = Path.Combine(BinDistDirectory, $"temp-{target}");
-                    Directory.Move(currentBinDistDirectory, tempName);
-                    currentBinDistDirectory = tempName;
+				long installedSizeKb = Tools.DirSize(new DirectoryInfo(publishedFolder)) / 1000;
 
-                    string macWasabiAppDir = Path.Combine(publishedFolder, "Wasabi Wallet.App"); // This should be lowercase .app, but MAC will prevent people from upgrading if we change it.
-                    string macContentsDir = Path.Combine(macWasabiAppDir, "Contents");
-                    string newName = Path.GetFullPath(Path.Combine(macContentsDir, "MacOS"));
-                    Directory.CreateDirectory(macContentsDir);
-                    Directory.Move(currentBinDistDirectory, newName);
-                    currentBinDistDirectory = newName;
+				if (target.StartsWith("win"))
+				{
+					var icoPath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.ico");
+					using (var process = Process.Start(new ProcessStartInfo
+					{
+						FileName = "rcedit", // https://github.com/electron/rcedit/
+						Arguments = $"\"{newExecutablePath}\" --set-icon \"{icoPath}\" --set-file-version \"{VersionPrefix}\" --set-product-version \"{VersionPrefix}\" --set-version-string \"LegalCopyright\" \"MIT\" --set-version-string \"CompanyName\" \"zkSNACKs\" --set-version-string \"FileDescription\" \"Privacy focused, ZeroLink compliant Bitcoin wallet.\" --set-version-string \"ProductName\" \"Wasabi Wallet\"",
+						WorkingDirectory = currentBinDistDirectory
+					}))
+					{
+						process.WaitForExit();
+					}
 
-                    string resourcesDir = Path.Combine(macContentsDir, "Resources");
-                    string infoFilePath = Path.Combine(macContentsDir, "Info.plist");
+					var daemonExePath = newExecutablePath.Substring(0, newExecutablePath.Length - 4) + "d.exe";
+					File.Copy(newExecutablePath, daemonExePath);
 
-                    Directory.CreateDirectory(resourcesDir);
-                    var iconpath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.icns");
-                    File.Copy(iconpath, Path.Combine(resourcesDir, "WasabiLogo.icns"));
+					// Don't open console.
+					if (!NSubsysUtil.ProcessFile(newExecutablePath))
+					{
+						Console.WriteLine("ERROR: Couldn't remove console from exe.");
+					}
 
-                    string infoContent = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
+					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
+					if (OnlyBinaries)
+					{
+						continue; // In Windows build at this moment it doesn't matter though.
+					}
+				}
+				else if (target.StartsWith("osx"))
+				{
+					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
+					if (OnlyBinaries)
+					{
+						continue;
+					}
+
+					var tempName = Path.Combine(BinDistDirectory, $"temp-{target}");
+					Directory.Move(currentBinDistDirectory, tempName);
+					currentBinDistDirectory = tempName;
+
+					string macWasabiAppDir = Path.Combine(publishedFolder, "Wasabi Wallet.App"); // This should be lowercase .app, but MAC will prevent people from upgrading if we change it.
+					string macContentsDir = Path.Combine(macWasabiAppDir, "Contents");
+					string newName = Path.GetFullPath(Path.Combine(macContentsDir, "MacOS"));
+					Directory.CreateDirectory(macContentsDir);
+					Directory.Move(currentBinDistDirectory, newName);
+					currentBinDistDirectory = newName;
+
+					string resourcesDir = Path.Combine(macContentsDir, "Resources");
+					string infoFilePath = Path.Combine(macContentsDir, "Info.plist");
+
+					Directory.CreateDirectory(resourcesDir);
+					var iconpath = Path.Combine(GuiProjectDirectory, "Assets", "WasabiLogo.icns");
+					File.Copy(iconpath, Path.Combine(resourcesDir, "WasabiLogo.icns"));
+
+					string infoContent = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
 <!DOCTYPE plist PUBLIC ""-//Apple//DTD PLIST 1.0//EN"" ""http://www.apple.com/DTDs/PropertyList-1.0.dtd"">
 <plist version = ""1.0"">
 <dict>
@@ -527,197 +585,197 @@ namespace WalletWasabi.Packager
 </dict>
 </plist>
 ";
-                    File.WriteAllText(infoFilePath, infoContent);
+					File.WriteAllText(infoFilePath, infoContent);
 
-                    using (var process = Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "cmd",
-                        RedirectStandardInput = true,
-                        WorkingDirectory = publishedFolder
-                    }))
-                    {
-                        process.StandardInput.WriteLine($"wsl ln -s /Applications && exit");
-                        process.WaitForExit();
-                    }
+					using (var process = Process.Start(new ProcessStartInfo
+					{
+						FileName = "cmd",
+						RedirectStandardInput = true,
+						WorkingDirectory = publishedFolder
+					}))
+					{
+						process.StandardInput.WriteLine($"wsl ln -s /Applications && exit");
+						process.WaitForExit();
+					}
 
-                    //how to generate .DS_Store file - https://github.com/zkSNACKs/WalletWasabi/pull/928/commits/e38ed672dee25f6e45a3eb16584887cc6d48c4e6
-                    var dmgContentDir = Path.Combine(PackagerProjectDirectory, "Content", "Osx");
-                    IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentDir), new DirectoryInfo(publishedFolder));
+					//how to generate .DS_Store file - https://github.com/zkSNACKs/WalletWasabi/pull/928/commits/e38ed672dee25f6e45a3eb16584887cc6d48c4e6
+					var dmgContentDir = Path.Combine(PackagerProjectDirectory, "Content", "Osx");
+					IoHelpers.CopyFilesRecursively(new DirectoryInfo(dmgContentDir), new DirectoryInfo(publishedFolder));
 
-                    string uncompressedDmgFileName = $"Wasabi-uncompressed.dmg";
-                    string uncompressedDmgFilePath = Path.Combine(BinDistDirectory, uncompressedDmgFileName);
-                    string dmgFileName = $"Wasabi-{VersionPrefix}.dmg";
-                    using (var process = Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "cmd",
-                        RedirectStandardInput = true,
-                        WorkingDirectory = BinDistDirectory
-                    }))
-                    {
-                        // http://www.nathancoulson.com/proj_cross_tools.php
-                        // -D: Do not use deep directory relocation, and instead just pack them in the way we see them
-                        // -V: Volume Label
-                        // -no-pad: Do not pad the end by 150 sectors (300kb). As it is not a cd image, not required
-                        // -apple -r: Creates a .dmg image
-                        process.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -dir-mode 755 -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(publishedFolder).Name}\" && exit");
-                        process.WaitForExit();
-                    }
-                    // cd ~
-                    // git clone https://github.com/planetbeing/libdmg-hfsplus.git && cd libdmg-hfsplus
-                    // https://github.com/planetbeing/libdmg-hfsplus/issues/14
-                    // mkdir build && cd build
-                    // sudo apt-get install zlib1g-dev
-                    // cmake ..
-                    // cd build
-                    // sudo apt-get install libssl1.0-dev
-                    // cmake ..
-                    // cd ~/libdmg-hfsplus/build/
-                    // make
-                    using (var process = Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "cmd",
-                        RedirectStandardInput = true,
-                        WorkingDirectory = BinDistDirectory
-                    }))
-                    {
-                        process.StandardInput.WriteLine($"wsl ~/libdmg-hfsplus/build/dmg/./dmg dmg \"{uncompressedDmgFileName}\" \"{dmgFileName}\" && exit");
-                        process.WaitForExit();
-                    }
+					string uncompressedDmgFileName = $"Wasabi-uncompressed.dmg";
+					string uncompressedDmgFilePath = Path.Combine(BinDistDirectory, uncompressedDmgFileName);
+					string dmgFileName = $"Wasabi-{VersionPrefix}.dmg";
+					using (var process = Process.Start(new ProcessStartInfo
+					{
+						FileName = "cmd",
+						RedirectStandardInput = true,
+						WorkingDirectory = BinDistDirectory
+					}))
+					{
+						// http://www.nathancoulson.com/proj_cross_tools.php
+						// -D: Do not use deep directory relocation, and instead just pack them in the way we see them
+						// -V: Volume Label
+						// -no-pad: Do not pad the end by 150 sectors (300kb). As it is not a cd image, not required
+						// -apple -r: Creates a .dmg image
+						process.StandardInput.WriteLine($"wsl genisoimage -D -V \"Wasabi Wallet\" -no-pad -apple -r -dir-mode 755 -o \"{uncompressedDmgFileName}\" \"{new DirectoryInfo(publishedFolder).Name}\" && exit");
+						process.WaitForExit();
+					}
+					// cd ~
+					// git clone https://github.com/planetbeing/libdmg-hfsplus.git && cd libdmg-hfsplus
+					// https://github.com/planetbeing/libdmg-hfsplus/issues/14
+					// mkdir build && cd build
+					// sudo apt-get install zlib1g-dev
+					// cmake ..
+					// cd build
+					// sudo apt-get install libssl1.0-dev
+					// cmake ..
+					// cd ~/libdmg-hfsplus/build/
+					// make
+					using (var process = Process.Start(new ProcessStartInfo
+					{
+						FileName = "cmd",
+						RedirectStandardInput = true,
+						WorkingDirectory = BinDistDirectory
+					}))
+					{
+						process.StandardInput.WriteLine($"wsl ~/libdmg-hfsplus/build/dmg/./dmg dmg \"{uncompressedDmgFileName}\" \"{dmgFileName}\" && exit");
+						process.WaitForExit();
+					}
 
-                    IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
-                    File.Delete(uncompressedDmgFilePath);
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					File.Delete(uncompressedDmgFilePath);
 
-                    IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
-                    Console.WriteLine($"Deleted {publishedFolder}");
-                }
-                else if (target.StartsWith("linux"))
-                {
-                    // IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
-                    if (OnlyBinaries)
-                    {
-                        continue;
-                    }
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					Console.WriteLine($"Deleted {publishedFolder}");
+				}
+				else if (target.StartsWith("linux"))
+				{
+					// IF IT'S IN ONLYBINARIES MODE DON'T DO ANYTHING FANCY PACKAGING AFTER THIS!!!
+					if (OnlyBinaries)
+					{
+						continue;
+					}
 
-                    Console.WriteLine("Create Linux .tar.gz");
-                    if (!Directory.Exists(publishedFolder))
-                    {
-                        throw new Exception($"{publishedFolder} doesn't exist.");
-                    }
-                    var newFolderName = $"WasabiLinux-{VersionPrefix}";
-                    var newFolderPath = Path.Combine(BinDistDirectory, newFolderName);
-                    Directory.Move(publishedFolder, newFolderPath);
-                    publishedFolder = newFolderPath;
+					Console.WriteLine("Create Linux .tar.gz");
+					if (!Directory.Exists(publishedFolder))
+					{
+						throw new Exception($"{publishedFolder} doesn't exist.");
+					}
+					var newFolderName = $"WasabiLinux-{VersionPrefix}";
+					var newFolderPath = Path.Combine(BinDistDirectory, newFolderName);
+					Directory.Move(publishedFolder, newFolderPath);
+					publishedFolder = newFolderPath;
 
-                    using (var process = Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "cmd",
-                        RedirectStandardInput = true,
-                        WorkingDirectory = BinDistDirectory
-                    }))
-                    {
-                        process.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
-                        process.WaitForExit();
-                    }
+					using (var process = Process.Start(new ProcessStartInfo
+					{
+						FileName = "cmd",
+						RedirectStandardInput = true,
+						WorkingDirectory = BinDistDirectory
+					}))
+					{
+						process.StandardInput.WriteLine($"wsl tar -pczvf {newFolderName}.tar.gz {newFolderName} && exit");
+						process.WaitForExit();
+					}
 
-                    Console.WriteLine("Create Linux .deb");
+					Console.WriteLine("Create Linux .deb");
 
-                    var debFolderRelativePath = "deb";
-                    var debFolderPath = Path.Combine(BinDistDirectory, debFolderRelativePath);
-                    var linuxUsrLocalBinFolder = "/usr/local/bin/";
-                    var debUsrLocalBinFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "local", "bin");
-                    var debUsrLocalBinFolderPath = Path.Combine(BinDistDirectory, debUsrLocalBinFolderRelativePath);
-                    Directory.CreateDirectory(debUsrLocalBinFolderPath);
-                    var debUsrAppFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "applications");
-                    var debUsrAppFolderPath = Path.Combine(BinDistDirectory, debUsrAppFolderRelativePath);
-                    Directory.CreateDirectory(debUsrAppFolderPath);
-                    var debUsrShareIconsFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "icons", "hicolor");
-                    var debUsrShareIconsFolderPath = Path.Combine(BinDistDirectory, debUsrShareIconsFolderRelativePath);
-                    var debianFolderRelativePath = Path.Combine(debFolderRelativePath, "DEBIAN");
-                    var debianFolderPath = Path.Combine(BinDistDirectory, debianFolderRelativePath);
-                    Directory.CreateDirectory(debianFolderPath);
-                    newFolderName = "wasabiwallet";
-                    var linuxWasabiWalletFolder = Tools.LinuxPathCombine(linuxUsrLocalBinFolder, newFolderName);
-                    var newFolderRelativePath = Path.Combine(debUsrLocalBinFolderRelativePath, newFolderName);
-                    newFolderPath = Path.Combine(BinDistDirectory, newFolderRelativePath);
-                    Directory.Move(publishedFolder, newFolderPath);
+					var debFolderRelativePath = "deb";
+					var debFolderPath = Path.Combine(BinDistDirectory, debFolderRelativePath);
+					var linuxUsrLocalBinFolder = "/usr/local/bin/";
+					var debUsrLocalBinFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "local", "bin");
+					var debUsrLocalBinFolderPath = Path.Combine(BinDistDirectory, debUsrLocalBinFolderRelativePath);
+					Directory.CreateDirectory(debUsrLocalBinFolderPath);
+					var debUsrAppFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "applications");
+					var debUsrAppFolderPath = Path.Combine(BinDistDirectory, debUsrAppFolderRelativePath);
+					Directory.CreateDirectory(debUsrAppFolderPath);
+					var debUsrShareIconsFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "icons", "hicolor");
+					var debUsrShareIconsFolderPath = Path.Combine(BinDistDirectory, debUsrShareIconsFolderRelativePath);
+					var debianFolderRelativePath = Path.Combine(debFolderRelativePath, "DEBIAN");
+					var debianFolderPath = Path.Combine(BinDistDirectory, debianFolderRelativePath);
+					Directory.CreateDirectory(debianFolderPath);
+					newFolderName = "wasabiwallet";
+					var linuxWasabiWalletFolder = Tools.LinuxPathCombine(linuxUsrLocalBinFolder, newFolderName);
+					var newFolderRelativePath = Path.Combine(debUsrLocalBinFolderRelativePath, newFolderName);
+					newFolderPath = Path.Combine(BinDistDirectory, newFolderRelativePath);
+					Directory.Move(publishedFolder, newFolderPath);
 
-                    var assetsFolder = Path.Combine(GuiProjectDirectory, "Assets");
-                    var assetsInfo = new DirectoryInfo(assetsFolder);
+					var assetsFolder = Path.Combine(GuiProjectDirectory, "Assets");
+					var assetsInfo = new DirectoryInfo(assetsFolder);
 
-                    foreach (var file in assetsInfo.EnumerateFiles())
-                    {
-                        var number = file.Name.Split(new string[] { "WasabiLogo", ".png" }, StringSplitOptions.RemoveEmptyEntries);
-                        if (number.Count() == 1 && int.TryParse(number.First(), out int size))
-                        {
-                            string destFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
-                            Directory.CreateDirectory(destFolder);
-                            file.CopyTo(Path.Combine(destFolder, $"{ExecutableName}.png"));
-                        }
-                    }
+					foreach (var file in assetsInfo.EnumerateFiles())
+					{
+						var number = file.Name.Split(new string[] { "WasabiLogo", ".png" }, StringSplitOptions.RemoveEmptyEntries);
+						if (number.Count() == 1 && int.TryParse(number.First(), out int size))
+						{
+							string destFolder = Path.Combine(debUsrShareIconsFolderPath, $"{size}x{size}", "apps");
+							Directory.CreateDirectory(destFolder);
+							file.CopyTo(Path.Combine(destFolder, $"{ExecutableName}.png"));
+						}
+					}
 
-                    var controlFilePath = Path.Combine(debianFolderPath, "control");
-                    // License format doesn't yet work, but should work in the future, it's work in progress: https://bugs.launchpad.net/ubuntu/+source/software-center/+bug/435183
-                    var controlFileContent = $"Package: {ExecutableName}\n" +
-                                                $"Priority: optional\n" +
-                                                $"Section: utils\n" +
-                                                $"Maintainer: nopara73 <adam.ficsor73@gmail.com>\n" +
-                                                $"Version: {VersionPrefix}\n" +
-                                                $"Homepage: http://wasabiwallet.io\n" +
-                                                $"Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git\n" +
-                                                $"Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi\n" +
-                                                $"Architecture: amd64\n" +
-                                                $"License: Open Source (MIT)\n" +
-                                                $"Installed-Size: {installedSizeKb}\n" +
-                                                $"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
-                                                $"  Built-in Tor, CoinJoin and Coin Control features.\n";
+					var controlFilePath = Path.Combine(debianFolderPath, "control");
+					// License format doesn't yet work, but should work in the future, it's work in progress: https://bugs.launchpad.net/ubuntu/+source/software-center/+bug/435183
+					var controlFileContent = $"Package: {ExecutableName}\n" +
+												$"Priority: optional\n" +
+												$"Section: utils\n" +
+												$"Maintainer: nopara73 <adam.ficsor73@gmail.com>\n" +
+												$"Version: {VersionPrefix}\n" +
+												$"Homepage: http://wasabiwallet.io\n" +
+												$"Vcs-Git: git://github.com/zkSNACKs/WalletWasabi.git\n" +
+												$"Vcs-Browser: https://github.com/zkSNACKs/WalletWasabi\n" +
+												$"Architecture: amd64\n" +
+												$"License: Open Source (MIT)\n" +
+												$"Installed-Size: {installedSizeKb}\n" +
+												$"Description: open-source, non-custodial, privacy focused Bitcoin wallet\n" +
+												$"  Built-in Tor, CoinJoin and Coin Control features.\n";
 
-                    File.WriteAllText(controlFilePath, controlFileContent, Encoding.ASCII);
+					File.WriteAllText(controlFilePath, controlFileContent, Encoding.ASCII);
 
-                    var desktopFilePath = Path.Combine(debUsrAppFolderPath, $"{ExecutableName}.desktop");
-                    var desktopFileContent = $"[Desktop Entry]\n" +
-                                                $"Type=Application\n" +
-                                                $"Name=Wasabi Wallet\n" +
-                                                $"GenericName=Bitcoin Wallet\n" +
-                                                $"Comment=Privacy focused Bitcoin wallet.\n" +
-                                                $"Icon={ExecutableName}\n" +
-                                                $"Terminal=false\n" +
-                                                $"Exec={ExecutableName}\n" +
-                                                $"Categories=Office;Finance;\n" +
-                                                $"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;asd;\n";
+					var desktopFilePath = Path.Combine(debUsrAppFolderPath, $"{ExecutableName}.desktop");
+					var desktopFileContent = $"[Desktop Entry]\n" +
+												$"Type=Application\n" +
+												$"Name=Wasabi Wallet\n" +
+												$"GenericName=Bitcoin Wallet\n" +
+												$"Comment=Privacy focused Bitcoin wallet.\n" +
+												$"Icon={ExecutableName}\n" +
+												$"Terminal=false\n" +
+												$"Exec={ExecutableName}\n" +
+												$"Categories=Office;Finance;\n" +
+												$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;asd;\n";
 
-                    File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
+					File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
 
-                    var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
-                    var wasabiStarterScriptContent = $"#!/bin/sh\n" +
-                                                        $"{ linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
+					var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
+					var wasabiStarterScriptContent = $"#!/bin/sh\n" +
+														$"{ linuxWasabiWalletFolder.TrimEnd('/')}/{ExecutableName} $@\n";
 
-                    File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
+					File.WriteAllText(wasabiStarterScriptPath, wasabiStarterScriptContent, Encoding.ASCII);
 
-                    string debExeLinuxPath = Tools.LinuxPathCombine(newFolderRelativePath, ExecutableName);
-                    string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
-                    var wasabiStarterScriptLinuxPath = Tools.LinuxPathCombine(debUsrLocalBinFolderRelativePath, $"{ExecutableName}");
+					string debExeLinuxPath = Tools.LinuxPathCombine(newFolderRelativePath, ExecutableName);
+					string debDestopFileLinuxPath = Tools.LinuxPathCombine(debUsrAppFolderRelativePath, $"{ExecutableName}.desktop");
+					var wasabiStarterScriptLinuxPath = Tools.LinuxPathCombine(debUsrLocalBinFolderRelativePath, $"{ExecutableName}");
 
-                    using (var process = Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "wsl",
-                        Arguments = $"cd ~ && sudo umount /mnt/c && sudo mount -t drvfs C: /mnt/c -o metadata && cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist && sudo chmod +x {debExeLinuxPath} && sudo chmod +x {wasabiStarterScriptLinuxPath} && sudo chmod -R 0644 {debDestopFileLinuxPath} && sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)} && dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)",
-                        RedirectStandardInput = true,
-                        WorkingDirectory = BinDistDirectory
-                    }))
-                    {
-                        process.WaitForExit();
-                    }
+					using (var process = Process.Start(new ProcessStartInfo
+					{
+						FileName = "wsl",
+						Arguments = $"cd ~ && sudo umount /mnt/c && sudo mount -t drvfs C: /mnt/c -o metadata && cd /mnt/c/Users/user/Desktop/WalletWasabi/WalletWasabi.Gui/bin/dist && sudo chmod +x {debExeLinuxPath} && sudo chmod +x {wasabiStarterScriptLinuxPath} && sudo chmod -R 0644 {debDestopFileLinuxPath} && sudo chmod -R 0775 {Tools.LinuxPath(debianFolderRelativePath)} && dpkg --build {Tools.LinuxPath(debFolderRelativePath)} $(pwd)",
+						RedirectStandardInput = true,
+						WorkingDirectory = BinDistDirectory
+					}))
+					{
+						process.WaitForExit();
+					}
 
-                    IoHelpers.DeleteRecursivelyWithMagicDustAsync(debFolderPath).GetAwaiter().GetResult();
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(debFolderPath).GetAwaiter().GetResult();
 
-                    string oldDeb = Path.Combine(BinDistDirectory, $"{ExecutableName}_{VersionPrefix}_amd64.deb");
-                    string newDeb = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.deb");
-                    File.Move(oldDeb, newDeb);
+					string oldDeb = Path.Combine(BinDistDirectory, $"{ExecutableName}_{VersionPrefix}_amd64.deb");
+					string newDeb = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.deb");
+					File.Move(oldDeb, newDeb);
 
-                    IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
-                    Console.WriteLine($"Deleted {publishedFolder}");
-                }
-            }
-        }
-    }
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					Console.WriteLine($"Deleted {publishedFolder}");
+				}
+			}
+		}
+	}
 }
