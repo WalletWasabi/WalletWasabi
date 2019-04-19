@@ -97,10 +97,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				await RefreshHardwareWalletListAsync();
 				HardwareWalletRefreshCancel?.Dispose();
+				HardwareWalletRefreshCancel = null;
 			});
 		}
 
-		private CancellationTokenSource HardwareWalletRefreshCancel { get; }
+		private CancellationTokenSource HardwareWalletRefreshCancel { get; set; }
 		private bool HwTabAutomaticallySelectedOnce { get; set; } = false;
 
 		private async Task RefreshHardwareWalletListAsync()
