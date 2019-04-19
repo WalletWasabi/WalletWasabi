@@ -1,16 +1,16 @@
-﻿using WalletWasabi.JsonConverters;
-using WalletWasabi.Helpers;
-using NBitcoin;
+﻿using NBitcoin;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Security;
-using System;
-using WalletWasabi.Models;
+using System.Text;
+using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -153,7 +153,11 @@ namespace WalletWasabi.KeyManagement
 		public void SetFilePath(string filePath)
 		{
 			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
-			if (FilePath is null) return;
+			if (FilePath is null)
+			{
+				return;
+			}
+
 			IoHelpers.EnsureContainingDirectoryExists(FilePath);
 		}
 
@@ -188,7 +192,11 @@ namespace WalletWasabi.KeyManagement
 
 		private void ToFileNoLock()
 		{
-			if (FilePath is null) return;
+			if (FilePath is null)
+			{
+				return;
+			}
+
 			ToFileNoLock(FilePath);
 		}
 
@@ -243,23 +251,26 @@ namespace WalletWasabi.KeyManagement
 		{
 			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
 
-			if (!IoHelpers.TryGetSafestFileVersion(filePath, out var safestFile))
+			if (!File.Exists(filePath))
 			{
 				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
 			}
 
 			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
-
 			var extpubkeyline = File.ReadLines(filePath) // Enumerated read.
 				.Take(10) // Limit reads to x lines.
 				.FirstOrDefault(line => line.Contains("\"ExtPubKey\": \"", StringComparison.InvariantCulture));
 
 			if (string.IsNullOrEmpty(extpubkeyline))
+			{
 				throw new InvalidOperationException($"Could not find line ExtPubKey in file: {filePath}");
+			}
 
 			var parts = extpubkeyline.Split("\"ExtPubKey\": \"");
 			if (parts.Length != 2)
+			{
 				throw new FormatException($"Could not split line: {extpubkeyline}");
+			}
 
 			var xpub = parts[1].TrimEnd(',', '"');
 
@@ -392,7 +403,10 @@ namespace WalletWasabi.KeyManagement
 			lock (ScriptHdPubkeyMapLock)
 			{
 				if (ScriptHdPubkeyMap.TryGetValue(scriptPubkey, out var key))
+				{
 					return key;
+				}
+
 				return default;
 			}
 		}
