@@ -3,9 +3,38 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:iac="clr-namespace:Avalonia.Xaml.Interactions.Custom;assembly=Avalonia.Xaml.Interactions.Custom"
+             xmlns:converters="clr-namespace:WalletWasabi.Gui.Converters;assembly=WalletWasabi.Gui"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"
+             xmlns:local="clr-namespace:WalletWasabi.Gui.Controls.WalletExplorer;assembly=WalletWasabi.Gui"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
   <controls:GroupBox Title="{Binding Title}" TextBlock.FontSize="30" Padding="20" Margin="10">
     <Grid Classes="content">
+      <DockPanel LastChildFill="True">
+
+        <TextBlock DockPanel.Dock="Top" Text="Insert PSBT or Transaction Hex" FontWeight="Bold" />
+
+        <DockPanel DockPanel.Dock="Bottom" LastChildFill="True">
+
+          <Button DockPanel.Dock="Right" Command="{Binding ParseTransactionCommand}">
+            <StackPanel Orientation="Horizontal">
+              <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
+              <TextBlock Text="Broadcast Transaction" />
+            </StackPanel>
+          </Button>
+
+          <StackPanel Orientation="Vertical">
+            <TextBlock Text="ErrorMessage" Classes="warningMessage" />
+            <TextBlock Text="SuccessMessage" Classes="validationMessage" Foreground="Green" />
+          </StackPanel>
+        </DockPanel>
+
+        <Border BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderHighBrush}" Margin="0,8,0,8" Padding="4" ToolTip.Tip="Click to Insert PSBT">
+          <controls:ExtendedTextBox BorderThickness="0" Margin="0" Padding="0" Text="Transaction String Hex" Watermark="Click here to insert from clipboard"  TextWrapping="Wrap" AcceptsReturn="True">
+          </controls:ExtendedTextBox>
+        </Border>
+      </DockPanel>
     </Grid>
   </controls:GroupBox>
 </UserControl>
