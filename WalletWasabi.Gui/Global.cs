@@ -193,7 +193,7 @@ namespace WalletWasabi.Gui
 					// of course).
 					// On the other side, increasing this number forces users that do not need to discover more peers
 					// to spend resources (CPU/bandwith) to discover new peers.
-					needsToDiscoverPeers = AddressManager.Count < 500;
+					needsToDiscoverPeers = Config.UseTor == true || AddressManager.Count < 500;
 					Logger.LogInfo<AddressManager>($"Loaded {nameof(AddressManager)} from `{AddressManagerFilePath}`.");
 				}
 				catch (DirectoryNotFoundException ex)
@@ -261,7 +261,9 @@ namespace WalletWasabi.Gui
 					connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(Config.GetTorSocks5EndPoint(), onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 					// allowOnlyTorEndpoints: true - Connect only to onions and don't connect to clearnet IPs at all.
 					// This of course makes the first setting unneccessary, but it's better if that's around, in case someone wants to tinker here.
-					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: true);
+					connectionParameters.EndpointConnector = new DefaultEndpointConnector(allowOnlyTorEndpoints: Network == Network.Main);
+
+					await AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager);
 				}
 				Nodes = new NodesGroup(Network, connectionParameters, requirements: Constants.NodeRequirements);
 
@@ -298,6 +300,24 @@ namespace WalletWasabi.Gui
 
 			Synchronizer.Start(requestInterval, TimeSpan.FromMinutes(5), maxFiltSyncCount);
 			Logger.LogInfo("Start synchronizing filters...");
+		}
+
+		private static async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
+		{
+			//  curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
+			// Then filtered to include only /Satoshi:0.17.x
+			var baseDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+			var onionSeedsFileName = (Network == Network.Main ? "main" : "test") + "_onion_seeds.txt";
+			var onions = await File.ReadAllLinesAsync(Path.Combine(baseDirectory, onionSeedsFileName));
+
+			onions.Shuffle();
+			foreach(var onion in onions.Take(60))
+			{
+				if(NBitcoin.Utils.TryParseEndpoint(onion, Network.DefaultPort, out var endpoint))
+				{
+					await addressManager.AddAsync(endpoint);
+				}
+			}
 		}
 
 		private static CancellationTokenSource CancelWalletServiceInitialization = null;

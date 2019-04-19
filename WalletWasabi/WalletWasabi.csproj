@@ -27,6 +27,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="main_onion_seeds.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="test_onion_seeds.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+
     <None Update="Hwi\Software\digests.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
