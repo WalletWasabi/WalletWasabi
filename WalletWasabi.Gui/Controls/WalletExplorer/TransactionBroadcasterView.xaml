@@ -16,11 +16,12 @@
         <TextBlock DockPanel.Dock="Top" Text="Insert PSBT or Transaction Hex" FontWeight="Bold" />
 
         <DockPanel DockPanel.Dock="Bottom" LastChildFill="True">
-
-          <Button DockPanel.Dock="Right" Command="{Binding ParseTransactionCommand}">
+          <Button DockPanel.Dock="Right" Command="{Binding BroadcastTransactionCommand}">
             <StackPanel Orientation="Horizontal">
               <controls:Spinner Height="20" Width="20" IsVisible="{Binding IsBusy}" Margin="0 0 8 0" />
-              <TextBlock Text="Broadcast Transaction" />
+
+              <TextBlock Text ="{Binding ButtonText}">
+              </TextBlock>
             </StackPanel>
           </Button>
 
@@ -34,7 +35,7 @@
           <i:Interaction.Behaviors>
             <behaviors:CommandOnClickBehavior Command="{Binding PasteCommand}" />
           </i:Interaction.Behaviors>
-          <controls:ExtendedTextBox BorderThickness="0" Margin="0" Padding="0" Text="{Binding TransactionString}" Classes="selectableTextBlock"  Watermark="Click here to insert from clipboard" TextWrapping="Wrap" AcceptsReturn="True">
+          <controls:ExtendedTextBox BorderThickness="0" Margin="0" Padding="0" Text="{Binding TransactionString}" IsReadOnly="{Binding IsBusy}" Watermark="Click here to insert from clipboard" TextWrapping="Wrap" AcceptsReturn="True">
             <i:Interaction.Behaviors>
               <behaviors:CommandOnClickBehavior Command="{Binding PasteCommand}" />
             </i:Interaction.Behaviors>

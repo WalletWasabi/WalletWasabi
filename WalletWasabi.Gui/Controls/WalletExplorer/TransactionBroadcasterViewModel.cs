@@ -4,6 +4,7 @@ using System;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -12,9 +13,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _transactionString;
 		private string _errorMessage;
 		private string _successMessage;
+		private bool _isBusy;
+		private string _buttonText;
 
 		private CompositeDisposable Disposables { get; set; }
 		public ReactiveCommand<Unit, Unit> PasteCommand { get; set; }
+		public ReactiveCommand<Unit, Unit> BroadcastTransactionCommand { get; set; }
 
 		public string TransactionString
 		{
@@ -34,35 +38,41 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
 		}
 
+		public bool IsBusy
+		{
+			get => _isBusy;
+			set => this.RaiseAndSetIfChanged(ref _isBusy, value);
+		}
+
+		public string ButtonText
+		{
+			get => _buttonText;
+			set => this.RaiseAndSetIfChanged(ref _buttonText, value);
+		}
+
 		public TransactionBroadcasterViewModel(WalletViewModel walletViewModel) : base("Transaction Broadcaster", walletViewModel)
 		{
+			ButtonText = "Broadcast Transaction";
+
 			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (!string.IsNullOrEmpty(TransactionString)) return;
+				if (!string.IsNullOrEmpty(TransactionString))
+				{
+					return;
+				}
+
 				var textToPaste = await Application.Current.Clipboard.GetTextAsync();
 				TransactionString = textToPaste;
 			});
 
-			Observable.Merge(PasteCommand.ThrownExceptions).Subscribe(OnException);
-		}
-
-		private static bool IsValidTransaction(string txstring)
-		{
-			return false;
-		}
-
-		private void OnTransactionTextChanged(string text)
-		{
-			try
+			BroadcastTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (!IsValidTransaction(null))
-				{
-				}
-			}
-			catch (Exception ex)
-			{
-				OnException(ex);
-			}
+				await OnDoTransactionBroadcastAsync();
+			});
+
+			Observable.Merge(PasteCommand.ThrownExceptions)
+				.Merge(BroadcastTransactionCommand.ThrownExceptions)
+				.Subscribe(OnException);
 		}
 
 		private void OnException(Exception ex)
@@ -79,8 +89,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Disposables = new CompositeDisposable();
 
-			var tc = this.WhenAnyValue(x => x.TransactionString)
-				.Subscribe(OnTransactionTextChanged);
+			this.WhenAnyValue(x => x.TransactionString)
+				.Throttle(TimeSpan.FromSeconds(1))
+				.Subscribe(async (text) => await OnTransactionTextChangedAsync(text));
 
 			base.OnOpen();
 		}
@@ -90,7 +101,48 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables?.Dispose();
 			Disposables = null;
 
+			TransactionString = "";
+
 			return base.OnClose();
+		}
+
+		private async Task OnTransactionTextChangedAsync(string text)
+		{
+			try
+			{
+				if (string.IsNullOrEmpty(text))
+				{
+					return;
+				};
+
+				await BroadcastTransactionCommand.Execute();
+			}
+			catch (Exception ex)
+			{
+				OnException(ex);
+			}
+		}
+
+		private async Task OnDoTransactionBroadcastAsync()
+		{
+			try
+			{
+				IsBusy = true;
+				ButtonText = "Broadcasting Transaction...";
+
+				// TODO: Parse transaction and broadcast it.
+
+				await Task.Delay(3000);
+			}
+			catch (Exception ex)
+			{
+				OnException(ex);
+			}
+			finally
+			{
+				IsBusy = false;
+				ButtonText = "Broadcast Transaction";
+			}
 		}
 	}
 }
