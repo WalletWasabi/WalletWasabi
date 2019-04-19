@@ -1,33 +1,35 @@
 ﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
-using WalletWasabi.Helpers;
+using System.Collections.Generic;
+using System.Text;
 
 namespace WalletWasabi.JsonConverters
 {
-	public class ExtPubKeyJsonConverter : JsonConverter
+	public class HDFingerprintJsonConverter : JsonConverter
 	{
 		/// <inheritdoc />
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(ExtPubKey);
+			return objectType == typeof(HDFingerprint);
 		}
 
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
 			var s = (string)reader.Value;
-			ExtPubKey epk = NBitcoinHelpers.BetterParseExtPubKey(s);
-			return epk;
+			if (string.IsNullOrWhiteSpace(s)) return null;
+			var fp = new HDFingerprint(ByteHelpers.FromHex(s));
+			return fp;
 		}
 
 		/// <inheritdoc />
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			var epk = (ExtPubKey)value;
+			var fp = (HDFingerprint)value;
 
-			var xpub = epk.GetWif(Network.Main).ToWif();
-			writer.WriteValue(xpub);
+			var s = fp.ToString();
+			writer.WriteValue(s);
 		}
 	}
 }

@@ -1,16 +1,16 @@
-﻿using WalletWasabi.JsonConverters;
-using WalletWasabi.Helpers;
-using NBitcoin;
+﻿using NBitcoin;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Security;
-using System;
-using WalletWasabi.Models;
+using System.Text;
+using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -26,18 +26,22 @@ namespace WalletWasabi.KeyManagement
 		public byte[] ChainCode { get; }
 
 		[JsonProperty(Order = 3)]
+		[JsonConverter(typeof(HDFingerprintJsonConverter))]
+		public HDFingerprint? MasterFingerprint { get; private set; }
+
+		[JsonProperty(Order = 4)]
 		[JsonConverter(typeof(ExtPubKeyJsonConverter))]
 		public ExtPubKey ExtPubKey { get; }
 
-		[JsonProperty(Order = 4)]
+		[JsonProperty(Order = 5)]
 		public bool? PasswordVerified { get; private set; }
 
-		[JsonProperty(Order = 5)]
+		[JsonProperty(Order = 6)]
 		private BlockchainState BlockchainState { get; }
 
 		private object BlockchainStateLock { get; }
 
-		[JsonProperty(Order = 6)]
+		[JsonProperty(Order = 7)]
 		private List<HdPubKey> HdPubKeys { get; }
 
 		private object HdPubKeysLock { get; }
@@ -63,7 +67,7 @@ namespace WalletWasabi.KeyManagement
 		public HardwareWalletInfo HardwareWalletInfo { get; set; }
 
 		[JsonConstructor]
-		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, ExtPubKey extPubKey, bool? passwordVerified, BlockchainState blockchainState, string filePath = null)
+		public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, bool? passwordVerified, BlockchainState blockchainState, string filePath = null)
 		{
 			HdPubKeys = new List<HdPubKey>();
 			HdPubKeyScriptBytes = new List<byte[]>();
@@ -76,6 +80,7 @@ namespace WalletWasabi.KeyManagement
 			EncryptedSecret = encryptedSecret;
 			IsWatchOnly = EncryptedSecret is null;
 			ChainCode = chainCode;
+			MasterFingerprint = masterFingerprint;
 			ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
 
 			PasswordVerified = passwordVerified;
@@ -110,6 +115,7 @@ namespace WalletWasabi.KeyManagement
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
+			MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 			ExtPubKey = extKey.Derive(AccountKeyPath).Neuter();
 
 			SetFilePath(filePath);
@@ -128,12 +134,19 @@ namespace WalletWasabi.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), false, new BlockchainState(), filePath);
+			HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
+			ExtPubKey extPubKey = extKey.Derive(AccountKeyPath).Neuter();
+			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, extPubKey, false, new BlockchainState(), filePath);
 		}
 
 		public static KeyManager CreateNewWatchOnly(ExtPubKey extPubKey, string filePath = null)
 		{
-			return new KeyManager(null, null, extPubKey, null, new BlockchainState(), filePath);
+			return new KeyManager(null, null, null, extPubKey, null, new BlockchainState(), filePath);
+		}
+
+		public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerpring, ExtPubKey extPubKey, string filePath = null)
+		{
+			return new KeyManager(null, null, masterFingerpring, extPubKey, null, new BlockchainState(), filePath);
 		}
 
 		public static KeyManager Recover(Mnemonic mnemonic, string password, string filePath = null)
@@ -147,13 +160,19 @@ namespace WalletWasabi.KeyManagement
 			ExtKey extKey = mnemonic.DeriveExtKey(password);
 			var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
-			return new KeyManager(encryptedSecret, extKey.ChainCode, extKey.Derive(AccountKeyPath).Neuter(), true, new BlockchainState(), filePath);
+			HDFingerprint masterFingerpring = extKey.Neuter().PubKey.GetHDFingerPrint();
+			ExtPubKey extPubKey = extKey.Derive(AccountKeyPath).Neuter();
+			return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerpring, extPubKey, true, new BlockchainState(), filePath);
 		}
 
 		public void SetFilePath(string filePath)
 		{
 			FilePath = string.IsNullOrWhiteSpace(filePath) ? null : filePath;
-			if (FilePath is null) return;
+			if (FilePath is null)
+			{
+				return;
+			}
+
 			IoHelpers.EnsureContainingDirectoryExists(FilePath);
 		}
 
@@ -188,7 +207,11 @@ namespace WalletWasabi.KeyManagement
 
 		private void ToFileNoLock()
 		{
-			if (FilePath is null) return;
+			if (FilePath is null)
+			{
+				return;
+			}
+
 			ToFileNoLock(FilePath);
 		}
 
@@ -223,6 +246,7 @@ namespace WalletWasabi.KeyManagement
 
 			string jsonString = File.ReadAllText(safestFile, Encoding.UTF8);
 			var km = JsonConvert.DeserializeObject<KeyManager>(jsonString);
+
 			km.SetFilePath(filePath);
 			lock (km.HdPubKeyScriptBytesLock)
 			{
@@ -236,7 +260,79 @@ namespace WalletWasabi.KeyManagement
 					km.ScriptHdPubkeyMap.Add(key.P2wpkhScript, key);
 				}
 			}
+
+			// Backwards compatibility:
+			if (km.PasswordVerified is null)
+			{
+				km.PasswordVerified = true;
+			}
+
 			return km;
+		}
+
+		public static bool TryGetExtPubKeyFromFile(string filePath, out ExtPubKey extPubKey)
+		{
+			extPubKey = default;
+			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
+
+			if (!File.Exists(filePath))
+			{
+				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
+			}
+
+			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
+			var extpubkeyline = File.ReadLines(filePath) // Enumerated read.
+				.Take(10) // Limit reads to x lines.
+				.FirstOrDefault(line => line.Contains("\"ExtPubKey\": \"", StringComparison.InvariantCulture));
+
+			if (string.IsNullOrEmpty(extpubkeyline))
+			{
+				return false;
+			}
+
+			var parts = extpubkeyline.Split("\"ExtPubKey\": \"");
+			if (parts.Length != 2)
+			{
+				throw new FormatException($"Could not split line: {extpubkeyline}");
+			}
+
+			var xpub = parts[1].TrimEnd(',', '"');
+
+			extPubKey = NBitcoinHelpers.BetterParseExtPubKey(xpub);
+			return true;
+		}
+
+		public static bool TryGetMasterFingerprintFromFile(string filePath, out HDFingerprint masterFingerprint)
+		{
+			masterFingerprint = default;
+			filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
+
+			if (!File.Exists(filePath))
+			{
+				throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");
+			}
+
+			// Example text to handle: "ExtPubKey": "03BF8271268000000013B9013C881FE456DDF524764F6322F611B03CF6".
+			var masterfpline = File.ReadLines(filePath) // Enumerated read.
+				.Take(10) // Limit reads to x lines.
+				.FirstOrDefault(line => line.Contains("\"MasterFingerprint\": \"", StringComparison.InvariantCulture));
+
+			if (string.IsNullOrEmpty(masterfpline))
+			{
+				return false;
+			}
+
+			var parts = masterfpline.Split("\"MasterFingerprint\": \"");
+			if (parts.Length != 2)
+			{
+				throw new FormatException($"Could not split line: {masterfpline}");
+			}
+
+			var hex = parts[1].TrimEnd(',', '"');
+
+			var mfp = new HDFingerprint(ByteHelpers.FromHex(hex));
+			masterFingerprint = mfp;
+			return true;
 		}
 
 		public HdPubKey GenerateNewKey(string label, KeyState keyState, bool isInternal, bool toFile = true)
@@ -354,7 +450,10 @@ namespace WalletWasabi.KeyManagement
 			lock (ScriptHdPubkeyMapLock)
 			{
 				if (ScriptHdPubkeyMap.TryGetValue(scriptPubkey, out var key))
+				{
 					return key;
+				}
+
 				return default;
 			}
 		}
@@ -394,7 +493,15 @@ namespace WalletWasabi.KeyManagement
 			try
 			{
 				Key secret = EncryptedSecret.GetKey(password);
-				return new ExtKey(secret, ChainCode);
+				var extkey = new ExtKey(secret, ChainCode);
+
+				// Backwards compatibility:
+				if (MasterFingerprint is null)
+				{
+					MasterFingerprint = secret.PubKey.GetHDFingerPrint();
+				}
+
+				return extkey;
 			}
 			catch (SecurityException ex)
 			{

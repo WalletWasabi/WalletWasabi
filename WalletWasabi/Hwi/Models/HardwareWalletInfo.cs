@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NBitcoin;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,14 +9,14 @@ namespace WalletWasabi.Hwi.Models
 	{
 		public HardwareWalletInfo(string fingerprint, string serialNumber, HardwareWalletType type, string path, string error)
 		{
-			Fingerprint = fingerprint;
+			MasterFingerprint = new HDFingerprint(ByteHelpers.FromHex(fingerprint));
 			SerialNumber = serialNumber;
 			Type = type;
 			Path = path;
 			Error = error;
 		}
 
-		public string Fingerprint { get; }
+		public HDFingerprint MasterFingerprint { get; }
 		public string SerialNumber { get; }
 		public HardwareWalletType Type { get; }
 		public string Path { get; }

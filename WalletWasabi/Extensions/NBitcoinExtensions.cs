@@ -132,7 +132,7 @@ namespace NBitcoin
 			return requester.BlindMessage(msg, RPubKey, signerPubKey);
 		}
 
-		public static Signer Create(this Signer signer, SchnorrKey schnorrKey)
+		public static Signer CreateSigner(this SchnorrKey schnorrKey)
 		{
 			var k = Guard.NotNull(nameof(schnorrKey.SignerKey), schnorrKey.SignerKey);
 			var r = Guard.NotNull(nameof(schnorrKey.Rkey), schnorrKey.Rkey);

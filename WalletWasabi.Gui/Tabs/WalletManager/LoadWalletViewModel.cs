@@ -329,41 +329,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						return null;
 					}
 
-					ExtPubKey extPubKey = await HwiProcessManager.GetXpubAsync(selectedWallet.HardwareWalletInfo);
-
-					var walletFiles = new DirectoryInfo(Global.WalletsDir);
-					var walletBackupFiles = new DirectoryInfo(Global.WalletBackupsDir);
-
-					// Start searching for the real wallet name.
-					walletName = null;
-
-					List<FileInfo> walletFileNames = new List<FileInfo>();
-
-					if (walletFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
-					if (walletBackupFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
-
-					walletFileNames = walletFileNames.OrderByDescending(x => x.LastAccessTimeUtc).ToList();
-
-					foreach (FileInfo walletFile in walletFileNames)
+					if (!TryFindWalletByMasterFingerprint(selectedWallet.HardwareWalletInfo.MasterFingerprint, out walletName))
 					{
-						if (walletFile?.Extension?.Equals(".json", StringComparison.OrdinalIgnoreCase) is true)
-						{
-							var km = KeyManager.FromFile(walletFile.FullName);
-							if (km.ExtPubKey == extPubKey) // We already had it.
-							{
-								walletName = walletFile.Name;
-								break;
-							}
-						}
-					}
+						ExtPubKey extPubKey = await HwiProcessManager.GetXpubAsync(selectedWallet.HardwareWalletInfo);
 
-					if (walletName == null)
-					{
 						Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
 
 						walletName = Utils.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
 						var path = Global.GetWalletFullPath(walletName);
-						KeyManager.CreateNewWatchOnly(extPubKey, path);
+						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.MasterFingerprint, extPubKey, path);
 					}
 				}
 
@@ -414,6 +388,37 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				CanTestPassword = IsWalletSelected;
 			}
+		}
+
+		private static bool TryFindWalletByMasterFingerprint(HDFingerprint masterFingerprint, out string walletName)
+		{
+			// Start searching for the real wallet name.
+			walletName = null;
+
+			var walletFiles = new DirectoryInfo(Global.WalletsDir);
+			var walletBackupFiles = new DirectoryInfo(Global.WalletBackupsDir);
+
+			List<FileInfo> walletFileNames = new List<FileInfo>();
+
+			if (walletFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
+			if (walletBackupFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
+
+			walletFileNames = walletFileNames.OrderByDescending(x => x.LastAccessTimeUtc).ToList();
+
+			foreach (FileInfo walletFile in walletFileNames)
+			{
+				if (walletFile?.Extension?.Equals(".json", StringComparison.OrdinalIgnoreCase) is true
+					&& KeyManager.TryGetMasterFingerprintFromFile(walletFile.FullName, out HDFingerprint fp))
+				{
+					if (fp == masterFingerprint) // We already had it.
+					{
+						walletName = walletFile.Name;
+						return true;
+					}
+				}
+			}
+
+			return false;
 		}
 
 		public async Task LoadWalletAsync()
