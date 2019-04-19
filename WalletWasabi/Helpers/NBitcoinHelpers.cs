@@ -53,5 +53,22 @@ namespace WalletWasabi.Helpers
 			var vSize = (int)Math.Ceiling(((3 * newTxSize) + origTxSize) / 4m);
 			return vSize;
 		}
+
+		public static ExtPubKey BetterParseExtPubKey(string extPubKeyString)
+		{
+			extPubKeyString = Guard.NotNullOrEmptyOrWhitespace(nameof(extPubKeyString), extPubKeyString, trim: true);
+
+			ExtPubKey epk;
+			try
+			{
+				epk = ExtPubKey.Parse(extPubKeyString);  // Starts with "ExtPubKey": "xpub...
+			}
+			catch
+			{
+				// Try hex, Old wallet format was like this.
+				epk = new ExtPubKey(ByteHelpers.FromHex(extPubKeyString)); // Starts with "ExtPubKey": "hexbytes...
+			}
+			return epk;
+		}
 	}
 }

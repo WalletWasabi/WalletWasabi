@@ -274,17 +274,7 @@ namespace WalletWasabi.KeyManagement
 
 			var xpub = parts[1].TrimEnd(',', '"');
 
-			ExtPubKey epk;
-
-			try
-			{
-				epk = ExtPubKey.Parse(xpub);  // Starts with "ExtPubKey": "xpub...
-			}
-			catch
-			{
-				// Try hex, Old wallet format was like this.
-				epk = new ExtPubKey(ByteHelpers.FromHex(xpub)); // Starts with "ExtPubKey": "hexbytes...
-			}
+			var epk = NBitcoinHelpers.BetterParseExtPubKey(xpub);
 			return epk;
 		}
 

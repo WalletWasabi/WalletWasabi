@@ -348,8 +348,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					{
 						if (walletFile?.Extension?.Equals(".json", StringComparison.OrdinalIgnoreCase) is true)
 						{
-							var km = KeyManager.FromFile(walletFile.FullName);
-							if (km.ExtPubKey == extPubKey) // We already had it.
+							var epk = KeyManager.ExtPubKeyFromFile(walletFile.FullName);
+							if (epk == extPubKey) // We already had it.
 							{
 								walletName = walletFile.Name;
 								break;

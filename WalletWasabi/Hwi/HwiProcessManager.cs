@@ -60,7 +60,7 @@ namespace WalletWasabi.Hwi
 			JObject json = jtok as JObject;
 			string xpub = json.Value<string>("xpub");
 
-			ExtPubKey extpub = ExtPubKey.Parse(xpub);
+			ExtPubKey extpub = NBitcoinHelpers.BetterParseExtPubKey(xpub);
 
 			return extpub;
 		}
