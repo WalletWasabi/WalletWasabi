@@ -2,12 +2,12 @@
 
 0. Make sure local .NET Core version is up to date.
 1. Update onion seed list: `dotnet run -- --getonions`
-1. Run tests.
-2. Dump client version.
-3. Run packager in publish mode.
-4. Create .msi (Release/x64)
-5. Run packager in sign mode. (Set back to publish mode.)
-6. Final .msi test on own computer.
+2. Run tests.
+3. Dump client version.
+4. Run packager in publish mode.
+5. Create .msi (Release/x64)
+6. Run packager in sign mode. (Set back to publish mode.)
+7. Final .msi test on own computer.
 
 # 2. GitHub Release
 
