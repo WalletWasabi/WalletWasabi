@@ -25,13 +25,13 @@
           </Button>
 
           <StackPanel Orientation="Vertical">
-            <TextBlock Text="ErrorMessage" Classes="warningMessage" />
-            <TextBlock Text="SuccessMessage" Classes="validationMessage" Foreground="Green" />
+            <TextBlock Text="{Binding ErrorMessage}" Classes="warningMessage" />
+            <TextBlock Text="{Binding SuccessMessage}" Classes="validationMessage" Foreground="Green" />
           </StackPanel>
         </DockPanel>
 
         <Border BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderHighBrush}" Margin="0,8,0,8" Padding="4" ToolTip.Tip="Click to Insert PSBT">
-          <controls:ExtendedTextBox BorderThickness="0" Margin="0" Padding="0" Text="Transaction String Hex" Watermark="Click here to insert from clipboard"  TextWrapping="Wrap" AcceptsReturn="True">
+          <controls:ExtendedTextBox BorderThickness="0" Margin="0" Padding="0" Text="{Binding TransactionString}" Watermark="Click here to insert from clipboard"  TextWrapping="Wrap" AcceptsReturn="True">
           </controls:ExtendedTextBox>
         </Border>
       </DockPanel>
