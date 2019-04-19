@@ -1,6 +1,9 @@
-﻿using ReactiveUI;
+﻿using Avalonia;
+using ReactiveUI;
 using System;
+using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -11,6 +14,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _successMessage;
 
 		private CompositeDisposable Disposables { get; set; }
+		public ReactiveCommand<Unit, Unit> PasteCommand { get; set; }
 
 		public string TransactionString
 		{
@@ -32,6 +36,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public TransactionBroadcasterViewModel(WalletViewModel walletViewModel) : base("Transaction Broadcaster", walletViewModel)
 		{
+			PasteCommand = ReactiveCommand.CreateFromTask(async () =>
+			{
+				if (!string.IsNullOrEmpty(TransactionString)) return;
+				var textToPaste = await Application.Current.Clipboard.GetTextAsync();
+				TransactionString = textToPaste;
+			});
+
+			Observable.Merge(PasteCommand.ThrownExceptions).Subscribe(OnException);
 		}
 
 		private static bool IsValidTransaction(string txstring)
@@ -39,11 +51,23 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return false;
 		}
 
-		private void OnTransactionTextChanged()
+		private void OnTransactionTextChanged(string text)
 		{
-			if (!IsValidTransaction(null))
+			try
 			{
+				if (!IsValidTransaction(null))
+				{
+				}
 			}
+			catch (Exception ex)
+			{
+				OnException(ex);
+			}
+		}
+
+		private void OnException(Exception ex)
+		{
+			ErrorMessage = ex.ToTypeMessageString();
 		}
 
 		public override void OnOpen()
@@ -54,6 +78,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			}
 
 			Disposables = new CompositeDisposable();
+
+			var tc = this.WhenAnyValue(x => x.TransactionString)
+				.Subscribe(OnTransactionTextChanged);
 
 			base.OnOpen();
 		}
