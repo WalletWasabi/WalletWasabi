@@ -21,7 +21,7 @@ namespace WalletWasabi.Gui.Shell.Commands
 
 			var transactionBroadcasterCommand = ReactiveCommand.Create(() =>
 			{
-				IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel());
+				//IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBroadcasterViewModel());
 			});
 
 			var settingsCommand = ReactiveCommand.Create(() =>

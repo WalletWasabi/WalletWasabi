@@ -38,6 +38,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				new WalletInfoViewModel(this)
 			};
 
+			if (walletService.KeyManager.IsWatchOnly)
+			{
+				Actions.Add(new TransactionBroadcasterViewModel(this));
+			}
+
 			Actions[0].DisplayActionTab();
 			if (receiveDominant)
 			{

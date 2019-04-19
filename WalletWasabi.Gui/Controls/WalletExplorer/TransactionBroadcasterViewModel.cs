@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reactive.Disposables;
-using System.Text;
-using WalletWasabi.Gui.ViewModels;
 
-namespace WalletWasabi.Gui.Tabs
+namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class TransactionBroadcasterViewModel : WasabiDocumentTabViewModel
+	public class TransactionBroadcasterViewModel : WalletActionViewModel
 	{
 		private CompositeDisposable Disposables { get; set; }
 
-		public TransactionBroadcasterViewModel() : base("TransactionBroadcaster")
+		public TransactionBroadcasterViewModel(WalletViewModel walletViewModel) : base("Transaction Broadcaster", walletViewModel)
 		{
 		}
 
