@@ -5,9 +5,9 @@
 2. Run tests.
 3. Dump client version.
 4. Run packager in publish mode.
-5. Create .msi (Release/x64)
+5. Create `.msi` (`Release`/`x64`)
 6. Run packager in sign mode. (Set back to publish mode.)
-7. Final .msi test on own computer.
+7. Final `.msi` test on own computer.
 
 # 2. GitHub Release
 
@@ -24,5 +24,5 @@
 
 # 4. Announce
 
-1. Tweet about it.
-2. Submit to /r/WasabiWallet and /r/Bitcoin.
+1. [Twitter](https://twitter.com) (tag @wasabiwallet #Bitcoin #Privacy).
+2. Submit to [/r/WasabiWallet](https://old.reddit.com/r/WasabiWallet/) and [/r/Bitcoin](https://old.reddit.com/r/Bitcoin/).
