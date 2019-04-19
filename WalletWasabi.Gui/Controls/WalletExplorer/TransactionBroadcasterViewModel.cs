@@ -113,7 +113,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				if (string.IsNullOrEmpty(text))
 				{
 					return;
-				};
+				}
 
 				await BroadcastTransactionCommand.Execute();
 			}
