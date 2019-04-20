@@ -134,6 +134,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								}
 							}
 
+							// Stop enumerating after you find one. Hardware wallets are acting up, sometimes fingerprint doesn't arrive for example.
 							break;
 							//foreach (var hwi in hwis)
 							//{
