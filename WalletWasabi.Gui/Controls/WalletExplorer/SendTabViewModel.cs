@@ -190,10 +190,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			BuildTransactionCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
+				const string buildingTransactionStatusText = "Building transaction...";
+				const string signingTransactionStatusText = "Signing transaction...";
+				const string broadcastingTransactionStatusText = "Broadcasting transaction...";
 				try
 				{
 					IsBusy = true;
-					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Building transaction...");
+					MainWindowViewModel.Instance.StatusBar.AddStatus(buildingTransactionStatusText);
 
 					Password = Guard.Correct(Password);
 					Label = Label.Trim(',', ' ').Trim();
@@ -242,8 +245,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					var label = Label;
 					var operation = new WalletService.Operation(script, amount, label);
 
+					const string dequeuingSelectedCoinsStatusText = "Dequeueing selected coins...";
 					try
 					{
+						MainWindowViewModel.Instance.StatusBar.AddStatus(dequeuingSelectedCoinsStatusText);
 						TxoRef[] toDequeue = selectedCoinViewModels.Where(x => x.CoinJoinInProgress).Select(x => x.Model.GetTxoRef()).ToArray();
 						if (toDequeue != null && toDequeue.Any())
 						{
@@ -255,20 +260,25 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						SetWarningMessage("Spending coins those are being actively mixed is not allowed.");
 						return;
 					}
+					finally
+					{
+						MainWindowViewModel.Instance.StatusBar.RemoveStatus(dequeuingSelectedCoinsStatusText);
+					}
 
 					BuildTransactionResult result = await Task.Run(() => Global.WalletService.BuildTransaction(Password, new[] { operation }, FeeTarget, allowUnconfirmed: true, allowedInputs: selectedCoinReferences));
 
-					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Signing transaction...");
-
+					MainWindowViewModel.Instance.StatusBar.AddStatus(signingTransactionStatusText);
 					SmartTransaction signedTransaction = result.Transaction;
 
 					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
 					{
+						const string connectingToHardwareWalletStatusText = "Connecting to hardware wallet...";
+						const string waitingForHardwareWalletStatusText = "Acquiring signature from hardware wallet...";
 						PSBT signedPsbt = null;
 						try
 						{
 							IsHardwareBusy = true;
-
+							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
 							// If we have no hardware wallet info then try refresh it. If we failed, then tha's a problem.
 							if (KeyManager.HardwareWalletInfo is null && !await TryRefreshHardwareWalletInfoAsync(KeyManager))
 							{
@@ -276,10 +286,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								return;
 							}
 
+							MainWindowViewModel.Instance.StatusBar.AddStatus(waitingForHardwareWalletStatusText);
 							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
 						catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase))
 						{
+							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
 							// The user may changed USB port. Try again with new enumeration.
 							if (!await TryRefreshHardwareWalletInfoAsync(KeyManager))
 							{
@@ -287,18 +299,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								return;
 							}
 
+							MainWindowViewModel.Instance.StatusBar.AddStatus(waitingForHardwareWalletStatusText);
 							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
 						finally
 						{
+							MainWindowViewModel.Instance.StatusBar.RemoveStatus(connectingToHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.RemoveStatus(waitingForHardwareWalletStatusText);
 							IsHardwareBusy = false;
 						}
 
 						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height);
 					}
 
-					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Broadcasting transaction...");
-
+					MainWindowViewModel.Instance.StatusBar.AddStatus(broadcastingTransactionStatusText);
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
 					ResetMax();
@@ -319,8 +333,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				finally
 				{
+					MainWindowViewModel.Instance.StatusBar.RemoveStatus(buildingTransactionStatusText);
+					MainWindowViewModel.Instance.StatusBar.RemoveStatus(signingTransactionStatusText);
+					MainWindowViewModel.Instance.StatusBar.RemoveStatus(broadcastingTransactionStatusText);
 					IsBusy = false;
-					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions();
 				}
 			},
 			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,

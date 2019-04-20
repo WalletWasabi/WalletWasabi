@@ -209,13 +209,14 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				SetLoadButtonText(value);
 				SetWalletStates();
 
+				const string loadingStatusText = "Loading...";
 				if (value)
 				{
-					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Loading...");
+					MainWindowViewModel.Instance.StatusBar.AddStatus(loadingStatusText);
 				}
 				else
 				{
-					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions();
+					MainWindowViewModel.Instance.StatusBar.RemoveStatus(loadingStatusText);
 				}
 			}
 		}
