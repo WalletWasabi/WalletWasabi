@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using NBitcoin;
 using ReactiveUI;
 using System;
 using System.Reactive;
@@ -54,6 +55,10 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			Disposables = null;
 
 			return base.OnClose();
+		}
+
+		public void UpdatePsbt(PSBT psbt)
+		{
 		}
 	}
 }
