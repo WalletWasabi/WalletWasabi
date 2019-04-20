@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,6 +42,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _isBusy;
 		private string _loadButtonText;
 		private bool _isHwWalletSearchTextVisible;
+
+		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
 		private WalletManagerViewModel Owner { get; }
 		public LoadWalletType LoadWalletType { get; }
