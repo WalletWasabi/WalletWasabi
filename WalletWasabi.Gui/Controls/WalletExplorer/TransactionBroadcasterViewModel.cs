@@ -15,6 +15,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private string _successMessage;
 		private bool _isBusy;
 		private string _buttonText;
+		private int _caretIndex;
 
 		private CompositeDisposable Disposables { get; set; }
 		public ReactiveCommand<Unit, Unit> PasteCommand { get; set; }
@@ -48,6 +49,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			get => _buttonText;
 			set => this.RaiseAndSetIfChanged(ref _buttonText, value);
+		}
+
+		public int CaretIndex
+		{
+			get => _caretIndex;
+			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
 
 		public TransactionBroadcasterViewModel(WalletViewModel walletViewModel) : base("Transaction Broadcaster", walletViewModel)
@@ -110,8 +117,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			try
 			{
-				if (string.IsNullOrEmpty(text))
+				if (string.IsNullOrWhiteSpace(text))
 				{
+					TransactionString = "";
 					return;
 				}
 
