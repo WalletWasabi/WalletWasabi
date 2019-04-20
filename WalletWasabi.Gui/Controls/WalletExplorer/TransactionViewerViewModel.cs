@@ -13,8 +13,29 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 	{
 		private string _errorMessage;
 		private string _successMessage;
+		private string _psbtJsonText;
+		private string _psbtHexText;
+		private string _psbtBase64Text;
 
 		private CompositeDisposable Disposables { get; set; }
+
+		public string PsbtJsonText
+		{
+			get => _psbtJsonText;
+			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
+		}
+
+		public string PsbtHexText
+		{
+			get => _psbtHexText;
+			set => this.RaiseAndSetIfChanged(ref _psbtHexText, value);
+		}
+
+		public string PsbtBase64Text
+		{
+			get => _psbtBase64Text;
+			set => this.RaiseAndSetIfChanged(ref _psbtBase64Text, value);
+		}
 
 		public string ErrorMessage
 		{
@@ -59,6 +80,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public void UpdatePsbt(PSBT psbt)
 		{
+			try
+			{
+				PsbtJsonText = psbt.ToString();
+				PsbtHexText = psbt.ToHex();
+				PsbtBase64Text = psbt.ToBase64();
+			}
+			catch (Exception ex)
+			{
+				OnException(ex);
+			}
 		}
 	}
 }
