@@ -4,11 +4,11 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class TransactionViewerView : UserControl
+	public class TransactionBuilderView : UserControl
 	{
-		public TransactionViewerView()
+		public TransactionBuilderView()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		private void InitializeComponent()

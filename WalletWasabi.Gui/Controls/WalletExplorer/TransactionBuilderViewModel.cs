@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class TransactionViewerViewModel : WalletActionViewModel
+	public class TransactionBuilderViewModel : WalletActionViewModel
 	{
 		private string _errorMessage;
 		private string _successMessage;
@@ -49,7 +49,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
 		}
 
-		public TransactionViewerViewModel(WalletViewModel walletViewModel) : base("Transaction Viewer", walletViewModel)
+		public TransactionBuilderViewModel(WalletViewModel walletViewModel) : base("Transaction Builder", walletViewModel)
 		{
 		}
 
@@ -62,7 +62,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			if (Disposables != null)
 			{
-				throw new Exception("Transaction Viewer was opened before it was closed.");
+				throw new Exception("Transaction Builder was opened before it was closed.");
 			}
 
 			Disposables = new CompositeDisposable();

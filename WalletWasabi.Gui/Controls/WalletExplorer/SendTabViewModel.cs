@@ -200,9 +200,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					{
 						// Generate the PSBT
 
-						IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionViewerViewModel(null));
+						IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionBuilderViewModel(null));
 
-						var txviewer = IoC.Get<IShell>().Documents.OfType<TransactionViewerViewModel>().FirstOrDefault();
+						var txviewer = IoC.Get<IShell>().Documents.OfType<TransactionBuilderViewModel>().FirstOrDefault();
 						if (txviewer is null)
 							throw new InvalidOperationException("Just added ViewModel and it is missing.");
 
