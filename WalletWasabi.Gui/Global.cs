@@ -161,7 +161,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				await HwiProcessManager.EnsureHwiInstalledAsync(DataDir, Network);
+				await HwiProcessManager.InitializeAsync(DataDir, Network);
 			}
 			catch (Exception ex)
 			{

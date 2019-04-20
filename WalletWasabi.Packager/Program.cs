@@ -108,13 +108,19 @@ namespace WalletWasabi.Packager
 				using (var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult())
 				{
 					if (response.StatusCode != HttpStatusCode.OK)
+					{
 						throw new HttpRequestException(response.StatusCode.ToString());
+					}
+
 					var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 					var json = (JObject)JsonConvert.DeserializeObject(responseString);
 					foreach (JProperty node in json["nodes"])
 					{
 						if (!node.Name.ToString().Contains(".onion"))
+						{
 							continue;
+						}
+
 						var userAgent = ((JArray)node.Value)[1].ToString();
 						if (userAgent.Contains("Satoshi:0.16") || userAgent.Contains("Satoshi:0.17"))
 						{
@@ -145,10 +151,6 @@ namespace WalletWasabi.Packager
 			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorOsx"));
 
 			string hwiSoftwareDir = Path.Combine(LibraryProjectDirectory, "Hwi", "Software");
-			string hwiWinZip = Path.Combine(hwiSoftwareDir, "hwi-win64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(hwiWinZip, tempDir).GetAwaiter();
-			File.Move(Path.Combine(tempDir, "hwi.exe"), Path.Combine(tempDir, "HwiWin"));
-
 			string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
 			IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, tempDir).GetAwaiter();
 			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiLin"));
@@ -299,7 +301,7 @@ namespace WalletWasabi.Packager
 						process.WaitForExit();
 					}
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 			}
@@ -339,7 +341,7 @@ namespace WalletWasabi.Packager
 		{
 			if (Directory.Exists(BinDistDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(BinDistDirectory).GetAwaiter().GetResult();
+				IoHelpers.DeleteRecursivelyWithMagicDustAsync(BinDistDirectory).GetAwaiter();
 				Console.WriteLine($"Deleted {BinDistDirectory}");
 			}
 
@@ -369,12 +371,12 @@ namespace WalletWasabi.Packager
 			var libraryBinReleaseDirectory = Path.GetFullPath(Path.Combine(LibraryProjectDirectory, "bin\\Release"));
 			if (Directory.Exists(guiBinReleaseDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(guiBinReleaseDirectory).GetAwaiter().GetResult();
+				IoHelpers.DeleteRecursivelyWithMagicDustAsync(guiBinReleaseDirectory).GetAwaiter();
 				Console.WriteLine($"Deleted {guiBinReleaseDirectory}");
 			}
 			if (Directory.Exists(libraryBinReleaseDirectory))
 			{
-				IoHelpers.DeleteRecursivelyWithMagicDustAsync(libraryBinReleaseDirectory).GetAwaiter().GetResult();
+				IoHelpers.DeleteRecursivelyWithMagicDustAsync(libraryBinReleaseDirectory).GetAwaiter();
 				Console.WriteLine($"Deleted {libraryBinReleaseDirectory}");
 			}
 
@@ -442,7 +444,9 @@ namespace WalletWasabi.Packager
 				Tools.ClearSha512Tags(currentBinDistDirectory);
 				//Tools.RemoveSosDocsUnix(currentBinDistDirectory);
 
-				// Remove Hwi binaries those are not relevant to the platform.
+				// Remove HWI binaries those are not relevant to the platform.
+				// On Windows HWI starts from next to the exe because Windows Defender sometimes deletes it.
+				// On Linux and OSX HWI starts from the data folder because otherwise there'd be permission issues.
 				var hwiFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Software"));
 				// Remove Tor binaries those are not relevant to the platform.
 				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
@@ -464,6 +468,14 @@ namespace WalletWasabi.Packager
 					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotremove, StringComparison.OrdinalIgnoreCase))
 					{
 						File.Delete(file.FullName);
+					}
+				}
+
+				foreach (var dir in hwiFolder.EnumerateDirectories())
+				{
+					if (!dir.Name.Contains(toNotremove, StringComparison.OrdinalIgnoreCase))
+					{
+						IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir.FullName).GetAwaiter();
 					}
 				}
 
@@ -642,10 +654,10 @@ namespace WalletWasabi.Packager
 						process.WaitForExit();
 					}
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter();
 					File.Delete(uncompressedDmgFilePath);
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 				else if (target.StartsWith("linux"))
@@ -766,13 +778,13 @@ namespace WalletWasabi.Packager
 						process.WaitForExit();
 					}
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(debFolderPath).GetAwaiter().GetResult();
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(debFolderPath).GetAwaiter();
 
 					string oldDeb = Path.Combine(BinDistDirectory, $"{ExecutableName}_{VersionPrefix}_amd64.deb");
 					string newDeb = Path.Combine(BinDistDirectory, $"Wasabi-{VersionPrefix}.deb");
 					File.Move(oldDeb, newDeb);
 
-					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter().GetResult();
+					IoHelpers.DeleteRecursivelyWithMagicDustAsync(publishedFolder).GetAwaiter();
 					Console.WriteLine($"Deleted {publishedFolder}");
 				}
 			}

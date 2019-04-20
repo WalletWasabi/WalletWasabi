@@ -22,15 +22,10 @@ namespace WalletWasabi.Hwi
 	public static class HwiProcessManager
 	{
 		public const string MutexName = "Global\\FE5C8D9C-E000-495F-8175-A8713E449B2E";
+		private static Random Random { get; } = new Random();
+		public static AsyncLock AsyncLock { get; } = new AsyncLock();
 		public static string HwiPath { get; private set; }
-		public static AsyncLock AsyncLock { get; }
 		public static Network Network { get; private set; }
-
-		static HwiProcessManager()
-		{
-			AsyncLock = new AsyncLock();
-			Network = Network.Main;
-		}
 
 		public static async Task<PSBT> SignTxAsync(HardwareWalletInfo hardwareWalletInfo, PSBT psbt)
 		{
@@ -86,8 +81,6 @@ namespace WalletWasabi.Hwi
 
 			return hwis;
 		}
-
-		private static Random Random { get; } = new Random();
 
 		public static async Task<JToken> SendCommandAsync(string command, bool isMutexPriority = false)
 		{
@@ -208,7 +201,7 @@ namespace WalletWasabi.Hwi
 			}
 		}
 
-		public static async Task EnsureHwiInstalledAsync(string dataDir, Network network, bool logFound = true)
+		public static async Task InitializeAsync(string dataDir, Network network, bool logFound = true)
 		{
 			Network = network;
 
@@ -221,17 +214,15 @@ namespace WalletWasabi.Hwi
 				}
 			}
 
-			var hwiDir = Path.Combine(dataDir, "hwi");
-
-			string hwiPath;
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				hwiPath = $@"{hwiDir}\hwi.exe";
+				HwiPath = Path.Combine(fullBaseDirectory, "Hwi", "Software", "hwi-win64", "hwi.exe");
+				return;
 			}
-			else // Linux or OSX
-			{
-				hwiPath = $@"{hwiDir}/hwi";
-			}
+
+			var hwiDir = Path.Combine(dataDir, "hwi");
+
+			string hwiPath = $@"{hwiDir}/hwi";
 
 			if (!File.Exists(hwiPath))
 			{
@@ -266,32 +257,23 @@ namespace WalletWasabi.Hwi
 		{
 			string hwiSoftwareDir = Path.Combine(fullBaseDirectory, "Hwi", "Software");
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 			{
-				string hwiWinZip = Path.Combine(hwiSoftwareDir, "hwi-win64.zip");
-				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiWinZip, hwiDir);
-				Logger.LogInfo($"Extracted {hwiWinZip} to {hwiDir}.", nameof(HwiProcessManager));
+				string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
+				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, hwiDir);
+				Logger.LogInfo($"Extracted {hwiLinuxZip} to {hwiDir}.", nameof(HwiProcessManager));
 			}
-			else // Linux or OSX
+			else // OSX
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-				{
-					string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
-					await IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, hwiDir);
-					Logger.LogInfo($"Extracted {hwiLinuxZip} to {hwiDir}.", nameof(HwiProcessManager));
-				}
-				else // OSX
-				{
-					string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
-					await IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, hwiDir);
-					Logger.LogInfo($"Extracted {hwiOsxZip} to {hwiDir}.", nameof(HwiProcessManager));
-				}
+				string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
+				await IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, hwiDir);
+				Logger.LogInfo($"Extracted {hwiOsxZip} to {hwiDir}.", nameof(HwiProcessManager));
+			}
 
-				// Make sure there's sufficient permission.
-				string chmodHwiDirCmd = $"chmod -R 750 {hwiDir}";
-				EnvironmentHelpers.ShellExec(chmodHwiDirCmd);
-				Logger.LogInfo($"Shell command executed: {chmodHwiDirCmd}.", nameof(HwiProcessManager));
-			}
+			// Make sure there's sufficient permission.
+			string chmodHwiDirCmd = $"chmod -R 750 {hwiDir}";
+			EnvironmentHelpers.ShellExec(chmodHwiDirCmd);
+			Logger.LogInfo($"Shell command executed: {chmodHwiDirCmd}.", nameof(HwiProcessManager));
 		}
 	}
 }
