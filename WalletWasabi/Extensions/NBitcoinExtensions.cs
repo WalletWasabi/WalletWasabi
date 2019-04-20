@@ -132,7 +132,7 @@ namespace NBitcoin
 			return requester.BlindMessage(msg, RPubKey, signerPubKey);
 		}
 
-		public static Signer Create(this Signer signer, SchnorrKey schnorrKey)
+		public static Signer CreateSigner(this SchnorrKey schnorrKey)
 		{
 			var k = Guard.NotNull(nameof(schnorrKey.SignerKey), schnorrKey.SignerKey);
 			var r = Guard.NotNull(nameof(schnorrKey.Rkey), schnorrKey.Rkey);
@@ -209,6 +209,17 @@ namespace NBitcoin
 		public static async Task StopAsync(this RPCClient rpc)
 		{
 			await rpc.SendCommandAsync("stop");
+		}
+
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt)
+		{
+			return psbt.ExtractSmartTransaction(Height.Unknown);
+		}
+
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height)
+		{
+			var extractedTx = psbt.ExtractTransaction();
+			return new SmartTransaction(extractedTx, height);
 		}
 	}
 }

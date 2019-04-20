@@ -97,10 +97,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				await RefreshHardwareWalletListAsync();
 				HardwareWalletRefreshCancel?.Dispose();
+				HardwareWalletRefreshCancel = null;
 			});
 		}
 
-		private CancellationTokenSource HardwareWalletRefreshCancel { get; }
+		private CancellationTokenSource HardwareWalletRefreshCancel { get; set; }
 		private bool HwTabAutomaticallySelectedOnce { get; set; } = false;
 
 		private async Task RefreshHardwareWalletListAsync()
@@ -133,15 +134,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 								}
 							}
 
-							foreach (var hwi in hwis)
-							{
-								// https://github.com/zkSNACKs/WalletWasabi/issues/1344#issuecomment-484607454
-								if (hwi.Type == HardwareWalletType.Trezor // If Trezor Model T has passphrase set then user must keep confirming the enumerate command -> https://github.com/zkSNACKs/WalletWasabi/pull/1341#issuecomment-483916529
-									|| hwi.Type == HardwareWalletType.Coldcard) //https://github.com/zkSNACKs/WalletWasabi/issues/1344#issuecomment-484691409
-								{
-									return;
-								}
-							}
+							// Stop enumerating after you find one. Hardware wallets are acting up, sometimes fingerprint doesn't arrive for example.
+							break;
+							//foreach (var hwi in hwis)
+							//{
+							//	// https://github.com/zkSNACKs/WalletWasabi/issues/1344#issuecomment-484607454
+							//	if (hwi.Type == HardwareWalletType.Trezor // If Trezor Model T has passphrase set then user must keep confirming the enumerate command -> https://github.com/zkSNACKs/WalletWasabi/pull/1341#issuecomment-483916529
+							//		|| hwi.Type == HardwareWalletType.Coldcard) //https://github.com/zkSNACKs/WalletWasabi/issues/1344#issuecomment-484691409
+							//	{
+							//		return;
+							//	}
+							//}
 						}
 						else
 						{
