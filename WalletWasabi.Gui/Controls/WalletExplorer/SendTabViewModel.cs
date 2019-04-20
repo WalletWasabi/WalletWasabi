@@ -1,4 +1,6 @@
 ﻿using Avalonia.Threading;
+using AvalonStudio.Extensibility;
+using AvalonStudio.Shell;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -190,6 +192,16 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				try
 				{
 					IsBusy = true;
+
+					if (IsWatchOnly)
+					{
+						// Generate the PSBT
+
+						IoC.Get<IShell>().AddOrSelectDocument(() => new TransactionViewerViewModel(null));
+
+						return;
+					}
+
 					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Building transaction...");
 
 					Password = Guard.Correct(Password);
