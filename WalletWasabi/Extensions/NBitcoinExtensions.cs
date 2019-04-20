@@ -210,5 +210,16 @@ namespace NBitcoin
 		{
 			await rpc.SendCommandAsync("stop");
 		}
+
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt)
+		{
+			return psbt.ExtractSmartTransaction(Height.Unknown);
+		}
+
+		public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, Height height)
+		{
+			var extractedTx = psbt.ExtractTransaction();
+			return new SmartTransaction(extractedTx, height);
+		}
 	}
 }

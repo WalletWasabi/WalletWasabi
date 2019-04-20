@@ -4,6 +4,7 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -18,6 +19,8 @@ using WalletWasabi.Gui.ViewModels;
 using WalletWasabi.Gui.ViewModels.Validation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Models;
+using WalletWasabi.KeyManagement;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 
@@ -261,18 +264,37 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
 					{
+						PSBT signedPsbt = null;
 						try
 						{
 							IsHardwareBusy = true;
-							var signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 
-							var extractedTx = signedPsbt.ExtractTransaction();
-							signedTransaction = new SmartTransaction(extractedTx, result.Transaction.Height);
+							// If we have no hardware wallet info then try refresh it. If we failed, then tha's a problem.
+							if (KeyManager.HardwareWalletInfo is null && !await TryRefreshHardwareWalletInfoAsync(KeyManager))
+							{
+								SetWarningMessage("Could not find hardware wallet. Make sure it's plugged in and you're logged in with your PIN.");
+								return;
+							}
+
+							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
+						}
+						catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase))
+						{
+							// The user may changed USB port. Try again with new enumeration.
+							if (!await TryRefreshHardwareWalletInfoAsync(KeyManager))
+							{
+								SetWarningMessage("Could not find hardware wallet. Make sure it's plugged in and you're logged in with your PIN.");
+								return;
+							}
+
+							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
 						finally
 						{
 							IsHardwareBusy = false;
 						}
+
+						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height);
 					}
 
 					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Broadcasting transaction...");
@@ -303,6 +325,15 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			},
 			this.WhenAny(x => x.IsMax, x => x.Amount, x => x.Address, x => x.IsBusy,
 				(isMax, amount, address, busy) => (isMax.Value || !string.IsNullOrWhiteSpace(amount.Value)) && !string.IsNullOrWhiteSpace(Address) && !IsBusy));
+		}
+
+		private async Task<bool> TryRefreshHardwareWalletInfoAsync(KeyManager keyManager)
+		{
+			var hwis = await HwiProcessManager.EnumerateAsync();
+			var fingerprint = keyManager.MasterFingerprint;
+			keyManager.HardwareWalletInfo = hwis.FirstOrDefault(x => x.MasterFingerprint == fingerprint);
+
+			return keyManager.HardwareWalletInfo != null;
 		}
 
 		private void SetSendText()

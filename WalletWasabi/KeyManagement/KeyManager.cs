@@ -62,8 +62,8 @@ namespace WalletWasabi.KeyManagement
 		public string FilePath { get; private set; }
 		private object ToFileLock { get; }
 
-		public bool IsWatchOnly { get; }
-		public bool IsHardwareWallet => HardwareWalletInfo != null;
+		public bool IsWatchOnly => EncryptedSecret is null;
+		public bool IsHardwareWallet => EncryptedSecret is null && MasterFingerprint != null;
 		public HardwareWalletInfo HardwareWalletInfo { get; set; }
 
 		[JsonConstructor]
@@ -78,7 +78,6 @@ namespace WalletWasabi.KeyManagement
 			BlockchainStateLock = new object();
 
 			EncryptedSecret = encryptedSecret;
-			IsWatchOnly = EncryptedSecret is null;
 			ChainCode = chainCode;
 			MasterFingerprint = masterFingerprint;
 			ExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
@@ -111,7 +110,6 @@ namespace WalletWasabi.KeyManagement
 			}
 
 			EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
-			IsWatchOnly = false;
 			ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
 			var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
