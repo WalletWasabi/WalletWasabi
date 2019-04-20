@@ -31,16 +31,18 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Actions = new ObservableCollection<WalletActionViewModel>
 			{
-				new SendTabViewModel(this),
+				// Send will be added later.
 				new ReceiveTabViewModel(this),
 				new CoinJoinTabViewModel(this),
 				new HistoryTabViewModel(this),
-				new WalletInfoViewModel(this)
+				new WalletInfoViewModel(this),
+				new TransactionBuilderViewModel(this),
+				new TransactionBroadcasterViewModel(this),
 			};
 
-			if (walletService.KeyManager.IsWatchOnly)
+			if (!walletService.KeyManager.IsWatchOnly)
 			{
-				Actions.Add(new TransactionBroadcasterViewModel(this));
+				Actions.Insert(0, new SendTabViewModel(this));
 			}
 
 			Actions[0].DisplayActionTab();
