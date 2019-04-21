@@ -304,7 +304,10 @@ namespace WalletWasabi.Gui
 
 		private static async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
 		{
-			if (Network == Network.RegTest) return;
+			if (Network == Network.RegTest)
+			{
+				return;
+			}
 
 			//  curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
 			// Then filtered to include only /Satoshi:0.17.x

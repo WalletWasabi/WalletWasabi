@@ -113,7 +113,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				{
 					try
 					{
-						if (LoadWalletViewModelDesktop.IsWalletOpened || LoadWalletViewModelHardware.IsWalletOpened) continue; // Will wait 3sec, because of the finally.
+						if (LoadWalletViewModelDesktop.IsWalletOpened || LoadWalletViewModelHardware.IsWalletOpened)
+						{
+							continue; // Will wait 3sec, because of the finally.
+						}
 
 						var hwis = await HwiProcessManager.EnumerateAsync();
 						LoadWalletViewModelHardware.TryRefreshHardwareWallets(hwis);

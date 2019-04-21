@@ -82,13 +82,21 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedAddress).Subscribe(async address =>
 			{
-				if (Global.UiConfig.Autocopy is false || address is null) return;
+				if (Global.UiConfig.Autocopy is false || address is null)
+				{
+					return;
+				}
+
 				await address.TryCopyToClipboardAsync();
 			});
 
 			this.WhenAnyValue(x => x.CaretIndex).Subscribe(_ =>
 			{
-				if (Label is null) return;
+				if (Label is null)
+				{
+					return;
+				}
+
 				if (CaretIndex != Label.Length)
 				{
 					CaretIndex = Label.Length;
@@ -99,7 +107,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			CopyAddress = ReactiveCommand.CreateFromTask(async () =>
 			{
-				if (SelectedAddress is null) return;
+				if (SelectedAddress is null)
+				{
+					return;
+				}
+
 				await SelectedAddress.TryCopyToClipboardAsync();
 			}, isCoinListItemSelected);
 

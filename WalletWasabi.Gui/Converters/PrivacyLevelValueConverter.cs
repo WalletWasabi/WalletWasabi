@@ -12,7 +12,7 @@ namespace WalletWasabi.Gui.Converters
 {
 	public class PrivacyLevelValueConverter : IValueConverter
 	{
-		private readonly static Dictionary<string, DrawingGroup> Cache = new Dictionary<string, DrawingGroup>();
+		private static readonly Dictionary<string, DrawingGroup> Cache = new Dictionary<string, DrawingGroup>();
 
 		public DrawingGroup GetIconByName(string icon)
 		{
@@ -36,7 +36,7 @@ namespace WalletWasabi.Gui.Converters
 		{
 			if (value is int integer)
 			{
-				var shield = string.Empty;
+				string shield;
 				if (integer < Global.Config.PrivacyLevelSome)
 				{
 					shield = "Critical";

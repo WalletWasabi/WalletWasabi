@@ -203,6 +203,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			Suggestions.Clear();
 		}
 
-		private static IEnumerable<string> EnglishWords = Wordlist.English.GetWords();
+		private static IEnumerable<string> EnglishWords { get; } = Wordlist.English.GetWords();
 	}
 }

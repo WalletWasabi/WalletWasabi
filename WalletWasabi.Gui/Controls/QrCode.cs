@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
@@ -14,6 +12,8 @@ using Avalonia.Metadata;
 using Avalonia.Rendering;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
+using System;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -70,7 +70,9 @@ namespace WalletWasabi.Gui.Controls
 			var source = Matrix;
 
 			if (source is null || source.Length == 0)
+			{
 				return new Size();
+			}
 
 			var max = Math.Min(availableSize.Width, availableSize.Height);
 

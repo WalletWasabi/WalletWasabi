@@ -3,14 +3,14 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Media;
 using Avalonia.Styling;
+using AvalonStudio.Extensibility.Theme;
 using ReactiveUI;
 using System;
-using System.Reactive.Linq;
-using Avalonia.Media;
-using System.Threading.Tasks;
 using System.Reactive;
-using AvalonStudio.Extensibility.Theme;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Gui.Controls
 {
@@ -35,7 +35,11 @@ namespace WalletWasabi.Gui.Controls
 
 			this.GetObservable(IsReadOnlyProperty).Subscribe(isReadOnly =>
 			{
-				if (ContextMenu is null) return;
+				if (ContextMenu is null)
+				{
+					return;
+				}
+
 				var items = ContextMenu.Items as Avalonia.Controls.Controls;
 
 				if (isReadOnly)
@@ -79,7 +83,9 @@ namespace WalletWasabi.Gui.Controls
 			var text = Text;
 
 			if (string.IsNullOrEmpty(text))
+			{
 				return "";
+			}
 
 			var selectionStart = SelectionStart;
 			var selectionEnd = SelectionEnd;
@@ -97,18 +103,18 @@ namespace WalletWasabi.Gui.Controls
 
 		private async Task CopyAsync()
 		{
-				var selection = GetSelection();
+			var selection = GetSelection();
 
-				if (string.IsNullOrWhiteSpace(selection))
-				{
-					selection = Text;
-				}
+			if (string.IsNullOrWhiteSpace(selection))
+			{
+				selection = Text;
+			}
 
-				if (!string.IsNullOrWhiteSpace(selection))
-				{
-					await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
-						.SetTextAsync(selection);
-				}
+			if (!string.IsNullOrWhiteSpace(selection))
+			{
+				await ((IClipboard)AvaloniaLocator.Current.GetService(typeof(IClipboard)))
+					.SetTextAsync(selection);
+			}
 		}
 
 		protected virtual bool IsCopyEnabled => true;
@@ -173,7 +179,11 @@ namespace WalletWasabi.Gui.Controls
 
 		private void CreatePasteItem()
 		{
-			if (_pasteItem != null) return;
+			if (_pasteItem != null)
+			{
+				return;
+			}
+
 			_pasteItem = new MenuItem { Header = "Paste", Foreground = ColorTheme.CurrentTheme.Foreground, Command = PasteCommand, Icon = GetPastePresenter() };
 		}
 	}

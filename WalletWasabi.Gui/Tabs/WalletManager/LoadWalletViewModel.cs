@@ -223,7 +223,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public override void OnCategorySelected()
 		{
-			if (IsHardwareWallet) return;
+			if (IsHardwareWallet)
+			{
+				return;
+			}
+
 			lock (WalletLock)
 			{
 				Wallets.Clear();
@@ -404,8 +408,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			List<FileInfo> walletFileNames = new List<FileInfo>();
 
-			if (walletFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
-			if (walletBackupFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
+			if (walletFiles.Exists)
+			{
+				walletFileNames.AddRange(walletFiles.EnumerateFiles());
+			}
+
+			if (walletBackupFiles.Exists)
+			{
+				walletFileNames.AddRange(walletFiles.EnumerateFiles());
+			}
 
 			walletFileNames = walletFileNames.OrderByDescending(x => x.LastAccessTimeUtc).ToList();
 

@@ -17,7 +17,10 @@ namespace WalletWasabi.Gui.Converters
 				{
 					int len = 10;
 					if (int.TryParse(parameter.ToString(), out int newLength))
+					{
 						len = newLength;
+					}
+
 					return new string(Enumerable.Repeat('#', len).ToArray());
 				}
 				return text;

@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Models;
 using WalletWasabi.Logging;
-using System.Reactive;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -34,7 +34,11 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
-				if (Global.UiConfig.Autocopy is false || transaction is null) return;
+				if (Global.UiConfig.Autocopy is false || transaction is null)
+				{
+					return;
+				}
+
 				await transaction.TryCopyTxIdToClipboardAsync();
 			});
 
@@ -126,19 +130,30 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			{
 				var found = txRecordList.FirstOrDefault(x => x.transactionId == coin.TransactionId);
 
-				if (Global.WalletService is null) break; // Disposed meanwhile.
+				if (Global.WalletService is null)
+				{
+					break; // Disposed meanwhile.
+				}
 
 				SmartTransaction foundTransaction = Global.WalletService?.TransactionCache?.FirstOrDefault(x => x.GetHash() == coin.TransactionId);
 				if (foundTransaction is null)
 				{
-					if (Global.WalletService is null) break; // Disposed meanwhile.
+					if (Global.WalletService is null)
+					{
+						break; // Disposed meanwhile.
+					}
+
 					continue;
 				}
 
 				DateTimeOffset dateTime;
 				if (foundTransaction.Height.Type == HeightType.Chain)
 				{
-					if (Global.WalletService is null) break; //  Disposed meanwhile. Actually caught an NRE here.
+					if (Global.WalletService is null)
+					{
+						break; //  Disposed meanwhile. Actually caught an NRE here.
+					}
+
 					if (Global.WalletService.ProcessedBlocks.Any(x => x.Value.height == foundTransaction.Height))
 					{
 						dateTime = Global.WalletService.ProcessedBlocks.First(x => x.Value.height == foundTransaction.Height).Value.dateTime;
