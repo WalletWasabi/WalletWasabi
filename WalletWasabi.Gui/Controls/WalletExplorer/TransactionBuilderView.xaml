@@ -20,24 +20,17 @@
 
       <DockPanel Grid.Row="0" LastChildFill="True">
         <TextBlock DockPanel.Dock="Top" Text="PSBT Json string" FontWeight="Bold" />
-        <Border BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderHighBrush}" Background="Transparent" Margin="0,8,0,8" Padding="4">
-          <controls:ExtendedTextBox BorderThickness="0" Margin="0" Padding="0" Text="{Binding PsbtJsonText}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-        </Border>
+        <controls:MultiTextBox  Text="{Binding PsbtJsonText}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
       </DockPanel>
 
       <DockPanel Grid.Row="1" LastChildFill="True">
-
         <TextBlock DockPanel.Dock="Top" Text="PSBT Hex string" FontWeight="Bold" />
-        <Border BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderHighBrush}" Background="Transparent" Margin="0,8,0,8" Padding="4">
-          <controls:ExtendedTextBox BorderThickness="0" Margin="0" Padding="0"  Text="{Binding PsbtHexText}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-        </Border>
+        <controls:MultiTextBox  Text="{Binding PsbtHexText}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
       </DockPanel>
 
       <DockPanel Grid.Row="2" LastChildFill="True">
         <TextBlock DockPanel.Dock="Top" Text="PSBT Base64 string" FontWeight="Bold" />
-        <Border BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderHighBrush}" Background="Transparent" Margin="0,8,0,8" Padding="4">
-          <controls:ExtendedTextBox BorderThickness="0" Margin="0" Padding="0" Text="{Binding PsbtBase64Text}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
-        </Border>
+        <controls:MultiTextBox  Text="{Binding PsbtBase64Text}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
       </DockPanel>
     </Grid>
   </controls:GroupBox>
