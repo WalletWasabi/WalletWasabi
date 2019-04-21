@@ -30,8 +30,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Transactions = new ObservableCollection<TransactionViewModel>();
 
-			RewriteTableAsync().GetAwaiter();
-
 			this.WhenAnyValue(x => x.SelectedTransaction).Subscribe(async transaction =>
 			{
 				if (Global.UiConfig.Autocopy is false || transaction is null)
@@ -45,6 +43,8 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			SortCommand = ReactiveCommand.Create(() => RefreshOrdering());
 
 			DateSortDirection = SortOrder.Decreasing;
+
+			_ = TryRewriteTableAsync();
 		}
 
 		public override void OnOpen()
@@ -63,7 +63,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Merge(Observable.FromEventPattern(Global.WalletService, nameof(Global.WalletService.CoinSpentOrSpenderConfirmed)))
 				.Throttle(TimeSpan.FromSeconds(5))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(async _ => await RewriteTableAsync())
+				.Subscribe(async _ => await TryRewriteTableAsync())
 				.DisposeWith(Disposables);
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(x =>
@@ -83,7 +83,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return base.OnClose();
 		}
 
-		private async Task RewriteTableAsync()
+		private async Task TryRewriteTableAsync()
 		{
 			try
 			{
