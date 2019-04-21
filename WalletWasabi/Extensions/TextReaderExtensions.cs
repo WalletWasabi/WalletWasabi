@@ -23,7 +23,10 @@ namespace System.IO
 			while (true)
 			{
 				int ch = me.Read();
-				if (ch == -1) break;
+				if (ch == -1)
+				{
+					break;
+				}
 
 				if (ch == '\r' && me.Peek() == '\n')
 				{
@@ -55,7 +58,10 @@ namespace System.IO
 			while (true)
 			{
 				int ch = me.Read();
-				if (ch == -1) break;
+				if (ch == -1)
+				{
+					break;
+				}
 
 				if (ch == separator)
 				{

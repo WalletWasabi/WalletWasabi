@@ -1,8 +1,8 @@
-﻿using WalletWasabi.JsonConverters;
-using WalletWasabi.Models;
-using NBitcoin;
+﻿using NBitcoin;
 using Newtonsoft.Json;
 using System;
+using WalletWasabi.JsonConverters;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.WebClients.BlockCypher.Models
 {

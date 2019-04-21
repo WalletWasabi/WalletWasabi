@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using static WalletWasabi.Http.Constants;
 
 namespace WalletWasabi.Http.Models
@@ -137,7 +137,10 @@ namespace WalletWasabi.Http.Models
 					{
 						message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
 					}
-					else message.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					else
+					{
+						message.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					}
 				}
 
 				return new HttpRequestContentHeaders
@@ -162,7 +165,10 @@ namespace WalletWasabi.Http.Models
 					{
 						message.Content.Headers.TryAddWithoutValidation(field.Name, field.Value);
 					}
-					else message.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					else
+					{
+						message.Headers.TryAddWithoutValidation(field.Name, field.Value);
+					}
 				}
 
 				return new HttpResponseContentHeaders

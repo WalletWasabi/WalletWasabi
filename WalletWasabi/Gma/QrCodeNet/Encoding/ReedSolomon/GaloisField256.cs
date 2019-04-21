@@ -7,15 +7,15 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 	/// </summary>
 	internal sealed class GaloisField256
 	{
-		private readonly int[] _antiLogTable;
-		private readonly int[] _logTable;
+		private int[] AntiLogTable { get; }
+		private int[] LogTable { get; }
 
 		internal int Primitive { get; }
 
 		internal GaloisField256(int primitive)
 		{
-			_antiLogTable = new int[256];
-			_logTable = new int[256];
+			AntiLogTable = new int[256];
+			LogTable = new int[256];
 
 			Primitive = primitive;
 
@@ -24,9 +24,12 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 			//Value cycle is from 1 to 255. Thus there should not have Log(0).
 			for (int powers = 0; powers < 256; powers++)
 			{
-				_antiLogTable[powers] = gfx;
+				AntiLogTable[powers] = gfx;
 				if (powers != 255)
-					_logTable[gfx] = powers;
+				{
+					LogTable[gfx] = powers;
+				}
+
 				gfx <<= 1;      //gfx = gfx * 2 where alpha is 2.
 
 				if (gfx > 255)
@@ -41,7 +44,7 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		/// <returns>
 		/// Powers of a in GF table. Where a = 2
 		/// </returns>
-		internal int Exponent(int PowersOfa) => _antiLogTable[PowersOfa];
+		internal int Exponent(int PowersOfa) => AntiLogTable[PowersOfa];
 
 		/// <returns>
 		/// log ( power of a) in GF table. Where a = 2
@@ -49,14 +52,20 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		internal int Log(int gfValue)
 		{
 			if (gfValue == 0)
+			{
 				throw new ArgumentException("GaloisField value will not equal to 0, Log method");
-			return _logTable[gfValue];
+			}
+
+			return LogTable[gfValue];
 		}
 
 		internal int Inverse(int gfValue)
 		{
 			if (gfValue == 0)
+			{
 				throw new ArgumentException("GaloisField value will not equal to 0, Inverse method");
+			}
+
 			return Exponent(255 - Log(gfValue));
 		}
 
@@ -95,11 +104,20 @@ namespace Gma.QrCodeNet.Encoding.ReedSolomon
 		internal int Quotient(int gfValueA, int gfValueB)
 		{
 			if (gfValueA == 0)
+			{
 				return 0;
+			}
+
 			if (gfValueB == 0)
+			{
 				throw new ArgumentException("gfValueB can not be zero");
+			}
+
 			if (gfValueB == 1)
+			{
 				return gfValueA;
+			}
+
 			return Exponent(Math.Abs(Log(gfValueA) - Log(gfValueB)) % 255);
 		}
 	}

@@ -1,6 +1,6 @@
-﻿using WalletWasabi.Bases;
+﻿using System.Text;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
-using System.Text;
 
 namespace WalletWasabi.TorSocks5.TorSocks5.Models.Fields.ByteArrayFields
 {

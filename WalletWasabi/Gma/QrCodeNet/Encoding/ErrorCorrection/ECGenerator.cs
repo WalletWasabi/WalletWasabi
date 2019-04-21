@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Gma.QrCodeNet.Encoding.ReedSolomon;
+using System;
 using System.Collections.Generic;
-using Gma.QrCodeNet.Encoding.ReedSolomon;
 
 namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 {
@@ -47,7 +47,9 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 				ecByteJArray[blockID] = ReedSolomonEncoder.Encode(dByteJArray[blockID], ecBytesPerBlock, generator);
 			}
 			if (vd.NumDataBytes != dataBytesOffset)
+			{
 				throw new ArgumentException("Data bytes does not match offset");
+			}
 
 			BitList codewords = new BitList();
 
@@ -58,7 +60,9 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 				for (int blockID = 0; blockID < vd.NumECBlocks; blockID++)
 				{
 					if (!(dataID == numDataBytesGroup1 && blockID < ecBlockGroup1))
-						codewords.Add((int)dByteJArray[blockID][dataID], 8);
+					{
+						codewords.Add(dByteJArray[blockID][dataID], 8);
+					}
 				}
 			}
 
@@ -66,12 +70,14 @@ namespace Gma.QrCodeNet.Encoding.ErrorCorrection
 			{
 				for (int blockID = 0; blockID < vd.NumECBlocks; blockID++)
 				{
-					codewords.Add((int)ecByteJArray[blockID][ECID], 8);
+					codewords.Add(ecByteJArray[blockID][ECID], 8);
 				}
 			}
 
 			if (vd.NumTotalBytes != codewords.Count >> 3)
+			{
 				throw new ArgumentException($"total bytes: {vd.NumTotalBytes}, actual bits: {codewords.Count}");
+			}
 
 			return codewords;
 		}

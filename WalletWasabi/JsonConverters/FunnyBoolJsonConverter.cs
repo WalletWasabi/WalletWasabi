@@ -20,12 +20,17 @@ namespace WalletWasabi.JsonConverters
 				|| "yes".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
 				|| "fuckyeah".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
 				|| canSpendUnconfirmedString == "1")
+			{
 				return true;
+			}
+
 			if ("false".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
 				|| "no".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
 				|| "nah".Equals(canSpendUnconfirmedString, StringComparison.OrdinalIgnoreCase)
 				|| canSpendUnconfirmedString == "0")
+			{
 				return false;
+			}
 
 			return bool.Parse(canSpendUnconfirmedString);
 		}

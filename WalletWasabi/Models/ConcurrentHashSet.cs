@@ -22,8 +22,8 @@ namespace WalletWasabi.Models
 		private const int DefaultCapacity = 31;
 		private const int MaxLockNumber = 1024;
 
-		private readonly IEqualityComparer<T> _comparer;
-		private readonly bool _growLockArray;
+		private IEqualityComparer<T> Comparer { get; }
+		private bool GrowLockArray { get; }
 
 		private int _budget;
 		private volatile Tables _tables;
@@ -172,7 +172,10 @@ namespace WalletWasabi.Models
 		public ConcurrentHashSet(IEnumerable<T> collection, IEqualityComparer<T> comparer)
 			: this(comparer)
 		{
-			if (collection is null) throw new ArgumentNullException(nameof(collection));
+			if (collection is null)
+			{
+				throw new ArgumentNullException(nameof(collection));
+			}
 
 			InitializeFromCollection(collection);
 		}
@@ -198,7 +201,10 @@ namespace WalletWasabi.Models
 		public ConcurrentHashSet(int concurrencyLevel, IEnumerable<T> collection, IEqualityComparer<T> comparer)
 			: this(concurrencyLevel, DefaultCapacity, false, comparer)
 		{
-			if (collection is null) throw new ArgumentNullException(nameof(collection));
+			if (collection is null)
+			{
+				throw new ArgumentNullException(nameof(collection));
+			}
 
 			InitializeFromCollection(collection);
 		}
@@ -226,8 +232,15 @@ namespace WalletWasabi.Models
 
 		private ConcurrentHashSet(int concurrencyLevel, int capacity, bool growLockArray, IEqualityComparer<T> comparer)
 		{
-			if (concurrencyLevel < 1) throw new ArgumentOutOfRangeException(nameof(concurrencyLevel));
-			if (capacity < 0) throw new ArgumentOutOfRangeException(nameof(capacity));
+			if (concurrencyLevel < 1)
+			{
+				throw new ArgumentOutOfRangeException(nameof(concurrencyLevel));
+			}
+
+			if (capacity < 0)
+			{
+				throw new ArgumentOutOfRangeException(nameof(capacity));
+			}
 
 			// The capacity should be at least as large as the concurrency level. Otherwise, we would have locks that don't guard
 			// any buckets.
@@ -246,9 +259,9 @@ namespace WalletWasabi.Models
 			var buckets = new Node[capacity];
 			_tables = new Tables(buckets, locks, countPerLock);
 
-			_growLockArray = growLockArray;
+			GrowLockArray = growLockArray;
 			_budget = buckets.Length / locks.Length;
-			_comparer = comparer ?? EqualityComparer<T>.Default;
+			Comparer = comparer ?? EqualityComparer<T>.Default;
 		}
 
 		/// <summary>
@@ -260,7 +273,7 @@ namespace WalletWasabi.Models
 		/// <exception cref="T:System.OverflowException">The <see cref="ConcurrentHashSet{T}"/>
 		/// contains too many items.</exception>
 		public bool TryAdd(T item) =>
-			AddInternal(item, _comparer.GetHashCode(item), true);
+			AddInternal(item, Comparer.GetHashCode(item), true);
 
 		/// <summary>
 		/// Removes all items from the <see cref="ConcurrentHashSet{T}"/>.
@@ -290,7 +303,7 @@ namespace WalletWasabi.Models
 		/// <returns>true if the <see cref="ConcurrentHashSet{T}"/> contains the item; otherwise, false.</returns>
 		public bool Contains(T item)
 		{
-			var hashcode = _comparer.GetHashCode(item);
+			var hashcode = Comparer.GetHashCode(item);
 
 			// We must capture the _buckets field in a local variable. It is set to a new table on each table resize.
 			var tables = _tables;
@@ -303,7 +316,7 @@ namespace WalletWasabi.Models
 
 			while (current != null)
 			{
-				if (hashcode == current.Hashcode && _comparer.Equals(current.Item, item))
+				if (hashcode == current.Hashcode && Comparer.Equals(current.Item, item))
 				{
 					return true;
 				}
@@ -320,7 +333,7 @@ namespace WalletWasabi.Models
 		/// <returns>true if an item was removed successfully; otherwise, false.</returns>
 		public bool TryRemove(T item)
 		{
-			var hashcode = _comparer.GetHashCode(item);
+			var hashcode = Comparer.GetHashCode(item);
 			while (true)
 			{
 				var tables = _tables;
@@ -341,7 +354,7 @@ namespace WalletWasabi.Models
 					{
 						Debug.Assert((previous is null && current == tables.Buckets[bucketNo]) || previous.Next == current);
 
-						if (hashcode == current.Hashcode && _comparer.Equals(current.Item, item))
+						if (hashcode == current.Hashcode && Comparer.Equals(current.Item, item))
 						{
 							if (previous is null)
 							{
@@ -397,8 +410,15 @@ namespace WalletWasabi.Models
 
 		void ICollection<T>.CopyTo(T[] array, int arrayIndex)
 		{
-			if (array is null) throw new ArgumentNullException(nameof(array));
-			if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+			if (array is null)
+			{
+				throw new ArgumentNullException(nameof(array));
+			}
+
+			if (arrayIndex < 0)
+			{
+				throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+			}
 
 			var locksAcquired = 0;
 			try
@@ -431,7 +451,7 @@ namespace WalletWasabi.Models
 		{
 			foreach (var item in collection)
 			{
-				AddInternal(item, _comparer.GetHashCode(item), false);
+				AddInternal(item, Comparer.GetHashCode(item), false);
 			}
 
 			if (_budget == 0)
@@ -453,7 +473,9 @@ namespace WalletWasabi.Models
 				try
 				{
 					if (acquireLock)
+					{
 						Monitor.Enter(tables.Locks[lockNo], ref lockTaken);
+					}
 
 					// If the table just got resized, we may not be holding the right lock, and must retry.
 					// This should be a rare occurrence.
@@ -467,7 +489,7 @@ namespace WalletWasabi.Models
 					for (var current = tables.Buckets[bucketNo]; current != null; current = current.Next)
 					{
 						Debug.Assert(previous is null && current == tables.Buckets[bucketNo] || previous.Next == current);
-						if (hashcode == current.Hashcode && _comparer.Equals(current.Item, item))
+						if (hashcode == current.Hashcode && Comparer.Equals(current.Item, item))
 						{
 							return false;
 						}
@@ -494,7 +516,9 @@ namespace WalletWasabi.Models
 				finally
 				{
 					if (lockTaken)
+					{
 						Monitor.Exit(tables.Locks[lockNo]);
+					}
 				}
 
 				//
@@ -617,7 +641,7 @@ namespace WalletWasabi.Models
 				var newLocks = tables.Locks;
 
 				// Add more locks
-				if (_growLockArray && tables.Locks.Length < MaxLockNumber)
+				if (GrowLockArray && tables.Locks.Length < MaxLockNumber)
 				{
 					newLocks = new object[tables.Locks.Length * 2];
 					Array.Copy(tables.Locks, 0, newLocks, 0, tables.Locks.Length);

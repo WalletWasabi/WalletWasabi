@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Nito.AsyncEx;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Nito.AsyncEx;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers
@@ -16,17 +16,23 @@ namespace WalletWasabi.Helpers
 
 		#region Business logic
 
-		private static RuntimeParams _instance = null;
+		private static RuntimeParams InternalInstance = null;
 
 		public static RuntimeParams Instance
 		{
 			get
 			{
-				if (_instance is null)
+				if (InternalInstance is null)
+				{
 					throw new InvalidOperationException("Not loaded! Use LoadAsync() first!");
+				}
+
 				if (string.IsNullOrEmpty(FileDir))
+				{
 					throw new InvalidOperationException("Directory not set!");
-				return _instance;
+				}
+
+				return InternalInstance;
 			}
 		}
 
@@ -50,7 +56,10 @@ namespace WalletWasabi.Helpers
 				using (await AsyncLock.LockAsync())
 				{
 					if (!Directory.Exists(FileDir))
+					{
 						Directory.CreateDirectory(FileDir);
+					}
+
 					string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
 					await File.WriteAllTextAsync(FilePath,
 					jsonString,
@@ -74,14 +83,14 @@ namespace WalletWasabi.Helpers
 				}
 
 				string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8);
-				_instance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
+				InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString);
 				return;
 			}
 			catch (Exception ex)
 			{
 				Logger.LogInfo<RuntimeParams>($"Could not load RuntimeParams: {ex}.");
 			}
-			_instance = new RuntimeParams();
+			InternalInstance = new RuntimeParams();
 		}
 
 		#endregion Business logic

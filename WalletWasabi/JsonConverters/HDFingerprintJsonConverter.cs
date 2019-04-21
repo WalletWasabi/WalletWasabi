@@ -18,7 +18,11 @@ namespace WalletWasabi.JsonConverters
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
 			var s = (string)reader.Value;
-			if (string.IsNullOrWhiteSpace(s)) return null;
+			if (string.IsNullOrWhiteSpace(s))
+			{
+				return null;
+			}
+
 			var fp = new HDFingerprint(ByteHelpers.FromHex(s));
 			return fp;
 		}

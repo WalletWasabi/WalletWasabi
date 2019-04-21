@@ -22,7 +22,9 @@ namespace WalletWasabi.JsonConverters
 			// check additional strings those are not checked by GetNetwork
 			string networkString = ((string)reader.Value).Trim();
 			if ("regression".Equals(networkString, StringComparison.OrdinalIgnoreCase))
+			{
 				return Network.RegTest;
+			}
 
 			return Network.GetNetwork(networkString);
 		}

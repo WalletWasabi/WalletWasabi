@@ -24,7 +24,7 @@
 		{
 			BitList modeIndicatorBits = new BitList
 			{
-				{ (int)0001 << 2, 4 }
+				{ 0001 << 2, 4 }
 			};
 			return modeIndicatorBits;
 		}

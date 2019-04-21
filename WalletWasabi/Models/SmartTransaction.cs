@@ -114,8 +114,11 @@ namespace WalletWasabi.Models
 		{
 			bool rc;
 
-			if (ReferenceEquals(tx1, tx2)) rc = true;
-			else if ((object)tx1 is null || (object)tx2 is null)
+			if (ReferenceEquals(tx1, tx2))
+			{
+				rc = true;
+			}
+			else if (tx1 is null || tx2 is null)
 			{
 				rc = false;
 			}
@@ -131,7 +134,7 @@ namespace WalletWasabi.Models
 		{
 			bool rc;
 
-			if ((object)tx1 is null || (object)tx2 is null)
+			if (tx1 is null || tx2 is null)
 			{
 				rc = false;
 			}
@@ -152,7 +155,7 @@ namespace WalletWasabi.Models
 		{
 			bool rc;
 
-			if ((object)tx1 is null || (object)tx2 is null)
+			if (tx1 is null || tx2 is null)
 			{
 				rc = false;
 			}

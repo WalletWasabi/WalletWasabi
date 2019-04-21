@@ -1,13 +1,13 @@
-﻿using WalletWasabi.Models;
-using NBitcoin;
-using System;
-using System.Threading.Tasks;
-using System.Threading;
-using WalletWasabi.Logging;
+﻿using NBitcoin;
 using NBitcoin.Protocol;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services
@@ -102,12 +102,18 @@ namespace WalletWasabi.Services
 		public async Task<bool> TryPerformMempoolCleanupAsync(Func<Uri> destAction, IPEndPoint torSocks)
 		{
 			// If already cleaning, then no need to run it that often.
-			if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1) return false;
+			if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)
+			{
+				return false;
+			}
 
 			// This function is designed to prevent forever growing mempool.
 			try
 			{
-				if (!TransactionHashes.Any()) return true; // There's nothing to cleanup.
+				if (!TransactionHashes.Any())
+				{
+					return true; // There's nothing to cleanup.
+				}
 
 				Logger.LogInfo<MemPoolService>("Start cleaning out mempool...");
 				using (var client = new WasabiClient(destAction, torSocks))
@@ -144,18 +150,32 @@ namespace WalletWasabi.Services
 		public async Task<bool> TryPerformMempoolCleanupAsync(NodesGroup nodes, CancellationToken cancel)
 		{
 			// If already cleaning, then no need to run it that often.
-			if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1) return false;
+			if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)
+			{
+				return false;
+			}
 
 			// This function is designed to prevent forever growing mempool.
 			try
 			{
-				if (!TransactionHashes.Any()) return true; // There's nothing to cleanup.
+				if (!TransactionHashes.Any())
+				{
+					return true; // There's nothing to cleanup.
+				}
 
 				var delay = TimeSpan.FromMinutes(1);
-				if (nodes?.ConnectedNodes is null) return false;
+				if (nodes?.ConnectedNodes is null)
+				{
+					return false;
+				}
+
 				while (nodes.ConnectedNodes.Count != nodes.MaximumNodeConnection && nodes.ConnectedNodes.All(x => x.IsConnected))
 				{
-					if (cancel.IsCancellationRequested) return false;
+					if (cancel.IsCancellationRequested)
+					{
+						return false;
+					}
+
 					Logger.LogInfo<MemPoolService>($"Not all nodes were in a connected state. Delaying mempool cleanup for {delay.TotalSeconds} seconds...");
 					await Task.Delay(delay, cancel);
 				}
@@ -167,13 +187,27 @@ namespace WalletWasabi.Services
 				{
 					try
 					{
-						if (!node.IsConnected) continue;
+						if (!node.IsConnected)
+						{
+							continue;
+						}
 
-						if (cancel.IsCancellationRequested) return false;
+						if (cancel.IsCancellationRequested)
+						{
+							return false;
+						}
+
 						uint256[] txs = node.GetMempool(cancel);
-						if (cancel.IsCancellationRequested) return false;
+						if (cancel.IsCancellationRequested)
+						{
+							return false;
+						}
+
 						allTxs.UnionWith(txs);
-						if (cancel.IsCancellationRequested) return false;
+						if (cancel.IsCancellationRequested)
+						{
+							return false;
+						}
 					}
 					catch (Exception ex) when ((ex is InvalidOperationException && ex.Message.StartsWith("The node is not in a connected state", StringComparison.InvariantCultureIgnoreCase))
 											|| ex is OperationCanceledException

@@ -1,5 +1,5 @@
-﻿using System;
-using Gma.QrCodeNet.Encoding.Masking;
+﻿using Gma.QrCodeNet.Encoding.Masking;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.EncodingRegion
 {
@@ -79,9 +79,13 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 			};
 
 			if (resultBits.Count != 15)
+			{
 				throw new Exception("FormatInfoBits length is not 15");
+			}
 			else
+			{
 				return resultBits;
+			}
 		}
 
 		//According Table 25 — Error correction level indicators

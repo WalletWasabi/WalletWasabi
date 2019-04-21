@@ -271,7 +271,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
 							{
 								IEnumerable<Bob> bobsOnThisLevel = Bobs.Where(x => x.Level == level);
-								if (bobsOnThisLevel.Count() <= 1) break;
+								if (bobsOnThisLevel.Count() <= 1)
+								{
+									break;
+								}
 
 								foreach (Bob bob in bobsOnThisLevel)
 								{
@@ -303,7 +306,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 							foreach (MixingLevel level in MixingLevels.GetLevelsExceptBase())
 							{
 								var denominationOutputCount = transaction.Outputs.Count(x => x.Value == level.Denomination);
-								if (denominationOutputCount <= 1) break;
+								if (denominationOutputCount <= 1)
+								{
+									break;
+								}
 
 								Money coordinatorLevelFeePerAlice = level.Denomination.Percentage(CoordinatorFeePercent * denominationOutputCount);
 								coordinatorFee += coordinatorLevelFeePerAlice * denominationOutputCount;
@@ -331,7 +337,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 								{
 									MixingLevel level = MixingLevels.GetLevel(i);
 									var denominationOutputCount = transaction.Outputs.Count(x => x.Value == level.Denomination);
-									if (denominationOutputCount <= 1) break;
+									if (denominationOutputCount <= 1)
+									{
+										break;
+									}
 
 									changeAmount -= FeePerOutputs;
 									changeAmount -= level.Denomination;
@@ -564,7 +573,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			bool tinkerWithAdditionalMixingLevels = !Alices.All(x => x.BlindedOutputScripts.Length == 1);
 			foreach (Alice alice in Alices)
 			{
-				if (!tinkerWithAdditionalMixingLevels) break;
+				if (!tinkerWithAdditionalMixingLevels)
+				{
+					break;
+				}
 
 				// Check if inputs have enough coins.
 				Money networkFeeToPay = (alice.Inputs.Count() * FeePerInputs) + (2 * FeePerOutputs);
@@ -666,7 +678,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 
 				// 8.2. Get the most optimal FeeRate.
 				EstimateSmartFeeResponse estimateSmartFeeResponse = await RpcClient.EstimateSmartFeeAsync(ConfirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
-				if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
+				if (estimateSmartFeeResponse is null)
+				{
+					throw new InvalidOperationException("FeeRate is not yet initialized");
+				}
+
 				FeeRate optimalFeeRate = estimateSmartFeeResponse.FeeRate;
 
 				if (optimalFeeRate != null && optimalFeeRate != FeeRate.Zero && currentFeeRate != null && currentFeeRate != FeeRate.Zero) // This would be really strange if it'd happen.
@@ -722,7 +738,11 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 			try
 			{
 				var estimateSmartFeeResponse = await rpc.EstimateSmartFeeAsync(confirmationTarget, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
-				if (estimateSmartFeeResponse is null) throw new InvalidOperationException("FeeRate is not yet initialized");
+				if (estimateSmartFeeResponse is null)
+				{
+					throw new InvalidOperationException("FeeRate is not yet initialized");
+				}
+
 				var feeRate = estimateSmartFeeResponse.FeeRate;
 				Money feePerBytes = (feeRate.FeePerK / 1000);
 

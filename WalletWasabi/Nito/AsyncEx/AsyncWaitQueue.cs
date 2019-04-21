@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Nito.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Nito.Collections;
 
 namespace Nito.AsyncEx
 {
@@ -64,16 +64,22 @@ namespace Nito.AsyncEx
 		public static Task<T> Enqueue<T>(this IAsyncWaitQueue<T> @this, object mutex, CancellationToken token)
 		{
 			if (token.IsCancellationRequested)
+			{
 				return Task.FromCanceled<T>(token);
+			}
 
 			var ret = @this.Enqueue();
 			if (!token.CanBeCanceled)
+			{
 				return ret;
+			}
 
 			var registration = token.Register(() =>
 			{
 				lock (mutex)
+				{
 					@this.TryCancel(ret, token);
+				}
 			}, useSynchronizationContext: false);
 			ret.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 			return ret;
@@ -88,11 +94,11 @@ namespace Nito.AsyncEx
 	[DebuggerTypeProxy(typeof(DefaultAsyncWaitQueue<>.DebugView))]
 	public sealed class DefaultAsyncWaitQueue<T> : IAsyncWaitQueue<T>
 	{
-		private readonly Deque<TaskCompletionSource<T>> _queue = new Deque<TaskCompletionSource<T>>();
+		private readonly Deque<TaskCompletionSource<T>> Queue = new Deque<TaskCompletionSource<T>>();
 
 		private int Count
 		{
-			get { return _queue.Count; }
+			get { return Queue.Count; }
 		}
 
 		bool IAsyncWaitQueue<T>.IsEmpty
@@ -103,30 +109,33 @@ namespace Nito.AsyncEx
 		Task<T> IAsyncWaitQueue<T>.Enqueue()
 		{
 			var tcs = TaskCompletionSourceExtensions.CreateAsyncTaskSource<T>();
-			_queue.AddToBack(tcs);
+			Queue.AddToBack(tcs);
 			return tcs.Task;
 		}
 
 		void IAsyncWaitQueue<T>.Dequeue(T result)
 		{
-			_queue.RemoveFromFront().TrySetResult(result);
+			Queue.RemoveFromFront().TrySetResult(result);
 		}
 
 		void IAsyncWaitQueue<T>.DequeueAll(T result)
 		{
-			foreach (var source in _queue)
+			foreach (var source in Queue)
+			{
 				source.TrySetResult(result);
-			_queue.Clear();
+			}
+
+			Queue.Clear();
 		}
 
 		bool IAsyncWaitQueue<T>.TryCancel(Task task, CancellationToken cancellationToken)
 		{
-			for (int i = 0; i != _queue.Count; ++i)
+			for (int i = 0; i != Queue.Count; ++i)
 			{
-				if (_queue[i].Task == task)
+				if (Queue[i].Task == task)
 				{
-					_queue[i].TrySetCanceled(cancellationToken);
-					_queue.RemoveAt(i);
+					Queue[i].TrySetCanceled(cancellationToken);
+					Queue.RemoveAt(i);
 					return true;
 				}
 			}
@@ -135,19 +144,22 @@ namespace Nito.AsyncEx
 
 		void IAsyncWaitQueue<T>.CancelAll(CancellationToken cancellationToken)
 		{
-			foreach (var source in _queue)
+			foreach (var source in Queue)
+			{
 				source.TrySetCanceled(cancellationToken);
-			_queue.Clear();
+			}
+
+			Queue.Clear();
 		}
 
 		[DebuggerNonUserCode]
 		internal sealed class DebugView
 		{
-			private readonly DefaultAsyncWaitQueue<T> _queue;
+			private readonly DefaultAsyncWaitQueue<T> Queue;
 
 			public DebugView(DefaultAsyncWaitQueue<T> queue)
 			{
-				_queue = queue;
+				Queue = queue;
 			}
 
 			[DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
@@ -155,9 +167,12 @@ namespace Nito.AsyncEx
 			{
 				get
 				{
-					var result = new List<Task<T>>(_queue._queue.Count);
-					foreach (var entry in _queue._queue)
+					var result = new List<Task<T>>(Queue.Queue.Count);
+					foreach (var entry in Queue.Queue)
+					{
 						result.Add(entry.Task);
+					}
+
 					return result.ToArray();
 				}
 			}

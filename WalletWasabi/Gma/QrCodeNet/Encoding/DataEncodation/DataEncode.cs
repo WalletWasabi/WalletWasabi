@@ -1,7 +1,7 @@
-﻿using System;
-using Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition;
-using Gma.QrCodeNet.Encoding.Versions;
+﻿using Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition;
 using Gma.QrCodeNet.Encoding.Terminate;
+using Gma.QrCodeNet.Encoding.Versions;
+using System;
 using System.Collections.Generic;
 
 namespace Gma.QrCodeNet.Encoding.DataEncodation
@@ -26,7 +26,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			BitList dataCodewords = new BitList();
 			//Eci header
 			if (vcStruct.IsContainECI && !(vcStruct.ECIHeader is null))
+			{
 				dataCodewords.Add(vcStruct.ECIHeader);
+			}
 			//Header
 			dataCodewords.Add(encoderBase.GetModeIndicator());
 			int numLetter = encodeContentLength >> 3;
@@ -38,7 +40,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 			int dataCodewordsCount = dataCodewords.Count;
 			if ((dataCodewordsCount & 0x7) != 0)
+			{
 				throw new ArgumentException("data codewords is not byte sized.");
+			}
 			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
 			{
 				throw new ArgumentException("datacodewords num of bytes not equal to NumDataBytes for current version");
@@ -65,7 +69,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			BitList dataCodewords = new BitList();
 			//Eci header
 			if (vcStruct.IsContainECI && !(vcStruct.ECIHeader is null))
+			{
 				dataCodewords.Add(vcStruct.ECIHeader);
+			}
 			//Header
 			dataCodewords.Add(encoderBase.GetModeIndicator());
 			int numLetter = encodeContentLength >> 3;
@@ -77,7 +83,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 			int dataCodewordsCount = dataCodewords.Count;
 			if ((dataCodewordsCount & 0x7) != 0)
+			{
 				throw new ArgumentException("data codewords is not byte sized.");
+			}
 			else if (dataCodewordsCount >> 3 != vcStruct.VersionDetail.NumDataBytes)
 			{
 				throw new ArgumentException("datacodewords num of bytes not equal to NumDataBytes for current version");

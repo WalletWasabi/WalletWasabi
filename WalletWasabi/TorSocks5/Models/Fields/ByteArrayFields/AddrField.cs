@@ -1,9 +1,9 @@
-﻿using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
-using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
+using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
+using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 {
@@ -25,7 +25,9 @@ namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 				}
 
 				if (Atyp != AtypField.IPv4)
+				{
 					throw new NotSupportedException($"{nameof(Atyp)} is not supported. Value: {Atyp}.");
+				}
 
 				var values = new string[4];
 				for (int i = 0; i < 4; i++)
