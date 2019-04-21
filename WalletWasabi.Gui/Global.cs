@@ -425,7 +425,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode.Value is true)
 				{
 					return;
 				}
@@ -440,15 +440,7 @@ namespace WalletWasabi.Gui
 						//}
 						// else
 
-						string amountString;
-						if (UiConfig?.LurkingWifeMode.Value is true)
-						{
-							amountString = "###";
-						}
-						else
-						{
-							amountString = coin.Amount.ToString(false, true);
-						}
+						string amountString = coin.Amount.ToString(false, true);
 						using (var process = Process.Start(new ProcessStartInfo
 						{
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
