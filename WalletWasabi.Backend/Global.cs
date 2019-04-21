@@ -1,15 +1,15 @@
-﻿using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.Services;
-using NBitcoin;
+﻿using NBitcoin;
+using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using System;
 using System.IO;
 using System.Net;
-using System.Threading.Tasks;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using System.Threading;
-using NBitcoin.Protocol;
+using System.Threading.Tasks;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
+using WalletWasabi.Models.ChaumianCoinJoin;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Backend
 {
@@ -38,7 +38,7 @@ namespace WalletWasabi.Backend
 			DataDir = EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
 		}
 
-		public async static Task InitializeAsync(Config config, CcjRoundConfig roundConfig, RPCClient rpc)
+		public static async Task InitializeAsync(Config config, CcjRoundConfig roundConfig, RPCClient rpc)
 		{
 			Config = Guard.NotNull(nameof(config), config);
 			RoundConfig = Guard.NotNull(nameof(roundConfig), roundConfig);
@@ -195,7 +195,11 @@ namespace WalletWasabi.Backend
 				Logger.LogInfo<RPCClient>("Bitcoin Core is fully synchronized.");
 
 				var estimateSmartFeeResponse = await RpcClient.TryEstimateSmartFeeAsync(2, EstimateSmartFeeMode.Conservative, simulateIfRegTest: true, tryOtherFeeRates: true);
-				if (estimateSmartFeeResponse is null) throw new NotSupportedException("Bitcoin Core cannot estimate network fees yet.");
+				if (estimateSmartFeeResponse is null)
+				{
+					throw new NotSupportedException("Bitcoin Core cannot estimate network fees yet.");
+				}
+
 				Logger.LogInfo<RPCClient>("Bitcoin Core fee estimation is working.");
 
 				if (Config.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
@@ -203,7 +207,10 @@ namespace WalletWasabi.Backend
 					if (blocks < 101)
 					{
 						var generateBlocksResponse = await RpcClient.GenerateAsync(101);
-						if (generateBlocksResponse is null) throw new NotSupportedException("Bitcoin Core cannot cannot generate blocks on the RegTest.");
+						if (generateBlocksResponse is null)
+						{
+							throw new NotSupportedException("Bitcoin Core cannot cannot generate blocks on the RegTest.");
+						}
 
 						blockchainInfo = await RpcClient.GetBlockchainInfoAsync();
 						blocks = blockchainInfo.Blocks;
