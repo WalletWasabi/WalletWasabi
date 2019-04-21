@@ -40,7 +40,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				new TransactionBroadcasterViewModel(this),
 			};
 
-			if (!walletService.KeyManager.IsWatchOnly)
+			//if (!walletService.KeyManager.IsWatchOnly)
 			{
 				Actions.Insert(0, new SendTabViewModel(this));
 			}

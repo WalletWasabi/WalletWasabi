@@ -19,17 +19,17 @@
       </Grid.RowDefinitions>
 
       <DockPanel Grid.Row="0" LastChildFill="True">
-        <TextBlock DockPanel.Dock="Top" Text="PSBT Json string" FontWeight="Bold" />
+        <TextBlock DockPanel.Dock="Top" Text="PSBT Json" FontWeight="Bold" />
         <controls:MultiTextBox  Text="{Binding PsbtJsonText}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
       </DockPanel>
 
       <DockPanel Grid.Row="1" LastChildFill="True">
-        <TextBlock DockPanel.Dock="Top" Text="PSBT Hex string" FontWeight="Bold" />
-        <controls:MultiTextBox  Text="{Binding PsbtHexText}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
+        <TextBlock DockPanel.Dock="Top" Text="Transaction Hex" FontWeight="Bold" />
+        <controls:MultiTextBox  Text="{Binding TransactionHexText}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
       </DockPanel>
 
       <DockPanel Grid.Row="2" LastChildFill="True">
-        <TextBlock DockPanel.Dock="Top" Text="PSBT Base64 string" FontWeight="Bold" />
+        <TextBlock DockPanel.Dock="Top" Text="PSBT Base64 String" FontWeight="Bold" />
         <controls:MultiTextBox  Text="{Binding PsbtBase64Text}" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True" />
       </DockPanel>
     </Grid>
