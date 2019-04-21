@@ -162,7 +162,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SuccessMessage = "";
 		}
 
-		private void SetValidationMessage(string message)
+		public void SetValidationMessage(string message)
 		{
 			WarningMessage = "";
 			ValidationMessage = message;
