@@ -425,7 +425,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode.Value is true)
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				{
 					return;
 				}
@@ -440,10 +440,19 @@ namespace WalletWasabi.Gui
 						//}
 						// else
 
+						string amountString;
+						if (UiConfig?.LurkingWifeMode.Value is true)
+						{
+							amountString = "###";
+						}
+						else
+						{
+							amountString = coin.Amount.ToString(false, true);
+						}
 						using (var process = Process.Start(new ProcessStartInfo
 						{
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
-							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
+							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true
 						})) { };
 					}
