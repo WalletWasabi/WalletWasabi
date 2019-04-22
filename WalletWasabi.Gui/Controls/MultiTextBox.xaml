@@ -49,7 +49,7 @@
                 <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                             VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
 
-                  <Panel IsEnabled="{TemplateBinding ClipboardNotificationVisible}">
+                  <Panel>
                     <TextBlock Name="watermark"
                              Opacity="0.5"
                              Text="{TemplateBinding Watermark}"

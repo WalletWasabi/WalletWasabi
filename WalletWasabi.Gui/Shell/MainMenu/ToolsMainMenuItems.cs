@@ -47,7 +47,7 @@ namespace WalletWasabi.Gui.Shell.MainMenu
 		[ExportMainMenuItem("Tools", "Transaction Broadcaster")]
 		[DefaultOrder(1)]
 		[DefaultGroup("Managers")]
-		public IMenuItem TransactionBroadcaster => _menuItemFactory.CreateCommandMenuItem("Tools.TransactionBroadcaster");
+		public IMenuItem TransactionBroadcaster => MenuItemFactory.CreateCommandMenuItem("Tools.TransactionBroadcaster");
 
 		[ExportMainMenuItem("Tools", "Settings")]
 		[DefaultOrder(2)]

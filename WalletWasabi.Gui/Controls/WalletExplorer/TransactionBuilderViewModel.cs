@@ -84,7 +84,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			try
 			{
 				PsbtJsonText = psbt.ToString();
-				TransactionHexText = transaction.Transaction.ToHex();
+				TransactionHexText = transaction?.Transaction.ToHex();
 				PsbtBase64Text = psbt.ToBase64();
 			}
 			catch (Exception ex)
