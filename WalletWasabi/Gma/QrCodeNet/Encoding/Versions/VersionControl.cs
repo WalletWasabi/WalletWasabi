@@ -1,5 +1,5 @@
-﻿using System;
-using Gma.QrCodeNet.Encoding.DataEncodation;
+﻿using Gma.QrCodeNet.Encoding.DataEncodation;
+using System;
 
 namespace Gma.QrCodeNet.Encoding.Versions
 {
@@ -45,7 +45,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			//Binary search to find proper version
 			int versionNum = BinarySearch(totalDataBits, level, lowerSearchBoundary, higherSearchBoundary);
 
-			VersionControlStruct vcStruct = FillVCStruct(versionNum, level, encodingName);
+			VersionControlStruct vcStruct = FillVCStruct(versionNum, level);
 
 			vcStruct.IsContainECI = containECI;
 
@@ -54,7 +54,7 @@ namespace Gma.QrCodeNet.Encoding.Versions
 			return vcStruct;
 		}
 
-		private static VersionControlStruct FillVCStruct(int versionNum, ErrorCorrectionLevel level, string encodingName)
+		private static VersionControlStruct FillVCStruct(int versionNum, ErrorCorrectionLevel level)
 		{
 			if (versionNum < 1 || versionNum > 40)
 			{
@@ -90,11 +90,10 @@ namespace Gma.QrCodeNet.Encoding.Versions
 		private static int DynamicSearchIndicator(int numBits, ErrorCorrectionLevel level)
 		{
 			int[] charCountIndicator = CharCountIndicatorTable.GetCharCountIndicatorSet();
-			int totalBits = 0;
 			int loopLength = VERSION_GROUP.Length;
 			for (int i = 0; i < loopLength; i++)
 			{
-				totalBits = numBits + NUM_BITS_MODE_INDICATOR + charCountIndicator[i];
+				int totalBits = numBits + NUM_BITS_MODE_INDICATOR + charCountIndicator[i];
 
 				QRCodeVersion version = VersionTable.GetVersionByNum(VERSION_GROUP[i]);
 				int numECCodewords = version.GetECBlocksByLevel(level).NumErrorCorrectionCodewards;
@@ -127,7 +126,9 @@ namespace Gma.QrCodeNet.Encoding.Versions
 				int dataCodewords = version.TotalCodewords - numECCodewords;
 
 				if (dataCodewords << 3 == numDataBits)
+				{
 					return middleVersionNumber;
+				}
 
 				if (dataCodewords << 3 > numDataBits)
 				{

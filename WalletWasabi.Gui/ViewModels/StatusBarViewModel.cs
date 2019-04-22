@@ -4,7 +4,9 @@ using AvalonStudio.Shell;
 using NBitcoin.Protocol;
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -13,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Gui.Dialogs;
 using WalletWasabi.Gui.Tabs;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 
@@ -107,32 +110,32 @@ namespace WalletWasabi.Gui.ViewModels
 
 			this.WhenAnyValue(x => x.BlocksLeft).Subscribe(blocks =>
 			{
-				SetStatusAndDoUpdateActions();
+				RefreshStatus();
 			});
 
 			this.WhenAnyValue(x => x.FiltersLeft).Subscribe(filters =>
 			{
-				SetStatusAndDoUpdateActions();
+				RefreshStatus();
 			});
 
 			this.WhenAnyValue(x => x.Tor).Subscribe(tor =>
 			{
-				SetStatusAndDoUpdateActions();
+				RefreshStatus();
 			});
 
 			this.WhenAnyValue(x => x.Backend).Subscribe(backend =>
 			{
-				SetStatusAndDoUpdateActions();
+				RefreshStatus();
 			});
 
 			this.WhenAnyValue(x => x.Peers).Subscribe(peers =>
 			{
-				SetStatusAndDoUpdateActions();
+				RefreshStatus();
 			});
 
 			this.WhenAnyValue(x => x.UpdateStatus).Subscribe(_ =>
 			{
-				SetStatusAndDoUpdateActions();
+				RefreshStatus();
 			});
 
 			this.WhenAnyValue(x => x.Status).Subscribe(async status =>
@@ -280,7 +283,7 @@ namespace WalletWasabi.Gui.ViewModels
 					if (osDesc.Contains("16.04.1-Ubuntu", StringComparison.InvariantCultureIgnoreCase)
 						|| osDesc.Contains("16.04.0-Ubuntu", StringComparison.InvariantCultureIgnoreCase))
 					{
-						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter();
+						MainWindowViewModel.Instance.ShowDialogAsync(new GenSocksServFailDialogViewModel()).GetAwaiter().GetResult();
 					}
 				}
 			}
@@ -306,10 +309,76 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 		}
 
-		/// <summary>
-		/// Custom status have low priority. It is not guaranteed the status will be that one.
-		/// </summary>
-		public void SetStatusAndDoUpdateActions(string customStatus = null)
+		private List<string> StatusQueue { get; } = new List<string>();
+		private object StatusQueueLock { get; } = new object();
+
+		public void AddStatus(string status)
+		{
+			status = Guard.Correct(status);
+			if (status == "")
+			{
+				return;
+			}
+
+			lock (StatusQueueLock)
+			{
+				// Make sure it's the last status.
+				StatusQueue.Remove(status);
+				StatusQueue.Add(status);
+				RefreshStatusNoLock();
+			}
+		}
+
+		public void RemoveStatus(string status)
+		{
+			status = Guard.Correct(status);
+			if (status == "")
+			{
+				return;
+			}
+
+			lock (StatusQueueLock)
+			{
+				if (StatusQueue.Remove(status))
+				{
+					RefreshStatusNoLock();
+				}
+			}
+		}
+
+		private void RefreshStatus()
+		{
+			lock (StatusQueueLock)
+			{
+				if (!SetPriorityStatus())
+				{
+					SetCustomStatusOrReady();
+				}
+			}
+		}
+
+		private void RefreshStatusNoLock()
+		{
+			if (!SetPriorityStatus())
+			{
+				SetCustomStatusOrReady();
+			}
+		}
+
+		private void SetCustomStatusOrReady()
+		{
+			var status = StatusQueue.LastOrDefault();
+			if (status is null)
+			{
+				Status = "Ready";
+			}
+			else
+			{
+				Status = status;
+			}
+		}
+
+		private bool SetPriorityStatus()
 		{
 			if (UpdateStatus == UpdateStatus.Critical)
 			{
@@ -329,15 +398,10 @@ namespace WalletWasabi.Gui.ViewModels
 			}
 			else
 			{
-				if (customStatus is null)
-				{
-					Status = "Ready";
-				}
-				else
-				{
-					Status = customStatus;
-				}
+				return false;
 			}
+
+			return true;
 		}
 
 		private void SetPeers(int peers)

@@ -392,7 +392,6 @@ namespace WalletWasabi.Backend.Controllers
 
 						int takeBlindCount = round.EstimateBestMixingLevel(alice);
 
-						var prevBlindCount = alice.BlindedOutputScripts.Length;
 						alice.BlindedOutputScripts = alice.BlindedOutputScripts.Take(takeBlindCount).ToArray();
 						alice.BlindedOutputSignatures = alice.BlindedOutputSignatures.Take(takeBlindCount).ToArray();
 						resp.BlindedOutputSignatures = alice.BlindedOutputSignatures; // Don't give back more mixing levels than we'll use.
@@ -601,7 +600,7 @@ namespace WalletWasabi.Backend.Controllers
 				return BadRequest();
 			}
 
-			(CcjRound round, Alice alice) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, CcjRoundPhase.Signing, out IActionResult returnFailureResponse);
+			(CcjRound round, _) = GetRunningRoundAndAliceOrFailureResponse(roundId, uniqueId, CcjRoundPhase.Signing, out IActionResult returnFailureResponse);
 			if (returnFailureResponse != null)
 			{
 				return returnFailureResponse;

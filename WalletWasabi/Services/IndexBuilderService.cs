@@ -1,8 +1,5 @@
-﻿using WalletWasabi.Backend.Models;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using NBitcoin;
+﻿using NBitcoin;
+using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
@@ -11,7 +8,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin.Protocol;
+using WalletWasabi.Backend.Models;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Services
 {
@@ -208,7 +208,10 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
-					if (Interlocked.Read(ref _runner) >= 2) return;
+					if (Interlocked.Read(ref _runner) >= 2)
+					{
+						return;
+					}
 
 					Interlocked.Increment(ref _runner);
 					while (Interlocked.Read(ref _runner) != 1)
@@ -306,7 +309,10 @@ namespace WalletWasabi.Services
 									// If stop was requested return.
 									// Because this tx iteration can take even minutes
 									// It doesn't need to be accessed with a thread safe fasion with Interlocked through IsRunning, this may have some performance benefit
-									if (_running != 1) return;
+									if (_running != 1)
+									{
+										return;
+									}
 
 									for (int i = 0; i < tx.Outputs.Count; i++)
 									{

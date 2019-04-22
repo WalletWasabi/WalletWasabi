@@ -20,7 +20,10 @@ namespace Gma.QrCodeNet.Encoding.EncodingRegion
 		internal static void EmbedVersionInformation(this TriStateMatrix tsMatrix, int version)
 		{
 			if (version < 7)
+			{
 				return;
+			}
+
 			BitList versionInfo = VersionInfoBitList(version);
 
 			int matrixWidth = tsMatrix.Width;

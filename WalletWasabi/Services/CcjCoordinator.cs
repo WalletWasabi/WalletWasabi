@@ -7,10 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models.ChaumianCoinJoin;
 
 namespace WalletWasabi.Services
 {
@@ -142,7 +142,11 @@ namespace WalletWasabi.Services
 			//   if a it spends a banned output AND it's not CJ output
 			//     ban all the outputs of the transaction
 
-			if (RoundConfig.DosSeverity <= 1) return;
+			if (RoundConfig.DosSeverity <= 1)
+			{
+				return;
+			}
+
 			var txId = tx.GetHash();
 
 			foreach (TxIn input in tx.Inputs)

@@ -1,9 +1,4 @@
-﻿using WalletWasabi.Exceptions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Http.Models;
-using WalletWasabi.Logging;
-using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
-using Nito.AsyncEx;
+﻿using Nito.AsyncEx;
 using System;
 using System.IO;
 using System.Net;
@@ -13,8 +8,13 @@ using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.Exceptions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Http.Models;
+using WalletWasabi.Logging;
+using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
 
 namespace WalletWasabi.TorSocks5
 {

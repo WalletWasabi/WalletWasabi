@@ -6,7 +6,7 @@ using WalletWasabi.Gui.ViewModels;
 namespace WalletWasabi.Gui.Tabs.WalletManager
 {
 	internal class GenerateWalletSuccessViewModel : CategoryViewModel
-	{ 
+	{
 		private string _mnemonicWords;
 
 		public GenerateWalletSuccessViewModel(WalletManagerViewModel owner, Mnemonic mnemonic) : base("Wallet Generated Successfully!")

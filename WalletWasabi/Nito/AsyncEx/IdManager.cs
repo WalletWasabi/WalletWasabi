@@ -14,7 +14,7 @@ namespace Nito.AsyncEx
 		/// The last id generated for this type. This is 0 if no ids have been generated.
 		/// </summary>
 		// ReSharper disable StaticFieldInGenericType
-		private static int _lastId;
+		private static int LastId;
 
 		// ReSharper restore StaticFieldInGenericType
 
@@ -26,7 +26,9 @@ namespace Nito.AsyncEx
 		{
 			// If the Id has already been assigned, just use it.
 			if (id != 0)
+			{
 				return id;
+			}
 
 			// Determine the new Id without modifying "id", since other threads may also be determining the new Id at the same time.
 			int newId;
@@ -36,7 +38,7 @@ namespace Nito.AsyncEx
 			//  If there are tons of Id allocations going on, we want to skip over 0 no matter how many times we get it.
 			do
 			{
-				newId = Interlocked.Increment(ref _lastId);
+				newId = Interlocked.Increment(ref LastId);
 			} while (newId == 0);
 
 			// Update the Id unless another thread already updated it.

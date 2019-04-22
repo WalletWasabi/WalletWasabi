@@ -14,7 +14,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		private static string EightBitByteRecognision(string content, int startPos, int contentLength)
 		{
 			if (string.IsNullOrEmpty(content))
+			{
 				throw new ArgumentNullException(nameof(content), "Input content is null or empty");
+			}
 
 			var eciSets = new ECISet(ECISet.AppendOption.NameToValue);
 
@@ -28,7 +30,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 			//default encoding as priority
 			scanPos = ModeEncodeCheck.TryEncodeEightBitByte(content, QRCodeConstantVariable.DefaultEncoding, scanPos, contentLength);
 			if (scanPos == -1)
+			{
 				return QRCodeConstantVariable.DefaultEncoding;
+			}
 
 			foreach (KeyValuePair<string, int> kvp in eciSet)
 			{
@@ -40,9 +44,13 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 			}
 
 			if (scanPos == -1)
+			{
 				throw new ArgumentException("foreach Loop check give wrong result.");
+			}
 			else
+			{
 				return QRCodeConstantVariable.UTF8Encoding;
+			}
 		}
 	}
 }

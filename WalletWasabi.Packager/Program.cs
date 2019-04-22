@@ -108,13 +108,19 @@ namespace WalletWasabi.Packager
 				using (var response = httpClient.GetAsync("snapshots/latest/", HttpCompletionOption.ResponseContentRead).GetAwaiter().GetResult())
 				{
 					if (response.StatusCode != HttpStatusCode.OK)
+					{
 						throw new HttpRequestException(response.StatusCode.ToString());
+					}
+
 					var responseString = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 					var json = (JObject)JsonConvert.DeserializeObject(responseString);
 					foreach (JProperty node in json["nodes"])
 					{
 						if (!node.Name.ToString().Contains(".onion"))
+						{
 							continue;
+						}
+
 						var userAgent = ((JArray)node.Value)[1].ToString();
 						if (userAgent.Contains("Satoshi:0.16") || userAgent.Contains("Satoshi:0.17"))
 						{
@@ -128,33 +134,29 @@ namespace WalletWasabi.Packager
 		private static void CreateDigests()
 		{
 			var tempDir = "DigestTempDir";
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter();
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter().GetResult();
 			Directory.CreateDirectory(tempDir);
 
 			var torDaemonsDir = Path.Combine(LibraryProjectDirectory, "TorDaemons");
 			string torWinZip = Path.Combine(torDaemonsDir, "tor-win32.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, tempDir).GetAwaiter();
+			IoHelpers.BetterExtractZipToDirectoryAsync(torWinZip, tempDir).GetAwaiter().GetResult();
 			File.Move(Path.Combine(tempDir, "Tor", "tor.exe"), Path.Combine(tempDir, "TorWin"));
 
 			string torLinuxZip = Path.Combine(torDaemonsDir, "tor-linux64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, tempDir).GetAwaiter();
+			IoHelpers.BetterExtractZipToDirectoryAsync(torLinuxZip, tempDir).GetAwaiter().GetResult();
 			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorLin"));
 
 			string torOsxZip = Path.Combine(torDaemonsDir, "tor-osx64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter();
+			IoHelpers.BetterExtractZipToDirectoryAsync(torOsxZip, tempDir).GetAwaiter().GetResult();
 			File.Move(Path.Combine(tempDir, "Tor", "tor"), Path.Combine(tempDir, "TorOsx"));
 
 			string hwiSoftwareDir = Path.Combine(LibraryProjectDirectory, "Hwi", "Software");
-			string hwiWinZip = Path.Combine(hwiSoftwareDir, "hwi-win64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(hwiWinZip, tempDir).GetAwaiter();
-			File.Move(Path.Combine(tempDir, "hwi.exe"), Path.Combine(tempDir, "HwiWin"));
-
 			string hwiLinuxZip = Path.Combine(hwiSoftwareDir, "hwi-linux64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, tempDir).GetAwaiter();
+			IoHelpers.BetterExtractZipToDirectoryAsync(hwiLinuxZip, tempDir).GetAwaiter().GetResult();
 			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiLin"));
 
 			string hwiOsxZip = Path.Combine(hwiSoftwareDir, "hwi-osx64.zip");
-			IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, tempDir).GetAwaiter();
+			IoHelpers.BetterExtractZipToDirectoryAsync(hwiOsxZip, tempDir).GetAwaiter().GetResult();
 			File.Move(Path.Combine(tempDir, "hwi"), Path.Combine(tempDir, "HwiOsx"));
 
 			var tempDirInfo = new DirectoryInfo(tempDir);
@@ -167,7 +169,7 @@ namespace WalletWasabi.Packager
 				Console.WriteLine($"{file.Name} : {hash}");
 			}
 
-			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter();
+			IoHelpers.DeleteRecursivelyWithMagicDustAsync(tempDir).GetAwaiter().GetResult();
 		}
 
 		private static void ReportStatus()
@@ -442,7 +444,9 @@ namespace WalletWasabi.Packager
 				Tools.ClearSha512Tags(currentBinDistDirectory);
 				//Tools.RemoveSosDocsUnix(currentBinDistDirectory);
 
-				// Remove Hwi binaries those are not relevant to the platform.
+				// Remove HWI binaries those are not relevant to the platform.
+				// On Windows HWI starts from next to the exe because Windows Defender sometimes deletes it.
+				// On Linux and OSX HWI starts from the data folder because otherwise there'd be permission issues.
 				var hwiFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "Hwi", "Software"));
 				// Remove Tor binaries those are not relevant to the platform.
 				var torFolder = new DirectoryInfo(Path.Combine(currentBinDistDirectory, "TorDaemons"));
@@ -464,6 +468,14 @@ namespace WalletWasabi.Packager
 					if (!file.Name.Contains("data", StringComparison.OrdinalIgnoreCase) && !file.Name.Contains(toNotremove, StringComparison.OrdinalIgnoreCase))
 					{
 						File.Delete(file.FullName);
+					}
+				}
+
+				foreach (var dir in hwiFolder.EnumerateDirectories())
+				{
+					if (!dir.Name.Contains(toNotremove, StringComparison.OrdinalIgnoreCase))
+					{
+						IoHelpers.DeleteRecursivelyWithMagicDustAsync(dir.FullName).GetAwaiter().GetResult();
 					}
 				}
 

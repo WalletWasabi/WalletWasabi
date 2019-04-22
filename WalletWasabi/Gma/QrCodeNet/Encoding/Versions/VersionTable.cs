@@ -5,16 +5,23 @@
 		internal static QRCodeVersion GetVersionByNum(int versionNum)
 		{
 			if (versionNum < QRCodeConstantVariable.MinVersion || versionNum > QRCodeConstantVariable.MaxVersion)
+			{
 				throw new System.InvalidOperationException($"Unexpected version number: {versionNum}");
+			}
+
 			return Version[versionNum - 1];
 		}
 
 		internal static QRCodeVersion GetVersionByWidth(int matrixWidth)
 		{
 			if ((matrixWidth - 17) % 4 != 0)
+			{
 				throw new System.ArgumentException("Incorrect matrix width");
+			}
 			else
+			{
 				return GetVersionByNum((matrixWidth - 17) / 4);
+			}
 		}
 
 		private static readonly QRCodeVersion[] Version = Initialize();

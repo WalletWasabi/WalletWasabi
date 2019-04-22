@@ -9,7 +9,11 @@ namespace System.IO
 		{
 			var buf = new byte[1];
 			var len = await stream.ReadAsync(buf, 0, 1, ctsToken);
-			if (len == 0) return -1;
+			if (len == 0)
+			{
+				return -1;
+			}
+
 			return buf[0];
 		}
 

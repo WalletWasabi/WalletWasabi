@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,6 +42,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private bool _isBusy;
 		private string _loadButtonText;
 		private bool _isHwWalletSearchTextVisible;
+
+		public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
 		private WalletManagerViewModel Owner { get; }
 		public LoadWalletType LoadWalletType { get; }
@@ -159,7 +162,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SuccessMessage = "";
 		}
 
-		private void SetValidationMessage(string message)
+		public void SetValidationMessage(string message)
 		{
 			WarningMessage = "";
 			ValidationMessage = message;
@@ -206,20 +209,25 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				SetLoadButtonText(value);
 				SetWalletStates();
 
+				const string loadingStatusText = "Loading...";
 				if (value)
 				{
-					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions("Loading...");
+					MainWindowViewModel.Instance.StatusBar.AddStatus(loadingStatusText);
 				}
 				else
 				{
-					MainWindowViewModel.Instance.StatusBar.SetStatusAndDoUpdateActions();
+					MainWindowViewModel.Instance.StatusBar.RemoveStatus(loadingStatusText);
 				}
 			}
 		}
 
 		public override void OnCategorySelected()
 		{
-			if (IsHardwareWallet) return;
+			if (IsHardwareWallet)
+			{
+				return;
+			}
+
 			lock (WalletLock)
 			{
 				Wallets.Clear();
@@ -400,8 +408,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 			List<FileInfo> walletFileNames = new List<FileInfo>();
 
-			if (walletFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
-			if (walletBackupFiles.Exists) walletFileNames.AddRange(walletFiles.EnumerateFiles());
+			if (walletFiles.Exists)
+			{
+				walletFileNames.AddRange(walletFiles.EnumerateFiles());
+			}
+
+			if (walletBackupFiles.Exists)
+			{
+				walletFileNames.AddRange(walletFiles.EnumerateFiles());
+			}
 
 			walletFileNames = walletFileNames.OrderByDescending(x => x.LastAccessTimeUtc).ToList();
 

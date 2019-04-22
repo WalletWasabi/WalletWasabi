@@ -5,8 +5,8 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 {
 	public sealed class ECISet
 	{
-		private Dictionary<string, int> _s_NameToValue;
-		private Dictionary<int, string> _s_ValueToName;
+		private Dictionary<string, int> _nameToValue;
+		private Dictionary<int, string> _valueToName;
 
 		public enum AppendOption { NameToValue, ValueToName, Both }
 
@@ -15,16 +15,16 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			switch (option)
 			{
 				case AppendOption.NameToValue:
-					_s_NameToValue.Add(name, value);
+					_nameToValue.Add(name, value);
 					break;
 
 				case AppendOption.ValueToName:
-					_s_ValueToName.Add(value, name);
+					_valueToName.Add(value, name);
 					break;
 
 				case AppendOption.Both:
-					_s_NameToValue.Add(name, value);
-					_s_ValueToName.Add(value, name);
+					_nameToValue.Add(name, value);
+					_valueToName.Add(value, name);
 					break;
 
 				default:
@@ -47,16 +47,16 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 			switch (option)
 			{
 				case AppendOption.NameToValue:
-					_s_NameToValue = new Dictionary<string, int>();
+					_nameToValue = new Dictionary<string, int>();
 					break;
 
 				case AppendOption.ValueToName:
-					_s_ValueToName = new Dictionary<int, string>();
+					_valueToName = new Dictionary<int, string>();
 					break;
 
 				case AppendOption.Both:
-					_s_NameToValue = new Dictionary<string, int>();
-					_s_ValueToName = new Dictionary<int, string>();
+					_nameToValue = new Dictionary<string, int>();
+					_valueToName = new Dictionary<int, string>();
 					break;
 
 				default:
@@ -86,22 +86,36 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 
 		internal int GetECIValueByName(string encodingName)
 		{
-			if (_s_NameToValue is null)
+			if (_nameToValue is null)
+			{
 				Initialize(AppendOption.NameToValue);
-			if (_s_NameToValue.TryGetValue(encodingName, out int ECIValue))
+			}
+
+			if (_nameToValue.TryGetValue(encodingName, out int ECIValue))
+			{
 				return ECIValue;
+			}
 			else
+			{
 				throw new ArgumentOutOfRangeException($"ECI doesn't contain encoding: {encodingName}");
+			}
 		}
 
 		internal string GetECINameByValue(int ECIValue)
 		{
-			if (_s_ValueToName is null)
+			if (_valueToName is null)
+			{
 				Initialize(AppendOption.ValueToName);
-			if (_s_ValueToName.TryGetValue(ECIValue, out string ECIName))
+			}
+
+			if (_valueToName.TryGetValue(ECIValue, out string ECIName))
+			{
 				return ECIName;
+			}
 			else
+			{
 				throw new ArgumentOutOfRangeException($"ECI doesn't contain value: {ECIValue}");
+			}
 		}
 
 		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
@@ -110,13 +124,21 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		private static int NumOfCodewords(int ECIValue)
 		{
 			if (ECIValue >= 0 && ECIValue <= 127)
+			{
 				return 1;
+			}
 			else if (ECIValue > 127 && ECIValue <= 16383)
+			{
 				return 2;
+			}
 			else if (ECIValue > 16383 && ECIValue <= 999999)
+			{
 				return 3;
+			}
 			else
+			{
 				throw new ArgumentOutOfRangeException("ECIValue should be in range: 0 to 999999");
+			}
 		}
 
 		/// <remarks>ISO/IEC 18004:2006E ECI Designator Page 24</remarks>
@@ -132,24 +154,32 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation
 		/// <returns>ECI table in Dictionary collection</returns>
 		public Dictionary<string, int> GetECITable()
 		{
-			if (_s_NameToValue is null)
+			if (_nameToValue is null)
+			{
 				Initialize(AppendOption.NameToValue);
+			}
 
-			return _s_NameToValue;
+			return _nameToValue;
 		}
 
 		public bool ContainsECIName(string encodingName)
 		{
-			if (_s_NameToValue is null)
+			if (_nameToValue is null)
+			{
 				Initialize(AppendOption.NameToValue);
-			return _s_NameToValue.ContainsKey(encodingName);
+			}
+
+			return _nameToValue.ContainsKey(encodingName);
 		}
 
 		public bool ContainsECIValue(int eciValue)
 		{
-			if (_s_ValueToName is null)
+			if (_valueToName is null)
+			{
 				Initialize(AppendOption.ValueToName);
-			return _s_ValueToName.ContainsKey(eciValue);
+			}
+
+			return _valueToName.ContainsKey(eciValue);
 		}
 
 		/// <summary>

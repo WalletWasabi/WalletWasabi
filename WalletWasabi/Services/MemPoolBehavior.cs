@@ -1,12 +1,12 @@
-﻿using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using NBitcoin;
+﻿using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Services
 {

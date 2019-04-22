@@ -161,7 +161,7 @@ namespace WalletWasabi.Gui
 
 			try
 			{
-				await HwiProcessManager.EnsureHwiInstalledAsync(DataDir, Network);
+				await HwiProcessManager.InitializeAsync(DataDir, Network);
 			}
 			catch (Exception ex)
 			{
@@ -304,7 +304,10 @@ namespace WalletWasabi.Gui
 
 		private static async Task AddKnownBitcoinFullNodeAsHiddenServiceAsync(AddressManager addressManager)
 		{
-			if (Network == Network.RegTest) return;
+			if (Network == Network.RegTest)
+			{
+				return;
+			}
 
 			//  curl -s https://bitnodes.21.co/api/v1/snapshots/latest/ | egrep -o '[a-z0-9]{16}\.onion:?[0-9]*' | sort -ru
 			// Then filtered to include only /Satoshi:0.17.x
@@ -422,7 +425,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode.Value is true)
 				{
 					return;
 				}
@@ -437,10 +440,11 @@ namespace WalletWasabi.Gui
 						//}
 						// else
 
+						string amountString = coin.Amount.ToString(false, true);
 						using (var process = Process.Start(new ProcessStartInfo
 						{
 							FileName = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osascript" : "notify-send",
-							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {coin.Amount.ToString(false, true)} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {coin.Amount.ToString(false, true)} BTC\"",
+							Arguments = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? $"-e \"display notification \\\"Received {amountString} BTC\\\" with title \\\"Wasabi\\\"\"" : $"--expire-time=3000 \"Wasabi\" \"Received {amountString} BTC\"",
 							CreateNoWindow = true
 						})) { };
 					}

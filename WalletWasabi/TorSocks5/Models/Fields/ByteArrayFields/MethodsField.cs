@@ -1,8 +1,8 @@
-﻿using WalletWasabi.Bases;
+﻿using System;
+using System.Collections.Generic;
+using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.TorSocks5.Models.Fields.OctetFields;
-using System;
-using System.Collections.Generic;
 
 namespace WalletWasabi.TorSocks5.Models.TorSocks5.Fields.ByteArrayFields
 {

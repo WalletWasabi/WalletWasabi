@@ -1,11 +1,11 @@
-﻿using WalletWasabi.Crypto;
-using WalletWasabi.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Text;
+using System.Threading;
+using WalletWasabi.Crypto;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Logging
 {
@@ -31,7 +31,7 @@ namespace WalletWasabi.Logging
 		/// </summary>
 		public static Guid InstanceGuid { get; } = Guid.NewGuid();
 
-		private static int _loggingFailedCount = 0;
+		private static int LoggingFailedCount = 0;
 
 		private static readonly object Lock = new object();
 
@@ -73,7 +73,11 @@ namespace WalletWasabi.Logging
 				Modes.Clear();
 			}
 
-			if (modes is null) return;
+			if (modes is null)
+			{
+				return;
+			}
+
 			foreach (var mode in modes)
 			{
 				Modes.Add(mode);
@@ -202,7 +206,10 @@ namespace WalletWasabi.Logging
 						Debug.Write(finalMessage);
 					}
 
-					if (!Modes.Contains(LogMode.File)) return;
+					if (!Modes.Contains(LogMode.File))
+					{
+						return;
+					}
 
 					IoHelpers.EnsureContainingDirectoryExists(FilePath);
 
@@ -231,13 +238,13 @@ namespace WalletWasabi.Logging
 			}
 			catch (Exception ex)
 			{
-				if (Interlocked.Increment(ref _loggingFailedCount) == 1) // If it only failed the first time, try log the failure.
+				if (Interlocked.Increment(ref LoggingFailedCount) == 1) // If it only failed the first time, try log the failure.
 				{
 					LogDebug($"Logging failed: {ex}", $"{nameof(Logger)}.{nameof(Logging)}.{nameof(Logger)}");
 				}
 				// If logging the failure is successful then clear the failure counter.
 				// If it's not the first time the logging failed, then we don't try to log logging failure, so clear the failure counter.
-				Interlocked.Exchange(ref _loggingFailedCount, 0);
+				Interlocked.Exchange(ref LoggingFailedCount, 0);
 			}
 		}
 

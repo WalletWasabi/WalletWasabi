@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Nito.AsyncEx
 {
@@ -13,7 +13,7 @@ namespace Nito.AsyncEx
 		/// <summary>
 		/// The underlying task.
 		/// </summary>
-		private readonly Task<T> _task;
+		private readonly Task<T> Task;
 
 		/// <summary>
 		/// Initializes a new awaitable wrapper around the specified task.
@@ -21,7 +21,7 @@ namespace Nito.AsyncEx
 		/// <param name="task">The underlying task to wrap. This may not be <c>null</c>.</param>
 		public AwaitableDisposable(Task<T> task)
 		{
-			_task = task ?? throw new ArgumentNullException(nameof(task));
+			Task = task ?? throw new ArgumentNullException(nameof(task));
 		}
 
 		/// <summary>
@@ -29,7 +29,7 @@ namespace Nito.AsyncEx
 		/// </summary>
 		public Task<T> AsTask()
 		{
-			return _task;
+			return Task;
 		}
 
 		/// <summary>
@@ -46,7 +46,7 @@ namespace Nito.AsyncEx
 		/// </summary>
 		public TaskAwaiter<T> GetAwaiter()
 		{
-			return _task.GetAwaiter();
+			return Task.GetAwaiter();
 		}
 
 		/// <summary>
@@ -55,7 +55,7 @@ namespace Nito.AsyncEx
 		/// <param name="continueOnCapturedContext">Whether to attempt to marshal the continuation back to the captured context.</param>
 		public ConfiguredTaskAwaitable<T> ConfigureAwait(bool continueOnCapturedContext)
 		{
-			return _task.ConfigureAwait(continueOnCapturedContext);
+			return Task.ConfigureAwait(continueOnCapturedContext);
 		}
 	}
 }

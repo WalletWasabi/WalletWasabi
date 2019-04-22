@@ -14,6 +14,7 @@
 			// Register with the cancellation token.
 			using (cancel.Register(
 						s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+			{
 				// If the task waited on is the cancellation token...
 				if (me != await Task.WhenAny(me, tcs.Task))
 				{
@@ -29,6 +30,7 @@
 						}
 					}
 				}
+			}
 
 			// Wait for one or the other to complete.
 			return await me;

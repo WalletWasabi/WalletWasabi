@@ -1,13 +1,13 @@
-﻿using WalletWasabi.Http.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Http.Models;
 using static WalletWasabi.Http.Constants;
-using System.IO.Compression;
 
 namespace System.Net.Http
 {
@@ -38,7 +38,11 @@ namespace System.Net.Http
 			}
 
 			var startLine = bab.ToString(Encoding.ASCII);
-			if (string.IsNullOrEmpty(startLine)) throw new FormatException($"{nameof(startLine)} cannot be null or empty.");
+			if (string.IsNullOrEmpty(startLine))
+			{
+				throw new FormatException($"{nameof(startLine)} cannot be null or empty.");
+			}
+
 			return startLine;
 		}
 
@@ -52,7 +56,11 @@ namespace System.Net.Http
 			{
 				string header = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken);
 
-				if (header is null) throw new FormatException("Malformed HTTP message: End of headers must be CRLF.");
+				if (header is null)
+				{
+					throw new FormatException("Malformed HTTP message: End of headers must be CRLF.");
+				}
+
 				if (header == "")
 				{
 					// 2 CRLF was read in row so it's the end of the headers
@@ -92,7 +100,10 @@ namespace System.Net.Http
 			while (true)
 			{
 				int ch = await stream.ReadByteAsync(ctsToken);
-				if (ch == -1) break;
+				if (ch == -1)
+				{
+					break;
+				}
 
 				if (ch == '\r')
 				{
@@ -116,7 +127,10 @@ namespace System.Net.Http
 
 		public static byte[] HandleGzipCompression(HttpContentHeaders contentHeaders, byte[] decodedBodyArray)
 		{
-			if (decodedBodyArray is null || !decodedBodyArray.Any()) return decodedBodyArray;
+			if (decodedBodyArray is null || !decodedBodyArray.Any())
+			{
+				return decodedBodyArray;
+			}
 
 			if (contentHeaders?.ContentEncoding != null && contentHeaders.ContentEncoding.Contains("gzip"))
 			{
@@ -331,7 +345,7 @@ namespace System.Net.Http
 				length += chunkSize;
 
 				firstChunkLine = await ReadCRLFLineAsync(stream, Encoding.ASCII, ctsToken: ctsToken);
-				ParseFistChunkLine(firstChunkLine, out long cs, out IEnumerable<string> ces);
+				ParseFistChunkLine(firstChunkLine, out long cs, out _);
 				chunkSize = cs;
 			}
 
@@ -505,7 +519,9 @@ namespace System.Net.Http
 			if (contentHeaders != null && contentHeaders.Contains("Content-Length"))
 			{
 				if (contentHeaders.ContentLength < 0)
+				{
 					throw new HttpRequestException("Content-Length MUST be larger than zero.");
+				}
 			}
 		}
 
@@ -520,7 +536,11 @@ namespace System.Net.Http
 
 		public static void CopyHeaders(HttpHeaders source, HttpHeaders destination)
 		{
-			if (!source.NotNullAndNotEmpty()) return;
+			if (!source.NotNullAndNotEmpty())
+			{
+				return;
+			}
+
 			foreach (var header in source)
 			{
 				destination.TryAddWithoutValidation(header.Key, header.Value);

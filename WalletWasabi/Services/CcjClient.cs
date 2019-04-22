@@ -1,25 +1,25 @@
 ﻿using NBitcoin;
+using NBitcoin.BouncyCastle.Math;
+using NBitcoin.Crypto;
 using Nito.AsyncEx;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Models.ChaumianCoinJoin;
 using WalletWasabi.WebClients.Wasabi.ChaumianCoinJoin;
-using System.Collections.Concurrent;
-using System.Net.Http;
-using NBitcoin.Crypto;
 using static NBitcoin.Crypto.SchnorrBlinding;
-using NBitcoin.BouncyCastle.Math;
 
 namespace WalletWasabi.Services
 {
@@ -103,13 +103,11 @@ namespace WalletWasabi.Services
 
 			Synchronizer.ResponseArrived += Synchronizer_ResponseArrivedAsync;
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 			var lastResponse = Synchronizer.LastResponse;
 			if (lastResponse != null)
 			{
-				TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
+				_ = TryProcessStatusAsync(Synchronizer.LastResponse.CcjRoundStates);
 			}
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 		}
 
 		private async void Synchronizer_ResponseArrivedAsync(object sender, SynchronizeResponse e)
@@ -144,7 +142,10 @@ namespace WalletWasabi.Services
 								await DequeueSpentCoinsFromMixNoLockAsync();
 
 								// If stop was requested return.
-								if (!IsRunning) return;
+								if (!IsRunning)
+								{
+									return;
+								}
 
 								// if mixing >= connConf
 								if (State.GetActivelyMixingRounds().Any())
@@ -807,8 +808,7 @@ namespace WalletWasabi.Services
 
 		public async Task DequeueCoinsFromMixAsync(SmartCoin coin, string reason)
 		{
-			await DequeueCoinsFromMixAsync(new []{ coin }, reason);
-
+			await DequeueCoinsFromMixAsync(new[] { coin }, reason);
 		}
 
 		public async Task DequeueCoinsFromMixAsync(IEnumerable<SmartCoin> coins, string reason)
@@ -931,7 +931,7 @@ namespace WalletWasabi.Services
 
 		private async Task DequeueCoinsFromMixNoLockAsync(TxoRef coin, string reason = null)
 		{
-			await DequeueCoinsFromMixNoLockAsync(new []{ coin }, reason);
+			await DequeueCoinsFromMixNoLockAsync(new[] { coin }, reason);
 		}
 
 		private async Task DequeueCoinsFromMixNoLockAsync(TxoRef[] coins, string reason = null)
@@ -1032,7 +1032,7 @@ namespace WalletWasabi.Services
 			}
 			CoinDequeued?.Invoke(this, coinWaitingForMix);
 			var correctReason = Guard.Correct(reason);
-			var reasonText = correctReason != "" ? $" Reason: {correctReason}" : ""; 
+			var reasonText = correctReason != "" ? $" Reason: {correctReason}" : "";
 			Logger.LogInfo<CcjClient>($"Coin dequeued: {coinWaitingForMix.Index}:{coinWaitingForMix.TransactionId}.{reasonText}");
 		}
 

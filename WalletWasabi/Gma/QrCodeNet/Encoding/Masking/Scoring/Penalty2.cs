@@ -8,8 +8,6 @@
 		internal override int PenaltyCalculate(BitMatrix matrix)
 		{
 			int width = matrix.Width;
-			bool topR = false;
-
 			int x = 0;
 			int y = 0;
 			int penalty = 0;
@@ -18,7 +16,7 @@
 			{
 				while (x < (width - 1))
 				{
-					topR = matrix[x + 1, y];
+					bool topR = matrix[x + 1, y];
 
 					if (topR == matrix[x + 1, y + 1])   //Bottom Right
 					{
@@ -30,10 +28,14 @@
 								x += 1;
 							}
 							else
+							{
 								x += 1;
+							}
 						}
 						else
+						{
 							x += 1;
+						}
 					}
 					else
 					{
