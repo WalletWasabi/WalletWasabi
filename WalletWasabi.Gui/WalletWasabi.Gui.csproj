@@ -71,5 +71,11 @@
     <RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Controls\WalletExplorer\TransactionViewerView.xaml.cs">
+      <DependentUpon>TransactionViewerView.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>
 

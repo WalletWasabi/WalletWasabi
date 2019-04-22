@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
-	public class TransactionBuilderView : UserControl
+	public class TransactionViewerView : UserControl
 	{
-		public TransactionBuilderView()
+		public TransactionViewerView()
 		{
 			InitializeComponent();
 		}

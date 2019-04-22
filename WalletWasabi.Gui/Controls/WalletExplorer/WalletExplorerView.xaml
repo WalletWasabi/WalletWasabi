@@ -147,7 +147,7 @@
           </Button>
         </TreeDataTemplate>
 
-        <TreeDataTemplate DataType="ViewModels:TransactionBuilderViewModel">
+        <TreeDataTemplate DataType="ViewModels:TransactionViewerViewModel">
           <Button BorderThickness="0" Background="Transparent" Command="{Binding DoItCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
             <StackPanel Orientation="Horizontal" Spacing="6">
               <DrawingPresenter Width="20" Height="20">
@@ -172,7 +172,7 @@
                   </DrawingGroup>
                 </DrawingPresenter.Drawing>
               </DrawingPresenter>
-              <TextBlock Text="Advanced: Transaction Builder" Height="19" VerticalAlignment="Center" />
+              <TextBlock Text="Advanced: Transaction" Height="19" VerticalAlignment="Center" />
             </StackPanel>
           </Button>
         </TreeDataTemplate>

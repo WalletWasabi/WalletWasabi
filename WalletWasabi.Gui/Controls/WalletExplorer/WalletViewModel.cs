@@ -31,19 +31,14 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Actions = new ObservableCollection<WalletActionViewModel>
 			{
-				// Send will be added later.
+				new SendTabViewModel(this, walletService.KeyManager.IsWatchOnly),
 				new ReceiveTabViewModel(this),
 				new CoinJoinTabViewModel(this),
 				new HistoryTabViewModel(this),
 				new WalletInfoViewModel(this),
-				new TransactionBuilderViewModel(this),
+				new TransactionViewerViewModel(this),
 				new TransactionBroadcasterViewModel(this),
 			};
-
-			//if (!walletService.KeyManager.IsWatchOnly)
-			{
-				Actions.Insert(0, new SendTabViewModel(this));
-			}
 
 			Actions[0].DisplayActionTab();
 			if (receiveDominant)
