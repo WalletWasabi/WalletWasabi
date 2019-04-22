@@ -333,7 +333,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 						signedTransaction = signedPsbt.ExtractSmartTransaction(result.Transaction.Height);
 					}
 
-					MainWindowViewModel.Instance.StatusBar.AddStatus(broadcastingTransactionStatusText);
 					await Task.Run(async () => await Global.WalletService.SendTransactionAsync(signedTransaction));
 
 					ResetMax();

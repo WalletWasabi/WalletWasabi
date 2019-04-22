@@ -6,6 +6,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Controls.WalletExplorer
 {
@@ -25,7 +26,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _psbtJsonText, value);
 		}
 
-		public string PsbtHexText
+		public string TransactionHexText
 		{
 			get => _psbtHexText;
 			set => this.RaiseAndSetIfChanged(ref _psbtHexText, value);
@@ -78,12 +79,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			return base.OnClose();
 		}
 
-		public void UpdatePsbt(PSBT psbt)
+		public void UpdatePsbt(PSBT psbt, SmartTransaction transaction)
 		{
 			try
 			{
 				PsbtJsonText = psbt.ToString();
-				PsbtHexText = psbt.ToHex();
+				TransactionHexText = transaction.Transaction.ToHex();
 				PsbtBase64Text = psbt.ToBase64();
 			}
 			catch (Exception ex)
