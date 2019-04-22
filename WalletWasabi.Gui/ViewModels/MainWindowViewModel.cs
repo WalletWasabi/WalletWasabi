@@ -1,9 +1,10 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Extensibility.Dialogs;
 using AvalonStudio.Shell;
 using ReactiveUI;
 using System.Threading.Tasks;
+using Avalonia.Controls.Notifications;
 
 namespace WalletWasabi.Gui.ViewModels
 {
@@ -11,6 +12,7 @@ namespace WalletWasabi.Gui.ViewModels
 	{
 		private ModalDialogViewModelBase _modalDialog;
 		private bool _canClose = true;
+		private INotificationManager _localNotificationManager;
 
 		private string _title = "Wasabi Wallet";
 
@@ -50,6 +52,12 @@ namespace WalletWasabi.Gui.ViewModels
 		{
 			get => _statusBar;
 			internal set => this.RaiseAndSetIfChanged(ref _statusBar, value);
+		}
+
+		public INotificationManager LocalNotificationManager
+		{
+			get { return _localNotificationManager; }
+			set { this.RaiseAndSetIfChanged(ref _localNotificationManager, value); }
 		}
 
 		public MainWindowViewModel()
