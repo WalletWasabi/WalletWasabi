@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="New Rule Set" Description=" " ToolsVersion="15.0">
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
-    <Rule Id="CA1300" Action="Warning" />
-    <Rule Id="CA1301" Action="Warning" />
-    <Rule Id="CA1302" Action="Warning" />
+    <Rule Id="CA1300" Action="Error" />
+    <Rule Id="CA1301" Action="Error" />
+    <Rule Id="CA1302" Action="Error" />
     <Rule Id="CA1303" Action="Warning" />
     <Rule Id="CA1304" Action="Warning" />
     <Rule Id="CA1305" Action="Warning" />
-    <Rule Id="CA1306" Action="Warning" />
+    <Rule Id="CA1306" Action="Error" />
     <Rule Id="CA1307" Action="Warning" />
     <Rule Id="CA1308" Action="Warning" />
-    <Rule Id="CA1309" Action="Warning" />
-    <Rule Id="CA2101" Action="Warning" />
+    <Rule Id="CA1309" Action="Error" />
+    <Rule Id="CA2101" Action="Error" />
   </Rules>
   <Rules AnalyzerId="Microsoft.Analyzers.NativeCodeAnalysis" RuleNamespace="Microsoft.Rules.Native">
     <Rule Id="C6400" Action="Warning" />
