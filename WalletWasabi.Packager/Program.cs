@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Packager
 {
@@ -23,10 +24,9 @@ namespace WalletWasabi.Packager
 		// 2. Build WIX project with Release and x64 configuration.
 		// 3. Sign with Packager, set restore true so the password won't be kept.
 
-		public const bool DoPublish = true;
-		public const bool DoSign = false;
+		public const bool DoPublish = false;
+		public const bool DoSign = true;
 		public const bool DoRestoreProgramCs = false;
-		public const string PfxPassword = "dontcommit";
 
 		public const string PfxPath = "C:\\digicert.pfx";
 		public const string ExecutableName = "wassabee";
@@ -289,6 +289,8 @@ namespace WalletWasabi.Packager
 					var newMsiPath = Path.Combine(BinDistDirectory, $"{msiFileName}-{VersionPrefix}.msi");
 					File.Move(msiPath, newMsiPath);
 
+					Console.Write("Enter Code Signing Certificate Password:");
+					string pfxPassword = PasswordConsole.ReadPassword();
 					// Sign code with digicert.
 					using (var process = Process.Start(new ProcessStartInfo
 					{
@@ -297,7 +299,7 @@ namespace WalletWasabi.Packager
 						WorkingDirectory = BinDistDirectory
 					}))
 					{
-						process.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {PfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
+						process.StandardInput.WriteLine($"signtool sign /d \"Wasabi Wallet\" /f \"{PfxPath}\" /p {pfxPassword} /t http://timestamp.digicert.com /a \"{newMsiPath}\" && exit");
 						process.WaitForExit();
 					}
 
