@@ -1,9 +1,9 @@
-﻿using WalletWasabi.JsonConverters;
-using WalletWasabi.Helpers;
-using NBitcoin;
+﻿using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using System;
+using WalletWasabi.Helpers;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.KeyManagement
 {
@@ -65,13 +65,20 @@ namespace WalletWasabi.KeyManagement
 			{
 				IsInternal = true;
 			}
-			else throw new ArgumentException(nameof(FullKeyPath));
+			else
+			{
+				throw new ArgumentException(nameof(FullKeyPath));
+			}
 		}
 
 		public void SetLabel(string label, KeyManager kmToFile = null)
 		{
 			label = Guard.Correct(label);
-			if (Label == label) return;
+			if (Label == label)
+			{
+				return;
+			}
+
 			Label = label;
 
 			kmToFile?.ToFile();
@@ -79,7 +86,11 @@ namespace WalletWasabi.KeyManagement
 
 		public void SetKeyState(KeyState state, KeyManager kmToFile = null)
 		{
-			if (KeyState == state) return;
+			if (KeyState == state)
+			{
+				return;
+			}
+
 			KeyState = state;
 
 			kmToFile?.ToFile();

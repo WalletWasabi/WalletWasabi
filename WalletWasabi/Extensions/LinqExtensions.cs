@@ -45,7 +45,9 @@ namespace System.Linq
 			foreach (var pair in me)
 			{
 				if (pair.Value.Equals(value))
+				{
 					itemsToRemove.Add(pair.Key);
+				}
 			}
 
 			foreach (TKey item in itemsToRemove)
@@ -62,7 +64,9 @@ namespace System.Linq
 			foreach (var pair in me)
 			{
 				if (pair.Value.Equals(value))
+				{
 					itemsToRemove.Add(pair.Key);
+				}
 			}
 
 			foreach (TKey item in itemsToRemove)
@@ -82,11 +86,15 @@ namespace System.Linq
 			foreach (var item in items)
 			{
 				if (count == 1)
+				{
 					yield return new T[] { item };
+				}
 				else
 				{
 					foreach (var result in items.Skip(i + 1).GetPermutations(count - 1))
+					{
 						yield return new T[] { item }.Concat(result);
+					}
 				}
 
 				++i;

@@ -1,6 +1,6 @@
-﻿using WalletWasabi.Models;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.JsonConverters
 {

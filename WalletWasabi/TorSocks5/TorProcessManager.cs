@@ -45,7 +45,10 @@ namespace WalletWasabi.TorSocks5
 
 		public void Start(bool ensureRunning, string dataDir)
 		{
-			if (TorSocks5EndPoint == null) return;
+			if (TorSocks5EndPoint == null)
+			{
+				return;
+			}
 
 			new Thread(delegate () // Don't ask. This is the only way it worked on Win10/Ubuntu18.04/Manjuro(1 processor VM)/Fedora(1 processor VM)
 			{
@@ -57,7 +60,7 @@ namespace WalletWasabi.TorSocks5
 					// 4. Throw exception.
 
 					try
-					{ 
+					{
 						if (IsTorRunningAsync(TorSocks5EndPoint).GetAwaiter().GetResult())
 						{
 							Logger.LogInfo<TorProcessManager>("Tor is already running.");
@@ -213,7 +216,10 @@ namespace WalletWasabi.TorSocks5
 
 		public async Task<bool> IsTorRunningAsync()
 		{
-			if (TorSocks5EndPoint == null) return true;
+			if (TorSocks5EndPoint == null)
+			{
+				return true;
+			}
 
 			using (var client = new TorSocks5Client(TorSocks5EndPoint))
 			{
@@ -244,7 +250,10 @@ namespace WalletWasabi.TorSocks5
 
 		public void StartMonitor(TimeSpan torMisbehaviorCheckPeriod, TimeSpan checkIfRunningAfterTorMisbehavedFor, string dataDirToStartWith, Uri fallBackTestRequestUri)
 		{
-			if (TorSocks5EndPoint == null) return;
+			if (TorSocks5EndPoint == null)
+			{
+				return;
+			}
 
 			Logger.LogInfo<TorProcessManager>("Starting Tor monitor...");
 			Interlocked.Exchange(ref _running, 1);
@@ -324,7 +333,10 @@ namespace WalletWasabi.TorSocks5
 				{
 					Interlocked.CompareExchange(ref _running, 2, 1); // If running, make it stopping.
 
-					if (TorSocks5EndPoint == null) Interlocked.Exchange(ref _running, 3);
+					if (TorSocks5EndPoint == null)
+					{
+						Interlocked.Exchange(ref _running, 3);
+					}
 
 					Stop?.Cancel();
 					while (IsStopping)

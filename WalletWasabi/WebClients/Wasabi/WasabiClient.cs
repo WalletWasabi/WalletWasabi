@@ -1,17 +1,17 @@
-﻿using System;
+﻿using NBitcoin;
+using NBitcoin.RPC;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
-using NBitcoin;
-using WalletWasabi.Backend.Models;
-using WalletWasabi.Bases;
-using WalletWasabi.Models;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
-using NBitcoin.RPC;
-using System.Linq;
+using WalletWasabi.Bases;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.WebClients.Wasabi
 {

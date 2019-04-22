@@ -110,30 +110,46 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			if (AmountSortDirection != SortOrder.None)
 			{
 				if (AmountSortDirection == SortOrder.Increasing)
+				{
 					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Amount);
+				}
 				else
+				{
 					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Amount);
+				}
 			}
 			else if (PrivacySortDirection != SortOrder.None)
 			{
 				if (PrivacySortDirection == SortOrder.Increasing)
+				{
 					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.AnonymitySet);
+				}
 				else
+				{
 					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.AnonymitySet);
+				}
 			}
 			else if (ClustersSortDirection != SortOrder.None)
 			{
 				if (ClustersSortDirection == SortOrder.Increasing)
+				{
 					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Clusters);
+				}
 				else
+				{
 					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Clusters);
+				}
 			}
 			else if (StatusSortDirection != SortOrder.None)
 			{
 				if (StatusSortDirection == SortOrder.Increasing)
+				{
 					MyComparer = SortExpressionComparer<CoinViewModel>.Ascending(cvm => cvm.Status);
+				}
 				else
+				{
 					MyComparer = SortExpressionComparer<CoinViewModel>.Descending(cvm => cvm.Status);
+				}
 			}
 		}
 
@@ -154,20 +170,34 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			var coins = Coins.Where(coinFilterPredicate).ToArray();
 			bool IsAllSelected = true;
 			foreach (CoinViewModel coin in coins)
+			{
 				if (!coin.IsSelected)
 				{
 					IsAllSelected = false;
 					break;
 				}
+			}
+
 			bool IsAllDeselected = true;
 			foreach (CoinViewModel coin in coins)
+			{
 				if (coin.IsSelected)
 				{
 					IsAllDeselected = false;
 					break;
 				}
-			if (IsAllDeselected) return false;
-			if (IsAllSelected) return true;
+			}
+
+			if (IsAllDeselected)
+			{
+				return false;
+			}
+
+			if (IsAllSelected)
+			{
+				return true;
+			}
+
 			return null;
 		}
 
@@ -241,13 +271,20 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			EnqueueCoin = ReactiveCommand.Create(() =>
 			{
-				if (SelectedCoin is null) return;
+				if (SelectedCoin is null)
+				{
+					return;
+				}
 				//await Global.ChaumianClient.QueueCoinsToMixAsync()
 			});
 
 			DequeueCoin = ReactiveCommand.Create(() =>
 			{
-				if (SelectedCoin is null) return;
+				if (SelectedCoin is null)
+				{
+					return;
+				}
+
 				DequeueCoinsPressed?.Invoke(this, EventArgs.Empty);
 			}, this.WhenAnyValue(x => x.CanDeqeue));
 

@@ -74,10 +74,20 @@ namespace WalletWasabi.Models
 
 		public static bool operator ==(AllFeeEstimate x, AllFeeEstimate y)
 		{
-			if (ReferenceEquals(x, y)) return true;
-			if (x is null ^ y is null) return false;
+			if (ReferenceEquals(x, y))
+			{
+				return true;
+			}
 
-			if (x.Type != y.Type) return false;
+			if (x is null ^ y is null)
+			{
+				return false;
+			}
+
+			if (x.Type != y.Type)
+			{
+				return false;
+			}
 
 			bool equal = false;
 			if (x.Estimations.Count == y.Estimations.Count) // Require equal count.

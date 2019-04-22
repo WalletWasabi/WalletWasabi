@@ -32,7 +32,9 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 		internal static int TryEncodeEightBitByte(string content, string encodingName, int startPos, int contentLength)
 		{
 			if (string.IsNullOrEmpty(content))
+			{
 				throw new IndexOutOfRangeException("Input content should not be Null or empty");
+			}
 
 			System.Text.Encoding encoding;
 			try
@@ -52,10 +54,14 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 				currentChar[0] = content[index];
 				bytes = encoding.GetBytes(currentChar);
 				int length = bytes.Length;
-				if (currentChar[0] != '?' && length == 1 && (int)bytes[0] == QUESTION_MARK_CHAR)
+				if (currentChar[0] != '?' && length == 1 && bytes[0] == QUESTION_MARK_CHAR)
+				{
 					return index;
+				}
 				else if (length > 1)
+				{
 					return index;
+				}
 			}
 
 			for (int index = 0; index < startPos; index++)
@@ -63,10 +69,14 @@ namespace Gma.QrCodeNet.Encoding.DataEncodation.InputRecognition
 				currentChar[0] = content[index];
 				bytes = encoding.GetBytes(currentChar);
 				int length = bytes.Length;
-				if (currentChar[0] != '?' && length == 1 && (int)bytes[0] == QUESTION_MARK_CHAR)
+				if (currentChar[0] != '?' && length == 1 && bytes[0] == QUESTION_MARK_CHAR)
+				{
 					return index;
+				}
 				else if (length > 1)
+				{
 					return index;
+				}
 			}
 
 			return -1;

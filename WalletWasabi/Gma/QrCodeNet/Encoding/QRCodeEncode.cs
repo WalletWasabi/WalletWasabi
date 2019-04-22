@@ -1,9 +1,9 @@
 ﻿using Gma.QrCodeNet.Encoding.DataEncodation;
-using Gma.QrCodeNet.Encoding.ErrorCorrection;
-using Gma.QrCodeNet.Encoding.Positioning;
 using Gma.QrCodeNet.Encoding.EncodingRegion;
+using Gma.QrCodeNet.Encoding.ErrorCorrection;
 using Gma.QrCodeNet.Encoding.Masking;
 using Gma.QrCodeNet.Encoding.Masking.Scoring;
+using Gma.QrCodeNet.Encoding.Positioning;
 using System.Collections.Generic;
 
 namespace Gma.QrCodeNet.Encoding

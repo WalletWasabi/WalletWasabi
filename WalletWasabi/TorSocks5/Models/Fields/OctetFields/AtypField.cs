@@ -1,7 +1,7 @@
-﻿using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
+using WalletWasabi.Bases;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.TorSocks5.Models.Fields.OctetFields
 {

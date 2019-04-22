@@ -1,8 +1,8 @@
-﻿using WalletWasabi.Http.Models;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Http.Models;
 using static WalletWasabi.Http.Constants;
 
 namespace System.Net.Http

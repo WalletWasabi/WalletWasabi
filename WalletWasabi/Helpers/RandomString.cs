@@ -5,7 +5,7 @@ namespace System
 {
 	public static class RandomString
 	{
-		private static Random Random = new Random();
+		private static Random Random { get; } = new Random();
 
 		public static string Generate(int length)
 		{

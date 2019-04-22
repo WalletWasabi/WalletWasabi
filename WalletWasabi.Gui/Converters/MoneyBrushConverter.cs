@@ -1,11 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using AvalonStudio.Extensibility.Theme;
 using NBitcoin;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Gui.Converters

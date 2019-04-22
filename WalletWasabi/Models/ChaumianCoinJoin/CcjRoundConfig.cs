@@ -4,9 +4,9 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using WalletWasabi.JsonConverters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
+using WalletWasabi.JsonConverters;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Models.ChaumianCoinJoin
@@ -214,7 +214,10 @@ namespace WalletWasabi.Models.ChaumianCoinJoin
 		/// <inheritdoc />
 		public void AssertFilePathSet()
 		{
-			if (FilePath is null) throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+			if (FilePath is null)
+			{
+				throw new NotSupportedException($"{nameof(FilePath)} is not set. Use {nameof(SetFilePath)} to set it.");
+			}
 		}
 	}
 }

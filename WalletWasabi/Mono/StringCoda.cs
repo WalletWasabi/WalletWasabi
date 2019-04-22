@@ -172,7 +172,10 @@ namespace Mono.Options
 		public static IEnumerable<string> WrappedLines(string self, IEnumerable<int> widths)
 		{
 			if (widths is null)
+			{
 				throw new ArgumentNullException("widths");
+			}
+
 			return CreateWrappedLinesIterator(self, widths);
 		}
 
@@ -193,7 +196,10 @@ namespace Mono.Options
 					end = GetLineEnd(start, width, self);
 					char c = self[end - 1];
 					if (char.IsWhiteSpace(c))
+					{
 						--end;
+					}
+
 					bool needContinuation = end != self.Length && !IsEolChar(c);
 					string continuation = "";
 					if (needContinuation)
@@ -205,7 +211,10 @@ namespace Mono.Options
 					yield return line;
 					start = end;
 					if (char.IsWhiteSpace(c))
+					{
 						++start;
+					}
+
 					width = GetNextWidth(ewidths, width, ref hw);
 				} while (start < self.Length);
 			}
@@ -219,8 +228,11 @@ namespace Mono.Options
 				// '.' is any character, - is for a continuation
 				const string minWidth = ".-";
 				if (curWidth < minWidth.Length)
+				{
 					throw new ArgumentOutOfRangeException("widths",
 							string.Format("Element must be >= {0}, was {1}.", minWidth.Length, curWidth));
+				}
+
 				return curWidth;
 			}
 			// no more elements, use the last element.
@@ -239,12 +251,20 @@ namespace Mono.Options
 			for (int i = start; i < end; ++i)
 			{
 				if (description[i] == '\n')
+				{
 					return i + 1;
+				}
+
 				if (IsEolChar(description[i]))
+				{
 					sep = i + 1;
+				}
 			}
 			if (sep == -1 || end == description.Length)
+			{
 				return end;
+			}
+
 			return sep;
 		}
 	}

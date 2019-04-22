@@ -15,7 +15,10 @@ namespace WalletWasabi.JsonConverters
 		/// <inheritdoc />
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
 		{
-			if (reader.Value is null) return null;
+			if (reader.Value is null)
+			{
+				return null;
+			}
 
 			return new BitcoinEncryptedSecretNoEC((string)reader.Value);
 		}

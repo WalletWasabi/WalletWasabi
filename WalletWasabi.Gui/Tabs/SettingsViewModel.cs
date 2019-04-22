@@ -168,8 +168,15 @@ namespace WalletWasabi.Gui.Tabs
 		{
 			var isValid = string.IsNullOrEmpty(ValidateTorHost()) &&
 							string.IsNullOrEmpty(ValidateTorPort());
-			if (!isValid) return;
-			if (string.IsNullOrWhiteSpace(Network)) return;
+			if (!isValid)
+			{
+				return;
+			}
+
+			if (string.IsNullOrWhiteSpace(Network))
+			{
+				return;
+			}
 
 			var config = new Config(Global.Config.FilePath);
 
@@ -204,7 +211,7 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			var torHost = TorHost.Trim();
-			if (Uri.TryCreate(torHost, UriKind.Absolute, out var uri))
+			if (Uri.TryCreate(torHost, UriKind.Absolute, out _))
 			{
 				return string.Empty;
 			}
@@ -228,7 +235,7 @@ namespace WalletWasabi.Gui.Tabs
 			}
 
 			var torPort = TorPort.Trim();
-			if (ushort.TryParse(torPort, out var port))
+			if (ushort.TryParse(torPort, out _))
 			{
 				return string.Empty;
 			}

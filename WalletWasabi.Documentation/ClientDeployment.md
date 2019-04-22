@@ -5,7 +5,7 @@
 2. Run tests.
 3. Dump client version.
 4. Run packager in publish mode.
-5. Create `.msi` (`Release`/`x64`)
+5. Create `.msi`
 6. Run packager in sign mode. (Set back to publish mode.)
 7. Final `.msi` test on own computer.
 

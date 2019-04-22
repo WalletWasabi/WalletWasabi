@@ -1,5 +1,4 @@
-﻿using WalletWasabi.WebClients.SmartBit.Models;
-using NBitcoin;
+﻿using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
@@ -10,6 +9,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.WebClients.SmartBit.Models;
 
 namespace WalletWasabi.WebClients.SmartBit
 {
@@ -18,7 +18,7 @@ namespace WalletWasabi.WebClients.SmartBit
 		public Network Network { get; }
 		private HttpClient HttpClient { get; }
 		public Uri BaseAddress => HttpClient.BaseAddress;
-		private readonly AsyncLock _asyncLock = new AsyncLock();
+		private AsyncLock AsyncLock { get; } = new AsyncLock();
 
 		public SmartBitClient(Network network, HttpMessageHandler handler = null, bool disposeHandler = false)
 		{
@@ -39,12 +39,15 @@ namespace WalletWasabi.WebClients.SmartBit
 			{
 				HttpClient.BaseAddress = new Uri("https://testnet-api.smartbit.com.au/v1/");
 			}
-			else throw new NotSupportedException($"{network} is not supported");
+			else
+			{
+				throw new NotSupportedException($"{network} is not supported");
+			}
 		}
 
 		public async Task PushTransactionAsync(Transaction transaction, CancellationToken cancel)
 		{
-			using (await _asyncLock.LockAsync(cancel))
+			using (await AsyncLock.LockAsync(cancel))
 			{
 				var content = new StringContent(
 					new JObject(new JProperty("hex", transaction.ToHex())).ToString(),
@@ -54,7 +57,11 @@ namespace WalletWasabi.WebClients.SmartBit
 				HttpResponseMessage response =
 						await HttpClient.PostAsync("blockchain/pushtx", content, cancel);
 
-				if (response.StatusCode != HttpStatusCode.OK) throw new HttpRequestException(response.StatusCode.ToString());
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					throw new HttpRequestException(response.StatusCode.ToString());
+				}
+
 				string responseString = await response.Content.ReadAsStringAsync();
 				AssertSuccess(responseString);
 			}
@@ -62,11 +69,15 @@ namespace WalletWasabi.WebClients.SmartBit
 
 		public async Task<IEnumerable<SmartBitExchangeRate>> GetExchangeRatesAsync(CancellationToken cancel)
 		{
-			using (await _asyncLock.LockAsync(cancel))
+			using (await AsyncLock.LockAsync(cancel))
 			using (HttpResponseMessage response =
 					await HttpClient.GetAsync("exchange-rates", HttpCompletionOption.ResponseContentRead, cancel))
 			{
-				if (response.StatusCode != HttpStatusCode.OK) throw new HttpRequestException(response.StatusCode.ToString());
+				if (response.StatusCode != HttpStatusCode.OK)
+				{
+					throw new HttpRequestException(response.StatusCode.ToString());
+				}
+
 				string responseString = await response.Content.ReadAsStringAsync();
 				AssertSuccess(responseString);
 

@@ -1,7 +1,19 @@
-﻿using System;
+﻿using NBitcoin;
+using NBitcoin.BitcoinCore;
+using NBitcoin.DataEncoders;
+using NBitcoin.Policy;
+using NBitcoin.Protocol;
+using NBitcoin.Protocol.Behaviors;
+using Newtonsoft.Json;
+using Nito.AsyncEx;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,19 +23,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.KeyManagement;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using NBitcoin;
-using NBitcoin.Policy;
-using NBitcoin.Protocol;
-using Nito.AsyncEx;
 using WalletWasabi.WebClients.Wasabi;
-using Newtonsoft.Json;
-using System.Collections.Concurrent;
-using NBitcoin.DataEncoders;
-using System.Net.Http;
-using System.Diagnostics;
-using NBitcoin.BitcoinCore;
-using System.Net.Sockets;
-using NBitcoin.Protocol.Behaviors;
 
 namespace WalletWasabi.Services
 {
@@ -106,7 +106,7 @@ namespace WalletWasabi.Services
 			BlockFolderLock = new AsyncLock();
 			BlockDownloadLock = new AsyncLock();
 
-			KeyManager.AssertCleanKeysIndexed(21);
+			KeyManager.AssertCleanKeysIndexed();
 			KeyManager.AssertLockedInternalKeysIndexed(14);
 
 			_running = 0;
@@ -231,9 +231,15 @@ namespace WalletWasabi.Services
 				do
 				{
 					await Task.Delay(100);
-					if (Synchronizer is null) return;
+					if (Synchronizer is null)
+					{
+						return;
+					}
 					// Make sure fully synced and this filter is the lastest filter.
-					if (Synchronizer.GetFiltersLeft() != 0 || Synchronizer.BestKnownFilter.BlockHash != filterModel.BlockHash) return;
+					if (Synchronizer.GetFiltersLeft() != 0 || Synchronizer.BestKnownFilter.BlockHash != filterModel.BlockHash)
+					{
+						return;
+					}
 				} while (Synchronizer.AreRequestsBlocked()); // If requests are blocked, delay mempool cleanup, because coinjoin answers are always priority.
 
 				await MemPool?.TryPerformMempoolCleanupAsync(Synchronizer.WasabiClient.TorClient.DestinationUriAction, Synchronizer.WasabiClient.TorClient.TorSocks5EndPoint);
@@ -365,7 +371,7 @@ namespace WalletWasabi.Services
 			label = Guard.Correct(label);
 
 			// Make sure there's always 21 clean keys generated and indexed.
-			KeyManager.AssertCleanKeysIndexed(21, false);
+			KeyManager.AssertCleanKeysIndexed(isInternal: false);
 
 			IEnumerable<HdPubKey> keys = KeyManager.GetKeys(KeyState.Clean, isInternal: false);
 			if (dontTouch != null)
@@ -501,7 +507,10 @@ namespace WalletWasabi.Services
 			if (tx.Confirmed)
 			{
 				MemPool.TransactionHashes.TryRemove(txId); // If we have in mempool, remove.
-				if (!tx.Transaction.PossiblyNativeSegWitInvolved()) return false; // We don't care about non-witness transactions for other than mempool cleanup.
+				if (!tx.Transaction.PossiblyNativeSegWitInvolved())
+				{
+					return false; // We don't care about non-witness transactions for other than mempool cleanup.
+				}
 
 				bool isFoundTx = TransactionCache.Contains(tx); // If we have in cache, update height.
 				if (isFoundTx)
@@ -538,7 +547,10 @@ namespace WalletWasabi.Services
 								break;
 							}
 						}
-						if (spent) break;
+						if (spent)
+						{
+							break;
+						}
 					}
 				}
 
@@ -623,7 +635,7 @@ namespace WalletWasabi.Services
 						}
 
 						// Make sure there's always 21 clean keys generated and indexed.
-						KeyManager.AssertCleanKeysIndexed(21, foundKey.IsInternal);
+						KeyManager.AssertCleanKeysIndexed(isInternal: foundKey.IsInternal);
 
 						if (foundKey.IsInternal)
 						{
@@ -1157,7 +1169,7 @@ namespace WalletWasabi.Services
 
 			if (customChange is null)
 			{
-				KeyManager.AssertCleanKeysIndexed(21, true);
+				KeyManager.AssertCleanKeysIndexed(isInternal: true);
 				KeyManager.AssertLockedInternalKeysIndexed(14);
 				var changeHdPubKey = KeyManager.GetKeys(KeyState.Clean, true).RandomElement();
 
@@ -1330,7 +1342,10 @@ namespace WalletWasabi.Services
 			// If there's no need for input merging, then use the largest selected.
 			// Don't prefer anonymity set. You can assume the user prefers anonymity set manually through the GUI.
 			SmartCoin largestCoin = unspentCoins.OrderByDescending(x => x.Amount).FirstOrDefault();
-			if (largestCoin == default) return false; // If there's no coin then unsuccessful selection.
+			if (largestCoin == default)
+			{
+				return false; // If there's no coin then unsuccessful selection.
+			}
 			else // Check if we can do without input merging.
 			{
 				if (largestCoin.Amount >= totalOutAmount)
@@ -1375,13 +1390,19 @@ namespace WalletWasabi.Services
 				// Wait until it arrives to at least two other nodes.
 				// If something's wrong, fall back broadcasting with backend.
 
-				if (Network == Network.RegTest) throw new InvalidOperationException("Transaction broadcasting to nodes doesn't work in RegTest.");
+				if (Network == Network.RegTest)
+				{
+					throw new InvalidOperationException("Transaction broadcasting to nodes doesn't work in RegTest.");
+				}
 
 				while (true)
 				{
 					// As long as we are connected to at least 4 nodes, we can always try again.
 					// 3 should be enough, but make it 5 so 2 nodes could disconnect the meantime.
-					if (Nodes.ConnectedNodes.Count < 5) throw new InvalidOperationException("We are not connected to enough nodes.");
+					if (Nodes.ConnectedNodes.Count < 5)
+					{
+						throw new InvalidOperationException("We are not connected to enough nodes.");
+					}
 
 					Node node = Nodes.ConnectedNodes.RandomElement();
 					if (node == default(Node))
@@ -1577,7 +1598,10 @@ namespace WalletWasabi.Services
 				timeout = 600;
 			}
 
-			if (timeout == RuntimeParams.Instance.NetworkNodeTimeout) return;
+			if (timeout == RuntimeParams.Instance.NetworkNodeTimeout)
+			{
+				return;
+			}
 
 			RuntimeParams.Instance.NetworkNodeTimeout = timeout;
 			await RuntimeParams.Instance.SaveAsync();

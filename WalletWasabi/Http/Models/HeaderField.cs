@@ -57,13 +57,19 @@ namespace WalletWasabi.Http.Models
 			{
 				var name = reader.ReadPart(':');
 				// if empty
-				if (name is null || name.Trim() == "") throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
+				if (name is null || name.Trim() == "")
+				{
+					throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
+				}
 				// https://tools.ietf.org/html/rfc7230#section-3.2.4
 				// No whitespace is allowed between the header field-name and colon.
 				// A proxy MUST remove any such whitespace from a response message before forwarding the message downstream.
 				name = name.TrimEnd();
 				// whitespace not allowed
-				if (name != name.Trim()) throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
+				if (name != name.Trim())
+				{
+					throw new FormatException($"Wrong {nameof(HeaderField)}: {fieldString}.");
+				}
 
 				var value = reader.ReadToEnd();
 				value = Guard.Correct(value);
