@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -173,9 +173,9 @@ namespace WalletWasabi.KeyManagement
 
 		public void SetMinGaplimit(int? minGapLimit)
 		{
-			if (minGapLimit.HasValue)
+			if (minGapLimit is int val)
 			{
-				MinGapLimit = Math.Max(AbsoluteMinGapLimit, minGapLimit.Value);
+				MinGapLimit = Math.Max(AbsoluteMinGapLimit, val);
 			}
 			else
 			{
