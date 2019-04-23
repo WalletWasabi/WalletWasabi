@@ -23,8 +23,8 @@
             </StackPanel>
             <StackPanel>
               <TextBlock Text="Which hardware wallets are currently supported?" FontWeight="Bold" />
-              <TextBlock Text="- Coldcard and Trezor Model T." TextWrapping="Wrap" />
-              <TextBlock Text="- While other hardware wallets may work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
+              <TextBlock Text="- Coldcard Mark1, Ledger Nano S and Trezor Model T." TextWrapping="Wrap" />
+              <TextBlock Text="- While other hardware wallets may also work, they were not tested by Wasabi developers." TextWrapping="Wrap" />
             </StackPanel>
           </StackPanel>
         </Grid>
