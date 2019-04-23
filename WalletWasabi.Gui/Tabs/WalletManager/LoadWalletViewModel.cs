@@ -228,16 +228,6 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				try
 				{
 					SetWalletStates();
-
-					const string loadingStatusText = "Loading...";
-					if (value)
-					{
-						MainWindowViewModel.Instance.StatusBar.AddStatus(loadingStatusText);
-					}
-					else
-					{
-						MainWindowViewModel.Instance.StatusBar.RemoveStatus(loadingStatusText);
-					}
 				}
 				catch (Exception ex)
 				{
@@ -538,9 +528,11 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 		public async Task LoadWalletAsync()
 		{
+			const string loadingStatusText = "Loading...";
 			try
 			{
 				IsBusy = true;
+				MainWindowViewModel.Instance.StatusBar.AddStatus(loadingStatusText);
 
 				var keyManager = await LoadKeyManagerAsync(IsPasswordRequired, IsHardwareWallet);
 				if (keyManager is null)
@@ -578,6 +570,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			finally
 			{
 				IsBusy = false;
+				MainWindowViewModel.Instance.StatusBar.RemoveStatus(loadingStatusText);
 				SetWalletStates();
 			}
 		}

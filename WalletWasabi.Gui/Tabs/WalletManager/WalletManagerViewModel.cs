@@ -146,7 +146,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 							}
 							else if (hwis.Any(x => x.Type == HardwareWalletType.Ledger && x.Ready))
 							{
-								LoadWalletViewModelHardware.SetWarningMessage("");
+								LoadWalletViewModelHardware.SetWarningMessage("To have a smooth user experience consider turning off your Ledger screensaver.");
 								break;
 							}
 							else
