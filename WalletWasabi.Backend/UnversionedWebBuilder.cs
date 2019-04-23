@@ -29,9 +29,6 @@ namespace WalletWasabi.Backend
 
 		public static void CloneAndUpdateOnionIndexHtml()
 		{
-			Console.WriteLine(PublishedRootFolder);
-			Console.WriteLine(DebugRootFolder);
-			Console.WriteLine(RootFolder);
 			var path = Path.Combine(RootFolder, "index.html");
 			var onionPath = Path.Combine(RootFolder, "onion-index.html");
 
