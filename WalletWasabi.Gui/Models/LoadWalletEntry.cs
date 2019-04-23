@@ -24,7 +24,7 @@ namespace WalletWasabi.Gui.Models
 			}
 			else if (!hwi.Initialized)
 			{
-				WalletName = hwi.Type.ToString() + $" - Not initialized.";
+				WalletName = hwi.Type.ToString() + $" - Not Initialized";
 			}
 			else
 			{

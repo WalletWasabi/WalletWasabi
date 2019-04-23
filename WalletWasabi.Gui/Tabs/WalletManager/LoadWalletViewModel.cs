@@ -317,16 +317,20 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			lock (WalletLock)
 			{
 				var changed = false;
+
+				var toRemove = new List<LoadWalletEntry>();
 				foreach (var hwi in hwis)
 				{
-					if (Wallets.All(x => x.HardwareWalletInfo.Path != hwi.Path)) // If it's not already in the list, then add.
+					LoadWalletEntry found = Wallets?.FirstOrDefault(x => x.HardwareWalletInfo.Path == hwi.Path);
+					// If something changed then update.
+					if (found?.HardwareWalletInfo != null &&
+						(found.HardwareWalletInfo.Initialized != hwi.Initialized || found.HardwareWalletInfo.MasterFingerprint != hwi.MasterFingerprint || found.HardwareWalletInfo.Error != hwi.Error))
 					{
-						Wallets.Add(new LoadWalletEntry(hwi));
+						toRemove.Add(found);
 						changed = true;
 					}
 				}
 
-				var toRemove = new List<LoadWalletEntry>();
 				foreach (var wallet in Wallets)
 				{
 					if (hwis.All(x => x.Path != wallet.HardwareWalletInfo.Path)) // If it's not in the list anymore, then remove.
@@ -339,6 +343,15 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				foreach (var wallet in toRemove)
 				{
 					Wallets.Remove(wallet);
+				}
+
+				foreach (var hwi in hwis)
+				{
+					if (Wallets.All(x => x.HardwareWalletInfo.Path != hwi.Path)) // If it's not already in the list, then add.
+					{
+						Wallets.Add(new LoadWalletEntry(hwi));
+						changed = true;
+					}
 				}
 
 				if (changed)
