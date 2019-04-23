@@ -8,16 +8,16 @@
     <NoWarn>1701;1702;1705;1591;1573</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|'=='Debug|'">
+    <DocumentationFile>bin\Debug\\netcoreapp2.2\WalletWasabi.Packager.xml</DocumentationFile>
+  </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|'=='Release|'">
     <DocumentationFile></DocumentationFile>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
     <ErrorReport>none</ErrorReport>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|'=='Debug|'">
-    <DocumentationFile>bin\Debug\\netcoreapp2.2\WalletWasabi.Packager.xml</DocumentationFile>
   </PropertyGroup>
   
   <ItemGroup>
