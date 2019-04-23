@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -351,6 +351,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			var hwis = await HwiProcessManager.EnumerateAsync();
 			var fingerprint = keyManager.MasterFingerprint;
+
+			if (fingerprint is null) return false;
+
 			keyManager.HardwareWalletInfo = hwis.FirstOrDefault(x => x.MasterFingerprint == fingerprint);
 
 			return keyManager.HardwareWalletInfo != null;

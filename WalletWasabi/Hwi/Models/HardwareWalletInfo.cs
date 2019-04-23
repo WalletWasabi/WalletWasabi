@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,16 +10,24 @@ namespace WalletWasabi.Hwi.Models
 	{
 		public HardwareWalletInfo(string masterFingerprint, string serialNumber, HardwareWalletType type, string path, string error)
 		{
-			Guard.NotNullOrEmptyOrWhitespace(nameof(masterFingerprint), masterFingerprint);
-			var masterFingerPrintBytes = ByteHelpers.FromHex(masterFingerprint);
-			MasterFingerprint = new HDFingerprint(masterFingerPrintBytes);
+			try
+			{
+				Guard.NotNullOrEmptyOrWhitespace(nameof(masterFingerprint), masterFingerprint);
+				var masterFingerPrintBytes = ByteHelpers.FromHex(masterFingerprint);
+				MasterFingerprint = new HDFingerprint(masterFingerPrintBytes);
+			}
+			catch (ArgumentException)
+			{
+				MasterFingerprint = null;
+			}
+
 			SerialNumber = serialNumber;
 			Type = type;
 			Path = path;
 			Error = error;
 		}
 
-		public HDFingerprint MasterFingerprint { get; }
+		public HDFingerprint? MasterFingerprint { get; }
 		public string SerialNumber { get; }
 		public HardwareWalletType Type { get; }
 		public string Path { get; }

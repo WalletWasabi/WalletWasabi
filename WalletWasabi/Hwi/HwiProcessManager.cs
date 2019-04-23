@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 using System;
@@ -26,6 +26,15 @@ namespace WalletWasabi.Hwi
 		public static AsyncLock AsyncLock { get; } = new AsyncLock();
 		public static string HwiPath { get; private set; }
 		public static Network Network { get; private set; }
+
+		public static async Task<bool> SetupAsync(HardwareWalletInfo hardwareWalletInfo)
+		{
+			var networkString = Network == Network.Main ? "" : "--testnet";
+			JToken jtok = await SendCommandAsync($"{networkString} --device-type \"{hardwareWalletInfo.Type.ToString().ToLowerInvariant()}\" --device-path \"{hardwareWalletInfo.Path}\" --interactive setup");
+			JObject json = jtok as JObject;
+			var success = json.Value<bool>("success");
+			return success;
+		}
 
 		public static async Task<PSBT> SignTxAsync(HardwareWalletInfo hardwareWalletInfo, PSBT psbt)
 		{
@@ -128,8 +137,7 @@ namespace WalletWasabi.Hwi
 					}
 
 					using (var process = Process.Start(
-						new ProcessStartInfo
-						{
+						new ProcessStartInfo {
 							FileName = HwiPath,
 							Arguments = command,
 							RedirectStandardOutput = true,

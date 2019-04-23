@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using AvalonStudio.Extensibility;
 using AvalonStudio.Shell;
 using NBitcoin;
@@ -337,7 +337,20 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						return null;
 					}
 
-					if (!TryFindWalletByMasterFingerprint(selectedWallet.HardwareWalletInfo.MasterFingerprint, out walletName))
+					if (selectedWallet.HardwareWalletInfo.MasterFingerprint is null)
+					{
+						if (selectedWallet.HardwareWalletInfo.Error.Contains("Not initialized", StringComparison.InvariantCultureIgnoreCase))
+						{
+							await HwiProcessManager.SetupAsync(selectedWallet.HardwareWalletInfo);
+							var hwis = await HwiProcessManager.EnumerateAsync();
+							TryRefreshHardwareWallets(hwis);
+						}
+						{
+							throw new InvalidOperationException("Hardware wallet didn't provided a master fingerprint.");
+						}
+					}
+
+					if (!TryFindWalletByMasterFingerprint(selectedWallet.HardwareWalletInfo.MasterFingerprint.Value, out walletName))
 					{
 						ExtPubKey extPubKey = await HwiProcessManager.GetXpubAsync(selectedWallet.HardwareWalletInfo);
 
@@ -345,7 +358,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 						walletName = Utils.GetNextHardwareWalletName(selectedWallet.HardwareWalletInfo);
 						var path = Global.GetWalletFullPath(walletName);
-						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.MasterFingerprint, extPubKey, path);
+						KeyManager.CreateNewHardwareWalletWatchOnly(selectedWallet.HardwareWalletInfo.MasterFingerprint.Value, extPubKey, path);
 					}
 				}
 
