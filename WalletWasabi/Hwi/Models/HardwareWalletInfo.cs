@@ -25,9 +25,19 @@ namespace WalletWasabi.Hwi.Models
 			Type = type;
 			Path = path;
 			Error = error;
+
+			if (Error != null && Error.Contains("Not initialized", StringComparison.InvariantCultureIgnoreCase))
+			{
+				Initialized = false;
+			}
+			else
+			{
+				Initialized = true;
+			}
 		}
 
 		public HDFingerprint? MasterFingerprint { get; }
+		public bool Initialized { get; }
 		public string SerialNumber { get; }
 		public HardwareWalletType Type { get; }
 		public string Path { get; }

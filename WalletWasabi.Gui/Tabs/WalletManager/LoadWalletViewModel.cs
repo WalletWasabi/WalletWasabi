@@ -321,33 +321,33 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				var password = Guard.Correct(Password); // Don't let whitespaces to the beginning and to the end.
 				Password = ""; // Clear password field.
 
-				if (SelectedWallet is null)
+				var selectedWallet = SelectedWallet;
+				if (selectedWallet is null)
 				{
 					SetValidationMessage("No wallet selected.");
 					return null;
 				}
 
-				var selectedWallet = SelectedWallet;
 				var walletName = selectedWallet.WalletName;
 				if (isHardwareWallet)
 				{
-					if (selectedWallet is null)
+					if (selectedWallet.HardwareWalletInfo is null)
 					{
 						SetValidationMessage("No hardware wallets detected.");
 						return null;
 					}
 
+					if (!selectedWallet.HardwareWalletInfo.Initialized)
+					{
+						await HwiProcessManager.SetupAsync(selectedWallet.HardwareWalletInfo);
+						var hwis = await HwiProcessManager.EnumerateAsync();
+						TryRefreshHardwareWallets(hwis);
+						return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
+					}
+
 					if (selectedWallet.HardwareWalletInfo.MasterFingerprint is null)
 					{
-						if (selectedWallet.HardwareWalletInfo.Error.Contains("Not initialized", StringComparison.InvariantCultureIgnoreCase))
-						{
-							await HwiProcessManager.SetupAsync(selectedWallet.HardwareWalletInfo);
-							var hwis = await HwiProcessManager.EnumerateAsync();
-							TryRefreshHardwareWallets(hwis);
-						}
-						{
-							throw new InvalidOperationException("Hardware wallet didn't provided a master fingerprint.");
-						}
+						throw new InvalidOperationException("Hardware wallet didn't provided a master fingerprint.");
 					}
 
 					if (!TryFindWalletByMasterFingerprint(selectedWallet.HardwareWalletInfo.MasterFingerprint.Value, out walletName))

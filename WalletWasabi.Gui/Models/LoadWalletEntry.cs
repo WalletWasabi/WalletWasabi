@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using WalletWasabi.Hwi.Models;
@@ -18,7 +18,18 @@ namespace WalletWasabi.Gui.Models
 
 		public LoadWalletEntry(HardwareWalletInfo hwi)
 		{
-			WalletName = hwi.Type.ToString();
+			if (string.IsNullOrWhiteSpace(hwi.Error))
+			{
+				WalletName = hwi.Type.ToString();
+			}
+			else if (!hwi.Initialized)
+			{
+				WalletName = hwi.Type.ToString() + $" - Not initialized.";
+			}
+			else
+			{
+				WalletName = hwi.Type.ToString() + $" - Error: {hwi.Error}";
+			}
 			HardwareWalletInfo = hwi;
 		}
 
