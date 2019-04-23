@@ -85,15 +85,15 @@
     <Setter Property="TextBlock.FontSize" Value="14" />
   </Style>
 
-  <Style Selector=".hyperLink">
+  <Style Selector="TextBlock.hyperLink">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource HyperLinkForeground}" />
   </Style>
 
-  <Style Selector=".errorMessage">
+  <Style Selector="TextBlock.errorMessage">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
   </Style>
 
-  <Style Selector=".warningMessage">
+  <Style Selector="TextBlock.warningMessage">
     <Setter Property="TextBlock.Foreground" Value="{DynamicResource WarningMessageForeground}" />
   </Style>
 
@@ -147,8 +147,8 @@
       <DataTemplate>
         <Grid>
           <Grid.Styles>
-            <Style>
-              <Setter Property="TextBlock.Foreground" Value="{DynamicResource ErrorBrush}" />
+            <Style Selector="TextBlock">
+              <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
             </Style>
           </Grid.Styles>
           <ItemsControl Items="{Binding}" MemberSelector="Message" />

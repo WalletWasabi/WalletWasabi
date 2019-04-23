@@ -1,4 +1,5 @@
-﻿<cont:MetroWindow xmlns="https://github.com/avaloniaui"
+﻿<cont:MetroWindow x:Class="WalletWasabi.Gui.MainWindow"
+             		  xmlns="https://github.com/avaloniaui"
                       xmlns:cont="clr-namespace:AvalonStudio.Shell.Controls;assembly=AvalonStudio.Shell"
                       xmlns:wasabi="clr-namespace:WalletWasabi.Gui.Controls;assembly=WalletWasabi.Gui"
                       xmlns:behaviors="clr-namespace:WalletWasabi.Gui.Behaviors;assembly=WalletWasabi.Gui"

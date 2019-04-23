@@ -1,4 +1,6 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui">
+﻿<UserControl x:Class="WalletWasabi.Gui.Controls.Spinner"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid>
         <Grid.Styles>
             <Style Selector="DrawingPresenter">
