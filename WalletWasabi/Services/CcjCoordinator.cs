@@ -59,23 +59,32 @@ namespace WalletWasabi.Services
 			{
 				try
 				{
+					var getTxTasks = new List<(Task<Transaction> txTask, string line)>();
+					var batch = RpcClient.PrepareBatch();
+
 					var toRemove = new List<string>();
 					string[] allLines = File.ReadAllLines(CoinJoinsFilePath);
-					foreach (string line in allLines)
+					foreach (string txId in allLines)
+					{
+						getTxTasks.Add((batch.GetRawTransactionAsync(uint256.Parse(txId)), txId));
+					}
+
+					batch.SendBatchAsync().GetAwaiter().GetResult();
+
+					foreach (var task in getTxTasks)
 					{
 						try
 						{
-							uint256 txHash = new uint256(line);
-							RPCResponse getRawTransactionResponse = RpcClient.SendCommand(RPCOperations.getrawtransaction, txHash.ToString(), true);
-							CoinJoins.Add(txHash);
+							var tx = task.txTask.GetAwaiter().GetResult();
+							CoinJoins.Add(tx.GetHash());
 						}
 						catch (Exception ex)
 						{
-							toRemove.Add(line);
+							toRemove.Add(task.line);
 
 							var logEntry = ex is RPCException rpce && rpce.RPCCode == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY
-								? $"CoinJoins file contains invalid transaction ID {line}"
-								: $"CoinJoins file got corrupted. Deleting offending line \"{line.Substring(0, 20)}\".";
+								? $"CoinJoins file contains invalid transaction ID {task.line}"
+								: $"CoinJoins file got corrupted. Deleting offending line \"{task.line.Substring(0, 20)}\".";
 
 							Logger.LogWarning<CcjCoordinator>($"{logEntry}. {ex.GetType()}: {ex.Message}");
 						}

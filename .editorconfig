@@ -56,8 +56,6 @@ csharp_preserve_single_line_statements = true:error
 csharp_style_expression_bodied_accessors = true:suggestion
 #prefer block bodies for constructors
 csharp_style_expression_bodied_constructors = false:suggestion
-#prefer block bodies for methods
-csharp_style_expression_bodied_methods = false:suggestion
 #prefer expression-bodied members for operators
 csharp_style_expression_bodied_operators = true:suggestion
 #prefer expression-bodied members for properties

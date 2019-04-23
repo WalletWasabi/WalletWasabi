@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.BitcoinCore;
 using NBitcoin.DataEncoders;
 using NBitcoin.Policy;
@@ -736,14 +736,13 @@ namespace WalletWasabi.Services
 						// Try to get block information from local running Core node first.
 						try
 						{
-							if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected)
+							if (LocalBitcoinCoreNode is null || !LocalBitcoinCoreNode.IsConnected && Network != Network.RegTest) // If RegTest then we're already connected don't try again.
 							{
 								DisconnectDisposeNullLocalBitcoinCoreNode();
 								using (var handshakeTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancel))
 								{
 									handshakeTimeout.CancelAfter(TimeSpan.FromSeconds(10));
-									var nodeConnectionParameters = new NodeConnectionParameters()
-									{
+									var nodeConnectionParameters = new NodeConnectionParameters() {
 										ConnectCancellation = handshakeTimeout.Token,
 										IsRelay = false
 									};

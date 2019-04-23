@@ -1,4 +1,4 @@
-﻿using Avalonia.Threading;
+using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using System;
@@ -277,7 +277,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
 					{
 						const string connectingToHardwareWalletStatusText = "Connecting to hardware wallet...";
-						const string waitingForHardwareWalletStatusText = "Acquiring signature from hardware wallet...";
+						const string acquiringSignatureFromHardwareWalletStatusText = "Acquiring signature from hardware wallet...";
 						PSBT signedPsbt = null;
 						try
 						{
@@ -290,10 +290,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								return;
 							}
 
-							MainWindowViewModel.Instance.StatusBar.AddStatus(waitingForHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
 							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
-						catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase))
+						catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase)
+													|| ex.Message.Contains("Invalid status 6f04", StringComparison.OrdinalIgnoreCase) // It comes when device asleep too.
+													|| ex.Message.Contains("Device is asleep", StringComparison.OrdinalIgnoreCase))
 						{
 							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
 							// The user may changed USB port. Try again with new enumeration.
@@ -303,13 +305,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								return;
 							}
 
-							MainWindowViewModel.Instance.StatusBar.AddStatus(waitingForHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
 							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
 						finally
 						{
-							MainWindowViewModel.Instance.StatusBar.RemoveStatus(connectingToHardwareWalletStatusText);
-							MainWindowViewModel.Instance.StatusBar.RemoveStatus(waitingForHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.RemoveStatus(connectingToHardwareWalletStatusText, acquiringSignatureFromHardwareWalletStatusText);
 							IsHardwareBusy = false;
 						}
 
@@ -337,9 +338,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				finally
 				{
-					MainWindowViewModel.Instance.StatusBar.RemoveStatus(buildingTransactionStatusText);
-					MainWindowViewModel.Instance.StatusBar.RemoveStatus(signingTransactionStatusText);
-					MainWindowViewModel.Instance.StatusBar.RemoveStatus(broadcastingTransactionStatusText);
+					MainWindowViewModel.Instance.StatusBar.RemoveStatus(buildingTransactionStatusText, signingTransactionStatusText, broadcastingTransactionStatusText);
 					IsBusy = false;
 				}
 			},
@@ -350,7 +349,17 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private async Task<bool> TryRefreshHardwareWalletInfoAsync(KeyManager keyManager)
 		{
 			var hwis = await HwiProcessManager.EnumerateAsync();
+
+			bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletType.Ledger && !x.Ready);
+			if (ledgerNotReady) // For Ledger you have to log into your "Bitcoin" account.
+			{
+				throw new InvalidOperationException("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");
+			}
+
 			var fingerprint = keyManager.MasterFingerprint;
+
+			if (fingerprint is null) return false;
+
 			keyManager.HardwareWalletInfo = hwis.FirstOrDefault(x => x.MasterFingerprint == fingerprint);
 
 			return keyManager.HardwareWalletInfo != null;
