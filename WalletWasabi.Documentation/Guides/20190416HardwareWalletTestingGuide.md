@@ -5,7 +5,7 @@
 | Coldcard       | pass    | pass    | pass    |
 | Digital BitBox |         |         |         |
 | KeepKey        |         |         |         |
-| Ledger Nano S  |         |         |         |
+| Ledger Nano S  | pass    | pass    | pass    |
 | Trezor One     |         |         |         |
 | Trezor Model T | pass    | pass    | pass    |
 
