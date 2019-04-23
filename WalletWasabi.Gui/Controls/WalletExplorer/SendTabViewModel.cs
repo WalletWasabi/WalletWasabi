@@ -293,7 +293,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
 							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
-						catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase))
+						catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase)
+													|| ex.Message.Contains("Invalid status 6f04", StringComparison.OrdinalIgnoreCase) // It comes when device asleep too.
+													|| ex.Message.Contains("Device is asleep", StringComparison.OrdinalIgnoreCase))
 						{
 							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
 							// The user may changed USB port. Try again with new enumeration.
@@ -347,6 +349,13 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		private async Task<bool> TryRefreshHardwareWalletInfoAsync(KeyManager keyManager)
 		{
 			var hwis = await HwiProcessManager.EnumerateAsync();
+
+			bool ledgerNotReady = hwis.Any(x => x.Type == HardwareWalletType.Ledger && !x.Ready);
+			if (ledgerNotReady) // For Ledger you have to log into your "Bitcoin" account.
+			{
+				throw new InvalidOperationException("Log into your Bitcoin account on your Ledger. If you're already logged in, log out and log in again.");
+			}
+
 			var fingerprint = keyManager.MasterFingerprint;
 
 			if (fingerprint is null) return false;

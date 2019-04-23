@@ -26,6 +26,10 @@ namespace WalletWasabi.Gui.Models
 			{
 				WalletName = hwi.Type.ToString() + $" - Not Initialized";
 			}
+			else if (!hwi.Ready)
+			{
+				WalletName = hwi.Type.ToString() + $" - Device Not Ready";
+			}
 			else
 			{
 				WalletName = hwi.Type.ToString() + $" - Error: {hwi.Error}";

@@ -156,7 +156,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			set => this.RaiseAndSetIfChanged(ref _successMessage, value);
 		}
 
-		private void SetWarningMessage(string message)
+		public void SetWarningMessage(string message)
 		{
 			WarningMessage = message;
 			ValidationMessage = "";
@@ -324,7 +324,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 					LoadWalletEntry found = Wallets?.FirstOrDefault(x => x.HardwareWalletInfo.Path == hwi.Path);
 					// If something changed then update.
 					if (found?.HardwareWalletInfo != null &&
-						(found.HardwareWalletInfo.Initialized != hwi.Initialized || found.HardwareWalletInfo.MasterFingerprint != hwi.MasterFingerprint || found.HardwareWalletInfo.Error != hwi.Error))
+						(found.HardwareWalletInfo.Initialized != hwi.Initialized || found.HardwareWalletInfo.Ready != hwi.Ready || found.HardwareWalletInfo.MasterFingerprint != hwi.MasterFingerprint || found.HardwareWalletInfo.Error != hwi.Error))
 					{
 						toRemove.Add(found);
 						changed = true;

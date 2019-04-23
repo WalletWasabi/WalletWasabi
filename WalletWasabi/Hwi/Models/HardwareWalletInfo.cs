@@ -26,18 +26,27 @@ namespace WalletWasabi.Hwi.Models
 			Path = path;
 			Error = error;
 
-			if (Error != null && Error.Contains("Not initialized", StringComparison.InvariantCultureIgnoreCase))
+			Ready = true;
+			Initialized = true;
+			if (Error != null)
 			{
-				Initialized = false;
-			}
-			else
-			{
-				Initialized = true;
+				if (Error.Contains("Not initialized", StringComparison.OrdinalIgnoreCase))
+				{
+					Initialized = false;
+				}
+				else if (Type == HardwareWalletType.Ledger &&
+					(Error.Contains("get_pubkey_at_path canceled", StringComparison.OrdinalIgnoreCase)
+					|| Error.Contains("Invalid status 6f04", StringComparison.OrdinalIgnoreCase) // It comes when device asleep too.
+					|| Error.Contains("Device is asleep", StringComparison.OrdinalIgnoreCase)))
+				{
+					Ready = false;
+				}
 			}
 		}
 
 		public HDFingerprint? MasterFingerprint { get; }
 		public bool Initialized { get; }
+		public bool Ready { get; }
 		public string SerialNumber { get; }
 		public HardwareWalletType Type { get; }
 		public string Path { get; }
