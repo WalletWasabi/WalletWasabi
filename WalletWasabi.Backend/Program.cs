@@ -63,9 +63,7 @@ namespace WalletWasabi.Backend
 						{
 							getTxTasks.Add(batch.GetRawTransactionAsync(uint256.Parse(txId)));
 						}
-						var waiting = Task.WhenAll(getTxTasks);
 						await batch.SendBatchAsync();
-						await waiting;
 
 						foreach (var task in getTxTasks)
 						{
