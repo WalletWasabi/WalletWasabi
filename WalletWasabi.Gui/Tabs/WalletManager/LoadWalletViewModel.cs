@@ -404,7 +404,10 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 						{
 							IsHardwareBusy = true;
 							MainWindowViewModel.Instance.StatusBar.AddStatus(settingUpHardwareWalletStatusText);
-							await HwiProcessManager.SetupAsync(selectedWallet.HardwareWalletInfo);
+							if (!await HwiProcessManager.SetupAsync(selectedWallet.HardwareWalletInfo))
+							{
+								throw new Exception("Setup failed.");
+							}
 
 							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
 							hwis = await HwiProcessManager.EnumerateAsync();
