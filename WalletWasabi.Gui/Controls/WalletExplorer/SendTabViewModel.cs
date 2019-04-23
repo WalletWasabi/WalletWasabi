@@ -277,7 +277,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 					if (IsHardwareWallet && !result.Signed) // If hardware but still has a privkey then it's password, then meh.
 					{
 						const string connectingToHardwareWalletStatusText = "Connecting to hardware wallet...";
-						const string waitingForHardwareWalletStatusText = "Acquiring signature from hardware wallet...";
+						const string acquiringSignatureFromHardwareWalletStatusText = "Acquiring signature from hardware wallet...";
 						PSBT signedPsbt = null;
 						try
 						{
@@ -290,7 +290,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								return;
 							}
 
-							MainWindowViewModel.Instance.StatusBar.AddStatus(waitingForHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
 							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
 						catch (IOException ex) when (ex.Message.Contains("device not found", StringComparison.OrdinalIgnoreCase))
@@ -303,13 +303,12 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 								return;
 							}
 
-							MainWindowViewModel.Instance.StatusBar.AddStatus(waitingForHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringSignatureFromHardwareWalletStatusText);
 							signedPsbt = await HwiProcessManager.SignTxAsync(KeyManager.HardwareWalletInfo, result.Psbt);
 						}
 						finally
 						{
-							MainWindowViewModel.Instance.StatusBar.RemoveStatus(connectingToHardwareWalletStatusText);
-							MainWindowViewModel.Instance.StatusBar.RemoveStatus(waitingForHardwareWalletStatusText);
+							MainWindowViewModel.Instance.StatusBar.RemoveStatus(connectingToHardwareWalletStatusText, acquiringSignatureFromHardwareWalletStatusText);
 							IsHardwareBusy = false;
 						}
 
@@ -337,9 +336,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				}
 				finally
 				{
-					MainWindowViewModel.Instance.StatusBar.RemoveStatus(buildingTransactionStatusText);
-					MainWindowViewModel.Instance.StatusBar.RemoveStatus(signingTransactionStatusText);
-					MainWindowViewModel.Instance.StatusBar.RemoveStatus(broadcastingTransactionStatusText);
+					MainWindowViewModel.Instance.StatusBar.RemoveStatus(buildingTransactionStatusText, signingTransactionStatusText, broadcastingTransactionStatusText);
 					IsBusy = false;
 				}
 			},

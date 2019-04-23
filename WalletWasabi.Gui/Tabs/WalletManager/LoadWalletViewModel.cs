@@ -40,6 +40,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _validationMessage;
 		private string _successMessage;
 		private bool _isBusy;
+		private bool _isHardwareBusy;
 		private string _loadButtonText;
 		private bool _isHwWalletSearchTextVisible;
 
@@ -96,7 +97,7 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			TestPasswordCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
 			OpenFolderCommand.ThrownExceptions.Subscribe(ex => Logger.LogWarning<LoadWalletViewModel>(ex));
 
-			SetLoadButtonText(IsBusy);
+			SetLoadButtonText();
 
 			IsHwWalletSearchTextVisible = LoadWalletType == LoadWalletType.Hardware;
 		}
@@ -176,9 +177,27 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			SuccessMessage = message;
 		}
 
-		public void SetLoadButtonText(bool isBusy)
+		public void SetLoadButtonText()
 		{
-			LoadButtonText = isBusy ? "Loading..." : "Load Wallet";
+			if (IsHardwareBusy)
+			{
+				LoadButtonText = "Waiting for Hardware Wallet...";
+			}
+			else if (IsBusy)
+			{
+				LoadButtonText = "Loading...";
+			}
+			else
+			{
+				if (SelectedWallet?.HardwareWalletInfo != null && !SelectedWallet.HardwareWalletInfo.Initialized) // If the hardware wallet wasn't initialized, then make the button say Setup, not Load.
+				{
+					LoadButtonText = "Setup Wallet";
+				}
+				else
+				{
+					LoadButtonText = "Load Wallet";
+				}
+			}
 		}
 
 		public string LoadButtonText
@@ -206,17 +225,41 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				this.RaiseAndSetIfChanged(ref _isBusy, value);
 
-				SetLoadButtonText(value);
-				SetWalletStates();
+				try
+				{
+					SetWalletStates();
 
-				const string loadingStatusText = "Loading...";
-				if (value)
-				{
-					MainWindowViewModel.Instance.StatusBar.AddStatus(loadingStatusText);
+					const string loadingStatusText = "Loading...";
+					if (value)
+					{
+						MainWindowViewModel.Instance.StatusBar.AddStatus(loadingStatusText);
+					}
+					else
+					{
+						MainWindowViewModel.Instance.StatusBar.RemoveStatus(loadingStatusText);
+					}
 				}
-				else
+				catch (Exception ex)
 				{
-					MainWindowViewModel.Instance.StatusBar.RemoveStatus(loadingStatusText);
+					Logger.LogInfo<LoadWalletViewModel>(ex);
+				}
+			}
+		}
+
+		public bool IsHardwareBusy
+		{
+			get => _isHardwareBusy;
+			set
+			{
+				this.RaiseAndSetIfChanged(ref _isHardwareBusy, value);
+
+				try
+				{
+					SetWalletStates();
+				}
+				catch (Exception ex)
+				{
+					Logger.LogInfo<LoadWalletViewModel>(ex);
 				}
 			}
 		}
@@ -262,6 +305,8 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			{
 				SetWarningMessage("There is already an open wallet. Restart the application in order to open a different one.");
 			}
+
+			SetLoadButtonText();
 		}
 
 		public ReactiveCommand<Unit, Unit> LoadCommand { get; }
@@ -339,8 +384,24 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 					if (!selectedWallet.HardwareWalletInfo.Initialized)
 					{
-						await HwiProcessManager.SetupAsync(selectedWallet.HardwareWalletInfo);
-						var hwis = await HwiProcessManager.EnumerateAsync();
+						const string settingUpHardwareWalletStatusText = "Setting up hardware wallet...";
+						const string connectingToHardwareWalletStatusText = "Connecting to hardware wallet...";
+						IEnumerable<HardwareWalletInfo> hwis;
+						try
+						{
+							IsHardwareBusy = true;
+							MainWindowViewModel.Instance.StatusBar.AddStatus(settingUpHardwareWalletStatusText);
+							await HwiProcessManager.SetupAsync(selectedWallet.HardwareWalletInfo);
+
+							MainWindowViewModel.Instance.StatusBar.AddStatus(connectingToHardwareWalletStatusText);
+							hwis = await HwiProcessManager.EnumerateAsync();
+						}
+						finally
+						{
+							IsHardwareBusy = false;
+							MainWindowViewModel.Instance.StatusBar.RemoveStatus(settingUpHardwareWalletStatusText, connectingToHardwareWalletStatusText);
+						}
+
 						TryRefreshHardwareWallets(hwis);
 						return await LoadKeyManagerAsync(requirePassword, isHardwareWallet);
 					}
@@ -352,7 +413,17 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 
 					if (!TryFindWalletByMasterFingerprint(selectedWallet.HardwareWalletInfo.MasterFingerprint.Value, out walletName))
 					{
-						ExtPubKey extPubKey = await HwiProcessManager.GetXpubAsync(selectedWallet.HardwareWalletInfo);
+						const string acquiringXpubFromHardwareWalletStatusText = "Acquiring xpub from hardware wallet...";
+						ExtPubKey extPubKey;
+						try
+						{
+							MainWindowViewModel.Instance.StatusBar.AddStatus(acquiringXpubFromHardwareWalletStatusText);
+							extPubKey = await HwiProcessManager.GetXpubAsync(selectedWallet.HardwareWalletInfo);
+						}
+						finally
+						{
+							MainWindowViewModel.Instance.StatusBar.RemoveStatus(acquiringXpubFromHardwareWalletStatusText);
+						}
 
 						Logger.LogInfo<LoadWalletViewModel>("Hardware wallet wasn't used previously on this computer. Creating new wallet file.");
 
