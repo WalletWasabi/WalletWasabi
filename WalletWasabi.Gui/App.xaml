@@ -17,10 +17,10 @@
     <StyleInclude Source="avares://Dock.Avalonia/Controls/DockTarget.xaml" />
     <StyleInclude Source="avares://Dock.Avalonia/Controls/DockToolChrome.xaml" />
     <StyleInclude Source="avares://Dock.Avalonia/Controls/MetroWindow.xaml" />
-    <StyleInclude Source="resm:WalletWasabi.Gui.Controls.GroupBox.xaml?assembly=WalletWasabi.Gui" />
-    <StyleInclude Source="resm:WalletWasabi.Gui.Styles.Styles.xaml?assembly=WalletWasabi.Gui" />
-    <StyleInclude Source="resm:WalletWasabi.Gui.Icons.Icons.xaml?assembly=WalletWasabi.Gui" />
-    <StyleInclude Source="resm:WalletWasabi.Gui.Controls.NoparaPasswordBox.xaml?assembly=WalletWasabi.Gui" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/GroupBox.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Styles/Styles.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Icons/Icons.xaml" />
+    <StyleInclude Source="avares://WalletWasabi.Gui/Controls/NoparaPasswordBox.xaml" />
   </Application.Styles>
   <Application.DataTemplates>
     <DataTemplate DataType="Views:MainView">
