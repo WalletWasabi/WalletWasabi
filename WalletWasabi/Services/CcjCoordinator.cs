@@ -1,4 +1,4 @@
-﻿using NBitcoin;
+using NBitcoin;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
@@ -64,9 +64,22 @@ namespace WalletWasabi.Services
 
 					var toRemove = new List<string>();
 					string[] allLines = File.ReadAllLines(CoinJoinsFilePath);
-					foreach (string txId in allLines)
+					foreach (string line in allLines)
 					{
-						getTxTasks.Add((batch.GetRawTransactionAsync(uint256.Parse(txId)), txId));
+						try
+						{
+							getTxTasks.Add((batch.GetRawTransactionAsync(uint256.Parse(line)), line));
+						}
+						catch (Exception ex)
+						{
+							toRemove.Add(line);
+
+							var logEntry = ex is RPCException rpce && rpce.RPCCode == RPCErrorCode.RPC_INVALID_ADDRESS_OR_KEY
+								? $"CoinJoins file contains invalid transaction ID {line}"
+								: $"CoinJoins file got corrupted. Deleting offending line \"{line.Substring(0, 20)}\".";
+
+							Logger.LogWarning<CcjCoordinator>($"{logEntry}. {ex.GetType()}: {ex.Message}");
+						}
 					}
 
 					batch.SendBatchAsync().GetAwaiter().GetResult();
