@@ -86,7 +86,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 		public string ExtendedAccountPublicKey => KeyManager.ExtPubKey.ToString(Global.Network);
 		public string ExtendedAccountZpub => KeyManager.ExtPubKey.ToZpub(Global.Network);
-		public string EncryptedExtendedMasterPrivateKey => KeyManager?.EncryptedSecret?.ToWif() ?? "";
 		public string AccountKeyPath => $"m/{KeyManager.AccountKeyPath.ToString()}";
 
 		public ReactiveCommand<Unit, Unit> ShowSensitiveKeysCommand { get; }
@@ -164,7 +163,6 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 
 			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(EncryptedExtendedMasterPrivateKey));
 				this.RaisePropertyChanged(nameof(ExtendedAccountPublicKey));
 				this.RaisePropertyChanged(nameof(ExtendedAccountZpub));
 			}).DisposeWith(Disposables);
