@@ -691,19 +691,23 @@ namespace WalletWasabi.Packager
 					Directory.CreateDirectory(debUsrAppFolderPath);
 					var debUsrShareIconsFolderRelativePath = Path.Combine(debFolderRelativePath, "usr", "share", "icons", "hicolor");
 					var debUsrShareIconsFolderPath = Path.Combine(BinDistDirectory, debUsrShareIconsFolderRelativePath);
+					var debEtcUdevRulesFolderRelativePath = Path.Combine(debFolderRelativePath, "etc", "udev", "rules.d");
+					var debEtcUdevRulesFolderPath = Path.Combine(BinDistDirectory, debEtcUdevRulesFolderRelativePath);
+					Directory.CreateDirectory(debEtcUdevRulesFolderPath);
 					var debianFolderRelativePath = Path.Combine(debFolderRelativePath, "DEBIAN");
 					var debianFolderPath = Path.Combine(BinDistDirectory, debianFolderRelativePath);
 					Directory.CreateDirectory(debianFolderPath);
+
 					newFolderName = "wasabiwallet";
 					var linuxWasabiWalletFolder = Tools.LinuxPathCombine(linuxUsrLocalBinFolder, newFolderName);
 					var newFolderRelativePath = Path.Combine(debUsrLocalBinFolderRelativePath, newFolderName);
 					newFolderPath = Path.Combine(BinDistDirectory, newFolderRelativePath);
 					Directory.Move(publishedFolder, newFolderPath);
 
-					var assetsFolder = Path.Combine(GuiProjectDirectory, "Assets");
-					var assetsInfo = new DirectoryInfo(assetsFolder);
+					var assetsImagesFolder = Path.Combine(GuiProjectDirectory, "Assets", "Images");
+					var assetsImagesInfo = new DirectoryInfo(assetsImagesFolder);
 
-					foreach (var file in assetsInfo.EnumerateFiles())
+					foreach (var file in assetsImagesInfo.EnumerateFiles())
 					{
 						var number = file.Name.Split(new string[] { "WasabiLogo", ".png" }, StringSplitOptions.RemoveEmptyEntries);
 						if (number.Count() == 1 && int.TryParse(number.First(), out int size))
@@ -712,6 +716,13 @@ namespace WalletWasabi.Packager
 							Directory.CreateDirectory(destFolder);
 							file.CopyTo(Path.Combine(destFolder, $"{ExecutableName}.png"));
 						}
+					}
+
+					var assetsUdevRulesFolder = Path.Combine(GuiProjectDirectory, "Assets", "udev");
+					var assetsUdevRulesInfo = new DirectoryInfo(assetsUdevRulesFolder);
+					foreach (var file in assetsUdevRulesInfo.EnumerateFiles())
+					{
+						file.CopyTo(Path.Combine(debEtcUdevRulesFolderRelativePath, file.Name));
 					}
 
 					var controlFilePath = Path.Combine(debianFolderPath, "control");
@@ -745,6 +756,18 @@ namespace WalletWasabi.Packager
 												$"Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;qwe;asd;\n";
 
 					File.WriteAllText(desktopFilePath, desktopFileContent, Encoding.ASCII);
+
+					var postInitScriptPath = Path.Combine(debianFolderPath, "postinit");
+					var postInitScriptContent = $"#!/bin/sh\n" +
+												"PLUGDEV_GROUP=`groups | grep plugdev`\n" +
+												"LOGGED_IN_GROUP=`groups $(logname) | grep plugdev`\n" +
+												"if [ -z \"$PLUGDEV_GROUP\" ]; then groupadd plugdev; fi\n" +
+												"if [ -z \"$LOGGED_IN_GROUP\" ]; then usermod -aG plugdev `logname`; fi\n" +
+												"udevadm trigger\n" +
+												"udevadm control --reload-rules¬";
+
+					File.WriteAllText(postInitScriptPath, postInitScriptContent, Encoding.ASCII);
+
 
 					var wasabiStarterScriptPath = Path.Combine(debUsrLocalBinFolderPath, $"{ExecutableName}");
 					var wasabiStarterScriptContent = $"#!/bin/sh\n" +
