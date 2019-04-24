@@ -425,7 +425,7 @@ namespace WalletWasabi.Gui
 		{
 			try
 			{
-				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.LurkingWifeMode.Value is true)
+				if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || UiConfig?.InstantStealthMode.Value is true)
 				{
 					return;
 				}

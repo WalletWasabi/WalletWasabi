@@ -11,7 +11,7 @@
     <converters:CoinStatusBorderBrushConverter x:Key="CoinStatusBorderBrushConverter" />
     <converters:CoinStatusForegroundConverter x:Key="CoinStatusForegroundConverter" />
     <converters:CoinItemExpanderColorConverter x:Key="CoinItemExpanderColorConverter" />
-    <converters:LurkingWifeModeStringConverter x:Key="LurkingWifeModeStringConverter" />
+    <converters:InstantStealthModeStringConverter x:Key="InstantStealthModeStringConverter" />
   </UserControl.Resources>
   <UserControl.Styles>
     <Style Selector="TextBlock">
@@ -125,13 +125,13 @@
                 <Border ToolTip.Tip="{Binding ToolTip}" Padding="1" Grid.Column="2" Background="{Binding Status, Converter={StaticResource CoinStatusColorConverter}}" BorderBrush="{Binding Status, Converter={StaticResource CoinStatusBorderBrushConverter}}" HorizontalAlignment="Left"  BorderThickness="1" CornerRadius="0,6,6,0">
                   <TextBlock Text="{Binding Status, Converter={StaticResource CoinStatusStringConverter}, Mode=OneWay}" Foreground="{Binding Status, Converter={StaticResource CoinStatusForegroundConverter}}" />
                 </Border>
-                <TextBlock Grid.Column="3" Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
+                <TextBlock Grid.Column="3" Text="{Binding AmountBtc, ConverterParameter=8, Converter={StaticResource InstantStealthModeStringConverter}, Mode=OneWay}" />
                 <Panel Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Background="Transparent"
                     DataContext="{Binding AnonymitySet, Converter={StaticResource PrivacyLevelValueConverter}}"
                     ToolTip.Tip="{Binding ToolTip}">
                   <DrawingPresenter Drawing="{Binding Icon}" Margin="0 0 25 0" />
                 </Panel>
-                <controls:ExtendedTextBox Classes="selectableTextBlock" Background="Transparent" Grid.Column="5" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource LurkingWifeModeStringConverter}, Mode=OneWay}" />
+                <controls:ExtendedTextBox Classes="selectableTextBlock" Background="Transparent" Grid.Column="5" Text="{Binding Clusters, ConverterParameter=50, Converter={StaticResource InstantStealthModeStringConverter}, Mode=OneWay}" />
                 <TextBlock Text="" Grid.Column="6" />
               </Grid>
             </Grid>

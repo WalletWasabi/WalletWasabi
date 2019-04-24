@@ -39,7 +39,7 @@ namespace WalletWasabi.Gui.ViewModels
 				QrCode = x.Result;
 			});
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.InstantStealthMode).Subscribe(_ =>
 			{
 				this.RaisePropertyChanged(nameof(Address));
 				this.RaisePropertyChanged(nameof(Label));

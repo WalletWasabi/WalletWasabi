@@ -40,7 +40,7 @@
               <TextBlock VerticalAlignment="Center">Autocopy on Receive and History wallet tabs.</TextBlock>
             </StackPanel>
             <StackPanel Margin="0 10" Orientation="Horizontal">
-              <ToggleButton IsChecked="{Binding LurkingWifeMode}" Content="{Binding LurkingWifeModeText}" Margin="0 0 10 0" Command="{Binding LurkingWifeModeCommand}" />
+              <ToggleButton IsChecked="{Binding InstantStealthMode}" Content="{Binding InstantStealthModeText}" Margin="0 0 10 0" Command="{Binding InstantStealthModeCommand}" />
               <TextBlock VerticalAlignment="Center">Lurking Wife Mode hides sensitive content.</TextBlock>
             </StackPanel>
           </StackPanel>

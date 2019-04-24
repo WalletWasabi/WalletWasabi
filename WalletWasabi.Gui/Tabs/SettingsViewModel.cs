@@ -26,7 +26,7 @@ namespace WalletWasabi.Gui.Tabs
 		private bool _isModified;
 
 		public ReactiveCommand<Unit, Unit> OpenConfigFileCommand { get; }
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> InstantStealthModeCommand { get; }
 
 		public SettingsViewModel() : base("Settings")
 		{
@@ -65,9 +65,9 @@ namespace WalletWasabi.Gui.Tabs
 
 			OpenConfigFileCommand = ReactiveCommand.Create(OpenConfigFile);
 
-			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			InstantStealthModeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				Global.UiConfig.LurkingWifeMode = !LurkingWifeMode;
+				Global.UiConfig.InstantStealthMode = !InstantStealthMode;
 				await Global.UiConfig.ToFileAsync();
 			});
 		}
@@ -81,10 +81,10 @@ namespace WalletWasabi.Gui.Tabs
 
 			Disposables = new CompositeDisposable();
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(_ =>
+			Global.UiConfig.WhenAnyValue(x => x.InstantStealthMode).Subscribe(_ =>
 			{
-				this.RaisePropertyChanged(nameof(LurkingWifeMode));
-				this.RaisePropertyChanged(nameof(LurkingWifeModeText));
+				this.RaisePropertyChanged(nameof(InstantStealthMode));
+				this.RaisePropertyChanged(nameof(InstantStealthModeText));
 			}).DisposeWith(Disposables);
 
 			base.OnOpen();
@@ -160,9 +160,9 @@ namespace WalletWasabi.Gui.Tabs
 			set => this.RaiseAndSetIfChanged(ref _useTorText, value);
 		}
 
-		public bool LurkingWifeMode => Global.UiConfig.LurkingWifeMode == true;
+		public bool InstantStealthMode => Global.UiConfig.InstantStealthMode == true;
 
-		public string LurkingWifeModeText => Global.UiConfig.LurkingWifeMode == true ? "On" : "Off";
+		public string InstantStealthModeText => Global.UiConfig.InstantStealthMode == true ? "On" : "Off";
 
 		private void Save()
 		{

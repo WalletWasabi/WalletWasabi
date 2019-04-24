@@ -52,9 +52,9 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				Actions[3].DisplayActionTab();
 			}
 
-			LurkingWifeModeCommand = ReactiveCommand.CreateFromTask(async () =>
+			InstantStealthModeCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				Global.UiConfig.LurkingWifeMode = !Global.UiConfig.LurkingWifeMode;
+				Global.UiConfig.InstantStealthMode = !Global.UiConfig.InstantStealthMode;
 				await Global.UiConfig.ToFileAsync();
 			});
 		}
@@ -74,7 +74,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 				.Subscribe(o => SetBalance(Name))
 				.DisposeWith(Disposables);
 
-			Global.UiConfig.WhenAnyValue(x => x.LurkingWifeMode).Subscribe(x =>
+			Global.UiConfig.WhenAnyValue(x => x.InstantStealthMode).Subscribe(x =>
 			{
 				SetBalance(Name);
 			}).DisposeWith(Disposables);
@@ -95,7 +95,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 			set => this.RaiseAndSetIfChanged(ref _title, value);
 		}
 
-		public ReactiveCommand<Unit, Unit> LurkingWifeModeCommand { get; }
+		public ReactiveCommand<Unit, Unit> InstantStealthModeCommand { get; }
 
 		public ObservableCollection<WalletActionViewModel> Actions
 		{
@@ -107,7 +107,7 @@ namespace WalletWasabi.Gui.Controls.WalletExplorer
 		{
 			Money balance = Enumerable.Where(WalletService.Coins, c => c.Unspent && !c.IsDust && !c.SpentAccordingToBackend).Sum(c => (long?)c.Amount) ?? 0;
 
-			Title = $"{walletName} ({(Global.UiConfig.LurkingWifeMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
+			Title = $"{walletName} ({(Global.UiConfig.InstantStealthMode.Value ? "#########" : balance.ToString(false, true))} BTC)";
 		}
 	}
 }
