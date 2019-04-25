@@ -32,9 +32,9 @@ namespace WalletWasabi.Gui
 	public static class Global
 	{
 		public static string DataDir { get; internal set; }
-		public static string TorLogsFile { get; private set;}
-		public static string WalletsDir { get; private set;}
-		public static string WalletBackupsDir { get; private set;}
+		public static string TorLogsFile { get; private set; }
+		public static string WalletsDir { get; private set; }
+		public static string WalletBackupsDir { get; private set; }
 
 		public static string IndexFilePath { get; private set; }
 		public static Config Config { get; private set; }
