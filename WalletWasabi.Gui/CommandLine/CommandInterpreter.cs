@@ -33,6 +33,8 @@ namespace WalletWasabi.Gui.CommandLine
 						x => showHelp = x != null},
 					{ "v|version", "Displays Wasabi version and exit.",
 						x => showVersion = x != null},
+					{ "d|datadir=", "Directory path where store all the Wasabi data.",
+						x => Global.SetDataDir(x) },
 					"",
 					"Available commands are:",
 					"",
@@ -56,7 +58,7 @@ namespace WalletWasabi.Gui.CommandLine
 				return false;
 			}
 
-			return false;
+			return true;
 		}
 
 		private static void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)
