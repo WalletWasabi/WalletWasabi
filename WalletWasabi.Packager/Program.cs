@@ -722,7 +722,7 @@ namespace WalletWasabi.Packager
 					var assetsUdevRulesInfo = new DirectoryInfo(assetsUdevRulesFolder);
 					foreach (var file in assetsUdevRulesInfo.EnumerateFiles())
 					{
-						file.CopyTo(Path.Combine(debEtcUdevRulesFolderRelativePath, file.Name));
+						file.CopyTo(Path.Combine(debEtcUdevRulesFolderPath, file.Name));
 					}
 
 					var controlFilePath = Path.Combine(debianFolderPath, "control");
