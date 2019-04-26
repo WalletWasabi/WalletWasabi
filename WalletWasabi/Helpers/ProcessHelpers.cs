@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -15,7 +15,7 @@ namespace WalletWasabi.Helpers
 
 			void Process_Exited(object sender, EventArgs e)
 			{
-				tcs.TrySetResult(true);
+				Task.Run(() => tcs.TrySetResult(true));
 			}
 
 			process.EnableRaisingEvents = true;
@@ -28,7 +28,7 @@ namespace WalletWasabi.Helpers
 					return;
 				}
 
-				using (cancellationToken.Register(() => tcs.TrySetCanceled()))
+				using (cancellationToken.Register(() => Task.Run(() => tcs.TrySetCanceled())))
 				{
 					await tcs.Task;
 				}
