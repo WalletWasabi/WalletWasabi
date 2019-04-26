@@ -1,4 +1,5 @@
 using Mono.Options;
+using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
@@ -14,27 +15,18 @@ namespace WalletWasabi.Gui.CommandLine
 		/// <returns>If the GUI should run or not.</returns>
 		public static async Task<bool> ExecuteCommandsAsync(string[] args)
 		{
-			var showHelp = false;
 			var showVersion = false;
-
+			var pass = false;
 			Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
 
-			if (args.Length == 0)
-			{
-				return true;
-			}
-
-			OptionSet options = null;
 			var suite = new CommandSet("wassabee") {
 					"Usage: wassabee [OPTIONS]+",
 					"Launches Wasabi Wallet.",
 					"",
-					{ "h|help", "Displays help page and exit.",
-						x => showHelp = x != null},
 					{ "v|version", "Displays Wasabi version and exit.",
 						x => showVersion = x != null},
 					{ "d|datadir=", "Directory path where store all the Wasabi data.",
-						x => Global.SetDataDir(x) },
+						x => { Global.SetDataDir(x); pass = true; }},
 					"",
 					"Available commands are:",
 					"",
@@ -43,22 +35,25 @@ namespace WalletWasabi.Gui.CommandLine
 				};
 
 			EnsureBackwardCompatibilityWithOldParameters(ref args);
-			if (await suite.RunAsync(args) == 0)
+			var commandProccessed = await suite.RunAsync(args) == 0;
+
+			if (suite.ShowHelp)
 			{
-				return false;
-			}
-			if (showHelp)
-			{
-				ShowHelp(options);
-				return false;
+				return false; // do not run GUI
 			}
 			else if (showVersion)
 			{
 				ShowVersion();
-				return false;
+				return false; // do not run GUI
 			}
 
-			return true;
+			// if no command was provide we have to lunch the GUI
+			if (!commandProccessed && pass)
+			{
+				return true; // run GUI
+			}
+
+			return false;
 		}
 
 		private static void EnsureBackwardCompatibilityWithOldParameters(ref string[] args)
