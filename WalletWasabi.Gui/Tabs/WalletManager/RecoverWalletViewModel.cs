@@ -22,6 +22,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 		private string _mnemonicWords;
 		private string _walletName;
 		private string _validationMessage;
+		private bool _showAdvancedOptions;
+		private string _accountKeyPath;
+		private int _minGapLimit;
 		private ObservableCollection<SuggestionViewModel> _suggestions;
 
 		public RecoverWalletViewModel(WalletManagerViewModel owner) : base("Recover Wallet")
@@ -46,14 +49,31 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 				}
 				else if (string.IsNullOrWhiteSpace(MnemonicWords))
 				{
-					ValidationMessage = $"Recovery Words were not supplied.";
+					ValidationMessage = "Recovery Words were not supplied.";
+				}
+				else if (string.IsNullOrWhiteSpace(AccountKeyPath))
+				{
+					ValidationMessage = "The account key path is not valid.";
+				}
+				else if (MinGapLimit < KeyManager.AbsoluteMinGapLimit - 1)
+				{
+					ValidationMessage = $"Min Gap Limit cannot be smaller than {KeyManager.AbsoluteMinGapLimit - 1}.";
+				}
+				else if (MinGapLimit > KeyManager.AbsoluteMaxGapLimit)
+				{
+					ValidationMessage = $"Min Gap Limit cannot be larger than {KeyManager.AbsoluteMaxGapLimit}.";
+				}
+				else if (!TryParseKeyPath(AccountKeyPath))
+				{
+					ValidationMessage = "The account key path is not a valid derivation path.";
 				}
 				else
 				{
+					KeyPath keyPath = KeyPath.Parse(AccountKeyPath);
 					try
 					{
 						var mnemonic = new Mnemonic(MnemonicWords);
-						KeyManager.Recover(mnemonic, Password, walletFilePath);
+						KeyManager.Recover(mnemonic, Password, walletFilePath, keyPath, MinGapLimit + 1);
 
 						owner.SelectLoadWallet();
 					}
@@ -131,6 +151,24 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			get => _caretIndex;
 			set => this.RaiseAndSetIfChanged(ref _caretIndex, value);
 		}
+		
+		public bool ShowAdvancedOptions
+		{
+			get => _showAdvancedOptions;
+			set => this.RaiseAndSetIfChanged(ref _showAdvancedOptions, value);
+		}
+
+		public string AccountKeyPath
+		{
+			get => _accountKeyPath;
+			set => this.RaiseAndSetIfChanged(ref _accountKeyPath, value);
+		}
+
+		public int MinGapLimit
+		{
+			get => _minGapLimit;
+			set => this.RaiseAndSetIfChanged(ref _minGapLimit, value);
+		}
 
 		public ReactiveCommand<Unit, Unit> RecoverCommand { get; }
 
@@ -157,6 +195,9 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			MnemonicWords = "";
 			WalletName = Utils.GetNextWalletName();
 			ValidationMessage = null;
+			ShowAdvancedOptions = false;
+			AccountKeyPath = $"m/{KeyManager.DefaultAccountKeyPath}";
+			MinGapLimit = KeyManager.AbsoluteMinGapLimit - 1;
 		}
 
 		private void UpdateSuggestions(string words)
@@ -201,6 +242,19 @@ namespace WalletWasabi.Gui.Tabs.WalletManager
 			CaretIndex = MnemonicWords.Length;
 
 			Suggestions.Clear();
+		}
+
+		private bool TryParseKeyPath(string keyPath)
+		{
+			try
+			{
+				KeyPath.Parse(keyPath);
+				return true;
+			}
+			catch (FormatException)
+			{
+				return false;
+			}
 		}
 
 		private static IEnumerable<string> EnglishWords { get; } = Wordlist.English.GetWords();
