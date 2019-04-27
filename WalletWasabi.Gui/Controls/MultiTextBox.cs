@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
@@ -31,6 +31,12 @@ namespace WalletWasabi.Gui.Controls
 		public static readonly StyledProperty<ReactiveCommand<Unit, Unit>> CopyToClipboardCommandProperty =
 		AvaloniaProperty.Register<MultiTextBox, ReactiveCommand<Unit, Unit>>(nameof(CopyToClipboardCommand), defaultBindingMode: BindingMode.TwoWay);
 
+		public static readonly StyledProperty<bool> PasteOnClickProperty =
+		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(PasteOnClick), defaultBindingMode: BindingMode.TwoWay);
+
+		public static readonly StyledProperty<bool> CopyOnClickProperty =
+		AvaloniaProperty.Register<MultiTextBox, bool>(nameof(CopyOnClick), defaultBindingMode: BindingMode.TwoWay);
+
 		public bool ClipboardNotificationVisible
 		{
 			get => GetValue(ClipboardNotificationVisibleProperty);
@@ -41,6 +47,18 @@ namespace WalletWasabi.Gui.Controls
 		{
 			get => GetValue(ClipboardNotificationOpacityProperty);
 			set => SetValue(ClipboardNotificationOpacityProperty, value);
+		}
+
+		public bool PasteOnClick
+		{
+			get => GetValue(PasteOnClickProperty);
+			set => SetValue(PasteOnClickProperty, value);
+		}
+
+		public bool CopyOnClick
+		{
+			get => GetValue(CopyOnClickProperty);
+			set => SetValue(CopyOnClickProperty, value);
 		}
 
 		public ReactiveCommand<Unit, Unit> CopyToClipboardCommand { get; }
@@ -54,11 +72,11 @@ namespace WalletWasabi.Gui.Controls
 
 			CopyToClipboardCommand = ReactiveCommand.CreateFromTask(async () =>
 			{
-				await TryCopyToClipboardAsync();
+				await CopyToClipboardAsync();
 			});
 		}
 
-		public async Task TryCopyToClipboardAsync()
+		public async Task CopyToClipboardAsync()
 		{
 			try
 			{
@@ -103,6 +121,19 @@ namespace WalletWasabi.Gui.Controls
 			}
 		}
 
+		public async Task PasteFromClipboardAsync()
+		{
+			try
+			{
+				var text = await Application.Current.Clipboard.GetTextAsync();
+				Text = text;
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<MultiTextBox>(ex);
+			}
+		}
+
 		protected override void OnTemplateApplied(TemplateAppliedEventArgs e)
 		{
 			base.OnTemplateApplied(e);
@@ -111,10 +142,29 @@ namespace WalletWasabi.Gui.Controls
 
 			Observable.FromEventPattern(text, nameof(text.PointerPressed))
 				.Merge(Observable.FromEventPattern(border, nameof(text.PointerPressed)))
-				.Subscribe(_ =>
+				.Subscribe(async _ =>
 				{
-					CopyToClipboardCommand.Execute();
+					await OnClickedAsync();
 				}).DisposeWith(Disposables);
+		}
+
+		private async Task OnClickedAsync()
+		{
+			try
+			{
+				if (CopyOnClick)
+				{
+					await CopyToClipboardAsync();
+				}
+				if (PasteOnClick)
+				{
+					await PasteFromClipboardAsync();
+				}
+			}
+			catch (Exception ex)
+			{
+				Logging.Logger.LogWarning<MultiTextBox>(ex);
+			}
 		}
 
 		protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
